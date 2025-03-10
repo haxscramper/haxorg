@@ -90,8 +90,8 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
         || move == SubtreeMove::ForceLevels) {
 
         AST_EDIT_MSG(fmt("Demote subtree {}", node));
-        Func<ImmAstReplace(CR<ImmAdapter>)> aux;
-        aux = [&](CR<ImmAdapter> target) -> ImmAstReplace {
+        Func<Opt<ImmAstReplace>(CR<ImmAdapter>)> aux;
+        aux = [&](CR<ImmAdapter> target) -> Opt<ImmAstReplace> {
             for (auto const& sub : target.sub()) {
                 auto __scope = ctx.debug()->scopeLevel();
                 aux(sub);
@@ -108,7 +108,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
             return update;
         };
 
-        auto update   = aux(node);
+        auto update   = aux(node).value();
         auto parent   = node.getParent();
         auto adjacent = node.getAdjacentNode(-1);
 

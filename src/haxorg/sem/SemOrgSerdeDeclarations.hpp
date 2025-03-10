@@ -13,7 +13,7 @@
         __MAP(kCmdcustomargs, cmdcustomargs, CmdCustomArgs)  \
         __MAP(kCmdcustomraw, cmdcustomraw, CmdCustomRaw)  \
         __MAP(kCmdcustomtext, cmdcustomtext, CmdCustomText)  \
-        __MAP(kCmdresults, cmdresults, CmdResults)  \
+        __MAP(kCmdcall, cmdcall, CmdCall)  \
         __MAP(kCmdtblfm, cmdtblfm, CmdTblfm)  \
         __MAP(kHashtag, hashtag, HashTag)  \
         __MAP(kInlinefootnote, inlinefootnote, InlineFootnote)  \
@@ -51,6 +51,7 @@
         __MAP(kBlockexample, blockexample, BlockExample)  \
         __MAP(kBlockexport, blockexport, BlockExport)  \
         __MAP(kBlockadmonition, blockadmonition, BlockAdmonition)  \
+        __MAP(kBlockcodeevalresult, blockcodeevalresult, BlockCodeEvalResult)  \
         __MAP(kBlockcode, blockcode, BlockCode)  \
         __MAP(kSubtreelog, subtreelog, SubtreeLog)  \
         __MAP(kSubtree, subtree, Subtree)  \
@@ -73,6 +74,69 @@
         __MAP(kDirectory, directory, Directory)  \
         __MAP(kSymlink, symlink, Symlink)  \
         __MAP(kCmdinclude, cmdinclude, CmdInclude)  \
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call> {
+  static void write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in);
+  static void read(::orgproto::LispCode::Call const& out, proto_write_accessor<org::sem::LispCode::Call> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::List, org::sem::LispCode::List> {
+  static void write(::orgproto::LispCode::List* out, org::sem::LispCode::List const& in);
+  static void read(::orgproto::LispCode::List const& out, proto_write_accessor<org::sem::LispCode::List> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::KeyValue, org::sem::LispCode::KeyValue> {
+  static void write(::orgproto::LispCode::KeyValue* out, org::sem::LispCode::KeyValue const& in);
+  static void read(::orgproto::LispCode::KeyValue const& out, proto_write_accessor<org::sem::LispCode::KeyValue> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Number, org::sem::LispCode::Number> {
+  static void write(::orgproto::LispCode::Number* out, org::sem::LispCode::Number const& in);
+  static void read(::orgproto::LispCode::Number const& out, proto_write_accessor<org::sem::LispCode::Number> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Text, org::sem::LispCode::Text> {
+  static void write(::orgproto::LispCode::Text* out, org::sem::LispCode::Text const& in);
+  static void read(::orgproto::LispCode::Text const& out, proto_write_accessor<org::sem::LispCode::Text> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Ident, org::sem::LispCode::Ident> {
+  static void write(::orgproto::LispCode::Ident* out, org::sem::LispCode::Ident const& in);
+  static void read(::orgproto::LispCode::Ident const& out, proto_write_accessor<org::sem::LispCode::Ident> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Boolean, org::sem::LispCode::Boolean> {
+  static void write(::orgproto::LispCode::Boolean* out, org::sem::LispCode::Boolean const& in);
+  static void read(::orgproto::LispCode::Boolean const& out, proto_write_accessor<org::sem::LispCode::Boolean> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Real, org::sem::LispCode::Real> {
+  static void write(::orgproto::LispCode::Real* out, org::sem::LispCode::Real const& in);
+  static void read(::orgproto::LispCode::Real const& out, proto_write_accessor<org::sem::LispCode::Real> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode> {
+  static void write(::orgproto::LispCode* out, org::sem::LispCode const& in);
+  static void read(::orgproto::LispCode const& out, proto_write_accessor<org::sem::LispCode> in);
+};
+
 
 template <>
 struct org::algo::proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Index, org::sem::Tblfm::Expr::AxisRef::Position::Index> {
@@ -183,6 +247,13 @@ template <>
 struct org::algo::proto_serde<::orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference> {
   static void write(::orgproto::AttrValue::FileReference* out, org::sem::AttrValue::FileReference const& in);
   static void read(::orgproto::AttrValue::FileReference const& out, proto_write_accessor<org::sem::AttrValue::FileReference> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::AttrValue::LispValue, org::sem::AttrValue::LispValue> {
+  static void write(::orgproto::AttrValue::LispValue* out, org::sem::AttrValue::LispValue const& in);
+  static void read(::orgproto::AttrValue::LispValue const& out, proto_write_accessor<org::sem::AttrValue::LispValue> in);
 };
 
 
@@ -383,6 +454,27 @@ struct org::algo::proto_serde<::orgproto::AttrGroup, org::sem::AttrGroup> {
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::OrgCodeEvalInput::Var, org::sem::OrgCodeEvalInput::Var> {
+  static void write(::orgproto::OrgCodeEvalInput::Var* out, org::sem::OrgCodeEvalInput::Var const& in);
+  static void read(::orgproto::OrgCodeEvalInput::Var const& out, proto_write_accessor<org::sem::OrgCodeEvalInput::Var> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalInput> {
+  static void write(::orgproto::OrgCodeEvalInput* out, org::sem::OrgCodeEvalInput const& in);
+  static void read(::orgproto::OrgCodeEvalInput const& out, proto_write_accessor<org::sem::OrgCodeEvalInput> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput> {
+  static void write(::orgproto::OrgCodeEvalOutput* out, org::sem::OrgCodeEvalOutput const& in);
+  static void read(::orgproto::OrgCodeEvalOutput const& out, proto_write_accessor<org::sem::OrgCodeEvalOutput> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, org::sem::ColumnView::Summary::CheckboxAggregate> {
   static void write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, org::sem::ColumnView::Summary::CheckboxAggregate const& in);
   static void read(::orgproto::ColumnView::Summary::CheckboxAggregate const& out, proto_write_accessor<org::sem::ColumnView::Summary::CheckboxAggregate> in);
@@ -449,83 +541,6 @@ template <>
 struct org::algo::proto_serde<::orgproto::BlockCodeLine, org::sem::BlockCodeLine> {
   static void write(::orgproto::BlockCodeLine* out, org::sem::BlockCodeLine const& in);
   static void read(::orgproto::BlockCodeLine const& out, proto_write_accessor<org::sem::BlockCodeLine> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeSwitch::LineStart, org::sem::BlockCodeSwitch::LineStart> {
-  static void write(::orgproto::BlockCodeSwitch::LineStart* out, org::sem::BlockCodeSwitch::LineStart const& in);
-  static void read(::orgproto::BlockCodeSwitch::LineStart const& out, proto_write_accessor<org::sem::BlockCodeSwitch::LineStart> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeSwitch::CalloutFormat, org::sem::BlockCodeSwitch::CalloutFormat> {
-  static void write(::orgproto::BlockCodeSwitch::CalloutFormat* out, org::sem::BlockCodeSwitch::CalloutFormat const& in);
-  static void read(::orgproto::BlockCodeSwitch::CalloutFormat const& out, proto_write_accessor<org::sem::BlockCodeSwitch::CalloutFormat> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeSwitch::RemoveCallout, org::sem::BlockCodeSwitch::RemoveCallout> {
-  static void write(::orgproto::BlockCodeSwitch::RemoveCallout* out, org::sem::BlockCodeSwitch::RemoveCallout const& in);
-  static void read(::orgproto::BlockCodeSwitch::RemoveCallout const& out, proto_write_accessor<org::sem::BlockCodeSwitch::RemoveCallout> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeSwitch::EmphasizeLine, org::sem::BlockCodeSwitch::EmphasizeLine> {
-  static void write(::orgproto::BlockCodeSwitch::EmphasizeLine* out, org::sem::BlockCodeSwitch::EmphasizeLine const& in);
-  static void read(::orgproto::BlockCodeSwitch::EmphasizeLine const& out, proto_write_accessor<org::sem::BlockCodeSwitch::EmphasizeLine> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeSwitch::Dedent, org::sem::BlockCodeSwitch::Dedent> {
-  static void write(::orgproto::BlockCodeSwitch::Dedent* out, org::sem::BlockCodeSwitch::Dedent const& in);
-  static void read(::orgproto::BlockCodeSwitch::Dedent const& out, proto_write_accessor<org::sem::BlockCodeSwitch::Dedent> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeSwitch, org::sem::BlockCodeSwitch> {
-  static void write(::orgproto::BlockCodeSwitch* out, org::sem::BlockCodeSwitch const& in);
-  static void read(::orgproto::BlockCodeSwitch const& out, proto_write_accessor<org::sem::BlockCodeSwitch> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult::None, org::sem::BlockCodeEvalResult::None> {
-  static void write(::orgproto::BlockCodeEvalResult::None* out, org::sem::BlockCodeEvalResult::None const& in);
-  static void read(::orgproto::BlockCodeEvalResult::None const& out, proto_write_accessor<org::sem::BlockCodeEvalResult::None> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult::OrgValue, org::sem::BlockCodeEvalResult::OrgValue> {
-  static void write(::orgproto::BlockCodeEvalResult::OrgValue* out, org::sem::BlockCodeEvalResult::OrgValue const& in);
-  static void read(::orgproto::BlockCodeEvalResult::OrgValue const& out, proto_write_accessor<org::sem::BlockCodeEvalResult::OrgValue> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult::File, org::sem::BlockCodeEvalResult::File> {
-  static void write(::orgproto::BlockCodeEvalResult::File* out, org::sem::BlockCodeEvalResult::File const& in);
-  static void read(::orgproto::BlockCodeEvalResult::File const& out, proto_write_accessor<org::sem::BlockCodeEvalResult::File> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult::Raw, org::sem::BlockCodeEvalResult::Raw> {
-  static void write(::orgproto::BlockCodeEvalResult::Raw* out, org::sem::BlockCodeEvalResult::Raw const& in);
-  static void read(::orgproto::BlockCodeEvalResult::Raw const& out, proto_write_accessor<org::sem::BlockCodeEvalResult::Raw> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCodeEvalResult> {
-  static void write(::orgproto::BlockCodeEvalResult* out, org::sem::BlockCodeEvalResult const& in);
-  static void read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<org::sem::BlockCodeEvalResult> in);
 };
 
 
@@ -831,9 +846,9 @@ struct org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::CmdCustomText
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdResults, org::sem::CmdResults> {
-  static void write(::orgproto::CmdResults* out, org::sem::CmdResults const& in);
-  static void read(::orgproto::CmdResults const& out, proto_write_accessor<org::sem::CmdResults> in);
+struct org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall> {
+  static void write(::orgproto::CmdCall* out, org::sem::CmdCall const& in);
+  static void read(::orgproto::CmdCall const& out, proto_write_accessor<org::sem::CmdCall> in);
 };
 
 
@@ -1121,6 +1136,13 @@ template <>
 struct org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::BlockAdmonition> {
   static void write(::orgproto::BlockAdmonition* out, org::sem::BlockAdmonition const& in);
   static void read(::orgproto::BlockAdmonition const& out, proto_write_accessor<org::sem::BlockAdmonition> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCodeEvalResult> {
+  static void write(::orgproto::BlockCodeEvalResult* out, org::sem::BlockCodeEvalResult const& in);
+  static void read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<org::sem::BlockCodeEvalResult> in);
 };
 
 

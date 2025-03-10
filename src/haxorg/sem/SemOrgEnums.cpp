@@ -219,6 +219,8 @@ hstd::Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string va
   if (value == "Footnote") { return OrgNodeKind::Footnote; } else
   if (value == "Cmd") { return OrgNodeKind::Cmd; } else
   if (value == "Attrs") { return OrgNodeKind::Attrs; } else
+  if (value == "AttrValue") { return OrgNodeKind::AttrValue; } else
+  if (value == "AttrLisp") { return OrgNodeKind::AttrLisp; } else
   if (value == "CmdTitle") { return OrgNodeKind::CmdTitle; } else
   if (value == "CmdAuthor") { return OrgNodeKind::CmdAuthor; } else
   if (value == "CmdCreator") { return OrgNodeKind::CmdCreator; } else
@@ -238,9 +240,6 @@ hstd::Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string va
   if (value == "CmdResult") { return OrgNodeKind::CmdResult; } else
   if (value == "CmdCallCode") { return OrgNodeKind::CmdCallCode; } else
   if (value == "CmdFlag") { return OrgNodeKind::CmdFlag; } else
-  if (value == "CmdKey") { return OrgNodeKind::CmdKey; } else
-  if (value == "CmdValue") { return OrgNodeKind::CmdValue; } else
-  if (value == "CmdNamedValue") { return OrgNodeKind::CmdNamedValue; } else
   if (value == "CmdLatexClass") { return OrgNodeKind::CmdLatexClass; } else
   if (value == "CmdLatexHeader") { return OrgNodeKind::CmdLatexHeader; } else
   if (value == "CmdLatexCompiler") { return OrgNodeKind::CmdLatexCompiler; } else
@@ -345,6 +344,8 @@ std::string hstd::enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::Footnote: return "Footnote";
     case OrgNodeKind::Cmd: return "Cmd";
     case OrgNodeKind::Attrs: return "Attrs";
+    case OrgNodeKind::AttrValue: return "AttrValue";
+    case OrgNodeKind::AttrLisp: return "AttrLisp";
     case OrgNodeKind::CmdTitle: return "CmdTitle";
     case OrgNodeKind::CmdAuthor: return "CmdAuthor";
     case OrgNodeKind::CmdCreator: return "CmdCreator";
@@ -364,9 +365,6 @@ std::string hstd::enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CmdResult: return "CmdResult";
     case OrgNodeKind::CmdCallCode: return "CmdCallCode";
     case OrgNodeKind::CmdFlag: return "CmdFlag";
-    case OrgNodeKind::CmdKey: return "CmdKey";
-    case OrgNodeKind::CmdValue: return "CmdValue";
-    case OrgNodeKind::CmdNamedValue: return "CmdNamedValue";
     case OrgNodeKind::CmdLatexClass: return "CmdLatexClass";
     case OrgNodeKind::CmdLatexHeader: return "CmdLatexHeader";
     case OrgNodeKind::CmdLatexCompiler: return "CmdLatexCompiler";
@@ -484,7 +482,7 @@ hstd::Opt<OrgSemKind> hstd::enum_serde<OrgSemKind>::from_string(std::string valu
   if (value == "CmdCustomArgs") { return OrgSemKind::CmdCustomArgs; } else
   if (value == "CmdCustomRaw") { return OrgSemKind::CmdCustomRaw; } else
   if (value == "CmdCustomText") { return OrgSemKind::CmdCustomText; } else
-  if (value == "CmdResults") { return OrgSemKind::CmdResults; } else
+  if (value == "CmdCall") { return OrgSemKind::CmdCall; } else
   if (value == "CmdTblfm") { return OrgSemKind::CmdTblfm; } else
   if (value == "HashTag") { return OrgSemKind::HashTag; } else
   if (value == "InlineFootnote") { return OrgSemKind::InlineFootnote; } else
@@ -522,6 +520,7 @@ hstd::Opt<OrgSemKind> hstd::enum_serde<OrgSemKind>::from_string(std::string valu
   if (value == "BlockExample") { return OrgSemKind::BlockExample; } else
   if (value == "BlockExport") { return OrgSemKind::BlockExport; } else
   if (value == "BlockAdmonition") { return OrgSemKind::BlockAdmonition; } else
+  if (value == "BlockCodeEvalResult") { return OrgSemKind::BlockCodeEvalResult; } else
   if (value == "BlockCode") { return OrgSemKind::BlockCode; } else
   if (value == "SubtreeLog") { return OrgSemKind::SubtreeLog; } else
   if (value == "Subtree") { return OrgSemKind::Subtree; } else
@@ -559,7 +558,7 @@ std::string hstd::enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CmdCustomArgs: return "CmdCustomArgs";
     case OrgSemKind::CmdCustomRaw: return "CmdCustomRaw";
     case OrgSemKind::CmdCustomText: return "CmdCustomText";
-    case OrgSemKind::CmdResults: return "CmdResults";
+    case OrgSemKind::CmdCall: return "CmdCall";
     case OrgSemKind::CmdTblfm: return "CmdTblfm";
     case OrgSemKind::HashTag: return "HashTag";
     case OrgSemKind::InlineFootnote: return "InlineFootnote";
@@ -597,6 +596,7 @@ std::string hstd::enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::BlockExample: return "BlockExample";
     case OrgSemKind::BlockExport: return "BlockExport";
     case OrgSemKind::BlockAdmonition: return "BlockAdmonition";
+    case OrgSemKind::BlockCodeEvalResult: return "BlockCodeEvalResult";
     case OrgSemKind::BlockCode: return "BlockCode";
     case OrgSemKind::SubtreeLog: return "SubtreeLog";
     case OrgSemKind::Subtree: return "Subtree";

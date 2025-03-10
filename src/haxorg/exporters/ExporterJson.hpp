@@ -86,6 +86,11 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     bool skipNullFields = false;
 
     virtual void visitDispatchHook(json&, sem::SemId<sem::Org>) {}
+
+    static json toJson(sem::SemId<sem::Org> node) {
+        ExporterJson exp{};
+        return exp.eval(node);
+    }
 };
 
 extern template class Exporter<ExporterJson, json>;

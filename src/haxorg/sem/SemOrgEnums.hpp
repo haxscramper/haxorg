@@ -4,6 +4,14 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
+    __IMPL(LispCode, Call, (Call)) \
+    __IMPL(LispCode, List, (List)) \
+    __IMPL(LispCode, KeyValue, (KeyValue)) \
+    __IMPL(LispCode, Number, (Number)) \
+    __IMPL(LispCode, Text, (Text)) \
+    __IMPL(LispCode, Ident, (Ident)) \
+    __IMPL(LispCode, Boolean, (Boolean)) \
+    __IMPL(LispCode, Real, (Real)) \
     __IMPL(Tblfm, Expr, (Expr)) \
     __IMPL(Tblfm, Expr::AxisRef, (Expr, AxisRef)) \
     __IMPL(Tblfm, Expr::AxisRef::Position, (Expr, AxisRef, Position)) \
@@ -19,6 +27,7 @@
     __IMPL(AttrValue, DimensionSpan, (DimensionSpan)) \
     __IMPL(AttrValue, TextValue, (TextValue)) \
     __IMPL(AttrValue, FileReference, (FileReference)) \
+    __IMPL(AttrValue, LispValue, (LispValue)) \
     __IMPL(LinkTarget, Raw, (Raw)) \
     __IMPL(LinkTarget, Id, (Id)) \
     __IMPL(LinkTarget, CustomId, (CustomId)) \
@@ -38,6 +47,7 @@
     __IMPL(SubtreeLogHead, Schedule, (Schedule)) \
     __IMPL(SubtreeLogHead, Tag, (Tag)) \
     __IMPL(SubtreeLogHead, Unknown, (Unknown)) \
+    __IMPL(OrgCodeEvalInput, Var, (Var)) \
     __IMPL(ColumnView, Summary, (Summary)) \
     __IMPL(ColumnView, Summary::CheckboxAggregate, (Summary, CheckboxAggregate)) \
     __IMPL(ColumnView, Summary::MathAggregate, (Summary, MathAggregate)) \
@@ -46,15 +56,6 @@
     __IMPL(BlockCodeLine, Part::Raw, (Part, Raw)) \
     __IMPL(BlockCodeLine, Part::Callout, (Part, Callout)) \
     __IMPL(BlockCodeLine, Part::Tangle, (Part, Tangle)) \
-    __IMPL(BlockCodeSwitch, LineStart, (LineStart)) \
-    __IMPL(BlockCodeSwitch, CalloutFormat, (CalloutFormat)) \
-    __IMPL(BlockCodeSwitch, RemoveCallout, (RemoveCallout)) \
-    __IMPL(BlockCodeSwitch, EmphasizeLine, (EmphasizeLine)) \
-    __IMPL(BlockCodeSwitch, Dedent, (Dedent)) \
-    __IMPL(BlockCodeEvalResult, None, (None)) \
-    __IMPL(BlockCodeEvalResult, OrgValue, (OrgValue)) \
-    __IMPL(BlockCodeEvalResult, File, (File)) \
-    __IMPL(BlockCodeEvalResult, Raw, (Raw)) \
     __IMPL(DocumentExportConfig, TaskExport, (TaskExport)) \
     __IMPL(DocumentExportConfig, DoExport, (DoExport)) \
     __IMPL(DocumentExportConfig, ExportFixed, (ExportFixed)) \
@@ -85,6 +86,7 @@
     __IMPL(NamedProperty, CustomSubtreeJson, (CustomSubtreeJson)) \
     __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
+    __IMPL(LispCode, Kind, (Kind)) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
@@ -93,12 +95,13 @@
     __IMPL(LinkTarget, Kind, (Kind)) \
     __IMPL(SubtreeLogHead, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLogHead, Kind, (Kind)) \
+    __IMPL(OrgCodeEvalInput, ResultType, (ResultType)) \
+    __IMPL(OrgCodeEvalInput, ResultFormat, (ResultFormat)) \
+    __IMPL(OrgCodeEvalInput, ResultHandling, (ResultHandling)) \
     __IMPL(ColumnView, Summary::CheckboxAggregate::Kind, (Summary, CheckboxAggregate, Kind)) \
     __IMPL(ColumnView, Summary::MathAggregate::Kind, (Summary, MathAggregate, Kind)) \
     __IMPL(ColumnView, Summary::Kind, (Summary, Kind)) \
     __IMPL(BlockCodeLine, Part::Kind, (Part, Kind)) \
-    __IMPL(BlockCodeSwitch, Kind, (Kind)) \
-    __IMPL(BlockCodeEvalResult, Kind, (Kind)) \
     __IMPL(DocumentExportConfig, TagExport, (TagExport)) \
     __IMPL(DocumentExportConfig, TaskFiltering, (TaskFiltering)) \
     __IMPL(DocumentExportConfig, BrokenLinks, (BrokenLinks)) \
@@ -108,6 +111,15 @@
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(LispCode, (LispCode)) \
+    __IMPL(LispCode::Call, (LispCode, Call)) \
+    __IMPL(LispCode::List, (LispCode, List)) \
+    __IMPL(LispCode::KeyValue, (LispCode, KeyValue)) \
+    __IMPL(LispCode::Number, (LispCode, Number)) \
+    __IMPL(LispCode::Text, (LispCode, Text)) \
+    __IMPL(LispCode::Ident, (LispCode, Ident)) \
+    __IMPL(LispCode::Boolean, (LispCode, Boolean)) \
+    __IMPL(LispCode::Real, (LispCode, Real)) \
     __IMPL(Tblfm, (Tblfm)) \
     __IMPL(Tblfm::Expr, (Tblfm, Expr)) \
     __IMPL(Tblfm::Expr::AxisRef, (Tblfm, Expr, AxisRef)) \
@@ -125,6 +137,7 @@
     __IMPL(AttrValue::DimensionSpan, (AttrValue, DimensionSpan)) \
     __IMPL(AttrValue::TextValue, (AttrValue, TextValue)) \
     __IMPL(AttrValue::FileReference, (AttrValue, FileReference)) \
+    __IMPL(AttrValue::LispValue, (AttrValue, LispValue)) \
     __IMPL(HashTagFlat, (HashTagFlat)) \
     __IMPL(HashTagText, (HashTagText)) \
     __IMPL(SubtreePath, (SubtreePath)) \
@@ -152,6 +165,9 @@
     __IMPL(SubtreeCompletion, (SubtreeCompletion)) \
     __IMPL(AttrList, (AttrList)) \
     __IMPL(AttrGroup, (AttrGroup)) \
+    __IMPL(OrgCodeEvalInput, (OrgCodeEvalInput)) \
+    __IMPL(OrgCodeEvalInput::Var, (OrgCodeEvalInput, Var)) \
+    __IMPL(OrgCodeEvalOutput, (OrgCodeEvalOutput)) \
     __IMPL(ColumnView, (ColumnView)) \
     __IMPL(ColumnView::Summary, (ColumnView, Summary)) \
     __IMPL(ColumnView::Summary::CheckboxAggregate, (ColumnView, Summary, CheckboxAggregate)) \
@@ -162,17 +178,6 @@
     __IMPL(BlockCodeLine::Part::Raw, (BlockCodeLine, Part, Raw)) \
     __IMPL(BlockCodeLine::Part::Callout, (BlockCodeLine, Part, Callout)) \
     __IMPL(BlockCodeLine::Part::Tangle, (BlockCodeLine, Part, Tangle)) \
-    __IMPL(BlockCodeSwitch, (BlockCodeSwitch)) \
-    __IMPL(BlockCodeSwitch::LineStart, (BlockCodeSwitch, LineStart)) \
-    __IMPL(BlockCodeSwitch::CalloutFormat, (BlockCodeSwitch, CalloutFormat)) \
-    __IMPL(BlockCodeSwitch::RemoveCallout, (BlockCodeSwitch, RemoveCallout)) \
-    __IMPL(BlockCodeSwitch::EmphasizeLine, (BlockCodeSwitch, EmphasizeLine)) \
-    __IMPL(BlockCodeSwitch::Dedent, (BlockCodeSwitch, Dedent)) \
-    __IMPL(BlockCodeEvalResult, (BlockCodeEvalResult)) \
-    __IMPL(BlockCodeEvalResult::None, (BlockCodeEvalResult, None)) \
-    __IMPL(BlockCodeEvalResult::OrgValue, (BlockCodeEvalResult, OrgValue)) \
-    __IMPL(BlockCodeEvalResult::File, (BlockCodeEvalResult, File)) \
-    __IMPL(BlockCodeEvalResult::Raw, (BlockCodeEvalResult, Raw)) \
     __IMPL(DocumentExportConfig, (DocumentExportConfig)) \
     __IMPL(DocumentExportConfig::TaskExport, (DocumentExportConfig, TaskExport)) \
     __IMPL(DocumentExportConfig::DoExport, (DocumentExportConfig, DoExport)) \
@@ -245,7 +250,7 @@
     __IMPL(CmdCustomArgs, (CmdCustomArgs)) \
     __IMPL(CmdCustomRaw, (CmdCustomRaw)) \
     __IMPL(CmdCustomText, (CmdCustomText)) \
-    __IMPL(CmdResults, (CmdResults)) \
+    __IMPL(CmdCall, (CmdCall)) \
     __IMPL(CmdTblfm, (CmdTblfm)) \
     __IMPL(HashTag, (HashTag)) \
     __IMPL(InlineFootnote, (InlineFootnote)) \
@@ -288,6 +293,7 @@
     __IMPL(BlockExample, (BlockExample)) \
     __IMPL(BlockExport, (BlockExport)) \
     __IMPL(BlockAdmonition, (BlockAdmonition)) \
+    __IMPL(BlockCodeEvalResult, (BlockCodeEvalResult)) \
     __IMPL(BlockCode, (BlockCode)) \
     __IMPL(SubtreeLog, (SubtreeLog)) \
     __IMPL(Subtree, (Subtree)) \
@@ -331,7 +337,7 @@
     __IMPL(CmdCustomArgs) \
     __IMPL(CmdCustomRaw) \
     __IMPL(CmdCustomText) \
-    __IMPL(CmdResults) \
+    __IMPL(CmdCall) \
     __IMPL(CmdTblfm) \
     __IMPL(HashTag) \
     __IMPL(InlineFootnote) \
@@ -369,6 +375,7 @@
     __IMPL(BlockExample) \
     __IMPL(BlockExport) \
     __IMPL(BlockAdmonition) \
+    __IMPL(BlockCodeEvalResult) \
     __IMPL(BlockCode) \
     __IMPL(SubtreeLog) \
     __IMPL(Subtree) \
@@ -403,7 +410,7 @@
     __IMPL(CmdCustomArgs, Cmd) \
     __IMPL(CmdCustomRaw, Stmt) \
     __IMPL(CmdCustomText, Stmt) \
-    __IMPL(CmdResults, Attached) \
+    __IMPL(CmdCall, Attached) \
     __IMPL(CmdTblfm, Cmd) \
     __IMPL(HashTag, Inline) \
     __IMPL(InlineFootnote, Inline) \
@@ -441,6 +448,7 @@
     __IMPL(BlockExample, Block) \
     __IMPL(BlockExport, Block) \
     __IMPL(BlockAdmonition, Block) \
+    __IMPL(BlockCodeEvalResult, Block) \
     __IMPL(BlockCode, Block) \
     __IMPL(SubtreeLog, Org) \
     __IMPL(Subtree, Org) \
@@ -482,7 +490,7 @@
     __IMPL(CmdCustomArgs, Cmd) \
     __IMPL(CmdCustomRaw, Stmt) \
     __IMPL(CmdCustomText, Stmt) \
-    __IMPL(CmdResults, Attached) \
+    __IMPL(CmdCall, Attached) \
     __IMPL(CmdTblfm, Cmd) \
     __IMPL(HashTag, Inline) \
     __IMPL(InlineFootnote, Inline) \
@@ -521,6 +529,7 @@
     __IMPL(BlockExample, Block) \
     __IMPL(BlockExport, Block) \
     __IMPL(BlockAdmonition, Block) \
+    __IMPL(BlockCodeEvalResult, Block) \
     __IMPL(BlockCode, Block) \
     __IMPL(SubtreeLog, Org) \
     __IMPL(Subtree, Org) \
@@ -666,6 +675,10 @@ enum class OrgNodeKind : short int {
   Cmd,
   /// \brief Arguments for the command block
   Attrs,
+  /// \brief :key name=value syntax
+  AttrValue,
+  /// \brief S-expression as an attribute value value
+  AttrLisp,
   /// \brief `#+title:` - full document title
   CmdTitle,
   /// \brief `#+author:` Document author
@@ -703,10 +716,6 @@ enum class OrgNodeKind : short int {
   CmdCallCode,
   /// \brief Flag for source code block. For example `-n`, which is used to to make source code block export with lines
   CmdFlag,
-  CmdKey,
-  CmdValue,
-  /// \brief Key-value pair for source code block call.
-  CmdNamedValue,
   CmdLatexClass,
   CmdLatexHeader,
   CmdLatexCompiler,
@@ -872,7 +881,7 @@ struct hstd::value_domain<OrgJsonKind> : public value_domain_ungapped<OrgJsonKin
                                                                       OrgJsonKind::Null,
                                                                       OrgJsonKind::Float> {};
 
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 template <>
 struct hstd::enum_serde<OrgSemKind> {
   static hstd::Opt<OrgSemKind> from_string(std::string value);

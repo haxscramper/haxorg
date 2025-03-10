@@ -343,6 +343,30 @@ rules:
   #endregion
 
   #region Command-parameters
+  - lit: "("
+    token: ParBegin
+    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
+    
+  - lit: ")"
+    token: ParEnd
+    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
+    
+  - re: "\\["
+    token: BraceBegin
+    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
+    
+  - re: "\\]"
+    token: BraceEnd
+    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
+    
+  - lit: "="
+    token: Equals
+    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
+    
+  - lit: ","
+    token: Comma
+    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
+
   - re: ":(\\w|-)+"
     states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
     token: CmdColonIdent
@@ -351,7 +375,7 @@ rules:
     states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
     token: Whitespace
 
-  - re: "[\\H--[\\n]]+"
+  - re: "[\\H--[\\n\\[\\]\\(\\)=,]]+"
     states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
     token: CmdRawArg
   #endregion
@@ -518,11 +542,6 @@ rules:
     token: CmdPropertyText
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
-  - re: "call{prop_colon}"
-    states: [COMMAND]
-    token: CmdCall
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
   - re: "title{prop_colon}"
     states: [COMMAND]
     token: CmdTitle
@@ -585,6 +604,11 @@ rules:
   - re: "include{prop_colon}"
     states: [COMMAND]
     token: CmdInclude
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "call{prop_colon}"
+    states: [COMMAND]
+    token: CmdCall
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "row{prop_colon}"

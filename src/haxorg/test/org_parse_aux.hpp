@@ -70,8 +70,10 @@ struct MockFull {
 
     sem::SemId<sem::Org> toNode() {
         sem::OrgConverter converter{};
-        return converter.toDocument(
-            org::parse::OrgAdapter(&nodes, org::parse::OrgId(0)));
+        return converter
+            .convertDocument(
+                org::parse::OrgAdapter(&nodes, org::parse::OrgId(0)))
+            .unwrap();
     }
 
 

@@ -245,10 +245,10 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
 
 
 @beartype
-def d_simple_enum(name: QualType, doc: GenTuDoc, *args):
+def d_simple_enum(name: QualType, doc: AnyDoc, *args):
     return GenTuEnum(
         name,
-        doc,
+        org_doc(doc),
         fields=[
             GenTuEnumField(arg, GenTuDoc("")) if isinstance(arg, str) else arg
             for arg in args
@@ -622,7 +622,7 @@ def get_sem_bases():
             bases=[t_nest(t_org("Stmt"))],
             concreteKind=False,
             fields=[
-                opt_field(
+                org_field(
                     t_nest_shared("AttrGroup"),
                     "attrs",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
@@ -739,9 +739,30 @@ def get_sem_commands():
             ],
         ),
         d_org(
-            "CmdResults",
+            "CmdCall",
             GenTuDoc(""),
             bases=[t_nest(t_org("Attached"))],
+            fields=[
+                str_field("name", "Code block call name"),
+                opt_field(t_str(), "fileName", "Which file code block should come from"),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "insideHeaderAttrs",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "callAttrs",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "endHeaderAttrs",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+                vec_field(t_id("BlockCodeEvalResult"), "result",
+                          "Code evaluation results"),
+            ],
         ),
         d_org("CmdTblfm",
               GenTuDoc("Tblfm command type"),
@@ -801,6 +822,13 @@ def get_sem_block():
             GenTuDoc("Block of text with admonition tag: 'note',', 'warning','"),
             bases=[t_nest(t_org("Block"))],
         ),
+        d_org("BlockCodeEvalResult",
+              org_doc("Parsed results of code block evaluation"),
+              bases=[t_nest(t_org("Block"))],
+              fields=[
+                  org_field(t_vec(t_nest_shared("OrgCodeEvalOutput")), "raw"),
+                  id_field("Org", "node"),
+              ]),
         d_org(
             "BlockCode",
             GenTuDoc("Base class for all code blocks"),
@@ -814,35 +842,33 @@ def get_sem_block():
                 ),
             ],
             fields=[
-                GenTuField(
+                org_field(
                     t_opt(t_str()),
                     "lang",
-                    GenTuDoc("Code block language name"),
+                    "Code block language name",
                     value="std::nullopt",
                 ),
-                GenTuField(
-                    t_vec(t_nest_shared("BlockCodeSwitch", [])),
-                    "switches",
-                    GenTuDoc("Switch options for block"),
-                    value="{}",
-                ),
-                GenTuField(t("BlockCodeExports"),
-                           "exports",
-                           GenTuDoc("What to export"),
-                           value="BlockCodeExports::Both"),
-                opt_field(t_nest_shared("BlockCodeEvalResult", []), "result",
-                          GenTuDoc("Code evaluation results")),
+                org_field(t("BlockCodeExports"),
+                          "exports",
+                          "What to export",
+                          value="BlockCodeExports::Both"),
+                vec_field(t_id("BlockCodeEvalResult"), "result",
+                          "Code evaluation results"),
                 vec_field(t_nest_shared("BlockCodeLine",), "lines",
-                          GenTuDoc("Collected code lines")),
-                GenTuField(t_bool(), "cache", GenTuDoc("Do cache values?"),
-                           value="false"),
-                GenTuField(t_bool(), "eval", GenTuDoc("Eval on export?"), value="false"),
-                GenTuField(t_bool(),
-                           "noweb",
-                           GenTuDoc("Web-tangle code on export/run"),
-                           value="false"),
-                GenTuField(t_bool(), "hlines", GenTuDoc("?"), value="false"),
-                GenTuField(t_bool(), "tangle", GenTuDoc("?"), value="false"),
+                          "Collected code lines"),
+                org_field(t_bool(), "cache", "Do cache values?", value="false"),
+                org_field(t_bool(), "eval", "Eval on export?", value="false"),
+                org_field(t_bool(),
+                          "noweb",
+                          "Web-tangle code on export/run",
+                          value="false"),
+                org_field(t_bool(), "hlines", "?", value="false"),
+                org_field(t_bool(), "tangle", "?", value="false"),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "switches",
+                    "Dash-based switches for code block execution",
+                ),
             ],
         ),
     ]
@@ -1333,6 +1359,103 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
     )
 
     return [
+        org_struct(
+            t_nest_shared("LispCode"),
+            methods=[
+                eq_method(t_nest_shared("LispCode")),
+                default_constructor_method("LispCode"),
+            ],
+            nested=[
+                GenTuTypeGroup(
+                    [
+                        org_struct(
+                            t_nest_shared("Call", [t("LispCode")]),
+                            fields=[
+                                str_field("name"),
+                                vec_field(t_nest_shared("LispCode"), "args"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Call", [t("LispCode")])),
+                                default_constructor_method("Call"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("List", [t("LispCode")]),
+                            fields=[
+                                vec_field(t_nest_shared("LispCode"), "items"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("List", [t("LispCode")])),
+                                default_constructor_method("List"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("KeyValue", [t("LispCode")]),
+                            fields=[
+                                str_field("name"),
+                                vec_field(t_nest_shared("LispCode"), "value")
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("KeyValue", [t("LispCode")])),
+                                default_constructor_method("KeyValue"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Number", [t("LispCode")]),
+                            fields=[
+                                int_field("value"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Number", [t("LispCode")])),
+                                default_constructor_method("Number"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Text", [t("LispCode")]),
+                            fields=[
+                                str_field("value"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Text", [t("LispCode")])),
+                                default_constructor_method("Text"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Ident", [t("LispCode")]),
+                            fields=[
+                                str_field("name"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Ident", [t("LispCode")])),
+                                default_constructor_method("Ident"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Boolean", [t("LispCode")]),
+                            fields=[
+                                bool_field("value"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Boolean", [t("LispCode")])),
+                                default_constructor_method("Boolean"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Real", [t("LispCode")]),
+                            fields=[
+                                org_field(t("float"), "value"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Real", [t("LispCode")])),
+                                default_constructor_method("Real"),
+                            ],
+                        ),
+                    ],
+                    enumName=t_nest_shared("Kind", [t("LispCode")]),
+                    variantName=t_nest_shared("Data", [t("LispCode")]),
+                )
+            ],
+        ),
         GenTuStruct(
             t_nest_shared("Tblfm"),
             fields=[
@@ -1340,7 +1463,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
             nested=[
                 GenTuStruct(
-                    t_nest_shared("Expr", [t("Tblfm")]),
+                    t_nest_shared("Expr",
+                                  [t("Tblfm")]),
                     nested=[
                         GenTuTypeGroup(
                             [
@@ -1522,6 +1646,16 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 default_constructor_method("FileReference"),
                                 eq_method(t_nest_shared("FileReference",
                                                         [t("AttrValue")])),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("LispValue", [t("AttrValue")]),
+                            fields=[
+                                org_field(t_nest_shared("LispCode"), "code"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("LispValue", [t("AttrValue")])),
+                                default_constructor_method("LispValue"),
                             ],
                         ),
                     ],
@@ -1967,6 +2101,11 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     isConst=True,
                 ),
                 GenTuFunction(
+                    t_nest_shared("AttrList"),
+                    "getAll",
+                    isConst=True,
+                ),
+                GenTuFunction(
                     t_cr(t_nest_shared("AttrValue")),
                     "atPositional",
                     arguments=[GenTuIdent(t_int(), "index")],
@@ -2002,9 +2141,145 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     arguments=[GenTuIdent(t_cr(t_str()), "index")],
                     isConst=True,
                 ),
+                GenTuFunction(
+                    t_nest_shared("AttrList"),
+                    "atVarNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrList")),
+                    "getVarNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_nest_shared("AttrValue"),
+                    "atFirstVarNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrValue")),
+                    "getFirstVarNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
                 eq_method(t_nest_shared("AttrGroup")),
             ],
         ),
+        org_struct(
+            t_nest_shared("OrgCodeEvalInput"),
+            methods=[
+                eq_method(t_nest_shared("OrgCodeEvalInput")),
+            ],
+            fields=[
+                org_field(t_nest_shared("AttrGroup"), "blockAttrs"),
+                org_field(t_str(), "tangledCode"),
+                opt_field(t_str(), "exportType"),
+                org_field(
+                    t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
+                    "resultType",
+                    value="ResultType::None",
+                ),
+                org_field(
+                    t_nest_shared("ResultFormat", [t("OrgCodeEvalInput")]),
+                    "resultFormat",
+                    value="ResultFormat::None",
+                ),
+                org_field(
+                    t_nest_shared("ResultHandling", [t("OrgCodeEvalInput")]),
+                    "resultHandling",
+                    value="ResultHandling::None",
+                ),
+                str_field("language"),
+                vec_field(t_nest_shared("Var", [t("OrgCodeEvalInput")]), "argList"),
+            ],
+            nested=[
+                org_struct(t_nest_shared("Var", [t("OrgCodeEvalInput")]),
+                           fields=[
+                               str_field("name"),
+                               org_field(t_nest_shared("OrgJson"), "value"),
+                           ],
+                           methods=[
+                               eq_method(t_nest_shared("Var", [t("OrgCodeEvalInput")])),
+                               default_constructor_method("Var"),
+                           ]),
+                d_simple_enum(
+                    t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
+                    "What context to use for results",
+                    efield("None"),
+                    efield(
+                        "Table",
+                        "Interpret the results as an Org table. If the result is a single value, create a table with one row and one column."
+                    ),
+                    efield(
+                        "List",
+                        "Interpret the results as an Org list. If the result is a single value, create a list of one element."
+                    ),
+                    efield(
+                        "Scalar",
+                        "Interpret literally and insert as quoted text. Do not create a table."
+                    ),
+                    efield(
+                        "SaveFile",
+                        "Interpret as a filename. Save the results of execution of the code block to that file, then insert a link to it."
+                    ),
+                ),
+                d_simple_enum(
+                    t_nest_shared("ResultFormat", [t("OrgCodeEvalInput")]),
+                    "How to interpret output from the script",
+                    efield("None"),
+                    efield(
+                        "Raw",
+                        "Interpreted as raw Org mode. Inserted directly into the buffer."
+                    ),
+                    efield("Code", "Result enclosed in a code block."),
+                    efield(
+                        "Drawer",
+                        "Results are added directly to the Org file as with ‘raw’, but are wrapped in a ‘RESULTS’ drawer or results macro (for inline code blocks), for later scripting and automated processing."
+                    ),
+                    efield("ExportType", "Results enclosed in a ‘BEGIN_EXPORT’ block."),
+                    efield("Link"),
+                ),
+                d_simple_enum(
+                    t_nest_shared("ResultHandling", [t("OrgCodeEvalInput")]),
+                    "What to do with the final evaluation results",
+                    efield("None"),
+                    efield("Replace"),
+                    efield("Silent"),
+                    efield("Discard"),
+                    efield("Append"),
+                    efield("Prepend"),
+                ),
+            ],
+        ),
+        org_struct(
+            t_nest_shared("OrgCodeEvalOutput"),
+            doc="Single command/subprocess executed to evaluate org babel code entry",
+            fields=[
+                str_field("stdout"),
+                str_field("stderr"),
+                int_field("code"),
+                opt_field(
+                    t_str(), "cmd",
+                    "Command evaluated, if none then eval output did not run CLI subprocess"
+                ),
+                vec_field(
+                    t_str(),
+                    "args",
+                    "Command line arguments provided for execution",
+                ),
+                str_field("cwd", "Working directory where command was executed"),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "appliedHeaderArg",
+                    "Final set of header arguments applied during evaluation",
+                ),
+            ],
+            methods=[
+                eq_method(t_nest_shared("OrgCodeEvalOutput")),
+            ]),
         GenTuStruct(
             t_nest_shared("ColumnView"),
             methods=[eq_method(t_nest_shared("ColumnView"))],
@@ -2181,146 +2456,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 )
             ],
         ),
-        GenTuStruct(
-            t_nest_shared("BlockCodeSwitch", []),
-            GenTuDoc(
-                "Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block"
-            ),
-            methods=[eq_method(t_nest_shared("BlockCodeSwitch"))],
-            nested=[
-                GenTuPass("BlockCodeSwitch() {}"),
-                GenTuTypeGroup(
-                    [
-                        GenTuStruct(
-                            t_nest_shared("LineStart", [t("BlockCodeSwitch")]),
-                            GenTuDoc(
-                                "Enumerate code lines starting from `start` value instead of default indexing."
-                            ),
-                            fields=[
-                                GenTuField(t_int(), "start",
-                                           GenTuDoc("First line number")),
-                                GenTuField(
-                                    t_bool(),
-                                    "extendLast",
-                                    GenTuDoc(
-                                        "Continue numbering from the previous block nstead of starting anew"
-                                    ),
-                                    value="false",
-                                ),
-                            ],
-                            nested=[GenTuPass("LineStart() {}")],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("LineStart", [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("CalloutFormat", [t("BlockCodeSwitch")]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_str(), "format", GenTuDoc(""), value='""')
-                            ],
-                            nested=[GenTuPass("CalloutFormat() {}")],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("CalloutFormat",
-                                                  [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("RemoveCallout", [t("BlockCodeSwitch")]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_bool(), "remove", GenTuDoc(""), value="true")
-                            ],
-                            nested=[GenTuPass("RemoveCallout() {}")],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("RemoveCallout",
-                                                  [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("EmphasizeLine", [t("BlockCodeSwitch")]),
-                            GenTuDoc(
-                                "Emphasize single line -- can be repeated multiple times"
-                            ),
-                            fields=[
-                                GenTuField(
-                                    t_vec(t_int()), "line", GenTuDoc(""), value="{}")
-                            ],
-                            nested=[GenTuPass("EmphasizeLine() {}")],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("EmphasizeLine",
-                                                  [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("Dedent", [t("BlockCodeSwitch")]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_int(), "value", GenTuDoc(""), value="0")
-                            ],
-                            nested=[GenTuPass("Dedent() {}")],
-                            methods=[
-                                eq_method(t_nest_shared("Dedent", [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                    ],
-                    enumName=t_nest_shared("Kind", [t("BlockCodeSwitch")]),
-                    variantName=t_nest_shared("Data", [t("BlockCodeSwitch")]),
-                ),
-            ],
-        ),
-        GenTuStruct(
-            t_nest_shared("BlockCodeEvalResult"),
-            methods=[eq_method(t_nest_shared("BlockCodeEvalResult"))],
-            nested=[
-                GenTuTypeGroup(
-                    [
-                        GenTuStruct(
-                            t_nest_shared("None", [t("BlockCodeEvalResult")]),
-                            GenTuDoc("Default value"),
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("None", [t("BlockCodeEvalResult")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("OrgValue", [t("BlockCodeEvalResult")]),
-                            GenTuDoc(
-                                "Source code block evaluated to an org-mode node element"
-                            ),
-                            fields=[str_field("value", GenTuDoc("Evaluation result"))],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("OrgValue", [t("BlockCodeEvalResult")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("File", [t("BlockCodeEvalResult")]),
-                            GenTuDoc("Output evaluation results to a file"),
-                            fields=[GenTuField(t_str(), "path")],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("File", [t("BlockCodeEvalResult")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("Raw", [t("BlockCodeEvalResult")]),
-                            GenTuDoc("Evaluation output is a raw text"),
-                            fields=[GenTuField(t_str(), "text")],
-                            methods=[
-                                eq_method(t_nest_shared("Raw",
-                                                        [t("BlockCodeEvalResult")]))
-                            ],
-                        ),
-                    ],
-                    enumName=t_nest_shared("Kind", [t("BlockCodeEvalResult")]),
-                    variantName=t_nest_shared("Data", [t("BlockCodeEvalResult")]),
-                ),
-            ]),
         org_struct(
             t_nest_shared("DocumentExportConfig", []),
             methods=[
@@ -2598,12 +2733,12 @@ def get_types() -> Sequence[GenTuStruct]:
                 org_field(
                     t_str(),
                     "name",
-                    GenTuDoc("Call target name"),
+                    "Call target name",
                 ),
                 org_field(
                     t_nest_shared("AttrGroup"),
                     "attrs",
-                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                    "Additional parameters aside from 'exporter'",
                 ),
                 bool_field("isCommand"),
             ],
@@ -3059,6 +3194,8 @@ def get_org_node_kind_commands():
             "Undefined single-line command -- most likely custom user-provided oe",
         ),
         efield("Attrs", "Arguments for the command block"),
+        efield("AttrValue", ":key name=value syntax"),
+        efield("AttrLisp", "S-expression as an attribute value value"),
         efield("CmdTitle", "`#+title:` - full document title"),
         efield("CmdAuthor", "`#+author:` Document author"),
         efield("CmdCreator", "`#+creator:` Document creator"),
@@ -3085,9 +3222,6 @@ def get_org_node_kind_commands():
             "CmdFlag",
             "Flag for source code block. For example `-n`, which is used to to make source code block export with lines",
         ),
-        efield("CmdKey"),
-        efield("CmdValue"),
-        efield("CmdNamedValue", "Key-value pair for source code block call."),
         efield("CmdLatexClass"),
         efield("CmdLatexHeader"),
         efield("CmdLatexCompiler"),

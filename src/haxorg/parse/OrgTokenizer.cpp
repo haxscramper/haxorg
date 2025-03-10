@@ -346,6 +346,8 @@ struct RecombineState {
             lex.next();
         } else if (next_empty && prev_empty) {
             pop_as(unknown);
+        } else if (lex.kind() == otk::Equals) {
+            pop_as(otk::Equals);
         } else {
             pop_as(otk::Punctuation);
         }

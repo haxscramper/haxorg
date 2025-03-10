@@ -72,8 +72,10 @@ TEST(OrgParseSem, TracerOperations1) {
     p.tokenizeConvert();
     p.parse();
 
-    auto document = converter.toDocument(
-        org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0)));
+    auto document = converter
+                        .convertDocument(org::parse::OrgAdapter(
+                            &p.nodes, org::parse::OrgId(0)))
+                        .value();
 
     org::algo::ExporterJson exp{};
     fs::path exp_trace{"/tmp/TraceOperations1_exp_trace.txt"};
@@ -805,11 +807,12 @@ TEST(OrgParseSem, Macro) {
         EXPECT_EQ(m->attrs.atPositional(1).getString(), "SEARCH OPTION");
     }
     {
-        auto m = parseOne<sem::Macro>(R"({{{named(key=value)}}})");
+        auto m = parseOne<sem::Macro>(
+            R"({{{named(key=value)}}})", getDebugFile("dash_name"));
         EXPECT_EQ(m->name, "named"_ss);
-        EXPECT_EQ(m->attrs.getPositionalSize(), 0);
-        EXPECT_EQ(m->attrs.getNamedSize(), 1);
-        EXPECT_EQ(m->attrs.getFirstNamed("key")->getString(), "value"_ss);
+        EXPECT_EQ(m->attrs.getPositionalSize(), 1);
+        EXPECT_EQ(m->attrs.getNamedSize(), 0);
+        EXPECT_EQ(m->attrs.getPositional(0)->getString(), "value"_ss);
     }
     {
         auto par = parseOne<sem::Paragraph>(
@@ -932,17 +935,17 @@ TEST(OrgParseSem, IncludeCommand) {
 
     {
         auto i = get(R"(#+include: data.org)");
-        EXPECT_EQ(i->path, "data.org"_ss);
+        EXPECT_EQ2(i->path, "data.org"_ss);
     }
     {
         auto i = get(R"(#+include: "data.org")");
-        EXPECT_EQ(i->path, "data.org"_ss);
+        EXPECT_EQ2(i->path, "data.org"_ss);
     }
     {
         auto i = get(R"(#+include: "data.org::#custom-id")");
         EXPECT_EQ2(
             i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
-        EXPECT_EQ(
+        EXPECT_EQ2(
             i->getOrgDocument().customIdTarget.value(), "custom-id"_ss);
     }
     {
@@ -952,7 +955,7 @@ TEST(OrgParseSem, IncludeCommand) {
         EXPECT_EQ2(i->path, "d.org");
         EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
         auto const& p = i->getOrgDocument().subtreePath.value().path;
-        EXPECT_EQ(p.size(), 1);
+        EXPECT_EQ2(p.size(), 1);
         EXPECT_EQ2(p.at(0), "path 1"_ss);
     }
     {
@@ -962,52 +965,54 @@ TEST(OrgParseSem, IncludeCommand) {
         EXPECT_EQ2(i->path, "data.org");
         EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
         auto const& p = i->getOrgDocument().subtreePath.value().path;
-        EXPECT_EQ(p.size(), 2);
+        EXPECT_EQ2(p.size(), 2);
         EXPECT_EQ2(p.at(0), "path 1"_ss);
         EXPECT_EQ2(p.at(1), "path 2"_ss);
     }
 
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "5-10")");
-        EXPECT_EQ(i->firstLine.value(), 5);
-        EXPECT_EQ(i->lastLine.value(), 10);
+        EXPECT_EQ2(i->firstLine.value(), 5);
+        EXPECT_EQ2(i->lastLine.value(), 10);
     }
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "-10")");
         EXPECT_FALSE(i->firstLine.has_value());
-        EXPECT_EQ(i->lastLine.value(), 10);
+        EXPECT_EQ2(i->lastLine.value(), 10);
     }
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "10-")");
-        EXPECT_EQ(i->firstLine.value(), 10);
+        EXPECT_EQ2(i->firstLine.value(), 10);
         EXPECT_FALSE(i->lastLine.has_value());
     }
     {
         auto i = get(
             R"(#+INCLUDE: "~/my-book/chapter2.org" :minlevel 1)",
             getDebugFile("include_command"));
-        EXPECT_EQ(i->getOrgDocument().minLevel, 1);
+        EXPECT_EQ2(i->getOrgDocument().minLevel, 1);
     }
     {
         auto i = get(
             R"(#+INCLUDE: "./paper.org::#theory" :only-contents t)");
-        EXPECT_EQ(i->getOrgDocument().onlyContent.value(), true);
+        EXPECT_EQ2(i->getOrgDocument().onlyContent.value(), true);
     }
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" src emacs-lisp)");
-        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Src);
-        // EXPECT_EQ(i->getSrc())
+        EXPECT_EQ2(i->getIncludeKind(), sem::CmdInclude::Kind::Src);
+        // EXPECT_EQ2(i->getSrc())
     }
 
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" custom-name)");
-        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
+        EXPECT_EQ2(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
         EXPECT_EQ2(i->getCustom().blockName, "custom-name");
     }
 
     {
-        auto i = get(R"(#+INCLUDE: "~/.emacs" ":custom-name")");
-        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
+        auto i = get(
+            R"(#+INCLUDE: "~/.emacs" ":custom-name")",
+            getDebugFile("quoted_custom_name"));
+        EXPECT_EQ2(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
         EXPECT_EQ2(i->getCustom().blockName, ":custom-name");
     }
 }
@@ -1018,9 +1023,11 @@ TEST(OrgParseSem, CodeBlockVariables) {
         return parseOne<sem::BlockCode>(s, debug);
     };
     {
-        auto c = get(R"(#+BEGIN_SRC emacs-lisp :var table=example-table
+        auto c = get(
+            R"(#+BEGIN_SRC emacs-lisp :var table=example-table
   (length table)
-#+END_SRC)");
+#+END_SRC)",
+            getDebugFile("example-table"));
         EXPECT_EQ2(c->getVariable("table")->getString(), "example-table");
     }
     {
@@ -1031,7 +1038,7 @@ TEST(OrgParseSem, CodeBlockVariables) {
         EXPECT_EQ2(c->getVariable("data")->getString(), "example-table");
         auto span = c->getVariable("data")->span;
         EXPECT_EQ2(span.size(), 2);
-        EXPECT_EQ(span.at(0).first, 0);
+        EXPECT_EQ2(span.at(0).first, 0);
         EXPECT_FALSE(span.at(0).last.has_value());
         EXPECT_EQ(span.at(1).first, -1);
         EXPECT_FALSE(span.at(1).last.has_value());
@@ -1045,9 +1052,11 @@ TEST(OrgParseSem, CodeBlockVariables) {
         EXPECT_EQ(span.at(0).last.value(), 3);
     }
     {
-        auto c    = get(R"(#+BEGIN_SRC emacs-lisp :var data=3D[1,,1]
+        auto c = get(
+            R"(#+BEGIN_SRC emacs-lisp :var data=3D[1,,1]
   data
-#+END_SRC)");
+#+END_SRC)",
+            getDebugFile("empty_content_slice"));
         auto span = c->getVariable("data")->span;
         EXPECT_EQ(span.size(), 3);
         EXPECT_EQ(span.at(0).first, 1);
@@ -1066,5 +1075,55 @@ TEST(OrgParseSem, CodeBlockVariables) {
         EXPECT_EQ(var->varname, "NAME");
         EXPECT_EQ(var->getFileReference().file, "FILE");
         EXPECT_EQ(var->getFileReference().reference, "REFERENCE");
+    }
+}
+
+TEST(OrgParseSem, CmdCallNode) {
+    auto get = [&](std::string const& s,
+                   Opt<std::string>   debug = std::nullopt) {
+        return parseOne<sem::CmdCall>(s, debug);
+    };
+    {
+        auto c = get(
+            R"(#+call: docker-swarm-systemd-configure[:dir (docker:infra-ssh "docker-swarm-0")](nodes=process42-node-table[2:-1],graph=process42-graph[2:-1],arg=(elisp-eval (something))) :results silent)",
+            getDebugFile("CmdCallNode"));
+
+        auto ea = c->endHeaderAttrs;
+        auto ha = c->insideHeaderAttrs;
+        auto ca = c->callAttrs;
+        EXPECT_EQ(ea.getNamedSize(), 1);
+        EXPECT_EQ(ea.getFirstNamed("results")->getString(), "silent");
+
+        EXPECT_EQ(ha.getNamedSize(), 1);
+        EXPECT_TRUE(ha.getFirstNamed("dir")->isLispValue());
+        auto dir = ha.getFirstNamed("dir").value().getLispValue().code;
+        EXPECT_TRUE(dir.isCall());
+        EXPECT_EQ2(dir.getCall().name, "docker:infra-ssh");
+        EXPECT_EQ2(
+            dir.getCall().args.at(0).getText().value, "docker-swarm-0");
+
+        EXPECT_EQ(ca.getPositionalSize(), 3);
+        auto ca1 = ca.getPositional(0);
+        auto ca2 = ca.getPositional(1);
+        auto ca3 = ca.getPositional(2);
+
+        EXPECT_EQ2(ca1->varname.value(), "nodes");
+        EXPECT_EQ2(ca2->varname.value(), "graph");
+        EXPECT_EQ2(ca3->varname.value(), "arg");
+        EXPECT_FALSE(ca1->name.has_value());
+        EXPECT_FALSE(ca2->name.has_value());
+        EXPECT_FALSE(ca3->name.has_value());
+        EXPECT_EQ2(ca1.value().getString(), "process42-node-table"_ss);
+        EXPECT_EQ2(ca1->span.at(0).first, 2);
+        EXPECT_EQ2(ca1->span.at(0).last.value(), -1);
+        EXPECT_EQ2(ca2.value().getString(), "process42-graph"_ss);
+        EXPECT_EQ2(ca2->span.at(0).first, 2);
+        EXPECT_EQ2(ca2->span.at(0).last.value(), -1);
+
+        auto el = ca3->getLispValue().code;
+        EXPECT_TRUE(el.isCall());
+        EXPECT_EQ2(el.getCall().name, "elisp-eval"_ss);
+        EXPECT_TRUE(el.getCall().args.at(0).isCall());
+        EXPECT_EQ2(el.getCall().args.at(0).getCall().name, "something"_ss);
     }
 }

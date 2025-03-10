@@ -701,10 +701,20 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
 
                 auto field = [&]<typename T>(
                                  Str const& name, T const& value) {
-                    label.push_back(
-                        fmt("{}: {}",
-                            left_aligned(name, maxFieldWidth),
-                            value));
+                    auto value_fmt = fmt1(value);
+                    auto prefix    = left_aligned(name, maxFieldWidth);
+                    if (value_fmt.contains('\n')) {
+                        auto split = hstd::split(value_fmt, '\n');
+                        label.push_back(
+                            fmt("{}: {}", prefix, split.at(0)));
+                        for (int i = 1; i < split.size(); ++i) {
+                            label.push_back(
+                                Str{" "}.repeated(prefix.size() + 2)
+                                + split.at(i));
+                        }
+                    } else {
+                        label.push_back(fmt("{}: {}", prefix, value_fmt));
+                    }
                 };
 
 
@@ -721,6 +731,41 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
                     id,
                     ctx,
                     [&]<typename F>(Str const& name, F const& value) {
+                        if constexpr (std::is_same_v<
+                                          hstd::ext::ImmBox<hstd::Opt<
+                                              org::sem::AttrGroup>>,
+                                          F>) {
+                            if (name == "attrs") {
+                                if (value.get()) {
+                                    org::sem::AttrGroup group = value.get()
+                                                                    .value();
+                                    Vec<Str> attrs;
+                                    for (auto const& it : hstd::enumerator(
+                                             group.positional.items)) {
+                                        attrs.push_back(
+                                            fmt("[{}] = {}",
+                                                it.index(),
+                                                it.value()));
+                                    }
+
+                                    for (auto const& key :
+                                         sorted(group.named.keys())) {
+                                        for (auto const& it :
+                                             group.named.at(key).items) {
+                                            attrs.push_back(
+                                                fmt("{} = {}",
+                                                    escape_literal(key),
+                                                    it));
+                                        }
+                                    }
+
+                                    field(
+                                        "attrs", hstd::join("\n", attrs));
+                                }
+                                return;
+                            }
+                        }
+
                         if (auto skipped = conf.skippedFields.get(
                                 fmt1(id.getKind()));
                             skipped && skipped->contains(name)) {
@@ -917,8 +962,9 @@ void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
             check,
             "Replace group origina/replaced ID must either be a tree root "
             "-- document or a document group -- or have a non-empty path, "
-            "but {} does not match the requirement. Kind is {}, path is "
-            "{}",
+            "otherwise replacing the node with a new value would create a "
+            "completely independent root. Provided node {} does not match "
+            "the requirement. Kind is {}, path is {}",
             replace,
             it.id.getKind(),
             it.path);

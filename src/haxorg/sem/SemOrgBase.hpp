@@ -228,8 +228,9 @@ struct [[refl]] OrgJson {
         }
     }
 
-    [[refl]] OrgJson at(int idx) const { return &getRef().at(idx); }
-    [[refl]] OrgJson at(std::string const& name) const {
+    [[refl]] std::string getJsonString() const { return getRef().dump(); }
+    [[refl]] OrgJson     at(int idx) const { return &getRef().at(idx); }
+    [[refl]] OrgJson     at(std::string const& name) const {
         return &getRef().at(name);
     }
     [[refl]] std::string getString() const {
@@ -413,5 +414,13 @@ struct std::hash<org::sem::OrgJson> {
         std::size_t result = 0;
         hstd::hax_hash_combine(result, it.getRef());
         return result;
+    }
+};
+
+template <>
+struct std::formatter<org::sem::OrgJson> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::sem::OrgJson& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(p.getRef().dump(), ctx);
     }
 };

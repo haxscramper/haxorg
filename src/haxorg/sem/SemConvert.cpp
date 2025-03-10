@@ -130,6 +130,10 @@ Str get_text(
         return a.val().text;
     } else if (a.kind() == onk::Empty) {
         return "";
+    } else if (a.kind() == onk::InlineStmtList) {
+        Str res;
+        for (auto const& it : a) { res += get_text(it); }
+        return res;
     } else {
         throw convert_logic_error::init(
             fmt("{} {} {}", function, line, a.treeRepr(false)));
@@ -761,7 +765,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         && rs::all_of(
             gen_view(one(a, N::Values).items()),
             [](org::parse::OrgAdapter const& a) {
-                return a.getKind() == onk::CmdValue;
+                return a.getKind() == onk::AttrValue;
             })) {
         handled();
         NamedProperty::CustomArgs prop;
@@ -783,9 +787,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         if (one(a, N::Values).kind() == onk::RawText) {
             prop.value = get_values_text();
         } else {
-            for (auto const& arg : one(a, N::Values)) {
-                prop.value += get_text(arg);
-            }
+            prop.value = get_text(one(a, N::Values));
         }
         result = NamedProperty(prop);
     }
@@ -1015,7 +1017,7 @@ OrgConverter::ConvResult<Macro> OrgConverter::convertMacro(__args) {
     auto __trace = trace(a);
     auto macro   = Sem<Macro>(a);
     macro->name  = get_text(one(a, N::Name));
-    macro->attrs = convertCallArguments(many(a, N::Args), a);
+    macro->attrs = convertAttrs(one(a, N::Args));
     return macro;
 }
 
@@ -1740,7 +1742,8 @@ OrgConverter::ConvResult<Underline> OrgConverter::convertUnderline(
 
 OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
     __args) {
-    SemId<BlockExample> result = Sem<BlockExample>(a);
+    auto                __trace = trace(a);
+    SemId<BlockExample> result  = Sem<BlockExample>(a);
     for (auto const& it : many(a, N::Body)) {
         result->subnodes.push_back(convert(it));
     }
@@ -1750,8 +1753,9 @@ OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
 
 OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
     convertBlockDynamicFallback(__args) {
-    SemId<BlockDynamicFallback> result = Sem<BlockDynamicFallback>(a);
-    result->attrs                      = convertAttrs(one(a, N::Args));
+    auto                        __trace = trace(a);
+    SemId<BlockDynamicFallback> result  = Sem<BlockDynamicFallback>(a);
+    result->attrs                       = convertAttrs(one(a, N::Args));
 
     result->name = normalize(get_text(one(a, N::Name)));
     boost::replace_all(result->name, "begin", "");
@@ -1764,7 +1768,8 @@ OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
 
 OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
     __args) {
-    SemId<ColonExample> result = Sem<ColonExample>(a);
+    auto                __trace = trace(a);
+    SemId<ColonExample> result  = Sem<ColonExample>(a);
     for (auto const& it : many(a, N::Body)) {
         if (it.isMono()) {
             result->subnodes.push_back(Sem<RawText>(it));
@@ -1777,6 +1782,7 @@ OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
 
 OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
     __args) {
+    auto __trace = trace(a);
     auto eexport = Sem<BlockExport>(a);
 
     auto values       = convertAttrs(one(a, N::Args));
@@ -1797,7 +1803,8 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
 
 OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(
     __args) {
-    SemId<BlockCenter> res = Sem<BlockCenter>(a);
+    auto               __trace = trace(a);
+    SemId<BlockCenter> res     = Sem<BlockCenter>(a);
     for (const auto& sub : many(a, N::Body)) {
         auto aux = convert(sub);
         res->push_back(aux);
@@ -1807,7 +1814,8 @@ OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(
 
 OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
     __args) {
-    SemId<BlockQuote> quote = Sem<BlockQuote>(a);
+    auto              __trace = trace(a);
+    SemId<BlockQuote> quote   = Sem<BlockQuote>(a);
 
     if (auto args = one(a, N::Args); args.kind() != onk::Empty) {
         quote->attrs = convertAttrs(args);
@@ -1821,7 +1829,8 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
 
 OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
     __args) {
-    SemId<BlockComment> result = Sem<BlockComment>(a);
+    auto                __trace = trace(a);
+    SemId<BlockComment> result  = Sem<BlockComment>(a);
     for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
         result->push_back(sub.unwrap());
     }
@@ -1829,6 +1838,7 @@ OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
 }
 
 OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
+    auto __trace = trace(a);
     if (a.kind() == onk::InlineMath) {
         return Sem<Latex>(a);
     } else {
@@ -1839,6 +1849,7 @@ OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
 
 OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
     __args) {
+    auto              __trace = trace(a);
     SemId<CmdInclude> include = Sem<CmdInclude>(a);
     auto              args    = convertAttrs(one(a, N::Args));
     include->path             = args.positional.items.at(0).getString();
@@ -1919,89 +1930,82 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
 
 OrgConverter::ConvResult<TextSeparator> OrgConverter::convertTextSeparator(
     __args) {
+    auto __trace = trace(a);
     return Sem<TextSeparator>(a);
 }
 
 OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(
     __args) {
+    auto __trace = trace(a);
     return SemLeaf<AtMention>(a);
 }
 
 sem::AttrValue OrgConverter::convertAttr(__args) {
     auto           __trace = trace(a);
     sem::AttrValue result;
-    Str            key   = get_text(one(a, N::Name));
-    Str            value = get_text(one(a, N::Value));
 
-    for (int i = 0; i < value.size(); ++i) {
-        if (std::isalnum(value.at(i))) {
-            // pass
-        } else if (value.at(i) == '=' && i < value.size()) {
-            // found variable name
-            result.varname = value.substr(0, i);
-            value          = value.substr(i + 1);
-        } else {
-            // not a variable name
-            break;
-        }
+    if (one(a, N::Name).getKind() != onk::Empty) {
+        result.name = lstrip(get_text(one(a, N::Name)), CharSet{':'});
+        print(fmt("Result name '{}'", result.name.value()));
     }
 
+    if (one(a, N::Subname).getKind() != onk::Empty) {
+        result.varname = get_text(one(a, N::Subname));
+        print(fmt("Result varname '{}'", result.varname.value()));
+    }
 
-    if (value.starts_with('"') && value.ends_with('"')) {
-        result.isQuoted = true;
-        value           = value.substr(1, value.size() - 2);
-        AttrValue::TextValue tv{};
-        tv.value    = value;
-        result.data = tv;
-    } else {
-        Str dimension;
-        if (value.ends_with(']')) {
-            for (int i = 0; i < value.size(); ++i) {
-                if (value.at(i) == '[') {
-                    dimension = value.substr(i + 1, value.size() - 1);
-                    value     = value.substr(0, i);
-                }
-            }
+    if (one(a, N::Value).getKind() == onk::RawText) {
+        Str value = get_text(one(a, N::Value));
+        print(fmt("Text value is '{}'", value));
+
+        if (value.starts_with('"') && value.ends_with('"')) {
+            result.isQuoted = true;
+            value           = value.substr(1, value.size() - 2);
         }
 
-        if (!dimension.empty()) {
-            for (auto axis : dimension.split(',')) {
-                AttrValue::DimensionSpan dim;
-                axis = strip_space(axis);
-                if (axis == "" || axis == "*") {
-                    dim.first = 0;
-                    dim.last  = -1;
-                } else {
-                    auto split = axis.split(':');
-                    dim.first  = split.at(0).toInt();
-                    if (split.has(1)) { dim.last = split.at(1).toInt(); }
-                }
-                result.span.push_back(dim);
-            }
-        }
-
-        if (value.contains(':')) {
-            auto split = value.split(':');
-            if (split.has(1)) {
-                AttrValue::FileReference fr{};
-                fr.file      = split.at(0);
-                fr.reference = split.at(1);
-                result.data  = fr;
-            } else {
-                AttrValue::TextValue tv{};
-                tv.value    = value;
-                result.data = tv;
-            }
+        auto split = value.split(':');
+        if (!result.isQuoted && split.size() == 2
+            && !value.contains("::")) {
+            AttrValue::FileReference fr{};
+            fr.file      = split.at(0);
+            fr.reference = split.at(1);
+            print(fmt("Attribute is file reference {}", fr));
+            result.data = fr;
         } else {
             AttrValue::TextValue tv{};
-            tv.value    = value;
+            tv.value = value;
+            print(fmt("Attribute is text value {}", tv));
+
             result.data = tv;
         }
+    } else if (one(a, N::Value).getKind() == onk::AttrLisp) {
+        AttrValue::LispValue ev{};
+        ev.code = convertLisp(one(a, N::Value));
+        print("Attribute is lisp value");
+        result.data = ev;
+    } else {
+        AttrValue::TextValue tv{};
+        tv.value += get_text(one(a, N::Value));
+        print(fmt("Attribute is text value {}", tv));
+        result.data = tv;
     }
 
-    if (!key.empty()) { result.name = key.substr(1); }
-
-    if (TraceState) { print(fmt("key:{} value:{}", result.name, value)); }
+    if (one(a, N::Cells).getKind() != onk::Empty) {
+        for (auto const& it : one(a, N::Cells)) {
+            AttrValue::DimensionSpan dim;
+            auto                     axis = get_text(it);
+            if (axis == "" || axis == "*") {
+                dim.first = 0;
+                dim.last  = -1;
+            } else {
+                auto split = axis.split(':');
+                dim.first  = split.at(0).toInt();
+                if (split.has(1)) { dim.last = split.at(1).toInt(); }
+            }
+            print(fmt("Attribute dimension span {}", dim));
+            result.span.push_back(dim);
+        }
+    }
 
     return result;
 }
@@ -2010,12 +2014,31 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
     auto           __trace = trace(a);
     sem::AttrGroup result;
 
+    Opt<sem::AttrValue> last_named;
+
+    auto push_argument = [&](sem::AttrValue const& it) {
+        if (it.name) {
+            addArgument(result, it);
+            last_named = it;
+        } else {
+            if (last_named) {
+                auto tmp = it;
+                tmp.name = last_named->name;
+                addArgument(result, tmp);
+            } else {
+                addArgument(result, it);
+            }
+        }
+    };
+
     if (a.getKind() == onk::Attrs) {
         for (auto const& item : one(a, N::Values)) {
-            addArgument(result, convertAttr(item));
+            push_argument(convertAttr(item));
         }
     } else if (a.getKind() == onk::InlineStmtList) {
-        for (auto const& it : a) { addArgument(result, convertAttr(it)); }
+        for (auto const& it : a) {
+            push_argument(convertAttr(it)); //
+        }
     } else {
         CHECK(a.getKind() == onk::Empty) << a.treeRepr();
     }
@@ -2023,28 +2046,57 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
     return result;
 }
 
-sem::AttrGroup OrgConverter::convertCallArguments(
-    CVec<In> args,
-    In       source) {
-    sem::AttrGroup result;
-    for (auto const& arg : args) {
-        sem::AttrValue conv;
-        conv.data = AttrValue::TextValue{};
-        if (2 < arg.size() && get_text(arg.at(1)) == "=") {
-            conv.name = get_text(arg.at(0));
-            for (int i = 2; i < arg.size(); ++i) {
-                conv.getTextValue().value += get_text(arg.at(i));
+LispCode OrgConverter::convertLisp(In a) {
+    auto __trace = trace(a);
+    using L      = sem::LispCode;
+    L out;
+    if (a.getKind() == onk::AttrLisp) {
+        return convertLisp(one(a, N::Value));
+    } else if (a.getKind() == onk::InlineStmtList) {
+        Vec<LispCode> items;
+        for (auto const& it : a) { items.push_back(convertLisp(it)); }
+        if (!items.empty() && items.front().isIdent()) {
+            L::Call res;
+            res.name = items.front().getIdent().name;
+            if (items.has(1)) {
+                res.args = Vec<LispCode>{items.at(slice(1, 1_B))};
             }
+            out.data = res;
         } else {
-            for (int i = 0; i < arg.size(); ++i) {
-                conv.getTextValue().value += get_text(arg.at(i));
-            }
+            L::List res;
+            res.items = items;
+            out.data  = res;
         }
-
-        addArgument(result, conv);
+    } else {
+        Str v = get_text(a);
+        if (v.starts_with('"') && v.ends_with('"')) {
+            L::Text res;
+            res.value = v.substr(1, v.size() - 2);
+            out.data  = res;
+        } else if (no_exception([&]() { v.toInt(); })) {
+            L::Number res;
+            res.value = v.toInt();
+            out.data  = res;
+        } else if (no_exception([&]() { v.toFloat(); })) {
+            L::Real res;
+            res.value = v.toFloat();
+            out.data  = res;
+        } else if (v == "t") {
+            L::Boolean res;
+            res.value = true;
+            out.data  = res;
+        } else if (v == "nil") {
+            L::Boolean res;
+            res.value = false;
+            out.data  = res;
+        } else {
+            L::Ident res;
+            res.name = v;
+            out.data = res;
+        }
     }
 
-    return result;
+    return out;
 }
 
 OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
@@ -2167,7 +2219,7 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
     } else {
         return SemError(
             a,
-            fmt("Table format expression failed\n{}",
+            fmt("Column format expression failed\n{}",
                 join("\n", spec.errors())));
     }
 
@@ -2232,14 +2284,21 @@ SemId<ErrorGroup> OrgConverter::SemError(
 
 OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     __args) {
-    SemId<BlockCode> result = Sem<BlockCode>(a);
+    auto             __trace = trace(a);
+    SemId<BlockCode> result  = Sem<BlockCode>(a);
 
-    if (one(a, N::Lang).getKind() != onk::Empty) {
-        result->lang = get_text(one(a, N::Lang));
+    {
+        auto __field = field(N::Lang, a);
+        if (one(a, N::Lang).getKind() != onk::Empty) {
+            result->lang = get_text(one(a, N::Lang));
+        }
     }
 
-    if (one(a, N::HeaderArgs).kind() != onk::Empty) {
-        result->attrs = convertAttrs(one(a, N::HeaderArgs));
+    {
+        auto __field = field(N::HeaderArgs, a);
+        if (one(a, N::HeaderArgs).kind() != onk::Empty) {
+            result->attrs = convertAttrs(one(a, N::HeaderArgs));
+        }
     }
 
     if (a.kind() == onk::SrcInlineCode) {
@@ -2251,6 +2310,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
                 }));
         }
     } else {
+        auto __field = field(N::Body, a);
         for (auto const& it : one(a, N::Body)) {
             BlockCodeLine& line = result->lines.emplace_back();
             for (auto const& part : it) {
@@ -2270,32 +2330,30 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
         }
     }
 
-    if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
-        auto body = one(res, N::Body);
-        auto conv = convert(body);
-        if (auto link = conv.asOpt<sem::Link>();
-            link && link->target.isFile()) {
-            result->result = sem::BlockCodeEvalResult{
-                sem::BlockCodeEvalResult::File{
-                    .path = link->target.getFile().file}};
-        } else {
-            result->result = sem::BlockCodeEvalResult{
-                sem::BlockCodeEvalResult::Raw{
-                    .text = org::algo::Formatter::format(conv)}};
+    {
+        auto __field = field(N::Result, a);
+        if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
+            auto body = one(res, N::Body);
+            auto conv = convert(body);
+            print(fmt("Parsed result body as {}", conv->getKind()));
+            auto result_block  = Sem<sem::BlockCodeEvalResult>(res);
+            result_block->node = conv;
+            result->result.push_back(result_block);
         }
     }
 
     return result;
 }
 
-OrgConverter::ConvResult<Call> OrgConverter::convertCall(__args) {
+OrgConverter::ConvResult<CmdCall> OrgConverter::convertCmdCall(__args) {
     __perf_trace("convert", "convertCall");
     auto __trace = trace(a);
     if (a.kind() == onk::CmdCallCode) {
-        auto call       = Sem<Call>(a);
-        call->name      = get_text(one(a, N::Name));
-        call->isCommand = true;
-        call->attrs     = convertCallArguments(many(a, N::Args), a);
+        auto call               = Sem<CmdCall>(a);
+        call->name              = get_text(one(a, N::Name));
+        call->insideHeaderAttrs = convertAttrs(one(a, N::HeaderArgs));
+        call->callAttrs         = convertAttrs(one(a, N::Args));
+        call->endHeaderAttrs    = convertAttrs(one(a, N::EndArgs));
         return call;
     } else {
         return SemError(a, "TODO Convert inline call");
@@ -2452,7 +2510,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::ColonExample: return convertColonExample(a).unwrap();
         case onk::CmdCaption: return convertCmdCaption(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();
-        case onk::CmdCallCode: return convertCall(a).unwrap();
+        case onk::CmdCallCode: return convertCmdCall(a).unwrap();
         case onk::Paragraph: return convertParagraph(a).unwrap();
         case onk::BlockDynamicFallback:
             return convertBlockDynamicFallback(a).unwrap();
@@ -2551,25 +2609,34 @@ void OrgConverter::convertDocumentOptions(
     }
 }
 
-SemId<Document> OrgConverter::toDocument(org::parse::OrgAdapter adapter) {
-    auto __trace = trace(adapter);
+org::sem::OrgConverter::ConvResult<Document> OrgConverter::convertDocument(
+    __args) {
+    auto __trace = trace(a);
 
-    SemId<Document> doc = Sem<Document>(adapter);
-    doc->options        = Sem<DocumentOptions>(adapter);
+    SemId<Document> doc = Sem<Document>(a);
+    doc->options        = Sem<DocumentOptions>(a);
     using Prop          = NamedProperty;
     Vec<org::parse::OrgAdapter> buffer;
 
-    if (adapter.kind() == onk::StmtList) {
-        for (const auto& sub : adapter) {
-            auto __trace = trace(adapter, fmt1(sub.getKind()));
+    if (a.kind() == onk::StmtList) {
+        for (const auto& sub : a) {
+            auto __trace = trace(a, fmt1(sub.getKind()));
             switch (sub.kind()) {
                 case onk::CmdColumns: {
-                    auto cols             = convertCmdColumns(sub).value();
-                    doc->options->columns = cols->view;
+                    if (auto columns = convertCmdColumns(sub)) {
+                        auto cols             = columns.value();
+                        doc->options->columns = cols->view;
+                    } else {
+                        doc->push_back(columns.error());
+                    }
                     break;
                 }
                 case onk::CmdTitle: {
-                    doc->title = convertParagraph(sub[0]).value();
+                    if (auto title = convertParagraph(sub[0])) {
+                        doc->title = title.value();
+                    } else {
+                        doc->push_back(title.error());
+                    }
                     break;
                 }
                 case onk::CmdOptions: {
@@ -2659,7 +2726,7 @@ SemId<Document> OrgConverter::toDocument(org::parse::OrgAdapter adapter) {
             }
         }
     } else {
-        buffer.push_back(adapter);
+        buffer.push_back(a);
     }
 
     for (auto const& it : flatConvertAttached(buffer)) {

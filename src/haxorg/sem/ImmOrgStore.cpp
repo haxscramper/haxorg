@@ -10,11 +10,14 @@
 #include <immer/flex_vector_transient.hpp>
 #include <immer/flex_vector.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/ext/logger.hpp>
 
 using namespace org;
 using namespace org::imm;
 using namespace hstd;
 using namespace hstd::ext;
+
+#define _cat "imm.store"
 
 struct store_error : hstd::CRTP_hexception<store_error> {};
 
@@ -46,10 +49,11 @@ ImmAstReplace org::imm::setSubnodes(
 
 
 template <org::imm::IsImmOrgValueType T>
-ImmAstReplace ImmAstStore::setNode(
+hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
     const ImmAdapter&  target,
     const T&           value,
     ImmAstEditContext& ctx) {
+    HSLOG_TRACE(_cat, "Set node value");
 
     for (auto const& it : allSubnodes<T>(value, ctx.ctx.lock())) {
         it.assertValid();
@@ -71,7 +75,7 @@ ImmAstReplace ImmAstStore::setNode(
     ctx.updateTracking(target.id, false);
     ctx.updateTracking(result_node, true);
 
-    auto dbg          = [&](std::string section) {
+    auto dbg = [&](std::string section) {
         AST_EDIT_MSG(fmt("{}", section));
         auto        __scope = ctx.debug()->scopeLevel();
         auto const& imm     = ctx.ctx.lock()->currentTrack->parents;
@@ -97,10 +101,19 @@ ImmAstReplace ImmAstStore::setNode(
     ctx.transientTrack.insertAllSubnodesOf(ctx->adapt(replaced));
     if (verboseSubnodeSet) { dbg("After insert remove"); }
 
-    return ImmAstReplace{
-        .replaced = replaced,
-        .original = target.uniq(),
-    };
+    // LOG(INFO) << fmt("{} -> {}", replaced, target.uniq());
+
+    if (replaced == target.uniq()) {
+        AST_EDIT_MSG(
+            fmt("Original and replaced have the same ID -- node value did "
+                "not change, no replacement action needed"));
+        return std::nullopt;
+    } else {
+        return ImmAstReplace{
+            .replaced = replaced,
+            .original = target.uniq(),
+        };
+    }
 }
 
 /// \brief Reflection path in the parent node, and the subnode that needs
@@ -161,11 +174,11 @@ Const& mut_cast(Const const& value) {
 /// \brief Apply all subnode updates on the current value of the
 /// `updateTarget` and set a new node value. Inserts a new node value into
 /// the store.
-ImmAstReplace setNewSubnodes(
+Opt<ImmAstReplace> setNewSubnodes(
     ImmAdapter                updateTarget,
     SubnodeAssignGroup const& grouped,
     ImmAstEditContext&        ctx) {
-    ImmAstReplace act;
+    Opt<ImmAstReplace> act;
     switch_node_value(
         updateTarget.id,
         updateTarget.ctx.lock(),
@@ -216,7 +229,6 @@ ImmAstReplace setNewSubnodes(
                         [&](ImmBox<Str> const&) { fail_field(); },
                         [&](ImmVec<Str> const&) { fail_field(); },
                         [&](ImmVec<org::imm::ImmSymbol::Param> const&) { fail_field(); },
-                        [&](ImmVec<sem::BlockCodeSwitch> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
                         [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
                         [&](sem::LinkTarget const&) { fail_field(); },
@@ -225,6 +237,9 @@ ImmAstReplace setNewSubnodes(
                         [&](sem::DocumentExportConfig const&) { fail_field(); },
                         [&](sem::AttrValue const&) { fail_field(); },
                         [&](sem::SubtreeLogHead const&) { fail_field(); },
+                        [&](sem::OrgCodeEvalOutput const&) { fail_field(); },
+                        [&](Vec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
+                        [&](ImmVec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
                         // clang-format on
                         [&]<typename FK>(
                             ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const&
@@ -416,8 +431,8 @@ ImmId recurseUpdateSubnodes(
 
             auto grouped = groupUpdatedSubnodes(updatedSubnodes);
             auto act     = setNewSubnodes(updateTarget, grouped, ctx);
-            result.replaced.set(act);
-            return act.replaced.id;
+            result.replaced.set(act.value());
+            return act.value().replaced.id;
         }
     } else {
         // The node is not a parent for any other replacement. If it
@@ -831,7 +846,6 @@ __same_type(std::string);
 __same_type(UserTime);
 __same_type(sem::NamedProperty);
 __same_type(sem::DocumentExportConfig);
-__same_type(sem::BlockCodeSwitch);
 __same_type(sem::BlockCodeEvalResult);
 __same_type(sem::BlockCodeLine);
 __same_type(sem::Tblfm);
@@ -845,6 +859,7 @@ __same_type(sem::HashTagText);
 __same_type(sem::SubtreeLogHead);
 __same_type(sem::SubtreePath);
 __same_type(org::parse::LineCol);
+__same_type(org::sem::OrgCodeEvalOutput);
 
 
 template <typename SemType, typename ImmType>
@@ -926,6 +941,8 @@ template <IsImmOrgValueType T>
 ImmId ImmAstKindStore<T>::add(const T& value, ImmAstEditContext& ctx) {
     auto  mask   = ImmId::combineMask(T::staticKind);
     ImmId result = values.add(value, mask);
+    HSLOG_TRACE(_cat, fmt("Insert value to kind store, {}", value));
+    HSLOG_TRACE(_cat, fmt("Result ID {}", result));
 
     CHECK(result.getKind() == value.getKind())
         << fmt(R"(

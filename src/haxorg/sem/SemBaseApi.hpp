@@ -25,7 +25,7 @@ struct [[refl]] OrgParseParameters {
 };
 
 struct [[refl]] OrgDirectoryParseParameters {
-    hstd::Func<sem::SemId<sem::Document>(std::string const& fullPath)>
+    hstd::Func<sem::SemId<sem::Org>(std::string const& fullPath)>
         getParsedNode;
 
     hstd::Func<bool(std::string const& fullPath)> shouldProcessPath;
@@ -35,13 +35,13 @@ struct [[refl]] OrgDirectoryParseParameters {
     BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
 };
 
-[[refl]] sem::SemId<sem::Document> parseFile(
+[[refl]] sem::SemId<sem::Org> parseFile(
     std::string               file,
     OrgParseParameters const& opts);
 
 
-[[refl]] sem::SemId<sem::Document> parseString(std::string const text);
-[[refl]] sem::SemId<sem::Document> parseStringOpts(
+[[refl]] sem::SemId<sem::Org> parseString(std::string const text);
+[[refl]] sem::SemId<sem::Org> parseStringOpts(
     std::string const         text,
     OrgParseParameters const& opts);
 
@@ -52,6 +52,23 @@ struct [[refl]] OrgDirectoryParseParameters {
 [[refl]] sem::SemId<sem::File> parseFileWithIncludes(
     std::string const&                 file,
     OrgDirectoryParseParameters const& opts);
+
+struct OrgCodeEvalParameters {
+    hstd::Func<hstd::Vec<sem::OrgCodeEvalOutput>(
+        sem::OrgCodeEvalInput const&)>
+                                       evalBlock;
+    hstd::SPtr<hstd::OperationsTracer> debug;
+    bool isTraceEnabled() const { return debug && debug->TraceState; }
+
+    OrgCodeEvalParameters()
+        : debug{std::make_shared<hstd::OperationsTracer>()} {}
+    OrgCodeEvalParameters(hstd::SPtr<hstd::OperationsTracer> debug)
+        : debug{debug} {}
+};
+
+sem::SemId<sem::Org> evaluateCodeBlocks(
+    sem::SemId<sem::Org>         document,
+    OrgCodeEvalParameters const& conf);
 
 /// \brief Remove outer wrapper containers from a node and return its
 /// single subnode.
@@ -422,6 +439,5 @@ hstd::Opt<sem::NamedProperty> getFinalProperty(
     hstd::CR<hstd::Vec<imm::ImmAdapter>> nodes,
     hstd::CR<hstd::Str>                  kind,
     hstd::CR<hstd::Opt<hstd::Str>>       subKind = std::nullopt);
-
 
 } // namespace org

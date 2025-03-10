@@ -30,6 +30,14 @@ PYBIND11_DECLARE_HOLDER_TYPE(T, org::sem::SemId<T>);
 
 namespace py = pybind11;
 
+template <>
+struct std::formatter<py::function> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const py::function& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx("py::function", ctx);
+    }
+};
+
 namespace org::bind::python {
 
 std::vector<org::sem::SemId<org::sem::Org>> getSubnodeRange(
@@ -46,6 +54,22 @@ org::sem::SemId<org::sem::Org> getSingleSubnode(
 [[refl]] void eachSubnodeRecSimplePath(
     org::sem::SemId<org::sem::Org> node,
     py::function                   callback);
+
+struct [[refl]] PyCodeEvalParameters {
+    hstd::SPtr<hstd::OperationsTracer> debug;
+    [[refl]] py::function              evalBlock;
+
+    [[refl]] void setTraceFile(std::string const& path) {
+        debug = std::make_shared<hstd::OperationsTracer>();
+        debug->setTraceFile(path);
+    }
+
+    BOOST_DESCRIBE_CLASS(PyCodeEvalParameters, (), (evalBlock), (), ());
+};
+
+[[refl]] org::sem::SemId<sem::Org> evaluateCodeBlocks(
+    org::sem::SemId<org::sem::Org> node,
+    PyCodeEvalParameters const&    conf);
 
 enum class [[refl]] LeafFieldType
 {
@@ -517,7 +541,6 @@ struct [[refl]] ExporterPython
         _this()->visitDispatch(res, node);
     }
 
-    void visit(Res& res, org::sem::BlockCodeSwitch const&) {}
     void visit(Res& res, org::sem::Symbol::Param const&) {}
     void visit(Res& res, org::sem::NamedProperty const&) {}
     void visit(Res& res, hstd::Str const&) {}

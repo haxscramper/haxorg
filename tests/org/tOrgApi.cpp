@@ -82,3 +82,140 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
             (sem::HashTagFlat{{"nested", "alias2"}}));
     }
 }
+
+TEST(OrgApi, EvalCodeBlocks) {
+    auto doc = testParseString(
+        R"(#+begin_src test :results value raw
+content
+#+end_src)",
+        getDebugFile("eval_code_blocks"));
+    org::OrgCodeEvalParameters conf;
+    Vec<sem::OrgCodeEvalInput> buf;
+
+    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
+        -> Vec<sem::OrgCodeEvalOutput> {
+        buf.push_back(in);
+        return {sem::OrgCodeEvalOutput{.stdout = "*bold*"}};
+    };
+    conf.debug->setTraceFile(getDebugFile("EvalCodeBlock.log"));
+    auto ev = org::evaluateCodeBlocks(doc, conf);
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.json"));
+    writeTreeRepr(ev, getDebugFile("eval-post.json"));
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.txt"));
+    writeTreeRepr(ev, getDebugFile("eval-post.txt"));
+
+    EXPECT_EQ2(buf.at(0).language, "test");
+    EXPECT_EQ2(
+        buf.at(0).resultFormat, sem::OrgCodeEvalInput::ResultFormat::Raw);
+    EXPECT_EQ2(
+        buf.at(0).resultType, sem::OrgCodeEvalInput::ResultType::Scalar);
+
+    EXPECT_EQ2(ev->getKind(), OrgSemKind::Document);
+    EXPECT_EQ2(ev.at(0)->getKind(), OrgSemKind::BlockCode);
+    auto bc = ev.at(0).as<sem::BlockCode>();
+    EXPECT_EQ2(bc->result.size(), 1);
+    EXPECT_EQ2(
+        bc->result.at(0)->getKind(), OrgSemKind::BlockCodeEvalResult);
+    auto res = bc->result.at(0).as<sem::BlockCodeEvalResult>();
+    EXPECT_EQ2(res->node->getKind(), OrgSemKind::StmtList);
+    EXPECT_EQ2(res->node.at(0)->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(res->node.at(0).at(0)->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(res->node.at(0).at(0).at(0)->getKind(), OrgSemKind::Word);
+    auto w = res->node.at(0).at(0).at(0).as<sem::Word>();
+    EXPECT_EQ2(w->text, "bold");
+}
+
+TEST(OrgApi, EvalCallCommand) {
+    auto doc = testParseString(
+        R"(
+#+name: callable
+#+begin_src test :var input=default
+input text
+#+end_src
+
+#+call: callable(input=first-item)
+#+call: callable(input=second-call)
+#+call: callable(0, 2, random-named=whatever)
+)",
+        getDebugFile("eval_call_command"));
+
+    org::OrgCodeEvalParameters conf;
+    Vec<sem::OrgCodeEvalInput> buf;
+
+    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
+        -> Vec<sem::OrgCodeEvalOutput> {
+        buf.push_back(in);
+        // LOG(INFO) << fmt1(in);
+        return {sem::OrgCodeEvalOutput{.stdout = "*bold*"}};
+    };
+    conf.debug->setTraceFile(getDebugFile("EvalCallCommand.log"));
+    auto ev = org::evaluateCodeBlocks(doc, conf);
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.json"));
+    writeTreeRepr(ev, getDebugFile("eval-post.json"));
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.txt"));
+    writeTreeRepr(ev, getDebugFile("eval-post.txt"));
+
+    EXPECT_EQ(buf.size(), 4);
+
+    auto b0 = buf.at(0);
+    auto b1 = buf.at(1);
+    auto b2 = buf.at(2);
+    auto b3 = buf.at(3);
+
+    EXPECT_EQ2(b0.argList.size(), 1);
+    EXPECT_EQ2(b0.argList.at(0).value.getString(), "default"_ss);
+
+    EXPECT_EQ2(b1.argList.size(), 1);
+    EXPECT_EQ2(b1.argList.at(0).value.getString(), "first-item"_ss);
+
+    EXPECT_EQ2(b2.argList.size(), 1);
+    EXPECT_EQ2(b2.argList.at(0).value.getString(), "second-call"_ss);
+
+    EXPECT_EQ2(b3.argList.size(), 2);
+    EXPECT_EQ2(b3.argList.at(0).value.getString(), "default"_ss);
+    EXPECT_EQ2(b3.argList.at(1).value.getString(), "whatever"_ss);
+    EXPECT_EQ2(b3.argList.at(1).name, "random-named"_ss);
+}
+
+TEST(OrgApi, BlockEvalIntermediateData) {
+    auto doc = testParseString(R"(
+#+NAME: many-cols
+| a | b | c |
+|---+---+---|
+| d | e | f |
+|---+---+---|
+| g | h | i |
+
+#+NAME: second-user
+#+BEGIN_SRC python :var tab=many-cols
+return tab
+#+END_SRC
+
+#+BEGIN_SRC python :var tab=second-user
+return tab
+#+END_SRC
+)");
+
+    org::OrgCodeEvalParameters conf;
+
+    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
+        -> Vec<sem::OrgCodeEvalOutput> {
+        return {sem::OrgCodeEvalOutput{.stdout = R"(| a | b | c |
+| d | e | f |
+| g | h | i |
+)"}};
+    };
+    conf.debug->setTraceFile(
+        getDebugFile("BlockEvalIntermediateData.log"));
+    auto ev = org::evaluateCodeBlocks(doc, conf);
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.json"));
+    writeTreeRepr(ev, getDebugFile("eval-post.json"));
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.txt"));
+    writeTreeRepr(ev, getDebugFile("eval-post.txt"));
+}

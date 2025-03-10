@@ -50,6 +50,7 @@ namespace hstd::ext {
 
 class Graphviz {
 
+
   public:
     using Point = std::tuple<float, float>;
     struct UserDataBase {
@@ -61,6 +62,39 @@ class Graphviz {
         Left,
         Center,
         Right
+    };
+
+    enum class LayoutType
+    {
+        Dot,   /// Hierarchical layout
+        Neato, /// Spring model layout
+        Fdp,   /// Force-directed layout
+        Sfdp,  /// Multiscale version of Fdp for large graphs
+        Twopi, /// Radial layout
+        Circo  /// Circular layout
+    };
+
+    BOOST_DESCRIBE_NESTED_ENUM(
+        LayoutType,
+        Dot,
+        Neato,
+        Fdp,
+        Sfdp,
+        Twopi,
+        Circo);
+
+    enum class RenderFormat
+    {
+        PNG,  /// Portable Network Graphics format
+        PDF,  /// Portable Document Format
+        SVG,  /// Scalable Vector Graphics format
+        PS,   /// PostScript format
+        JPEG, /// Joint Photographic Experts Group format
+        GIF,  /// Graphics Interchange Format
+        TIF,  /// Tagged Image File Format
+        BMP,  /// Windows Bitmap format
+        XDOT, /// Extended dot format
+        DOT,  /// Write original DOT file
     };
 
     static Str alignText(Str const& text, TextAlign direction);
@@ -581,6 +615,10 @@ class Graphviz {
 
         int nodeCount() { return agnnodes(graph); }
 
+        void render(
+            Str const&   path,
+            LayoutType   layout = LayoutType::Dot,
+            RenderFormat format = RenderFormat::PNG);
 
         /// Set default attriute value for edge
         void setDefaultEdgeAttr(Str const& key, Str const& value) {}
@@ -699,39 +737,6 @@ class Graphviz {
             throw std::runtime_error("Failed to create Graphviz context");
         }
     }
-
-    enum class LayoutType
-    {
-        Dot,   /// Hierarchical layout
-        Neato, /// Spring model layout
-        Fdp,   /// Force-directed layout
-        Sfdp,  /// Multiscale version of Fdp for large graphs
-        Twopi, /// Radial layout
-        Circo  /// Circular layout
-    };
-
-    BOOST_DESCRIBE_NESTED_ENUM(
-        LayoutType,
-        Dot,
-        Neato,
-        Fdp,
-        Sfdp,
-        Twopi,
-        Circo);
-
-    enum class RenderFormat
-    {
-        PNG,  /// Portable Network Graphics format
-        PDF,  /// Portable Document Format
-        SVG,  /// Scalable Vector Graphics format
-        PS,   /// PostScript format
-        JPEG, /// Joint Photographic Experts Group format
-        GIF,  /// Graphics Interchange Format
-        TIF,  /// Tagged Image File Format
-        BMP,  /// Windows Bitmap format
-        XDOT, /// Extended dot format
-        DOT,  /// Write original DOT file
-    };
 
 
     Str  layoutTypeToString(LayoutType layoutType) const;

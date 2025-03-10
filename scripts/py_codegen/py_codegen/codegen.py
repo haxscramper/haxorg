@@ -152,7 +152,9 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                     return
 
                 sem_type = it.name
-                respace = it.name.flatQualScope()[2:] + [it.name.withoutAllScopeQualifiers()]
+                respace = it.name.flatQualScope()[2:] + [
+                    it.name.withoutAllScopeQualifiers()
+                ]
                 respace[0].name = "Imm" + respace[0].name
                 respace = [n_imm()] + respace
                 imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
@@ -631,7 +633,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                             isConst=isConst,
                             impl=ast.Return(
                                 ast.XCall(
-                                    "std::get",
+                                    "hstd::variant_get",
                                     [ast.string(record.variantField)],
                                     Params=[QualType.ForName(str(idx))],
                                 )),
@@ -658,6 +660,33 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                     result=enum_type,
                     impl=ast.Return(
                         ast.XCall(record.kindGetter, [ast.string(record.variantField)])),
+                    doc=GenTuDoc(""),
+                    isConst=True,
+                ))
+
+            result.append(
+                GenTuFunction(
+                    name="sub_variant_get_name",
+                    result=QualType(name="char", ptrCount=1, isConst=True),
+                    impl=ast.Return(ast.StringLiteral(record.variantField)),
+                    doc=GenTuDoc(""),
+                    isConst=True,
+                ))
+
+            result.append(
+                GenTuFunction(
+                    name="sub_variant_get_data",
+                    result=record.variantName.asConstRef(),
+                    impl=ast.Return(ast.string(record.variantField)),
+                    doc=GenTuDoc(""),
+                    isConst=True,
+                ))
+
+            result.append(
+                GenTuFunction(
+                    name="sub_variant_get_kind",
+                    result=record.enumName,
+                    impl=ast.Return(ast.XCall(record.kindGetter)),
                     doc=GenTuDoc(""),
                     isConst=True,
                 ))
@@ -802,7 +831,12 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                                 reuse_spaces.pop(0)
                                 reuse_spaces.pop(-1)
                                 # obj.dbg_origin += f"rest? {rest} -> {reuse_spaces}"
-                                obj.Spaces=[ORG_SPACE, rest[0].model_copy(update=dict(name="Imm" + rest[0].name)), *reuse_spaces]
+                                obj.Spaces = [
+                                    ORG_SPACE,
+                                    rest[0].model_copy(update=dict(name="Imm" +
+                                                                   rest[0].name)),
+                                    *reuse_spaces
+                                ]
 
                             else:
                                 pass
@@ -813,17 +847,16 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                     #     obj.dbg_origin = f"{flat_namespace}"
 
                     # case _:
-                        # obj = res
+                    # obj = res
 
-                        # if 1 < len(rest):
-                        #     obj.name = rest[-1].name
-                        #     obj.Spaces[1].name = "Imm" + obj.Spaces[1].name
-                        #     obj.dbg_origin += f"org sem qual name 1 {flat_namespace}"
+                    # if 1 < len(rest):
+                    #     obj.name = rest[-1].name
+                    #     obj.Spaces[1].name = "Imm" + obj.Spaces[1].name
+                    #     obj.dbg_origin += f"org sem qual name 1 {flat_namespace}"
 
-                        # else:
-                        #     obj.name = "Imm" + rest[-1].name
-                        #     obj.dbg_origin += f"org sem qual name 2 {flat_namespace}"
-
+                    # else:
+                    #     obj.name = "Imm" + rest[-1].name
+                    #     obj.dbg_origin += f"org sem qual name 2 {flat_namespace}"
 
     def impl(obj: Any):
         match obj:
@@ -940,8 +973,7 @@ def gen_adaptagrams_wrappers(
                 [
                     GenTuPass("#undef slots"),
                     GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
-                    GenTuInclude("adaptagrams/adaptagrams_ir.hpp",
-                                 True),
+                    GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
                     GenTuInclude("py_libs/pybind11_utils.hpp", True),
                     GenTuInclude("pybind11/pybind11.h", True),
                     GenTuInclude("pybind11/stl.h", True),
@@ -967,7 +999,9 @@ def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypena
         match it:
             case GenTuStruct() | GenTuEnum():
                 flat = it.name.flatQualScope() + [it.name.withoutAllScopeQualifiers()]
-                without_namespaces = [i for i in range(len(flat)) if not flat[i].isNamespace]
+                without_namespaces = [
+                    i for i in range(len(flat)) if not flat[i].isNamespace
+                ]
                 # log(CAT).info(f"{it.name} {flat} {name_start} {without_namespaces}")
                 name_start = without_namespaces[0]
                 if 1 < len(without_namespaces):

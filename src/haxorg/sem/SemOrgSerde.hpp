@@ -4,23 +4,6 @@
 #include <SemOrgProto.pb.h>
 #include <concepts>
 
-
-template <>
-struct hstd::SerdeDefaultProvider<
-    org::sem::BlockCodeEvalResult::OrgValue> {
-    static org::sem::BlockCodeEvalResult::OrgValue get() {
-        return org::sem::BlockCodeEvalResult::OrgValue{};
-    }
-};
-
-template <>
-struct hstd::SerdeDefaultProvider<org::sem::BlockCodeEvalResult> {
-    static org::sem::BlockCodeEvalResult get() {
-        return org::sem::BlockCodeEvalResult{
-            org::sem::BlockCodeEvalResult::OrgValue{}};
-    }
-};
-
 namespace org::algo {
 
 template <typename Proto, typename T>

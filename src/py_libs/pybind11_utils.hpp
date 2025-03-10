@@ -222,25 +222,37 @@ template <hstd::DescribedRecord R>
 py::object py_getattr_impl(R const& obj, std::string const& attr) {
     if (attr == "__dict__") {
         py::dict result;
-        for_each_field_with_bases<R>(hstd::overloaded{
-            [&]<typename T>(hstd::Opt<T> const& field) {
-                if (field.has_value()) {
-                    result[field.name] = py::cast(obj.*field.pointer);
-                } else {
-                    result[field.name] = py::none();
-                }
-            },
-            [&](auto const& field) {
-                result[field.name] = py::cast(obj.*field.pointer);
-            }});
+        hstd::for_each_field_value_with_bases<R>(
+            obj,
+            hstd::overloaded{
+                [&](char const* name, py::function const& func) {
+                    result[name] = func;
+                },
+                [&]<typename T>(
+                    char const* name, hstd::Opt<T> const& field) {
+                    if (field.has_value()) {
+                        result[name] = py::cast(field);
+                    } else {
+                        result[name] = py::none();
+                    }
+                },
+                [&](char const* name, auto const& field) {
+                    result[name] = py::cast(field);
+                }});
         return result;
     } else {
         hstd::Opt<py::object> result;
-        hstd::for_each_field_with_bases<R>([&](auto const& field) {
-            if (field.name == attr) {
-                result = py::cast(obj.*field.pointer);
-            }
-        });
+        hstd::for_each_field_value_with_bases<R>(
+            obj,
+            hstd::overloaded{
+                [&](char const* name, py::function const& func) {
+                    result = func;
+                },
+                [&](char const* name, auto const& field) {
+                    if (std::string{name} == attr) {
+                        result = py::cast(field);
+                    }
+                }});
 
         if (result.has_value()) {
             return result.value();

@@ -257,6 +257,14 @@ void Graphviz::Graph::eachSubgraph(Func<void(Graph)> cb) const {
     }
 }
 
+void Graphviz::Graph::render(
+    const Str&   path,
+    LayoutType   layout,
+    RenderFormat format) {
+    hstd::ext::Graphviz gvc;
+    gvc.renderToFile(path, *this, format, layout);
+}
+
 Str Graphviz::alignText(const Str& text, TextAlign direction) {
     Str res = text;
     switch (direction) {

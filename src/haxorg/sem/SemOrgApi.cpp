@@ -118,6 +118,57 @@ Opt<AttrValue> AttrGroup::getFirstNamed(Str const& index) const {
     }
 }
 
+org::sem::AttrList AttrGroup::getAll() const {
+    AttrList result;
+    for (auto const& it : positional.items) { result.items.push_back(it); }
+
+    for (auto const& key : sorted(named.keys())) {
+        for (auto const& it : named.at(key).items) {
+            result.items.push_back(it);
+        }
+    }
+
+    return result;
+}
+
+AttrList AttrGroup::atVarNamed(Str const& index) const {
+    AttrList result;
+    for (auto const& it : positional.items) {
+        if (it.varname && it.varname.value() == index) {
+            result.items.push_back(it);
+        }
+    }
+
+    for (auto const& key : sorted(named.keys())) {
+        for (auto const& it : named.at(key).items) {
+            if (it.varname && it.varname.value() == index) {
+                result.items.push_back(it);
+            }
+        }
+    }
+
+    return result;
+}
+
+Opt<AttrList> AttrGroup::getVarNamed(Str const& index) const {
+    auto list = atVarNamed(index);
+    if (list.items.empty()) {
+        return std::nullopt;
+    } else {
+        return list;
+    }
+}
+
+AttrValue AttrGroup::atFirstVarNamed(Str const& index) const {
+    auto list = atVarNamed(index);
+    return list.items.at(0);
+}
+
+Opt<AttrValue> AttrGroup::getFirstVarNamed(Str const& index) const {
+    auto list = atVarNamed(index);
+    return list.items.get(0);
+}
+
 void AttrGroup::setNamedAttr(Str const& key, Vec<AttrValue> const& attr) {
     named.insert_or_assign(normalize(key), AttrList{.items = attr});
 }

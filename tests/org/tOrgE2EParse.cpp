@@ -21,8 +21,10 @@ TEST(TestFiles, AllNodeSerde) {
     p.run(source);
 
     sem::OrgConverter converter{};
-    sem::SemId        write_node = converter.toDocument(
-        OrgAdapter(&p.nodes, OrgId(0)));
+    sem::SemId        write_node = converter
+                                .convertDocument(
+                                    OrgAdapter(&p.nodes, OrgId(0)))
+                                .value();
     orgproto::AnyNode result;
     org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, write_node);
@@ -78,7 +80,9 @@ TEST(TestFiles, AllNodeCoverage) {
 
     SemSet            foundNodes;
     sem::OrgConverter converter{};
-    sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    sem::SemId        node = converter
+                          .convertDocument(OrgAdapter(&p.nodes, OrgId(0)))
+                          .value();
 
     using osk = OrgSemKind;
     SemSet wipNotParseable{

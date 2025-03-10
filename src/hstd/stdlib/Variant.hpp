@@ -44,6 +44,32 @@ struct bad_variant_access : CRTP_hexception<bad_variant_access> {
     }
 };
 
+template <size_t _Np, typename... _Types>
+constexpr std::variant_alternative_t<_Np, std::variant<_Types...>> const& variant_get(
+    std::variant<_Types...> const& __v) {
+    static_assert(
+        _Np < sizeof...(_Types),
+        "The index must be in [0, number of alternatives)");
+    if (__v.index() != _Np) {
+        throw bad_variant_access::init(_Np, __v.index());
+    } else {
+        return std::get<_Np>(__v);
+    }
+}
+
+template <size_t _Np, typename... _Types>
+constexpr std::variant_alternative_t<_Np, std::variant<_Types...>>& variant_get(
+    std::variant<_Types...>& __v) {
+    static_assert(
+        _Np < sizeof...(_Types),
+        "The index must be in [0, number of alternatives)");
+    if (__v.index() != _Np) {
+        throw bad_variant_access::init(_Np, __v.index());
+    } else {
+        return std::get<_Np>(__v);
+    }
+}
+
 template <typename T>
 concept IsSubVariantType = requires(T t) {
     typename T::variant_enum_type;

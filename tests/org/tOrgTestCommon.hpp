@@ -46,7 +46,7 @@ void writeTreeRepr(
         .withAuxFields = true,
     });
 
-// void writeTreeRepr(sem::SemId<sem::Org> node, CR<Str> full, ExporterT);
+void writeTreeRepr(sem::SemId<sem::Org> node, CR<Str> full);
 
 
 GTEST_ADL_PRINT_TYPE(OrgSemKind);

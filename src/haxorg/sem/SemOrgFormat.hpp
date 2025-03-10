@@ -24,6 +24,7 @@ struct Formatter {
     void add(Res id, Res other);
 
     Res toString(sem::AttrValue const& id, Context const& ctx);
+    Res toString(sem::LispCode const& id, Context const& ctx);
     Res toString(hstd::UserTime const& id, Context const& ctx) {
         return str(
             "["_ss

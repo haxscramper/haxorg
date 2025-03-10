@@ -53,6 +53,7 @@ void Formatter::add(Res id, Res other) {
     }
 }
 
+
 void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
     for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
 }
@@ -83,15 +84,8 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Vec<Res> parameters;
 
-    for (auto const& it : id->attrs.positional.items) {
-        parameters.push_back(str(it.getString()));
-    }
-
-    for (auto const& key : sorted(id->attrs.named.keys())) {
-        for (auto const& it : id->attrs.named.at(key).items) {
-            parameters.push_back(
-                str(fmt("{}={}", it.name.value(), it.getString())));
-        }
+    for (auto const& it : id->attrs.getAll().items) {
+        parameters.push_back(toString(it, ctx));
     }
 
     if (parameters.empty()) {
@@ -340,22 +334,80 @@ auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
     }
 }
 
+Formatter::Res Formatter::toString(
+    const sem::LispCode& id,
+    const Context&       ctx) {
+    using C = sem::LispCode;
+    return std::visit(
+        overloaded{
+            [&](C::Boolean const& b) -> Res {
+                return str(b.value ? "t" : "nil");
+            },
+            [&](C::Call const& c) -> Res {
+                auto res = b.line({str("("), str(c.name)});
+                for (auto const& arg : c.args) {
+                    b.add_at(res, str(" "));
+                    b.add_at(res, toString(arg, ctx));
+                }
+                b.add_at(res, str(")"));
+                return res;
+            },
+            [&](C::KeyValue const& kv) {
+                return b.line({
+                    str(fmt(":{} ", kv.name)),
+                    toString(kv.value.front(), ctx),
+                });
+            },
+            [&](C::List const& l) -> Res {
+                auto res = b.line({str("(")});
+                for (auto const& it : enumerator(l.items)) {
+                    if (!it.is_first()) { b.add_at(res, str(" ")); }
+                    b.add_at(res, toString(it.value(), ctx));
+                }
+                b.add_at(res, str(")"));
+                return res;
+            },
+            [&](C::Ident const& i) -> Res { return str(i.name); },
+            [&](C::Real const& r) -> Res { return str(fmt1(r.value)); },
+            [&](C::Number const& r) -> Res { return str(fmt1(r.value)); },
+            [&](C::Text const& r) -> Res {
+                return str(fmt("\"{}\"", r.value));
+            },
+        },
+        id.data);
+}
+
 auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     -> Res {
-    Str value = id.getString().replaceAll("\"", "\\\"");
-
-    if (id.isQuoted) { value = escape_for_write(value, true); }
-
-    auto varname = id.varname.has_value()
-                     ? Str{fmt("{}={}", id.varname.value(), value)}
-                     : value;
-
-
+    auto result = b.line();
     if (id.name) {
-        return str(fmt(":{} {}", id.name.value(), varname));
-    } else {
-        return str(varname);
+        b.add_at(result, str(":"_ss + id.name.value() + " "_ss));
     }
+
+    if (id.varname) {
+        b.add_at(result, str(id.varname.value()));
+        b.add_at(result, str("="));
+    }
+
+    if (id.isTextValue()) {
+        Str value = id.getString().replaceAll("\"", "\\\"");
+        if (id.isQuoted) { value = escape_for_write(value, true); }
+        b.add_at(result, str(value));
+    } else if (id.isFileReference()) {
+        b.add_at(result, str(id.getFileReference().file));
+        b.add_at(result, str(":"));
+        b.add_at(result, str(id.getFileReference().reference));
+    } else {
+        b.add_at(result, toString(id.getLispValue().code, ctx));
+    }
+
+    return result;
+}
+
+auto Formatter::toString(SemId<BlockCodeEvalResult> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return str("TODO");
 }
 
 auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
@@ -364,8 +416,8 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
 
     auto     result = isInline ? b.line() : b.stack();
     Vec<Res> parameters;
-    if (id->attrs) {
-        parameters.push_back(toString(id->attrs.value(), ctx));
+    if (!id->attrs.isEmpty()) {
+        parameters.push_back(toString(id->attrs, ctx));
     }
 
     auto head = isInline ? b.line({str("src_")})
@@ -439,31 +491,9 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
         add(result, str("#+end_src"));
     }
 
-    if (id->result) {
-        add(result, str(""));
-        add(result, b.line({str("#+results:")}));
-        switch (id->result->getKind()) {
-            case BlockCodeEvalResult::Kind::OrgValue: {
-                add(result, str(id->result->getOrgValue().value));
-                break;
-            }
-
-            case BlockCodeEvalResult::Kind::Raw: {
-                add(result, str(id->result->getRaw().text));
-                break;
-            }
-
-
-            case BlockCodeEvalResult::Kind::None: {
-                break;
-            }
-
-            case BlockCodeEvalResult::Kind::File: {
-                add(result,
-                    str(fmt("[file:{}]", id->result->getFile().path)));
-                break;
-            }
-        }
+    for (auto const& res : id->result) {
+        add(result, str("#+results:"));
+        add(result, toString(res->node, ctx));
     }
 
     auto out = stackAttached(result, id.as<sem::Stmt>(), ctx);
@@ -640,9 +670,36 @@ auto Formatter::toString(SemId<CmdColumns> id, CR<Context> ctx) -> Res {
     return b.line({str("#+columns: ")});
 }
 
-auto Formatter::toString(SemId<CmdResults> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCall> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str("#+results: ")});
+    auto res = b.line({str("#+call: ")});
+
+    b.add_at(res, str(id->name));
+
+    if (!id->insideHeaderAttrs.isEmpty()) {
+        b.add_at(res, str("["));
+        b.add_at(res, toString(id->insideHeaderAttrs, ctx));
+        b.add_at(res, str("]"));
+    }
+
+    if (!id->callAttrs.isEmpty()) {
+        b.add_at(res, str("("));
+        bool isFirst = true;
+        for (auto const& it : id->callAttrs.getAll().items) {
+            if (!isFirst) { b.add_at(res, str(", ")); }
+            isFirst = false;
+            b.add_at(res, toString(it, ctx));
+        }
+
+        b.add_at(res, str(")"));
+    }
+
+    if (!id->insideHeaderAttrs.isEmpty()) {
+        b.add_at(res, str(" "));
+        b.add_at(res, toString(id->insideHeaderAttrs, ctx));
+    }
+
+    return res;
 }
 
 auto Formatter::toString(SemId<CmdCustomRaw> id, CR<Context> ctx) -> Res {
@@ -1436,7 +1493,7 @@ auto Formatter::toString(SemId<BlockQuote> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return stackAttached(
         b.stack(Vec<Res>::Splice(
-            b.line({str("#+begin_quote"), toString(id->attrs, ctx)}),
+            b.line({str("#+begin_quote "), toString(id->attrs, ctx)}),
             toSubnodes(id, ctx),
             str("#+end_quote"))),
         id.as<sem::Stmt>(),
@@ -1501,9 +1558,9 @@ auto Formatter::toString(SemId<BlockExport> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res head = b.line();
     add(head, str("#+begin_export " + id->exporter));
-    if (id->attrs) {
+    if (!id->attrs.isEmpty()) {
         add(head, str(" "));
-        add(head, toString(id->attrs.value(), ctx));
+        add(head, toString(id->attrs, ctx));
     }
 
     return b.stack(

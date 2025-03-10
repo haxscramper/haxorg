@@ -3,6 +3,7 @@ import sys
 from typing import TYPE_CHECKING
 import os
 from beartype import beartype
+from pathlib import Path
 
 build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
 if str(build_dir) not in sys.path:
