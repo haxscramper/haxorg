@@ -5,13 +5,13 @@ from pathlib import Path
 
 @beartype
 def evalCode(node: org.Org, debug: Optional[Path] = None) -> org.Org: 
-    def callback_impl(input: org.OrgCodeEvalInput) -> org.OrgCodeEvalOutput:
-        result = org.OrgCodeEvalOutput()
+    def callback_impl(input: org.OrgCodeEvalInput) -> org.VecOfOrgCodeEvalOutputVec:
+        result = org.VecOfOrgCodeEvalOutputVec()
 
         match input.language:
             case "plantuml":
                 import py_haxorg.babel_plantuml
-                return py_haxorg.babel_plantuml.babel_eval(input)
+                result = py_haxorg.babel_plantuml.babel_eval(input)
                 
 
         return result

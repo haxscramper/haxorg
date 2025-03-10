@@ -13,9 +13,11 @@ content
 
     conf = org.PyCodeEvalParameters()
     buf: List[org.OrgCodeEvalInput] = []
-    def eval_block(input: org.OrgCodeEvalInput) -> org.OrgCodeEvalOutput:
-        result = org.OrgCodeEvalOutput()
-        result.stdout = "*bold*"
+    def eval_block(input: org.OrgCodeEvalInput) -> org.VecOfOrgCodeEvalOutputVec:
+        result = org.VecOfOrgCodeEvalOutputVec()
+        item  = org.OrgCodeEvalOutput()
+        item.stdout = "*bold*"
+        result.append(item)
         buf.append(input)
         return result
 

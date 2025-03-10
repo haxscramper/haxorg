@@ -1416,12 +1416,13 @@ struct EvalContext {
                     }
                 }
 
-
-                setOutput(
-                    output,
-                    input,
-                    block,
-                    convertOutput(output.back(), input, conf));
+                if (!output.empty()) {
+                    setOutput(
+                        output,
+                        input,
+                        block,
+                        convertOutput(output.back(), input, conf));
+                }
             }
         }
 

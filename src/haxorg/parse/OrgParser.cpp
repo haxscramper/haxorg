@@ -1105,7 +1105,7 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
             skip(lex);
             OrgTokSet CellEnd{otk::Pipe, otk::TrailingPipe};
             OrgTokSet CellStart{otk::Pipe, otk::LeadingPipe};
-            while (!lex.at(CellEnd)) {
+            while (lex.can_search(CellEnd)) {
                 if (lex.at(otk::Whitespace)
                     && (lex.at(CellEnd, +1) || lex.at(CellStart, -1))) {
                     lex.next();
@@ -1939,6 +1939,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         otk::BraceEnd,
         otk::Comma,
         otk::Equals,
+        otk::RawText,
     };
 
     auto get_cmd_arguments = [&]() {

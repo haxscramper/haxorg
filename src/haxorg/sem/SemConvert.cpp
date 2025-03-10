@@ -2219,7 +2219,7 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
     } else {
         return SemError(
             a,
-            fmt("Table format expression failed\n{}",
+            fmt("Column format expression failed\n{}",
                 join("\n", spec.errors())));
     }
 
