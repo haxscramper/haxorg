@@ -67,6 +67,14 @@ struct [[refl]] PyCodeEvalParameters {
     BOOST_DESCRIBE_CLASS(PyCodeEvalParameters, (), (evalBlock), (), ());
 };
 
+[[refl]] void setShouldProcessPath(
+    OrgDirectoryParseParameters* parameters,
+    py::function                 callback);
+
+[[refl]] void setGetParsedNode(
+    OrgDirectoryParseParameters* params,
+    py::function                 callback);
+
 [[refl]] org::sem::SemId<sem::Org> evaluateCodeBlocks(
     org::sem::SemId<org::sem::Org> node,
     PyCodeEvalParameters const&    conf);

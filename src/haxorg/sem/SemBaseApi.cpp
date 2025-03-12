@@ -188,9 +188,8 @@ Opt<sem::SemId<Org>> parsePathAux(
     if (opts.shouldProcessPath && !opts.shouldProcessPath(path)) {
         return std::nullopt;
     } else if (fs::is_symlink(path)) {
-        auto target = fs::read_symlink(path);
-        LOG(INFO) << fmt("Symlink '{}' targets '{}'", path, target);
-        sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
+        auto                     target = fs::read_symlink(path);
+        sem::SemId<sem::Symlink> sym    = sem::SemId<sem::Symlink>::New();
         if (fs::is_directory(target)) {
             sym->isDirectory = true;
             sym->absPath     = target.native();
