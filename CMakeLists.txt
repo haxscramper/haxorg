@@ -173,3 +173,45 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
 
 add_library(haxorg::haxorg ALIAS haxorg)
 add_library(haxorg::hstd ALIAS hstd)
+
+
+set(CPACK_SOURCE_IGNORE_FILES
+  /.mypy_cache/
+  /.git/
+  /.mepo/
+  /.venv/
+  /build.*/
+  /install.*/
+  /CVS/
+  .\*.swp
+  .\*.swo
+  .\*~
+  .\*\#
+  \.DS_Store
+  /toolchain/
+  /thirdparty/
+  /.cache/
+  /examples/
+  /htmlcov/
+  /.hypothesis/
+  /docs/
+  /scripts/
+  /.trunk/
+  /node_modules/
+  /tests/
+  /__pycache__/
+  /_CPack_Packages/
+  /html/
+  /.xmake/
+  /.idea/
+  /\\.py$/
+)
+
+set(CPACK_PACKAGE_NAME "haxorg")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "C++ parser for org-mode language")
+
+set(CPACK_COMPONENTS_ALL hstd)
+set(CPACK_SOURCE_GENERATOR "ZIP")
+
+include(CPack)

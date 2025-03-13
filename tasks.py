@@ -1033,6 +1033,23 @@ def cmake_install_dev(ctx: Context, perfetto: bool = False):
         ])
 
 
+@org_task(pre=[cmake_configure_haxorg])
+def cpack_code(ctx: Context):
+    pack_res = get_script_root().joinpath("_CPack_Packages")
+    if pack_res.exists():
+        shutil.rmtree(str(pack_res))
+    run_command(
+        ctx,
+        "cpack",
+        [
+            "--debug",
+            # "--verbose",
+            "--config",
+            str(get_component_build_dir(ctx, "haxorg").joinpath("CPackSourceConfig.cmake")),
+        ],
+    )
+
+
 @beartype
 def get_example_build(example_name: str) -> Path:
     return get_build_root().joinpath(f"example_build_{example_name}")
@@ -1139,7 +1156,7 @@ def run_d3_example(ctx: Context, with_server: bool = True):
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
 
-    if with_server: 
+    if with_server:
         run_command(
             ctx,
             web_build,
