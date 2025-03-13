@@ -40,6 +40,8 @@ import graphviz
 LLVM_MAJOR = "18"
 LLVM_VERSION = "18.1.4"
 CAT = "tasks"
+HAXORG_VERSION = "1.0.0"
+HAXORG_NAME = "haxorg"
 
 
 def custom_traceback_handler(exc_type, exc_value, exc_traceback):
@@ -741,6 +743,8 @@ def cmake_configure_haxorg(ctx: Context, force: bool = False):
                 "Ninja",
                 f"-DCMAKE_CXX_COMPILER={get_llvm_root('bin/clang++')}",
                 *get_cmake_defines(ctx),
+                cmake_opt("ORG_CPACK_PACKAGE_VERSION", HAXORG_VERSION),
+                cmake_opt("ORG_CPACK_PACKAGE_NAME", HAXORG_NAME),
             ]
 
             run_command(ctx, "cmake", pass_flags)
@@ -1034,20 +1038,75 @@ def cmake_install_dev(ctx: Context, perfetto: bool = False):
 
 
 @org_task(pre=[cmake_configure_haxorg])
-def cpack_code(ctx: Context):
-    pack_res = get_script_root().joinpath("_CPack_Packages")
-    if pack_res.exists():
-        shutil.rmtree(str(pack_res))
-    run_command(
-        ctx,
-        "cpack",
-        [
-            "--debug",
-            # "--verbose",
-            "--config",
-            str(get_component_build_dir(ctx, "haxorg").joinpath("CPackSourceConfig.cmake")),
-        ],
-    )
+def cpack_code(ctx: Context, force: bool = False):
+    "Generate source archive"
+
+    with FileOperation.InTmp([Path("CMakeLists.txt")],
+                             stamp_path=get_task_stamp("cpack_code"),
+                             stamp_content=str(get_cmake_defines(ctx))) as op:
+        if force or is_forced(ctx, "cpack_code") or op.should_run():
+            log(CAT).info(op.explain("cpack code"))
+            pack_res = get_script_root().joinpath("_CPack_Packages")
+            log(CAT).info(f"Package tmp directory {pack_res}")
+            if pack_res.exists():
+                shutil.rmtree(str(pack_res))
+
+            run_command(
+                ctx,
+                "cpack",
+                [
+                    "--debug",
+                    # "--verbose",
+                    "--config",
+                    str(
+                        get_component_build_dir(
+                            ctx, "haxorg").joinpath("CPackSourceConfig.cmake")),
+                ],
+            )
+
+        else:
+            log(CAT).debug(op.explain("cpack code"))
+
+
+@org_task(pre=[cpack_code])
+def cpack_test_build(ctx: Context, testdir: Optional[str] = None):
+    "Test cpack-provided build"
+    from tempfile import TemporaryDirectory
+
+    package_archive = get_script_root().joinpath(
+        f"{HAXORG_NAME}-{HAXORG_VERSION}-Source.zip")
+
+    with TemporaryDirectory() as tmpdir:
+        if testdir:
+            build_dir = Path(testdir)
+
+        else:
+            build_dir = Path(tmpdir)
+
+        shutil.rmtree(build_dir)
+        build_dir.mkdir(parents=True, exist_ok=True)
+        package_copy = build_dir.joinpath("target.zip")
+
+        shutil.copy(package_archive, package_copy)
+        unzip = local["unzip"]
+        unzip.run([
+            str(package_copy),
+            "-d",
+            str(build_dir),
+        ])
+
+        log(CAT).info(f"Unzipped package to {build_dir}")
+        src_root = build_dir.joinpath(f"{HAXORG_NAME}-{HAXORG_VERSION}-Source")
+        src_build = build_dir.joinpath("build")
+
+        run_command(ctx, "cmake", [
+            "-B",
+            str(src_build),
+            "-S",
+            str(src_root),
+            "-G",
+            "Ninja",
+        ])
 
 
 @beartype

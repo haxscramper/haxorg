@@ -176,39 +176,44 @@ add_library(haxorg::hstd ALIAS hstd)
 
 
 set(CPACK_SOURCE_IGNORE_FILES
-  /.mypy_cache/
-  /.git/
-  /.mepo/
-  /.venv/
-  /build.*/
-  /install.*/
-  /CVS/
-  .\*.swp
-  .\*.swo
-  .\*~
-  .\*\#
-  \.DS_Store
-  /toolchain/
-  /thirdparty/
-  /.cache/
-  /examples/
-  /htmlcov/
-  /.hypothesis/
-  /docs/
-  /scripts/
-  /.trunk/
-  /node_modules/
-  /tests/
-  /__pycache__/
-  /_CPack_Packages/
-  /html/
-  /.xmake/
-  /.idea/
-  /\\.py$/
+  "\\.mypy_cache"
+  "\\.git"
+  "\\.mepo"
+  "\\.venv"
+  "/build.*/"
+  "/install.*/"
+  "/toolchain/"
+  "/thirdparty/"
+  "\\.cache"
+  "examples"
+  "htmlcov"
+  "\\.hypothesis"
+  "docs"
+  "scripts"
+  "\\.trunk"
+  "node_modules"
+  "tests"
+  "__pycache__"
+  "_CPack_Packages"
+  "html"
+  "\\.xmake"
+  "\\.idea"
+  "\\.py"
+  "\\.coverage"
+  "latex"
+  "\\.vscode"
+  ".*\\.zip"
+  "\\.profraw$"
+  "perf\\..*"
+  "/\\..*"
+  "/dist/"
 )
 
-set(CPACK_PACKAGE_NAME "haxorg")
-set(CPACK_PACKAGE_VERSION "1.0.0")
+option(ORG_CPACK_PACKAGE_VERSION "Package version for cpack export" "1.0.0")
+option(ORG_CPACK_PACKAGE_NAME "Package name for cpack export" "haxorg")
+
+set(CPACK_PACKAGE_NAME "${ORG_CPACK_PACKAGE_NAME}")
+set(CPACK_PACKAGE_VERSION "${ORG_CPACK_PACKAGE_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "C++ parser for org-mode language")
 
 set(CPACK_COMPONENTS_ALL hstd)
