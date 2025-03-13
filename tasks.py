@@ -142,13 +142,16 @@ if is_ci():
 
 
 @beartype
-def cmake_opt(name: str, value: Union[str, bool, Path]) -> str:
+def cmake_opt(name: str, value: Union[str, bool, Path, None]) -> str:
     result = "-D" + name + "="
     if isinstance(value, (str, Path)):
         result += str(value)
 
     elif isinstance(value, bool):
         result += ("ON" if value else "OFF")
+
+    elif value is None:
+        result += "OFF"
 
     return result
 
@@ -1041,35 +1044,39 @@ def cmake_install_dev(ctx: Context, perfetto: bool = False):
 def cpack_code(ctx: Context, force: bool = False):
     "Generate source archive"
 
-    with FileOperation.InTmp([Path("CMakeLists.txt")],
-                             stamp_path=get_task_stamp("cpack_code"),
-                             stamp_content=str(get_cmake_defines(ctx))) as op:
-        if force or is_forced(ctx, "cpack_code") or op.should_run():
-            log(CAT).info(op.explain("cpack code"))
-            pack_res = get_script_root().joinpath("_CPack_Packages")
-            log(CAT).info(f"Package tmp directory {pack_res}")
-            if pack_res.exists():
-                shutil.rmtree(str(pack_res))
+    # with FileOperation.InTmp([Path("CMakeLists.txt")],
+    #                          stamp_path=get_task_stamp("cpack_code"),
+    #                          stamp_content=str(get_cmake_defines(ctx))) as op:
+    #     if force or is_forced(ctx, "cpack_code") or op.should_run():
+    # log(CAT).info(op.explain("cpack code"))
+    pack_res = get_script_root().joinpath("_CPack_Packages")
+    log(CAT).info(f"Package tmp directory {pack_res}")
+    if pack_res.exists():
+        shutil.rmtree(str(pack_res))
 
-            run_command(
-                ctx,
-                "cpack",
-                [
-                    "--debug",
-                    # "--verbose",
-                    "--config",
-                    str(
-                        get_component_build_dir(
-                            ctx, "haxorg").joinpath("CPackSourceConfig.cmake")),
-                ],
-            )
+    run_command(
+        ctx,
+        "cpack",
+        [
+            "--debug",
+            # "--verbose",
+            "--config",
+            str(
+                get_component_build_dir(ctx,
+                                        "haxorg").joinpath("CPackSourceConfig.cmake")),
+        ],
+    )
 
-        else:
-            log(CAT).debug(op.explain("cpack code"))
+    # else:
+    #     log(CAT).debug(op.explain("cpack code"))
 
 
 @org_task(pre=[cpack_code])
-def cpack_test_build(ctx: Context, testdir: Optional[str] = None):
+def cpack_test_build(
+    ctx: Context,
+    testdir: Optional[str] = None,
+    deps_install_dir: Optional[str] = None,
+):
     "Test cpack-provided build"
     from tempfile import TemporaryDirectory
 
@@ -1106,6 +1113,24 @@ def cpack_test_build(ctx: Context, testdir: Optional[str] = None):
             str(src_root),
             "-G",
             "Ninja",
+            *cond(
+                deps_install_dir,
+                [cmake_opt("ORG_DEPS_INSTALL_ROOT", deps_install_dir)],
+                [],
+            ),
+            cmake_opt("ORG_DEPS_USE_PROTOBUF", False),
+            cmake_opt("ORG_IS_PUBLISH_BUILD", True),
+            cmake_opt("ORG_BUILD_ASSUME_CLANG", False), 
+        ])
+
+        log(CAT).info("Completed cpack build configuration")
+
+        run_command(ctx, "cmake", [
+            "--build",
+            str(src_build),
+            "--target",
+            "all",
+            "--parallel",
         ])
 
 

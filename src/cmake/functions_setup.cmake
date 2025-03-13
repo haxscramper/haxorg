@@ -1,14 +1,23 @@
 function(set_target_flags_impl)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unknown-attributes")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unused-command-line-argument")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-ambiguous-reversed-operator")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Qunused-arguments")
+
+  if(${ORG_IS_PUBLISH_BUILD})
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
+      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
+    endif()
+  endif()
+
+  if(${ORG_BUILD_ASSUME_CLANG})
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unknown-attributes")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unused-command-line-argument")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-ambiguous-reversed-operator")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Qunused-arguments")
+  endif()
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
 
   set_target_properties(
@@ -30,8 +39,10 @@ function(set_target_flags_impl)
 
   target_compile_features(${ARG_TARGET} PUBLIC cxx_std_23)
 
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftime-trace")
-  add_target_property(${ARG_TARGET} LINK_OPTIONS "-ftime-trace")
+  if(${ORG_BUILD_ASSUME_CLANG})
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftime-trace")
+    add_target_property(${ARG_TARGET} LINK_OPTIONS "-ftime-trace")
+  endif()
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     # Avoid getting flooded with compilation errors
@@ -107,17 +118,6 @@ function(set_target_flags_impl)
                           -fcoverage-mapping)
 
     endif()
-  endif()
-
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
-    # Same configuration option for g++ compiler
-    set(CMAKE_CXX_COMPILER g++)
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fmax-errors=${MAX_COMPILE_ERRORS}")
-
-    if(${ORG_USE_COVERAGE})
-      target_link_options(${ARG_TARGET} PRIVATE -lgcov --coverage)
-    endif()
-
   endif()
 endfunction()
 
