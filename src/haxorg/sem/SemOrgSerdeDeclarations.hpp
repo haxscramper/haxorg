@@ -1,4 +1,5 @@
 /* clang-format off */
+#ifdef ORG_DEPS_USE_PROTOBUF
 #pragma once
 #include <haxorg/sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
@@ -1363,4 +1364,5 @@ struct org::algo::proto_serde<::orgproto::CmdInclude, org::sem::CmdInclude> {
 };
 
 
+#endif
 /* clang-format on */

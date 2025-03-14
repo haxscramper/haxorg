@@ -1,5 +1,6 @@
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+#ifdef ORG_DEPS_USE_PROTOBUF
 
 using namespace org::algo;
 using namespace org;
@@ -9,36 +10,36 @@ void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(
     orgproto::AnyNode*          out,
     const sem::SemId<sem::Org>& in) {
 
-#define _case(_fieldEnum, _field, __Kind)                                 \
-    case OrgSemKind::__Kind: {                                            \
-        proto_serde<orgproto::__Kind, sem::__Kind>::write(                \
-            out->mutable_##_field(), *in.getAs<sem::__Kind>());           \
-        break;                                                            \
-    }
+#    define _case(_fieldEnum, _field, __Kind)                             \
+        case OrgSemKind::__Kind: {                                        \
+            proto_serde<orgproto::__Kind, sem::__Kind>::write(            \
+                out->mutable_##_field(), *in.getAs<sem::__Kind>());       \
+            break;                                                        \
+        }
 
 
     orgproto::AnyNode result;
     switch (in->getKind()) { EACH_ANY_NODE_PROTO_FIELD(_case); }
 
-#undef _case
+#    undef _case
 }
 
 void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::read(
     const orgproto::AnyNode&                   out,
     proto_write_accessor<sem::SemId<sem::Org>> in) {
-#define _case(_fieldEnum, _field, __Kind)                                 \
-    case orgproto::AnyNode::KindCase::_fieldEnum: {                       \
-        if (in.get().isNil()) {                                           \
-            in.get() = sem::SemId<sem::__Kind>::New();                    \
-        }                                                                 \
-        sem::SemId<sem::__Kind> tmp_id = in.get().as<sem::__Kind>();      \
-        proto_serde<orgproto::__Kind, sem::SemId<sem::__Kind>>::read(     \
-            out._field(),                                                 \
-            proto_write_accessor<sem::SemId<sem::__Kind>>::for_ref(       \
-                tmp_id));                                                 \
+#    define _case(_fieldEnum, _field, __Kind)                             \
+        case orgproto::AnyNode::KindCase::_fieldEnum: {                   \
+            if (in.get().isNil()) {                                       \
+                in.get() = sem::SemId<sem::__Kind>::New();                \
+            }                                                             \
+            sem::SemId<sem::__Kind> tmp_id = in.get().as<sem::__Kind>();  \
+            proto_serde<orgproto::__Kind, sem::SemId<sem::__Kind>>::read( \
+                out._field(),                                             \
+                proto_write_accessor<sem::SemId<sem::__Kind>>::for_ref(   \
+                    tmp_id));                                             \
                                                                           \
-        break;                                                            \
-    }
+            break;                                                        \
+        }
 
 
     orgproto::AnyNode result;
@@ -54,7 +55,7 @@ void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::read(
     }
     CHECK(!in.get().isNil());
 
-#undef _case
+#    undef _case
 }
 
 template <typename Proto>
@@ -115,3 +116,4 @@ template class proto_serde<::orgproto::CmdColumns, sem::Cmd>;
 template class proto_serde<::orgproto::CmdExport, sem::Cmd>;
 
 } // namespace org::algo
+#endif

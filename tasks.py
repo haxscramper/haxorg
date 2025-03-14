@@ -1090,7 +1090,9 @@ def cpack_test_build(
         else:
             build_dir = Path(tmpdir)
 
-        shutil.rmtree(build_dir)
+        if build_dir.exists():
+            shutil.rmtree(build_dir)
+
         build_dir.mkdir(parents=True, exist_ok=True)
         package_copy = build_dir.joinpath("target.zip")
 
@@ -1120,18 +1122,27 @@ def cpack_test_build(
             ),
             cmake_opt("ORG_DEPS_USE_PROTOBUF", False),
             cmake_opt("ORG_IS_PUBLISH_BUILD", True),
-            cmake_opt("ORG_BUILD_ASSUME_CLANG", False), 
+            cmake_opt("ORG_BUILD_ASSUME_CLANG", False),
+            cmake_opt("CMAKE_CXX_COMPILER", "clang++"),
+            cmake_opt("CMAKE_C_COMPILER", "clang"),
+            cmake_opt("ORG_DEPS_USE_ADAPTAGRAMS", False), 
         ])
 
         log(CAT).info("Completed cpack build configuration")
 
-        run_command(ctx, "cmake", [
-            "--build",
-            str(src_build),
-            "--target",
-            "all",
-            "--parallel",
-        ])
+        run_command(
+            ctx,
+            "cmake",
+            [
+                "--build",
+                str(src_build),
+                "--target",
+                "all",
+                "--parallel",
+            ],
+            stderr_debug=Path("/tmp/cpack_build_stderr.log"),
+            stdout_debug=Path("/tmp/cpack_build_stdout.log"),
+        )
 
 
 @beartype

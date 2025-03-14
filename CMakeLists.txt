@@ -56,6 +56,7 @@ option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adapt
 
 option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
 option(ORG_DEPS_USE_PROTOBUF "Include protobuf functionality in the build" ON)
+option(ORG_DEPS_USE_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)" ON)
 option(ORG_IS_PUBLISH_BUILD "Don't build and configure internal development dependencies" OFF)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 
@@ -89,7 +90,9 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json"
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/reflex/lib/cmake/reflex")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/perfetto/lib/cmake/Perfetto")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/describe/lib/cmake/BoostDescribe")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
+if(${ORG_DEPS_USE_ADAPTAGRAMS})
+  list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
+endif()
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/utf8_range/lib/cmake/utf8_range")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lexy/lib/cmake/lexy")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/cpptrace/lib/cmake/cpptrace")
@@ -123,11 +126,14 @@ if(${ORG_USE_PERFETTO})
 endif()
 find_package(BoostDescribe CONFIG REQUIRED)
 find_package(PythonLibs 3.13)
-find_package(Adaptagrams CONFIG REQUIRED)
+if(${ORG_DEPS_USE_ADAPTAGRAMS})
+  find_package(Adaptagrams CONFIG REQUIRED)
+endif()
 find_package(cpptrace CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS log)
 
 if(${ORG_DEPS_USE_PROTOBUF})
+  add_definitions(-DORG_DEPS_USE_PROTOBUF)
   include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 endif()
 message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
@@ -137,7 +143,10 @@ set(JSON_BuildTests
     CACHE INTERNAL "")
 
 add_subdirectory(src/hstd)
-add_subdirectory(src/adaptagrams)
+if(${ORG_DEPS_USE_ADAPTAGRAMS})
+  add_definitions(-DORG_DEPS_USE_ADAPTAGRAMS)
+  add_subdirectory(src/adaptagrams)
+endif()
 add_subdirectory(src/haxorg)
 add_subdirectory(src/py_libs)
 
@@ -146,8 +155,14 @@ if(NOT ${ORG_IS_PUBLISH_BUILD})
   add_subdirectory(scripts/cxx_codegen)
 endif()
 
+if(${ORG_DEPS_USE_ADAPTAGRAMS})
+  set(ORG_INSTALL_TARGET_LIST haxorg hstd adaptagrams)
+else()
+  set(ORG_INSTALL_TARGET_LIST haxorg hstd)
+endif()
+
 install(
-  TARGETS haxorg hstd adaptagrams
+  TARGETS ${ORG_INSTALL_TARGET_LIST}
   EXPORT HaxorgTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
