@@ -17,7 +17,9 @@
 #include <haxorg/exporters/Exporter.hpp>
 
 
-#include <SemOrgProto.pb.h>
+#ifdef ORG_DEPS_USE_PROTOBUF
+#    include <SemOrgProto.pb.h>
+#endif
 #include <py_libs/py_type_casters.hpp>
 #include <py_libs/pybind11_utils.hpp>
 
@@ -66,6 +68,14 @@ struct [[refl]] PyCodeEvalParameters {
 
     BOOST_DESCRIBE_CLASS(PyCodeEvalParameters, (), (evalBlock), (), ());
 };
+
+[[refl]] void setShouldProcessPath(
+    OrgDirectoryParseParameters* parameters,
+    py::function                 callback);
+
+[[refl]] void setGetParsedNode(
+    OrgDirectoryParseParameters* params,
+    py::function                 callback);
 
 [[refl]] org::sem::SemId<sem::Org> evaluateCodeBlocks(
     org::sem::SemId<org::sem::Org> node,

@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <adaptagrams/adaptagrams_ir.hpp>
-#include <libcola/output_svg.h>
+#ifdef ORG_DEPS_USE_ADAPTAGRAMS
+#    include <libcola/output_svg.h>
+
 
 using namespace hstd::ext;
 using namespace hstd;
@@ -901,3 +903,4 @@ TEST(GraphUtils, GraphvizIrClusters) {
     // QEXPECT_TRUE(toQRect(c.getSubgraph({0}).bbox)
     //                  .contains(toQRect(c.getSubgraph({0, 1}).bbox)));
 }
+#endif

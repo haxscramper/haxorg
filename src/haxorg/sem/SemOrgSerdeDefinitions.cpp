@@ -1,4 +1,5 @@
 /* clang-format off */
+#ifdef ORG_DEPS_USE_PROTOBUF
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
 void org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call>::write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in) {
@@ -2823,4 +2824,5 @@ void org::algo::proto_serde<::orgproto::CmdInclude, org::sem::CmdInclude>::read(
   }
 }
 
+#endif
 /* clang-format on */

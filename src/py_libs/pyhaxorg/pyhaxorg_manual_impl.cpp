@@ -231,3 +231,21 @@ org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
 
     return org::evaluateCodeBlocks(node, eval_conf);
 }
+
+void org::bind::python::setShouldProcessPath(
+    OrgDirectoryParseParameters* parameters,
+    pybind11::function           callback) {
+    parameters->shouldProcessPath =
+        [callback](std::string const& fullPath) -> bool {
+        return callback(fullPath).cast<bool>();
+    };
+}
+
+void org::bind::python::setGetParsedNode(
+    OrgDirectoryParseParameters* params,
+    pybind11::function           callback) {
+    params->getParsedNode =
+        [callback](std::string const& fullPath) -> sem::SemId<sem::Org> {
+        return callback(fullPath).cast<sem::SemId<sem::Org>>();
+    };
+}

@@ -198,11 +198,11 @@ struct YamlSchemaBuilder<T> {
 TEST(ParseFileAux, GenerateYamlSchema) {
     auto root   = __CURRENT_FILE_DIR__.parent_path().parent_path();
     auto canary = root / "tasks.py";
-    CHECK(fs::is_regular_file(canary))
-        << fmt("{} does not contains tasks.py", root);
-    std::stringstream ss;
-    ss << YamlSchemaBuilder<ParseSpec>::get();
-    writeFile(root / "corpus_schema.yaml", ss.str());
+    if (fs::is_regular_file(canary)) {
+        std::stringstream ss;
+        ss << YamlSchemaBuilder<ParseSpec>::get();
+        writeFile(root / "corpus_schema.yaml", ss.str());
+    }
 }
 
 TEST_P(TestOrgParseCorpus, CorpusAll) {

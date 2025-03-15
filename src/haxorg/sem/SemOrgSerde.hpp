@@ -1,8 +1,12 @@
 #pragma once
 
 #include <haxorg/sem/SemOrg.hpp>
-#include <SemOrgProto.pb.h>
-#include <concepts>
+
+namespace org::algo {}
+
+#ifdef ORG_DEPS_USE_PROTOBUF
+#    include <SemOrgProto.pb.h>
+#    include <concepts>
 
 namespace org::algo {
 
@@ -14,16 +18,16 @@ namespace gpb = ::google::protobuf;
 template <typename T>
 struct proto_org_map {};
 
-#define _map(__Kind)                                                      \
-    template <>                                                           \
-    struct proto_org_map<::orgproto::__Kind> {                            \
-        using org_kind = org::sem::__Kind;                                \
-    };
+#    define _map(__Kind)                                                  \
+        template <>                                                       \
+        struct proto_org_map<::orgproto::__Kind> {                        \
+            using org_kind = org::sem::__Kind;                            \
+        };
 
 EACH_SEM_ORG_KIND(_map)
 
 
-#undef _map
+#    undef _map
 
 template <typename T>
 struct is_std_optional : std::false_type {};
@@ -621,3 +625,5 @@ struct proto_serde<Out, sem::CmdInclude::IncludeBase> {
 };
 
 } // namespace org::algo
+
+#endif

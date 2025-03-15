@@ -12,7 +12,9 @@
 #include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
-#include <SemOrgProto.pb.h>
+#ifdef ORG_DEPS_USE_PROTOBUF
+#    include <SemOrgProto.pb.h>
+#endif
 
 using namespace org::sem;
 using namespace org;
@@ -188,9 +190,8 @@ Opt<sem::SemId<Org>> parsePathAux(
     if (opts.shouldProcessPath && !opts.shouldProcessPath(path)) {
         return std::nullopt;
     } else if (fs::is_symlink(path)) {
-        auto target = fs::read_symlink(path);
-        LOG(INFO) << fmt("Symlink '{}' targets '{}'", path, target);
-        sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
+        auto                     target = fs::read_symlink(path);
+        sem::SemId<sem::Symlink> sym    = sem::SemId<sem::Symlink>::New();
         if (fs::is_directory(target)) {
             sym->isDirectory = true;
             sym->absPath     = target.native();
@@ -398,6 +399,7 @@ sem::SemId<File> org::parseFileWithIncludes(
 
 
 sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
+#ifdef ORG_DEPS_USE_PROTOBUF
     sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
     std::ifstream     stream{file};
     orgproto::AnyNode result;
@@ -407,16 +409,27 @@ sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
         org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(
             read_node));
     return read_node.as<sem::Document>();
+#else
+    throw std::logic_error(
+        "haxorg was not compiled with protobuf support. Enable "
+        "`ORG_DEPS_USE_PROTOBUF` and rebuild to enable protobuf serde.");
+#endif
 }
 
 void org::exportToProtobufFile(
     sem::SemId<sem::Document> doc,
     const std::string&        file) {
+#ifdef ORG_DEPS_USE_PROTOBUF
     std::ofstream     stream{file};
     orgproto::AnyNode result;
     org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, doc.asOrg());
     result.SerializeToOstream(&stream);
+#else
+    throw std::logic_error(
+        "haxorg was not compiled with protobuf support. Enable "
+        "`ORG_DEPS_USE_PROTOBUF` and rebuild to enable protobuf serde.");
+#endif
 }
 
 

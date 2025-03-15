@@ -40,6 +40,8 @@ import graphviz
 LLVM_MAJOR = "18"
 LLVM_VERSION = "18.1.4"
 CAT = "tasks"
+HAXORG_VERSION = "1.0.0"
+HAXORG_NAME = "haxorg"
 
 
 def custom_traceback_handler(exc_type, exc_value, exc_traceback):
@@ -140,13 +142,19 @@ if is_ci():
 
 
 @beartype
-def cmake_opt(name: str, value: Union[str, bool, Path]) -> str:
+def cmake_opt(name: str, value: Union[str, bool, Path, None, List]) -> str:
     result = "-D" + name + "="
     if isinstance(value, (str, Path)):
         result += str(value)
 
     elif isinstance(value, bool):
         result += ("ON" if value else "OFF")
+
+    elif isinstance(value, list):
+        result += ";".join([str(it) for it in value])
+
+    elif value is None:
+        result += "OFF"
 
     return result
 
@@ -494,6 +502,19 @@ def docker_image(ctx: Context):
     ])
 
 
+@beartype
+def docker_path(path: str) -> Path:
+    return Path("/haxorg").joinpath(path)
+
+
+@beartype
+def docker_mnt(local: str, container: Optional[str] = None) -> List[str]:
+    container = container or local
+    local: Path = Path(local) if Path(local).is_absolute() else get_script_root(local)
+    assert local.exists(), f"'{local}'"
+    return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
+
+
 @org_task(pre=[docker_image])
 def docker_run(
     ctx: Context,
@@ -511,15 +532,6 @@ def docker_run(
 ):
     """Run docker"""
 
-    def docker_path(path: str) -> Path:
-        return Path("/haxorg").joinpath(path)
-
-    def mnt(local: str, container: Optional[str] = None) -> List[str]:
-        container = container or local
-        local: Path = Path(local) if Path(local).is_absolute() else get_script_root(local)
-        assert local.exists()
-        return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
-
     HAXORG_BUILD_TMP = Path(build_dir)
     if not HAXORG_BUILD_TMP.exists():
         HAXORG_BUILD_TMP.mkdir(parents=True)
@@ -529,7 +541,7 @@ def docker_run(
         "docker",
         [
             "run",
-            *itertools.chain(*(mnt(it) for it in [
+            *itertools.chain(*(docker_mnt(it) for it in [
                 "src",
                 "scripts",
                 "tests",
@@ -546,7 +558,7 @@ def docker_run(
                 "HaxorgConfig.cmake.in",
             ])),
             # Scratch directory for simplified local debugging and rebuilds if needed.
-            *mnt(HAXORG_BUILD_TMP, "build"),
+            *docker_mnt(HAXORG_BUILD_TMP, "build"),
             *(["-it"] if interactive else []),
             "--rm",
             HAXORG_DOCKER_IMAGE,
@@ -741,6 +753,8 @@ def cmake_configure_haxorg(ctx: Context, force: bool = False):
                 "Ninja",
                 f"-DCMAKE_CXX_COMPILER={get_llvm_root('bin/clang++')}",
                 *get_cmake_defines(ctx),
+                cmake_opt("ORG_CPACK_PACKAGE_VERSION", HAXORG_VERSION),
+                cmake_opt("ORG_CPACK_PACKAGE_NAME", HAXORG_NAME),
             ]
 
             run_command(ctx, "cmake", pass_flags)
@@ -967,7 +981,14 @@ def cmake_build_deps(
         ],
     )
 
-    dep(build_name="lexy", deps_name="lexy")
+    dep(
+        build_name="lexy",
+        deps_name="lexy",
+        configure_args=[
+            cmake_opt("LEXY_BUILD_EXAMPLES", False),
+            cmake_opt("LEXY_BUILD_TESTS", False),
+        ],
+    )
 
 
 @org_task(pre=[cmake_configure_haxorg], iterable=["target", "ninja_flag"])
@@ -1031,6 +1052,155 @@ def cmake_install_dev(ctx: Context, perfetto: bool = False):
             # "--component",
             # "haxorg_component"
         ])
+
+
+@org_task(pre=[cmake_configure_haxorg])
+def cpack_code(ctx: Context, force: bool = False):
+    "Generate source archive"
+
+    # with FileOperation.InTmp([Path("CMakeLists.txt")],
+    #                          stamp_path=get_task_stamp("cpack_code"),
+    #                          stamp_content=str(get_cmake_defines(ctx))) as op:
+    #     if force or is_forced(ctx, "cpack_code") or op.should_run():
+    # log(CAT).info(op.explain("cpack code"))
+    pack_res = get_script_root().joinpath("_CPack_Packages")
+    log(CAT).info(f"Package tmp directory {pack_res}")
+    if pack_res.exists():
+        shutil.rmtree(str(pack_res))
+
+    run_command(
+        ctx,
+        "cpack",
+        [
+            "--debug",
+            # "--verbose",
+            "--config",
+            str(
+                get_component_build_dir(ctx,
+                                        "haxorg").joinpath("CPackSourceConfig.cmake")),
+        ],
+    )
+
+    # else:
+    #     log(CAT).debug(op.explain("cpack code"))
+
+
+@org_task(pre=[cpack_code])
+def cpack_test_build(
+    ctx: Context,
+    testdir: Optional[str] = None,
+    deps_install_dir: Optional[str] = None,
+):
+    "Test cpack-provided build"
+    from tempfile import TemporaryDirectory
+
+    package_archive = get_script_root().joinpath(
+        f"{HAXORG_NAME}-{HAXORG_VERSION}-Source.zip")
+
+    with TemporaryDirectory() as tmpdir:
+        if testdir:
+            build_dir = Path(testdir)
+
+        else:
+            build_dir = Path(tmpdir)
+
+        if build_dir.exists():
+            shutil.rmtree(build_dir)
+
+        build_dir.mkdir(parents=True, exist_ok=True)
+        package_copy = build_dir.joinpath("target.zip")
+
+        shutil.copy(package_archive, package_copy)
+        unzip = local["unzip"]
+        unzip.run([
+            str(package_copy),
+            "-d",
+            str(build_dir),
+        ])
+
+        log(CAT).info(f"Unzipped package to {build_dir}")
+        src_root = build_dir.joinpath(f"{HAXORG_NAME}-{HAXORG_VERSION}-Source")
+        src_build = build_dir.joinpath("build")
+
+        install_dir = get_build_root().joinpath("deps_install")
+
+        run_command(ctx, "cmake", [
+            "-B",
+            str(src_build),
+            "-S",
+            str(src_root),
+            "-G",
+            "Ninja",
+            *cond(
+                deps_install_dir,
+                [cmake_opt("ORG_DEPS_INSTALL_ROOT", deps_install_dir)],
+                [],
+            ),
+            cmake_opt("ORG_DEPS_USE_PROTOBUF", False),
+            cmake_opt("ORG_BUILD_IS_DEVELOP", False),
+            cmake_opt("ORG_BUILD_TESTS", True),
+            cmake_opt("ORG_BUILD_ASSUME_CLANG", False),
+            cmake_opt("CMAKE_CXX_COMPILER", "clang++"),
+            cmake_opt("CMAKE_C_COMPILER", "clang"),
+            cmake_opt("ORG_DEPS_USE_ADAPTAGRAMS", False),
+            cmake_opt("ORG_DEPS_USE_PACKAGED_BOOST", False),
+            cmake_opt("CMAKE_PREFIX_PATH", [
+                install_dir.joinpath("reflex/lib/cmake/reflex"),
+                install_dir.joinpath("lexy/lib/cmake/lexy"),
+                install_dir.joinpath("abseil/lib/cmake/absl"),
+                install_dir.joinpath("abseil/lib64/cmake/absl"),
+            ]),
+        ])
+
+        log(CAT).info("Completed cpack build configuration")
+
+        run_command(
+            ctx,
+            "cmake",
+            [
+                "--build",
+                str(src_build),
+                "--target",
+                "all",
+                "--parallel",
+            ],
+            stderr_debug=Path("/tmp/cpack_build_stderr.log"),
+            stdout_debug=Path("/tmp/cpack_build_stdout.log"),
+        )
+
+
+@org_task(pre=[])
+def cpack_test_docker_build(ctx: Context, build_dir: Optional[str] = None):
+    CPACK_TEST_IMAGE = "docker-haxorg-cpack"
+
+    run_command(ctx, "docker", ["rm", CPACK_TEST_IMAGE], allow_fail=True)
+    run_command(ctx, "docker", [
+        "build",
+        "-t",
+        CPACK_TEST_IMAGE,
+        "-f",
+        get_script_root("scripts/py_repository/cpack_build_in_fedora.dockerfile"),
+        ".",
+    ])
+
+    if build_dir and not Path(build_dir).exists():
+        Path(build_dir).mkdir(parents=True)
+
+    run_command(ctx, "docker", [
+        "run",
+        *itertools.chain(*(docker_mnt(it) for it in [
+            "src",
+            "scripts",
+            "thirdparty",
+            "CMakeLists.txt",
+            "HaxorgConfig.cmake.in",
+            "tests",
+        ])),
+        "--rm",
+        *cond(build_dir, docker_mnt(build_dir or "/tmp", "/haxorg_wip"), []),
+        CPACK_TEST_IMAGE,
+        "./scripts/py_repository/test_cpack_build.py",
+    ])
 
 
 @beartype
@@ -1139,7 +1309,7 @@ def run_d3_example(ctx: Context, with_server: bool = True):
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
 
-    if with_server: 
+    if with_server:
         run_command(
             ctx,
             web_build,

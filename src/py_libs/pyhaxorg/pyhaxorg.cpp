@@ -6054,6 +6054,14 @@ and a segment kind.)RAW")
         static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRecSimplePath),
         pybind11::arg("node"),
         pybind11::arg("callback"));
+  m.def("setShouldProcessPath",
+        static_cast<void(*)(org::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setShouldProcessPath),
+        pybind11::arg("parameters"),
+        pybind11::arg("callback"));
+  m.def("setGetParsedNode",
+        static_cast<void(*)(org::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setGetParsedNode),
+        pybind11::arg("params"),
+        pybind11::arg("callback"));
   m.def("evaluateCodeBlocks",
         static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&)>(&org::bind::python::evaluateCodeBlocks),
         pybind11::arg("node"),
