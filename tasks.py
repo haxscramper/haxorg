@@ -1199,7 +1199,7 @@ def cpack_test_docker_build(ctx: Context, build_dir: str = "/tmp/cpack_build_dir
         "--rm",
         *docker_mnt(str(CPACK_BUILD_TMP), "/haxorg_wip"),
         CPACK_TEST_IMAGE,
-        "./scripts/py_repository/test_cpack_build.sh",
+        "./scripts/py_repository/test_cpack_build.py",
     ])
 
 
