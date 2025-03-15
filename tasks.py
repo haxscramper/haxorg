@@ -511,7 +511,7 @@ def docker_path(path: str) -> Path:
 def docker_mnt(local: str, container: Optional[str] = None) -> List[str]:
     container = container or local
     local: Path = Path(local) if Path(local).is_absolute() else get_script_root(local)
-    assert local.exists()
+    assert local.exists(), f"'{local}'"
     return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
 
 
@@ -1137,7 +1137,8 @@ def cpack_test_build(
                 [],
             ),
             cmake_opt("ORG_DEPS_USE_PROTOBUF", False),
-            cmake_opt("ORG_IS_PUBLISH_BUILD", True),
+            cmake_opt("ORG_BUILD_IS_DEVELOP", False),
+            cmake_opt("ORG_BUILD_TESTS", True),
             cmake_opt("ORG_BUILD_ASSUME_CLANG", False),
             cmake_opt("CMAKE_CXX_COMPILER", "clang++"),
             cmake_opt("CMAKE_C_COMPILER", "clang"),
@@ -1169,13 +1170,8 @@ def cpack_test_build(
 
 
 @org_task(pre=[])
-def cpack_test_docker_build(ctx: Context, build_dir: str = "/tmp/cpack_build_dir"):
+def cpack_test_docker_build(ctx: Context, build_dir: Optional[str] = None):
     CPACK_TEST_IMAGE = "docker-haxorg-cpack"
-    CPACK_BUILD_TMP = Path(build_dir)
-    # if CPACK_BUILD_TMP.exists():
-    #     shutil.rmtree(CPACK_BUILD_TMP)
-
-    # CPACK_BUILD_TMP.mkdir(parents=True)
 
     run_command(ctx, "docker", ["rm", CPACK_TEST_IMAGE], allow_fail=True)
     run_command(ctx, "docker", [
@@ -1187,6 +1183,9 @@ def cpack_test_docker_build(ctx: Context, build_dir: str = "/tmp/cpack_build_dir
         ".",
     ])
 
+    if build_dir and not Path(build_dir).exists():
+        Path(build_dir).mkdir(parents=True)
+
     run_command(ctx, "docker", [
         "run",
         *itertools.chain(*(docker_mnt(it) for it in [
@@ -1194,10 +1193,11 @@ def cpack_test_docker_build(ctx: Context, build_dir: str = "/tmp/cpack_build_dir
             "scripts",
             "thirdparty",
             "CMakeLists.txt",
-            "HaxorgConfig.cmake.in", 
+            "HaxorgConfig.cmake.in",
+            "tests",
         ])),
         "--rm",
-        *docker_mnt(str(CPACK_BUILD_TMP), "/haxorg_wip"),
+        *cond(build_dir, docker_mnt(build_dir or "/tmp", "/haxorg_wip"), []),
         CPACK_TEST_IMAGE,
         "./scripts/py_repository/test_cpack_build.py",
     ])

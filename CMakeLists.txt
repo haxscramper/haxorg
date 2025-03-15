@@ -57,7 +57,8 @@ option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adapt
 option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" OFF)
 option(ORG_DEPS_USE_PROTOBUF "Include protobuf functionality in the build" ON)
 option(ORG_DEPS_USE_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)" ON)
-option(ORG_IS_PUBLISH_BUILD "Don't build and configure internal development dependencies" OFF)
+option(ORG_BUILD_IS_DEVELOP "Don't build and configure internal development dependencies" ON)
+option(ORG_BUILD_TESTS "" ON)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" ON)
 
@@ -76,7 +77,7 @@ endif()
 message(STATUS "DEPS_INSTALL = ${DEPS_INSTALL}")
 
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/yaml/share/cmake/yaml-cpp")
-if(NOT ${ORG_IS_PUBLISH_BUILD})
+if(${ORG_BUILD_IS_DEVELOP})
   list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/SQLiteCpp/lib/cmake/SQLiteCpp")
 endif()
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/range-v3/lib/cmake/range-v3")
@@ -89,7 +90,7 @@ if(${ORG_DEPS_USE_PACKAGED_BOOST})
 endif()
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lager/lib/cmake/Lager")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
-if(NOT ${ORG_IS_PUBLISH_BUILD})
+if(${ORG_BUILD_TESTS})
   list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/googletest/lib/cmake/GTest")
 endif()
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/abseil/lib/cmake/absl")
@@ -107,13 +108,13 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lexy/lib/cmake/lexy")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/cpptrace/lib/cmake/cpptrace")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/cpptrace/lib/cmake/libdwarf")
 
-if(NOT ${ORG_IS_PUBLISH_BUILD})
+if(${ORG_BUILD_IS_DEVELOP})
   set(ENV{PKG_CONFIG_PATH} "${DEPS_INSTALL}/libgit2/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 endif()
 
 find_package(PkgConfig)
 pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
-if(NOT ${ORG_IS_PUBLISH_BUILD})
+if(${ORG_BUILD_IS_DEVELOP})
   pkg_check_modules(LIBGIT2 REQUIRED libgit2)
 endif()
 
@@ -125,9 +126,11 @@ find_package(absl CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
 find_package(Immer CONFIG REQUIRED)
 find_package(Lager CONFIG REQUIRED)
-if(NOT ${ORG_IS_PUBLISH_BUILD})
-  find_package(GTest CONFIG REQUIRED)
+if(${ORG_BUILD_IS_DEVELOP})
   find_package(SQLiteCpp CONFIG REQUIRED)
+endif()
+if(${ORG_BUILD_TESTS})
+  find_package(GTest CONFIG REQUIRED)
 endif()
 if(${ORG_DEPS_USE_PACKAGED_BOOST})
   message(STATUS "ORG_DEPS_TMP_TOGGLE = ${ORG_DEPS_TMP_TOGGLE}")
@@ -170,7 +173,7 @@ endif()
 add_subdirectory(src/haxorg)
 add_subdirectory(src/py_libs)
 
-if(NOT ${ORG_IS_PUBLISH_BUILD})
+if(${ORG_BUILD_IS_DEVELOP})
   add_subdirectory(scripts/cxx_repository)
   add_subdirectory(scripts/cxx_codegen)
 endif()
@@ -244,7 +247,6 @@ set(CPACK_SOURCE_IGNORE_FILES
     "scripts"
     "\\.trunk"
     "node_modules"
-    "tests"
     "__pycache__"
     "_CPack_Packages"
     "html"

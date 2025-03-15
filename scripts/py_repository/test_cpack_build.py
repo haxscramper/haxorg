@@ -7,12 +7,18 @@ import shutil
 from pathlib import Path
 from typing import List, Optional, Union, Dict, Any
 
-logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 WORKDIR: Path = Path("/haxorg_wip")
+if not WORKDIR.exists():
+    WORKDIR.mkdir(parents=True)
+
 SRC_DIR: Path = Path("/haxorg")
+
+BUILD_TESTS: bool = True
 
 
 def run_cmd(cmd: List[str], **kwargs: Any) -> subprocess.CompletedProcess:
@@ -41,10 +47,15 @@ def install_dep(build_name: str, deps_name: str, extra_args: str = "") -> None:
     logger.info(f"Installing dependency: {deps_name} -> {build_name}")
 
     cmake_args: List[str] = [
-        "cmake", "-B",
-        str(build_dir), "-S",
-        str(src_dir), "-G", "Ninja", f"-DCMAKE_INSTALL_PREFIX={install_dir}",
-        "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+        "cmake",
+        "-B",
+        str(build_dir),
+        "-S",
+        str(src_dir),
+        "-G",
+        "Ninja",
+        f"-DCMAKE_INSTALL_PREFIX={install_dir}",
+        "-DCMAKE_BUILD_TYPE=Debug",
     ]
 
     if extra_args:
@@ -62,6 +73,10 @@ install_dep("reflex", "RE-flex", "-DCMAKE_POSITION_INDEPENDENT_CODE=TRUE")
 install_dep("lexy", "lexy", "-DLEXY_BUILD_TESTS=OFF -DLEXY_BUILD_EXAMPLES=OFF")
 install_dep("abseil", "abseil-cpp",
             "-DABSL_CC_LIB_COPTS=-fPIC -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE")
+
+if BUILD_TESTS:
+    install_dep("googletest", "googletest")
+
 install_dep(
     "immer", "immer",
     "-Dimmer_BUILD_TESTS=OFF -Dimmer_BUILD_EXAMPLES=OFF -Dimmer_BUILD_DOCS=OFF -Dimmer_BUILD_EXTRAS=OFF"
@@ -74,7 +89,9 @@ install_dep("cpptrace", "cpptrace")
 logger.info("All dependencies installed successfully")
 
 CMAKE_CONFIG: str = ("-DORG_DEPS_USE_PROTOBUF=OFF "
-                     "-DORG_IS_PUBLISH_BUILD=ON "
+                     "-DORG_BUILD_TESTS=ON "
+                     "-DCMAKE_BUILD_TYPE=Debug "
+                     "-DORG_BUILD_IS_DEVELOP=OFF "
                      "-DORG_BUILD_ASSUME_CLANG=ON "
                      "-DCMAKE_CXX_COMPILER=clang++ "
                      "-DCMAKE_C_COMPILER=clang "
@@ -87,6 +104,8 @@ CMAKE_CONFIG: str = ("-DORG_DEPS_USE_PROTOBUF=OFF "
                      f"{DEPS_INSTALL}/lexy/lib64/cmake/lexy;"
                      f"{DEPS_INSTALL}/abseil/lib64/cmake/absl;"
                      f"{DEPS_INSTALL}/abseil/lib/cmake/absl;"
+                     f"{DEPS_INSTALL}/googletest/lib64/cmake/GTest;"
+                     f"{DEPS_INSTALL}/googletest/lib/cmake/GTest;"
                      f"{DEPS_INSTALL}/immer/lib/cmake/Immer;"
                      f"{DEPS_INSTALL}/immer/lib64/cmake/Immer;"
                      f"{DEPS_INSTALL}/lager/lib/cmake/Lager;"
@@ -97,41 +116,75 @@ CMAKE_CONFIG: str = ("-DORG_DEPS_USE_PROTOBUF=OFF "
                      f"{DEPS_INSTALL}/cpptrace/lib64/cmake/libdwarf")
 
 logger.info("Configuring project build")
-build_dir: Path = WORKDIR / "build" / "fedora_res"
-run_cmd([
-    "cmake", "-B",
-    str(build_dir), "-S",
-    str(SRC_DIR), "-G", "Ninja", "-DORG_CPACK_PACKAGE_VERSION=1.0.0",
-    "-DORG_CPACK_PACKAGE_NAME=haxorg"
-] + CMAKE_CONFIG.split())
 
-logger.info("Running CPack to create source package")
-run_cmd(["cpack", "--debug", "--config", f"{build_dir}/CPackSourceConfig.cmake"])
+ASSUME_CPACK_PRESENT = False
+UNPACK_PARENT = WORKDIR / "target.d"
+UNPACK_DIR: Path = UNPACK_PARENT / "haxorg-1.0.0-Source"
 
-logger.info("Listing current directory")
-run_cmd(["ls"])
+if not ASSUME_CPACK_PRESENT:
+    build_dir: Path = WORKDIR / "build" / "fedora_res"
+    run_cmd([
+        "cmake",
+        "-B",
+        str(build_dir),
+        "-S",
+        str(SRC_DIR),
+        "-G",
+        "Ninja",
+        "-DORG_CPACK_PACKAGE_VERSION=1.0.0",
+        "-DORG_CPACK_PACKAGE_NAME=haxorg",
+    ] + CMAKE_CONFIG.split())
 
-target_zip: Path = Path("/tmp/target.zip")
-logger.info(f"Copying source package to {target_zip}")
-shutil.copy(WORKDIR / "haxorg-1.0.0-Source.zip", target_zip)
+    logger.info("Running CPack to create source package")
+    run_cmd(["cpack", "--debug", "--config", f"{build_dir}/CPackSourceConfig.cmake"])
 
-UNPACK_DIR: Path = Path("/tmp/target.d/haxorg-1.0.0-Source")
-logger.info(f"Creating directory {Path('/tmp/target.d')}")
-os.makedirs(Path("/tmp/target.d"), exist_ok=True)
+    logger.info("Listing current directory")
+    run_cmd(["ls"])
 
-logger.info(f"Unpacking source package to {Path('/tmp/target.d')}")
-run_cmd(["unzip", target_zip, "-d", "/tmp/target.d"])
+    target_zip: Path = WORKDIR / "target.zip"
+    logger.info(f"Copying source package to {target_zip}")
+    shutil.copy(WORKDIR / "haxorg-1.0.0-Source.zip", target_zip)
+
+    os.makedirs(UNPACK_PARENT, exist_ok=True)
+
+    logger.info(f"Unpacking source package to {UNPACK_PARENT}")
+    if UNPACK_DIR.exists():
+        shutil.rmtree(UNPACK_DIR)
+
+    run_cmd(["unzip", target_zip, "-d", str(UNPACK_PARENT,)])
 
 logger.info(f"Listing contents of {UNPACK_DIR}")
 run_cmd(["ls", UNPACK_DIR])
 
 logger.info("Configuring build from source package")
 unpack_build_dir: Path = UNPACK_DIR / "build"
-run_cmd(["cmake", "-B",
-         str(unpack_build_dir), "-S",
-         str(UNPACK_DIR), "-G", "Ninja"] + CMAKE_CONFIG.split())
+run_cmd([
+    "cmake",
+    "-B",
+    str(unpack_build_dir),
+    "-S",
+    str(UNPACK_DIR),
+    "-G",
+    "Ninja",
+] + CMAKE_CONFIG.split())
 
 logger.info("Building from source package")
-run_cmd(["cmake", "--build", str(unpack_build_dir), "--target", "all", "--parallel"])
+import os
+run_cmd([
+    "cmake",
+    "--build",
+    str(unpack_build_dir),
+    "--target",
+    "all",
+    "-j",
+    str(int(os.cpu_count() * 0.75))
+])
 
 logger.info("Build process completed successfully")
+run_cmd([
+    unpack_build_dir.joinpath("tests_hstd"),
+])
+
+run_cmd([
+    unpack_build_dir.joinpath("tests_org"),
+])

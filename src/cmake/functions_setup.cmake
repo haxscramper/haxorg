@@ -1,7 +1,7 @@
 function(set_target_flags_impl)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
 
-  if(${ORG_IS_PUBLISH_BUILD})
+  if(NOT ${ORG_BUILD_IS_DEVELOP})
     if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fmax-errors=1")
@@ -36,7 +36,7 @@ function(set_target_flags_impl)
 
   if(${ORG_USE_XRAY})
 
-  elseif(NOT ${ORG_IS_PUBLISH_BUILD})
+  elseif(${ORG_BUILD_IS_DEVELOP})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
     add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=mold")
   endif()

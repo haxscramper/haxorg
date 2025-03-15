@@ -59,7 +59,7 @@ endif()
 target_include_directories(haxorg PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                                          $<INSTALL_INTERFACE:include>)
 
-if(NOT ${ORG_IS_PUBLISH_BUILD})
+if(${ORG_BUILD_TESTS})
   add_executable(tests_org)
   target_link_libraries(tests_org PUBLIC haxorg)
   set_common_files(tests_org)
