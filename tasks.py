@@ -142,13 +142,16 @@ if is_ci():
 
 
 @beartype
-def cmake_opt(name: str, value: Union[str, bool, Path, None]) -> str:
+def cmake_opt(name: str, value: Union[str, bool, Path, None, List]) -> str:
     result = "-D" + name + "="
     if isinstance(value, (str, Path)):
         result += str(value)
 
     elif isinstance(value, bool):
         result += ("ON" if value else "OFF")
+
+    elif isinstance(value, list):
+        result += ";".join([str(it) for it in value])
 
     elif value is None:
         result += "OFF"
@@ -1108,6 +1111,8 @@ def cpack_test_build(
         src_root = build_dir.joinpath(f"{HAXORG_NAME}-{HAXORG_VERSION}-Source")
         src_build = build_dir.joinpath("build")
 
+        install_dir = get_build_root().joinpath("deps_install")
+
         run_command(ctx, "cmake", [
             "-B",
             str(src_build),
@@ -1125,7 +1130,12 @@ def cpack_test_build(
             cmake_opt("ORG_BUILD_ASSUME_CLANG", False),
             cmake_opt("CMAKE_CXX_COMPILER", "clang++"),
             cmake_opt("CMAKE_C_COMPILER", "clang"),
-            cmake_opt("ORG_DEPS_USE_ADAPTAGRAMS", False), 
+            cmake_opt("ORG_DEPS_USE_ADAPTAGRAMS", False),
+            cmake_opt("ORG_DEPS_USE_PACKAGED_BOOST", False),
+            cmake_opt("CMAKE_PREFIX_PATH", [
+                install_dir.joinpath("reflex/lib/cmake/reflex"),
+                install_dir.joinpath("lexy/lib/cmake/lexy"),
+            ]),
         ])
 
         log(CAT).info("Completed cpack build configuration")
