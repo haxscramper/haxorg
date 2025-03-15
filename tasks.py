@@ -502,6 +502,19 @@ def docker_image(ctx: Context):
     ])
 
 
+@beartype
+def docker_path(path: str) -> Path:
+    return Path("/haxorg").joinpath(path)
+
+
+@beartype
+def docker_mnt(local: str, container: Optional[str] = None) -> List[str]:
+    container = container or local
+    local: Path = Path(local) if Path(local).is_absolute() else get_script_root(local)
+    assert local.exists()
+    return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
+
+
 @org_task(pre=[docker_image])
 def docker_run(
     ctx: Context,
@@ -519,15 +532,6 @@ def docker_run(
 ):
     """Run docker"""
 
-    def docker_path(path: str) -> Path:
-        return Path("/haxorg").joinpath(path)
-
-    def mnt(local: str, container: Optional[str] = None) -> List[str]:
-        container = container or local
-        local: Path = Path(local) if Path(local).is_absolute() else get_script_root(local)
-        assert local.exists()
-        return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
-
     HAXORG_BUILD_TMP = Path(build_dir)
     if not HAXORG_BUILD_TMP.exists():
         HAXORG_BUILD_TMP.mkdir(parents=True)
@@ -537,7 +541,7 @@ def docker_run(
         "docker",
         [
             "run",
-            *itertools.chain(*(mnt(it) for it in [
+            *itertools.chain(*(docker_mnt(it) for it in [
                 "src",
                 "scripts",
                 "tests",
@@ -554,7 +558,7 @@ def docker_run(
                 "HaxorgConfig.cmake.in",
             ])),
             # Scratch directory for simplified local debugging and rebuilds if needed.
-            *mnt(HAXORG_BUILD_TMP, "build"),
+            *docker_mnt(HAXORG_BUILD_TMP, "build"),
             *(["-it"] if interactive else []),
             "--rm",
             HAXORG_DOCKER_IMAGE,
@@ -977,7 +981,14 @@ def cmake_build_deps(
         ],
     )
 
-    dep(build_name="lexy", deps_name="lexy")
+    dep(
+        build_name="lexy",
+        deps_name="lexy",
+        configure_args=[
+            cmake_opt("LEXY_BUILD_EXAMPLES", False),
+            cmake_opt("LEXY_BUILD_TESTS", False),
+        ],
+    )
 
 
 @org_task(pre=[cmake_configure_haxorg], iterable=["target", "ninja_flag"])
@@ -1135,6 +1146,8 @@ def cpack_test_build(
             cmake_opt("CMAKE_PREFIX_PATH", [
                 install_dir.joinpath("reflex/lib/cmake/reflex"),
                 install_dir.joinpath("lexy/lib/cmake/lexy"),
+                install_dir.joinpath("abseil/lib/cmake/absl"),
+                install_dir.joinpath("abseil/lib64/cmake/absl"),
             ]),
         ])
 
@@ -1153,6 +1166,41 @@ def cpack_test_build(
             stderr_debug=Path("/tmp/cpack_build_stderr.log"),
             stdout_debug=Path("/tmp/cpack_build_stdout.log"),
         )
+
+
+@org_task(pre=[])
+def cpack_test_docker_build(ctx: Context, build_dir: str = "/tmp/cpack_build_dir"):
+    CPACK_TEST_IMAGE = "docker-haxorg-cpack"
+    CPACK_BUILD_TMP = Path(build_dir)
+    # if CPACK_BUILD_TMP.exists():
+    #     shutil.rmtree(CPACK_BUILD_TMP)
+
+    # CPACK_BUILD_TMP.mkdir(parents=True)
+
+    run_command(ctx, "docker", ["rm", CPACK_TEST_IMAGE], allow_fail=True)
+    run_command(ctx, "docker", [
+        "build",
+        "-t",
+        CPACK_TEST_IMAGE,
+        "-f",
+        get_script_root("scripts/py_repository/cpack_build_in_fedora.dockerfile"),
+        ".",
+    ])
+
+    run_command(ctx, "docker", [
+        "run",
+        *itertools.chain(*(docker_mnt(it) for it in [
+            "src",
+            "scripts",
+            "thirdparty",
+            "CMakeLists.txt",
+            "HaxorgConfig.cmake.in", 
+        ])),
+        "--rm",
+        *docker_mnt(str(CPACK_BUILD_TMP), "/haxorg_wip"),
+        CPACK_TEST_IMAGE,
+        "./scripts/py_repository/test_cpack_build.sh",
+    ])
 
 
 @beartype

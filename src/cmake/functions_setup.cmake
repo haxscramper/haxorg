@@ -36,7 +36,7 @@ function(set_target_flags_impl)
 
   if(${ORG_USE_XRAY})
 
-  else()
+  elseif(NOT ${ORG_IS_PUBLISH_BUILD})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
     add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=mold")
   endif()
@@ -135,7 +135,7 @@ function(set_common_files TARGET)
   add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
   add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
-  add_target_property("${TARGET}" LINK_LIBRARIES dw)
+  # add_target_property("${TARGET}" LINK_LIBRARIES dw)
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
 endfunction()
 
