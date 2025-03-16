@@ -30,6 +30,8 @@ import shutil
 import signal
 import psutil
 import subprocess
+from py_ci.util_scripting import cmake_opt
+import py_ci
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -139,24 +141,6 @@ def is_ci() -> bool:
 
 if is_ci():
     log(CAT).info(f"Using config {get_haxorg_repo_root_config_path()}")
-
-
-@beartype
-def cmake_opt(name: str, value: Union[str, bool, Path, None, List]) -> str:
-    result = "-D" + name + "="
-    if isinstance(value, (str, Path)):
-        result += str(value)
-
-    elif isinstance(value, bool):
-        result += ("ON" if value else "OFF")
-
-    elif isinstance(value, list):
-        result += ";".join([str(it) for it in value])
-
-    elif value is None:
-        result += "OFF"
-
-    return result
 
 
 @beartype
@@ -843,83 +827,6 @@ def cmake_build_deps(
             *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
         ])
 
-    dep(build_name="cpptrace", deps_name="cpptrace")
-
-    # dep(build_name="scintilla", deps_name="scintilla/")
-    dep(build_name="describe", deps_name="cmake_wrap/describe")
-    dep(
-        build_name="adaptagrams",
-        deps_name="cmake_wrap/adaptagrams",
-        configure_args=[
-            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
-        ],
-    )
-    dep(
-        build_name="perfetto",
-        deps_name="cmake_wrap/perfetto",
-        configure_args=[
-            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
-        ],
-    )
-
-    dep(
-        build_name="immer",
-        deps_name="immer",
-        configure_args=[
-            cmake_opt("immer_BUILD_TESTS", False),
-            cmake_opt("immer_BUILD_EXAMPLES", False),
-            cmake_opt("immer_BUILD_DOCS", False),
-            cmake_opt("immer_BUILD_EXTRAS", False),
-        ],
-    )
-
-    dep(
-        build_name="lager",
-        deps_name="lager",
-        configure_args=[
-            cmake_opt("lager_BUILD_EXAMPLES", False),
-            cmake_opt("lager_BUILD_TESTS", False),
-            cmake_opt("lager_BUILD_FAILURE_TESTS", False),
-            cmake_opt("lager_BUILD_DEBUGGER_EXAMPLES", False),
-            cmake_opt("lager_BUILD_DOCS", False),
-        ],
-    )
-
-    dep(
-        build_name="abseil",
-        deps_name="abseil-cpp",
-        configure_args=[
-            cmake_opt("ABSL_CC_LIB_COPTS", "-fPIC"),
-            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
-        ],
-    )
-
-    dep(
-        build_name="SQLiteCpp",
-        deps_name="SQLiteCpp",
-        configure_args=[cmake_opt("SQLITECPP_RUN_CPPLINT", False)],
-    )
-
-    dep(build_name="libgit2", deps_name="libgit2")
-
-    dep(build_name="mp11", deps_name="mp11")
-    dep(
-        build_name="json",
-        deps_name="json",
-        configure_args=[
-            cmake_opt("JSON_BuildTests", False),
-        ],
-    )
-
-    dep(
-        build_name="yaml",
-        deps_name="yaml-cpp",
-        configure_args=[
-            cmake_opt("YAML_CPP_BUILD_TESTS", False),
-            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
-        ],
-    )
-
     if is_ci():
         run_command(ctx, "git", [
             "config",
@@ -929,66 +836,14 @@ def cmake_build_deps(
             deps_dir.joinpath("range-v3"),
         ])
 
-    dep(
-        build_name="range-v3",
-        deps_name="range-v3",
-        configure_args=[
-            cmake_opt("RANGE_V3_TESTS", False),
-            cmake_opt("RANGE_V3_EXAMPLES", False),
-            cmake_opt("RANGE_V3_PERF", False),
-        ],
-    )
+    from py_ci.data_deps import get_external_deps_list
 
-    dep(
-        build_name="pybind11",
-        deps_name="pybind11",
-        configure_args=[cmake_opt("PYBIND11_TEST", False)],
-    )
-
-    dep(
-        build_name="utf8_range",
-        deps_name="protobuf/third_party/utf8_range",
-        configure_args=[
-            cmake_opt("CMAKE_PREFIX_PATH", install_dir.joinpath("abseil/lib/cmake/absl")),
-            cmake_opt("utf8_range_ENABLE_TESTS", False),
-        ],
-    )
-
-    dep(
-        build_name="protobuf",
-        deps_name="protobuf",
-        configure_args=[
-            cmake_opt("protobuf_BUILD_TESTS", False),
-            cmake_opt("utf8_range_ENABLE_TESTS", False),
-            cmake_opt("utf8_range_ENABLE_INSTALL", True),
-            cmake_opt("protobuf_ABSL_PROVIDER", "package"),
-            cmake_opt(
-                "CMAKE_PREFIX_PATH", ";".join([
-                    str(install_dir.joinpath("abseil/lib/cmake/absl")),
-                    str(install_dir.joinpath("utf8_range/lib/cmake/utf8_range")),
-                ])),
-            cmake_opt("ABSL_CC_LIB_COPTS", "-fPIC"),
-            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
-        ],
-    )
-
-    dep(build_name="googletest", deps_name="googletest")
-    dep(
-        build_name="reflex",
-        deps_name="RE-flex",
-        configure_args=[
-            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
-        ],
-    )
-
-    dep(
-        build_name="lexy",
-        deps_name="lexy",
-        configure_args=[
-            cmake_opt("LEXY_BUILD_EXAMPLES", False),
-            cmake_opt("LEXY_BUILD_TESTS", False),
-        ],
-    )
+    for item in get_external_deps_list(install_dir):
+        dep(
+            build_name=item.build_name,
+            deps_name=item.deps_name,
+            configure_args=[cmake_opt(it.name, it.value) for it in item.configure_args],
+        )
 
 
 @org_task(pre=[cmake_configure_haxorg], iterable=["target", "ninja_flag"])
@@ -1198,8 +1053,12 @@ def cpack_test_docker_build(ctx: Context, build_dir: Optional[str] = None):
         ])),
         "--rm",
         *cond(build_dir, docker_mnt(build_dir or "/tmp", "/haxorg_wip"), []),
+        "-e",
+        "PYTHONPATH=/haxorg/scripts/py_ci",
         CPACK_TEST_IMAGE,
-        "./scripts/py_repository/test_cpack_build.py",
+        "python",
+        "-m",
+        "py_ci.test_cpack_build",
     ])
 
 
