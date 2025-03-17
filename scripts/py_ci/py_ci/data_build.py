@@ -152,6 +152,9 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
         build_name="libgit2",
         deps_name="libgit2",
         install_prefixes=[],
+        configure_args=[
+            opt("BUILD_TESTS", False),
+        ],
     )
 
     dep(

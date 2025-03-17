@@ -86,7 +86,7 @@ struct [[refl]] GraphRect {
 
 /// \brief IR wrapper for the cola layout constraints
 struct [[refl]] GraphNodeConstraint {
-#ifdef DORG_DEPS_USE_ADAPTAGRAMS
+#ifdef ORG_DEPS_USE_ADAPTAGRAMS
     using Res = SPtr<cola::CompoundConstraint>;
 
     struct [[refl]] Empty {

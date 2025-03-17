@@ -15,6 +15,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def get_j_cap() -> List[str]:
+    # Using Ninja's default formula with CPU_COUNT+2 exhausts all the
+    # memory in the system (64GB).
+    return ["-j", str(int(os.cpu_count() * 0.6))]
+
+
 @contextmanager
 def change_dir(target_dir: Path) -> Generator[None, None, None]:
     """Temporarily change the working directory."""
@@ -34,6 +40,7 @@ def get_caller_info() -> Tuple[str, int]:
         if frame is not None:
             return frame.f_code.co_filename, frame.f_lineno
     return "unknown", 0
+
 
 def run_cmd(cmd: List[str]) -> None:
     """Run a subprocess command with logging."""

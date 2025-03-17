@@ -7,7 +7,7 @@ import shutil
 from pathlib import Path
 from typing import List, Optional, Union, Dict, Any
 import py_ci.data_build as data_build
-from py_ci.util_scripting import run_cmd, logger
+from py_ci.util_scripting import run_cmd, logger, get_j_cap
 
 WORKDIR: Path = Path("/haxorg_wip")
 SRC_DIR: Path = Path("/haxorg")
@@ -152,10 +152,7 @@ def build_cpack_archive(cmake_config: List[str]):
         str(unpack_build_dir),
         "--target",
         "all",
-        "-j",
-        # Using Ninja's default formula with CPU_COUNT+2 exhausts all the 
-        # memory in the system (64GB).
-        str(int(os.cpu_count() * 0.6)),
+        *get_j_cap(),
     ])
 
     logger.info("Build process completed successfully")

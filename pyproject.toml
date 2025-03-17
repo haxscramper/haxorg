@@ -40,9 +40,9 @@ asteval = "^0.9.33"
 mypy = "^1.11.0"
 ansi2html = "^1.9.2"
 psutil = "^6.1.1"
-py-ci = {path = "scripts/py_ci", develop = true}
 
 [tool.poetry.group.local.dependencies]
+py_ci = {path = "./scripts/py_ci", develop = true}
 py_textlayout = {path = "./scripts/py_textlayout", develop=true}
 py_exporters = {path = "./scripts/py_exporters", develop=true}
 py_haxorg = {path = "./scripts/py_haxorg", develop=true}

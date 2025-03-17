@@ -61,6 +61,7 @@ option(ORG_BUILD_IS_DEVELOP "Don't build and configure internal development depe
 option(ORG_BUILD_TESTS "" ON)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" ON)
+option(ORG_DEPS_USE_PYTHON_VERSION "" "3.13")
 
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
 
@@ -119,8 +120,8 @@ if(${ORG_BUILD_IS_DEVELOP})
 endif()
 
 find_package(yaml-cpp CONFIG REQUIRED)
-set(PYBIND11_PYTHON_VERSION 3.13)
-set(PYTHON_VERSION 3.13)
+set(PYBIND11_PYTHON_VERSION ${ORG_DEPS_USE_PYTHON_VERSION})
+set(PYTHON_VERSION ${ORG_DEPS_USE_PYTHON_VERSION})
 find_package(pybind11 CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)

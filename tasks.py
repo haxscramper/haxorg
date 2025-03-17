@@ -30,7 +30,7 @@ import shutil
 import signal
 import psutil
 import subprocess
-from py_ci.util_scripting import cmake_opt
+from py_ci.util_scripting import cmake_opt, get_j_cap
 import py_ci
 
 graphviz_logger = logging.getLogger("graphviz._tools")
@@ -492,9 +492,11 @@ def docker_path(path: str) -> Path:
 
 
 @beartype
-def docker_mnt(local: str, container: Optional[str] = None) -> List[str]:
+def docker_mnt(local: str | Path, container: Optional[str] = None) -> List[str]:
     container = container or local
-    local: Path = Path(local) if Path(local).is_absolute() else get_script_root(local)
+    local_str = str(local)
+    local: Path = Path(local_str) if Path(local_str).is_absolute() else get_script_root(
+        local_str)
     assert local.exists(), f"'{local}'"
     return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
 
@@ -531,8 +533,6 @@ def docker_run(
                 "tests",
                 "tasks.py",
                 "docs",
-                "invoke.yaml",
-                "invoke-ci.yaml",
                 "pyproject.toml",
                 "ignorelist.txt",
                 ".git",
@@ -739,6 +739,11 @@ def cmake_configure_haxorg(ctx: Context, force: bool = False):
                 *get_cmake_defines(ctx),
                 cmake_opt("ORG_CPACK_PACKAGE_VERSION", HAXORG_VERSION),
                 cmake_opt("ORG_CPACK_PACKAGE_NAME", HAXORG_NAME),
+                *cond(
+                    conf.python_version,
+                    [cmake_opt("ORG_DEPS_USE_PYTHON_VERSION", conf.python_version)],
+                    [],
+                ),
             ]
 
             run_command(ctx, "cmake", pass_flags)
@@ -770,7 +775,7 @@ def cmake_haxorg_clean(ctx: Context):
 
 
 @org_task(iterable=["build_whitelist", "ninja_flag"])
-def cmake_build_deps(
+def cmake_install_develop_deps(
     ctx: Context,
     rebuild: bool = False,
     force: bool = False,
@@ -778,6 +783,7 @@ def cmake_build_deps(
     ninja_flag: List[str] = [],
     configure: bool = True,
 ):
+    "Install dependencies for cmake project development"
     conf = get_config(ctx)
     build_dir = get_build_root().joinpath("deps_build")
     if rebuild and build_dir.exists():
@@ -823,7 +829,7 @@ def cmake_build_deps(
             build_dir.joinpath(build_name),
             "--target",
             "install",
-            "--parallel",
+            *get_j_cap(),
             *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
         ])
 
@@ -836,7 +842,7 @@ def cmake_build_deps(
             deps_dir.joinpath("range-v3"),
         ])
 
-    from py_ci.data_deps import get_external_deps_list
+    from py_ci.data_build import get_external_deps_list
 
     for item in get_external_deps_list(install_dir):
         dep(
@@ -878,7 +884,7 @@ def cmake_haxorg(
                     build_dir,
                     "--target",
                     *cond(0 < len(target), target, ["all"]),
-                    "--parallel",
+                    *get_j_cap(),
                     *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
                 ],
                 env={'NINJA_FORCE_COLOR': '1'},
@@ -1017,7 +1023,7 @@ def cpack_test_build(
                 str(src_build),
                 "--target",
                 "all",
-                "--parallel",
+                *get_j_cap(),
             ],
             stderr_debug=Path("/tmp/cpack_build_stderr.log"),
             stdout_debug=Path("/tmp/cpack_build_stdout.log"),
@@ -1088,7 +1094,7 @@ def cmake_example_project(ctx: Context, example_name: str):
         example_build,
         "--target",
         "all",
-        "--parallel",
+        *get_j_cap(),
     ])
 
 
@@ -1915,7 +1921,7 @@ def ci(
         log(CAT).info("Running CI dependency installation")
         run_self(
             ctx,
-            ["cmake-build-deps",
+            ["cmake-install-develop-deps",
              invoke_opt("configure", deps_configure)],
             env=env,
         )

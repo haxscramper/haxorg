@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field
-from beartype.typing import List
+from beartype.typing import List, Optional
 import os
 
 
@@ -26,6 +26,8 @@ class HaxorgConfig(BaseModel, extra="forbid"):
         description="Always execute task",
     )
 
+    python_version: Optional[str] = None
+
 
 def get_haxorg_repo_root_path() -> Path:
     result = Path(__file__).parent.parent.parent.parent
@@ -36,8 +38,7 @@ def get_haxorg_repo_root_path() -> Path:
 
 
 def get_haxorg_repo_root_config_path() -> Path:
-    return get_haxorg_repo_root_path().joinpath(
-        "invoke-ci.yaml" if os.getenv("INVOKE_CI") else "invoke.yaml")
+    return get_haxorg_repo_root_path().joinpath("invoke.yaml")
 
 
 def get_haxorg_repo_root_config() -> HaxorgConfig:
