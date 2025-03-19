@@ -15,6 +15,17 @@ class HaxorgTasksConfig(BaseModel, extra="forbid"):
     skip_python_refl: bool = Field(default=False)
 
 
+class HaxorgCoverageCookiePattern(BaseModel, extra="forbid"):
+    binary_pattern: Optional[str] = None
+    class_pattern: Optional[str] = None
+    name_pattern: Optional[str] = None
+
+
+class HaxorgCoverageAggregateFilter(BaseModel, extra="forbid"):
+    whitelist_patterns: List[HaxorgCoverageCookiePattern] = []
+    blacklist_patterns: List[HaxorgCoverageCookiePattern] = []
+
+
 class HaxorgConfig(BaseModel, extra="forbid"):
     quiet: bool = Field(default=False)
     debug: bool = Field(default=False)
@@ -27,6 +38,7 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     )
 
     python_version: Optional[str] = None
+    aggregate_filters: Optional[HaxorgCoverageAggregateFilter] = None
 
 
 def get_haxorg_repo_root_path() -> Path:
