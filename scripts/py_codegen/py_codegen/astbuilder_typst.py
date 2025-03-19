@@ -48,7 +48,7 @@ class RawBlock():
 
 
 AnyBlock = BlockId | List[BlockId] | RawBlock | List[RawBlock]
-
+AnySingleValue = BlockId | str | RawBlock | RawStr
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
@@ -135,7 +135,7 @@ class ASTBuilder(base.AstbuilderBase):
             isLine=isLine,
         )
 
-    def set(self, name: str, args: Dict[str, BlockId | str] = dict()) -> BlockId:
+    def set(self, name: str, args: Dict[str, AnySingleValue] = dict()) -> BlockId:
         return self.cmd("set", self.call(
             name=name,
             args=args,
@@ -162,15 +162,16 @@ class ASTBuilder(base.AstbuilderBase):
     def call(
         self,
         name: str,
-        args: Dict[str, BlockId | str] = dict(),
-        body: List[BlockId] | BlockId = list(),
-        positional: List[BlockId | str | RawBlock | RawStr] | BlockId | str = list(),
-        post_positional: List[BlockId | str | RawBlock | RawStr] | BlockId | str = list(),
+        args: Dict[str, AnySingleValue | List[AnySingleValue]] = dict(),
+        body: AnyBlock = list(),
+        positional: List[AnySingleValue] | AnySingleValue = list(),
+        post_positional: List[AnySingleValue] | AnySingleValue = list(),
         isContent: bool = False,
         isLine: bool = False,
         isFirst: bool = True,
     ) -> BlockId:
-        b = body if isinstance(body, list) else [body]
+        b: List[BlockId | RawBlock] = body if isinstance(body, list) else [body]
+        b: List[BlockId] = [(it.value if isinstance(it, RawBlock) else it) for it in b]
         arglist = []
 
         prefix = "#" if isFirst else ""

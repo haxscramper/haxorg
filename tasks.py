@@ -544,6 +544,7 @@ def docker_run(
             # Scratch directory for simplified local debugging and rebuilds if needed.
             *docker_mnt(HAXORG_BUILD_TMP, "build"),
             *(["-it"] if interactive else []),
+            "--memory=32G",
             "--rm",
             HAXORG_DOCKER_IMAGE,
             "./scripts/py_repository/poetry_with_deps.sh",
@@ -1057,6 +1058,7 @@ def cpack_test_docker_build(ctx: Context, build_dir: Optional[str] = None):
             "HaxorgConfig.cmake.in",
             "tests",
         ])),
+        "--memory=32G",
         "--rm",
         *cond(build_dir, docker_mnt(build_dir or "/tmp", "/haxorg_wip"), []),
         "-e",
@@ -1921,8 +1923,12 @@ def ci(
         log(CAT).info("Running CI dependency installation")
         run_self(
             ctx,
-            ["cmake-install-develop-deps",
-             invoke_opt("configure", deps_configure)],
+            [
+                "cmake-install-develop-deps",
+                invoke_opt("configure", deps_configure),
+                "--ninja-flag=-d",
+                "--ninja-flag=explain",
+            ],
             env=env,
         )
 
@@ -1931,7 +1937,18 @@ def ci(
         run_command(
             ctx,
             "invoke",
-            ["cmake-all"],
+            ["haxorg-base-lexer"],
+            env=env,
+        )
+
+        run_command(
+            ctx,
+            "invoke",
+            [
+                "cmake-haxorg",
+                "--ninja-flag=-d",
+                "--ninja-flag=explain",
+            ],
             env=env,
         )
 

@@ -9,6 +9,8 @@ tasks:
   skip_python_refl: false
   # skip_python_refl: false
 
+python_version: "3.13"
+
 force_task: [
   # "cmake_configure_haxorg",
   "cmake_haxorg",

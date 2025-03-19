@@ -190,25 +190,27 @@ Opt<sem::SemId<Org>> parsePathAux(
     if (opts.shouldProcessPath && !opts.shouldProcessPath(path)) {
         return std::nullopt;
     } else if (fs::is_symlink(path)) {
-        auto                     target = fs::read_symlink(path);
-        sem::SemId<sem::Symlink> sym    = sem::SemId<sem::Symlink>::New();
+        auto target = fs::read_symlink(path);
         if (fs::is_directory(target)) {
-            sym->isDirectory = true;
-            sym->absPath     = target.native();
-            auto dir         = parsePathAux(
+            sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
+            sym->isDirectory             = true;
+            sym->absPath                 = target.native();
+            auto dir                     = parsePathAux(
                 target, sym->absPath.toBase(), opts, state);
             if (dir) { sym->push_back(dir.value()); }
+            return sym;
 
         } else if (fs::is_regular_file(target)) {
-            sym->absPath = target.parent_path().native();
-            auto file    = parsePathAux(
+            sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
+            sym->absPath                 = target.parent_path().native();
+            auto file                    = parsePathAux(
                 target, sym->absPath.toBase(), opts, state);
             if (file) { sym->push_back(file.value()); }
+            return sym;
         } else {
-            logic_todo_impl();
+            return std::nullopt;
         }
 
-        return sym;
 
     } else if (fs::is_directory(path)) {
         sem::SemId<Directory> dir = sem::SemId<Directory>::New();

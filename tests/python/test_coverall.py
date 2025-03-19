@@ -17,7 +17,7 @@ import types
 from coverage import Coverage
 import pytest
 from contextlib import contextmanager
-from plumbum import local
+from plumbum import local, CommandNotFound
 
 CAT = __name__
 
@@ -1237,9 +1237,13 @@ def test_run_typst_exporter(cov):
         full_export = Path("/tmp/typst_export_file.typ")
         full_export.write_text(exp.t.toString(res))
 
-        cmd = local["typst"].with_cwd(str(full_export.parent))
-        refresh_typst_export_package()
-        cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
+        try:
+            cmd = local["typst"].with_cwd(str(full_export.parent))
+            refresh_typst_export_package()
+            cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
+
+        except CommandNotFound:
+            pass
 
         exp.expr(org.parseString("word"))
         exp.evalParagraph(org.Paragraph())
