@@ -39,6 +39,8 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
     python_version: Optional[str] = None
     aggregate_filters: Optional[HaxorgCoverageAggregateFilter] = None
+    profdata_file_whitelist: List[str] = Field(default_factory=lambda: [".*"])
+    profdata_file_blacklist: List[str] = Field(default_factory=lambda: ["base_lexer_gen.cpp", "thirdparty"])
 
 
 def get_haxorg_repo_root_path() -> Path:

@@ -1658,6 +1658,7 @@ struct ProfdataCLIConfig {
     std::vector<std::string>   file_blacklist;
     std::optional<std::string> debug_file            = std::nullopt;
     std::optional<std::string> coverage_mapping_dump = std::nullopt;
+    int                        run_group_batch_size  = 8;
 
     DESC_FIELDS(
         ProfdataCLIConfig,
@@ -1879,9 +1880,10 @@ NO_COVERAGE int main(int argc, char** argv) {
     ctx.file_whitelist = get_regex_list(config.file_whitelist);
 
     Vec<Vec<ProfdataRun>> runGroups;
-    int                   group = 16;
     for (auto const& [run_idx, run] : enumerate(summary.runs)) {
-        if (run_idx % group == 0) { runGroups.push_back({}); }
+        if (run_idx % config.run_group_batch_size == 0) {
+            runGroups.push_back({});
+        }
 
         runGroups.back().push_back(ProfdataRun{
             .index = run_idx,

@@ -4,12 +4,6 @@ from pathlib import Path
 from beartype.typing import List, Optional
 import plumbum
 from py_scriptutils.script_logging import log
-from py_scriptutils.repo_files import (
-    HaxorgConfig,
-    get_haxorg_repo_root_config,
-    HaxorgCoverageCookiePattern,
-    HaxorgCoverageAggregateFilter,
-)
 import re
 
 CAT = "conftest"
@@ -29,53 +23,9 @@ def get_profraw_path(coverage: Path, test_name: str) -> Path:
 
 cookie_list: List[ProfdataCookie] = []
 
-
-def filter_cookies(
-        cookies: List[ProfdataCookie],
-        aggregate_filter: HaxorgCoverageAggregateFilter) -> List[ProfdataCookie]:
-    if not aggregate_filter.whitelist_patterns:
-        return []
-
-    filtered_cookies = []
-
-    for cookie in cookies:
-        # Check whitelist
-        if any(
-                matches_pattern(cookie, pattern)
-                for pattern in aggregate_filter.whitelist_patterns):
-            # Check blacklist
-            if not any(
-                    matches_pattern(cookie, pattern)
-                    for pattern in aggregate_filter.blacklist_patterns):
-                filtered_cookies.append(cookie)
-
-    return filtered_cookies
-
-
-def matches_pattern(cookie: ProfdataCookie, pattern: HaxorgCoverageCookiePattern) -> bool:
-    if pattern.binary_pattern and not re.search(pattern.binary_pattern,
-                                                cookie.test_binary):
-        return False
-
-    if pattern.name_pattern and not re.search(pattern.name_pattern, cookie.test_name):
-        return False
-
-    if pattern.class_pattern:
-        if cookie.test_class is None:
-            return False
-        if not re.search(pattern.class_pattern, cookie.test_class):
-            return False
-
-    return True
-
-
 def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
-    conf: HaxorgConfig = get_haxorg_repo_root_config()
-    result = ProfdataFullProfile()
-    if conf.aggregate_filters:
-        result.runs = filter_cookies(cookie_list, conf.aggregate_filters)
+    return ProfdataFullProfile(runs=cookie_list)
 
-    return result
 
 
 @beartype

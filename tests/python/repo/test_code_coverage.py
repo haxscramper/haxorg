@@ -81,6 +81,7 @@ class ProfileRunParams():
     file_blacklist: List[str] = field(default_factory=lambda: [])
     show_merger_run: Union[bool, Path] = False
     coverage_mapping_dump: Optional[Path] = None
+    run_group_batch_size: int = 8
 
     def get_code(self, name: str) -> Path:
         return self.dir.joinpath(name)

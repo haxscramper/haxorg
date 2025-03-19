@@ -1,5 +1,6 @@
 from plumbum import local, ProcessExecutionError, FG, BG, NOHUP
 import plumbum
+import re
 from py_scriptutils.script_logging import log
 from pathlib import Path
 import os
@@ -20,7 +21,7 @@ import sys
 import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config, get_haxorg_repo_root_config_path
-from py_repository.gen_coverage_cookies import ProfdataParams
+from py_repository.gen_coverage_cookies import ProfdataParams, ProfdataFullProfile, ProfdataCookie
 from py_scriptutils.algorithm import remove_ansi, maybe_splice, cond
 from py_scriptutils import os_utils
 import typing
@@ -30,8 +31,14 @@ import shutil
 import signal
 import psutil
 import subprocess
-from py_ci.util_scripting import cmake_opt, get_j_cap
+from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count
 import py_ci
+from py_scriptutils.repo_files import (
+    HaxorgConfig,
+    get_haxorg_repo_root_config,
+    HaxorgCoverageCookiePattern,
+    HaxorgCoverageAggregateFilter,
+)
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -73,6 +80,48 @@ def get_script_root(relative: Optional[str] = None) -> Path:
     if relative:
         value = value.joinpath(relative)
     return value
+
+
+@beartype
+def filter_cookies(
+    cookies: List[ProfdataCookie],
+    aggregate_filter: HaxorgCoverageAggregateFilter | None,
+) -> List[ProfdataCookie]:
+    if not aggregate_filter or not aggregate_filter.whitelist_patterns:
+        return []
+
+    filtered_cookies = []
+
+    for cookie in cookies:
+        # Check whitelist
+        if any(
+                matches_pattern(cookie, pattern)
+                for pattern in aggregate_filter.whitelist_patterns):
+            # Check blacklist
+            if not any(
+                    matches_pattern(cookie, pattern)
+                    for pattern in aggregate_filter.blacklist_patterns):
+                filtered_cookies.append(cookie)
+
+    return filtered_cookies
+
+
+@beartype
+def matches_pattern(cookie: ProfdataCookie, pattern: HaxorgCoverageCookiePattern) -> bool:
+    if pattern.binary_pattern and not re.search(pattern.binary_pattern,
+                                                cookie.test_binary):
+        return False
+
+    if pattern.name_pattern and not re.search(pattern.name_pattern, cookie.test_name):
+        return False
+
+    if pattern.class_pattern:
+        if cookie.test_class is None:
+            return False
+        if not re.search(pattern.class_pattern, cookie.test_class):
+            return False
+
+    return True
 
 
 @beartype
@@ -1601,9 +1650,6 @@ def get_cxx_profdata_params_path() -> Path:
     return get_cxx_coverage_dir().joinpath("profile-collect.json")
 
 
-PROFDATA_FILE_WHITELIST_DEFAULT = ".*"
-PROFDATA_FILE_BLACKLIST_DEFAULT = r"base_lexer_gen.cpp;thirdparty"
-
 HELP_profdata_file = {
     "profdata-file-whitelist":
         f"List of blacklist regexps to allow in the coverage database.",
@@ -1618,19 +1664,23 @@ HELP_coverage_file = {
 
 
 @beartype
-def get_cxx_profdata_params(
-    profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
-    profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
-) -> ProfdataParams:
+def get_cxx_profdata_params() -> ProfdataParams:
     coverage_dir = get_cxx_coverage_dir()
-    assert len(profdata_file_whitelist) != 0, "profdata_file_whitelist cannot be empty"
+    stored_summary_collection = coverage_dir.joinpath("test-summary.json")
+    summary_data: ProfdataFullProfile = ProfdataFullProfile.model_validate_json(
+        stored_summary_collection.read_text())
+    filtered_summary = ProfdataFullProfile(
+        runs=filter_cookies(summary_data.runs, conf.aggregate_filters))
+    filtered_summary_collection = coverage_dir.joinpath("test-summary-filtered.json")
+    filtered_summary_collection.write_text(filtered_summary.model_dump_json(indent=2))
     return ProfdataParams(
-        coverage=str(coverage_dir.joinpath("test-summary.json")),
+        coverage=str(filtered_summary_collection),
         coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
         # perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
         debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
-        file_whitelist=profdata_file_whitelist.split(";"),
-        file_blacklist=profdata_file_blacklist.split(";"),
+        file_whitelist=conf.profdata_file_whitelist,
+        file_blacklist=conf.profdata_file_blacklist,
+        run_group_batch_size=get_threading_count(),
     )
 
 
@@ -1644,8 +1694,6 @@ HELP_coverage_mapping_dump = {
 def cxx_merge_configure(
     ctx: Context,
     coverage_mapping_dump: Optional[str] = None,
-    profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
-    profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
 ):
     if is_instrumented_coverage(ctx):
         profile_path = get_cxx_profdata_params_path()
@@ -1653,10 +1701,7 @@ def cxx_merge_configure(
             f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
         )
         profile_path.parent.mkdir(parents=True, exist_ok=True)
-        model = get_cxx_profdata_params(
-            profdata_file_blacklist=profdata_file_blacklist,
-            profdata_file_whitelist=profdata_file_whitelist,
-        )
+        model = get_cxx_profdata_params()
         if coverage_mapping_dump:
             Path(coverage_mapping_dump).mkdir(exist_ok=True)
             model.coverage_mapping_dump = coverage_mapping_dump
@@ -1674,17 +1719,12 @@ def cxx_merge_configure(
 def cxx_merge_coverage(
     ctx: Context,
     coverage_mapping_dump: Optional[str] = None,
-    profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
-    profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
 ):
-
-    assert len(profdata_file_whitelist) != 0, "profdata_file_whitelist cannot be empty"
     cxx_merge_configure(
         ctx,
         coverage_mapping_dump,
-        profdata_file_whitelist=profdata_file_whitelist,
-        profdata_file_blacklist=profdata_file_blacklist,
     )
+    coverage_dir = get_cxx_coverage_dir()
 
     profile_path = get_cxx_profdata_params_path()
     run_command(
@@ -1693,6 +1733,8 @@ def cxx_merge_coverage(
         [
             profile_path,
         ],
+        stderr_debug=coverage_dir.joinpath("profdata_merger_stderr.txt"),
+        stdout_debug=coverage_dir.joinpath("profdata_merger_stdout.txt"),
     )
 
 
@@ -1850,15 +1892,11 @@ def cxx_target_coverage(
     run_merge: bool = True,
     run_docgen: bool = True,
     coverage_mapping_dump: Optional[str] = None,
-    profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
-    profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
     allow_test_fail: bool = False,
 ):
     """
     Run full cycle of the code coverage generation. 
     """
-
-    assert len(profdata_file_whitelist) != 0, "profdata_file_whitelist cannot be empty"
 
     if run_tests:
         if pytest_filter:
@@ -1885,21 +1923,15 @@ def cxx_target_coverage(
             run_self(ctx, [
                 "cxx-merge-coverage",
                 f"--coverage-mapping-dump={coverage_mapping_dump}",
-                f"--profdata-file-whitelist={profdata_file_whitelist}",
-                f"--profdata-file-blacklist={profdata_file_blacklist}",
             ])
         else:
             run_self(ctx, [
                 "cxx-merge-coverage",
-                f"--profdata-file-whitelist={profdata_file_whitelist}",
-                f"--profdata-file-blacklist={profdata_file_blacklist}",
             ])
 
     if run_docgen:
         run_self(ctx, [
             "docs-custom",
-            *get_list_cli_pass("coverage-file-whitelist", coverage_file_whitelist),
-            *get_list_cli_pass("coverage-file-blacklist", coverage_file_blacklist),
             f"--out-dir={out_dir}",
         ])
 

@@ -15,10 +15,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def get_threading_count() -> int:
+    return int(os.cpu_count() * 0.6)
+
+
 def get_j_cap() -> List[str]:
     # Using Ninja's default formula with CPU_COUNT+2 exhausts all the
     # memory in the system (64GB).
-    return ["-j", str(int(os.cpu_count() * 0.6))]
+    return ["-j", str(get_threading_count())]
 
 
 @contextmanager

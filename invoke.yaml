@@ -18,4 +18,9 @@ force_task: [
   "python_protobuf_files",
 ]
 
- 
+aggregate_filters:
+  whitelist_patterns: 
+    - class_pattern: "OrgParseSem"
+
+profdata_file_whitelist:
+  - "parse/"
