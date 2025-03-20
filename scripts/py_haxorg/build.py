@@ -1,3 +1,6 @@
+## @file   build.py
+## @brief  Setuptools script for installable python package
+
 # py_haxorg/build.py
 import os
 import shutil

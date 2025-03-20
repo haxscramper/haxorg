@@ -605,7 +605,7 @@ struct ImmWord : public org::imm::ImmLeaf {
   bool operator==(org::imm::ImmWord const& other) const;
 };
 
-/// \brief @mention
+/// \brief `@mention`
 struct ImmAtMention : public org::imm::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmAtMention() = default;
@@ -671,7 +671,7 @@ struct ImmBigIdent : public org::imm::ImmLeaf {
   bool operator==(org::imm::ImmBigIdent const& other) const;
 };
 
-/// \brief ~<<target>>~
+/// \brief `<<target>>`
 struct ImmTextTarget : public org::imm::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmTextTarget() = default;
