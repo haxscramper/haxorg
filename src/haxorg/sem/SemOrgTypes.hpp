@@ -2398,7 +2398,7 @@ struct Par : public org::sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
 };
 
-/// \brief ~<<<target>>>~
+/// \brief `<<<target>>>`
 struct RadioTarget : public org::sem::Org {
   using Org::Org;
   virtual ~RadioTarget() = default;

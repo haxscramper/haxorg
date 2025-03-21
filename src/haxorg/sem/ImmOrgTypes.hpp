@@ -800,7 +800,7 @@ struct ImmPar : public org::imm::ImmMarkup {
   bool operator==(org::imm::ImmPar const& other) const;
 };
 
-/// \brief ~<<<target>>>~
+/// \brief `<<<target>>>`
 struct ImmRadioTarget : public org::imm::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmRadioTarget() = default;
@@ -1620,3 +1620,4 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
 
 }
 /* clang-format on */
+

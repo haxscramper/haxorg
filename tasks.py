@@ -596,7 +596,10 @@ def run_docker_develop_test(
         "docker",
         [
             "run",
-            *itertools.chain(*(docker_mnt(it) for it in [
+            *itertools.chain(*(docker_mnt(
+                src=get_script_root(it),
+                dst=docker_path(it),
+            ) for it in [
                 "src",
                 "scripts",
                 "tests",
@@ -611,7 +614,7 @@ def run_docker_develop_test(
                 "HaxorgConfig.cmake.in",
             ])),
             # Scratch directory for simplified local debugging and rebuilds if needed.
-            *docker_mnt(HAXORG_BUILD_TMP, "build"),
+            *docker_mnt(HAXORG_BUILD_TMP, docker_path("build")),
             *(["-it"] if interactive else []),
             "--memory=32G",
             "--rm",
@@ -1153,36 +1156,39 @@ def run_docker_release_test(
             else:
                 return get_script_root(path)
 
-        run_command(ctx, "docker", [
-            "run",
-            *docker_mnt(
-                src=get_script_root("thirdparty"),
-                dst=docker_path("thirdparty"),
-            ),
-            *itertools.chain(*(docker_mnt(
-                src=pass_mnt(it),
-                dst=docker_path(it),
-            ) for it in [
-                "src",
-                "scripts",
-                "CMakeLists.txt",
-                "HaxorgConfig.cmake.in",
-                "tests",
-            ])),
-            "--memory=32G",
-            "--rm",
-            *docker_user(),
-            *docker_mnt(build_dir or Path("/tmp"), Path("/haxorg_wip")),
-            "-e",
-            "PYTHONPATH=/haxorg/scripts/py_ci",
-            CPACK_TEST_IMAGE,
-            # "ls", 
-            # "-a",
-            # "/haxorg_wip",
-            "python",
-            "-m",
-            "py_ci.test_cpack_build",
-        ])
+        run_command(
+            ctx,
+            "docker",
+            [
+                "run",
+                *docker_mnt(
+                    src=get_script_root("thirdparty"),
+                    dst=docker_path("thirdparty"),
+                ),
+                *itertools.chain(*(docker_mnt(
+                    src=pass_mnt(it),
+                    dst=docker_path(it),
+                ) for it in [
+                    "src",
+                    "scripts",
+                    "CMakeLists.txt",
+                    "HaxorgConfig.cmake.in",
+                    "tests",
+                ])),
+                "--memory=32G",
+                "--rm",
+                *docker_user(),
+                *docker_mnt(build_dir or Path("/tmp"), Path("/haxorg_wip")),
+                "-e",
+                "PYTHONPATH=/haxorg/scripts/py_ci",
+                CPACK_TEST_IMAGE,
+                # "ls",
+                # "-a",
+                # "/haxorg_wip",
+                "python",
+                "-m",
+                "py_ci.test_cpack_build",
+            ])
 
     def run_with_build_dir(build_dir: Path):
         if clone_dir:
@@ -1191,7 +1197,8 @@ def run_docker_release_test(
 
         else:
             with TemporaryDirectory() as dir:
-                log(CAT).info(f"No docker clone directory specified, using temporary {dir}")
+                log(CAT).info(
+                    f"No docker clone directory specified, using temporary {dir}")
                 run_docker(clone_dir=Path(dir), build_dir=build_dir)
 
     if build_dir:
