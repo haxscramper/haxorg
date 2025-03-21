@@ -66,6 +66,24 @@ def install_dep(dep: data_build.ExternalDep) -> None:
     logger.info(f"Successfully installed dependency: {dep.build_name}")
 
 
+def build_reflex_codgen():
+    py_file = SRC_DIR.joinpath("src/haxorg/base_lexer/base_lexer.py")
+    gen_lexer = SRC_DIR.joinpath("src/haxorg/base_lexer/base_lexer.l")
+    reflex_run_params = [
+        "--fast",
+        "--nodefault",
+        # "--debug",
+        "--case-insensitive",
+        f"--outfile={SRC_DIR.joinpath('src/haxorg/base_lexer/base_lexer_gen.cpp')}",
+        "--namespace=base_lexer",
+        gen_lexer,
+    ]
+
+    run_cmd(["python", str(py_file)])
+    run_cmd(args=[DEPS_INSTALL.joinpath("reflex/bin/reflex"), reflex_run_params],
+            env={"LD_LIBRARY_PATH": DEPS_INSTALL.joinpath("reflex/lib")})
+
+
 def install_all_deps() -> List[str]:
     logger.info("All dependencies installed successfully")
 

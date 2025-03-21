@@ -41,6 +41,8 @@ from py_scriptutils.repo_files import (
     HaxorgCoverageAggregateFilter,
 )
 
+from tempfile import TemporaryDirectory
+
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
 import graphviz
@@ -252,7 +254,7 @@ def run_command(
         cmd = str(cmd.resolve())
 
     if cmd == "invoke" and not isinstance(args[0], Task):
-        assert False, f"command name for `invoke` recursive call should be passed as a function name but got {str(args)}" 
+        assert False, f"command name for `invoke` recursive call should be passed as a function name but got {str(args)}"
 
     def conv_arg(arg) -> str:
         if isinstance(arg, Task):
@@ -510,7 +512,7 @@ def create_graph(call_map: Dict[Callable, List[Callable]]) -> graphviz.Digraph:
 
 
 @org_task()
-def org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
+def generate_org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
     """Generate graphviz for task graph"""
     graph = create_graph(TASK_DEPS)
     file = Path(dot_file)
@@ -557,13 +559,15 @@ def docker_path(path: str) -> Path:
 
 
 @beartype
-def docker_mnt(local: str | Path, container: Optional[str] = None) -> List[str]:
-    container = container or local
-    local_str = str(local)
-    local: Path = Path(local_str) if Path(local_str).is_absolute() else get_script_root(
-        local_str)
-    assert local.exists(), f"'{local}'"
-    return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
+def docker_mnt(src: Path, dst: Path) -> List[str]:
+    assert src.exists(), f"'{src}'"
+    log(CAT).debug(f"Mounting docker '{src}' to '{dst}'")
+    return ["--mount", f"type=bind,src={src},dst={dst}"]
+
+
+@beartype
+def docker_user() -> List[str]:
+    return ["--user", f"{os.getuid()}:{os.getgid()}"]
 
 
 @org_task(pre=[build_docker_develop_image])
@@ -645,29 +649,12 @@ def base_environment(ctx: Context):
     pass
 
 
-REFLEX_PATH = "build/reflex"
+@beartype
+def get_deps_install_dir() -> Path:
+    return get_build_root().joinpath("deps_install")
 
 
-@org_task(pre=[base_environment])
-def build_reflex_lexer_generator(ctx: Context):
-    """Build reflex lexer generator"""
-    expected = get_script_root(REFLEX_PATH)
-    if not expected.exists():
-        run_command(ctx, "cmake", [
-            "-B",
-            expected.parent,
-            "-S",
-            get_script_root("thirdparty/RE-flex"),
-            "-DCMAKE_BUILD_TYPE=Release",
-        ])
-
-        run_command(ctx, "cmake", [
-            "--build",
-            expected.parent,
-        ])
-
-
-@org_task(pre=[base_environment, build_reflex_lexer_generator], force_notify=True)
+@org_task(pre=[base_environment], force_notify=True)
 def generate_haxorg_base_lexer(ctx: Context):
     """Generate base lexer file definitions and compile them to C code"""
     py_file = get_script_root("src/haxorg/base_lexer/base_lexer.py")
@@ -693,9 +680,11 @@ def generate_haxorg_base_lexer(ctx: Context):
             run_command(ctx, "poetry", ["run", py_file])
             run_command(
                 ctx,
-                get_script_root(REFLEX_PATH),
+                get_deps_install_dir().joinpath("reflex/bin/reflex"),
                 reflex_run_params,
-                env={"LD_LIBRARY_PATH": str(get_script_root("thirdparty/RE-flex/lib"))},
+                env={
+                    "LD_LIBRARY_PATH": str(get_deps_install_dir().joinpath("reflex/lib"))
+                },
             )
 
             gen_lexer.touch()
@@ -837,7 +826,7 @@ def run_cmake_haxorg_clean(ctx: Context):
         stamp_path.unlink()
 
     os_utils.rmdir_quiet(get_build_root().joinpath("deps_build"))
-    os_utils.rmdir_quiet(get_build_root().joinpath("deps_install"))
+    os_utils.rmdir_quiet(get_deps_install_dir())
 
 
 @org_task(iterable=["build_whitelist", "ninja_flag"])
@@ -857,7 +846,7 @@ def build_develop_deps(
 
     build_dir.mkdir(parents=True, exist_ok=True)
 
-    install_dir = get_build_root().joinpath("deps_install")
+    install_dir = get_deps_install_dir()
     if rebuild and install_dir.exists():
         shutil.rmtree(install_dir)
 
@@ -1014,7 +1003,6 @@ def build_release_deps(
     deps_install_dir: Optional[str] = None,
 ):
     "Test cpack-provided build"
-    from tempfile import TemporaryDirectory
 
     package_archive = get_script_root().joinpath(
         f"{HAXORG_NAME}-{HAXORG_VERSION}-Source.zip")
@@ -1091,8 +1079,39 @@ def build_release_deps(
         )
 
 
+def clone_repo_with_uncommitted_changes(
+    ctx: Context,
+    src_repo: Path,
+    dst_repo: Path,
+):
+    run_command(ctx, "git", ["clone", src_repo, dst_repo])
+
+    code, stdout, stderr = run_command(ctx, "git", [
+        "-C",
+        src_repo,
+        "ls-files",
+        "--modified",
+        "--others",
+        "--exclude-standard",
+    ])
+
+    if stdout.strip():
+        file_list = stdout.strip().split('\n')
+        for file in file_list:
+            src_file = Path(f"{src_repo}/{file}")
+            dst_file = Path(f"{dst_repo}/{os.path.dirname(file)}")
+            log(CAT).info(f"Copying uncomitted changes {src_file} -> {dst_file}")
+            dst_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(src=src_file, dst=dst_file)
+
+
 @org_task(pre=[])
-def run_docker_release_test(ctx: Context, build_dir: Optional[str] = None):
+def run_docker_release_test(
+    ctx: Context,
+    build_dir: Optional[str] = None,
+    clone_dir: Optional[str] = "/tmp/haxorg_cpack_clone_dir",
+    clone_code: Literal["none", "comitted", "all"] = "all",
+):
     CPACK_TEST_IMAGE = "docker-haxorg-cpack"
 
     run_command(ctx, "docker", ["rm", CPACK_TEST_IMAGE], allow_fail=True)
@@ -1105,29 +1124,85 @@ def run_docker_release_test(ctx: Context, build_dir: Optional[str] = None):
         ".",
     ])
 
-    if build_dir and not Path(build_dir).exists():
-        Path(build_dir).mkdir(parents=True)
+    @beartype
+    def run_docker(clone_dir: Path, build_dir: Path):
+        source_prefix: Optional[Path] = None
+        if clone_code == "all":
+            if clone_dir.exists():
+                shutil.rmtree(clone_dir)
+            clone_repo_with_uncommitted_changes(
+                ctx=ctx,
+                src_repo=get_script_root(),
+                dst_repo=clone_dir,
+            )
 
-    run_command(ctx, "docker", [
-        "run",
-        *itertools.chain(*(docker_mnt(it) for it in [
-            "src",
-            "scripts",
-            "thirdparty",
-            "CMakeLists.txt",
-            "HaxorgConfig.cmake.in",
-            "tests",
-        ])),
-        "--memory=32G",
-        "--rm",
-        *cond(build_dir, docker_mnt(build_dir or "/tmp", "/haxorg_wip"), []),
-        "-e",
-        "PYTHONPATH=/haxorg/scripts/py_ci",
-        CPACK_TEST_IMAGE,
-        "python",
-        "-m",
-        "py_ci.test_cpack_build",
-    ])
+            source_prefix = clone_dir
+
+        elif clone_code == "comitted":
+            if clone_dir.exists():
+                shutil.rmtree(clone_dir)
+            run_command(ctx, "git", ["clone", get_script_root(), clone_dir])
+            source_prefix = clone_dir
+
+        @beartype
+        def pass_mnt(path: str) -> Path:
+            if source_prefix:
+                assert source_prefix.is_absolute(), source_prefix
+                return source_prefix.joinpath(path)
+
+            else:
+                return get_script_root(path)
+
+        run_command(ctx, "docker", [
+            "run",
+            *docker_mnt(
+                src=get_script_root("thirdparty"),
+                dst=docker_path("thirdparty"),
+            ),
+            *itertools.chain(*(docker_mnt(
+                src=pass_mnt(it),
+                dst=docker_path(it),
+            ) for it in [
+                "src",
+                "scripts",
+                "CMakeLists.txt",
+                "HaxorgConfig.cmake.in",
+                "tests",
+            ])),
+            "--memory=32G",
+            "--rm",
+            *docker_user(),
+            *docker_mnt(build_dir or Path("/tmp"), Path("/haxorg_wip")),
+            "-e",
+            "PYTHONPATH=/haxorg/scripts/py_ci",
+            CPACK_TEST_IMAGE,
+            # "ls", 
+            # "-a",
+            # "/haxorg_wip",
+            "python",
+            "-m",
+            "py_ci.test_cpack_build",
+        ])
+
+    def run_with_build_dir(build_dir: Path):
+        if clone_dir:
+            log(CAT).info(f"Specified clone directory, using it for docker")
+            run_docker(clone_dir=Path(clone_dir), build_dir=build_dir)
+
+        else:
+            with TemporaryDirectory() as dir:
+                log(CAT).info(f"No docker clone directory specified, using temporary {dir}")
+                run_docker(clone_dir=Path(dir), build_dir=build_dir)
+
+    if build_dir:
+        if not Path(build_dir).exists():
+            Path(build_dir).mkdir(parents=True)
+
+        run_with_build_dir(build_dir=Path(build_dir))
+
+    else:
+        with TemporaryDirectory() as dir:
+            run_with_build_dir(build_dir=Path(dir))
 
 
 @beartype
@@ -1437,12 +1512,13 @@ def binary_coverage(ctx: Context, test: Path):
 
 
 @org_task(pre=[build_haxorg], iterable=["arg"])
-def profdata_coverage(
+def run_profdata_coverrage(
     ctx: Context,
     binary: str,
     arg: List[str] = [],
     report_path: Optional[str] = None,
 ):
+    "Generate profdata coverage information for binary @arg binary"
     tools = get_llvm_root("bin")
     if Path(binary).is_absolute():
         bin_path = Path(binary)
@@ -1577,6 +1653,7 @@ def py_cli(
     ctx: Context,
     arg: List[str] = [],
 ):
+    "Run haxorg CLI script"
     log(CAT).info(get_py_env(ctx))
     log(CAT).info(arg)
     run_command(
@@ -1605,7 +1682,7 @@ def get_poetry_lldb(test: str) -> list[str]:
 
 
 @org_task(iterable=["arg"])
-def py_debug_script(ctx: Context, arg):
+def run_py_debug_script(ctx: Context, arg):
     run_command(
         ctx,
         "poetry",
@@ -1802,7 +1879,7 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
 
 @org_task(pre=[build_all, generate_python_protobuf_files, symlink_build],
           iterable=["arg"])
-def py_script(ctx: Context, script: str, arg: List[str] = []):
+def run_py_script(ctx: Context, script: str, arg: List[str] = []):
     """
     Run script with arguments with all environment variables set.
     Debug task. 
