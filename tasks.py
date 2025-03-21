@@ -1109,7 +1109,7 @@ def clone_repo_with_uncommitted_changes(
 def run_docker_release_test(
     ctx: Context,
     build_dir: Optional[str] = None,
-    clone_dir: Optional[str] = "/tmp/haxorg_cpack_clone_dir",
+    clone_dir: Optional[str] = None,
     clone_code: Literal["none", "comitted", "all"] = "all",
 ):
     CPACK_TEST_IMAGE = "docker-haxorg-cpack"
