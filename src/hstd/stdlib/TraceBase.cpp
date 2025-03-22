@@ -16,14 +16,21 @@ void OperationsTracer::setTraceFile(SPtr<std::ostream> stream) {
     this->stream = stream;
 }
 
-void OperationsTracer::setTraceFile(const fs::path& outfile) {
+void OperationsTracer::setTraceFile(
+    const fs::path& outfile,
+    bool            overwrite) {
     CHECK(outfile.native().size() != 0)
         << "setTraceFile" << "Expected non-empty filename for the output";
     TraceState  = true;
     traceToFile = true;
     createDirectory(outfile.parent_path(), true, true);
-    stream = std::make_shared<std::ofstream>(
-        std::ofstream{outfile.native()});
+    if (overwrite) {
+        stream = std::make_shared<std::ofstream>(std::ofstream{
+            outfile.native(), std::ios_base::out | std::ios_base::trunc});
+    } else {
+        stream = std::make_shared<std::ofstream>(std::ofstream{
+            outfile.native(), std::ios_base::out | std::ios_base::app});
+    }
 }
 
 ColStream OperationsTracer::getStream() const {

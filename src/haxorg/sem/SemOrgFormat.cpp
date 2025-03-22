@@ -320,6 +320,45 @@ auto Formatter::toString(SemId<RawText> id, CR<Context> ctx) -> Res {
     return str(id->text);
 }
 
+auto Formatter::toString(SemId<DocumentFragment> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    Res result = b.stack();
+    for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
+    return result;
+}
+
+auto Formatter::toString(SemId<CriticMarkup> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    using K = CriticMarkup::Kind;
+    switch (id->kind) {
+        case K::Deletion: {
+            return b.line(
+                {str("{--"), toString(id.at(0), ctx), str("--}")});
+        }
+        case K::Addition: {
+            return b.line(
+                {str("{++"), toString(id.at(0), ctx), str("++}")});
+        }
+        case K::Substitution: {
+            return b.line(
+                {str("{~~"),
+                 toString(id.at(0), ctx),
+                 str("~>"),
+                 toString(id.at(1), ctx),
+                 str("~~}")});
+        }
+        case K::Highlighting: {
+            return b.line(
+                {str("{=="), toString(id.at(0), ctx), str("==}")});
+        }
+        case K::Comment: {
+            return b.line(
+                {str("{>>"), toString(id.at(0), ctx), str("<<}")});
+        }
+    }
+}
+
 auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }

@@ -21,6 +21,102 @@ using namespace org;
 using namespace hstd;
 using osk = OrgSemKind;
 
+hstd::Vec<org::OrgParseFragment> org::extractCommentBlocks(
+    const std::string&            text,
+    const hstd::Vec<std::string>& commentPrefixes) {
+
+    Vec<OrgParseFragment> fragments;
+    Vec<std::string>      lines;
+    std::istringstream    stream(text);
+    std::string           line;
+
+    while (std::getline(stream, line)) { lines.push_back(line); }
+
+    OrgParseFragment currentFragment{-1, -1, ""};
+
+    for (size_t lineIdx = 0; lineIdx < lines.size(); ++lineIdx) {
+        const std::string& currentLine  = lines[lineIdx];
+        bool               foundComment = false;
+        size_t             commentPos   = std::string::npos;
+        std::string        matchedPrefix;
+
+        for (const auto& prefix : commentPrefixes) {
+            size_t pos = currentLine.find(prefix);
+            if (pos != std::string::npos
+                && (commentPos == std::string::npos || pos < commentPos)) {
+                commentPos    = pos;
+                matchedPrefix = prefix;
+                foundComment  = true;
+            }
+        }
+
+        if (foundComment) {
+            std::string commentText = currentLine.substr(
+                commentPos + matchedPrefix.length());
+
+            // Check if this is a continuation of the previous comment
+            // block
+            if (currentFragment.baseLine != -1) {
+                // Add the new comment text to the existing fragment
+                currentFragment.text += "\n" + commentText;
+            } else {
+                // Start a new comment fragment
+                currentFragment = {
+                    static_cast<int>(lineIdx),
+                    static_cast<int>(commentPos),
+                    commentText};
+            }
+        } else if (currentFragment.baseLine != -1) {
+            // No comment on this line, so the previous comment block is
+            // complete
+            fragments.push_back(currentFragment);
+            currentFragment = {-1, -1, ""};
+        }
+    }
+
+    // Add the last fragment if it exists
+    if (currentFragment.baseLine != -1) {
+        fragments.push_back(currentFragment);
+    }
+
+    // Process the fragments to clean up the text
+    for (auto& fragment : fragments) {
+        std::istringstream fragmentStream(fragment.text);
+        std::string        processedText;
+        std::string        fragmentLine;
+        bool               isFirstLine = true;
+
+        while (std::getline(fragmentStream, fragmentLine)) {
+            if (!isFirstLine) { processedText += "\n"; }
+
+            // For lines after the first, check if they start with a
+            // comment prefix
+            if (!isFirstLine) {
+                for (const auto& prefix : commentPrefixes) {
+                    size_t pos = fragmentLine.find(prefix);
+                    if (pos != std::string::npos
+                        && pos == fragmentLine.find_first_not_of(" \t")) {
+                        fragmentLine = fragmentLine.substr(
+                            pos + prefix.length());
+                        break;
+                    }
+                }
+            }
+
+            // Remove at most one leading space if it exists
+            if (!fragmentLine.empty() && fragmentLine[0] == ' ') {
+                fragmentLine = fragmentLine.substr(1);
+            }
+
+            processedText += fragmentLine;
+            isFirstLine = false;
+        }
+
+        fragment.text = processedText;
+    }
+
+    return fragments;
+}
 
 std::string org::exportToJsonString(sem::SemId<sem::Org> const& node) {
     return to_string(org::algo::ExporterJson{}.evalTop(node));
@@ -106,38 +202,130 @@ sem::SemId<sem::Org> org::parseString(std::string text) {
 sem::SemId<sem::Org> org::parseStringOpts(
     const std::string         text,
     OrgParseParameters const& opts) {
-    org::parse::LexerParams p;
-    SPtr<std::ofstream>     fileTrace;
-    if (opts.baseTokenTracePath) {
-        fileTrace = std::make_shared<std::ofstream>(
-            *opts.baseTokenTracePath);
+
+
+    if (opts.getFragments) {
+        auto                          fragments = opts.getFragments(text);
+        Vec<OrgConverter::InFragment> toConvert;
+
+        if (opts.baseTokenTracePath) {
+            fs::remove(opts.baseTokenTracePath.value());
+        }
+
+        if (opts.parseTracePath) {
+            fs::remove(opts.parseTracePath.value());
+        }
+
+        if (opts.semTracePath) { fs::remove(opts.semTracePath.value()); }
+
+        if (opts.tokenTracePath) {
+            fs::remove(opts.tokenTracePath.value());
+        }
+
+        Vec<org::parse::OrgTokenGroup> tokens;
+        Vec<org::parse::OrgNodeGroup>  nodes;
+        nodes.reserve(fragments.size());
+        tokens.reserve(fragments.size());
+
+        for (auto const& frag : fragments) {
+            tokens.emplace_back();
+            nodes.emplace_back(&tokens.back());
+        }
+
+        for (int i = 0; i < fragments.size(); ++i) {
+            auto const&             frag = fragments.at(i);
+            org::parse::LexerParams p;
+            SPtr<std::ofstream>     fileTrace;
+            if (opts.baseTokenTracePath) {
+                fileTrace = std::make_shared<std::ofstream>(
+                    *opts.baseTokenTracePath,
+                    std::ios_base::out | std::ios_base::app);
+            }
+            p.traceStream = fileTrace.get();
+
+            LOG(INFO) << fmt1(frag.text);
+            org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
+                frag.text.data(), frag.text.size(), p);
+            org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
+
+            if (opts.tokenTracePath) {
+                tokenizer.setTraceFile(*opts.tokenTracePath, false);
+                tokenizer.traceColored = false;
+            }
+
+            LOG(INFO) << fmt1(baseTokens.size());
+
+            tokenizer.convert(baseTokens);
+            org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{
+                &tokens.at(i)};
+
+            org::parse::OrgParser parser{&nodes.at(i)};
+            if (opts.parseTracePath) {
+                parser.setTraceFile(*opts.parseTracePath, false);
+                parser.traceColored = false;
+            }
+
+            auto id      = parser.parseFull(lex);
+            auto adapter = org::parse::OrgAdapter(&nodes.at(i), id);
+
+            // adapter.tr
+
+            toConvert.push_back(OrgConverter::InFragment{
+                .baseLine = frag.baseLine,
+                .baseCol  = frag.baseCol,
+                .node     = adapter,
+            });
+        }
+
+        sem::OrgConverter converter{};
+        if (opts.semTracePath) {
+            converter.setTraceFile(*opts.semTracePath);
+            converter.traceColored = false;
+        }
+
+        return converter.convertDocumentFragments(toConvert).unwrap();
+
+    } else {
+
+
+        org::parse::LexerParams p;
+        SPtr<std::ofstream>     fileTrace;
+        if (opts.baseTokenTracePath) {
+            fileTrace = std::make_shared<std::ofstream>(
+                *opts.baseTokenTracePath);
+        }
+        p.traceStream = fileTrace.get();
+
+        org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
+            text.data(), text.size(), p);
+        org::parse::OrgTokenGroup tokens;
+        org::parse::OrgTokenizer  tokenizer{&tokens};
+
+        if (opts.tokenTracePath) {
+            tokenizer.setTraceFile(*opts.tokenTracePath);
+        }
+
+        tokenizer.convert(baseTokens);
+        org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
+
+        org::parse::OrgNodeGroup nodes{&tokens};
+        org::parse::OrgParser    parser{&nodes};
+        if (opts.parseTracePath) {
+            parser.setTraceFile(*opts.parseTracePath);
+        }
+
+        auto id = parser.parseFull(lex);
+        LOG(INFO) << fmt1(id);
+
+        sem::OrgConverter converter{};
+        if (opts.semTracePath) {
+            converter.setTraceFile(*opts.semTracePath);
+        }
+
+        return converter
+            .convertDocument(org::parse::OrgAdapter(&nodes, id))
+            .unwrap();
     }
-    p.traceStream                        = fileTrace.get();
-    org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
-        text.data(), text.size(), p);
-    org::parse::OrgTokenGroup tokens;
-    org::parse::OrgTokenizer  tokenizer{&tokens};
-
-    if (opts.tokenTracePath) {
-        tokenizer.setTraceFile(*opts.tokenTracePath);
-    }
-
-    tokenizer.convert(baseTokens);
-    org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
-
-    org::parse::OrgNodeGroup nodes{&tokens};
-    org::parse::OrgParser    parser{&nodes};
-    if (opts.parseTracePath) { parser.setTraceFile(*opts.parseTracePath); }
-
-    (void)parser.parseFull(lex);
-
-    sem::OrgConverter converter{};
-    if (opts.semTracePath) { converter.setTraceFile(*opts.semTracePath); }
-
-    return converter
-        .convertDocument(
-            org::parse::OrgAdapter(&nodes, org::parse::OrgId(0)))
-        .unwrap();
 }
 
 

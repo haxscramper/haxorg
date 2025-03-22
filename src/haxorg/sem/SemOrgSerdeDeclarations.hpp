@@ -67,6 +67,8 @@
         __MAP(kList, list, List)  \
         __MAP(kListitem, listitem, ListItem)  \
         __MAP(kDocumentoptions, documentoptions, DocumentOptions)  \
+        __MAP(kDocumentfragment, documentfragment, DocumentFragment)  \
+        __MAP(kCriticmarkup, criticmarkup, CriticMarkup)  \
         __MAP(kDocument, document, Document)  \
         __MAP(kFiletarget, filetarget, FileTarget)  \
         __MAP(kTextseparator, textseparator, TextSeparator)  \
@@ -1242,6 +1244,20 @@ template <>
 struct org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptions> {
   static void write(::orgproto::DocumentOptions* out, org::sem::DocumentOptions const& in);
   static void read(::orgproto::DocumentOptions const& out, proto_write_accessor<org::sem::DocumentOptions> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::DocumentFragment> {
+  static void write(::orgproto::DocumentFragment* out, org::sem::DocumentFragment const& in);
+  static void read(::orgproto::DocumentFragment const& out, proto_write_accessor<org::sem::DocumentFragment> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::CriticMarkup> {
+  static void write(::orgproto::CriticMarkup* out, org::sem::CriticMarkup const& in);
+  static void read(::orgproto::CriticMarkup const& out, proto_write_accessor<org::sem::CriticMarkup> in);
 };
 
 

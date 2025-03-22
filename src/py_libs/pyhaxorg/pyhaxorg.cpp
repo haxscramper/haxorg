@@ -4718,6 +4718,52 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::DocumentFragment, org::sem::SemId<org::sem::DocumentFragment>, org::sem::Org>(m, "DocumentFragment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::DocumentFragment {
+                        org::sem::DocumentFragment result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("baseLine", &org::sem::DocumentFragment::baseLine)
+    .def_readwrite("baseCol", &org::sem::DocumentFragment::baseCol)
+    .def("__repr__", [](org::sem::DocumentFragment _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::DocumentFragment _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::sem::CriticMarkup::Kind>(m, "CriticMarkupKind", type_registry_guard);
+  pybind11::enum_<org::sem::CriticMarkup::Kind>(m, "CriticMarkupKind")
+    .value("Deletion", org::sem::CriticMarkup::Kind::Deletion)
+    .value("Addition", org::sem::CriticMarkup::Kind::Addition)
+    .value("Substitution", org::sem::CriticMarkup::Kind::Substitution)
+    .value("Highlighting", org::sem::CriticMarkup::Kind::Highlighting)
+    .value("Comment", org::sem::CriticMarkup::Kind::Comment)
+    .def("__iter__", [](org::sem::CriticMarkup::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::CriticMarkup::Kind> {
+                     return
+                     org::bind::python::PyEnumIterator<org::sem::CriticMarkup::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<org::sem::CriticMarkup, org::sem::SemId<org::sem::CriticMarkup>, org::sem::Org>(m, "CriticMarkup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CriticMarkup {
+                        org::sem::CriticMarkup result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &org::sem::CriticMarkup::kind)
+    .def("__repr__", [](org::sem::CriticMarkup _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::CriticMarkup _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::Document, org::sem::SemId<org::sem::Document>, org::sem::Org>(m, "Document")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Document {
                         org::sem::Document result{};
@@ -5409,6 +5455,8 @@ node can have subnodes.)RAW")
     .value("List", OrgSemKind::List)
     .value("ListItem", OrgSemKind::ListItem)
     .value("DocumentOptions", OrgSemKind::DocumentOptions)
+    .value("DocumentFragment", OrgSemKind::DocumentFragment)
+    .value("CriticMarkup", OrgSemKind::CriticMarkup)
     .value("Document", OrgSemKind::Document)
     .value("FileTarget", OrgSemKind::FileTarget)
     .value("TextSeparator", OrgSemKind::TextSeparator)

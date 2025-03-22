@@ -50,10 +50,10 @@ struct OperationsTracer {
 
     SPtr<std::ostream> getTraceFile();
     void               setTraceFile(SPtr<std::ostream> stream);
-    void               setTraceFile(fs::path const& outfile);
-    ColStream          getStream() const;
-    void               endStream(ColStream& stream) const;
-    void               message(OperationsMsg const& value) const;
+    void      setTraceFile(fs::path const& outfile, bool overwrite = true);
+    ColStream getStream() const;
+    void      endStream(ColStream& stream) const;
+    void      message(OperationsMsg const& value) const;
 
     void message(
         std::string const& value,

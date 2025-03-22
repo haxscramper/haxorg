@@ -223,6 +223,19 @@ struct OrgConverter : public hstd::OperationsTracer {
     ConvResult<InlineExport>    convertInlineExport(In);
     ConvResult<Document>        convertDocument(In);
 
+    struct InFragment {
+        int               baseLine;
+        int               baseCol;
+        parse::OrgAdapter node;
+    };
+
+    ConvResult<Document> convertDocumentFragments(
+        hstd::Vec<InFragment> const& fragments);
+
+    bool updateDocument(
+        SemId<Document>&         doc,
+        parse::OrgAdapter const& sub);
+
     sem::AttrValue convertAttr(In);
     sem::AttrGroup convertAttrs(In);
     sem::LispCode  convertLisp(In);

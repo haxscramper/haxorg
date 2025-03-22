@@ -1255,6 +1255,8 @@ struct ImmAdapterCallAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterFileAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterDirectoryAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterSymlinkAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterDocumentFragmentAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterCriticMarkupAPI : ImmAdapterOrgAPI {};
 
 struct ImmAdapterListAPI : ImmAdapterStmtAPI {
     bool                           isDescriptionList() const;

@@ -1127,3 +1127,34 @@ TEST(OrgParseSem, CmdCallNode) {
         EXPECT_EQ2(el.getCall().args.at(0).getCall().name, "something"_ss);
     }
 }
+
+TEST(OrgParseSem, DocumentFragments) {
+    OrgParseParameters opts;
+    opts.getFragments =
+        [](std::string const& text) -> Vec<OrgParseFragment> {
+        return org::extractCommentBlocks(text, {"//#"});
+    };
+
+    opts.semTracePath       = getDebugFile("sem_trace.log");
+    opts.parseTracePath     = getDebugFile("parse_trace.log");
+    opts.tokenTracePath     = getDebugFile("token_trace.log");
+    opts.baseTokenTracePath = getDebugFile("base_token_trace.log");
+
+    auto node = org::parseStringOpts(
+        R"(
+struct [[refl]] OrgParseFragment {
+    //# Documenting with org-mode comments
+    //# Multiline string will be joined into a single fragment
+    [[refl]] int         baseLine;
+    //# #+name: named-paragraph-reference-base-col-field
+    //# Document fragment can have a named paragraph
+    [[refl]] int         baseCol;
+    [[refl]] std::string text;
+    //# Referencing [[named-paragraph-reference-base-col-field]]
+    DESC_FIELDS(OrgParseFragment, (baseLine, baseCol, text));
+};
+)",
+        opts);
+
+    writeTreeRepr(node, getDebugFile("parsed.yaml"));
+}

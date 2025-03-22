@@ -2056,6 +2056,26 @@ class DocumentOptions(Org):
     maxSubtreeLevelExport: Optional[int]
     columns: Optional[ColumnView]
 
+class DocumentFragment(Org):
+    def __init__(self, baseLine: int, baseCol: int) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    baseLine: int
+    baseCol: int
+
+class CriticMarkupKind(Enum):
+    Deletion = 1
+    Addition = 2
+    Substitution = 3
+    Highlighting = 4
+    Comment = 5
+
+class CriticMarkup(Org):
+    def __init__(self, kind: CriticMarkupKind) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    kind: CriticMarkupKind
+
 class Document(Org):
     def __init__(self, title: Optional[Paragraph], author: Optional[Paragraph], creator: Optional[Paragraph], filetags: List[HashTag], email: Optional[RawText], language: List[str], options: DocumentOptions, exportFileName: Optional[str]) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[NamedProperty]: ...
@@ -2505,14 +2525,16 @@ class OrgSemKind(Enum):
     List = 62
     ListItem = 63
     DocumentOptions = 64
-    Document = 65
-    FileTarget = 66
-    TextSeparator = 67
-    DocumentGroup = 68
-    File = 69
-    Directory = 70
-    Symlink = 71
-    CmdInclude = 72
+    DocumentFragment = 65
+    CriticMarkup = 66
+    Document = 67
+    FileTarget = 68
+    TextSeparator = 69
+    DocumentGroup = 70
+    File = 71
+    Directory = 72
+    Symlink = 73
+    CmdInclude = 74
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...
