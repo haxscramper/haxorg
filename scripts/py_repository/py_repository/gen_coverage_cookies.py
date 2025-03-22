@@ -21,3 +21,4 @@ class ProfdataParams(BaseModel, extra="forbid"):
     file_blacklist: List[str] = Field(default_factory=list)
     debug_file: Optional[str] = None
     coverage_mapping_dump: Optional[str] = None
+    run_group_batch_size: int = 8

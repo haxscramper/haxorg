@@ -17,7 +17,7 @@ import types
 from coverage import Coverage
 import pytest
 from contextlib import contextmanager
-from plumbum import local
+from plumbum import local, CommandNotFound
 
 CAT = __name__
 
@@ -1009,7 +1009,8 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
         class_line = source_lines[offset]
         if line_no in analysis.missing and not definition_lines.in_range(line_no):
             if not class_line.strip().startswith("@"):
-                missing_lines.append(f"[{line_no}] {class_line.strip('\n')}")
+                strip_text = class_line.strip('\n')
+                missing_lines.append(f"[{line_no}] {strip_text}")
 
         offset += 1
 
@@ -1020,8 +1021,9 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
             output_dir=report_path,
         )
 
+        missing_lines_text = '\n'.join(missing_lines)
         pytest.fail(f"Incomplete coverage for {cls.__name__} in {source_file}:\n"
-                    f"Missing lines:\n{'\n'.join(missing_lines)}\n"
+                    f"Missing lines:\n{missing_lines_text}\n"
                     f"Coverage Report: {report_path}\n")
 
 
@@ -1235,9 +1237,13 @@ def test_run_typst_exporter(cov):
         full_export = Path("/tmp/typst_export_file.typ")
         full_export.write_text(exp.t.toString(res))
 
-        cmd = local["typst"].with_cwd(str(full_export.parent))
-        refresh_typst_export_package()
-        cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
+        try:
+            cmd = local["typst"].with_cwd(str(full_export.parent))
+            refresh_typst_export_package()
+            cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
+
+        except CommandNotFound:
+            pass
 
         exp.expr(org.parseString("word"))
         exp.evalParagraph(org.Paragraph())

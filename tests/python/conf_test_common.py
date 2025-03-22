@@ -4,6 +4,7 @@ from pathlib import Path
 from beartype.typing import List, Optional
 import plumbum
 from py_scriptutils.script_logging import log
+import re
 
 CAT = "conftest"
 
@@ -22,10 +23,9 @@ def get_profraw_path(coverage: Path, test_name: str) -> Path:
 
 cookie_list: List[ProfdataCookie] = []
 
-
 def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
-    result = ProfdataFullProfile(runs=cookie_list)
-    return result
+    return ProfdataFullProfile(runs=cookie_list)
+
 
 
 @beartype

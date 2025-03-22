@@ -3,3 +3,4 @@
 !poetry.lock
 !package.json
 !package-lock.json
+!invoke-ci.yaml

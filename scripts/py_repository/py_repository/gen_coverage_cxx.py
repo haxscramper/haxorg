@@ -1,4 +1,8 @@
 #!/usr/env/bin python
+## @file   gen_coverage_cxx.py
+## @brief  Parse merged profile data and generate annotated files for CXX coverage
+##
+## Coverage generator uses database structure produced in the `profdata_merger.cpp`
 from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator, Mapping, Union, Set
 from pydantic import Field, BaseModel
 
@@ -37,10 +41,16 @@ CoverageSchema = declarative_base()
 
 
 class CovFunction(CoverageSchema):
+    """
+    @brief Naming information for the covered function
+    """
     __tablename__ = "CovFunction"
     Id = IdColumn()
+    ## @brief Original symbol for the function
     Mangled = StrColumn()
+    ## @brief Demangled signature of the function
     Demangled = StrColumn()
+    ## @brief Function signature parsed using LLVM demangler
     Parsed = Column(JSON)
 
 
@@ -50,12 +60,20 @@ class CovContextKind(enum.Enum):
 
 
 class CovContext(CoverageSchema):
+    """
+    @brief Where the test coverage information comes from
+
+    Profile data merger aggregates several coverage runs into a single database, this table
+    helps to differentiate between various sources of the data
+    """
     __tablename__ = "CovContext"
     Id = IdColumn()
     Name = StrColumn()
     Parent = StrColumn(nullable=True)
     Profile = StrColumn()
+    ## @brief Extra metadata about path, precise location of the test definition in the code etc. 
     Params = Column(JSON)
+    ## @brief Path to executable file with the test
     Binary = StrColumn()
 
     def getKind(self) -> CovContextKind:
@@ -67,21 +85,29 @@ class CovContext(CoverageSchema):
 
     @beartype
     def getContextRunLine(self) -> Optional[int]:
+        """
+        @brief Where the run is defined? 
+
+        For google test it is the line in the c++ code, for corpus file it is a yaml file location
+        """
         if self.Params and "loc" in self.Params:
             return int(self.Params["loc"]["line"])
 
     @beartype
     def getContextRunCol(self) -> Optional[int]:
+        "@brief see `getContextRunLine` but for column"
         if self.Params and "loc" in self.Params:
             return int(self.Params["loc"]["col"])
 
     @beartype
     def getContextRunFile(self) -> Optional[str]:
+        "@brief see `getContextRunLine` but for path"
         if self.Params and "loc" in self.Params:
             return self.Params["loc"]["path"]
 
     @beartype
     def getContextRunArgs(self) -> Optional[List[Any]]:
+        "@brief Any extra parameters for the test run"
         if self.Params and "args" in self.Params:
             return [it for it in self.Params["args"]]
 
@@ -103,6 +129,13 @@ class CovRegionKind(enum.Enum):
 
 
 class CovFileRegion(CoverageSchema):
+    """
+    @brief Coverage information a region in code
+
+    - Regions can nest in each other and overlap
+    - Region is not 100% guaranteed to correspond to the physical location in file, IME macros and includes 
+      can sometimes mess things up. 
+    """
     __tablename__ = "CovFileRegion"
     Id = IdColumn()
     Context = ForeignId(CovContext.Id)
@@ -130,13 +163,11 @@ class CovFileRegion(CoverageSchema):
         return f"{self.LineStart}:{self.ColumnStart}..{self.LineEnd}:{self.ColumnEnd} #{self.ExecutionCount} FN:{self.Function} File:{self.File}"
 
 
-## Grouping of the DB coverage segments that apply to a specified `First`, `Last` range
-##
-## @var OriginalId
-##     List of coverage segments for the `First, Last` range. The coverage database
-##     stores multiple identically-located segments (one for each run), so each run
-##     for a given segment is stored as one ID.
 class GenCovSegmentFlat(BaseModel, extra="forbid"):
+    "@brief Grouping of the DB coverage segments that apply to a specified `First`, `Last` range"
+    ## List of coverage segments for the `First, Last` range. The coverage database
+    ## stores multiple identically-located segments (one for each run), so each run
+    ## for a given segment is stored as one ID.
     OriginalId: List[int]
     First: int
     Last: int
@@ -175,11 +206,10 @@ class GenCovSegmentContext():
     This class bundles together information to identify the context *when* the segment
     might've been executed together with the segment itself to check *if* it has
     actually been executed (execution count)
-    
-    @var Context 1:1 mapping of context for each segment
-    @var Segment Individual instantiation of the coverage for the location in file
     """
+    ## @brief Context 1:1 mapping of context for each segment
     Context: CovContext
+    ## @brief Segment Individual instantiation of the coverage for the location in file
     Segment: CovFileRegion
 
 

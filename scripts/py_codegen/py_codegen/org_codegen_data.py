@@ -1055,12 +1055,12 @@ def get_sem_text():
         d_org("Newline", GenTuDoc("\\n newline"), bases=[t_nest(t_org("Leaf"))]),
         d_org("Space", GenTuDoc('\' "space",'), bases=[t_nest(t_org("Leaf"))]),
         d_org("Word", GenTuDoc("word"), bases=[t_nest(t_org("Leaf"))]),
-        d_org("AtMention", GenTuDoc("@mention"), bases=[t_nest(t_org("Leaf"))]),
+        d_org("AtMention", GenTuDoc("`@mention`"), bases=[t_nest(t_org("Leaf"))]),
         d_org("RawText", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
         d_org("Punctuation", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
         d_org("Placeholder", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
         d_org("BigIdent", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
-        d_org("TextTarget", GenTuDoc("~<<target>>~"), bases=[t_nest(t_org("Leaf"))]),
+        d_org("TextTarget", GenTuDoc("`<<target>>`"), bases=[t_nest(t_org("Leaf"))]),
         d_org(
             "Markup",
             GenTuDoc(""),
@@ -1077,7 +1077,7 @@ def get_sem_text():
         d_org("Par", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
         d_org(
             "RadioTarget",
-            GenTuDoc("~<<<target>>>~"),
+            GenTuDoc("`<<<target>>>`"),
             bases=[t_nest(t_org("Org"))],
             fields=[vec_field(t_str(), "words")],
         ),

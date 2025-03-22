@@ -984,10 +984,6 @@ INPUT_FILE_ENCODING    =
 # *.f18, *.f, *.for, *.vhd, *.vhdl, *.ucf, *.qsf and *.ice.
 
 FILE_PATTERNS          = *.c \
-                         *.cc \
-                         *.cxx \
-                         *.cpp \
-                         *.c++ \
                          *.java \
                          *.ii \
                          *.ixx \
@@ -1047,8 +1043,13 @@ EXCLUDE                = deps \
                          thirdparty \
                          toolchain \
                          node_modules \
+                         examples/d3_visuals/node_modules \
                          build \
-                         tests
+                         tests \
+                         _CPack_Packages \
+                         examples/imgui_gui/imgui \
+                         src/haxorg/exporters/ExporterMethods.tcc \
+                         src/haxorg/base_lexer/base_lexer_gen.cpp
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

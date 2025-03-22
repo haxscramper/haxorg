@@ -1,13 +1,15 @@
 quiet: false
-debug: true
+debug: false
 instrument:
-  coverage: false
+  coverage: true
   xray: false
   asan: true
 
 tasks:
   skip_python_refl: false
   # skip_python_refl: false
+
+python_version: "3.13"
 
 force_task: [
   # "cmake_configure_haxorg",
@@ -16,4 +18,9 @@ force_task: [
   "python_protobuf_files",
 ]
 
- 
+aggregate_filters:
+  whitelist_patterns: 
+    - class_pattern: "OrgParseSem"
+
+profdata_file_whitelist:
+  - "parse/"

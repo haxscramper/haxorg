@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+## @file   setup.py
+## @brief  Setuptools for installable python package
 from setuptools import setup
 
 packages = \

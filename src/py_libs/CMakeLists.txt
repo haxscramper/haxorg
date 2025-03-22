@@ -9,7 +9,11 @@ set_target_properties(py_textlayout_cpp PROPERTIES OUTPUT_NAME "py_textlayout_cp
 target_include_directories(py_textlayout_cpp PUBLIC "${BASE}" "${BASE}/src/py_libs"
                                                     ${PYTHON_INCLUDE_DIRS})
 
-target_link_libraries(py_textlayout_cpp PRIVATE hstd ${PYTHON_LIBRARIES} ubsan)
+target_link_libraries(py_textlayout_cpp PRIVATE hstd ${PYTHON_LIBRARIES})
+
+if(${ORG_USE_SANITIZER})
+  target_link_libraries(py_textlayout_cpp PRIVATE ubsan)
+endif()
 
 # Declare python wrapper module
 pybind11_add_module(
@@ -29,7 +33,11 @@ set_target_properties(pyhaxorg PROPERTIES OUTPUT_NAME "pyhaxorg" SUFFIX ".so")
 
 target_include_directories(pyhaxorg PUBLIC "${BASE}" "${BASE}/src/py_libs" ${PYTHON_INCLUDE_DIRS})
 
-target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg)
+target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} haxorg)
+
+if(${ORG_USE_SANITIZER})
+  target_link_libraries(pyhaxorg PRIVATE ubsan)
+endif()
 
 if(${ORG_USE_PERFETTO})
   target_link_libraries(pyhaxorg PRIVATE Perfetto::perfetto)
@@ -48,7 +56,12 @@ target_include_directories(
   pyhaxorg_test_main PUBLIC "${BASE}" "${BASE}/src/py_libs" "${DEPS_DIR}/pybind11/include"
                             ${PYTHON_INCLUDE_DIRS})
 
-target_link_libraries(pyhaxorg_test_main PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg)
+target_link_libraries(pyhaxorg_test_main PRIVATE hstd ${PYTHON_LIBRARIES} haxorg)
+
+if(${ORG_USE_SANITIZER})
+  target_link_libraries(pyhaxorg_test_main PRIVATE ubsan)
+endif()
+
 if(${ORG_USE_PERFETTO})
   target_link_libraries(pyhaxorg_test_main PRIVATE Perfetto::perfetto)
 endif()

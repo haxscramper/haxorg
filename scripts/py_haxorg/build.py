@@ -1,3 +1,6 @@
+## @file   build.py
+## @brief  Setuptools script for installable python package
+
 # py_haxorg/build.py
 import os
 import shutil
@@ -6,13 +9,13 @@ from pathlib import Path
 
 def build_shared_library(setup_kwargs):
     """Copy or build the shared library during package installation"""
-    package_dir = Path(__file__).parent / "py_haxorg/build/lib"
+    package_dir = Path(__file__).parent / "build/lib/py_haxorg/pyhaxorg.so"
 
     so_file = Path("../../build/haxorg/pyhaxorg.so").resolve().absolute()
 
     if so_file.exists():
-        shutil.copy(so_file, package_dir)
         print(f"Copied {so_file} to {package_dir}")
+        shutil.copy(so_file, package_dir)
         return
 
     else:

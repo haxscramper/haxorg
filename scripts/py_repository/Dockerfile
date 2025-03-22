@@ -53,3 +53,5 @@ RUN echo "deb http://deb.debian.org/debian stable main" > /etc/apt/sources.list.
     apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+COPY invoke-ci.yaml invoke.yaml

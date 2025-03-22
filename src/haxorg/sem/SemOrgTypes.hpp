@@ -2222,7 +2222,7 @@ struct Word : public org::sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::Word; }
 };
 
-/// \brief @mention
+/// \brief `@mention`
 struct AtMention : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~AtMention() = default;
@@ -2283,7 +2283,7 @@ struct BigIdent : public org::sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::BigIdent; }
 };
 
-/// \brief ~<<target>>~
+/// \brief `<<target>>`
 struct TextTarget : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~TextTarget() = default;
@@ -2398,7 +2398,7 @@ struct Par : public org::sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
 };
 
-/// \brief ~<<<target>>>~
+/// \brief `<<<target>>>`
 struct RadioTarget : public org::sem::Org {
   using Org::Org;
   virtual ~RadioTarget() = default;

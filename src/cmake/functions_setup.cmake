@@ -1,14 +1,27 @@
 function(set_target_flags_impl)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unknown-attributes")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unused-command-line-argument")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-ambiguous-reversed-operator")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Qunused-arguments")
+
+  if(NOT ${ORG_BUILD_IS_DEVELOP})
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
+      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
+      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fmax-errors=1")
+    endif()
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
+    endif()
+  endif()
+
+  if(${ORG_BUILD_ASSUME_CLANG})
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unknown-attributes")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unused-command-line-argument")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-ambiguous-reversed-operator")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Qunused-arguments")
+  endif()
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
 
   set_target_properties(
@@ -23,15 +36,17 @@ function(set_target_flags_impl)
 
   if(${ORG_USE_XRAY})
 
-  else()
+  elseif(${ORG_BUILD_IS_DEVELOP})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
     add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=mold")
   endif()
 
   target_compile_features(${ARG_TARGET} PUBLIC cxx_std_23)
 
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftime-trace")
-  add_target_property(${ARG_TARGET} LINK_OPTIONS "-ftime-trace")
+  if(${ORG_BUILD_ASSUME_CLANG})
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftime-trace")
+    add_target_property(${ARG_TARGET} LINK_OPTIONS "-ftime-trace")
+  endif()
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     # Avoid getting flooded with compilation errors
@@ -108,17 +123,6 @@ function(set_target_flags_impl)
 
     endif()
   endif()
-
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
-    # Same configuration option for g++ compiler
-    set(CMAKE_CXX_COMPILER g++)
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fmax-errors=${MAX_COMPILE_ERRORS}")
-
-    if(${ORG_USE_COVERAGE})
-      target_link_options(${ARG_TARGET} PRIVATE -lgcov --coverage)
-    endif()
-
-  endif()
 endfunction()
 
 function(set_target_flags TARGET)
@@ -131,7 +135,7 @@ function(set_common_files TARGET)
   add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
   add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
-  add_target_property("${TARGET}" LINK_LIBRARIES dw)
+  # add_target_property("${TARGET}" LINK_LIBRARIES dw)
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
 endfunction()
 

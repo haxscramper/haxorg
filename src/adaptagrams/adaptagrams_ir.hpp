@@ -8,10 +8,12 @@
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/ext/graphviz.hpp>
 
-#pragma warning(push, 0)
-#include <libavoid/libavoid.h>
-#include <libdialect/graphs.h>
-#pragma warning(pop)
+#ifdef ORG_DEPS_USE_ADAPTAGRAMS
+#    pragma warning(push, 0)
+#    include <libavoid/libavoid.h>
+#    include <libdialect/graphs.h>
+#    pragma warning(pop)
+#endif
 
 namespace hstd::ext {
 
@@ -82,9 +84,9 @@ struct [[refl]] GraphRect {
     void extend(GraphPoint const& point);
 };
 
-
 /// \brief IR wrapper for the cola layout constraints
 struct [[refl]] GraphNodeConstraint {
+#ifdef ORG_DEPS_USE_ADAPTAGRAMS
     using Res = SPtr<cola::CompoundConstraint>;
 
     struct [[refl]] Empty {
@@ -270,6 +272,7 @@ struct [[refl]] GraphNodeConstraint {
 
 
     DESC_FIELDS(GraphNodeConstraint, (data));
+#endif
 };
 
 struct [[refl]] GraphEdge {
@@ -516,6 +519,7 @@ struct [[refl]] GraphLayoutIR {
         return doGraphvizLayout(gvc).convert();
     }
 
+#ifdef ORG_DEPS_USE_ADAPTAGRAMS
     struct HolaResult {
         SPtr<dialect::Graph>                         graph;
         Vec<SPtr<dialect::Node>>                     nodes;
@@ -564,6 +568,7 @@ struct [[refl]] GraphLayoutIR {
     }
 
     [[refl]] std::string doColaStrFormat();
+#endif
 };
 
 } // namespace hstd::ext

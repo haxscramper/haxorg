@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+## @file   compilation_stats.py
+## @brief  Aggregate build time statistics from the `-ftime-trace` JSON 
+
 from rich.logging import RichHandler
 import logging
 from enum import Enum

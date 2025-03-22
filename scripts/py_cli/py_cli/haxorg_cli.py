@@ -3,7 +3,7 @@ from pathlib import Path
 import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
-from beartype.typing import Optional, TypeVar
+from beartype.typing import Optional, TypeVar, Dict, Any
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import (
@@ -49,7 +49,7 @@ class CliRunContext:
         self.tracer = TraceCollector()
         self.opts = opts
 
-    def event(self, name: str, category: str, args: dict[str, any] = {}):
+    def event(self, name: str, category: str, args: Dict[str, Any] = {}):
         return self.tracer.complete_event(name=name, category=category, args=args)
 
     def is_trace_enabled(self) -> bool:

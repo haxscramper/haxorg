@@ -199,13 +199,15 @@ class Graphviz {
             if (!attr) {
                 throw std::runtime_error(
                     "Failed to define attribute: " + attribute);
-            }
+            }   
 
             // Set the raw value using `agxset` and `agstrdup_html`
             agxset(
                 _this()->get(),
                 attr,
-                agstrdup_html(agraphof(_this()->get()), value.c_str()));
+                agstrdup_html(
+                    agraphof(_this()->get()),
+                    const_cast<char*>(value.c_str())));
         }
 
 

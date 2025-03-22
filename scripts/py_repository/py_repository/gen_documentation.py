@@ -32,6 +32,7 @@ import functools
 import traceback
 import multiprocessing
 import sys
+from py_ci.util_scripting import get_threading_count
 
 T = TypeVar("T")
 
@@ -319,7 +320,7 @@ def generate_html_for_directory(
 
     aux(directory, html_out_path)
 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=get_threading_count()) as executor:
         futures = [
             executor.submit(
                 functools.partial(
