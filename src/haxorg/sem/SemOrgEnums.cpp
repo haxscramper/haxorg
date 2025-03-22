@@ -278,6 +278,7 @@ hstd::Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string va
   if (value == "Angle") { return OrgNodeKind::Angle; } else
   if (value == "Monospace") { return OrgNodeKind::Monospace; } else
   if (value == "Par") { return OrgNodeKind::Par; } else
+  if (value == "CriticMarkStructure") { return OrgNodeKind::CriticMarkStructure; } else
   if (value == "InlineMath") { return OrgNodeKind::InlineMath; } else
   if (value == "DisplayMath") { return OrgNodeKind::DisplayMath; } else
   if (value == "Space") { return OrgNodeKind::Space; } else
@@ -403,6 +404,7 @@ std::string hstd::enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::Angle: return "Angle";
     case OrgNodeKind::Monospace: return "Monospace";
     case OrgNodeKind::Par: return "Par";
+    case OrgNodeKind::CriticMarkStructure: return "CriticMarkStructure";
     case OrgNodeKind::InlineMath: return "InlineMath";
     case OrgNodeKind::DisplayMath: return "DisplayMath";
     case OrgNodeKind::Space: return "Space";

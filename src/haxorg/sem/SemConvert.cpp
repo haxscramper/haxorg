@@ -1766,6 +1766,38 @@ OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
     return result;
 }
 
+OrgConverter::ConvResult<CriticMarkup> OrgConverter::convertCriticMarkup(
+    __args) {
+    auto                __trace = trace(a);
+    SemId<CriticMarkup> result  = Sem<CriticMarkup>(a);
+    auto                head    = get_text(one(a, N::Name));
+    auto                assoc   = one(a, N::Assoc);
+    auto                body    = one(a, N::Body);
+
+    using K = CriticMarkup::Kind;
+
+    if (head.ends_with("--")) {
+        result->kind = K::Deletion;
+    } else if (head.ends_with("++")) {
+        result->kind = K::Addition;
+    } else if (head.ends_with("==")) {
+        result->kind = K::Highlighting;
+    } else if (head.ends_with(">>")) {
+        result->kind = K::Comment;
+    } else if (head.ends_with("~~")) {
+        result->kind = K::Substitution;
+    }
+
+    if (assoc.getKind() != onk::Empty) {
+        result->push_back(convert(assoc));
+    }
+
+    result->push_back(convert(body));
+
+    return result;
+}
+
+
 OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
     __args) {
     auto                __trace = trace(a);
@@ -2512,6 +2544,8 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCmdCall(a).unwrap();
         case onk::Paragraph: return convertParagraph(a).unwrap();
+        case onk::CriticMarkStructure:
+            return convertCriticMarkup(a).unwrap();
         case onk::BlockDynamicFallback:
             return convertBlockDynamicFallback(a).unwrap();
         case onk::ErrorWrap: {
@@ -2608,6 +2642,7 @@ void OrgConverter::convertDocumentOptions(
         }
     }
 }
+
 
 using Prop = NamedProperty;
 

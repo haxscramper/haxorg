@@ -789,6 +789,7 @@ enum class OrgNodeKind : short int {
   Angle,
   Monospace,
   Par,
+  CriticMarkStructure,
   /// \brief Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.
   InlineMath,
   /// \brief Inline display latex math from `$$double-dollar$$` or `\[bracket-wrapped\]` code.

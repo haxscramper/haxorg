@@ -3109,6 +3109,7 @@ def get_org_node_kind_text():
         efield("Angle"),
         efield("Monospace"),
         efield("Par"),
+        efield("CriticMarkStructure"),
         efield(
             "InlineMath",
             "Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\\(paren-wrapped\\)` inline text.",

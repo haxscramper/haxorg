@@ -1158,3 +1158,16 @@ struct [[refl]] OrgParseFragment {
 
     writeTreeRepr(node, getDebugFile("parsed.yaml"));
 }
+
+
+TEST(OrgParseSem, CriticMarkup) {
+    auto get = [&](std::string const& s,
+                   Opt<std::string>   debug = std::nullopt) {
+        return parseOne<sem::CriticMarkup>(s, debug);
+    };
+    { auto n = get(R"({--is --})", getDebugFile("delete")); }
+    { auto n = get(R"({++is ++})"); }
+    { auto n = get(R"({~~a~>b~~})"); }
+    { auto n = get(R"({==is==})"); }
+    { auto n = get(R"({>>is<<})"); }
+}

@@ -222,6 +222,7 @@ struct OrgConverter : public hstd::OperationsTracer {
     ConvResult<CmdName>         convertCmdName(In);
     ConvResult<InlineExport>    convertInlineExport(In);
     ConvResult<Document>        convertDocument(In);
+    ConvResult<CriticMarkup>    convertCriticMarkup(In);
 
     struct InFragment {
         int               baseLine;

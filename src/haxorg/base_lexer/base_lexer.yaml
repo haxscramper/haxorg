@@ -818,6 +818,17 @@ rules:
   - { lit: ">", token: AngleEnd }
   - { lit: "^", token: Circumflex }
   - { lit: ":", token: Colon }
+  - { lit: "{--", token: CriticDeleteBegin }
+  - { lit: "--}", token: CriticDeleteEnd }
+  - { lit: "{++", token: CriticAddBegin }
+  - { lit: "++}", token: CriticAddEnd }
+  - { lit: "{~~", token: CriticReplaceBegin }
+  - { lit: "~~}", token: CriticReplaceEnd }
+  - { lit: "~>", token: "CriticReplaceMiddle"}
+  - { lit: "{==", token: CriticHighlightBegin }
+  - { lit: "==}", token: CriticHighlightEnd }
+  - { lit: "{>>", token: CriticCommentBegin }
+  - { lit: "<<}", token: CriticCommentEnd }
   - { lit: "{", token: CurlyBegin }
   - { lit: "}", token: CurlyEnd }
 
