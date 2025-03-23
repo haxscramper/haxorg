@@ -81,3 +81,13 @@ items:
       - {kind: Word, str: Another}
       - {kind: Punctuation, str: /}
       - {kind: Placeholder, str: Placeholder}
+  - name: "Critic markup add"
+    source: "{++is ++}"
+  - name: "Critic markup delete"
+    source: "{--is --}"
+  - name: "Critic markup highlight"
+    source: "{==is ==}"
+  - name: "Critic markup comment"
+    source: "{>>is <<}"
+  - name: "Critic markup replace"
+    source: "{~~is ~>will~~}"

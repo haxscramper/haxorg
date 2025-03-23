@@ -315,8 +315,6 @@ sem::SemId<sem::Org> org::parseStringOpts(
         }
 
         auto id = parser.parseFull(lex);
-        LOG(INFO) << fmt1(id);
-
         sem::OrgConverter converter{};
         if (opts.semTracePath) {
             converter.setTraceFile(*opts.semTracePath);
