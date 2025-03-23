@@ -1353,3 +1353,51 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
 
     return result;
 }
+
+namespace {
+template <typename T>
+void set_value(T& target, T const& other) {
+    target = other;
+}
+
+template <typename T>
+void set_value(ImmBox<T>& target, ImmBox<T> const& other) {
+    // target.
+}
+
+} // namespace
+
+#define __DEFINE_VALUE_READ_FIELD(                                        \
+    __FIELD_TYPE,                                                         \
+    __FIELD_NAME,                                                         \
+    __FIELD_UPPERCASE,                                                    \
+    __PARENT_TYPE,                                                        \
+    __PARENT_KIND)                                                        \
+    BOOST_PP_REMOVE_PARENS(__FIELD_TYPE)                                  \
+    const&                                                                \
+        org::imm::Imm##__PARENT_KIND##ValueRead::get##__FIELD_UPPERCASE() \
+            const {                                                       \
+        return this->ptr->__FIELD_NAME;                                   \
+    }
+
+#define __DEFINE_VALUE_WRITE_FIELD(                                       \
+    __FIELD_TYPE,                                                         \
+    __FIELD_NAME,                                                         \
+    __FIELD_UPPERCASE,                                                    \
+    __PARENT_TYPE,                                                        \
+    __PARENT_KIND)                                                        \
+    [[refl]]                                                              \
+    void org::imm::Imm##__PARENT_KIND##Value::set##__FIELD_UPPERCASE(     \
+        BOOST_PP_REMOVE_PARENS(__FIELD_TYPE) const& value) {              \
+        set_value<BOOST_PP_REMOVE_PARENS(__FIELD_TYPE)>(                  \
+            this->ptr->__FIELD_NAME, value);                              \
+    }
+
+
+#define __DEFINE_VALUE_READ_TYPE(__KIND)                                  \
+    EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                    \
+        __DEFINE_VALUE_READ_FIELD);                                       \
+    EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                    \
+        __DEFINE_VALUE_WRITE_FIELD);
+
+EACH_SEM_ORG_KIND(__DEFINE_VALUE_READ_TYPE)

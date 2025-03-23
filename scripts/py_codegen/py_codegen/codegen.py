@@ -998,6 +998,7 @@ class PyhaxorgTypeDesc:
     parent_fields: List[GenTuField]
     bases: List[QualType]
     name: str
+    typ: QualType
 
 
 @beartype
@@ -1030,6 +1031,7 @@ def collect_type_field_groups(
             parent_fields=filter_fields(aux(t)),
             bases=list(t.bases),
             name=t.name.name,
+            typ=t.name, 
         )
 
         result.types.append(group)
@@ -1105,29 +1107,14 @@ def gen_pyhaxorg_shared_iteration_macros(types: List[GenTuStruct]) -> List[GenTu
 
 
 @beartype
-def gen_pyhaxorg_iteration_macros(
+def gen_pyhaxorg_field_iteration_macros(
     types: List[GenTuStruct],
     base_map: Mapping[str, GenTuStruct],
     ast: ASTBuilder,
+    macro_namespace: str,
 ) -> List[GenTuPass]:
-    res = collect_pyhaxorg_typename_groups(types)
 
-    result: List[GenTuPass] = gen_iteration_macros(res, "SEM")
-    result.append(
-        GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
-            [f"    __IMPL({struct.name.name})"
-             for struct in get_concrete_types(types)]))))
-
-    result.append(
-        GenTuPass("#define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
-            f"    __IMPL({struct.name.name}, {struct.bases[0].name})"
-            for struct in get_concrete_types(types)
-        ]))))
-
-    result.append(
-        GenTuPass("#define EACH_SEM_ORG_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
-            f"    __IMPL({struct.name.name}, {struct.bases[0].name})" for struct in types
-        ]))))
+    result: List[GenTuPass] = []
 
     field_groups = collect_type_field_groups(types, base_map=base_map)
 
@@ -1139,15 +1126,15 @@ def gen_pyhaxorg_iteration_macros(
                 ast.b.add_at(
                     def_stack,
                     ast.string(
-                        "#define EACH_SEM_ORG_{}_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \\".
-                        format(group.name,)))
+                        f"#define EACH_{macro_namespace}_ORG_{group.name}_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \\"
+                    ))
 
             else:
                 ast.b.add_at(
                     def_stack,
                     ast.string(
-                        "#define EACH_SEM_ORG_{}_FIELD_WITH_BASES(__IMPL_BASE) \\".format(
-                            group.name,)))
+                        f"#define EACH_{macro_namespace}_ORG_{group.name}_FIELD_WITH_BASES(__IMPL_BASE) \\"
+                    ))
 
             def impl_field(field: GenTuField):
                 ast.b.add_at(
@@ -1155,9 +1142,16 @@ def gen_pyhaxorg_iteration_macros(
                     ast.b.line([
                         ast.string("    "),
                         ast.XCall("__IMPL_FIELD", [
-                            ast.pars(ast.Type(field.type)),
-                            ast.string(field.name),
-                            ast.string(field.name.capitalize()),
+                            # Type of the field
+                            ast.pars(ast.Type(field.type)), 
+                            # field name without changes
+                            ast.string(field.name), 
+                            # field name for `getField` etc. 
+                            ast.string(field.name.capitalize()), 
+                            # Parent type for field, in case you need to define methods for each field
+                            # outside of the class body.
+                            ast.pars(ast.Type(group.typ)), 
+                            ast.string(group.name.replace("Imm", "")),
                         ]),
                         ast.string(" \\"),
                     ]))
@@ -1183,8 +1177,31 @@ def gen_pyhaxorg_iteration_macros(
 
             ast.b.add_at(def_stack, ast.string(""))
 
-
             result.append(GenTuPass(def_stack))
+
+    return result
+
+
+@beartype
+def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct]) -> List[GenTuPass]:
+    res = collect_pyhaxorg_typename_groups(types)
+
+    result: List[GenTuPass] = gen_iteration_macros(res, "SEM")
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
+            [f"    __IMPL({struct.name.name})"
+             for struct in get_concrete_types(types)]))))
+
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
+            f"    __IMPL({struct.name.name}, {struct.bases[0].name})"
+            for struct in get_concrete_types(types)
+        ]))))
+
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
+            f"    __IMPL({struct.name.name}, {struct.bases[0].name})" for struct in types
+        ]))))
 
     return result
 
@@ -1309,8 +1326,18 @@ def gen_pyhaxorg_wrappers(
                 "{base}/sem/SemOrgEnums.hpp",
                 with_enum_reflection_api(
                     gen_pyhaxorg_shared_iteration_macros(shared_types) +
-                    gen_pyhaxorg_iteration_macros(expanded, base_map=base_map, ast=ast)) +
-                full_enums + ([
+                    gen_pyhaxorg_iteration_macros(types=expanded)) +
+                gen_pyhaxorg_field_iteration_macros(
+                    types=expanded,
+                    base_map=base_map,
+                    ast=ast,
+                    macro_namespace="SEM",
+                ) + gen_pyhaxorg_field_iteration_macros(
+                    types=immutable,
+                    base_map=base_map,
+                    ast=ast,
+                    macro_namespace="IMM",
+                ) + full_enums + ([
                     GenTuPass("""
 template <>
 struct std::formatter<OrgSemKind> : std::formatter<std::string> {
