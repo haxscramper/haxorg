@@ -558,19 +558,23 @@ struct ImmAdapter;
 
 
 #define __DECLARE_VALUE_READ_TYPE(__KIND)                                 \
-    struct [[refl]] Imm##__KIND##ValueRead {                              \
+    struct [[refl(                                                        \
+        R"({"default-constructor": false})")]] Imm##__KIND##ValueRead {   \
         org::imm::Imm##__KIND* ptr;                                       \
         Imm##__KIND##ValueRead(org::imm::Imm##__KIND const* ptr)          \
             : ptr{const_cast<org::imm::Imm##__KIND*>(ptr)} {}             \
         EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                \
             __DECLARE_VALUE_READ_FIELD);                                  \
+        DESC_FIELDS(Imm##__KIND##ValueRead, ());                          \
     };                                                                    \
                                                                           \
-    struct [[refl]] Imm##__KIND##Value                                    \
+    struct [[refl(                                                        \
+        R"({"default-constructor": false})")]] Imm##__KIND##Value         \
         : public org::imm::Imm##__KIND##ValueRead {                       \
         using org::imm::Imm##__KIND##ValueRead::Imm##__KIND##ValueRead;   \
         EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                \
             __DECLARE_VALUE_WRITE_FIELD);                                 \
+        DESC_FIELDS(Imm##__KIND##Value, ());                              \
     };
 
 

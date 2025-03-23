@@ -116,17 +116,6 @@ struct std::hash<org::graph::MapEdge> {
 };
 
 namespace org::graph {
-struct StructureUpdate {
-    hstd::Vec<MapEdge> removed_edges;
-    hstd::Vec<MapEdge> added_edges;
-    hstd::Opt<MapNode> removed_node = std::nullopt;
-    hstd::Opt<MapNode> added_node   = std::nullopt;
-
-    DESC_FIELDS(
-        StructureUpdate,
-        (removed_edges, removed_node, added_edges, added_node));
-};
-
 using NodeProps    = hstd::UnorderedMap<MapNode, MapNodeProp>;
 using EdgeProps    = hstd::UnorderedMap<MapEdge, MapEdgeProp>;
 using AdjNodesList = hstd::Vec<MapNode>;
@@ -134,7 +123,7 @@ using AdjList      = hstd::UnorderedMap<MapNode, AdjNodesList>;
 
 struct MapGraph;
 
-struct MapGraph {
+struct [[refl]] MapGraph {
     NodeProps nodeProps;
     EdgeProps edgeProps;
     AdjList   adjList;

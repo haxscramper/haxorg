@@ -7,6 +7,39 @@
 namespace c = clang;
 using llvm::dyn_cast;
 
+
+std::optional<std::string> ReflASTVisitor::get_refl_params(
+    c::Decl const* decl) {
+    for (const clang::Attr* attr : decl->attrs()) {
+        if (attr->getKind() == clang::attr::Kind::Annotate) {
+            const auto* annotateAttr = llvm::cast<clang::AnnotateAttr>(
+                attr);
+
+            // Get the attribute arguments
+            if (const auto* strLiteral = annotateAttr->args_begin();
+                strLiteral != nullptr && *strLiteral != nullptr) {
+                if (const auto* stringLiteral = llvm::dyn_cast<
+                        clang::StringLiteral>(*strLiteral)) {
+                    std::cout << dump(decl) << std::endl;
+                    return stringLiteral->getString().str();
+                }
+            }
+
+            // Fallback to annotation string if needed
+            llvm::StringRef annotation = annotateAttr->getAnnotation();
+            if (annotation.starts_with("refl")) {
+                auto text = annotation.substr(4).trim().str();
+                if (!text.empty()) {
+                    std::cout << dump(decl) << std::endl;
+                    return text;
+                }
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
 c::TypedefDecl* findTypedefForDecl(c::Decl* Decl, c::ASTContext* Ctx) {
     c::DeclContext* Context = Decl->getDeclContext();
     for (auto D : Context->decls()) {
@@ -817,6 +850,12 @@ void ReflASTVisitor::fillCxxRecordDecl(
         Decl->getASTContext().getRecordType(Decl),
         Decl->getLocation());
 
+    if (auto args = get_refl_params(Decl)) {
+        std::cout << std::format(
+            "Found reflection parameters '{}'\n", args.value());
+        rec->set_reflectionparams(args.value());
+    }
+
     for (c::Decl const* SubDecl : Decl->decls()) {
         if (!shouldVisit(SubDecl)) { continue; }
 
@@ -1138,6 +1177,30 @@ c::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
         nullptr,
         0,
         Attr.getRange());
+
+    if (Attr.getNumArgs() == 1) {
+        // Process argument if provided
+        clang::StringRef jsonStr;
+        if (!S.checkStringLiteralArgumentAttr(Attr, 0, jsonStr)) {
+            return AttributeNotApplied;
+        }
+
+        // Create attribute with the string argument
+        D->addAttr(c::AnnotateAttr::Create(
+            S.Context,
+            Attr.getAttrName()->deuglifiedName(),
+            nullptr,
+            1,
+            Attr.getRange()));
+    } else {
+        // Create attribute with no arguments
+        D->addAttr(c::AnnotateAttr::Create(
+            S.Context,
+            Attr.getAttrName()->deuglifiedName(),
+            nullptr,
+            0,
+            Attr.getRange()));
+    }
 
     D->addAttr(created);
     return AttributeApplied;

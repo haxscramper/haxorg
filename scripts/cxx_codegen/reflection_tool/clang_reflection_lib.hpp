@@ -27,6 +27,10 @@ struct ExampleAttrInfo : public clang::ParsedAttrInfo {
             {clang::ParsedAttr::AS_CXX11, REFL_NAME},
         };
         Spellings = spellings;
+
+        // Allow 0 or 1 arguments
+        OptArgs = 1;
+        NumArgs = 0;
     }
     AttrHandling handleDeclAttribute(
         clang::Sema&             S,
@@ -55,8 +59,11 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         bool               verbose)
         : Ctx(Context), out(tu), verbose(verbose) {}
 
-    using DiagKind = clang::DiagnosticsEngine::Level;
 
+    std::optional<std::string> get_refl_params(clang::Decl const* decl);
+
+
+    using DiagKind = clang::DiagnosticsEngine::Level;
 
     /// Helper wrapper for clang diagnostic printer
     template <unsigned N>

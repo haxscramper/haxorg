@@ -88,6 +88,7 @@ message Enum {
     /// in the construction then it is pushed here. 
     QualType EnumDefName = 5;
     bool IsForwardDecl = 6;
+    string ReflectionParams = 7;
 }
 
 
@@ -128,6 +129,7 @@ message Typedef {
     /// Base type used in declaration
     QualType BaseType = 2;
     repeated TemplateSpec Templates = 3;
+    string ReflectionParams = 4;
 }
 
 message Record {
@@ -137,6 +139,7 @@ message Record {
         QualType Type = 3;
         Record TypeDecl = 4;
         bool IsTypeDecl = 5;
+        string ReflectionParams = 6;
     }
 
     enum MethodKind {
@@ -163,6 +166,7 @@ message Record {
         MethodKind Kind = 10;
         string Doc = 11;
         string OperatorName = 12;
+        string ReflectionParams = 13;
     }
 
     /// Name can be truly absent here, in case of `union {int a; char b};` that is
@@ -189,6 +193,7 @@ message Record {
     /// field here. 
     bool HasName = 13;
     bool IsAbstract = 14;
+    string ReflectionParams = 15;
 }
 
 message TU {
