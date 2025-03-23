@@ -703,7 +703,7 @@ class ASTBuilder(base.AstbuilderBase):
         Params: Optional[List[QualType]] = None,
         LineParameters: bool = True,
     ) -> BlockId:
-        if opc[0].isalpha() or opc[0] == ".":
+        if opc[0].isalpha() or opc[0] == "." or opc[0] == "_":
             return self.Call(
                 self.string(opc),
                 Args=args,

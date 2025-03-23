@@ -561,6 +561,670 @@
     __IMPL(Directory, Org) \
     __IMPL(Symlink, Org) \
     __IMPL(CmdInclude, Org)
+#define EACH_SEM_ORG_None_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_None_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+
+#define EACH_SEM_ORG_ErrorItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), message, Message) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function) \
+    __IMPL_FIELD((hstd::Opt<int>), line, Line) \
+
+#define EACH_SEM_ORG_ErrorItem_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Str), message, Message) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function) \
+    __IMPL_FIELD((hstd::Opt<int>), line, Line) \
+
+#define EACH_SEM_ORG_ErrorGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>), diagnostics, Diagnostics) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function) \
+    __IMPL_FIELD((hstd::Opt<int>), line, Line) \
+
+#define EACH_SEM_ORG_ErrorGroup_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>), diagnostics, Diagnostics) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function) \
+    __IMPL_FIELD((hstd::Opt<int>), line, Line) \
+
+#define EACH_SEM_ORG_Stmt_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Org>>), attached, Attached) \
+
+#define EACH_SEM_ORG_Stmt_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Org>>), attached, Attached) \
+
+#define EACH_SEM_ORG_Inline_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Inline_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+
+#define EACH_SEM_ORG_StmtList_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_StmtList_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+
+#define EACH_SEM_ORG_Empty_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Empty_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+
+#define EACH_SEM_ORG_Cmd_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs) \
+
+#define EACH_SEM_ORG_Cmd_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Stmt)) \
+    __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs) \
+
+#define EACH_SEM_ORG_Block_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Block_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+
+#define EACH_SEM_ORG_LineCommand_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_LineCommand_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+
+#define EACH_SEM_ORG_Attached_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Attached_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::LineCommand)) \
+
+#define EACH_SEM_ORG_Leaf_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), text, Text) \
+
+#define EACH_SEM_ORG_Leaf_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Str), text, Text) \
+
+#define EACH_SEM_ORG_CmdCaption_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text) \
+
+#define EACH_SEM_ORG_CmdCaption_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Attached)) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text) \
+
+#define EACH_SEM_ORG_CmdColumns_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::ColumnView), view, View) \
+
+#define EACH_SEM_ORG_CmdColumns_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Attached)) \
+    __IMPL_FIELD((org::sem::ColumnView), view, View) \
+
+#define EACH_SEM_ORG_CmdName_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+
+#define EACH_SEM_ORG_CmdName_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Attached)) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+
+#define EACH_SEM_ORG_CmdCustomArgs_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((bool), isAttached, Isattached) \
+
+#define EACH_SEM_ORG_CmdCustomArgs_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((bool), isAttached, Isattached) \
+
+#define EACH_SEM_ORG_CmdCustomRaw_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((bool), isAttached, Isattached) \
+    __IMPL_FIELD((hstd::Str), text, Text) \
+
+#define EACH_SEM_ORG_CmdCustomRaw_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Stmt)) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((bool), isAttached, Isattached) \
+    __IMPL_FIELD((hstd::Str), text, Text) \
+
+#define EACH_SEM_ORG_CmdCustomText_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((bool), isAttached, Isattached) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text) \
+
+#define EACH_SEM_ORG_CmdCustomText_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Stmt)) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((bool), isAttached, Isattached) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text) \
+
+#define EACH_SEM_ORG_CmdCall_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), fileName, Filename) \
+    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, Insideheaderattrs) \
+    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, Callattrs) \
+    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, Endheaderattrs) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result) \
+
+#define EACH_SEM_ORG_CmdCall_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Attached)) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), fileName, Filename) \
+    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, Insideheaderattrs) \
+    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, Callattrs) \
+    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, Endheaderattrs) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result) \
+
+#define EACH_SEM_ORG_CmdTblfm_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::Tblfm), expr, Expr) \
+
+#define EACH_SEM_ORG_CmdTblfm_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+    __IMPL_FIELD((org::sem::Tblfm), expr, Expr) \
+
+#define EACH_SEM_ORG_HashTag_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::HashTagText), text, Text) \
+
+#define EACH_SEM_ORG_HashTag_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Inline)) \
+    __IMPL_FIELD((org::sem::HashTagText), text, Text) \
+
+#define EACH_SEM_ORG_InlineFootnote_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), tag, Tag) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Org>>), definition, Definition) \
+
+#define EACH_SEM_ORG_InlineFootnote_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Inline)) \
+    __IMPL_FIELD((hstd::Str), tag, Tag) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Org>>), definition, Definition) \
+
+#define EACH_SEM_ORG_InlineExport_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), exporter, Exporter) \
+    __IMPL_FIELD((hstd::Str), content, Content) \
+
+#define EACH_SEM_ORG_InlineExport_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Inline)) \
+    __IMPL_FIELD((hstd::Str), exporter, Exporter) \
+    __IMPL_FIELD((hstd::Str), content, Content) \
+
+#define EACH_SEM_ORG_Time_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((bool), isActive, Isactive) \
+    __IMPL_FIELD((org::sem::Time::TimeVariant), time, Time) \
+
+#define EACH_SEM_ORG_Time_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((bool), isActive, Isactive) \
+    __IMPL_FIELD((org::sem::Time::TimeVariant), time, Time) \
+
+#define EACH_SEM_ORG_TimeRange_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Time>), from, From) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Time>), to, To) \
+
+#define EACH_SEM_ORG_TimeRange_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Time>), from, From) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Time>), to, To) \
+
+#define EACH_SEM_ORG_Macro_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs) \
+
+#define EACH_SEM_ORG_Macro_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs) \
+
+#define EACH_SEM_ORG_Symbol_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((hstd::Vec<org::sem::Symbol::Param>), parameters, Parameters) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Org>>), positional, Positional) \
+
+#define EACH_SEM_ORG_Symbol_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((hstd::Vec<org::sem::Symbol::Param>), parameters, Parameters) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Org>>), positional, Positional) \
+
+#define EACH_SEM_ORG_Escaped_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Escaped_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_Newline_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Newline_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_Space_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Space_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_Word_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Word_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_AtMention_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_AtMention_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_RawText_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_RawText_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_Punctuation_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Punctuation_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_Placeholder_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Placeholder_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_BigIdent_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BigIdent_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_TextTarget_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_TextTarget_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_Markup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Markup_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+
+#define EACH_SEM_ORG_Bold_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Bold_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Markup)) \
+
+#define EACH_SEM_ORG_Underline_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Underline_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Markup)) \
+
+#define EACH_SEM_ORG_Monospace_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Monospace_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Markup)) \
+
+#define EACH_SEM_ORG_MarkQuote_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_MarkQuote_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Markup)) \
+
+#define EACH_SEM_ORG_Verbatim_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Verbatim_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Markup)) \
+
+#define EACH_SEM_ORG_Italic_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Italic_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Markup)) \
+
+#define EACH_SEM_ORG_Strike_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Strike_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Markup)) \
+
+#define EACH_SEM_ORG_Par_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Par_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Markup)) \
+
+#define EACH_SEM_ORG_RadioTarget_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Vec<hstd::Str>), words, Words) \
+
+#define EACH_SEM_ORG_RadioTarget_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Vec<hstd::Str>), words, Words) \
+
+#define EACH_SEM_ORG_Latex_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Latex_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+
+#define EACH_SEM_ORG_Link_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), description, Description) \
+    __IMPL_FIELD((org::sem::LinkTarget), target, Target) \
+
+#define EACH_SEM_ORG_Link_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Stmt)) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), description, Description) \
+    __IMPL_FIELD((org::sem::LinkTarget), target, Target) \
+
+#define EACH_SEM_ORG_BlockCenter_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockCenter_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockQuote_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockQuote_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockComment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockComment_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Stmt)) \
+
+#define EACH_SEM_ORG_BlockVerse_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockVerse_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockDynamicFallback_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+
+#define EACH_SEM_ORG_BlockDynamicFallback_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+
+#define EACH_SEM_ORG_BlockExample_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockExample_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockExport_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), exporter, Exporter) \
+    __IMPL_FIELD((hstd::Str), content, Content) \
+
+#define EACH_SEM_ORG_BlockExport_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+    __IMPL_FIELD((hstd::Str), exporter, Exporter) \
+    __IMPL_FIELD((hstd::Str), content, Content) \
+
+#define EACH_SEM_ORG_BlockAdmonition_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockAdmonition_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockCodeEvalResult_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Vec<org::sem::OrgCodeEvalOutput>), raw, Raw) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Org>), node, Node) \
+
+#define EACH_SEM_ORG_BlockCodeEvalResult_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+    __IMPL_FIELD((hstd::Vec<org::sem::OrgCodeEvalOutput>), raw, Raw) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Org>), node, Node) \
+
+#define EACH_SEM_ORG_BlockCode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), lang, Lang) \
+    __IMPL_FIELD((BlockCodeExports), exports, Exports) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result) \
+    __IMPL_FIELD((hstd::Vec<org::sem::BlockCodeLine>), lines, Lines) \
+    __IMPL_FIELD((bool), cache, Cache) \
+    __IMPL_FIELD((bool), eval, Eval) \
+    __IMPL_FIELD((bool), noweb, Noweb) \
+    __IMPL_FIELD((bool), hlines, Hlines) \
+    __IMPL_FIELD((bool), tangle, Tangle) \
+    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches) \
+
+#define EACH_SEM_ORG_BlockCode_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), lang, Lang) \
+    __IMPL_FIELD((BlockCodeExports), exports, Exports) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result) \
+    __IMPL_FIELD((hstd::Vec<org::sem::BlockCodeLine>), lines, Lines) \
+    __IMPL_FIELD((bool), cache, Cache) \
+    __IMPL_FIELD((bool), eval, Eval) \
+    __IMPL_FIELD((bool), noweb, Noweb) \
+    __IMPL_FIELD((bool), hlines, Hlines) \
+    __IMPL_FIELD((bool), tangle, Tangle) \
+    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches) \
+
+#define EACH_SEM_ORG_SubtreeLog_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::SubtreeLogHead), head, Head) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::StmtList>>), desc, Desc) \
+
+#define EACH_SEM_ORG_SubtreeLog_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((org::sem::SubtreeLogHead), head, Head) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::StmtList>>), desc, Desc) \
+
+#define EACH_SEM_ORG_Subtree_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((int), level, Level) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), treeId, Treeid) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), todo, Todo) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SubtreeCompletion>), completion, Completion) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), description, Description) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::HashTag>>), tags, Tags) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), title, Title) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>), logbook, Logbook) \
+    __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties) \
+    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), closed, Closed) \
+    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), deadline, Deadline) \
+    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), scheduled, Scheduled) \
+    __IMPL_FIELD((bool), isComment, Iscomment) \
+    __IMPL_FIELD((bool), isArchived, Isarchived) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), priority, Priority) \
+
+#define EACH_SEM_ORG_Subtree_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((int), level, Level) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), treeId, Treeid) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), todo, Todo) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SubtreeCompletion>), completion, Completion) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), description, Description) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::HashTag>>), tags, Tags) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), title, Title) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>), logbook, Logbook) \
+    __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties) \
+    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), closed, Closed) \
+    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), deadline, Deadline) \
+    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), scheduled, Scheduled) \
+    __IMPL_FIELD((bool), isComment, Iscomment) \
+    __IMPL_FIELD((bool), isArchived, Isarchived) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), priority, Priority) \
+
+#define EACH_SEM_ORG_Cell_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((bool), isBlock, Isblock) \
+
+#define EACH_SEM_ORG_Cell_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+    __IMPL_FIELD((bool), isBlock, Isblock) \
+
+#define EACH_SEM_ORG_Row_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Cell>>), cells, Cells) \
+    __IMPL_FIELD((bool), isBlock, Isblock) \
+
+#define EACH_SEM_ORG_Row_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Cell>>), cells, Cells) \
+    __IMPL_FIELD((bool), isBlock, Isblock) \
+
+#define EACH_SEM_ORG_Table_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Row>>), rows, Rows) \
+    __IMPL_FIELD((bool), isBlock, Isblock) \
+
+#define EACH_SEM_ORG_Table_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Row>>), rows, Rows) \
+    __IMPL_FIELD((bool), isBlock, Isblock) \
+
+#define EACH_SEM_ORG_Paragraph_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_Paragraph_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Stmt)) \
+
+#define EACH_SEM_ORG_ColonExample_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_ColonExample_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+
+#define EACH_SEM_ORG_CmdAttr_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), target, Target) \
+
+#define EACH_SEM_ORG_CmdAttr_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Attached)) \
+    __IMPL_FIELD((hstd::Str), target, Target) \
+
+#define EACH_SEM_ORG_CmdExport_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), exporter, Exporter) \
+    __IMPL_FIELD((hstd::Str), content, Content) \
+
+#define EACH_SEM_ORG_CmdExport_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Attached)) \
+    __IMPL_FIELD((hstd::Str), exporter, Exporter) \
+    __IMPL_FIELD((hstd::Str), content, Content) \
+
+#define EACH_SEM_ORG_Call_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs) \
+    __IMPL_FIELD((bool), isCommand, Iscommand) \
+
+#define EACH_SEM_ORG_Call_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Str), name, Name) \
+    __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs) \
+    __IMPL_FIELD((bool), isCommand, Iscommand) \
+
+#define EACH_SEM_ORG_List_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_List_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Stmt)) \
+
+#define EACH_SEM_ORG_ListItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::ListItem::Checkbox), checkbox, Checkbox) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), header, Header) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), bullet, Bullet) \
+
+#define EACH_SEM_ORG_ListItem_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((org::sem::ListItem::Checkbox), checkbox, Checkbox) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), header, Header) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), bullet, Bullet) \
+
+#define EACH_SEM_ORG_DocumentOptions_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, Initialvisibility) \
+    __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties) \
+    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, Exportconfig) \
+    __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, Fixedwidthsections) \
+    __IMPL_FIELD((hstd::Opt<bool>), startupIndented, Startupindented) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile) \
+    __IMPL_FIELD((hstd::Opt<int>), maxSubtreeLevelExport, Maxsubtreelevelexport) \
+    __IMPL_FIELD((hstd::Opt<org::sem::ColumnView>), columns, Columns) \
+
+#define EACH_SEM_ORG_DocumentOptions_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, Initialvisibility) \
+    __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties) \
+    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, Exportconfig) \
+    __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, Fixedwidthsections) \
+    __IMPL_FIELD((hstd::Opt<bool>), startupIndented, Startupindented) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile) \
+    __IMPL_FIELD((hstd::Opt<int>), maxSubtreeLevelExport, Maxsubtreelevelexport) \
+    __IMPL_FIELD((hstd::Opt<org::sem::ColumnView>), columns, Columns) \
+
+#define EACH_SEM_ORG_DocumentFragment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((int), baseLine, Baseline) \
+    __IMPL_FIELD((int), baseCol, Basecol) \
+
+#define EACH_SEM_ORG_DocumentFragment_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((int), baseLine, Baseline) \
+    __IMPL_FIELD((int), baseCol, Basecol) \
+
+#define EACH_SEM_ORG_CriticMarkup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::CriticMarkup::Kind), kind, Kind) \
+
+#define EACH_SEM_ORG_CriticMarkup_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((org::sem::CriticMarkup::Kind), kind, Kind) \
+
+#define EACH_SEM_ORG_Document_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), title, Title) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), author, Author) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), creator, Creator) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::HashTag>>), filetags, Filetags) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::RawText>>), email, Email) \
+    __IMPL_FIELD((hstd::Vec<hstd::Str>), language, Language) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::DocumentOptions>), options, Options) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), exportFileName, Exportfilename) \
+
+#define EACH_SEM_ORG_Document_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), title, Title) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), author, Author) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), creator, Creator) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::HashTag>>), filetags, Filetags) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::RawText>>), email, Email) \
+    __IMPL_FIELD((hstd::Vec<hstd::Str>), language, Language) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::DocumentOptions>), options, Options) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), exportFileName, Exportfilename) \
+
+#define EACH_SEM_ORG_FileTarget_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), path, Path) \
+    __IMPL_FIELD((hstd::Opt<int>), line, Line) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), searchTarget, Searchtarget) \
+    __IMPL_FIELD((bool), restrictToHeadlines, Restricttoheadlines) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), targetId, Targetid) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), regexp, Regexp) \
+
+#define EACH_SEM_ORG_FileTarget_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Str), path, Path) \
+    __IMPL_FIELD((hstd::Opt<int>), line, Line) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), searchTarget, Searchtarget) \
+    __IMPL_FIELD((bool), restrictToHeadlines, Restricttoheadlines) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), targetId, Targetid) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), regexp, Regexp) \
+
+#define EACH_SEM_ORG_TextSeparator_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_TextSeparator_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+
+#define EACH_SEM_ORG_DocumentGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_DocumentGroup_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+
+#define EACH_SEM_ORG_File_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), relPath, Relpath) \
+    __IMPL_FIELD((hstd::Str), absPath, Abspath) \
+    __IMPL_FIELD((org::sem::File::Data), data, Data) \
+
+#define EACH_SEM_ORG_File_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Str), relPath, Relpath) \
+    __IMPL_FIELD((hstd::Str), absPath, Abspath) \
+    __IMPL_FIELD((org::sem::File::Data), data, Data) \
+
+#define EACH_SEM_ORG_Directory_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), relPath, Relpath) \
+    __IMPL_FIELD((hstd::Str), absPath, Abspath) \
+
+#define EACH_SEM_ORG_Directory_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Str), relPath, Relpath) \
+    __IMPL_FIELD((hstd::Str), absPath, Abspath) \
+
+#define EACH_SEM_ORG_Symlink_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((bool), isDirectory, Isdirectory) \
+    __IMPL_FIELD((hstd::Str), absPath, Abspath) \
+
+#define EACH_SEM_ORG_Symlink_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((bool), isDirectory, Isdirectory) \
+    __IMPL_FIELD((hstd::Str), absPath, Abspath) \
+
+#define EACH_SEM_ORG_CmdInclude_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), path, Path) \
+    __IMPL_FIELD((hstd::Opt<int>), firstLine, Firstline) \
+    __IMPL_FIELD((hstd::Opt<int>), lastLine, Lastline) \
+    __IMPL_FIELD((org::sem::CmdInclude::Data), data, Data) \
+
+#define EACH_SEM_ORG_CmdInclude_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Str), path, Path) \
+    __IMPL_FIELD((hstd::Opt<int>), firstLine, Firstline) \
+    __IMPL_FIELD((hstd::Opt<int>), lastLine, Lastline) \
+    __IMPL_FIELD((org::sem::CmdInclude::Data), data, Data) \
+
 enum class ListFormattingMode : short int {
   /// \brief Default, no custom formatting
   None,
