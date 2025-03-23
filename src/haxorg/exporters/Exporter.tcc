@@ -1164,6 +1164,23 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitDocumentFragment(R& res, In<sem::DocumentFragment> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, baseLine);
+  __org_field(res, object, baseCol);
+  __org_field(res, object, subnodes);
+  __org_field(res, object, loc);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCriticMarkup(R& res, In<sem::CriticMarkup> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, kind);
+  __org_field(res, object, subnodes);
+  __org_field(res, object, loc);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitDocument(R& res, In<sem::Document> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, title);

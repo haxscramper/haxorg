@@ -229,6 +229,7 @@
     __IMPL(Time, Repeat::Period, (Repeat, Period)) \
     __IMPL(Time, TimeKind, (TimeKind)) \
     __IMPL(ListItem, Checkbox, (Checkbox)) \
+    __IMPL(CriticMarkup, Kind, (Kind)) \
     __IMPL(File, Kind, (Kind)) \
     __IMPL(CmdInclude, Kind, (Kind))
 #define EACH_SEM_ORG_RECORD(__IMPL) \
@@ -308,6 +309,8 @@
     __IMPL(List, (List)) \
     __IMPL(ListItem, (ListItem)) \
     __IMPL(DocumentOptions, (DocumentOptions)) \
+    __IMPL(DocumentFragment, (DocumentFragment)) \
+    __IMPL(CriticMarkup, (CriticMarkup)) \
     __IMPL(Document, (Document)) \
     __IMPL(FileTarget, (FileTarget)) \
     __IMPL(TextSeparator, (TextSeparator)) \
@@ -390,6 +393,8 @@
     __IMPL(List) \
     __IMPL(ListItem) \
     __IMPL(DocumentOptions) \
+    __IMPL(DocumentFragment) \
+    __IMPL(CriticMarkup) \
     __IMPL(Document) \
     __IMPL(FileTarget) \
     __IMPL(TextSeparator) \
@@ -463,6 +468,8 @@
     __IMPL(List, Stmt) \
     __IMPL(ListItem, Org) \
     __IMPL(DocumentOptions, Org) \
+    __IMPL(DocumentFragment, Org) \
+    __IMPL(CriticMarkup, Org) \
     __IMPL(Document, Org) \
     __IMPL(FileTarget, Org) \
     __IMPL(TextSeparator, Org) \
@@ -544,6 +551,8 @@
     __IMPL(List, Stmt) \
     __IMPL(ListItem, Org) \
     __IMPL(DocumentOptions, Org) \
+    __IMPL(DocumentFragment, Org) \
+    __IMPL(CriticMarkup, Org) \
     __IMPL(Document, Org) \
     __IMPL(FileTarget, Org) \
     __IMPL(TextSeparator, Org) \
@@ -780,6 +789,7 @@ enum class OrgNodeKind : short int {
   Angle,
   Monospace,
   Par,
+  CriticMarkStructure,
   /// \brief Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.
   InlineMath,
   /// \brief Inline display latex math from `$$double-dollar$$` or `\[bracket-wrapped\]` code.
@@ -881,7 +891,7 @@ struct hstd::value_domain<OrgJsonKind> : public value_domain_ungapped<OrgJsonKin
                                                                       OrgJsonKind::Null,
                                                                       OrgJsonKind::Float> {};
 
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 template <>
 struct hstd::enum_serde<OrgSemKind> {
   static hstd::Opt<OrgSemKind> from_string(std::string value);

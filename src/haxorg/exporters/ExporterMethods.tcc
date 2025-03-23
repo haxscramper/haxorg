@@ -185,6 +185,8 @@ void visitCall(R& res, In<sem::Call> object);
 void visitList(R& res, In<sem::List> object);
 void visitListItem(R& res, In<sem::ListItem> object);
 void visitDocumentOptions(R& res, In<sem::DocumentOptions> object);
+void visitDocumentFragment(R& res, In<sem::DocumentFragment> object);
+void visitCriticMarkup(R& res, In<sem::CriticMarkup> object);
 void visitDocument(R& res, In<sem::Document> object);
 void visitFileTarget(R& res, In<sem::FileTarget> object);
 void visitTextSeparator(R& res, In<sem::TextSeparator> object);

@@ -278,6 +278,7 @@ hstd::Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string va
   if (value == "Angle") { return OrgNodeKind::Angle; } else
   if (value == "Monospace") { return OrgNodeKind::Monospace; } else
   if (value == "Par") { return OrgNodeKind::Par; } else
+  if (value == "CriticMarkStructure") { return OrgNodeKind::CriticMarkStructure; } else
   if (value == "InlineMath") { return OrgNodeKind::InlineMath; } else
   if (value == "DisplayMath") { return OrgNodeKind::DisplayMath; } else
   if (value == "Space") { return OrgNodeKind::Space; } else
@@ -403,6 +404,7 @@ std::string hstd::enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::Angle: return "Angle";
     case OrgNodeKind::Monospace: return "Monospace";
     case OrgNodeKind::Par: return "Par";
+    case OrgNodeKind::CriticMarkStructure: return "CriticMarkStructure";
     case OrgNodeKind::InlineMath: return "InlineMath";
     case OrgNodeKind::DisplayMath: return "DisplayMath";
     case OrgNodeKind::Space: return "Space";
@@ -535,6 +537,8 @@ hstd::Opt<OrgSemKind> hstd::enum_serde<OrgSemKind>::from_string(std::string valu
   if (value == "List") { return OrgSemKind::List; } else
   if (value == "ListItem") { return OrgSemKind::ListItem; } else
   if (value == "DocumentOptions") { return OrgSemKind::DocumentOptions; } else
+  if (value == "DocumentFragment") { return OrgSemKind::DocumentFragment; } else
+  if (value == "CriticMarkup") { return OrgSemKind::CriticMarkup; } else
   if (value == "Document") { return OrgSemKind::Document; } else
   if (value == "FileTarget") { return OrgSemKind::FileTarget; } else
   if (value == "TextSeparator") { return OrgSemKind::TextSeparator; } else
@@ -611,6 +615,8 @@ std::string hstd::enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::List: return "List";
     case OrgSemKind::ListItem: return "ListItem";
     case OrgSemKind::DocumentOptions: return "DocumentOptions";
+    case OrgSemKind::DocumentFragment: return "DocumentFragment";
+    case OrgSemKind::CriticMarkup: return "CriticMarkup";
     case OrgSemKind::Document: return "Document";
     case OrgSemKind::FileTarget: return "FileTarget";
     case OrgSemKind::TextSeparator: return "TextSeparator";

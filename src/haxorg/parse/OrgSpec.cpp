@@ -364,6 +364,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(0, N::Args, {onk::Attrs, onk::Empty}),
                 fieldN(1, N::Body, {onk::Empty, onk::StmtList}),
             })},
+        SpecPair{
+            onk::CriticMarkStructure,
+            OrgPattern({
+                fieldN(0, N::Name, {onk::RawText}),
+                fieldN(1, N::Assoc, {onk::Empty, onk::Paragraph}),
+                fieldN(2, N::Body, {onk::Empty, onk::Paragraph}),
+            })},
         SpecPair{onk::CmdTitle, parTextCmdPattern},
         SpecPair{onk::CmdCaption, parTextCmdPattern},
         SpecPair{

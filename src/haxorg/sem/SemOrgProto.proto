@@ -174,46 +174,47 @@ enum OrgNodeKind {
   OrgNodeKind_Angle_f                                                               = 78;
   OrgNodeKind_Monospace_f                                                           = 79;
   OrgNodeKind_Par_f                                                                 = 80;
-  OrgNodeKind_InlineMath_f                                                          = 81;
-  OrgNodeKind_DisplayMath_f                                                         = 82;
-  OrgNodeKind_Space_f                                                               = 83;
-  OrgNodeKind_Punctuation_f                                                         = 84;
-  OrgNodeKind_Colon_f                                                               = 85;
-  OrgNodeKind_Word_f                                                                = 86;
-  OrgNodeKind_Escaped_f                                                             = 87;
-  OrgNodeKind_Newline_f                                                             = 88;
-  OrgNodeKind_RawLink_f                                                             = 89;
-  OrgNodeKind_Link_f                                                                = 90;
-  OrgNodeKind_Macro_f                                                               = 91;
-  OrgNodeKind_Symbol_f                                                              = 92;
-  OrgNodeKind_StaticActiveTime_f                                                    = 93;
-  OrgNodeKind_StaticInactiveTime_f                                                  = 94;
-  OrgNodeKind_DynamicActiveTime_f                                                   = 95;
-  OrgNodeKind_DynamicInactiveTime_f                                                 = 96;
-  OrgNodeKind_TimeRange_f                                                           = 97;
-  OrgNodeKind_SimpleTime_f                                                          = 98;
-  OrgNodeKind_HashTag_f                                                             = 99;
-  OrgNodeKind_MetaSymbol_f                                                          = 100;
-  OrgNodeKind_AtMention_f                                                           = 101;
-  OrgNodeKind_Placeholder_f                                                         = 102;
-  OrgNodeKind_RadioTarget_f                                                         = 103;
-  OrgNodeKind_Target_f                                                              = 104;
-  OrgNodeKind_SrcInlineCode_f                                                       = 105;
-  OrgNodeKind_InlineCallCode_f                                                      = 106;
-  OrgNodeKind_InlineExport_f                                                        = 107;
-  OrgNodeKind_InlineComment_f                                                       = 108;
-  OrgNodeKind_RawText_f                                                             = 109;
-  OrgNodeKind_SubtreeDescription_f                                                  = 110;
-  OrgNodeKind_SubtreeUrgency_f                                                      = 111;
-  OrgNodeKind_DrawerLogbook_f                                                       = 112;
-  OrgNodeKind_Drawer_f                                                              = 113;
-  OrgNodeKind_DrawerPropertyList_f                                                  = 114;
-  OrgNodeKind_DrawerProperty_f                                                      = 115;
-  OrgNodeKind_Subtree_f                                                             = 116;
-  OrgNodeKind_SubtreeTimes_f                                                        = 117;
-  OrgNodeKind_SubtreeStars_f                                                        = 118;
-  OrgNodeKind_SubtreeCompletion_f                                                   = 119;
-  OrgNodeKind_SubtreeImportance_f                                                   = 120;
+  OrgNodeKind_CriticMarkStructure_f                                                 = 81;
+  OrgNodeKind_InlineMath_f                                                          = 82;
+  OrgNodeKind_DisplayMath_f                                                         = 83;
+  OrgNodeKind_Space_f                                                               = 84;
+  OrgNodeKind_Punctuation_f                                                         = 85;
+  OrgNodeKind_Colon_f                                                               = 86;
+  OrgNodeKind_Word_f                                                                = 87;
+  OrgNodeKind_Escaped_f                                                             = 88;
+  OrgNodeKind_Newline_f                                                             = 89;
+  OrgNodeKind_RawLink_f                                                             = 90;
+  OrgNodeKind_Link_f                                                                = 91;
+  OrgNodeKind_Macro_f                                                               = 92;
+  OrgNodeKind_Symbol_f                                                              = 93;
+  OrgNodeKind_StaticActiveTime_f                                                    = 94;
+  OrgNodeKind_StaticInactiveTime_f                                                  = 95;
+  OrgNodeKind_DynamicActiveTime_f                                                   = 96;
+  OrgNodeKind_DynamicInactiveTime_f                                                 = 97;
+  OrgNodeKind_TimeRange_f                                                           = 98;
+  OrgNodeKind_SimpleTime_f                                                          = 99;
+  OrgNodeKind_HashTag_f                                                             = 100;
+  OrgNodeKind_MetaSymbol_f                                                          = 101;
+  OrgNodeKind_AtMention_f                                                           = 102;
+  OrgNodeKind_Placeholder_f                                                         = 103;
+  OrgNodeKind_RadioTarget_f                                                         = 104;
+  OrgNodeKind_Target_f                                                              = 105;
+  OrgNodeKind_SrcInlineCode_f                                                       = 106;
+  OrgNodeKind_InlineCallCode_f                                                      = 107;
+  OrgNodeKind_InlineExport_f                                                        = 108;
+  OrgNodeKind_InlineComment_f                                                       = 109;
+  OrgNodeKind_RawText_f                                                             = 110;
+  OrgNodeKind_SubtreeDescription_f                                                  = 111;
+  OrgNodeKind_SubtreeUrgency_f                                                      = 112;
+  OrgNodeKind_DrawerLogbook_f                                                       = 113;
+  OrgNodeKind_Drawer_f                                                              = 114;
+  OrgNodeKind_DrawerPropertyList_f                                                  = 115;
+  OrgNodeKind_DrawerProperty_f                                                      = 116;
+  OrgNodeKind_Subtree_f                                                             = 117;
+  OrgNodeKind_SubtreeTimes_f                                                        = 118;
+  OrgNodeKind_SubtreeStars_f                                                        = 119;
+  OrgNodeKind_SubtreeCompletion_f                                                   = 120;
+  OrgNodeKind_SubtreeImportance_f                                                   = 121;
 }
 
 enum OrgJsonKind {
@@ -291,14 +292,16 @@ enum OrgSemKind {
   OrgSemKind_List_f                                                                 = 61;
   OrgSemKind_ListItem_f                                                             = 62;
   OrgSemKind_DocumentOptions_f                                                      = 63;
-  OrgSemKind_Document_f                                                             = 64;
-  OrgSemKind_FileTarget_f                                                           = 65;
-  OrgSemKind_TextSeparator_f                                                        = 66;
-  OrgSemKind_DocumentGroup_f                                                        = 67;
-  OrgSemKind_File_f                                                                 = 68;
-  OrgSemKind_Directory_f                                                            = 69;
-  OrgSemKind_Symlink_f                                                              = 70;
-  OrgSemKind_CmdInclude_f                                                           = 71;
+  OrgSemKind_DocumentFragment_f                                                     = 64;
+  OrgSemKind_CriticMarkup_f                                                         = 65;
+  OrgSemKind_Document_f                                                             = 66;
+  OrgSemKind_FileTarget_f                                                           = 67;
+  OrgSemKind_TextSeparator_f                                                        = 68;
+  OrgSemKind_DocumentGroup_f                                                        = 69;
+  OrgSemKind_File_f                                                                 = 70;
+  OrgSemKind_Directory_f                                                            = 71;
+  OrgSemKind_Symlink_f                                                              = 72;
+  OrgSemKind_CmdInclude_f                                                           = 73;
 }
 
 message LispCode {
@@ -1798,6 +1801,30 @@ message DocumentOptions {
   string                                           debug                            = 1000;
 }
 
+message DocumentFragment {
+  repeated AnyNode                                 subnodes                         = 1;
+  optional LineCol                                 loc                              = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  int32                                            baseLine                         = 4;
+  int32                                            baseCol                          = 5;
+  string                                           debug                            = 1000;
+}
+
+message CriticMarkup {
+  enum Kind {
+    Kind_Deletion_f                                                                 = 0;
+    Kind_Addition_f                                                                 = 1;
+    Kind_Substitution_f                                                             = 2;
+    Kind_Highlighting_f                                                             = 3;
+    Kind_Comment_f                                                                  = 4;
+  }
+  repeated AnyNode                                 subnodes                         = 1;
+  optional LineCol                                 loc                              = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  CriticMarkup.Kind                                kind                             = 4;
+  string                                           debug                            = 1000;
+}
+
 message Document {
   repeated AnyNode                                 subnodes                         = 1;
   optional LineCol                                 loc                              = 2;
@@ -2007,14 +2034,16 @@ message AnyNode {
     List                                             list                             = 62;
     ListItem                                         listitem                         = 63;
     DocumentOptions                                  documentoptions                  = 64;
-    Document                                         document                         = 65;
-    FileTarget                                       filetarget                       = 66;
-    TextSeparator                                    textseparator                    = 67;
-    DocumentGroup                                    documentgroup                    = 68;
-    File                                             file                             = 69;
-    Directory                                        directory                        = 70;
-    Symlink                                          symlink                          = 71;
-    CmdInclude                                       cmdinclude                       = 72;
+    DocumentFragment                                 documentfragment                 = 65;
+    CriticMarkup                                     criticmarkup                     = 66;
+    Document                                         document                         = 67;
+    FileTarget                                       filetarget                       = 68;
+    TextSeparator                                    textseparator                    = 69;
+    DocumentGroup                                    documentgroup                    = 70;
+    File                                             file                             = 71;
+    Directory                                        directory                        = 72;
+    Symlink                                          symlink                          = 73;
+    CmdInclude                                       cmdinclude                       = 74;
   }
 }
 /* clang-format on */

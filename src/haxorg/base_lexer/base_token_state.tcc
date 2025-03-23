@@ -131,6 +131,17 @@ std::string hstd::enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value)
         case OrgTokenKind::ColonPropertyText: return "ColonPropertyText";
         case OrgTokenKind::Comma: return "Comma";
         case OrgTokenKind::Comment: return "Comment";
+        case OrgTokenKind::CriticAddBegin: return "CriticAddBegin";
+        case OrgTokenKind::CriticAddEnd: return "CriticAddEnd";
+        case OrgTokenKind::CriticCommentBegin: return "CriticCommentBegin";
+        case OrgTokenKind::CriticCommentEnd: return "CriticCommentEnd";
+        case OrgTokenKind::CriticDeleteBegin: return "CriticDeleteBegin";
+        case OrgTokenKind::CriticDeleteEnd: return "CriticDeleteEnd";
+        case OrgTokenKind::CriticHighlightBegin: return "CriticHighlightBegin";
+        case OrgTokenKind::CriticHighlightEnd: return "CriticHighlightEnd";
+        case OrgTokenKind::CriticReplaceBegin: return "CriticReplaceBegin";
+        case OrgTokenKind::CriticReplaceEnd: return "CriticReplaceEnd";
+        case OrgTokenKind::CriticReplaceMiddle: return "CriticReplaceMiddle";
         case OrgTokenKind::CurlyBegin: return "CurlyBegin";
         case OrgTokenKind::CurlyEnd: return "CurlyEnd";
         case OrgTokenKind::Date: return "Date";
@@ -352,6 +363,17 @@ Opt<OrgTokenKind> hstd::enum_serde<OrgTokenKind>::from_string(std::string const&
   if (value == "ColonPropertyText") { return OrgTokenKind::ColonPropertyText; } else
   if (value == "Comma") { return OrgTokenKind::Comma; } else
   if (value == "Comment") { return OrgTokenKind::Comment; } else
+  if (value == "CriticAddBegin") { return OrgTokenKind::CriticAddBegin; } else
+  if (value == "CriticAddEnd") { return OrgTokenKind::CriticAddEnd; } else
+  if (value == "CriticCommentBegin") { return OrgTokenKind::CriticCommentBegin; } else
+  if (value == "CriticCommentEnd") { return OrgTokenKind::CriticCommentEnd; } else
+  if (value == "CriticDeleteBegin") { return OrgTokenKind::CriticDeleteBegin; } else
+  if (value == "CriticDeleteEnd") { return OrgTokenKind::CriticDeleteEnd; } else
+  if (value == "CriticHighlightBegin") { return OrgTokenKind::CriticHighlightBegin; } else
+  if (value == "CriticHighlightEnd") { return OrgTokenKind::CriticHighlightEnd; } else
+  if (value == "CriticReplaceBegin") { return OrgTokenKind::CriticReplaceBegin; } else
+  if (value == "CriticReplaceEnd") { return OrgTokenKind::CriticReplaceEnd; } else
+  if (value == "CriticReplaceMiddle") { return OrgTokenKind::CriticReplaceMiddle; } else
   if (value == "CurlyBegin") { return OrgTokenKind::CurlyBegin; } else
   if (value == "CurlyEnd") { return OrgTokenKind::CurlyEnd; } else
   if (value == "Date") { return OrgTokenKind::Date; } else

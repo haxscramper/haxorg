@@ -1310,6 +1310,42 @@ struct ImmDocumentOptions : public org::imm::ImmOrg {
   bool operator==(org::imm::ImmDocumentOptions const& other) const;
 };
 
+/// \brief Part of the document embedded in a larger file (e.g. in comments)
+struct ImmDocumentFragment : public org::imm::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmDocumentFragment() = default;
+  BOOST_DESCRIBE_CLASS(ImmDocumentFragment,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind,
+                        baseLine,
+                        baseCol))
+  static OrgSemKind const staticKind;
+  int baseLine;
+  int baseCol;
+  virtual OrgSemKind getKind() const { return OrgSemKind::DocumentFragment; }
+  bool operator==(org::imm::ImmDocumentFragment const& other) const;
+};
+
+/// \brief https://fletcher.github.io/MultiMarkdown-6/syntax/critic.html
+struct ImmCriticMarkup : public org::imm::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmCriticMarkup() = default;
+  enum class Kind : short int { Deletion, Addition, Substitution, Highlighting, Comment, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Deletion, Addition, Substitution, Highlighting, Comment)
+  BOOST_DESCRIBE_CLASS(ImmCriticMarkup,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind,
+                        kind))
+  static OrgSemKind const staticKind;
+  org::imm::ImmCriticMarkup::Kind kind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CriticMarkup; }
+  bool operator==(org::imm::ImmCriticMarkup const& other) const;
+};
+
 struct ImmDocument : public org::imm::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmDocument() = default;
@@ -1620,4 +1656,3 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
 
 }
 /* clang-format on */
-

@@ -76,6 +76,7 @@ struct OrgParser : public hstd::OperationsTracer {
     OrgId parseBlockExport(OrgLexer& lex);
     OrgId parseParagraph(OrgLexer& lex);
     OrgId parseInlineExport(OrgLexer& lex);
+    OrgId parseCriticMarkup(OrgLexer& lex);
 
     OrgId parseSubtree(OrgLexer& lex);
     OrgId parseSubtreeTodo(OrgLexer& lex);

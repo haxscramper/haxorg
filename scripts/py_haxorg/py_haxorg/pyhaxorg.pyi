@@ -2056,6 +2056,26 @@ class DocumentOptions(Org):
     maxSubtreeLevelExport: Optional[int]
     columns: Optional[ColumnView]
 
+class DocumentFragment(Org):
+    def __init__(self, baseLine: int, baseCol: int) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    baseLine: int
+    baseCol: int
+
+class CriticMarkupKind(Enum):
+    Deletion = 1
+    Addition = 2
+    Substitution = 3
+    Highlighting = 4
+    Comment = 5
+
+class CriticMarkup(Org):
+    def __init__(self, kind: CriticMarkupKind) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    kind: CriticMarkupKind
+
 class Document(Org):
     def __init__(self, title: Optional[Paragraph], author: Optional[Paragraph], creator: Optional[Paragraph], filetags: List[HashTag], email: Optional[RawText], language: List[str], options: DocumentOptions, exportFileName: Optional[str]) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[NamedProperty]: ...
@@ -2390,46 +2410,47 @@ class OrgNodeKind(Enum):
     Angle = 79
     Monospace = 80
     Par = 81
-    InlineMath = 82
-    DisplayMath = 83
-    Space = 84
-    Punctuation = 85
-    Colon = 86
-    Word = 87
-    Escaped = 88
-    Newline = 89
-    RawLink = 90
-    Link = 91
-    Macro = 92
-    Symbol = 93
-    StaticActiveTime = 94
-    StaticInactiveTime = 95
-    DynamicActiveTime = 96
-    DynamicInactiveTime = 97
-    TimeRange = 98
-    SimpleTime = 99
-    HashTag = 100
-    MetaSymbol = 101
-    AtMention = 102
-    Placeholder = 103
-    RadioTarget = 104
-    Target = 105
-    SrcInlineCode = 106
-    InlineCallCode = 107
-    InlineExport = 108
-    InlineComment = 109
-    RawText = 110
-    SubtreeDescription = 111
-    SubtreeUrgency = 112
-    DrawerLogbook = 113
-    Drawer = 114
-    DrawerPropertyList = 115
-    DrawerProperty = 116
-    Subtree = 117
-    SubtreeTimes = 118
-    SubtreeStars = 119
-    SubtreeCompletion = 120
-    SubtreeImportance = 121
+    CriticMarkStructure = 82
+    InlineMath = 83
+    DisplayMath = 84
+    Space = 85
+    Punctuation = 86
+    Colon = 87
+    Word = 88
+    Escaped = 89
+    Newline = 90
+    RawLink = 91
+    Link = 92
+    Macro = 93
+    Symbol = 94
+    StaticActiveTime = 95
+    StaticInactiveTime = 96
+    DynamicActiveTime = 97
+    DynamicInactiveTime = 98
+    TimeRange = 99
+    SimpleTime = 100
+    HashTag = 101
+    MetaSymbol = 102
+    AtMention = 103
+    Placeholder = 104
+    RadioTarget = 105
+    Target = 106
+    SrcInlineCode = 107
+    InlineCallCode = 108
+    InlineExport = 109
+    InlineComment = 110
+    RawText = 111
+    SubtreeDescription = 112
+    SubtreeUrgency = 113
+    DrawerLogbook = 114
+    Drawer = 115
+    DrawerPropertyList = 116
+    DrawerProperty = 117
+    Subtree = 118
+    SubtreeTimes = 119
+    SubtreeStars = 120
+    SubtreeCompletion = 121
+    SubtreeImportance = 122
 
 class OrgJsonKind(Enum):
     Null = 1
@@ -2505,14 +2526,16 @@ class OrgSemKind(Enum):
     List = 62
     ListItem = 63
     DocumentOptions = 64
-    Document = 65
-    FileTarget = 66
-    TextSeparator = 67
-    DocumentGroup = 68
-    File = 69
-    Directory = 70
-    Symlink = 71
-    CmdInclude = 72
+    DocumentFragment = 65
+    CriticMarkup = 66
+    Document = 67
+    FileTarget = 68
+    TextSeparator = 69
+    DocumentGroup = 70
+    File = 71
+    Directory = 72
+    Symlink = 73
+    CmdInclude = 74
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

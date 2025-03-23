@@ -1766,6 +1766,38 @@ OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
     return result;
 }
 
+OrgConverter::ConvResult<CriticMarkup> OrgConverter::convertCriticMarkup(
+    __args) {
+    auto                __trace = trace(a);
+    SemId<CriticMarkup> result  = Sem<CriticMarkup>(a);
+    auto                head    = get_text(one(a, N::Name));
+    auto                assoc   = one(a, N::Assoc);
+    auto                body    = one(a, N::Body);
+
+    using K = CriticMarkup::Kind;
+
+    if (head.ends_with("--")) {
+        result->kind = K::Deletion;
+    } else if (head.ends_with("++")) {
+        result->kind = K::Addition;
+    } else if (head.ends_with("==")) {
+        result->kind = K::Highlighting;
+    } else if (head.ends_with(">>")) {
+        result->kind = K::Comment;
+    } else if (head.ends_with("~~")) {
+        result->kind = K::Substitution;
+    }
+
+    if (assoc.getKind() != onk::Empty) {
+        result->push_back(convert(assoc));
+    }
+
+    result->push_back(convert(body));
+
+    return result;
+}
+
+
 OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
     __args) {
     auto                __trace = trace(a);
@@ -2512,6 +2544,8 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCmdCall(a).unwrap();
         case onk::Paragraph: return convertParagraph(a).unwrap();
+        case onk::CriticMarkStructure:
+            return convertCriticMarkup(a).unwrap();
         case onk::BlockDynamicFallback:
             return convertBlockDynamicFallback(a).unwrap();
         case onk::ErrorWrap: {
@@ -2609,124 +2643,154 @@ void OrgConverter::convertDocumentOptions(
     }
 }
 
+
+using Prop = NamedProperty;
+
+
+bool OrgConverter::updateDocument(
+    SemId<Document>&         doc,
+    const parse::OrgAdapter& sub) {
+    switch (sub.kind()) {
+        case onk::CmdColumns: {
+            if (auto columns = convertCmdColumns(sub)) {
+                auto cols             = columns.value();
+                doc->options->columns = cols->view;
+            } else {
+                doc->push_back(columns.error());
+            }
+            return true;
+        }
+        case onk::CmdTitle: {
+            if (auto title = convertParagraph(sub[0])) {
+                doc->title = title.value();
+            } else {
+                doc->push_back(title.error());
+            }
+            return true;
+        }
+        case onk::CmdOptions: {
+            convertDocumentOptions(doc->options, sub);
+            return true;
+        }
+
+        case onk::CmdPropertyArgs: {
+            Prop::CustomArgs prop;
+            prop.name  = get_text(one(sub, N::Name));
+            prop.attrs = convertAttrs(one(sub, N::Args));
+            doc->options->properties.push_back(Prop(prop));
+            return true;
+        }
+
+        case onk::CmdStartup: {
+            Vec<Str> args = get_text(sub.at(0)).split(" ");
+            Str      text = normalize(args.at(0));
+            using K       = InitialSubtreeVisibility;
+            if (text == "content") {
+                doc->options->initialVisibility = K::Content;
+            } else if (text == "overview") {
+                doc->options->initialVisibility = K::Overview;
+            } else if (text == "showall") {
+                doc->options->initialVisibility = K::ShowAll;
+            } else if (text == "show2levels") {
+                doc->options->initialVisibility = K::Show2Levels;
+            } else if (text == "show3levels") {
+                doc->options->initialVisibility = K::Show3Levels;
+            } else if (text == "show4levels") {
+                doc->options->initialVisibility = K::Show4Levels;
+            } else if (text == "show4levels") {
+                doc->options->initialVisibility = K::Show4Levels;
+            } else if (text == "showeverything") {
+                doc->options->initialVisibility = K::ShowEverything;
+            } else {
+                throw convert_logic_error::init(text);
+            }
+
+            if (auto it = args.get(1); it.has_value()) {
+                if (org_streq(*it, "indent")) {
+                    doc->options->startupIndented = true;
+                }
+            }
+
+            return true;
+        }
+
+        case onk::CmdLatexClass: {
+            Prop::ExportLatexClass res{};
+            res.latexClass = get_text(sub.at(0));
+            doc->options->properties.push_back(Prop(res));
+            return true;
+        }
+        case onk::CmdLatexHeader: {
+            Prop::ExportLatexHeader res{};
+            res.header = get_text(sub.at(0));
+            doc->options->properties.push_back(Prop(res));
+            return true;
+        }
+        case onk::CmdLatexCompiler: {
+            Prop::ExportLatexCompiler res{};
+            res.compiler = get_text(sub.at(0));
+            doc->options->properties.push_back(Prop(res));
+            return true;
+        }
+        case onk::CmdLatexClassOptions: {
+            auto                          value = get_text(sub.at(0));
+            Prop::ExportLatexClassOptions res;
+            res.options.push_back(value);
+            doc->options->properties.push_back(Prop(res));
+            return true;
+        }
+        case onk::CmdFiletags: {
+            for (auto const& hash : many(sub, N::Tags)) {
+                doc->filetags.push_back(convertHashTag(hash).value());
+            }
+            return true;
+        }
+
+        default: {
+            return false;
+        }
+    }
+}
+
+OrgConverter::ConvResult<Document> OrgConverter::convertDocumentFragments(
+    const hstd::Vec<InFragment>& fragments) {
+    auto __trace        = trace(std::nullopt, "document-fragment-list");
+    SemId<Document> doc = Sem<Document>(fragments.front().node);
+    doc->options        = Sem<DocumentOptions>(fragments.front().node);
+    for (auto const frag : fragments) {
+        auto __trace = trace(std::nullopt, "document-fragment");
+        Vec<parse::OrgAdapter> buffer;
+        for (const auto& sub : frag.node) {
+            auto __trace = trace(sub, fmt1(sub.getKind()));
+            if (!updateDocument(doc, sub)) { buffer.push_back(sub); }
+        }
+
+        SemId<DocumentFragment> outFragment = Sem<DocumentFragment>(
+            frag.node);
+        outFragment->baseLine = frag.baseLine;
+        outFragment->baseCol  = frag.baseCol;
+
+        for (auto const& it : flatConvertAttached(buffer)) {
+            outFragment->subnodes.push_back(it.unwrap());
+        }
+
+        doc->subnodes.push_back(outFragment);
+    }
+
+    return doc;
+}
+
 org::sem::OrgConverter::ConvResult<Document> OrgConverter::convertDocument(
     __args) {
     auto __trace = trace(a);
 
     SemId<Document> doc = Sem<Document>(a);
     doc->options        = Sem<DocumentOptions>(a);
-    using Prop          = NamedProperty;
-    Vec<org::parse::OrgAdapter> buffer;
 
-    if (a.kind() == onk::StmtList) {
-        for (const auto& sub : a) {
-            auto __trace = trace(a, fmt1(sub.getKind()));
-            switch (sub.kind()) {
-                case onk::CmdColumns: {
-                    if (auto columns = convertCmdColumns(sub)) {
-                        auto cols             = columns.value();
-                        doc->options->columns = cols->view;
-                    } else {
-                        doc->push_back(columns.error());
-                    }
-                    break;
-                }
-                case onk::CmdTitle: {
-                    if (auto title = convertParagraph(sub[0])) {
-                        doc->title = title.value();
-                    } else {
-                        doc->push_back(title.error());
-                    }
-                    break;
-                }
-                case onk::CmdOptions: {
-                    convertDocumentOptions(doc->options, sub);
-                    break;
-                }
-
-                case onk::CmdPropertyArgs: {
-                    Prop::CustomArgs prop;
-                    prop.name  = get_text(one(sub, N::Name));
-                    prop.attrs = convertAttrs(one(sub, N::Args));
-                    doc->options->properties.push_back(Prop(prop));
-                    break;
-                }
-
-                case onk::CmdStartup: {
-                    Vec<Str> args = get_text(sub.at(0)).split(" ");
-                    Str      text = normalize(args.at(0));
-                    using K       = InitialSubtreeVisibility;
-                    if (text == "content") {
-                        doc->options->initialVisibility = K::Content;
-                    } else if (text == "overview") {
-                        doc->options->initialVisibility = K::Overview;
-                    } else if (text == "showall") {
-                        doc->options->initialVisibility = K::ShowAll;
-                    } else if (text == "show2levels") {
-                        doc->options->initialVisibility = K::Show2Levels;
-                    } else if (text == "show3levels") {
-                        doc->options->initialVisibility = K::Show3Levels;
-                    } else if (text == "show4levels") {
-                        doc->options->initialVisibility = K::Show4Levels;
-                    } else if (text == "show4levels") {
-                        doc->options->initialVisibility = K::Show4Levels;
-                    } else if (text == "showeverything") {
-                        doc->options->initialVisibility = K::
-                            ShowEverything;
-                    } else {
-                        throw convert_logic_error::init(text);
-                    }
-
-                    if (auto it = args.get(1); it.has_value()) {
-                        if (org_streq(*it, "indent")) {
-                            doc->options->startupIndented = true;
-                        }
-                    }
-
-                    break;
-                }
-
-                case onk::CmdLatexClass: {
-                    Prop::ExportLatexClass res{};
-                    res.latexClass = get_text(sub.at(0));
-                    doc->options->properties.push_back(Prop(res));
-                    break;
-                }
-                case onk::CmdLatexHeader: {
-                    Prop::ExportLatexHeader res{};
-                    res.header = get_text(sub.at(0));
-                    doc->options->properties.push_back(Prop(res));
-                    break;
-                }
-                case onk::CmdLatexCompiler: {
-                    Prop::ExportLatexCompiler res{};
-                    res.compiler = get_text(sub.at(0));
-                    doc->options->properties.push_back(Prop(res));
-                    break;
-                }
-                case onk::CmdLatexClassOptions: {
-                    auto value = get_text(sub.at(0));
-                    Prop::ExportLatexClassOptions res;
-                    res.options.push_back(value);
-                    doc->options->properties.push_back(Prop(res));
-                    break;
-                }
-                case onk::CmdFiletags: {
-                    for (auto const& hash : many(sub, N::Tags)) {
-                        doc->filetags.push_back(
-                            convertHashTag(hash).value());
-                    }
-                    break;
-                }
-
-                default: {
-                    buffer.push_back(sub);
-                    break;
-                }
-            }
-        }
-    } else {
-        buffer.push_back(a);
+    Vec<parse::OrgAdapter> buffer;
+    for (const auto& sub : a) {
+        auto __trace = trace(sub, fmt1(sub.getKind()));
+        if (!updateDocument(doc, sub)) { buffer.push_back(sub); }
     }
 
     for (auto const& it : flatConvertAttached(buffer)) {

@@ -2864,6 +2864,33 @@ def get_types() -> Sequence[GenTuStruct]:
             ],
         ),
         d_org(
+            "DocumentFragment",
+            GenTuDoc("Part of the document embedded in a larger file (e.g. in comments)"),
+            bases=[t_nest(t_org("Org"))],
+            fields=[
+                int_field("baseLine"),
+                int_field("baseCol"),
+            ]),
+        d_org(
+            "CriticMarkup",
+            GenTuDoc("https://fletcher.github.io/MultiMarkdown-6/syntax/critic.html"),
+            bases=[t_nest(t_org("Org"))],
+            nested=[
+                d_simple_enum(
+                    t_nest("Kind", [t_org("CriticMarkup")]),
+                    GenTuDoc(""),
+                    efield("Deletion"),
+                    efield("Addition"),
+                    efield("Substitution"),
+                    efield("Highlighting"),
+                    efield("Comment"),
+                )
+            ],
+            fields=[
+                org_field(t_nest("Kind", [t_org("CriticMarkup")]), "kind"),
+            ],
+        ),
+        d_org(
             "Document",
             GenTuDoc(""),
             bases=[t_nest(t_org("Org"))],
@@ -3082,6 +3109,7 @@ def get_org_node_kind_text():
         efield("Angle"),
         efield("Monospace"),
         efield("Par"),
+        efield("CriticMarkStructure"),
         efield(
             "InlineMath",
             "Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\\(paren-wrapped\\)` inline text.",

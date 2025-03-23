@@ -1392,6 +1392,44 @@ struct ImmSemSerde<org::sem::DocumentOptions, org::imm::ImmDocumentOptions> {
 };
 
 template <>
+struct ImmSemSerde<org::sem::DocumentFragment, org::imm::ImmDocumentFragment> {
+  static org::imm::ImmDocumentFragment to_immer(org::sem::DocumentFragment const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmDocumentFragment result = hstd::SerdeDefaultProvider<org::imm::ImmDocumentFragment>::get();
+    assign_immer_field(result.baseLine, value.baseLine, ctx);
+    assign_immer_field(result.baseCol, value.baseCol, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    assign_immer_field(result.loc, value.loc, ctx);
+    return result;
+  }
+  static org::sem::DocumentFragment from_immer(org::imm::ImmDocumentFragment const& value, ImmAstContext const& ctx) {
+    org::sem::DocumentFragment result = hstd::SerdeDefaultProvider<org::sem::DocumentFragment>::get();
+    assign_sem_field(result.baseLine, value.baseLine, ctx);
+    assign_sem_field(result.baseCol, value.baseCol, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    assign_sem_field(result.loc, value.loc, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::CriticMarkup, org::imm::ImmCriticMarkup> {
+  static org::imm::ImmCriticMarkup to_immer(org::sem::CriticMarkup const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmCriticMarkup result = hstd::SerdeDefaultProvider<org::imm::ImmCriticMarkup>::get();
+    assign_immer_field(result.kind, value.kind, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    assign_immer_field(result.loc, value.loc, ctx);
+    return result;
+  }
+  static org::sem::CriticMarkup from_immer(org::imm::ImmCriticMarkup const& value, ImmAstContext const& ctx) {
+    org::sem::CriticMarkup result = hstd::SerdeDefaultProvider<org::sem::CriticMarkup>::get();
+    assign_sem_field(result.kind, value.kind, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    assign_sem_field(result.loc, value.loc, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<org::sem::Document, org::imm::ImmDocument> {
   static org::imm::ImmDocument to_immer(org::sem::Document const& value, ImmAstEditContext& ctx) {
     org::imm::ImmDocument result = hstd::SerdeDefaultProvider<org::imm::ImmDocument>::get();

@@ -2905,6 +2905,37 @@ struct DocumentOptions : public org::sem::Org {
   hstd::Opt<org::sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
 };
 
+/// \brief Part of the document embedded in a larger file (e.g. in comments)
+struct DocumentFragment : public org::sem::Org {
+  using Org::Org;
+  virtual ~DocumentFragment() = default;
+  BOOST_DESCRIBE_CLASS(DocumentFragment,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, baseLine, baseCol))
+  static OrgSemKind const staticKind;
+  int baseLine;
+  int baseCol;
+  virtual OrgSemKind getKind() const { return OrgSemKind::DocumentFragment; }
+};
+
+/// \brief https://fletcher.github.io/MultiMarkdown-6/syntax/critic.html
+struct CriticMarkup : public org::sem::Org {
+  using Org::Org;
+  virtual ~CriticMarkup() = default;
+  enum class Kind : short int { Deletion, Addition, Substitution, Highlighting, Comment, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Deletion, Addition, Substitution, Highlighting, Comment)
+  BOOST_DESCRIBE_CLASS(CriticMarkup,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, kind))
+  static OrgSemKind const staticKind;
+  org::sem::CriticMarkup::Kind kind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CriticMarkup; }
+};
+
 struct Document : public org::sem::Org {
   using Org::Org;
   virtual ~Document() = default;

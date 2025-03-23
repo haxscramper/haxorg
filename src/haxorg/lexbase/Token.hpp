@@ -60,6 +60,8 @@ struct Token {
     K kind; /// Specific kind of the token
     V value;
 
+    DESC_FIELDS(Token, (kind, value));
+
     Token() = default;
     Token(K kind) : kind(kind) {}
     Token(K kind, V value) : kind(kind), value(value) {}
@@ -76,7 +78,10 @@ struct TokenGroup {
     using iterator       = typename StoreT::ContentT::iterator;
     using const_iterator = typename StoreT::ContentT::const_iterator;
 
-    StoreT   tokens;
+    StoreT tokens;
+
+    DESC_FIELDS(StoreT, (tokens));
+
     iterator begin() { return tokens.content.begin(); }
     iterator end() { return tokens.content.end(); }
     iterator rbegin() { return tokens.content.rbegin(); }

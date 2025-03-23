@@ -6,15 +6,31 @@
 
 namespace org {
 
+
 [[refl]] sem::SemId<sem::Time> newSemTimeStatic(
     hstd::UserTimeBreakdown const& breakdown,
     bool                           isActive = false);
+
+/// \brief Documen fragment extracted from the larger text
+struct [[refl]] OrgParseFragment {
+    [[refl]] int         baseLine;
+    [[refl]] int         baseCol;
+    [[refl]] std::string text;
+    DESC_FIELDS(OrgParseFragment, (baseLine, baseCol, text));
+};
+
+hstd::Vec<OrgParseFragment> extractCommentBlocks(
+    const std::string&            text,
+    const hstd::Vec<std::string>& commentPrefixes);
 
 struct [[refl]] OrgParseParameters {
     [[refl]] hstd::Opt<std::string> baseTokenTracePath = std::nullopt;
     [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
+
+    hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)>
+        getFragments;
 
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,

@@ -443,6 +443,15 @@ void OrgParser::textFold(OrgLexer& lex) {
                     break;
                 }
 
+                case otk::CriticAddBegin:
+                case otk::CriticDeleteBegin:
+                case otk::CriticReplaceBegin:
+                case otk::CriticCommentBegin:
+                case otk::CriticHighlightBegin: {
+                    subParse(CriticMarkup, lex);
+                    break;
+                }
+
                 case otk::Placeholder: {
                     parsePlaceholder(lex);
                     break;
@@ -648,7 +657,7 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
                     empty();
                 } else {
                     sub.start();
-                    parseParagraph(sub);
+                    subParse(Paragraph, sub);
                 }
         }
 
@@ -660,7 +669,7 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
                 empty();
             } else {
                 sub.start();
-                parseParagraph(sub);
+                subParse(Paragraph, sub);
             }
         } else {
             empty();
@@ -1253,6 +1262,48 @@ OrgId OrgParser::parseInlineExport(OrgLexer& lex) {
     start(onk::InlineExport);
     token(onk::RawText, pop(lex, otk::InlineExportBackend));
     token(onk::RawText, pop(lex, otk::InlineExportContent));
+    return end();
+}
+
+OrgId OrgParser::parseCriticMarkup(OrgLexer& lex) {
+    __perf_trace("parsing", "parseCriticMarkup");
+    auto __trace = trace(lex);
+    otk  e;
+    switch (lex.kind()) {
+        case otk::CriticDeleteBegin: e = otk::CriticDeleteEnd; break;
+        case otk::CriticAddBegin: e = otk::CriticAddEnd; break;
+        case otk::CriticCommentBegin: e = otk::CriticCommentEnd; break;
+        case otk::CriticReplaceBegin: e = otk::CriticReplaceEnd; break;
+        case otk::CriticHighlightBegin: e = otk::CriticHighlightEnd; break;
+        default: {
+        }
+    }
+
+    start(onk::CriticMarkStructure);
+    token(onk::RawText, pop(lex, lex.kind()));
+    if (e == otk::CriticReplaceEnd) {
+        SubLexer sub{lex};
+        while (lex.can_search(otk::CriticReplaceMiddle)) {
+            sub.add(lex.pop());
+        }
+
+        if (sub.empty()) {
+            empty();
+        } else {
+            sub.start();
+            subParse(Paragraph, sub);
+        }
+        skip(lex, otk::CriticReplaceMiddle);
+    } else {
+        empty();
+    }
+
+    SubLexer sub{lex};
+    while (lex.can_search(e)) { sub.add(lex.pop()); }
+
+    sub.start();
+    subParse(Paragraph, sub);
+    skip(lex, e);
     return end();
 }
 

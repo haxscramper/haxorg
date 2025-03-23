@@ -2518,6 +2518,28 @@ void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptio
   }
 }
 
+void org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::DocumentFragment>::write(::orgproto::DocumentFragment* out, org::sem::DocumentFragment const& in) {
+  org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::Org>::write(out, in);
+  out->set_baseline(in.baseLine);
+  out->set_basecol(in.baseCol);
+}
+
+void org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::DocumentFragment>::read(::orgproto::DocumentFragment const& out, proto_write_accessor<org::sem::DocumentFragment> in) {
+  org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::DocumentFragment::baseLine).get() = out.baseline();
+  in.for_field(&org::sem::DocumentFragment::baseCol).get() = out.basecol();
+}
+
+void org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::CriticMarkup>::write(::orgproto::CriticMarkup* out, org::sem::CriticMarkup const& in) {
+  org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::Org>::write(out, in);
+  out->set_kind(static_cast<orgproto::CriticMarkup_Kind>(in.kind));
+}
+
+void org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::CriticMarkup>::read(::orgproto::CriticMarkup const& out, proto_write_accessor<org::sem::CriticMarkup> in) {
+  org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::CriticMarkup::kind).get() = static_cast<org::sem::CriticMarkup::Kind>(out.kind());
+}
+
 void org::algo::proto_serde<::orgproto::Document, org::sem::Document>::write(::orgproto::Document* out, org::sem::Document const& in) {
   org::algo::proto_serde<::orgproto::Document, org::sem::Org>::write(out, in);
   if (in.title) {
