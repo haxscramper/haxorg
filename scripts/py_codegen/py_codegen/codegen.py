@@ -331,7 +331,8 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     map_obj_methods(typ)
     map_bases(typ)
 
-    if typ.concreteKind and typ.name.name != "Org":
+    if typ.concreteKind and typ.name.name != "Org" and typ.reflectionParams.get(
+            "default-constructor", True):
         rec_fields: List[Py11BindPass] = []
 
         def cb(it: GenTuStruct):
@@ -366,7 +367,8 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
         if _field.isExposedForWrap:
             res.Fields.append(Py11Field.FromGenTu(_field))
 
-    if not value.IsAbstract:
+    if not value.IsAbstract and value.reflectionParams.get(
+            "default-constructor", True):
         res.InitDefault(ast, filter_init_fields(res.Fields))
         res.InitMagicMethods(ast=ast)
 
@@ -1031,7 +1033,7 @@ def collect_type_field_groups(
             parent_fields=filter_fields(aux(t)),
             bases=list(t.bases),
             name=t.name.name,
-            typ=t.name, 
+            typ=t.name,
         )
 
         result.types.append(group)
@@ -1141,18 +1143,20 @@ def gen_pyhaxorg_field_iteration_macros(
                     def_stack,
                     ast.b.line([
                         ast.string("    "),
-                        ast.XCall("__IMPL_FIELD", [
-                            # Type of the field
-                            ast.pars(ast.Type(field.type)), 
-                            # field name without changes
-                            ast.string(field.name), 
-                            # field name for `getField` etc. 
-                            ast.string(field.name.capitalize()), 
-                            # Parent type for field, in case you need to define methods for each field
-                            # outside of the class body.
-                            ast.pars(ast.Type(group.typ)), 
-                            ast.string(group.name.replace("Imm", "")),
-                        ]),
+                        ast.XCall(
+                            "__IMPL_FIELD",
+                            [
+                                # Type of the field
+                                ast.pars(ast.Type(field.type)),
+                                # field name without changes
+                                ast.string(field.name),
+                                # field name for `getField` etc.
+                                ast.string(field.name.capitalize()),
+                                # Parent type for field, in case you need to define methods for each field
+                                # outside of the class body.
+                                ast.pars(ast.Type(group.typ)),
+                                ast.string(group.name.replace("Imm", "")),
+                            ]),
                         ast.string(" \\"),
                     ]))
 

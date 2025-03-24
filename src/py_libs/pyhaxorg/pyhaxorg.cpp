@@ -5560,59 +5560,15 @@ node can have subnodes.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmNoneValueRead>(m, "immImmNoneValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmNoneValueRead {
-                        org::imm::ImmNoneValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmNoneValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmNoneValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmNoneValue>(m, "immImmNoneValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmNoneValue {
-                        org::imm::ImmNoneValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmNoneValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmNoneValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmErrorItemValueRead>(m, "immImmErrorItemValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmErrorItemValueRead {
-                        org::imm::ImmErrorItemValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getMessage", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getMessage))
     .def("getFunction", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getFunction))
     .def("getLine", static_cast<immer::ext::ext::box<std::optional<int>> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getLine))
-    .def("__repr__", [](org::imm::ImmErrorItemValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmErrorItemValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmErrorItemValue>(m, "immImmErrorItemValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmErrorItemValue {
-                        org::imm::ImmErrorItemValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setMessage",
          static_cast<void(org::imm::ImmErrorItemValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmErrorItemValue::setMessage),
          pybind11::arg("value"))
@@ -5622,39 +5578,13 @@ node can have subnodes.)RAW")
     .def("setLine",
          static_cast<void(org::imm::ImmErrorItemValue::*)(immer::ext::ext::box<std::optional<int>> const&)>(&org::imm::ImmErrorItemValue::setLine),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmErrorItemValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmErrorItemValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmErrorGroupValueRead>(m, "immImmErrorGroupValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmErrorGroupValueRead {
-                        org::imm::ImmErrorGroupValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getDiagnostics", static_cast<immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getDiagnostics))
     .def("getFunction", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getFunction))
     .def("getLine", static_cast<immer::ext::ext::box<std::optional<int>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getLine))
-    .def("__repr__", [](org::imm::ImmErrorGroupValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmErrorGroupValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmErrorGroupValue>(m, "immImmErrorGroupValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmErrorGroupValue {
-                        org::imm::ImmErrorGroupValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setDiagnostics",
          static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&)>(&org::imm::ImmErrorGroupValue::setDiagnostics),
          pybind11::arg("value"))
@@ -5664,239 +5594,57 @@ node can have subnodes.)RAW")
     .def("setLine",
          static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::ext::ext::box<std::optional<int>> const&)>(&org::imm::ImmErrorGroupValue::setLine),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmErrorGroupValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmErrorGroupValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmStmtListValueRead>(m, "immImmStmtListValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmStmtListValueRead {
-                        org::imm::ImmStmtListValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmStmtListValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmStmtListValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmStmtListValue>(m, "immImmStmtListValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmStmtListValue {
-                        org::imm::ImmStmtListValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmStmtListValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmStmtListValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmEmptyValueRead>(m, "immImmEmptyValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmEmptyValueRead {
-                        org::imm::ImmEmptyValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmEmptyValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmEmptyValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmEmptyValue>(m, "immImmEmptyValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmEmptyValue {
-                        org::imm::ImmEmptyValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmEmptyValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmEmptyValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCaptionValueRead>(m, "immImmCmdCaptionValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCaptionValueRead {
-                        org::imm::ImmCmdCaptionValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdCaptionValueRead::*)() const>(&org::imm::ImmCmdCaptionValueRead::getText))
-    .def("__repr__", [](org::imm::ImmCmdCaptionValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCaptionValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCaptionValue>(m, "immImmCmdCaptionValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCaptionValue {
-                        org::imm::ImmCmdCaptionValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setText",
          static_cast<void(org::imm::ImmCmdCaptionValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdCaptionValue::setText),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdCaptionValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCaptionValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdColumnsValueRead>(m, "immImmCmdColumnsValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdColumnsValueRead {
-                        org::imm::ImmCmdColumnsValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getView", static_cast<org::sem::ColumnView const&(org::imm::ImmCmdColumnsValueRead::*)() const>(&org::imm::ImmCmdColumnsValueRead::getView))
-    .def("__repr__", [](org::imm::ImmCmdColumnsValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdColumnsValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdColumnsValue>(m, "immImmCmdColumnsValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdColumnsValue {
-                        org::imm::ImmCmdColumnsValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setView",
          static_cast<void(org::imm::ImmCmdColumnsValue::*)(org::sem::ColumnView const&)>(&org::imm::ImmCmdColumnsValue::setView),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdColumnsValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdColumnsValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdNameValueRead>(m, "immImmCmdNameValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdNameValueRead {
-                        org::imm::ImmCmdNameValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getName", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdNameValueRead::*)() const>(&org::imm::ImmCmdNameValueRead::getName))
-    .def("__repr__", [](org::imm::ImmCmdNameValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdNameValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdNameValue>(m, "immImmCmdNameValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdNameValue {
-                        org::imm::ImmCmdNameValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setName",
          static_cast<void(org::imm::ImmCmdNameValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdNameValue::setName),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdNameValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdNameValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCustomArgsValueRead>(m, "immImmCmdCustomArgsValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCustomArgsValueRead {
-                        org::imm::ImmCmdCustomArgsValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getName", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdCustomArgsValueRead::*)() const>(&org::imm::ImmCmdCustomArgsValueRead::getName))
     .def("getIsattached", static_cast<bool const&(org::imm::ImmCmdCustomArgsValueRead::*)() const>(&org::imm::ImmCmdCustomArgsValueRead::getIsattached))
-    .def("__repr__", [](org::imm::ImmCmdCustomArgsValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCustomArgsValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCustomArgsValue>(m, "immImmCmdCustomArgsValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCustomArgsValue {
-                        org::imm::ImmCmdCustomArgsValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setName",
          static_cast<void(org::imm::ImmCmdCustomArgsValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomArgsValue::setName),
          pybind11::arg("value"))
     .def("setIsattached",
          static_cast<void(org::imm::ImmCmdCustomArgsValue::*)(bool const&)>(&org::imm::ImmCmdCustomArgsValue::setIsattached),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdCustomArgsValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCustomArgsValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCustomRawValueRead>(m, "immImmCmdCustomRawValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCustomRawValueRead {
-                        org::imm::ImmCmdCustomRawValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getName", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdCustomRawValueRead::*)() const>(&org::imm::ImmCmdCustomRawValueRead::getName))
     .def("getIsattached", static_cast<bool const&(org::imm::ImmCmdCustomRawValueRead::*)() const>(&org::imm::ImmCmdCustomRawValueRead::getIsattached))
     .def("getText", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdCustomRawValueRead::*)() const>(&org::imm::ImmCmdCustomRawValueRead::getText))
-    .def("__repr__", [](org::imm::ImmCmdCustomRawValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCustomRawValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCustomRawValue>(m, "immImmCmdCustomRawValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCustomRawValue {
-                        org::imm::ImmCmdCustomRawValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setName",
          static_cast<void(org::imm::ImmCmdCustomRawValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomRawValue::setName),
          pybind11::arg("value"))
@@ -5906,39 +5654,13 @@ node can have subnodes.)RAW")
     .def("setText",
          static_cast<void(org::imm::ImmCmdCustomRawValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomRawValue::setText),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdCustomRawValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCustomRawValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCustomTextValueRead>(m, "immImmCmdCustomTextValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCustomTextValueRead {
-                        org::imm::ImmCmdCustomTextValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getName", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdCustomTextValueRead::*)() const>(&org::imm::ImmCmdCustomTextValueRead::getName))
     .def("getIsattached", static_cast<bool const&(org::imm::ImmCmdCustomTextValueRead::*)() const>(&org::imm::ImmCmdCustomTextValueRead::getIsattached))
     .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdCustomTextValueRead::*)() const>(&org::imm::ImmCmdCustomTextValueRead::getText))
-    .def("__repr__", [](org::imm::ImmCmdCustomTextValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCustomTextValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCustomTextValue>(m, "immImmCmdCustomTextValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCustomTextValue {
-                        org::imm::ImmCmdCustomTextValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setName",
          static_cast<void(org::imm::ImmCmdCustomTextValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomTextValue::setName),
          pybind11::arg("value"))
@@ -5948,42 +5670,16 @@ node can have subnodes.)RAW")
     .def("setText",
          static_cast<void(org::imm::ImmCmdCustomTextValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdCustomTextValue::setText),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdCustomTextValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCustomTextValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCallValueRead>(m, "immImmCmdCallValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCallValueRead {
-                        org::imm::ImmCmdCallValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getName", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getName))
     .def("getFilename", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getFilename))
     .def("getInsideheaderattrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getInsideheaderattrs))
     .def("getCallattrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getCallattrs))
     .def("getEndheaderattrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getEndheaderattrs))
     .def("getResult", static_cast<immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getResult))
-    .def("__repr__", [](org::imm::ImmCmdCallValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCallValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdCallValue>(m, "immImmCmdCallValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdCallValue {
-                        org::imm::ImmCmdCallValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setName",
          static_cast<void(org::imm::ImmCmdCallValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdCallValue::setName),
          pybind11::arg("value"))
@@ -6002,297 +5698,89 @@ node can have subnodes.)RAW")
     .def("setResult",
          static_cast<void(org::imm::ImmCmdCallValue::*)(immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&)>(&org::imm::ImmCmdCallValue::setResult),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdCallValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdCallValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdTblfmValueRead>(m, "immImmCmdTblfmValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdTblfmValueRead {
-                        org::imm::ImmCmdTblfmValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getExpr", static_cast<org::sem::Tblfm const&(org::imm::ImmCmdTblfmValueRead::*)() const>(&org::imm::ImmCmdTblfmValueRead::getExpr))
-    .def("__repr__", [](org::imm::ImmCmdTblfmValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdTblfmValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdTblfmValue>(m, "immImmCmdTblfmValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdTblfmValue {
-                        org::imm::ImmCmdTblfmValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setExpr",
          static_cast<void(org::imm::ImmCmdTblfmValue::*)(org::sem::Tblfm const&)>(&org::imm::ImmCmdTblfmValue::setExpr),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdTblfmValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdTblfmValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmHashTagValueRead>(m, "immImmHashTagValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmHashTagValueRead {
-                        org::imm::ImmHashTagValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getText", static_cast<org::sem::HashTagText const&(org::imm::ImmHashTagValueRead::*)() const>(&org::imm::ImmHashTagValueRead::getText))
-    .def("__repr__", [](org::imm::ImmHashTagValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmHashTagValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmHashTagValue>(m, "immImmHashTagValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmHashTagValue {
-                        org::imm::ImmHashTagValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setText",
          static_cast<void(org::imm::ImmHashTagValue::*)(org::sem::HashTagText const&)>(&org::imm::ImmHashTagValue::setText),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmHashTagValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmHashTagValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmInlineFootnoteValueRead>(m, "immImmInlineFootnoteValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmInlineFootnoteValueRead {
-                        org::imm::ImmInlineFootnoteValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getTag", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmInlineFootnoteValueRead::*)() const>(&org::imm::ImmInlineFootnoteValueRead::getTag))
     .def("getDefinition", static_cast<immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>> const&(org::imm::ImmInlineFootnoteValueRead::*)() const>(&org::imm::ImmInlineFootnoteValueRead::getDefinition))
-    .def("__repr__", [](org::imm::ImmInlineFootnoteValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmInlineFootnoteValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmInlineFootnoteValue>(m, "immImmInlineFootnoteValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmInlineFootnoteValue {
-                        org::imm::ImmInlineFootnoteValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setTag",
          static_cast<void(org::imm::ImmInlineFootnoteValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmInlineFootnoteValue::setTag),
          pybind11::arg("value"))
     .def("setDefinition",
          static_cast<void(org::imm::ImmInlineFootnoteValue::*)(immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>> const&)>(&org::imm::ImmInlineFootnoteValue::setDefinition),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmInlineFootnoteValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmInlineFootnoteValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmInlineExportValueRead>(m, "immImmInlineExportValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmInlineExportValueRead {
-                        org::imm::ImmInlineExportValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getExporter", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmInlineExportValueRead::*)() const>(&org::imm::ImmInlineExportValueRead::getExporter))
     .def("getContent", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmInlineExportValueRead::*)() const>(&org::imm::ImmInlineExportValueRead::getContent))
-    .def("__repr__", [](org::imm::ImmInlineExportValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmInlineExportValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmInlineExportValue>(m, "immImmInlineExportValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmInlineExportValue {
-                        org::imm::ImmInlineExportValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setExporter",
          static_cast<void(org::imm::ImmInlineExportValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmInlineExportValue::setExporter),
          pybind11::arg("value"))
     .def("setContent",
          static_cast<void(org::imm::ImmInlineExportValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmInlineExportValue::setContent),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmInlineExportValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmInlineExportValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTimeValueRead>(m, "immImmTimeValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTimeValueRead {
-                        org::imm::ImmTimeValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getIsactive", static_cast<bool const&(org::imm::ImmTimeValueRead::*)() const>(&org::imm::ImmTimeValueRead::getIsactive))
     .def("getTime", static_cast<org::imm::ImmTime::TimeVariant const&(org::imm::ImmTimeValueRead::*)() const>(&org::imm::ImmTimeValueRead::getTime))
-    .def("__repr__", [](org::imm::ImmTimeValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTimeValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTimeValue>(m, "immImmTimeValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTimeValue {
-                        org::imm::ImmTimeValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setIsactive",
          static_cast<void(org::imm::ImmTimeValue::*)(bool const&)>(&org::imm::ImmTimeValue::setIsactive),
          pybind11::arg("value"))
     .def("setTime",
          static_cast<void(org::imm::ImmTimeValue::*)(org::imm::ImmTime::TimeVariant const&)>(&org::imm::ImmTimeValue::setTime),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmTimeValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTimeValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTimeRangeValueRead>(m, "immImmTimeRangeValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTimeRangeValueRead {
-                        org::imm::ImmTimeRangeValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getFrom", static_cast<org::imm::ImmIdT<org::imm::ImmTime> const&(org::imm::ImmTimeRangeValueRead::*)() const>(&org::imm::ImmTimeRangeValueRead::getFrom))
     .def("getTo", static_cast<org::imm::ImmIdT<org::imm::ImmTime> const&(org::imm::ImmTimeRangeValueRead::*)() const>(&org::imm::ImmTimeRangeValueRead::getTo))
-    .def("__repr__", [](org::imm::ImmTimeRangeValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTimeRangeValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTimeRangeValue>(m, "immImmTimeRangeValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTimeRangeValue {
-                        org::imm::ImmTimeRangeValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setFrom",
          static_cast<void(org::imm::ImmTimeRangeValue::*)(org::imm::ImmIdT<org::imm::ImmTime> const&)>(&org::imm::ImmTimeRangeValue::setFrom),
          pybind11::arg("value"))
     .def("setTo",
          static_cast<void(org::imm::ImmTimeRangeValue::*)(org::imm::ImmIdT<org::imm::ImmTime> const&)>(&org::imm::ImmTimeRangeValue::setTo),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmTimeRangeValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTimeRangeValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmMacroValueRead>(m, "immImmMacroValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmMacroValueRead {
-                        org::imm::ImmMacroValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getName", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmMacroValueRead::*)() const>(&org::imm::ImmMacroValueRead::getName))
     .def("getAttrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmMacroValueRead::*)() const>(&org::imm::ImmMacroValueRead::getAttrs))
-    .def("__repr__", [](org::imm::ImmMacroValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmMacroValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmMacroValue>(m, "immImmMacroValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmMacroValue {
-                        org::imm::ImmMacroValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setName",
          static_cast<void(org::imm::ImmMacroValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmMacroValue::setName),
          pybind11::arg("value"))
     .def("setAttrs",
          static_cast<void(org::imm::ImmMacroValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmMacroValue::setAttrs),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmMacroValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmMacroValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSymbolValueRead>(m, "immImmSymbolValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSymbolValueRead {
-                        org::imm::ImmSymbolValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getName", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmSymbolValueRead::*)() const>(&org::imm::ImmSymbolValueRead::getName))
     .def("getParameters", static_cast<immer::ext::ext::flex_vector<org::imm::ImmSymbol::imm::ImmSymbol::imm::ImmSymbol::Param> const&(org::imm::ImmSymbolValueRead::*)() const>(&org::imm::ImmSymbolValueRead::getParameters))
     .def("getPositional", static_cast<immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>> const&(org::imm::ImmSymbolValueRead::*)() const>(&org::imm::ImmSymbolValueRead::getPositional))
-    .def("__repr__", [](org::imm::ImmSymbolValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSymbolValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSymbolValue>(m, "immImmSymbolValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSymbolValue {
-                        org::imm::ImmSymbolValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setName",
          static_cast<void(org::imm::ImmSymbolValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmSymbolValue::setName),
          pybind11::arg("value"))
@@ -6302,953 +5790,160 @@ node can have subnodes.)RAW")
     .def("setPositional",
          static_cast<void(org::imm::ImmSymbolValue::*)(immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>> const&)>(&org::imm::ImmSymbolValue::setPositional),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmSymbolValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSymbolValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmEscapedValueRead>(m, "immImmEscapedValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmEscapedValueRead {
-                        org::imm::ImmEscapedValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmEscapedValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmEscapedValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmEscapedValue>(m, "immImmEscapedValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmEscapedValue {
-                        org::imm::ImmEscapedValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmEscapedValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmEscapedValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmNewlineValueRead>(m, "immImmNewlineValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmNewlineValueRead {
-                        org::imm::ImmNewlineValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmNewlineValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmNewlineValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmNewlineValue>(m, "immImmNewlineValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmNewlineValue {
-                        org::imm::ImmNewlineValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmNewlineValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmNewlineValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSpaceValueRead>(m, "immImmSpaceValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSpaceValueRead {
-                        org::imm::ImmSpaceValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmSpaceValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSpaceValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSpaceValue>(m, "immImmSpaceValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSpaceValue {
-                        org::imm::ImmSpaceValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmSpaceValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSpaceValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmWordValueRead>(m, "immImmWordValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmWordValueRead {
-                        org::imm::ImmWordValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmWordValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmWordValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmWordValue>(m, "immImmWordValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmWordValue {
-                        org::imm::ImmWordValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmWordValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmWordValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmAtMentionValueRead>(m, "immImmAtMentionValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmAtMentionValueRead {
-                        org::imm::ImmAtMentionValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmAtMentionValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmAtMentionValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmAtMentionValue>(m, "immImmAtMentionValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmAtMentionValue {
-                        org::imm::ImmAtMentionValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmAtMentionValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmAtMentionValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmRawTextValueRead>(m, "immImmRawTextValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmRawTextValueRead {
-                        org::imm::ImmRawTextValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmRawTextValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmRawTextValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmRawTextValue>(m, "immImmRawTextValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmRawTextValue {
-                        org::imm::ImmRawTextValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmRawTextValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmRawTextValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmPunctuationValueRead>(m, "immImmPunctuationValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmPunctuationValueRead {
-                        org::imm::ImmPunctuationValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmPunctuationValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmPunctuationValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmPunctuationValue>(m, "immImmPunctuationValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmPunctuationValue {
-                        org::imm::ImmPunctuationValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmPunctuationValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmPunctuationValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmPlaceholderValueRead>(m, "immImmPlaceholderValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmPlaceholderValueRead {
-                        org::imm::ImmPlaceholderValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmPlaceholderValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmPlaceholderValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmPlaceholderValue>(m, "immImmPlaceholderValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmPlaceholderValue {
-                        org::imm::ImmPlaceholderValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmPlaceholderValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmPlaceholderValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBigIdentValueRead>(m, "immImmBigIdentValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBigIdentValueRead {
-                        org::imm::ImmBigIdentValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBigIdentValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBigIdentValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBigIdentValue>(m, "immImmBigIdentValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBigIdentValue {
-                        org::imm::ImmBigIdentValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBigIdentValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBigIdentValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTextTargetValueRead>(m, "immImmTextTargetValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTextTargetValueRead {
-                        org::imm::ImmTextTargetValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmTextTargetValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTextTargetValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTextTargetValue>(m, "immImmTextTargetValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTextTargetValue {
-                        org::imm::ImmTextTargetValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmTextTargetValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTextTargetValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBoldValueRead>(m, "immImmBoldValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBoldValueRead {
-                        org::imm::ImmBoldValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBoldValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBoldValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBoldValue>(m, "immImmBoldValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBoldValue {
-                        org::imm::ImmBoldValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBoldValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBoldValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmUnderlineValueRead>(m, "immImmUnderlineValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmUnderlineValueRead {
-                        org::imm::ImmUnderlineValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmUnderlineValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmUnderlineValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmUnderlineValue>(m, "immImmUnderlineValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmUnderlineValue {
-                        org::imm::ImmUnderlineValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmUnderlineValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmUnderlineValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmMonospaceValueRead>(m, "immImmMonospaceValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmMonospaceValueRead {
-                        org::imm::ImmMonospaceValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmMonospaceValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmMonospaceValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmMonospaceValue>(m, "immImmMonospaceValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmMonospaceValue {
-                        org::imm::ImmMonospaceValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmMonospaceValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmMonospaceValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmMarkQuoteValueRead>(m, "immImmMarkQuoteValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmMarkQuoteValueRead {
-                        org::imm::ImmMarkQuoteValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmMarkQuoteValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmMarkQuoteValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmMarkQuoteValue>(m, "immImmMarkQuoteValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmMarkQuoteValue {
-                        org::imm::ImmMarkQuoteValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmMarkQuoteValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmMarkQuoteValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmVerbatimValueRead>(m, "immImmVerbatimValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmVerbatimValueRead {
-                        org::imm::ImmVerbatimValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmVerbatimValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmVerbatimValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmVerbatimValue>(m, "immImmVerbatimValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmVerbatimValue {
-                        org::imm::ImmVerbatimValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmVerbatimValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmVerbatimValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmItalicValueRead>(m, "immImmItalicValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmItalicValueRead {
-                        org::imm::ImmItalicValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmItalicValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmItalicValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmItalicValue>(m, "immImmItalicValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmItalicValue {
-                        org::imm::ImmItalicValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmItalicValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmItalicValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmStrikeValueRead>(m, "immImmStrikeValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmStrikeValueRead {
-                        org::imm::ImmStrikeValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmStrikeValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmStrikeValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmStrikeValue>(m, "immImmStrikeValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmStrikeValue {
-                        org::imm::ImmStrikeValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmStrikeValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmStrikeValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmParValueRead>(m, "immImmParValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmParValueRead {
-                        org::imm::ImmParValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmParValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmParValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmParValue>(m, "immImmParValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmParValue {
-                        org::imm::ImmParValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmParValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmParValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmRadioTargetValueRead>(m, "immImmRadioTargetValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmRadioTargetValueRead {
-                        org::imm::ImmRadioTargetValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getWords", static_cast<immer::ext::ext::flex_vector<hstd::Str> const&(org::imm::ImmRadioTargetValueRead::*)() const>(&org::imm::ImmRadioTargetValueRead::getWords))
-    .def("__repr__", [](org::imm::ImmRadioTargetValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmRadioTargetValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmRadioTargetValue>(m, "immImmRadioTargetValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmRadioTargetValue {
-                        org::imm::ImmRadioTargetValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setWords",
          static_cast<void(org::imm::ImmRadioTargetValue::*)(immer::ext::ext::flex_vector<hstd::Str> const&)>(&org::imm::ImmRadioTargetValue::setWords),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmRadioTargetValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmRadioTargetValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmLatexValueRead>(m, "immImmLatexValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmLatexValueRead {
-                        org::imm::ImmLatexValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmLatexValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmLatexValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmLatexValue>(m, "immImmLatexValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmLatexValue {
-                        org::imm::ImmLatexValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmLatexValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmLatexValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmLinkValueRead>(m, "immImmLinkValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmLinkValueRead {
-                        org::imm::ImmLinkValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getDescription", static_cast<immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmLinkValueRead::*)() const>(&org::imm::ImmLinkValueRead::getDescription))
     .def("getTarget", static_cast<org::sem::LinkTarget const&(org::imm::ImmLinkValueRead::*)() const>(&org::imm::ImmLinkValueRead::getTarget))
-    .def("__repr__", [](org::imm::ImmLinkValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmLinkValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmLinkValue>(m, "immImmLinkValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmLinkValue {
-                        org::imm::ImmLinkValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setDescription",
          static_cast<void(org::imm::ImmLinkValue::*)(immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmLinkValue::setDescription),
          pybind11::arg("value"))
     .def("setTarget",
          static_cast<void(org::imm::ImmLinkValue::*)(org::sem::LinkTarget const&)>(&org::imm::ImmLinkValue::setTarget),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmLinkValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmLinkValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockCenterValueRead>(m, "immImmBlockCenterValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockCenterValueRead {
-                        org::imm::ImmBlockCenterValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockCenterValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockCenterValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockCenterValue>(m, "immImmBlockCenterValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockCenterValue {
-                        org::imm::ImmBlockCenterValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockCenterValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockCenterValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockQuoteValueRead>(m, "immImmBlockQuoteValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockQuoteValueRead {
-                        org::imm::ImmBlockQuoteValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockQuoteValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockQuoteValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockQuoteValue>(m, "immImmBlockQuoteValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockQuoteValue {
-                        org::imm::ImmBlockQuoteValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockQuoteValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockQuoteValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockCommentValueRead>(m, "immImmBlockCommentValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockCommentValueRead {
-                        org::imm::ImmBlockCommentValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockCommentValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockCommentValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockCommentValue>(m, "immImmBlockCommentValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockCommentValue {
-                        org::imm::ImmBlockCommentValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockCommentValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockCommentValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockVerseValueRead>(m, "immImmBlockVerseValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockVerseValueRead {
-                        org::imm::ImmBlockVerseValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockVerseValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockVerseValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockVerseValue>(m, "immImmBlockVerseValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockVerseValue {
-                        org::imm::ImmBlockVerseValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockVerseValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockVerseValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockDynamicFallbackValueRead>(m, "immImmBlockDynamicFallbackValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockDynamicFallbackValueRead {
-                        org::imm::ImmBlockDynamicFallbackValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getName", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmBlockDynamicFallbackValueRead::*)() const>(&org::imm::ImmBlockDynamicFallbackValueRead::getName))
-    .def("__repr__", [](org::imm::ImmBlockDynamicFallbackValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockDynamicFallbackValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockDynamicFallbackValue>(m, "immImmBlockDynamicFallbackValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockDynamicFallbackValue {
-                        org::imm::ImmBlockDynamicFallbackValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setName",
          static_cast<void(org::imm::ImmBlockDynamicFallbackValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmBlockDynamicFallbackValue::setName),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmBlockDynamicFallbackValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockDynamicFallbackValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockExampleValueRead>(m, "immImmBlockExampleValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockExampleValueRead {
-                        org::imm::ImmBlockExampleValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockExampleValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockExampleValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockExampleValue>(m, "immImmBlockExampleValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockExampleValue {
-                        org::imm::ImmBlockExampleValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockExampleValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockExampleValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockExportValueRead>(m, "immImmBlockExportValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockExportValueRead {
-                        org::imm::ImmBlockExportValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getExporter", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmBlockExportValueRead::*)() const>(&org::imm::ImmBlockExportValueRead::getExporter))
     .def("getContent", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmBlockExportValueRead::*)() const>(&org::imm::ImmBlockExportValueRead::getContent))
-    .def("__repr__", [](org::imm::ImmBlockExportValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockExportValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockExportValue>(m, "immImmBlockExportValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockExportValue {
-                        org::imm::ImmBlockExportValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setExporter",
          static_cast<void(org::imm::ImmBlockExportValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmBlockExportValue::setExporter),
          pybind11::arg("value"))
     .def("setContent",
          static_cast<void(org::imm::ImmBlockExportValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmBlockExportValue::setContent),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmBlockExportValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockExportValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockAdmonitionValueRead>(m, "immImmBlockAdmonitionValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockAdmonitionValueRead {
-                        org::imm::ImmBlockAdmonitionValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockAdmonitionValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockAdmonitionValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockAdmonitionValue>(m, "immImmBlockAdmonitionValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockAdmonitionValue {
-                        org::imm::ImmBlockAdmonitionValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmBlockAdmonitionValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockAdmonitionValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockCodeEvalResultValueRead>(m, "immImmBlockCodeEvalResultValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockCodeEvalResultValueRead {
-                        org::imm::ImmBlockCodeEvalResultValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getRaw", static_cast<immer::ext::ext::flex_vector<org::sem::OrgCodeEvalOutput> const&(org::imm::ImmBlockCodeEvalResultValueRead::*)() const>(&org::imm::ImmBlockCodeEvalResultValueRead::getRaw))
     .def("getNode", static_cast<org::imm::ImmIdT<org::imm::ImmOrg> const&(org::imm::ImmBlockCodeEvalResultValueRead::*)() const>(&org::imm::ImmBlockCodeEvalResultValueRead::getNode))
-    .def("__repr__", [](org::imm::ImmBlockCodeEvalResultValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockCodeEvalResultValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockCodeEvalResultValue>(m, "immImmBlockCodeEvalResultValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockCodeEvalResultValue {
-                        org::imm::ImmBlockCodeEvalResultValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setRaw",
          static_cast<void(org::imm::ImmBlockCodeEvalResultValue::*)(immer::ext::ext::flex_vector<org::sem::OrgCodeEvalOutput> const&)>(&org::imm::ImmBlockCodeEvalResultValue::setRaw),
          pybind11::arg("value"))
     .def("setNode",
          static_cast<void(org::imm::ImmBlockCodeEvalResultValue::*)(org::imm::ImmIdT<org::imm::ImmOrg> const&)>(&org::imm::ImmBlockCodeEvalResultValue::setNode),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmBlockCodeEvalResultValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockCodeEvalResultValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockCodeValueRead>(m, "immImmBlockCodeValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockCodeValueRead {
-                        org::imm::ImmBlockCodeValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getLang", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getLang))
     .def("getExports", static_cast<BlockCodeExports const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getExports))
     .def("getResult", static_cast<immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getResult))
@@ -7259,21 +5954,8 @@ node can have subnodes.)RAW")
     .def("getHlines", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getHlines))
     .def("getTangle", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getTangle))
     .def("getSwitches", static_cast<org::sem::AttrGroup const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getSwitches))
-    .def("__repr__", [](org::imm::ImmBlockCodeValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockCodeValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmBlockCodeValue>(m, "immImmBlockCodeValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmBlockCodeValue {
-                        org::imm::ImmBlockCodeValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setLang",
          static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::ext::ext::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmBlockCodeValue::setLang),
          pybind11::arg("value"))
@@ -7304,59 +5986,20 @@ node can have subnodes.)RAW")
     .def("setSwitches",
          static_cast<void(org::imm::ImmBlockCodeValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmBlockCodeValue::setSwitches),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmBlockCodeValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmBlockCodeValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSubtreeLogValueRead>(m, "immImmSubtreeLogValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSubtreeLogValueRead {
-                        org::imm::ImmSubtreeLogValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getHead", static_cast<org::sem::SubtreeLogHead const&(org::imm::ImmSubtreeLogValueRead::*)() const>(&org::imm::ImmSubtreeLogValueRead::getHead))
     .def("getDesc", static_cast<immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>> const&(org::imm::ImmSubtreeLogValueRead::*)() const>(&org::imm::ImmSubtreeLogValueRead::getDesc))
-    .def("__repr__", [](org::imm::ImmSubtreeLogValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSubtreeLogValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSubtreeLogValue>(m, "immImmSubtreeLogValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSubtreeLogValue {
-                        org::imm::ImmSubtreeLogValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setHead",
          static_cast<void(org::imm::ImmSubtreeLogValue::*)(org::sem::SubtreeLogHead const&)>(&org::imm::ImmSubtreeLogValue::setHead),
          pybind11::arg("value"))
     .def("setDesc",
          static_cast<void(org::imm::ImmSubtreeLogValue::*)(immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>> const&)>(&org::imm::ImmSubtreeLogValue::setDesc),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmSubtreeLogValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSubtreeLogValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSubtreeValueRead>(m, "immImmSubtreeValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSubtreeValueRead {
-                        org::imm::ImmSubtreeValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getLevel", static_cast<int const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getLevel))
     .def("getTreeid", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTreeid))
     .def("getTodo", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTodo))
@@ -7372,21 +6015,8 @@ node can have subnodes.)RAW")
     .def("getIscomment", static_cast<bool const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getIscomment))
     .def("getIsarchived", static_cast<bool const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getIsarchived))
     .def("getPriority", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getPriority))
-    .def("__repr__", [](org::imm::ImmSubtreeValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSubtreeValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSubtreeValue>(m, "immImmSubtreeValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSubtreeValue {
-                        org::imm::ImmSubtreeValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setLevel",
          static_cast<void(org::imm::ImmSubtreeValue::*)(int const&)>(&org::imm::ImmSubtreeValue::setLevel),
          pybind11::arg("value"))
@@ -7432,281 +6062,73 @@ node can have subnodes.)RAW")
     .def("setPriority",
          static_cast<void(org::imm::ImmSubtreeValue::*)(immer::ext::ext::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmSubtreeValue::setPriority),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmSubtreeValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSubtreeValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCellValueRead>(m, "immImmCellValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCellValueRead {
-                        org::imm::ImmCellValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getIsblock", static_cast<bool const&(org::imm::ImmCellValueRead::*)() const>(&org::imm::ImmCellValueRead::getIsblock))
-    .def("__repr__", [](org::imm::ImmCellValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCellValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCellValue>(m, "immImmCellValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCellValue {
-                        org::imm::ImmCellValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setIsblock",
          static_cast<void(org::imm::ImmCellValue::*)(bool const&)>(&org::imm::ImmCellValue::setIsblock),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCellValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCellValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmRowValueRead>(m, "immImmRowValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmRowValueRead {
-                        org::imm::ImmRowValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getCells", static_cast<immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>> const&(org::imm::ImmRowValueRead::*)() const>(&org::imm::ImmRowValueRead::getCells))
     .def("getIsblock", static_cast<bool const&(org::imm::ImmRowValueRead::*)() const>(&org::imm::ImmRowValueRead::getIsblock))
-    .def("__repr__", [](org::imm::ImmRowValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmRowValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmRowValue>(m, "immImmRowValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmRowValue {
-                        org::imm::ImmRowValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setCells",
          static_cast<void(org::imm::ImmRowValue::*)(immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>> const&)>(&org::imm::ImmRowValue::setCells),
          pybind11::arg("value"))
     .def("setIsblock",
          static_cast<void(org::imm::ImmRowValue::*)(bool const&)>(&org::imm::ImmRowValue::setIsblock),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmRowValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmRowValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTableValueRead>(m, "immImmTableValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTableValueRead {
-                        org::imm::ImmTableValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getRows", static_cast<immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>> const&(org::imm::ImmTableValueRead::*)() const>(&org::imm::ImmTableValueRead::getRows))
     .def("getIsblock", static_cast<bool const&(org::imm::ImmTableValueRead::*)() const>(&org::imm::ImmTableValueRead::getIsblock))
-    .def("__repr__", [](org::imm::ImmTableValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTableValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTableValue>(m, "immImmTableValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTableValue {
-                        org::imm::ImmTableValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setRows",
          static_cast<void(org::imm::ImmTableValue::*)(immer::ext::ext::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>> const&)>(&org::imm::ImmTableValue::setRows),
          pybind11::arg("value"))
     .def("setIsblock",
          static_cast<void(org::imm::ImmTableValue::*)(bool const&)>(&org::imm::ImmTableValue::setIsblock),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmTableValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTableValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmParagraphValueRead>(m, "immImmParagraphValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmParagraphValueRead {
-                        org::imm::ImmParagraphValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmParagraphValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmParagraphValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmParagraphValue>(m, "immImmParagraphValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmParagraphValue {
-                        org::imm::ImmParagraphValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmParagraphValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmParagraphValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmColonExampleValueRead>(m, "immImmColonExampleValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmColonExampleValueRead {
-                        org::imm::ImmColonExampleValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmColonExampleValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmColonExampleValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmColonExampleValue>(m, "immImmColonExampleValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmColonExampleValue {
-                        org::imm::ImmColonExampleValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmColonExampleValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmColonExampleValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdAttrValueRead>(m, "immImmCmdAttrValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdAttrValueRead {
-                        org::imm::ImmCmdAttrValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getTarget", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdAttrValueRead::*)() const>(&org::imm::ImmCmdAttrValueRead::getTarget))
-    .def("__repr__", [](org::imm::ImmCmdAttrValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdAttrValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdAttrValue>(m, "immImmCmdAttrValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdAttrValue {
-                        org::imm::ImmCmdAttrValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setTarget",
          static_cast<void(org::imm::ImmCmdAttrValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdAttrValue::setTarget),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdAttrValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdAttrValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdExportValueRead>(m, "immImmCmdExportValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdExportValueRead {
-                        org::imm::ImmCmdExportValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getExporter", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdExportValueRead::*)() const>(&org::imm::ImmCmdExportValueRead::getExporter))
     .def("getContent", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdExportValueRead::*)() const>(&org::imm::ImmCmdExportValueRead::getContent))
-    .def("__repr__", [](org::imm::ImmCmdExportValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdExportValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdExportValue>(m, "immImmCmdExportValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdExportValue {
-                        org::imm::ImmCmdExportValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setExporter",
          static_cast<void(org::imm::ImmCmdExportValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdExportValue::setExporter),
          pybind11::arg("value"))
     .def("setContent",
          static_cast<void(org::imm::ImmCmdExportValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdExportValue::setContent),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdExportValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdExportValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCallValueRead>(m, "immImmCallValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCallValueRead {
-                        org::imm::ImmCallValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getName", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCallValueRead::*)() const>(&org::imm::ImmCallValueRead::getName))
     .def("getAttrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCallValueRead::*)() const>(&org::imm::ImmCallValueRead::getAttrs))
     .def("getIscommand", static_cast<bool const&(org::imm::ImmCallValueRead::*)() const>(&org::imm::ImmCallValueRead::getIscommand))
-    .def("__repr__", [](org::imm::ImmCallValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCallValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCallValue>(m, "immImmCallValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCallValue {
-                        org::imm::ImmCallValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setName",
          static_cast<void(org::imm::ImmCallValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCallValue::setName),
          pybind11::arg("value"))
@@ -7716,69 +6138,17 @@ node can have subnodes.)RAW")
     .def("setIscommand",
          static_cast<void(org::imm::ImmCallValue::*)(bool const&)>(&org::imm::ImmCallValue::setIscommand),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCallValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCallValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmListValueRead>(m, "immImmListValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmListValueRead {
-                        org::imm::ImmListValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmListValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmListValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmListValue>(m, "immImmListValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmListValue {
-                        org::imm::ImmListValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmListValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmListValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmListItemValueRead>(m, "immImmListItemValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmListItemValueRead {
-                        org::imm::ImmListItemValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getCheckbox", static_cast<org::imm::org::imm::ImmListItem::Checkbox const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getCheckbox))
     .def("getHeader", static_cast<immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getHeader))
     .def("getBullet", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getBullet))
-    .def("__repr__", [](org::imm::ImmListItemValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmListItemValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmListItemValue>(m, "immImmListItemValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmListItemValue {
-                        org::imm::ImmListItemValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setCheckbox",
          static_cast<void(org::imm::ImmListItemValue::*)(org::imm::org::imm::ImmListItem::Checkbox const&)>(&org::imm::ImmListItemValue::setCheckbox),
          pybind11::arg("value"))
@@ -7788,21 +6158,8 @@ node can have subnodes.)RAW")
     .def("setBullet",
          static_cast<void(org::imm::ImmListItemValue::*)(immer::ext::ext::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmListItemValue::setBullet),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmListItemValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmListItemValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDocumentOptionsValueRead>(m, "immImmDocumentOptionsValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDocumentOptionsValueRead {
-                        org::imm::ImmDocumentOptionsValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getInitialvisibility", static_cast<InitialSubtreeVisibility const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getInitialvisibility))
     .def("getProperties", static_cast<immer::ext::ext::flex_vector<org::sem::NamedProperty> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getProperties))
     .def("getExportconfig", static_cast<org::sem::DocumentExportConfig const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getExportconfig))
@@ -7812,21 +6169,8 @@ node can have subnodes.)RAW")
     .def("getSetupfile", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getSetupfile))
     .def("getMaxsubtreelevelexport", static_cast<immer::ext::ext::box<std::optional<int>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getMaxsubtreelevelexport))
     .def("getColumns", static_cast<immer::ext::ext::box<std::optional<org::sem::ColumnView>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getColumns))
-    .def("__repr__", [](org::imm::ImmDocumentOptionsValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDocumentOptionsValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDocumentOptionsValue>(m, "immImmDocumentOptionsValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDocumentOptionsValue {
-                        org::imm::ImmDocumentOptionsValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setInitialvisibility",
          static_cast<void(org::imm::ImmDocumentOptionsValue::*)(InitialSubtreeVisibility const&)>(&org::imm::ImmDocumentOptionsValue::setInitialvisibility),
          pybind11::arg("value"))
@@ -7854,93 +6198,28 @@ node can have subnodes.)RAW")
     .def("setColumns",
          static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::ext::ext::box<std::optional<org::sem::ColumnView>> const&)>(&org::imm::ImmDocumentOptionsValue::setColumns),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmDocumentOptionsValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDocumentOptionsValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDocumentFragmentValueRead>(m, "immImmDocumentFragmentValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDocumentFragmentValueRead {
-                        org::imm::ImmDocumentFragmentValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getBaseline", static_cast<int const&(org::imm::ImmDocumentFragmentValueRead::*)() const>(&org::imm::ImmDocumentFragmentValueRead::getBaseline))
     .def("getBasecol", static_cast<int const&(org::imm::ImmDocumentFragmentValueRead::*)() const>(&org::imm::ImmDocumentFragmentValueRead::getBasecol))
-    .def("__repr__", [](org::imm::ImmDocumentFragmentValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDocumentFragmentValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDocumentFragmentValue>(m, "immImmDocumentFragmentValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDocumentFragmentValue {
-                        org::imm::ImmDocumentFragmentValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setBaseline",
          static_cast<void(org::imm::ImmDocumentFragmentValue::*)(int const&)>(&org::imm::ImmDocumentFragmentValue::setBaseline),
          pybind11::arg("value"))
     .def("setBasecol",
          static_cast<void(org::imm::ImmDocumentFragmentValue::*)(int const&)>(&org::imm::ImmDocumentFragmentValue::setBasecol),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmDocumentFragmentValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDocumentFragmentValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCriticMarkupValueRead>(m, "immImmCriticMarkupValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCriticMarkupValueRead {
-                        org::imm::ImmCriticMarkupValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getKind", static_cast<org::imm::org::imm::ImmCriticMarkup::Kind const&(org::imm::ImmCriticMarkupValueRead::*)() const>(&org::imm::ImmCriticMarkupValueRead::getKind))
-    .def("__repr__", [](org::imm::ImmCriticMarkupValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCriticMarkupValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCriticMarkupValue>(m, "immImmCriticMarkupValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCriticMarkupValue {
-                        org::imm::ImmCriticMarkupValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setKind",
          static_cast<void(org::imm::ImmCriticMarkupValue::*)(org::imm::org::imm::ImmCriticMarkup::Kind const&)>(&org::imm::ImmCriticMarkupValue::setKind),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCriticMarkupValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCriticMarkupValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDocumentValueRead>(m, "immImmDocumentValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDocumentValueRead {
-                        org::imm::ImmDocumentValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getTitle", static_cast<immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getTitle))
     .def("getAuthor", static_cast<immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getAuthor))
     .def("getCreator", static_cast<immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getCreator))
@@ -7949,21 +6228,8 @@ node can have subnodes.)RAW")
     .def("getLanguage", static_cast<immer::ext::ext::flex_vector<hstd::Str> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getLanguage))
     .def("getOptions", static_cast<org::imm::ImmIdT<org::imm::ImmDocumentOptions> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getOptions))
     .def("getExportfilename", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getExportfilename))
-    .def("__repr__", [](org::imm::ImmDocumentValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDocumentValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDocumentValue>(m, "immImmDocumentValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDocumentValue {
-                        org::imm::ImmDocumentValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setTitle",
          static_cast<void(org::imm::ImmDocumentValue::*)(immer::ext::ext::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmDocumentValue::setTitle),
          pybind11::arg("value"))
@@ -7988,42 +6254,16 @@ node can have subnodes.)RAW")
     .def("setExportfilename",
          static_cast<void(org::imm::ImmDocumentValue::*)(immer::ext::ext::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmDocumentValue::setExportfilename),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmDocumentValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDocumentValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmFileTargetValueRead>(m, "immImmFileTargetValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmFileTargetValueRead {
-                        org::imm::ImmFileTargetValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getPath", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getPath))
     .def("getLine", static_cast<immer::ext::ext::box<std::optional<int>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getLine))
     .def("getSearchtarget", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getSearchtarget))
     .def("getRestricttoheadlines", static_cast<bool const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getRestricttoheadlines))
     .def("getTargetid", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getTargetid))
     .def("getRegexp", static_cast<immer::ext::ext::box<std::optional<hstd::Str>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getRegexp))
-    .def("__repr__", [](org::imm::ImmFileTargetValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmFileTargetValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmFileTargetValue>(m, "immImmFileTargetValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmFileTargetValue {
-                        org::imm::ImmFileTargetValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setPath",
          static_cast<void(org::imm::ImmFileTargetValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmFileTargetValue::setPath),
          pybind11::arg("value"))
@@ -8042,99 +6282,21 @@ node can have subnodes.)RAW")
     .def("setRegexp",
          static_cast<void(org::imm::ImmFileTargetValue::*)(immer::ext::ext::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmFileTargetValue::setRegexp),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmFileTargetValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmFileTargetValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTextSeparatorValueRead>(m, "immImmTextSeparatorValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTextSeparatorValueRead {
-                        org::imm::ImmTextSeparatorValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmTextSeparatorValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTextSeparatorValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmTextSeparatorValue>(m, "immImmTextSeparatorValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTextSeparatorValue {
-                        org::imm::ImmTextSeparatorValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmTextSeparatorValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTextSeparatorValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDocumentGroupValueRead>(m, "immImmDocumentGroupValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDocumentGroupValueRead {
-                        org::imm::ImmDocumentGroupValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmDocumentGroupValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDocumentGroupValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDocumentGroupValue>(m, "immImmDocumentGroupValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDocumentGroupValue {
-                        org::imm::ImmDocumentGroupValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::imm::ImmDocumentGroupValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDocumentGroupValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmFileValueRead>(m, "immImmFileValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmFileValueRead {
-                        org::imm::ImmFileValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getRelpath", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmFileValueRead::*)() const>(&org::imm::ImmFileValueRead::getRelpath))
     .def("getAbspath", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmFileValueRead::*)() const>(&org::imm::ImmFileValueRead::getAbspath))
     .def("getData", static_cast<org::imm::ImmFile::Data const&(org::imm::ImmFileValueRead::*)() const>(&org::imm::ImmFileValueRead::getData))
-    .def("__repr__", [](org::imm::ImmFileValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmFileValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmFileValue>(m, "immImmFileValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmFileValue {
-                        org::imm::ImmFileValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setRelpath",
          static_cast<void(org::imm::ImmFileValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmFileValue::setRelpath),
          pybind11::arg("value"))
@@ -8144,116 +6306,38 @@ node can have subnodes.)RAW")
     .def("setData",
          static_cast<void(org::imm::ImmFileValue::*)(org::imm::ImmFile::Data const&)>(&org::imm::ImmFileValue::setData),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmFileValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmFileValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDirectoryValueRead>(m, "immImmDirectoryValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDirectoryValueRead {
-                        org::imm::ImmDirectoryValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getRelpath", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmDirectoryValueRead::*)() const>(&org::imm::ImmDirectoryValueRead::getRelpath))
     .def("getAbspath", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmDirectoryValueRead::*)() const>(&org::imm::ImmDirectoryValueRead::getAbspath))
-    .def("__repr__", [](org::imm::ImmDirectoryValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDirectoryValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmDirectoryValue>(m, "immImmDirectoryValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmDirectoryValue {
-                        org::imm::ImmDirectoryValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setRelpath",
          static_cast<void(org::imm::ImmDirectoryValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmDirectoryValue::setRelpath),
          pybind11::arg("value"))
     .def("setAbspath",
          static_cast<void(org::imm::ImmDirectoryValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmDirectoryValue::setAbspath),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmDirectoryValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmDirectoryValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSymlinkValueRead>(m, "immImmSymlinkValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSymlinkValueRead {
-                        org::imm::ImmSymlinkValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getIsdirectory", static_cast<bool const&(org::imm::ImmSymlinkValueRead::*)() const>(&org::imm::ImmSymlinkValueRead::getIsdirectory))
     .def("getAbspath", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmSymlinkValueRead::*)() const>(&org::imm::ImmSymlinkValueRead::getAbspath))
-    .def("__repr__", [](org::imm::ImmSymlinkValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSymlinkValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmSymlinkValue>(m, "immImmSymlinkValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSymlinkValue {
-                        org::imm::ImmSymlinkValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setIsdirectory",
          static_cast<void(org::imm::ImmSymlinkValue::*)(bool const&)>(&org::imm::ImmSymlinkValue::setIsdirectory),
          pybind11::arg("value"))
     .def("setAbspath",
          static_cast<void(org::imm::ImmSymlinkValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmSymlinkValue::setAbspath),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmSymlinkValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSymlinkValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdIncludeValueRead>(m, "immImmCmdIncludeValueRead")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdIncludeValueRead {
-                        org::imm::ImmCmdIncludeValueRead result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("getPath", static_cast<immer::ext::ext::box<hstd::Str> const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getPath))
     .def("getFirstline", static_cast<immer::ext::ext::box<std::optional<int>> const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getFirstline))
     .def("getLastline", static_cast<immer::ext::ext::box<std::optional<int>> const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getLastline))
     .def("getData", static_cast<org::imm::ImmCmdInclude::Data const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getData))
-    .def("__repr__", [](org::imm::ImmCmdIncludeValueRead _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdIncludeValueRead _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmCmdIncludeValue>(m, "immImmCmdIncludeValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdIncludeValue {
-                        org::imm::ImmCmdIncludeValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("setPath",
          static_cast<void(org::imm::ImmCmdIncludeValue::*)(immer::ext::ext::box<hstd::Str> const&)>(&org::imm::ImmCmdIncludeValue::setPath),
          pybind11::arg("value"))
@@ -8266,14 +6350,6 @@ node can have subnodes.)RAW")
     .def("setData",
          static_cast<void(org::imm::ImmCmdIncludeValue::*)(org::imm::ImmCmdInclude::Data const&)>(&org::imm::ImmCmdIncludeValue::setData),
          pybind11::arg("value"))
-    .def("__repr__", [](org::imm::ImmCmdIncludeValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmCmdIncludeValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmAdapterOrgAPI>(m, "immImmAdapterOrgAPI")
     ;

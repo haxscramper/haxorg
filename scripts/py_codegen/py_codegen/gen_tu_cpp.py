@@ -57,6 +57,7 @@ class GenTuEnum:
     refl: bool = False
     IsForwardDecl: bool = False
     original: Optional[Path] = None
+    reflectionParams: Dict[str, Any] = field(default_factory=dict)
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "enum " + self.name.format(dbgOrigin=dbgOrigin)
@@ -80,6 +81,8 @@ class GenTuFunction:
     original: Optional[Path] = None
     spaces: List[QualType] = field(default_factory=list)
     isExposedForWrap: bool = True
+
+    reflectionParams: Dict[str, Any] = field(default_factory=dict)
 
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
@@ -111,6 +114,7 @@ class GenTuField:
     isStatic: bool = False
     isTypeDecl: bool = False
     isExposedForWrap: bool = True
+    reflectionParams: Dict[str, Any] = field(default_factory=dict)
 
 
 GenTuEntry = Union[
@@ -141,6 +145,7 @@ class GenTuStruct:
     original: Optional[Path] = field(default=None)
     GenDescribeMethods: bool = False
     GenDescribeFields: bool = True
+    reflectionParams: Dict[str, Any] = field(default_factory=dict)
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.name.format(dbgOrigin=dbgOrigin)

@@ -6,18 +6,21 @@ import re
 from beartype import beartype
 from py_codegen.gen_tu_cpp import *
 from pathlib import Path
+import json
 
 
 @beartype
 def conv_proto_default(value: pb.Expr) -> Optional[str]:
     if value.kind == pb.ExprKind.Lit and 0 < len(value.value):
         return value.value
-    
+
     else:
         return None
 
+
 @beartype
 def strip_comment_prefixes(comment: str) -> List[str]:
+
     def drop_leading(prefix: re.Pattern, text: str) -> List[str]:
         result: List[str] = []
         for line in text.strip().splitlines():
@@ -46,6 +49,7 @@ def strip_comment_prefixes(comment: str) -> List[str]:
     else:
         raise ValueError(f"Unrecognized comment style: {comment}")
 
+
 @beartype
 def conv_doc_comment(comment: str) -> GenTuDoc:
     if not comment:
@@ -68,10 +72,8 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
                 full.append(line)
 
         return GenTuDoc('\n'.join(brief), '\n'.join(full))
-    
+
     return process_content(strip_comment_prefixes(comment))
-
-
 
 
 @beartype
@@ -126,6 +128,9 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
         GenTuDoc(""),
     )
 
+    if record.reflection_params:
+        result.reflectionParams = json.loads(record.reflection_params)
+
     result.original = copy(original)
     result.IsForwardDecl = record.is_forward_decl
     result.IsAbstract = record.is_abstract
@@ -179,6 +184,9 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
         result.fields.append(GenTuEnumField(_field.name, GenTuDoc(""),
                                             value=_field.value))
 
+    if en.reflection_params:
+        result.reflectionParams = json.loads(en.reflection_params)
+
     return result
 
 
@@ -191,7 +199,7 @@ def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
 
 @beartype
 def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunction:
-    return GenTuFunction(
+    result = GenTuFunction(
         result=conv_proto_type(rec.result_ty),
         name=rec.name,
         arguments=[conv_proto_arg(arg) for arg in rec.arguments],
@@ -199,6 +207,11 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
         original=copy(original),
         spaces=[conv_proto_type(T) for T in rec.spaces],
     )
+
+    if rec.reflection_params:
+        result.reflectionParams = json.loads(rec.reflection_params)
+
+    return result
 
 
 @beartype
