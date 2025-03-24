@@ -10,6 +10,9 @@ using llvm::dyn_cast;
 
 std::optional<std::string> ReflASTVisitor::get_refl_params(
     c::Decl const* decl) {
+    auto fmt = decl->getLocation().printToString(Ctx->getSourceManager());
+
+
     for (const clang::Attr* attr : decl->attrs()) {
         if (attr->getKind() == clang::attr::Kind::Annotate) {
             const auto* annotateAttr = llvm::cast<clang::AnnotateAttr>(
@@ -20,7 +23,13 @@ std::optional<std::string> ReflASTVisitor::get_refl_params(
                 strLiteral != nullptr && *strLiteral != nullptr) {
                 if (const auto* stringLiteral = llvm::dyn_cast<
                         clang::StringLiteral>(*strLiteral)) {
-                    std::cout << dump(decl) << std::endl;
+                    // LOG(INFO) << dump(decl);
+                    // if (fmt.find("ImmOrg.hpp") != std::string::npos) {
+                    //     LOG(INFO) << std::format(
+                    //         "refl {} value {}",
+                    //         fmt,
+                    //         stringLiteral->getString().str());
+                    // }
                     return stringLiteral->getString().str();
                 }
             }
@@ -30,7 +39,7 @@ std::optional<std::string> ReflASTVisitor::get_refl_params(
             if (annotation.starts_with("refl")) {
                 auto text = annotation.substr(4).trim().str();
                 if (!text.empty()) {
-                    std::cout << dump(decl) << std::endl;
+                    LOG(INFO) << dump(decl);
                     return text;
                 }
             }
@@ -207,14 +216,17 @@ void ReflASTVisitor::applyNamespaces(
             QualType*       _old = oldNamespaces.at(i);
             QualType const* _new = newNamespaces.at(i);
             if (_old->name() != _new->name()) {
-                llvm::outs() << std::format(
-                    "Mismatching namespace types at index {} '{}' (from "
-                    "{}) != '{}' (from {})\n",
-                    i,
-                    _old->name(),
-                    _old->dbgorigin(),
-                    _new->name(),
-                    _new->dbgorigin());
+                if (false) {
+                    LOG(INFO) << std::format(
+                        "Mismatching namespace types at index {} '{}' "
+                        "(from "
+                        "{}) != '{}' (from {})\n",
+                        i,
+                        _old->name(),
+                        _old->dbgorigin(),
+                        _new->name(),
+                        _new->dbgorigin());
+                }
                 _old->set_name(_new->name());
             }
 
@@ -318,7 +330,7 @@ void ReflASTVisitor::log_visit(
     char const*        function) {
     if (verbose) {
         if (Decl) {
-            std::cout << std::format(
+            LOG(INFO) << std::format(
                 "\n--------------------------------------------------\n{}"
                 "\n---"
                 "\n{}\n"
@@ -327,7 +339,7 @@ void ReflASTVisitor::log_visit(
                     "line:{} function:{} msg:{}", line, function, msg),
                 (Decl ? "\n" + dump(Decl) : ""));
         } else {
-            std::cout << std::format(
+            LOG(INFO) << std::format(
                 "line:{} function:{} msg:{}\n", line, function, msg);
         }
     }
@@ -742,6 +754,12 @@ void ReflASTVisitor::fillMethodDecl(
 void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
     rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
     rec->set_isunion(Decl->isUnion());
+
+
+    if (auto args = get_refl_params(Decl)) {
+        rec->set_reflectionparams(args.value());
+    }
+
     auto&           Diags   = Ctx->getDiagnostics();
     c::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
     if (Decl->getNameAsString().empty() && Typedef == nullptr) {
@@ -851,8 +869,6 @@ void ReflASTVisitor::fillCxxRecordDecl(
         Decl->getLocation());
 
     if (auto args = get_refl_params(Decl)) {
-        std::cout << std::format(
-            "Found reflection parameters '{}'\n", args.value());
         rec->set_reflectionparams(args.value());
     }
 
@@ -884,7 +900,7 @@ void ReflASTVisitor::fillCxxRecordDecl(
                     fillCxxRecordDecl(sub_rec, SubRecord);
                 } else {
                     if (verbose) {
-                        std::cerr << std::format(
+                        LOG(WARNING) << std::format(
                             "Dropping decl field decl: {}, implicit: {}, "
                             "is anon "
                             "subrec: {}\n",
@@ -1178,19 +1194,23 @@ c::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
         0,
         Attr.getRange());
 
+
     if (Attr.getNumArgs() == 1) {
         // Process argument if provided
         clang::StringRef jsonStr;
         if (!S.checkStringLiteralArgumentAttr(Attr, 0, jsonStr)) {
+            LOG(INFO) << "Attribute not applied";
             return AttributeNotApplied;
         }
+
+        std::vector<c::Expr*> exprs{Attr.getArgAsExpr(0)};
 
         // Create attribute with the string argument
         D->addAttr(c::AnnotateAttr::Create(
             S.Context,
             Attr.getAttrName()->deuglifiedName(),
-            nullptr,
-            1,
+            &(*exprs.begin()),
+            exprs.size(),
             Attr.getRange()));
     } else {
         // Create attribute with no arguments

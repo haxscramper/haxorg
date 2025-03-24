@@ -268,7 +268,7 @@ def run_command(
 
     args: List[str] = [conv_arg(it) for it in args]
 
-    args_repr = " ".join((f"'[cyan]{s}[/cyan]'" for s in args))
+    args_repr = " ".join((f"\"[cyan]{s}[/cyan]\"" for s in args))
 
     log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
                    (f" in [green]{cwd}[/green]" if cwd else ""))
@@ -340,8 +340,9 @@ def run_command(
             return (retcode, stdout, stderr)
 
         else:
-            raise Failure("Failed to execute the command {}{}{}".format(
+            raise Failure("Failed to execute the command {} {}{}{}".format(
                 cmd,
+                " ".join((f"\"{s}\"" for s in args)),
                 f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
                 f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
             )) from None
@@ -1439,7 +1440,7 @@ def generate_reflection_snapshot(
                         src_file = get_script_root(
                             "src/py_libs/py_adaptagrams/adaptagrams_ir_refl_target.cpp")
 
-                exitcode, stdout, stderr = run_command(
+                run_command(
                     ctx,
                     "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
                     [
@@ -1454,16 +1455,9 @@ def generate_reflection_snapshot(
                         out_file,
                         src_file,
                     ],
-                    capture=True,
-                    allow_fail=True,
+                    stderr_debug=Path(f"/tmp/debug_reflection_{task}_stderr.txt"),
+                    stdout_debug=Path(f"/tmp/debug_reflection_{task}_stdout.txt"),
                 )
-
-                Path(f"/tmp/debug_reflection_{task}_stdout.txt").write_text(stdout)
-                Path(f"/tmp/debug_reflection_{task}_stderr.txt").write_text(stderr)
-
-                if exitcode != 0:
-                    log(CAT).error("Reflection tool failed")
-                    raise
 
                 log(CAT).info("Updated reflection")
 
@@ -1473,11 +1467,7 @@ def generate_reflection_snapshot(
 
 
 # TODO Make compiled reflection generation build optional
-@org_task(pre_optional=[
-    build_haxorg,
-    generate_reflection_snapshot,
-    symlink_build,
-])
+@org_task()
 def generate_haxorg_sources(ctx: Context, tmp: bool = False, standalone: bool = False):
     """Update auto-generated source files"""
     # TODO source file generation should optionally overwrite the target OR
@@ -1485,7 +1475,7 @@ def generate_haxorg_sources(ctx: Context, tmp: bool = False, standalone: bool = 
     # compilation of the source)
     log(CAT).info("Executing haxorg code generation step.")
     if not standalone:
-        run_self(ctx, [build_haxorg])
+        run_self(ctx, [build_haxorg, "--target=py_textlayout_cpp"])
         run_self(ctx, [generate_reflection_snapshot])
         run_self(ctx, [symlink_build])
 
