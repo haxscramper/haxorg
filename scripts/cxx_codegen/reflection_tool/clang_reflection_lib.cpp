@@ -306,6 +306,8 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
     } else if (
         const c::RecordType* recordType = In->getAs<c::RecordType>()) {
         decl = recordType->getDecl();
+    } else if (const c::EnumType* enumType = In->getAs<c::EnumType>()) {
+        decl = enumType->getDecl();
     } else {
         Diag(
             DiagKind::Warning,
@@ -557,6 +559,7 @@ void ReflASTVisitor::fillType(
         } else if (In->isEnumeralType()) {
             auto const name //
                 = In->getAs<c::EnumType>()->getDecl()->getNameAsString();
+            applyNamespaces(Out, getNamespaces(In, Loc));
             add_debug(Out, std::format(" >enum '{}'", name));
             Out->set_name(name);
 
@@ -1051,7 +1054,6 @@ void ReflASTVisitor::fillSharedRecordData(
 
     if (const auto* specialization = llvm::dyn_cast<
             clang::ClassTemplateSpecializationDecl>(Decl)) {
-        LOG(INFO) << "Found explicit instantiation";
         rec->set_isexplicitinstantiation(true);
         const clang::TemplateArgumentList& args //
             = specialization->getTemplateArgs();

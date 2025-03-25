@@ -6144,13 +6144,13 @@ node can have subnodes.)RAW")
   pybind11::class_<org::imm::ImmListValue, org::imm::ImmListValueRead>(m, "immImmListValue")
     ;
   pybind11::class_<org::imm::ImmListItemValueRead>(m, "immImmListItemValueRead")
-    .def("getCheckbox", static_cast<Checkbox const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getCheckbox))
+    .def("getCheckbox", static_cast<org::imm::ImmListItem::Checkbox const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getCheckbox))
     .def("getHeader", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getHeader))
     .def("getBullet", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getBullet))
     ;
   pybind11::class_<org::imm::ImmListItemValue, org::imm::ImmListItemValueRead>(m, "immImmListItemValue")
     .def("setCheckbox",
-         static_cast<void(org::imm::ImmListItemValue::*)(Checkbox const&)>(&org::imm::ImmListItemValue::setCheckbox),
+         static_cast<void(org::imm::ImmListItemValue::*)(org::imm::ImmListItem::Checkbox const&)>(&org::imm::ImmListItemValue::setCheckbox),
          pybind11::arg("value"))
     .def("setHeader",
          static_cast<void(org::imm::ImmListItemValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmListItemValue::setHeader),
@@ -6212,11 +6212,11 @@ node can have subnodes.)RAW")
          pybind11::arg("value"))
     ;
   pybind11::class_<org::imm::ImmCriticMarkupValueRead>(m, "immImmCriticMarkupValueRead")
-    .def("getKind", static_cast<Kind const&(org::imm::ImmCriticMarkupValueRead::*)() const>(&org::imm::ImmCriticMarkupValueRead::getKind))
+    .def("getKind", static_cast<org::imm::ImmCriticMarkup::Kind const&(org::imm::ImmCriticMarkupValueRead::*)() const>(&org::imm::ImmCriticMarkupValueRead::getKind))
     ;
   pybind11::class_<org::imm::ImmCriticMarkupValue, org::imm::ImmCriticMarkupValueRead>(m, "immImmCriticMarkupValue")
     .def("setKind",
-         static_cast<void(org::imm::ImmCriticMarkupValue::*)(Kind const&)>(&org::imm::ImmCriticMarkupValue::setKind),
+         static_cast<void(org::imm::ImmCriticMarkupValue::*)(org::imm::ImmCriticMarkup::Kind const&)>(&org::imm::ImmCriticMarkupValue::setKind),
          pybind11::arg("value"))
     ;
   pybind11::class_<org::imm::ImmDocumentValueRead>(m, "immImmDocumentValueRead")
@@ -7143,11 +7143,11 @@ and a segment kind.)RAW")
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitLeafField",
-         static_cast<void(org::bind::python::ExporterPython::*)(LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitLeafField),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalLeafField",
-         static_cast<void(org::bind::python::ExporterPython::*)(LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalLeafField),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitOrgField",
@@ -7169,7 +7169,7 @@ and a segment kind.)RAW")
          static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyOrgRes),
          pybind11::arg("cb"))
     .def("setNewLeafRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewLeafRes),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewLeafRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyLeafRes",
