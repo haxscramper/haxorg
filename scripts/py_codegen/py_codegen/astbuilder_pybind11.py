@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
-IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python"]
+IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "imm"]
 
 
 @beartype
