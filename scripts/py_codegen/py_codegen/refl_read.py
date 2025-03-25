@@ -166,6 +166,9 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
                     doc=conv_doc_comment(_field.doc),
                 ))
 
+    for base in record.bases:
+        result.bases.append(conv_proto_type(base.name))
+
     for meth in record.methods:
         if meth.kind != pb.RecordMethodKind.Base:
             continue

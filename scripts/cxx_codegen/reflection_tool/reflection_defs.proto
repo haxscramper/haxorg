@@ -71,6 +71,19 @@ message QualType {
     bool IsBuiltin = 11;
 }
 
+enum AccessSpecifier {
+    AsPublic = 0;
+    AsProtected = 1;
+    AsPrivate = 2;
+    AsNone = 3;
+}
+
+message BaseSpec {
+    QualType Name = 1;
+    bool IsVirtual = 2;
+    AccessSpecifier Access = 3;
+}
+
 // Enumeration definition
 message Enum {
     message Field  {
@@ -174,7 +187,7 @@ message Record {
     /// used to splice inner members or for similar C-style approaches to the code 
     /// building. 
     QualType Name = 1;
-    repeated QualType Bases = 2;
+    repeated BaseSpec Bases = 2;
     repeated Field Fields = 3;
     repeated Method Methods = 4;
     repeated Record NestedRec = 5;

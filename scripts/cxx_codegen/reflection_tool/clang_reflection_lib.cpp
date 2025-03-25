@@ -823,7 +823,7 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
         rec->set_reflectionparams(args.value());
     }
 
-    fillExplicitTemplateDecl(rec, Decl);
+    fillSharedRecordData(rec, Decl);
 
     auto&           Diags   = Ctx->getDiagnostics();
     c::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
@@ -937,7 +937,23 @@ void ReflASTVisitor::fillCxxRecordDecl(
         rec->set_reflectionparams(args.value());
     }
 
-    fillExplicitTemplateDecl(rec, Decl);
+    for (const auto& base : Decl->bases()) {
+        auto b = rec->add_bases();
+        b->set_isvirtual(base.isVirtual());
+        fillType(b->mutable_name(), base.getType(), Decl->getLocation());
+        switch (base.getAccessSpecifier()) {
+            case clang::AccessSpecifier::AS_none:
+                b->set_access(AccessSpecifier::AsNone);
+            case clang::AccessSpecifier::AS_public:
+                b->set_access(AccessSpecifier::AsPublic);
+            case clang::AccessSpecifier::AS_private:
+                b->set_access(AccessSpecifier::AsPrivate);
+            case clang::AccessSpecifier::AS_protected:
+                b->set_access(AccessSpecifier::AsProtected);
+        }
+    }
+
+    fillSharedRecordData(rec, Decl);
 
     for (c::Decl const* SubDecl : Decl->decls()) {
         if (!shouldVisit(SubDecl)) { continue; }
@@ -1029,7 +1045,7 @@ void ReflASTVisitor::fillCxxRecordDecl(
     }
 }
 
-void ReflASTVisitor::fillExplicitTemplateDecl(
+void ReflASTVisitor::fillSharedRecordData(
     Record*                  rec,
     clang::RecordDecl const* Decl) {
 

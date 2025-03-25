@@ -151,7 +151,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         const clang::CXXMethodDecl* method);
     void fillRecordDecl(Record* rec, clang::RecordDecl* Decl);
     void fillCxxRecordDecl(Record* rec, const clang::CXXRecordDecl* Decl);
-    void fillExplicitTemplateDecl(
+    void fillSharedRecordData(
         Record*                  rec,
         const clang::RecordDecl* Decl);
 
