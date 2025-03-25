@@ -354,8 +354,9 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 @beartype
 def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
     res = Py11Class(
-        PyName=py_type(value.name).Name,
-        Class=value.name,
+        PyName=value.reflectionParams.get("wrapper-name", None) or
+        py_type(value.name).Name,
+        Class=value.declarationQualName(),
         Bases=value.bases,
     )
 

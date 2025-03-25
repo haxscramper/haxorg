@@ -645,6 +645,7 @@ void ReflASTVisitor::fillType(
         case c::TemplateArgument::TemplateExpansion:
         case c::TemplateArgument::NullPtr:
         case c::TemplateArgument::Null:
+        case c::TemplateArgument::StructuralValue:
         case c::TemplateArgument::Pack: {
             Diag(
                 DiagKind::Warning,
@@ -822,6 +823,8 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
         rec->set_reflectionparams(args.value());
     }
 
+    fillExplicitTemplateDecl(rec, Decl);
+
     auto&           Diags   = Ctx->getDiagnostics();
     c::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
     if (Decl->getNameAsString().empty() && Typedef == nullptr) {
@@ -934,6 +937,8 @@ void ReflASTVisitor::fillCxxRecordDecl(
         rec->set_reflectionparams(args.value());
     }
 
+    fillExplicitTemplateDecl(rec, Decl);
+
     for (c::Decl const* SubDecl : Decl->decls()) {
         if (!shouldVisit(SubDecl)) { continue; }
 
@@ -1020,6 +1025,24 @@ void ReflASTVisitor::fillCxxRecordDecl(
                 "Unknown nested serialization content for %0",
                 SubDecl->getLocation())
                 << dump(SubDecl);
+        }
+    }
+}
+
+void ReflASTVisitor::fillExplicitTemplateDecl(
+    Record*                  rec,
+    clang::RecordDecl const* Decl) {
+
+    if (const auto* specialization = llvm::dyn_cast<
+            clang::ClassTemplateSpecializationDecl>(Decl)) {
+        LOG(INFO) << "Found explicit instantiation";
+        rec->set_isexplicitinstantiation(true);
+        const clang::TemplateArgumentList& args //
+            = specialization->getTemplateArgs();
+
+        for (unsigned i = 0; i < args.size(); ++i) {
+            auto param = rec->add_explicittemplateparams();
+            fillType(param, args[i], std::nullopt);
         }
     }
 }

@@ -139,10 +139,16 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
             raise e from None
 
 
+    result.IsExplicitInstantiation = record.is_explicit_instantiation
+    result.IsTemplateRecord = record.is_template_record
     result.original = copy(original)
     result.IsForwardDecl = record.is_forward_decl
     result.IsAbstract = record.is_abstract
     result.has_name = record.has_name
+
+    for arg in record.explicit_template_params:
+        result.ExplicitTemplateParams.append(conv_proto_type(arg))
+
     for _field in record.fields:
         if _field.is_type_decl:
             result.fields.append(

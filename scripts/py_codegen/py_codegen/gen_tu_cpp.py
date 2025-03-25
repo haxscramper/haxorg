@@ -146,6 +146,12 @@ class GenTuStruct:
     GenDescribeMethods: bool = False
     GenDescribeFields: bool = True
     reflectionParams: Dict[str, Any] = field(default_factory=dict)
+    IsExplicitInstantiation: bool = False
+    IsTemplateRecord: bool = False
+    ExplicitTemplateParams: List[QualType] = field(default_factory=list)
+
+    def declarationQualName(self) -> QualType:
+        return self.name.model_copy(update=dict(Parameters=self.ExplicitTemplateParams))
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.name.format(dbgOrigin=dbgOrigin)

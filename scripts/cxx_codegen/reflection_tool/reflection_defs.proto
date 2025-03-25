@@ -195,6 +195,9 @@ message Record {
     bool HasName = 13;
     bool IsAbstract = 14;
     string ReflectionParams = 15;
+    bool IsExplicitInstantiation = 16;
+    bool IsTemplateRecord = 17; 
+    repeated QualType ExplicitTemplateParams = 18;
 }
 
 message TU {
