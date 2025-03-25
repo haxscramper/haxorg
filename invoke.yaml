@@ -12,10 +12,8 @@ tasks:
 python_version: "3.13"
 
 force_task: [
-  # "cmake_configure_haxorg",
-  "cmake_haxorg",
-  "update_py_haxorg_reflection",
-  "python_protobuf_files",
+  "generate_python_protobuf_files",
+  "generate_reflection_snapshot",
 ]
 
 aggregate_filters:

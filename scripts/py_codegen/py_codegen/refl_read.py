@@ -129,7 +129,15 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
     )
 
     if record.reflection_params:
-        result.reflectionParams = json.loads(record.reflection_params)
+        try:
+            result.reflectionParams = json.loads(record.reflection_params)
+
+        except json.JSONDecodeError as e:
+            e.add_note(f"While parsing reflection parameters for {result.name.format()}")
+            e.add_note(f"Original text is '{record.reflection_params}'")
+
+            raise e from None
+
 
     result.original = copy(original)
     result.IsForwardDecl = record.is_forward_decl

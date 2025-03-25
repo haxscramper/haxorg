@@ -116,7 +116,9 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     void applyNamespaces(
         QualType*                    Out,
-        std::vector<QualType> const& Namespaces);
+        std::vector<QualType> const& Namespaces,
+        int                          line     = __builtin_LINE(),
+        char const*                  function = __builtin_FUNCTION());
 
     /// This function 'fills' the type in both directions (adding parent
     /// namespaces to the 'left' and parameters to the 'right') around the

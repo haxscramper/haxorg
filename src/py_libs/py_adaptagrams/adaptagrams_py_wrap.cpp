@@ -149,7 +149,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
     .def("getSeparate", static_cast<hstd::ext::GraphNodeConstraint::Separate const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getSeparate))
     .def("getMultiSeparate", static_cast<hstd::ext::GraphNodeConstraint::MultiSeparate const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getMultiSeparate))
     .def("getPageBoundary", static_cast<hstd::ext::GraphNodeConstraint::PageBoundary const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getPageBoundary))
-    .def("getKind", static_cast<hstd::ext::GraphNodeConstraint::Kind(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getKind))
+    .def("getKind", static_cast<Kind(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getKind))
     .def_static("InitEmptyStatic",
                 static_cast<hstd::ext::GraphNodeConstraint(*)(hstd::ext::GraphNodeConstraint::Empty const&)>(&hstd::ext::GraphNodeConstraint::InitEmpty),
                 pybind11::arg("arg"))

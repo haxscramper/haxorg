@@ -121,6 +121,42 @@ void add_debug(
     it->mutable_dbgorigin()->append(std::format(" [{}]{}", line, msg));
 }
 
+template <typename T>
+void append_debug(T* it, std::string const& msg) {
+    it->mutable_dbgorigin()->append(msg);
+}
+
+template <typename Func>
+struct finally {
+    Func action;
+
+    explicit finally(Func _action) : action(_action) {}
+
+    template <typename T, typename Func1>
+    static finally init(Func1 _action, T const& value) {
+        return finally([value, _action]() { _action(value); });
+    }
+
+    static finally nop() { return finally{finally::nop_impl}; }
+
+    ~finally() { action(); }
+
+  private:
+    static void nop_impl() {}
+};
+
+using finally_std = finally<std::function<void(void)>>;
+
+template <typename T>
+finally_std scope_debug(
+    T*                 it,
+    std::string const& pre,
+    std::string const& post) {
+    it->mutable_dbgorigin()->append(pre);
+    return finally_std{
+        [it, post]() { it->mutable_dbgorigin()->append(post); }};
+}
+
 std::ostream& errs(
     int         line     = __builtin_LINE(),
     char const* function = __builtin_FUNCTION()) {
@@ -195,7 +231,9 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
 void ReflASTVisitor::applyNamespaces(
     QualType*                    Out,
-    const std::vector<QualType>& Namespaces) {
+    const std::vector<QualType>& Namespaces,
+    int                          line,
+    const char*                  function) {
     std::vector<QualType const*> newNamespaces;
     std::vector<QualType*>       oldNamespaces;
     for (auto& Namespace : Namespaces) {
@@ -247,9 +285,11 @@ void ReflASTVisitor::applyNamespaces(
             add_debug(
                 space,
                 std::format(
-                    "Apply namespace '{}' @[{}]",
-                    newSpace.dbgorigin(),
-                    i));
+                    "Apply namespace @[{}] from {}:{} '{}'",
+                    i,
+                    line,
+                    function,
+                    newSpace.dbgorigin()));
             space->set_name(newSpace.name());
             // TODO Fill namespace parameters
         }
@@ -365,18 +405,24 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
             switch (kind) {
                 case c::NestedNameSpecifier::Identifier: {
                     auto space = &result.emplace_back();
-                    add_debug(space, "Elaborated name identifier");
-                    space->set_name(nns->getAsIdentifier()->getName());
+                    auto name  = nns->getAsIdentifier()->getName().str();
+                    add_debug(
+                        space,
+                        std::format(
+                            "Elaborated name identifier '{}'", name));
+                    space->set_name(name);
                     assert(!space->name().empty());
                     break;
                 }
 
                 case c::NestedNameSpecifier::Namespace: {
                     auto space = &result.emplace_back();
-                    add_debug(space, "Elaborated type namespace");
+                    auto name  = nns->getAsNamespace()->getNameAsString();
+                    add_debug(
+                        space,
+                        std::format("Elaborated type namespace {}", name));
                     space->set_isnamespace(true);
-                    space->set_name(
-                        nns->getAsNamespace()->getNameAsString());
+                    space->set_name(name);
                     assert(!space->name().empty());
                     break;
                 }
@@ -392,9 +438,10 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
                 case c::NestedNameSpecifier::TypeSpec: {
                     auto space  = &result.emplace_back();
                     auto record = nns->getAsType()->getAsRecordDecl();
-                    add_debug(space, "type spec");
+                    auto name   = record->getNameAsString();
+                    add_debug(space, std::format("type spec '{}'", name));
                     space->set_isnamespace(true);
-                    space->set_name(record->getNameAsString());
+                    space->set_name(name);
                     auto spaces = getNamespaces(record, Loc);
                     result.insert(
                         result.begin(), spaces.begin(), spaces.end());
@@ -420,6 +467,7 @@ void ReflASTVisitor::fillType(
     QualType*                               Out,
     const c::QualType&                      In,
     const std::optional<c::SourceLocation>& Loc) {
+    auto __scope = scope_debug(Out, "(", ")");
 
     if (In.isConstQualified() || In->isPointerType()) {
         auto cvq = Out->add_qualifiers();
@@ -439,7 +487,18 @@ void ReflASTVisitor::fillType(
         }
     }
 
-    if (const c::TypedefType* tdType = In->getAs<c::TypedefType>()) {
+    if (const c::UsingType* usType = In->getAs<c::UsingType>()) {
+        c::UsingShadowDecl* usDecl = usType->getFoundDecl();
+        Out->set_name(usDecl->getNameAsString());
+        add_debug(
+            Out,
+            " using type "
+                + formatSourceLocation(
+                    usDecl->getLocation(), Ctx->getSourceManager()));
+
+        applyNamespaces(Out, getNamespaces(usDecl, Loc));
+    } else if (
+        const c::TypedefType* tdType = In->getAs<c::TypedefType>()) {
         c::TypedefNameDecl* tdDecl = tdType->getDecl();
         Out->set_name(tdDecl->getNameAsString());
         add_debug(
@@ -485,18 +544,21 @@ void ReflASTVisitor::fillType(
             c::ElaboratedType const* elab = In->getAs<
                                             c::ElaboratedType>()) {
             add_debug(Out, " >elaborated");
-            applyNamespaces(Out, getNamespaces(elab, Loc));
+            // applyNamespaces(Out, getNamespaces(elab, Loc));
             fillType(Out, elab->getNamedType(), Loc);
 
         } else if (In->isRecordType()) {
             applyNamespaces(Out, getNamespaces(In, Loc));
-            add_debug(Out, " >record");
-            Out->set_name(
-                In->getAs<c::RecordType>()->getDecl()->getNameAsString());
+            auto const name //
+                = In->getAs<c::RecordType>()->getDecl()->getNameAsString();
+
+            add_debug(Out, std::format(" >record '{}'", name));
+            Out->set_name(name);
         } else if (In->isEnumeralType()) {
-            add_debug(Out, " >enum");
-            Out->set_name(
-                In->getAs<c::EnumType>()->getDecl()->getNameAsString());
+            auto const name //
+                = In->getAs<c::EnumType>()->getDecl()->getNameAsString();
+            add_debug(Out, std::format(" >enum '{}'", name));
+            Out->set_name(name);
 
         } else if (In->isFunctionProtoType()) {
             add_debug(Out, " >func");

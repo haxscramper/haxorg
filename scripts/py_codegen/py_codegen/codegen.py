@@ -300,7 +300,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     )
 
     res = Py11Class(
-        PyName=typ.name.name,
+        PyName=typ.reflectionParams.get("wrapper-name", None) or typ.name.name,
         Class=base_type,
         PyHolderType=id_type,
     )
@@ -367,8 +367,7 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
         if _field.isExposedForWrap:
             res.Fields.append(Py11Field.FromGenTu(_field))
 
-    if not value.IsAbstract and value.reflectionParams.get(
-            "default-constructor", True):
+    if not value.IsAbstract and value.reflectionParams.get("default-constructor", True):
         res.InitDefault(ast, filter_init_fields(res.Fields))
         res.InitMagicMethods(ast=ast)
 
