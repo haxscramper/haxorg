@@ -1145,9 +1145,11 @@ EACH_SEM_ORG_FINAL_TYPE_BASE(__declare_adapter)
 #undef __declare_adapter
 
 /// \brief Base interface for accessing the final adapter specialization
-struct ImmAdapterVirtualBase {
+struct [[refl]] ImmAdapterVirtualBase {
     virtual ImmAdapter const* getThis() const = 0;
     virtual ImmAdapter*       getThis()       = 0;
+
+    virtual ~ImmAdapterVirtualBase() {}
 
     template <typename T>
     ImmAdapterT<T> getThisT() const {

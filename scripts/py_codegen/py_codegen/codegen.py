@@ -512,14 +512,18 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
                 else:
                     seen_types.add(hash(T))
 
-                if T.name in ["Vec", "UnorderedMap", "IntSet"]:
+                if T.name in ["Vec", "UnorderedMap", "IntSet", "vector", "flex_vector", "map", "box"]:
                     std_type: str = {
                         "Vec": "vector",
                         "UnorderedMap": "unordered_map",
                         "IntSet": "int_set",
+                        "vector": "imm_vector",
+                        "flex_vector": "imm_flex_vector",
+                        "map": "imm_map",
+                        "box": "imm_box",
                     }.get(T.name, None)
 
-                    if T.name not in ["IntSet"]:
+                    if T.name in ["Vec", "UnorderedMap"]:
                         stdvec_t = QualType.ForName(std_type,
                                                     Spaces=[QualType.ForName("std")],
                                                     Parameters=T.Parameters)

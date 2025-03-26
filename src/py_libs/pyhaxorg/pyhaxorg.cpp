@@ -66,6 +66,29 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Time>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Time>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
+PYBIND11_MAKE_OPAQUE(immer::box<hstd::Str>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<hstd::Str>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<int>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmSymbol::Param>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<hstd::Str>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::OrgCodeEvalOutput>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::BlockCodeLine>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::SubtreeCompletion>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::NamedProperty>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<hstd::UserTime>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<bool>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::ColumnView>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
@@ -117,6 +140,29 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<hstd::UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
   bind_vector<org::sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
+  bind_imm_box<hstd::Str>(m, "immerboxOfStr", type_registry_guard);
+  bind_imm_box<std::optional<hstd::Str>>(m, "immerboxOfstdoptionalOfStr", type_registry_guard);
+  bind_imm_box<std::optional<int>>(m, "immerboxOfstdoptionalOfint", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "immerflex_vectorOfImmIdTOfImmErrorItem", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "immerflex_vectorOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
+  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmOrg", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmSymbol::Param>(m, "immerflex_vectorOfImmSymbolParam", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "immerflex_vectorOfImmIdTOfImmOrg", type_registry_guard);
+  bind_imm_flex_vector<hstd::Str>(m, "immerflex_vectorOfStr", type_registry_guard);
+  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmParagraph", type_registry_guard);
+  bind_imm_flex_vector<org::sem::OrgCodeEvalOutput>(m, "immerflex_vectorOfOrgCodeEvalOutput", type_registry_guard);
+  bind_imm_flex_vector<org::sem::BlockCodeLine>(m, "immerflex_vectorOfBlockCodeLine", type_registry_guard);
+  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmStmtList", type_registry_guard);
+  bind_imm_box<std::optional<org::sem::SubtreeCompletion>>(m, "immerboxOfstdoptionalOfSubtreeCompletion", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "immerflex_vectorOfImmIdTOfImmHashTag", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "immerflex_vectorOfImmIdTOfImmSubtreeLog", type_registry_guard);
+  bind_imm_flex_vector<org::sem::NamedProperty>(m, "immerflex_vectorOfNamedProperty", type_registry_guard);
+  bind_imm_box<std::optional<hstd::UserTime>>(m, "immerboxOfstdoptionalOfUserTime", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "immerflex_vectorOfImmIdTOfImmCell", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "immerflex_vectorOfImmIdTOfImmRow", type_registry_guard);
+  bind_imm_box<std::optional<bool>>(m, "immerboxOfstdoptionalOfbool", type_registry_guard);
+  bind_imm_box<std::optional<org::sem::ColumnView>>(m, "immerboxOfstdoptionalOfColumnView", type_registry_guard);
+  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmRawText", type_registry_guard);
   bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
   bind_unordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
   bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
@@ -185,7 +231,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::LispCode::Call::name)
     .def_readwrite("args", &org::sem::LispCode::Call::args)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Call::*)(org::sem::LispCode::Call const&) const>(&org::sem::LispCode::Call::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Call _self) -> std::string {
@@ -204,7 +250,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("items", &org::sem::LispCode::List::items)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::List::*)(org::sem::LispCode::List const&) const>(&org::sem::LispCode::List::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::List _self) -> std::string {
@@ -224,7 +270,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::LispCode::KeyValue::name)
     .def_readwrite("value", &org::sem::LispCode::KeyValue::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::KeyValue::*)(org::sem::LispCode::KeyValue const&) const>(&org::sem::LispCode::KeyValue::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::KeyValue _self) -> std::string {
@@ -243,7 +289,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::LispCode::Number::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Number::*)(org::sem::LispCode::Number const&) const>(&org::sem::LispCode::Number::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Number _self) -> std::string {
@@ -262,7 +308,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::LispCode::Text::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Text::*)(org::sem::LispCode::Text const&) const>(&org::sem::LispCode::Text::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Text _self) -> std::string {
@@ -281,7 +327,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::LispCode::Ident::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Ident::*)(org::sem::LispCode::Ident const&) const>(&org::sem::LispCode::Ident::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Ident _self) -> std::string {
@@ -300,7 +346,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::LispCode::Boolean::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Boolean::*)(org::sem::LispCode::Boolean const&) const>(&org::sem::LispCode::Boolean::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Boolean _self) -> std::string {
@@ -319,7 +365,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::LispCode::Real::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Real::*)(org::sem::LispCode::Real const&) const>(&org::sem::LispCode::Real::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Real _self) -> std::string {
@@ -354,7 +400,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::LispCode::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::*)(org::sem::LispCode const&) const>(&org::sem::LispCode::operator==),
          pybind11::arg("other"))
     .def("isCall", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isCall))
@@ -396,7 +442,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("index", &org::sem::Tblfm::Expr::AxisRef::Position::Index::index)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::Index::*)(org::sem::Tblfm::Expr::AxisRef::Position::Index const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::Index::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisRef::Position::Index _self) -> std::string {
@@ -415,7 +461,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::Tblfm::Expr::AxisRef::Position::Name::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::Name::*)(org::sem::Tblfm::Expr::AxisRef::Position::Name const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::Name::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisRef::Position::Name _self) -> std::string {
@@ -444,7 +490,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::Tblfm::Expr::AxisRef::Position::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)(org::sem::Tblfm::Expr::AxisRef::Position const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::operator==),
          pybind11::arg("other"))
     .def("isIndex", static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)() const>(&org::sem::Tblfm::Expr::AxisRef::Position::isIndex))
@@ -475,7 +521,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("col", &org::sem::Tblfm::Expr::AxisRef::col)
     .def_readwrite("row", &org::sem::Tblfm::Expr::AxisRef::row)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisRef::*)(org::sem::Tblfm::Expr::AxisRef const&) const>(&org::sem::Tblfm::Expr::AxisRef::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisRef _self) -> std::string {
@@ -494,7 +540,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::Tblfm::Expr::AxisName::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisName::*)(org::sem::Tblfm::Expr::AxisName const&) const>(&org::sem::Tblfm::Expr::AxisName::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisName _self) -> std::string {
@@ -513,7 +559,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::Tblfm::Expr::IntLiteral::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::IntLiteral::*)(org::sem::Tblfm::Expr::IntLiteral const&) const>(&org::sem::Tblfm::Expr::IntLiteral::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::IntLiteral _self) -> std::string {
@@ -532,7 +578,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::Tblfm::Expr::FloatLiteral::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::FloatLiteral::*)(org::sem::Tblfm::Expr::FloatLiteral const&) const>(&org::sem::Tblfm::Expr::FloatLiteral::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::FloatLiteral _self) -> std::string {
@@ -552,7 +598,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("first", &org::sem::Tblfm::Expr::RangeRef::first)
     .def_readwrite("last", &org::sem::Tblfm::Expr::RangeRef::last)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::RangeRef::*)(org::sem::Tblfm::Expr::RangeRef const&) const>(&org::sem::Tblfm::Expr::RangeRef::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::RangeRef _self) -> std::string {
@@ -572,7 +618,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::Tblfm::Expr::Call::name)
     .def_readwrite("args", &org::sem::Tblfm::Expr::Call::args)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::Call::*)(org::sem::Tblfm::Expr::Call const&) const>(&org::sem::Tblfm::Expr::Call::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::Call _self) -> std::string {
@@ -591,7 +637,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::Tblfm::Expr::Elisp::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::Elisp::*)(org::sem::Tblfm::Expr::Elisp const&) const>(&org::sem::Tblfm::Expr::Elisp::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::Elisp _self) -> std::string {
@@ -625,7 +671,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::Tblfm::Expr::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::*)(org::sem::Tblfm::Expr const&) const>(&org::sem::Tblfm::Expr::operator==),
          pybind11::arg("other"))
     .def("isAxisRef", static_cast<bool(org::sem::Tblfm::Expr::*)() const>(&org::sem::Tblfm::Expr::isAxisRef))
@@ -690,7 +736,7 @@ node can have subnodes.)RAW")
     .def_readwrite("target", &org::sem::Tblfm::Assign::target)
     .def_readwrite("expr", &org::sem::Tblfm::Assign::expr)
     .def_readwrite("flags", &org::sem::Tblfm::Assign::flags)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Assign::*)(org::sem::Tblfm::Assign const&) const>(&org::sem::Tblfm::Assign::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Assign _self) -> std::string {
@@ -709,7 +755,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("exprs", &org::sem::Tblfm::exprs)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::*)(org::sem::Tblfm const&) const>(&org::sem::Tblfm::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm _self) -> std::string {
@@ -742,7 +788,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("first", &org::sem::AttrValue::DimensionSpan::first)
     .def_readwrite("last", &org::sem::AttrValue::DimensionSpan::last)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::DimensionSpan::*)(org::sem::AttrValue::DimensionSpan const&) const>(&org::sem::AttrValue::DimensionSpan::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::DimensionSpan _self) -> std::string {
@@ -761,7 +807,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::AttrValue::TextValue::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::TextValue::*)(org::sem::AttrValue::TextValue const&) const>(&org::sem::AttrValue::TextValue::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::TextValue _self) -> std::string {
@@ -781,7 +827,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("file", &org::sem::AttrValue::FileReference::file)
     .def_readwrite("reference", &org::sem::AttrValue::FileReference::reference)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::FileReference::*)(org::sem::AttrValue::FileReference const&) const>(&org::sem::AttrValue::FileReference::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::FileReference _self) -> std::string {
@@ -800,7 +846,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("code", &org::sem::AttrValue::LispValue::code)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::LispValue::*)(org::sem::AttrValue::LispValue const&) const>(&org::sem::AttrValue::LispValue::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::LispValue _self) -> std::string {
@@ -840,7 +886,7 @@ node can have subnodes.)RAW")
     .def("getFile", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getFile))
     .def("getReference", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getReference))
     .def("getDouble", static_cast<hstd::Opt<double>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDouble))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::*)(org::sem::AttrValue const&) const>(&org::sem::AttrValue::operator==),
          pybind11::arg("other"))
     .def("isTextValue", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isTextValue))
@@ -872,10 +918,10 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("tags", &org::sem::HashTagFlat::tags)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::HashTagFlat::*)(org::sem::HashTagFlat const&) const>(&org::sem::HashTagFlat::operator==),
          pybind11::arg("other"))
-    .def("operator<",
+    .def("__lt__",
          static_cast<bool(org::sem::HashTagFlat::*)(org::sem::HashTagFlat const&) const>(&org::sem::HashTagFlat::operator<),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::HashTagFlat _self) -> std::string {
@@ -895,7 +941,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("head", &org::sem::HashTagText::head, R"RAW(Main part of the tag)RAW")
     .def_readwrite("subtags", &org::sem::HashTagText::subtags, R"RAW(List of nested tags)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::HashTagText::*)(org::sem::HashTagText const&) const>(&org::sem::HashTagText::operator==),
          pybind11::arg("other"))
     .def("prefixMatch",
@@ -922,7 +968,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("path", &org::sem::SubtreePath::path)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreePath::*)(org::sem::SubtreePath const&) const>(&org::sem::SubtreePath::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreePath _self) -> std::string {
@@ -941,7 +987,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &org::sem::LinkTarget::Raw::text)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Raw::*)(org::sem::LinkTarget::Raw const&) const>(&org::sem::LinkTarget::Raw::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Raw _self) -> std::string {
@@ -960,7 +1006,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &org::sem::LinkTarget::Id::text)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Id::*)(org::sem::LinkTarget::Id const&) const>(&org::sem::LinkTarget::Id::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Id _self) -> std::string {
@@ -979,7 +1025,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &org::sem::LinkTarget::CustomId::text)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::CustomId::*)(org::sem::LinkTarget::CustomId const&) const>(&org::sem::LinkTarget::CustomId::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::CustomId _self) -> std::string {
@@ -999,7 +1045,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("title", &org::sem::LinkTarget::SubtreeTitle::title)
     .def_readwrite("level", &org::sem::LinkTarget::SubtreeTitle::level)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::SubtreeTitle::*)(org::sem::LinkTarget::SubtreeTitle const&) const>(&org::sem::LinkTarget::SubtreeTitle::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::SubtreeTitle _self) -> std::string {
@@ -1018,7 +1064,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::LinkTarget::Person::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Person::*)(org::sem::LinkTarget::Person const&) const>(&org::sem::LinkTarget::Person::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Person _self) -> std::string {
@@ -1038,7 +1084,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("protocol", &org::sem::LinkTarget::UserProtocol::protocol)
     .def_readwrite("target", &org::sem::LinkTarget::UserProtocol::target)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::UserProtocol::*)(org::sem::LinkTarget::UserProtocol const&) const>(&org::sem::LinkTarget::UserProtocol::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::UserProtocol _self) -> std::string {
@@ -1057,7 +1103,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &org::sem::LinkTarget::Internal::target)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Internal::*)(org::sem::LinkTarget::Internal const&) const>(&org::sem::LinkTarget::Internal::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Internal _self) -> std::string {
@@ -1076,7 +1122,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &org::sem::LinkTarget::Footnote::target)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Footnote::*)(org::sem::LinkTarget::Footnote const&) const>(&org::sem::LinkTarget::Footnote::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Footnote _self) -> std::string {
@@ -1095,7 +1141,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("file", &org::sem::LinkTarget::File::file)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::File::*)(org::sem::LinkTarget::File const&) const>(&org::sem::LinkTarget::File::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::File _self) -> std::string {
@@ -1114,7 +1160,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("file", &org::sem::LinkTarget::Attachment::file)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Attachment::*)(org::sem::LinkTarget::Attachment const&) const>(&org::sem::LinkTarget::Attachment::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Attachment _self) -> std::string {
@@ -1151,7 +1197,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::LinkTarget::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::*)(org::sem::LinkTarget const&) const>(&org::sem::LinkTarget::operator==),
          pybind11::arg("other"))
     .def("isRaw", static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isRaw))
@@ -1211,7 +1257,7 @@ node can have subnodes.)RAW")
     .def_readwrite("newPriority", &org::sem::SubtreeLogHead::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
     .def_readwrite("on", &org::sem::SubtreeLogHead::Priority::on, R"RAW(When priority was changed)RAW")
     .def_readwrite("action", &org::sem::SubtreeLogHead::Priority::action, R"RAW(Which action taken)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Priority::*)(org::sem::SubtreeLogHead::Priority const&) const>(&org::sem::SubtreeLogHead::Priority::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Priority _self) -> std::string {
@@ -1230,7 +1276,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("on", &org::sem::SubtreeLogHead::Note::on, R"RAW(Where log was taken)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Note::*)(org::sem::SubtreeLogHead::Note const&) const>(&org::sem::SubtreeLogHead::Note::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Note _self) -> std::string {
@@ -1250,7 +1296,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("on", &org::sem::SubtreeLogHead::Refile::on, R"RAW(When the refiling happened)RAW")
     .def_readwrite("from_", &org::sem::SubtreeLogHead::Refile::from, R"RAW(Link to the original subtree)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Refile::*)(org::sem::SubtreeLogHead::Refile const&) const>(&org::sem::SubtreeLogHead::Refile::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Refile _self) -> std::string {
@@ -1270,7 +1316,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("from_", &org::sem::SubtreeLogHead::Clock::from, R"RAW(Clock start time)RAW")
     .def_readwrite("to", &org::sem::SubtreeLogHead::Clock::to, R"RAW(Optional end of the clock)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Clock::*)(org::sem::SubtreeLogHead::Clock const&) const>(&org::sem::SubtreeLogHead::Clock::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Clock _self) -> std::string {
@@ -1291,7 +1337,7 @@ node can have subnodes.)RAW")
     .def_readwrite("from_", &org::sem::SubtreeLogHead::State::from)
     .def_readwrite("to", &org::sem::SubtreeLogHead::State::to)
     .def_readwrite("on", &org::sem::SubtreeLogHead::State::on)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::State::*)(org::sem::SubtreeLogHead::State const&) const>(&org::sem::SubtreeLogHead::State::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::State _self) -> std::string {
@@ -1312,7 +1358,7 @@ node can have subnodes.)RAW")
     .def_readwrite("from_", &org::sem::SubtreeLogHead::Deadline::from)
     .def_readwrite("to", &org::sem::SubtreeLogHead::Deadline::to)
     .def_readwrite("on", &org::sem::SubtreeLogHead::Deadline::on)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Deadline::*)(org::sem::SubtreeLogHead::Deadline const&) const>(&org::sem::SubtreeLogHead::Deadline::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Deadline _self) -> std::string {
@@ -1333,7 +1379,7 @@ node can have subnodes.)RAW")
     .def_readwrite("from_", &org::sem::SubtreeLogHead::Schedule::from)
     .def_readwrite("to", &org::sem::SubtreeLogHead::Schedule::to)
     .def_readwrite("on", &org::sem::SubtreeLogHead::Schedule::on)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Schedule::*)(org::sem::SubtreeLogHead::Schedule const&) const>(&org::sem::SubtreeLogHead::Schedule::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Schedule _self) -> std::string {
@@ -1354,7 +1400,7 @@ node can have subnodes.)RAW")
     .def_readwrite("on", &org::sem::SubtreeLogHead::Tag::on, R"RAW(When the log was assigned)RAW")
     .def_readwrite("tag", &org::sem::SubtreeLogHead::Tag::tag, R"RAW(Tag in question)RAW")
     .def_readwrite("added", &org::sem::SubtreeLogHead::Tag::added, R"RAW(Added/removed?)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Tag::*)(org::sem::SubtreeLogHead::Tag const&) const>(&org::sem::SubtreeLogHead::Tag::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Tag _self) -> std::string {
@@ -1372,7 +1418,7 @@ node can have subnodes.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Unknown::*)(org::sem::SubtreeLogHead::Unknown const&) const>(&org::sem::SubtreeLogHead::Unknown::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Unknown _self) -> std::string {
@@ -1408,7 +1454,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("log", &org::sem::SubtreeLogHead::log)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::*)(org::sem::SubtreeLogHead const&) const>(&org::sem::SubtreeLogHead::operator==),
          pybind11::arg("other"))
     .def("isPriority", static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isPriority))
@@ -1454,7 +1500,7 @@ node can have subnodes.)RAW")
     .def_readwrite("done", &org::sem::SubtreeCompletion::done, R"RAW(Number of completed tasks)RAW")
     .def_readwrite("full", &org::sem::SubtreeCompletion::full, R"RAW(Full number of tasks)RAW")
     .def_readwrite("isPercent", &org::sem::SubtreeCompletion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeCompletion::*)(org::sem::SubtreeCompletion const&) const>(&org::sem::SubtreeCompletion::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeCompletion _self) -> std::string {
@@ -1473,7 +1519,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("items", &org::sem::AttrList::items)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrList::*)(org::sem::AttrList const&) const>(&org::sem::AttrList::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrList _self) -> std::string {
@@ -1538,7 +1584,7 @@ node can have subnodes.)RAW")
     .def("getFirstVarNamed",
          static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstVarNamed),
          pybind11::arg("index"))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrGroup::*)(org::sem::AttrGroup const&) const>(&org::sem::AttrGroup::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrGroup _self) -> std::string {
@@ -1558,7 +1604,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::OrgCodeEvalInput::Var::name)
     .def_readwrite("value", &org::sem::OrgCodeEvalInput::Var::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::OrgCodeEvalInput::Var::*)(org::sem::OrgCodeEvalInput::Var const&) const>(&org::sem::OrgCodeEvalInput::Var::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::OrgCodeEvalInput::Var _self) -> std::string {
@@ -1625,7 +1671,7 @@ node can have subnodes.)RAW")
     .def_readwrite("resultHandling", &org::sem::OrgCodeEvalInput::resultHandling)
     .def_readwrite("language", &org::sem::OrgCodeEvalInput::language)
     .def_readwrite("argList", &org::sem::OrgCodeEvalInput::argList)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::OrgCodeEvalInput _self) -> std::string {
@@ -1650,7 +1696,7 @@ node can have subnodes.)RAW")
     .def_readwrite("args", &org::sem::OrgCodeEvalOutput::args, R"RAW(Command line arguments provided for execution)RAW")
     .def_readwrite("cwd", &org::sem::OrgCodeEvalOutput::cwd, R"RAW(Working directory where command was executed)RAW")
     .def_readwrite("appliedHeaderArg", &org::sem::OrgCodeEvalOutput::appliedHeaderArg, R"RAW(Final set of header arguments applied during evaluation)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::OrgCodeEvalOutput::*)(org::sem::OrgCodeEvalOutput const&) const>(&org::sem::OrgCodeEvalOutput::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::OrgCodeEvalOutput _self) -> std::string {
@@ -1680,7 +1726,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("kind", &org::sem::ColumnView::Summary::CheckboxAggregate::kind)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::Summary::CheckboxAggregate::*)(org::sem::ColumnView::Summary::CheckboxAggregate const&) const>(&org::sem::ColumnView::Summary::CheckboxAggregate::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::ColumnView::Summary::CheckboxAggregate _self) -> std::string {
@@ -1714,7 +1760,7 @@ node can have subnodes.)RAW")
     .def_readwrite("kind", &org::sem::ColumnView::Summary::MathAggregate::kind)
     .def_readwrite("formatDigits", &org::sem::ColumnView::Summary::MathAggregate::formatDigits)
     .def_readwrite("formatPrecision", &org::sem::ColumnView::Summary::MathAggregate::formatPrecision)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::Summary::MathAggregate::*)(org::sem::ColumnView::Summary::MathAggregate const&) const>(&org::sem::ColumnView::Summary::MathAggregate::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::ColumnView::Summary::MathAggregate _self) -> std::string {
@@ -1743,7 +1789,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::ColumnView::Summary::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::Summary::*)(org::sem::ColumnView::Summary const&) const>(&org::sem::ColumnView::Summary::operator==),
          pybind11::arg("other"))
     .def("isCheckboxAggregate", static_cast<bool(org::sem::ColumnView::Summary::*)() const>(&org::sem::ColumnView::Summary::isCheckboxAggregate))
@@ -1776,7 +1822,7 @@ node can have subnodes.)RAW")
     .def_readwrite("width", &org::sem::ColumnView::Column::width)
     .def_readwrite("property", &org::sem::ColumnView::Column::property)
     .def_readwrite("propertyTitle", &org::sem::ColumnView::Column::propertyTitle)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::Column::*)(org::sem::ColumnView::Column const&) const>(&org::sem::ColumnView::Column::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::ColumnView::Column _self) -> std::string {
@@ -1795,7 +1841,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("columns", &org::sem::ColumnView::columns)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::*)(org::sem::ColumnView const&) const>(&org::sem::ColumnView::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::ColumnView _self) -> std::string {
@@ -1814,7 +1860,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("code", &org::sem::BlockCodeLine::Part::Raw::code)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::Part::Raw::*)(org::sem::BlockCodeLine::Part::Raw const&) const>(&org::sem::BlockCodeLine::Part::Raw::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine::Part::Raw _self) -> std::string {
@@ -1833,7 +1879,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::BlockCodeLine::Part::Callout::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::Part::Callout::*)(org::sem::BlockCodeLine::Part::Callout const&) const>(&org::sem::BlockCodeLine::Part::Callout::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine::Part::Callout _self) -> std::string {
@@ -1852,7 +1898,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &org::sem::BlockCodeLine::Part::Tangle::target)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::Part::Tangle::*)(org::sem::BlockCodeLine::Part::Tangle const&) const>(&org::sem::BlockCodeLine::Part::Tangle::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine::Part::Tangle _self) -> std::string {
@@ -1882,7 +1928,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::BlockCodeLine::Part::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::Part::*)(org::sem::BlockCodeLine::Part const&) const>(&org::sem::BlockCodeLine::Part::operator==),
          pybind11::arg("other"))
     .def("isRaw", static_cast<bool(org::sem::BlockCodeLine::Part::*)() const>(&org::sem::BlockCodeLine::Part::isRaw))
@@ -1914,7 +1960,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("parts", &org::sem::BlockCodeLine::parts, R"RAW(parts of the single line)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::*)(org::sem::BlockCodeLine const&) const>(&org::sem::BlockCodeLine::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine _self) -> std::string {
@@ -1933,7 +1979,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("taskWhitelist", &org::sem::DocumentExportConfig::TaskExport::taskWhitelist)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::TaskExport::*)(org::sem::DocumentExportConfig::TaskExport const&) const>(&org::sem::DocumentExportConfig::TaskExport::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::DocumentExportConfig::TaskExport _self) -> std::string {
@@ -1986,7 +2032,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("exportToc", &org::sem::DocumentExportConfig::DoExport::exportToc)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::DoExport::*)(org::sem::DocumentExportConfig::DoExport const&) const>(&org::sem::DocumentExportConfig::DoExport::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::DocumentExportConfig::DoExport _self) -> std::string {
@@ -2005,7 +2051,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("exportLevels", &org::sem::DocumentExportConfig::ExportFixed::exportLevels)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::ExportFixed::*)(org::sem::DocumentExportConfig::ExportFixed const&) const>(&org::sem::DocumentExportConfig::ExportFixed::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::DocumentExportConfig::ExportFixed _self) -> std::string {
@@ -2046,7 +2092,7 @@ node can have subnodes.)RAW")
     .def_readwrite("tocExport", &org::sem::DocumentExportConfig::tocExport)
     .def_readwrite("tagExport", &org::sem::DocumentExportConfig::tagExport)
     .def_readwrite("data", &org::sem::DocumentExportConfig::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig const&) const>(&org::sem::DocumentExportConfig::operator==),
          pybind11::arg("other"))
     .def("isDoExport", static_cast<bool(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::isDoExport))
@@ -2093,7 +2139,7 @@ node can have subnodes.)RAW")
     .def_readwrite("kind", &org::sem::SubtreePeriod::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
     .def_readwrite("from_", &org::sem::SubtreePeriod::from, R"RAW(Clock start time)RAW")
     .def_readwrite("to", &org::sem::SubtreePeriod::to, R"RAW(Optional end of the clock)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreePeriod::*)(org::sem::SubtreePeriod const&) const>(&org::sem::SubtreePeriod::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreePeriod _self) -> std::string {
@@ -2112,7 +2158,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("isBlocking", &org::sem::NamedProperty::Nonblocking::isBlocking)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Nonblocking::*)(org::sem::NamedProperty::Nonblocking const&) const>(&org::sem::NamedProperty::Nonblocking::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Nonblocking _self) -> std::string {
@@ -2131,7 +2177,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("time", &org::sem::NamedProperty::ArchiveTime::time)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveTime::*)(org::sem::NamedProperty::ArchiveTime const&) const>(&org::sem::NamedProperty::ArchiveTime::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveTime _self) -> std::string {
@@ -2150,7 +2196,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("file", &org::sem::NamedProperty::ArchiveFile::file)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveFile::*)(org::sem::NamedProperty::ArchiveFile const&) const>(&org::sem::NamedProperty::ArchiveFile::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveFile _self) -> std::string {
@@ -2169,7 +2215,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("path", &org::sem::NamedProperty::ArchiveOlpath::path)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveOlpath::*)(org::sem::NamedProperty::ArchiveOlpath const&) const>(&org::sem::NamedProperty::ArchiveOlpath::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveOlpath _self) -> std::string {
@@ -2189,7 +2235,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("path", &org::sem::NamedProperty::ArchiveTarget::path)
     .def_readwrite("pattern", &org::sem::NamedProperty::ArchiveTarget::pattern)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveTarget::*)(org::sem::NamedProperty::ArchiveTarget const&) const>(&org::sem::NamedProperty::ArchiveTarget::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveTarget _self) -> std::string {
@@ -2208,7 +2254,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("category", &org::sem::NamedProperty::ArchiveCategory::category)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveCategory::*)(org::sem::NamedProperty::ArchiveCategory const&) const>(&org::sem::NamedProperty::ArchiveCategory::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveCategory _self) -> std::string {
@@ -2227,7 +2273,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("todo", &org::sem::NamedProperty::ArchiveTodo::todo)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveTodo::*)(org::sem::NamedProperty::ArchiveTodo const&) const>(&org::sem::NamedProperty::ArchiveTodo::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveTodo _self) -> std::string {
@@ -2245,7 +2291,7 @@ node can have subnodes.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Trigger::*)(org::sem::NamedProperty::Trigger const&) const>(&org::sem::NamedProperty::Trigger::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Trigger _self) -> std::string {
@@ -2264,7 +2310,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("latexClass", &org::sem::NamedProperty::ExportLatexClass::latexClass)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportLatexClass::*)(org::sem::NamedProperty::ExportLatexClass const&) const>(&org::sem::NamedProperty::ExportLatexClass::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexClass _self) -> std::string {
@@ -2295,7 +2341,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("isRecursive", &org::sem::NamedProperty::CookieData::isRecursive)
     .def_readwrite("source", &org::sem::NamedProperty::CookieData::source)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CookieData::*)(org::sem::NamedProperty::CookieData const&) const>(&org::sem::NamedProperty::CookieData::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CookieData _self) -> std::string {
@@ -2314,7 +2360,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("options", &org::sem::NamedProperty::ExportLatexClassOptions::options)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportLatexClassOptions::*)(org::sem::NamedProperty::ExportLatexClassOptions const&) const>(&org::sem::NamedProperty::ExportLatexClassOptions::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexClassOptions _self) -> std::string {
@@ -2333,7 +2379,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("header", &org::sem::NamedProperty::ExportLatexHeader::header)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportLatexHeader::*)(org::sem::NamedProperty::ExportLatexHeader const&) const>(&org::sem::NamedProperty::ExportLatexHeader::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexHeader _self) -> std::string {
@@ -2352,7 +2398,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("compiler", &org::sem::NamedProperty::ExportLatexCompiler::compiler)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportLatexCompiler::*)(org::sem::NamedProperty::ExportLatexCompiler const&) const>(&org::sem::NamedProperty::ExportLatexCompiler::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexCompiler _self) -> std::string {
@@ -2371,7 +2417,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("isOrdered", &org::sem::NamedProperty::Ordered::isOrdered)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Ordered::*)(org::sem::NamedProperty::Ordered const&) const>(&org::sem::NamedProperty::Ordered::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Ordered _self) -> std::string {
@@ -2391,7 +2437,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("hours", &org::sem::NamedProperty::Effort::hours)
     .def_readwrite("minutes", &org::sem::NamedProperty::Effort::minutes)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Effort::*)(org::sem::NamedProperty::Effort const&) const>(&org::sem::NamedProperty::Effort::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Effort _self) -> std::string {
@@ -2422,7 +2468,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("level", &org::sem::NamedProperty::Visibility::level)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Visibility::*)(org::sem::NamedProperty::Visibility const&) const>(&org::sem::NamedProperty::Visibility::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Visibility _self) -> std::string {
@@ -2442,7 +2488,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("backend", &org::sem::NamedProperty::ExportOptions::backend)
     .def_readwrite("values", &org::sem::NamedProperty::ExportOptions::values)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportOptions::*)(org::sem::NamedProperty::ExportOptions const&) const>(&org::sem::NamedProperty::ExportOptions::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportOptions _self) -> std::string {
@@ -2461,7 +2507,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("blockers", &org::sem::NamedProperty::Blocker::blockers)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Blocker::*)(org::sem::NamedProperty::Blocker const&) const>(&org::sem::NamedProperty::Blocker::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Blocker _self) -> std::string {
@@ -2479,7 +2525,7 @@ node can have subnodes.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Unnumbered::*)(org::sem::NamedProperty::Unnumbered const&) const>(&org::sem::NamedProperty::Unnumbered::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Unnumbered _self) -> std::string {
@@ -2498,7 +2544,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("time", &org::sem::NamedProperty::Created::time)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Created::*)(org::sem::NamedProperty::Created const&) const>(&org::sem::NamedProperty::Created::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Created _self) -> std::string {
@@ -2517,7 +2563,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("words", &org::sem::NamedProperty::RadioId::words)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::RadioId::*)(org::sem::NamedProperty::RadioId const&) const>(&org::sem::NamedProperty::RadioId::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::RadioId _self) -> std::string {
@@ -2536,7 +2582,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("hashtag", &org::sem::NamedProperty::HashtagDef::hashtag)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::HashtagDef::*)(org::sem::NamedProperty::HashtagDef const&) const>(&org::sem::NamedProperty::HashtagDef::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::HashtagDef _self) -> std::string {
@@ -2557,7 +2603,7 @@ node can have subnodes.)RAW")
     .def_readwrite("name", &org::sem::NamedProperty::CustomArgs::name, R"RAW(Original name of the property)RAW")
     .def_readwrite("sub", &org::sem::NamedProperty::CustomArgs::sub, R"RAW(Property target specialization)RAW")
     .def_readwrite("attrs", &org::sem::NamedProperty::CustomArgs::attrs, R"RAW(Property parameters)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CustomArgs::*)(org::sem::NamedProperty::CustomArgs const&) const>(&org::sem::NamedProperty::CustomArgs::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomArgs _self) -> std::string {
@@ -2577,7 +2623,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::NamedProperty::CustomRaw::name, R"RAW(Original name of the property)RAW")
     .def_readwrite("value", &org::sem::NamedProperty::CustomRaw::value, R"RAW(Property value)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CustomRaw::*)(org::sem::NamedProperty::CustomRaw const&) const>(&org::sem::NamedProperty::CustomRaw::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomRaw _self) -> std::string {
@@ -2597,7 +2643,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::NamedProperty::CustomSubtreeJson::name)
     .def_readwrite("value", &org::sem::NamedProperty::CustomSubtreeJson::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CustomSubtreeJson::*)(org::sem::NamedProperty::CustomSubtreeJson const&) const>(&org::sem::NamedProperty::CustomSubtreeJson::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomSubtreeJson _self) -> std::string {
@@ -2617,7 +2663,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::NamedProperty::CustomSubtreeFlags::name)
     .def_readwrite("value", &org::sem::NamedProperty::CustomSubtreeFlags::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CustomSubtreeFlags::*)(org::sem::NamedProperty::CustomSubtreeFlags const&) const>(&org::sem::NamedProperty::CustomSubtreeFlags::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomSubtreeFlags _self) -> std::string {
@@ -2677,7 +2723,7 @@ node can have subnodes.)RAW")
          R"RAW(Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.)RAW")
     .def("getName", static_cast<hstd::Str(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getName), R"RAW(Get non-normalized name of the property (for built-in and user))RAW")
     .def("getSubKind", static_cast<hstd::Opt<hstd::Str>(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getSubKind), R"RAW(Get non-normalized sub-kind for the property.)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::*)(org::sem::NamedProperty const&) const>(&org::sem::NamedProperty::operator==),
          pybind11::arg("other"))
     .def("isNonblocking", static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isNonblocking))
@@ -6350,6 +6396,8 @@ node can have subnodes.)RAW")
     .def("setData",
          static_cast<void(org::imm::ImmCmdIncludeValue::*)(org::imm::ImmCmdInclude::Data const&)>(&org::imm::ImmCmdIncludeValue::setData),
          pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterVirtualBase")
     ;
   pybind11::class_<org::imm::ImmAdapterOrgAPI, org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterOrgAPI")
     ;

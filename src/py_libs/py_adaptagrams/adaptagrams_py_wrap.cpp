@@ -15,6 +15,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<std::pair<int, int>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<std::pair<int, int>>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
+PYBIND11_MAKE_OPAQUE(std::vector<vpsc::Rectangle>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphSize>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphSize>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphEdge>)
@@ -44,6 +45,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
   bind_vector<hstd::ext::GraphNodeConstraint::Align>(m, "VecOfGraphNodeConstraintAlign", type_registry_guard);
   bind_vector<std::pair<int, int>>(m, "VecOfstdpairOfintint", type_registry_guard);
   bind_vector<int>(m, "VecOfint", type_registry_guard);
+  bind_imm_vector<vpsc::Rectangle>(m, "stdvectorOfvpscRectangle", type_registry_guard);
   bind_vector<hstd::ext::GraphSize>(m, "VecOfGraphSize", type_registry_guard);
   bind_vector<hstd::ext::GraphEdge>(m, "VecOfGraphEdge", type_registry_guard);
   bind_vector<hstd::ext::GraphNodeConstraint>(m, "VecOfGraphNodeConstraint", type_registry_guard);

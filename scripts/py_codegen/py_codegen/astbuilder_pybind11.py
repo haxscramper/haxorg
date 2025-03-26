@@ -67,6 +67,18 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["std", "variant"] | ["Var"]:
             name = "Union"
 
+        case ["immer", "box"]:
+            name = "ImmBox"
+
+        case ["immer", "flex_vector"]:
+            name = "ImmFlexVector"
+
+        case ["immer", "vector"]:
+            name = "ImmVector"
+
+        case ["immer", "map"]:
+            name = "ImmMap"
+
         case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
                                                         ] | ["std", "basic_string"]:
             name = "str"
@@ -118,6 +130,12 @@ def py_ident(name: str) -> str:
     match name:
         case "from" | "is":
             return name + "_"
+
+        case "operator==":
+            return "__eq__"
+
+        case "operator<":
+            return "__lt__"
 
         case _:
             return name
