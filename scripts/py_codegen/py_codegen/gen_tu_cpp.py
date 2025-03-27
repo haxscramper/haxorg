@@ -6,6 +6,10 @@ from py_textlayout.py_textlayout_wrap import *
 from pathlib import Path
 from py_scriptutils.algorithm import iterate_object_tree, cond
 
+from py_scriptutils.script_logging import log
+
+CAT = __name__
+
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
 
@@ -177,15 +181,102 @@ class GenTuNamespace:
     entries: Sequence[GenTuEntry]
 
 
+GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
+
+
+@beartype
+@dataclass
+class GenTypeMap:
+    entries: List[GenTuUnion] = field(default_factory=list)
+    name_to_index: Dict[str, List[int]] = field(default_factory=dict)
+    qual_hash_to_index: Dict[int, int] = field(default_factory=dict)
+
+    # def get_qa
+
+    def get_types_for_name(self, name: str) -> List[GenTuUnion]:
+        return [self.entries[i] for i in self.name_to_index.get(name, [])]
+
+    def get_one_type_for_name(self, name: str) -> Optional[GenTuUnion]:
+        items = self.get_types_for_name(name)
+        for item in items:
+            if isinstance(item, GenTuStruct) and not item.IsExplicitInstantiation:
+                return item
+
+
+        if 0 < len(items):
+            return items[0]
+
+        else:
+            return None
+
+    def add_type(self, typ: GenTuUnion):
+        qual_name = None
+
+        match typ:
+            case GenTuStruct():
+                qual_name = typ.name
+
+            case GenTuEnum():
+                qual_name = typ.name
+
+            case GenTuTypedef():
+                qual_name = typ.name
+
+            case _:
+                raise ValueError(f"{type(typ)} is not a type definition")
+
+        qual_hash = qual_name.qual_hash()
+        if qual_hash in self.qual_hash_to_index:
+            raise ValueError(f"Qual type {qual_hash} is already mapped to {self.qual_hash_to_index[qual_hash]}")
+
+        # log(CAT).info(f"{qual_hash} - {qual_name.name}")
+
+        # log(CAT)
+
+        new_index = len(self.entries)
+
+        self.qual_hash_to_index[qual_hash] = new_index
+        if qual_name.name not in self.name_to_index:
+            self.name_to_index[qual_name.name] = []
+
+        self.name_to_index[qual_name.name].append(new_index)
+
+        self.entries.append(typ)
+
+
+        
+
+    @staticmethod
+    def FromTypes(types: List[GenTuUnion]) -> "GenTypeMap":
+
+        result = GenTypeMap()
+
+        def callback(obj):
+            if isinstance(obj, GenTuStruct):
+                result.add_type(obj)
+
+        context = []
+        iterate_object_tree(types, context, pre_visit=callback)
+        result.add_type(
+            GenTuStruct(
+                QualType.ForName("Org"),
+                GenTuDoc(""),
+                [
+                    GenTuField(t_vec(t_id()), "subnodes", GenTuDoc(""), value="{}"),
+                    GenTuField(
+                        t_opt(QualType(name="LineCol")), "loc", value="std::nullopt"),
+                ],
+            ))
+
+        return result
+
+
 @beartype
 @dataclass
 class GenTu:
     path: str
     entries: Sequence[GenTuEntry]
     clangFormatGuard: bool = True
-
-
-GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
 
 
 @beartype
@@ -691,25 +782,8 @@ def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
 
 
 @beartype
-def get_base_map(expanded: List[GenTuUnion]) -> Mapping[str, GenTuStruct]:
-    base_map: Mapping[str, GenTuStruct] = {}
-
-    def callback(obj):
-        if isinstance(obj, GenTuStruct):
-            base_map[obj.name.name] = obj
-
-    context = []
-    iterate_object_tree(expanded, context, pre_visit=callback)
-    base_map["Org"] = GenTuStruct(
-        QualType.ForName("Org"),
-        GenTuDoc(""),
-        [
-            GenTuField(t_vec(t_id()), "subnodes", GenTuDoc(""), value="{}"),
-            GenTuField(t_opt(QualType(name="LineCol")), "loc", value="std::nullopt"),
-        ],
-    )
-
-    return base_map
+def get_base_map(expanded: List[GenTuUnion]) -> GenTypeMap:
+    return GenTypeMap.FromTypes(expanded)
 
 
 @beartype
@@ -730,11 +804,11 @@ def filter_walk_scope(iterate_context) -> List[QualType]:
 @beartype
 def get_type_base_fields(
     value: GenTuStruct,
-    base_map: Mapping[str, GenTuStruct],
+    base_map: GenTypeMap,
 ) -> List[GenTuField]:
     fields = []
     for base_sym in value.bases:
-        base = base_map.get(base_sym.name)
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(base_sym.name)
         if base:
             fields.extend(base.fields)
             fields.extend(get_type_base_fields(base, base_map))
@@ -745,13 +819,13 @@ def get_type_base_fields(
 @beartype
 def get_base_list(
     value: GenTuStruct,
-    base_map: Mapping[str, GenTuStruct],
+    base_map: GenTypeMap,
 ) -> List[QualType]:
     fields = []
 
     def aux(typ: QualType) -> List[QualType]:
         result: List[QualType] = [typ]
-        base = base_map.get(typ.name)
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(typ.name)
         if base:
             for it in base.bases:
                 result.extend(aux(it))

@@ -609,8 +609,8 @@ class ProtoBuilder():
                 writer_body: List[BlockId] = []
                 reader_body: List[BlockId] = []
                 for base in tu.get_base_list(it, self.base_map):
-                    if base.name in self.base_map and len(
-                            self.base_map[base.name].fields) == 0:
+                    base_type = self.base_map.get_one_type_for_name(base.name)
+                    if base_type and len(base_type.fields) == 0:
                         continue
 
                     writer_body.append(

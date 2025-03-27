@@ -218,10 +218,10 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
 
                     for base in sub.bases:
                         assert sub.name.name != base.name, f"{sub.name} ->>>> {base}"
-                        if base.name in base_map:
-                            it_base = base_map[base.name]
-                            assert it_base.name.name != sub.name.name
-                            field_aux(it_base)
+                        base_type = base_map.get_one_type_for_name(base.name)
+                        if base_type:
+                            assert base_type.name.name != sub.name.name
+                            field_aux(base_type)
 
                 # sys.setrecursionlimit(32)
                 field_aux(it)
@@ -290,8 +290,12 @@ def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
 
 
 @beartype
-def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
-                  base_map: Mapping[str, GenTuStruct]) -> Py11Class:
+def pybind_org_id(
+    ast: ASTBuilder,
+    b: TextLayout,
+    typ: GenTuStruct,
+    base_map: GenTypeMap,
+) -> Py11Class:
     base_type = QualType.ForName(typ.name.name, Spaces=[n_sem()])
     id_type = QualType.ForName(
         "SemId",
@@ -323,9 +327,10 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     def map_bases(Record: GenTuStruct):
         for base in Record.bases:
             if base.name != "Org":
-                map_obj_fields(base_map[base.name])
-                map_obj_methods(base_map[base.name])
-                map_bases(base_map[base.name])
+                base_type = base_map.get_one_type_for_name(base.name)
+                map_obj_fields(base_type)
+                map_obj_methods(base_type)
+                map_bases(base_type)
 
     map_obj_fields(typ)
     map_obj_methods(typ)
@@ -341,7 +346,12 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                     rec_fields.append(Py11Field.FromGenTu(field))
 
             for base in it.bases:
-                cb(base_map[base.name])
+                base_type = base_map.get_one_type_for_name(base.name)
+                if base_type:
+                    cb(base_type)
+
+                else:
+                    raise ValueError(f"No base type registered for {base.name}")
 
         cb(typ)
 
@@ -435,7 +445,7 @@ def add_translation_unit(res: Py11Module, ast: ASTBuilder, tu: ConvTu):
         if _struct.name.name == "Org":
             from py_scriptutils.script_logging import pprint_to_file
             pprint_to_file(_struct, "/tmp/sem_org_struct.py")
-            org_decl = pybind_org_id(ast, ast.b, _struct, {})
+            org_decl = pybind_org_id(ast, ast.b, _struct, GenTypeMap())
             org_decl.Methods.append(
                 Py11Method(
                     "__getitem__",
@@ -512,7 +522,10 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
                 else:
                     seen_types.add(hash(T))
 
-                if T.name in ["Vec", "UnorderedMap", "IntSet", "vector", "flex_vector", "map", "box"]:
+                if T.name in [
+                        "Vec", "UnorderedMap", "IntSet", "vector", "flex_vector", "map",
+                        "box"
+                ]:
                     std_type: str = {
                         "Vec": "vector",
                         "UnorderedMap": "unordered_map",
@@ -1016,13 +1029,14 @@ class PyhaxorgTypeFieldGroup:
 @beartype
 def collect_type_field_groups(
         types: List[GenTuStruct],
-        base_map: Mapping[str, GenTuStruct]) -> PyhaxorgTypeFieldGroup:
+        base_map: GenTypeMap) -> PyhaxorgTypeFieldGroup:
 
     def aux(t: GenTuStruct) -> List[GenTuField]:
         result: List[GenTuField] = []
         for base in t.bases:
-            if base.name in base_map:
-                result += aux(base_map[base.name])
+            base_type = base_map.get_one_type_for_name(base.name)
+            if base_type:
+                result += aux(base_type)
 
         return result
 
@@ -1115,7 +1129,7 @@ def gen_pyhaxorg_shared_iteration_macros(types: List[GenTuStruct]) -> List[GenTu
 @beartype
 def gen_pyhaxorg_field_iteration_macros(
     types: List[GenTuStruct],
-    base_map: Mapping[str, GenTuStruct],
+    base_map: GenTypeMap,
     ast: ASTBuilder,
     macro_namespace: str,
 ) -> List[GenTuPass]:

@@ -187,7 +187,7 @@ class QualType(BaseModel, extra="forbid"):
 
     func: Optional[Function] = None
 
-    def flat_repr_flatten(self) -> Any:
+    def flat_repr_flatten(self, with_modifiers: bool = True) -> Any:
         ## NOTE: Used for hashing, order of append is important, it must match the actual representation,
         ## otherwise namespace nesting might throw off the hashing results, and make `[org::[sem::[Id]]]`
         ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked. 
@@ -200,15 +200,24 @@ class QualType(BaseModel, extra="forbid"):
             for P in T.Parameters:
                 aux(P)
 
-            result.append((
-                T.name,
-                T.isConst,
-                T.ptrCount,
-                T.RefKind,
-            ))
+            if with_modifiers:
+                result.append((
+                    T.name,
+                    T.isConst,
+                    T.ptrCount,
+                    T.RefKind,
+                ))
+
+            else:
+                result.append((
+                    T.name,
+                ))
 
         aux(self)
         return tuple(result)
+
+    def qual_hash(self) -> int:
+        return hash(self.flat_repr_flatten(with_modifiers=False))
 
     def __hash__(self) -> int:
         return hash(self.flat_repr_flatten())
