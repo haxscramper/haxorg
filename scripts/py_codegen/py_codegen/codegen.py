@@ -466,8 +466,8 @@ def add_translation_unit(
         # There is no topological sorting on the type declarations, so to make the initialization
         # work in correct order I need to push some of the [[refl]] annotated types at the top.
         if _struct.name.name == "Org":
-            from py_scriptutils.script_logging import pprint_to_file
-            pprint_to_file(_struct, "/tmp/sem_org_struct.py")
+            # from py_scriptutils.script_logging import pprint_to_file
+            # pprint_to_file(_struct, "/tmp/sem_org_struct.py")
             org_decl = pybind_org_id(ast, ast.b, _struct, GenTypeMap())
             org_decl.Methods.append(
                 Py11Method(
@@ -1022,7 +1022,7 @@ def gen_adaptagrams_wrappers(
                     GenTuInclude("py_libs/pybind11_utils.hpp", True),
                     GenTuInclude("pybind11/pybind11.h", True),
                     GenTuInclude("pybind11/stl.h", True),
-                    GenTuPass(res.build_bind(ast)),
+                    GenTuPass(res.build_bind(ast, base_map=base_map)),
                 ],
             )),
     ])
@@ -1262,7 +1262,8 @@ def gen_pyhaxorg_wrappers(
     shared_types = expand_type_groups(ast, get_shared_sem_types())
     expanded = expand_type_groups(ast, get_types())
     immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
-    base_map = get_base_map(expanded + shared_types + immutable)
+    tu: ConvTu = conv_proto_file(reflection_path)
+    base_map = get_base_map(expanded + shared_types + immutable + tu.enums + tu.structs)
     proto = pb.ProtoBuilder(
         wrapped=get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] +
         shared_types + expanded,
@@ -1278,7 +1279,6 @@ def gen_pyhaxorg_wrappers(
     import yaml
 
     full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)]
-    tu: ConvTu = conv_proto_file(reflection_path)
 
     with open("/tmp/pyhaxorg_reflection_data.yaml", "w") as file:
         yaml.safe_dump(to_base_types(tu), stream=file)
@@ -1371,7 +1371,7 @@ def gen_pyhaxorg_wrappers(
                     GenTuInclude("haxorg/sem/SemOrg.hpp", True),
                     GenTuInclude("pybind11/stl.h", True),
                     GenTuInclude("pyhaxorg_manual_impl.hpp", False),
-                    GenTuPass(res.build_bind(ast)),
+                    GenTuPass(res.build_bind(ast, base_map=base_map)),
                 ],
             )),
         GenUnit(

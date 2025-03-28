@@ -27,6 +27,7 @@ class GenTuIdent:
     type: QualType
     name: str
     value: Optional[Union[BlockId, str]] = None
+    OriginName: Optional[str] = None
 
 
 @beartype
@@ -42,6 +43,7 @@ class GenTuTypedef:
     name: QualType
     base: QualType
     original: Optional[Path] = None
+    OriginName: Optional[str] = None
 
 
 @beartype
@@ -50,6 +52,7 @@ class GenTuEnumField:
     name: str
     doc: GenTuDoc
     value: Optional[int] = None
+    OriginName: Optional[str] = None
 
 
 @beartype
@@ -63,6 +66,7 @@ class GenTuEnum:
     IsForwardDecl: bool = False
     original: Optional[Path] = None
     reflectionParams: Dict[str, Any] = field(default_factory=dict)
+    OriginName: Optional[str] = None
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "enum " + self.name.format(dbgOrigin=dbgOrigin)
@@ -86,6 +90,7 @@ class GenTuFunction:
     original: Optional[Path] = None
     spaces: List[QualType] = field(default_factory=list)
     isExposedForWrap: bool = True
+    OriginName: Optional[str] = None
 
     reflectionParams: Dict[str, Any] = field(default_factory=dict)
 
@@ -120,6 +125,7 @@ class GenTuField:
     isTypeDecl: bool = False
     isExposedForWrap: bool = True
     reflectionParams: Dict[str, Any] = field(default_factory=dict)
+    OriginName: Optional[str] = None
 
 
 GenTuEntry = Union[
@@ -154,6 +160,7 @@ class GenTuStruct:
     IsExplicitInstantiation: bool = False
     IsTemplateRecord: bool = False
     ExplicitTemplateParams: List[QualType] = field(default_factory=list)
+    OriginName: Optional[str] = None
 
     def declarationQualName(self) -> QualType:
         return self.name.model_copy(update=dict(Parameters=self.ExplicitTemplateParams))
@@ -189,8 +196,10 @@ GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunctio
 @dataclass
 class GenTypeMap:
     entries: List[GenTuUnion] = field(default_factory=list)
-    name_to_index: defaultdict[str, List[int]] = field(default_factory=lambda: defaultdict(list))
-    qual_hash_to_index: defaultdict[int, List[int]] = field(default_factory=lambda: defaultdict(list))
+    name_to_index: defaultdict[str, List[int]] = field(
+        default_factory=lambda: defaultdict(list))
+    qual_hash_to_index: defaultdict[int, List[int]] = field(
+        default_factory=lambda: defaultdict(list))
 
     # def get_qa
 
@@ -198,7 +207,9 @@ class GenTypeMap:
         return [self.entries[i] for i in self.name_to_index.get(name, [])]
 
     def get_types_for_qual_name(self, name: QualType) -> List[GenTuUnion]:
-        return [self.entries[i] for i in self.qual_hash_to_index.get(name.qual_hash(), [])]
+        return [
+            self.entries[i] for i in self.qual_hash_to_index.get(name.qual_hash(), [])
+        ]
 
     def get_wrapper_type(self, t: QualType) -> Optional[str]:
         def_types = self.get_types_for_qual_name(t)
@@ -211,15 +222,17 @@ class GenTypeMap:
             else:
                 return None
 
+    def is_known_type(self, t: QualType) -> bool:
+        # if t.name == "ImmNoneValueRead":
+        #     log(CAT).info(f"None value read, qual hash {t.qual_hash()}")
 
-
+        return t.qual_hash() in self.qual_hash_to_index
 
     def get_one_type_for_name(self, name: str) -> Optional[GenTuUnion]:
         items = self.get_types_for_name(name)
         for item in items:
             if isinstance(item, GenTuStruct) and not item.IsExplicitInstantiation:
                 return item
-
 
         if 0 < len(items):
             return items[0]
@@ -250,18 +263,15 @@ class GenTypeMap:
             return
             # raise ValueError(f"Qual type {qual_name} is already mapped to {self.qual_hash_to_index[qual_hash]}")
 
-        # log(CAT).info(f"{qual_hash} - {qual_name.name}")
+        # if qual_name.name == "ImmNoneValueRead":
+        #     log(CAT).info(f"{qual_hash} - {qual_name.name}")
 
         # log(CAT)
-
 
         self.qual_hash_to_index[qual_hash].append(new_index)
         self.name_to_index[qual_name.name].append(new_index)
 
         self.entries.append(typ)
-
-
-        
 
     @staticmethod
     def FromTypes(types: List[GenTuUnion]) -> "GenTypeMap":
@@ -282,16 +292,20 @@ class GenTypeMap:
 
         context = []
         iterate_object_tree(types, context, pre_visit=callback)
-        result.add_type(
-            GenTuStruct(
-                QualType.ForName("Org"),
-                GenTuDoc(""),
-                [
-                    GenTuField(t_vec(t_id()), "subnodes", GenTuDoc(""), value="{}"),
-                    GenTuField(
-                        t_opt(QualType(name="LineCol")), "loc", value="std::nullopt"),
-                ],
-            ))
+        # result.add_type(
+        #     GenTuStruct(
+        #         QualType.ForName("Org",
+        #                          Spaces=[
+        #                              QualType.ForName("org", isNamespace=True),
+        #                              QualType.ForName("sem", isNamespace=True),
+        #                          ]),
+        #         GenTuDoc(""),
+        #         [
+        #             GenTuField(t_vec(t_id()), "subnodes", GenTuDoc(""), value="{}"),
+        #             GenTuField(
+        #                 t_opt(QualType(name="LineCol")), "loc", value="std::nullopt"),
+        #         ],
+        #     ))
 
         # log(CAT).inf
         # pprint_to_file(types, "/tmp/union_dump_2.py", 300)

@@ -201,7 +201,7 @@ class ProtoBuilder():
             case "int":
                 return "int32"
 
-            case "Opt":
+            case "Opt" | "optional":
                 if it.Parameters[0].name == "Vec":
                     return self.rewrite_for_proto_grammar(it.Parameters[0])
 

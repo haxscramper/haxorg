@@ -508,16 +508,16 @@ struct proto_serde<Proto, sem::Cmd> {
 };
 
 template <>
-struct proto_serde<orgproto::LineCol, org::parse::LineCol> {
+struct proto_serde<orgproto::org_parse::LineCol, org::parse::LineCol> {
     static void write(
-        orgproto::LineCol*         out,
-        org::parse::LineCol const& in) {
+        orgproto::org_parse::LineCol* out,
+        org::parse::LineCol const&    in) {
         out->set_line(in.line);
         out->set_column(in.column);
         out->set_pos(in.pos);
     }
     static void read(
-        orgproto::LineCol const&                  out,
+        orgproto::org_parse::LineCol const&       out,
         proto_write_accessor<org::parse::LineCol> in) {
         in.get().pos    = out.pos();
         in.get().line   = out.line();

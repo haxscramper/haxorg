@@ -475,8 +475,8 @@ void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomSubtreeFlags const&
 template <typename V, typename R>
 void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -485,8 +485,8 @@ void Exporter<V, R>::visitErrorItem(R& res, In<sem::ErrorItem> object) {
   __org_field(res, object, message);
   __org_field(res, object, function);
   __org_field(res, object, line);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -495,37 +495,37 @@ void Exporter<V, R>::visitErrorGroup(R& res, In<sem::ErrorGroup> object) {
   __org_field(res, object, diagnostics);
   __org_field(res, object, function);
   __org_field(res, object, line);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitStmt(R& res, In<sem::Stmt> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitInline(R& res, In<sem::Inline> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitStmtList(R& res, In<sem::StmtList> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitEmpty(R& res, In<sem::Empty> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -533,8 +533,8 @@ void Exporter<V, R>::visitCmd(R& res, In<sem::Cmd> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -542,8 +542,8 @@ void Exporter<V, R>::visitBlock(R& res, In<sem::Block> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -551,8 +551,8 @@ void Exporter<V, R>::visitLineCommand(R& res, In<sem::LineCommand> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -560,16 +560,16 @@ void Exporter<V, R>::visitAttached(R& res, In<sem::Attached> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitLeaf(R& res, In<sem::Leaf> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -578,8 +578,8 @@ void Exporter<V, R>::visitCmdCaption(R& res, In<sem::CmdCaption> object) {
   __org_field(res, object, text);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -588,8 +588,8 @@ void Exporter<V, R>::visitCmdColumns(R& res, In<sem::CmdColumns> object) {
   __org_field(res, object, view);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -598,8 +598,8 @@ void Exporter<V, R>::visitCmdName(R& res, In<sem::CmdName> object) {
   __org_field(res, object, name);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -609,8 +609,8 @@ void Exporter<V, R>::visitCmdCustomArgs(R& res, In<sem::CmdCustomArgs> object) {
   __org_field(res, object, isAttached);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -620,8 +620,8 @@ void Exporter<V, R>::visitCmdCustomRaw(R& res, In<sem::CmdCustomRaw> object) {
   __org_field(res, object, isAttached);
   __org_field(res, object, text);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -631,8 +631,8 @@ void Exporter<V, R>::visitCmdCustomText(R& res, In<sem::CmdCustomText> object) {
   __org_field(res, object, isAttached);
   __org_field(res, object, text);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -646,8 +646,8 @@ void Exporter<V, R>::visitCmdCall(R& res, In<sem::CmdCall> object) {
   __org_field(res, object, result);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -656,16 +656,16 @@ void Exporter<V, R>::visitCmdTblfm(R& res, In<sem::CmdTblfm> object) {
   __org_field(res, object, expr);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitHashTag(R& res, In<sem::HashTag> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -673,8 +673,8 @@ void Exporter<V, R>::visitInlineFootnote(R& res, In<sem::InlineFootnote> object)
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, tag);
   __org_field(res, object, definition);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -682,8 +682,8 @@ void Exporter<V, R>::visitInlineExport(R& res, In<sem::InlineExport> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, exporter);
   __org_field(res, object, content);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -694,8 +694,8 @@ void Exporter<V, R>::visitTime(R& res, In<sem::Time> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, isActive);
   __org_field(res, object, time);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -719,8 +719,8 @@ void Exporter<V, R>::visitTimeRange(R& res, In<sem::TimeRange> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, from);
   __org_field(res, object, to);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -728,8 +728,8 @@ void Exporter<V, R>::visitMacro(R& res, In<sem::Macro> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, name);
   __org_field(res, object, attrs);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -738,8 +738,8 @@ void Exporter<V, R>::visitSymbol(R& res, In<sem::Symbol> object) {
   __org_field(res, object, name);
   __org_field(res, object, parameters);
   __org_field(res, object, positional);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -752,158 +752,158 @@ template <typename V, typename R>
 void Exporter<V, R>::visitEscaped(R& res, In<sem::Escaped> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitNewline(R& res, In<sem::Newline> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitSpace(R& res, In<sem::Space> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitWord(R& res, In<sem::Word> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitAtMention(R& res, In<sem::AtMention> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitRawText(R& res, In<sem::RawText> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitPunctuation(R& res, In<sem::Punctuation> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitPlaceholder(R& res, In<sem::Placeholder> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitBigIdent(R& res, In<sem::BigIdent> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitTextTarget(R& res, In<sem::TextTarget> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitMarkup(R& res, In<sem::Markup> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitBold(R& res, In<sem::Bold> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitUnderline(R& res, In<sem::Underline> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitMonospace(R& res, In<sem::Monospace> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitMarkQuote(R& res, In<sem::MarkQuote> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitVerbatim(R& res, In<sem::Verbatim> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitItalic(R& res, In<sem::Italic> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitStrike(R& res, In<sem::Strike> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitPar(R& res, In<sem::Par> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitRadioTarget(R& res, In<sem::RadioTarget> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, words);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitLatex(R& res, In<sem::Latex> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -912,8 +912,8 @@ void Exporter<V, R>::visitLink(R& res, In<sem::Link> object) {
   __org_field(res, object, description);
   __org_field(res, object, target);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -921,8 +921,8 @@ void Exporter<V, R>::visitBlockCenter(R& res, In<sem::BlockCenter> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -930,16 +930,16 @@ void Exporter<V, R>::visitBlockQuote(R& res, In<sem::BlockQuote> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitBlockComment(R& res, In<sem::BlockComment> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -947,8 +947,8 @@ void Exporter<V, R>::visitBlockVerse(R& res, In<sem::BlockVerse> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -957,8 +957,8 @@ void Exporter<V, R>::visitBlockDynamicFallback(R& res, In<sem::BlockDynamicFallb
   __org_field(res, object, name);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -966,8 +966,8 @@ void Exporter<V, R>::visitBlockExample(R& res, In<sem::BlockExample> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -977,8 +977,8 @@ void Exporter<V, R>::visitBlockExport(R& res, In<sem::BlockExport> object) {
   __org_field(res, object, content);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -986,8 +986,8 @@ void Exporter<V, R>::visitBlockAdmonition(R& res, In<sem::BlockAdmonition> objec
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -997,8 +997,8 @@ void Exporter<V, R>::visitBlockCodeEvalResult(R& res, In<sem::BlockCodeEvalResul
   __org_field(res, object, node);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1016,8 +1016,8 @@ void Exporter<V, R>::visitBlockCode(R& res, In<sem::BlockCode> object) {
   __org_field(res, object, switches);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1025,8 +1025,8 @@ void Exporter<V, R>::visitSubtreeLog(R& res, In<sem::SubtreeLog> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, head);
   __org_field(res, object, desc);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1047,8 +1047,8 @@ void Exporter<V, R>::visitSubtree(R& res, In<sem::Subtree> object) {
   __org_field(res, object, isComment);
   __org_field(res, object, isArchived);
   __org_field(res, object, priority);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1057,8 +1057,8 @@ void Exporter<V, R>::visitCell(R& res, In<sem::Cell> object) {
   __org_field(res, object, isBlock);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1068,8 +1068,8 @@ void Exporter<V, R>::visitRow(R& res, In<sem::Row> object) {
   __org_field(res, object, isBlock);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1079,23 +1079,23 @@ void Exporter<V, R>::visitTable(R& res, In<sem::Table> object) {
   __org_field(res, object, isBlock);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitParagraph(R& res, In<sem::Paragraph> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitColonExample(R& res, In<sem::ColonExample> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1104,8 +1104,8 @@ void Exporter<V, R>::visitCmdAttr(R& res, In<sem::CmdAttr> object) {
   __org_field(res, object, target);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1115,8 +1115,8 @@ void Exporter<V, R>::visitCmdExport(R& res, In<sem::CmdExport> object) {
   __org_field(res, object, content);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1125,16 +1125,16 @@ void Exporter<V, R>::visitCall(R& res, In<sem::Call> object) {
   __org_field(res, object, name);
   __org_field(res, object, attrs);
   __org_field(res, object, isCommand);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitList(R& res, In<sem::List> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1143,8 +1143,8 @@ void Exporter<V, R>::visitListItem(R& res, In<sem::ListItem> object) {
   __org_field(res, object, checkbox);
   __org_field(res, object, header);
   __org_field(res, object, bullet);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1159,8 +1159,8 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
   __org_field(res, object, setupfile);
   __org_field(res, object, maxSubtreeLevelExport);
   __org_field(res, object, columns);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1168,16 +1168,16 @@ void Exporter<V, R>::visitDocumentFragment(R& res, In<sem::DocumentFragment> obj
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, baseLine);
   __org_field(res, object, baseCol);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitCriticMarkup(R& res, In<sem::CriticMarkup> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, kind);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1191,8 +1191,8 @@ void Exporter<V, R>::visitDocument(R& res, In<sem::Document> object) {
   __org_field(res, object, language);
   __org_field(res, object, options);
   __org_field(res, object, exportFileName);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1204,22 +1204,22 @@ void Exporter<V, R>::visitFileTarget(R& res, In<sem::FileTarget> object) {
   __org_field(res, object, restrictToHeadlines);
   __org_field(res, object, targetId);
   __org_field(res, object, regexp);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitTextSeparator(R& res, In<sem::TextSeparator> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDocumentGroup(R& res, In<sem::DocumentGroup> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1231,8 +1231,8 @@ void Exporter<V, R>::visitFile(R& res, In<sem::File> object) {
   __org_field(res, object, relPath);
   __org_field(res, object, absPath);
   __org_field(res, object, data);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1249,8 +1249,8 @@ void Exporter<V, R>::visitDirectory(R& res, In<sem::Directory> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, relPath);
   __org_field(res, object, absPath);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1258,8 +1258,8 @@ void Exporter<V, R>::visitSymlink(R& res, In<sem::Symlink> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, isDirectory);
   __org_field(res, object, absPath);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
@@ -1272,8 +1272,8 @@ void Exporter<V, R>::visitCmdInclude(R& res, In<sem::CmdInclude> object) {
   __org_field(res, object, firstLine);
   __org_field(res, object, lastLine);
   __org_field(res, object, data);
-  __org_field(res, object, subnodes);
   __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>

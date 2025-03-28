@@ -169,7 +169,10 @@ class Py11Function:
         return pya.FunctionDefParams(
             Name=py_ident(self.PyName),
             ResultTy=self.ResultTy and py_type(self.ResultTy, base_map=base_map),
-            Args=[pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name) for Arg in self.Args],
+            Args=[
+                pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
+                for Arg in self.Args
+            ],
             IsStub=True,
         )
 
@@ -664,7 +667,7 @@ class Py11Class:
 
         return res
 
-    def build_bind(self, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
         b = ast.b
 
         sub: List[BlockId] = []
@@ -690,7 +693,7 @@ class Py11Class:
                 "pybind11::class_",
                 [b.text("m"), ast.Literal(self.PyName)],
                 Params=[self.Class] + ([self.PyHolderType] if self.PyHolderType else []) +
-                self.Bases,
+                [B for B in self.Bases if base_map.is_known_type(B)],
             ),
             b.indent(2, b.stack(sub))
         ])
@@ -738,7 +741,8 @@ class Py11Module:
                     passes.append(ast.string(""))
 
                 case Py11Function():
-                    passes.append(ast.Function(item.build_typedef(ast, base_map=base_map)))
+                    passes.append(ast.Function(item.build_typedef(ast,
+                                                                  base_map=base_map)))
                     passes.append(ast.string(""))
 
                 case Py11TypedefPass():
@@ -757,7 +761,7 @@ class Py11Module:
 
         return ast.b.stack(passes)
 
-    def build_bind(self, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
         b = ast.b
 
         passes: List[BlockId] = []
@@ -768,7 +772,7 @@ class Py11Module:
                     passes.append(entry.Id)
 
                 case Py11Class():
-                    passes.append(entry.build_bind(ast))
+                    passes.append(entry.build_bind(ast, base_map=base_map))
 
                 case Py11Enum():
                     passes.append(entry.build_bind(ast))

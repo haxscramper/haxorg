@@ -138,7 +138,6 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
             raise e from None
 
-
     result.IsExplicitInstantiation = record.is_explicit_instantiation
     result.IsTemplateRecord = record.is_template_record
     result.original = copy(original)
@@ -152,11 +151,14 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
     for _field in record.fields:
         if _field.is_type_decl:
             result.fields.append(
-                GenTuField(type=None,
-                           name=_field.name,
-                           doc=conv_doc_comment(_field.doc),
-                           isTypeDecl=True,
-                           decl=conv_proto_record(_field.type_decl, original)))
+                GenTuField(
+                    type=None,
+                    name=_field.name,
+                    doc=conv_doc_comment(_field.doc),
+                    isTypeDecl=True,
+                    decl=conv_proto_record(_field.type_decl, original),
+                    OriginName="refl",
+                ))
 
         else:
             result.fields.append(
@@ -164,6 +166,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
                     type=conv_proto_type(_field.type),
                     name=_field.name,
                     doc=conv_doc_comment(_field.doc),
+                    OriginName="refl",
                 ))
 
     for base in record.bases:
@@ -174,14 +177,17 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
             continue
 
         result.methods.append(
-            GenTuFunction(result=conv_proto_type(meth.return_ty),
-                          name=meth.name,
-                          doc=conv_doc_comment(meth.doc),
-                          isConst=meth.is_const,
-                          isStatic=meth.is_static,
-                          original=original,
-                          arguments=[conv_proto_arg(arg) for arg in meth.args],
-                          parentClass=result))
+            GenTuFunction(
+                result=conv_proto_type(meth.return_ty),
+                name=meth.name,
+                doc=conv_doc_comment(meth.doc),
+                isConst=meth.is_const,
+                isStatic=meth.is_static,
+                original=original,
+                arguments=[conv_proto_arg(arg) for arg in meth.args],
+                parentClass=result,
+                OriginName="refl",
+            ))
 
     for record in record.nested_rec:
         result.nested.append(conv_proto_record(record, original))
@@ -198,8 +204,13 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
     result.IsForwardDecl = en.is_forward_decl
     result.original = copy(original)
     for _field in en.fields:
-        result.fields.append(GenTuEnumField(_field.name, GenTuDoc(""),
-                                            value=_field.value))
+        result.fields.append(
+            GenTuEnumField(
+                _field.name,
+                GenTuDoc(""),
+                value=_field.value,
+                OriginName="refl",
+            ))
 
     if en.reflection_params:
         result.reflectionParams = json.loads(en.reflection_params)
@@ -209,9 +220,12 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
 
 @beartype
 def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
-    return GenTuIdent(name=arg.name,
-                      type=conv_proto_type(arg.type),
-                      value=conv_proto_default(arg.default))
+    return GenTuIdent(
+        name=arg.name,
+        type=conv_proto_type(arg.type),
+        value=conv_proto_default(arg.default),
+        OriginName="refl",
+    )
 
 
 @beartype
@@ -223,6 +237,7 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
         doc=GenTuDoc(""),
         original=copy(original),
         spaces=[conv_proto_type(T) for T in rec.spaces],
+        OriginName="refl",
     )
 
     if rec.reflection_params:
@@ -237,6 +252,7 @@ def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypede
         name=conv_proto_type(rec.name),
         base=conv_proto_type(rec.base_type),
         original=original,
+        OriginName="refl",
     )
 
 
