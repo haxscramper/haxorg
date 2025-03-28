@@ -8,8 +8,8 @@ build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
 if str(build_dir) not in sys.path:
     sys.path.append(str(build_dir))
 
-for p in sys.path:
-    ci_log().info(p)
+# for p in sys.path:
+#     ci_log().info(p)
 
 from typing import TYPE_CHECKING
 from beartype.typing import NewType

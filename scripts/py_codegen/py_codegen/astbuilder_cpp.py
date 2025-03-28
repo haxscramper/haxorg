@@ -187,7 +187,7 @@ class QualType(BaseModel, extra="forbid"):
 
     func: Optional[Function] = None
 
-    def flat_repr_flatten(self) -> Any:
+    def flat_repr_flatten(self, with_modifiers: bool = True) -> Any:
         ## NOTE: Used for hashing, order of append is important, it must match the actual representation,
         ## otherwise namespace nesting might throw off the hashing results, and make `[org::[sem::[Id]]]`
         ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked. 
@@ -200,15 +200,24 @@ class QualType(BaseModel, extra="forbid"):
             for P in T.Parameters:
                 aux(P)
 
-            result.append((
-                T.name,
-                T.isConst,
-                T.ptrCount,
-                T.RefKind,
-            ))
+            if with_modifiers:
+                result.append((
+                    T.name,
+                    T.isConst,
+                    T.ptrCount,
+                    T.RefKind,
+                ))
+
+            else:
+                result.append((
+                    T.name,
+                ))
 
         aux(self)
         return tuple(result)
+
+    def qual_hash(self) -> int:
+        return hash(self.flat_repr_flatten(with_modifiers=False))
 
     def __hash__(self) -> int:
         return hash(self.flat_repr_flatten())
@@ -275,8 +284,8 @@ class QualType(BaseModel, extra="forbid"):
             return "{" + result + "}"
 
         # return self.model_dump_json() + "  --- " + aux(self)
-        # return aux(self)
-        return str(self.flat_repr_flatten())
+        return aux(self)
+        # return str(self.flat_repr_flatten())
 
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace
@@ -703,7 +712,7 @@ class ASTBuilder(base.AstbuilderBase):
         Params: Optional[List[QualType]] = None,
         LineParameters: bool = True,
     ) -> BlockId:
-        if opc[0].isalpha() or opc[0] == ".":
+        if opc[0].isalpha() or opc[0] == "." or opc[0] == "_":
             return self.Call(
                 self.string(opc),
                 Args=args,

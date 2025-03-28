@@ -118,8 +118,8 @@ class ASTBuilder(base.AstbuilderBase):
             *([
                 b.text(" -> "),
                 self.Type(p.ResultTy),
-                b.text(":"),
             ] if p.ResultTy else []),
+            b.text(":"),
         ]
 
     def Function(self, p: FunctionDefParams) -> BlockId:

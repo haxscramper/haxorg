@@ -103,56 +103,64 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
     To use iteration context in the callback functions, define the mutable variable and 
     read it in the callbacks.
     """
-    if pre_visit:
-        pre_visit(tree)
 
-    context.append(tree)
+    recursion_guard: set[int] = set()
 
-    if isinstance(tree, (list, tuple)):
-        for it in tree:
-            iterate_object_tree(
-                it,
-                context,
-                pre_visit=pre_visit,
-                post_visit=post_visit,
-            )
+    def aux(tree, context: List[Any]):
+        if pre_visit:
+            pre_visit(tree)
 
-    elif isinstance(tree, dict):
-        for key, value in tree.items():
-            iterate_object_tree(
-                value,
-                context,
-                pre_visit=pre_visit,
-                post_visit=post_visit,
-            )
+        # prefix = "  " * (len(context) if len(context) < 30 else 30)
 
-    # Primitive types cannot be walked over, end iteration
-    elif (tree is True or tree is False or tree is None or isinstance(tree, str) or
-          isinstance(tree, type) or isinstance(tree, int)):
-        pass
-
-    elif isinstance(tree, object):
-        # If any object -- walk all slots (attributes)
-        if hasattr(tree, "__dict__"):
-            for slot, value in vars(tree).items():
-                iterate_object_tree(
-                    value,
-                    context,
-                    pre_visit=pre_visit,
-                    post_visit=post_visit,
-                )
+        if id(tree) in recursion_guard:
+            return
 
         else:
-            print(f"??? {type(tree)}")
+            recursion_guard.add(id(tree))
 
-    # Walk over every item in list
-    # Otherwise, print the value -- if something is missing it will be added later
-    else:
-        print(f"? {tree}")
+        context.append(tree)
+        
+        if isinstance(tree, (list, tuple)):
+            for it in tree:
+                aux(
+                    it,
+                    context,
+                )
 
-    context.pop()
-    if post_visit:
-        post_visit(tree)
+        elif isinstance(tree, dict):
+            for key, value in tree.items():
+                aux(
+                    value,
+                    context,
+                )
+
+        # Primitive types cannot be walked over, end iteration
+        elif (tree is True or tree is False or tree is None or isinstance(tree, str) or
+            isinstance(tree, type) or isinstance(tree, int)):
+            pass
+
+        elif isinstance(tree, object):
+            # If any object -- walk all slots (attributes)
+            if hasattr(tree, "__dict__"):
+                for slot, value in vars(tree).items():
+                    aux(
+                        value,
+                        context,
+                    )
+
+            else:
+                print(f"??? {type(tree)}")
+
+        # Walk over every item in list
+        # Otherwise, print the value -- if something is missing it will be added later
+        else:
+            print(f"? {tree}")
+
+        context.pop()
+        if post_visit:
+            post_visit(tree)
+
+    aux(tree, context)
 
 
 @beartype

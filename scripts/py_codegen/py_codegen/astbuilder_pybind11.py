@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
-IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python"]
+IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "imm"]
 
 
 @beartype
@@ -55,50 +55,68 @@ def flat_scope(Typ: QualType) -> List[str]:
 
 
 @beartype
-def py_type(Typ: QualType) -> pya.PyType:
-    flat = [N for N in flat_scope(Typ) if N not in IGNORED_NAMESPACES]
-    match flat:
-        case ["Vec"]:
-            name = "List"
+def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
+    wrapper_override = base_map.get_wrapper_type(Typ)
 
-        case ["Opt"] | ["std", "optional"]:
-            name = "Optional"
+    if wrapper_override:
+        name = wrapper_override
 
-        case ["std", "variant"] | ["Var"]:
-            name = "Union"
+    else:
+        flat = [N for N in flat_scope(Typ) if N not in IGNORED_NAMESPACES]
+        match flat:
+            case ["Vec"]:
+                name = "List"
 
-        case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
-                                                        ] | ["std", "basic_string"]:
-            name = "str"
+            case ["Opt"] | ["std", "optional"]:
+                name = "Optional"
 
-        case ["SemId"]:
-            name = Typ.Parameters[0].name
+            case ["std", "variant"] | ["Var"]:
+                name = "Union"
 
-        case "Bool":
-            name = "bool"
+            case ["immer", "box"]:
+                name = "ImmBox"
 
-        case "double":
-            name = "float"
+            case ["immer", "flex_vector"]:
+                name = "ImmFlexVector"
 
-        case ["void"]:
-            name = "None"
+            case ["immer", "vector"]:
+                name = "ImmVector"
 
-        case ["pybind11", "function"] | [*_, "PyFunc"]:
-            name = "function"
+            case ["immer", "map"]:
+                name = "ImmMap"
 
-        case ["py", "object"] | ["pybind11", "object"]:
-            name = "object"
+            case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
+                                                            ] | ["std", "basic_string"]:
+                name = "str"
 
-        case ["UnorderedMap"]:
-            name = "Dict"
+            case ["SemId"]:
+                name = Typ.Parameters[0].name
 
-        case _:
-            name = "".join(flat)
+            case "Bool":
+                name = "bool"
+
+            case "double":
+                name = "float"
+
+            case ["void"]:
+                name = "None"
+
+            case ["pybind11", "function"] | [*_, "PyFunc"]:
+                name = "function"
+
+            case ["py", "object"] | ["pybind11", "object"]:
+                name = "object"
+
+            case ["UnorderedMap"]:
+                name = "Dict"
+
+            case _:
+                name = "".join(flat)
 
     res = pya.PyType(name)
     if Typ.name != "SemId":
         for param in Typ.Parameters:
-            res.Params.append(py_type(param))
+            res.Params.append(py_type(param, base_map=base_map))
 
     return res
 
@@ -118,6 +136,12 @@ def py_ident(name: str) -> str:
     match name:
         case "from" | "is":
             return name + "_"
+
+        case "operator==":
+            return "__eq__"
+
+        case "operator<":
+            return "__lt__"
 
         case _:
             return name
@@ -140,11 +164,15 @@ class Py11Function:
     DefParams: Optional[List[BlockId]] = None
     Spaces: List[QualType] = field(default_factory=list)
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> pya.FunctionDefParams:
+    def build_typedef(self, ast: pya.ASTBuilder,
+                      base_map: GenTypeMap) -> pya.FunctionDefParams:
         return pya.FunctionDefParams(
             Name=py_ident(self.PyName),
-            ResultTy=self.ResultTy and py_type(self.ResultTy),
-            Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
+            ResultTy=self.ResultTy and py_type(self.ResultTy, base_map=base_map),
+            Args=[
+                pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
+                for Arg in self.Args
+            ],
             IsStub=True,
         )
 
@@ -282,11 +310,15 @@ class Py11Method(Py11Function):
             IsStatic=meth.isStatic,
         )
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
+    def build_typedef(self, ast: pya.ASTBuilder,
+                      base_map: GenTypeMap) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
             Name=py_ident(self.PyName),
-            ResultTy=self.ResultTy and py_type(self.ResultTy),
-            Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
+            ResultTy=self.ResultTy and py_type(self.ResultTy, base_map),
+            Args=[
+                pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
+                for Arg in self.Args
+            ],
             IsStub=True,
             Decorators=[pya.DecoratorParams("staticmethod")] if self.IsStatic else []))
 
@@ -339,12 +371,15 @@ class Py11EnumField:
     Doc: GenTuDoc
 
     @staticmethod
-    def FromGenTu(Field: GenTuEnumField,
-                  pyNameOverride: Optional[str] = None) -> 'Py11EnumField':
+    def FromGenTu(
+        Field: GenTuEnumField,
+        pyNameOverride: Optional[str] = None,
+    ) -> 'Py11EnumField':
         return Py11EnumField(
             PyName=Field.name if pyNameOverride is None else pyNameOverride,
             CxxName=Field.name,
-            Doc=Field.doc)
+            Doc=Field.doc,
+        )
 
     def build_bind(self, Enum: 'Py11Enum', ast: ASTBuilder) -> BlockId:
         return ast.XCall(".value", [
@@ -449,8 +484,8 @@ class Py11Field:
             Default=Field.value,
         )
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> pya.FieldParams:
-        return pya.FieldParams(py_type(self.Type), self.PyName)
+    def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.FieldParams:
+        return pya.FieldParams(py_type(self.Type, base_map=base_map), self.PyName)
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -504,8 +539,9 @@ class Py11Class:
                   value: GenTuStruct,
                   pyNameOveride: Optional[str] = None) -> 'Py11Class':
         res = Py11Class(
-            PyName=pyNameOveride or py_type(value.name).Name,
-            Class=value.name,
+            PyName=value.reflectionParams.get("wrapper-name", None) or pyNameOveride or
+            py_type(value.name).Name,
+            Class=value.declarationQualName(),
         )
 
         for base in value.bases:
@@ -607,8 +643,9 @@ class Py11Class:
 
         return res
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> pya.ClassParams:
-        res = pya.ClassParams(Name=self.PyName, Bases=[py_type(T) for T in self.Bases])
+    def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.ClassParams:
+        res = pya.ClassParams(Name=self.PyName,
+                              Bases=[py_type(T, base_map=base_map) for T in self.Bases])
 
         Init = Py11Method(
             PyName="__init__",
@@ -620,17 +657,17 @@ class Py11Class:
             ],
         )
 
-        res.Methods.append(Init.build_typedef(ast))
+        res.Methods.append(Init.build_typedef(ast, base_map=base_map))
 
         for Meth in self.dedup_methods():
-            res.Methods.append(Meth.build_typedef(ast))
+            res.Methods.append(Meth.build_typedef(ast, base_map=base_map))
 
         for Field in self.Fields:
-            res.Fields.append(Field.build_typedef(ast))
+            res.Fields.append(Field.build_typedef(ast, base_map=base_map))
 
         return res
 
-    def build_bind(self, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
         b = ast.b
 
         sub: List[BlockId] = []
@@ -656,7 +693,7 @@ class Py11Class:
                 "pybind11::class_",
                 [b.text("m"), ast.Literal(self.PyName)],
                 Params=[self.Class] + ([self.PyHolderType] if self.PyHolderType else []) +
-                self.Bases,
+                [B for B in self.Bases if base_map.is_known_type(B)],
             ),
             b.indent(2, b.stack(sub))
         ])
@@ -686,7 +723,7 @@ class Py11Module:
     Before: List[BlockId] = field(default_factory=list)
     After: List[BlockId] = field(default_factory=list)
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> BlockId:
+    def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> BlockId:
         passes: List[BlockId] = []
 
         passes.append(ast.string("from typing import *"))
@@ -700,11 +737,12 @@ class Py11Module:
                     passes.append(ast.string(""))
 
                 case Py11Class():
-                    passes.append(ast.Class(item.build_typedef(ast)))
+                    passes.append(ast.Class(item.build_typedef(ast, base_map)))
                     passes.append(ast.string(""))
 
                 case Py11Function():
-                    passes.append(ast.Function(item.build_typedef(ast)))
+                    passes.append(ast.Function(item.build_typedef(ast,
+                                                                  base_map=base_map)))
                     passes.append(ast.string(""))
 
                 case Py11TypedefPass():
@@ -723,7 +761,7 @@ class Py11Module:
 
         return ast.b.stack(passes)
 
-    def build_bind(self, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
         b = ast.b
 
         passes: List[BlockId] = []
@@ -734,7 +772,7 @@ class Py11Module:
                     passes.append(entry.Id)
 
                 case Py11Class():
-                    passes.append(entry.build_bind(ast))
+                    passes.append(entry.build_bind(ast, base_map=base_map))
 
                 case Py11Enum():
                     passes.append(entry.build_bind(ast))
