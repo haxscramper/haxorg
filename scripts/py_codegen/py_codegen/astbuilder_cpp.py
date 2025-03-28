@@ -284,8 +284,8 @@ class QualType(BaseModel, extra="forbid"):
             return "{" + result + "}"
 
         # return self.model_dump_json() + "  --- " + aux(self)
-        # return aux(self)
-        return str(self.flat_repr_flatten())
+        return aux(self)
+        # return str(self.flat_repr_flatten())
 
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace

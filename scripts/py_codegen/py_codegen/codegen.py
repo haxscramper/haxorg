@@ -42,11 +42,13 @@ def with_enum_reflection_api(body: List[Any]) -> List[Any]:
 
 
 @beartype
-def get_exporter_methods(forward: bool,
-                         expanded: List[GenTuStruct]) -> Sequence[GenTuFunction]:
+def get_exporter_methods(
+    forward: bool,
+    expanded: List[GenTuStruct],
+    base_map: GenTypeMap,
+) -> Sequence[GenTuFunction]:
     methods: List[GenTuFunction] = []
     iterate_tree_context = []
-    base_map = get_base_map(expanded)
 
     def callback(value: Any) -> None:
         nonlocal methods
@@ -140,10 +142,12 @@ def get_exporter_methods(forward: bool,
 
 
 @beartype
-def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
+def get_imm_serde(
+    types: List[GenTuStruct],
+    ast: ASTBuilder,
+    base_map: GenTypeMap,
+) -> List[GenTuPass]:
     serde: List[GenTuStruct] = []
-
-    base_map = get_base_map(types)
 
     def aux(it):
         match it:
@@ -362,10 +366,14 @@ def pybind_org_id(
 
 
 @beartype
-def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
+def pybind_nested_type(
+    ast: ASTBuilder,
+    value: GenTuStruct,
+    base_map: GenTypeMap,
+) -> Py11Class:
     res = Py11Class(
         PyName=value.reflectionParams.get("wrapper-name", None) or
-        py_type(value.name).Name,
+        py_type(value.name, base_map=base_map).Name,
         Class=value.declarationQualName(),
         Bases=value.bases,
     )
@@ -398,10 +406,13 @@ def get_osk_enum(expanded: List[GenTuStruct]) -> GenTuEnum:
 
 
 @beartype
-def add_structures(res: Py11Module, ast: ASTBuilder, structs: List[GenTuStruct]):
+def add_structures(
+    res: Py11Module,
+    ast: ASTBuilder,
+    structs: List[GenTuStruct],
+    base_map: GenTypeMap,
+):
     b: TextLayout = ast.b
-
-    base_map = get_base_map(structs)
 
     def codegenConstructCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
@@ -409,17 +420,19 @@ def add_structures(res: Py11Module, ast: ASTBuilder, structs: List[GenTuStruct])
                 res.Decls.append(pybind_org_id(ast, b, value, base_map))
 
             else:
-                new = pybind_nested_type(ast, value)
+                new = pybind_nested_type(ast, value, base_map=base_map)
                 res.Decls.append(new)
 
         elif isinstance(value, GenTuEnum):
-            res.Decls.append(Py11Enum.FromGenTu(value, PyName=py_type(value.name).Name))
+            res.Decls.append(
+                Py11Enum.FromGenTu(value,
+                                   PyName=py_type(value.name, base_map=base_map).Name))
 
         elif isinstance(value, GenTuTypedef):
             res.Decls.append(
                 Py11TypedefPass(
-                    name=py_type(value.name),
-                    base=py_type(value.base),
+                    name=py_type(value.name, base_map=base_map),
+                    base=py_type(value.base, base_map=base_map),
                 ))
 
     # Map data definitions into python wrappers
@@ -431,14 +444,24 @@ def add_structures(res: Py11Module, ast: ASTBuilder, structs: List[GenTuStruct])
 
 
 @beartype
-def add_enums(res: Py11Module, ast: ASTBuilder, enums: List[GenTuEnum]):
+def add_enums(
+    res: Py11Module,
+    ast: ASTBuilder,
+    enums: List[GenTuEnum],
+    base_map: GenTypeMap,
+):
     for item in enums:
-        wrap = Py11Enum.FromGenTu(item, py_type(item.name).Name)
+        wrap = Py11Enum.FromGenTu(item, py_type(item.name, base_map=base_map).Name)
         res.Decls.append(wrap)
 
 
 @beartype
-def add_translation_unit(res: Py11Module, ast: ASTBuilder, tu: ConvTu):
+def add_translation_unit(
+    res: Py11Module,
+    ast: ASTBuilder,
+    tu: ConvTu,
+    base_map: GenTypeMap,
+):
     for _struct in tu.structs:
         # There is no topological sorting on the type declarations, so to make the initialization
         # work in correct order I need to push some of the [[refl]] annotated types at the top.
@@ -474,13 +497,15 @@ def add_translation_unit(res: Py11Module, ast: ASTBuilder, tu: ConvTu):
             res.Decls.insert(0, org_decl)
 
         elif _struct.name.name == "LineCol":
-            res.Decls.insert(0, pybind_nested_type(ast, _struct))
+            res.Decls.insert(0, pybind_nested_type(ast, _struct, base_map=base_map))
 
         else:
-            res.Decls.append(pybind_nested_type(ast, _struct))
+            res.Decls.append(pybind_nested_type(ast, _struct, base_map=base_map))
 
     for _enum in tu.enums:
-        res.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))
+        res.Decls.append(
+            Py11Enum.FromGenTu(_enum,
+                               py_type(_enum.name, base_map=base_map).Name))
 
     for _func in tu.functions:
         res.Decls.append(Py11Function.FromGenTu(_func))
@@ -971,8 +996,9 @@ def gen_adaptagrams_wrappers(
     reflection_path: Path,
 ) -> GenFiles:
     tu: ConvTu = conv_proto_file(reflection_path)
+    base_map = get_base_map(tu.enums + tu.structs)
     res = Py11Module("py_adaptagrams")
-    add_translation_unit(res, ast=ast, tu=tu)
+    add_translation_unit(res, ast=ast, tu=tu, base_map=base_map)
     add_type_specializations(res, ast=ast)
 
     with open("/tmp/adaptagrams_reflection.json", "w") as file:
@@ -983,7 +1009,7 @@ def gen_adaptagrams_wrappers(
         GenUnit(
             GenTu(
                 "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
-                [GenTuPass(res.build_typedef(pyast))],
+                [GenTuPass(res.build_typedef(pyast, base_map=base_map))],
                 clangFormatGuard=False,
             )),
         GenUnit(
@@ -1027,9 +1053,8 @@ class PyhaxorgTypeFieldGroup:
 
 
 @beartype
-def collect_type_field_groups(
-        types: List[GenTuStruct],
-        base_map: GenTypeMap) -> PyhaxorgTypeFieldGroup:
+def collect_type_field_groups(types: List[GenTuStruct],
+                              base_map: GenTypeMap) -> PyhaxorgTypeFieldGroup:
 
     def aux(t: GenTuStruct) -> List[GenTuField]:
         result: List[GenTuField] = []
@@ -1237,9 +1262,13 @@ def gen_pyhaxorg_wrappers(
     shared_types = expand_type_groups(ast, get_shared_sem_types())
     expanded = expand_type_groups(ast, get_types())
     immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
+    base_map = get_base_map(expanded + shared_types + immutable)
     proto = pb.ProtoBuilder(
-        get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] + shared_types +
-        expanded, ast)
+        wrapped=get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] +
+        shared_types + expanded,
+        ast=ast,
+        base_map=base_map,
+    )
     t = ast.b
 
     protobuf = proto.build_protobuf()
@@ -1262,20 +1291,22 @@ def gen_pyhaxorg_wrappers(
     org_type_names = [Typ.name for Typ in expanded]
 
     res = Py11Module("pyhaxorg")
-    add_structures(res, ast, shared_types)
-    add_structures(res, ast, expanded)
-    add_enums(res, ast, get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)])
-    add_translation_unit(res, ast, tu)
+
+    add_structures(res, ast, shared_types, base_map=base_map)
+    add_structures(res, ast, expanded, base_map=base_map)
+    add_enums(res,
+              ast,
+              get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)],
+              base_map=base_map)
+    add_translation_unit(res, ast, tu, base_map=base_map)
     add_type_specializations(res, ast)
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
-
-    base_map = get_base_map(expanded)
 
     return GenFiles([
         GenUnit(
             GenTu(
                 "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
-                [GenTuPass(res.build_typedef(pyast))],
+                [GenTuPass(res.build_typedef(pyast, base_map=base_map))],
                 clangFormatGuard=False,
             )),
         GenUnit(
@@ -1317,19 +1348,19 @@ def gen_pyhaxorg_wrappers(
         GenUnit(
             GenTu(
                 "{base}/exporters/Exporter.tcc",
-                get_exporter_methods(False, shared_types) +
-                get_exporter_methods(False, expanded),
+                get_exporter_methods(False, shared_types, base_map=base_map) +
+                get_exporter_methods(False, expanded, base_map=base_map),
             ),),
         GenUnit(
             GenTu(
                 "{base}/sem/ImmOrgSerde.tcc",
-                get_imm_serde(types=expanded, ast=ast),
+                get_imm_serde(types=expanded, ast=ast, base_map=base_map),
             ),),
         GenUnit(
             GenTu(
                 "{base}/exporters/ExporterMethods.tcc",
-                get_exporter_methods(True, shared_types) +
-                get_exporter_methods(True, expanded))),
+                get_exporter_methods(True, shared_types, base_map=base_map) +
+                get_exporter_methods(True, expanded, base_map=base_map))),
         GenUnit(
             GenTu(
                 "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",

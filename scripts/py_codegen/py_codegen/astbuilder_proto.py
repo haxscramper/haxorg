@@ -20,8 +20,13 @@ def pascal_case(s: str) -> str:
 @beartype
 class ProtoBuilder():
 
-    def __init__(self, wrapped: List[tu.GenTuUnion], ast: cpp.ASTBuilder):
-        self.base_map = tu.get_base_map(wrapped)
+    def __init__(
+        self,
+        wrapped: List[tu.GenTuUnion],
+        ast: cpp.ASTBuilder,
+        base_map: tu.GenTypeMap,
+    ):
+        self.base_map = base_map
         self.ast = ast
         self.t = ast.b
 

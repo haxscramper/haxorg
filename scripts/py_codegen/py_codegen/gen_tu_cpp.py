@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from py_codegen.astbuilder_cpp import *
 from beartype.typing import Sequence, List, TypeAlias, Mapping
 from beartype import beartype
+from collections import defaultdict
 from py_textlayout.py_textlayout_wrap import *
 from pathlib import Path
 from py_scriptutils.algorithm import iterate_object_tree, cond
@@ -188,13 +189,30 @@ GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunctio
 @dataclass
 class GenTypeMap:
     entries: List[GenTuUnion] = field(default_factory=list)
-    name_to_index: Dict[str, List[int]] = field(default_factory=dict)
-    qual_hash_to_index: Dict[int, int] = field(default_factory=dict)
+    name_to_index: defaultdict[str, List[int]] = field(default_factory=lambda: defaultdict(list))
+    qual_hash_to_index: defaultdict[int, List[int]] = field(default_factory=lambda: defaultdict(list))
 
     # def get_qa
 
     def get_types_for_name(self, name: str) -> List[GenTuUnion]:
         return [self.entries[i] for i in self.name_to_index.get(name, [])]
+
+    def get_types_for_qual_name(self, name: QualType) -> List[GenTuUnion]:
+        return [self.entries[i] for i in self.qual_hash_to_index.get(name.qual_hash(), [])]
+
+    def get_wrapper_type(self, t: QualType) -> Optional[str]:
+        def_types = self.get_types_for_qual_name(t)
+        if 0 < len(def_types):
+            assert len(def_types) == 1, f"{t} maps to more than one definitive type"
+
+            if isinstance(def_types[0], GenTuStruct):
+                return def_types[0].reflectionParams.get("wrapper-name", None)
+
+            else:
+                return None
+
+
+
 
     def get_one_type_for_name(self, name: str) -> Optional[GenTuUnion]:
         items = self.get_types_for_name(name)
@@ -214,31 +232,30 @@ class GenTypeMap:
 
         match typ:
             case GenTuStruct():
-                qual_name = typ.name
+                qual_name = typ.name.model_copy()
 
             case GenTuEnum():
-                qual_name = typ.name
+                qual_name = typ.name.model_copy()
 
             case GenTuTypedef():
-                qual_name = typ.name
+                qual_name = typ.name.model_copy()
 
             case _:
                 raise ValueError(f"{type(typ)} is not a type definition")
 
         qual_hash = qual_name.qual_hash()
+        new_index = len(self.entries)
+        # log(CAT).info(f"{qual_name} -> {new_index}")
         if qual_hash in self.qual_hash_to_index:
-            raise ValueError(f"Qual type {qual_hash} is already mapped to {self.qual_hash_to_index[qual_hash]}")
+            return
+            # raise ValueError(f"Qual type {qual_name} is already mapped to {self.qual_hash_to_index[qual_hash]}")
 
         # log(CAT).info(f"{qual_hash} - {qual_name.name}")
 
         # log(CAT)
 
-        new_index = len(self.entries)
 
-        self.qual_hash_to_index[qual_hash] = new_index
-        if qual_name.name not in self.name_to_index:
-            self.name_to_index[qual_name.name] = []
-
+        self.qual_hash_to_index[qual_hash].append(new_index)
         self.name_to_index[qual_name.name].append(new_index)
 
         self.entries.append(typ)
@@ -248,12 +265,20 @@ class GenTypeMap:
 
     @staticmethod
     def FromTypes(types: List[GenTuUnion]) -> "GenTypeMap":
-
+        # log(CAT).info("Called `fromType`", stack_info=True)
         result = GenTypeMap()
 
         def callback(obj):
+            nonlocal result
             if isinstance(obj, GenTuStruct):
+                # obj.dump
                 result.add_type(obj)
+
+        # import json
+        # from py_scriptutils.script_logging import pprint_to_file
+
+        # Path("/tmp/union_dump.json").write_text(json.dumps([it.model for it in types]))
+        # pprint_to_file(types, "/tmp/union_dump_1.py", 300)
 
         context = []
         iterate_object_tree(types, context, pre_visit=callback)
@@ -267,6 +292,9 @@ class GenTypeMap:
                         t_opt(QualType(name="LineCol")), "loc", value="std::nullopt"),
                 ],
             ))
+
+        # log(CAT).inf
+        # pprint_to_file(types, "/tmp/union_dump_2.py", 300)
 
         return result
 
