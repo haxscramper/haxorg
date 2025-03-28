@@ -308,7 +308,7 @@ def pybind_org_id(
     )
 
     res = Py11Class(
-        PyName=typ.reflectionParams.get("wrapper-name", None) or typ.name.name,
+        PyName=typ.reflectionParams.wrapper_name or typ.name.name,
         Class=base_type,
         PyHolderType=id_type,
     )
@@ -340,8 +340,7 @@ def pybind_org_id(
     map_obj_methods(typ)
     map_bases(typ)
 
-    if typ.concreteKind and typ.name.name != "Org" and typ.reflectionParams.get(
-            "default-constructor", True):
+    if typ.concreteKind and typ.name.name != "Org" and typ.reflectionParams.default_constructor:
         rec_fields: List[Py11BindPass] = []
 
         def cb(it: GenTuStruct):
@@ -372,7 +371,7 @@ def pybind_nested_type(
     base_map: GenTypeMap,
 ) -> Py11Class:
     res = Py11Class(
-        PyName=value.reflectionParams.get("wrapper-name", None) or
+        PyName=value.reflectionParams.wrapper_name or
         py_type(value.name, base_map=base_map).Name,
         Class=value.declarationQualName(),
         Bases=value.bases,
@@ -386,7 +385,7 @@ def pybind_nested_type(
         if _field.isExposedForWrap:
             res.Fields.append(Py11Field.FromGenTu(_field))
 
-    if not value.IsAbstract and value.reflectionParams.get("default-constructor", True):
+    if not value.IsAbstract and value.reflectionParams.default_constructor:
         res.InitDefault(ast, filter_init_fields(res.Fields))
         res.InitMagicMethods(ast=ast)
 

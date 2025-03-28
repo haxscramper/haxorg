@@ -20,6 +20,11 @@ if not TYPE_CHECKING:
 class GenTuParam:
     name: str
 
+@beartype
+class GenTuReflParams(BaseModel, extra="forbid"):
+    default_constructor: bool = Field(default=True, alias="default-constructor")
+    wrapper_name: Optional[str] = Field(default=None, alias="wrapper-name")
+
 
 @beartype
 @dataclass
@@ -65,7 +70,7 @@ class GenTuEnum:
     refl: bool = False
     IsForwardDecl: bool = False
     original: Optional[Path] = None
-    reflectionParams: Dict[str, Any] = field(default_factory=dict)
+    reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
 
     def format(self, dbgOrigin: bool = False) -> str:
@@ -92,7 +97,7 @@ class GenTuFunction:
     isExposedForWrap: bool = True
     OriginName: Optional[str] = None
 
-    reflectionParams: Dict[str, Any] = field(default_factory=dict)
+    reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
 
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
@@ -124,7 +129,7 @@ class GenTuField:
     isStatic: bool = False
     isTypeDecl: bool = False
     isExposedForWrap: bool = True
-    reflectionParams: Dict[str, Any] = field(default_factory=dict)
+    reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
 
 
@@ -156,7 +161,7 @@ class GenTuStruct:
     original: Optional[Path] = field(default=None)
     GenDescribeMethods: bool = False
     GenDescribeFields: bool = True
-    reflectionParams: Dict[str, Any] = field(default_factory=dict)
+    reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     IsExplicitInstantiation: bool = False
     IsTemplateRecord: bool = False
     ExplicitTemplateParams: List[QualType] = field(default_factory=list)
@@ -217,7 +222,7 @@ class GenTypeMap:
             assert len(def_types) == 1, f"{t} maps to more than one definitive type"
 
             if isinstance(def_types[0], GenTuStruct):
-                return def_types[0].reflectionParams.get("wrapper-name", None)
+                return def_types[0].reflectionParams.wrapper_name
 
             else:
                 return None

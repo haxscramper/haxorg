@@ -130,7 +130,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
     if record.reflection_params:
         try:
-            result.reflectionParams = json.loads(record.reflection_params)
+            result.reflectionParams = GenTuReflParams.model_validate_json(record.reflection_params)
 
         except json.JSONDecodeError as e:
             e.add_note(f"While parsing reflection parameters for {result.name.format()}")
@@ -213,7 +213,7 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
             ))
 
     if en.reflection_params:
-        result.reflectionParams = json.loads(en.reflection_params)
+        result.reflectionParams = GenTuReflParams.model_validate_json(en.reflection_params)
 
     return result
 
@@ -241,7 +241,7 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
     )
 
     if rec.reflection_params:
-        result.reflectionParams = json.loads(rec.reflection_params)
+        result.reflectionParams = GenTuReflParams.model_validate_json(rec.reflection_params)
 
     return result
 

@@ -539,7 +539,7 @@ class Py11Class:
                   value: GenTuStruct,
                   pyNameOveride: Optional[str] = None) -> 'Py11Class':
         res = Py11Class(
-            PyName=value.reflectionParams.get("wrapper-name", None) or pyNameOveride or
+            PyName=value.reflectionParams.wrapper_name or pyNameOveride or
             py_type(value.name).Name,
             Class=value.declarationQualName(),
         )

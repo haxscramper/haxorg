@@ -69,6 +69,8 @@ struct [[refl]] OrgDirectoryParseParameters {
     std::string const&                 file,
     OrgDirectoryParseParameters const& opts);
 
+[[refl]] std::shared_ptr<imm::ImmAstContext> initImmutableAstContext();
+
 struct OrgCodeEvalParameters {
     hstd::Func<hstd::Vec<sem::OrgCodeEvalOutput>(
         sem::OrgCodeEvalInput const&)>

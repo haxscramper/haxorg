@@ -586,7 +586,9 @@ EACH_SEM_ORG_KIND(__DECLARE_VALUE_READ_TYPE)
 
 /// \brief Store additional lookup and debug contexts for a particular
 /// version of the AST tree.
-struct [[nodiscard]] ImmAstContext : hstd::SharedPtrApi<ImmAstContext> {
+struct
+    [[nodiscard, refl(R"({"default-constructor": false})")]] ImmAstContext
+    : hstd::SharedPtrApi<ImmAstContext> {
     /// \brief Shared operation tracer for the debug operations.
     hstd::SPtr<hstd::OperationsTracer> debug;
     /// \brief Shared AST store, the underlying store data is shared
@@ -632,9 +634,9 @@ struct [[nodiscard]] ImmAstContext : hstd::SharedPtrApi<ImmAstContext> {
     /// with `index`
     ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
 
-    ImmAstVersion        addRoot(sem::SemId<sem::Org> data);
-    ImmAstVersion        init(sem::SemId<sem::Org> root);
-    sem::SemId<sem::Org> get(org::imm::ImmId id);
+    [[refl]] ImmAstVersion        addRoot(sem::SemId<sem::Org> data);
+    ImmAstVersion                 init(sem::SemId<sem::Org> root);
+    [[refl]] sem::SemId<sem::Org> get(org::imm::ImmId id);
 
     template <typename T>
     T const& value(ImmId id) const {
@@ -682,13 +684,13 @@ struct [[nodiscard]] ImmAstContext : hstd::SharedPtrApi<ImmAstContext> {
 };
 
 /// \brief Specific version of the document.
-struct ImmAstVersion {
+struct [[refl]] ImmAstVersion {
     ImmAstContext::Ptr context;
     ImmAstReplaceEpoch epoch;
     DESC_FIELDS(ImmAstVersion, (context, epoch));
 
-    ImmId      getRoot() const { return epoch.getRoot(); }
-    ImmAdapter getRootAdapter() const;
+    [[refl]] ImmId      getRoot() const { return epoch.getRoot(); }
+    [[refl]] ImmAdapter getRootAdapter() const;
 
     ImmAstVersion getEditVersion(hstd::Func<ImmAstReplaceGroup(
                                      ImmAstContext::Ptr,
@@ -784,10 +786,12 @@ hstd::ext::Graphviz::Graph toGraphviz(
 template <typename T>
 struct ImmAdapterT;
 
-struct ImmAdapter {
+struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     ImmId               id;
     ImmAstContext::WPtr ctx;
     ImmPath             path;
+
+    DESC_FIELDS(ImmAdapter, (id, ctx, path));
 
     class iterator {
       public:
@@ -824,11 +828,13 @@ struct ImmAdapter {
         }
     };
 
-    int      size() const { return ctx.lock()->at(id)->subnodes.size(); }
-    iterator begin() const { return iterator(this); }
-    iterator end() const { return iterator(this, size()); }
-    bool     isNil() const { return id.isNil(); }
-    bool     isRoot() const { return path.empty(); }
+    [[refl]] int size() const {
+        return ctx.lock()->at(id)->subnodes.size();
+    }
+    iterator      begin() const { return iterator(this); }
+    iterator      end() const { return iterator(this, size()); }
+    [[refl]] bool isNil() const { return id.isNil(); }
+    [[refl]] bool isRoot() const { return path.empty(); }
     org::imm::ImmReflPathBase flatPath() const {
         org::imm::ImmReflPathBase result;
         auto                      tmp = result.path.transient();
@@ -844,7 +850,7 @@ struct ImmAdapter {
     /// for the node and then use the expression in the test itself.
     hstd::Str selfSelect() const;
 
-    OrgSemKind getKind() const { return id.getKind(); }
+    [[refl]] OrgSemKind getKind() const { return id.getKind(); }
 
     org::imm::ImmReflPathItemBase const& lastPath() const {
         return path.path.back().path.last();
@@ -871,7 +877,9 @@ struct ImmAdapter {
         return ImmAdapter(id, ctx, path);
     }
 
-    ImmUniqId uniq() const { return ImmUniqId{.id = id, .path = path}; }
+    [[refl]] ImmUniqId uniq() const {
+        return ImmUniqId{.id = id, .path = path};
+    }
 
     struct TreeReprConf {
         int  maxDepth       = 40;
@@ -894,15 +902,15 @@ struct ImmAdapter {
         return ImmAdapter(id, ctx);
     }
 
-    bool isDirectParentOf(ImmAdapter const& other) const;
+    [[refl]] bool isDirectParentOf(ImmAdapter const& other) const;
 
-    bool isIndirectParentOf(ImmAdapter const& other) const;
+    [[refl]] bool isIndirectParentOf(ImmAdapter const& other) const;
 
-    bool isSubnodeOf(ImmAdapter const& other) const {
+    [[refl]] bool isSubnodeOf(ImmAdapter const& other) const {
         return other->indexOf(this->id) != -1;
     }
 
-    hstd::Opt<ImmAdapter> getParent() const {
+    [[refl]] hstd::Opt<ImmAdapter> getParent() const {
         if (path.empty()) {
             return std::nullopt;
         } else {
@@ -911,7 +919,7 @@ struct ImmAdapter {
         }
     }
 
-    int getSelfIndex() const {
+    [[refl]] int getSelfIndex() const {
         auto parent = getParent();
         if (parent) {
             return parent.value()->indexOf(this->id);
