@@ -528,6 +528,7 @@ class Py11Field:
 class Py11Class:
     PyName: str
     Class: QualType
+    ReflectionParams: Optional[GenTuReflParams]
     Bases: List[QualType] = field(default_factory=list)
     PyHolderType: Optional[QualType] = None
     Fields: List[Py11Field] = field(default_factory=list)
@@ -537,12 +538,15 @@ class Py11Class:
     @staticmethod
     def FromGenTu(ast: ASTBuilder,
                   value: GenTuStruct,
+                  base_map: GenTypeMap,
                   pyNameOveride: Optional[str] = None) -> 'Py11Class':
         res = Py11Class(
             PyName=value.reflectionParams.wrapper_name or pyNameOveride or
-            py_type(value.name).Name,
+            py_type(value.name, base_map=base_map).Name,
             Class=value.declarationQualName(),
         )
+
+        res.ReflectionParams = value.reflectionParams
 
         for base in value.bases:
             res.Bases.append(base)
@@ -688,11 +692,30 @@ class Py11Class:
 
         sub.append(b.text(";"))
 
+        HolderType = None
+
+        if self.PyHolderType:
+            HolderType = self.PyHolderType
+
+        elif self.ReflectionParams:
+            match self.ReflectionParams.backend.python.holder_type:
+                case "shared":
+                    HolderType = self.Class.withWrapperType(
+                        QualType.ForName("shared_ptr", Spaces=[QualType.ForName("std")]))
+
+                case "unique":
+                    HolderType = self.Class.withWrapperType(
+                        QualType.ForName("unique_ptr", Spaces=[QualType.ForName("std")]))
+
+                case holder:
+                    if holder is not None:
+                        HolderType = self.Class.withWrapperType(QualType.ForName(holder))
+
         return b.stack([
             ast.XCall(
                 "pybind11::class_",
                 [b.text("m"), ast.Literal(self.PyName)],
-                Params=[self.Class] + ([self.PyHolderType] if self.PyHolderType else []) +
+                Params=[self.Class] + ([HolderType] if HolderType else []) +
                 [B for B in self.Bases if base_map.is_known_type(B)],
             ),
             b.indent(2, b.stack(sub))

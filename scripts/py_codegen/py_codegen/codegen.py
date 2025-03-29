@@ -311,6 +311,7 @@ def pybind_org_id(
         PyName=typ.reflectionParams.wrapper_name or typ.name.name,
         Class=base_type,
         PyHolderType=id_type,
+        ReflectionParams=typ.reflectionParams,
     )
 
     for base in typ.bases:
@@ -375,6 +376,7 @@ def pybind_nested_type(
         py_type(value.name, base_map=base_map).Name,
         Class=value.declarationQualName(),
         Bases=value.bases,
+        ReflectionParams=value.reflectionParams, 
     )
 
     for meth in value.methods:

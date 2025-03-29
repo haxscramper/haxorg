@@ -7,7 +7,6 @@
 namespace c = clang;
 using llvm::dyn_cast;
 
-
 std::optional<std::string> ReflASTVisitor::get_refl_params(
     c::Decl const* decl) {
     auto fmt = decl->getLocation().printToString(Ctx->getSourceManager());
@@ -1051,6 +1050,7 @@ void ReflASTVisitor::fillCxxRecordDecl(
 void ReflASTVisitor::fillSharedRecordData(
     Record*                  rec,
     clang::RecordDecl const* Decl) {
+
 
     if (const auto* specialization = llvm::dyn_cast<
             clang::ClassTemplateSpecializationDecl>(Decl)) {

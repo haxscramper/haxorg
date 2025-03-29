@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from py_codegen.astbuilder_cpp import *
-from beartype.typing import Sequence, List, TypeAlias, Mapping
+from beartype.typing import Sequence, List, TypeAlias, Mapping, Literal
 from beartype import beartype
 from collections import defaultdict
 from py_textlayout.py_textlayout_wrap import *
@@ -21,9 +21,18 @@ class GenTuParam:
     name: str
 
 @beartype
+class GenTuBackendPythonParams(BaseModel, extra="forbid"):
+    holder_type: Optional[Literal["shared", "unique"] | str] = Field(alias="holder-type", default=None)
+
+@beartype
+class GenTuBackendParams(BaseModel, extra="forbid"):
+    python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
+
+@beartype
 class GenTuReflParams(BaseModel, extra="forbid"):
     default_constructor: bool = Field(default=True, alias="default-constructor")
     wrapper_name: Optional[str] = Field(default=None, alias="wrapper-name")
+    backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
 
 
 @beartype

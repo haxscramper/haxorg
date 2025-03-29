@@ -6397,7 +6397,7 @@ node can have subnodes.)RAW")
          static_cast<void(org::imm::ImmCmdIncludeValue::*)(org::imm::ImmCmdInclude::Data const&)>(&org::imm::ImmCmdIncludeValue::setData),
          pybind11::arg("value"))
     ;
-  pybind11::class_<org::imm::ImmAstContext>(m, "ImmAstContext")
+  pybind11::class_<org::imm::ImmAstContext, std::shared_ptr<org::imm::ImmAstContext>>(m, "ImmAstContext")
     .def("addRoot",
          static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)(org::sem::SemId<org::sem::Org>)>(&org::imm::ImmAstContext::addRoot),
          pybind11::arg("data"))
