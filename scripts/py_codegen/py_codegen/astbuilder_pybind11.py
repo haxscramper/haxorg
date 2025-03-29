@@ -2,6 +2,7 @@ from py_codegen.gen_tu_cpp import *
 from beartype import beartype
 from dataclasses import dataclass, field
 from beartype.typing import List, Optional, NewType
+from py_scriptutils.algorithm import maybe_splice
 
 from typing import TYPE_CHECKING
 
@@ -318,8 +319,12 @@ class Py11Method(Py11Function):
             IsStatic=meth.isStatic,
         )
 
-    def build_typedef(self, ast: pya.ASTBuilder,
-                      base_map: GenTypeMap) -> pya.MethodParams:
+    def build_typedef(
+        self,
+        ast: pya.ASTBuilder,
+        base_map: GenTypeMap,
+        is_overload: bool = False,
+    ) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
             Name=py_ident(self.PyName),
             ResultTy=self.ResultTy and py_type(self.ResultTy, base_map),
@@ -328,7 +333,10 @@ class Py11Method(Py11Function):
                 for Arg in self.Args
             ],
             IsStub=True,
-            Decorators=[pya.DecoratorParams("staticmethod")] if self.IsStatic else []))
+            Decorators=[
+                *maybe_splice(self.IsStatic, pya.DecoratorParams("staticmethod")),
+                *maybe_splice(is_overload, pya.DecoratorParams("overload")),
+            ]))
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -671,8 +679,15 @@ class Py11Class:
 
         res.Methods.append(Init.build_typedef(ast, base_map=base_map))
 
+        method_names = [M.PyName for M in self.dedup_methods()]
+
         for Meth in self.dedup_methods():
-            res.Methods.append(Meth.build_typedef(ast, base_map=base_map))
+            res.Methods.append(
+                Meth.build_typedef(
+                    ast,
+                    base_map=base_map,
+                    is_overload=1 < method_names.count(Meth.PyName),
+                ))
 
         for Field in self.Fields:
             res.Fields.append(Field.build_typedef(ast, base_map=base_map))

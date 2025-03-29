@@ -355,6 +355,8 @@ struct [[refl]] ImmId : ImmIdBase {
     using IdType   = hstd::u64;
     using NodeIdxT = hstd::u32;
 
+    DESC_FIELDS(ImmId, ());
+
     static const hstd::u64 NodeIdxMask;
     static const hstd::u64 NodeIdxOffset;
     static const hstd::u64 NodeKindMask;
