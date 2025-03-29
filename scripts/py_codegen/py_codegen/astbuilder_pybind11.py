@@ -63,6 +63,14 @@ def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
 
     else:
         flat = [N for N in flat_scope(Typ) if N not in IGNORED_NAMESPACES]
+
+        if flat == ["std", "shared_ptr"] and 1 == len(
+                Typ.Parameters) and base_map.is_known_type(
+                    Typ.Parameters[0]) and base_map.get_one_type_for_qual_name(
+                        Typ.Parameters[0]
+                    ).reflectionParams.backend.python.holder_type == "shared":
+            return py_type(Typ.Parameters[0], base_map=base_map)
+
         match flat:
             case ["Vec"]:
                 name = "List"

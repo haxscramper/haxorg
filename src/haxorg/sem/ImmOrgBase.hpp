@@ -351,7 +351,7 @@ using ImmIdBase                        = hstd::dod::Id<
                            hstd::u64,
                            std::integral_constant<hstd::u64, ImmIdMaskSize>>;
 
-struct ImmId : ImmIdBase {
+struct [[refl]] ImmId : ImmIdBase {
     using IdType   = hstd::u64;
     using NodeIdxT = hstd::u32;
 
@@ -383,12 +383,14 @@ struct ImmId : ImmIdBase {
     ImmId(OrgSemKind kind, NodeIdxT nodeIndex)
         : ImmIdBase{combineFullValue(kind, nodeIndex)} {}
 
-    OrgSemKind getKind() const { return ImmId::getKind(value); }
-    bool       is(OrgSemKind kind) const { return getKind() == kind; }
+    [[refl]] OrgSemKind getKind() const { return ImmId::getKind(value); }
+    [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
 
     /// \brief Get index of the node in associated kind store. NOTE: The
     /// node must not be nil
-    NodeIdxT getNodeIndex() const { return ImmId::getNodeIdx(value); }
+    [[refl]] NodeIdxT getNodeIndex() const {
+        return ImmId::getNodeIdx(value);
+    }
 
     /// \brief Convert this node to one with specified kind
     template <typename T>
@@ -408,7 +410,7 @@ struct ImmId : ImmIdBase {
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
 
-    std::string getReadableId() const;
+    [[refl]] std::string getReadableId() const;
 
     void assertValid() const;
 };

@@ -90,7 +90,7 @@ struct ImmAstTrackingMap;
 /// `.subnodes` field of the root paragraph can be targeted with the
 /// general reflection visitor, but for the immutable AST this is not
 /// necessary, as the path should transition between AST *nodes*.
-struct ImmPathStep {
+struct [[refl]] ImmPathStep {
     /// \brief path from the root of the immer node to the next ImmId
     /// element.
     ImmReflPathBase path;
@@ -127,20 +127,20 @@ struct ImmPathStep {
 };
 
 /// \brief Full path from the root of the document to a specific node.
-struct ImmPath {
+struct [[refl]] ImmPath {
     using Store = immer::flex_vector<ImmPathStep>;
     /// \brief Root ID node
-    ImmId root;
+    [[refl]] ImmId root;
     /// \brief Sequence of jumps from the root of the document down to the
     /// specified target node. For the path iteration structure see \see
     /// ImmPathStep documentation.
-    Store path;
+    [[refl]] Store path;
 
 
     DESC_FIELDS(ImmPath, (root, path));
 
     /// \brief Empty path refers to the root of the document
-    bool empty() const { return path.empty(); }
+    [[refl]] bool empty() const { return path.empty(); }
 
     /// \brief Construct default path that refers to a `Nil` root
     ImmPath() : root{ImmId::Nil()} {}
@@ -587,7 +587,9 @@ EACH_SEM_ORG_KIND(__DECLARE_VALUE_READ_TYPE)
 /// \brief Store additional lookup and debug contexts for a particular
 /// version of the AST tree.
 struct
-    [[nodiscard, refl(R"({"default-constructor": false, "backend": {"python": {"holder-type": "shared"}}})")]] ImmAstContext
+    [[nodiscard,
+      refl(
+          R"({"default-constructor": false, "backend": {"python": {"holder-type": "shared"}}})")]] ImmAstContext
     : hstd::SharedPtrApi<ImmAstContext> {
     /// \brief Shared operation tracer for the debug operations.
     hstd::SPtr<hstd::OperationsTracer> debug;
@@ -958,11 +960,11 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return dynamic_cast<T const*>(get());
     }
 
-    ImmAdapter at(ImmId id, ImmPathStep idx) const {
+    [[refl]] ImmAdapter at(ImmId id, ImmPathStep idx) const {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
 
-    ImmAdapter at(ImmReflFieldId const& field) const {
+    [[refl]] ImmAdapter at(ImmReflFieldId const& field) const {
         return at(
             ctx.lock()->at(
                 id,
@@ -971,17 +973,19 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
             ImmPathStep::Field(field));
     }
 
-    ImmAdapter at(int idx, bool withPath = true) const;
+    [[refl]] ImmAdapter at(int idx, bool withPath = true) const;
 
-    ImmAdapter at(hstd::Vec<int> const& path, bool withPath = true) const {
+    [[refl]] ImmAdapter at(
+        hstd::Vec<int> const& path,
+        bool                  withPath = true) const {
         auto res = *this;
         for (int idx : path) { res = res.at(idx); }
         return res;
     }
 
-    bool is(OrgSemKind kind) const { return get()->is(kind); }
+    [[refl]] bool is(OrgSemKind kind) const { return get()->is(kind); }
 
-    hstd::Vec<ImmAdapter> sub(bool withPath = true) const;
+    [[refl]] hstd::Vec<ImmAdapter> sub(bool withPath = true) const;
 
     template <typename T>
     hstd::Vec<ImmAdapterT<T>> subAs(bool withPath = true) const {

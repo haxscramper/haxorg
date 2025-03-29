@@ -242,6 +242,14 @@ class GenTypeMap:
 
         return t.qual_hash() in self.qual_hash_to_index
 
+    def get_one_type_for_qual_name(self, name: QualType) -> Optional[GenTuUnion]:
+        items = self.get_types_for_qual_name(name)
+        if 0 < len(items):
+            return items[0]
+
+        else:
+            return None
+
     def get_one_type_for_name(self, name: str) -> Optional[GenTuUnion]:
         items = self.get_types_for_name(name)
         for item in items:

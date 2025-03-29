@@ -89,6 +89,10 @@ PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<bool>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::ColumnView>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<int>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::imm::ImmAdapter>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
@@ -97,8 +101,6 @@ PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingA
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
-PYBIND11_MAKE_OPAQUE(std::vector<int>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
@@ -163,11 +165,12 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_imm_box<std::optional<bool>>(m, "immerboxOfstdoptionalOfbool", type_registry_guard);
   bind_imm_box<std::optional<org::sem::ColumnView>>(m, "immerboxOfstdoptionalOfColumnView", type_registry_guard);
   bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmRawText", type_registry_guard);
+  bind_vector<int>(m, "VecOfint", type_registry_guard);
+  bind_vector<org::imm::ImmAdapter>(m, "VecOfImmAdapter", type_registry_guard);
   bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
   bind_unordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
   bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
   bind_vector<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
-  bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_vector<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
   bind_vector<org::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
   bind_vector<hstd::SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
@@ -5590,6 +5593,63 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::imm::ImmId>(m, "ImmId")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmId {
+                        org::imm::ImmId result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
+    .def("is_",
+         static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is),
+         pybind11::arg("kind"))
+    .def("getNodeIndex", static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex), R"RAW(\brief Get index of the node in associated kind store. NOTE: The
+node must not be nil)RAW")
+    .def("getReadableId", static_cast<std::string(org::imm::ImmId::*)() const>(&org::imm::ImmId::getReadableId))
+    .def("__repr__", [](org::imm::ImmId _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmId _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmPathStep>(m, "ImmPathStep")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmPathStep {
+                        org::imm::ImmPathStep result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::imm::ImmPathStep _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmPathStep _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmPath>(m, "ImmPath")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmPath {
+                        org::imm::ImmPath result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("root", &org::imm::ImmPath::root, R"RAW(\brief Root ID node)RAW")
+    .def_readwrite("path", &org::imm::ImmPath::path, R"RAW(\brief Sequence of jumps from the root of the document down to the
+specified target node. For the path iteration structure see \see
+ImmPathStep documentation.)RAW")
+    .def("empty", static_cast<bool(org::imm::ImmPath::*)() const>(&org::imm::ImmPath::empty), R"RAW(\brief Empty path refers to the root of the document)RAW")
+    .def("__repr__", [](org::imm::ImmPath _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmPath _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::imm::ImmUniqId>(m, "ImmUniqId")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmUniqId {
                         org::imm::ImmUniqId result{};
@@ -6439,6 +6499,27 @@ node can have subnodes.)RAW")
          pybind11::arg("other"))
     .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
     .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at),
+         pybind11::arg("id"),
+         pybind11::arg("idx"))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
+         pybind11::arg("field"))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at),
+         pybind11::arg("idx"),
+         pybind11::arg_v("withPath", 1))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at),
+         pybind11::arg("path"),
+         pybind11::arg_v("withPath", 1))
+    .def("is_",
+         static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is),
+         pybind11::arg("kind"))
+    .def("sub",
+         static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub),
+         pybind11::arg_v("withPath", 1))
     ;
   pybind11::class_<org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterVirtualBase")
     ;
