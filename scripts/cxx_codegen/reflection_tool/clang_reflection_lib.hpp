@@ -70,12 +70,17 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     clang::DiagnosticBuilder Diag(
         clang::DiagnosticsEngine::Level L,
         const char (&FormatString)[N],
-        std::optional<clang::SourceLocation> const& Loc = std::nullopt) {
+        std::optional<clang::SourceLocation> const& Loc = std::nullopt,
+        int         line                                = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        std::string message = std::format(
+            "from code {}:{}", function, line);
         auto& D = Ctx->getDiagnostics();
         if (Loc) {
-            return D.Report(*Loc, D.getCustomDiagID(L, FormatString));
+            return D.Report(*Loc, D.getCustomDiagID(L, FormatString))
+                << message;
         } else {
-            return D.Report(D.getCustomDiagID(L, FormatString));
+            return D.Report(D.getCustomDiagID(L, FormatString)) << message;
         }
     }
 
@@ -151,9 +156,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         const clang::CXXMethodDecl* method);
     void fillRecordDecl(Record* rec, clang::RecordDecl* Decl);
     void fillCxxRecordDecl(Record* rec, const clang::CXXRecordDecl* Decl);
-    void fillSharedRecordData(
-        Record*                  rec,
-        const clang::RecordDecl* Decl);
+    void fillSharedRecordData(Record* rec, const clang::RecordDecl* Decl);
 
 
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);

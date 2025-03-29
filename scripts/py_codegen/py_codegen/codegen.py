@@ -376,7 +376,7 @@ def pybind_nested_type(
         py_type(value.name, base_map=base_map).Name,
         Class=value.declarationQualName(),
         Bases=value.bases,
-        ReflectionParams=value.reflectionParams, 
+        ReflectionParams=value.reflectionParams,
     )
 
     for meth in value.methods:
@@ -1301,6 +1301,25 @@ def gen_pyhaxorg_wrappers(
               base_map=base_map)
     add_translation_unit(res, ast, tu, base_map=base_map)
     add_type_specializations(res, ast)
+
+    for org_type in get_types():
+        res.Decls.append(
+            Py11Class(
+                PyName="ImmIdT" + org_type.name.name,
+                Class=org_type.name.withWrapperType(
+                    QualType.ForName(
+                        "ImmIdT",
+                        Spaces=[QualType.ForName("org"),
+                                QualType.ForName("imm")])),
+                ReflectionParams=GenTuReflParams(),
+                Bases=[
+                    QualType.ForName(
+                        "ImmId",
+                        Spaces=[QualType.ForName("org"),
+                                QualType.ForName("imm")]),
+                ],
+            ))
+
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
     return GenFiles([

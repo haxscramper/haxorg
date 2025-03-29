@@ -1,6 +1,23 @@
 from typing import *
 from enum import Enum
 from datetime import datetime, date, time
+
+T = TypeVar("T")
+
+class ImmBox[T]():
+    def get(self) -> T: ...
+
+class ImmFlexVector[T]():
+    def at(self, idx: int) -> T: ...
+    def __len__(self) -> int: ...
+
+class ImmVector[T]():
+    def at(self, idx: int) -> T: ...
+    def __len__(self) -> int: ...
+
+class ImmAdapterTBase[T](ImmAdapter):
+    pass
+
 class GraphPoint:
     def __init__(self, x: double, y: double) -> None: ...
     def __repr__(self) -> str: ...

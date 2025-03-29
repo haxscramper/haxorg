@@ -3,6 +3,8 @@
 #include <llvm/Support/TimeProfiler.h>
 #include <format>
 #include <absl/log/log.h>
+#include <google/protobuf/util/json_util.h>
+#include <google/protobuf/message.h>
 
 namespace c = clang;
 using llvm::dyn_cast;
@@ -1238,6 +1240,43 @@ bool ReflASTVisitor::IndirectFieldDecl(c::IndirectFieldDecl* Decl) {
     return false;
 }
 
+bool SaveProtobufToJsonFile(
+    const google::protobuf::Message& message,
+    const std::string&               filename,
+    bool                             pretty_print = true) {
+    // Configure JSON options
+    google::protobuf::util::JsonPrintOptions options;
+    options.add_whitespace = pretty_print; // For formatted/pretty JSON
+    options.always_print_primitive_fields = true; // Include fields with
+                                                  // default values
+    options.preserve_proto_field_names = true; // Use original field names
+                                               // (not camelCase)
+
+    // Convert protobuf to JSON string
+    std::string  json_string;
+    absl::Status status = google::protobuf::util::MessageToJsonString(
+        message, &json_string, options);
+
+    if (!status.ok()) {
+        std::cerr << "Error converting protobuf to JSON: "
+                  << status.message() << std::endl;
+        return false;
+    }
+
+    // Write JSON to file
+    std::ofstream out_file(filename);
+    if (!out_file.is_open()) {
+        std::cerr << "Error opening file for writing: " << filename
+                  << std::endl;
+        return false;
+    }
+
+    out_file << json_string;
+    out_file.close();
+
+    std::cout << "Saved protobuf JSON to " << filename << std::endl;
+    return true;
+}
 
 void ReflASTConsumer::HandleTranslationUnit(c::ASTContext& Context) {
     // When executed with -ftime-trace plugin execution time will be
@@ -1258,6 +1297,7 @@ void ReflASTConsumer::HandleTranslationUnit(c::ASTContext& Context) {
             // Overwrite the file if anything is there
             std::ios::trunc | std::ios::binary};
 
+    SaveProtobufToJsonFile(*out, path + ".json");
 
     if (file.is_open()) {
         out->SerializePartialToOstream(&file);

@@ -72,6 +72,9 @@ def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
                     ).reflectionParams.backend.python.holder_type == "shared":
             return py_type(Typ.Parameters[0], base_map=base_map)
 
+        elif flat == ["ImmIdT"]:
+            return pya.PyType("ImmIdT" + Typ.Parameters[0].name.replace("Imm", "", 1))
+
         match flat:
             case ["Vec"]:
                 name = "List"
@@ -775,6 +778,23 @@ class Py11Module:
         passes.append(ast.string("from typing import *"))
         passes.append(ast.string("from enum import Enum"))
         passes.append(ast.string("from datetime import datetime, date, time"))
+        passes.append(ast.string("""
+T = TypeVar("T")
+
+class ImmBox[T]():
+    def get(self) -> T: ...
+
+class ImmFlexVector[T]():
+    def at(self, idx: int) -> T: ...
+    def __len__(self) -> int: ...
+
+class ImmVector[T]():
+    def at(self, idx: int) -> T: ...
+    def __len__(self) -> int: ...
+
+class ImmAdapterTBase[T](ImmAdapter):
+    pass
+        """))
 
         for item in self.Decls:
             match item:

@@ -7511,5 +7511,169 @@ and a segment kind.)RAW")
         static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&)>(&org::bind::python::evaluateCodeBlocks),
         pybind11::arg("node"),
         pybind11::arg("conf"));
+  pybind11::class_<org::imm::ImmIdT<org::sem::None>, org::imm::ImmId>(m, "ImmIdTNone")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::ErrorItem>, org::imm::ImmId>(m, "ImmIdTErrorItem")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::ErrorGroup>, org::imm::ImmId>(m, "ImmIdTErrorGroup")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Stmt>, org::imm::ImmId>(m, "ImmIdTStmt")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Inline>, org::imm::ImmId>(m, "ImmIdTInline")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::StmtList>, org::imm::ImmId>(m, "ImmIdTStmtList")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Empty>, org::imm::ImmId>(m, "ImmIdTEmpty")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Cmd>, org::imm::ImmId>(m, "ImmIdTCmd")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Block>, org::imm::ImmId>(m, "ImmIdTBlock")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::LineCommand>, org::imm::ImmId>(m, "ImmIdTLineCommand")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Attached>, org::imm::ImmId>(m, "ImmIdTAttached")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Leaf>, org::imm::ImmId>(m, "ImmIdTLeaf")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCaption>, org::imm::ImmId>(m, "ImmIdTCmdCaption")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdColumns>, org::imm::ImmId>(m, "ImmIdTCmdColumns")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdName>, org::imm::ImmId>(m, "ImmIdTCmdName")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCustomArgs>, org::imm::ImmId>(m, "ImmIdTCmdCustomArgs")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCustomRaw>, org::imm::ImmId>(m, "ImmIdTCmdCustomRaw")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCustomText>, org::imm::ImmId>(m, "ImmIdTCmdCustomText")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCall>, org::imm::ImmId>(m, "ImmIdTCmdCall")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdTblfm>, org::imm::ImmId>(m, "ImmIdTCmdTblfm")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::HashTag>, org::imm::ImmId>(m, "ImmIdTHashTag")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::InlineFootnote>, org::imm::ImmId>(m, "ImmIdTInlineFootnote")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::InlineExport>, org::imm::ImmId>(m, "ImmIdTInlineExport")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Time>, org::imm::ImmId>(m, "ImmIdTTime")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::TimeRange>, org::imm::ImmId>(m, "ImmIdTTimeRange")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Macro>, org::imm::ImmId>(m, "ImmIdTMacro")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Symbol>, org::imm::ImmId>(m, "ImmIdTSymbol")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Escaped>, org::imm::ImmId>(m, "ImmIdTEscaped")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Newline>, org::imm::ImmId>(m, "ImmIdTNewline")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Space>, org::imm::ImmId>(m, "ImmIdTSpace")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Word>, org::imm::ImmId>(m, "ImmIdTWord")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::AtMention>, org::imm::ImmId>(m, "ImmIdTAtMention")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::RawText>, org::imm::ImmId>(m, "ImmIdTRawText")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Punctuation>, org::imm::ImmId>(m, "ImmIdTPunctuation")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Placeholder>, org::imm::ImmId>(m, "ImmIdTPlaceholder")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BigIdent>, org::imm::ImmId>(m, "ImmIdTBigIdent")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::TextTarget>, org::imm::ImmId>(m, "ImmIdTTextTarget")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Markup>, org::imm::ImmId>(m, "ImmIdTMarkup")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Bold>, org::imm::ImmId>(m, "ImmIdTBold")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Underline>, org::imm::ImmId>(m, "ImmIdTUnderline")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Monospace>, org::imm::ImmId>(m, "ImmIdTMonospace")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::MarkQuote>, org::imm::ImmId>(m, "ImmIdTMarkQuote")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Verbatim>, org::imm::ImmId>(m, "ImmIdTVerbatim")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Italic>, org::imm::ImmId>(m, "ImmIdTItalic")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Strike>, org::imm::ImmId>(m, "ImmIdTStrike")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Par>, org::imm::ImmId>(m, "ImmIdTPar")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::RadioTarget>, org::imm::ImmId>(m, "ImmIdTRadioTarget")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Latex>, org::imm::ImmId>(m, "ImmIdTLatex")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Link>, org::imm::ImmId>(m, "ImmIdTLink")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockCenter>, org::imm::ImmId>(m, "ImmIdTBlockCenter")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockQuote>, org::imm::ImmId>(m, "ImmIdTBlockQuote")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockComment>, org::imm::ImmId>(m, "ImmIdTBlockComment")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockVerse>, org::imm::ImmId>(m, "ImmIdTBlockVerse")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockDynamicFallback>, org::imm::ImmId>(m, "ImmIdTBlockDynamicFallback")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockExample>, org::imm::ImmId>(m, "ImmIdTBlockExample")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockExport>, org::imm::ImmId>(m, "ImmIdTBlockExport")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockAdmonition>, org::imm::ImmId>(m, "ImmIdTBlockAdmonition")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockCodeEvalResult>, org::imm::ImmId>(m, "ImmIdTBlockCodeEvalResult")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockCode>, org::imm::ImmId>(m, "ImmIdTBlockCode")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::SubtreeLog>, org::imm::ImmId>(m, "ImmIdTSubtreeLog")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Subtree>, org::imm::ImmId>(m, "ImmIdTSubtree")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Cell>, org::imm::ImmId>(m, "ImmIdTCell")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Row>, org::imm::ImmId>(m, "ImmIdTRow")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Table>, org::imm::ImmId>(m, "ImmIdTTable")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Paragraph>, org::imm::ImmId>(m, "ImmIdTParagraph")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::ColonExample>, org::imm::ImmId>(m, "ImmIdTColonExample")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdAttr>, org::imm::ImmId>(m, "ImmIdTCmdAttr")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdExport>, org::imm::ImmId>(m, "ImmIdTCmdExport")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Call>, org::imm::ImmId>(m, "ImmIdTCall")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::List>, org::imm::ImmId>(m, "ImmIdTList")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::ListItem>, org::imm::ImmId>(m, "ImmIdTListItem")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::DocumentOptions>, org::imm::ImmId>(m, "ImmIdTDocumentOptions")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::DocumentFragment>, org::imm::ImmId>(m, "ImmIdTDocumentFragment")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CriticMarkup>, org::imm::ImmId>(m, "ImmIdTCriticMarkup")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Document>, org::imm::ImmId>(m, "ImmIdTDocument")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::FileTarget>, org::imm::ImmId>(m, "ImmIdTFileTarget")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::TextSeparator>, org::imm::ImmId>(m, "ImmIdTTextSeparator")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::DocumentGroup>, org::imm::ImmId>(m, "ImmIdTDocumentGroup")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::File>, org::imm::ImmId>(m, "ImmIdTFile")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Directory>, org::imm::ImmId>(m, "ImmIdTDirectory")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Symlink>, org::imm::ImmId>(m, "ImmIdTSymlink")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdInclude>, org::imm::ImmId>(m, "ImmIdTCmdInclude")
+    ;
 }
 /* clang-format on */
