@@ -411,8 +411,9 @@ class SyntaxTree {
             }
         }
 
-        assert(false && "Node not found in parent's children.");
-    }
+        LOGIC_ASSERTION_CHECK(
+            false, "Node not found in parent's children.");
+        return -1;    }
 
 
   private:

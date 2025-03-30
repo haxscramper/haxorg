@@ -103,6 +103,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapLink>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapLink>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotation>)
@@ -172,6 +174,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
   bind_vector<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_vector<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
+  bind_vector<org::graph::MapLink>(m, "VecOfgraphMapLink", type_registry_guard);
   bind_vector<org::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
   bind_vector<hstd::SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
   bind_vector<hstd::SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
@@ -5593,6 +5596,39 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<hstd::OperationsTracer>(m, "OperationsTracer")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::OperationsTracer {
+                        hstd::OperationsTracer result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("TraceState", &hstd::OperationsTracer::TraceState)
+    .def_readwrite("traceToFile", &hstd::OperationsTracer::traceToFile)
+    .def_readwrite("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
+    .def_readwrite("traceStructured", &hstd::OperationsTracer::traceStructured)
+    .def_readwrite("traceColored", &hstd::OperationsTracer::traceColored)
+    .def_readwrite("activeLevel", &hstd::OperationsTracer::activeLevel)
+    .def_readwrite("traceBuffer", &hstd::OperationsTracer::traceBuffer)
+    .def("setTraceFileStr",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
+         pybind11::arg("outfile"),
+         pybind11::arg("overwrite"),
+         R"RAW(\brief Helper method for reflection)RAW")
+    .def("sendMessage",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
+         pybind11::arg("value"),
+         pybind11::arg("function"),
+         pybind11::arg("line"),
+         pybind11::arg("file"))
+    .def("__repr__", [](hstd::OperationsTracer _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::OperationsTracer _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::imm::ImmId>(m, "ImmId")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmId {
                         org::imm::ImmId result{};
@@ -7255,6 +7291,145 @@ and a segment kind.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::graph::MapLink>(m, "graphMapLink")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapLink {
+                        org::graph::MapLink result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapLink _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapLink _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapLink::Link>(m, "graphMapLinkLink")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapLink::Link {
+                        org::graph::MapLink::Link result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapLink::Link _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapLink::Link _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapLink::Radio>(m, "graphMapLinkRadio")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapLink::Radio {
+                        org::graph::MapLink::Radio result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapLink::Radio _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapLink::Radio _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapNodeProp>(m, "graphMapNodeProp")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapNodeProp {
+                        org::graph::MapNodeProp result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("id", &org::graph::MapNodeProp::id)
+    .def_readwrite("unresolved", &org::graph::MapNodeProp::unresolved)
+    .def("getSubtreeId", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)() const>(&org::graph::MapNodeProp::getSubtreeId))
+    .def("getFootnoteName", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)() const>(&org::graph::MapNodeProp::getFootnoteName))
+    .def("__repr__", [](org::graph::MapNodeProp _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapNodeProp _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapNode>(m, "graphMapNode")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapNode {
+                        org::graph::MapNode result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("id", &org::graph::MapNode::id)
+    .def("__lt__",
+         static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator<),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::graph::MapNode _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapNode _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapEdge>(m, "graphMapEdge")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapEdge {
+                        org::graph::MapEdge result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("source", &org::graph::MapEdge::source)
+    .def_readwrite("target", &org::graph::MapEdge::target)
+    .def("__repr__", [](org::graph::MapEdge _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapEdge _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapGraph>(m, "graphMapGraph")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapGraph {
+                        org::graph::MapGraph result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("nodeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::nodeCount))
+    .def("edgeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::edgeCount))
+    .def("__repr__", [](org::graph::MapGraph _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapGraph _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapConfig, hstd::OperationsTracer>(m, "graphMapConfig")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapConfig {
+                        org::graph::MapConfig result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapConfig _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapConfig _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapGraphState, std::shared_ptr<org::graph::MapGraphState>>(m, "graphMapGraphState")
+    .def_readwrite("graph", &org::graph::MapGraphState::graph)
+    .def_readwrite("ast", &org::graph::MapGraphState::ast)
+    .def_static("FromAstContextStatic",
+                static_cast<org::graph::MapGraphState(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext),
+                pybind11::arg("ast"))
+    ;
   pybind11::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::PyCodeEvalParameters {
                         org::bind::python::PyCodeEvalParameters result{};
@@ -7491,6 +7666,16 @@ and a segment kind.)RAW")
         pybind11::arg("groups"),
         pybind11::arg("first"),
         pybind11::arg("last"));
+  m.def("addNode",
+        static_cast<void(*)(org::graph::MapGraphState&, org::imm::ImmAdapter const&, org::graph::MapConfig&)>(&org::graph::addNode),
+        pybind11::arg("g"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
+  m.def("addNodeRec",
+        static_cast<void(*)(org::graph::MapGraphState&, org::imm::ImmAdapter const&, org::graph::MapConfig&)>(&org::graph::addNodeRec),
+        pybind11::arg("g"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRec),
         pybind11::arg("node"),
