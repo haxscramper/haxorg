@@ -10,8 +10,7 @@ def test_immutable_ast_conversion():
     assert paragraph0.getKind() == org.OrgSemKind.Paragraph
 
 def test_immutable_ast_mind_map():
-    node = org.parseString("""
-Paragraph [[id:subtree-id]]
+    node = org.parseString("""Paragraph [[id:subtree-id]]
 
 * Subtree
   :properties:
@@ -22,6 +21,20 @@ Paragraph [[id:subtree-id]]
     context = org.initImmutableAstContext()
     version = context.addRoot(node)
 
-    graph_state = org.graphMapGraphState.FromAstContextStatic(context)
+    graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(context)
     conf = org.graphMapConfig()
-    org.addNode(graph_state, version.getRootAdapter(), conf)
+    root = version.getRootAdapter()
+
+    print(root.treeReprString())
+    # graph_state.
+    conf.setTraceFileStr("/tmp/test_immutable_ast_mind_map.log", True)
+
+    org.addNode(graph_state, root.at(0), conf)
+    assert graph_state.graph.nodeCount() == 1
+    assert graph_state.graph.edgeCount() == 0
+    # assert graph_state.
+
+    org.addNode(graph_state, root.at(2), conf)
+
+    assert graph_state.graph.nodeCount() == 2
+    assert graph_state.graph.edgeCount() == 1

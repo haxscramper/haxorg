@@ -883,10 +883,14 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return ImmUniqId{.id = id, .path = path};
     }
 
-    struct TreeReprConf {
-        int  maxDepth       = 40;
-        bool withAuxFields  = false;
-        bool withReflFields = false;
+    struct [[refl]] TreeReprConf {
+        [[refl]] int  maxDepth       = 40;
+        [[refl]] bool withAuxFields  = false;
+        [[refl]] bool withReflFields = false;
+
+        DESC_FIELDS(
+            TreeReprConf,
+            (maxDepth, withAuxFields, withReflFields));
 
         static TreeReprConf getDefault() { return TreeReprConf{}; }
     };
@@ -898,6 +902,16 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         treeRepr(os, conf);
         return os.getBuffer();
     }
+
+    [[refl]] std::string treeReprString() const {
+        return treeRepr().toString(false);
+    }
+
+    [[refl]] std::string treeReprStringOpts(
+        TreeReprConf const& conf) const {
+        return treeRepr(conf).toString(false);
+    }
+
 
     template <typename T>
     ImmAdapter pass(ImmIdT<T> id) const {

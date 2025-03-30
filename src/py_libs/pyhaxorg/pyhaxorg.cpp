@@ -6524,6 +6524,10 @@ ImmPathStep documentation.)RAW")
     .def("isRoot", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isRoot))
     .def("getKind", static_cast<OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
     .def("uniq", static_cast<org::imm::ImmUniqId(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::uniq))
+    .def("treeReprString", static_cast<std::string(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::treeReprString))
+    .def("treeReprStringOpts",
+         static_cast<std::string(org::imm::ImmAdapter::*)(org::imm::ImmAdapter::TreeReprConf const&) const>(&org::imm::ImmAdapter::treeReprStringOpts),
+         pybind11::arg("conf"))
     .def("isDirectParentOf",
          static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isDirectParentOf),
          pybind11::arg("other"))
@@ -6556,6 +6560,24 @@ ImmPathStep documentation.)RAW")
     .def("sub",
          static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub),
          pybind11::arg_v("withPath", 1))
+    ;
+  pybind11::class_<org::imm::ImmAdapter::TreeReprConf>(m, "ImmAdapterTreeReprConf")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmAdapter::TreeReprConf {
+                        org::imm::ImmAdapter::TreeReprConf result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth)
+    .def_readwrite("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields)
+    .def_readwrite("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields)
+    .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAdapter::TreeReprConf _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterVirtualBase")
     ;
