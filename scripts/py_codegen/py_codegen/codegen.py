@@ -508,6 +508,9 @@ def add_translation_unit(
             Py11Enum.FromGenTu(_enum,
                                py_type(_enum.name, base_map=base_map).Name))
 
+    for typedef in tu.typedefs:
+        res.Decls.append(Py11TypedefPass.FromGenTu(typedef, base_map=base_map))
+
     for _func in tu.functions:
         res.Decls.append(Py11Function.FromGenTu(_func))
 
@@ -1268,7 +1271,8 @@ def gen_pyhaxorg_wrappers(
     expanded = expand_type_groups(ast, get_types())
     immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
     tu: ConvTu = conv_proto_file(reflection_path)
-    base_map = get_base_map(expanded + shared_types + immutable + tu.enums + tu.structs + tu.typedefs)
+    base_map = get_base_map(expanded + shared_types + immutable + tu.enums + tu.structs +
+                            tu.typedefs)
     proto = pb.ProtoBuilder(
         wrapped=get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] +
         shared_types + expanded,

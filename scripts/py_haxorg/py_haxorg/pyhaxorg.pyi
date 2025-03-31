@@ -4194,6 +4194,12 @@ class graphMapNodeProp:
     id: ImmAdapter
     unresolved: List[graphMapLink]
 
+class graphMapEdgeProp:
+    def __init__(self, link: graphMapLink) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    link: graphMapLink
+
 class graphMapNode:
     def __init__(self, id: ImmUniqId) -> None: ...
     def __lt__(self, other: graphMapNode) -> bool: ...
@@ -4317,6 +4323,10 @@ class LeafFieldType(Enum):
     Str = 8
     Any = 9
 
+graphNodeProps = Dict[graphMapNode, graphMapNodeProp]
+graphEdgeProps = Dict[graphMapEdge, graphMapEdgeProp]
+graphAdjNodesList = List[graphMapNode]
+graphAdjList = Dict[graphMapNode, graphAdjNodesList]
 def newSemTimeStatic(breakdown: UserTimeBreakdown, isActive: bool) -> Time: ...
 
 def parseFile(file: str, opts: OrgParseParameters) -> Org: ...

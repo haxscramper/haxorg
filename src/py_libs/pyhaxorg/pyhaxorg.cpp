@@ -7393,6 +7393,22 @@ and a segment kind.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::graph::MapEdgeProp>(m, "graphMapEdgeProp")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapEdgeProp {
+                        org::graph::MapEdgeProp result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("link", &org::graph::MapEdgeProp::link)
+    .def("__repr__", [](org::graph::MapEdgeProp _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapEdgeProp _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::graph::MapNode>(m, "graphMapNode")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapNode {
                         org::graph::MapNode result{};

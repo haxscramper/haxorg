@@ -61,8 +61,8 @@ struct [[refl]] MapNodeProp {
     DESC_FIELDS(MapNodeProp, (unresolved, id));
 };
 
-struct MapEdgeProp {
-    MapLink link;
+struct [[refl]] MapEdgeProp {
+    [[refl]] MapLink link;
     DESC_FIELDS(MapEdgeProp, (link));
 };
 

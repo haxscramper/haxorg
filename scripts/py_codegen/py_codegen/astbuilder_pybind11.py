@@ -760,6 +760,13 @@ class Py11TypedefPass:
     name: pya.PyType
     base: pya.PyType
 
+    @staticmethod
+    def FromGenTu(typedef: GenTuTypedef, base_map: GenTypeMap) -> "Py11TypedefPass":
+        return Py11TypedefPass(
+            name=py_type(typedef.name, base_map),
+            base=py_type(typedef.base, base_map),
+        )
+
 
 Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass, Py11Function]
 
@@ -778,7 +785,8 @@ class Py11Module:
         passes.append(ast.string("from typing import *"))
         passes.append(ast.string("from enum import Enum"))
         passes.append(ast.string("from datetime import datetime, date, time"))
-        passes.append(ast.string("""
+        passes.append(
+            ast.string("""
 T = TypeVar("T")
 
 class ImmBox[T]():
