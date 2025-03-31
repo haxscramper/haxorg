@@ -1,4 +1,5 @@
 #pragma once
+#pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include "hstd/stdlib/TraceBase.hpp"
 #include "hstd/stdlib/algorithms.hpp"
@@ -693,6 +694,10 @@ struct [[refl]] ImmAstVersion {
 
     [[refl]] ImmId      getRoot() const { return epoch.getRoot(); }
     [[refl]] ImmAdapter getRootAdapter() const;
+
+    [[refl]] std::shared_ptr<ImmAstContext> getContext() const {
+        return context;
+    }
 
     ImmAstVersion getEditVersion(hstd::Func<ImmAstReplaceGroup(
                                      ImmAstContext::Ptr,

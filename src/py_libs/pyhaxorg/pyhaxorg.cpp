@@ -6509,6 +6509,7 @@ ImmPathStep documentation.)RAW")
                         }))
     .def("getRoot", static_cast<org::imm::ImmId(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRoot))
     .def("getRootAdapter", static_cast<org::imm::ImmAdapter(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRootAdapter))
+    .def("getContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getContext))
     .def("__repr__", [](org::imm::ImmAstVersion _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })

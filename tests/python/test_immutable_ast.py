@@ -18,14 +18,14 @@ def test_immutable_ast_mind_map():
   :end:
     """)
 
-    context = org.initImmutableAstContext()
-    version = context.addRoot(node)
+    initial_context = org.initImmutableAstContext()
+    version = initial_context.addRoot(node)
 
-    graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(context)
+    graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(version.getContext())
     conf = org.graphMapConfig()
     root = version.getRootAdapter()
 
-    print(root.treeReprString())
+    # print(root.treeReprString())
     # graph_state.
     conf.setTraceFileStr("/tmp/test_immutable_ast_mind_map.log", True)
 
