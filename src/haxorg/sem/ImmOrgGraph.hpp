@@ -119,7 +119,8 @@ struct std::hash<org::graph::MapEdge> {
 };
 
 namespace org::graph {
-using NodeProps    = hstd::UnorderedMap<MapNode, MapNodeProp>;
+[[refl]] typedef hstd::UnorderedMap<MapNode, MapNodeProp> NodeProps;
+// using NodeProps    = ;
 using EdgeProps    = hstd::UnorderedMap<MapEdge, MapEdgeProp>;
 using AdjNodesList = hstd::Vec<MapNode>;
 using AdjList      = hstd::UnorderedMap<MapNode, AdjNodesList>;
@@ -127,10 +128,10 @@ using AdjList      = hstd::UnorderedMap<MapNode, AdjNodesList>;
 struct MapGraph;
 
 struct [[refl]] MapGraph {
-    NodeProps nodeProps;
-    EdgeProps edgeProps;
-    AdjList   adjList;
-    AdjList   adjListIn;
+    [[refl]] NodeProps nodeProps;
+    [[refl]] EdgeProps edgeProps;
+    [[refl]] AdjList   adjList;
+    [[refl]] AdjList   adjListIn;
 
     DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList, adjListIn));
 
@@ -144,15 +145,15 @@ struct [[refl]] MapGraph {
     [[refl]] int nodeCount() const { return nodeProps.size(); }
     [[refl]] int edgeCount() const { return edgeProps.size(); }
 
-    AdjNodesList const& outNodes(MapNode const& node) const {
+    [[refl]] AdjNodesList const& outNodes(MapNode const& node) const {
         return adjList.at(node);
     }
 
-    AdjNodesList const& inNodes(MapNode const& node) const {
+    [[refl]] AdjNodesList const& inNodes(MapNode const& node) const {
         return adjListIn.at(node);
     }
 
-    hstd::Vec<MapEdge> adjEdges(MapNode const& node) const {
+    [[refl]] hstd::Vec<MapEdge> adjEdges(MapNode const& node) const {
         hstd::Vec<MapEdge> res;
         for (auto const& out : outNodes(node)) {
             res.push_back(MapEdge{.source = node, .target = out});
@@ -165,7 +166,7 @@ struct [[refl]] MapGraph {
         return res;
     }
 
-    hstd::Vec<MapNode> adjNodes(MapNode const& node) const {
+    [[refl]] hstd::Vec<MapNode> adjNodes(MapNode const& node) const {
         hstd::UnorderedSet<org::graph::MapNode> adjacent;
         hstd::Vec<MapNode>                      result;
         for (auto const& node : outNodes(node)) {
@@ -179,7 +180,7 @@ struct [[refl]] MapGraph {
         return result;
     }
 
-    hstd::Vec<MapEdge> outEdges(MapNode const& node) const {
+    [[refl]] hstd::Vec<MapEdge> outEdges(MapNode const& node) const {
         hstd::Vec<MapEdge> result;
         for (auto const& target : outNodes(node)) {
             result.push_back(MapEdge{node, target});
@@ -187,7 +188,7 @@ struct [[refl]] MapGraph {
         return result;
     }
 
-    hstd::Vec<MapEdge> inEdges(MapNode const& node) const {
+    [[refl]] hstd::Vec<MapEdge> inEdges(MapNode const& node) const {
         hstd::Vec<MapEdge> result;
         for (auto const& target : inNodes(node)) {
             result.push_back(MapEdge{target, node});
@@ -195,42 +196,45 @@ struct [[refl]] MapGraph {
         return result;
     }
 
-    int outDegree(MapNode const& node) const {
+    [[refl]] int outDegree(MapNode const& node) const {
         return adjList.contains(node) ? adjList.at(node).size() : 0;
     }
 
-    int inDegree(MapNode const& node) const {
+    [[refl]] int inDegree(MapNode const& node) const {
         return adjListIn.contains(node) ? adjListIn.at(node).size() : 0;
     }
 
-    bool isRegisteredNode(MapNode const& id) const {
+    [[refl]] bool isRegisteredNode(MapNode const& id) const {
         return adjList.contains(id);
     }
 
-    bool isRegisteredNode(org::imm::ImmUniqId const& id) const {
+    [[refl]] bool isRegisteredNode(org::imm::ImmUniqId const& id) const {
         return adjList.contains(MapNode{id});
     }
 
-    MapNodeProp const& at(MapNode const& node) const {
+    [[refl]] MapNodeProp const& at(MapNode const& node) const {
         return nodeProps.at(node);
     }
 
-    MapEdgeProp const& at(MapEdge const& edge) const {
+    [[refl]] MapEdgeProp const& at(MapEdge const& edge) const {
         return edgeProps.at(edge);
     }
 
 
-    void addEdge(MapEdge const& edge) { addEdge(edge, MapEdgeProp{}); }
-    void addEdge(MapEdge const& edge, MapEdgeProp const& prop);
+    [[refl]] void addEdge(MapEdge const& edge) {
+        addEdge(edge, MapEdgeProp{});
+    }
+    [[refl]] void addEdge(MapEdge const& edge, MapEdgeProp const& prop);
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
-    void addNode(MapNode const& node);
-    void addNode(MapNode const& node, MapNodeProp const& prop) {
+    [[refl]] void addNode(MapNode const& node);
+    [[refl]] void addNode(MapNode const& node, MapNodeProp const& prop) {
         addNode(node);
         nodeProps.insert_or_assign(node, prop);
     }
 
-    bool hasEdge(MapNode const& source, MapNode const& target) const {
+    [[refl]] bool hasEdge(MapNode const& source, MapNode const& target)
+        const {
         if (adjList.find(source) != nullptr) {
             for (auto const& it : adjList.at(source)) {
                 if (it == target) { return true; }
@@ -240,11 +244,11 @@ struct [[refl]] MapGraph {
         return false;
     }
 
-    bool hasNode(MapNode const& node) const {
+    [[refl]] bool hasNode(MapNode const& node) const {
         return adjList.contains(node);
     }
 
-    bool hasEdge(
+    [[refl]] bool hasEdge(
         org::imm::ImmAdapter const& source,
         org::imm::ImmAdapter const& target) const {
         return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});
@@ -368,7 +372,7 @@ struct [[refl(
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };
 
-void registerNode(
+[[refl]] void registerNode(
     MapGraphState&     s,
     MapNodeProp const& node,
     MapConfig&         conf);
@@ -383,12 +387,12 @@ void registerNode(
     org::imm::ImmAdapter const& node,
     MapConfig&                  conf);
 
-hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
+[[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
     MapGraphState const&                        s,
     org::imm::ImmAdapterT<org::imm::ImmSubtree> node,
     MapConfig&                                  conf);
 
-hstd::Opt<MapLink> getUnresolvedLink(
+[[refl]] hstd::Opt<MapLink> getUnresolvedLink(
     MapGraphState const&                     s,
     org::imm::ImmAdapterT<org::imm::ImmLink> node,
     MapConfig&                               conf);

@@ -466,11 +466,40 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
     }
 }
 
+bool isTypedefOrUsingType(
+    clang::ASTContext*     Ctx,
+    clang::QualType const& qualType) {
+    // First, get the underlying type by removing qualifiers
+    clang::QualType canonicalType = qualType.getCanonicalType();
+
+    // Get the type without sugar (typedefs, using declarations, etc.)
+    clang::QualType desugaredType = qualType.getSingleStepDesugaredType(
+        *Ctx);
+
+    // If the desugared type is different from the original type,
+    // it might be a typedef or using declaration
+    if (desugaredType != qualType) {
+        // To confirm it's a typedef/using and not another form of sugar,
+        // check if we can get the TypedefNameDecl
+        if (const auto* typedefType = qualType
+                                          ->getAs<clang::TypedefType>()) {
+            return true;
+        }
+
+        // For 'using' declarations, they also result in TypedefType in the
+        // AST So the above check covers both typedef and using
+    }
+
+    return false;
+}
+
 void ReflASTVisitor::fillType(
     QualType*                               Out,
     const c::QualType&                      In,
     const std::optional<c::SourceLocation>& Loc) {
     auto __scope = scope_debug(Out, "(", ")");
+
+    if (isTypedefOrUsingType(Ctx, In)) { Out->set_istypedef(true); }
 
     if (In.isConstQualified() || In->isPointerType()) {
         auto cvq = Out->add_qualifiers();
@@ -1172,34 +1201,41 @@ bool ReflASTVisitor::VisitEnumDecl(c::EnumDecl* Decl) {
 }
 
 bool ReflASTVisitor::VisitTypedefDecl(c::TypedefDecl* Decl) {
-    if (c::RecordDecl* RecordDecl = Decl->getUnderlyingType()
-                                        ->getAsRecordDecl()) {
+    // bool isStandaloneTypedef = false;
+    // if (c::RecordDecl* RecordDecl = Decl->getUnderlyingType()
+    //                                     ->getAsRecordDecl()) {
 
-    } else if (
-        const auto* enumType = Decl->getUnderlyingType()
-                                   ->getAs<c::EnumType>()) {
+    //     if (shouldVisit(Decl)) { isStandaloneTypedef = true; }
 
-    } else {
-        if (shouldVisit(Decl)) {
-            log_visit(Decl);
-            Typedef* def = out->add_typedefs();
-            def->mutable_name()->set_name(Decl->getNameAsString());
-            add_debug(
-                def->mutable_name(),
-                formatSourceLocation(
-                    Decl->getLocation(), Ctx->getSourceManager()));
-            applyNamespaces(
-                def->mutable_name(),
-                getNamespaces(Decl, Decl->getLocation()));
+    // } else if (
+    //     const auto* enumType = Decl->getUnderlyingType()
+    //                                ->getAs<c::EnumType>()) {
 
-            add_debug(def->mutable_basetype(), " Typedef Decl Visit");
+    // } else {
+    //     if (shouldVisit(Decl)) { isStandaloneTypedef = true; }
+    // }
 
-            fillType(
-                def->mutable_basetype(),
-                Decl->getUnderlyingType(),
-                Decl->getLocation());
-        }
+    if (shouldVisit(Decl)) {
+        log_visit(Decl);
+        Typedef* def = out->add_typedefs();
+        LOG(INFO) << std::format(
+            "Visiting typedef decl {}", Decl->getNameAsString());
+        def->mutable_name()->set_name(Decl->getNameAsString());
+        add_debug(
+            def->mutable_name(),
+            formatSourceLocation(
+                Decl->getLocation(), Ctx->getSourceManager()));
+        applyNamespaces(
+            def->mutable_name(), getNamespaces(Decl, Decl->getLocation()));
+
+        add_debug(def->mutable_basetype(), " Typedef Decl Visit");
+
+        fillType(
+            def->mutable_basetype(),
+            Decl->getUnderlyingType(),
+            Decl->getLocation());
     }
+
     return true;
 }
 

@@ -105,6 +105,10 @@ PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapLink>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapLink>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapEdge>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapNode>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapNode>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotation>)
@@ -175,6 +179,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_vector<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
   bind_vector<org::graph::MapLink>(m, "VecOfgraphMapLink", type_registry_guard);
+  bind_vector<org::graph::MapEdge>(m, "VecOfgraphMapEdge", type_registry_guard);
+  bind_vector<org::graph::MapNode>(m, "VecOfgraphMapNode", type_registry_guard);
   bind_vector<org::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
   bind_vector<hstd::SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
   bind_vector<hstd::SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
@@ -7420,8 +7426,75 @@ and a segment kind.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("nodeProps", &org::graph::MapGraph::nodeProps)
+    .def_readwrite("edgeProps", &org::graph::MapGraph::edgeProps)
+    .def_readwrite("adjList", &org::graph::MapGraph::adjList)
+    .def_readwrite("adjListIn", &org::graph::MapGraph::adjListIn)
     .def("nodeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::nodeCount))
     .def("edgeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::edgeCount))
+    .def("outNodes",
+         static_cast<org::graph::AdjNodesList const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outNodes),
+         pybind11::arg("node"))
+    .def("inNodes",
+         static_cast<org::graph::AdjNodesList const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inNodes),
+         pybind11::arg("node"))
+    .def("adjEdges",
+         static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::adjEdges),
+         pybind11::arg("node"))
+    .def("adjNodes",
+         static_cast<hstd::Vec<org::graph::MapNode>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::adjNodes),
+         pybind11::arg("node"))
+    .def("outEdges",
+         static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outEdges),
+         pybind11::arg("node"))
+    .def("inEdges",
+         static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inEdges),
+         pybind11::arg("node"))
+    .def("outDegree",
+         static_cast<int(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outDegree),
+         pybind11::arg("node"))
+    .def("inDegree",
+         static_cast<int(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inDegree),
+         pybind11::arg("node"))
+    .def("isRegisteredNode",
+         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::isRegisteredNode),
+         pybind11::arg("id"))
+    .def("isRegisteredNode",
+         static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmUniqId const&) const>(&org::graph::MapGraph::isRegisteredNode),
+         pybind11::arg("id"))
+    .def("at",
+         static_cast<org::graph::MapNodeProp const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::at),
+         pybind11::arg("node"))
+    .def("at",
+         static_cast<org::graph::MapEdgeProp const&(org::graph::MapGraph::*)(org::graph::MapEdge const&) const>(&org::graph::MapGraph::at),
+         pybind11::arg("edge"))
+    .def("addEdge",
+         static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&)>(&org::graph::MapGraph::addEdge),
+         pybind11::arg("edge"))
+    .def("addEdge",
+         static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&, org::graph::MapEdgeProp const&)>(&org::graph::MapGraph::addEdge),
+         pybind11::arg("edge"),
+         pybind11::arg("prop"))
+    .def("addNode",
+         static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&)>(&org::graph::MapGraph::addNode),
+         pybind11::arg("node"),
+         R"RAW(\brief Add node to the graph, without registering any outgoing or
+ingoing elements.)RAW")
+    .def("addNode",
+         static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&, org::graph::MapNodeProp const&)>(&org::graph::MapGraph::addNode),
+         pybind11::arg("node"),
+         pybind11::arg("prop"))
+    .def("hasEdge",
+         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&, org::graph::MapNode const&) const>(&org::graph::MapGraph::hasEdge),
+         pybind11::arg("source"),
+         pybind11::arg("target"))
+    .def("hasNode",
+         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::hasNode),
+         pybind11::arg("node"))
+    .def("hasEdge",
+         static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmAdapter const&, org::imm::ImmAdapter const&) const>(&org::graph::MapGraph::hasEdge),
+         pybind11::arg("source"),
+         pybind11::arg("target"))
     .def("__repr__", [](org::graph::MapGraph _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -7689,6 +7762,11 @@ and a segment kind.)RAW")
         pybind11::arg("groups"),
         pybind11::arg("first"),
         pybind11::arg("last"));
+  m.def("registerNode",
+        static_cast<void(*)(org::graph::MapGraphState&, org::graph::MapNodeProp const&, org::graph::MapConfig&)>(&org::graph::registerNode),
+        pybind11::arg("s"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
   m.def("addNode",
         static_cast<void(*)(org::graph::MapGraphState&, org::imm::ImmAdapter const&, org::graph::MapConfig&)>(&org::graph::addNode),
         pybind11::arg("g"),
@@ -7697,6 +7775,16 @@ and a segment kind.)RAW")
   m.def("addNodeRec",
         static_cast<void(*)(org::graph::MapGraphState&, org::imm::ImmAdapter const&, org::graph::MapConfig&)>(&org::graph::addNodeRec),
         pybind11::arg("g"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
+  m.def("getUnresolvedSubtreeLinks",
+        static_cast<hstd::Vec<org::graph::MapLink>(*)(org::graph::MapGraphState const&, org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::graph::MapConfig&)>(&org::graph::getUnresolvedSubtreeLinks),
+        pybind11::arg("s"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
+  m.def("getUnresolvedLink",
+        static_cast<std::optional<org::graph::MapLink>(*)(org::graph::MapGraphState const&, org::imm::ImmAdapterT<org::imm::ImmLink>, org::graph::MapConfig&)>(&org::graph::getUnresolvedLink),
+        pybind11::arg("s"),
         pybind11::arg("node"),
         pybind11::arg("conf"));
   m.def("eachSubnodeRec",

@@ -69,6 +69,7 @@ message QualType {
     string DbgOrigin = 9;
     TypeTag Tag = 10;
     bool IsBuiltin = 11;
+    bool IsTypedef = 12; 
 }
 
 enum AccessSpecifier {

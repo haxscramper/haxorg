@@ -38,3 +38,5 @@ def test_immutable_ast_mind_map():
 
     assert graph_state.graph.nodeCount() == 2
     assert graph_state.graph.edgeCount() == 1
+
+    nodes = [n for _, n in graph_state.graph.nodeProps.items()]
