@@ -27,7 +27,7 @@ def test_immutable_ast_mind_map():
 
     # print(root.treeReprString())
     # graph_state.
-    conf.setTraceFileStr("/tmp/test_immutable_ast_mind_map.log", True)
+    # conf.setTraceFileStr("/tmp/test_immutable_ast_mind_map.log", True)
 
     org.addNode(graph_state, root.at(0), conf)
     assert graph_state.graph.nodeCount() == 1
@@ -39,4 +39,13 @@ def test_immutable_ast_mind_map():
     assert graph_state.graph.nodeCount() == 2
     assert graph_state.graph.edgeCount() == 1
 
-    nodes = [n for _, n in graph_state.graph.nodeProps.items()]
+    nodes = [n for n, _ in graph_state.graph.nodeProps.items()]
+    edges = [e for e, _ in graph_state.graph.edgeProps.items()]
+
+    assert len(nodes) == 2
+    assert len(edges) == 1
+
+    stable_nodes = sorted(nodes)
+    assert edges[0].source == stable_nodes[1]
+    assert edges[0].target == stable_nodes[0]
+

@@ -7416,6 +7416,9 @@ and a segment kind.)RAW")
                         return result;
                         }))
     .def_readwrite("id", &org::graph::MapNode::id)
+    .def("__eq__",
+         static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator==),
+         pybind11::arg("other"))
     .def("__lt__",
          static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator<),
          pybind11::arg("other"))

@@ -145,18 +145,148 @@ def get_doc_literal(ast: ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
 
 @beartype
 def py_ident(name: str) -> str:
-    match name:
-        case "from" | "is":
-            return name + "_"
+    """
+    Convert C++ identifiers to valid Python identifiers.
+    Handles keywords, operator overloads, and special characters.
+    """
+    # Python keywords that need to be escaped
+    python_keywords = {
+        "and",
+        "as",
+        "assert",
+        "async",
+        "await",
+        "break",
+        "class",
+        "continue",
+        "def",
+        "del",
+        "elif",
+        "else",
+        "except",
+        "False",
+        "finally",
+        "for",
+        "from",
+        "global",
+        "if",
+        "import",
+        "in",
+        "is",
+        "lambda",
+        "None",
+        "nonlocal",
+        "not",
+        "or",
+        "pass",
+        "raise",
+        "return",
+        "True",
+        "try",
+        "while",
+        "with",
+        "yield",
+    }
 
-        case "operator==":
-            return "__eq__"
+    # Operator mappings from C++ to Python
+    operator_mappings = {
+        # Comparison operators
+        "operator==": "__eq__",
+        "operator!=": "__ne__",
+        "operator>": "__gt__",
+        "operator<": "__lt__",
+        "operator>=": "__ge__",
+        "operator<=": "__le__",
 
-        case "operator<":
-            return "__lt__"
+        # Arithmetic operators
+        "operator+": "__add__",
+        "operator-": "__sub__",
+        "operator*": "__mul__",
+        "operator/": "__truediv__",
+        "operator%": "__mod__",
+        "operator//": "__floordiv__",
+        "operator**": "__pow__",
 
-        case _:
-            return name
+        # Unary operators
+        "operator++": "__next__",  # Note: not exact equivalent
+        "operator--": "__prev__",  # Note: not exact equivalent
+        "operator-@": "__neg__",  # Unary minus
+        "operator+@": "__pos__",  # Unary plus
+        "operator~": "__invert__",  # Bitwise NOT
+
+        # Bitwise operators
+        "operator&": "__and__",
+        "operator|": "__or__",
+        "operator^": "__xor__",
+        "operator<<": "__lshift__",
+        "operator>>": "__rshift__",
+
+        # Assignment operators (in-place operations)
+        "operator+=": "__iadd__",
+        "operator-=": "__isub__",
+        "operator*=": "__imul__",
+        "operator/=": "__itruediv__",
+        "operator%=": "__imod__",
+        "operator&=": "__iand__",
+        "operator|=": "__ior__",
+        "operator^=": "__ixor__",
+        "operator<<=": "__ilshift__",
+        "operator>>=": "__irshift__",
+
+        # Subscript operator
+        "operator[]": "__getitem__",
+
+        # Function call operator
+        "operator()": "__call__",
+
+        # Conversion operators
+        "operator bool": "__bool__",
+        "operator int": "__int__",
+        "operator float": "__float__",
+        "operator str": "__str__",
+
+        # Smart pointer operations
+        "operator*": "__deref__",  # Dereference (conflicts with multiply)
+        "operator->": "__arrow__",  # Arrow operator (no direct Python equivalent)
+
+        # Memory management
+        "operator new": "__new__",
+        "operator delete": "__del__",
+
+        # Stream operators
+        "operator<<": "__lshift__",  # Also used for stream insertion
+        "operator>>": "__rshift__",  # Also used for stream extraction
+
+        # Comma operator
+        "operator,": "__comma__",  # No direct Python equivalent
+    }
+
+    # Check if it's an operator
+    if name in operator_mappings:
+        return operator_mappings[name]
+
+    # Check if it's a Python keyword
+    if name in python_keywords:
+        return name + "_"
+
+    # Handle special characters
+    # Replace invalid characters with underscores
+    result = ""
+    for char in name:
+        if char.isalnum() or char == '_':
+            result += char
+        else:
+            result += '_'
+
+    # Ensure the identifier doesn't start with a digit
+    if result and result[0].isdigit():
+        result = '_' + result
+
+    # Ensure the identifier isn't empty
+    if not result:
+        result = '_empty_'
+
+    return result
 
 
 @beartype

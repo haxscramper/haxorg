@@ -73,12 +73,11 @@ struct [[refl]] MapNode {
     MapNode() : id{org::imm::ImmUniqId()} {}
     MapNode(org::imm::ImmUniqId id) : id{id} {}
 
-    bool operator==(MapNode const& other) const {
+    [[refl]] bool operator==(MapNode const& other) const {
         return this->id == other.id;
     }
-    [[refl]]
 
-    bool operator<(MapNode const& other) const {
+    [[refl]] bool operator<(MapNode const& other) const {
         return id < other.id;
     }
 
