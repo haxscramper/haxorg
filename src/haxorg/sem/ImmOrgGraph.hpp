@@ -119,11 +119,10 @@ struct std::hash<org::graph::MapEdge> {
 };
 
 namespace org::graph {
-[[refl]] typedef hstd::UnorderedMap<MapNode, MapNodeProp> NodeProps;
-// using NodeProps    = ;
-using EdgeProps    = hstd::UnorderedMap<MapEdge, MapEdgeProp>;
-using AdjNodesList = hstd::Vec<MapNode>;
-using AdjList      = hstd::UnorderedMap<MapNode, AdjNodesList>;
+[[refl]] typedef hstd::UnorderedMap<MapNode, MapNodeProp>  NodeProps;
+[[refl]] typedef hstd::UnorderedMap<MapEdge, MapEdgeProp>  EdgeProps;
+[[refl]] typedef hstd::Vec<MapNode>                        AdjNodesList;
+[[refl]] typedef hstd::UnorderedMap<MapNode, AdjNodesList> AdjList;
 
 struct MapGraph;
 

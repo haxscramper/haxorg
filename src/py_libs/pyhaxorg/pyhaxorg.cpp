@@ -105,10 +105,16 @@ PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapLink>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapLink>)
-PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapEdge>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::MapNodeProp>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::AdjNodesList>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapNode>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapNode>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapEdge>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotation>)
@@ -179,8 +185,11 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_vector<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
   bind_vector<org::graph::MapLink>(m, "VecOfgraphMapLink", type_registry_guard);
-  bind_vector<org::graph::MapEdge>(m, "VecOfgraphMapEdge", type_registry_guard);
+  bind_unordered_map<org::graph::MapNode, org::graph::MapNodeProp>(m, "UnorderedMapOfgraphMapNodegraphMapNodeProp", type_registry_guard);
+  bind_unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "UnorderedMapOfgraphMapEdgegraphMapEdgeProp", type_registry_guard);
+  bind_unordered_map<org::graph::MapNode, org::graph::AdjNodesList>(m, "UnorderedMapOfgraphMapNodegraphAdjNodesList", type_registry_guard);
   bind_vector<org::graph::MapNode>(m, "VecOfgraphMapNode", type_registry_guard);
+  bind_vector<org::graph::MapEdge>(m, "VecOfgraphMapEdge", type_registry_guard);
   bind_vector<org::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
   bind_vector<hstd::SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
   bind_vector<hstd::SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);

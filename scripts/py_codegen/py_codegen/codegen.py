@@ -513,7 +513,7 @@ def add_translation_unit(
 
 
 @beartype
-def add_type_specializations(res: Py11Module, ast: ASTBuilder):
+def add_type_specializations(res: Py11Module, ast: ASTBuilder, base_map: GenTypeMap):
 
     opaque_declarations: List[BlockId] = []
     specialization_calls: List[BlockId] = [
@@ -591,7 +591,11 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
                     for P in T.Parameters:
                         rec_type(P)
 
-            rec_type(value)
+            if base_map.is_typedef(value):
+                rec_type(base_map.get_underlying_type(value))
+
+            else:
+                rec_type(value)
 
     iterate_object_tree(
         res,
@@ -997,10 +1001,10 @@ def gen_adaptagrams_wrappers(
     reflection_path: Path,
 ) -> GenFiles:
     tu: ConvTu = conv_proto_file(reflection_path)
-    base_map = get_base_map(tu.enums + tu.structs)
+    base_map = get_base_map(tu.enums + tu.structs + tu.typedefs)
     res = Py11Module("py_adaptagrams")
     add_translation_unit(res, ast=ast, tu=tu, base_map=base_map)
-    add_type_specializations(res, ast=ast)
+    add_type_specializations(res, ast=ast, base_map=base_map)
 
     with open("/tmp/adaptagrams_reflection.json", "w") as file:
         log(CAT).debug(f"Debug reflection data to {file.name}")
@@ -1264,7 +1268,7 @@ def gen_pyhaxorg_wrappers(
     expanded = expand_type_groups(ast, get_types())
     immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
     tu: ConvTu = conv_proto_file(reflection_path)
-    base_map = get_base_map(expanded + shared_types + immutable + tu.enums + tu.structs)
+    base_map = get_base_map(expanded + shared_types + immutable + tu.enums + tu.structs + tu.typedefs)
     proto = pb.ProtoBuilder(
         wrapped=get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] +
         shared_types + expanded,
@@ -1300,7 +1304,7 @@ def gen_pyhaxorg_wrappers(
               get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)],
               base_map=base_map)
     add_translation_unit(res, ast, tu, base_map=base_map)
-    add_type_specializations(res, ast)
+    add_type_specializations(res, ast, base_map=base_map)
 
     for org_type in get_types():
         res.Decls.append(

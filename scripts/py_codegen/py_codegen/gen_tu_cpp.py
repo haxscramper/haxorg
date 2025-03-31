@@ -215,7 +215,14 @@ class GenTypeMap:
     qual_hash_to_index: defaultdict[int, List[int]] = field(
         default_factory=lambda: defaultdict(list))
 
-    # def get_qa
+    def is_typedef(self, t: QualType) -> bool:
+        decl = self.get_one_type_for_qual_name(t)
+        return bool(decl and isinstance(decl, GenTuTypedef))
+
+    def get_underlying_type(self, t: QualType) -> Optional[QualType]:
+        decl = self.get_one_type_for_qual_name(t)
+        if decl and isinstance(decl, GenTuTypedef):
+            return decl.base
 
     def get_types_for_name(self, name: str) -> List[GenTuUnion]:
         return [self.entries[i] for i in self.name_to_index.get(name, [])]
@@ -274,21 +281,16 @@ class GenTypeMap:
 
             case GenTuTypedef():
                 qual_name = typ.name.model_copy()
+                log(CAT).info(f"Adding typedef for {qual_name}")
 
             case _:
                 raise ValueError(f"{type(typ)} is not a type definition")
 
         qual_hash = qual_name.qual_hash()
         new_index = len(self.entries)
-        # log(CAT).info(f"{qual_name} -> {new_index}")
         if qual_hash in self.qual_hash_to_index:
             return
             # raise ValueError(f"Qual type {qual_name} is already mapped to {self.qual_hash_to_index[qual_hash]}")
-
-        # if qual_name.name == "ImmNoneValueRead":
-        #     log(CAT).info(f"{qual_hash} - {qual_name.name}")
-
-        # log(CAT)
 
         self.qual_hash_to_index[qual_hash].append(new_index)
         self.name_to_index[qual_name.name].append(new_index)
@@ -302,36 +304,14 @@ class GenTypeMap:
 
         def callback(obj):
             nonlocal result
-            if isinstance(obj, GenTuStruct):
-                # obj.dump
-                result.add_type(obj)
+            match obj:
+                case GenTuStruct() | GenTuTypedef():
+                    result.add_type(obj)
 
-        # import json
-        # from py_scriptutils.script_logging import pprint_to_file
 
-        # Path("/tmp/union_dump.json").write_text(json.dumps([it.model for it in types]))
-        # pprint_to_file(types, "/tmp/union_dump_1.py", 300)
 
         context = []
         iterate_object_tree(types, context, pre_visit=callback)
-        # result.add_type(
-        #     GenTuStruct(
-        #         QualType.ForName("Org",
-        #                          Spaces=[
-        #                              QualType.ForName("org", isNamespace=True),
-        #                              QualType.ForName("sem", isNamespace=True),
-        #                          ]),
-        #         GenTuDoc(""),
-        #         [
-        #             GenTuField(t_vec(t_id()), "subnodes", GenTuDoc(""), value="{}"),
-        #             GenTuField(
-        #                 t_opt(QualType(name="LineCol")), "loc", value="std::nullopt"),
-        #         ],
-        #     ))
-
-        # log(CAT).inf
-        # pprint_to_file(types, "/tmp/union_dump_2.py", 300)
-
         return result
 
 
