@@ -1,4 +1,5 @@
 import py_haxorg.pyhaxorg_wrap as org
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 
 def test_immutable_ast_conversion():
     node = org.parseString("random paragraph")
@@ -49,3 +50,20 @@ def test_immutable_ast_mind_map():
     assert edges[0].source == stable_nodes[1]
     assert edges[0].target == stable_nodes[0]
 
+
+corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
+
+def test_mind_map_from_directory():
+  dir = corpus_dir.joinpath("mind_map_directory")
+  dir_opts = org.OrgDirectoryParseParameters()
+  node = org.parseDirectoryOpts(str(dir), dir_opts)
+
+  initial_version = org.initImmutableAstContext()
+  version = initial_version.addRoot(node)
+
+  graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(version.getContext())
+
+  conf = org.graphMapConfig()
+  root = version.getRootAdapter()
+
+  org.addNodeRec(graph_state, root, conf)
