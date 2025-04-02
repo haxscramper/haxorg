@@ -256,7 +256,7 @@ void OrgLexerImpl::unknown() {
                              << view(this) << std::endl;
         }
     } else {
-        LOG(ERROR) << "Unknown " << view(this);
+        // LOG(ERROR) << "Unknown " << view(this);
     }
 
     CHECK(++p.visitedUnknown < p.maxUnknown) << std::format(

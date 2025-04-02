@@ -597,11 +597,37 @@ class Py11Enum:
                         CxxName="",
                         ResultTy=iter_type,
                         Body=[
-                            ast.string("return "),
-                            ast.Type(iter_type),
-                            ast.string("();"),
+                            ast.Return(ast.b.line([ast.Type(iter_type),
+                                                   ast.string("()")])),
                         ],
-                    ).build_bind(self.Enum, ast)
+                    ).build_bind(self.Enum, ast),
+                    Py11Method(
+                        PyName="__eq__",
+                        CxxName="",
+                        ResultTy=QualType(name="bool"),
+                        Args=[
+                            GenTuIdent(self.Enum, "lhs"),
+                            GenTuIdent(self.Enum, "rhs"),
+                        ],
+                        Body=[
+                            ast.Return(
+                                ast.XCall("==", [ast.string("lhs"),
+                                                 ast.string("rhs")])),
+                        ],
+                    ).build_bind(self.Enum, ast),
+                    Py11Method(
+                        PyName="__hash__",
+                        CxxName="",
+                        ResultTy=QualType(name="int"),
+                        Args=[
+                            GenTuIdent(self.Enum, "it"),
+                        ],
+                        Body=[
+                            ast.Return(
+                                ast.XCall("static_cast", [ast.string("it")],
+                                          Params=[QualType(name="int")])),
+                        ],
+                    ).build_bind(self.Enum, ast),
                 ] + [b.text(";")]),
             )
         ])

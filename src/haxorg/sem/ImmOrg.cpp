@@ -1400,4 +1400,5 @@ void set_value(ImmBox<T>& target, ImmBox<T> const& other) {
     EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                    \
         __DEFINE_VALUE_WRITE_FIELD);
 
+
 EACH_SEM_ORG_KIND(__DEFINE_VALUE_READ_TYPE)

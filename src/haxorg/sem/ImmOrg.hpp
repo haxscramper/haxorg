@@ -1333,7 +1333,11 @@ struct [[refl]] ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
 struct [[refl]] ImmAdapterCallAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterFileAPI : ImmAdapterOrgAPI {};
-struct [[refl]] ImmAdapterDirectoryAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterDirectoryAPI : ImmAdapterOrgAPI {
+    [[refl]] hstd::Opt<org::imm::ImmAdapter> getFsSubnode(
+        hstd::Str const& name,
+        bool             withPath = true) const;
+};
 struct [[refl]] ImmAdapterSymlinkAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterDocumentFragmentAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterCriticMarkupAPI : ImmAdapterOrgAPI {};

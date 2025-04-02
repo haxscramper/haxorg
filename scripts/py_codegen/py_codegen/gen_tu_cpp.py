@@ -281,7 +281,7 @@ class GenTypeMap:
 
             case GenTuTypedef():
                 qual_name = typ.name.model_copy()
-                log(CAT).info(f"Adding typedef for {qual_name}")
+                # log(CAT).info(f"Adding typedef for {qual_name}")
 
             case _:
                 raise ValueError(f"{type(typ)} is not a type definition")
