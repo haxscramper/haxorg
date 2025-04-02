@@ -106,6 +106,8 @@ class GenTuFunction:
     isExposedForWrap: bool = True
     OriginName: Optional[str] = None
 
+    IsConstructor: bool = False
+
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
 
     def format(self) -> str:

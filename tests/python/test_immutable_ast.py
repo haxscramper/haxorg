@@ -105,6 +105,9 @@ def test_mind_map_large_dir():
     def aux_main(a: org.ImmAdapter):
       nonlocal plantuml_result
 
-    print(root.getKind())
+    if root.getKind() == org.OrgSemKind.Symlink:
+      root = root.at(0)
+
     assert root.getKind() == org.OrgSemKind.Directory
+    root_dir = org.ImmDirectoryAdapter(root)
     main_dir = root.getFsSubnode("main", False)

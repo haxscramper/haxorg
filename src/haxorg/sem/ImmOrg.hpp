@@ -878,6 +878,9 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     ImmAdapter(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
         : id{id}, ctx{ctx}, path{path} {}
 
+    ImmAdapter(org::imm::ImmAdapter const& other)
+        : id{other.id}, ctx{other.ctx}, path{other.path} {}
+
     ImmAdapter() : id{ImmId::Nil()}, ctx{}, path{ImmId::Nil()} {}
 
     ImmAdapter pass(ImmId id, ImmPath const& path) const {
@@ -1146,6 +1149,20 @@ struct ImmAdapterTBase : ImmAdapter {
     ImmAdapterT<F> getField(
         ImmIdT<F> T::*     fieldPtr,
         ImmPathStep const& step) const;
+
+    ImmAdapterTBase(ImmPath const& path, ImmAstContext::WPtr ctx)
+        : ImmAdapter{path, ctx} {}
+
+    ImmAdapterTBase(ImmUniqId id, ImmAstContext::WPtr ctx)
+        : ImmAdapter{id, ctx} {}
+
+    ImmAdapterTBase(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
+        : ImmAdapter{id, ctx, path} {}
+
+    ImmAdapterTBase(org::imm::ImmAdapter const& other)
+        : ImmAdapter{other} {}
+
+    ImmAdapterTBase() : org::imm::ImmAdapter{} {}
 };
 
 /// \brief Implement `getThis()` for final specialization and introduce all
@@ -1390,6 +1407,8 @@ struct [[refl]] ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
         , ImmAdapter##Derived##API {                                      \
         using api_type = ImmAdapter##Derived##API;                        \
         USE_IMM_ADAPTER_BASE(org::imm::Imm##Derived);                     \
+        [[refl]] ImmAdapterT(org::imm::ImmAdapter const& other)           \
+            : ImmAdapterTBase<Imm##Derived>{other} {}                     \
         [[refl]] org::imm::Imm##Derived##ValueRead getValue() const {     \
             return org::imm::Imm##Derived##ValueRead{&this->value()};     \
         };                                                                \

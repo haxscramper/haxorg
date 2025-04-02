@@ -798,7 +798,6 @@ void ReflASTVisitor::fillMethodDecl(
     Record::Method*         sub,
     c::CXXMethodDecl const* method) {
 
-
     sub->set_name(method->getNameAsString());
     sub->set_isconst(method->isConst());
     sub->set_isstatic(method->isStatic());
@@ -823,13 +822,13 @@ void ReflASTVisitor::fillMethodDecl(
         if (constr->isCopyConstructor()) {
             sub->set_kind(Record_MethodKind_CopyConstructor);
         } else if (constr->isConvertingConstructor(true)) {
-            sub->set_kind(Record_MethodKind_DefaultConstructor);
+            sub->set_kind(Record_MethodKind_ConvertingConstructor);
         } else if (constr->isMoveConstructor()) {
             sub->set_kind(Record_MethodKind_MoveConstructor);
         } else if (constr->isDefaultConstructor()) {
             sub->set_kind(Record_MethodKind_DefaultConstructor);
         } else {
-            errs() << "Unknown constructor kind";
+            LOG(FATAL) << "Unknown constructor kind";
         }
     } else {
         sub->set_kind(Record_MethodKind_Base);
@@ -1218,8 +1217,6 @@ bool ReflASTVisitor::VisitTypedefDecl(c::TypedefDecl* Decl) {
     if (shouldVisit(Decl)) {
         log_visit(Decl);
         Typedef* def = out->add_typedefs();
-        LOG(INFO) << std::format(
-            "Visiting typedef decl {}", Decl->getNameAsString());
         def->mutable_name()->set_name(Decl->getNameAsString());
         add_debug(
             def->mutable_name(),

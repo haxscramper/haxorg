@@ -450,6 +450,7 @@ class Py11Method(Py11Function):
             IsConst=meth.isConst,
             Args=meth.arguments,
             IsStatic=meth.isStatic,
+            IsInit=meth.IsConstructor,
         )
 
     def build_typedef(

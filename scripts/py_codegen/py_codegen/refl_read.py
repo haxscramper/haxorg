@@ -130,7 +130,8 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
     if record.reflection_params:
         try:
-            result.reflectionParams = GenTuReflParams.model_validate_json(record.reflection_params)
+            result.reflectionParams = GenTuReflParams.model_validate_json(
+                record.reflection_params)
 
         except json.JSONDecodeError as e:
             e.add_note(f"While parsing reflection parameters for {result.name.format()}")
@@ -173,12 +174,27 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
         result.bases.append(conv_proto_type(base.name))
 
     for meth in record.methods:
-        if meth.kind != pb.RecordMethodKind.Base:
-            continue
+        # if meth.kind != pb.RecordMethodKind.Base:
+        #     continue
+
+        IsConstructor = meth.kind in [
+            pb.RecordMethodKind.ConvertingConstructor,
+            pb.RecordMethodKind.MoveConstructor,
+            pb.RecordMethodKind.DefaultConstructor,
+            pb.RecordMethodKind.CopyConstructor,
+        ]
+
+        if IsConstructor:
+            if result.IsExplicitInstantiation:
+                final_result = result.name.model_copy(update=dict(Parameters=result.ExplicitTemplateParams))
+            else:
+                final_result = result.name
+        else:
+            final_result = conv_proto_type(meth.return_ty)
 
         result.methods.append(
             GenTuFunction(
-                result=conv_proto_type(meth.return_ty),
+                result=final_result,
                 name=meth.name,
                 doc=conv_doc_comment(meth.doc),
                 isConst=meth.is_const,
@@ -187,6 +203,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
                 arguments=[conv_proto_arg(arg) for arg in meth.args],
                 parentClass=result,
                 OriginName="refl",
+                IsConstructor=IsConstructor,
             ))
 
     for record in record.nested_rec:
@@ -213,7 +230,8 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
             ))
 
     if en.reflection_params:
-        result.reflectionParams = GenTuReflParams.model_validate_json(en.reflection_params)
+        result.reflectionParams = GenTuReflParams.model_validate_json(
+            en.reflection_params)
 
     return result
 
@@ -241,7 +259,8 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
     )
 
     if rec.reflection_params:
-        result.reflectionParams = GenTuReflParams.model_validate_json(rec.reflection_params)
+        result.reflectionParams = GenTuReflParams.model_validate_json(
+            rec.reflection_params)
 
     return result
 
