@@ -1,10 +1,15 @@
 from dataclasses import dataclass, field
 from py_codegen.astbuilder_cpp import *
-from beartype.typing import Sequence, List, TypeAlias, Mapping
+from beartype.typing import Sequence, List, TypeAlias, Mapping, Literal
 from beartype import beartype
+from collections import defaultdict
 from py_textlayout.py_textlayout_wrap import *
 from pathlib import Path
 from py_scriptutils.algorithm import iterate_object_tree, cond
+
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -15,6 +20,21 @@ if not TYPE_CHECKING:
 class GenTuParam:
     name: str
 
+@beartype
+class GenTuBackendPythonParams(BaseModel, extra="forbid"):
+    holder_type: Optional[Literal["shared", "unique"] | str] = Field(alias="holder-type", default=None)
+
+@beartype
+class GenTuBackendParams(BaseModel, extra="forbid"):
+    python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
+
+@beartype
+class GenTuReflParams(BaseModel, extra="forbid"):
+    default_constructor: bool = Field(default=True, alias="default-constructor")
+    wrapper_name: Optional[str] = Field(default=None, alias="wrapper-name")
+    wrapper_has_params: bool = Field(default=True, alias="wrapper-has-params")
+    backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
+
 
 @beartype
 @dataclass
@@ -22,6 +42,7 @@ class GenTuIdent:
     type: QualType
     name: str
     value: Optional[Union[BlockId, str]] = None
+    OriginName: Optional[str] = None
 
 
 @beartype
@@ -37,6 +58,7 @@ class GenTuTypedef:
     name: QualType
     base: QualType
     original: Optional[Path] = None
+    OriginName: Optional[str] = None
 
 
 @beartype
@@ -45,6 +67,7 @@ class GenTuEnumField:
     name: str
     doc: GenTuDoc
     value: Optional[int] = None
+    OriginName: Optional[str] = None
 
 
 @beartype
@@ -57,6 +80,8 @@ class GenTuEnum:
     refl: bool = False
     IsForwardDecl: bool = False
     original: Optional[Path] = None
+    reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
+    OriginName: Optional[str] = None
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "enum " + self.name.format(dbgOrigin=dbgOrigin)
@@ -80,6 +105,11 @@ class GenTuFunction:
     original: Optional[Path] = None
     spaces: List[QualType] = field(default_factory=list)
     isExposedForWrap: bool = True
+    OriginName: Optional[str] = None
+
+    IsConstructor: bool = False
+
+    reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
 
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
@@ -111,6 +141,8 @@ class GenTuField:
     isStatic: bool = False
     isTypeDecl: bool = False
     isExposedForWrap: bool = True
+    reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
+    OriginName: Optional[str] = None
 
 
 GenTuEntry = Union[
@@ -141,6 +173,14 @@ class GenTuStruct:
     original: Optional[Path] = field(default=None)
     GenDescribeMethods: bool = False
     GenDescribeFields: bool = True
+    reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
+    IsExplicitInstantiation: bool = False
+    IsTemplateRecord: bool = False
+    ExplicitTemplateParams: List[QualType] = field(default_factory=list)
+    OriginName: Optional[str] = None
+
+    def declarationQualName(self) -> QualType:
+        return self.name.model_copy(update=dict(Parameters=self.ExplicitTemplateParams))
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.name.format(dbgOrigin=dbgOrigin)
@@ -166,15 +206,130 @@ class GenTuNamespace:
     entries: Sequence[GenTuEntry]
 
 
+GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
+
+
+@beartype
+@dataclass
+class GenTypeMap:
+    entries: List[GenTuUnion] = field(default_factory=list)
+    name_to_index: defaultdict[str, List[int]] = field(
+        default_factory=lambda: defaultdict(list))
+    qual_hash_to_index: defaultdict[int, List[int]] = field(
+        default_factory=lambda: defaultdict(list))
+
+    def is_typedef(self, t: QualType) -> bool:
+        decl = self.get_one_type_for_qual_name(t)
+        return bool(decl and isinstance(decl, GenTuTypedef))
+
+    def get_underlying_type(self, t: QualType) -> Optional[QualType]:
+        decl = self.get_one_type_for_qual_name(t)
+        if decl and isinstance(decl, GenTuTypedef):
+            return decl.base
+
+    def get_types_for_name(self, name: str) -> List[GenTuUnion]:
+        return [self.entries[i] for i in self.name_to_index.get(name, [])]
+
+    def get_types_for_qual_name(self, name: QualType) -> List[GenTuUnion]:
+        return [
+            self.entries[i] for i in self.qual_hash_to_index.get(name.qual_hash(), [])
+        ]
+
+    def get_struct_for_qual_name(self, name: QualType) -> Optional[GenTuStruct]:
+        def_types = self.get_types_for_qual_name(name)
+        if 0 < len(def_types):
+            assert len(def_types) == 1, f"{t} maps to more than one definitive type"
+
+            if isinstance(def_types[0], GenTuStruct):
+                return def_types[0]
+
+            else:
+                return None
+
+
+    def get_wrapper_type(self, t: QualType) -> Optional[str]:
+        struct = self.get_struct_for_qual_name(t)
+        return struct and struct.reflectionParams.wrapper_name
+        
+
+    def is_known_type(self, t: QualType) -> bool:
+        return t.qual_hash() in self.qual_hash_to_index
+
+    def get_one_type_for_qual_name(self, name: QualType) -> Optional[GenTuUnion]:
+        items = self.get_types_for_qual_name(name)
+        if 0 < len(items):
+            return items[0]
+
+        else:
+            return None
+
+    def get_one_type_for_name(self, name: str) -> Optional[GenTuUnion]:
+        items = self.get_types_for_name(name)
+        for item in items:
+            if isinstance(item, GenTuStruct) and not item.IsExplicitInstantiation:
+                return item
+
+        if 0 < len(items):
+            return items[0]
+
+        else:
+            return None
+
+    def add_type(self, typ: GenTuUnion):
+        qual_name = None
+
+        match typ:
+            case GenTuStruct():
+                qual_name = typ.declarationQualName()
+
+                if typ.reflectionParams.wrapper_name:
+                    log(CAT).info(f"{qual_name} has explicit wrapper")
+
+            case GenTuEnum():
+                qual_name = typ.name.model_copy()
+
+            case GenTuTypedef():
+                qual_name = typ.name.model_copy()
+                # log(CAT).info(f"Adding typedef for {qual_name}")
+
+            case _:
+                raise ValueError(f"{type(typ)} is not a type definition")
+
+        qual_hash = qual_name.qual_hash()
+        new_index = len(self.entries)
+        if qual_hash in self.qual_hash_to_index:
+            return
+            # raise ValueError(f"Qual type {qual_name} is already mapped to {self.qual_hash_to_index[qual_hash]}")
+
+        self.qual_hash_to_index[qual_hash].append(new_index)
+        self.name_to_index[qual_name.name].append(new_index)
+
+        self.entries.append(typ)
+
+    @staticmethod
+    def FromTypes(types: List[GenTuUnion]) -> "GenTypeMap":
+        # log(CAT).info("Called `fromType`", stack_info=True)
+        result = GenTypeMap()
+
+        def callback(obj):
+            nonlocal result
+            match obj:
+                case GenTuStruct() | GenTuTypedef():
+                    result.add_type(obj)
+
+
+
+        context = []
+        iterate_object_tree(types, context, pre_visit=callback)
+        return result
+
+
 @beartype
 @dataclass
 class GenTu:
     path: str
     entries: Sequence[GenTuEntry]
     clangFormatGuard: bool = True
-
-
-GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
 
 
 @beartype
@@ -680,25 +835,8 @@ def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
 
 
 @beartype
-def get_base_map(expanded: List[GenTuUnion]) -> Mapping[str, GenTuStruct]:
-    base_map: Mapping[str, GenTuStruct] = {}
-
-    def callback(obj):
-        if isinstance(obj, GenTuStruct):
-            base_map[obj.name.name] = obj
-
-    context = []
-    iterate_object_tree(expanded, context, pre_visit=callback)
-    base_map["Org"] = GenTuStruct(
-        QualType.ForName("Org"),
-        GenTuDoc(""),
-        [
-            GenTuField(t_vec(t_id()), "subnodes", GenTuDoc(""), value="{}"),
-            GenTuField(t_opt(QualType(name="LineCol")), "loc", value="std::nullopt"),
-        ],
-    )
-
-    return base_map
+def get_base_map(expanded: List[GenTuUnion]) -> GenTypeMap:
+    return GenTypeMap.FromTypes(expanded)
 
 
 @beartype
@@ -719,11 +857,11 @@ def filter_walk_scope(iterate_context) -> List[QualType]:
 @beartype
 def get_type_base_fields(
     value: GenTuStruct,
-    base_map: Mapping[str, GenTuStruct],
+    base_map: GenTypeMap,
 ) -> List[GenTuField]:
     fields = []
     for base_sym in value.bases:
-        base = base_map.get(base_sym.name)
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(base_sym.name)
         if base:
             fields.extend(base.fields)
             fields.extend(get_type_base_fields(base, base_map))
@@ -734,13 +872,13 @@ def get_type_base_fields(
 @beartype
 def get_base_list(
     value: GenTuStruct,
-    base_map: Mapping[str, GenTuStruct],
+    base_map: GenTypeMap,
 ) -> List[QualType]:
     fields = []
 
     def aux(typ: QualType) -> List[QualType]:
         result: List[QualType] = [typ]
-        base = base_map.get(typ.name)
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(typ.name)
         if base:
             for it in base.bases:
                 result.extend(aux(it))

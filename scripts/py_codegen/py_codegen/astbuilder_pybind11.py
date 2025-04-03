@@ -2,6 +2,7 @@ from py_codegen.gen_tu_cpp import *
 from beartype import beartype
 from dataclasses import dataclass, field
 from beartype.typing import List, Optional, NewType
+from py_scriptutils.algorithm import maybe_splice
 
 from typing import TYPE_CHECKING
 
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
-IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python"]
+IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "imm"]
 
 
 @beartype
@@ -55,52 +56,88 @@ def flat_scope(Typ: QualType) -> List[str]:
 
 
 @beartype
-def py_type(Typ: QualType) -> pya.PyType:
-    flat = [N for N in flat_scope(Typ) if N not in IGNORED_NAMESPACES]
-    match flat:
-        case ["Vec"]:
-            name = "List"
+def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
+    is_target = "ImmAdapterT" in Typ.name 
+    wrapper_override = base_map.get_wrapper_type(Typ)
 
-        case ["Opt"] | ["std", "optional"]:
-            name = "Optional"
+    if wrapper_override:
+        name = wrapper_override
 
-        case ["std", "variant"] | ["Var"]:
-            name = "Union"
+    else:
+        flat = [N for N in flat_scope(Typ) if N not in IGNORED_NAMESPACES]
 
-        case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
-                                                        ] | ["std", "basic_string"]:
-            name = "str"
+        if flat == ["std", "shared_ptr"] and 1 == len(
+                Typ.Parameters) and base_map.is_known_type(
+                    Typ.Parameters[0]) and base_map.get_one_type_for_qual_name(
+                        Typ.Parameters[0]
+                    ).reflectionParams.backend.python.holder_type == "shared":
+            return py_type(Typ.Parameters[0], base_map=base_map)
 
-        case ["SemId"]:
-            name = Typ.Parameters[0].name
+        elif flat == ["ImmIdT"]:
+            return pya.PyType("ImmIdT" + Typ.Parameters[0].name.replace("Imm", "", 1))
 
-        case "Bool":
-            name = "bool"
+        match flat:
+            case ["Vec"]:
+                name = "List"
 
-        case "double":
-            name = "float"
+            case ["Opt"] | ["std", "optional"]:
+                name = "Optional"
 
-        case ["void"]:
-            name = "None"
+            case ["std", "variant"] | ["Var"]:
+                name = "Union"
 
-        case ["pybind11", "function"] | [*_, "PyFunc"]:
-            name = "function"
+            case ["immer", "box"]:
+                name = "ImmBox"
 
-        case ["py", "object"] | ["pybind11", "object"]:
-            name = "object"
+            case ["immer", "flex_vector"]:
+                name = "ImmFlexVector"
 
-        case ["UnorderedMap"]:
-            name = "Dict"
+            case ["immer", "vector"]:
+                name = "ImmVector"
 
-        case _:
-            name = "".join(flat)
+            case ["immer", "map"]:
+                name = "ImmMap"
 
-    res = pya.PyType(name)
-    if Typ.name != "SemId":
-        for param in Typ.Parameters:
-            res.Params.append(py_type(param))
+            case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
+                                                            ] | ["std", "basic_string"]:
+                name = "str"
 
-    return res
+            case ["SemId"]:
+                name = Typ.Parameters[0].name
+
+            case "Bool":
+                name = "bool"
+
+            case "double":
+                name = "float"
+
+            case ["void"]:
+                name = "None"
+
+            case ["pybind11", "function"] | [*_, "PyFunc"]:
+                name = "function"
+
+            case ["py", "object"] | ["pybind11", "object"]:
+                name = "object"
+
+            case ["UnorderedMap"]:
+                name = "Dict"
+
+            case _:
+                name = "".join(flat)
+
+
+    struct = base_map.get_struct_for_qual_name(Typ)
+    if not struct or struct.reflectionParams.wrapper_has_params:
+        res = pya.PyType(name)
+        if Typ.name != "SemId":
+            for param in Typ.Parameters:
+                res.Params.append(py_type(param, base_map=base_map))
+
+        return res
+
+    else:
+        return pya.PyType(name)
 
 
 @beartype
@@ -115,12 +152,148 @@ def get_doc_literal(ast: ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
 
 @beartype
 def py_ident(name: str) -> str:
-    match name:
-        case "from" | "is":
-            return name + "_"
+    """
+    Convert C++ identifiers to valid Python identifiers.
+    Handles keywords, operator overloads, and special characters.
+    """
+    # Python keywords that need to be escaped
+    python_keywords = {
+        "and",
+        "as",
+        "assert",
+        "async",
+        "await",
+        "break",
+        "class",
+        "continue",
+        "def",
+        "del",
+        "elif",
+        "else",
+        "except",
+        "False",
+        "finally",
+        "for",
+        "from",
+        "global",
+        "if",
+        "import",
+        "in",
+        "is",
+        "lambda",
+        "None",
+        "nonlocal",
+        "not",
+        "or",
+        "pass",
+        "raise",
+        "return",
+        "True",
+        "try",
+        "while",
+        "with",
+        "yield",
+    }
 
-        case _:
-            return name
+    # Operator mappings from C++ to Python
+    operator_mappings = {
+        # Comparison operators
+        "operator==": "__eq__",
+        "operator!=": "__ne__",
+        "operator>": "__gt__",
+        "operator<": "__lt__",
+        "operator>=": "__ge__",
+        "operator<=": "__le__",
+
+        # Arithmetic operators
+        "operator+": "__add__",
+        "operator-": "__sub__",
+        "operator*": "__mul__",
+        "operator/": "__truediv__",
+        "operator%": "__mod__",
+        "operator//": "__floordiv__",
+        "operator**": "__pow__",
+
+        # Unary operators
+        "operator++": "__next__",  # Note: not exact equivalent
+        "operator--": "__prev__",  # Note: not exact equivalent
+        "operator-@": "__neg__",  # Unary minus
+        "operator+@": "__pos__",  # Unary plus
+        "operator~": "__invert__",  # Bitwise NOT
+
+        # Bitwise operators
+        "operator&": "__and__",
+        "operator|": "__or__",
+        "operator^": "__xor__",
+        "operator<<": "__lshift__",
+        "operator>>": "__rshift__",
+
+        # Assignment operators (in-place operations)
+        "operator+=": "__iadd__",
+        "operator-=": "__isub__",
+        "operator*=": "__imul__",
+        "operator/=": "__itruediv__",
+        "operator%=": "__imod__",
+        "operator&=": "__iand__",
+        "operator|=": "__ior__",
+        "operator^=": "__ixor__",
+        "operator<<=": "__ilshift__",
+        "operator>>=": "__irshift__",
+
+        # Subscript operator
+        "operator[]": "__getitem__",
+
+        # Function call operator
+        "operator()": "__call__",
+
+        # Conversion operators
+        "operator bool": "__bool__",
+        "operator int": "__int__",
+        "operator float": "__float__",
+        "operator str": "__str__",
+
+        # Smart pointer operations
+        "operator*": "__deref__",  # Dereference (conflicts with multiply)
+        "operator->": "__arrow__",  # Arrow operator (no direct Python equivalent)
+
+        # Memory management
+        "operator new": "__new__",
+        "operator delete": "__del__",
+
+        # Stream operators
+        "operator<<": "__lshift__",  # Also used for stream insertion
+        "operator>>": "__rshift__",  # Also used for stream extraction
+
+        # Comma operator
+        "operator,": "__comma__",  # No direct Python equivalent
+    }
+
+    # Check if it's an operator
+    if name in operator_mappings:
+        return operator_mappings[name]
+
+    # Check if it's a Python keyword
+    if name in python_keywords:
+        return name + "_"
+
+    # Handle special characters
+    # Replace invalid characters with underscores
+    result = ""
+    for char in name:
+        if char.isalnum() or char == '_':
+            result += char
+        else:
+            result += '_'
+
+    # Ensure the identifier doesn't start with a digit
+    if result and result[0].isdigit():
+        result = '_' + result
+
+    # Ensure the identifier isn't empty
+    if not result:
+        result = '_empty_'
+
+    return result
 
 
 @beartype
@@ -140,11 +313,15 @@ class Py11Function:
     DefParams: Optional[List[BlockId]] = None
     Spaces: List[QualType] = field(default_factory=list)
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> pya.FunctionDefParams:
+    def build_typedef(self, ast: pya.ASTBuilder,
+                      base_map: GenTypeMap) -> pya.FunctionDefParams:
         return pya.FunctionDefParams(
             Name=py_ident(self.PyName),
-            ResultTy=self.ResultTy and py_type(self.ResultTy),
-            Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
+            ResultTy=self.ResultTy and py_type(self.ResultTy, base_map=base_map),
+            Args=[
+                pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
+                for Arg in self.Args
+            ],
             IsStub=True,
         )
 
@@ -280,15 +457,27 @@ class Py11Method(Py11Function):
             IsConst=meth.isConst,
             Args=meth.arguments,
             IsStatic=meth.isStatic,
+            IsInit=meth.IsConstructor,
         )
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
+    def build_typedef(
+        self,
+        ast: pya.ASTBuilder,
+        base_map: GenTypeMap,
+        is_overload: bool = False,
+    ) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
-            Name=py_ident(self.PyName),
-            ResultTy=self.ResultTy and py_type(self.ResultTy),
-            Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
+            Name="__init__" if self.IsInit else py_ident(self.PyName),
+            ResultTy=self.ResultTy and py_type(self.ResultTy, base_map),
+            Args=[
+                pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
+                for Arg in self.Args
+            ],
             IsStub=True,
-            Decorators=[pya.DecoratorParams("staticmethod")] if self.IsStatic else []))
+            Decorators=[
+                *maybe_splice(self.IsStatic, pya.DecoratorParams("staticmethod")),
+                *maybe_splice(is_overload, pya.DecoratorParams("overload")),
+            ]))
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -302,21 +491,26 @@ class Py11Method(Py11Function):
 
         Args += self.Args
 
-        call_pass = self.build_call_pass(
-            ast,
-            FunctionQualName=ast.Scoped(Class, ast.string(self.CxxName)),
-            Class=None if self.IsStatic else Class,
-            IsConst=self.IsConst,
-            Args=Args,
-        )
+        if self.IsInit and not self.Body:
+            call_pass = ast.XCall("pybind11::init", Params=[t.type for t in self.Args])
+            argument_binder = []
 
-        if self.IsInit:
-            call_pass = ast.XCall("pybind11::init", args=[call_pass])
-
-        if self.ExplicitClassParam and not self.IsInit:
-            argument_binder = self.build_argument_binder(self.Args[1:], ast=ast)
         else:
-            argument_binder = self.build_argument_binder(self.Args, ast=ast)
+            call_pass = self.build_call_pass(
+                ast,
+                FunctionQualName=ast.Scoped(Class, ast.string(self.CxxName)),
+                Class=None if self.IsStatic else Class,
+                IsConst=self.IsConst,
+                Args=Args,
+            )
+
+            if self.IsInit:
+                call_pass = ast.XCall("pybind11::init", args=[call_pass])
+
+            if self.ExplicitClassParam and not self.IsInit:
+                argument_binder = self.build_argument_binder(self.Args[1:], ast=ast)
+            else:
+                argument_binder = self.build_argument_binder(self.Args, ast=ast)
 
         return ast.XCall(
             (".def_static" if (self.IsStatic and not self.IsInit) else ".def"),
@@ -339,12 +533,15 @@ class Py11EnumField:
     Doc: GenTuDoc
 
     @staticmethod
-    def FromGenTu(Field: GenTuEnumField,
-                  pyNameOverride: Optional[str] = None) -> 'Py11EnumField':
+    def FromGenTu(
+        Field: GenTuEnumField,
+        pyNameOverride: Optional[str] = None,
+    ) -> 'Py11EnumField':
         return Py11EnumField(
             PyName=Field.name if pyNameOverride is None else pyNameOverride,
             CxxName=Field.name,
-            Doc=Field.doc)
+            Doc=Field.doc,
+        )
 
     def build_bind(self, Enum: 'Py11Enum', ast: ASTBuilder) -> BlockId:
         return ast.XCall(".value", [
@@ -413,11 +610,37 @@ class Py11Enum:
                         CxxName="",
                         ResultTy=iter_type,
                         Body=[
-                            ast.string("return "),
-                            ast.Type(iter_type),
-                            ast.string("();"),
+                            ast.Return(ast.b.line([ast.Type(iter_type),
+                                                   ast.string("()")])),
                         ],
-                    ).build_bind(self.Enum, ast)
+                    ).build_bind(self.Enum, ast),
+                    Py11Method(
+                        PyName="__eq__",
+                        CxxName="",
+                        ResultTy=QualType(name="bool"),
+                        Args=[
+                            GenTuIdent(self.Enum, "lhs"),
+                            GenTuIdent(self.Enum, "rhs"),
+                        ],
+                        Body=[
+                            ast.Return(
+                                ast.XCall("==", [ast.string("lhs"),
+                                                 ast.string("rhs")])),
+                        ],
+                    ).build_bind(self.Enum, ast),
+                    Py11Method(
+                        PyName="__hash__",
+                        CxxName="",
+                        ResultTy=QualType(name="int"),
+                        Args=[
+                            GenTuIdent(self.Enum, "it"),
+                        ],
+                        Body=[
+                            ast.Return(
+                                ast.XCall("static_cast", [ast.string("it")],
+                                          Params=[QualType(name="int")])),
+                        ],
+                    ).build_bind(self.Enum, ast),
                 ] + [b.text(";")]),
             )
         ])
@@ -449,8 +672,8 @@ class Py11Field:
             Default=Field.value,
         )
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> pya.FieldParams:
-        return pya.FieldParams(py_type(self.Type), self.PyName)
+    def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.FieldParams:
+        return pya.FieldParams(py_type(self.Type, base_map=base_map), self.PyName)
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -493,6 +716,7 @@ class Py11Field:
 class Py11Class:
     PyName: str
     Class: QualType
+    ReflectionParams: Optional[GenTuReflParams]
     Bases: List[QualType] = field(default_factory=list)
     PyHolderType: Optional[QualType] = None
     Fields: List[Py11Field] = field(default_factory=list)
@@ -502,11 +726,16 @@ class Py11Class:
     @staticmethod
     def FromGenTu(ast: ASTBuilder,
                   value: GenTuStruct,
+                  base_map: GenTypeMap,
                   pyNameOveride: Optional[str] = None) -> 'Py11Class':
         res = Py11Class(
-            PyName=pyNameOveride or py_type(value.name).Name,
-            Class=value.name,
+            PyName=value.reflectionParams.wrapper_name or pyNameOveride or
+            py_type(value.name, base_map=base_map).Name,
+            Class=value.declarationQualName(),
+            ReflectionParams=value.reflectionParams,
         )
+
+        res.ReflectionParams = value.reflectionParams
 
         for base in value.bases:
             res.Bases.append(base)
@@ -607,8 +836,9 @@ class Py11Class:
 
         return res
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> pya.ClassParams:
-        res = pya.ClassParams(Name=self.PyName, Bases=[py_type(T) for T in self.Bases])
+    def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.ClassParams:
+        res = pya.ClassParams(Name=self.PyName,
+                              Bases=[py_type(T, base_map=base_map) for T in self.Bases])
 
         Init = Py11Method(
             PyName="__init__",
@@ -620,17 +850,24 @@ class Py11Class:
             ],
         )
 
-        res.Methods.append(Init.build_typedef(ast))
+        res.Methods.append(Init.build_typedef(ast, base_map=base_map))
+
+        method_names = [M.PyName for M in self.dedup_methods()]
 
         for Meth in self.dedup_methods():
-            res.Methods.append(Meth.build_typedef(ast))
+            res.Methods.append(
+                Meth.build_typedef(
+                    ast,
+                    base_map=base_map,
+                    is_overload=1 < method_names.count(Meth.PyName),
+                ))
 
         for Field in self.Fields:
-            res.Fields.append(Field.build_typedef(ast))
+            res.Fields.append(Field.build_typedef(ast, base_map=base_map))
 
         return res
 
-    def build_bind(self, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
         b = ast.b
 
         sub: List[BlockId] = []
@@ -651,12 +888,31 @@ class Py11Class:
 
         sub.append(b.text(";"))
 
+        HolderType = None
+
+        if self.PyHolderType:
+            HolderType = self.PyHolderType
+
+        elif self.ReflectionParams:
+            match self.ReflectionParams.backend.python.holder_type:
+                case "shared":
+                    HolderType = self.Class.withWrapperType(
+                        QualType.ForName("shared_ptr", Spaces=[QualType.ForName("std")]))
+
+                case "unique":
+                    HolderType = self.Class.withWrapperType(
+                        QualType.ForName("unique_ptr", Spaces=[QualType.ForName("std")]))
+
+                case holder:
+                    if holder is not None:
+                        HolderType = self.Class.withWrapperType(QualType.ForName(holder))
+
         return b.stack([
             ast.XCall(
                 "pybind11::class_",
                 [b.text("m"), ast.Literal(self.PyName)],
-                Params=[self.Class] + ([self.PyHolderType] if self.PyHolderType else []) +
-                self.Bases,
+                Params=[self.Class] + ([HolderType] if HolderType else []) +
+                [B for B in self.Bases if base_map.is_known_type(B)],
             ),
             b.indent(2, b.stack(sub))
         ])
@@ -674,6 +930,13 @@ class Py11TypedefPass:
     name: pya.PyType
     base: pya.PyType
 
+    @staticmethod
+    def FromGenTu(typedef: GenTuTypedef, base_map: GenTypeMap) -> "Py11TypedefPass":
+        return Py11TypedefPass(
+            name=py_type(typedef.name, base_map),
+            base=py_type(typedef.base, base_map),
+        )
+
 
 Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass, Py11Function]
 
@@ -686,12 +949,30 @@ class Py11Module:
     Before: List[BlockId] = field(default_factory=list)
     After: List[BlockId] = field(default_factory=list)
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> BlockId:
+    def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> BlockId:
         passes: List[BlockId] = []
 
         passes.append(ast.string("from typing import *"))
         passes.append(ast.string("from enum import Enum"))
         passes.append(ast.string("from datetime import datetime, date, time"))
+        passes.append(
+            ast.string("""
+T = TypeVar("T")
+
+class ImmBox[T]():
+    def get(self) -> T: ...
+
+class ImmFlexVector[T]():
+    def at(self, idx: int) -> T: ...
+    def __len__(self) -> int: ...
+
+class ImmVector[T]():
+    def at(self, idx: int) -> T: ...
+    def __len__(self) -> int: ...
+
+class ImmAdapterTBase[T](ImmAdapter):
+    pass
+        """))
 
         for item in self.Decls:
             match item:
@@ -700,11 +981,12 @@ class Py11Module:
                     passes.append(ast.string(""))
 
                 case Py11Class():
-                    passes.append(ast.Class(item.build_typedef(ast)))
+                    passes.append(ast.Class(item.build_typedef(ast, base_map)))
                     passes.append(ast.string(""))
 
                 case Py11Function():
-                    passes.append(ast.Function(item.build_typedef(ast)))
+                    passes.append(ast.Function(item.build_typedef(ast,
+                                                                  base_map=base_map)))
                     passes.append(ast.string(""))
 
                 case Py11TypedefPass():
@@ -723,7 +1005,7 @@ class Py11Module:
 
         return ast.b.stack(passes)
 
-    def build_bind(self, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
         b = ast.b
 
         passes: List[BlockId] = []
@@ -734,7 +1016,7 @@ class Py11Module:
                     passes.append(entry.Id)
 
                 case Py11Class():
-                    passes.append(entry.build_bind(ast))
+                    passes.append(entry.build_bind(ast, base_map=base_map))
 
                 case Py11Enum():
                     passes.append(entry.build_bind(ast))

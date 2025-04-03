@@ -1,5 +1,8 @@
 #pragma once
 
+#include <immer/vector.hpp>
+#include <immer/box.hpp>
+#include <immer/flex_vector.hpp>
 #include <pybind11/stl_bind.h>
 #include <hstd/stdlib/Set.hpp>
 #include <hstd/system/reflection.hpp>
@@ -91,6 +94,70 @@ void bind_int_set(
                 return result;
             }));
     }
+}
+
+template <typename T>
+void bind_imm_box(
+    py::module&          m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+
+    auto name = std::string(PyNameType) + "ImmBox";
+    if (!guard.contains(name)) {
+        guard.incl(name);
+        pybind11::class_<immer::box<T>>(m, name.c_str())
+            .def(pybind11::init<>())
+            .def(pybind11::init<const immer::box<T>&>())
+            .def(
+                "get",
+                [](immer::box<T> const& it) -> T { return it.get(); })
+            //
+            ;
+    }
+}
+
+template <typename T, typename VT>
+void bind_imm_vector_base(
+    py::module&          m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+
+    auto name = std::string(PyNameType) + "ImmVec";
+    if (!guard.contains(name)) {
+        guard.incl(name);
+        pybind11::class_<VT>(m, name.c_str())
+            .def(pybind11::init<>())
+            .def(pybind11::init<int, const T&>())
+            .def(pybind11::init<std::initializer_list<T>>())
+            .def(pybind11::init<const VT&>())
+            .def("__len__", [](VT const& it) -> int { return it.size(); })
+            .def(py::init([](py::list list) -> VT {
+                VT result;
+                for (auto const& it : list) {
+                    result.push_back(it.cast<T>());
+                }
+                return result;
+            }))
+            //
+            ;
+    }
+}
+
+template <typename T>
+void bind_imm_vector(
+    py::module&          m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+    return bind_imm_vector_base<T, immer::vector<T>>(m, PyNameType, guard);
+}
+
+template <typename T>
+void bind_imm_flex_vector(
+    py::module&          m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+    return bind_imm_vector_base<T, immer::flex_vector<T>>(
+        m, PyNameType, guard);
 }
 
 template <typename T>

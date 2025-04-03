@@ -1,4 +1,5 @@
 #pragma once
+#pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include "hstd/stdlib/TraceBase.hpp"
 #include "hstd/stdlib/algorithms.hpp"
@@ -90,7 +91,7 @@ struct ImmAstTrackingMap;
 /// `.subnodes` field of the root paragraph can be targeted with the
 /// general reflection visitor, but for the immutable AST this is not
 /// necessary, as the path should transition between AST *nodes*.
-struct ImmPathStep {
+struct [[refl]] ImmPathStep {
     /// \brief path from the root of the immer node to the next ImmId
     /// element.
     ImmReflPathBase path;
@@ -127,20 +128,20 @@ struct ImmPathStep {
 };
 
 /// \brief Full path from the root of the document to a specific node.
-struct ImmPath {
+struct [[refl]] ImmPath {
     using Store = immer::flex_vector<ImmPathStep>;
     /// \brief Root ID node
-    ImmId root;
+    [[refl]] ImmId root;
     /// \brief Sequence of jumps from the root of the document down to the
     /// specified target node. For the path iteration structure see \see
     /// ImmPathStep documentation.
-    Store path;
+    [[refl]] Store path;
 
 
     DESC_FIELDS(ImmPath, (root, path));
 
     /// \brief Empty path refers to the root of the document
-    bool empty() const { return path.empty(); }
+    [[refl]] bool empty() const { return path.empty(); }
 
     /// \brief Construct default path that refers to a `Nil` root
     ImmPath() : root{ImmId::Nil()} {}
@@ -219,7 +220,7 @@ struct ImmPath {
 /// Unique ID solves this problem by tracking the origin node (root of the
 /// document), and the full path from the document root to the final target
 /// node `id`. The type is comparable and hash-able.
-struct ImmUniqId {
+struct [[refl]] ImmUniqId {
     ImmId   id;
     ImmPath path;
     DESC_FIELDS(ImmUniqId, (id, path));
@@ -537,9 +538,60 @@ struct ImmAstStore {
 struct ImmAstVersion;
 struct ImmAdapter;
 
+#define __DECLARE_VALUE_READ_FIELD(                                       \
+    __FIELD_TYPE,                                                         \
+    __FIELD_NAME,                                                         \
+    __FIELD_UPPERCASE,                                                    \
+    __PARENT_TYPE,                                                        \
+    __PARENT_KIND)                                                        \
+    [[refl]] BOOST_PP_REMOVE_PARENS(__FIELD_TYPE)                         \
+        const& get##__FIELD_UPPERCASE() const;
+
+#define __DECLARE_VALUE_WRITE_FIELD(                                      \
+    __FIELD_TYPE,                                                         \
+    __FIELD_NAME,                                                         \
+    __FIELD_UPPERCASE,                                                    \
+    __PARENT_TYPE,                                                        \
+    __PARENT_KIND)                                                        \
+    [[refl]]                                                              \
+    void set##__FIELD_UPPERCASE(BOOST_PP_REMOVE_PARENS(__FIELD_TYPE)      \
+                                    const& value);
+
+
+#define __DECLARE_VALUE_READ_TYPE(__KIND)                                 \
+    struct [[refl(                                                        \
+        R"({"default-constructor": false})")]] Imm##__KIND##ValueRead {   \
+        org::imm::Imm##__KIND* ptr;                                       \
+        Imm##__KIND##ValueRead(org::imm::Imm##__KIND const* ptr)          \
+            : ptr{const_cast<org::imm::Imm##__KIND*>(ptr)} {}             \
+        EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                \
+            __DECLARE_VALUE_READ_FIELD);                                  \
+        DESC_FIELDS(Imm##__KIND##ValueRead, ());                          \
+    };                                                                    \
+                                                                          \
+    struct [[refl(                                                        \
+        R"({"default-constructor": false})")]] Imm##__KIND##Value         \
+        : public org::imm::Imm##__KIND##ValueRead {                       \
+        using org::imm::Imm##__KIND##ValueRead::Imm##__KIND##ValueRead;   \
+        EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                \
+            __DECLARE_VALUE_WRITE_FIELD);                                 \
+        DESC_FIELDS(Imm##__KIND##Value, ());                              \
+    };
+
+
+EACH_SEM_ORG_KIND(__DECLARE_VALUE_READ_TYPE)
+
+#undef __DECLARE_VALUE_READ_TYPE
+#undef __DECLARE_VALUE_READ_FIELD
+#undef __DECLARE_VALUE_WRITE_FIELD
+
 /// \brief Store additional lookup and debug contexts for a particular
 /// version of the AST tree.
-struct [[nodiscard]] ImmAstContext : hstd::SharedPtrApi<ImmAstContext> {
+struct
+    [[nodiscard,
+      refl(
+          R"({"default-constructor": false, "backend": {"python": {"holder-type": "shared"}}})")]] ImmAstContext
+    : hstd::SharedPtrApi<ImmAstContext> {
     /// \brief Shared operation tracer for the debug operations.
     hstd::SPtr<hstd::OperationsTracer> debug;
     /// \brief Shared AST store, the underlying store data is shared
@@ -585,9 +637,9 @@ struct [[nodiscard]] ImmAstContext : hstd::SharedPtrApi<ImmAstContext> {
     /// with `index`
     ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
 
-    ImmAstVersion        addRoot(sem::SemId<sem::Org> data);
-    ImmAstVersion        init(sem::SemId<sem::Org> root);
-    sem::SemId<sem::Org> get(org::imm::ImmId id);
+    [[refl]] ImmAstVersion        addRoot(sem::SemId<sem::Org> data);
+    ImmAstVersion                 init(sem::SemId<sem::Org> root);
+    [[refl]] sem::SemId<sem::Org> get(org::imm::ImmId id);
 
     template <typename T>
     T const& value(ImmId id) const {
@@ -635,13 +687,17 @@ struct [[nodiscard]] ImmAstContext : hstd::SharedPtrApi<ImmAstContext> {
 };
 
 /// \brief Specific version of the document.
-struct ImmAstVersion {
+struct [[refl]] ImmAstVersion {
     ImmAstContext::Ptr context;
     ImmAstReplaceEpoch epoch;
     DESC_FIELDS(ImmAstVersion, (context, epoch));
 
-    ImmId      getRoot() const { return epoch.getRoot(); }
-    ImmAdapter getRootAdapter() const;
+    [[refl]] ImmId      getRoot() const { return epoch.getRoot(); }
+    [[refl]] ImmAdapter getRootAdapter() const;
+
+    [[refl]] std::shared_ptr<ImmAstContext> getContext() const {
+        return context;
+    }
 
     ImmAstVersion getEditVersion(hstd::Func<ImmAstReplaceGroup(
                                      ImmAstContext::Ptr,
@@ -737,10 +793,12 @@ hstd::ext::Graphviz::Graph toGraphviz(
 template <typename T>
 struct ImmAdapterT;
 
-struct ImmAdapter {
+struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     ImmId               id;
     ImmAstContext::WPtr ctx;
     ImmPath             path;
+
+    DESC_FIELDS(ImmAdapter, (id, ctx, path));
 
     class iterator {
       public:
@@ -777,11 +835,13 @@ struct ImmAdapter {
         }
     };
 
-    int      size() const { return ctx.lock()->at(id)->subnodes.size(); }
-    iterator begin() const { return iterator(this); }
-    iterator end() const { return iterator(this, size()); }
-    bool     isNil() const { return id.isNil(); }
-    bool     isRoot() const { return path.empty(); }
+    [[refl]] int size() const {
+        return ctx.lock()->at(id)->subnodes.size();
+    }
+    iterator      begin() const { return iterator(this); }
+    iterator      end() const { return iterator(this, size()); }
+    [[refl]] bool isNil() const { return id.isNil(); }
+    [[refl]] bool isRoot() const { return path.empty(); }
     org::imm::ImmReflPathBase flatPath() const {
         org::imm::ImmReflPathBase result;
         auto                      tmp = result.path.transient();
@@ -797,7 +857,7 @@ struct ImmAdapter {
     /// for the node and then use the expression in the test itself.
     hstd::Str selfSelect() const;
 
-    OrgSemKind getKind() const { return id.getKind(); }
+    [[refl]] OrgSemKind getKind() const { return id.getKind(); }
 
     org::imm::ImmReflPathItemBase const& lastPath() const {
         return path.path.back().path.last();
@@ -818,18 +878,27 @@ struct ImmAdapter {
     ImmAdapter(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
         : id{id}, ctx{ctx}, path{path} {}
 
+    ImmAdapter(org::imm::ImmAdapter const& other)
+        : id{other.id}, ctx{other.ctx}, path{other.path} {}
+
     ImmAdapter() : id{ImmId::Nil()}, ctx{}, path{ImmId::Nil()} {}
 
     ImmAdapter pass(ImmId id, ImmPath const& path) const {
         return ImmAdapter(id, ctx, path);
     }
 
-    ImmUniqId uniq() const { return ImmUniqId{.id = id, .path = path}; }
+    [[refl]] ImmUniqId uniq() const {
+        return ImmUniqId{.id = id, .path = path};
+    }
 
-    struct TreeReprConf {
-        int  maxDepth       = 40;
-        bool withAuxFields  = false;
-        bool withReflFields = false;
+    struct [[refl]] TreeReprConf {
+        [[refl]] int  maxDepth       = 40;
+        [[refl]] bool withAuxFields  = false;
+        [[refl]] bool withReflFields = false;
+
+        DESC_FIELDS(
+            TreeReprConf,
+            (maxDepth, withAuxFields, withReflFields));
 
         static TreeReprConf getDefault() { return TreeReprConf{}; }
     };
@@ -842,20 +911,30 @@ struct ImmAdapter {
         return os.getBuffer();
     }
 
+    [[refl]] std::string treeReprString() const {
+        return treeRepr().toString(false);
+    }
+
+    [[refl]] std::string treeReprStringOpts(
+        TreeReprConf const& conf) const {
+        return treeRepr(conf).toString(false);
+    }
+
+
     template <typename T>
     ImmAdapter pass(ImmIdT<T> id) const {
         return ImmAdapter(id, ctx);
     }
 
-    bool isDirectParentOf(ImmAdapter const& other) const;
+    [[refl]] bool isDirectParentOf(ImmAdapter const& other) const;
 
-    bool isIndirectParentOf(ImmAdapter const& other) const;
+    [[refl]] bool isIndirectParentOf(ImmAdapter const& other) const;
 
-    bool isSubnodeOf(ImmAdapter const& other) const {
+    [[refl]] bool isSubnodeOf(ImmAdapter const& other) const {
         return other->indexOf(this->id) != -1;
     }
 
-    hstd::Opt<ImmAdapter> getParent() const {
+    [[refl]] hstd::Opt<ImmAdapter> getParent() const {
         if (path.empty()) {
             return std::nullopt;
         } else {
@@ -864,7 +943,7 @@ struct ImmAdapter {
         }
     }
 
-    int getSelfIndex() const {
+    [[refl]] int getSelfIndex() const {
         auto parent = getParent();
         if (parent) {
             return parent.value()->indexOf(this->id);
@@ -903,11 +982,11 @@ struct ImmAdapter {
         return dynamic_cast<T const*>(get());
     }
 
-    ImmAdapter at(ImmId id, ImmPathStep idx) const {
+    [[refl]] ImmAdapter at(ImmId id, ImmPathStep idx) const {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
 
-    ImmAdapter at(ImmReflFieldId const& field) const {
+    [[refl]] ImmAdapter at(ImmReflFieldId const& field) const {
         return at(
             ctx.lock()->at(
                 id,
@@ -916,17 +995,19 @@ struct ImmAdapter {
             ImmPathStep::Field(field));
     }
 
-    ImmAdapter at(int idx, bool withPath = true) const;
+    [[refl]] ImmAdapter at(int idx, bool withPath = true) const;
 
-    ImmAdapter at(hstd::Vec<int> const& path, bool withPath = true) const {
+    [[refl]] ImmAdapter at(
+        hstd::Vec<int> const& path,
+        bool                  withPath = true) const {
         auto res = *this;
         for (int idx : path) { res = res.at(idx); }
         return res;
     }
 
-    bool is(OrgSemKind kind) const { return get()->is(kind); }
+    [[refl]] bool is(OrgSemKind kind) const { return get()->is(kind); }
 
-    hstd::Vec<ImmAdapter> sub(bool withPath = true) const;
+    [[refl]] hstd::Vec<ImmAdapter> sub(bool withPath = true) const;
 
     template <typename T>
     hstd::Vec<ImmAdapterT<T>> subAs(bool withPath = true) const {
@@ -1068,6 +1149,20 @@ struct ImmAdapterTBase : ImmAdapter {
     ImmAdapterT<F> getField(
         ImmIdT<F> T::*     fieldPtr,
         ImmPathStep const& step) const;
+
+    ImmAdapterTBase(ImmPath const& path, ImmAstContext::WPtr ctx)
+        : ImmAdapter{path, ctx} {}
+
+    ImmAdapterTBase(ImmUniqId id, ImmAstContext::WPtr ctx)
+        : ImmAdapter{id, ctx} {}
+
+    ImmAdapterTBase(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
+        : ImmAdapter{id, ctx, path} {}
+
+    ImmAdapterTBase(org::imm::ImmAdapter const& other)
+        : ImmAdapter{other} {}
+
+    ImmAdapterTBase() : org::imm::ImmAdapter{} {}
 };
 
 /// \brief Implement `getThis()` for final specialization and introduce all
@@ -1098,9 +1193,11 @@ EACH_SEM_ORG_FINAL_TYPE_BASE(__declare_adapter)
 #undef __declare_adapter
 
 /// \brief Base interface for accessing the final adapter specialization
-struct ImmAdapterVirtualBase {
+struct [[refl]] ImmAdapterVirtualBase {
     virtual ImmAdapter const* getThis() const = 0;
     virtual ImmAdapter*       getThis()       = 0;
+
+    virtual ~ImmAdapterVirtualBase() {}
 
     template <typename T>
     ImmAdapterT<T> getThisT() const {
@@ -1117,9 +1214,9 @@ struct ImmAdapterVirtualBase {
 
 /// \brief Root for the full org API specialization hierarchy, mirros the
 /// `sem::Org` API implementation.
-struct ImmAdapterOrgAPI : ImmAdapterVirtualBase {};
+struct [[refl]] ImmAdapterOrgAPI : ImmAdapterVirtualBase {};
 
-struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
+struct [[refl]] ImmAdapterStmtAPI : ImmAdapterOrgAPI {
     virtual hstd::Vec<org::sem::AttrValue> getAttrs(
         hstd::Opt<hstd::Str> const& param) const;
     virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(
@@ -1131,14 +1228,14 @@ struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
         hstd::Opt<hstd::Str> const& kind = std::nullopt) const;
 };
 
-struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {
+struct [[refl]] ImmAdapterCmdAPI : ImmAdapterStmtAPI {
     virtual hstd::Vec<org::sem::AttrValue> getAttrs(
         hstd::Opt<hstd::Str> const& param) const override;
     virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(
         hstd::Str const& kind) const override;
 };
 
-struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
+struct [[refl]] ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
     hstd::Vec<org::sem::SubtreePeriod> getTimePeriods(
         hstd::IntSet<org::sem::SubtreePeriod::Kind> kinds,
         bool                                        withPath = true) const;
@@ -1154,31 +1251,31 @@ struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
     hstd::Str getCleanTitle() const;
 };
 
-struct ImmAdapterNoneAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterAttrAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterAttrListAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterAttrsAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterErrorItemAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterErrorGroupAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterStmtListAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterEmptyAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterLineCommandAPI : ImmAdapterCmdAPI {};
-struct ImmAdapterAttachedAPI : ImmAdapterLineCommandAPI {};
-struct ImmAdapterCmdCaptionAPI : ImmAdapterAttachedAPI {
+struct [[refl]] ImmAdapterNoneAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterAttrAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterAttrListAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterAttrsAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterErrorItemAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterErrorGroupAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterStmtListAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterEmptyAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterLineCommandAPI : ImmAdapterCmdAPI {};
+struct [[refl]] ImmAdapterAttachedAPI : ImmAdapterLineCommandAPI {};
+struct [[refl]] ImmAdapterCmdCaptionAPI : ImmAdapterAttachedAPI {
     org::imm::ImmAdapterT<org::imm::ImmParagraph> getText() const;
 };
-struct ImmAdapterCmdColumnsAPI : ImmAdapterAttachedAPI {};
-struct ImmAdapterCmdNameAPI : ImmAdapterAttachedAPI {};
-struct ImmAdapterCmdCallAPI : ImmAdapterAttachedAPI {};
-struct ImmAdapterCmdCustomArgsAPI : ImmAdapterCmdAPI {};
-struct ImmAdapterCmdCustomRawAPI : ImmAdapterStmtAPI {};
-struct ImmAdapterCmdCustomTextAPI : ImmAdapterStmtAPI {};
-struct ImmAdapterCmdResultsAPI : ImmAdapterAttachedAPI {};
-struct ImmAdapterCmdTblfmAPI : ImmAdapterCmdAPI {};
-struct ImmAdapterInlineAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {};
-struct ImmAdapterInlineFootnoteAPI : ImmAdapterInlineAPI {};
-struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {
+struct [[refl]] ImmAdapterCmdColumnsAPI : ImmAdapterAttachedAPI {};
+struct [[refl]] ImmAdapterCmdNameAPI : ImmAdapterAttachedAPI {};
+struct [[refl]] ImmAdapterCmdCallAPI : ImmAdapterAttachedAPI {};
+struct [[refl]] ImmAdapterCmdCustomArgsAPI : ImmAdapterCmdAPI {};
+struct [[refl]] ImmAdapterCmdCustomRawAPI : ImmAdapterStmtAPI {};
+struct [[refl]] ImmAdapterCmdCustomTextAPI : ImmAdapterStmtAPI {};
+struct [[refl]] ImmAdapterCmdResultsAPI : ImmAdapterAttachedAPI {};
+struct [[refl]] ImmAdapterCmdTblfmAPI : ImmAdapterCmdAPI {};
+struct [[refl]] ImmAdapterInlineAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterHashTagAPI : ImmAdapterInlineAPI {};
+struct [[refl]] ImmAdapterInlineFootnoteAPI : ImmAdapterInlineAPI {};
+struct [[refl]] ImmAdapterTimeAPI : ImmAdapterOrgAPI {
     hstd::UserTime getStaticTime() const;
     hstd::Opt<int> getYear() const;
     hstd::Opt<int> getMonth() const;
@@ -1187,55 +1284,55 @@ struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {
     hstd::Opt<int> getMinute() const;
     hstd::Opt<int> getSecond() const;
 };
-struct ImmAdapterTimeRangeAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterMacroAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterSymbolAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterLeafAPI : ImmAdapterOrgAPI {
+struct [[refl]] ImmAdapterTimeRangeAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterMacroAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterSymbolAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterLeafAPI : ImmAdapterOrgAPI {
     hstd::Str const& getText() const;
 };
-struct ImmAdapterEscapedAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterNewlineAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterSpaceAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterWordAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterAtMentionAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterRawTextAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterPunctuationAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterPlaceholderAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterBigIdentAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterTextTargetAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterMarkupAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterBoldAPI : ImmAdapterMarkupAPI {};
-struct ImmAdapterUnderlineAPI : ImmAdapterMarkupAPI {};
-struct ImmAdapterMonospaceAPI : ImmAdapterMarkupAPI {};
-struct ImmAdapterMarkQuoteAPI : ImmAdapterMarkupAPI {};
-struct ImmAdapterRadioTargetAPI : ImmAdapterMarkupAPI {};
-struct ImmAdapterVerbatimAPI : ImmAdapterMarkupAPI {};
-struct ImmAdapterItalicAPI : ImmAdapterMarkupAPI {};
-struct ImmAdapterStrikeAPI : ImmAdapterMarkupAPI {};
-struct ImmAdapterParAPI : ImmAdapterMarkupAPI {};
-struct ImmAdapterLatexAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterLinkAPI : ImmAdapterStmtAPI {};
-struct ImmAdapterBlockAPI : ImmAdapterCmdAPI {};
-struct ImmAdapterBlockCenterAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterBlockQuoteAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterBlockCommentAPI : ImmAdapterStmtAPI {};
-struct ImmAdapterBlockVerseAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterBlockExampleAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterInlineExportAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterCmdExportAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {
+struct [[refl]] ImmAdapterEscapedAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterNewlineAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterSpaceAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterWordAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterAtMentionAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterRawTextAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterPunctuationAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterPlaceholderAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterBigIdentAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterTextTargetAPI : ImmAdapterLeafAPI {};
+struct [[refl]] ImmAdapterMarkupAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterBoldAPI : ImmAdapterMarkupAPI {};
+struct [[refl]] ImmAdapterUnderlineAPI : ImmAdapterMarkupAPI {};
+struct [[refl]] ImmAdapterMonospaceAPI : ImmAdapterMarkupAPI {};
+struct [[refl]] ImmAdapterMarkQuoteAPI : ImmAdapterMarkupAPI {};
+struct [[refl]] ImmAdapterRadioTargetAPI : ImmAdapterMarkupAPI {};
+struct [[refl]] ImmAdapterVerbatimAPI : ImmAdapterMarkupAPI {};
+struct [[refl]] ImmAdapterItalicAPI : ImmAdapterMarkupAPI {};
+struct [[refl]] ImmAdapterStrikeAPI : ImmAdapterMarkupAPI {};
+struct [[refl]] ImmAdapterParAPI : ImmAdapterMarkupAPI {};
+struct [[refl]] ImmAdapterLatexAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterLinkAPI : ImmAdapterStmtAPI {};
+struct [[refl]] ImmAdapterBlockAPI : ImmAdapterCmdAPI {};
+struct [[refl]] ImmAdapterBlockCenterAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterBlockQuoteAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterBlockCommentAPI : ImmAdapterStmtAPI {};
+struct [[refl]] ImmAdapterBlockVerseAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterBlockExampleAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterInlineExportAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterCmdExportAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {
     hstd::Opt<hstd::Str> getPlacement() const;
 };
-struct ImmAdapterBlockDynamicFallbackAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterBlockAdmonitionAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterBlockCodeEvalResultAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterBlockCodeAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterSubtreeLogAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterSubtreeCompletionAPI : ImmAdapterInlineAPI {};
-struct ImmAdapterCellAPI : ImmAdapterCmdAPI {};
-struct ImmAdapterRowAPI : ImmAdapterCmdAPI {};
-struct ImmAdapterTableAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
+struct [[refl]] ImmAdapterBlockDynamicFallbackAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterBlockAdmonitionAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterBlockCodeEvalResultAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterBlockCodeAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterSubtreeLogAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterSubtreeCompletionAPI : ImmAdapterInlineAPI {};
+struct [[refl]] ImmAdapterCellAPI : ImmAdapterCmdAPI {};
+struct [[refl]] ImmAdapterRowAPI : ImmAdapterCmdAPI {};
+struct [[refl]] ImmAdapterTableAPI : ImmAdapterBlockAPI {};
+struct [[refl]] ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
     bool                      isFootnoteDefinition() const;
     hstd::Opt<hstd::Str>      getFootnoteName() const;
     bool                      hasAdmonition() const;
@@ -1249,30 +1346,34 @@ struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
     hstd::Vec<ImmAdapterT<ImmHashTag>>  getLeadHashtags() const;
     hstd::Vec<ImmAdapter> getBody(bool withPath = true) const;
 };
-struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
-struct ImmAdapterCallAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterFileAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterDirectoryAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterSymlinkAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterDocumentFragmentAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterCriticMarkupAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
+struct [[refl]] ImmAdapterCallAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterFileAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterDirectoryAPI : ImmAdapterOrgAPI {
+    [[refl]] hstd::Opt<org::imm::ImmAdapter> getFsSubnode(
+        hstd::Str const& name,
+        bool             withPath = true) const;
+};
+struct [[refl]] ImmAdapterSymlinkAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterDocumentFragmentAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterCriticMarkupAPI : ImmAdapterOrgAPI {};
 
-struct ImmAdapterListAPI : ImmAdapterStmtAPI {
+struct [[refl]] ImmAdapterListAPI : ImmAdapterStmtAPI {
     bool                           isDescriptionList() const;
     bool                           isNumberedList() const;
     hstd::Vec<org::sem::AttrValue> getListAttrs(
         hstd::Str const& kind) const;
 };
 
-struct ImmAdapterListItemAPI : ImmAdapterOrgAPI {
+struct [[refl]] ImmAdapterListItemAPI : ImmAdapterOrgAPI {
     bool isDescriptionItem() const;
 
     hstd::Opt<ImmAdapter> getHeader() const;
     hstd::Opt<hstd::Str>  getCleanHeader() const;
 };
 
-struct ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {
+struct [[refl]] ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {
     hstd::Vec<sem::NamedProperty> getProperties(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
@@ -1281,7 +1382,7 @@ struct ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
 };
 
-struct ImmAdapterDocumentAPI : ImmAdapterOrgAPI {
+struct [[refl]] ImmAdapterDocumentAPI : ImmAdapterOrgAPI {
     hstd::Vec<sem::NamedProperty> getProperties(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
@@ -1290,19 +1391,35 @@ struct ImmAdapterDocumentAPI : ImmAdapterOrgAPI {
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
 };
 
-struct ImmAdapterFileTargetAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterTextSeparatorAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterCmdIncludeAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterFileTargetAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterTextSeparatorAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterCmdIncludeAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 
 // Define specializations for all final (non-abstract) org-mode types.
 #define __define_adapter(Derived, Base)                                   \
     template <>                                                           \
-    struct ImmAdapterT<org::imm::Imm##Derived>                            \
+    struct [[refl(                                                        \
+        "{\"default-constructor\": false, \"wrapper-name\": "             \
+        "\"Imm" #Derived                                                  \
+        "Adapter\", \"wrapper-has-params\": "                             \
+        "false}")]] ImmAdapterT<org::imm::Imm##Derived>                   \
         : ImmAdapterTBase<Imm##Derived>                                   \
         , ImmAdapter##Derived##API {                                      \
         using api_type = ImmAdapter##Derived##API;                        \
         USE_IMM_ADAPTER_BASE(org::imm::Imm##Derived);                     \
+        [[refl]] ImmAdapterT(org::imm::ImmAdapter const& other)           \
+            : ImmAdapterTBase<Imm##Derived>{other} {                      \
+            LOGIC_ASSERTION_CHECK(                                        \
+                other.getKind() == OrgSemKind::Derived,                   \
+                "Adapter type mismatch, creating {} from generic "        \
+                "adapter of type {}",                                     \
+                #Derived,                                                 \
+                other.getKind());                                         \
+        }                                                                 \
+        [[refl]] org::imm::Imm##Derived##ValueRead getValue() const {     \
+            return org::imm::Imm##Derived##ValueRead{&this->value()};     \
+        };                                                                \
     };
 
 EACH_SEM_ORG_FINAL_TYPE_BASE(__define_adapter)

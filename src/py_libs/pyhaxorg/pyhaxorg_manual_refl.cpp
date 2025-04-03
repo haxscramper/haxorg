@@ -2,6 +2,8 @@
 #include <haxorg/sem/SemOrgSerde.hpp>
 
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/sem/ImmOrgGraph.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>

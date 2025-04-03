@@ -1,4 +1,6 @@
 #pragma once
+#pragma clang diagnostic ignored "-Wunknown-attributes"
+
 
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
@@ -29,16 +31,24 @@ struct OperationsMsg {
 
 struct OperationsTracer;
 
-struct OperationsTracer {
-    bool        TraceState       = false;
-    bool        traceToFile      = false;
-    bool        traceToBuffer    = false;
-    bool        traceStructured  = false;
-    bool        traceColored     = true;
-    bool        collectingAbseil = false;
-    std::string traceBuffer;
+struct [[refl]] OperationsTracer {
+    [[refl]] bool TraceState      = false;
+    [[refl]] bool traceToFile     = false;
+    [[refl]] bool traceToBuffer   = false;
+    [[refl]] bool traceStructured = false;
+    [[refl]] bool traceColored    = true;
+    [[refl]] int  activeLevel     = 0;
 
-    int activeLevel = 0;
+    [[refl]] std::string traceBuffer;
+
+    DESC_FIELDS(
+        OperationsTracer,
+        (TraceState,
+         traceBuffer,
+         traceToFile,
+         traceToBuffer,
+         traceStructured,
+         traceColored));
 
     finally_std scopeLevel() const;
     finally_std scopeTrace(bool state);
@@ -54,6 +64,21 @@ struct OperationsTracer {
     ColStream getStream() const;
     void      endStream(ColStream& stream) const;
     void      message(OperationsMsg const& value) const;
+
+    /// \brief Helper method for reflection
+    [[refl]] void setTraceFileStr(
+        std::string const& outfile,
+        bool               overwrite) {
+        setTraceFile(outfile, overwrite);
+    }
+
+    [[refl]] void sendMessage(
+        std::string const& value,
+        std::string const& function,
+        int                line,
+        std::string const& file) {
+        message(value, function.c_str(), line, file.c_str());
+    }
 
     void message(
         std::string const& value,

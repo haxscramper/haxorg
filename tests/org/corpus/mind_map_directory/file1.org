@@ -1,0 +1,13 @@
+* Subtree 1 in file 1
+:PROPERTIES:
+:ID:       8e8d8ca8-97a6-4037-9eaf-a998b8ea5f34
+:END:
+
+Forward link [[id:9181a820-1e69-4db1-a381-b26ffd94cdd5][Subtree 2 in file 1]]
+
+* Subtree 2 in file 1
+:PROPERTIES:
+:ID:       9181a820-1e69-4db1-a381-b26ffd94cdd5
+:END:
+
+Link to the subtree 1 [[id:8e8d8ca8-97a6-4037-9eaf-a998b8ea5f34][Subtree 1 in file 1]]

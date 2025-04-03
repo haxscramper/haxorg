@@ -1212,3 +1212,24 @@ Opt<sem::AttrValue> sem::BlockCode::getVariable(Str const& var) const {
 
     return std::nullopt;
 }
+
+
+hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterDirectoryAPI::
+    getFsSubnode(const hstd::Str& name, bool withPath) const {
+
+    auto test = [&](hstd::Str const& path) -> bool {
+        return fs::path{path.toBase()}.filename().native() == name;
+    };
+
+    for (auto const& sub : getThis()->sub(withPath)) {
+        if (auto const& dir = sub.asOpt<imm::ImmDirectory>();
+            dir.has_value() && test(dir.value()->relPath)) {
+            return sub;
+        } else if (auto const& d = sub.asOpt<imm::ImmFile>();
+                   d.has_value() && test(d.value()->relPath)) {
+            return sub;
+        }
+    }
+
+    return std::nullopt;
+}

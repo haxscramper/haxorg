@@ -11,8 +11,8 @@ namespace org::graph {
 
 struct graph_error : hstd::CRTP_hexception<graph_error> {};
 
-struct MapLink {
-    struct Link {
+struct [[refl]] MapLink {
+    struct [[refl]] Link {
         /// \brief Original link used to create the graph edge. Used to
         /// return an edge to unresolved state when target is deleted. When
         /// source is deleted the edge is simply dropped.
@@ -25,7 +25,7 @@ struct MapLink {
 
     /// \brief Unresolved radio link that was detected from AST context but
     /// the graph node has not been added yet.
-    struct Radio {
+    struct [[refl]] Radio {
         org::imm::ImmAdapter target;
         DESC_FIELDS(Radio, (target));
     };
@@ -36,11 +36,11 @@ struct MapLink {
 };
 
 
-struct MapNodeProp {
-    org::imm::ImmAdapter id;
-    hstd::Vec<MapLink>   unresolved;
+struct [[refl]] MapNodeProp {
+    [[refl]] org::imm::ImmAdapter id;
+    [[refl]] hstd::Vec<MapLink>   unresolved;
 
-    hstd::Opt<hstd::Str> getSubtreeId() const {
+    [[refl]] hstd::Opt<hstd::Str> getSubtreeId() const {
         if (auto tree = id.asOpt<org::imm::ImmSubtree>();
             tree && tree.value()->treeId.get()) {
             return tree.value()->treeId->value();
@@ -49,7 +49,7 @@ struct MapNodeProp {
         }
     }
 
-    hstd::Opt<hstd::Str> getFootnoteName() const {
+    [[refl]] hstd::Opt<hstd::Str> getFootnoteName() const {
         if (auto par = id.asOpt<org::imm::ImmParagraph>();
             par && par->isFootnoteDefinition()) {
             return par->getFootnoteName();
@@ -61,30 +61,32 @@ struct MapNodeProp {
     DESC_FIELDS(MapNodeProp, (unresolved, id));
 };
 
-struct MapEdgeProp {
-    MapLink link;
+struct [[refl]] MapEdgeProp {
+    [[refl]] MapLink link;
     DESC_FIELDS(MapEdgeProp, (link));
 };
 
 
-struct MapNode {
-    org::imm::ImmUniqId id;
+struct [[refl]] MapNode {
+    [[refl]] org::imm::ImmUniqId id;
 
     MapNode() : id{org::imm::ImmUniqId()} {}
     MapNode(org::imm::ImmUniqId id) : id{id} {}
 
-    bool operator==(MapNode const& other) const {
+    [[refl]] bool operator==(MapNode const& other) const {
         return this->id == other.id;
     }
 
-    bool operator<(MapNode const& other) const { return id < other.id; }
+    [[refl]] bool operator<(MapNode const& other) const {
+        return id < other.id;
+    }
 
     DESC_FIELDS(MapNode, (id));
 };
 
-struct MapEdge {
-    MapNode source;
-    MapNode target;
+struct [[refl]] MapEdge {
+    [[refl]] MapNode source;
+    [[refl]] MapNode target;
     DESC_FIELDS(MapEdge, (source, target));
 
     bool operator==(MapEdge const& other) const {
@@ -116,29 +118,20 @@ struct std::hash<org::graph::MapEdge> {
 };
 
 namespace org::graph {
-struct StructureUpdate {
-    hstd::Vec<MapEdge> removed_edges;
-    hstd::Vec<MapEdge> added_edges;
-    hstd::Opt<MapNode> removed_node = std::nullopt;
-    hstd::Opt<MapNode> added_node   = std::nullopt;
-
-    DESC_FIELDS(
-        StructureUpdate,
-        (removed_edges, removed_node, added_edges, added_node));
-};
-
-using NodeProps    = hstd::UnorderedMap<MapNode, MapNodeProp>;
-using EdgeProps    = hstd::UnorderedMap<MapEdge, MapEdgeProp>;
-using AdjNodesList = hstd::Vec<MapNode>;
-using AdjList      = hstd::UnorderedMap<MapNode, AdjNodesList>;
+[[refl]] typedef hstd::UnorderedMap<MapNode, MapNodeProp>  NodeProps;
+[[refl]] typedef hstd::UnorderedMap<MapEdge, MapEdgeProp>  EdgeProps;
+[[refl]] typedef hstd::Vec<MapNode>                        AdjNodesList;
+[[refl]] typedef hstd::UnorderedMap<MapNode, AdjNodesList> AdjList;
 
 struct MapGraph;
 
-struct MapGraph {
-    NodeProps nodeProps;
-    EdgeProps edgeProps;
-    AdjList   adjList;
-    AdjList   adjListIn;
+struct [[refl]] MapGraph {
+    [[refl]] NodeProps nodeProps;
+    [[refl]] EdgeProps edgeProps;
+    [[refl]] AdjList   adjList;
+    [[refl]] AdjList   adjListIn;
+
+    DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList, adjListIn));
 
     void clear() {
         nodeProps.clear();
@@ -147,18 +140,18 @@ struct MapGraph {
         adjListIn.clear();
     }
 
-    int nodeCount() const { return nodeProps.size(); }
-    int edgeCount() const { return edgeProps.size(); }
+    [[refl]] int nodeCount() const { return nodeProps.size(); }
+    [[refl]] int edgeCount() const { return edgeProps.size(); }
 
-    AdjNodesList const& outNodes(MapNode const& node) const {
+    [[refl]] AdjNodesList const& outNodes(MapNode const& node) const {
         return adjList.at(node);
     }
 
-    AdjNodesList const& inNodes(MapNode const& node) const {
+    [[refl]] AdjNodesList const& inNodes(MapNode const& node) const {
         return adjListIn.at(node);
     }
 
-    hstd::Vec<MapEdge> adjEdges(MapNode const& node) const {
+    [[refl]] hstd::Vec<MapEdge> adjEdges(MapNode const& node) const {
         hstd::Vec<MapEdge> res;
         for (auto const& out : outNodes(node)) {
             res.push_back(MapEdge{.source = node, .target = out});
@@ -171,7 +164,7 @@ struct MapGraph {
         return res;
     }
 
-    hstd::Vec<MapNode> adjNodes(MapNode const& node) const {
+    [[refl]] hstd::Vec<MapNode> adjNodes(MapNode const& node) const {
         hstd::UnorderedSet<org::graph::MapNode> adjacent;
         hstd::Vec<MapNode>                      result;
         for (auto const& node : outNodes(node)) {
@@ -185,7 +178,7 @@ struct MapGraph {
         return result;
     }
 
-    hstd::Vec<MapEdge> outEdges(MapNode const& node) const {
+    [[refl]] hstd::Vec<MapEdge> outEdges(MapNode const& node) const {
         hstd::Vec<MapEdge> result;
         for (auto const& target : outNodes(node)) {
             result.push_back(MapEdge{node, target});
@@ -193,7 +186,7 @@ struct MapGraph {
         return result;
     }
 
-    hstd::Vec<MapEdge> inEdges(MapNode const& node) const {
+    [[refl]] hstd::Vec<MapEdge> inEdges(MapNode const& node) const {
         hstd::Vec<MapEdge> result;
         for (auto const& target : inNodes(node)) {
             result.push_back(MapEdge{target, node});
@@ -201,42 +194,45 @@ struct MapGraph {
         return result;
     }
 
-    int outDegree(MapNode const& node) const {
+    [[refl]] int outDegree(MapNode const& node) const {
         return adjList.contains(node) ? adjList.at(node).size() : 0;
     }
 
-    int inDegree(MapNode const& node) const {
+    [[refl]] int inDegree(MapNode const& node) const {
         return adjListIn.contains(node) ? adjListIn.at(node).size() : 0;
     }
 
-    bool isRegisteredNode(MapNode const& id) const {
+    [[refl]] bool isRegisteredNode(MapNode const& id) const {
         return adjList.contains(id);
     }
 
-    bool isRegisteredNode(org::imm::ImmUniqId const& id) const {
+    [[refl]] bool isRegisteredNode(org::imm::ImmUniqId const& id) const {
         return adjList.contains(MapNode{id});
     }
 
-    MapNodeProp const& at(MapNode const& node) const {
+    [[refl]] MapNodeProp const& at(MapNode const& node) const {
         return nodeProps.at(node);
     }
 
-    MapEdgeProp const& at(MapEdge const& edge) const {
+    [[refl]] MapEdgeProp const& at(MapEdge const& edge) const {
         return edgeProps.at(edge);
     }
 
 
-    void addEdge(MapEdge const& edge) { addEdge(edge, MapEdgeProp{}); }
-    void addEdge(MapEdge const& edge, MapEdgeProp const& prop);
+    [[refl]] void addEdge(MapEdge const& edge) {
+        addEdge(edge, MapEdgeProp{});
+    }
+    [[refl]] void addEdge(MapEdge const& edge, MapEdgeProp const& prop);
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
-    void addNode(MapNode const& node);
-    void addNode(MapNode const& node, MapNodeProp const& prop) {
+    [[refl]] void addNode(MapNode const& node);
+    [[refl]] void addNode(MapNode const& node, MapNodeProp const& prop) {
         addNode(node);
         nodeProps.insert_or_assign(node, prop);
     }
 
-    bool hasEdge(MapNode const& source, MapNode const& target) const {
+    [[refl]] bool hasEdge(MapNode const& source, MapNode const& target)
+        const {
         if (adjList.find(source) != nullptr) {
             for (auto const& it : adjList.at(source)) {
                 if (it == target) { return true; }
@@ -246,11 +242,11 @@ struct MapGraph {
         return false;
     }
 
-    bool hasNode(MapNode const& node) const {
+    [[refl]] bool hasNode(MapNode const& node) const {
         return adjList.contains(node);
     }
 
-    bool hasEdge(
+    [[refl]] bool hasEdge(
         org::imm::ImmAdapter const& source,
         org::imm::ImmAdapter const& target) const {
         return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});
@@ -277,8 +273,6 @@ struct MapGraph {
     hstd::ext::Graphviz::Graph toGraphviz(
         const org::imm::ImmAstContext::Ptr& ctx,
         GvConfig const&                     conf) const;
-
-    DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };
 
 struct MapGraphInverse {
@@ -345,10 +339,12 @@ struct MapInterface {
         MapConfig&           conf);
 };
 
-struct MapConfig : hstd::OperationsTracer {
+struct [[refl]] MapConfig : hstd::OperationsTracer {
     hstd::SPtr<MapInterface> impl;
     MapConfig(hstd::SPtr<MapInterface> impl);
     MapConfig();
+
+    DESC_FIELDS(MapConfig, ());
 
     hstd::Opt<MapNodeProp> getInitialNodeProp(
         MapGraphState const& s,
@@ -357,38 +353,44 @@ struct MapConfig : hstd::OperationsTracer {
     }
 };
 
-struct MapGraphState {
+struct [[refl(
+    R"({"default-constructor": false, "backend": {"python": {"holder-type": "shared"}}})")]] MapGraphState {
     /// \brief List of nodes with unresolved outgoing links.
-    hstd::UnorderedSet<MapNode>  unresolved;
-    MapGraph                     graph;
-    org::imm::ImmAstContext::Ptr ast;
+    hstd::UnorderedSet<MapNode>                       unresolved;
+    [[refl]] MapGraph                                 graph;
+    [[refl]] std::shared_ptr<org::imm::ImmAstContext> ast;
 
     MapGraphState(org::imm::ImmAstContext::Ptr ast) : ast{ast} {};
+
+    [[refl]] static MapGraphState FromAstContext(
+        std::shared_ptr<org::imm::ImmAstContext> ast) {
+        return MapGraphState{ast};
+    }
 
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };
 
-void registerNode(
+[[refl]] void registerNode(
     MapGraphState&     s,
     MapNodeProp const& node,
     MapConfig&         conf);
 
-void addNode(
+[[refl]] void addNode(
     MapGraphState&              g,
     org::imm::ImmAdapter const& node,
     MapConfig&                  conf);
 
-void addNodeRec(
+[[refl]] void addNodeRec(
     MapGraphState&              g,
     org::imm::ImmAdapter const& node,
     MapConfig&                  conf);
 
-hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
+[[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
     MapGraphState const&                        s,
     org::imm::ImmAdapterT<org::imm::ImmSubtree> node,
     MapConfig&                                  conf);
 
-hstd::Opt<MapLink> getUnresolvedLink(
+[[refl]] hstd::Opt<MapLink> getUnresolvedLink(
     MapGraphState const&                     s,
     org::imm::ImmAdapterT<org::imm::ImmLink> node,
     MapConfig&                               conf);

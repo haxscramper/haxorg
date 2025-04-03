@@ -314,7 +314,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
             parser.setTraceFile(*opts.parseTracePath);
         }
 
-        auto id = parser.parseFull(lex);
+        auto              id = parser.parseFull(lex);
         sem::OrgConverter converter{};
         if (opts.semTracePath) {
             converter.setTraceFile(*opts.semTracePath);
@@ -1654,4 +1654,8 @@ sem::SemId<Org> org::evaluateCodeBlocks(
     const OrgCodeEvalParameters& conf) {
     EvalContext ctx{.conf = conf};
     return ctx.evalAll(document);
+}
+
+std::shared_ptr<imm::ImmAstContext> org::initImmutableAstContext() {
+    return imm::ImmAstContext::init_start_context();
 }

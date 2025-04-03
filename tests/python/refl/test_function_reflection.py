@@ -9,7 +9,7 @@ from refl_test_driver import (
     get_struct,
 )
 import pytest
-from py_codegen.gen_tu_cpp import ReferenceKind
+from py_codegen.gen_tu_cpp import ReferenceKind, GenTypeMap
 import py_codegen.astbuilder_pybind11 as py11
 import py_codegen.astbuilder_py as py
 import py_codegen.astbuilder_cpp as cpp
@@ -52,7 +52,7 @@ def test_method_const_ref():
     assert t.RefKind == ReferenceKind.LValue
 
     ast = cpp.ASTBuilder(in_b=TextLayout())
-    wrap: py11.Py11Class = py11.Py11Class.FromGenTu(ast, struct)
+    wrap: py11.Py11Class = py11.Py11Class.FromGenTu(ast, struct, base_map=GenTypeMap())
     wrap.InitDefault(ast, wrap.Fields)
     lyt = TextLayout()
     builder = cpp.ASTBuilder(lyt)

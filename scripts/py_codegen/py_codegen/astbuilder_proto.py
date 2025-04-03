@@ -20,8 +20,13 @@ def pascal_case(s: str) -> str:
 @beartype
 class ProtoBuilder():
 
-    def __init__(self, wrapped: List[tu.GenTuUnion], ast: cpp.ASTBuilder):
-        self.base_map = tu.get_base_map(wrapped)
+    def __init__(
+        self,
+        wrapped: List[tu.GenTuUnion],
+        ast: cpp.ASTBuilder,
+        base_map: tu.GenTypeMap,
+    ):
+        self.base_map = base_map
         self.ast = ast
         self.t = ast.b
 
@@ -196,7 +201,7 @@ class ProtoBuilder():
             case "int":
                 return "int32"
 
-            case "Opt":
+            case "Opt" | "optional":
                 if it.Parameters[0].name == "Vec":
                     return self.rewrite_for_proto_grammar(it.Parameters[0])
 
@@ -609,8 +614,8 @@ class ProtoBuilder():
                 writer_body: List[BlockId] = []
                 reader_body: List[BlockId] = []
                 for base in tu.get_base_list(it, self.base_map):
-                    if base.name in self.base_map and len(
-                            self.base_map[base.name].fields) == 0:
+                    base_type = self.base_map.get_one_type_for_name(base.name)
+                    if base_type and len(base_type.fields) == 0:
                         continue
 
                     writer_body.append(

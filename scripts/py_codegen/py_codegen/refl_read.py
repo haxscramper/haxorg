@@ -6,18 +6,21 @@ import re
 from beartype import beartype
 from py_codegen.gen_tu_cpp import *
 from pathlib import Path
+import json
 
 
 @beartype
 def conv_proto_default(value: pb.Expr) -> Optional[str]:
     if value.kind == pb.ExprKind.Lit and 0 < len(value.value):
         return value.value
-    
+
     else:
         return None
 
+
 @beartype
 def strip_comment_prefixes(comment: str) -> List[str]:
+
     def drop_leading(prefix: re.Pattern, text: str) -> List[str]:
         result: List[str] = []
         for line in text.strip().splitlines():
@@ -46,6 +49,7 @@ def strip_comment_prefixes(comment: str) -> List[str]:
     else:
         raise ValueError(f"Unrecognized comment style: {comment}")
 
+
 @beartype
 def conv_doc_comment(comment: str) -> GenTuDoc:
     if not comment:
@@ -68,10 +72,8 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
                 full.append(line)
 
         return GenTuDoc('\n'.join(brief), '\n'.join(full))
-    
+
     return process_content(strip_comment_prefixes(comment))
-
-
 
 
 @beartype
@@ -126,18 +128,38 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
         GenTuDoc(""),
     )
 
+    if record.reflection_params:
+        try:
+            result.reflectionParams = GenTuReflParams.model_validate_json(
+                record.reflection_params)
+
+        except json.JSONDecodeError as e:
+            e.add_note(f"While parsing reflection parameters for {result.name.format()}")
+            e.add_note(f"Original text is '{record.reflection_params}'")
+
+            raise e from None
+
+    result.IsExplicitInstantiation = record.is_explicit_instantiation
+    result.IsTemplateRecord = record.is_template_record
     result.original = copy(original)
     result.IsForwardDecl = record.is_forward_decl
     result.IsAbstract = record.is_abstract
     result.has_name = record.has_name
+
+    for arg in record.explicit_template_params:
+        result.ExplicitTemplateParams.append(conv_proto_type(arg))
+
     for _field in record.fields:
         if _field.is_type_decl:
             result.fields.append(
-                GenTuField(type=None,
-                           name=_field.name,
-                           doc=conv_doc_comment(_field.doc),
-                           isTypeDecl=True,
-                           decl=conv_proto_record(_field.type_decl, original)))
+                GenTuField(
+                    type=None,
+                    name=_field.name,
+                    doc=conv_doc_comment(_field.doc),
+                    isTypeDecl=True,
+                    decl=conv_proto_record(_field.type_decl, original),
+                    OriginName="refl",
+                ))
 
         else:
             result.fields.append(
@@ -145,21 +167,44 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
                     type=conv_proto_type(_field.type),
                     name=_field.name,
                     doc=conv_doc_comment(_field.doc),
+                    OriginName="refl",
                 ))
 
+    for base in record.bases:
+        result.bases.append(conv_proto_type(base.name))
+
     for meth in record.methods:
-        if meth.kind != pb.RecordMethodKind.Base:
-            continue
+        # if meth.kind != pb.RecordMethodKind.Base:
+        #     continue
+
+        IsConstructor = meth.kind in [
+            pb.RecordMethodKind.ConvertingConstructor,
+            pb.RecordMethodKind.MoveConstructor,
+            pb.RecordMethodKind.DefaultConstructor,
+            pb.RecordMethodKind.CopyConstructor,
+        ]
+
+        if IsConstructor:
+            if result.IsExplicitInstantiation:
+                final_result = result.name.model_copy(update=dict(Parameters=result.ExplicitTemplateParams))
+            else:
+                final_result = result.name
+        else:
+            final_result = conv_proto_type(meth.return_ty)
 
         result.methods.append(
-            GenTuFunction(result=conv_proto_type(meth.return_ty),
-                          name=meth.name,
-                          doc=conv_doc_comment(meth.doc),
-                          isConst=meth.is_const,
-                          isStatic=meth.is_static,
-                          original=original,
-                          arguments=[conv_proto_arg(arg) for arg in meth.args],
-                          parentClass=result))
+            GenTuFunction(
+                result=final_result,
+                name=meth.name,
+                doc=conv_doc_comment(meth.doc),
+                isConst=meth.is_const,
+                isStatic=meth.is_static,
+                original=original,
+                arguments=[conv_proto_arg(arg) for arg in meth.args],
+                parentClass=result,
+                OriginName="refl",
+                IsConstructor=IsConstructor,
+            ))
 
     for record in record.nested_rec:
         result.nested.append(conv_proto_record(record, original))
@@ -176,29 +221,48 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
     result.IsForwardDecl = en.is_forward_decl
     result.original = copy(original)
     for _field in en.fields:
-        result.fields.append(GenTuEnumField(_field.name, GenTuDoc(""),
-                                            value=_field.value))
+        result.fields.append(
+            GenTuEnumField(
+                _field.name,
+                GenTuDoc(""),
+                value=_field.value,
+                OriginName="refl",
+            ))
+
+    if en.reflection_params:
+        result.reflectionParams = GenTuReflParams.model_validate_json(
+            en.reflection_params)
 
     return result
 
 
 @beartype
 def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
-    return GenTuIdent(name=arg.name,
-                      type=conv_proto_type(arg.type),
-                      value=conv_proto_default(arg.default))
+    return GenTuIdent(
+        name=arg.name,
+        type=conv_proto_type(arg.type),
+        value=conv_proto_default(arg.default),
+        OriginName="refl",
+    )
 
 
 @beartype
 def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunction:
-    return GenTuFunction(
+    result = GenTuFunction(
         result=conv_proto_type(rec.result_ty),
         name=rec.name,
         arguments=[conv_proto_arg(arg) for arg in rec.arguments],
         doc=GenTuDoc(""),
         original=copy(original),
         spaces=[conv_proto_type(T) for T in rec.spaces],
+        OriginName="refl",
     )
+
+    if rec.reflection_params:
+        result.reflectionParams = GenTuReflParams.model_validate_json(
+            rec.reflection_params)
+
+    return result
 
 
 @beartype
@@ -207,6 +271,7 @@ def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypede
         name=conv_proto_type(rec.name),
         base=conv_proto_type(rec.base_type),
         original=original,
+        OriginName="refl",
     )
 
 

@@ -27,6 +27,10 @@ struct ExampleAttrInfo : public clang::ParsedAttrInfo {
             {clang::ParsedAttr::AS_CXX11, REFL_NAME},
         };
         Spellings = spellings;
+
+        // Allow 0 or 1 arguments
+        OptArgs = 1;
+        NumArgs = 0;
     }
     AttrHandling handleDeclAttribute(
         clang::Sema&             S,
@@ -55,20 +59,28 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         bool               verbose)
         : Ctx(Context), out(tu), verbose(verbose) {}
 
-    using DiagKind = clang::DiagnosticsEngine::Level;
 
+    std::optional<std::string> get_refl_params(clang::Decl const* decl);
+
+
+    using DiagKind = clang::DiagnosticsEngine::Level;
 
     /// Helper wrapper for clang diagnostic printer
     template <unsigned N>
     clang::DiagnosticBuilder Diag(
         clang::DiagnosticsEngine::Level L,
         const char (&FormatString)[N],
-        std::optional<clang::SourceLocation> const& Loc = std::nullopt) {
+        std::optional<clang::SourceLocation> const& Loc = std::nullopt,
+        int         line                                = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        std::string message = std::format(
+            "from code {}:{}", function, line);
         auto& D = Ctx->getDiagnostics();
         if (Loc) {
-            return D.Report(*Loc, D.getCustomDiagID(L, FormatString));
+            return D.Report(*Loc, D.getCustomDiagID(L, FormatString))
+                << message;
         } else {
-            return D.Report(D.getCustomDiagID(L, FormatString));
+            return D.Report(D.getCustomDiagID(L, FormatString)) << message;
         }
     }
 
@@ -109,7 +121,9 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     void applyNamespaces(
         QualType*                    Out,
-        std::vector<QualType> const& Namespaces);
+        std::vector<QualType> const& Namespaces,
+        int                          line     = __builtin_LINE(),
+        char const*                  function = __builtin_FUNCTION());
 
     /// This function 'fills' the type in both directions (adding parent
     /// namespaces to the 'left' and parameters to the 'right') around the
@@ -142,6 +156,8 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         const clang::CXXMethodDecl* method);
     void fillRecordDecl(Record* rec, clang::RecordDecl* Decl);
     void fillCxxRecordDecl(Record* rec, const clang::CXXRecordDecl* Decl);
+    void fillSharedRecordData(Record* rec, const clang::RecordDecl* Decl);
+
 
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
     bool VisitFunctionDecl(clang::FunctionDecl* Decl);

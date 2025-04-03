@@ -35,6 +35,21 @@ TEST_F(ImmOrgApi, RountripImmutableAst) {
     show_compare_reports(out);
 }
 
+TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
+    std::string file
+        = (__CURRENT_FILE_DIR__ / "corpus/mind_map_directory");
+    LOGIC_ASSERTION_CHECK(fs::exists(file), "{}", file);
+    auto store = imm::ImmAstContext::init_start_context();
+    auto node  = org::parseDirectoryOpts(
+        file, org::OrgDirectoryParseParameters{});
+    ASSERT_TRUE(node.has_value());
+    auto version = store->addRoot(node.value());
+    auto state   = org::graph::MapGraphState::FromAstContext(
+        version.getContext());
+
+    org::graph::MapConfig conf{};
+    org::graph::addNodeRec(state, version.getRootAdapter(), conf);
+}
 
 TEST_F(ImmOrgApi, ImmAstFieldIteration) {
     auto store = imm::ImmAstContext::init_start_context();

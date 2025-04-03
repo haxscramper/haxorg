@@ -69,6 +69,20 @@ message QualType {
     string DbgOrigin = 9;
     TypeTag Tag = 10;
     bool IsBuiltin = 11;
+    bool IsTypedef = 12; 
+}
+
+enum AccessSpecifier {
+    AsPublic = 0;
+    AsProtected = 1;
+    AsPrivate = 2;
+    AsNone = 3;
+}
+
+message BaseSpec {
+    QualType Name = 1;
+    bool IsVirtual = 2;
+    AccessSpecifier Access = 3;
 }
 
 // Enumeration definition
@@ -88,6 +102,7 @@ message Enum {
     /// in the construction then it is pushed here. 
     QualType EnumDefName = 5;
     bool IsForwardDecl = 6;
+    string ReflectionParams = 7;
 }
 
 
@@ -120,6 +135,7 @@ message Function {
     repeated TemplateSpec Templates = 4;
     string DbgOrigin = 5;
     repeated QualType Spaces = 6;
+    string ReflectionParams = 7;
 }
 
 message Typedef {
@@ -128,6 +144,7 @@ message Typedef {
     /// Base type used in declaration
     QualType BaseType = 2;
     repeated TemplateSpec Templates = 3;
+    string ReflectionParams = 4;
 }
 
 message Record {
@@ -137,6 +154,7 @@ message Record {
         QualType Type = 3;
         Record TypeDecl = 4;
         bool IsTypeDecl = 5;
+        string ReflectionParams = 6;
     }
 
     enum MethodKind {
@@ -163,13 +181,14 @@ message Record {
         MethodKind Kind = 10;
         string Doc = 11;
         string OperatorName = 12;
+        string ReflectionParams = 13;
     }
 
     /// Name can be truly absent here, in case of `union {int a; char b};` that is
     /// used to splice inner members or for similar C-style approaches to the code 
     /// building. 
     QualType Name = 1;
-    repeated QualType Bases = 2;
+    repeated BaseSpec Bases = 2;
     repeated Field Fields = 3;
     repeated Method Methods = 4;
     repeated Record NestedRec = 5;
@@ -189,6 +208,10 @@ message Record {
     /// field here. 
     bool HasName = 13;
     bool IsAbstract = 14;
+    string ReflectionParams = 15;
+    bool IsExplicitInstantiation = 16;
+    bool IsTemplateRecord = 17; 
+    repeated QualType ExplicitTemplateParams = 18;
 }
 
 message TU {

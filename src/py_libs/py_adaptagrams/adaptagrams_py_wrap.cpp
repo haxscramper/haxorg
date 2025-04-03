@@ -15,6 +15,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<std::pair<int, int>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<std::pair<int, int>>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
+PYBIND11_MAKE_OPAQUE(std::vector<vpsc::Rectangle>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphSize>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphSize>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphEdge>)
@@ -44,6 +45,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
   bind_vector<hstd::ext::GraphNodeConstraint::Align>(m, "VecOfGraphNodeConstraintAlign", type_registry_guard);
   bind_vector<std::pair<int, int>>(m, "VecOfstdpairOfintint", type_registry_guard);
   bind_vector<int>(m, "VecOfint", type_registry_guard);
+  bind_imm_vector<vpsc::Rectangle>(m, "stdvectorOfvpscRectangle", type_registry_guard);
   bind_vector<hstd::ext::GraphSize>(m, "VecOfGraphSize", type_registry_guard);
   bind_vector<hstd::ext::GraphEdge>(m, "VecOfGraphEdge", type_registry_guard);
   bind_vector<hstd::ext::GraphNodeConstraint>(m, "VecOfGraphNodeConstraint", type_registry_guard);
@@ -476,10 +478,19 @@ layout spec)RAW")
     .value("YDIM", hstd::ext::GraphDimension::YDIM)
     .value("UNSET", hstd::ext::GraphDimension::UNSET)
     .def("__iter__", [](hstd::ext::GraphDimension _self) -> org::bind::python::PyEnumIterator<hstd::ext::GraphDimension> {
-                     return
-                     org::bind::python::PyEnumIterator<hstd::ext::GraphDimension>
-                     ();
+                     return org::bind::python::PyEnumIterator<hstd::ext::GraphDimension>();
                      })
+    .def("__eq__",
+         [](hstd::ext::GraphDimension _self, hstd::ext::GraphDimension lhs, hstd::ext::GraphDimension rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](hstd::ext::GraphDimension _self, hstd::ext::GraphDimension it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<hstd::ext::GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind", type_registry_guard);
   pybind11::enum_<hstd::ext::GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind")
@@ -490,10 +501,19 @@ layout spec)RAW")
     .value("MultiSeparate", hstd::ext::GraphNodeConstraint::Kind::MultiSeparate)
     .value("PageBoundary", hstd::ext::GraphNodeConstraint::Kind::PageBoundary)
     .def("__iter__", [](hstd::ext::GraphNodeConstraint::Kind _self) -> org::bind::python::PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind>();
                      })
+    .def("__eq__",
+         [](hstd::ext::GraphNodeConstraint::Kind _self, hstd::ext::GraphNodeConstraint::Kind lhs, hstd::ext::GraphNodeConstraint::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](hstd::ext::GraphNodeConstraint::Kind _self, hstd::ext::GraphNodeConstraint::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<hstd::ext::GraphEdgeConstraint::Port>(m, "GraphEdgeConstraintPort", type_registry_guard);
   pybind11::enum_<hstd::ext::GraphEdgeConstraint::Port>(m, "GraphEdgeConstraintPort")
@@ -504,10 +524,19 @@ layout spec)RAW")
     .value("East", hstd::ext::GraphEdgeConstraint::Port::East)
     .value("Center", hstd::ext::GraphEdgeConstraint::Port::Center)
     .def("__iter__", [](hstd::ext::GraphEdgeConstraint::Port _self) -> org::bind::python::PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port> {
-                     return
-                     org::bind::python::PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port>
-                     ();
+                     return org::bind::python::PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port>();
                      })
+    .def("__eq__",
+         [](hstd::ext::GraphEdgeConstraint::Port _self, hstd::ext::GraphEdgeConstraint::Port lhs, hstd::ext::GraphEdgeConstraint::Port rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](hstd::ext::GraphEdgeConstraint::Port _self, hstd::ext::GraphEdgeConstraint::Port it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
 }
 /* clang-format on */

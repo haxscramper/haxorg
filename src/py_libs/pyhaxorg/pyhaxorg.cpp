@@ -66,6 +66,33 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Time>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Time>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
+PYBIND11_MAKE_OPAQUE(immer::box<hstd::Str>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<hstd::Str>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<int>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmSymbol::Param>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<hstd::Str>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::OrgCodeEvalOutput>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::BlockCodeLine>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::SubtreeCompletion>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::NamedProperty>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<hstd::UserTime>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<bool>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::ColumnView>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<int>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::imm::ImmAdapter>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
@@ -74,10 +101,20 @@ PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingA
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
-PYBIND11_MAKE_OPAQUE(std::vector<int>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapLink>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapLink>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::MapNodeProp>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::AdjNodesList>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapNode>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapNode>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapEdge>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotation>)
@@ -117,12 +154,42 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<hstd::UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
   bind_vector<org::sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
+  bind_imm_box<hstd::Str>(m, "immerboxOfStr", type_registry_guard);
+  bind_imm_box<std::optional<hstd::Str>>(m, "immerboxOfstdoptionalOfStr", type_registry_guard);
+  bind_imm_box<std::optional<int>>(m, "immerboxOfstdoptionalOfint", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "immerflex_vectorOfImmIdTOfImmErrorItem", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "immerflex_vectorOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
+  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmOrg", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmSymbol::Param>(m, "immerflex_vectorOfImmSymbolParam", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "immerflex_vectorOfImmIdTOfImmOrg", type_registry_guard);
+  bind_imm_flex_vector<hstd::Str>(m, "immerflex_vectorOfStr", type_registry_guard);
+  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmParagraph", type_registry_guard);
+  bind_imm_flex_vector<org::sem::OrgCodeEvalOutput>(m, "immerflex_vectorOfOrgCodeEvalOutput", type_registry_guard);
+  bind_imm_flex_vector<org::sem::BlockCodeLine>(m, "immerflex_vectorOfBlockCodeLine", type_registry_guard);
+  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmStmtList", type_registry_guard);
+  bind_imm_box<std::optional<org::sem::SubtreeCompletion>>(m, "immerboxOfstdoptionalOfSubtreeCompletion", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "immerflex_vectorOfImmIdTOfImmHashTag", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "immerflex_vectorOfImmIdTOfImmSubtreeLog", type_registry_guard);
+  bind_imm_flex_vector<org::sem::NamedProperty>(m, "immerflex_vectorOfNamedProperty", type_registry_guard);
+  bind_imm_box<std::optional<hstd::UserTime>>(m, "immerboxOfstdoptionalOfUserTime", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "immerflex_vectorOfImmIdTOfImmCell", type_registry_guard);
+  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "immerflex_vectorOfImmIdTOfImmRow", type_registry_guard);
+  bind_imm_box<std::optional<bool>>(m, "immerboxOfstdoptionalOfbool", type_registry_guard);
+  bind_imm_box<std::optional<org::sem::ColumnView>>(m, "immerboxOfstdoptionalOfColumnView", type_registry_guard);
+  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmRawText", type_registry_guard);
+  bind_vector<int>(m, "VecOfint", type_registry_guard);
+  bind_vector<org::imm::ImmAdapter>(m, "VecOfImmAdapter", type_registry_guard);
   bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
   bind_unordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
   bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
   bind_vector<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
-  bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_vector<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
+  bind_vector<org::graph::MapLink>(m, "VecOfgraphMapLink", type_registry_guard);
+  bind_unordered_map<org::graph::MapNode, org::graph::MapNodeProp>(m, "UnorderedMapOfgraphMapNodegraphMapNodeProp", type_registry_guard);
+  bind_unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "UnorderedMapOfgraphMapEdgegraphMapEdgeProp", type_registry_guard);
+  bind_unordered_map<org::graph::MapNode, org::graph::AdjNodesList>(m, "UnorderedMapOfgraphMapNodegraphAdjNodesList", type_registry_guard);
+  bind_vector<org::graph::MapNode>(m, "VecOfgraphMapNode", type_registry_guard);
+  bind_vector<org::graph::MapEdge>(m, "VecOfgraphMapEdge", type_registry_guard);
   bind_vector<org::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
   bind_vector<hstd::SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
   bind_vector<hstd::SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
@@ -185,7 +252,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::LispCode::Call::name)
     .def_readwrite("args", &org::sem::LispCode::Call::args)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Call::*)(org::sem::LispCode::Call const&) const>(&org::sem::LispCode::Call::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Call _self) -> std::string {
@@ -204,7 +271,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("items", &org::sem::LispCode::List::items)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::List::*)(org::sem::LispCode::List const&) const>(&org::sem::LispCode::List::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::List _self) -> std::string {
@@ -224,7 +291,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::LispCode::KeyValue::name)
     .def_readwrite("value", &org::sem::LispCode::KeyValue::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::KeyValue::*)(org::sem::LispCode::KeyValue const&) const>(&org::sem::LispCode::KeyValue::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::KeyValue _self) -> std::string {
@@ -243,7 +310,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::LispCode::Number::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Number::*)(org::sem::LispCode::Number const&) const>(&org::sem::LispCode::Number::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Number _self) -> std::string {
@@ -262,7 +329,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::LispCode::Text::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Text::*)(org::sem::LispCode::Text const&) const>(&org::sem::LispCode::Text::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Text _self) -> std::string {
@@ -281,7 +348,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::LispCode::Ident::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Ident::*)(org::sem::LispCode::Ident const&) const>(&org::sem::LispCode::Ident::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Ident _self) -> std::string {
@@ -300,7 +367,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::LispCode::Boolean::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Boolean::*)(org::sem::LispCode::Boolean const&) const>(&org::sem::LispCode::Boolean::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Boolean _self) -> std::string {
@@ -319,7 +386,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::LispCode::Real::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::Real::*)(org::sem::LispCode::Real const&) const>(&org::sem::LispCode::Real::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Real _self) -> std::string {
@@ -342,10 +409,19 @@ node can have subnodes.)RAW")
     .value("Boolean", org::sem::LispCode::Kind::Boolean)
     .value("Real", org::sem::LispCode::Kind::Real)
     .def("__iter__", [](org::sem::LispCode::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::LispCode::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::LispCode::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::LispCode::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::LispCode::Kind _self, org::sem::LispCode::Kind lhs, org::sem::LispCode::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::LispCode::Kind _self, org::sem::LispCode::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::LispCode>(m, "LispCode")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode {
@@ -354,7 +430,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::LispCode::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LispCode::*)(org::sem::LispCode const&) const>(&org::sem::LispCode::operator==),
          pybind11::arg("other"))
     .def("isCall", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isCall))
@@ -396,7 +472,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("index", &org::sem::Tblfm::Expr::AxisRef::Position::Index::index)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::Index::*)(org::sem::Tblfm::Expr::AxisRef::Position::Index const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::Index::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisRef::Position::Index _self) -> std::string {
@@ -415,7 +491,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::Tblfm::Expr::AxisRef::Position::Name::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::Name::*)(org::sem::Tblfm::Expr::AxisRef::Position::Name const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::Name::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisRef::Position::Name _self) -> std::string {
@@ -432,10 +508,19 @@ node can have subnodes.)RAW")
     .value("Index", org::sem::Tblfm::Expr::AxisRef::Position::Kind::Index)
     .value("Name", org::sem::Tblfm::Expr::AxisRef::Position::Kind::Name)
     .def("__iter__", [](org::sem::Tblfm::Expr::AxisRef::Position::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::Tblfm::Expr::AxisRef::Position::Kind _self, org::sem::Tblfm::Expr::AxisRef::Position::Kind lhs, org::sem::Tblfm::Expr::AxisRef::Position::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::Tblfm::Expr::AxisRef::Position::Kind _self, org::sem::Tblfm::Expr::AxisRef::Position::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::Tblfm::Expr::AxisRef::Position>(m, "TblfmExprAxisRefPosition")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Tblfm::Expr::AxisRef::Position {
@@ -444,7 +529,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::Tblfm::Expr::AxisRef::Position::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)(org::sem::Tblfm::Expr::AxisRef::Position const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::operator==),
          pybind11::arg("other"))
     .def("isIndex", static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)() const>(&org::sem::Tblfm::Expr::AxisRef::Position::isIndex))
@@ -475,7 +560,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("col", &org::sem::Tblfm::Expr::AxisRef::col)
     .def_readwrite("row", &org::sem::Tblfm::Expr::AxisRef::row)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisRef::*)(org::sem::Tblfm::Expr::AxisRef const&) const>(&org::sem::Tblfm::Expr::AxisRef::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisRef _self) -> std::string {
@@ -494,7 +579,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::Tblfm::Expr::AxisName::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisName::*)(org::sem::Tblfm::Expr::AxisName const&) const>(&org::sem::Tblfm::Expr::AxisName::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisName _self) -> std::string {
@@ -513,7 +598,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::Tblfm::Expr::IntLiteral::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::IntLiteral::*)(org::sem::Tblfm::Expr::IntLiteral const&) const>(&org::sem::Tblfm::Expr::IntLiteral::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::IntLiteral _self) -> std::string {
@@ -532,7 +617,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::Tblfm::Expr::FloatLiteral::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::FloatLiteral::*)(org::sem::Tblfm::Expr::FloatLiteral const&) const>(&org::sem::Tblfm::Expr::FloatLiteral::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::FloatLiteral _self) -> std::string {
@@ -552,7 +637,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("first", &org::sem::Tblfm::Expr::RangeRef::first)
     .def_readwrite("last", &org::sem::Tblfm::Expr::RangeRef::last)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::RangeRef::*)(org::sem::Tblfm::Expr::RangeRef const&) const>(&org::sem::Tblfm::Expr::RangeRef::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::RangeRef _self) -> std::string {
@@ -572,7 +657,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::Tblfm::Expr::Call::name)
     .def_readwrite("args", &org::sem::Tblfm::Expr::Call::args)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::Call::*)(org::sem::Tblfm::Expr::Call const&) const>(&org::sem::Tblfm::Expr::Call::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::Call _self) -> std::string {
@@ -591,7 +676,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::Tblfm::Expr::Elisp::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::Elisp::*)(org::sem::Tblfm::Expr::Elisp const&) const>(&org::sem::Tblfm::Expr::Elisp::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::Elisp _self) -> std::string {
@@ -613,10 +698,19 @@ node can have subnodes.)RAW")
     .value("Call", org::sem::Tblfm::Expr::Kind::Call)
     .value("Elisp", org::sem::Tblfm::Expr::Kind::Elisp)
     .def("__iter__", [](org::sem::Tblfm::Expr::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::Tblfm::Expr::Kind _self, org::sem::Tblfm::Expr::Kind lhs, org::sem::Tblfm::Expr::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::Tblfm::Expr::Kind _self, org::sem::Tblfm::Expr::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::Tblfm::Expr>(m, "TblfmExpr")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Tblfm::Expr {
@@ -625,7 +719,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::Tblfm::Expr::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::*)(org::sem::Tblfm::Expr const&) const>(&org::sem::Tblfm::Expr::operator==),
          pybind11::arg("other"))
     .def("isAxisRef", static_cast<bool(org::sem::Tblfm::Expr::*)() const>(&org::sem::Tblfm::Expr::isAxisRef))
@@ -676,10 +770,19 @@ node can have subnodes.)RAW")
     .value("CellMarkInvalid", org::sem::Tblfm::Assign::Flag::CellMarkInvalid, R"RAW(Mark field as invalid if conversion fails)RAW")
     .value("CellQuote", org::sem::Tblfm::Assign::Flag::CellQuote, R"RAW(Quote field contents)RAW")
     .def("__iter__", [](org::sem::Tblfm::Assign::Flag _self) -> org::bind::python::PyEnumIterator<org::sem::Tblfm::Assign::Flag> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::Tblfm::Assign::Flag>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::Tblfm::Assign::Flag>();
                      })
+    .def("__eq__",
+         [](org::sem::Tblfm::Assign::Flag _self, org::sem::Tblfm::Assign::Flag lhs, org::sem::Tblfm::Assign::Flag rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::Tblfm::Assign::Flag _self, org::sem::Tblfm::Assign::Flag it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::Tblfm::Assign>(m, "TblfmAssign")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Tblfm::Assign {
@@ -690,7 +793,7 @@ node can have subnodes.)RAW")
     .def_readwrite("target", &org::sem::Tblfm::Assign::target)
     .def_readwrite("expr", &org::sem::Tblfm::Assign::expr)
     .def_readwrite("flags", &org::sem::Tblfm::Assign::flags)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Assign::*)(org::sem::Tblfm::Assign const&) const>(&org::sem::Tblfm::Assign::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Assign _self) -> std::string {
@@ -709,7 +812,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("exprs", &org::sem::Tblfm::exprs)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::Tblfm::*)(org::sem::Tblfm const&) const>(&org::sem::Tblfm::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::Tblfm _self) -> std::string {
@@ -729,10 +832,19 @@ node can have subnodes.)RAW")
     .value("Float", org::sem::AttrValue::Kind::Float)
     .value("FileReference", org::sem::AttrValue::Kind::FileReference)
     .def("__iter__", [](org::sem::AttrValue::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::AttrValue::Kind _self, org::sem::AttrValue::Kind lhs, org::sem::AttrValue::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::AttrValue::Kind _self, org::sem::AttrValue::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::AttrValue::DimensionSpan>(m, "AttrValueDimensionSpan")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AttrValue::DimensionSpan {
@@ -742,7 +854,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("first", &org::sem::AttrValue::DimensionSpan::first)
     .def_readwrite("last", &org::sem::AttrValue::DimensionSpan::last)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::DimensionSpan::*)(org::sem::AttrValue::DimensionSpan const&) const>(&org::sem::AttrValue::DimensionSpan::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::DimensionSpan _self) -> std::string {
@@ -761,7 +873,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &org::sem::AttrValue::TextValue::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::TextValue::*)(org::sem::AttrValue::TextValue const&) const>(&org::sem::AttrValue::TextValue::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::TextValue _self) -> std::string {
@@ -781,7 +893,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("file", &org::sem::AttrValue::FileReference::file)
     .def_readwrite("reference", &org::sem::AttrValue::FileReference::reference)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::FileReference::*)(org::sem::AttrValue::FileReference const&) const>(&org::sem::AttrValue::FileReference::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::FileReference _self) -> std::string {
@@ -800,7 +912,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("code", &org::sem::AttrValue::LispValue::code)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::LispValue::*)(org::sem::AttrValue::LispValue const&) const>(&org::sem::AttrValue::LispValue::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::LispValue _self) -> std::string {
@@ -818,10 +930,19 @@ node can have subnodes.)RAW")
     .value("FileReference", org::sem::AttrValue::DataKind::FileReference)
     .value("LispValue", org::sem::AttrValue::DataKind::LispValue)
     .def("__iter__", [](org::sem::AttrValue::DataKind _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind>();
                      })
+    .def("__eq__",
+         [](org::sem::AttrValue::DataKind _self, org::sem::AttrValue::DataKind lhs, org::sem::AttrValue::DataKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::AttrValue::DataKind _self, org::sem::AttrValue::DataKind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::AttrValue>(m, "AttrValue")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AttrValue {
@@ -840,7 +961,7 @@ node can have subnodes.)RAW")
     .def("getFile", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getFile))
     .def("getReference", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getReference))
     .def("getDouble", static_cast<hstd::Opt<double>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDouble))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrValue::*)(org::sem::AttrValue const&) const>(&org::sem::AttrValue::operator==),
          pybind11::arg("other"))
     .def("isTextValue", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isTextValue))
@@ -872,10 +993,10 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("tags", &org::sem::HashTagFlat::tags)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::HashTagFlat::*)(org::sem::HashTagFlat const&) const>(&org::sem::HashTagFlat::operator==),
          pybind11::arg("other"))
-    .def("operator<",
+    .def("__lt__",
          static_cast<bool(org::sem::HashTagFlat::*)(org::sem::HashTagFlat const&) const>(&org::sem::HashTagFlat::operator<),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::HashTagFlat _self) -> std::string {
@@ -895,7 +1016,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("head", &org::sem::HashTagText::head, R"RAW(Main part of the tag)RAW")
     .def_readwrite("subtags", &org::sem::HashTagText::subtags, R"RAW(List of nested tags)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::HashTagText::*)(org::sem::HashTagText const&) const>(&org::sem::HashTagText::operator==),
          pybind11::arg("other"))
     .def("prefixMatch",
@@ -922,7 +1043,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("path", &org::sem::SubtreePath::path)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreePath::*)(org::sem::SubtreePath const&) const>(&org::sem::SubtreePath::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreePath _self) -> std::string {
@@ -941,7 +1062,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &org::sem::LinkTarget::Raw::text)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Raw::*)(org::sem::LinkTarget::Raw const&) const>(&org::sem::LinkTarget::Raw::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Raw _self) -> std::string {
@@ -960,7 +1081,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &org::sem::LinkTarget::Id::text)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Id::*)(org::sem::LinkTarget::Id const&) const>(&org::sem::LinkTarget::Id::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Id _self) -> std::string {
@@ -979,7 +1100,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &org::sem::LinkTarget::CustomId::text)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::CustomId::*)(org::sem::LinkTarget::CustomId const&) const>(&org::sem::LinkTarget::CustomId::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::CustomId _self) -> std::string {
@@ -999,7 +1120,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("title", &org::sem::LinkTarget::SubtreeTitle::title)
     .def_readwrite("level", &org::sem::LinkTarget::SubtreeTitle::level)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::SubtreeTitle::*)(org::sem::LinkTarget::SubtreeTitle const&) const>(&org::sem::LinkTarget::SubtreeTitle::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::SubtreeTitle _self) -> std::string {
@@ -1018,7 +1139,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::LinkTarget::Person::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Person::*)(org::sem::LinkTarget::Person const&) const>(&org::sem::LinkTarget::Person::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Person _self) -> std::string {
@@ -1038,7 +1159,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("protocol", &org::sem::LinkTarget::UserProtocol::protocol)
     .def_readwrite("target", &org::sem::LinkTarget::UserProtocol::target)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::UserProtocol::*)(org::sem::LinkTarget::UserProtocol const&) const>(&org::sem::LinkTarget::UserProtocol::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::UserProtocol _self) -> std::string {
@@ -1057,7 +1178,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &org::sem::LinkTarget::Internal::target)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Internal::*)(org::sem::LinkTarget::Internal const&) const>(&org::sem::LinkTarget::Internal::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Internal _self) -> std::string {
@@ -1076,7 +1197,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &org::sem::LinkTarget::Footnote::target)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Footnote::*)(org::sem::LinkTarget::Footnote const&) const>(&org::sem::LinkTarget::Footnote::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Footnote _self) -> std::string {
@@ -1095,7 +1216,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("file", &org::sem::LinkTarget::File::file)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::File::*)(org::sem::LinkTarget::File const&) const>(&org::sem::LinkTarget::File::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::File _self) -> std::string {
@@ -1114,7 +1235,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("file", &org::sem::LinkTarget::Attachment::file)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::Attachment::*)(org::sem::LinkTarget::Attachment const&) const>(&org::sem::LinkTarget::Attachment::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Attachment _self) -> std::string {
@@ -1139,10 +1260,19 @@ node can have subnodes.)RAW")
     .value("File", org::sem::LinkTarget::Kind::File)
     .value("Attachment", org::sem::LinkTarget::Kind::Attachment)
     .def("__iter__", [](org::sem::LinkTarget::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::LinkTarget::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::LinkTarget::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::LinkTarget::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::LinkTarget::Kind _self, org::sem::LinkTarget::Kind lhs, org::sem::LinkTarget::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::LinkTarget::Kind _self, org::sem::LinkTarget::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::LinkTarget>(m, "LinkTarget")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LinkTarget {
@@ -1151,7 +1281,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::LinkTarget::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::*)(org::sem::LinkTarget const&) const>(&org::sem::LinkTarget::operator==),
          pybind11::arg("other"))
     .def("isRaw", static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isRaw))
@@ -1196,10 +1326,19 @@ node can have subnodes.)RAW")
     .value("Removed", org::sem::SubtreeLogHead::Priority::Action::Removed, R"RAW(`Priority C removed on [timestamp]`)RAW")
     .value("Changed", org::sem::SubtreeLogHead::Priority::Action::Changed, R"RAW(`Priority B changed from C on [timestamp]`)RAW")
     .def("__iter__", [](org::sem::SubtreeLogHead::Priority::Action _self) -> org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action>();
                      })
+    .def("__eq__",
+         [](org::sem::SubtreeLogHead::Priority::Action _self, org::sem::SubtreeLogHead::Priority::Action lhs, org::sem::SubtreeLogHead::Priority::Action rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::SubtreeLogHead::Priority::Action _self, org::sem::SubtreeLogHead::Priority::Action it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::SubtreeLogHead::Priority>(m, "SubtreeLogHeadPriority")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::SubtreeLogHead::Priority {
@@ -1211,7 +1350,7 @@ node can have subnodes.)RAW")
     .def_readwrite("newPriority", &org::sem::SubtreeLogHead::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
     .def_readwrite("on", &org::sem::SubtreeLogHead::Priority::on, R"RAW(When priority was changed)RAW")
     .def_readwrite("action", &org::sem::SubtreeLogHead::Priority::action, R"RAW(Which action taken)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Priority::*)(org::sem::SubtreeLogHead::Priority const&) const>(&org::sem::SubtreeLogHead::Priority::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Priority _self) -> std::string {
@@ -1230,7 +1369,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("on", &org::sem::SubtreeLogHead::Note::on, R"RAW(Where log was taken)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Note::*)(org::sem::SubtreeLogHead::Note const&) const>(&org::sem::SubtreeLogHead::Note::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Note _self) -> std::string {
@@ -1250,7 +1389,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("on", &org::sem::SubtreeLogHead::Refile::on, R"RAW(When the refiling happened)RAW")
     .def_readwrite("from_", &org::sem::SubtreeLogHead::Refile::from, R"RAW(Link to the original subtree)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Refile::*)(org::sem::SubtreeLogHead::Refile const&) const>(&org::sem::SubtreeLogHead::Refile::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Refile _self) -> std::string {
@@ -1270,7 +1409,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("from_", &org::sem::SubtreeLogHead::Clock::from, R"RAW(Clock start time)RAW")
     .def_readwrite("to", &org::sem::SubtreeLogHead::Clock::to, R"RAW(Optional end of the clock)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Clock::*)(org::sem::SubtreeLogHead::Clock const&) const>(&org::sem::SubtreeLogHead::Clock::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Clock _self) -> std::string {
@@ -1291,7 +1430,7 @@ node can have subnodes.)RAW")
     .def_readwrite("from_", &org::sem::SubtreeLogHead::State::from)
     .def_readwrite("to", &org::sem::SubtreeLogHead::State::to)
     .def_readwrite("on", &org::sem::SubtreeLogHead::State::on)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::State::*)(org::sem::SubtreeLogHead::State const&) const>(&org::sem::SubtreeLogHead::State::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::State _self) -> std::string {
@@ -1312,7 +1451,7 @@ node can have subnodes.)RAW")
     .def_readwrite("from_", &org::sem::SubtreeLogHead::Deadline::from)
     .def_readwrite("to", &org::sem::SubtreeLogHead::Deadline::to)
     .def_readwrite("on", &org::sem::SubtreeLogHead::Deadline::on)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Deadline::*)(org::sem::SubtreeLogHead::Deadline const&) const>(&org::sem::SubtreeLogHead::Deadline::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Deadline _self) -> std::string {
@@ -1333,7 +1472,7 @@ node can have subnodes.)RAW")
     .def_readwrite("from_", &org::sem::SubtreeLogHead::Schedule::from)
     .def_readwrite("to", &org::sem::SubtreeLogHead::Schedule::to)
     .def_readwrite("on", &org::sem::SubtreeLogHead::Schedule::on)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Schedule::*)(org::sem::SubtreeLogHead::Schedule const&) const>(&org::sem::SubtreeLogHead::Schedule::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Schedule _self) -> std::string {
@@ -1354,7 +1493,7 @@ node can have subnodes.)RAW")
     .def_readwrite("on", &org::sem::SubtreeLogHead::Tag::on, R"RAW(When the log was assigned)RAW")
     .def_readwrite("tag", &org::sem::SubtreeLogHead::Tag::tag, R"RAW(Tag in question)RAW")
     .def_readwrite("added", &org::sem::SubtreeLogHead::Tag::added, R"RAW(Added/removed?)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Tag::*)(org::sem::SubtreeLogHead::Tag const&) const>(&org::sem::SubtreeLogHead::Tag::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Tag _self) -> std::string {
@@ -1372,7 +1511,7 @@ node can have subnodes.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::Unknown::*)(org::sem::SubtreeLogHead::Unknown const&) const>(&org::sem::SubtreeLogHead::Unknown::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Unknown _self) -> std::string {
@@ -1396,10 +1535,19 @@ node can have subnodes.)RAW")
     .value("Tag", org::sem::SubtreeLogHead::Kind::Tag)
     .value("Unknown", org::sem::SubtreeLogHead::Kind::Unknown)
     .def("__iter__", [](org::sem::SubtreeLogHead::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::SubtreeLogHead::Kind _self, org::sem::SubtreeLogHead::Kind lhs, org::sem::SubtreeLogHead::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::SubtreeLogHead::Kind _self, org::sem::SubtreeLogHead::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::SubtreeLogHead>(m, "SubtreeLogHead")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::SubtreeLogHead {
@@ -1408,7 +1556,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("log", &org::sem::SubtreeLogHead::log)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::*)(org::sem::SubtreeLogHead const&) const>(&org::sem::SubtreeLogHead::operator==),
          pybind11::arg("other"))
     .def("isPriority", static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isPriority))
@@ -1454,7 +1602,7 @@ node can have subnodes.)RAW")
     .def_readwrite("done", &org::sem::SubtreeCompletion::done, R"RAW(Number of completed tasks)RAW")
     .def_readwrite("full", &org::sem::SubtreeCompletion::full, R"RAW(Full number of tasks)RAW")
     .def_readwrite("isPercent", &org::sem::SubtreeCompletion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreeCompletion::*)(org::sem::SubtreeCompletion const&) const>(&org::sem::SubtreeCompletion::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreeCompletion _self) -> std::string {
@@ -1473,7 +1621,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("items", &org::sem::AttrList::items)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrList::*)(org::sem::AttrList const&) const>(&org::sem::AttrList::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrList _self) -> std::string {
@@ -1538,7 +1686,7 @@ node can have subnodes.)RAW")
     .def("getFirstVarNamed",
          static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstVarNamed),
          pybind11::arg("index"))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::AttrGroup::*)(org::sem::AttrGroup const&) const>(&org::sem::AttrGroup::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::AttrGroup _self) -> std::string {
@@ -1558,7 +1706,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::OrgCodeEvalInput::Var::name)
     .def_readwrite("value", &org::sem::OrgCodeEvalInput::Var::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::OrgCodeEvalInput::Var::*)(org::sem::OrgCodeEvalInput::Var const&) const>(&org::sem::OrgCodeEvalInput::Var::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::OrgCodeEvalInput::Var _self) -> std::string {
@@ -1578,10 +1726,19 @@ node can have subnodes.)RAW")
     .value("Scalar", org::sem::OrgCodeEvalInput::ResultType::Scalar, R"RAW(Interpret literally and insert as quoted text. Do not create a table.)RAW")
     .value("SaveFile", org::sem::OrgCodeEvalInput::ResultType::SaveFile, R"RAW(Interpret as a filename. Save the results of execution of the code block to that file, then insert a link to it.)RAW")
     .def("__iter__", [](org::sem::OrgCodeEvalInput::ResultType _self) -> org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultType> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultType>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultType>();
                      })
+    .def("__eq__",
+         [](org::sem::OrgCodeEvalInput::ResultType _self, org::sem::OrgCodeEvalInput::ResultType lhs, org::sem::OrgCodeEvalInput::ResultType rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::OrgCodeEvalInput::ResultType _self, org::sem::OrgCodeEvalInput::ResultType it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultFormat>(m, "OrgCodeEvalInputResultFormat", type_registry_guard);
   pybind11::enum_<org::sem::OrgCodeEvalInput::ResultFormat>(m, "OrgCodeEvalInputResultFormat")
@@ -1592,10 +1749,19 @@ node can have subnodes.)RAW")
     .value("ExportType", org::sem::OrgCodeEvalInput::ResultFormat::ExportType, R"RAW(Results enclosed in a ‘BEGIN_EXPORT’ block.)RAW")
     .value("Link", org::sem::OrgCodeEvalInput::ResultFormat::Link)
     .def("__iter__", [](org::sem::OrgCodeEvalInput::ResultFormat _self) -> org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultFormat> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultFormat>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultFormat>();
                      })
+    .def("__eq__",
+         [](org::sem::OrgCodeEvalInput::ResultFormat _self, org::sem::OrgCodeEvalInput::ResultFormat lhs, org::sem::OrgCodeEvalInput::ResultFormat rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::OrgCodeEvalInput::ResultFormat _self, org::sem::OrgCodeEvalInput::ResultFormat it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultHandling>(m, "OrgCodeEvalInputResultHandling", type_registry_guard);
   pybind11::enum_<org::sem::OrgCodeEvalInput::ResultHandling>(m, "OrgCodeEvalInputResultHandling")
@@ -1606,10 +1772,19 @@ node can have subnodes.)RAW")
     .value("Append", org::sem::OrgCodeEvalInput::ResultHandling::Append)
     .value("Prepend", org::sem::OrgCodeEvalInput::ResultHandling::Prepend)
     .def("__iter__", [](org::sem::OrgCodeEvalInput::ResultHandling _self) -> org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultHandling> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultHandling>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultHandling>();
                      })
+    .def("__eq__",
+         [](org::sem::OrgCodeEvalInput::ResultHandling _self, org::sem::OrgCodeEvalInput::ResultHandling lhs, org::sem::OrgCodeEvalInput::ResultHandling rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::OrgCodeEvalInput::ResultHandling _self, org::sem::OrgCodeEvalInput::ResultHandling it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::OrgCodeEvalInput>(m, "OrgCodeEvalInput")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgCodeEvalInput {
@@ -1625,7 +1800,7 @@ node can have subnodes.)RAW")
     .def_readwrite("resultHandling", &org::sem::OrgCodeEvalInput::resultHandling)
     .def_readwrite("language", &org::sem::OrgCodeEvalInput::language)
     .def_readwrite("argList", &org::sem::OrgCodeEvalInput::argList)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::OrgCodeEvalInput _self) -> std::string {
@@ -1650,7 +1825,7 @@ node can have subnodes.)RAW")
     .def_readwrite("args", &org::sem::OrgCodeEvalOutput::args, R"RAW(Command line arguments provided for execution)RAW")
     .def_readwrite("cwd", &org::sem::OrgCodeEvalOutput::cwd, R"RAW(Working directory where command was executed)RAW")
     .def_readwrite("appliedHeaderArg", &org::sem::OrgCodeEvalOutput::appliedHeaderArg, R"RAW(Final set of header arguments applied during evaluation)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::OrgCodeEvalOutput::*)(org::sem::OrgCodeEvalOutput const&) const>(&org::sem::OrgCodeEvalOutput::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::OrgCodeEvalOutput _self) -> std::string {
@@ -1668,10 +1843,19 @@ node can have subnodes.)RAW")
     .value("AggregateFractionRec", org::sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregateFractionRec)
     .value("AggregatePercentRec", org::sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregatePercentRec)
     .def("__iter__", [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind _self, org::sem::ColumnView::Summary::CheckboxAggregate::Kind lhs, org::sem::ColumnView::Summary::CheckboxAggregate::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind _self, org::sem::ColumnView::Summary::CheckboxAggregate::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::ColumnView::Summary::CheckboxAggregate>(m, "ColumnViewSummaryCheckboxAggregate")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ColumnView::Summary::CheckboxAggregate {
@@ -1680,7 +1864,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("kind", &org::sem::ColumnView::Summary::CheckboxAggregate::kind)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::Summary::CheckboxAggregate::*)(org::sem::ColumnView::Summary::CheckboxAggregate const&) const>(&org::sem::ColumnView::Summary::CheckboxAggregate::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::ColumnView::Summary::CheckboxAggregate _self) -> std::string {
@@ -1700,10 +1884,19 @@ node can have subnodes.)RAW")
     .value("Sum", org::sem::ColumnView::Summary::MathAggregate::Kind::Sum)
     .value("LowHighEst", org::sem::ColumnView::Summary::MathAggregate::Kind::LowHighEst)
     .def("__iter__", [](org::sem::ColumnView::Summary::MathAggregate::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::ColumnView::Summary::MathAggregate::Kind _self, org::sem::ColumnView::Summary::MathAggregate::Kind lhs, org::sem::ColumnView::Summary::MathAggregate::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::ColumnView::Summary::MathAggregate::Kind _self, org::sem::ColumnView::Summary::MathAggregate::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::ColumnView::Summary::MathAggregate>(m, "ColumnViewSummaryMathAggregate")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ColumnView::Summary::MathAggregate {
@@ -1714,7 +1907,7 @@ node can have subnodes.)RAW")
     .def_readwrite("kind", &org::sem::ColumnView::Summary::MathAggregate::kind)
     .def_readwrite("formatDigits", &org::sem::ColumnView::Summary::MathAggregate::formatDigits)
     .def_readwrite("formatPrecision", &org::sem::ColumnView::Summary::MathAggregate::formatPrecision)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::Summary::MathAggregate::*)(org::sem::ColumnView::Summary::MathAggregate const&) const>(&org::sem::ColumnView::Summary::MathAggregate::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::ColumnView::Summary::MathAggregate _self) -> std::string {
@@ -1731,10 +1924,19 @@ node can have subnodes.)RAW")
     .value("CheckboxAggregate", org::sem::ColumnView::Summary::Kind::CheckboxAggregate)
     .value("MathAggregate", org::sem::ColumnView::Summary::Kind::MathAggregate)
     .def("__iter__", [](org::sem::ColumnView::Summary::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::ColumnView::Summary::Kind _self, org::sem::ColumnView::Summary::Kind lhs, org::sem::ColumnView::Summary::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::ColumnView::Summary::Kind _self, org::sem::ColumnView::Summary::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::ColumnView::Summary>(m, "ColumnViewSummary")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ColumnView::Summary {
@@ -1743,7 +1945,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::ColumnView::Summary::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::Summary::*)(org::sem::ColumnView::Summary const&) const>(&org::sem::ColumnView::Summary::operator==),
          pybind11::arg("other"))
     .def("isCheckboxAggregate", static_cast<bool(org::sem::ColumnView::Summary::*)() const>(&org::sem::ColumnView::Summary::isCheckboxAggregate))
@@ -1776,7 +1978,7 @@ node can have subnodes.)RAW")
     .def_readwrite("width", &org::sem::ColumnView::Column::width)
     .def_readwrite("property", &org::sem::ColumnView::Column::property)
     .def_readwrite("propertyTitle", &org::sem::ColumnView::Column::propertyTitle)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::Column::*)(org::sem::ColumnView::Column const&) const>(&org::sem::ColumnView::Column::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::ColumnView::Column _self) -> std::string {
@@ -1795,7 +1997,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("columns", &org::sem::ColumnView::columns)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::ColumnView::*)(org::sem::ColumnView const&) const>(&org::sem::ColumnView::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::ColumnView _self) -> std::string {
@@ -1814,7 +2016,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("code", &org::sem::BlockCodeLine::Part::Raw::code)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::Part::Raw::*)(org::sem::BlockCodeLine::Part::Raw const&) const>(&org::sem::BlockCodeLine::Part::Raw::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine::Part::Raw _self) -> std::string {
@@ -1833,7 +2035,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::BlockCodeLine::Part::Callout::name)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::Part::Callout::*)(org::sem::BlockCodeLine::Part::Callout const&) const>(&org::sem::BlockCodeLine::Part::Callout::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine::Part::Callout _self) -> std::string {
@@ -1852,7 +2054,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &org::sem::BlockCodeLine::Part::Tangle::target)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::Part::Tangle::*)(org::sem::BlockCodeLine::Part::Tangle const&) const>(&org::sem::BlockCodeLine::Part::Tangle::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine::Part::Tangle _self) -> std::string {
@@ -1870,10 +2072,19 @@ node can have subnodes.)RAW")
     .value("Callout", org::sem::BlockCodeLine::Part::Kind::Callout)
     .value("Tangle", org::sem::BlockCodeLine::Part::Kind::Tangle)
     .def("__iter__", [](org::sem::BlockCodeLine::Part::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::BlockCodeLine::Part::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::BlockCodeLine::Part::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::BlockCodeLine::Part::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::BlockCodeLine::Part::Kind _self, org::sem::BlockCodeLine::Part::Kind lhs, org::sem::BlockCodeLine::Part::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::BlockCodeLine::Part::Kind _self, org::sem::BlockCodeLine::Part::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::BlockCodeLine::Part>(m, "BlockCodeLinePart")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeLine::Part {
@@ -1882,7 +2093,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("data", &org::sem::BlockCodeLine::Part::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::Part::*)(org::sem::BlockCodeLine::Part const&) const>(&org::sem::BlockCodeLine::Part::operator==),
          pybind11::arg("other"))
     .def("isRaw", static_cast<bool(org::sem::BlockCodeLine::Part::*)() const>(&org::sem::BlockCodeLine::Part::isRaw))
@@ -1914,7 +2125,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("parts", &org::sem::BlockCodeLine::parts, R"RAW(parts of the single line)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::*)(org::sem::BlockCodeLine const&) const>(&org::sem::BlockCodeLine::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine _self) -> std::string {
@@ -1933,7 +2144,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("taskWhitelist", &org::sem::DocumentExportConfig::TaskExport::taskWhitelist)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::TaskExport::*)(org::sem::DocumentExportConfig::TaskExport const&) const>(&org::sem::DocumentExportConfig::TaskExport::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::DocumentExportConfig::TaskExport _self) -> std::string {
@@ -1951,10 +2162,19 @@ node can have subnodes.)RAW")
     .value("All", org::sem::DocumentExportConfig::TagExport::All)
     .value("NotInToc", org::sem::DocumentExportConfig::TagExport::NotInToc, R"RAW(Expot tags in subtree titles but not in the table of content)RAW")
     .def("__iter__", [](org::sem::DocumentExportConfig::TagExport _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport>();
                      })
+    .def("__eq__",
+         [](org::sem::DocumentExportConfig::TagExport _self, org::sem::DocumentExportConfig::TagExport lhs, org::sem::DocumentExportConfig::TagExport rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::DocumentExportConfig::TagExport _self, org::sem::DocumentExportConfig::TagExport it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<org::sem::DocumentExportConfig::TaskFiltering>(m, "DocumentExportConfigTaskFiltering", type_registry_guard);
   pybind11::enum_<org::sem::DocumentExportConfig::TaskFiltering>(m, "DocumentExportConfigTaskFiltering")
@@ -1963,10 +2183,19 @@ node can have subnodes.)RAW")
     .value("None", org::sem::DocumentExportConfig::TaskFiltering::None, R"RAW(Exclude all task subtrees from export)RAW")
     .value("All", org::sem::DocumentExportConfig::TaskFiltering::All, R"RAW(Add all task subtrees to export)RAW")
     .def("__iter__", [](org::sem::DocumentExportConfig::TaskFiltering _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering>();
                      })
+    .def("__eq__",
+         [](org::sem::DocumentExportConfig::TaskFiltering _self, org::sem::DocumentExportConfig::TaskFiltering lhs, org::sem::DocumentExportConfig::TaskFiltering rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::DocumentExportConfig::TaskFiltering _self, org::sem::DocumentExportConfig::TaskFiltering it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<org::sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks", type_registry_guard);
   pybind11::enum_<org::sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks")
@@ -1974,10 +2203,19 @@ node can have subnodes.)RAW")
     .value("Raise", org::sem::DocumentExportConfig::BrokenLinks::Raise)
     .value("Ignore", org::sem::DocumentExportConfig::BrokenLinks::Ignore)
     .def("__iter__", [](org::sem::DocumentExportConfig::BrokenLinks _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks>();
                      })
+    .def("__eq__",
+         [](org::sem::DocumentExportConfig::BrokenLinks _self, org::sem::DocumentExportConfig::BrokenLinks lhs, org::sem::DocumentExportConfig::BrokenLinks rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::DocumentExportConfig::BrokenLinks _self, org::sem::DocumentExportConfig::BrokenLinks it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::DocumentExportConfig::DoExport>(m, "DocumentExportConfigDoExport")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::DocumentExportConfig::DoExport {
@@ -1986,7 +2224,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("exportToc", &org::sem::DocumentExportConfig::DoExport::exportToc)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::DoExport::*)(org::sem::DocumentExportConfig::DoExport const&) const>(&org::sem::DocumentExportConfig::DoExport::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::DocumentExportConfig::DoExport _self) -> std::string {
@@ -2005,7 +2243,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("exportLevels", &org::sem::DocumentExportConfig::ExportFixed::exportLevels)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::ExportFixed::*)(org::sem::DocumentExportConfig::ExportFixed const&) const>(&org::sem::DocumentExportConfig::ExportFixed::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::DocumentExportConfig::ExportFixed _self) -> std::string {
@@ -2022,10 +2260,19 @@ node can have subnodes.)RAW")
     .value("DoExport", org::sem::DocumentExportConfig::TocExportKind::DoExport)
     .value("ExportFixed", org::sem::DocumentExportConfig::TocExportKind::ExportFixed)
     .def("__iter__", [](org::sem::DocumentExportConfig::TocExportKind _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind>();
                      })
+    .def("__eq__",
+         [](org::sem::DocumentExportConfig::TocExportKind _self, org::sem::DocumentExportConfig::TocExportKind lhs, org::sem::DocumentExportConfig::TocExportKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::DocumentExportConfig::TocExportKind _self, org::sem::DocumentExportConfig::TocExportKind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::DocumentExportConfig>(m, "DocumentExportConfig")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::DocumentExportConfig {
@@ -2046,7 +2293,7 @@ node can have subnodes.)RAW")
     .def_readwrite("tocExport", &org::sem::DocumentExportConfig::tocExport)
     .def_readwrite("tagExport", &org::sem::DocumentExportConfig::tagExport)
     .def_readwrite("data", &org::sem::DocumentExportConfig::data)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig const&) const>(&org::sem::DocumentExportConfig::operator==),
          pybind11::arg("other"))
     .def("isDoExport", static_cast<bool(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::isDoExport))
@@ -2079,10 +2326,19 @@ node can have subnodes.)RAW")
     .value("Created", org::sem::SubtreePeriod::Kind::Created, R"RAW(When the subtree was created)RAW")
     .value("Repeated", org::sem::SubtreePeriod::Kind::Repeated, R"RAW(Last repeat time of the recurring tasks)RAW")
     .def("__iter__", [](org::sem::SubtreePeriod::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::SubtreePeriod::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::SubtreePeriod::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::SubtreePeriod::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::SubtreePeriod::Kind _self, org::sem::SubtreePeriod::Kind lhs, org::sem::SubtreePeriod::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::SubtreePeriod::Kind _self, org::sem::SubtreePeriod::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::SubtreePeriod>(m, "SubtreePeriod")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::SubtreePeriod {
@@ -2093,7 +2349,7 @@ node can have subnodes.)RAW")
     .def_readwrite("kind", &org::sem::SubtreePeriod::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
     .def_readwrite("from_", &org::sem::SubtreePeriod::from, R"RAW(Clock start time)RAW")
     .def_readwrite("to", &org::sem::SubtreePeriod::to, R"RAW(Optional end of the clock)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::SubtreePeriod::*)(org::sem::SubtreePeriod const&) const>(&org::sem::SubtreePeriod::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::SubtreePeriod _self) -> std::string {
@@ -2112,7 +2368,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("isBlocking", &org::sem::NamedProperty::Nonblocking::isBlocking)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Nonblocking::*)(org::sem::NamedProperty::Nonblocking const&) const>(&org::sem::NamedProperty::Nonblocking::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Nonblocking _self) -> std::string {
@@ -2131,7 +2387,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("time", &org::sem::NamedProperty::ArchiveTime::time)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveTime::*)(org::sem::NamedProperty::ArchiveTime const&) const>(&org::sem::NamedProperty::ArchiveTime::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveTime _self) -> std::string {
@@ -2150,7 +2406,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("file", &org::sem::NamedProperty::ArchiveFile::file)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveFile::*)(org::sem::NamedProperty::ArchiveFile const&) const>(&org::sem::NamedProperty::ArchiveFile::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveFile _self) -> std::string {
@@ -2169,7 +2425,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("path", &org::sem::NamedProperty::ArchiveOlpath::path)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveOlpath::*)(org::sem::NamedProperty::ArchiveOlpath const&) const>(&org::sem::NamedProperty::ArchiveOlpath::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveOlpath _self) -> std::string {
@@ -2189,7 +2445,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("path", &org::sem::NamedProperty::ArchiveTarget::path)
     .def_readwrite("pattern", &org::sem::NamedProperty::ArchiveTarget::pattern)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveTarget::*)(org::sem::NamedProperty::ArchiveTarget const&) const>(&org::sem::NamedProperty::ArchiveTarget::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveTarget _self) -> std::string {
@@ -2208,7 +2464,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("category", &org::sem::NamedProperty::ArchiveCategory::category)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveCategory::*)(org::sem::NamedProperty::ArchiveCategory const&) const>(&org::sem::NamedProperty::ArchiveCategory::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveCategory _self) -> std::string {
@@ -2227,7 +2483,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("todo", &org::sem::NamedProperty::ArchiveTodo::todo)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ArchiveTodo::*)(org::sem::NamedProperty::ArchiveTodo const&) const>(&org::sem::NamedProperty::ArchiveTodo::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveTodo _self) -> std::string {
@@ -2245,7 +2501,7 @@ node can have subnodes.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Trigger::*)(org::sem::NamedProperty::Trigger const&) const>(&org::sem::NamedProperty::Trigger::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Trigger _self) -> std::string {
@@ -2264,7 +2520,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("latexClass", &org::sem::NamedProperty::ExportLatexClass::latexClass)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportLatexClass::*)(org::sem::NamedProperty::ExportLatexClass const&) const>(&org::sem::NamedProperty::ExportLatexClass::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexClass _self) -> std::string {
@@ -2282,10 +2538,19 @@ node can have subnodes.)RAW")
     .value("Todo", org::sem::NamedProperty::CookieData::TodoSource::Todo, R"RAW(Use subtrees with todo keywords)RAW")
     .value("Both", org::sem::NamedProperty::CookieData::TodoSource::Both, R"RAW(Use both subtrees and todo keywords)RAW")
     .def("__iter__", [](org::sem::NamedProperty::CookieData::TodoSource _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::CookieData::TodoSource> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::NamedProperty::CookieData::TodoSource>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::NamedProperty::CookieData::TodoSource>();
                      })
+    .def("__eq__",
+         [](org::sem::NamedProperty::CookieData::TodoSource _self, org::sem::NamedProperty::CookieData::TodoSource lhs, org::sem::NamedProperty::CookieData::TodoSource rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::NamedProperty::CookieData::TodoSource _self, org::sem::NamedProperty::CookieData::TodoSource it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::NamedProperty::CookieData>(m, "NamedPropertyCookieData")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::NamedProperty::CookieData {
@@ -2295,7 +2560,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("isRecursive", &org::sem::NamedProperty::CookieData::isRecursive)
     .def_readwrite("source", &org::sem::NamedProperty::CookieData::source)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CookieData::*)(org::sem::NamedProperty::CookieData const&) const>(&org::sem::NamedProperty::CookieData::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CookieData _self) -> std::string {
@@ -2314,7 +2579,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("options", &org::sem::NamedProperty::ExportLatexClassOptions::options)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportLatexClassOptions::*)(org::sem::NamedProperty::ExportLatexClassOptions const&) const>(&org::sem::NamedProperty::ExportLatexClassOptions::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexClassOptions _self) -> std::string {
@@ -2333,7 +2598,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("header", &org::sem::NamedProperty::ExportLatexHeader::header)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportLatexHeader::*)(org::sem::NamedProperty::ExportLatexHeader const&) const>(&org::sem::NamedProperty::ExportLatexHeader::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexHeader _self) -> std::string {
@@ -2352,7 +2617,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("compiler", &org::sem::NamedProperty::ExportLatexCompiler::compiler)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportLatexCompiler::*)(org::sem::NamedProperty::ExportLatexCompiler const&) const>(&org::sem::NamedProperty::ExportLatexCompiler::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexCompiler _self) -> std::string {
@@ -2371,7 +2636,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("isOrdered", &org::sem::NamedProperty::Ordered::isOrdered)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Ordered::*)(org::sem::NamedProperty::Ordered const&) const>(&org::sem::NamedProperty::Ordered::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Ordered _self) -> std::string {
@@ -2391,7 +2656,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("hours", &org::sem::NamedProperty::Effort::hours)
     .def_readwrite("minutes", &org::sem::NamedProperty::Effort::minutes)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Effort::*)(org::sem::NamedProperty::Effort const&) const>(&org::sem::NamedProperty::Effort::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Effort _self) -> std::string {
@@ -2410,10 +2675,19 @@ node can have subnodes.)RAW")
     .value("Content", org::sem::NamedProperty::Visibility::Level::Content)
     .value("All", org::sem::NamedProperty::Visibility::Level::All)
     .def("__iter__", [](org::sem::NamedProperty::Visibility::Level _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::Visibility::Level> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::NamedProperty::Visibility::Level>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::NamedProperty::Visibility::Level>();
                      })
+    .def("__eq__",
+         [](org::sem::NamedProperty::Visibility::Level _self, org::sem::NamedProperty::Visibility::Level lhs, org::sem::NamedProperty::Visibility::Level rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::NamedProperty::Visibility::Level _self, org::sem::NamedProperty::Visibility::Level it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::NamedProperty::Visibility>(m, "NamedPropertyVisibility")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::NamedProperty::Visibility {
@@ -2422,7 +2696,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("level", &org::sem::NamedProperty::Visibility::level)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Visibility::*)(org::sem::NamedProperty::Visibility const&) const>(&org::sem::NamedProperty::Visibility::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Visibility _self) -> std::string {
@@ -2442,7 +2716,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("backend", &org::sem::NamedProperty::ExportOptions::backend)
     .def_readwrite("values", &org::sem::NamedProperty::ExportOptions::values)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::ExportOptions::*)(org::sem::NamedProperty::ExportOptions const&) const>(&org::sem::NamedProperty::ExportOptions::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportOptions _self) -> std::string {
@@ -2461,7 +2735,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("blockers", &org::sem::NamedProperty::Blocker::blockers)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Blocker::*)(org::sem::NamedProperty::Blocker const&) const>(&org::sem::NamedProperty::Blocker::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Blocker _self) -> std::string {
@@ -2479,7 +2753,7 @@ node can have subnodes.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Unnumbered::*)(org::sem::NamedProperty::Unnumbered const&) const>(&org::sem::NamedProperty::Unnumbered::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Unnumbered _self) -> std::string {
@@ -2498,7 +2772,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("time", &org::sem::NamedProperty::Created::time)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::Created::*)(org::sem::NamedProperty::Created const&) const>(&org::sem::NamedProperty::Created::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Created _self) -> std::string {
@@ -2517,7 +2791,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("words", &org::sem::NamedProperty::RadioId::words)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::RadioId::*)(org::sem::NamedProperty::RadioId const&) const>(&org::sem::NamedProperty::RadioId::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::RadioId _self) -> std::string {
@@ -2536,7 +2810,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("hashtag", &org::sem::NamedProperty::HashtagDef::hashtag)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::HashtagDef::*)(org::sem::NamedProperty::HashtagDef const&) const>(&org::sem::NamedProperty::HashtagDef::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::HashtagDef _self) -> std::string {
@@ -2557,7 +2831,7 @@ node can have subnodes.)RAW")
     .def_readwrite("name", &org::sem::NamedProperty::CustomArgs::name, R"RAW(Original name of the property)RAW")
     .def_readwrite("sub", &org::sem::NamedProperty::CustomArgs::sub, R"RAW(Property target specialization)RAW")
     .def_readwrite("attrs", &org::sem::NamedProperty::CustomArgs::attrs, R"RAW(Property parameters)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CustomArgs::*)(org::sem::NamedProperty::CustomArgs const&) const>(&org::sem::NamedProperty::CustomArgs::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomArgs _self) -> std::string {
@@ -2577,7 +2851,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::NamedProperty::CustomRaw::name, R"RAW(Original name of the property)RAW")
     .def_readwrite("value", &org::sem::NamedProperty::CustomRaw::value, R"RAW(Property value)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CustomRaw::*)(org::sem::NamedProperty::CustomRaw const&) const>(&org::sem::NamedProperty::CustomRaw::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomRaw _self) -> std::string {
@@ -2597,7 +2871,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::NamedProperty::CustomSubtreeJson::name)
     .def_readwrite("value", &org::sem::NamedProperty::CustomSubtreeJson::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CustomSubtreeJson::*)(org::sem::NamedProperty::CustomSubtreeJson const&) const>(&org::sem::NamedProperty::CustomSubtreeJson::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomSubtreeJson _self) -> std::string {
@@ -2617,7 +2891,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::NamedProperty::CustomSubtreeFlags::name)
     .def_readwrite("value", &org::sem::NamedProperty::CustomSubtreeFlags::value)
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::CustomSubtreeFlags::*)(org::sem::NamedProperty::CustomSubtreeFlags const&) const>(&org::sem::NamedProperty::CustomSubtreeFlags::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomSubtreeFlags _self) -> std::string {
@@ -2658,10 +2932,19 @@ node can have subnodes.)RAW")
     .value("CustomSubtreeJson", org::sem::NamedProperty::Kind::CustomSubtreeJson)
     .value("CustomSubtreeFlags", org::sem::NamedProperty::Kind::CustomSubtreeFlags)
     .def("__iter__", [](org::sem::NamedProperty::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::NamedProperty::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::NamedProperty::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::NamedProperty::Kind _self, org::sem::NamedProperty::Kind lhs, org::sem::NamedProperty::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::NamedProperty::Kind _self, org::sem::NamedProperty::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::NamedProperty>(m, "NamedProperty")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::NamedProperty {
@@ -2677,7 +2960,7 @@ node can have subnodes.)RAW")
          R"RAW(Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.)RAW")
     .def("getName", static_cast<hstd::Str(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getName), R"RAW(Get non-normalized name of the property (for built-in and user))RAW")
     .def("getSubKind", static_cast<hstd::Opt<hstd::Str>(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getSubKind), R"RAW(Get non-normalized sub-kind for the property.)RAW")
-    .def("operator==",
+    .def("__eq__",
          static_cast<bool(org::sem::NamedProperty::*)(org::sem::NamedProperty const&) const>(&org::sem::NamedProperty::operator==),
          pybind11::arg("other"))
     .def("isNonblocking", static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isNonblocking))
@@ -3325,10 +3608,19 @@ node can have subnodes.)RAW")
     .value("FirstMatch", org::sem::Time::Repeat::Mode::FirstMatch, R"RAW(Repeat on the first matching day in the future)RAW")
     .value("SameDay", org::sem::Time::Repeat::Mode::SameDay, R"RAW(Repeat task on the same day next week/month/year)RAW")
     .def("__iter__", [](org::sem::Time::Repeat::Mode _self) -> org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Mode> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Mode>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Mode>();
                      })
+    .def("__eq__",
+         [](org::sem::Time::Repeat::Mode _self, org::sem::Time::Repeat::Mode lhs, org::sem::Time::Repeat::Mode rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::Time::Repeat::Mode _self, org::sem::Time::Repeat::Mode it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<org::sem::Time::Repeat::Period>(m, "TimeRepeatPeriod", type_registry_guard);
   pybind11::enum_<org::sem::Time::Repeat::Period>(m, "TimeRepeatPeriod")
@@ -3339,10 +3631,19 @@ node can have subnodes.)RAW")
     .value("Hour", org::sem::Time::Repeat::Period::Hour)
     .value("Minute", org::sem::Time::Repeat::Period::Minute)
     .def("__iter__", [](org::sem::Time::Repeat::Period _self) -> org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Period> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Period>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Period>();
                      })
+    .def("__eq__",
+         [](org::sem::Time::Repeat::Period _self, org::sem::Time::Repeat::Period lhs, org::sem::Time::Repeat::Period rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::Time::Repeat::Period _self, org::sem::Time::Repeat::Period it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::Time::Repeat>(m, "TimeRepeat")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Time::Repeat {
@@ -3400,10 +3701,19 @@ node can have subnodes.)RAW")
     .value("Static", org::sem::Time::TimeKind::Static)
     .value("Dynamic", org::sem::Time::TimeKind::Dynamic)
     .def("__iter__", [](org::sem::Time::TimeKind _self) -> org::bind::python::PyEnumIterator<org::sem::Time::TimeKind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::Time::TimeKind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::Time::TimeKind>();
                      })
+    .def("__eq__",
+         [](org::sem::Time::TimeKind _self, org::sem::Time::TimeKind lhs, org::sem::Time::TimeKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::Time::TimeKind _self, org::sem::Time::TimeKind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::Time, org::sem::SemId<org::sem::Time>, org::sem::Org>(m, "Time")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Time {
@@ -4661,10 +4971,19 @@ node can have subnodes.)RAW")
     .value("Empty", org::sem::ListItem::Checkbox::Empty)
     .value("Partial", org::sem::ListItem::Checkbox::Partial)
     .def("__iter__", [](org::sem::ListItem::Checkbox _self) -> org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox>();
                      })
+    .def("__eq__",
+         [](org::sem::ListItem::Checkbox _self, org::sem::ListItem::Checkbox lhs, org::sem::ListItem::Checkbox rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::ListItem::Checkbox _self, org::sem::ListItem::Checkbox it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::ListItem, org::sem::SemId<org::sem::ListItem>, org::sem::Org>(m, "ListItem")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ListItem {
@@ -4743,10 +5062,19 @@ node can have subnodes.)RAW")
     .value("Highlighting", org::sem::CriticMarkup::Kind::Highlighting)
     .value("Comment", org::sem::CriticMarkup::Kind::Comment)
     .def("__iter__", [](org::sem::CriticMarkup::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::CriticMarkup::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::CriticMarkup::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::CriticMarkup::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::CriticMarkup::Kind _self, org::sem::CriticMarkup::Kind lhs, org::sem::CriticMarkup::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::CriticMarkup::Kind _self, org::sem::CriticMarkup::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::CriticMarkup, org::sem::SemId<org::sem::CriticMarkup>, org::sem::Org>(m, "CriticMarkup")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CriticMarkup {
@@ -4897,10 +5225,19 @@ node can have subnodes.)RAW")
     .value("Attachment", org::sem::File::Kind::Attachment)
     .value("Source", org::sem::File::Kind::Source)
     .def("__iter__", [](org::sem::File::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::File::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::File::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::File::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::File::Kind _self, org::sem::File::Kind lhs, org::sem::File::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::File::Kind _self, org::sem::File::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::File, org::sem::SemId<org::sem::File>, org::sem::Org>(m, "File")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::File {
@@ -5072,10 +5409,19 @@ node can have subnodes.)RAW")
     .value("Src", org::sem::CmdInclude::Kind::Src)
     .value("OrgDocument", org::sem::CmdInclude::Kind::OrgDocument)
     .def("__iter__", [](org::sem::CmdInclude::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::CmdInclude::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::CmdInclude::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::sem::CmdInclude::Kind>();
                      })
+    .def("__eq__",
+         [](org::sem::CmdInclude::Kind _self, org::sem::CmdInclude::Kind lhs, org::sem::CmdInclude::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::CmdInclude::Kind _self, org::sem::CmdInclude::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::CmdInclude, org::sem::SemId<org::sem::CmdInclude>, org::sem::Org>(m, "CmdInclude")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdInclude {
@@ -5120,10 +5466,19 @@ node can have subnodes.)RAW")
     .value("Table1D2Col", ListFormattingMode::Table1D2Col, R"RAW(for description lists, treat header row as an individual column)RAW")
     .value("Table2DColFirst", ListFormattingMode::Table2DColFirst, R"RAW(for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values)RAW")
     .def("__iter__", [](ListFormattingMode _self) -> org::bind::python::PyEnumIterator<ListFormattingMode> {
-                     return
-                     org::bind::python::PyEnumIterator<ListFormattingMode>
-                     ();
+                     return org::bind::python::PyEnumIterator<ListFormattingMode>();
                      })
+    .def("__eq__",
+         [](ListFormattingMode _self, ListFormattingMode lhs, ListFormattingMode rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](ListFormattingMode _self, ListFormattingMode it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility", type_registry_guard);
   pybind11::enum_<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility")
@@ -5136,19 +5491,37 @@ node can have subnodes.)RAW")
     .value("Show5Levels", InitialSubtreeVisibility::Show5Levels)
     .value("ShowEverything", InitialSubtreeVisibility::ShowEverything)
     .def("__iter__", [](InitialSubtreeVisibility _self) -> org::bind::python::PyEnumIterator<InitialSubtreeVisibility> {
-                     return
-                     org::bind::python::PyEnumIterator<InitialSubtreeVisibility>
-                     ();
+                     return org::bind::python::PyEnumIterator<InitialSubtreeVisibility>();
                      })
+    .def("__eq__",
+         [](InitialSubtreeVisibility _self, InitialSubtreeVisibility lhs, InitialSubtreeVisibility rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](InitialSubtreeVisibility _self, InitialSubtreeVisibility it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<BlockCodeResults>(m, "BlockCodeResults", type_registry_guard);
   pybind11::enum_<BlockCodeResults>(m, "BlockCodeResults")
     .value("Replace", BlockCodeResults::Replace, R"RAW(Remove old result, replace with new value)RAW")
     .def("__iter__", [](BlockCodeResults _self) -> org::bind::python::PyEnumIterator<BlockCodeResults> {
-                     return
-                     org::bind::python::PyEnumIterator<BlockCodeResults>
-                     ();
+                     return org::bind::python::PyEnumIterator<BlockCodeResults>();
                      })
+    .def("__eq__",
+         [](BlockCodeResults _self, BlockCodeResults lhs, BlockCodeResults rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](BlockCodeResults _self, BlockCodeResults it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<BlockCodeExports>(m, "BlockCodeExports", type_registry_guard);
   pybind11::enum_<BlockCodeExports>(m, "BlockCodeExports")
@@ -5157,10 +5530,19 @@ node can have subnodes.)RAW")
     .value("Code", BlockCodeExports::Code, R"RAW(Show only code)RAW")
     .value("Results", BlockCodeExports::Results, R"RAW(Show only evaluation results)RAW")
     .def("__iter__", [](BlockCodeExports _self) -> org::bind::python::PyEnumIterator<BlockCodeExports> {
-                     return
-                     org::bind::python::PyEnumIterator<BlockCodeExports>
-                     ();
+                     return org::bind::python::PyEnumIterator<BlockCodeExports>();
                      })
+    .def("__eq__",
+         [](BlockCodeExports _self, BlockCodeExports lhs, BlockCodeExports rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](BlockCodeExports _self, BlockCodeExports it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<OrgSpecName>(m, "OrgSpecName", type_registry_guard);
   pybind11::enum_<OrgSpecName>(m, "OrgSpecName")
@@ -5223,10 +5605,19 @@ node can have subnodes.)RAW")
     .value("Lines", OrgSpecName::Lines)
     .value("Chunks", OrgSpecName::Chunks)
     .def("__iter__", [](OrgSpecName _self) -> org::bind::python::PyEnumIterator<OrgSpecName> {
-                     return
-                     org::bind::python::PyEnumIterator<OrgSpecName>
-                     ();
+                     return org::bind::python::PyEnumIterator<OrgSpecName>();
                      })
+    .def("__eq__",
+         [](OrgSpecName _self, OrgSpecName lhs, OrgSpecName rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](OrgSpecName _self, OrgSpecName it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<OrgNodeKind>(m, "OrgNodeKind", type_registry_guard);
   pybind11::enum_<OrgNodeKind>(m, "OrgNodeKind")
@@ -5370,10 +5761,19 @@ node can have subnodes.)RAW")
     .value("SubtreeCompletion", OrgNodeKind::SubtreeCompletion, R"RAW(Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.)RAW")
     .value("SubtreeImportance", OrgNodeKind::SubtreeImportance, R"RAW(Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.)RAW")
     .def("__iter__", [](OrgNodeKind _self) -> org::bind::python::PyEnumIterator<OrgNodeKind> {
-                     return
-                     org::bind::python::PyEnumIterator<OrgNodeKind>
-                     ();
+                     return org::bind::python::PyEnumIterator<OrgNodeKind>();
                      })
+    .def("__eq__",
+         [](OrgNodeKind _self, OrgNodeKind lhs, OrgNodeKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](OrgNodeKind _self, OrgNodeKind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<OrgJsonKind>(m, "OrgJsonKind", type_registry_guard);
   pybind11::enum_<OrgJsonKind>(m, "OrgJsonKind")
@@ -5385,10 +5785,19 @@ node can have subnodes.)RAW")
     .value("Int", OrgJsonKind::Int)
     .value("Float", OrgJsonKind::Float)
     .def("__iter__", [](OrgJsonKind _self) -> org::bind::python::PyEnumIterator<OrgJsonKind> {
-                     return
-                     org::bind::python::PyEnumIterator<OrgJsonKind>
-                     ();
+                     return org::bind::python::PyEnumIterator<OrgJsonKind>();
                      })
+    .def("__eq__",
+         [](OrgJsonKind _self, OrgJsonKind lhs, OrgJsonKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](OrgJsonKind _self, OrgJsonKind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<OrgSemKind>(m, "OrgSemKind", type_registry_guard);
   pybind11::enum_<OrgSemKind>(m, "OrgSemKind")
@@ -5467,10 +5876,19 @@ node can have subnodes.)RAW")
     .value("Symlink", OrgSemKind::Symlink)
     .value("CmdInclude", OrgSemKind::CmdInclude)
     .def("__iter__", [](OrgSemKind _self) -> org::bind::python::PyEnumIterator<OrgSemKind> {
-                     return
-                     org::bind::python::PyEnumIterator<OrgSemKind>
-                     ();
+                     return org::bind::python::PyEnumIterator<OrgSemKind>();
                      })
+    .def("__eq__",
+         [](OrgSemKind _self, OrgSemKind lhs, OrgSemKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](OrgSemKind _self, OrgSemKind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<hstd::UserTimeBreakdown>(m, "UserTimeBreakdown")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::UserTimeBreakdown {
@@ -5540,6 +5958,1486 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::OrgJson _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<hstd::OperationsTracer>(m, "OperationsTracer")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::OperationsTracer {
+                        hstd::OperationsTracer result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("TraceState", &hstd::OperationsTracer::TraceState)
+    .def_readwrite("traceToFile", &hstd::OperationsTracer::traceToFile)
+    .def_readwrite("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
+    .def_readwrite("traceStructured", &hstd::OperationsTracer::traceStructured)
+    .def_readwrite("traceColored", &hstd::OperationsTracer::traceColored)
+    .def_readwrite("activeLevel", &hstd::OperationsTracer::activeLevel)
+    .def_readwrite("traceBuffer", &hstd::OperationsTracer::traceBuffer)
+    .def("setTraceFileStr",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
+         pybind11::arg("outfile"),
+         pybind11::arg("overwrite"),
+         R"RAW(\brief Helper method for reflection)RAW")
+    .def("sendMessage",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
+         pybind11::arg("value"),
+         pybind11::arg("function"),
+         pybind11::arg("line"),
+         pybind11::arg("file"))
+    .def("__repr__", [](hstd::OperationsTracer _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::OperationsTracer _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmId>(m, "ImmId")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmId {
+                        org::imm::ImmId result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
+    .def("is_",
+         static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is),
+         pybind11::arg("kind"))
+    .def("getNodeIndex", static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex), R"RAW(\brief Get index of the node in associated kind store. NOTE: The
+node must not be nil)RAW")
+    .def("getReadableId", static_cast<std::string(org::imm::ImmId::*)() const>(&org::imm::ImmId::getReadableId))
+    .def("__repr__", [](org::imm::ImmId _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmId _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmPathStep>(m, "ImmPathStep")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmPathStep {
+                        org::imm::ImmPathStep result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::imm::ImmPathStep _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmPathStep _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmPath>(m, "ImmPath")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmPath {
+                        org::imm::ImmPath result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("root", &org::imm::ImmPath::root, R"RAW(\brief Root ID node)RAW")
+    .def_readwrite("path", &org::imm::ImmPath::path, R"RAW(\brief Sequence of jumps from the root of the document down to the
+specified target node. For the path iteration structure see \see
+ImmPathStep documentation.)RAW")
+    .def("empty", static_cast<bool(org::imm::ImmPath::*)() const>(&org::imm::ImmPath::empty), R"RAW(\brief Empty path refers to the root of the document)RAW")
+    .def("__repr__", [](org::imm::ImmPath _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmPath _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmUniqId>(m, "ImmUniqId")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmUniqId {
+                        org::imm::ImmUniqId result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::imm::ImmUniqId _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmUniqId _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmNoneValueRead>(m, "ImmNoneValueRead")
+    ;
+  pybind11::class_<org::imm::ImmNoneValue, org::imm::ImmNoneValueRead>(m, "ImmNoneValue")
+    ;
+  pybind11::class_<org::imm::ImmErrorItemValueRead>(m, "ImmErrorItemValueRead")
+    .def("getMessage", static_cast<immer::box<hstd::Str> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getMessage))
+    .def("getFunction", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getFunction))
+    .def("getLine", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getLine))
+    ;
+  pybind11::class_<org::imm::ImmErrorItemValue, org::imm::ImmErrorItemValueRead>(m, "ImmErrorItemValue")
+    .def("setMessage",
+         static_cast<void(org::imm::ImmErrorItemValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmErrorItemValue::setMessage),
+         pybind11::arg("value"))
+    .def("setFunction",
+         static_cast<void(org::imm::ImmErrorItemValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmErrorItemValue::setFunction),
+         pybind11::arg("value"))
+    .def("setLine",
+         static_cast<void(org::imm::ImmErrorItemValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmErrorItemValue::setLine),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmErrorGroupValueRead>(m, "ImmErrorGroupValueRead")
+    .def("getDiagnostics", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getDiagnostics))
+    .def("getFunction", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getFunction))
+    .def("getLine", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getLine))
+    ;
+  pybind11::class_<org::imm::ImmErrorGroupValue, org::imm::ImmErrorGroupValueRead>(m, "ImmErrorGroupValue")
+    .def("setDiagnostics",
+         static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&)>(&org::imm::ImmErrorGroupValue::setDiagnostics),
+         pybind11::arg("value"))
+    .def("setFunction",
+         static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmErrorGroupValue::setFunction),
+         pybind11::arg("value"))
+    .def("setLine",
+         static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmErrorGroupValue::setLine),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmStmtListValueRead>(m, "ImmStmtListValueRead")
+    ;
+  pybind11::class_<org::imm::ImmStmtListValue, org::imm::ImmStmtListValueRead>(m, "ImmStmtListValue")
+    ;
+  pybind11::class_<org::imm::ImmEmptyValueRead>(m, "ImmEmptyValueRead")
+    ;
+  pybind11::class_<org::imm::ImmEmptyValue, org::imm::ImmEmptyValueRead>(m, "ImmEmptyValue")
+    ;
+  pybind11::class_<org::imm::ImmCmdCaptionValueRead>(m, "ImmCmdCaptionValueRead")
+    .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdCaptionValueRead::*)() const>(&org::imm::ImmCmdCaptionValueRead::getText))
+    ;
+  pybind11::class_<org::imm::ImmCmdCaptionValue, org::imm::ImmCmdCaptionValueRead>(m, "ImmCmdCaptionValue")
+    .def("setText",
+         static_cast<void(org::imm::ImmCmdCaptionValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdCaptionValue::setText),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCmdColumnsValueRead>(m, "ImmCmdColumnsValueRead")
+    .def("getView", static_cast<org::sem::ColumnView const&(org::imm::ImmCmdColumnsValueRead::*)() const>(&org::imm::ImmCmdColumnsValueRead::getView))
+    ;
+  pybind11::class_<org::imm::ImmCmdColumnsValue, org::imm::ImmCmdColumnsValueRead>(m, "ImmCmdColumnsValue")
+    .def("setView",
+         static_cast<void(org::imm::ImmCmdColumnsValue::*)(org::sem::ColumnView const&)>(&org::imm::ImmCmdColumnsValue::setView),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCmdNameValueRead>(m, "ImmCmdNameValueRead")
+    .def("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdNameValueRead::*)() const>(&org::imm::ImmCmdNameValueRead::getName))
+    ;
+  pybind11::class_<org::imm::ImmCmdNameValue, org::imm::ImmCmdNameValueRead>(m, "ImmCmdNameValue")
+    .def("setName",
+         static_cast<void(org::imm::ImmCmdNameValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdNameValue::setName),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCmdCustomArgsValueRead>(m, "ImmCmdCustomArgsValueRead")
+    .def("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCustomArgsValueRead::*)() const>(&org::imm::ImmCmdCustomArgsValueRead::getName))
+    .def("getIsattached", static_cast<bool const&(org::imm::ImmCmdCustomArgsValueRead::*)() const>(&org::imm::ImmCmdCustomArgsValueRead::getIsattached))
+    ;
+  pybind11::class_<org::imm::ImmCmdCustomArgsValue, org::imm::ImmCmdCustomArgsValueRead>(m, "ImmCmdCustomArgsValue")
+    .def("setName",
+         static_cast<void(org::imm::ImmCmdCustomArgsValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomArgsValue::setName),
+         pybind11::arg("value"))
+    .def("setIsattached",
+         static_cast<void(org::imm::ImmCmdCustomArgsValue::*)(bool const&)>(&org::imm::ImmCmdCustomArgsValue::setIsattached),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCmdCustomRawValueRead>(m, "ImmCmdCustomRawValueRead")
+    .def("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCustomRawValueRead::*)() const>(&org::imm::ImmCmdCustomRawValueRead::getName))
+    .def("getIsattached", static_cast<bool const&(org::imm::ImmCmdCustomRawValueRead::*)() const>(&org::imm::ImmCmdCustomRawValueRead::getIsattached))
+    .def("getText", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCustomRawValueRead::*)() const>(&org::imm::ImmCmdCustomRawValueRead::getText))
+    ;
+  pybind11::class_<org::imm::ImmCmdCustomRawValue, org::imm::ImmCmdCustomRawValueRead>(m, "ImmCmdCustomRawValue")
+    .def("setName",
+         static_cast<void(org::imm::ImmCmdCustomRawValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomRawValue::setName),
+         pybind11::arg("value"))
+    .def("setIsattached",
+         static_cast<void(org::imm::ImmCmdCustomRawValue::*)(bool const&)>(&org::imm::ImmCmdCustomRawValue::setIsattached),
+         pybind11::arg("value"))
+    .def("setText",
+         static_cast<void(org::imm::ImmCmdCustomRawValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomRawValue::setText),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCmdCustomTextValueRead>(m, "ImmCmdCustomTextValueRead")
+    .def("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCustomTextValueRead::*)() const>(&org::imm::ImmCmdCustomTextValueRead::getName))
+    .def("getIsattached", static_cast<bool const&(org::imm::ImmCmdCustomTextValueRead::*)() const>(&org::imm::ImmCmdCustomTextValueRead::getIsattached))
+    .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdCustomTextValueRead::*)() const>(&org::imm::ImmCmdCustomTextValueRead::getText))
+    ;
+  pybind11::class_<org::imm::ImmCmdCustomTextValue, org::imm::ImmCmdCustomTextValueRead>(m, "ImmCmdCustomTextValue")
+    .def("setName",
+         static_cast<void(org::imm::ImmCmdCustomTextValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomTextValue::setName),
+         pybind11::arg("value"))
+    .def("setIsattached",
+         static_cast<void(org::imm::ImmCmdCustomTextValue::*)(bool const&)>(&org::imm::ImmCmdCustomTextValue::setIsattached),
+         pybind11::arg("value"))
+    .def("setText",
+         static_cast<void(org::imm::ImmCmdCustomTextValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdCustomTextValue::setText),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCmdCallValueRead>(m, "ImmCmdCallValueRead")
+    .def("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getName))
+    .def("getFilename", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getFilename))
+    .def("getInsideheaderattrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getInsideheaderattrs))
+    .def("getCallattrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getCallattrs))
+    .def("getEndheaderattrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getEndheaderattrs))
+    .def("getResult", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getResult))
+    ;
+  pybind11::class_<org::imm::ImmCmdCallValue, org::imm::ImmCmdCallValueRead>(m, "ImmCmdCallValue")
+    .def("setName",
+         static_cast<void(org::imm::ImmCmdCallValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCallValue::setName),
+         pybind11::arg("value"))
+    .def("setFilename",
+         static_cast<void(org::imm::ImmCmdCallValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmCmdCallValue::setFilename),
+         pybind11::arg("value"))
+    .def("setInsideheaderattrs",
+         static_cast<void(org::imm::ImmCmdCallValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmCmdCallValue::setInsideheaderattrs),
+         pybind11::arg("value"))
+    .def("setCallattrs",
+         static_cast<void(org::imm::ImmCmdCallValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmCmdCallValue::setCallattrs),
+         pybind11::arg("value"))
+    .def("setEndheaderattrs",
+         static_cast<void(org::imm::ImmCmdCallValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmCmdCallValue::setEndheaderattrs),
+         pybind11::arg("value"))
+    .def("setResult",
+         static_cast<void(org::imm::ImmCmdCallValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&)>(&org::imm::ImmCmdCallValue::setResult),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCmdTblfmValueRead>(m, "ImmCmdTblfmValueRead")
+    .def("getExpr", static_cast<org::sem::Tblfm const&(org::imm::ImmCmdTblfmValueRead::*)() const>(&org::imm::ImmCmdTblfmValueRead::getExpr))
+    ;
+  pybind11::class_<org::imm::ImmCmdTblfmValue, org::imm::ImmCmdTblfmValueRead>(m, "ImmCmdTblfmValue")
+    .def("setExpr",
+         static_cast<void(org::imm::ImmCmdTblfmValue::*)(org::sem::Tblfm const&)>(&org::imm::ImmCmdTblfmValue::setExpr),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmHashTagValueRead>(m, "ImmHashTagValueRead")
+    .def("getText", static_cast<org::sem::HashTagText const&(org::imm::ImmHashTagValueRead::*)() const>(&org::imm::ImmHashTagValueRead::getText))
+    ;
+  pybind11::class_<org::imm::ImmHashTagValue, org::imm::ImmHashTagValueRead>(m, "ImmHashTagValue")
+    .def("setText",
+         static_cast<void(org::imm::ImmHashTagValue::*)(org::sem::HashTagText const&)>(&org::imm::ImmHashTagValue::setText),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmInlineFootnoteValueRead>(m, "ImmInlineFootnoteValueRead")
+    .def("getTag", static_cast<immer::box<hstd::Str> const&(org::imm::ImmInlineFootnoteValueRead::*)() const>(&org::imm::ImmInlineFootnoteValueRead::getTag))
+    .def("getDefinition", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>> const&(org::imm::ImmInlineFootnoteValueRead::*)() const>(&org::imm::ImmInlineFootnoteValueRead::getDefinition))
+    ;
+  pybind11::class_<org::imm::ImmInlineFootnoteValue, org::imm::ImmInlineFootnoteValueRead>(m, "ImmInlineFootnoteValue")
+    .def("setTag",
+         static_cast<void(org::imm::ImmInlineFootnoteValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmInlineFootnoteValue::setTag),
+         pybind11::arg("value"))
+    .def("setDefinition",
+         static_cast<void(org::imm::ImmInlineFootnoteValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>> const&)>(&org::imm::ImmInlineFootnoteValue::setDefinition),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmInlineExportValueRead>(m, "ImmInlineExportValueRead")
+    .def("getExporter", static_cast<immer::box<hstd::Str> const&(org::imm::ImmInlineExportValueRead::*)() const>(&org::imm::ImmInlineExportValueRead::getExporter))
+    .def("getContent", static_cast<immer::box<hstd::Str> const&(org::imm::ImmInlineExportValueRead::*)() const>(&org::imm::ImmInlineExportValueRead::getContent))
+    ;
+  pybind11::class_<org::imm::ImmInlineExportValue, org::imm::ImmInlineExportValueRead>(m, "ImmInlineExportValue")
+    .def("setExporter",
+         static_cast<void(org::imm::ImmInlineExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmInlineExportValue::setExporter),
+         pybind11::arg("value"))
+    .def("setContent",
+         static_cast<void(org::imm::ImmInlineExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmInlineExportValue::setContent),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmTimeValueRead>(m, "ImmTimeValueRead")
+    .def("getIsactive", static_cast<bool const&(org::imm::ImmTimeValueRead::*)() const>(&org::imm::ImmTimeValueRead::getIsactive))
+    .def("getTime", static_cast<org::imm::ImmTime::TimeVariant const&(org::imm::ImmTimeValueRead::*)() const>(&org::imm::ImmTimeValueRead::getTime))
+    ;
+  pybind11::class_<org::imm::ImmTimeValue, org::imm::ImmTimeValueRead>(m, "ImmTimeValue")
+    .def("setIsactive",
+         static_cast<void(org::imm::ImmTimeValue::*)(bool const&)>(&org::imm::ImmTimeValue::setIsactive),
+         pybind11::arg("value"))
+    .def("setTime",
+         static_cast<void(org::imm::ImmTimeValue::*)(org::imm::ImmTime::TimeVariant const&)>(&org::imm::ImmTimeValue::setTime),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmTimeRangeValueRead>(m, "ImmTimeRangeValueRead")
+    .def("getFrom", static_cast<org::imm::ImmIdT<org::imm::ImmTime> const&(org::imm::ImmTimeRangeValueRead::*)() const>(&org::imm::ImmTimeRangeValueRead::getFrom))
+    .def("getTo", static_cast<org::imm::ImmIdT<org::imm::ImmTime> const&(org::imm::ImmTimeRangeValueRead::*)() const>(&org::imm::ImmTimeRangeValueRead::getTo))
+    ;
+  pybind11::class_<org::imm::ImmTimeRangeValue, org::imm::ImmTimeRangeValueRead>(m, "ImmTimeRangeValue")
+    .def("setFrom",
+         static_cast<void(org::imm::ImmTimeRangeValue::*)(org::imm::ImmIdT<org::imm::ImmTime> const&)>(&org::imm::ImmTimeRangeValue::setFrom),
+         pybind11::arg("value"))
+    .def("setTo",
+         static_cast<void(org::imm::ImmTimeRangeValue::*)(org::imm::ImmIdT<org::imm::ImmTime> const&)>(&org::imm::ImmTimeRangeValue::setTo),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmMacroValueRead>(m, "ImmMacroValueRead")
+    .def("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmMacroValueRead::*)() const>(&org::imm::ImmMacroValueRead::getName))
+    .def("getAttrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmMacroValueRead::*)() const>(&org::imm::ImmMacroValueRead::getAttrs))
+    ;
+  pybind11::class_<org::imm::ImmMacroValue, org::imm::ImmMacroValueRead>(m, "ImmMacroValue")
+    .def("setName",
+         static_cast<void(org::imm::ImmMacroValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmMacroValue::setName),
+         pybind11::arg("value"))
+    .def("setAttrs",
+         static_cast<void(org::imm::ImmMacroValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmMacroValue::setAttrs),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmSymbolValueRead>(m, "ImmSymbolValueRead")
+    .def("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmSymbolValueRead::*)() const>(&org::imm::ImmSymbolValueRead::getName))
+    .def("getParameters", static_cast<immer::flex_vector<org::imm::ImmSymbol::Param> const&(org::imm::ImmSymbolValueRead::*)() const>(&org::imm::ImmSymbolValueRead::getParameters))
+    .def("getPositional", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>> const&(org::imm::ImmSymbolValueRead::*)() const>(&org::imm::ImmSymbolValueRead::getPositional))
+    ;
+  pybind11::class_<org::imm::ImmSymbolValue, org::imm::ImmSymbolValueRead>(m, "ImmSymbolValue")
+    .def("setName",
+         static_cast<void(org::imm::ImmSymbolValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmSymbolValue::setName),
+         pybind11::arg("value"))
+    .def("setParameters",
+         static_cast<void(org::imm::ImmSymbolValue::*)(immer::flex_vector<org::imm::ImmSymbol::Param> const&)>(&org::imm::ImmSymbolValue::setParameters),
+         pybind11::arg("value"))
+    .def("setPositional",
+         static_cast<void(org::imm::ImmSymbolValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>> const&)>(&org::imm::ImmSymbolValue::setPositional),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmEscapedValueRead>(m, "ImmEscapedValueRead")
+    ;
+  pybind11::class_<org::imm::ImmEscapedValue, org::imm::ImmEscapedValueRead>(m, "ImmEscapedValue")
+    ;
+  pybind11::class_<org::imm::ImmNewlineValueRead>(m, "ImmNewlineValueRead")
+    ;
+  pybind11::class_<org::imm::ImmNewlineValue, org::imm::ImmNewlineValueRead>(m, "ImmNewlineValue")
+    ;
+  pybind11::class_<org::imm::ImmSpaceValueRead>(m, "ImmSpaceValueRead")
+    ;
+  pybind11::class_<org::imm::ImmSpaceValue, org::imm::ImmSpaceValueRead>(m, "ImmSpaceValue")
+    ;
+  pybind11::class_<org::imm::ImmWordValueRead>(m, "ImmWordValueRead")
+    ;
+  pybind11::class_<org::imm::ImmWordValue, org::imm::ImmWordValueRead>(m, "ImmWordValue")
+    ;
+  pybind11::class_<org::imm::ImmAtMentionValueRead>(m, "ImmAtMentionValueRead")
+    ;
+  pybind11::class_<org::imm::ImmAtMentionValue, org::imm::ImmAtMentionValueRead>(m, "ImmAtMentionValue")
+    ;
+  pybind11::class_<org::imm::ImmRawTextValueRead>(m, "ImmRawTextValueRead")
+    ;
+  pybind11::class_<org::imm::ImmRawTextValue, org::imm::ImmRawTextValueRead>(m, "ImmRawTextValue")
+    ;
+  pybind11::class_<org::imm::ImmPunctuationValueRead>(m, "ImmPunctuationValueRead")
+    ;
+  pybind11::class_<org::imm::ImmPunctuationValue, org::imm::ImmPunctuationValueRead>(m, "ImmPunctuationValue")
+    ;
+  pybind11::class_<org::imm::ImmPlaceholderValueRead>(m, "ImmPlaceholderValueRead")
+    ;
+  pybind11::class_<org::imm::ImmPlaceholderValue, org::imm::ImmPlaceholderValueRead>(m, "ImmPlaceholderValue")
+    ;
+  pybind11::class_<org::imm::ImmBigIdentValueRead>(m, "ImmBigIdentValueRead")
+    ;
+  pybind11::class_<org::imm::ImmBigIdentValue, org::imm::ImmBigIdentValueRead>(m, "ImmBigIdentValue")
+    ;
+  pybind11::class_<org::imm::ImmTextTargetValueRead>(m, "ImmTextTargetValueRead")
+    ;
+  pybind11::class_<org::imm::ImmTextTargetValue, org::imm::ImmTextTargetValueRead>(m, "ImmTextTargetValue")
+    ;
+  pybind11::class_<org::imm::ImmBoldValueRead>(m, "ImmBoldValueRead")
+    ;
+  pybind11::class_<org::imm::ImmBoldValue, org::imm::ImmBoldValueRead>(m, "ImmBoldValue")
+    ;
+  pybind11::class_<org::imm::ImmUnderlineValueRead>(m, "ImmUnderlineValueRead")
+    ;
+  pybind11::class_<org::imm::ImmUnderlineValue, org::imm::ImmUnderlineValueRead>(m, "ImmUnderlineValue")
+    ;
+  pybind11::class_<org::imm::ImmMonospaceValueRead>(m, "ImmMonospaceValueRead")
+    ;
+  pybind11::class_<org::imm::ImmMonospaceValue, org::imm::ImmMonospaceValueRead>(m, "ImmMonospaceValue")
+    ;
+  pybind11::class_<org::imm::ImmMarkQuoteValueRead>(m, "ImmMarkQuoteValueRead")
+    ;
+  pybind11::class_<org::imm::ImmMarkQuoteValue, org::imm::ImmMarkQuoteValueRead>(m, "ImmMarkQuoteValue")
+    ;
+  pybind11::class_<org::imm::ImmVerbatimValueRead>(m, "ImmVerbatimValueRead")
+    ;
+  pybind11::class_<org::imm::ImmVerbatimValue, org::imm::ImmVerbatimValueRead>(m, "ImmVerbatimValue")
+    ;
+  pybind11::class_<org::imm::ImmItalicValueRead>(m, "ImmItalicValueRead")
+    ;
+  pybind11::class_<org::imm::ImmItalicValue, org::imm::ImmItalicValueRead>(m, "ImmItalicValue")
+    ;
+  pybind11::class_<org::imm::ImmStrikeValueRead>(m, "ImmStrikeValueRead")
+    ;
+  pybind11::class_<org::imm::ImmStrikeValue, org::imm::ImmStrikeValueRead>(m, "ImmStrikeValue")
+    ;
+  pybind11::class_<org::imm::ImmParValueRead>(m, "ImmParValueRead")
+    ;
+  pybind11::class_<org::imm::ImmParValue, org::imm::ImmParValueRead>(m, "ImmParValue")
+    ;
+  pybind11::class_<org::imm::ImmRadioTargetValueRead>(m, "ImmRadioTargetValueRead")
+    .def("getWords", static_cast<immer::flex_vector<hstd::Str> const&(org::imm::ImmRadioTargetValueRead::*)() const>(&org::imm::ImmRadioTargetValueRead::getWords))
+    ;
+  pybind11::class_<org::imm::ImmRadioTargetValue, org::imm::ImmRadioTargetValueRead>(m, "ImmRadioTargetValue")
+    .def("setWords",
+         static_cast<void(org::imm::ImmRadioTargetValue::*)(immer::flex_vector<hstd::Str> const&)>(&org::imm::ImmRadioTargetValue::setWords),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmLatexValueRead>(m, "ImmLatexValueRead")
+    ;
+  pybind11::class_<org::imm::ImmLatexValue, org::imm::ImmLatexValueRead>(m, "ImmLatexValue")
+    ;
+  pybind11::class_<org::imm::ImmLinkValueRead>(m, "ImmLinkValueRead")
+    .def("getDescription", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmLinkValueRead::*)() const>(&org::imm::ImmLinkValueRead::getDescription))
+    .def("getTarget", static_cast<org::sem::LinkTarget const&(org::imm::ImmLinkValueRead::*)() const>(&org::imm::ImmLinkValueRead::getTarget))
+    ;
+  pybind11::class_<org::imm::ImmLinkValue, org::imm::ImmLinkValueRead>(m, "ImmLinkValue")
+    .def("setDescription",
+         static_cast<void(org::imm::ImmLinkValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmLinkValue::setDescription),
+         pybind11::arg("value"))
+    .def("setTarget",
+         static_cast<void(org::imm::ImmLinkValue::*)(org::sem::LinkTarget const&)>(&org::imm::ImmLinkValue::setTarget),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmBlockCenterValueRead>(m, "ImmBlockCenterValueRead")
+    ;
+  pybind11::class_<org::imm::ImmBlockCenterValue, org::imm::ImmBlockCenterValueRead>(m, "ImmBlockCenterValue")
+    ;
+  pybind11::class_<org::imm::ImmBlockQuoteValueRead>(m, "ImmBlockQuoteValueRead")
+    ;
+  pybind11::class_<org::imm::ImmBlockQuoteValue, org::imm::ImmBlockQuoteValueRead>(m, "ImmBlockQuoteValue")
+    ;
+  pybind11::class_<org::imm::ImmBlockCommentValueRead>(m, "ImmBlockCommentValueRead")
+    ;
+  pybind11::class_<org::imm::ImmBlockCommentValue, org::imm::ImmBlockCommentValueRead>(m, "ImmBlockCommentValue")
+    ;
+  pybind11::class_<org::imm::ImmBlockVerseValueRead>(m, "ImmBlockVerseValueRead")
+    ;
+  pybind11::class_<org::imm::ImmBlockVerseValue, org::imm::ImmBlockVerseValueRead>(m, "ImmBlockVerseValue")
+    ;
+  pybind11::class_<org::imm::ImmBlockDynamicFallbackValueRead>(m, "ImmBlockDynamicFallbackValueRead")
+    .def("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmBlockDynamicFallbackValueRead::*)() const>(&org::imm::ImmBlockDynamicFallbackValueRead::getName))
+    ;
+  pybind11::class_<org::imm::ImmBlockDynamicFallbackValue, org::imm::ImmBlockDynamicFallbackValueRead>(m, "ImmBlockDynamicFallbackValue")
+    .def("setName",
+         static_cast<void(org::imm::ImmBlockDynamicFallbackValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmBlockDynamicFallbackValue::setName),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmBlockExampleValueRead>(m, "ImmBlockExampleValueRead")
+    ;
+  pybind11::class_<org::imm::ImmBlockExampleValue, org::imm::ImmBlockExampleValueRead>(m, "ImmBlockExampleValue")
+    ;
+  pybind11::class_<org::imm::ImmBlockExportValueRead>(m, "ImmBlockExportValueRead")
+    .def("getExporter", static_cast<immer::box<hstd::Str> const&(org::imm::ImmBlockExportValueRead::*)() const>(&org::imm::ImmBlockExportValueRead::getExporter))
+    .def("getContent", static_cast<immer::box<hstd::Str> const&(org::imm::ImmBlockExportValueRead::*)() const>(&org::imm::ImmBlockExportValueRead::getContent))
+    ;
+  pybind11::class_<org::imm::ImmBlockExportValue, org::imm::ImmBlockExportValueRead>(m, "ImmBlockExportValue")
+    .def("setExporter",
+         static_cast<void(org::imm::ImmBlockExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmBlockExportValue::setExporter),
+         pybind11::arg("value"))
+    .def("setContent",
+         static_cast<void(org::imm::ImmBlockExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmBlockExportValue::setContent),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmBlockAdmonitionValueRead>(m, "ImmBlockAdmonitionValueRead")
+    ;
+  pybind11::class_<org::imm::ImmBlockAdmonitionValue, org::imm::ImmBlockAdmonitionValueRead>(m, "ImmBlockAdmonitionValue")
+    ;
+  pybind11::class_<org::imm::ImmBlockCodeEvalResultValueRead>(m, "ImmBlockCodeEvalResultValueRead")
+    .def("getRaw", static_cast<immer::flex_vector<org::sem::OrgCodeEvalOutput> const&(org::imm::ImmBlockCodeEvalResultValueRead::*)() const>(&org::imm::ImmBlockCodeEvalResultValueRead::getRaw))
+    .def("getNode", static_cast<org::imm::ImmIdT<org::imm::ImmOrg> const&(org::imm::ImmBlockCodeEvalResultValueRead::*)() const>(&org::imm::ImmBlockCodeEvalResultValueRead::getNode))
+    ;
+  pybind11::class_<org::imm::ImmBlockCodeEvalResultValue, org::imm::ImmBlockCodeEvalResultValueRead>(m, "ImmBlockCodeEvalResultValue")
+    .def("setRaw",
+         static_cast<void(org::imm::ImmBlockCodeEvalResultValue::*)(immer::flex_vector<org::sem::OrgCodeEvalOutput> const&)>(&org::imm::ImmBlockCodeEvalResultValue::setRaw),
+         pybind11::arg("value"))
+    .def("setNode",
+         static_cast<void(org::imm::ImmBlockCodeEvalResultValue::*)(org::imm::ImmIdT<org::imm::ImmOrg> const&)>(&org::imm::ImmBlockCodeEvalResultValue::setNode),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmBlockCodeValueRead>(m, "ImmBlockCodeValueRead")
+    .def("getLang", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getLang))
+    .def("getExports", static_cast<BlockCodeExports const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getExports))
+    .def("getResult", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getResult))
+    .def("getLines", static_cast<immer::flex_vector<org::sem::BlockCodeLine> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getLines))
+    .def("getCache", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getCache))
+    .def("getEval", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getEval))
+    .def("getNoweb", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getNoweb))
+    .def("getHlines", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getHlines))
+    .def("getTangle", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getTangle))
+    .def("getSwitches", static_cast<org::sem::AttrGroup const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getSwitches))
+    ;
+  pybind11::class_<org::imm::ImmBlockCodeValue, org::imm::ImmBlockCodeValueRead>(m, "ImmBlockCodeValue")
+    .def("setLang",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmBlockCodeValue::setLang),
+         pybind11::arg("value"))
+    .def("setExports",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(BlockCodeExports const&)>(&org::imm::ImmBlockCodeValue::setExports),
+         pybind11::arg("value"))
+    .def("setResult",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&)>(&org::imm::ImmBlockCodeValue::setResult),
+         pybind11::arg("value"))
+    .def("setLines",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::flex_vector<org::sem::BlockCodeLine> const&)>(&org::imm::ImmBlockCodeValue::setLines),
+         pybind11::arg("value"))
+    .def("setCache",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setCache),
+         pybind11::arg("value"))
+    .def("setEval",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setEval),
+         pybind11::arg("value"))
+    .def("setNoweb",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setNoweb),
+         pybind11::arg("value"))
+    .def("setHlines",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setHlines),
+         pybind11::arg("value"))
+    .def("setTangle",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setTangle),
+         pybind11::arg("value"))
+    .def("setSwitches",
+         static_cast<void(org::imm::ImmBlockCodeValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmBlockCodeValue::setSwitches),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmSubtreeLogValueRead>(m, "ImmSubtreeLogValueRead")
+    .def("getHead", static_cast<org::sem::SubtreeLogHead const&(org::imm::ImmSubtreeLogValueRead::*)() const>(&org::imm::ImmSubtreeLogValueRead::getHead))
+    .def("getDesc", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>> const&(org::imm::ImmSubtreeLogValueRead::*)() const>(&org::imm::ImmSubtreeLogValueRead::getDesc))
+    ;
+  pybind11::class_<org::imm::ImmSubtreeLogValue, org::imm::ImmSubtreeLogValueRead>(m, "ImmSubtreeLogValue")
+    .def("setHead",
+         static_cast<void(org::imm::ImmSubtreeLogValue::*)(org::sem::SubtreeLogHead const&)>(&org::imm::ImmSubtreeLogValue::setHead),
+         pybind11::arg("value"))
+    .def("setDesc",
+         static_cast<void(org::imm::ImmSubtreeLogValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>> const&)>(&org::imm::ImmSubtreeLogValue::setDesc),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmSubtreeValueRead>(m, "ImmSubtreeValueRead")
+    .def("getLevel", static_cast<int const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getLevel))
+    .def("getTreeid", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTreeid))
+    .def("getTodo", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTodo))
+    .def("getCompletion", static_cast<immer::box<std::optional<org::sem::SubtreeCompletion>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getCompletion))
+    .def("getDescription", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getDescription))
+    .def("getTags", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTags))
+    .def("getTitle", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTitle))
+    .def("getLogbook", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getLogbook))
+    .def("getProperties", static_cast<immer::flex_vector<org::sem::NamedProperty> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getProperties))
+    .def("getClosed", static_cast<immer::box<std::optional<hstd::UserTime>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getClosed))
+    .def("getDeadline", static_cast<immer::box<std::optional<hstd::UserTime>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getDeadline))
+    .def("getScheduled", static_cast<immer::box<std::optional<hstd::UserTime>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getScheduled))
+    .def("getIscomment", static_cast<bool const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getIscomment))
+    .def("getIsarchived", static_cast<bool const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getIsarchived))
+    .def("getPriority", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getPriority))
+    ;
+  pybind11::class_<org::imm::ImmSubtreeValue, org::imm::ImmSubtreeValueRead>(m, "ImmSubtreeValue")
+    .def("setLevel",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(int const&)>(&org::imm::ImmSubtreeValue::setLevel),
+         pybind11::arg("value"))
+    .def("setTreeid",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmSubtreeValue::setTreeid),
+         pybind11::arg("value"))
+    .def("setTodo",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmSubtreeValue::setTodo),
+         pybind11::arg("value"))
+    .def("setCompletion",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::sem::SubtreeCompletion>> const&)>(&org::imm::ImmSubtreeValue::setCompletion),
+         pybind11::arg("value"))
+    .def("setDescription",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmSubtreeValue::setDescription),
+         pybind11::arg("value"))
+    .def("setTags",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>> const&)>(&org::imm::ImmSubtreeValue::setTags),
+         pybind11::arg("value"))
+    .def("setTitle",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmSubtreeValue::setTitle),
+         pybind11::arg("value"))
+    .def("setLogbook",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> const&)>(&org::imm::ImmSubtreeValue::setLogbook),
+         pybind11::arg("value"))
+    .def("setProperties",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::flex_vector<org::sem::NamedProperty> const&)>(&org::imm::ImmSubtreeValue::setProperties),
+         pybind11::arg("value"))
+    .def("setClosed",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::UserTime>> const&)>(&org::imm::ImmSubtreeValue::setClosed),
+         pybind11::arg("value"))
+    .def("setDeadline",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::UserTime>> const&)>(&org::imm::ImmSubtreeValue::setDeadline),
+         pybind11::arg("value"))
+    .def("setScheduled",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::UserTime>> const&)>(&org::imm::ImmSubtreeValue::setScheduled),
+         pybind11::arg("value"))
+    .def("setIscomment",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(bool const&)>(&org::imm::ImmSubtreeValue::setIscomment),
+         pybind11::arg("value"))
+    .def("setIsarchived",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(bool const&)>(&org::imm::ImmSubtreeValue::setIsarchived),
+         pybind11::arg("value"))
+    .def("setPriority",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmSubtreeValue::setPriority),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCellValueRead>(m, "ImmCellValueRead")
+    .def("getIsblock", static_cast<bool const&(org::imm::ImmCellValueRead::*)() const>(&org::imm::ImmCellValueRead::getIsblock))
+    ;
+  pybind11::class_<org::imm::ImmCellValue, org::imm::ImmCellValueRead>(m, "ImmCellValue")
+    .def("setIsblock",
+         static_cast<void(org::imm::ImmCellValue::*)(bool const&)>(&org::imm::ImmCellValue::setIsblock),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmRowValueRead>(m, "ImmRowValueRead")
+    .def("getCells", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>> const&(org::imm::ImmRowValueRead::*)() const>(&org::imm::ImmRowValueRead::getCells))
+    .def("getIsblock", static_cast<bool const&(org::imm::ImmRowValueRead::*)() const>(&org::imm::ImmRowValueRead::getIsblock))
+    ;
+  pybind11::class_<org::imm::ImmRowValue, org::imm::ImmRowValueRead>(m, "ImmRowValue")
+    .def("setCells",
+         static_cast<void(org::imm::ImmRowValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>> const&)>(&org::imm::ImmRowValue::setCells),
+         pybind11::arg("value"))
+    .def("setIsblock",
+         static_cast<void(org::imm::ImmRowValue::*)(bool const&)>(&org::imm::ImmRowValue::setIsblock),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmTableValueRead>(m, "ImmTableValueRead")
+    .def("getRows", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>> const&(org::imm::ImmTableValueRead::*)() const>(&org::imm::ImmTableValueRead::getRows))
+    .def("getIsblock", static_cast<bool const&(org::imm::ImmTableValueRead::*)() const>(&org::imm::ImmTableValueRead::getIsblock))
+    ;
+  pybind11::class_<org::imm::ImmTableValue, org::imm::ImmTableValueRead>(m, "ImmTableValue")
+    .def("setRows",
+         static_cast<void(org::imm::ImmTableValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>> const&)>(&org::imm::ImmTableValue::setRows),
+         pybind11::arg("value"))
+    .def("setIsblock",
+         static_cast<void(org::imm::ImmTableValue::*)(bool const&)>(&org::imm::ImmTableValue::setIsblock),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmParagraphValueRead>(m, "ImmParagraphValueRead")
+    ;
+  pybind11::class_<org::imm::ImmParagraphValue, org::imm::ImmParagraphValueRead>(m, "ImmParagraphValue")
+    ;
+  pybind11::class_<org::imm::ImmColonExampleValueRead>(m, "ImmColonExampleValueRead")
+    ;
+  pybind11::class_<org::imm::ImmColonExampleValue, org::imm::ImmColonExampleValueRead>(m, "ImmColonExampleValue")
+    ;
+  pybind11::class_<org::imm::ImmCmdAttrValueRead>(m, "ImmCmdAttrValueRead")
+    .def("getTarget", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdAttrValueRead::*)() const>(&org::imm::ImmCmdAttrValueRead::getTarget))
+    ;
+  pybind11::class_<org::imm::ImmCmdAttrValue, org::imm::ImmCmdAttrValueRead>(m, "ImmCmdAttrValue")
+    .def("setTarget",
+         static_cast<void(org::imm::ImmCmdAttrValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdAttrValue::setTarget),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCmdExportValueRead>(m, "ImmCmdExportValueRead")
+    .def("getExporter", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdExportValueRead::*)() const>(&org::imm::ImmCmdExportValueRead::getExporter))
+    .def("getContent", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdExportValueRead::*)() const>(&org::imm::ImmCmdExportValueRead::getContent))
+    ;
+  pybind11::class_<org::imm::ImmCmdExportValue, org::imm::ImmCmdExportValueRead>(m, "ImmCmdExportValue")
+    .def("setExporter",
+         static_cast<void(org::imm::ImmCmdExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdExportValue::setExporter),
+         pybind11::arg("value"))
+    .def("setContent",
+         static_cast<void(org::imm::ImmCmdExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdExportValue::setContent),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCallValueRead>(m, "ImmCallValueRead")
+    .def("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCallValueRead::*)() const>(&org::imm::ImmCallValueRead::getName))
+    .def("getAttrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCallValueRead::*)() const>(&org::imm::ImmCallValueRead::getAttrs))
+    .def("getIscommand", static_cast<bool const&(org::imm::ImmCallValueRead::*)() const>(&org::imm::ImmCallValueRead::getIscommand))
+    ;
+  pybind11::class_<org::imm::ImmCallValue, org::imm::ImmCallValueRead>(m, "ImmCallValue")
+    .def("setName",
+         static_cast<void(org::imm::ImmCallValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCallValue::setName),
+         pybind11::arg("value"))
+    .def("setAttrs",
+         static_cast<void(org::imm::ImmCallValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmCallValue::setAttrs),
+         pybind11::arg("value"))
+    .def("setIscommand",
+         static_cast<void(org::imm::ImmCallValue::*)(bool const&)>(&org::imm::ImmCallValue::setIscommand),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmListValueRead>(m, "ImmListValueRead")
+    ;
+  pybind11::class_<org::imm::ImmListValue, org::imm::ImmListValueRead>(m, "ImmListValue")
+    ;
+  pybind11::class_<org::imm::ImmListItemValueRead>(m, "ImmListItemValueRead")
+    .def("getCheckbox", static_cast<org::imm::ImmListItem::Checkbox const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getCheckbox))
+    .def("getHeader", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getHeader))
+    .def("getBullet", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getBullet))
+    ;
+  pybind11::class_<org::imm::ImmListItemValue, org::imm::ImmListItemValueRead>(m, "ImmListItemValue")
+    .def("setCheckbox",
+         static_cast<void(org::imm::ImmListItemValue::*)(org::imm::ImmListItem::Checkbox const&)>(&org::imm::ImmListItemValue::setCheckbox),
+         pybind11::arg("value"))
+    .def("setHeader",
+         static_cast<void(org::imm::ImmListItemValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmListItemValue::setHeader),
+         pybind11::arg("value"))
+    .def("setBullet",
+         static_cast<void(org::imm::ImmListItemValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmListItemValue::setBullet),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmDocumentOptionsValueRead>(m, "ImmDocumentOptionsValueRead")
+    .def("getInitialvisibility", static_cast<InitialSubtreeVisibility const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getInitialvisibility))
+    .def("getProperties", static_cast<immer::flex_vector<org::sem::NamedProperty> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getProperties))
+    .def("getExportconfig", static_cast<org::sem::DocumentExportConfig const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getExportconfig))
+    .def("getFixedwidthsections", static_cast<immer::box<std::optional<bool>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getFixedwidthsections))
+    .def("getStartupindented", static_cast<immer::box<std::optional<bool>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getStartupindented))
+    .def("getCategory", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getCategory))
+    .def("getSetupfile", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getSetupfile))
+    .def("getMaxsubtreelevelexport", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getMaxsubtreelevelexport))
+    .def("getColumns", static_cast<immer::box<std::optional<org::sem::ColumnView>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getColumns))
+    ;
+  pybind11::class_<org::imm::ImmDocumentOptionsValue, org::imm::ImmDocumentOptionsValueRead>(m, "ImmDocumentOptionsValue")
+    .def("setInitialvisibility",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(InitialSubtreeVisibility const&)>(&org::imm::ImmDocumentOptionsValue::setInitialvisibility),
+         pybind11::arg("value"))
+    .def("setProperties",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::flex_vector<org::sem::NamedProperty> const&)>(&org::imm::ImmDocumentOptionsValue::setProperties),
+         pybind11::arg("value"))
+    .def("setExportconfig",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(org::sem::DocumentExportConfig const&)>(&org::imm::ImmDocumentOptionsValue::setExportconfig),
+         pybind11::arg("value"))
+    .def("setFixedwidthsections",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<bool>> const&)>(&org::imm::ImmDocumentOptionsValue::setFixedwidthsections),
+         pybind11::arg("value"))
+    .def("setStartupindented",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<bool>> const&)>(&org::imm::ImmDocumentOptionsValue::setStartupindented),
+         pybind11::arg("value"))
+    .def("setCategory",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmDocumentOptionsValue::setCategory),
+         pybind11::arg("value"))
+    .def("setSetupfile",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmDocumentOptionsValue::setSetupfile),
+         pybind11::arg("value"))
+    .def("setMaxsubtreelevelexport",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmDocumentOptionsValue::setMaxsubtreelevelexport),
+         pybind11::arg("value"))
+    .def("setColumns",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<org::sem::ColumnView>> const&)>(&org::imm::ImmDocumentOptionsValue::setColumns),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmDocumentFragmentValueRead>(m, "ImmDocumentFragmentValueRead")
+    .def("getBaseline", static_cast<int const&(org::imm::ImmDocumentFragmentValueRead::*)() const>(&org::imm::ImmDocumentFragmentValueRead::getBaseline))
+    .def("getBasecol", static_cast<int const&(org::imm::ImmDocumentFragmentValueRead::*)() const>(&org::imm::ImmDocumentFragmentValueRead::getBasecol))
+    ;
+  pybind11::class_<org::imm::ImmDocumentFragmentValue, org::imm::ImmDocumentFragmentValueRead>(m, "ImmDocumentFragmentValue")
+    .def("setBaseline",
+         static_cast<void(org::imm::ImmDocumentFragmentValue::*)(int const&)>(&org::imm::ImmDocumentFragmentValue::setBaseline),
+         pybind11::arg("value"))
+    .def("setBasecol",
+         static_cast<void(org::imm::ImmDocumentFragmentValue::*)(int const&)>(&org::imm::ImmDocumentFragmentValue::setBasecol),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCriticMarkupValueRead>(m, "ImmCriticMarkupValueRead")
+    .def("getKind", static_cast<org::imm::ImmCriticMarkup::Kind const&(org::imm::ImmCriticMarkupValueRead::*)() const>(&org::imm::ImmCriticMarkupValueRead::getKind))
+    ;
+  pybind11::class_<org::imm::ImmCriticMarkupValue, org::imm::ImmCriticMarkupValueRead>(m, "ImmCriticMarkupValue")
+    .def("setKind",
+         static_cast<void(org::imm::ImmCriticMarkupValue::*)(org::imm::ImmCriticMarkup::Kind const&)>(&org::imm::ImmCriticMarkupValue::setKind),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmDocumentValueRead>(m, "ImmDocumentValueRead")
+    .def("getTitle", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getTitle))
+    .def("getAuthor", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getAuthor))
+    .def("getCreator", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getCreator))
+    .def("getFiletags", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getFiletags))
+    .def("getEmail", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getEmail))
+    .def("getLanguage", static_cast<immer::flex_vector<hstd::Str> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getLanguage))
+    .def("getOptions", static_cast<org::imm::ImmIdT<org::imm::ImmDocumentOptions> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getOptions))
+    .def("getExportfilename", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getExportfilename))
+    ;
+  pybind11::class_<org::imm::ImmDocumentValue, org::imm::ImmDocumentValueRead>(m, "ImmDocumentValue")
+    .def("setTitle",
+         static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmDocumentValue::setTitle),
+         pybind11::arg("value"))
+    .def("setAuthor",
+         static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmDocumentValue::setAuthor),
+         pybind11::arg("value"))
+    .def("setCreator",
+         static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmDocumentValue::setCreator),
+         pybind11::arg("value"))
+    .def("setFiletags",
+         static_cast<void(org::imm::ImmDocumentValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>> const&)>(&org::imm::ImmDocumentValue::setFiletags),
+         pybind11::arg("value"))
+    .def("setEmail",
+         static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>> const&)>(&org::imm::ImmDocumentValue::setEmail),
+         pybind11::arg("value"))
+    .def("setLanguage",
+         static_cast<void(org::imm::ImmDocumentValue::*)(immer::flex_vector<hstd::Str> const&)>(&org::imm::ImmDocumentValue::setLanguage),
+         pybind11::arg("value"))
+    .def("setOptions",
+         static_cast<void(org::imm::ImmDocumentValue::*)(org::imm::ImmIdT<org::imm::ImmDocumentOptions> const&)>(&org::imm::ImmDocumentValue::setOptions),
+         pybind11::arg("value"))
+    .def("setExportfilename",
+         static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmDocumentValue::setExportfilename),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmFileTargetValueRead>(m, "ImmFileTargetValueRead")
+    .def("getPath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getPath))
+    .def("getLine", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getLine))
+    .def("getSearchtarget", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getSearchtarget))
+    .def("getRestricttoheadlines", static_cast<bool const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getRestricttoheadlines))
+    .def("getTargetid", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getTargetid))
+    .def("getRegexp", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getRegexp))
+    ;
+  pybind11::class_<org::imm::ImmFileTargetValue, org::imm::ImmFileTargetValueRead>(m, "ImmFileTargetValue")
+    .def("setPath",
+         static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmFileTargetValue::setPath),
+         pybind11::arg("value"))
+    .def("setLine",
+         static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmFileTargetValue::setLine),
+         pybind11::arg("value"))
+    .def("setSearchtarget",
+         static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmFileTargetValue::setSearchtarget),
+         pybind11::arg("value"))
+    .def("setRestricttoheadlines",
+         static_cast<void(org::imm::ImmFileTargetValue::*)(bool const&)>(&org::imm::ImmFileTargetValue::setRestricttoheadlines),
+         pybind11::arg("value"))
+    .def("setTargetid",
+         static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmFileTargetValue::setTargetid),
+         pybind11::arg("value"))
+    .def("setRegexp",
+         static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmFileTargetValue::setRegexp),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmTextSeparatorValueRead>(m, "ImmTextSeparatorValueRead")
+    ;
+  pybind11::class_<org::imm::ImmTextSeparatorValue, org::imm::ImmTextSeparatorValueRead>(m, "ImmTextSeparatorValue")
+    ;
+  pybind11::class_<org::imm::ImmDocumentGroupValueRead>(m, "ImmDocumentGroupValueRead")
+    ;
+  pybind11::class_<org::imm::ImmDocumentGroupValue, org::imm::ImmDocumentGroupValueRead>(m, "ImmDocumentGroupValue")
+    ;
+  pybind11::class_<org::imm::ImmFileValueRead>(m, "ImmFileValueRead")
+    .def("getRelpath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmFileValueRead::*)() const>(&org::imm::ImmFileValueRead::getRelpath))
+    .def("getAbspath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmFileValueRead::*)() const>(&org::imm::ImmFileValueRead::getAbspath))
+    .def("getData", static_cast<org::imm::ImmFile::Data const&(org::imm::ImmFileValueRead::*)() const>(&org::imm::ImmFileValueRead::getData))
+    ;
+  pybind11::class_<org::imm::ImmFileValue, org::imm::ImmFileValueRead>(m, "ImmFileValue")
+    .def("setRelpath",
+         static_cast<void(org::imm::ImmFileValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmFileValue::setRelpath),
+         pybind11::arg("value"))
+    .def("setAbspath",
+         static_cast<void(org::imm::ImmFileValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmFileValue::setAbspath),
+         pybind11::arg("value"))
+    .def("setData",
+         static_cast<void(org::imm::ImmFileValue::*)(org::imm::ImmFile::Data const&)>(&org::imm::ImmFileValue::setData),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmDirectoryValueRead>(m, "ImmDirectoryValueRead")
+    .def("getRelpath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmDirectoryValueRead::*)() const>(&org::imm::ImmDirectoryValueRead::getRelpath))
+    .def("getAbspath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmDirectoryValueRead::*)() const>(&org::imm::ImmDirectoryValueRead::getAbspath))
+    ;
+  pybind11::class_<org::imm::ImmDirectoryValue, org::imm::ImmDirectoryValueRead>(m, "ImmDirectoryValue")
+    .def("setRelpath",
+         static_cast<void(org::imm::ImmDirectoryValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmDirectoryValue::setRelpath),
+         pybind11::arg("value"))
+    .def("setAbspath",
+         static_cast<void(org::imm::ImmDirectoryValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmDirectoryValue::setAbspath),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmSymlinkValueRead>(m, "ImmSymlinkValueRead")
+    .def("getIsdirectory", static_cast<bool const&(org::imm::ImmSymlinkValueRead::*)() const>(&org::imm::ImmSymlinkValueRead::getIsdirectory))
+    .def("getAbspath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmSymlinkValueRead::*)() const>(&org::imm::ImmSymlinkValueRead::getAbspath))
+    ;
+  pybind11::class_<org::imm::ImmSymlinkValue, org::imm::ImmSymlinkValueRead>(m, "ImmSymlinkValue")
+    .def("setIsdirectory",
+         static_cast<void(org::imm::ImmSymlinkValue::*)(bool const&)>(&org::imm::ImmSymlinkValue::setIsdirectory),
+         pybind11::arg("value"))
+    .def("setAbspath",
+         static_cast<void(org::imm::ImmSymlinkValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmSymlinkValue::setAbspath),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmCmdIncludeValueRead>(m, "ImmCmdIncludeValueRead")
+    .def("getPath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getPath))
+    .def("getFirstline", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getFirstline))
+    .def("getLastline", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getLastline))
+    .def("getData", static_cast<org::imm::ImmCmdInclude::Data const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getData))
+    ;
+  pybind11::class_<org::imm::ImmCmdIncludeValue, org::imm::ImmCmdIncludeValueRead>(m, "ImmCmdIncludeValue")
+    .def("setPath",
+         static_cast<void(org::imm::ImmCmdIncludeValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdIncludeValue::setPath),
+         pybind11::arg("value"))
+    .def("setFirstline",
+         static_cast<void(org::imm::ImmCmdIncludeValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmCmdIncludeValue::setFirstline),
+         pybind11::arg("value"))
+    .def("setLastline",
+         static_cast<void(org::imm::ImmCmdIncludeValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmCmdIncludeValue::setLastline),
+         pybind11::arg("value"))
+    .def("setData",
+         static_cast<void(org::imm::ImmCmdIncludeValue::*)(org::imm::ImmCmdInclude::Data const&)>(&org::imm::ImmCmdIncludeValue::setData),
+         pybind11::arg("value"))
+    ;
+  pybind11::class_<org::imm::ImmAstContext, std::shared_ptr<org::imm::ImmAstContext>>(m, "ImmAstContext")
+    .def("addRoot",
+         static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)(org::sem::SemId<org::sem::Org>)>(&org::imm::ImmAstContext::addRoot),
+         pybind11::arg("data"))
+    .def("get",
+         static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId)>(&org::imm::ImmAstContext::get),
+         pybind11::arg("id"))
+    ;
+  pybind11::class_<org::imm::ImmAstVersion>(m, "ImmAstVersion")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmAstVersion {
+                        org::imm::ImmAstVersion result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("getRoot", static_cast<org::imm::ImmId(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRoot))
+    .def("getRootAdapter", static_cast<org::imm::ImmAdapter(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRootAdapter))
+    .def("getContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getContext))
+    .def("__repr__", [](org::imm::ImmAstVersion _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAstVersion _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmAdapter>(m, "ImmAdapter")
+    .def("size", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::size))
+    .def("isNil", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isNil))
+    .def("isRoot", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isRoot))
+    .def("getKind", static_cast<OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
+    .def("uniq", static_cast<org::imm::ImmUniqId(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::uniq))
+    .def("treeReprString", static_cast<std::string(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::treeReprString))
+    .def("treeReprStringOpts",
+         static_cast<std::string(org::imm::ImmAdapter::*)(org::imm::ImmAdapter::TreeReprConf const&) const>(&org::imm::ImmAdapter::treeReprStringOpts),
+         pybind11::arg("conf"))
+    .def("isDirectParentOf",
+         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isDirectParentOf),
+         pybind11::arg("other"))
+    .def("isIndirectParentOf",
+         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isIndirectParentOf),
+         pybind11::arg("other"))
+    .def("isSubnodeOf",
+         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isSubnodeOf),
+         pybind11::arg("other"))
+    .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
+    .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at),
+         pybind11::arg("id"),
+         pybind11::arg("idx"))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
+         pybind11::arg("field"))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at),
+         pybind11::arg("idx"),
+         pybind11::arg_v("withPath", 1))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at),
+         pybind11::arg("path"),
+         pybind11::arg_v("withPath", 1))
+    .def("is_",
+         static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is),
+         pybind11::arg("kind"))
+    .def("sub",
+         static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub),
+         pybind11::arg_v("withPath", 1))
+    ;
+  pybind11::class_<org::imm::ImmAdapter::TreeReprConf>(m, "ImmAdapterTreeReprConf")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmAdapter::TreeReprConf {
+                        org::imm::ImmAdapter::TreeReprConf result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth)
+    .def_readwrite("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields)
+    .def_readwrite("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields)
+    .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAdapter::TreeReprConf _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterVirtualBase")
+    ;
+  pybind11::class_<org::imm::ImmAdapterOrgAPI, org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterOrgAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterStmtAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterStmtAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterCmdAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterSubtreeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSubtreeAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterNoneAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterNoneAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterAttrAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterAttrAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterAttrListAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterAttrListAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterAttrsAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterAttrsAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterErrorItemAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorItemAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterErrorGroupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorGroupAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterStmtListAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterStmtListAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterEmptyAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterEmptyAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterLineCommandAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterLineCommandAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterAttachedAPI, org::imm::ImmAdapterLineCommandAPI>(m, "ImmAdapterAttachedAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdCaptionAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdCaptionAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdColumnsAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdColumnsAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdNameAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdNameAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdCallAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdCallAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdCustomArgsAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdCustomArgsAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdCustomRawAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterCmdCustomRawAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdCustomTextAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterCmdCustomTextAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdResultsAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdResultsAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdTblfmAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdTblfmAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterInlineAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterInlineAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterHashTagAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterHashTagAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterInlineFootnoteAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterInlineFootnoteAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterTimeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterTimeAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterTimeRangeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterTimeRangeAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterMacroAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterMacroAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterSymbolAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSymbolAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterLeafAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterLeafAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterEscapedAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterEscapedAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterNewlineAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterNewlineAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterSpaceAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterSpaceAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterWordAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterWordAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterAtMentionAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterAtMentionAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterRawTextAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterRawTextAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterPunctuationAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterPunctuationAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterPlaceholderAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterPlaceholderAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBigIdentAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterBigIdentAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterTextTargetAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterTextTargetAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterMarkupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterMarkupAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBoldAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterBoldAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterUnderlineAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterUnderlineAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterMonospaceAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterMonospaceAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterMarkQuoteAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterMarkQuoteAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterRadioTargetAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterRadioTargetAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterVerbatimAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterVerbatimAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterItalicAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterItalicAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterStrikeAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterStrikeAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterParAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterParAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterLatexAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterLatexAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterLinkAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterLinkAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterBlockAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockCenterAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockCenterAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockQuoteAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockQuoteAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockCommentAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterBlockCommentAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockVerseAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockVerseAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockExampleAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockExampleAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterInlineExportAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterInlineExportAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdExportAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterCmdExportAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockExportAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockExportAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockDynamicFallbackAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockDynamicFallbackAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockAdmonitionAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockAdmonitionAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockCodeEvalResultAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockCodeEvalResultAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterBlockCodeAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockCodeAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterSubtreeLogAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSubtreeLogAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterSubtreeCompletionAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterSubtreeCompletionAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCellAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCellAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterRowAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterRowAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterTableAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterTableAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterParagraphAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterParagraphAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterColonExampleAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterColonExampleAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdAttrAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdAttrAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCallAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterCallAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterFileAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterFileAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterDirectoryAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDirectoryAPI")
+    .def("getFsSubnode",
+         static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode),
+         pybind11::arg("name"),
+         pybind11::arg_v("withPath", 1))
+    ;
+  pybind11::class_<org::imm::ImmAdapterSymlinkAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSymlinkAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterDocumentFragmentAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDocumentFragmentAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCriticMarkupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterCriticMarkupAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterListAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterListAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterListItemAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterListItemAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterDocumentOptionsAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDocumentOptionsAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterDocumentAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDocumentAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterFileTargetAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterFileTargetAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterTextSeparatorAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterTextSeparatorAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdIncludeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterCmdIncludeAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterDocumentGroupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDocumentGroupAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmNone>, org::imm::ImmAdapterNoneAPI>(m, "ImmNoneAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmNoneValueRead(org::imm::ImmAdapterT<org::imm::ImmNone>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNone>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmErrorItem>, org::imm::ImmAdapterErrorItemAPI>(m, "ImmErrorItemAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmErrorItemValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorItem>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>, org::imm::ImmAdapterErrorGroupAPI>(m, "ImmErrorGroupAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmErrorGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmStmtList>, org::imm::ImmAdapterStmtListAPI>(m, "ImmStmtListAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmStmtListValueRead(org::imm::ImmAdapterT<org::imm::ImmStmtList>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStmtList>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmEmpty>, org::imm::ImmAdapterEmptyAPI>(m, "ImmEmptyAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmEmptyValueRead(org::imm::ImmAdapterT<org::imm::ImmEmpty>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmEmpty>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>, org::imm::ImmAdapterCmdCaptionAPI>(m, "ImmCmdCaptionAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdCaptionValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>, org::imm::ImmAdapterCmdColumnsAPI>(m, "ImmCmdColumnsAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdColumnsValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdName>, org::imm::ImmAdapterCmdNameAPI>(m, "ImmCmdNameAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdNameValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdName>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdName>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>, org::imm::ImmAdapterCmdCustomArgsAPI>(m, "ImmCmdCustomArgsAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdCustomArgsValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>, org::imm::ImmAdapterCmdCustomRawAPI>(m, "ImmCmdCustomRawAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdCustomRawValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>, org::imm::ImmAdapterCmdCustomTextAPI>(m, "ImmCmdCustomTextAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdCustomTextValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCall>, org::imm::ImmAdapterCmdCallAPI>(m, "ImmCmdCallAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdCallValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>, org::imm::ImmAdapterCmdTblfmAPI>(m, "ImmCmdTblfmAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdTblfmValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmHashTag>, org::imm::ImmAdapterHashTagAPI>(m, "ImmHashTagAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmHashTagValueRead(org::imm::ImmAdapterT<org::imm::ImmHashTag>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmHashTag>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>, org::imm::ImmAdapterInlineFootnoteAPI>(m, "ImmInlineFootnoteAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmInlineFootnoteValueRead(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmInlineExport>, org::imm::ImmAdapterInlineExportAPI>(m, "ImmInlineExportAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmInlineExportValueRead(org::imm::ImmAdapterT<org::imm::ImmInlineExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineExport>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmTime>, org::imm::ImmAdapterTimeAPI>(m, "ImmTimeAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmTimeValueRead(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmTimeRange>, org::imm::ImmAdapterTimeRangeAPI>(m, "ImmTimeRangeAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmTimeRangeValueRead(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmMacro>, org::imm::ImmAdapterMacroAPI>(m, "ImmMacroAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmMacroValueRead(org::imm::ImmAdapterT<org::imm::ImmMacro>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMacro>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmSymbol>, org::imm::ImmAdapterSymbolAPI>(m, "ImmSymbolAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmSymbolValueRead(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmEscaped>, org::imm::ImmAdapterEscapedAPI>(m, "ImmEscapedAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmEscapedValueRead(org::imm::ImmAdapterT<org::imm::ImmEscaped>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmEscaped>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmNewline>, org::imm::ImmAdapterNewlineAPI>(m, "ImmNewlineAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmNewlineValueRead(org::imm::ImmAdapterT<org::imm::ImmNewline>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNewline>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmSpace>, org::imm::ImmAdapterSpaceAPI>(m, "ImmSpaceAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmSpaceValueRead(org::imm::ImmAdapterT<org::imm::ImmSpace>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSpace>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmWord>, org::imm::ImmAdapterWordAPI>(m, "ImmWordAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmWordValueRead(org::imm::ImmAdapterT<org::imm::ImmWord>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmWord>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmAtMention>, org::imm::ImmAdapterAtMentionAPI>(m, "ImmAtMentionAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmAtMentionValueRead(org::imm::ImmAdapterT<org::imm::ImmAtMention>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmAtMention>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmRawText>, org::imm::ImmAdapterRawTextAPI>(m, "ImmRawTextAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmRawTextValueRead(org::imm::ImmAdapterT<org::imm::ImmRawText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRawText>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmPunctuation>, org::imm::ImmAdapterPunctuationAPI>(m, "ImmPunctuationAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmPunctuationValueRead(org::imm::ImmAdapterT<org::imm::ImmPunctuation>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPunctuation>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>, org::imm::ImmAdapterPlaceholderAPI>(m, "ImmPlaceholderAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmPlaceholderValueRead(org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBigIdent>, org::imm::ImmAdapterBigIdentAPI>(m, "ImmBigIdentAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBigIdentValueRead(org::imm::ImmAdapterT<org::imm::ImmBigIdent>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBigIdent>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmTextTarget>, org::imm::ImmAdapterTextTargetAPI>(m, "ImmTextTargetAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmTextTargetValueRead(org::imm::ImmAdapterT<org::imm::ImmTextTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTextTarget>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBold>, org::imm::ImmAdapterBoldAPI>(m, "ImmBoldAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBoldValueRead(org::imm::ImmAdapterT<org::imm::ImmBold>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBold>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmUnderline>, org::imm::ImmAdapterUnderlineAPI>(m, "ImmUnderlineAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmUnderlineValueRead(org::imm::ImmAdapterT<org::imm::ImmUnderline>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmUnderline>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmMonospace>, org::imm::ImmAdapterMonospaceAPI>(m, "ImmMonospaceAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmMonospaceValueRead(org::imm::ImmAdapterT<org::imm::ImmMonospace>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMonospace>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>, org::imm::ImmAdapterMarkQuoteAPI>(m, "ImmMarkQuoteAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmMarkQuoteValueRead(org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmVerbatim>, org::imm::ImmAdapterVerbatimAPI>(m, "ImmVerbatimAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmVerbatimValueRead(org::imm::ImmAdapterT<org::imm::ImmVerbatim>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmVerbatim>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmItalic>, org::imm::ImmAdapterItalicAPI>(m, "ImmItalicAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmItalicValueRead(org::imm::ImmAdapterT<org::imm::ImmItalic>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmItalic>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmStrike>, org::imm::ImmAdapterStrikeAPI>(m, "ImmStrikeAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmStrikeValueRead(org::imm::ImmAdapterT<org::imm::ImmStrike>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStrike>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmPar>, org::imm::ImmAdapterParAPI>(m, "ImmParAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmParValueRead(org::imm::ImmAdapterT<org::imm::ImmPar>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPar>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>, org::imm::ImmAdapterRadioTargetAPI>(m, "ImmRadioTargetAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmRadioTargetValueRead(org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmLatex>, org::imm::ImmAdapterLatexAPI>(m, "ImmLatexAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmLatexValueRead(org::imm::ImmAdapterT<org::imm::ImmLatex>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLatex>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmLink>, org::imm::ImmAdapterLinkAPI>(m, "ImmLinkAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmLinkValueRead(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>, org::imm::ImmAdapterBlockCenterAPI>(m, "ImmBlockCenterAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockCenterValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>, org::imm::ImmAdapterBlockQuoteAPI>(m, "ImmBlockQuoteAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockQuoteValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, org::imm::ImmAdapterBlockCommentAPI>(m, "ImmBlockCommentAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockCommentValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockComment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockComment>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>, org::imm::ImmAdapterBlockVerseAPI>(m, "ImmBlockVerseAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockVerseValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>, org::imm::ImmAdapterBlockDynamicFallbackAPI>(m, "ImmBlockDynamicFallbackAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockDynamicFallbackValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockExample>, org::imm::ImmAdapterBlockExampleAPI>(m, "ImmBlockExampleAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockExampleValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockExample>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockExample>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockExport>, org::imm::ImmAdapterBlockExportAPI>(m, "ImmBlockExportAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockExportValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockExport>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>, org::imm::ImmAdapterBlockAdmonitionAPI>(m, "ImmBlockAdmonitionAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockAdmonitionValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmAdapterBlockCodeEvalResultAPI>(m, "ImmBlockCodeEvalResultAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockCodeEvalResultValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCode>, org::imm::ImmAdapterBlockCodeAPI>(m, "ImmBlockCodeAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmBlockCodeValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>, org::imm::ImmAdapterSubtreeLogAPI>(m, "ImmSubtreeLogAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmSubtreeLogValueRead(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::imm::ImmAdapterSubtreeAPI>(m, "ImmSubtreeAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmSubtreeValueRead(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCell>, org::imm::ImmAdapterCellAPI>(m, "ImmCellAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCellValueRead(org::imm::ImmAdapterT<org::imm::ImmCell>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCell>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmRow>, org::imm::ImmAdapterRowAPI>(m, "ImmRowAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmRowValueRead(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmTable>, org::imm::ImmAdapterTableAPI>(m, "ImmTableAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmTableValueRead(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmParagraph>, org::imm::ImmAdapterParagraphAPI>(m, "ImmParagraphAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmParagraphValueRead(org::imm::ImmAdapterT<org::imm::ImmParagraph>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmParagraph>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmColonExample>, org::imm::ImmAdapterColonExampleAPI>(m, "ImmColonExampleAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmColonExampleValueRead(org::imm::ImmAdapterT<org::imm::ImmColonExample>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmColonExample>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>, org::imm::ImmAdapterCmdAttrAPI>(m, "ImmCmdAttrAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdAttrValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdExport>, org::imm::ImmAdapterCmdExportAPI>(m, "ImmCmdExportAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdExportValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdExport>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCall>, org::imm::ImmAdapterCallAPI>(m, "ImmCallAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCallValueRead(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmList>, org::imm::ImmAdapterListAPI>(m, "ImmListAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmListValueRead(org::imm::ImmAdapterT<org::imm::ImmList>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmList>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmListItem>, org::imm::ImmAdapterListItemAPI>(m, "ImmListItemAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmListItemValueRead(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>, org::imm::ImmAdapterDocumentOptionsAPI>(m, "ImmDocumentOptionsAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmDocumentOptionsValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>, org::imm::ImmAdapterDocumentFragmentAPI>(m, "ImmDocumentFragmentAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmDocumentFragmentValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>, org::imm::ImmAdapterCriticMarkupAPI>(m, "ImmCriticMarkupAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCriticMarkupValueRead(org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmDocument>, org::imm::ImmAdapterDocumentAPI>(m, "ImmDocumentAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmDocumentValueRead(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmFileTarget>, org::imm::ImmAdapterFileTargetAPI>(m, "ImmFileTargetAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmFileTargetValueRead(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>, org::imm::ImmAdapterTextSeparatorAPI>(m, "ImmTextSeparatorAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmTextSeparatorValueRead(org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>, org::imm::ImmAdapterDocumentGroupAPI>(m, "ImmDocumentGroupAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmDocumentGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmFile>, org::imm::ImmAdapterFileAPI>(m, "ImmFileAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmFileValueRead(org::imm::ImmAdapterT<org::imm::ImmFile>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFile>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmDirectory>, org::imm::ImmAdapterDirectoryAPI>(m, "ImmDirectoryAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmDirectoryValueRead(org::imm::ImmAdapterT<org::imm::ImmDirectory>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDirectory>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmSymlink>, org::imm::ImmAdapterSymlinkAPI>(m, "ImmSymlinkAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmSymlinkValueRead(org::imm::ImmAdapterT<org::imm::ImmSymlink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymlink>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>, org::imm::ImmAdapterCmdIncludeAPI>(m, "ImmCmdIncludeAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdIncludeValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getValue))
+    ;
+  pybind11::class_<org::OrgParseFragment>(m, "OrgParseFragment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::OrgParseFragment {
+                        org::OrgParseFragment result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("baseLine", &org::OrgParseFragment::baseLine)
+    .def_readwrite("baseCol", &org::OrgParseFragment::baseCol)
+    .def_readwrite("text", &org::OrgParseFragment::text)
+    .def("__repr__", [](org::OrgParseFragment _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::OrgParseFragment _self, std::string name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -5860,6 +7758,231 @@ and a segment kind.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::graph::MapLink>(m, "graphMapLink")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapLink {
+                        org::graph::MapLink result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapLink _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapLink _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapLink::Link>(m, "graphMapLinkLink")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapLink::Link {
+                        org::graph::MapLink::Link result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapLink::Link _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapLink::Link _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapLink::Radio>(m, "graphMapLinkRadio")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapLink::Radio {
+                        org::graph::MapLink::Radio result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapLink::Radio _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapLink::Radio _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapNodeProp>(m, "graphMapNodeProp")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapNodeProp {
+                        org::graph::MapNodeProp result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("id", &org::graph::MapNodeProp::id)
+    .def_readwrite("unresolved", &org::graph::MapNodeProp::unresolved)
+    .def("getSubtreeId", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)() const>(&org::graph::MapNodeProp::getSubtreeId))
+    .def("getFootnoteName", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)() const>(&org::graph::MapNodeProp::getFootnoteName))
+    .def("__repr__", [](org::graph::MapNodeProp _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapNodeProp _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapEdgeProp>(m, "graphMapEdgeProp")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapEdgeProp {
+                        org::graph::MapEdgeProp result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("link", &org::graph::MapEdgeProp::link)
+    .def("__repr__", [](org::graph::MapEdgeProp _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapEdgeProp _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapNode>(m, "graphMapNode")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapNode {
+                        org::graph::MapNode result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("id", &org::graph::MapNode::id)
+    .def("__eq__",
+         static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator==),
+         pybind11::arg("other"))
+    .def("__lt__",
+         static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator<),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::graph::MapNode _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapNode _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapEdge>(m, "graphMapEdge")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapEdge {
+                        org::graph::MapEdge result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("source", &org::graph::MapEdge::source)
+    .def_readwrite("target", &org::graph::MapEdge::target)
+    .def("__repr__", [](org::graph::MapEdge _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapEdge _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapGraph>(m, "graphMapGraph")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapGraph {
+                        org::graph::MapGraph result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("nodeProps", &org::graph::MapGraph::nodeProps)
+    .def_readwrite("edgeProps", &org::graph::MapGraph::edgeProps)
+    .def_readwrite("adjList", &org::graph::MapGraph::adjList)
+    .def_readwrite("adjListIn", &org::graph::MapGraph::adjListIn)
+    .def("nodeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::nodeCount))
+    .def("edgeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::edgeCount))
+    .def("outNodes",
+         static_cast<org::graph::AdjNodesList const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outNodes),
+         pybind11::arg("node"))
+    .def("inNodes",
+         static_cast<org::graph::AdjNodesList const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inNodes),
+         pybind11::arg("node"))
+    .def("adjEdges",
+         static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::adjEdges),
+         pybind11::arg("node"))
+    .def("adjNodes",
+         static_cast<hstd::Vec<org::graph::MapNode>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::adjNodes),
+         pybind11::arg("node"))
+    .def("outEdges",
+         static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outEdges),
+         pybind11::arg("node"))
+    .def("inEdges",
+         static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inEdges),
+         pybind11::arg("node"))
+    .def("outDegree",
+         static_cast<int(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outDegree),
+         pybind11::arg("node"))
+    .def("inDegree",
+         static_cast<int(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inDegree),
+         pybind11::arg("node"))
+    .def("isRegisteredNode",
+         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::isRegisteredNode),
+         pybind11::arg("id"))
+    .def("isRegisteredNode",
+         static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmUniqId const&) const>(&org::graph::MapGraph::isRegisteredNode),
+         pybind11::arg("id"))
+    .def("at",
+         static_cast<org::graph::MapNodeProp const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::at),
+         pybind11::arg("node"))
+    .def("at",
+         static_cast<org::graph::MapEdgeProp const&(org::graph::MapGraph::*)(org::graph::MapEdge const&) const>(&org::graph::MapGraph::at),
+         pybind11::arg("edge"))
+    .def("addEdge",
+         static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&)>(&org::graph::MapGraph::addEdge),
+         pybind11::arg("edge"))
+    .def("addEdge",
+         static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&, org::graph::MapEdgeProp const&)>(&org::graph::MapGraph::addEdge),
+         pybind11::arg("edge"),
+         pybind11::arg("prop"))
+    .def("addNode",
+         static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&)>(&org::graph::MapGraph::addNode),
+         pybind11::arg("node"),
+         R"RAW(\brief Add node to the graph, without registering any outgoing or
+ingoing elements.)RAW")
+    .def("addNode",
+         static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&, org::graph::MapNodeProp const&)>(&org::graph::MapGraph::addNode),
+         pybind11::arg("node"),
+         pybind11::arg("prop"))
+    .def("hasEdge",
+         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&, org::graph::MapNode const&) const>(&org::graph::MapGraph::hasEdge),
+         pybind11::arg("source"),
+         pybind11::arg("target"))
+    .def("hasNode",
+         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::hasNode),
+         pybind11::arg("node"))
+    .def("hasEdge",
+         static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmAdapter const&, org::imm::ImmAdapter const&) const>(&org::graph::MapGraph::hasEdge),
+         pybind11::arg("source"),
+         pybind11::arg("target"))
+    .def("__repr__", [](org::graph::MapGraph _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapGraph _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapConfig, hstd::OperationsTracer>(m, "graphMapConfig")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapConfig {
+                        org::graph::MapConfig result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapConfig _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapConfig _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::graph::MapGraphState, std::shared_ptr<org::graph::MapGraphState>>(m, "graphMapGraphState")
+    .def_readwrite("graph", &org::graph::MapGraphState::graph)
+    .def_readwrite("ast", &org::graph::MapGraphState::ast)
+    .def_static("FromAstContextStatic",
+                static_cast<org::graph::MapGraphState(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext),
+                pybind11::arg("ast"))
+    ;
   pybind11::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::PyCodeEvalParameters {
                         org::bind::python::PyCodeEvalParameters result{};
@@ -6000,10 +8123,19 @@ and a segment kind.)RAW")
     .value("Single", org::AstTrackingGroup::Kind::Single)
     .value("TrackedHashtag", org::AstTrackingGroup::Kind::TrackedHashtag)
     .def("__iter__", [](org::AstTrackingGroup::Kind _self) -> org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind>();
                      })
+    .def("__eq__",
+         [](org::AstTrackingGroup::Kind _self, org::AstTrackingGroup::Kind lhs, org::AstTrackingGroup::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::AstTrackingGroup::Kind _self, org::AstTrackingGroup::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<org::bind::python::LeafFieldType>(m, "LeafFieldType", type_registry_guard);
   pybind11::enum_<org::bind::python::LeafFieldType>(m, "LeafFieldType")
@@ -6017,10 +8149,19 @@ and a segment kind.)RAW")
     .value("Str", org::bind::python::LeafFieldType::Str)
     .value("Any", org::bind::python::LeafFieldType::Any)
     .def("__iter__", [](org::bind::python::LeafFieldType _self) -> org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType> {
-                     return
-                     org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType>
-                     ();
+                     return org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType>();
                      })
+    .def("__eq__",
+         [](org::bind::python::LeafFieldType _self, org::bind::python::LeafFieldType lhs, org::bind::python::LeafFieldType rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::bind::python::LeafFieldType _self, org::bind::python::LeafFieldType it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   m.def("newSemTimeStatic",
         static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic),
@@ -6045,6 +8186,7 @@ and a segment kind.)RAW")
         static_cast<org::sem::SemId<org::sem::File>(*)(std::string const&, org::OrgDirectoryParseParameters const&)>(&org::parseFileWithIncludes),
         pybind11::arg("file"),
         pybind11::arg("opts"));
+  m.def("initImmutableAstContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(*)()>(&org::initImmutableAstContext));
   m.def("asOneNode",
         static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::OrgArg)>(&org::asOneNode),
         pybind11::arg("arg"));
@@ -6095,6 +8237,31 @@ and a segment kind.)RAW")
         pybind11::arg("groups"),
         pybind11::arg("first"),
         pybind11::arg("last"));
+  m.def("registerNode",
+        static_cast<void(*)(org::graph::MapGraphState&, org::graph::MapNodeProp const&, org::graph::MapConfig&)>(&org::graph::registerNode),
+        pybind11::arg("s"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
+  m.def("addNode",
+        static_cast<void(*)(org::graph::MapGraphState&, org::imm::ImmAdapter const&, org::graph::MapConfig&)>(&org::graph::addNode),
+        pybind11::arg("g"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
+  m.def("addNodeRec",
+        static_cast<void(*)(org::graph::MapGraphState&, org::imm::ImmAdapter const&, org::graph::MapConfig&)>(&org::graph::addNodeRec),
+        pybind11::arg("g"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
+  m.def("getUnresolvedSubtreeLinks",
+        static_cast<hstd::Vec<org::graph::MapLink>(*)(org::graph::MapGraphState const&, org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::graph::MapConfig&)>(&org::graph::getUnresolvedSubtreeLinks),
+        pybind11::arg("s"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
+  m.def("getUnresolvedLink",
+        static_cast<std::optional<org::graph::MapLink>(*)(org::graph::MapGraphState const&, org::imm::ImmAdapterT<org::imm::ImmLink>, org::graph::MapConfig&)>(&org::graph::getUnresolvedLink),
+        pybind11::arg("s"),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRec),
         pybind11::arg("node"),
@@ -6115,5 +8282,169 @@ and a segment kind.)RAW")
         static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&)>(&org::bind::python::evaluateCodeBlocks),
         pybind11::arg("node"),
         pybind11::arg("conf"));
+  pybind11::class_<org::imm::ImmIdT<org::sem::None>, org::imm::ImmId>(m, "ImmIdTNone")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::ErrorItem>, org::imm::ImmId>(m, "ImmIdTErrorItem")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::ErrorGroup>, org::imm::ImmId>(m, "ImmIdTErrorGroup")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Stmt>, org::imm::ImmId>(m, "ImmIdTStmt")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Inline>, org::imm::ImmId>(m, "ImmIdTInline")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::StmtList>, org::imm::ImmId>(m, "ImmIdTStmtList")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Empty>, org::imm::ImmId>(m, "ImmIdTEmpty")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Cmd>, org::imm::ImmId>(m, "ImmIdTCmd")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Block>, org::imm::ImmId>(m, "ImmIdTBlock")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::LineCommand>, org::imm::ImmId>(m, "ImmIdTLineCommand")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Attached>, org::imm::ImmId>(m, "ImmIdTAttached")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Leaf>, org::imm::ImmId>(m, "ImmIdTLeaf")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCaption>, org::imm::ImmId>(m, "ImmIdTCmdCaption")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdColumns>, org::imm::ImmId>(m, "ImmIdTCmdColumns")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdName>, org::imm::ImmId>(m, "ImmIdTCmdName")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCustomArgs>, org::imm::ImmId>(m, "ImmIdTCmdCustomArgs")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCustomRaw>, org::imm::ImmId>(m, "ImmIdTCmdCustomRaw")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCustomText>, org::imm::ImmId>(m, "ImmIdTCmdCustomText")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdCall>, org::imm::ImmId>(m, "ImmIdTCmdCall")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdTblfm>, org::imm::ImmId>(m, "ImmIdTCmdTblfm")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::HashTag>, org::imm::ImmId>(m, "ImmIdTHashTag")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::InlineFootnote>, org::imm::ImmId>(m, "ImmIdTInlineFootnote")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::InlineExport>, org::imm::ImmId>(m, "ImmIdTInlineExport")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Time>, org::imm::ImmId>(m, "ImmIdTTime")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::TimeRange>, org::imm::ImmId>(m, "ImmIdTTimeRange")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Macro>, org::imm::ImmId>(m, "ImmIdTMacro")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Symbol>, org::imm::ImmId>(m, "ImmIdTSymbol")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Escaped>, org::imm::ImmId>(m, "ImmIdTEscaped")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Newline>, org::imm::ImmId>(m, "ImmIdTNewline")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Space>, org::imm::ImmId>(m, "ImmIdTSpace")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Word>, org::imm::ImmId>(m, "ImmIdTWord")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::AtMention>, org::imm::ImmId>(m, "ImmIdTAtMention")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::RawText>, org::imm::ImmId>(m, "ImmIdTRawText")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Punctuation>, org::imm::ImmId>(m, "ImmIdTPunctuation")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Placeholder>, org::imm::ImmId>(m, "ImmIdTPlaceholder")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BigIdent>, org::imm::ImmId>(m, "ImmIdTBigIdent")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::TextTarget>, org::imm::ImmId>(m, "ImmIdTTextTarget")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Markup>, org::imm::ImmId>(m, "ImmIdTMarkup")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Bold>, org::imm::ImmId>(m, "ImmIdTBold")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Underline>, org::imm::ImmId>(m, "ImmIdTUnderline")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Monospace>, org::imm::ImmId>(m, "ImmIdTMonospace")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::MarkQuote>, org::imm::ImmId>(m, "ImmIdTMarkQuote")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Verbatim>, org::imm::ImmId>(m, "ImmIdTVerbatim")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Italic>, org::imm::ImmId>(m, "ImmIdTItalic")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Strike>, org::imm::ImmId>(m, "ImmIdTStrike")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Par>, org::imm::ImmId>(m, "ImmIdTPar")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::RadioTarget>, org::imm::ImmId>(m, "ImmIdTRadioTarget")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Latex>, org::imm::ImmId>(m, "ImmIdTLatex")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Link>, org::imm::ImmId>(m, "ImmIdTLink")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockCenter>, org::imm::ImmId>(m, "ImmIdTBlockCenter")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockQuote>, org::imm::ImmId>(m, "ImmIdTBlockQuote")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockComment>, org::imm::ImmId>(m, "ImmIdTBlockComment")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockVerse>, org::imm::ImmId>(m, "ImmIdTBlockVerse")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockDynamicFallback>, org::imm::ImmId>(m, "ImmIdTBlockDynamicFallback")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockExample>, org::imm::ImmId>(m, "ImmIdTBlockExample")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockExport>, org::imm::ImmId>(m, "ImmIdTBlockExport")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockAdmonition>, org::imm::ImmId>(m, "ImmIdTBlockAdmonition")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockCodeEvalResult>, org::imm::ImmId>(m, "ImmIdTBlockCodeEvalResult")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::BlockCode>, org::imm::ImmId>(m, "ImmIdTBlockCode")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::SubtreeLog>, org::imm::ImmId>(m, "ImmIdTSubtreeLog")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Subtree>, org::imm::ImmId>(m, "ImmIdTSubtree")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Cell>, org::imm::ImmId>(m, "ImmIdTCell")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Row>, org::imm::ImmId>(m, "ImmIdTRow")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Table>, org::imm::ImmId>(m, "ImmIdTTable")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Paragraph>, org::imm::ImmId>(m, "ImmIdTParagraph")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::ColonExample>, org::imm::ImmId>(m, "ImmIdTColonExample")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdAttr>, org::imm::ImmId>(m, "ImmIdTCmdAttr")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdExport>, org::imm::ImmId>(m, "ImmIdTCmdExport")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Call>, org::imm::ImmId>(m, "ImmIdTCall")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::List>, org::imm::ImmId>(m, "ImmIdTList")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::ListItem>, org::imm::ImmId>(m, "ImmIdTListItem")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::DocumentOptions>, org::imm::ImmId>(m, "ImmIdTDocumentOptions")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::DocumentFragment>, org::imm::ImmId>(m, "ImmIdTDocumentFragment")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CriticMarkup>, org::imm::ImmId>(m, "ImmIdTCriticMarkup")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Document>, org::imm::ImmId>(m, "ImmIdTDocument")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::FileTarget>, org::imm::ImmId>(m, "ImmIdTFileTarget")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::TextSeparator>, org::imm::ImmId>(m, "ImmIdTTextSeparator")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::DocumentGroup>, org::imm::ImmId>(m, "ImmIdTDocumentGroup")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::File>, org::imm::ImmId>(m, "ImmIdTFile")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Directory>, org::imm::ImmId>(m, "ImmIdTDirectory")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::Symlink>, org::imm::ImmId>(m, "ImmIdTSymlink")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::sem::CmdInclude>, org::imm::ImmId>(m, "ImmIdTCmdInclude")
+    ;
 }
 /* clang-format on */
