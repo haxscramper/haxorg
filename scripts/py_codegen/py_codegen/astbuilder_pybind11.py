@@ -57,6 +57,7 @@ def flat_scope(Typ: QualType) -> List[str]:
 
 @beartype
 def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
+    is_target = "ImmAdapterT" in Typ.name 
     wrapper_override = base_map.get_wrapper_type(Typ)
 
     if wrapper_override:
@@ -125,12 +126,18 @@ def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
             case _:
                 name = "".join(flat)
 
-    res = pya.PyType(name)
-    if Typ.name != "SemId":
-        for param in Typ.Parameters:
-            res.Params.append(py_type(param, base_map=base_map))
 
-    return res
+    struct = base_map.get_struct_for_qual_name(Typ)
+    if not struct or struct.reflectionParams.wrapper_has_params:
+        res = pya.PyType(name)
+        if Typ.name != "SemId":
+            for param in Typ.Parameters:
+                res.Params.append(py_type(param, base_map=base_map))
+
+        return res
+
+    else:
+        return pya.PyType(name)
 
 
 @beartype
@@ -460,7 +467,7 @@ class Py11Method(Py11Function):
         is_overload: bool = False,
     ) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
-            Name=py_ident(self.PyName),
+            Name="__init__" if self.IsInit else py_ident(self.PyName),
             ResultTy=self.ResultTy and py_type(self.ResultTy, base_map),
             Args=[
                 pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
@@ -484,21 +491,26 @@ class Py11Method(Py11Function):
 
         Args += self.Args
 
-        call_pass = self.build_call_pass(
-            ast,
-            FunctionQualName=ast.Scoped(Class, ast.string(self.CxxName)),
-            Class=None if self.IsStatic else Class,
-            IsConst=self.IsConst,
-            Args=Args,
-        )
+        if self.IsInit and not self.Body:
+            call_pass = ast.XCall("pybind11::init", Params=[t.type for t in self.Args])
+            argument_binder = []
 
-        if self.IsInit:
-            call_pass = ast.XCall("pybind11::init", args=[call_pass])
-
-        if self.ExplicitClassParam and not self.IsInit:
-            argument_binder = self.build_argument_binder(self.Args[1:], ast=ast)
         else:
-            argument_binder = self.build_argument_binder(self.Args, ast=ast)
+            call_pass = self.build_call_pass(
+                ast,
+                FunctionQualName=ast.Scoped(Class, ast.string(self.CxxName)),
+                Class=None if self.IsStatic else Class,
+                IsConst=self.IsConst,
+                Args=Args,
+            )
+
+            if self.IsInit:
+                call_pass = ast.XCall("pybind11::init", args=[call_pass])
+
+            if self.ExplicitClassParam and not self.IsInit:
+                argument_binder = self.build_argument_binder(self.Args[1:], ast=ast)
+            else:
+                argument_binder = self.build_argument_binder(self.Args, ast=ast)
 
         return ast.XCall(
             (".def_static" if (self.IsStatic and not self.IsInit) else ".def"),

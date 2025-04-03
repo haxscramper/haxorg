@@ -1399,10 +1399,11 @@ struct [[refl]] ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 // Define specializations for all final (non-abstract) org-mode types.
 #define __define_adapter(Derived, Base)                                   \
     template <>                                                           \
-    struct [[refl(                                                        \
-        "{\"default-constructor\": false, \"wrapper-name\": "             \
-        "\"Imm" #Derived                                                  \
-        "Adapter\"}")]] ImmAdapterT<org::imm::Imm##Derived>               \
+    struct                                                                \
+        [[refl("{\"default-constructor\": false, \"wrapper-name\": "      \
+               "\"Imm" #Derived                                           \
+               "Adapter\", \"wrapper-has-params\": "                      \
+               "false}")]] ImmAdapterT<org::imm::Imm##Derived>            \
         : ImmAdapterTBase<Imm##Derived>                                   \
         , ImmAdapter##Derived##API {                                      \
         using api_type = ImmAdapter##Derived##API;                        \

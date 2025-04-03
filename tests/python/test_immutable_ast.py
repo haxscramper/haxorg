@@ -99,15 +99,3 @@ def test_mind_map_large_dir():
     org.addNodeRec(graph_state, root, conf)
 
     log(CAT).info(f"Collected {graph_state.graph.nodeCount()} nodes and {graph_state.graph.edgeCount()} edges")
-
-    plantuml_result = []
-
-    def aux_main(a: org.ImmAdapter):
-      nonlocal plantuml_result
-
-    if root.getKind() == org.OrgSemKind.Symlink:
-      root = root.at(0)
-
-    assert root.getKind() == org.OrgSemKind.Directory
-    root_dir = org.ImmDirectoryAdapter(root)
-    main_dir = root.getFsSubnode("main", False)

@@ -32,6 +32,7 @@ class GenTuBackendParams(BaseModel, extra="forbid"):
 class GenTuReflParams(BaseModel, extra="forbid"):
     default_constructor: bool = Field(default=True, alias="default-constructor")
     wrapper_name: Optional[str] = Field(default=None, alias="wrapper-name")
+    wrapper_has_params: bool = Field(default=True, alias="wrapper-has-params")
     backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
 
 
@@ -234,21 +235,24 @@ class GenTypeMap:
             self.entries[i] for i in self.qual_hash_to_index.get(name.qual_hash(), [])
         ]
 
-    def get_wrapper_type(self, t: QualType) -> Optional[str]:
-        def_types = self.get_types_for_qual_name(t)
+    def get_struct_for_qual_name(self, name: QualType) -> Optional[GenTuStruct]:
+        def_types = self.get_types_for_qual_name(name)
         if 0 < len(def_types):
             assert len(def_types) == 1, f"{t} maps to more than one definitive type"
 
             if isinstance(def_types[0], GenTuStruct):
-                return def_types[0].reflectionParams.wrapper_name
+                return def_types[0]
 
             else:
                 return None
 
-    def is_known_type(self, t: QualType) -> bool:
-        # if t.name == "ImmNoneValueRead":
-        #     log(CAT).info(f"None value read, qual hash {t.qual_hash()}")
 
+    def get_wrapper_type(self, t: QualType) -> Optional[str]:
+        struct = self.get_struct_for_qual_name(t)
+        return struct and struct.reflectionParams.wrapper_name
+        
+
+    def is_known_type(self, t: QualType) -> bool:
         return t.qual_hash() in self.qual_hash_to_index
 
     def get_one_type_for_qual_name(self, name: QualType) -> Optional[GenTuUnion]:
@@ -276,7 +280,10 @@ class GenTypeMap:
 
         match typ:
             case GenTuStruct():
-                qual_name = typ.name.model_copy()
+                qual_name = typ.declarationQualName()
+
+                if typ.reflectionParams.wrapper_name:
+                    log(CAT).info(f"{qual_name} has explicit wrapper")
 
             case GenTuEnum():
                 qual_name = typ.name.model_copy()
