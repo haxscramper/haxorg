@@ -732,6 +732,7 @@ class Py11Class:
             PyName=value.reflectionParams.wrapper_name or pyNameOveride or
             py_type(value.name, base_map=base_map).Name,
             Class=value.declarationQualName(),
+            ReflectionParams=value.reflectionParams,
         )
 
         res.ReflectionParams = value.reflectionParams

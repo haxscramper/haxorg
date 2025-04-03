@@ -3,6 +3,7 @@
 #include <llvm/Support/TimeProfiler.h>
 #include <format>
 #include <absl/log/log.h>
+#include <absl/log/check.h>
 #include <google/protobuf/util/json_util.h>
 #include <google/protobuf/message.h>
 
@@ -969,19 +970,22 @@ void ReflASTVisitor::fillCxxRecordDecl(
         rec->set_reflectionparams(args.value());
     }
 
-    for (const auto& base : Decl->bases()) {
-        auto b = rec->add_bases();
-        b->set_isvirtual(base.isVirtual());
-        fillType(b->mutable_name(), base.getType(), Decl->getLocation());
-        switch (base.getAccessSpecifier()) {
-            case clang::AccessSpecifier::AS_none:
-                b->set_access(AccessSpecifier::AsNone);
-            case clang::AccessSpecifier::AS_public:
-                b->set_access(AccessSpecifier::AsPublic);
-            case clang::AccessSpecifier::AS_private:
-                b->set_access(AccessSpecifier::AsPrivate);
-            case clang::AccessSpecifier::AS_protected:
-                b->set_access(AccessSpecifier::AsProtected);
+    if (Decl->hasDefinition()) {
+        for (const auto& base : Decl->bases()) {
+            auto b = rec->add_bases();
+            b->set_isvirtual(base.isVirtual());
+            fillType(
+                b->mutable_name(), base.getType(), Decl->getLocation());
+            switch (base.getAccessSpecifier()) {
+                case clang::AccessSpecifier::AS_none:
+                    b->set_access(AccessSpecifier::AsNone);
+                case clang::AccessSpecifier::AS_public:
+                    b->set_access(AccessSpecifier::AsPublic);
+                case clang::AccessSpecifier::AS_private:
+                    b->set_access(AccessSpecifier::AsPrivate);
+                case clang::AccessSpecifier::AS_protected:
+                    b->set_access(AccessSpecifier::AsProtected);
+            }
         }
     }
 
@@ -1108,6 +1112,7 @@ bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
             "reflection-visit-record" + Decl->getNameAsString()};
 
         Record* rec = out->add_records();
+        CHECK(Decl != nullptr);
         fillCxxRecordDecl(rec, Decl);
         if (Decl->hasDefinition()) {
             rec->set_isabstract(Decl->isAbstract());

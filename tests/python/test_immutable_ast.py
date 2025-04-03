@@ -76,26 +76,18 @@ def test_mind_map_from_directory():
 
     org.addNodeRec(graph_state, root, conf)
 
+    assert root.getKind() == org.OrgSemKind.Directory
+    root_dir = org.ImmDirectoryAdapter(root)
 
-def test_mind_map_large_dir():
-    dir = Path("/home/haxscramper/tmp/org_test_dir")
-    if not dir.exists():
-        return
+    subdir1 = root_dir.getFsSubnode("subdir1")
+    assert subdir1.getKind() == org.OrgSemKind.Directory
 
-    dir_opts = org.OrgDirectoryParseParameters()
-    node = org.parseDirectoryOpts(str(dir), dir_opts)
+    subdir1_spec = org.ImmDirectoryAdapter(subdir1)
+    file1 = subdir1_spec.getFsSubnode("subdir_file1.org")
+    file2 = subdir1_spec.getFsSubnode("subdir_file2.org")
 
-    initial_version = org.initImmutableAstContext()
-    version = initial_version.addRoot(node)
+    assert file1
+    assert file2 
 
-    graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(
-        version.getContext())
-
-    conf = org.graphMapConfig()
-    root = version.getRootAdapter()
-
-    assert root
-
-    org.addNodeRec(graph_state, root, conf)
-
-    log(CAT).info(f"Collected {graph_state.graph.nodeCount()} nodes and {graph_state.graph.edgeCount()} edges")
+    assert file1.getKind() == org.OrgSemKind.File
+    assert file2.getKind() == org.OrgSemKind.File

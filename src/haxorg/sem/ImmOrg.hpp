@@ -1399,17 +1399,24 @@ struct [[refl]] ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 // Define specializations for all final (non-abstract) org-mode types.
 #define __define_adapter(Derived, Base)                                   \
     template <>                                                           \
-    struct                                                                \
-        [[refl("{\"default-constructor\": false, \"wrapper-name\": "      \
-               "\"Imm" #Derived                                           \
-               "Adapter\", \"wrapper-has-params\": "                      \
-               "false}")]] ImmAdapterT<org::imm::Imm##Derived>            \
+    struct [[refl(                                                        \
+        "{\"default-constructor\": false, \"wrapper-name\": "             \
+        "\"Imm" #Derived                                                  \
+        "Adapter\", \"wrapper-has-params\": "                             \
+        "false}")]] ImmAdapterT<org::imm::Imm##Derived>                   \
         : ImmAdapterTBase<Imm##Derived>                                   \
         , ImmAdapter##Derived##API {                                      \
         using api_type = ImmAdapter##Derived##API;                        \
         USE_IMM_ADAPTER_BASE(org::imm::Imm##Derived);                     \
         [[refl]] ImmAdapterT(org::imm::ImmAdapter const& other)           \
-            : ImmAdapterTBase<Imm##Derived>{other} {}                     \
+            : ImmAdapterTBase<Imm##Derived>{other} {                      \
+            LOGIC_ASSERTION_CHECK(                                        \
+                other.getKind() == OrgSemKind::Derived,                   \
+                "Adapter type mismatch, creating {} from generic "        \
+                "adapter of type {}",                                     \
+                #Derived,                                                 \
+                other.getKind());                                         \
+        }                                                                 \
         [[refl]] org::imm::Imm##Derived##ValueRead getValue() const {     \
             return org::imm::Imm##Derived##ValueRead{&this->value()};     \
         };                                                                \
