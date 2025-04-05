@@ -22,11 +22,19 @@ class GenTuParam:
 
 @beartype
 class GenTuBackendPythonParams(BaseModel, extra="forbid"):
-    holder_type: Optional[Literal["shared", "unique"] | str] = Field(alias="holder-type", default=None)
+    holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(alias="holder-type", default=None)
 
 @beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
     python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
+
+@beartype
+class GenTuTypeApiTraits(BaseModel, extra="forbid"):
+    has_begin_end_iteration: bool = Field(alias="has-begin-end-iteration", default=False, description="Type provides `begin()` and `end()` method to construct iterator pair")
+
+@beartype
+class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
+    is_get_item: bool = Field(alias="is-getitem", default=False, description="This method can provide __getitem__ implementation")
 
 @beartype
 class GenTuReflParams(BaseModel, extra="forbid"):
@@ -34,6 +42,8 @@ class GenTuReflParams(BaseModel, extra="forbid"):
     wrapper_name: Optional[str] = Field(default=None, alias="wrapper-name")
     wrapper_has_params: bool = Field(default=True, alias="wrapper-has-params")
     backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
+    function_api: Optional[GenTuFunctionApiTraits] = Field(default=None, alias="function-api", description="Reflection entity has a function/method API")
+    type_api: Optional[GenTuTypeApiTraits] = Field(default=None, alias="type-api", description="Reflection entity has a type API")
 
 
 @beartype
@@ -166,7 +176,6 @@ class GenTuStruct:
     methods: List[GenTuFunction] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)
     nested: List[GenTuEntry] = field(default_factory=list)
-    concreteKind: bool = True
     IsForwardDecl: bool = False
     IsAbstract: bool = False
     has_name: bool = True
@@ -282,8 +291,8 @@ class GenTypeMap:
             case GenTuStruct():
                 qual_name = typ.declarationQualName()
 
-                if typ.reflectionParams.wrapper_name:
-                    log(CAT).info(f"{qual_name} has explicit wrapper")
+                # if typ.reflectionParams.wrapper_name:
+                #     log(CAT).info(f"{qual_name} has explicit wrapper")
 
             case GenTuEnum():
                 qual_name = typ.name.model_copy()

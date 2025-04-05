@@ -133,6 +133,9 @@ class QualType(BaseModel, extra="forbid"):
             isGlobalNamespace=self.isGlobalNamespace,
         ))
 
+    def withTemplateParams(self, Params: List["QualType"]) -> "QualType":
+        return self.model_copy(update=dict(Parameters=Params))
+
     def withWrapperType(self, name: Union[str, "QualType"]) -> "QualType":
         if isinstance(name, str):
             return QualType(name=name, Parameters=[self])

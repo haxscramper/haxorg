@@ -214,7 +214,16 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
         GenTuPass(f"using {base.name}::{base.name};"),
         GenTuPass(f"virtual ~{name}() = default;")
     ] + res.nested
-    if res.concreteKind:
+
+    res.reflectionParams.backend.python.holder_type = QualType(
+        name="SemId",
+        Spaces=[
+            QualType(name="org"),
+            QualType(name="sem"),
+        ],
+    )
+
+    if not res.IsAbstract:
         res.fields.insert(
             0,
             GenTuField(
@@ -548,7 +557,7 @@ def get_sem_bases():
                 "Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)"
             ),
             bases=[t_nest(t_org("Org"))],
-            concreteKind=False,
+            IsAbstract=True,
             fields=[GenTuField(t_vec(t_id()), "attached", GenTuDoc(""))],
             methods=[
                 GenTuFunction(
@@ -604,7 +613,7 @@ def get_sem_bases():
             "Inline",
             GenTuDoc("Base class for all inline elements"),
             bases=[t_nest(t_org("Org"))],
-            concreteKind=False,
+            IsAbstract=True,
         ),
         d_org(
             "StmtList",
@@ -620,7 +629,7 @@ def get_sem_bases():
             "Cmd",
             GenTuDoc("Base class for block or line commands"),
             bases=[t_nest(t_org("Stmt"))],
-            concreteKind=False,
+            IsAbstract=True,
             fields=[
                 org_field(
                     t_nest_shared("AttrGroup"),
@@ -658,25 +667,25 @@ def get_sem_bases():
             "Block",
             GenTuDoc("Block command type"),
             bases=[t_nest(t_org("Cmd"))],
-            concreteKind=False,
+            IsAbstract=True,
         ),
         d_org(
             "LineCommand",
             GenTuDoc("Line commands"),
             bases=[t_nest(t_org("Cmd"))],
-            concreteKind=False,
+            IsAbstract=True,
         ),
         d_org(
             "Attached",
             GenTuDoc("Line command that might get attached to some block element"),
             bases=[t_nest(t_org("LineCommand"))],
-            concreteKind=False,
+            IsAbstract=True,
         ),
         d_org(
             "Leaf",
             GenTuDoc("Final node"),
             bases=[t_nest(t_org("Org"))],
-            concreteKind=False,
+            IsAbstract=True,
             fields=[
                 GenTuField(t_str(), "text", GenTuDoc("Final leaf value"), value='""')
             ],
@@ -1065,7 +1074,7 @@ def get_sem_text():
             "Markup",
             GenTuDoc(""),
             bases=[t_nest(t_org("Org"))],
-            concreteKind=False,
+            IsAbstract=True,
         ),
         d_org("Bold", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
         d_org("Underline", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),

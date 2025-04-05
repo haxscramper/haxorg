@@ -152,7 +152,7 @@ def get_imm_serde(
     def aux(it):
         match it:
             case GenTuStruct():
-                if not it.concreteKind:
+                if it.IsAbstract:
                     return
 
                 sem_type = it.name
@@ -281,7 +281,7 @@ def get_imm_serde(
 
 @beartype
 def get_concrete_types(expanded: List[GenTuStruct]) -> Sequence[GenTuStruct]:
-    return [struct for struct in expanded if struct.concreteKind]
+    return [struct for struct in expanded if not struct.IsAbstract]
 
 
 org_type_names: List[str] = []
@@ -341,7 +341,7 @@ def pybind_org_id(
     map_obj_methods(typ)
     map_bases(typ)
 
-    if typ.concreteKind and typ.name.name != "Org" and typ.reflectionParams.default_constructor:
+    if not typ.IsAbstract and typ.name.name != "Org" and typ.reflectionParams.default_constructor:
         rec_fields: List[Py11BindPass] = []
 
         def cb(it: GenTuStruct):
@@ -380,7 +380,7 @@ def pybind_nested_type(
     )
 
     for meth in value.methods:
-        if meth.isExposedForWrap:
+        if meth.isExposedForWrap and not meth.isPureVirtual:
             res.Methods.append(Py11Method.FromGenTu(meth))
 
     for _field in value.fields:
@@ -417,12 +417,12 @@ def add_structures(
 
     def codegenConstructCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
-            if hasattr(value, "isOrgType") or value.name.name == "Org":
-                res.Decls.append(pybind_org_id(ast, b, value, base_map))
+            # if hasattr(value, "isOrgType") or value.name.name == "Org":
+            #     res.Decls.append(pybind_org_id(ast, b, value, base_map))
 
-            else:
-                new = pybind_nested_type(ast, value, base_map=base_map)
-                res.Decls.append(new)
+            # else:
+            new = pybind_nested_type(ast, value, base_map=base_map)
+            res.Decls.append(new)
 
         elif isinstance(value, GenTuEnum):
             res.Decls.append(
@@ -466,42 +466,42 @@ def add_translation_unit(
     for _struct in tu.structs:
         # There is no topological sorting on the type declarations, so to make the initialization
         # work in correct order I need to push some of the [[refl]] annotated types at the top.
-        if _struct.name.name == "Org":
-            # from py_scriptutils.script_logging import pprint_to_file
-            # pprint_to_file(_struct, "/tmp/sem_org_struct.py")
-            org_decl = pybind_org_id(ast, ast.b, _struct, GenTypeMap())
-            org_decl.Methods.append(
-                Py11Method(
-                    "__getitem__",
-                    "at",
-                    t_id(),
-                    [GenTuIdent(QualType.ForName("int"), "idx")],
-                    IsConst=True,
-                    IsStatic=False,
-                ))
+        # if _struct.name.name == "Org":
+        #     # from py_scriptutils.script_logging import pprint_to_file
+        #     # pprint_to_file(_struct, "/tmp/sem_org_struct.py")
+        #     org_decl = pybind_org_id(ast, ast.b, _struct, GenTypeMap())
+        #     org_decl.Methods.append(
+        #         Py11Method(
+        #             "__getitem__",
+        #             "at",
+        #             t_id(),
+        #             [GenTuIdent(QualType.ForName("int"), "idx")],
+        #             IsConst=True,
+        #             IsStatic=False,
+        #         ))
 
-            org_decl.Methods.append(
-                Py11Method(
-                    PyName="__iter__",
-                    CxxName="at",
-                    ResultTy=QualType.ForName("auto"),
-                    Args=[GenTuIdent(t_id().par0().asConstRef(), "node")],
-                    Body=[
-                        ast.b.text(
-                            "return pybind11::make_iterator(node.subnodes.begin(), node.subnodes.end());"
-                        )
-                    ],
-                    DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
-                    ExplicitClassParam=True,
-                ))
+        #     org_decl.Methods.append(
+        #         Py11Method(
+        #             PyName="__iter__",
+        #             CxxName="at",
+        #             ResultTy=QualType.ForName("auto"),
+        #             Args=[GenTuIdent(t_id().par0().asConstRef(), "node")],
+        #             Body=[
+        #                 ast.b.text(
+        #                     "return pybind11::make_iterator(node.subnodes.begin(), node.subnodes.end());"
+        #                 )
+        #             ],
+        #             DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
+        #             ExplicitClassParam=True,
+        #         ))
 
-            res.Decls.insert(0, org_decl)
+        #     res.Decls.insert(0, org_decl)
 
-        elif _struct.name.name == "LineCol":
-            res.Decls.insert(0, pybind_nested_type(ast, _struct, base_map=base_map))
+        # elif _struct.name.name == "LineCol":
+        #     res.Decls.insert(0, pybind_nested_type(ast, _struct, base_map=base_map))
 
-        else:
-            res.Decls.append(pybind_nested_type(ast, _struct, base_map=base_map))
+        # else:
+        res.Decls.append(pybind_nested_type(ast, _struct, base_map=base_map))
 
     for _enum in tu.enums:
         res.Decls.append(
@@ -623,7 +623,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
         for item in record.types:
             expanded = rec_expand_type(item)
             result.append(expanded)
-            if item.concreteKind:
+            if not item.IsAbstract:
                 typeNames.append(expanded.name)
 
         if record.iteratorMacroName:

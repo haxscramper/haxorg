@@ -173,7 +173,7 @@ class ProtoBuilder():
     @beartype
     def get_all_concrete_types(self) -> Iterable[tu.GenTuStruct]:
         return (rec for rec in self.types_list if isinstance(rec, tu.GenTuStruct) and
-                rec.concreteKind and rec.name.isOrgType())
+                not rec.IsAbstract and rec.name.isOrgType())
 
     @beartype
     def get_any_node_field_mapping(self) -> cpp.MacroParams:
@@ -601,7 +601,7 @@ class ProtoBuilder():
         result: List[Tuple[cpp.RecordParams, tu.QualType]] = []
         match it:
             case tu.GenTuStruct():
-                if not it.concreteKind:
+                if it.IsAbstract:
                     return []
 
                 out = self.t.text(PROTO_VALUE_NAME)

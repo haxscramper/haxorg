@@ -57,7 +57,7 @@ def flat_scope(Typ: QualType) -> List[str]:
 
 @beartype
 def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
-    is_target = "ImmAdapterT" in Typ.name 
+    is_target = "ImmAdapterT" in Typ.name
     wrapper_override = base_map.get_wrapper_type(Typ)
 
     if wrapper_override:
@@ -125,7 +125,6 @@ def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
 
             case _:
                 name = "".join(flat)
-
 
     struct = base_map.get_struct_for_qual_name(Typ)
     if not struct or struct.reflectionParams.wrapper_has_params:
@@ -895,6 +894,10 @@ class Py11Class:
 
         elif self.ReflectionParams:
             match self.ReflectionParams.backend.python.holder_type:
+                case QualType():
+                    HolderType = self.ReflectionParams.backend.python.holder_type.withTemplateParams(
+                        [self.Class])
+
                 case "shared":
                     HolderType = self.Class.withWrapperType(
                         QualType.ForName("shared_ptr", Spaces=[QualType.ForName("std")]))
