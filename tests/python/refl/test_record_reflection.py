@@ -23,7 +23,6 @@ import py_codegen.wrapper_gen_nim as gen_nim
 
 import pytest
 
-
 def test_simple_structure_registration():
     struct = get_struct("struct Test {};")
     assert struct.name.name == "Test"

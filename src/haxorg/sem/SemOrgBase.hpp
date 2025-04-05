@@ -256,7 +256,23 @@ struct [[refl]] OrgJson {
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.
-struct [[refl]] Org {
+struct [[refl(R"({
+  "backend": {
+    "python": {
+      "holder-type": {
+        "name": "SemId",
+        "Spaces": [
+          {
+            "name": "org"
+          },
+          {
+            "name": "sem"
+          }
+        ]
+      }
+    }
+  }
+})")]] Org {
     /// \brief Adapter to the original parsed node.
     ///
     /// Set by the conversion functions from linearized representation,

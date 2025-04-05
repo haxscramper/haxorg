@@ -283,7 +283,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Org>(m, "Org")
+  pybind11::class_<org::sem::Org, org::sem::SemId<org::sem::Org>>(m, "Org")
     .def_readwrite("loc", &org::sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_readwrite("subnodes", &org::sem::Org::subnodes, R"RAW(\brief List of subnodes.
 
