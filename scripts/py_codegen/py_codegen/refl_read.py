@@ -145,6 +145,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
     result.IsForwardDecl = record.is_forward_decl
     result.IsAbstract = record.is_abstract
     result.has_name = record.has_name
+    result.IsDescribedRecord = record.is_described_record
 
     for arg in record.explicit_template_params:
         result.ExplicitTemplateParams.append(conv_proto_type(arg))
@@ -220,6 +221,7 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
     result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
     result.IsForwardDecl = en.is_forward_decl
     result.original = copy(original)
+    result.IsDescribedEnum = en.is_described_enum
     for _field in en.fields:
         result.fields.append(
             GenTuEnumField(

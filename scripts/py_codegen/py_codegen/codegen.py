@@ -308,6 +308,7 @@ def pybind_nested_type(
         Bases=value.bases,
         ReflectionParams=value.reflectionParams,
         IsAbstract=value.IsAbstract,
+        IsDescribedRecord=value.IsDescribedRecord,
     )
 
     for meth in value.methods:

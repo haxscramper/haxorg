@@ -722,6 +722,7 @@ class Py11Class:
     Methods: List[Py11Method] = field(default_factory=list)
     InitImpls: List[Py11Method] = field(default_factory=list)
     IsAbstract: bool = False
+    IsDescribedRecord: bool = False
 
     @staticmethod
     def FromGenTu(ast: ASTBuilder,
@@ -737,6 +738,7 @@ class Py11Class:
 
         res.ReflectionParams = value.reflectionParams
         res.IsAbstract = value.IsAbstract
+        res.IsDescribedRecord = value.IsDescribedRecord
 
         for base in value.bases:
             res.Bases.append(base)
@@ -785,32 +787,36 @@ class Py11Class:
         pyobj_type = QualType.ForName("object", Spaces=[QualType.ForName("pybind11")])
 
         if not self.IsAbstract:
-            self.Methods.append(
-                Py11Method(
-                    PyName="__repr__",
-                    CxxName="",
-                    ResultTy=str_type,
-                    Body=[
-                        ast.Return(
-                            ast.XCall("org::bind::python::py_repr_impl",
-                                      args=[ast.string("_self")])),
-                    ],
-                ))
+            if self.IsDescribedRecord:
+                self.Methods.append(
+                    Py11Method(
+                        PyName="__repr__",
+                        CxxName="",
+                        ResultTy=str_type,
+                        Body=[
+                            ast.Return(
+                                ast.XCall("org::bind::python::py_repr_impl",
+                                        args=[ast.string("_self")])),
+                        ],
+                    ))
 
-            self.Methods.append(
-                Py11Method(
-                    PyName="__getattr__",
-                    CxxName="",
-                    ResultTy=pyobj_type,
-                    Args=[GenTuIdent(str_type.asConstRef(), "name")],
-                    Body=[
-                        ast.Return(
-                            ast.XCall("org::bind::python::py_getattr_impl", [
-                                ast.string("_self"),
-                                ast.string("name"),
-                            ])),
-                    ],
-                ))
+                self.Methods.append(
+                    Py11Method(
+                        PyName="__getattr__",
+                        CxxName="",
+                        ResultTy=pyobj_type,
+                        Args=[GenTuIdent(str_type.asConstRef(), "name")],
+                        Body=[
+                            ast.Return(
+                                ast.XCall("org::bind::python::py_getattr_impl", [
+                                    ast.string("_self"),
+                                    ast.string("name"),
+                                ])),
+                        ],
+                    ))
+
+            else:
+                log(CAT).warning(f"Non-abstract type {self.Class} is missing boost reflection annotation")
 
         if self.ReflectionParams.type_api and self.ReflectionParams.type_api.has_begin_end_iteration:
             self.Methods.append(

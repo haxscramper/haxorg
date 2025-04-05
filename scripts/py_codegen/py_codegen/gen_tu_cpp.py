@@ -109,6 +109,7 @@ class GenTuEnum:
     original: Optional[Path] = None
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
+    IsDescribedEnum: bool = False
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "enum " + self.name.format(dbgOrigin=dbgOrigin)
@@ -204,6 +205,7 @@ class GenTuStruct:
     IsTemplateRecord: bool = False
     ExplicitTemplateParams: List[QualType] = field(default_factory=list)
     OriginName: Optional[str] = None
+    IsDescribedRecord: bool = False
 
     def declarationQualName(self) -> QualType:
         return self.name.model_copy(update=dict(Parameters=self.ExplicitTemplateParams))
