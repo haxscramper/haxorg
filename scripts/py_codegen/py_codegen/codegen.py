@@ -391,12 +391,12 @@ def add_enums(
 
 def topological_sort_structs(structs: List[GenTuStruct]) -> List[GenTuStruct]:
     # Create a lookup dictionary by QualType hash
-    struct_by_hash = {struct.name.qual_hash(): struct for struct in structs}
+    struct_by_hash = {struct.declarationQualName().qual_hash(): struct for struct in structs}
 
     # Build dependency graph (map of node -> predecessors)
     graph = {}
     for struct in structs:
-        struct_hash = struct.name.qual_hash()
+        struct_hash = struct.declarationQualName().qual_hash()
         # List base classes as predecessors
         graph[struct_hash] = {
             base.qual_hash()

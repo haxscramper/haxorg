@@ -942,6 +942,11 @@ void ReflASTVisitor::fillMethodDecl(
     Record::Method*         sub,
     c::CXXMethodDecl const* method) {
 
+    if (auto args = get_refl_params(method)) {
+        // LOG(INFO) << std::format("reflection params {}", args.value());
+        sub->set_reflectionparams(args.value());
+    }
+
     sub->set_name(method->getNameAsString());
     sub->set_isconst(method->isConst());
     sub->set_isstatic(method->isStatic());
@@ -1275,6 +1280,11 @@ bool ReflASTVisitor::VisitFunctionDecl(c::FunctionDecl* Decl) {
     if (shouldVisit(Decl) && !llvm::isa<c::CXXMethodDecl>(Decl)) {
         log_visit(Decl);
         Function* func = out->add_functions();
+
+        if (auto args = get_refl_params(Decl)) {
+            func->set_reflectionparams(args.value());
+        }
+
         func->set_name(Decl->getNameAsString());
         for (c::ParmVarDecl* Parm : Decl->parameters()) {
             fillParmVarDecl(func->add_arguments(), Parm);

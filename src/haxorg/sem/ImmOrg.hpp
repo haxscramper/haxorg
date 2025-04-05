@@ -1518,6 +1518,11 @@ struct std::formatter<org::imm::ParentPathMap*>
     : hstd::std_format_ptr_as_hex_and_value<org::imm::ParentPathMap> {};
 
 template <>
+struct std::formatter<org::imm::ImmAstTrackingMap*>
+    : hstd::std_format_ptr_as_value<org::imm::ImmAstTrackingMap> {};
+
+
+template <>
 struct std::formatter<org::imm::ImmPath> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::imm::ImmPath& p, FormatContext& ctx) const {

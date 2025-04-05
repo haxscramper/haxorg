@@ -1,6 +1,6 @@
 from py_codegen.gen_tu_cpp import *
 from beartype import beartype
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from beartype.typing import List, Optional, NewType
 from py_scriptutils.algorithm import maybe_splice
 
@@ -306,6 +306,7 @@ class Py11Function:
     PyName: str
     CxxName: str
     ResultTy: Optional[QualType]
+    ReflectionParams: Optional[GenTuReflParams]
     Args: List[GenTuIdent] = field(default_factory=list)
     Body: Optional[List[BlockId]] = None
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
@@ -339,6 +340,7 @@ class Py11Function:
             Doc=meth.doc,
             Args=meth.arguments,
             Spaces=meth.spaces,
+            ReflectionParams=meth.reflectionParams,
         )
 
     def build_argument_binder(self, Args: List[GenTuIdent],
@@ -457,6 +459,7 @@ class Py11Method(Py11Function):
             Args=meth.arguments,
             IsStatic=meth.isStatic,
             IsInit=meth.IsConstructor,
+            ReflectionParams=meth.reflectionParams,
         )
 
     def build_typedef(
@@ -612,6 +615,7 @@ class Py11Enum:
                             ast.Return(ast.b.line([ast.Type(iter_type),
                                                    ast.string("()")])),
                         ],
+                        ReflectionParams=None,
                     ).build_bind(self.Enum, ast),
                     Py11Method(
                         PyName="__eq__",
@@ -626,6 +630,7 @@ class Py11Enum:
                                 ast.XCall("==", [ast.string("lhs"),
                                                  ast.string("rhs")])),
                         ],
+                        ReflectionParams=None,
                     ).build_bind(self.Enum, ast),
                     Py11Method(
                         PyName="__hash__",
@@ -639,6 +644,7 @@ class Py11Enum:
                                 ast.XCall("static_cast", [ast.string("it")],
                                           Params=[QualType(name="int")])),
                         ],
+                        ReflectionParams=None,
                     ).build_bind(self.Enum, ast),
                 ] + [b.text(";")]),
             )
@@ -780,6 +786,7 @@ class Py11Class:
                 ],
                 IsInit=True,
                 ExplicitClassParam=True,
+                ReflectionParams=None,
             ))
 
     def InitMagicMethods(self, ast: ASTBuilder):
@@ -798,6 +805,7 @@ class Py11Class:
                                 ast.XCall("org::bind::python::py_repr_impl",
                                         args=[ast.string("_self")])),
                         ],
+                        ReflectionParams=None,
                     ))
 
                 self.Methods.append(
@@ -813,10 +821,18 @@ class Py11Class:
                                     ast.string("name"),
                                 ])),
                         ],
+                        ReflectionParams=None,
                     ))
 
-            else:
-                log(CAT).warning(f"Non-abstract type {self.Class} is missing boost reflection annotation")
+            # else:
+            #     log(CAT).warning(f"Non-abstract type {self.Class} is missing boost reflection annotation")
+
+        getitem_list = []
+        for m in self.Methods:
+            if m.ReflectionParams and m.ReflectionParams.function_api and m.ReflectionParams.function_api.is_get_item:
+                getitem_list.append(replace(m, PyName="__getitem__"))
+
+        self.Methods += getitem_list
 
         if self.ReflectionParams.type_api and self.ReflectionParams.type_api.has_begin_end_iteration:
             self.Methods.append(
@@ -831,22 +847,8 @@ class Py11Class:
                     ],
                     DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
                     ExplicitClassParam=True,
+                    ReflectionParams=None,
                 ))
-
-        # self.Methods.append(
-        #     Py11Method(
-        #         PyName="__setattr__",
-        #         CxxName="",
-        #         ResultTy=None,
-        #         Args=[GenTuIdent(str_type, "name"),
-        #               GenTuIdent(pyobj_type, "value")],
-        #         Body=[
-        #             ast.XCall("py_setattr_impl", [
-        #                 ast.string("_self"),
-        #                 ast.string("name"),
-        #                 ast.string("value"),
-        #             ], Stmt=True),
-        #         ]))
 
     def dedup_methods(self) -> List[Py11Method]:
         res: List[Py11Method] = []
@@ -876,6 +878,7 @@ class Py11Class:
                 GenTuIdent(name=it.PyName, type=it.Type, value=ast.b.text("None"))
                 for it in self.Fields
             ],
+            ReflectionParams=None,
         )
 
         res.Methods.append(Init.build_typedef(ast, base_map=base_map))

@@ -187,25 +187,31 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
         if IsConstructor:
             if result.IsExplicitInstantiation:
-                final_result = result.name.model_copy(update=dict(Parameters=result.ExplicitTemplateParams))
+                final_result = result.name.model_copy(update=dict(
+                    Parameters=result.ExplicitTemplateParams))
             else:
                 final_result = result.name
         else:
             final_result = conv_proto_type(meth.return_ty)
 
-        result.methods.append(
-            GenTuFunction(
-                result=final_result,
-                name=meth.name,
-                doc=conv_doc_comment(meth.doc),
-                isConst=meth.is_const,
-                isStatic=meth.is_static,
-                original=original,
-                arguments=[conv_proto_arg(arg) for arg in meth.args],
-                parentClass=result,
-                OriginName="refl",
-                IsConstructor=IsConstructor,
-            ))
+        func = GenTuFunction(
+            result=final_result,
+            name=meth.name,
+            doc=conv_doc_comment(meth.doc),
+            isConst=meth.is_const,
+            isStatic=meth.is_static,
+            original=original,
+            arguments=[conv_proto_arg(arg) for arg in meth.args],
+            parentClass=result,
+            OriginName="refl",
+            IsConstructor=IsConstructor,
+        )
+
+        if meth.reflection_params:
+            func.reflectionParams = GenTuReflParams.model_validate_json(
+                meth.reflection_params)
+
+        result.methods.append(func)
 
     for record in record.nested_rec:
         result.nested.append(conv_proto_record(record, original))
