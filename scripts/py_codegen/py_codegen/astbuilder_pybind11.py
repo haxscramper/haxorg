@@ -486,7 +486,7 @@ class Py11Method(Py11Function):
             pass
 
         elif self.Body:
-            Args = [GenTuIdent(type=Class, name="_self")]
+            Args = [GenTuIdent(type=Class.asConstRef(), name="_self")]
 
         Args += self.Args
 
@@ -721,6 +721,7 @@ class Py11Class:
     Fields: List[Py11Field] = field(default_factory=list)
     Methods: List[Py11Method] = field(default_factory=list)
     InitImpls: List[Py11Method] = field(default_factory=list)
+    IsAbstract: bool = False
 
     @staticmethod
     def FromGenTu(ast: ASTBuilder,
@@ -735,6 +736,7 @@ class Py11Class:
         )
 
         res.ReflectionParams = value.reflectionParams
+        res.IsAbstract = value.IsAbstract
 
         for base in value.bases:
             res.Bases.append(base)
@@ -781,28 +783,49 @@ class Py11Class:
     def InitMagicMethods(self, ast: ASTBuilder):
         str_type = QualType.ForName("string", Spaces=[QualType.ForName("std")])
         pyobj_type = QualType.ForName("object", Spaces=[QualType.ForName("pybind11")])
-        self.Methods.append(
-            Py11Method(PyName="__repr__",
-                       CxxName="",
-                       ResultTy=str_type,
-                       Body=[
-                           ast.Return(
-                               ast.XCall("org::bind::python::py_repr_impl",
-                                         [ast.string("_self")])),
-                       ]))
 
-        self.Methods.append(
-            Py11Method(PyName="__getattr__",
-                       CxxName="",
-                       ResultTy=pyobj_type,
-                       Args=[GenTuIdent(str_type, "name")],
-                       Body=[
-                           ast.Return(
-                               ast.XCall("org::bind::python::py_getattr_impl", [
-                                   ast.string("_self"),
-                                   ast.string("name"),
-                               ])),
-                       ]))
+        if not self.IsAbstract:
+            self.Methods.append(
+                Py11Method(
+                    PyName="__repr__",
+                    CxxName="",
+                    ResultTy=str_type,
+                    Body=[
+                        ast.Return(
+                            ast.XCall("org::bind::python::py_repr_impl",
+                                      args=[ast.string("_self")])),
+                    ],
+                ))
+
+            self.Methods.append(
+                Py11Method(
+                    PyName="__getattr__",
+                    CxxName="",
+                    ResultTy=pyobj_type,
+                    Args=[GenTuIdent(str_type.asConstRef(), "name")],
+                    Body=[
+                        ast.Return(
+                            ast.XCall("org::bind::python::py_getattr_impl", [
+                                ast.string("_self"),
+                                ast.string("name"),
+                            ])),
+                    ],
+                ))
+
+        if self.ReflectionParams.type_api and self.ReflectionParams.type_api.has_begin_end_iteration:
+            self.Methods.append(
+                Py11Method(
+                    PyName="__iter__",
+                    CxxName="at",
+                    ResultTy=QualType.ForName("auto"),
+                    Args=[GenTuIdent(self.Class.asConstRef(), "node")],
+                    Body=[
+                        ast.b.text(
+                            "return pybind11::make_iterator(node.begin(), node.end());")
+                    ],
+                    DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
+                    ExplicitClassParam=True,
+                ))
 
         # self.Methods.append(
         #     Py11Method(

@@ -271,6 +271,9 @@ struct [[refl(R"({
         ]
       }
     }
+  },
+  "type-api": {
+    "has-begin-end-iteration": true
   }
 })")]] Org {
     /// \brief Adapter to the original parsed node.
@@ -324,7 +327,7 @@ struct [[refl(R"({
     }
 
     /// \brief Get subnode at specified index
-    [[refl]] inline SemId<Org> at(int idx) const {
+    [[refl(R"({"function-api": {"is-getitem": true}})")]] inline SemId<Org> at(int idx) const {
         return subnodes.at(idx);
     }
 

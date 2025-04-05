@@ -294,77 +294,6 @@ def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
     return [F for F in Fields if F.Type.name not in ["SemId"]]
 
 
-@beartype
-def pybind_org_id(
-    ast: ASTBuilder,
-    b: TextLayout,
-    typ: GenTuStruct,
-    base_map: GenTypeMap,
-) -> Py11Class:
-    base_type = QualType.ForName(typ.name.name, Spaces=[n_sem()])
-    id_type = QualType.ForName(
-        "SemId",
-        Parameters=[base_type],
-        Spaces=[n_sem()],
-    )
-
-    res = Py11Class(
-        PyName=typ.reflectionParams.wrapper_name or typ.name.name,
-        Class=base_type,
-        PyHolderType=id_type,
-        ReflectionParams=typ.reflectionParams,
-    )
-
-    for base in typ.bases:
-        res.Bases.append(base)
-
-    _self = id_self(id_type)
-
-    def map_obj_fields(Record: GenTuStruct):
-        for _field in Record.fields:
-            if _field.isExposedForWrap:
-                res.Fields.append(Py11Field.FromGenTu(_field))
-
-    def map_obj_methods(Record: GenTuStruct):
-        for meth in Record.methods:
-            if not meth.isPureVirtual and meth.isExposedForWrap:
-                res.Methods.append(Py11Method.FromGenTu(meth))
-
-    def map_bases(Record: GenTuStruct):
-        for base in Record.bases:
-            if base.name != "Org":
-                base_type = base_map.get_one_type_for_name(base.name)
-                map_obj_fields(base_type)
-                map_obj_methods(base_type)
-                map_bases(base_type)
-
-    map_obj_fields(typ)
-    map_obj_methods(typ)
-    map_bases(typ)
-
-    if not typ.IsAbstract and typ.name.name != "Org" and typ.reflectionParams.default_constructor:
-        rec_fields: List[Py11BindPass] = []
-
-        def cb(it: GenTuStruct):
-            for field in it.fields:
-                if field.isExposedForWrap:
-                    rec_fields.append(Py11Field.FromGenTu(field))
-
-            for base in it.bases:
-                base_type = base_map.get_one_type_for_name(base.name)
-                if base_type:
-                    cb(base_type)
-
-                else:
-                    raise ValueError(f"No base type registered for {base.name}")
-
-        cb(typ)
-
-        res.InitDefault(ast=ast, Fields=filter_init_fields(rec_fields))
-        res.InitMagicMethods(ast=ast)
-
-    return res
-
 
 @beartype
 def pybind_nested_type(
@@ -378,6 +307,7 @@ def pybind_nested_type(
         Class=value.declarationQualName(),
         Bases=value.bases,
         ReflectionParams=value.reflectionParams,
+        IsAbstract=value.IsAbstract,
     )
 
     for meth in value.methods:
@@ -390,7 +320,8 @@ def pybind_nested_type(
 
     if not value.IsAbstract and value.reflectionParams.default_constructor:
         res.InitDefault(ast, filter_init_fields(res.Fields))
-        res.InitMagicMethods(ast=ast)
+
+    res.InitMagicMethods(ast=ast)
 
     return res
 

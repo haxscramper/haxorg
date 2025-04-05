@@ -20,21 +20,34 @@ if not TYPE_CHECKING:
 class GenTuParam:
     name: str
 
+
 @beartype
 class GenTuBackendPythonParams(BaseModel, extra="forbid"):
-    holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(alias="holder-type", default=None)
+    holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(
+        alias="holder-type", default=None)
+
 
 @beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
     python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
 
+
 @beartype
 class GenTuTypeApiTraits(BaseModel, extra="forbid"):
-    has_begin_end_iteration: bool = Field(alias="has-begin-end-iteration", default=False, description="Type provides `begin()` and `end()` method to construct iterator pair")
+    has_begin_end_iteration: bool = Field(
+        alias="has-begin-end-iteration",
+        default=False,
+        description="Type provides `begin()` and `end()` method to construct iterator pair"
+    )
+
 
 @beartype
 class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
-    is_get_item: bool = Field(alias="is-getitem", default=False, description="This method can provide __getitem__ implementation")
+    is_get_item: bool = Field(
+        alias="is-getitem",
+        default=False,
+        description="This method can provide __getitem__ implementation")
+
 
 @beartype
 class GenTuReflParams(BaseModel, extra="forbid"):
@@ -42,8 +55,12 @@ class GenTuReflParams(BaseModel, extra="forbid"):
     wrapper_name: Optional[str] = Field(default=None, alias="wrapper-name")
     wrapper_has_params: bool = Field(default=True, alias="wrapper-has-params")
     backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
-    function_api: Optional[GenTuFunctionApiTraits] = Field(default=None, alias="function-api", description="Reflection entity has a function/method API")
-    type_api: Optional[GenTuTypeApiTraits] = Field(default=None, alias="type-api", description="Reflection entity has a type API")
+    function_api: Optional[GenTuFunctionApiTraits] = Field(
+        default=None,
+        alias="function-api",
+        description="Reflection entity has a function/method API")
+    type_api: Optional[GenTuTypeApiTraits] = Field(
+        default=None, alias="type-api", description="Reflection entity has a type API")
 
 
 @beartype
@@ -194,6 +211,29 @@ class GenTuStruct:
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.name.format(dbgOrigin=dbgOrigin)
 
+    def getGetitemMethods(self) -> List[GenTuFunction]:
+        return [
+            m for m in self.methods if m.reflectionParams.function_api and
+            m.reflectionParams.function_api.is_get_item
+        ]
+
+    def getBeginEndPair(self) -> Optional[Tuple[GenTuFunction, GenTuFunction]]:
+        begin_func: Optional[GenTuFunction] = None
+        end_func: Optional[GenTuFunction] = None
+
+        for m in self.methods:
+            if m.name == "begin":
+                begin_func = m
+
+            elif m.name == "end":
+                end_func = m
+
+        if begin_func and end_func:
+            return (begin_func, end_func)
+
+        else:
+            return None
+
 
 @beartype
 @dataclass
@@ -255,11 +295,9 @@ class GenTypeMap:
             else:
                 return None
 
-
     def get_wrapper_type(self, t: QualType) -> Optional[str]:
         struct = self.get_struct_for_qual_name(t)
         return struct and struct.reflectionParams.wrapper_name
-        
 
     def is_known_type(self, t: QualType) -> bool:
         return t.qual_hash() in self.qual_hash_to_index
@@ -325,8 +363,6 @@ class GenTypeMap:
             match obj:
                 case GenTuStruct() | GenTuTypedef():
                     result.add_type(obj)
-
-
 
         context = []
         iterate_object_tree(types, context, pre_visit=callback)
