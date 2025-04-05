@@ -12,6 +12,7 @@ from py_scriptutils.script_logging import log
 import py_codegen.astbuilder_proto as pb
 from py_scriptutils.algorithm import cond
 from py_scriptutils.script_logging import pprint_to_file
+from graphlib import TopologicalSorter, CycleError
 from py_codegen.astbuilder_pybind11 import (
     Py11Method,
     Py11Module,
@@ -456,6 +457,30 @@ def add_enums(
         res.Decls.append(wrap)
 
 
+def topological_sort_structs(structs: List[GenTuStruct]) -> List[GenTuStruct]:
+    # Create a lookup dictionary by QualType hash
+    struct_by_hash = {struct.name.qual_hash(): struct for struct in structs}
+
+    # Build dependency graph (map of node -> predecessors)
+    graph = {}
+    for struct in structs:
+        struct_hash = struct.name.qual_hash()
+        # List base classes as predecessors
+        graph[struct_hash] = {
+            base.qual_hash()
+            for base in struct.bases
+            if base.qual_hash() in struct_by_hash
+        }
+
+    # Create the sorter and get the sorted order
+    ts = TopologicalSorter(graph)
+    try:
+        sorted_hashes = list(ts.static_order())
+        return [struct_by_hash[h] for h in sorted_hashes]
+    except CycleError:
+        raise ValueError("Cyclic inheritance detected")
+
+
 @beartype
 def add_translation_unit(
     res: Py11Module,
@@ -463,7 +488,7 @@ def add_translation_unit(
     tu: ConvTu,
     base_map: GenTypeMap,
 ):
-    for _struct in tu.structs:
+    for _struct in topological_sort_structs(tu.structs):
         # There is no topological sorting on the type declarations, so to make the initialization
         # work in correct order I need to push some of the [[refl]] annotated types at the top.
         # if _struct.name.name == "Org":
@@ -1301,13 +1326,15 @@ def gen_pyhaxorg_wrappers(
 
     res = Py11Module("pyhaxorg")
 
+    add_translation_unit(res, ast, tu, base_map=base_map)
     add_structures(res, ast, shared_types, base_map=base_map)
     add_structures(res, ast, expanded, base_map=base_map)
-    add_enums(res,
-              ast,
-              get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)],
-              base_map=base_map)
-    add_translation_unit(res, ast, tu, base_map=base_map)
+    add_enums(
+        res,
+        ast,
+        get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)],
+        base_map=base_map,
+    )
     add_type_specializations(res, ast, base_map=base_map)
 
     for org_type in get_types():
