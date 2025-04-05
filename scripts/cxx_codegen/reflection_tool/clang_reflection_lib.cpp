@@ -10,6 +10,149 @@
 namespace c = clang;
 using llvm::dyn_cast;
 
+bool ReflASTVisitor::isDescribedRecord(
+    const clang::RecordDecl* recordDecl) {
+    if (!recordDecl) { return false; }
+
+    // Try to downcast to CXXRecordDecl for C++ classes
+    const clang::CXXRecordDecl* cxxRecordDecl = llvm::dyn_cast<
+        clang::CXXRecordDecl>(recordDecl);
+
+    // Get the qualified name of the record
+    std::string recordName = recordDecl->getQualifiedNameAsString();
+
+    // First check: Look for friend functions inside the class (only for
+    // C++ classes)
+    bool hasBaseFn   = false;
+    bool hasMemberFn = false;
+
+    // Check friend declarations inside the class (only for C++ classes)
+    if (cxxRecordDecl) {
+        if (!cxxRecordDecl->hasDefinition()) { return false; }
+
+        for (const clang::FriendDecl* friendDecl :
+             cxxRecordDecl->friends()) {
+            if (const clang::FunctionDecl* fnDecl = llvm::dyn_cast<
+                    clang::FunctionDecl>(friendDecl->getFriendDecl())) {
+                std::string fnName = fnDecl->getNameAsString();
+
+                if (fnName == "boost_base_descriptor_fn") {
+                    hasBaseFn = true;
+                } else if (
+                    fnName == "boost_public_member_descriptor_fn"
+                    || fnName == "boost_protected_member_descriptor_fn"
+                    || fnName == "boost_private_member_descriptor_fn") {
+                    hasMemberFn = true;
+                }
+
+                if (hasBaseFn && hasMemberFn) { return true; }
+            }
+        }
+    }
+
+    // Second check: Look for standalone functions that take this type as a
+    // parameter Get the translation unit
+    clang::TranslationUnitDecl* TU = Ctx->getTranslationUnitDecl();
+
+    for (clang::Decl* decl : TU->decls()) {
+        if (const clang::FunctionDecl* fnDecl = llvm::dyn_cast<
+                clang::FunctionDecl>(decl)) {
+            std::string fnName = fnDecl->getNameAsString();
+
+            // Check if it's one of the Boost.Describe functions
+            if (fnName == "boost_base_descriptor_fn"
+                || fnName == "boost_public_member_descriptor_fn"
+                || fnName == "boost_protected_member_descriptor_fn"
+                || fnName == "boost_private_member_descriptor_fn") {
+
+                // Check if the function takes a pointer-to-pointer of our
+                // type
+                if (fnDecl->getNumParams() >= 1) {
+                    const clang::ParmVarDecl* param = fnDecl->getParamDecl(
+                        0);
+                    clang::QualType paramType = param->getType();
+
+                    // The parameter should be T**
+                    if (paramType->isPointerType()) {
+                        clang::QualType pointeeType = paramType
+                                                          ->getPointeeType();
+                        if (pointeeType->isPointerType()) {
+                            clang::QualType targetType = pointeeType
+                                                             ->getPointeeType();
+
+                            // Get the record declaration from the type
+                            if (const clang::RecordType* recordType = targetType
+                                                                          ->getAs<
+                                                                              clang::
+                                                                                  RecordType>()) {
+                                if (recordType->getDecl() == recordDecl) {
+                                    if (fnName
+                                        == "boost_base_descriptor_fn") {
+                                        hasBaseFn = true;
+                                    } else {
+                                        hasMemberFn = true;
+                                    }
+
+                                    if (hasBaseFn && hasMemberFn) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return hasBaseFn && hasMemberFn;
+}
+
+bool ReflASTVisitor::isDescribedEnum(const clang::EnumDecl* enumDecl) {
+    if (!enumDecl) { return false; }
+
+    // For enums, look for boost_enum_descriptor_fn
+    clang::TranslationUnitDecl* TU = Ctx->getTranslationUnitDecl();
+
+    for (clang::Decl* decl : TU->decls()) {
+        if (const clang::FunctionDecl* fnDecl = llvm::dyn_cast<
+                clang::FunctionDecl>(decl)) {
+            std::string fnName = fnDecl->getNameAsString();
+
+            if (fnName == "boost_enum_descriptor_fn") {
+                // Check if the function takes a pointer-to-pointer of our
+                // enum
+                if (fnDecl->getNumParams() >= 1) {
+                    const clang::ParmVarDecl* param = fnDecl->getParamDecl(
+                        0);
+                    clang::QualType paramType = param->getType();
+
+                    // The parameter should be T**
+                    if (paramType->isPointerType()) {
+                        clang::QualType pointeeType = paramType
+                                                          ->getPointeeType();
+                        if (pointeeType->isPointerType()) {
+                            clang::QualType targetType = pointeeType
+                                                             ->getPointeeType();
+
+                            if (const clang::EnumType* enumType = targetType
+                                                                      ->getAs<
+                                                                          clang::
+                                                                              EnumType>()) {
+                                if (enumType->getDecl() == enumDecl) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 std::optional<std::string> ReflASTVisitor::get_refl_params(
     c::Decl const* decl) {
     auto fmt = decl->getLocation().printToString(Ctx->getSourceManager());
@@ -1085,6 +1228,7 @@ void ReflASTVisitor::fillSharedRecordData(
     Record*                  rec,
     clang::RecordDecl const* Decl) {
 
+    rec->set_isdescribedrecord(isDescribedRecord(Decl));
 
     if (const auto* specialization = llvm::dyn_cast<
             clang::ClassTemplateSpecializationDecl>(Decl)) {
@@ -1163,6 +1307,7 @@ bool ReflASTVisitor::VisitEnumDecl(c::EnumDecl* Decl) {
     if (shouldVisit(Decl)) {
         log_visit(Decl);
         Enum* rec = out->add_enums();
+        rec->set_isdescribedenum(isDescribedEnum(Decl));
         rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
         std::string origin = (Typedef
                                   ? "typedef:" + Typedef->getNameAsString()

@@ -103,6 +103,8 @@ message Enum {
     QualType EnumDefName = 5;
     bool IsForwardDecl = 6;
     string ReflectionParams = 7;
+    /// Class has boost description annotations
+    bool IsDescribedEnum = 8;
 }
 
 
@@ -212,6 +214,8 @@ message Record {
     bool IsExplicitInstantiation = 16;
     bool IsTemplateRecord = 17; 
     repeated QualType ExplicitTemplateParams = 18;
+    /// The type has boost descirbe annotations either in form of `BOOST_DESCRIBE_CLASS` or `BOOST_DESCRIBE_STRUCT`
+    bool IsDescribedRecord = 19;
 }
 
 message TU {

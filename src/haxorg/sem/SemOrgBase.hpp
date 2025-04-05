@@ -38,7 +38,7 @@ struct Org;
 template <typename T>
 struct SemId;
 
-#define COMMA ,
+#define COMMA
 #define SKIP_FIRST_ARG_AUX(op, ...) __VA_ARGS__
 #define SKIP_FIRST_ARG(op, ...) SKIP_FIRST_ARG_AUX(op)
 
