@@ -119,8 +119,8 @@ class GenTuEnum:
 @beartype
 @dataclass
 class GenTuFunction:
-    result: Optional[QualType]
-    name: str
+    result: Optional[QualType] = None
+    name: str = ""
     doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     params: List[GenTuParam] = field(default_factory=list)
     arguments: List[GenTuIdent] = field(default_factory=list)

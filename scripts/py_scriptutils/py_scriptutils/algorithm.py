@@ -135,7 +135,7 @@ def iterate_object_tree(
 
         context.append(tree)
 
-        if isinstance(tree, (list, tuple)):
+        if isinstance(tree, (list, tuple, set)):
             for it in tree:
                 aux(
                     it,
