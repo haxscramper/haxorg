@@ -5,6 +5,7 @@ from py_codegen.refl_read import (
     GenTuEnum,
     GenTuFunction,
     QualType,
+    GenTuUnion,
 )
 
 from beartype.typing import (
@@ -210,6 +211,11 @@ def get_struct(text: str,
         assert len(tu.structs) == 1
         return tu.structs[0]
 
+@beartype
+def get_entires(text: str, **kwargs) -> List[GenTuUnion]:
+    with TemporaryDirectory() as code_dir:
+        tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
+        return tu.enums + tu.structs + tu.functions + tu.typedefs
 
 @beartype
 def get_enum(text: str, **kwargs) -> GenTuEnum:

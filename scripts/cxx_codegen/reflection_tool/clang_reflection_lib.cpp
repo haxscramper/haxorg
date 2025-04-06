@@ -1249,13 +1249,20 @@ void ReflASTVisitor::fillSharedRecordData(
 }
 
 bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
+    bool isToplevelDecl = Decl->getDeclContext()->isTranslationUnit()
+                       || Decl->getDeclContext()->isNamespace();
+
     if ((visitMode == VisitMode::AllAnnotated //
-         && isRefl(Decl))                     //
+         && isRefl(Decl)                      //
+         && isToplevelDecl)                   //
         ||                                    //
         (visitMode == VisitMode::AllTargeted  //
          && shouldVisit(Decl)                 //
-         && Decl->getDeclContext()->isTranslationUnit())) {
+         && isToplevelDecl)) {
         log_visit(Decl);
+
+        // LOG(INFO) << std::format(
+        //     "Explicitly visiting {}", Decl->getQualifiedNameAsString());
 
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Decl->getNameAsString()};

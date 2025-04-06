@@ -1,7 +1,7 @@
 from py_codegen.gen_tu_cpp import *
 from beartype import beartype
 from dataclasses import dataclass, field, replace
-from beartype.typing import List, Optional, NewType
+from beartype.typing import List, Optional, NewType, Set
 from py_scriptutils.algorithm import maybe_splice
 
 from typing import TYPE_CHECKING
@@ -1020,48 +1020,76 @@ class Py11Module:
     Before: List[BlockId] = field(default_factory=list)
     After: List[BlockId] = field(default_factory=list)
 
+    nameTrack: Set[str] = field(default_factory=set)
+
     def add_all(self, decls: List[GenTuUnion], ast: ASTBuilder, base_map: GenTypeMap):
         for decl in decls:
             self.add_decl(decl, ast=ast, base_map=base_map)
 
     def add_decl(self, decl: GenTuUnion, ast: ASTBuilder, base_map: GenTypeMap):
+        def append_decl(d: Py11Entry):
+            name = None
+            match d:
+                case Py11Class():
+                    name = d.PyName
+
+                case Py11Enum():
+                    name = d.PyName
+
+            if name:
+                assert name not in self.nameTrack, f"{name} is already registered for the module"
+                self.nameTrack.add(name)
+
+            self.Decls.append(d)
+
+
         match decl:
             case GenTuStruct():
-
+                log(CAT).info(f"Add decl {decl.name}")
                 def codegenConstructCallback(value: Any) -> None:
                     if isinstance(value, GenTuStruct):
+                        # log(CAT).info(f"  rec decl {value.name}")
                         new = pybind_nested_type(ast, value, base_map=base_map)
-                        self.Decls.append(new)
+                        append_decl(new)
 
                     elif isinstance(value, GenTuEnum):
-                        self.Decls.append(
+                        append_decl(
                             Py11Enum.FromGenTu(value,
                                                PyName=py_type(value.name,
                                                               base_map=base_map).Name))
 
                     elif isinstance(value, GenTuTypedef):
-                        self.Decls.append(
+                        append_decl(
                             Py11TypedefPass(
                                 name=py_type(value.name, base_map=base_map),
                                 base=py_type(value.base, base_map=base_map),
                             ))
 
+                def tree_visit_repr(value: Any, context: List[Any]) -> str:
+                    match value:
+                        case GenTuStruct():
+                            return str(value.name)
+
+                        case _:
+                            return ""
+
                 iterate_object_tree(
                     decl,
                     [],
                     post_visit=codegenConstructCallback,
+                    # item_visit_format=tree_visit_repr,
                 )
 
             case GenTuFunction():
-                self.Decls.append(Py11Function.FromGenTu(decl))
+                append_decl(Py11Function.FromGenTu(decl))
 
             case GenTuEnum():
-                self.Decls.append(
+                append_decl(
                     Py11Enum.FromGenTu(decl,
                                        py_type(decl.name, base_map=base_map).Name))
 
             case GenTuTypedef():
-                self.Decls.append(Py11TypedefPass.FromGenTu(decl, base_map=base_map))
+                append_decl(Py11TypedefPass.FromGenTu(decl, base_map=base_map))
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> BlockId:
         passes: List[BlockId] = []

@@ -1387,24 +1387,6 @@ ImmPathStep documentation.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::imm::ImmAdapter::TreeReprConf>(m, "ImmAdapterTreeReprConf")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmAdapter::TreeReprConf {
-                        org::imm::ImmAdapter::TreeReprConf result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth)
-    .def_readwrite("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields)
-    .def_readwrite("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields)
-    .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmAdapter::TreeReprConf const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterVirtualBase")
     ;
   pybind11::class_<org::OrgParseFragment>(m, "OrgParseFragment")
@@ -1611,56 +1593,6 @@ ImmPathStep documentation.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::AstTrackingGroup::RadioTarget>(m, "AstTrackingGroupRadioTarget")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::AstTrackingGroup::RadioTarget {
-                        org::AstTrackingGroup::RadioTarget result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("target", &org::AstTrackingGroup::RadioTarget::target)
-    .def_readwrite("nodes", &org::AstTrackingGroup::RadioTarget::nodes)
-    .def("__repr__", [](org::AstTrackingGroup::RadioTarget const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingGroup::RadioTarget const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::AstTrackingGroup::Single>(m, "AstTrackingGroupSingle")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::AstTrackingGroup::Single {
-                        org::AstTrackingGroup::Single result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("node", &org::AstTrackingGroup::Single::node)
-    .def("__repr__", [](org::AstTrackingGroup::Single const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingGroup::Single const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::AstTrackingGroup::TrackedHashtag>(m, "AstTrackingGroupTrackedHashtag")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::AstTrackingGroup::TrackedHashtag {
-                        org::AstTrackingGroup::TrackedHashtag result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("tag", &org::AstTrackingGroup::TrackedHashtag::tag)
-    .def_readwrite("targets", &org::AstTrackingGroup::TrackedHashtag::targets)
-    .def("__repr__", [](org::AstTrackingGroup::TrackedHashtag const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingGroup::TrackedHashtag const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<org::AstTrackingMap>(m, "AstTrackingMap")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::AstTrackingMap {
                         org::AstTrackingMap result{};
@@ -1832,36 +1764,6 @@ and a segment kind.)RAW")
                      })
     .def("__getattr__",
          [](org::graph::MapLink const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::graph::MapLink::Link>(m, "graphMapLinkLink")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapLink::Link {
-                        org::graph::MapLink::Link result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::graph::MapLink::Link const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapLink::Link const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::graph::MapLink::Radio>(m, "graphMapLinkRadio")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapLink::Radio {
-                        org::graph::MapLink::Radio result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::graph::MapLink::Radio const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapLink::Radio const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))

@@ -13,6 +13,7 @@ from refl_test_driver import (
     GenTuStruct,
     get_struct,
     get_nim_code,
+    get_entires,
     format_nim_code,
     compile_nim_code,
     verify_nim_code,
@@ -115,8 +116,9 @@ def test_namespace_extraction_for_nested_struct():
 
 
 def test_namespace_extraction():
-    struct = get_struct(
+    entires = get_entires(
         "namespace Space { struct Nest {}; } struct Main { Space::Nest field; };")
+    struct: GenTuStruct = entires[1]
     field = struct.fields[0]
     assert len(field.type.Spaces) == 1
     assert field.type.name == "Nest"
