@@ -704,12 +704,11 @@ class Py11Field:
 
 
 @beartype
-@dataclass
 class Py11Class:
     Struct: GenTuStruct
-    Fields: List[Py11Field] = field(default_factory=list)
-    Methods: List[Py11Method] = field(default_factory=list)
-    InitImpls: List[Py11Method] = field(default_factory=list)
+    Fields: List[Py11Field]
+    Methods: List[Py11Method]
+    InitImpls: List[Py11Method]
 
     def getPyName(self, base_map: GenTypeMap) -> str:
         return self.Struct.reflectionParams.wrapper_name or py_type(
@@ -718,24 +717,24 @@ class Py11Class:
     def getCxxName(self) -> QualType:
         return self.Struct.declarationQualName()
 
-    @staticmethod
-    def FromGenTu(ast: ASTBuilder, value: GenTuStruct) -> 'Py11Class':
-        res = Py11Class(Struct=value)
+    def __init__(self, ast: ASTBuilder, value: GenTuStruct):
+        self.Struct = value
+        self.Fields = []
+        self.Methods = []
+        self.InitImpls = []
 
         for meth in value.methods:
             if meth.isExposedForWrap and not meth.isPureVirtual:
-                res.Methods.append(Py11Method(meth))
+                self.Methods.append(Py11Method(meth))
 
         for _field in value.fields:
             if _field.isExposedForWrap:
-                res.Fields.append(Py11Field.FromGenTu(_field))
+                self.Fields.append(Py11Field.FromGenTu(_field))
 
         if not value.IsAbstract and value.reflectionParams.default_constructor:
-            res.InitDefault(ast, filter_init_fields(res.Fields))
+            self.InitDefault(ast, filter_init_fields(self.Fields))
 
-        res.InitMagicMethods(ast=ast)
-
-        return res
+        self.InitMagicMethods(ast=ast)
 
     def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
         if self.Struct.IsDescribedRecord:
@@ -1002,7 +1001,7 @@ class Py11Module:
 
                 def codegenConstructCallback(value: Any) -> None:
                     if isinstance(value, GenTuStruct):
-                        append_decl(Py11Class.FromGenTu(ast=ast, value=value))
+                        append_decl(Py11Class(ast=ast, value=value))
 
                     elif isinstance(value, GenTuEnum):
                         append_decl(
