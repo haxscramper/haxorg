@@ -291,6 +291,9 @@ class ConvTu:
     enums: List[GenTuEnum] = field(default_factory=list)
     typedefs: List[GenTuTypedef] = field(default_factory=list)
 
+    def get_all(self) -> List[GenTuUnion]:
+        return self.enums + self.typedefs + self.structs + self.functions
+
 
 @beartype
 def open_proto_file(path: Path) -> pb.TU:

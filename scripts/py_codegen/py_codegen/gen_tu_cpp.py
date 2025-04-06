@@ -6,6 +6,7 @@ from collections import defaultdict
 from py_textlayout.py_textlayout_wrap import *
 from pathlib import Path
 from py_scriptutils.algorithm import iterate_object_tree, cond
+from pydantic import AliasChoices
 
 from py_scriptutils.script_logging import log
 
@@ -35,7 +36,7 @@ class GenTuBackendParams(BaseModel, extra="forbid"):
 @beartype
 class GenTuTypeApiTraits(BaseModel, extra="forbid"):
     has_begin_end_iteration: bool = Field(
-        alias="has-begin-end-iteration",
+        alias=AliasChoices("has-begin-end-iteration", "has_begin_end_iteration"),
         default=False,
         description="Type provides `begin()` and `end()` method to construct iterator pair"
     )
@@ -44,20 +45,20 @@ class GenTuTypeApiTraits(BaseModel, extra="forbid"):
 @beartype
 class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
     is_get_item: bool = Field(
-        alias="is-getitem",
+        alias=AliasChoices("is-getitem", "is_getitem"),
         default=False,
         description="This method can provide __getitem__ implementation")
 
 
 @beartype
 class GenTuReflParams(BaseModel, extra="forbid"):
-    default_constructor: bool = Field(default=True, alias="default-constructor")
-    wrapper_name: Optional[str] = Field(default=None, alias="wrapper-name")
-    wrapper_has_params: bool = Field(default=True, alias="wrapper-has-params")
+    default_constructor: bool = Field(default=True, alias=AliasChoices("default-constructor", "default_constructor"))
+    wrapper_name: Optional[str] = Field(default=None, alias=AliasChoices("wrapper-name", "wrapper_name"))
+    wrapper_has_params: bool = Field(default=True, alias=AliasChoices("wrapper-has-params", "wrapper_has_params"))
     backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
     function_api: Optional[GenTuFunctionApiTraits] = Field(
         default=None,
-        alias="function-api",
+        alias=AliasChoices("function-api", "function_api"),
         description="Reflection entity has a function/method API")
     type_api: Optional[GenTuTypeApiTraits] = Field(
         default=None, alias="type-api", description="Reflection entity has a type API")
