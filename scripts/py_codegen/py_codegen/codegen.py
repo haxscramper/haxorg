@@ -285,14 +285,11 @@ def get_concrete_types(expanded: List[GenTuStruct]) -> Sequence[GenTuStruct]:
     return [struct for struct in expanded if not struct.IsAbstract]
 
 
-org_type_names: List[str] = []
-
 from copy import deepcopy, copy
 
 
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
     return [F for F in Fields if F.Type.name not in ["SemId"]]
-
 
 
 @beartype
@@ -350,10 +347,6 @@ def add_structures(
 
     def codegenConstructCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
-            # if hasattr(value, "isOrgType") or value.name.name == "Org":
-            #     res.Decls.append(pybind_org_id(ast, b, value, base_map))
-
-            # else:
             new = pybind_nested_type(ast, value, base_map=base_map)
             res.Decls.append(new)
 
@@ -391,7 +384,9 @@ def add_enums(
 
 def topological_sort_structs(structs: List[GenTuStruct]) -> List[GenTuStruct]:
     # Create a lookup dictionary by QualType hash
-    struct_by_hash = {struct.declarationQualName().qual_hash(): struct for struct in structs}
+    struct_by_hash = {
+        struct.declarationQualName().qual_hash(): struct for struct in structs
+    }
 
     # Build dependency graph (map of node -> predecessors)
     graph = {}
@@ -421,43 +416,6 @@ def add_translation_unit(
     base_map: GenTypeMap,
 ):
     for _struct in topological_sort_structs(tu.structs):
-        # There is no topological sorting on the type declarations, so to make the initialization
-        # work in correct order I need to push some of the [[refl]] annotated types at the top.
-        # if _struct.name.name == "Org":
-        #     # from py_scriptutils.script_logging import pprint_to_file
-        #     # pprint_to_file(_struct, "/tmp/sem_org_struct.py")
-        #     org_decl = pybind_org_id(ast, ast.b, _struct, GenTypeMap())
-        #     org_decl.Methods.append(
-        #         Py11Method(
-        #             "__getitem__",
-        #             "at",
-        #             t_id(),
-        #             [GenTuIdent(QualType.ForName("int"), "idx")],
-        #             IsConst=True,
-        #             IsStatic=False,
-        #         ))
-
-        #     org_decl.Methods.append(
-        #         Py11Method(
-        #             PyName="__iter__",
-        #             CxxName="at",
-        #             ResultTy=QualType.ForName("auto"),
-        #             Args=[GenTuIdent(t_id().par0().asConstRef(), "node")],
-        #             Body=[
-        #                 ast.b.text(
-        #                     "return pybind11::make_iterator(node.subnodes.begin(), node.subnodes.end());"
-        #                 )
-        #             ],
-        #             DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
-        #             ExplicitClassParam=True,
-        #         ))
-
-        #     res.Decls.insert(0, org_decl)
-
-        # elif _struct.name.name == "LineCol":
-        #     res.Decls.insert(0, pybind_nested_type(ast, _struct, base_map=base_map))
-
-        # else:
         res.Decls.append(pybind_nested_type(ast, _struct, base_map=base_map))
 
     for _enum in tu.enums:
@@ -532,8 +490,6 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder, base_map: GenType
 
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
-
-                    # opaque_declarations.append(ast.Comment(str(T)))
 
                     specialization_calls.append(
                         ast.XCall(
@@ -787,32 +743,6 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.name = "ImmIdT"
                 obj.Spaces = [ORG_SPACE]
 
-            # case QualType(meta={"isOrgType": True}):
-            #     if len(obj.Spaces) == 0:
-            #         obj.name = "Imm" + obj.name
-
-            #     elif len(obj.Spaces) == 1:
-            #         obj.name = "Imm" + obj.name
-            #         obj.Spaces = [ORG_SPACE]
-
-            #     else:
-            #         spaces = obj.flatQualScope() + [obj.withoutAllScopeQualifiers()]
-            #         obj.Spaces = [
-            #             ORG_SPACE,
-            #             spaces[1].model_copy(update=dict(name="Imm" + spaces[1].name)),
-            #             *(spaces[2:-1] if 1 < len(spaces) else []),
-            #         ]
-
-            # case QualType(name=TypeName,
-            #               Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
-            #     match obj:
-            #         case QualType(meta={"isOrgType": False}):
-            #             pass
-
-            #         case _:
-            #             obj.name = "Imm" + obj.name
-            #             obj.Spaces = [ORG_SPACE]
-
             case QualType(name="Vec"):
                 obj.name = "ImmVec"
                 obj.Spaces = [n_hstd_ext()]
@@ -823,23 +753,17 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
             case _:
                 flat_namespace = obj.flatQualFullName()
-                # obj.dbg_origin += f"{flat_namespace} {obj.withoutAllScopeQualifiers()}"
                 match flat_namespace:
                     case [QualType(name="org"), QualType(name="sem"), *rest]:
                         if rest and rest[0].isOrgType():
                             if 1 == len(rest):
                                 obj.name = "Imm" + obj.name
                                 obj.Spaces = [ORG_SPACE]
-                                # obj.dbg_origin = "1"
-                                # obj = QualType(name="Imm" + rest[0].name, Spaces=[ORG_SPACE, *(rest[1:] if 1 < len(rest) else [])])
 
                             elif 1 < len(rest):
-                                # log(CAT).info(f"{obj} {rest}")
-                                # obj.name = "Imm" + rest[0].name
                                 reuse_spaces = copy(rest)
                                 reuse_spaces.pop(0)
                                 reuse_spaces.pop(-1)
-                                # obj.dbg_origin += f"rest? {rest} -> {reuse_spaces}"
                                 obj.Spaces = [
                                     ORG_SPACE,
                                     rest[0].model_copy(update=dict(name="Imm" +
@@ -849,23 +773,6 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
                             else:
                                 pass
-                                # obj.dbg_origin += "?"
-                                # log(CAT).info(f"{obj.__dict__} {flat_namespace}")
-
-                    # case _:
-                    #     obj.dbg_origin = f"{flat_namespace}"
-
-                    # case _:
-                    # obj = res
-
-                    # if 1 < len(rest):
-                    #     obj.name = rest[-1].name
-                    #     obj.Spaces[1].name = "Imm" + obj.Spaces[1].name
-                    #     obj.dbg_origin += f"org sem qual name 1 {flat_namespace}"
-
-                    # else:
-                    #     obj.name = "Imm" + rest[-1].name
-                    #     obj.dbg_origin += f"org sem qual name 2 {flat_namespace}"
 
     def impl(obj: Any):
         match obj:
@@ -895,7 +802,6 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.GenDescribeMethods = False
                 obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
                 self_arg = obj.name.asConstRef()
-                # conv_type(self_arg)
                 obj.methods.append(
                     GenTuFunction(
                         result=QualType.ForName("bool"),
@@ -905,10 +811,6 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                     ))
 
                 if hasattr(obj, "isOrgType"):
-
-                    # conv_type(obj.name)
-                    # obj.name.name = "Imm" + obj.name.name
-                    # obj.name.Spaces = [ORG_SPACE]
                     obj.nested = [
                         GenTuPass(
                             f"using Imm{obj.bases[0].name}::Imm{obj.bases[0].name};"),
@@ -1230,12 +1132,10 @@ def gen_pyhaxorg_wrappers(
     tu: ConvTu = conv_proto_file(reflection_path)
     base_map = get_base_map(expanded + shared_types + immutable + tu.enums + tu.structs +
                             tu.typedefs)
-    proto = pb.ProtoBuilder(
-        wrapped=get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] +
-        shared_types + expanded,
-        ast=ast,
-        base_map=base_map,
-    )
+    full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)]
+    proto = pb.ProtoBuilder(wrapped=full_enums + shared_types + expanded,
+                            ast=ast,
+                            base_map=base_map)
     t = ast.b
 
     protobuf = proto.build_protobuf()
@@ -1244,8 +1144,6 @@ def gen_pyhaxorg_wrappers(
 
     import yaml
 
-    full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)]
-
     with open("/tmp/pyhaxorg_reflection_data.yaml", "w") as file:
         yaml.safe_dump(to_base_types(tu), stream=file)
 
@@ -1253,20 +1151,12 @@ def gen_pyhaxorg_wrappers(
         log(CAT).debug(f"Debug reflection data to {file.name}")
         file.write(open_proto_file(reflection_path).to_json(2))
 
-    global org_type_names
-    org_type_names = [Typ.name for Typ in expanded]
-
     res = Py11Module("pyhaxorg")
 
     add_translation_unit(res, ast, tu, base_map=base_map)
     add_structures(res, ast, shared_types, base_map=base_map)
     add_structures(res, ast, expanded, base_map=base_map)
-    add_enums(
-        res,
-        ast,
-        get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)],
-        base_map=base_map,
-    )
+    add_enums(res, ast, full_enums, base_map=base_map)
     add_type_specializations(res, ast, base_map=base_map)
 
     for org_type in get_types():
