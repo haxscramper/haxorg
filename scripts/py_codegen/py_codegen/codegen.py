@@ -28,6 +28,8 @@ from py_codegen.astbuilder_pybind11 import (
     py_type,
 )
 
+import yaml
+
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 
 CAT = "codegen"
@@ -1121,43 +1123,44 @@ def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct]) -> List[GenTuPass]:
 
 
 @beartype
-def gen_pyhaxorg_wrappers(
+@dataclass
+class PyhaxorgTypeGroups():
+    shared_types: List[GenTuStruct] = field(default_factory=list)
+    expanded: List[GenTuStruct] = field(default_factory=list)
+    immutable: List[GenTuStruct] = field(default_factory=list) 
+    tu: ConvTu = field(default_factory=lambda: ConvTu())
+    base_map: GenTypeMap = field(default_factory=lambda: GenTypeMap)
+    full_enums: List[GenTuEnum] = field(default_factory=list)
+
+
+@beartype
+def get_pyhaxorg_type_groups(
     ast: ASTBuilder,
-    pyast: pya.ASTBuilder,
     reflection_path: Path,
-) -> GenFiles:
-    shared_types = expand_type_groups(ast, get_shared_sem_types())
-    expanded = expand_type_groups(ast, get_types())
-    immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
-    tu: ConvTu = conv_proto_file(reflection_path)
-    base_map = get_base_map(expanded + shared_types + immutable + tu.enums + tu.structs +
-                            tu.typedefs)
-    full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)]
-    proto = pb.ProtoBuilder(wrapped=full_enums + shared_types + expanded,
-                            ast=ast,
-                            base_map=base_map)
-    t = ast.b
+) -> PyhaxorgTypeGroups:
+    res = PyhaxorgTypeGroups()
+    res.shared_types = expand_type_groups(ast, get_shared_sem_types())
+    res.expanded = expand_type_groups(ast, get_types())
+    res.immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
+    res.tu = conv_proto_file(reflection_path)
+    res.base_map = get_base_map(res.expanded + res.shared_types + res.immutable +
+                                res.tu.enums + res.tu.structs + res.tu.typedefs)
+    res.full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(res.expanded)]
 
-    protobuf = proto.build_protobuf()
-    protobuf_writer_declarations, protobuf_writer_implementation = proto.build_protobuf_writer(
-    )
+    return res
 
-    import yaml
 
-    with open("/tmp/pyhaxorg_reflection_data.yaml", "w") as file:
-        yaml.safe_dump(to_base_types(tu), stream=file)
-
-    with open("/tmp/pyhaxorg_reflection_data.json", "w") as file:
-        log(CAT).debug(f"Debug reflection data to {file.name}")
-        file.write(open_proto_file(reflection_path).to_json(2))
+@beartype
+def gen_pyhaxorg_python_wrappers(groups: PyhaxorgTypeGroups, ast: ASTBuilder,
+                                 pyast: pya.ASTBuilder) -> GenFiles:
 
     res = Py11Module("pyhaxorg")
 
-    add_translation_unit(res, ast, tu, base_map=base_map)
-    add_structures(res, ast, shared_types, base_map=base_map)
-    add_structures(res, ast, expanded, base_map=base_map)
-    add_enums(res, ast, full_enums, base_map=base_map)
-    add_type_specializations(res, ast, base_map=base_map)
+    add_translation_unit(res, ast, groups.tu, base_map=groups.base_map)
+    add_structures(res, ast, groups.shared_types, base_map=groups.base_map)
+    add_structures(res, ast, groups.expanded, base_map=groups.base_map)
+    add_enums(res, ast, groups.full_enums, base_map=groups.base_map)
+    add_type_specializations(res, ast, base_map=groups.base_map)
 
     for org_type in get_types():
         res.Decls.append(
@@ -1183,9 +1186,42 @@ def gen_pyhaxorg_wrappers(
         GenUnit(
             GenTu(
                 "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
-                [GenTuPass(res.build_typedef(pyast, base_map=base_map))],
+                [GenTuPass(res.build_typedef(pyast, base_map=groups.base_map))],
                 clangFormatGuard=False,
             )),
+        GenUnit(
+            GenTu(
+                "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
+                [
+                    GenTuPass("#undef slots"),
+                    GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
+                    GenTuInclude("pybind11/pybind11.h", True),
+                    GenTuInclude("haxorg/sem/SemOrg.hpp", True),
+                    GenTuInclude("pybind11/stl.h", True),
+                    GenTuInclude("pyhaxorg_manual_impl.hpp", False),
+                    GenTuPass(res.build_bind(ast, base_map=groups.base_map)),
+                ],
+            )),
+    ])
+
+
+@beartype
+def gen_pyhaxorg_source(
+    ast: ASTBuilder,
+    groups: PyhaxorgTypeGroups,
+) -> GenFiles:
+    proto = pb.ProtoBuilder(
+        wrapped=groups.full_enums + groups.shared_types + groups.expanded,
+        ast=ast,
+        base_map=groups.base_map,
+    )
+    t = ast.b
+
+    protobuf = proto.build_protobuf()
+    protobuf_writer_declarations, protobuf_writer_implementation = proto.build_protobuf_writer(
+    )
+
+    return GenFiles([
         GenUnit(
             GenTu("{base}/sem/SemOrgProto.proto", [
                 GenTuPass('syntax = "proto3";'),
@@ -1225,49 +1261,36 @@ def gen_pyhaxorg_wrappers(
         GenUnit(
             GenTu(
                 "{base}/exporters/Exporter.tcc",
-                get_exporter_methods(False, shared_types, base_map=base_map) +
-                get_exporter_methods(False, expanded, base_map=base_map),
+                get_exporter_methods(False, groups.shared_types, base_map=groups.base_map)
+                + get_exporter_methods(False, groups.expanded, base_map=groups.base_map),
             ),),
         GenUnit(
             GenTu(
                 "{base}/sem/ImmOrgSerde.tcc",
-                get_imm_serde(types=expanded, ast=ast, base_map=base_map),
+                get_imm_serde(types=groups.expanded, ast=ast, base_map=groups.base_map),
             ),),
         GenUnit(
             GenTu(
                 "{base}/exporters/ExporterMethods.tcc",
-                get_exporter_methods(True, shared_types, base_map=base_map) +
-                get_exporter_methods(True, expanded, base_map=base_map))),
-        GenUnit(
-            GenTu(
-                "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
-                [
-                    GenTuPass("#undef slots"),
-                    GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
-                    GenTuInclude("pybind11/pybind11.h", True),
-                    GenTuInclude("haxorg/sem/SemOrg.hpp", True),
-                    GenTuInclude("pybind11/stl.h", True),
-                    GenTuInclude("pyhaxorg_manual_impl.hpp", False),
-                    GenTuPass(res.build_bind(ast, base_map=base_map)),
-                ],
-            )),
+                get_exporter_methods(True, groups.shared_types, base_map=groups.base_map)
+                + get_exporter_methods(True, groups.expanded, base_map=groups.base_map))),
         GenUnit(
             GenTu(
                 "{base}/sem/SemOrgEnums.hpp",
                 with_enum_reflection_api(
-                    gen_pyhaxorg_shared_iteration_macros(shared_types) +
-                    gen_pyhaxorg_iteration_macros(types=expanded)) +
+                    gen_pyhaxorg_shared_iteration_macros(groups.shared_types) +
+                    gen_pyhaxorg_iteration_macros(types=groups.expanded)) +
                 gen_pyhaxorg_field_iteration_macros(
-                    types=expanded,
-                    base_map=base_map,
+                    types=groups.expanded,
+                    base_map=groups.base_map,
                     ast=ast,
                     macro_namespace="SEM",
                 ) + gen_pyhaxorg_field_iteration_macros(
-                    types=immutable,
-                    base_map=base_map,
+                    types=groups.immutable,
+                    base_map=groups.base_map,
                     ast=ast,
                     macro_namespace="IMM",
-                ) + full_enums + ([
+                ) + groups.full_enums + ([
                     GenTuPass("""
 template <>
 struct std::formatter<OrgSemKind> : std::formatter<std::string> {
@@ -1283,7 +1306,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
             ),
             GenTu(
                 "{base}/sem/SemOrgEnums.cpp",
-                [GenTuPass('#include "SemOrgEnums.hpp"')] + full_enums,
+                [GenTuPass('#include "SemOrgEnums.hpp"')] + groups.full_enums,
             ),
         ),
         GenUnit(
@@ -1302,7 +1325,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace(n_sem(), shared_types + expanded),
+                    GenTuNamespace(n_sem(), groups.shared_types + groups.expanded),
                 ],
             )),
         GenUnit(
@@ -1311,7 +1334,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                 [
                     GenTuPass("#pragma once"),
                     GenTuInclude("haxorg/sem/ImmOrgBase.hpp", True),
-                    GenTuNamespace(n_imm(), immutable),
+                    GenTuNamespace(n_imm(), groups.immutable),
                 ],
             )),
     ])
@@ -1390,29 +1413,47 @@ def codegen_options(f):
 def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
     opts: CodegenOptions = get_context(ctx, CodegenOptions, config=config, kwargs=kwargs)
 
-    impl = None
+    t = TextLayout()
+    pyast = pya.ASTBuilder(t)
+    builder = ASTBuilder(t)
+
+    def write_files_group(impl: GenFiles):
+        gen_description_files(
+            description=impl,
+            builder=builder,
+            t=t,
+            tmp=opts.tmp,
+        )
+
     match opts.codegen_task:
         case "adaptagrams":
-            impl = gen_adaptagrams_wrappers
+            write_files_group(
+                gen_adaptagrams_wrappers(
+                    builder,
+                    pyast,
+                    reflection_path=Path(opts.reflection_path),
+                ))
 
         case "pyhaxorg":
-            impl = gen_pyhaxorg_wrappers
+            groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
+                ast=builder,
+                reflection_path=Path(opts.reflection_path),
+            )
 
-    t = TextLayout()
-    builder = ASTBuilder(t)
-    pyast = pya.ASTBuilder(t)
-    description: GenFiles = impl(
-        builder,
-        pyast,
-        reflection_path=Path(opts.reflection_path),
-    )
+            with open("/tmp/pyhaxorg_reflection_data.yaml", "w") as file:
+                yaml.safe_dump(to_base_types(groups.tu), stream=file)
 
-    gen_description_files(
-        description=description,
-        builder=builder,
-        t=t,
-        tmp=opts.tmp,
-    )
+            with open("/tmp/pyhaxorg_reflection_data.json", "w") as file:
+                log(CAT).debug(f"Debug reflection data to {file.name}")
+                file.write(open_proto_file(Path(opts.reflection_path)).to_json(2))
+
+            write_files_group(gen_pyhaxorg_source(ast=builder, groups=groups))
+            write_files_group(
+                gen_pyhaxorg_python_wrappers(
+                    groups=groups,
+                    ast=builder,
+                    pyast=pyast,
+                ))
 
 
 if __name__ == "__main__":

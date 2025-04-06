@@ -286,10 +286,10 @@ def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypede
 @beartype
 @dataclass
 class ConvTu:
-    structs: List[GenTuStruct]
-    functions: List[GenTuFunction]
-    enums: List[GenTuEnum]
-    typedefs: List[GenTuTypedef]
+    structs: List[GenTuStruct] = field(default_factory=list)
+    functions: List[GenTuFunction] = field(default_factory=list)
+    enums: List[GenTuEnum] = field(default_factory=list)
+    typedefs: List[GenTuTypedef] = field(default_factory=list)
 
 
 @beartype
