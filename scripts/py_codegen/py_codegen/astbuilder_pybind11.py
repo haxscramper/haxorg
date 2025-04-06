@@ -719,51 +719,44 @@ class Py11Field:
 @beartype
 @dataclass
 class Py11Class:
-    PyName: str
-    Class: QualType
-    ReflectionParams: Optional[GenTuReflParams]
-    Bases: List[QualType] = field(default_factory=list)
-    PyHolderType: Optional[QualType] = None
+    Struct: GenTuStruct
     Fields: List[Py11Field] = field(default_factory=list)
     Methods: List[Py11Method] = field(default_factory=list)
     InitImpls: List[Py11Method] = field(default_factory=list)
-    IsAbstract: bool = False
-    IsDescribedRecord: bool = False
+
+    def getPyName(self, base_map: GenTypeMap) -> str:
+        return self.Struct.reflectionParams.wrapper_name or py_type(
+            self.Struct.name, base_map=base_map).Name
+
+    def getCxxName(self) -> QualType:
+        return self.Struct.declarationQualName()
 
     @staticmethod
-    def FromGenTu(ast: ASTBuilder,
-                  value: GenTuStruct,
-                  base_map: GenTypeMap,
-                  pyNameOveride: Optional[str] = None) -> 'Py11Class':
-        res = Py11Class(
-            PyName=value.reflectionParams.wrapper_name or pyNameOveride or
-            py_type(value.name, base_map=base_map).Name,
-            Class=value.declarationQualName(),
-            ReflectionParams=value.reflectionParams,
-        )
-
-        res.ReflectionParams = value.reflectionParams
-        res.IsAbstract = value.IsAbstract
-        res.IsDescribedRecord = value.IsDescribedRecord
-
-        for base in value.bases:
-            res.Bases.append(base)
+    def FromGenTu(ast: ASTBuilder, value: GenTuStruct) -> 'Py11Class':
+        res = Py11Class(Struct=value)
 
         for meth in value.methods:
-            res.Methods.append(Py11Method.FromGenTu(meth))
+            if meth.isExposedForWrap and not meth.isPureVirtual:
+                res.Methods.append(Py11Method.FromGenTu(meth))
 
         for _field in value.fields:
-            res.Fields.append(Py11Field.FromGenTu(_field))
+            if _field.isExposedForWrap:
+                res.Fields.append(Py11Field.FromGenTu(_field))
+
+        if not value.IsAbstract and value.reflectionParams.default_constructor:
+            res.InitDefault(ast, filter_init_fields(res.Fields))
+
+        res.InitMagicMethods(ast=ast)
 
         return res
 
     def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
-        if self.IsDescribedRecord:
+        if self.Struct.IsDescribedRecord:
             self.InitImpls.append(
                 Py11Method(
                     "",
                     "",
-                    self.Class,
+                    self.getCxxName(),
                     Args=[
                         GenTuIdent(
                             QualType(
@@ -774,12 +767,14 @@ class Py11Class:
                             ), "kwargs")
                     ],
                     Body=[
-                        ast.b.line([ast.Type(self.Class),
-                                    ast.string(" result{};")]),
+                        ast.b.line([
+                            ast.Type(self.getCxxName()),
+                            ast.string(" result{};")
+                        ]),
                         ast.XCall(
                             "org::bind::python::init_fields_from_kwargs",
                             args=[ast.string("result"),
-                                ast.string("kwargs")],
+                                  ast.string("kwargs")],
                             Stmt=True,
                         ),
                         ast.Return(ast.string("result")),
@@ -793,8 +788,8 @@ class Py11Class:
         str_type = QualType.ForName("string", Spaces=[QualType.ForName("std")])
         pyobj_type = QualType.ForName("object", Spaces=[QualType.ForName("pybind11")])
 
-        if not self.IsAbstract:
-            if self.IsDescribedRecord:
+        if not self.Struct.IsAbstract:
+            if self.Struct.IsDescribedRecord:
                 self.Methods.append(
                     Py11Method(
                         PyName="__repr__",
@@ -834,13 +829,13 @@ class Py11Class:
 
         self.Methods += getitem_list
 
-        if self.ReflectionParams.type_api and self.ReflectionParams.type_api.has_begin_end_iteration:
+        if self.Struct.reflectionParams.type_api and self.Struct.reflectionParams.type_api.has_begin_end_iteration:
             self.Methods.append(
                 Py11Method(
                     PyName="__iter__",
                     CxxName="at",
                     ResultTy=QualType.ForName("auto"),
-                    Args=[GenTuIdent(self.Class.asConstRef(), "node")],
+                    Args=[GenTuIdent(self.getCxxName().asConstRef(), "node")],
                     Body=[
                         ast.b.text(
                             "return pybind11::make_iterator(node.begin(), node.end());")
@@ -867,8 +862,8 @@ class Py11Class:
         return res
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.ClassParams:
-        res = pya.ClassParams(Name=self.PyName,
-                              Bases=[py_type(T, base_map=base_map) for T in self.Bases])
+        res = pya.ClassParams(Name=self.getPyName(base_map=base_map),
+                              Bases=[py_type(T, base_map=base_map) for T in self.Struct.bases])
 
         Init = Py11Method(
             PyName="__init__",
@@ -904,10 +899,10 @@ class Py11Class:
         sub: List[BlockId] = []
 
         for Init in self.InitImpls:
-            sub.append(Init.build_bind(self.Class, ast))
+            sub.append(Init.build_bind(self.getCxxName(), ast))
 
         for Field in self.Fields:
-            sub.append(Field.build_bind(self.Class, ast))
+            sub.append(Field.build_bind(self.getCxxName(), ast))
 
         for Meth in self.dedup_methods():
             if Meth.ResultTy is None:
@@ -915,39 +910,36 @@ class Py11Class:
                 pass
 
             else:
-                sub.append(Meth.build_bind(self.Class, ast))
+                sub.append(Meth.build_bind(self.getCxxName(), ast))
 
         sub.append(b.text(";"))
 
         HolderType = None
 
-        if self.PyHolderType:
-            HolderType = self.PyHolderType
-
-        elif self.ReflectionParams:
-            match self.ReflectionParams.backend.python.holder_type:
+        if self.Struct.reflectionParams:
+            match self.Struct.reflectionParams.backend.python.holder_type:
                 case QualType():
-                    HolderType = self.ReflectionParams.backend.python.holder_type.withTemplateParams(
-                        [self.Class])
+                    HolderType = self.Struct.reflectionParams.backend.python.holder_type.withTemplateParams(
+                        [self.getCxxName()])
 
                 case "shared":
-                    HolderType = self.Class.withWrapperType(
+                    HolderType = self.getCxxName().withWrapperType(
                         QualType.ForName("shared_ptr", Spaces=[QualType.ForName("std")]))
 
                 case "unique":
-                    HolderType = self.Class.withWrapperType(
+                    HolderType = self.getCxxName().withWrapperType(
                         QualType.ForName("unique_ptr", Spaces=[QualType.ForName("std")]))
 
                 case holder:
                     if holder is not None:
-                        HolderType = self.Class.withWrapperType(QualType.ForName(holder))
+                        HolderType = self.getCxxName().withWrapperType(QualType.ForName(holder))
 
         return b.stack([
             ast.XCall(
                 "pybind11::class_",
-                [b.text("m"), ast.Literal(self.PyName)],
-                Params=[self.Class] + ([HolderType] if HolderType else []) +
-                [B for B in self.Bases if base_map.is_known_type(B)],
+                [b.text("m"), ast.Literal(self.getPyName(base_map=base_map))],
+                Params=[self.getCxxName()] + ([HolderType] if HolderType else []) +
+                [B for B in self.Struct.bases if base_map.is_known_type(B)],
             ),
             b.indent(2, b.stack(sub))
         ])
@@ -979,39 +971,6 @@ Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass, Py11Functi
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
     return [F for F in Fields if F.Type.name not in ["SemId"]]
 
-
-@beartype
-def pybind_nested_type(
-    ast: ASTBuilder,
-    value: GenTuStruct,
-    base_map: GenTypeMap,
-) -> Py11Class:
-    res = Py11Class(
-        PyName=value.reflectionParams.wrapper_name or
-        py_type(value.name, base_map=base_map).Name,
-        Class=value.declarationQualName(),
-        Bases=value.bases,
-        ReflectionParams=value.reflectionParams,
-        IsAbstract=value.IsAbstract,
-        IsDescribedRecord=value.IsDescribedRecord,
-    )
-
-    for meth in value.methods:
-        if meth.isExposedForWrap and not meth.isPureVirtual:
-            res.Methods.append(Py11Method.FromGenTu(meth))
-
-    for _field in value.fields:
-        if _field.isExposedForWrap:
-            res.Fields.append(Py11Field.FromGenTu(_field))
-
-    if not value.IsAbstract and value.reflectionParams.default_constructor:
-        res.InitDefault(ast, filter_init_fields(res.Fields))
-
-    res.InitMagicMethods(ast=ast)
-
-    return res
-
-
 @beartype
 @dataclass
 class Py11Module:
@@ -1027,11 +986,12 @@ class Py11Module:
             self.add_decl(decl, ast=ast, base_map=base_map)
 
     def add_decl(self, decl: GenTuUnion, ast: ASTBuilder, base_map: GenTypeMap):
+
         def append_decl(d: Py11Entry):
             name = None
             match d:
                 case Py11Class():
-                    name = d.PyName
+                    name = d.getPyName(base_map=base_map)
 
                 case Py11Enum():
                     name = d.PyName
@@ -1042,15 +1002,11 @@ class Py11Module:
 
             self.Decls.append(d)
 
-
         match decl:
             case GenTuStruct():
-                log(CAT).info(f"Add decl {decl.name}")
                 def codegenConstructCallback(value: Any) -> None:
                     if isinstance(value, GenTuStruct):
-                        # log(CAT).info(f"  rec decl {value.name}")
-                        new = pybind_nested_type(ast, value, base_map=base_map)
-                        append_decl(new)
+                        append_decl(Py11Class.FromGenTu(ast=ast, value=value))
 
                     elif isinstance(value, GenTuEnum):
                         append_decl(
