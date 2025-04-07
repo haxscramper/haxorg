@@ -301,19 +301,6 @@ def get_osk_enum(expanded: List[GenTuStruct]) -> GenTuEnum:
         ],
     )
 
-
-@beartype
-def add_enums(
-    res: Py11Module,
-    ast: ASTBuilder,
-    enums: List[GenTuEnum],
-    base_map: GenTypeMap,
-):
-    for item in enums:
-        wrap = Py11Enum.FromGenTu(item, py_type(item.name, base_map=base_map).Name)
-        res.Decls.append(wrap)
-
-
 def topological_sort_entries(entries: List[GenTuUnion]) -> List[GenTuUnion]:
     entry_by_hash: Dict[int, GenTuUnion] = {}
     cant_have_dependants: List[GenTuUnion] = []

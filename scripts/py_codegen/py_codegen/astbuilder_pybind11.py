@@ -524,45 +524,39 @@ class Py11EnumField:
     CxxName: str
     Doc: GenTuDoc
 
-    @staticmethod
-    def FromGenTu(
+    def __init__(
+        self,
         Field: GenTuEnumField,
         pyNameOverride: Optional[str] = None,
-    ) -> 'Py11EnumField':
-        return Py11EnumField(
-            PyName=Field.name if pyNameOverride is None else pyNameOverride,
-            CxxName=Field.name,
-            Doc=Field.doc,
-        )
+    ):
+        self.PyName = Field.name if pyNameOverride is None else pyNameOverride
+        self.CxxName = Field.name
+        self.Doc = Field.doc
 
     def build_bind(self, Enum: 'Py11Enum', ast: ASTBuilder) -> BlockId:
         return ast.XCall(".value", [
             ast.Literal(self.PyName),
-            ast.Type(QualType.ForName(self.CxxName, Spaces=[Enum.Enum]))
+            ast.Type(QualType.ForName(self.CxxName, Spaces=[Enum.Enum.name]))
         ] + maybe_list(get_doc_literal(ast, self.Doc)))
 
 
 @beartype
 @dataclass
 class Py11Enum:
-    PyName: str
-    Enum: QualType
+    Enum: GenTuEnum
     Fields: List[Py11EnumField]
-    Doc: GenTuDoc
 
-    @staticmethod
-    def FromGenTu(Enum: GenTuEnum, PyName: str) -> 'Py11Enum':
-        return Py11Enum(
-            PyName=PyName,
-            Enum=Enum.name,
-            Doc=Enum.doc,
-            Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields],
-        )
+    def __init__(self, Enum: GenTuEnum):
+        self.Enum = Enum
+        self.Fields = [Py11EnumField(F) for F in Enum.fields]
 
-    def build_typedef(self) -> pya.EnumParams:
+    def getPyName(self, base_map: GenTypeMap) -> str:
+        return py_type(self.Enum.name, base_map=base_map).Name
+
+    def build_typedef(self, base_map: GenTypeMap) -> pya.EnumParams:
         count = 0
         return pya.EnumParams(
-            Name=self.PyName,
+            Name=self.getPyName(base_map),
             Fields=[
                 pya.EnumFieldParams(
                     ("_" +
@@ -570,11 +564,11 @@ class Py11Enum:
                     str(count := count + 1)) for F in self.Fields
             ])
 
-    def build_bind(self, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
         b = ast.b
         iter_type = QualType(
             name="PyEnumIterator",
-            Parameters=[self.Enum],
+            Parameters=[self.Enum.name],
             Spaces=[n_org(), t_namespace("bind"),
                     t_namespace("python")],
         )
@@ -583,16 +577,16 @@ class Py11Enum:
                 "bind_enum_iterator",
                 args=[
                     b.text("m"),
-                    ast.Literal(self.PyName),
+                    ast.Literal(self.getPyName(base_map)),
                     ast.string("type_registry_guard"),
                 ],
-                Params=[self.Enum],
+                Params=[self.Enum.name],
                 Stmt=True,
             ),
             ast.XCall(
                 "pybind11::enum_",
-                [b.text("m"), ast.Literal(self.PyName)],
-                Params=[self.Enum],
+                [b.text("m"), ast.Literal(self.getPyName(base_map))],
+                Params=[self.Enum.name],
             ),
             b.indent(
                 2,
@@ -604,15 +598,15 @@ class Py11Enum:
                             ast.Return(ast.b.line([ast.Type(iter_type),
                                                    ast.string("()")])),
                         ],
-                    ).build_bind(self.Enum, ast),
+                    ).build_bind(self.Enum.name, ast),
                     Py11Method(
                         PyName="__eq__",
                         Func=GenTuFunction(
                             name="",
                             result=QualType(name="bool"),
                             arguments=[
-                                GenTuIdent(self.Enum, "lhs"),
-                                GenTuIdent(self.Enum, "rhs"),
+                                GenTuIdent(self.Enum.name, "lhs"),
+                                GenTuIdent(self.Enum.name, "rhs"),
                             ],
                         ),
                         Body=[
@@ -620,19 +614,19 @@ class Py11Enum:
                                 ast.XCall("==", [ast.string("lhs"),
                                                  ast.string("rhs")])),
                         ],
-                    ).build_bind(self.Enum, ast),
+                    ).build_bind(self.Enum.name, ast),
                     Py11Method(
                         PyName="__hash__",
                         Func=GenTuFunction(
                             result=QualType(name="int"),
-                            arguments=[GenTuIdent(self.Enum, "it")],
+                            arguments=[GenTuIdent(self.Enum.name, "it")],
                         ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast", [ast.string("it")],
                                           Params=[QualType(name="int")])),
                         ],
-                    ).build_bind(self.Enum, ast),
+                    ).build_bind(self.Enum.name, ast),
                 ] + [b.text(";")]),
             )
         ])
@@ -641,31 +635,23 @@ class Py11Enum:
 @beartype
 @dataclass
 class Py11Field:
-    PyName: str
-    CxxName: str
-    Type: QualType
+    Field: GenTuField
     GetImpl: Optional[List[BlockId]] = None
     SetImpl: Optional[List[BlockId]] = None
-    Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
-    Default: Optional[Union[BlockId, str]] = None
 
-    @staticmethod
-    def FromGenTu(Field: GenTuField,
-                  pyNameOveride: Optional[str] = None,
+    def getPyName(self) -> str:
+        return py_ident(self.Field.name)
+
+    def __init__(self, Field: GenTuField,
                   GetImpl: Optional[List[BlockId]] = None,
-                  SetImpl: Optional[List[BlockId]] = None) -> 'Py11Field':
-        return Py11Field(
-            PyName=py_ident(Field.name) if pyNameOveride is None else pyNameOveride,
-            Type=Field.type,
-            CxxName=Field.name,
-            GetImpl=GetImpl,
-            Doc=Field.doc,
-            SetImpl=SetImpl,
-            Default=Field.value,
-        )
+                  SetImpl: Optional[List[BlockId]] = None):
+
+        self.Field = Field
+        self.GetImpl = GetImpl
+        self.SetImpl = SetImpl
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.FieldParams:
-        return pya.FieldParams(py_type(self.Type, base_map=base_map), self.PyName)
+        return pya.FieldParams(py_type(self.Field.type, base_map=base_map), self.getPyName())
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -674,10 +660,10 @@ class Py11Field:
             return ast.XCall(
                 ".def_property",
                 [
-                    ast.Literal(self.PyName),
+                    ast.Literal(self.getPyName()),
                     ast.Lambda(
                         LambdaParams(
-                            ResultTy=self.Type,
+                            ResultTy=self.Field.type,
                             Body=self.GetImpl,
                             Args=[_self],
                         )),
@@ -685,21 +671,21 @@ class Py11Field:
                         LambdaParams(
                             ResultTy=None,
                             Body=[
-                                b.text(f"{_self.name}->{self.CxxName} = {self.CxxName};")
+                                b.text(f"{_self.name}->{self.Field.name} = _arg;")
                             ],
-                            Args=[_self, ParmVarParams(self.Type, self.CxxName)],
+                            Args=[_self, ParmVarParams(self.Field.type, "_arg")],
                         )),
                 ],
                 Line=False,
             )
         else:
             return ast.XCall(".def_readwrite", [
-                ast.Literal(self.PyName),
+                ast.Literal(self.getPyName()),
                 b.line([b.text("&"),
                         ast.Type(Class),
                         b.text("::"),
-                        b.text(self.CxxName)]),
-                *maybe_list(get_doc_literal(ast, self.Doc))
+                        b.text(self.Field.name)]),
+                *maybe_list(get_doc_literal(ast, self.Field.doc))
             ])
 
 
@@ -729,7 +715,7 @@ class Py11Class:
 
         for _field in value.fields:
             if _field.isExposedForWrap:
-                self.Fields.append(Py11Field.FromGenTu(_field))
+                self.Fields.append(Py11Field(_field))
 
         if not value.IsAbstract and value.reflectionParams.default_constructor:
             self.InitDefault(ast, filter_init_fields(self.Fields))
@@ -862,7 +848,7 @@ class Py11Class:
                 name="",
                 result=QualType.ForName("None"),
                 arguments=[
-                    GenTuIdent(name=it.PyName, type=it.Type, value=ast.b.text("None"))
+                    GenTuIdent(name=it.getPyName(), type=it.Field.type, value=ast.b.text("None"))
                     for it in self.Fields
                 ],
             ),
@@ -950,19 +936,16 @@ class Py11TypedefPass:
     name: pya.PyType
     base: pya.PyType
 
-    @staticmethod
-    def FromGenTu(typedef: GenTuTypedef, base_map: GenTypeMap) -> "Py11TypedefPass":
-        return Py11TypedefPass(
-            name=py_type(typedef.name, base_map),
-            base=py_type(typedef.base, base_map),
-        )
+    def __init__(self, typedef: GenTuTypedef, base_map: GenTypeMap):
+        self.name = py_type(typedef.name, base_map)
+        self.base = py_type(typedef.base, base_map)
 
 
 Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass, Py11Function]
 
 
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
-    return [F for F in Fields if F.Type.name not in ["SemId"]]
+    return [F for F in Fields if F.Field.type.name not in ["SemId"]]
 
 
 @beartype
@@ -988,7 +971,7 @@ class Py11Module:
                     name = d.getPyName(base_map=base_map)
 
                 case Py11Enum():
-                    name = d.PyName
+                    name = d.getPyName(base_map=base_map)
 
             if name:
                 assert name not in self.nameTrack, f"{name} is already registered for the module"
@@ -1004,17 +987,10 @@ class Py11Module:
                         append_decl(Py11Class(ast=ast, value=value))
 
                     elif isinstance(value, GenTuEnum):
-                        append_decl(
-                            Py11Enum.FromGenTu(value,
-                                               PyName=py_type(value.name,
-                                                              base_map=base_map).Name))
+                        append_decl(Py11Enum(value))
 
                     elif isinstance(value, GenTuTypedef):
-                        append_decl(
-                            Py11TypedefPass(
-                                name=py_type(value.name, base_map=base_map),
-                                base=py_type(value.base, base_map=base_map),
-                            ))
+                        append_decl(Py11TypedefPass(value, base_map))
 
                 def tree_visit_repr(value: Any, context: List[Any]) -> str:
                     match value:
@@ -1035,12 +1011,10 @@ class Py11Module:
                 append_decl(Py11Function(decl))
 
             case GenTuEnum():
-                append_decl(
-                    Py11Enum.FromGenTu(decl,
-                                       py_type(decl.name, base_map=base_map).Name))
+                append_decl(Py11Enum(decl))
 
             case GenTuTypedef():
-                append_decl(Py11TypedefPass.FromGenTu(decl, base_map=base_map))
+                append_decl(Py11TypedefPass(decl, base_map=base_map))
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> BlockId:
         passes: List[BlockId] = []
@@ -1070,7 +1044,7 @@ class ImmAdapterTBase[T](ImmAdapter):
         for item in self.Decls:
             match item:
                 case Py11Enum():
-                    passes.append(ast.Enum(item.build_typedef()))
+                    passes.append(ast.Enum(item.build_typedef(base_map=base_map)))
                     passes.append(ast.string(""))
 
                 case Py11Class():
@@ -1112,7 +1086,7 @@ class ImmAdapterTBase[T](ImmAdapter):
                     passes.append(entry.build_bind(ast, base_map=base_map))
 
                 case Py11Enum():
-                    passes.append(entry.build_bind(ast))
+                    passes.append(entry.build_bind(ast, base_map=base_map))
 
                 case Py11Function():
                     passes.append(entry.build_bind(ast))
