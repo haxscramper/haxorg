@@ -6,8 +6,13 @@ from py_scriptutils.algorithm import maybe_splice
 
 from typing import TYPE_CHECKING
 
-from py_codegen.gen_tu_cpp import (GenTuFunction, GenTuIdent, GenTuDoc, QualType,
-                                   QualTypeKind)
+from py_codegen.gen_tu_cpp import (
+    GenTuFunction,
+    GenTuIdent,
+    GenTuDoc,
+    QualType,
+    QualTypeKind,
+)
 import py_codegen.astbuilder_py as pya
 import itertools
 from rich.pretty import pprint
@@ -642,16 +647,18 @@ class Py11Field:
     def getPyName(self) -> str:
         return py_ident(self.Field.name)
 
-    def __init__(self, Field: GenTuField,
-                  GetImpl: Optional[List[BlockId]] = None,
-                  SetImpl: Optional[List[BlockId]] = None):
+    def __init__(self,
+                 Field: GenTuField,
+                 GetImpl: Optional[List[BlockId]] = None,
+                 SetImpl: Optional[List[BlockId]] = None):
 
         self.Field = Field
         self.GetImpl = GetImpl
         self.SetImpl = SetImpl
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.FieldParams:
-        return pya.FieldParams(py_type(self.Field.type, base_map=base_map), self.getPyName())
+        return pya.FieldParams(py_type(self.Field.type, base_map=base_map),
+                               self.getPyName())
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -670,9 +677,7 @@ class Py11Field:
                     ast.Lambda(
                         LambdaParams(
                             ResultTy=None,
-                            Body=[
-                                b.text(f"{_self.name}->{self.Field.name} = _arg;")
-                            ],
+                            Body=[b.text(f"{_self.name}->{self.Field.name} = _arg;")],
                             Args=[_self, ParmVarParams(self.Field.type, "_arg")],
                         )),
                 ],
@@ -681,11 +686,12 @@ class Py11Field:
         else:
             return ast.XCall(".def_readwrite", [
                 ast.Literal(self.getPyName()),
-                b.line([b.text("&"),
-                        ast.Type(Class),
-                        b.text("::"),
-                        b.text(self.Field.name)]),
-                *maybe_list(get_doc_literal(ast, self.Field.doc))
+                b.line([
+                    b.text("&"),
+                    ast.Type(Class),
+                    b.text("::"),
+                    b.text(self.Field.name)
+                ]), *maybe_list(get_doc_literal(ast, self.Field.doc))
             ])
 
 
@@ -848,8 +854,9 @@ class Py11Class:
                 name="",
                 result=QualType.ForName("None"),
                 arguments=[
-                    GenTuIdent(name=it.getPyName(), type=it.Field.type, value=ast.b.text("None"))
-                    for it in self.Fields
+                    GenTuIdent(name=it.getPyName(),
+                               type=it.Field.type,
+                               value=ast.b.text("None")) for it in self.Fields
                 ],
             ),
         )

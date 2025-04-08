@@ -52,9 +52,21 @@ class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
 
 @beartype
 class GenTuReflParams(BaseModel, extra="forbid"):
-    default_constructor: bool = Field(default=True, alias=AliasChoices("default-constructor", "default_constructor"))
-    wrapper_name: Optional[str] = Field(default=None, alias=AliasChoices("wrapper-name", "wrapper_name"))
-    wrapper_has_params: bool = Field(default=True, alias=AliasChoices("wrapper-has-params", "wrapper_has_params"))
+    default_constructor: bool = Field(default=True,
+                                      alias=AliasChoices("default-constructor",
+                                                         "default_constructor"))
+    wrapper_name: Optional[str] = Field(default=None,
+                                        alias=AliasChoices("wrapper-name",
+                                                           "wrapper_name"))
+    wrapper_has_params: bool = Field(default=True,
+                                     alias=AliasChoices("wrapper-has-params",
+                                                        "wrapper_has_params"))
+    unique_name: Optional[str] = Field(
+        default=None,
+        alias=AliasChoices("unique-name", "unique_name"),
+        description=
+        "Reflection entry name unique in the scope of the class/namespace -- for wrapper backends that don't support overloading"
+    )
     backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
     function_api: Optional[GenTuFunctionApiTraits] = Field(
         default=None,

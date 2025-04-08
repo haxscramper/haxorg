@@ -5,6 +5,8 @@ import itertools
 from typing import *
 
 import py_codegen.astbuilder_py as pya
+import py_codegen.astbuilder_nodeapi as napi
+import py_codegen.astbuilder_cpp as cpp
 from py_codegen.org_codegen_data import *
 from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
@@ -300,6 +302,7 @@ def get_osk_enum(expanded: List[GenTuStruct]) -> GenTuEnum:
             for struct in get_concrete_types(expanded)
         ],
     )
+
 
 def topological_sort_entries(entries: List[GenTuUnion]) -> List[GenTuUnion]:
     entry_by_hash: Dict[int, GenTuUnion] = {}
@@ -1129,6 +1132,29 @@ def gen_pyhaxorg_python_wrappers(
 
 
 @beartype
+def gen_pyhaxorg_napi_wrappers(groups: PyhaxorgTypeGroups, ast: ASTBuilder) -> GenFiles:
+
+    cpp_builder = cpp.ASTBuilder(ast.b)
+
+    res = napi.NapiModule("pyhaxorg")
+
+    for decl in groups.get_entries_for_wrapping():
+        res.add_decl(decl)
+
+    # res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
+
+    return GenFiles([
+        GenUnit(
+            GenTu(
+                "{root}/src/wrappers/js/nodehaxorg.cpp",
+                [
+                    GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
+                ],
+            )),
+    ])
+
+
+@beartype
 def gen_pyhaxorg_source(
     ast: ASTBuilder,
     groups: PyhaxorgTypeGroups,
@@ -1370,13 +1396,22 @@ def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
                 log(CAT).debug(f"Debug reflection data to {file.name}")
                 file.write(open_proto_file(Path(opts.reflection_path)).to_json(2))
 
-            write_files_group(gen_pyhaxorg_source(ast=builder, groups=groups))
+            write_files_group(gen_pyhaxorg_napi_wrappers(
+                groups=groups,
+                ast=builder,
+            ))
+
             write_files_group(
                 gen_pyhaxorg_python_wrappers(
                     groups=groups,
                     ast=builder,
                     pyast=pyast,
                 ))
+
+            write_files_group(gen_pyhaxorg_source(
+                ast=builder,
+                groups=groups,
+            ))
 
 
 if __name__ == "__main__":

@@ -62,6 +62,7 @@ option(ORG_BUILD_TESTS "" ON)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" ON)
 option(ORG_DEPS_USE_PYTHON_VERSION "" "3.13")
+option(ORG_BUILD_USE_NAPI_WRAPPER "" ON)
 
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
 
@@ -183,6 +184,10 @@ add_subdirectory(src/py_libs)
 if(${ORG_BUILD_IS_DEVELOP})
   add_subdirectory(scripts/cxx_repository)
   add_subdirectory(scripts/cxx_codegen)
+endif()
+
+if(${ORG_BUILD_USE_NAPI_WRAPPER})
+  add_subdirectory(src/wrappers/js)
 endif()
 
 if(${ORG_DEPS_USE_ADAPTAGRAMS})
