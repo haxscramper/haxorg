@@ -1434,30 +1434,30 @@ struct ImmAdapterJs : public Napi::ObjectWrap<ImmAdapterJs> {
                                                       static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex),
                                                       std::make_tuple());
   }
-  Napi::Value at(Napi::CallbackInfo const& info) {
+  Napi::Value atIdReflPathStep(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapter, org::imm::ImmAdapter>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at),
+                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::atIdReflPathStep),
                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmId>{},
                                                                                        CxxArgSpec<org::imm::ImmPathStep>{}));
   }
-  Napi::Value at(Napi::CallbackInfo const& info) {
+  Napi::Value atField(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapter, org::imm::ImmAdapter>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
+                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::atField),
                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmReflFieldId>{}));
   }
-  Napi::Value at(Napi::CallbackInfo const& info) {
+  Napi::Value atIndex(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapter, org::imm::ImmAdapter>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at),
+                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::atIndex),
                                                                        std::make_tuple(CxxArgSpec<int>{},
                                                                                        CxxArgSpec<bool>{1}));
   }
-  Napi::Value at(Napi::CallbackInfo const& info) {
+  Napi::Value atPath(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapter, org::imm::ImmAdapter>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at),
+                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::atPath),
                                                                        std::make_tuple(CxxArgSpec<hstd::Vec<int>>{},
                                                                                        CxxArgSpec<bool>{1}));
   }
@@ -1542,40 +1542,40 @@ struct AstTrackingAlternativesJs : public Napi::ObjectWrap<AstTrackingAlternativ
 };
 
 struct AstTrackingGroupJs : public Napi::ObjectWrap<AstTrackingGroupJs> {
-  Napi::Value getRadioTarget(Napi::CallbackInfo const& info) {
+  Napi::Value getRadioTargetConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::AstTrackingGroup, org::AstTrackingGroup::RadioTarget const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::AstTrackingGroup::RadioTarget const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getRadioTarget),
+                                                                                             static_cast<org::AstTrackingGroup::RadioTarget const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getRadioTargetConst),
                                                                                              std::make_tuple());
   }
-  Napi::Value getTrackedHashtag(Napi::CallbackInfo const& info) {
+  Napi::Value getTrackedHashtagConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::AstTrackingGroup, org::AstTrackingGroup::TrackedHashtag const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::AstTrackingGroup::TrackedHashtag const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getTrackedHashtag),
+                                                                                                static_cast<org::AstTrackingGroup::TrackedHashtag const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getTrackedHashtagConst),
                                                                                                 std::make_tuple());
   }
-  Napi::Value getTrackedHashtag(Napi::CallbackInfo const& info) {
+  Napi::Value getTrackedHashtagMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::AstTrackingGroup, org::AstTrackingGroup::TrackedHashtag&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::AstTrackingGroup::TrackedHashtag&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getTrackedHashtag),
+                                                                                     static_cast<org::AstTrackingGroup::TrackedHashtag&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getTrackedHashtagMut),
                                                                                      std::make_tuple());
   }
-  Napi::Value getSingle(Napi::CallbackInfo const& info) {
+  Napi::Value getSingleConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::AstTrackingGroup, org::AstTrackingGroup::Single const&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::AstTrackingGroup::Single const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getSingle),
+                                                                                        static_cast<org::AstTrackingGroup::Single const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getSingleConst),
                                                                                         std::make_tuple());
   }
-  Napi::Value getRadioTarget(Napi::CallbackInfo const& info) {
+  Napi::Value getRadioTargetMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::AstTrackingGroup, org::AstTrackingGroup::RadioTarget&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::AstTrackingGroup::RadioTarget&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getRadioTarget),
+                                                                                  static_cast<org::AstTrackingGroup::RadioTarget&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getRadioTargetMut),
                                                                                   std::make_tuple());
   }
-  Napi::Value getSingle(Napi::CallbackInfo const& info) {
+  Napi::Value getSingleMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::AstTrackingGroup, org::AstTrackingGroup::Single&>(info,
                                                                              getPtr(),
-                                                                             static_cast<org::AstTrackingGroup::Single&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getSingle),
+                                                                             static_cast<org::AstTrackingGroup::Single&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getSingleMut),
                                                                              std::make_tuple());
   }
   Napi::Value isSingle(Napi::CallbackInfo const& info) {
@@ -1778,16 +1778,16 @@ struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
                                                        static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmUniqId const&) const>(&org::graph::MapGraph::isRegisteredNode),
                                                        std::make_tuple(CxxArgSpec<org::imm::ImmUniqId>{}));
   }
-  Napi::Value at(Napi::CallbackInfo const& info) {
+  Napi::Value atMapNode(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::graph::MapGraph, org::graph::MapNodeProp const&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::graph::MapNodeProp const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::at),
+                                                                                 static_cast<org::graph::MapNodeProp const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::atMapNode),
                                                                                  std::make_tuple(CxxArgSpec<org::graph::MapNode>{}));
   }
-  Napi::Value at(Napi::CallbackInfo const& info) {
+  Napi::Value atMapEdge(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::graph::MapGraph, org::graph::MapEdgeProp const&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::graph::MapEdgeProp const&(org::graph::MapGraph::*)(org::graph::MapEdge const&) const>(&org::graph::MapGraph::at),
+                                                                                 static_cast<org::graph::MapEdgeProp const&(org::graph::MapGraph::*)(org::graph::MapEdge const&) const>(&org::graph::MapGraph::atMapEdge),
                                                                                  std::make_tuple(CxxArgSpec<org::graph::MapEdge>{}));
   }
   Napi::Value addEdge(Napi::CallbackInfo const& info) {
@@ -1796,10 +1796,10 @@ struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
                                                   static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&)>(&org::graph::MapGraph::addEdge),
                                                   std::make_tuple(CxxArgSpec<org::graph::MapEdge>{}));
   }
-  Napi::Value addEdge(Napi::CallbackInfo const& info) {
+  Napi::Value addEdgeWithProp(Napi::CallbackInfo const& info) {
     return WrapMethod<org::graph::MapGraph, void>(info,
                                                   getPtr(),
-                                                  static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&, org::graph::MapEdgeProp const&)>(&org::graph::MapGraph::addEdge),
+                                                  static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&, org::graph::MapEdgeProp const&)>(&org::graph::MapGraph::addEdgeWithProp),
                                                   std::make_tuple(CxxArgSpec<org::graph::MapEdge>{},
                                                                   CxxArgSpec<org::graph::MapEdgeProp>{}));
   }
@@ -1829,10 +1829,10 @@ struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
                                                        static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::hasNode),
                                                        std::make_tuple(CxxArgSpec<org::graph::MapNode>{}));
   }
-  Napi::Value hasEdge(Napi::CallbackInfo const& info) {
+  Napi::Value has2AdapterEdge(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::graph::MapGraph, bool>(info,
                                                        getPtr(),
-                                                       static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmAdapter const&, org::imm::ImmAdapter const&) const>(&org::graph::MapGraph::hasEdge),
+                                                       static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmAdapter const&, org::imm::ImmAdapter const&) const>(&org::graph::MapGraph::has2AdapterEdge),
                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{},
                                                                        CxxArgSpec<org::imm::ImmAdapter>{}));
   }
@@ -2077,16 +2077,16 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
                                                      static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isCall),
                                                      std::make_tuple());
   }
-  Napi::Value getCall(Napi::CallbackInfo const& info) {
+  Napi::Value getCallConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Call const&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::LispCode::Call const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getCall),
+                                                                                static_cast<org::sem::LispCode::Call const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getCallConst),
                                                                                 std::make_tuple());
   }
-  Napi::Value getCall(Napi::CallbackInfo const& info) {
+  Napi::Value getCallMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Call&>(info,
                                                                      getPtr(),
-                                                                     static_cast<org::sem::LispCode::Call&(org::sem::LispCode::*)()>(&org::sem::LispCode::getCall),
+                                                                     static_cast<org::sem::LispCode::Call&(org::sem::LispCode::*)()>(&org::sem::LispCode::getCallMut),
                                                                      std::make_tuple());
   }
   Napi::Value isList(Napi::CallbackInfo const& info) {
@@ -2095,16 +2095,16 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
                                                      static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isList),
                                                      std::make_tuple());
   }
-  Napi::Value getList(Napi::CallbackInfo const& info) {
+  Napi::Value getListConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::List const&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::LispCode::List const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getList),
+                                                                                static_cast<org::sem::LispCode::List const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getListConst),
                                                                                 std::make_tuple());
   }
-  Napi::Value getList(Napi::CallbackInfo const& info) {
+  Napi::Value getListMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::List&>(info,
                                                                      getPtr(),
-                                                                     static_cast<org::sem::LispCode::List&(org::sem::LispCode::*)()>(&org::sem::LispCode::getList),
+                                                                     static_cast<org::sem::LispCode::List&(org::sem::LispCode::*)()>(&org::sem::LispCode::getListMut),
                                                                      std::make_tuple());
   }
   Napi::Value isKeyValue(Napi::CallbackInfo const& info) {
@@ -2113,16 +2113,16 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
                                                      static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isKeyValue),
                                                      std::make_tuple());
   }
-  Napi::Value getKeyValue(Napi::CallbackInfo const& info) {
+  Napi::Value getKeyValueConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::KeyValue const&>(info,
                                                                                     getPtr(),
-                                                                                    static_cast<org::sem::LispCode::KeyValue const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getKeyValue),
+                                                                                    static_cast<org::sem::LispCode::KeyValue const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getKeyValueConst),
                                                                                     std::make_tuple());
   }
-  Napi::Value getKeyValue(Napi::CallbackInfo const& info) {
+  Napi::Value getKeyValueMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::KeyValue&>(info,
                                                                          getPtr(),
-                                                                         static_cast<org::sem::LispCode::KeyValue&(org::sem::LispCode::*)()>(&org::sem::LispCode::getKeyValue),
+                                                                         static_cast<org::sem::LispCode::KeyValue&(org::sem::LispCode::*)()>(&org::sem::LispCode::getKeyValueMut),
                                                                          std::make_tuple());
   }
   Napi::Value isNumber(Napi::CallbackInfo const& info) {
@@ -2131,16 +2131,16 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
                                                      static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isNumber),
                                                      std::make_tuple());
   }
-  Napi::Value getNumber(Napi::CallbackInfo const& info) {
+  Napi::Value getNumberConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Number const&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::LispCode::Number const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getNumber),
+                                                                                  static_cast<org::sem::LispCode::Number const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getNumberConst),
                                                                                   std::make_tuple());
   }
-  Napi::Value getNumber(Napi::CallbackInfo const& info) {
+  Napi::Value getNumberMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Number&>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::sem::LispCode::Number&(org::sem::LispCode::*)()>(&org::sem::LispCode::getNumber),
+                                                                       static_cast<org::sem::LispCode::Number&(org::sem::LispCode::*)()>(&org::sem::LispCode::getNumberMut),
                                                                        std::make_tuple());
   }
   Napi::Value isText(Napi::CallbackInfo const& info) {
@@ -2149,16 +2149,16 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
                                                      static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isText),
                                                      std::make_tuple());
   }
-  Napi::Value getText(Napi::CallbackInfo const& info) {
+  Napi::Value getTextConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Text const&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::LispCode::Text const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getText),
+                                                                                static_cast<org::sem::LispCode::Text const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getTextConst),
                                                                                 std::make_tuple());
   }
-  Napi::Value getText(Napi::CallbackInfo const& info) {
+  Napi::Value getTextMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Text&>(info,
                                                                      getPtr(),
-                                                                     static_cast<org::sem::LispCode::Text&(org::sem::LispCode::*)()>(&org::sem::LispCode::getText),
+                                                                     static_cast<org::sem::LispCode::Text&(org::sem::LispCode::*)()>(&org::sem::LispCode::getTextMut),
                                                                      std::make_tuple());
   }
   Napi::Value isIdent(Napi::CallbackInfo const& info) {
@@ -2167,16 +2167,16 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
                                                      static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isIdent),
                                                      std::make_tuple());
   }
-  Napi::Value getIdent(Napi::CallbackInfo const& info) {
+  Napi::Value getIdentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Ident const&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::LispCode::Ident const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getIdent),
+                                                                                 static_cast<org::sem::LispCode::Ident const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getIdentConst),
                                                                                  std::make_tuple());
   }
-  Napi::Value getIdent(Napi::CallbackInfo const& info) {
+  Napi::Value getIdentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Ident&>(info,
                                                                       getPtr(),
-                                                                      static_cast<org::sem::LispCode::Ident&(org::sem::LispCode::*)()>(&org::sem::LispCode::getIdent),
+                                                                      static_cast<org::sem::LispCode::Ident&(org::sem::LispCode::*)()>(&org::sem::LispCode::getIdentMut),
                                                                       std::make_tuple());
   }
   Napi::Value isBoolean(Napi::CallbackInfo const& info) {
@@ -2185,16 +2185,16 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
                                                      static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isBoolean),
                                                      std::make_tuple());
   }
-  Napi::Value getBoolean(Napi::CallbackInfo const& info) {
+  Napi::Value getBooleanConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Boolean const&>(info,
                                                                                    getPtr(),
-                                                                                   static_cast<org::sem::LispCode::Boolean const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getBoolean),
+                                                                                   static_cast<org::sem::LispCode::Boolean const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getBooleanConst),
                                                                                    std::make_tuple());
   }
-  Napi::Value getBoolean(Napi::CallbackInfo const& info) {
+  Napi::Value getBooleanMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Boolean&>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::LispCode::Boolean&(org::sem::LispCode::*)()>(&org::sem::LispCode::getBoolean),
+                                                                        static_cast<org::sem::LispCode::Boolean&(org::sem::LispCode::*)()>(&org::sem::LispCode::getBooleanMut),
                                                                         std::make_tuple());
   }
   Napi::Value isReal(Napi::CallbackInfo const& info) {
@@ -2203,22 +2203,22 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
                                                      static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isReal),
                                                      std::make_tuple());
   }
-  Napi::Value getReal(Napi::CallbackInfo const& info) {
+  Napi::Value getRealConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Real const&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::LispCode::Real const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getReal),
+                                                                                static_cast<org::sem::LispCode::Real const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getRealConst),
                                                                                 std::make_tuple());
   }
-  Napi::Value getReal(Napi::CallbackInfo const& info) {
+  Napi::Value getRealMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Real&>(info,
                                                                      getPtr(),
-                                                                     static_cast<org::sem::LispCode::Real&(org::sem::LispCode::*)()>(&org::sem::LispCode::getReal),
+                                                                     static_cast<org::sem::LispCode::Real&(org::sem::LispCode::*)()>(&org::sem::LispCode::getRealMut),
                                                                      std::make_tuple());
   }
-  Napi::Value getKind(Napi::CallbackInfo const& info) {
+  Napi::Value getKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Kind>(info,
                                                                     getPtr(),
-                                                                    static_cast<org::sem::LispCode::Kind(org::sem::LispCode::*)(org::sem::LispCode::Data const&)>(&org::sem::LispCode::getKind),
+                                                                    static_cast<org::sem::LispCode::Kind(org::sem::LispCode::*)(org::sem::LispCode::Data const&)>(&org::sem::LispCode::getKindStatic),
                                                                     std::make_tuple(CxxArgSpec<org::sem::LispCode::Data>{}));
   }
   Napi::Value getKind(Napi::CallbackInfo const& info) {
@@ -2315,16 +2315,16 @@ struct AttrValueJs : public Napi::ObjectWrap<AttrValueJs> {
                                                       static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isTextValue),
                                                       std::make_tuple());
   }
-  Napi::Value getTextValue(Napi::CallbackInfo const& info) {
+  Napi::Value getTextValueConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::AttrValue, org::sem::AttrValue::TextValue const&>(info,
                                                                                        getPtr(),
-                                                                                       static_cast<org::sem::AttrValue::TextValue const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getTextValue),
+                                                                                       static_cast<org::sem::AttrValue::TextValue const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getTextValueConst),
                                                                                        std::make_tuple());
   }
-  Napi::Value getTextValue(Napi::CallbackInfo const& info) {
+  Napi::Value getTextValueMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::AttrValue, org::sem::AttrValue::TextValue&>(info,
                                                                             getPtr(),
-                                                                            static_cast<org::sem::AttrValue::TextValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getTextValue),
+                                                                            static_cast<org::sem::AttrValue::TextValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getTextValueMut),
                                                                             std::make_tuple());
   }
   Napi::Value isFileReference(Napi::CallbackInfo const& info) {
@@ -2333,16 +2333,16 @@ struct AttrValueJs : public Napi::ObjectWrap<AttrValueJs> {
                                                       static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isFileReference),
                                                       std::make_tuple());
   }
-  Napi::Value getFileReference(Napi::CallbackInfo const& info) {
+  Napi::Value getFileReferenceConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::AttrValue, org::sem::AttrValue::FileReference const&>(info,
                                                                                            getPtr(),
-                                                                                           static_cast<org::sem::AttrValue::FileReference const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getFileReference),
+                                                                                           static_cast<org::sem::AttrValue::FileReference const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getFileReferenceConst),
                                                                                            std::make_tuple());
   }
-  Napi::Value getFileReference(Napi::CallbackInfo const& info) {
+  Napi::Value getFileReferenceMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::AttrValue, org::sem::AttrValue::FileReference&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::AttrValue::FileReference&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getFileReference),
+                                                                                static_cast<org::sem::AttrValue::FileReference&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getFileReferenceMut),
                                                                                 std::make_tuple());
   }
   Napi::Value isLispValue(Napi::CallbackInfo const& info) {
@@ -2351,22 +2351,22 @@ struct AttrValueJs : public Napi::ObjectWrap<AttrValueJs> {
                                                       static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isLispValue),
                                                       std::make_tuple());
   }
-  Napi::Value getLispValue(Napi::CallbackInfo const& info) {
+  Napi::Value getLispValueConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::AttrValue, org::sem::AttrValue::LispValue const&>(info,
                                                                                        getPtr(),
-                                                                                       static_cast<org::sem::AttrValue::LispValue const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getLispValue),
+                                                                                       static_cast<org::sem::AttrValue::LispValue const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getLispValueConst),
                                                                                        std::make_tuple());
   }
-  Napi::Value getLispValue(Napi::CallbackInfo const& info) {
+  Napi::Value getLispValueMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::AttrValue, org::sem::AttrValue::LispValue&>(info,
                                                                             getPtr(),
-                                                                            static_cast<org::sem::AttrValue::LispValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getLispValue),
+                                                                            static_cast<org::sem::AttrValue::LispValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getLispValueMut),
                                                                             std::make_tuple());
   }
-  Napi::Value getDataKind(Napi::CallbackInfo const& info) {
+  Napi::Value getDataKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::AttrValue, org::sem::AttrValue::DataKind>(info,
                                                                           getPtr(),
-                                                                          static_cast<org::sem::AttrValue::DataKind(org::sem::AttrValue::*)(org::sem::AttrValue::DataVariant const&)>(&org::sem::AttrValue::getDataKind),
+                                                                          static_cast<org::sem::AttrValue::DataKind(org::sem::AttrValue::*)(org::sem::AttrValue::DataVariant const&)>(&org::sem::AttrValue::getDataKindStatic),
                                                                           std::make_tuple(CxxArgSpec<org::sem::AttrValue::DataVariant>{}));
   }
   Napi::Value getDataKind(Napi::CallbackInfo const& info) {
@@ -2461,16 +2461,16 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isRaw),
                                                        std::make_tuple());
   }
-  Napi::Value getRaw(Napi::CallbackInfo const& info) {
+  Napi::Value getRawConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Raw const&>(info,
                                                                                    getPtr(),
-                                                                                   static_cast<org::sem::LinkTarget::Raw const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getRaw),
+                                                                                   static_cast<org::sem::LinkTarget::Raw const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getRawConst),
                                                                                    std::make_tuple());
   }
-  Napi::Value getRaw(Napi::CallbackInfo const& info) {
+  Napi::Value getRawMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Raw&>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::LinkTarget::Raw&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getRaw),
+                                                                        static_cast<org::sem::LinkTarget::Raw&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getRawMut),
                                                                         std::make_tuple());
   }
   Napi::Value isId(Napi::CallbackInfo const& info) {
@@ -2479,16 +2479,16 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isId),
                                                        std::make_tuple());
   }
-  Napi::Value getId(Napi::CallbackInfo const& info) {
+  Napi::Value getIdConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Id const&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::LinkTarget::Id const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getId),
+                                                                                  static_cast<org::sem::LinkTarget::Id const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getIdConst),
                                                                                   std::make_tuple());
   }
-  Napi::Value getId(Napi::CallbackInfo const& info) {
+  Napi::Value getIdMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Id&>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::sem::LinkTarget::Id&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getId),
+                                                                       static_cast<org::sem::LinkTarget::Id&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getIdMut),
                                                                        std::make_tuple());
   }
   Napi::Value isCustomId(Napi::CallbackInfo const& info) {
@@ -2497,16 +2497,16 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isCustomId),
                                                        std::make_tuple());
   }
-  Napi::Value getCustomId(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomIdConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::CustomId const&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::LinkTarget::CustomId const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getCustomId),
+                                                                                        static_cast<org::sem::LinkTarget::CustomId const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getCustomIdConst),
                                                                                         std::make_tuple());
   }
-  Napi::Value getCustomId(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomIdMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::CustomId&>(info,
                                                                              getPtr(),
-                                                                             static_cast<org::sem::LinkTarget::CustomId&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getCustomId),
+                                                                             static_cast<org::sem::LinkTarget::CustomId&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getCustomIdMut),
                                                                              std::make_tuple());
   }
   Napi::Value isSubtreeTitle(Napi::CallbackInfo const& info) {
@@ -2515,16 +2515,16 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isSubtreeTitle),
                                                        std::make_tuple());
   }
-  Napi::Value getSubtreeTitle(Napi::CallbackInfo const& info) {
+  Napi::Value getSubtreeTitleConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::SubtreeTitle const&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::LinkTarget::SubtreeTitle const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getSubtreeTitle),
+                                                                                            static_cast<org::sem::LinkTarget::SubtreeTitle const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getSubtreeTitleConst),
                                                                                             std::make_tuple());
   }
-  Napi::Value getSubtreeTitle(Napi::CallbackInfo const& info) {
+  Napi::Value getSubtreeTitleMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::SubtreeTitle&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::LinkTarget::SubtreeTitle&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getSubtreeTitle),
+                                                                                 static_cast<org::sem::LinkTarget::SubtreeTitle&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getSubtreeTitleMut),
                                                                                  std::make_tuple());
   }
   Napi::Value isPerson(Napi::CallbackInfo const& info) {
@@ -2533,16 +2533,16 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isPerson),
                                                        std::make_tuple());
   }
-  Napi::Value getPerson(Napi::CallbackInfo const& info) {
+  Napi::Value getPersonConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Person const&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::LinkTarget::Person const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getPerson),
+                                                                                      static_cast<org::sem::LinkTarget::Person const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getPersonConst),
                                                                                       std::make_tuple());
   }
-  Napi::Value getPerson(Napi::CallbackInfo const& info) {
+  Napi::Value getPersonMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Person&>(info,
                                                                            getPtr(),
-                                                                           static_cast<org::sem::LinkTarget::Person&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getPerson),
+                                                                           static_cast<org::sem::LinkTarget::Person&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getPersonMut),
                                                                            std::make_tuple());
   }
   Napi::Value isUserProtocol(Napi::CallbackInfo const& info) {
@@ -2551,16 +2551,16 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isUserProtocol),
                                                        std::make_tuple());
   }
-  Napi::Value getUserProtocol(Napi::CallbackInfo const& info) {
+  Napi::Value getUserProtocolConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::UserProtocol const&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::LinkTarget::UserProtocol const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getUserProtocol),
+                                                                                            static_cast<org::sem::LinkTarget::UserProtocol const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getUserProtocolConst),
                                                                                             std::make_tuple());
   }
-  Napi::Value getUserProtocol(Napi::CallbackInfo const& info) {
+  Napi::Value getUserProtocolMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::UserProtocol&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::LinkTarget::UserProtocol&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getUserProtocol),
+                                                                                 static_cast<org::sem::LinkTarget::UserProtocol&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getUserProtocolMut),
                                                                                  std::make_tuple());
   }
   Napi::Value isInternal(Napi::CallbackInfo const& info) {
@@ -2569,16 +2569,16 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isInternal),
                                                        std::make_tuple());
   }
-  Napi::Value getInternal(Napi::CallbackInfo const& info) {
+  Napi::Value getInternalConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Internal const&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::LinkTarget::Internal const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getInternal),
+                                                                                        static_cast<org::sem::LinkTarget::Internal const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getInternalConst),
                                                                                         std::make_tuple());
   }
-  Napi::Value getInternal(Napi::CallbackInfo const& info) {
+  Napi::Value getInternalMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Internal&>(info,
                                                                              getPtr(),
-                                                                             static_cast<org::sem::LinkTarget::Internal&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getInternal),
+                                                                             static_cast<org::sem::LinkTarget::Internal&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getInternalMut),
                                                                              std::make_tuple());
   }
   Napi::Value isFootnote(Napi::CallbackInfo const& info) {
@@ -2587,16 +2587,16 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isFootnote),
                                                        std::make_tuple());
   }
-  Napi::Value getFootnote(Napi::CallbackInfo const& info) {
+  Napi::Value getFootnoteConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Footnote const&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::LinkTarget::Footnote const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getFootnote),
+                                                                                        static_cast<org::sem::LinkTarget::Footnote const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getFootnoteConst),
                                                                                         std::make_tuple());
   }
-  Napi::Value getFootnote(Napi::CallbackInfo const& info) {
+  Napi::Value getFootnoteMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Footnote&>(info,
                                                                              getPtr(),
-                                                                             static_cast<org::sem::LinkTarget::Footnote&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getFootnote),
+                                                                             static_cast<org::sem::LinkTarget::Footnote&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getFootnoteMut),
                                                                              std::make_tuple());
   }
   Napi::Value isFile(Napi::CallbackInfo const& info) {
@@ -2605,16 +2605,16 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isFile),
                                                        std::make_tuple());
   }
-  Napi::Value getFile(Napi::CallbackInfo const& info) {
+  Napi::Value getFileConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::File const&>(info,
                                                                                     getPtr(),
-                                                                                    static_cast<org::sem::LinkTarget::File const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getFile),
+                                                                                    static_cast<org::sem::LinkTarget::File const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getFileConst),
                                                                                     std::make_tuple());
   }
-  Napi::Value getFile(Napi::CallbackInfo const& info) {
+  Napi::Value getFileMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::File&>(info,
                                                                          getPtr(),
-                                                                         static_cast<org::sem::LinkTarget::File&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getFile),
+                                                                         static_cast<org::sem::LinkTarget::File&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getFileMut),
                                                                          std::make_tuple());
   }
   Napi::Value isAttachment(Napi::CallbackInfo const& info) {
@@ -2623,22 +2623,22 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
                                                        static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isAttachment),
                                                        std::make_tuple());
   }
-  Napi::Value getAttachment(Napi::CallbackInfo const& info) {
+  Napi::Value getAttachmentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Attachment const&>(info,
                                                                                           getPtr(),
-                                                                                          static_cast<org::sem::LinkTarget::Attachment const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getAttachment),
+                                                                                          static_cast<org::sem::LinkTarget::Attachment const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getAttachmentConst),
                                                                                           std::make_tuple());
   }
-  Napi::Value getAttachment(Napi::CallbackInfo const& info) {
+  Napi::Value getAttachmentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Attachment&>(info,
                                                                                getPtr(),
-                                                                               static_cast<org::sem::LinkTarget::Attachment&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getAttachment),
+                                                                               static_cast<org::sem::LinkTarget::Attachment&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getAttachmentMut),
                                                                                std::make_tuple());
   }
-  Napi::Value getKind(Napi::CallbackInfo const& info) {
+  Napi::Value getKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Kind>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::LinkTarget::Kind(org::sem::LinkTarget::*)(org::sem::LinkTarget::Data const&)>(&org::sem::LinkTarget::getKind),
+                                                                        static_cast<org::sem::LinkTarget::Kind(org::sem::LinkTarget::*)(org::sem::LinkTarget::Data const&)>(&org::sem::LinkTarget::getKindStatic),
                                                                         std::make_tuple(CxxArgSpec<org::sem::LinkTarget::Data>{}));
   }
   Napi::Value getKind(Napi::CallbackInfo const& info) {
@@ -2682,16 +2682,16 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
                                                            static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isPriority),
                                                            std::make_tuple());
   }
-  Napi::Value getPriority(Napi::CallbackInfo const& info) {
+  Napi::Value getPriorityConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Priority const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::SubtreeLogHead::Priority const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getPriority),
+                                                                                                static_cast<org::sem::SubtreeLogHead::Priority const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getPriorityConst),
                                                                                                 std::make_tuple());
   }
-  Napi::Value getPriority(Napi::CallbackInfo const& info) {
+  Napi::Value getPriorityMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Priority&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::SubtreeLogHead::Priority&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getPriority),
+                                                                                     static_cast<org::sem::SubtreeLogHead::Priority&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getPriorityMut),
                                                                                      std::make_tuple());
   }
   Napi::Value isNote(Napi::CallbackInfo const& info) {
@@ -2700,16 +2700,16 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
                                                            static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isNote),
                                                            std::make_tuple());
   }
-  Napi::Value getNote(Napi::CallbackInfo const& info) {
+  Napi::Value getNoteConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Note const&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::SubtreeLogHead::Note const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getNote),
+                                                                                            static_cast<org::sem::SubtreeLogHead::Note const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getNoteConst),
                                                                                             std::make_tuple());
   }
-  Napi::Value getNote(Napi::CallbackInfo const& info) {
+  Napi::Value getNoteMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Note&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::SubtreeLogHead::Note&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getNote),
+                                                                                 static_cast<org::sem::SubtreeLogHead::Note&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getNoteMut),
                                                                                  std::make_tuple());
   }
   Napi::Value isRefile(Napi::CallbackInfo const& info) {
@@ -2718,16 +2718,16 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
                                                            static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isRefile),
                                                            std::make_tuple());
   }
-  Napi::Value getRefile(Napi::CallbackInfo const& info) {
+  Napi::Value getRefileConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Refile const&>(info,
                                                                                               getPtr(),
-                                                                                              static_cast<org::sem::SubtreeLogHead::Refile const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getRefile),
+                                                                                              static_cast<org::sem::SubtreeLogHead::Refile const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getRefileConst),
                                                                                               std::make_tuple());
   }
-  Napi::Value getRefile(Napi::CallbackInfo const& info) {
+  Napi::Value getRefileMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Refile&>(info,
                                                                                    getPtr(),
-                                                                                   static_cast<org::sem::SubtreeLogHead::Refile&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getRefile),
+                                                                                   static_cast<org::sem::SubtreeLogHead::Refile&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getRefileMut),
                                                                                    std::make_tuple());
   }
   Napi::Value isClock(Napi::CallbackInfo const& info) {
@@ -2736,16 +2736,16 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
                                                            static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isClock),
                                                            std::make_tuple());
   }
-  Napi::Value getClock(Napi::CallbackInfo const& info) {
+  Napi::Value getClockConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Clock const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::SubtreeLogHead::Clock const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getClock),
+                                                                                             static_cast<org::sem::SubtreeLogHead::Clock const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getClockConst),
                                                                                              std::make_tuple());
   }
-  Napi::Value getClock(Napi::CallbackInfo const& info) {
+  Napi::Value getClockMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Clock&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::SubtreeLogHead::Clock&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getClock),
+                                                                                  static_cast<org::sem::SubtreeLogHead::Clock&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getClockMut),
                                                                                   std::make_tuple());
   }
   Napi::Value isState(Napi::CallbackInfo const& info) {
@@ -2754,16 +2754,16 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
                                                            static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isState),
                                                            std::make_tuple());
   }
-  Napi::Value getState(Napi::CallbackInfo const& info) {
+  Napi::Value getStateConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::State const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::SubtreeLogHead::State const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getState),
+                                                                                             static_cast<org::sem::SubtreeLogHead::State const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getStateConst),
                                                                                              std::make_tuple());
   }
-  Napi::Value getState(Napi::CallbackInfo const& info) {
+  Napi::Value getStateMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::State&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::SubtreeLogHead::State&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getState),
+                                                                                  static_cast<org::sem::SubtreeLogHead::State&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getStateMut),
                                                                                   std::make_tuple());
   }
   Napi::Value isDeadline(Napi::CallbackInfo const& info) {
@@ -2772,16 +2772,16 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
                                                            static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isDeadline),
                                                            std::make_tuple());
   }
-  Napi::Value getDeadline(Napi::CallbackInfo const& info) {
+  Napi::Value getDeadlineConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Deadline const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::SubtreeLogHead::Deadline const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getDeadline),
+                                                                                                static_cast<org::sem::SubtreeLogHead::Deadline const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getDeadlineConst),
                                                                                                 std::make_tuple());
   }
-  Napi::Value getDeadline(Napi::CallbackInfo const& info) {
+  Napi::Value getDeadlineMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Deadline&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::SubtreeLogHead::Deadline&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getDeadline),
+                                                                                     static_cast<org::sem::SubtreeLogHead::Deadline&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getDeadlineMut),
                                                                                      std::make_tuple());
   }
   Napi::Value isSchedule(Napi::CallbackInfo const& info) {
@@ -2790,16 +2790,16 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
                                                            static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isSchedule),
                                                            std::make_tuple());
   }
-  Napi::Value getSchedule(Napi::CallbackInfo const& info) {
+  Napi::Value getScheduleConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Schedule const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::SubtreeLogHead::Schedule const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getSchedule),
+                                                                                                static_cast<org::sem::SubtreeLogHead::Schedule const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getScheduleConst),
                                                                                                 std::make_tuple());
   }
-  Napi::Value getSchedule(Napi::CallbackInfo const& info) {
+  Napi::Value getScheduleMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Schedule&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::SubtreeLogHead::Schedule&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getSchedule),
+                                                                                     static_cast<org::sem::SubtreeLogHead::Schedule&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getScheduleMut),
                                                                                      std::make_tuple());
   }
   Napi::Value isTag(Napi::CallbackInfo const& info) {
@@ -2808,16 +2808,16 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
                                                            static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isTag),
                                                            std::make_tuple());
   }
-  Napi::Value getTag(Napi::CallbackInfo const& info) {
+  Napi::Value getTagConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Tag const&>(info,
                                                                                            getPtr(),
-                                                                                           static_cast<org::sem::SubtreeLogHead::Tag const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getTag),
+                                                                                           static_cast<org::sem::SubtreeLogHead::Tag const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getTagConst),
                                                                                            std::make_tuple());
   }
-  Napi::Value getTag(Napi::CallbackInfo const& info) {
+  Napi::Value getTagMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Tag&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::SubtreeLogHead::Tag&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getTag),
+                                                                                static_cast<org::sem::SubtreeLogHead::Tag&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getTagMut),
                                                                                 std::make_tuple());
   }
   Napi::Value isUnknown(Napi::CallbackInfo const& info) {
@@ -2826,22 +2826,22 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
                                                            static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isUnknown),
                                                            std::make_tuple());
   }
-  Napi::Value getUnknown(Napi::CallbackInfo const& info) {
+  Napi::Value getUnknownConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Unknown const&>(info,
                                                                                                getPtr(),
-                                                                                               static_cast<org::sem::SubtreeLogHead::Unknown const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getUnknown),
+                                                                                               static_cast<org::sem::SubtreeLogHead::Unknown const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getUnknownConst),
                                                                                                std::make_tuple());
   }
-  Napi::Value getUnknown(Napi::CallbackInfo const& info) {
+  Napi::Value getUnknownMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Unknown&>(info,
                                                                                     getPtr(),
-                                                                                    static_cast<org::sem::SubtreeLogHead::Unknown&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getUnknown),
+                                                                                    static_cast<org::sem::SubtreeLogHead::Unknown&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getUnknownMut),
                                                                                     std::make_tuple());
   }
-  Napi::Value getLogKind(Napi::CallbackInfo const& info) {
+  Napi::Value getLogKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Kind>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::SubtreeLogHead::Kind(org::sem::SubtreeLogHead::*)(org::sem::SubtreeLogHead::LogEntry const&)>(&org::sem::SubtreeLogHead::getLogKind),
+                                                                                static_cast<org::sem::SubtreeLogHead::Kind(org::sem::SubtreeLogHead::*)(org::sem::SubtreeLogHead::LogEntry const&)>(&org::sem::SubtreeLogHead::getLogKindStatic),
                                                                                 std::make_tuple(CxxArgSpec<org::sem::SubtreeLogHead::LogEntry>{}));
   }
   Napi::Value getLogKind(Napi::CallbackInfo const& info) {
@@ -3071,16 +3071,16 @@ struct DocumentExportConfigJs : public Napi::ObjectWrap<DocumentExportConfigJs> 
                                                                  static_cast<bool(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::isDoExport),
                                                                  std::make_tuple());
   }
-  Napi::Value getDoExport(Napi::CallbackInfo const& info) {
+  Napi::Value getDoExportConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::DoExport const&>(info,
                                                                                                             getPtr(),
-                                                                                                            static_cast<org::sem::DocumentExportConfig::DoExport const&(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::getDoExport),
+                                                                                                            static_cast<org::sem::DocumentExportConfig::DoExport const&(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::getDoExportConst),
                                                                                                             std::make_tuple());
   }
-  Napi::Value getDoExport(Napi::CallbackInfo const& info) {
+  Napi::Value getDoExportMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::DoExport&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::DocumentExportConfig::DoExport&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getDoExport),
+                                                                                                 static_cast<org::sem::DocumentExportConfig::DoExport&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getDoExportMut),
                                                                                                  std::make_tuple());
   }
   Napi::Value isExportFixed(Napi::CallbackInfo const& info) {
@@ -3089,22 +3089,22 @@ struct DocumentExportConfigJs : public Napi::ObjectWrap<DocumentExportConfigJs> 
                                                                  static_cast<bool(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::isExportFixed),
                                                                  std::make_tuple());
   }
-  Napi::Value getExportFixed(Napi::CallbackInfo const& info) {
+  Napi::Value getExportFixedConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::ExportFixed const&>(info,
                                                                                                                getPtr(),
-                                                                                                               static_cast<org::sem::DocumentExportConfig::ExportFixed const&(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::getExportFixed),
+                                                                                                               static_cast<org::sem::DocumentExportConfig::ExportFixed const&(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::getExportFixedConst),
                                                                                                                std::make_tuple());
   }
-  Napi::Value getExportFixed(Napi::CallbackInfo const& info) {
+  Napi::Value getExportFixedMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::ExportFixed&>(info,
                                                                                                     getPtr(),
-                                                                                                    static_cast<org::sem::DocumentExportConfig::ExportFixed&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getExportFixed),
+                                                                                                    static_cast<org::sem::DocumentExportConfig::ExportFixed&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getExportFixedMut),
                                                                                                     std::make_tuple());
   }
-  Napi::Value getTocExportKind(Napi::CallbackInfo const& info) {
+  Napi::Value getTocExportKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::TocExportKind>(info,
                                                                                                      getPtr(),
-                                                                                                     static_cast<org::sem::DocumentExportConfig::TocExportKind(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig::TocExport const&)>(&org::sem::DocumentExportConfig::getTocExportKind),
+                                                                                                     static_cast<org::sem::DocumentExportConfig::TocExportKind(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig::TocExport const&)>(&org::sem::DocumentExportConfig::getTocExportKindStatic),
                                                                                                      std::make_tuple(CxxArgSpec<org::sem::DocumentExportConfig::TocExport>{}));
   }
   Napi::Value getTocExportKind(Napi::CallbackInfo const& info) {
@@ -3178,16 +3178,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isNonblocking),
                                                           std::make_tuple());
   }
-  Napi::Value getNonblocking(Napi::CallbackInfo const& info) {
+  Napi::Value getNonblockingConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Nonblocking const&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::NamedProperty::Nonblocking const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getNonblocking),
+                                                                                                 static_cast<org::sem::NamedProperty::Nonblocking const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getNonblockingConst),
                                                                                                  std::make_tuple());
   }
-  Napi::Value getNonblocking(Napi::CallbackInfo const& info) {
+  Napi::Value getNonblockingMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Nonblocking&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::NamedProperty::Nonblocking&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getNonblocking),
+                                                                                      static_cast<org::sem::NamedProperty::Nonblocking&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getNonblockingMut),
                                                                                       std::make_tuple());
   }
   Napi::Value isArchiveTime(Napi::CallbackInfo const& info) {
@@ -3196,16 +3196,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isArchiveTime),
                                                           std::make_tuple());
   }
-  Napi::Value getArchiveTime(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveTimeConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTime const&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::NamedProperty::ArchiveTime const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTime),
+                                                                                                 static_cast<org::sem::NamedProperty::ArchiveTime const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTimeConst),
                                                                                                  std::make_tuple());
   }
-  Napi::Value getArchiveTime(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveTimeMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTime&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::NamedProperty::ArchiveTime&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTime),
+                                                                                      static_cast<org::sem::NamedProperty::ArchiveTime&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTimeMut),
                                                                                       std::make_tuple());
   }
   Napi::Value isArchiveFile(Napi::CallbackInfo const& info) {
@@ -3214,16 +3214,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isArchiveFile),
                                                           std::make_tuple());
   }
-  Napi::Value getArchiveFile(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveFileConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveFile const&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::NamedProperty::ArchiveFile const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveFile),
+                                                                                                 static_cast<org::sem::NamedProperty::ArchiveFile const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveFileConst),
                                                                                                  std::make_tuple());
   }
-  Napi::Value getArchiveFile(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveFileMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveFile&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::NamedProperty::ArchiveFile&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveFile),
+                                                                                      static_cast<org::sem::NamedProperty::ArchiveFile&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveFileMut),
                                                                                       std::make_tuple());
   }
   Napi::Value isArchiveOlpath(Napi::CallbackInfo const& info) {
@@ -3232,16 +3232,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isArchiveOlpath),
                                                           std::make_tuple());
   }
-  Napi::Value getArchiveOlpath(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveOlpathConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveOlpath const&>(info,
                                                                                                    getPtr(),
-                                                                                                   static_cast<org::sem::NamedProperty::ArchiveOlpath const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveOlpath),
+                                                                                                   static_cast<org::sem::NamedProperty::ArchiveOlpath const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveOlpathConst),
                                                                                                    std::make_tuple());
   }
-  Napi::Value getArchiveOlpath(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveOlpathMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveOlpath&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::NamedProperty::ArchiveOlpath&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveOlpath),
+                                                                                        static_cast<org::sem::NamedProperty::ArchiveOlpath&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveOlpathMut),
                                                                                         std::make_tuple());
   }
   Napi::Value isArchiveTarget(Napi::CallbackInfo const& info) {
@@ -3250,16 +3250,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isArchiveTarget),
                                                           std::make_tuple());
   }
-  Napi::Value getArchiveTarget(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveTargetConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTarget const&>(info,
                                                                                                    getPtr(),
-                                                                                                   static_cast<org::sem::NamedProperty::ArchiveTarget const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTarget),
+                                                                                                   static_cast<org::sem::NamedProperty::ArchiveTarget const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTargetConst),
                                                                                                    std::make_tuple());
   }
-  Napi::Value getArchiveTarget(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveTargetMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTarget&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::NamedProperty::ArchiveTarget&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTarget),
+                                                                                        static_cast<org::sem::NamedProperty::ArchiveTarget&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTargetMut),
                                                                                         std::make_tuple());
   }
   Napi::Value isArchiveCategory(Napi::CallbackInfo const& info) {
@@ -3268,16 +3268,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isArchiveCategory),
                                                           std::make_tuple());
   }
-  Napi::Value getArchiveCategory(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveCategoryConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveCategory const&>(info,
                                                                                                      getPtr(),
-                                                                                                     static_cast<org::sem::NamedProperty::ArchiveCategory const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveCategory),
+                                                                                                     static_cast<org::sem::NamedProperty::ArchiveCategory const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveCategoryConst),
                                                                                                      std::make_tuple());
   }
-  Napi::Value getArchiveCategory(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveCategoryMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveCategory&>(info,
                                                                                           getPtr(),
-                                                                                          static_cast<org::sem::NamedProperty::ArchiveCategory&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveCategory),
+                                                                                          static_cast<org::sem::NamedProperty::ArchiveCategory&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveCategoryMut),
                                                                                           std::make_tuple());
   }
   Napi::Value isArchiveTodo(Napi::CallbackInfo const& info) {
@@ -3286,16 +3286,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isArchiveTodo),
                                                           std::make_tuple());
   }
-  Napi::Value getArchiveTodo(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveTodoConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTodo const&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::NamedProperty::ArchiveTodo const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTodo),
+                                                                                                 static_cast<org::sem::NamedProperty::ArchiveTodo const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTodoConst),
                                                                                                  std::make_tuple());
   }
-  Napi::Value getArchiveTodo(Napi::CallbackInfo const& info) {
+  Napi::Value getArchiveTodoMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTodo&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::NamedProperty::ArchiveTodo&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTodo),
+                                                                                      static_cast<org::sem::NamedProperty::ArchiveTodo&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTodoMut),
                                                                                       std::make_tuple());
   }
   Napi::Value isTrigger(Napi::CallbackInfo const& info) {
@@ -3304,16 +3304,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isTrigger),
                                                           std::make_tuple());
   }
-  Napi::Value getTrigger(Napi::CallbackInfo const& info) {
+  Napi::Value getTriggerConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Trigger const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::Trigger const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getTrigger),
+                                                                                             static_cast<org::sem::NamedProperty::Trigger const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getTriggerConst),
                                                                                              std::make_tuple());
   }
-  Napi::Value getTrigger(Napi::CallbackInfo const& info) {
+  Napi::Value getTriggerMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Trigger&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::Trigger&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getTrigger),
+                                                                                  static_cast<org::sem::NamedProperty::Trigger&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getTriggerMut),
                                                                                   std::make_tuple());
   }
   Napi::Value isExportLatexClass(Napi::CallbackInfo const& info) {
@@ -3322,16 +3322,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isExportLatexClass),
                                                           std::make_tuple());
   }
-  Napi::Value getExportLatexClass(Napi::CallbackInfo const& info) {
+  Napi::Value getExportLatexClassConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexClass const&>(info,
                                                                                                       getPtr(),
-                                                                                                      static_cast<org::sem::NamedProperty::ExportLatexClass const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexClass),
+                                                                                                      static_cast<org::sem::NamedProperty::ExportLatexClass const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexClassConst),
                                                                                                       std::make_tuple());
   }
-  Napi::Value getExportLatexClass(Napi::CallbackInfo const& info) {
+  Napi::Value getExportLatexClassMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexClass&>(info,
                                                                                            getPtr(),
-                                                                                           static_cast<org::sem::NamedProperty::ExportLatexClass&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexClass),
+                                                                                           static_cast<org::sem::NamedProperty::ExportLatexClass&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexClassMut),
                                                                                            std::make_tuple());
   }
   Napi::Value isCookieData(Napi::CallbackInfo const& info) {
@@ -3340,16 +3340,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCookieData),
                                                           std::make_tuple());
   }
-  Napi::Value getCookieData(Napi::CallbackInfo const& info) {
+  Napi::Value getCookieDataConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CookieData const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::CookieData const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCookieData),
+                                                                                                static_cast<org::sem::NamedProperty::CookieData const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCookieDataConst),
                                                                                                 std::make_tuple());
   }
-  Napi::Value getCookieData(Napi::CallbackInfo const& info) {
+  Napi::Value getCookieDataMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CookieData&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::CookieData&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCookieData),
+                                                                                     static_cast<org::sem::NamedProperty::CookieData&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCookieDataMut),
                                                                                      std::make_tuple());
   }
   Napi::Value isExportLatexClassOptions(Napi::CallbackInfo const& info) {
@@ -3358,16 +3358,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isExportLatexClassOptions),
                                                           std::make_tuple());
   }
-  Napi::Value getExportLatexClassOptions(Napi::CallbackInfo const& info) {
+  Napi::Value getExportLatexClassOptionsConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexClassOptions const&>(info,
                                                                                                              getPtr(),
-                                                                                                             static_cast<org::sem::NamedProperty::ExportLatexClassOptions const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexClassOptions),
+                                                                                                             static_cast<org::sem::NamedProperty::ExportLatexClassOptions const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexClassOptionsConst),
                                                                                                              std::make_tuple());
   }
-  Napi::Value getExportLatexClassOptions(Napi::CallbackInfo const& info) {
+  Napi::Value getExportLatexClassOptionsMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexClassOptions&>(info,
                                                                                                   getPtr(),
-                                                                                                  static_cast<org::sem::NamedProperty::ExportLatexClassOptions&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexClassOptions),
+                                                                                                  static_cast<org::sem::NamedProperty::ExportLatexClassOptions&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexClassOptionsMut),
                                                                                                   std::make_tuple());
   }
   Napi::Value isExportLatexHeader(Napi::CallbackInfo const& info) {
@@ -3376,16 +3376,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isExportLatexHeader),
                                                           std::make_tuple());
   }
-  Napi::Value getExportLatexHeader(Napi::CallbackInfo const& info) {
+  Napi::Value getExportLatexHeaderConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexHeader const&>(info,
                                                                                                        getPtr(),
-                                                                                                       static_cast<org::sem::NamedProperty::ExportLatexHeader const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexHeader),
+                                                                                                       static_cast<org::sem::NamedProperty::ExportLatexHeader const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexHeaderConst),
                                                                                                        std::make_tuple());
   }
-  Napi::Value getExportLatexHeader(Napi::CallbackInfo const& info) {
+  Napi::Value getExportLatexHeaderMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexHeader&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::NamedProperty::ExportLatexHeader&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexHeader),
+                                                                                            static_cast<org::sem::NamedProperty::ExportLatexHeader&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexHeaderMut),
                                                                                             std::make_tuple());
   }
   Napi::Value isExportLatexCompiler(Napi::CallbackInfo const& info) {
@@ -3394,16 +3394,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isExportLatexCompiler),
                                                           std::make_tuple());
   }
-  Napi::Value getExportLatexCompiler(Napi::CallbackInfo const& info) {
+  Napi::Value getExportLatexCompilerConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexCompiler const&>(info,
                                                                                                          getPtr(),
-                                                                                                         static_cast<org::sem::NamedProperty::ExportLatexCompiler const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexCompiler),
+                                                                                                         static_cast<org::sem::NamedProperty::ExportLatexCompiler const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexCompilerConst),
                                                                                                          std::make_tuple());
   }
-  Napi::Value getExportLatexCompiler(Napi::CallbackInfo const& info) {
+  Napi::Value getExportLatexCompilerMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexCompiler&>(info,
                                                                                               getPtr(),
-                                                                                              static_cast<org::sem::NamedProperty::ExportLatexCompiler&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexCompiler),
+                                                                                              static_cast<org::sem::NamedProperty::ExportLatexCompiler&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexCompilerMut),
                                                                                               std::make_tuple());
   }
   Napi::Value isOrdered(Napi::CallbackInfo const& info) {
@@ -3412,16 +3412,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isOrdered),
                                                           std::make_tuple());
   }
-  Napi::Value getOrdered(Napi::CallbackInfo const& info) {
+  Napi::Value getOrderedConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Ordered const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::Ordered const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getOrdered),
+                                                                                             static_cast<org::sem::NamedProperty::Ordered const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getOrderedConst),
                                                                                              std::make_tuple());
   }
-  Napi::Value getOrdered(Napi::CallbackInfo const& info) {
+  Napi::Value getOrderedMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Ordered&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::Ordered&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getOrdered),
+                                                                                  static_cast<org::sem::NamedProperty::Ordered&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getOrderedMut),
                                                                                   std::make_tuple());
   }
   Napi::Value isEffort(Napi::CallbackInfo const& info) {
@@ -3430,16 +3430,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isEffort),
                                                           std::make_tuple());
   }
-  Napi::Value getEffort(Napi::CallbackInfo const& info) {
+  Napi::Value getEffortConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Effort const&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::NamedProperty::Effort const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getEffort),
+                                                                                            static_cast<org::sem::NamedProperty::Effort const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getEffortConst),
                                                                                             std::make_tuple());
   }
-  Napi::Value getEffort(Napi::CallbackInfo const& info) {
+  Napi::Value getEffortMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Effort&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::NamedProperty::Effort&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getEffort),
+                                                                                 static_cast<org::sem::NamedProperty::Effort&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getEffortMut),
                                                                                  std::make_tuple());
   }
   Napi::Value isVisibility(Napi::CallbackInfo const& info) {
@@ -3448,16 +3448,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isVisibility),
                                                           std::make_tuple());
   }
-  Napi::Value getVisibility(Napi::CallbackInfo const& info) {
+  Napi::Value getVisibilityConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Visibility const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::Visibility const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getVisibility),
+                                                                                                static_cast<org::sem::NamedProperty::Visibility const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getVisibilityConst),
                                                                                                 std::make_tuple());
   }
-  Napi::Value getVisibility(Napi::CallbackInfo const& info) {
+  Napi::Value getVisibilityMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Visibility&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::Visibility&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getVisibility),
+                                                                                     static_cast<org::sem::NamedProperty::Visibility&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getVisibilityMut),
                                                                                      std::make_tuple());
   }
   Napi::Value isExportOptions(Napi::CallbackInfo const& info) {
@@ -3466,16 +3466,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isExportOptions),
                                                           std::make_tuple());
   }
-  Napi::Value getExportOptions(Napi::CallbackInfo const& info) {
+  Napi::Value getExportOptionsConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportOptions const&>(info,
                                                                                                    getPtr(),
-                                                                                                   static_cast<org::sem::NamedProperty::ExportOptions const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportOptions),
+                                                                                                   static_cast<org::sem::NamedProperty::ExportOptions const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportOptionsConst),
                                                                                                    std::make_tuple());
   }
-  Napi::Value getExportOptions(Napi::CallbackInfo const& info) {
+  Napi::Value getExportOptionsMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportOptions&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::NamedProperty::ExportOptions&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportOptions),
+                                                                                        static_cast<org::sem::NamedProperty::ExportOptions&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportOptionsMut),
                                                                                         std::make_tuple());
   }
   Napi::Value isBlocker(Napi::CallbackInfo const& info) {
@@ -3484,16 +3484,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isBlocker),
                                                           std::make_tuple());
   }
-  Napi::Value getBlocker(Napi::CallbackInfo const& info) {
+  Napi::Value getBlockerConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Blocker const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::Blocker const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getBlocker),
+                                                                                             static_cast<org::sem::NamedProperty::Blocker const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getBlockerConst),
                                                                                              std::make_tuple());
   }
-  Napi::Value getBlocker(Napi::CallbackInfo const& info) {
+  Napi::Value getBlockerMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Blocker&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::Blocker&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getBlocker),
+                                                                                  static_cast<org::sem::NamedProperty::Blocker&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getBlockerMut),
                                                                                   std::make_tuple());
   }
   Napi::Value isUnnumbered(Napi::CallbackInfo const& info) {
@@ -3502,16 +3502,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isUnnumbered),
                                                           std::make_tuple());
   }
-  Napi::Value getUnnumbered(Napi::CallbackInfo const& info) {
+  Napi::Value getUnnumberedConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Unnumbered const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::Unnumbered const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getUnnumbered),
+                                                                                                static_cast<org::sem::NamedProperty::Unnumbered const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getUnnumberedConst),
                                                                                                 std::make_tuple());
   }
-  Napi::Value getUnnumbered(Napi::CallbackInfo const& info) {
+  Napi::Value getUnnumberedMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Unnumbered&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::Unnumbered&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getUnnumbered),
+                                                                                     static_cast<org::sem::NamedProperty::Unnumbered&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getUnnumberedMut),
                                                                                      std::make_tuple());
   }
   Napi::Value isCreated(Napi::CallbackInfo const& info) {
@@ -3520,16 +3520,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCreated),
                                                           std::make_tuple());
   }
-  Napi::Value getCreated(Napi::CallbackInfo const& info) {
+  Napi::Value getCreatedConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Created const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::Created const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCreated),
+                                                                                             static_cast<org::sem::NamedProperty::Created const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCreatedConst),
                                                                                              std::make_tuple());
   }
-  Napi::Value getCreated(Napi::CallbackInfo const& info) {
+  Napi::Value getCreatedMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Created&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::Created&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCreated),
+                                                                                  static_cast<org::sem::NamedProperty::Created&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCreatedMut),
                                                                                   std::make_tuple());
   }
   Napi::Value isRadioId(Napi::CallbackInfo const& info) {
@@ -3538,16 +3538,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isRadioId),
                                                           std::make_tuple());
   }
-  Napi::Value getRadioId(Napi::CallbackInfo const& info) {
+  Napi::Value getRadioIdConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::RadioId const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::RadioId const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getRadioId),
+                                                                                             static_cast<org::sem::NamedProperty::RadioId const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getRadioIdConst),
                                                                                              std::make_tuple());
   }
-  Napi::Value getRadioId(Napi::CallbackInfo const& info) {
+  Napi::Value getRadioIdMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::RadioId&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::RadioId&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getRadioId),
+                                                                                  static_cast<org::sem::NamedProperty::RadioId&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getRadioIdMut),
                                                                                   std::make_tuple());
   }
   Napi::Value isHashtagDef(Napi::CallbackInfo const& info) {
@@ -3556,16 +3556,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isHashtagDef),
                                                           std::make_tuple());
   }
-  Napi::Value getHashtagDef(Napi::CallbackInfo const& info) {
+  Napi::Value getHashtagDefConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::HashtagDef const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::HashtagDef const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getHashtagDef),
+                                                                                                static_cast<org::sem::NamedProperty::HashtagDef const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getHashtagDefConst),
                                                                                                 std::make_tuple());
   }
-  Napi::Value getHashtagDef(Napi::CallbackInfo const& info) {
+  Napi::Value getHashtagDefMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::HashtagDef&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::HashtagDef&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getHashtagDef),
+                                                                                     static_cast<org::sem::NamedProperty::HashtagDef&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getHashtagDefMut),
                                                                                      std::make_tuple());
   }
   Napi::Value isCustomArgs(Napi::CallbackInfo const& info) {
@@ -3574,16 +3574,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCustomArgs),
                                                           std::make_tuple());
   }
-  Napi::Value getCustomArgs(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomArgsConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomArgs const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::CustomArgs const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomArgs),
+                                                                                                static_cast<org::sem::NamedProperty::CustomArgs const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomArgsConst),
                                                                                                 std::make_tuple());
   }
-  Napi::Value getCustomArgs(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomArgsMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomArgs&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::CustomArgs&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomArgs),
+                                                                                     static_cast<org::sem::NamedProperty::CustomArgs&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomArgsMut),
                                                                                      std::make_tuple());
   }
   Napi::Value isCustomRaw(Napi::CallbackInfo const& info) {
@@ -3592,16 +3592,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCustomRaw),
                                                           std::make_tuple());
   }
-  Napi::Value getCustomRaw(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomRawConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomRaw const&>(info,
                                                                                                getPtr(),
-                                                                                               static_cast<org::sem::NamedProperty::CustomRaw const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomRaw),
+                                                                                               static_cast<org::sem::NamedProperty::CustomRaw const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomRawConst),
                                                                                                std::make_tuple());
   }
-  Napi::Value getCustomRaw(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomRawMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomRaw&>(info,
                                                                                     getPtr(),
-                                                                                    static_cast<org::sem::NamedProperty::CustomRaw&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomRaw),
+                                                                                    static_cast<org::sem::NamedProperty::CustomRaw&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomRawMut),
                                                                                     std::make_tuple());
   }
   Napi::Value isCustomSubtreeJson(Napi::CallbackInfo const& info) {
@@ -3610,16 +3610,16 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCustomSubtreeJson),
                                                           std::make_tuple());
   }
-  Napi::Value getCustomSubtreeJson(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomSubtreeJsonConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomSubtreeJson const&>(info,
                                                                                                        getPtr(),
-                                                                                                       static_cast<org::sem::NamedProperty::CustomSubtreeJson const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomSubtreeJson),
+                                                                                                       static_cast<org::sem::NamedProperty::CustomSubtreeJson const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomSubtreeJsonConst),
                                                                                                        std::make_tuple());
   }
-  Napi::Value getCustomSubtreeJson(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomSubtreeJsonMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomSubtreeJson&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::NamedProperty::CustomSubtreeJson&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomSubtreeJson),
+                                                                                            static_cast<org::sem::NamedProperty::CustomSubtreeJson&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomSubtreeJsonMut),
                                                                                             std::make_tuple());
   }
   Napi::Value isCustomSubtreeFlags(Napi::CallbackInfo const& info) {
@@ -3628,22 +3628,22 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
                                                           static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCustomSubtreeFlags),
                                                           std::make_tuple());
   }
-  Napi::Value getCustomSubtreeFlags(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomSubtreeFlagsConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomSubtreeFlags const&>(info,
                                                                                                         getPtr(),
-                                                                                                        static_cast<org::sem::NamedProperty::CustomSubtreeFlags const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomSubtreeFlags),
+                                                                                                        static_cast<org::sem::NamedProperty::CustomSubtreeFlags const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomSubtreeFlagsConst),
                                                                                                         std::make_tuple());
   }
-  Napi::Value getCustomSubtreeFlags(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomSubtreeFlagsMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomSubtreeFlags&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::CustomSubtreeFlags&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomSubtreeFlags),
+                                                                                             static_cast<org::sem::NamedProperty::CustomSubtreeFlags&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomSubtreeFlagsMut),
                                                                                              std::make_tuple());
   }
-  Napi::Value getKind(Napi::CallbackInfo const& info) {
+  Napi::Value getKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Kind>(info,
                                                                               getPtr(),
-                                                                              static_cast<org::sem::NamedProperty::Kind(org::sem::NamedProperty::*)(org::sem::NamedProperty::Data const&)>(&org::sem::NamedProperty::getKind),
+                                                                              static_cast<org::sem::NamedProperty::Kind(org::sem::NamedProperty::*)(org::sem::NamedProperty::Data const&)>(&org::sem::NamedProperty::getKindStatic),
                                                                               std::make_tuple(CxxArgSpec<org::sem::NamedProperty::Data>{}));
   }
   Napi::Value getKind(Napi::CallbackInfo const& info) {
@@ -3835,16 +3835,16 @@ struct TimeJs : public Napi::ObjectWrap<TimeJs> {
                                                  static_cast<bool(org::sem::Time::*)() const>(&org::sem::Time::isStatic),
                                                  std::make_tuple());
   }
-  Napi::Value getStatic(Napi::CallbackInfo const& info) {
+  Napi::Value getStaticConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::Time, org::sem::Time::Static const&>(info,
                                                                           getPtr(),
-                                                                          static_cast<org::sem::Time::Static const&(org::sem::Time::*)() const>(&org::sem::Time::getStatic),
+                                                                          static_cast<org::sem::Time::Static const&(org::sem::Time::*)() const>(&org::sem::Time::getStaticConst),
                                                                           std::make_tuple());
   }
-  Napi::Value getStatic(Napi::CallbackInfo const& info) {
+  Napi::Value getStaticMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::Time, org::sem::Time::Static&>(info,
                                                                getPtr(),
-                                                               static_cast<org::sem::Time::Static&(org::sem::Time::*)()>(&org::sem::Time::getStatic),
+                                                               static_cast<org::sem::Time::Static&(org::sem::Time::*)()>(&org::sem::Time::getStaticMut),
                                                                std::make_tuple());
   }
   Napi::Value isDynamic(Napi::CallbackInfo const& info) {
@@ -3853,22 +3853,22 @@ struct TimeJs : public Napi::ObjectWrap<TimeJs> {
                                                  static_cast<bool(org::sem::Time::*)() const>(&org::sem::Time::isDynamic),
                                                  std::make_tuple());
   }
-  Napi::Value getDynamic(Napi::CallbackInfo const& info) {
+  Napi::Value getDynamicConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::Time, org::sem::Time::Dynamic const&>(info,
                                                                            getPtr(),
-                                                                           static_cast<org::sem::Time::Dynamic const&(org::sem::Time::*)() const>(&org::sem::Time::getDynamic),
+                                                                           static_cast<org::sem::Time::Dynamic const&(org::sem::Time::*)() const>(&org::sem::Time::getDynamicConst),
                                                                            std::make_tuple());
   }
-  Napi::Value getDynamic(Napi::CallbackInfo const& info) {
+  Napi::Value getDynamicMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::Time, org::sem::Time::Dynamic&>(info,
                                                                 getPtr(),
-                                                                static_cast<org::sem::Time::Dynamic&(org::sem::Time::*)()>(&org::sem::Time::getDynamic),
+                                                                static_cast<org::sem::Time::Dynamic&(org::sem::Time::*)()>(&org::sem::Time::getDynamicMut),
                                                                 std::make_tuple());
   }
-  Napi::Value getTimeKind(Napi::CallbackInfo const& info) {
+  Napi::Value getTimeKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::Time, org::sem::Time::TimeKind>(info,
                                                                 getPtr(),
-                                                                static_cast<org::sem::Time::TimeKind(org::sem::Time::*)(org::sem::Time::TimeVariant const&)>(&org::sem::Time::getTimeKind),
+                                                                static_cast<org::sem::Time::TimeKind(org::sem::Time::*)(org::sem::Time::TimeVariant const&)>(&org::sem::Time::getTimeKindStatic),
                                                                 std::make_tuple(CxxArgSpec<org::sem::Time::TimeVariant>{}));
   }
   Napi::Value getTimeKind(Napi::CallbackInfo const& info) {
@@ -4197,16 +4197,16 @@ struct FileJs : public Napi::ObjectWrap<FileJs> {
                                                  static_cast<bool(org::sem::File::*)() const>(&org::sem::File::isDocument),
                                                  std::make_tuple());
   }
-  Napi::Value getDocument(Napi::CallbackInfo const& info) {
+  Napi::Value getDocumentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::File, org::sem::File::Document const&>(info,
                                                                             getPtr(),
-                                                                            static_cast<org::sem::File::Document const&(org::sem::File::*)() const>(&org::sem::File::getDocument),
+                                                                            static_cast<org::sem::File::Document const&(org::sem::File::*)() const>(&org::sem::File::getDocumentConst),
                                                                             std::make_tuple());
   }
-  Napi::Value getDocument(Napi::CallbackInfo const& info) {
+  Napi::Value getDocumentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::File, org::sem::File::Document&>(info,
                                                                  getPtr(),
-                                                                 static_cast<org::sem::File::Document&(org::sem::File::*)()>(&org::sem::File::getDocument),
+                                                                 static_cast<org::sem::File::Document&(org::sem::File::*)()>(&org::sem::File::getDocumentMut),
                                                                  std::make_tuple());
   }
   Napi::Value isAttachment(Napi::CallbackInfo const& info) {
@@ -4215,16 +4215,16 @@ struct FileJs : public Napi::ObjectWrap<FileJs> {
                                                  static_cast<bool(org::sem::File::*)() const>(&org::sem::File::isAttachment),
                                                  std::make_tuple());
   }
-  Napi::Value getAttachment(Napi::CallbackInfo const& info) {
+  Napi::Value getAttachmentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::File, org::sem::File::Attachment const&>(info,
                                                                               getPtr(),
-                                                                              static_cast<org::sem::File::Attachment const&(org::sem::File::*)() const>(&org::sem::File::getAttachment),
+                                                                              static_cast<org::sem::File::Attachment const&(org::sem::File::*)() const>(&org::sem::File::getAttachmentConst),
                                                                               std::make_tuple());
   }
-  Napi::Value getAttachment(Napi::CallbackInfo const& info) {
+  Napi::Value getAttachmentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::File, org::sem::File::Attachment&>(info,
                                                                    getPtr(),
-                                                                   static_cast<org::sem::File::Attachment&(org::sem::File::*)()>(&org::sem::File::getAttachment),
+                                                                   static_cast<org::sem::File::Attachment&(org::sem::File::*)()>(&org::sem::File::getAttachmentMut),
                                                                    std::make_tuple());
   }
   Napi::Value isSource(Napi::CallbackInfo const& info) {
@@ -4233,22 +4233,22 @@ struct FileJs : public Napi::ObjectWrap<FileJs> {
                                                  static_cast<bool(org::sem::File::*)() const>(&org::sem::File::isSource),
                                                  std::make_tuple());
   }
-  Napi::Value getSource(Napi::CallbackInfo const& info) {
+  Napi::Value getSourceConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::File, org::sem::File::Source const&>(info,
                                                                           getPtr(),
-                                                                          static_cast<org::sem::File::Source const&(org::sem::File::*)() const>(&org::sem::File::getSource),
+                                                                          static_cast<org::sem::File::Source const&(org::sem::File::*)() const>(&org::sem::File::getSourceConst),
                                                                           std::make_tuple());
   }
-  Napi::Value getSource(Napi::CallbackInfo const& info) {
+  Napi::Value getSourceMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::File, org::sem::File::Source&>(info,
                                                                getPtr(),
-                                                               static_cast<org::sem::File::Source&(org::sem::File::*)()>(&org::sem::File::getSource),
+                                                               static_cast<org::sem::File::Source&(org::sem::File::*)()>(&org::sem::File::getSourceMut),
                                                                std::make_tuple());
   }
-  Napi::Value getFileKind(Napi::CallbackInfo const& info) {
+  Napi::Value getFileKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::File, org::sem::File::Kind>(info,
                                                             getPtr(),
-                                                            static_cast<org::sem::File::Kind(org::sem::File::*)(org::sem::File::Data const&)>(&org::sem::File::getFileKind),
+                                                            static_cast<org::sem::File::Kind(org::sem::File::*)(org::sem::File::Data const&)>(&org::sem::File::getFileKindStatic),
                                                             std::make_tuple(CxxArgSpec<org::sem::File::Data>{}));
   }
   Napi::Value getFileKind(Napi::CallbackInfo const& info) {
@@ -4314,16 +4314,16 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
                                                        static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isExample),
                                                        std::make_tuple());
   }
-  Napi::Value getExample(Napi::CallbackInfo const& info) {
+  Napi::Value getExampleConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::Example const&>(info,
                                                                                        getPtr(),
-                                                                                       static_cast<org::sem::CmdInclude::Example const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getExample),
+                                                                                       static_cast<org::sem::CmdInclude::Example const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getExampleConst),
                                                                                        std::make_tuple());
   }
-  Napi::Value getExample(Napi::CallbackInfo const& info) {
+  Napi::Value getExampleMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Example&>(info,
                                                                             getPtr(),
-                                                                            static_cast<org::sem::CmdInclude::Example&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExample),
+                                                                            static_cast<org::sem::CmdInclude::Example&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExampleMut),
                                                                             std::make_tuple());
   }
   Napi::Value isExport(Napi::CallbackInfo const& info) {
@@ -4332,16 +4332,16 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
                                                        static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isExport),
                                                        std::make_tuple());
   }
-  Napi::Value getExport(Napi::CallbackInfo const& info) {
+  Napi::Value getExportConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::Export const&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::CmdInclude::Export const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getExport),
+                                                                                      static_cast<org::sem::CmdInclude::Export const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getExportConst),
                                                                                       std::make_tuple());
   }
-  Napi::Value getExport(Napi::CallbackInfo const& info) {
+  Napi::Value getExportMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Export&>(info,
                                                                            getPtr(),
-                                                                           static_cast<org::sem::CmdInclude::Export&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExport),
+                                                                           static_cast<org::sem::CmdInclude::Export&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExportMut),
                                                                            std::make_tuple());
   }
   Napi::Value isCustom(Napi::CallbackInfo const& info) {
@@ -4350,16 +4350,16 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
                                                        static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isCustom),
                                                        std::make_tuple());
   }
-  Napi::Value getCustom(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::Custom const&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::CmdInclude::Custom const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getCustom),
+                                                                                      static_cast<org::sem::CmdInclude::Custom const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getCustomConst),
                                                                                       std::make_tuple());
   }
-  Napi::Value getCustom(Napi::CallbackInfo const& info) {
+  Napi::Value getCustomMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Custom&>(info,
                                                                            getPtr(),
-                                                                           static_cast<org::sem::CmdInclude::Custom&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getCustom),
+                                                                           static_cast<org::sem::CmdInclude::Custom&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getCustomMut),
                                                                            std::make_tuple());
   }
   Napi::Value isSrc(Napi::CallbackInfo const& info) {
@@ -4368,16 +4368,16 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
                                                        static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isSrc),
                                                        std::make_tuple());
   }
-  Napi::Value getSrc(Napi::CallbackInfo const& info) {
+  Napi::Value getSrcConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::Src const&>(info,
                                                                                    getPtr(),
-                                                                                   static_cast<org::sem::CmdInclude::Src const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getSrc),
+                                                                                   static_cast<org::sem::CmdInclude::Src const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getSrcConst),
                                                                                    std::make_tuple());
   }
-  Napi::Value getSrc(Napi::CallbackInfo const& info) {
+  Napi::Value getSrcMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Src&>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::CmdInclude::Src&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getSrc),
+                                                                        static_cast<org::sem::CmdInclude::Src&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getSrcMut),
                                                                         std::make_tuple());
   }
   Napi::Value isOrgDocument(Napi::CallbackInfo const& info) {
@@ -4386,22 +4386,22 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
                                                        static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isOrgDocument),
                                                        std::make_tuple());
   }
-  Napi::Value getOrgDocument(Napi::CallbackInfo const& info) {
+  Napi::Value getOrgDocumentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::OrgDocument const&>(info,
                                                                                            getPtr(),
-                                                                                           static_cast<org::sem::CmdInclude::OrgDocument const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getOrgDocument),
+                                                                                           static_cast<org::sem::CmdInclude::OrgDocument const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getOrgDocumentConst),
                                                                                            std::make_tuple());
   }
-  Napi::Value getOrgDocument(Napi::CallbackInfo const& info) {
+  Napi::Value getOrgDocumentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::OrgDocument&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::CmdInclude::OrgDocument&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getOrgDocument),
+                                                                                static_cast<org::sem::CmdInclude::OrgDocument&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getOrgDocumentMut),
                                                                                 std::make_tuple());
   }
-  Napi::Value getIncludeKind(Napi::CallbackInfo const& info) {
+  Napi::Value getIncludeKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Kind>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::CmdInclude::Kind(org::sem::CmdInclude::*)(org::sem::CmdInclude::Data const&)>(&org::sem::CmdInclude::getIncludeKind),
+                                                                        static_cast<org::sem::CmdInclude::Kind(org::sem::CmdInclude::*)(org::sem::CmdInclude::Data const&)>(&org::sem::CmdInclude::getIncludeKindStatic),
                                                                         std::make_tuple(CxxArgSpec<org::sem::CmdInclude::Data>{}));
   }
   Napi::Value getIncludeKind(Napi::CallbackInfo const& info) {

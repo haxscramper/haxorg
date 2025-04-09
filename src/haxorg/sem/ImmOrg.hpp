@@ -982,11 +982,14 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return dynamic_cast<T const*>(get());
     }
 
-    [[refl]] ImmAdapter at(ImmId id, ImmPathStep idx) const {
+    [[refl(R"({"unique-name": "atIdReflPathStep"})")]] ImmAdapter at(
+        ImmId       id,
+        ImmPathStep idx) const {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
 
-    [[refl]] ImmAdapter at(ImmReflFieldId const& field) const {
+    [[refl(R"({"unique-name": "atField"})")]] ImmAdapter at(
+        ImmReflFieldId const& field) const {
         return at(
             ctx.lock()->at(
                 id,
@@ -995,9 +998,11 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
             ImmPathStep::Field(field));
     }
 
-    [[refl]] ImmAdapter at(int idx, bool withPath = true) const;
+    [[refl(R"({"unique-name": "atIndex"})")]] ImmAdapter at(
+        int  idx,
+        bool withPath = true) const;
 
-    [[refl]] ImmAdapter at(
+    [[refl(R"({"unique-name": "atPath"})")]] ImmAdapter at(
         hstd::Vec<int> const& path,
         bool                  withPath = true) const {
         auto res = *this;

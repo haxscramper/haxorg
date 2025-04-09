@@ -3,6 +3,7 @@ from beartype import beartype
 from dataclasses import dataclass, field
 from beartype.typing import Union
 import py_codegen.astbuilder_cpp as cpp
+from collections import defaultdict
 
 N_SPACE = QualType(name="Napi", isNamespace=True)
 T_CALLBACK_INFO = QualType(name="CallbackInfo", Spaces=[N_SPACE])
@@ -124,7 +125,10 @@ class NapiClass():
 
         wrapper_methods: List[cpp.MethodDeclParams] = []
 
+        override_counts: Dict[str, int] = defaultdict(lambda: 0)
+
         for m in self.ClassMethods:
+            override_counts[m.getNapiName()] += 1
             bind = m.build_bind(
                 Class=QualType(name=self.getNapiName()),
                 OriginalClass=self.getCxxName(),
@@ -132,6 +136,10 @@ class NapiClass():
             )
             WrapperClass.members.append(bind)
             wrapper_methods.append(bind)
+
+        for key, value in override_counts.items():
+            if 1 < value:
+                log(CAT).warning(f"{self.Record.name}::{key} is overloaded without unique name, has {value} overloads")
 
         WrapperClass.members.append(
             cpp.RecordField(

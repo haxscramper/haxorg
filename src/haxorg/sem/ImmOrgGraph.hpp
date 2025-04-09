@@ -210,11 +210,13 @@ struct [[refl]] MapGraph {
         return adjList.contains(MapNode{id});
     }
 
-    [[refl]] MapNodeProp const& at(MapNode const& node) const {
+    [[refl(R"({"unique-name": "atMapNode"})")]] MapNodeProp const& at(
+        MapNode const& node) const {
         return nodeProps.at(node);
     }
 
-    [[refl]] MapEdgeProp const& at(MapEdge const& edge) const {
+    [[refl(R"({"unique-name": "atMapEdge"})")]] MapEdgeProp const& at(
+        MapEdge const& edge) const {
         return edgeProps.at(edge);
     }
 
@@ -222,7 +224,9 @@ struct [[refl]] MapGraph {
     [[refl]] void addEdge(MapEdge const& edge) {
         addEdge(edge, MapEdgeProp{});
     }
-    [[refl]] void addEdge(MapEdge const& edge, MapEdgeProp const& prop);
+    [[refl(R"({"unique-name": "addEdgeWithProp"})")]] void addEdge(
+        MapEdge const&     edge,
+        MapEdgeProp const& prop);
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
     [[refl]] void addNode(MapNode const& node);
@@ -246,7 +250,7 @@ struct [[refl]] MapGraph {
         return adjList.contains(node);
     }
 
-    [[refl]] bool hasEdge(
+    [[refl(R"({"unique-name": "has2AdapterEdge"})")]] bool hasEdge(
         org::imm::ImmAdapter const& source,
         org::imm::ImmAdapter const& target) const {
         return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});

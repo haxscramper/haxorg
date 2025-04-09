@@ -508,6 +508,9 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                                 RefKind=ReferenceKind.LValue,
                                 isConst=isConst,
                             )),
+                            reflectionParams=GenTuReflParams(
+                                unique_name="get" + kindName +
+                                ("Const" if isConst else "Mut")),
                             isConst=isConst,
                             impl=ast.Return(
                                 ast.XCall(
@@ -522,6 +525,8 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                     isStatic=True,
                     doc=GenTuDoc(""),
                     name=record.kindGetter,
+                    reflectionParams=GenTuReflParams(unique_name=record.kindGetter +
+                                                     "Static"),
                     result=enum_type,
                     arguments=[GenTuIdent(t_cr(variant_type), "__input")],
                     impl=ast.Return(

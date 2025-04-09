@@ -862,6 +862,12 @@ void ReflASTVisitor::fillExpr(
     Expr*                                   Out,
     const c::Expr*                          In,
     const std::optional<c::SourceLocation>& Loc) {
+    if (const auto* boolLiteral = llvm::dyn_cast<
+            clang::CXXBoolLiteralExpr>(In)) {
+        bool outValue = boolLiteral->getValue();
+        Out->set_kind(ExprKind::Lit);
+        Out->set_value(outValue ? "true" : "false");
+    }
     if (auto val = In->getIntegerConstantExpr(*Ctx)) {
         Out->set_kind(ExprKind::Lit);
         llvm::SmallString<32> Str;

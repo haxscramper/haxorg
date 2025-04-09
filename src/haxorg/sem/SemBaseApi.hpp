@@ -252,30 +252,35 @@ struct [[refl]] AstTrackingGroup {
 
     Kind getKind() const { return static_cast<Kind>(data.index()); }
 
-    [[refl]] RadioTarget const& getRadioTarget() const {
+    [[refl(R"({"unique-name": "getRadioTargetConst"})")]] RadioTarget const& getRadioTarget()
+        const {
         return hstd::get_sub_variant<RadioTarget, AstTrackingGroup>(data);
     }
 
 
-    [[refl]] TrackedHashtag const& getTrackedHashtag() const {
+    [[refl(R"({"unique-name": "getTrackedHashtagConst"})")]] TrackedHashtag const& getTrackedHashtag()
+        const {
         return hstd::get_sub_variant<TrackedHashtag, AstTrackingGroup>(
             data);
     }
 
-    [[refl]] TrackedHashtag& getTrackedHashtag() {
+    [[refl(R"({"unique-name": "getTrackedHashtagMut"})")]] TrackedHashtag& getTrackedHashtag() {
         return hstd::get_sub_variant<TrackedHashtag, AstTrackingGroup>(
             data);
     }
 
-    [[refl]] Single const& getSingle() const {
+    [[refl(R"({"unique-name": "getSingleConst"})")]] Single const& getSingle()
+        const {
         return hstd::get_sub_variant<Single, AstTrackingGroup>(data);
     }
 
-    [[refl]] RadioTarget& getRadioTarget() {
+    [[refl(R"({"unique-name": "getRadioTargetMut"})")]] RadioTarget& getRadioTarget() {
         return hstd::get_sub_variant<RadioTarget, AstTrackingGroup>(data);
     }
 
-    [[refl]] Single& getSingle() { return std::get<Single>(data); }
+    [[refl(R"({"unique-name": "getSingleMut"})")]] Single& getSingle() {
+        return std::get<Single>(data);
+    }
 
     [[refl]] bool isSingle() const { return getKind() == Kind::Single; }
     [[refl]] bool isTrackedHashtag() const {
