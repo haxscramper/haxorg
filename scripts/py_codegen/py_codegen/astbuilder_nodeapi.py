@@ -8,6 +8,8 @@ from collections import defaultdict
 N_SPACE = QualType(name="Napi", isNamespace=True)
 T_CALLBACK_INFO = QualType(name="CallbackInfo", Spaces=[N_SPACE])
 T_VALUE = QualType(name="Value", Spaces=[N_SPACE])
+T_OBJECT = QualType(name="Object", Spaces=[N_SPACE])
+T_ENV = QualType(name="Env", Spaces=[N_SPACE])
 
 
 @beartype
@@ -46,6 +48,7 @@ class NapiMethod():
                     Params=[
                         OriginalClass,
                         self.Func.result or QualType(name="void"),
+                        # *[m.type for m in self.Func.arguments],
                     ],
                     args=[
                         b.string("info"),
@@ -69,7 +72,14 @@ class NapiMethod():
                                 b.XConstructObj(
                                     obj=arg.type.withoutCVRef().withWrapperType(
                                         QualType(name="CxxArgSpec")),
-                                    Args=cond(arg.value, [b.ToBlockId(arg.value)], []),
+                                    Args=cond(
+                                        arg.value,
+                                        [
+                                            b.StringLiteral(arg.name),
+                                            b.ToBlockId(arg.value)
+                                        ],
+                                        [b.StringLiteral(arg.name)],
+                                    ),
                                 ) for arg in self.Func.arguments
                             ],
                             Line=len(self.Func.arguments) <= 1,
@@ -106,12 +116,15 @@ class NapiClass():
         return self.Record.declarationQualName()
 
     def build_module_registration(self, b: cpp.ASTBuilder) -> BlockId:
-        return b.CallStatic(QualType(name=self.getNapiName()),
-                            opc="Init",
-                            Args=[
-                                b.string("env"),
-                                b.string("exports"),
-                            ])
+        return b.CallStatic(
+            QualType(name=self.getNapiName()),
+            opc="Init",
+            Args=[
+                b.string("env"),
+                b.string("exports"),
+            ],
+            Stmt=True,
+        )
 
     def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder) -> BlockId:
         WrapperClass = cpp.RecordParams(name=QualType(name=self.getNapiName()))
@@ -128,9 +141,9 @@ class NapiClass():
         override_counts: Dict[str, int] = defaultdict(lambda: 0)
 
         for m in self.ClassMethods:
-            if m.Func.IsConstructor:
+            if m.Func.IsConstructor or m.Func.isStatic:
                 continue
-            
+
             override_counts[m.getNapiName()] += 1
             bind = m.build_bind(
                 Class=QualType(name=self.getNapiName()),
@@ -140,9 +153,71 @@ class NapiClass():
             WrapperClass.members.append(bind)
             wrapper_methods.append(bind)
 
+        BindCalls = [
+            b.XCall("InstanceMethod",
+                    args=[
+                        b.StringLiteral(m.Params.Name),
+                        b.Addr(
+                            b.line([
+                                b.string(self.getNapiName()),
+                                b.string("::"),
+                                b.string(m.Params.Name),
+                            ]))
+                    ]) for m in wrapper_methods
+        ]
+
+        WrapperClass.members.append(
+            cpp.MethodDeclParams(
+                Params=cpp.FunctionParams(
+                    Name="Init",
+                    Args=[
+                        ParmVarParams(type=T_ENV, name="env"),
+                        ParmVarParams(type=T_OBJECT, name="exports"),
+                    ],
+                    ResultTy=T_OBJECT,
+                    Body=[
+                        b.line([
+                            b.VarDecl(
+                                ParmVarParams(
+                                    type=QualType(name="Function", Spaces=[N_SPACE]),
+                                    name="func",
+                                    defArg=b.XCall(
+                                        "DefineClass",
+                                        args=[
+                                            b.string("env"),
+                                            b.StringLiteral(self.getNapiName()),
+                                            b.pars(b.csv(BindCalls, isLine=False),
+                                                   left="{",
+                                                   right="}"),
+                                        ],
+                                    ),
+                                )),
+                        ]),
+                        b.string(
+                            "Napi::FunctionReference* constructor = new Napi::FunctionReference();"
+                        ),
+                        b.string("*constructor = Napi::Persistent(func);"),
+                        b.string("env.SetInstanceData(constructor);"),
+                        b.XCallRef(
+                            b.string("exports"),
+                            "Set",
+                            args=[
+                                b.StringLiteral(self.getNapiName()),
+                                b.string("func"),
+                            ],
+                            Stmt=True,
+                        ),
+                        b.Return(b.string("exports")),
+                    ],
+                ),
+                isStatic=True,
+            ))
+
         for key, value in override_counts.items():
             if 1 < value:
-                log(CAT).warning(f"{self.Record.name}::{key} is overloaded without unique name, has {value} overloads")
+                log(CAT).warning(
+                    f"{self.Record.name}::{key} is overloaded without unique name, has {value} overloads"
+                )
 
         WrapperClass.members.append(
             cpp.RecordField(

@@ -195,7 +195,12 @@ def default_constructor(name: str) -> GenTuPass:
 
 @beartype
 def default_constructor_method(name: str) -> GenTuFunction:
-    return GenTuFunction(name=name, impl="", result=None)
+    return GenTuFunction(
+        name=name,
+        impl="",
+        result=None,
+        IsConstructor=True,
+    )
 
 
 #endregion
@@ -501,15 +506,15 @@ def get_subtree_property_types():
                 org_field(t_nest_shared("OrgJson"), "value")
             ]),
         org_struct(t_nest_shared("CustomSubtreeFlags", [t("NamedProperty")]),
-                    GenTuDoc("Free-form flags"),
-                    methods=[
-                        eq_method(
-                            t_nest_shared("CustomSubtreeFlags", [t("NamedProperty")]))
-                    ],
-                    fields=[
-                        org_field(t_str(), "name"),
-                        org_field(t_nest_shared("AttrGroup"), "value")
-                    ]),
+                   GenTuDoc("Free-form flags"),
+                   methods=[
+                       eq_method(t_nest_shared("CustomSubtreeFlags",
+                                               [t("NamedProperty")]))
+                   ],
+                   fields=[
+                       org_field(t_str(), "name"),
+                       org_field(t_nest_shared("AttrGroup"), "value")
+                   ]),
     ]
 
 
@@ -1475,8 +1480,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
             nested=[
                 org_struct(
-                    t_nest_shared("Expr",
-                                  [t("Tblfm")]),
+                    t_nest_shared("Expr", [t("Tblfm")]),
                     nested=[
                         GenTuTypeGroup(
                             [
@@ -1602,8 +1606,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     fields=[
                         org_field(t_nest_shared("AxisRef",
                                                 [t("Tblfm"), t("Expr")]), "target"),
-                        vec_field(t_nest_shared("Expr", [t("Tblfm")]),
-                                  "expr"),
+                        vec_field(t_nest_shared("Expr", [t("Tblfm")]), "expr"),
                         vec_field(t_nest_shared("Flag",
                                                 [t("Tblfm"), t("Assign")]), "flags"),
                     ],
@@ -2338,9 +2341,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                     ],
                                 ),
                                 org_struct(
-                                    t_nest_shared(
-                                        "MathAggregate",
-                                        [t("ColumnView"), t("Summary")]),
+                                    t_nest_shared("MathAggregate",
+                                                  [t("ColumnView"),
+                                                   t("Summary")]),
                                     nested=[
                                         GenTuEnum(
                                             t_nest_shared("Kind", [

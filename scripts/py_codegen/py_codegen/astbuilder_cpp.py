@@ -667,12 +667,17 @@ class ASTBuilder(base.AstbuilderBase):
                       Args: List[BlockId] = [],
                       Line: bool = True) -> BlockId:
         if Line:
-            return self.line([self.Type(obj), self.string("{"), *Args, self.string("}")])
+            return self.line([
+                self.Type(obj),
+                self.string("{"),
+                self.csv(Args),
+                self.string("}"),
+            ])
 
         else:
             return self.stack([
                 self.line([self.Type(obj), self.string("{")]),
-                self.indent(2, *Args),
+                self.csv(Args, isLine=False, isTrailing=True),
                 self.string("}")
             ])
 

@@ -229,8 +229,11 @@ struct [[refl]] OrgJson {
     }
 
     [[refl]] std::string getJsonString() const { return getRef().dump(); }
-    [[refl]] OrgJson     at(int idx) const { return &getRef().at(idx); }
-    [[refl]] OrgJson     at(std::string const& name) const {
+    [[refl(R"({"unique-name": "atIndex"})")]] OrgJson at(int idx) const {
+        return &getRef().at(idx);
+    }
+    [[refl(R"({"unique-name": "atField"})")]] OrgJson at(
+        std::string const& name) const {
         return &getRef().at(name);
     }
     [[refl]] std::string getString() const {
@@ -327,7 +330,8 @@ struct [[refl(R"({
     }
 
     /// \brief Get subnode at specified index
-    [[refl(R"({"function-api": {"is-getitem": true}})")]] inline SemId<Org> at(int idx) const {
+    [[refl(R"({"function-api": {"is-getitem": true}})")]] inline SemId<Org> at(
+        int idx) const {
         return subnodes.at(idx);
     }
 
