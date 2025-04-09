@@ -1107,7 +1107,8 @@ def gen_pyhaxorg_python_wrappers(
     res = Py11Module("pyhaxorg")
 
     for decl in groups.get_entries_for_wrapping():
-        res.add_decl(decl, ast=ast, base_map=groups.base_map)
+        if decl.reflectionParams.isAcceptedBackend("python"):
+            res.add_decl(decl, ast=ast, base_map=groups.base_map)
 
     add_type_specializations(res, ast, base_map=groups.base_map)
 
@@ -1144,7 +1145,8 @@ def gen_pyhaxorg_napi_wrappers(groups: PyhaxorgTypeGroups, ast: ASTBuilder) -> G
     res = napi.NapiModule("pyhaxorg")
 
     for decl in groups.get_entries_for_wrapping():
-        res.add_decl(decl)
+        if decl.reflectionParams.isAcceptedBackend("node"):
+            res.add_decl(decl)
 
     res.Header.append(napi.NapiBindPass(ast.Include("node_utils.hpp")))
     res.Header.append(napi.NapiBindPass(ast.Include("node_org_include.hpp")))

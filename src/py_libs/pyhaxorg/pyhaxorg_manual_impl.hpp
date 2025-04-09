@@ -50,15 +50,16 @@ org::sem::SemId<org::sem::Org> getSingleSubnode(
     org::sem::SemId<org::sem::Org> id,
     int                            index);
 
-[[refl]] void eachSubnodeRec(
+[[refl(R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] void eachSubnodeRec(
     org::sem::SemId<org::sem::Org> node,
     py::function                   callback);
 
-[[refl]] void eachSubnodeRecSimplePath(
+[[refl(R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] void eachSubnodeRecSimplePath(
     org::sem::SemId<org::sem::Org> node,
     py::function                   callback);
 
-struct [[refl]] PyCodeEvalParameters {
+struct [[refl(
+    R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] PyCodeEvalParameters {
     hstd::SPtr<hstd::OperationsTracer> debug;
     [[refl]] py::function              evalBlock;
 
@@ -70,17 +71,20 @@ struct [[refl]] PyCodeEvalParameters {
     BOOST_DESCRIBE_CLASS(PyCodeEvalParameters, (), (evalBlock), (), ());
 };
 
-[[refl]] void setShouldProcessPath(
+[[refl(R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] void setShouldProcessPath(
     OrgDirectoryParseParameters* parameters,
     py::function                 callback);
 
-[[refl]] void setGetParsedNode(
+[[refl(R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] void setGetParsedNode(
     OrgDirectoryParseParameters* params,
     py::function                 callback);
 
-[[refl]] org::sem::SemId<sem::Org> evaluateCodeBlocks(
-    org::sem::SemId<org::sem::Org> node,
-    PyCodeEvalParameters const&    conf);
+[[refl(
+    R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] org::
+    sem::SemId<sem::Org>
+    evaluateCodeBlocks(
+        org::sem::SemId<org::sem::Org> node,
+        PyCodeEvalParameters const&    conf);
 
 enum class [[refl]] LeafFieldType
 {
@@ -162,7 +166,8 @@ template <typename T, typename... Ts>
 concept IsOneOf = FixedTypeUnion<Ts...>::template contains<
     std::remove_cvref_t<T>>;
 
-struct [[refl]] ExporterPython
+struct [[refl(
+    R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] ExporterPython
     : org::algo::Exporter<ExporterPython, py::object> {
     using Base = org::algo::Exporter<ExporterPython, py::object>;
 #define __ExporterBase Base

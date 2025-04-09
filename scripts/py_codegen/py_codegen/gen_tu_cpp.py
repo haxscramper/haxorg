@@ -31,6 +31,11 @@ class GenTuBackendPythonParams(BaseModel, extra="forbid"):
 @beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
     python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
+    targets_backends: List[str] = Field(
+        default_factory=list,
+        description="Which backends should generate wrappers for the entry?",
+        alias=AliasChoices("target_backends", "target-backends"),
+    )
 
 
 @beartype
@@ -74,6 +79,9 @@ class GenTuReflParams(BaseModel, extra="forbid"):
         description="Reflection entity has a function/method API")
     type_api: Optional[GenTuTypeApiTraits] = Field(
         default=None, alias="type-api", description="Reflection entity has a type API")
+
+    def isAcceptedBackend(self, backend: str) -> bool:
+        return len(self.backend.targets_backends) == 0 or backend in self.backend.targets_backends
 
 
 @beartype
@@ -154,14 +162,14 @@ class GenTuFunction:
 
     def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
         return QualType(
-                func=QualType.Function(
-                    ReturnTy=self.result,
-                    Args=[A.type for A in self.arguments],
-                    Class=Class,
-                    IsConst=self.isConst,
-                ),
-                Kind=QualTypeKind.FunctionPtr,
-            )
+            func=QualType.Function(
+                ReturnTy=self.result,
+                Args=[A.type for A in self.arguments],
+                Class=Class,
+                IsConst=self.isConst,
+            ),
+            Kind=QualTypeKind.FunctionPtr,
+        )
 
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(

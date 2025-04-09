@@ -1437,27 +1437,27 @@ struct ImmAdapterJs : public Napi::ObjectWrap<ImmAdapterJs> {
   Napi::Value atIdReflPathStep(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapter, org::imm::ImmAdapter>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::atIdReflPathStep),
+                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at),
                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmId>{},
                                                                                        CxxArgSpec<org::imm::ImmPathStep>{}));
   }
   Napi::Value atField(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapter, org::imm::ImmAdapter>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::atField),
+                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmReflFieldId>{}));
   }
   Napi::Value atIndex(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapter, org::imm::ImmAdapter>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::atIndex),
+                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at),
                                                                        std::make_tuple(CxxArgSpec<int>{},
                                                                                        CxxArgSpec<bool>{1}));
   }
   Napi::Value atPath(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapter, org::imm::ImmAdapter>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::atPath),
+                                                                       static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at),
                                                                        std::make_tuple(CxxArgSpec<hstd::Vec<int>>{},
                                                                                        CxxArgSpec<bool>{1}));
   }
@@ -1545,37 +1545,37 @@ struct AstTrackingGroupJs : public Napi::ObjectWrap<AstTrackingGroupJs> {
   Napi::Value getRadioTargetConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::AstTrackingGroup, org::AstTrackingGroup::RadioTarget const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::AstTrackingGroup::RadioTarget const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getRadioTargetConst),
+                                                                                             static_cast<org::AstTrackingGroup::RadioTarget const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getRadioTarget),
                                                                                              std::make_tuple());
   }
   Napi::Value getTrackedHashtagConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::AstTrackingGroup, org::AstTrackingGroup::TrackedHashtag const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::AstTrackingGroup::TrackedHashtag const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getTrackedHashtagConst),
+                                                                                                static_cast<org::AstTrackingGroup::TrackedHashtag const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getTrackedHashtag),
                                                                                                 std::make_tuple());
   }
   Napi::Value getTrackedHashtagMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::AstTrackingGroup, org::AstTrackingGroup::TrackedHashtag&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::AstTrackingGroup::TrackedHashtag&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getTrackedHashtagMut),
+                                                                                     static_cast<org::AstTrackingGroup::TrackedHashtag&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getTrackedHashtag),
                                                                                      std::make_tuple());
   }
   Napi::Value getSingleConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::AstTrackingGroup, org::AstTrackingGroup::Single const&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::AstTrackingGroup::Single const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getSingleConst),
+                                                                                        static_cast<org::AstTrackingGroup::Single const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getSingle),
                                                                                         std::make_tuple());
   }
   Napi::Value getRadioTargetMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::AstTrackingGroup, org::AstTrackingGroup::RadioTarget&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::AstTrackingGroup::RadioTarget&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getRadioTargetMut),
+                                                                                  static_cast<org::AstTrackingGroup::RadioTarget&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getRadioTarget),
                                                                                   std::make_tuple());
   }
   Napi::Value getSingleMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::AstTrackingGroup, org::AstTrackingGroup::Single&>(info,
                                                                              getPtr(),
-                                                                             static_cast<org::AstTrackingGroup::Single&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getSingleMut),
+                                                                             static_cast<org::AstTrackingGroup::Single&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getSingle),
                                                                              std::make_tuple());
   }
   Napi::Value isSingle(Napi::CallbackInfo const& info) {
@@ -1772,7 +1772,7 @@ struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
                                                        static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::isRegisteredNode),
                                                        std::make_tuple(CxxArgSpec<org::graph::MapNode>{}));
   }
-  Napi::Value isRegisteredNode(Napi::CallbackInfo const& info) {
+  Napi::Value isRegisteredNodeById(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::graph::MapGraph, bool>(info,
                                                        getPtr(),
                                                        static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmUniqId const&) const>(&org::graph::MapGraph::isRegisteredNode),
@@ -1781,13 +1781,13 @@ struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
   Napi::Value atMapNode(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::graph::MapGraph, org::graph::MapNodeProp const&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::graph::MapNodeProp const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::atMapNode),
+                                                                                 static_cast<org::graph::MapNodeProp const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::at),
                                                                                  std::make_tuple(CxxArgSpec<org::graph::MapNode>{}));
   }
   Napi::Value atMapEdge(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::graph::MapGraph, org::graph::MapEdgeProp const&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::graph::MapEdgeProp const&(org::graph::MapGraph::*)(org::graph::MapEdge const&) const>(&org::graph::MapGraph::atMapEdge),
+                                                                                 static_cast<org::graph::MapEdgeProp const&(org::graph::MapGraph::*)(org::graph::MapEdge const&) const>(&org::graph::MapGraph::at),
                                                                                  std::make_tuple(CxxArgSpec<org::graph::MapEdge>{}));
   }
   Napi::Value addEdge(Napi::CallbackInfo const& info) {
@@ -1799,7 +1799,7 @@ struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
   Napi::Value addEdgeWithProp(Napi::CallbackInfo const& info) {
     return WrapMethod<org::graph::MapGraph, void>(info,
                                                   getPtr(),
-                                                  static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&, org::graph::MapEdgeProp const&)>(&org::graph::MapGraph::addEdgeWithProp),
+                                                  static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&, org::graph::MapEdgeProp const&)>(&org::graph::MapGraph::addEdge),
                                                   std::make_tuple(CxxArgSpec<org::graph::MapEdge>{},
                                                                   CxxArgSpec<org::graph::MapEdgeProp>{}));
   }
@@ -1809,7 +1809,7 @@ struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
                                                   static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&)>(&org::graph::MapGraph::addNode),
                                                   std::make_tuple(CxxArgSpec<org::graph::MapNode>{}));
   }
-  Napi::Value addNode(Napi::CallbackInfo const& info) {
+  Napi::Value addNodeWithProp(Napi::CallbackInfo const& info) {
     return WrapMethod<org::graph::MapGraph, void>(info,
                                                   getPtr(),
                                                   static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&, org::graph::MapNodeProp const&)>(&org::graph::MapGraph::addNode),
@@ -1832,7 +1832,7 @@ struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
   Napi::Value has2AdapterEdge(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::graph::MapGraph, bool>(info,
                                                        getPtr(),
-                                                       static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmAdapter const&, org::imm::ImmAdapter const&) const>(&org::graph::MapGraph::has2AdapterEdge),
+                                                       static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmAdapter const&, org::imm::ImmAdapter const&) const>(&org::graph::MapGraph::hasEdge),
                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{},
                                                                        CxxArgSpec<org::imm::ImmAdapter>{}));
   }
@@ -1849,213 +1849,6 @@ struct MapGraphStateJs : public Napi::ObjectWrap<MapGraphStateJs> {
   }
   std::shared_ptr<org::graph::MapGraphState> _stored;
   org::graph::MapGraphState* getPtr() { return _stored.get(); }
-};
-
-struct PyCodeEvalParametersJs : public Napi::ObjectWrap<PyCodeEvalParametersJs> {
-  Napi::Value setTraceFile(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::PyCodeEvalParameters, void>(info,
-                                                                     getPtr(),
-                                                                     static_cast<void(org::bind::python::PyCodeEvalParameters::*)(std::string const&)>(&org::bind::python::PyCodeEvalParameters::setTraceFile),
-                                                                     std::make_tuple(CxxArgSpec<std::string>{}));
-  }
-  std::shared_ptr<org::bind::python::PyCodeEvalParameters> _stored;
-  org::bind::python::PyCodeEvalParameters* getPtr() { return _stored.get(); }
-};
-
-struct ExporterPythonJs : public Napi::ObjectWrap<ExporterPythonJs> {
-  Napi::Value enableBufferTrace(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)()>(&org::bind::python::ExporterPython::enableBufferTrace),
-                                                               std::make_tuple());
-  }
-  Napi::Value getTraceBuffer(Napi::CallbackInfo const& info) {
-    return WrapConstMethod<org::bind::python::ExporterPython, std::string>(info,
-                                                                           getPtr(),
-                                                                           static_cast<std::string(org::bind::python::ExporterPython::*)() const>(&org::bind::python::ExporterPython::getTraceBuffer),
-                                                                           std::make_tuple());
-  }
-  Napi::Value enableFileTrace(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, bool)>(&org::bind::python::ExporterPython::enableFileTrace),
-                                                               std::make_tuple(CxxArgSpec<std::string>{},
-                                                                               CxxArgSpec<bool>{}));
-  }
-  Napi::Value setVisitAnyIdAround(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdAround),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setVisitAnyIdIn(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdIn),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setVisitAnyField(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyField),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setEvalTopCb(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalTopCb),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setVisitIdAround(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdAround),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setEvalIdAround(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdAround),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setVisitIdInCb(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdInCb),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setEvalIdIn(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdIn),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setVisitLeafField(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitLeafField),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::LeafFieldType>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setEvalLeafField(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalLeafField),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::LeafFieldType>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setVisitOrgField(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitOrgField),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setEvalOrgField(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalOrgField),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setSelf(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(pybind11::object)>(&org::bind::python::ExporterPython::setSelf),
-                                                               std::make_tuple(CxxArgSpec<pybind11::object>{}));
-  }
-  Napi::Value setNewOrgRes(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setNewAnyOrgRes(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyOrgRes),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setNewLeafRes(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewLeafRes),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::LeafFieldType>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setNewAnyLeafRes(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyLeafRes),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setPushVisitAnyId(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitAnyId),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setPopVisitAnyId(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitAnyId),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setPushVisitId(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitId),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setPopVisitIdCb(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitIdCb),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setVisitAnyHookCb(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyHookCb),
-                                                               std::make_tuple(CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value setVisitIdHook(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdHook),
-                                                               std::make_tuple(CxxArgSpec<OrgSemKind>{},
-                                                                               CxxArgSpec<org::bind::python::ExporterPython::PyFunc>{}));
-  }
-  Napi::Value print_trace(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, void>(info,
-                                                               getPtr(),
-                                                               static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, std::string const&, std::string const&, int)>(&org::bind::python::ExporterPython::print_trace),
-                                                               std::make_tuple(CxxArgSpec<std::string>{},
-                                                                               CxxArgSpec<std::string>{},
-                                                                               CxxArgSpec<std::string>{},
-                                                                               CxxArgSpec<int>{}));
-  }
-  Napi::Value evalTop(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, org::bind::python::ExporterPython::Res>(info,
-                                                                                                 getPtr(),
-                                                                                                 static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::evalTop),
-                                                                                                 std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{}));
-  }
-  Napi::Value eval(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::bind::python::ExporterPython, org::bind::python::ExporterPython::Res>(info,
-                                                                                                 getPtr(),
-                                                                                                 static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::eval),
-                                                                                                 std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{}));
-  }
-  std::shared_ptr<org::bind::python::ExporterPython> _stored;
-  org::bind::python::ExporterPython* getPtr() { return _stored.get(); }
 };
 
 struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
@@ -2080,13 +1873,13 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
   Napi::Value getCallConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Call const&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::LispCode::Call const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getCallConst),
+                                                                                static_cast<org::sem::LispCode::Call const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getCall),
                                                                                 std::make_tuple());
   }
   Napi::Value getCallMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Call&>(info,
                                                                      getPtr(),
-                                                                     static_cast<org::sem::LispCode::Call&(org::sem::LispCode::*)()>(&org::sem::LispCode::getCallMut),
+                                                                     static_cast<org::sem::LispCode::Call&(org::sem::LispCode::*)()>(&org::sem::LispCode::getCall),
                                                                      std::make_tuple());
   }
   Napi::Value isList(Napi::CallbackInfo const& info) {
@@ -2098,13 +1891,13 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
   Napi::Value getListConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::List const&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::LispCode::List const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getListConst),
+                                                                                static_cast<org::sem::LispCode::List const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getList),
                                                                                 std::make_tuple());
   }
   Napi::Value getListMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::List&>(info,
                                                                      getPtr(),
-                                                                     static_cast<org::sem::LispCode::List&(org::sem::LispCode::*)()>(&org::sem::LispCode::getListMut),
+                                                                     static_cast<org::sem::LispCode::List&(org::sem::LispCode::*)()>(&org::sem::LispCode::getList),
                                                                      std::make_tuple());
   }
   Napi::Value isKeyValue(Napi::CallbackInfo const& info) {
@@ -2116,13 +1909,13 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
   Napi::Value getKeyValueConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::KeyValue const&>(info,
                                                                                     getPtr(),
-                                                                                    static_cast<org::sem::LispCode::KeyValue const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getKeyValueConst),
+                                                                                    static_cast<org::sem::LispCode::KeyValue const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getKeyValue),
                                                                                     std::make_tuple());
   }
   Napi::Value getKeyValueMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::KeyValue&>(info,
                                                                          getPtr(),
-                                                                         static_cast<org::sem::LispCode::KeyValue&(org::sem::LispCode::*)()>(&org::sem::LispCode::getKeyValueMut),
+                                                                         static_cast<org::sem::LispCode::KeyValue&(org::sem::LispCode::*)()>(&org::sem::LispCode::getKeyValue),
                                                                          std::make_tuple());
   }
   Napi::Value isNumber(Napi::CallbackInfo const& info) {
@@ -2134,13 +1927,13 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
   Napi::Value getNumberConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Number const&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::LispCode::Number const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getNumberConst),
+                                                                                  static_cast<org::sem::LispCode::Number const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getNumber),
                                                                                   std::make_tuple());
   }
   Napi::Value getNumberMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Number&>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::sem::LispCode::Number&(org::sem::LispCode::*)()>(&org::sem::LispCode::getNumberMut),
+                                                                       static_cast<org::sem::LispCode::Number&(org::sem::LispCode::*)()>(&org::sem::LispCode::getNumber),
                                                                        std::make_tuple());
   }
   Napi::Value isText(Napi::CallbackInfo const& info) {
@@ -2152,13 +1945,13 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
   Napi::Value getTextConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Text const&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::LispCode::Text const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getTextConst),
+                                                                                static_cast<org::sem::LispCode::Text const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getText),
                                                                                 std::make_tuple());
   }
   Napi::Value getTextMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Text&>(info,
                                                                      getPtr(),
-                                                                     static_cast<org::sem::LispCode::Text&(org::sem::LispCode::*)()>(&org::sem::LispCode::getTextMut),
+                                                                     static_cast<org::sem::LispCode::Text&(org::sem::LispCode::*)()>(&org::sem::LispCode::getText),
                                                                      std::make_tuple());
   }
   Napi::Value isIdent(Napi::CallbackInfo const& info) {
@@ -2170,13 +1963,13 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
   Napi::Value getIdentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Ident const&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::LispCode::Ident const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getIdentConst),
+                                                                                 static_cast<org::sem::LispCode::Ident const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getIdent),
                                                                                  std::make_tuple());
   }
   Napi::Value getIdentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Ident&>(info,
                                                                       getPtr(),
-                                                                      static_cast<org::sem::LispCode::Ident&(org::sem::LispCode::*)()>(&org::sem::LispCode::getIdentMut),
+                                                                      static_cast<org::sem::LispCode::Ident&(org::sem::LispCode::*)()>(&org::sem::LispCode::getIdent),
                                                                       std::make_tuple());
   }
   Napi::Value isBoolean(Napi::CallbackInfo const& info) {
@@ -2188,13 +1981,13 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
   Napi::Value getBooleanConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Boolean const&>(info,
                                                                                    getPtr(),
-                                                                                   static_cast<org::sem::LispCode::Boolean const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getBooleanConst),
+                                                                                   static_cast<org::sem::LispCode::Boolean const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getBoolean),
                                                                                    std::make_tuple());
   }
   Napi::Value getBooleanMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Boolean&>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::LispCode::Boolean&(org::sem::LispCode::*)()>(&org::sem::LispCode::getBooleanMut),
+                                                                        static_cast<org::sem::LispCode::Boolean&(org::sem::LispCode::*)()>(&org::sem::LispCode::getBoolean),
                                                                         std::make_tuple());
   }
   Napi::Value isReal(Napi::CallbackInfo const& info) {
@@ -2206,19 +1999,19 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
   Napi::Value getRealConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LispCode, org::sem::LispCode::Real const&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::LispCode::Real const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getRealConst),
+                                                                                static_cast<org::sem::LispCode::Real const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getReal),
                                                                                 std::make_tuple());
   }
   Napi::Value getRealMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Real&>(info,
                                                                      getPtr(),
-                                                                     static_cast<org::sem::LispCode::Real&(org::sem::LispCode::*)()>(&org::sem::LispCode::getRealMut),
+                                                                     static_cast<org::sem::LispCode::Real&(org::sem::LispCode::*)()>(&org::sem::LispCode::getReal),
                                                                      std::make_tuple());
   }
   Napi::Value getKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LispCode, org::sem::LispCode::Kind>(info,
                                                                     getPtr(),
-                                                                    static_cast<org::sem::LispCode::Kind(org::sem::LispCode::*)(org::sem::LispCode::Data const&)>(&org::sem::LispCode::getKindStatic),
+                                                                    static_cast<org::sem::LispCode::Kind(org::sem::LispCode::*)(org::sem::LispCode::Data const&)>(&org::sem::LispCode::getKind),
                                                                     std::make_tuple(CxxArgSpec<org::sem::LispCode::Data>{}));
   }
   Napi::Value getKind(Napi::CallbackInfo const& info) {
@@ -2318,13 +2111,13 @@ struct AttrValueJs : public Napi::ObjectWrap<AttrValueJs> {
   Napi::Value getTextValueConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::AttrValue, org::sem::AttrValue::TextValue const&>(info,
                                                                                        getPtr(),
-                                                                                       static_cast<org::sem::AttrValue::TextValue const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getTextValueConst),
+                                                                                       static_cast<org::sem::AttrValue::TextValue const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getTextValue),
                                                                                        std::make_tuple());
   }
   Napi::Value getTextValueMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::AttrValue, org::sem::AttrValue::TextValue&>(info,
                                                                             getPtr(),
-                                                                            static_cast<org::sem::AttrValue::TextValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getTextValueMut),
+                                                                            static_cast<org::sem::AttrValue::TextValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getTextValue),
                                                                             std::make_tuple());
   }
   Napi::Value isFileReference(Napi::CallbackInfo const& info) {
@@ -2336,13 +2129,13 @@ struct AttrValueJs : public Napi::ObjectWrap<AttrValueJs> {
   Napi::Value getFileReferenceConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::AttrValue, org::sem::AttrValue::FileReference const&>(info,
                                                                                            getPtr(),
-                                                                                           static_cast<org::sem::AttrValue::FileReference const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getFileReferenceConst),
+                                                                                           static_cast<org::sem::AttrValue::FileReference const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getFileReference),
                                                                                            std::make_tuple());
   }
   Napi::Value getFileReferenceMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::AttrValue, org::sem::AttrValue::FileReference&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::AttrValue::FileReference&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getFileReferenceMut),
+                                                                                static_cast<org::sem::AttrValue::FileReference&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getFileReference),
                                                                                 std::make_tuple());
   }
   Napi::Value isLispValue(Napi::CallbackInfo const& info) {
@@ -2354,19 +2147,19 @@ struct AttrValueJs : public Napi::ObjectWrap<AttrValueJs> {
   Napi::Value getLispValueConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::AttrValue, org::sem::AttrValue::LispValue const&>(info,
                                                                                        getPtr(),
-                                                                                       static_cast<org::sem::AttrValue::LispValue const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getLispValueConst),
+                                                                                       static_cast<org::sem::AttrValue::LispValue const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getLispValue),
                                                                                        std::make_tuple());
   }
   Napi::Value getLispValueMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::AttrValue, org::sem::AttrValue::LispValue&>(info,
                                                                             getPtr(),
-                                                                            static_cast<org::sem::AttrValue::LispValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getLispValueMut),
+                                                                            static_cast<org::sem::AttrValue::LispValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getLispValue),
                                                                             std::make_tuple());
   }
   Napi::Value getDataKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::AttrValue, org::sem::AttrValue::DataKind>(info,
                                                                           getPtr(),
-                                                                          static_cast<org::sem::AttrValue::DataKind(org::sem::AttrValue::*)(org::sem::AttrValue::DataVariant const&)>(&org::sem::AttrValue::getDataKindStatic),
+                                                                          static_cast<org::sem::AttrValue::DataKind(org::sem::AttrValue::*)(org::sem::AttrValue::DataVariant const&)>(&org::sem::AttrValue::getDataKind),
                                                                           std::make_tuple(CxxArgSpec<org::sem::AttrValue::DataVariant>{}));
   }
   Napi::Value getDataKind(Napi::CallbackInfo const& info) {
@@ -2464,13 +2257,13 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getRawConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Raw const&>(info,
                                                                                    getPtr(),
-                                                                                   static_cast<org::sem::LinkTarget::Raw const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getRawConst),
+                                                                                   static_cast<org::sem::LinkTarget::Raw const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getRaw),
                                                                                    std::make_tuple());
   }
   Napi::Value getRawMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Raw&>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::LinkTarget::Raw&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getRawMut),
+                                                                        static_cast<org::sem::LinkTarget::Raw&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getRaw),
                                                                         std::make_tuple());
   }
   Napi::Value isId(Napi::CallbackInfo const& info) {
@@ -2482,13 +2275,13 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getIdConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Id const&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::LinkTarget::Id const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getIdConst),
+                                                                                  static_cast<org::sem::LinkTarget::Id const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getId),
                                                                                   std::make_tuple());
   }
   Napi::Value getIdMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Id&>(info,
                                                                        getPtr(),
-                                                                       static_cast<org::sem::LinkTarget::Id&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getIdMut),
+                                                                       static_cast<org::sem::LinkTarget::Id&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getId),
                                                                        std::make_tuple());
   }
   Napi::Value isCustomId(Napi::CallbackInfo const& info) {
@@ -2500,13 +2293,13 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getCustomIdConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::CustomId const&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::LinkTarget::CustomId const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getCustomIdConst),
+                                                                                        static_cast<org::sem::LinkTarget::CustomId const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getCustomId),
                                                                                         std::make_tuple());
   }
   Napi::Value getCustomIdMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::CustomId&>(info,
                                                                              getPtr(),
-                                                                             static_cast<org::sem::LinkTarget::CustomId&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getCustomIdMut),
+                                                                             static_cast<org::sem::LinkTarget::CustomId&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getCustomId),
                                                                              std::make_tuple());
   }
   Napi::Value isSubtreeTitle(Napi::CallbackInfo const& info) {
@@ -2518,13 +2311,13 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getSubtreeTitleConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::SubtreeTitle const&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::LinkTarget::SubtreeTitle const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getSubtreeTitleConst),
+                                                                                            static_cast<org::sem::LinkTarget::SubtreeTitle const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getSubtreeTitle),
                                                                                             std::make_tuple());
   }
   Napi::Value getSubtreeTitleMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::SubtreeTitle&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::LinkTarget::SubtreeTitle&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getSubtreeTitleMut),
+                                                                                 static_cast<org::sem::LinkTarget::SubtreeTitle&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getSubtreeTitle),
                                                                                  std::make_tuple());
   }
   Napi::Value isPerson(Napi::CallbackInfo const& info) {
@@ -2536,13 +2329,13 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getPersonConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Person const&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::LinkTarget::Person const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getPersonConst),
+                                                                                      static_cast<org::sem::LinkTarget::Person const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getPerson),
                                                                                       std::make_tuple());
   }
   Napi::Value getPersonMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Person&>(info,
                                                                            getPtr(),
-                                                                           static_cast<org::sem::LinkTarget::Person&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getPersonMut),
+                                                                           static_cast<org::sem::LinkTarget::Person&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getPerson),
                                                                            std::make_tuple());
   }
   Napi::Value isUserProtocol(Napi::CallbackInfo const& info) {
@@ -2554,13 +2347,13 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getUserProtocolConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::UserProtocol const&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::LinkTarget::UserProtocol const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getUserProtocolConst),
+                                                                                            static_cast<org::sem::LinkTarget::UserProtocol const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getUserProtocol),
                                                                                             std::make_tuple());
   }
   Napi::Value getUserProtocolMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::UserProtocol&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::LinkTarget::UserProtocol&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getUserProtocolMut),
+                                                                                 static_cast<org::sem::LinkTarget::UserProtocol&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getUserProtocol),
                                                                                  std::make_tuple());
   }
   Napi::Value isInternal(Napi::CallbackInfo const& info) {
@@ -2572,13 +2365,13 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getInternalConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Internal const&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::LinkTarget::Internal const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getInternalConst),
+                                                                                        static_cast<org::sem::LinkTarget::Internal const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getInternal),
                                                                                         std::make_tuple());
   }
   Napi::Value getInternalMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Internal&>(info,
                                                                              getPtr(),
-                                                                             static_cast<org::sem::LinkTarget::Internal&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getInternalMut),
+                                                                             static_cast<org::sem::LinkTarget::Internal&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getInternal),
                                                                              std::make_tuple());
   }
   Napi::Value isFootnote(Napi::CallbackInfo const& info) {
@@ -2590,13 +2383,13 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getFootnoteConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Footnote const&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::LinkTarget::Footnote const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getFootnoteConst),
+                                                                                        static_cast<org::sem::LinkTarget::Footnote const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getFootnote),
                                                                                         std::make_tuple());
   }
   Napi::Value getFootnoteMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Footnote&>(info,
                                                                              getPtr(),
-                                                                             static_cast<org::sem::LinkTarget::Footnote&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getFootnoteMut),
+                                                                             static_cast<org::sem::LinkTarget::Footnote&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getFootnote),
                                                                              std::make_tuple());
   }
   Napi::Value isFile(Napi::CallbackInfo const& info) {
@@ -2608,13 +2401,13 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getFileConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::File const&>(info,
                                                                                     getPtr(),
-                                                                                    static_cast<org::sem::LinkTarget::File const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getFileConst),
+                                                                                    static_cast<org::sem::LinkTarget::File const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getFile),
                                                                                     std::make_tuple());
   }
   Napi::Value getFileMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::File&>(info,
                                                                          getPtr(),
-                                                                         static_cast<org::sem::LinkTarget::File&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getFileMut),
+                                                                         static_cast<org::sem::LinkTarget::File&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getFile),
                                                                          std::make_tuple());
   }
   Napi::Value isAttachment(Napi::CallbackInfo const& info) {
@@ -2626,19 +2419,19 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
   Napi::Value getAttachmentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::LinkTarget, org::sem::LinkTarget::Attachment const&>(info,
                                                                                           getPtr(),
-                                                                                          static_cast<org::sem::LinkTarget::Attachment const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getAttachmentConst),
+                                                                                          static_cast<org::sem::LinkTarget::Attachment const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getAttachment),
                                                                                           std::make_tuple());
   }
   Napi::Value getAttachmentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Attachment&>(info,
                                                                                getPtr(),
-                                                                               static_cast<org::sem::LinkTarget::Attachment&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getAttachmentMut),
+                                                                               static_cast<org::sem::LinkTarget::Attachment&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getAttachment),
                                                                                std::make_tuple());
   }
   Napi::Value getKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::LinkTarget, org::sem::LinkTarget::Kind>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::LinkTarget::Kind(org::sem::LinkTarget::*)(org::sem::LinkTarget::Data const&)>(&org::sem::LinkTarget::getKindStatic),
+                                                                        static_cast<org::sem::LinkTarget::Kind(org::sem::LinkTarget::*)(org::sem::LinkTarget::Data const&)>(&org::sem::LinkTarget::getKind),
                                                                         std::make_tuple(CxxArgSpec<org::sem::LinkTarget::Data>{}));
   }
   Napi::Value getKind(Napi::CallbackInfo const& info) {
@@ -2685,13 +2478,13 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
   Napi::Value getPriorityConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Priority const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::SubtreeLogHead::Priority const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getPriorityConst),
+                                                                                                static_cast<org::sem::SubtreeLogHead::Priority const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getPriority),
                                                                                                 std::make_tuple());
   }
   Napi::Value getPriorityMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Priority&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::SubtreeLogHead::Priority&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getPriorityMut),
+                                                                                     static_cast<org::sem::SubtreeLogHead::Priority&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getPriority),
                                                                                      std::make_tuple());
   }
   Napi::Value isNote(Napi::CallbackInfo const& info) {
@@ -2703,13 +2496,13 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
   Napi::Value getNoteConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Note const&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::SubtreeLogHead::Note const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getNoteConst),
+                                                                                            static_cast<org::sem::SubtreeLogHead::Note const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getNote),
                                                                                             std::make_tuple());
   }
   Napi::Value getNoteMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Note&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::SubtreeLogHead::Note&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getNoteMut),
+                                                                                 static_cast<org::sem::SubtreeLogHead::Note&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getNote),
                                                                                  std::make_tuple());
   }
   Napi::Value isRefile(Napi::CallbackInfo const& info) {
@@ -2721,13 +2514,13 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
   Napi::Value getRefileConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Refile const&>(info,
                                                                                               getPtr(),
-                                                                                              static_cast<org::sem::SubtreeLogHead::Refile const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getRefileConst),
+                                                                                              static_cast<org::sem::SubtreeLogHead::Refile const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getRefile),
                                                                                               std::make_tuple());
   }
   Napi::Value getRefileMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Refile&>(info,
                                                                                    getPtr(),
-                                                                                   static_cast<org::sem::SubtreeLogHead::Refile&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getRefileMut),
+                                                                                   static_cast<org::sem::SubtreeLogHead::Refile&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getRefile),
                                                                                    std::make_tuple());
   }
   Napi::Value isClock(Napi::CallbackInfo const& info) {
@@ -2739,13 +2532,13 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
   Napi::Value getClockConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Clock const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::SubtreeLogHead::Clock const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getClockConst),
+                                                                                             static_cast<org::sem::SubtreeLogHead::Clock const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getClock),
                                                                                              std::make_tuple());
   }
   Napi::Value getClockMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Clock&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::SubtreeLogHead::Clock&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getClockMut),
+                                                                                  static_cast<org::sem::SubtreeLogHead::Clock&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getClock),
                                                                                   std::make_tuple());
   }
   Napi::Value isState(Napi::CallbackInfo const& info) {
@@ -2757,13 +2550,13 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
   Napi::Value getStateConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::State const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::SubtreeLogHead::State const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getStateConst),
+                                                                                             static_cast<org::sem::SubtreeLogHead::State const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getState),
                                                                                              std::make_tuple());
   }
   Napi::Value getStateMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::State&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::SubtreeLogHead::State&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getStateMut),
+                                                                                  static_cast<org::sem::SubtreeLogHead::State&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getState),
                                                                                   std::make_tuple());
   }
   Napi::Value isDeadline(Napi::CallbackInfo const& info) {
@@ -2775,13 +2568,13 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
   Napi::Value getDeadlineConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Deadline const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::SubtreeLogHead::Deadline const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getDeadlineConst),
+                                                                                                static_cast<org::sem::SubtreeLogHead::Deadline const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getDeadline),
                                                                                                 std::make_tuple());
   }
   Napi::Value getDeadlineMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Deadline&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::SubtreeLogHead::Deadline&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getDeadlineMut),
+                                                                                     static_cast<org::sem::SubtreeLogHead::Deadline&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getDeadline),
                                                                                      std::make_tuple());
   }
   Napi::Value isSchedule(Napi::CallbackInfo const& info) {
@@ -2793,13 +2586,13 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
   Napi::Value getScheduleConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Schedule const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::SubtreeLogHead::Schedule const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getScheduleConst),
+                                                                                                static_cast<org::sem::SubtreeLogHead::Schedule const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getSchedule),
                                                                                                 std::make_tuple());
   }
   Napi::Value getScheduleMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Schedule&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::SubtreeLogHead::Schedule&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getScheduleMut),
+                                                                                     static_cast<org::sem::SubtreeLogHead::Schedule&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getSchedule),
                                                                                      std::make_tuple());
   }
   Napi::Value isTag(Napi::CallbackInfo const& info) {
@@ -2811,13 +2604,13 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
   Napi::Value getTagConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Tag const&>(info,
                                                                                            getPtr(),
-                                                                                           static_cast<org::sem::SubtreeLogHead::Tag const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getTagConst),
+                                                                                           static_cast<org::sem::SubtreeLogHead::Tag const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getTag),
                                                                                            std::make_tuple());
   }
   Napi::Value getTagMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Tag&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::SubtreeLogHead::Tag&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getTagMut),
+                                                                                static_cast<org::sem::SubtreeLogHead::Tag&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getTag),
                                                                                 std::make_tuple());
   }
   Napi::Value isUnknown(Napi::CallbackInfo const& info) {
@@ -2829,19 +2622,19 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
   Napi::Value getUnknownConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Unknown const&>(info,
                                                                                                getPtr(),
-                                                                                               static_cast<org::sem::SubtreeLogHead::Unknown const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getUnknownConst),
+                                                                                               static_cast<org::sem::SubtreeLogHead::Unknown const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getUnknown),
                                                                                                std::make_tuple());
   }
   Napi::Value getUnknownMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Unknown&>(info,
                                                                                     getPtr(),
-                                                                                    static_cast<org::sem::SubtreeLogHead::Unknown&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getUnknownMut),
+                                                                                    static_cast<org::sem::SubtreeLogHead::Unknown&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getUnknown),
                                                                                     std::make_tuple());
   }
   Napi::Value getLogKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::SubtreeLogHead, org::sem::SubtreeLogHead::Kind>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::SubtreeLogHead::Kind(org::sem::SubtreeLogHead::*)(org::sem::SubtreeLogHead::LogEntry const&)>(&org::sem::SubtreeLogHead::getLogKindStatic),
+                                                                                static_cast<org::sem::SubtreeLogHead::Kind(org::sem::SubtreeLogHead::*)(org::sem::SubtreeLogHead::LogEntry const&)>(&org::sem::SubtreeLogHead::getLogKind),
                                                                                 std::make_tuple(CxxArgSpec<org::sem::SubtreeLogHead::LogEntry>{}));
   }
   Napi::Value getLogKind(Napi::CallbackInfo const& info) {
@@ -3074,13 +2867,13 @@ struct DocumentExportConfigJs : public Napi::ObjectWrap<DocumentExportConfigJs> 
   Napi::Value getDoExportConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::DoExport const&>(info,
                                                                                                             getPtr(),
-                                                                                                            static_cast<org::sem::DocumentExportConfig::DoExport const&(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::getDoExportConst),
+                                                                                                            static_cast<org::sem::DocumentExportConfig::DoExport const&(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::getDoExport),
                                                                                                             std::make_tuple());
   }
   Napi::Value getDoExportMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::DoExport&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::DocumentExportConfig::DoExport&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getDoExportMut),
+                                                                                                 static_cast<org::sem::DocumentExportConfig::DoExport&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getDoExport),
                                                                                                  std::make_tuple());
   }
   Napi::Value isExportFixed(Napi::CallbackInfo const& info) {
@@ -3092,19 +2885,19 @@ struct DocumentExportConfigJs : public Napi::ObjectWrap<DocumentExportConfigJs> 
   Napi::Value getExportFixedConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::ExportFixed const&>(info,
                                                                                                                getPtr(),
-                                                                                                               static_cast<org::sem::DocumentExportConfig::ExportFixed const&(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::getExportFixedConst),
+                                                                                                               static_cast<org::sem::DocumentExportConfig::ExportFixed const&(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::getExportFixed),
                                                                                                                std::make_tuple());
   }
   Napi::Value getExportFixedMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::ExportFixed&>(info,
                                                                                                     getPtr(),
-                                                                                                    static_cast<org::sem::DocumentExportConfig::ExportFixed&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getExportFixedMut),
+                                                                                                    static_cast<org::sem::DocumentExportConfig::ExportFixed&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getExportFixed),
                                                                                                     std::make_tuple());
   }
   Napi::Value getTocExportKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::TocExportKind>(info,
                                                                                                      getPtr(),
-                                                                                                     static_cast<org::sem::DocumentExportConfig::TocExportKind(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig::TocExport const&)>(&org::sem::DocumentExportConfig::getTocExportKindStatic),
+                                                                                                     static_cast<org::sem::DocumentExportConfig::TocExportKind(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig::TocExport const&)>(&org::sem::DocumentExportConfig::getTocExportKind),
                                                                                                      std::make_tuple(CxxArgSpec<org::sem::DocumentExportConfig::TocExport>{}));
   }
   Napi::Value getTocExportKind(Napi::CallbackInfo const& info) {
@@ -3181,13 +2974,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getNonblockingConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Nonblocking const&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::NamedProperty::Nonblocking const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getNonblockingConst),
+                                                                                                 static_cast<org::sem::NamedProperty::Nonblocking const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getNonblocking),
                                                                                                  std::make_tuple());
   }
   Napi::Value getNonblockingMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Nonblocking&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::NamedProperty::Nonblocking&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getNonblockingMut),
+                                                                                      static_cast<org::sem::NamedProperty::Nonblocking&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getNonblocking),
                                                                                       std::make_tuple());
   }
   Napi::Value isArchiveTime(Napi::CallbackInfo const& info) {
@@ -3199,13 +2992,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getArchiveTimeConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTime const&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::NamedProperty::ArchiveTime const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTimeConst),
+                                                                                                 static_cast<org::sem::NamedProperty::ArchiveTime const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTime),
                                                                                                  std::make_tuple());
   }
   Napi::Value getArchiveTimeMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTime&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::NamedProperty::ArchiveTime&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTimeMut),
+                                                                                      static_cast<org::sem::NamedProperty::ArchiveTime&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTime),
                                                                                       std::make_tuple());
   }
   Napi::Value isArchiveFile(Napi::CallbackInfo const& info) {
@@ -3217,13 +3010,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getArchiveFileConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveFile const&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::NamedProperty::ArchiveFile const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveFileConst),
+                                                                                                 static_cast<org::sem::NamedProperty::ArchiveFile const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveFile),
                                                                                                  std::make_tuple());
   }
   Napi::Value getArchiveFileMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveFile&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::NamedProperty::ArchiveFile&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveFileMut),
+                                                                                      static_cast<org::sem::NamedProperty::ArchiveFile&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveFile),
                                                                                       std::make_tuple());
   }
   Napi::Value isArchiveOlpath(Napi::CallbackInfo const& info) {
@@ -3235,13 +3028,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getArchiveOlpathConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveOlpath const&>(info,
                                                                                                    getPtr(),
-                                                                                                   static_cast<org::sem::NamedProperty::ArchiveOlpath const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveOlpathConst),
+                                                                                                   static_cast<org::sem::NamedProperty::ArchiveOlpath const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveOlpath),
                                                                                                    std::make_tuple());
   }
   Napi::Value getArchiveOlpathMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveOlpath&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::NamedProperty::ArchiveOlpath&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveOlpathMut),
+                                                                                        static_cast<org::sem::NamedProperty::ArchiveOlpath&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveOlpath),
                                                                                         std::make_tuple());
   }
   Napi::Value isArchiveTarget(Napi::CallbackInfo const& info) {
@@ -3253,13 +3046,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getArchiveTargetConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTarget const&>(info,
                                                                                                    getPtr(),
-                                                                                                   static_cast<org::sem::NamedProperty::ArchiveTarget const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTargetConst),
+                                                                                                   static_cast<org::sem::NamedProperty::ArchiveTarget const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTarget),
                                                                                                    std::make_tuple());
   }
   Napi::Value getArchiveTargetMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTarget&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::NamedProperty::ArchiveTarget&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTargetMut),
+                                                                                        static_cast<org::sem::NamedProperty::ArchiveTarget&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTarget),
                                                                                         std::make_tuple());
   }
   Napi::Value isArchiveCategory(Napi::CallbackInfo const& info) {
@@ -3271,13 +3064,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getArchiveCategoryConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveCategory const&>(info,
                                                                                                      getPtr(),
-                                                                                                     static_cast<org::sem::NamedProperty::ArchiveCategory const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveCategoryConst),
+                                                                                                     static_cast<org::sem::NamedProperty::ArchiveCategory const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveCategory),
                                                                                                      std::make_tuple());
   }
   Napi::Value getArchiveCategoryMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveCategory&>(info,
                                                                                           getPtr(),
-                                                                                          static_cast<org::sem::NamedProperty::ArchiveCategory&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveCategoryMut),
+                                                                                          static_cast<org::sem::NamedProperty::ArchiveCategory&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveCategory),
                                                                                           std::make_tuple());
   }
   Napi::Value isArchiveTodo(Napi::CallbackInfo const& info) {
@@ -3289,13 +3082,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getArchiveTodoConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTodo const&>(info,
                                                                                                  getPtr(),
-                                                                                                 static_cast<org::sem::NamedProperty::ArchiveTodo const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTodoConst),
+                                                                                                 static_cast<org::sem::NamedProperty::ArchiveTodo const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getArchiveTodo),
                                                                                                  std::make_tuple());
   }
   Napi::Value getArchiveTodoMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ArchiveTodo&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::NamedProperty::ArchiveTodo&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTodoMut),
+                                                                                      static_cast<org::sem::NamedProperty::ArchiveTodo&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getArchiveTodo),
                                                                                       std::make_tuple());
   }
   Napi::Value isTrigger(Napi::CallbackInfo const& info) {
@@ -3307,13 +3100,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getTriggerConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Trigger const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::Trigger const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getTriggerConst),
+                                                                                             static_cast<org::sem::NamedProperty::Trigger const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getTrigger),
                                                                                              std::make_tuple());
   }
   Napi::Value getTriggerMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Trigger&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::Trigger&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getTriggerMut),
+                                                                                  static_cast<org::sem::NamedProperty::Trigger&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getTrigger),
                                                                                   std::make_tuple());
   }
   Napi::Value isExportLatexClass(Napi::CallbackInfo const& info) {
@@ -3325,13 +3118,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getExportLatexClassConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexClass const&>(info,
                                                                                                       getPtr(),
-                                                                                                      static_cast<org::sem::NamedProperty::ExportLatexClass const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexClassConst),
+                                                                                                      static_cast<org::sem::NamedProperty::ExportLatexClass const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexClass),
                                                                                                       std::make_tuple());
   }
   Napi::Value getExportLatexClassMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexClass&>(info,
                                                                                            getPtr(),
-                                                                                           static_cast<org::sem::NamedProperty::ExportLatexClass&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexClassMut),
+                                                                                           static_cast<org::sem::NamedProperty::ExportLatexClass&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexClass),
                                                                                            std::make_tuple());
   }
   Napi::Value isCookieData(Napi::CallbackInfo const& info) {
@@ -3343,13 +3136,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getCookieDataConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CookieData const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::CookieData const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCookieDataConst),
+                                                                                                static_cast<org::sem::NamedProperty::CookieData const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCookieData),
                                                                                                 std::make_tuple());
   }
   Napi::Value getCookieDataMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CookieData&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::CookieData&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCookieDataMut),
+                                                                                     static_cast<org::sem::NamedProperty::CookieData&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCookieData),
                                                                                      std::make_tuple());
   }
   Napi::Value isExportLatexClassOptions(Napi::CallbackInfo const& info) {
@@ -3361,13 +3154,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getExportLatexClassOptionsConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexClassOptions const&>(info,
                                                                                                              getPtr(),
-                                                                                                             static_cast<org::sem::NamedProperty::ExportLatexClassOptions const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexClassOptionsConst),
+                                                                                                             static_cast<org::sem::NamedProperty::ExportLatexClassOptions const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexClassOptions),
                                                                                                              std::make_tuple());
   }
   Napi::Value getExportLatexClassOptionsMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexClassOptions&>(info,
                                                                                                   getPtr(),
-                                                                                                  static_cast<org::sem::NamedProperty::ExportLatexClassOptions&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexClassOptionsMut),
+                                                                                                  static_cast<org::sem::NamedProperty::ExportLatexClassOptions&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexClassOptions),
                                                                                                   std::make_tuple());
   }
   Napi::Value isExportLatexHeader(Napi::CallbackInfo const& info) {
@@ -3379,13 +3172,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getExportLatexHeaderConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexHeader const&>(info,
                                                                                                        getPtr(),
-                                                                                                       static_cast<org::sem::NamedProperty::ExportLatexHeader const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexHeaderConst),
+                                                                                                       static_cast<org::sem::NamedProperty::ExportLatexHeader const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexHeader),
                                                                                                        std::make_tuple());
   }
   Napi::Value getExportLatexHeaderMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexHeader&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::NamedProperty::ExportLatexHeader&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexHeaderMut),
+                                                                                            static_cast<org::sem::NamedProperty::ExportLatexHeader&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexHeader),
                                                                                             std::make_tuple());
   }
   Napi::Value isExportLatexCompiler(Napi::CallbackInfo const& info) {
@@ -3397,13 +3190,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getExportLatexCompilerConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexCompiler const&>(info,
                                                                                                          getPtr(),
-                                                                                                         static_cast<org::sem::NamedProperty::ExportLatexCompiler const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexCompilerConst),
+                                                                                                         static_cast<org::sem::NamedProperty::ExportLatexCompiler const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportLatexCompiler),
                                                                                                          std::make_tuple());
   }
   Napi::Value getExportLatexCompilerMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportLatexCompiler&>(info,
                                                                                               getPtr(),
-                                                                                              static_cast<org::sem::NamedProperty::ExportLatexCompiler&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexCompilerMut),
+                                                                                              static_cast<org::sem::NamedProperty::ExportLatexCompiler&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportLatexCompiler),
                                                                                               std::make_tuple());
   }
   Napi::Value isOrdered(Napi::CallbackInfo const& info) {
@@ -3415,13 +3208,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getOrderedConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Ordered const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::Ordered const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getOrderedConst),
+                                                                                             static_cast<org::sem::NamedProperty::Ordered const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getOrdered),
                                                                                              std::make_tuple());
   }
   Napi::Value getOrderedMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Ordered&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::Ordered&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getOrderedMut),
+                                                                                  static_cast<org::sem::NamedProperty::Ordered&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getOrdered),
                                                                                   std::make_tuple());
   }
   Napi::Value isEffort(Napi::CallbackInfo const& info) {
@@ -3433,13 +3226,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getEffortConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Effort const&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::NamedProperty::Effort const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getEffortConst),
+                                                                                            static_cast<org::sem::NamedProperty::Effort const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getEffort),
                                                                                             std::make_tuple());
   }
   Napi::Value getEffortMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Effort&>(info,
                                                                                  getPtr(),
-                                                                                 static_cast<org::sem::NamedProperty::Effort&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getEffortMut),
+                                                                                 static_cast<org::sem::NamedProperty::Effort&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getEffort),
                                                                                  std::make_tuple());
   }
   Napi::Value isVisibility(Napi::CallbackInfo const& info) {
@@ -3451,13 +3244,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getVisibilityConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Visibility const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::Visibility const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getVisibilityConst),
+                                                                                                static_cast<org::sem::NamedProperty::Visibility const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getVisibility),
                                                                                                 std::make_tuple());
   }
   Napi::Value getVisibilityMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Visibility&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::Visibility&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getVisibilityMut),
+                                                                                     static_cast<org::sem::NamedProperty::Visibility&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getVisibility),
                                                                                      std::make_tuple());
   }
   Napi::Value isExportOptions(Napi::CallbackInfo const& info) {
@@ -3469,13 +3262,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getExportOptionsConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportOptions const&>(info,
                                                                                                    getPtr(),
-                                                                                                   static_cast<org::sem::NamedProperty::ExportOptions const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportOptionsConst),
+                                                                                                   static_cast<org::sem::NamedProperty::ExportOptions const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getExportOptions),
                                                                                                    std::make_tuple());
   }
   Napi::Value getExportOptionsMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::ExportOptions&>(info,
                                                                                         getPtr(),
-                                                                                        static_cast<org::sem::NamedProperty::ExportOptions&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportOptionsMut),
+                                                                                        static_cast<org::sem::NamedProperty::ExportOptions&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getExportOptions),
                                                                                         std::make_tuple());
   }
   Napi::Value isBlocker(Napi::CallbackInfo const& info) {
@@ -3487,13 +3280,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getBlockerConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Blocker const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::Blocker const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getBlockerConst),
+                                                                                             static_cast<org::sem::NamedProperty::Blocker const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getBlocker),
                                                                                              std::make_tuple());
   }
   Napi::Value getBlockerMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Blocker&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::Blocker&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getBlockerMut),
+                                                                                  static_cast<org::sem::NamedProperty::Blocker&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getBlocker),
                                                                                   std::make_tuple());
   }
   Napi::Value isUnnumbered(Napi::CallbackInfo const& info) {
@@ -3505,13 +3298,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getUnnumberedConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Unnumbered const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::Unnumbered const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getUnnumberedConst),
+                                                                                                static_cast<org::sem::NamedProperty::Unnumbered const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getUnnumbered),
                                                                                                 std::make_tuple());
   }
   Napi::Value getUnnumberedMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Unnumbered&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::Unnumbered&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getUnnumberedMut),
+                                                                                     static_cast<org::sem::NamedProperty::Unnumbered&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getUnnumbered),
                                                                                      std::make_tuple());
   }
   Napi::Value isCreated(Napi::CallbackInfo const& info) {
@@ -3523,13 +3316,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getCreatedConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::Created const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::Created const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCreatedConst),
+                                                                                             static_cast<org::sem::NamedProperty::Created const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCreated),
                                                                                              std::make_tuple());
   }
   Napi::Value getCreatedMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Created&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::Created&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCreatedMut),
+                                                                                  static_cast<org::sem::NamedProperty::Created&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCreated),
                                                                                   std::make_tuple());
   }
   Napi::Value isRadioId(Napi::CallbackInfo const& info) {
@@ -3541,13 +3334,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getRadioIdConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::RadioId const&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::RadioId const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getRadioIdConst),
+                                                                                             static_cast<org::sem::NamedProperty::RadioId const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getRadioId),
                                                                                              std::make_tuple());
   }
   Napi::Value getRadioIdMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::RadioId&>(info,
                                                                                   getPtr(),
-                                                                                  static_cast<org::sem::NamedProperty::RadioId&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getRadioIdMut),
+                                                                                  static_cast<org::sem::NamedProperty::RadioId&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getRadioId),
                                                                                   std::make_tuple());
   }
   Napi::Value isHashtagDef(Napi::CallbackInfo const& info) {
@@ -3559,13 +3352,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getHashtagDefConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::HashtagDef const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::HashtagDef const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getHashtagDefConst),
+                                                                                                static_cast<org::sem::NamedProperty::HashtagDef const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getHashtagDef),
                                                                                                 std::make_tuple());
   }
   Napi::Value getHashtagDefMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::HashtagDef&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::HashtagDef&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getHashtagDefMut),
+                                                                                     static_cast<org::sem::NamedProperty::HashtagDef&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getHashtagDef),
                                                                                      std::make_tuple());
   }
   Napi::Value isCustomArgs(Napi::CallbackInfo const& info) {
@@ -3577,13 +3370,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getCustomArgsConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomArgs const&>(info,
                                                                                                 getPtr(),
-                                                                                                static_cast<org::sem::NamedProperty::CustomArgs const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomArgsConst),
+                                                                                                static_cast<org::sem::NamedProperty::CustomArgs const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomArgs),
                                                                                                 std::make_tuple());
   }
   Napi::Value getCustomArgsMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomArgs&>(info,
                                                                                      getPtr(),
-                                                                                     static_cast<org::sem::NamedProperty::CustomArgs&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomArgsMut),
+                                                                                     static_cast<org::sem::NamedProperty::CustomArgs&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomArgs),
                                                                                      std::make_tuple());
   }
   Napi::Value isCustomRaw(Napi::CallbackInfo const& info) {
@@ -3595,13 +3388,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getCustomRawConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomRaw const&>(info,
                                                                                                getPtr(),
-                                                                                               static_cast<org::sem::NamedProperty::CustomRaw const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomRawConst),
+                                                                                               static_cast<org::sem::NamedProperty::CustomRaw const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomRaw),
                                                                                                std::make_tuple());
   }
   Napi::Value getCustomRawMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomRaw&>(info,
                                                                                     getPtr(),
-                                                                                    static_cast<org::sem::NamedProperty::CustomRaw&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomRawMut),
+                                                                                    static_cast<org::sem::NamedProperty::CustomRaw&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomRaw),
                                                                                     std::make_tuple());
   }
   Napi::Value isCustomSubtreeJson(Napi::CallbackInfo const& info) {
@@ -3613,13 +3406,13 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getCustomSubtreeJsonConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomSubtreeJson const&>(info,
                                                                                                        getPtr(),
-                                                                                                       static_cast<org::sem::NamedProperty::CustomSubtreeJson const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomSubtreeJsonConst),
+                                                                                                       static_cast<org::sem::NamedProperty::CustomSubtreeJson const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomSubtreeJson),
                                                                                                        std::make_tuple());
   }
   Napi::Value getCustomSubtreeJsonMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomSubtreeJson&>(info,
                                                                                             getPtr(),
-                                                                                            static_cast<org::sem::NamedProperty::CustomSubtreeJson&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomSubtreeJsonMut),
+                                                                                            static_cast<org::sem::NamedProperty::CustomSubtreeJson&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomSubtreeJson),
                                                                                             std::make_tuple());
   }
   Napi::Value isCustomSubtreeFlags(Napi::CallbackInfo const& info) {
@@ -3631,19 +3424,19 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
   Napi::Value getCustomSubtreeFlagsConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomSubtreeFlags const&>(info,
                                                                                                         getPtr(),
-                                                                                                        static_cast<org::sem::NamedProperty::CustomSubtreeFlags const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomSubtreeFlagsConst),
+                                                                                                        static_cast<org::sem::NamedProperty::CustomSubtreeFlags const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getCustomSubtreeFlags),
                                                                                                         std::make_tuple());
   }
   Napi::Value getCustomSubtreeFlagsMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::CustomSubtreeFlags&>(info,
                                                                                              getPtr(),
-                                                                                             static_cast<org::sem::NamedProperty::CustomSubtreeFlags&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomSubtreeFlagsMut),
+                                                                                             static_cast<org::sem::NamedProperty::CustomSubtreeFlags&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomSubtreeFlags),
                                                                                              std::make_tuple());
   }
   Napi::Value getKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::NamedProperty, org::sem::NamedProperty::Kind>(info,
                                                                               getPtr(),
-                                                                              static_cast<org::sem::NamedProperty::Kind(org::sem::NamedProperty::*)(org::sem::NamedProperty::Data const&)>(&org::sem::NamedProperty::getKindStatic),
+                                                                              static_cast<org::sem::NamedProperty::Kind(org::sem::NamedProperty::*)(org::sem::NamedProperty::Data const&)>(&org::sem::NamedProperty::getKind),
                                                                               std::make_tuple(CxxArgSpec<org::sem::NamedProperty::Data>{}));
   }
   Napi::Value getKind(Napi::CallbackInfo const& info) {
@@ -3838,13 +3631,13 @@ struct TimeJs : public Napi::ObjectWrap<TimeJs> {
   Napi::Value getStaticConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::Time, org::sem::Time::Static const&>(info,
                                                                           getPtr(),
-                                                                          static_cast<org::sem::Time::Static const&(org::sem::Time::*)() const>(&org::sem::Time::getStaticConst),
+                                                                          static_cast<org::sem::Time::Static const&(org::sem::Time::*)() const>(&org::sem::Time::getStatic),
                                                                           std::make_tuple());
   }
   Napi::Value getStaticMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::Time, org::sem::Time::Static&>(info,
                                                                getPtr(),
-                                                               static_cast<org::sem::Time::Static&(org::sem::Time::*)()>(&org::sem::Time::getStaticMut),
+                                                               static_cast<org::sem::Time::Static&(org::sem::Time::*)()>(&org::sem::Time::getStatic),
                                                                std::make_tuple());
   }
   Napi::Value isDynamic(Napi::CallbackInfo const& info) {
@@ -3856,19 +3649,19 @@ struct TimeJs : public Napi::ObjectWrap<TimeJs> {
   Napi::Value getDynamicConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::Time, org::sem::Time::Dynamic const&>(info,
                                                                            getPtr(),
-                                                                           static_cast<org::sem::Time::Dynamic const&(org::sem::Time::*)() const>(&org::sem::Time::getDynamicConst),
+                                                                           static_cast<org::sem::Time::Dynamic const&(org::sem::Time::*)() const>(&org::sem::Time::getDynamic),
                                                                            std::make_tuple());
   }
   Napi::Value getDynamicMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::Time, org::sem::Time::Dynamic&>(info,
                                                                 getPtr(),
-                                                                static_cast<org::sem::Time::Dynamic&(org::sem::Time::*)()>(&org::sem::Time::getDynamicMut),
+                                                                static_cast<org::sem::Time::Dynamic&(org::sem::Time::*)()>(&org::sem::Time::getDynamic),
                                                                 std::make_tuple());
   }
   Napi::Value getTimeKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::Time, org::sem::Time::TimeKind>(info,
                                                                 getPtr(),
-                                                                static_cast<org::sem::Time::TimeKind(org::sem::Time::*)(org::sem::Time::TimeVariant const&)>(&org::sem::Time::getTimeKindStatic),
+                                                                static_cast<org::sem::Time::TimeKind(org::sem::Time::*)(org::sem::Time::TimeVariant const&)>(&org::sem::Time::getTimeKind),
                                                                 std::make_tuple(CxxArgSpec<org::sem::Time::TimeVariant>{}));
   }
   Napi::Value getTimeKind(Napi::CallbackInfo const& info) {
@@ -4200,13 +3993,13 @@ struct FileJs : public Napi::ObjectWrap<FileJs> {
   Napi::Value getDocumentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::File, org::sem::File::Document const&>(info,
                                                                             getPtr(),
-                                                                            static_cast<org::sem::File::Document const&(org::sem::File::*)() const>(&org::sem::File::getDocumentConst),
+                                                                            static_cast<org::sem::File::Document const&(org::sem::File::*)() const>(&org::sem::File::getDocument),
                                                                             std::make_tuple());
   }
   Napi::Value getDocumentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::File, org::sem::File::Document&>(info,
                                                                  getPtr(),
-                                                                 static_cast<org::sem::File::Document&(org::sem::File::*)()>(&org::sem::File::getDocumentMut),
+                                                                 static_cast<org::sem::File::Document&(org::sem::File::*)()>(&org::sem::File::getDocument),
                                                                  std::make_tuple());
   }
   Napi::Value isAttachment(Napi::CallbackInfo const& info) {
@@ -4218,13 +4011,13 @@ struct FileJs : public Napi::ObjectWrap<FileJs> {
   Napi::Value getAttachmentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::File, org::sem::File::Attachment const&>(info,
                                                                               getPtr(),
-                                                                              static_cast<org::sem::File::Attachment const&(org::sem::File::*)() const>(&org::sem::File::getAttachmentConst),
+                                                                              static_cast<org::sem::File::Attachment const&(org::sem::File::*)() const>(&org::sem::File::getAttachment),
                                                                               std::make_tuple());
   }
   Napi::Value getAttachmentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::File, org::sem::File::Attachment&>(info,
                                                                    getPtr(),
-                                                                   static_cast<org::sem::File::Attachment&(org::sem::File::*)()>(&org::sem::File::getAttachmentMut),
+                                                                   static_cast<org::sem::File::Attachment&(org::sem::File::*)()>(&org::sem::File::getAttachment),
                                                                    std::make_tuple());
   }
   Napi::Value isSource(Napi::CallbackInfo const& info) {
@@ -4236,19 +4029,19 @@ struct FileJs : public Napi::ObjectWrap<FileJs> {
   Napi::Value getSourceConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::File, org::sem::File::Source const&>(info,
                                                                           getPtr(),
-                                                                          static_cast<org::sem::File::Source const&(org::sem::File::*)() const>(&org::sem::File::getSourceConst),
+                                                                          static_cast<org::sem::File::Source const&(org::sem::File::*)() const>(&org::sem::File::getSource),
                                                                           std::make_tuple());
   }
   Napi::Value getSourceMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::File, org::sem::File::Source&>(info,
                                                                getPtr(),
-                                                               static_cast<org::sem::File::Source&(org::sem::File::*)()>(&org::sem::File::getSourceMut),
+                                                               static_cast<org::sem::File::Source&(org::sem::File::*)()>(&org::sem::File::getSource),
                                                                std::make_tuple());
   }
   Napi::Value getFileKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::File, org::sem::File::Kind>(info,
                                                             getPtr(),
-                                                            static_cast<org::sem::File::Kind(org::sem::File::*)(org::sem::File::Data const&)>(&org::sem::File::getFileKindStatic),
+                                                            static_cast<org::sem::File::Kind(org::sem::File::*)(org::sem::File::Data const&)>(&org::sem::File::getFileKind),
                                                             std::make_tuple(CxxArgSpec<org::sem::File::Data>{}));
   }
   Napi::Value getFileKind(Napi::CallbackInfo const& info) {
@@ -4317,13 +4110,13 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
   Napi::Value getExampleConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::Example const&>(info,
                                                                                        getPtr(),
-                                                                                       static_cast<org::sem::CmdInclude::Example const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getExampleConst),
+                                                                                       static_cast<org::sem::CmdInclude::Example const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getExample),
                                                                                        std::make_tuple());
   }
   Napi::Value getExampleMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Example&>(info,
                                                                             getPtr(),
-                                                                            static_cast<org::sem::CmdInclude::Example&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExampleMut),
+                                                                            static_cast<org::sem::CmdInclude::Example&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExample),
                                                                             std::make_tuple());
   }
   Napi::Value isExport(Napi::CallbackInfo const& info) {
@@ -4335,13 +4128,13 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
   Napi::Value getExportConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::Export const&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::CmdInclude::Export const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getExportConst),
+                                                                                      static_cast<org::sem::CmdInclude::Export const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getExport),
                                                                                       std::make_tuple());
   }
   Napi::Value getExportMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Export&>(info,
                                                                            getPtr(),
-                                                                           static_cast<org::sem::CmdInclude::Export&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExportMut),
+                                                                           static_cast<org::sem::CmdInclude::Export&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExport),
                                                                            std::make_tuple());
   }
   Napi::Value isCustom(Napi::CallbackInfo const& info) {
@@ -4353,13 +4146,13 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
   Napi::Value getCustomConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::Custom const&>(info,
                                                                                       getPtr(),
-                                                                                      static_cast<org::sem::CmdInclude::Custom const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getCustomConst),
+                                                                                      static_cast<org::sem::CmdInclude::Custom const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getCustom),
                                                                                       std::make_tuple());
   }
   Napi::Value getCustomMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Custom&>(info,
                                                                            getPtr(),
-                                                                           static_cast<org::sem::CmdInclude::Custom&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getCustomMut),
+                                                                           static_cast<org::sem::CmdInclude::Custom&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getCustom),
                                                                            std::make_tuple());
   }
   Napi::Value isSrc(Napi::CallbackInfo const& info) {
@@ -4371,13 +4164,13 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
   Napi::Value getSrcConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::Src const&>(info,
                                                                                    getPtr(),
-                                                                                   static_cast<org::sem::CmdInclude::Src const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getSrcConst),
+                                                                                   static_cast<org::sem::CmdInclude::Src const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getSrc),
                                                                                    std::make_tuple());
   }
   Napi::Value getSrcMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Src&>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::CmdInclude::Src&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getSrcMut),
+                                                                        static_cast<org::sem::CmdInclude::Src&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getSrc),
                                                                         std::make_tuple());
   }
   Napi::Value isOrgDocument(Napi::CallbackInfo const& info) {
@@ -4389,19 +4182,19 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
   Napi::Value getOrgDocumentConst(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::sem::CmdInclude, org::sem::CmdInclude::OrgDocument const&>(info,
                                                                                            getPtr(),
-                                                                                           static_cast<org::sem::CmdInclude::OrgDocument const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getOrgDocumentConst),
+                                                                                           static_cast<org::sem::CmdInclude::OrgDocument const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getOrgDocument),
                                                                                            std::make_tuple());
   }
   Napi::Value getOrgDocumentMut(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::OrgDocument&>(info,
                                                                                 getPtr(),
-                                                                                static_cast<org::sem::CmdInclude::OrgDocument&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getOrgDocumentMut),
+                                                                                static_cast<org::sem::CmdInclude::OrgDocument&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getOrgDocument),
                                                                                 std::make_tuple());
   }
   Napi::Value getIncludeKindStatic(Napi::CallbackInfo const& info) {
     return WrapMethod<org::sem::CmdInclude, org::sem::CmdInclude::Kind>(info,
                                                                         getPtr(),
-                                                                        static_cast<org::sem::CmdInclude::Kind(org::sem::CmdInclude::*)(org::sem::CmdInclude::Data const&)>(&org::sem::CmdInclude::getIncludeKindStatic),
+                                                                        static_cast<org::sem::CmdInclude::Kind(org::sem::CmdInclude::*)(org::sem::CmdInclude::Data const&)>(&org::sem::CmdInclude::getIncludeKind),
                                                                         std::make_tuple(CxxArgSpec<org::sem::CmdInclude::Data>{}));
   }
   Napi::Value getIncludeKind(Napi::CallbackInfo const& info) {
@@ -6632,12 +6425,6 @@ struct ImmAdapterListAPIJs : public Napi::ObjectWrap<ImmAdapterListAPIJs> {
 };
 
 struct ImmSubtreeAdapter : public Napi::ObjectWrap<ImmSubtreeAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::imm::ImmAdapterT<org::imm::ImmSubtree>>(info,
-                                                                                                                getPtr(),
-                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmSubtree>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::ImmAdapterT),
-                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::imm::ImmSubtreeValueRead>(info,
                                                                                                        getPtr(),
@@ -6649,12 +6436,6 @@ struct ImmSubtreeAdapter : public Napi::ObjectWrap<ImmSubtreeAdapter> {
 };
 
 struct ImmNoneAdapter : public Napi::ObjectWrap<ImmNoneAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmNone>, org::imm::ImmAdapterT<org::imm::ImmNone>>(info,
-                                                                                                          getPtr(),
-                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmNone>(org::imm::ImmAdapterT<org::imm::ImmNone>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmNone>::ImmAdapterT),
-                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmNone>, org::imm::ImmNoneValueRead>(info,
                                                                                                  getPtr(),
@@ -6666,12 +6447,6 @@ struct ImmNoneAdapter : public Napi::ObjectWrap<ImmNoneAdapter> {
 };
 
 struct ImmErrorItemAdapter : public Napi::ObjectWrap<ImmErrorItemAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmErrorItem>, org::imm::ImmAdapterT<org::imm::ImmErrorItem>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmErrorItem>(org::imm::ImmAdapterT<org::imm::ImmErrorItem>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmErrorItem>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmErrorItem>, org::imm::ImmErrorItemValueRead>(info,
                                                                                                            getPtr(),
@@ -6683,12 +6458,6 @@ struct ImmErrorItemAdapter : public Napi::ObjectWrap<ImmErrorItemAdapter> {
 };
 
 struct ImmErrorGroupAdapter : public Napi::ObjectWrap<ImmErrorGroupAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>, org::imm::ImmAdapterT<org::imm::ImmErrorGroup>>(info,
-                                                                                                                      getPtr(),
-                                                                                                                      static_cast<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>(org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::ImmAdapterT),
-                                                                                                                      std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>, org::imm::ImmErrorGroupValueRead>(info,
                                                                                                              getPtr(),
@@ -6700,12 +6469,6 @@ struct ImmErrorGroupAdapter : public Napi::ObjectWrap<ImmErrorGroupAdapter> {
 };
 
 struct ImmStmtListAdapter : public Napi::ObjectWrap<ImmStmtListAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmStmtList>, org::imm::ImmAdapterT<org::imm::ImmStmtList>>(info,
-                                                                                                                  getPtr(),
-                                                                                                                  static_cast<org::imm::ImmAdapterT<org::imm::ImmStmtList>(org::imm::ImmAdapterT<org::imm::ImmStmtList>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmStmtList>::ImmAdapterT),
-                                                                                                                  std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmStmtList>, org::imm::ImmStmtListValueRead>(info,
                                                                                                          getPtr(),
@@ -6717,12 +6480,6 @@ struct ImmStmtListAdapter : public Napi::ObjectWrap<ImmStmtListAdapter> {
 };
 
 struct ImmEmptyAdapter : public Napi::ObjectWrap<ImmEmptyAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmEmpty>, org::imm::ImmAdapterT<org::imm::ImmEmpty>>(info,
-                                                                                                            getPtr(),
-                                                                                                            static_cast<org::imm::ImmAdapterT<org::imm::ImmEmpty>(org::imm::ImmAdapterT<org::imm::ImmEmpty>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmEmpty>::ImmAdapterT),
-                                                                                                            std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmEmpty>, org::imm::ImmEmptyValueRead>(info,
                                                                                                    getPtr(),
@@ -6749,12 +6506,6 @@ struct ImmAdapterSubtreeCompletionAPIJs : public Napi::ObjectWrap<ImmAdapterSubt
 };
 
 struct ImmTimeAdapter : public Napi::ObjectWrap<ImmTimeAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmTime>, org::imm::ImmAdapterT<org::imm::ImmTime>>(info,
-                                                                                                          getPtr(),
-                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmTime>(org::imm::ImmAdapterT<org::imm::ImmTime>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmTime>::ImmAdapterT),
-                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmTime>, org::imm::ImmTimeValueRead>(info,
                                                                                                  getPtr(),
@@ -6766,12 +6517,6 @@ struct ImmTimeAdapter : public Napi::ObjectWrap<ImmTimeAdapter> {
 };
 
 struct ImmTimeRangeAdapter : public Napi::ObjectWrap<ImmTimeRangeAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmTimeRange>, org::imm::ImmAdapterT<org::imm::ImmTimeRange>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmTimeRange>(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmTimeRange>, org::imm::ImmTimeRangeValueRead>(info,
                                                                                                            getPtr(),
@@ -6783,12 +6528,6 @@ struct ImmTimeRangeAdapter : public Napi::ObjectWrap<ImmTimeRangeAdapter> {
 };
 
 struct ImmMacroAdapter : public Napi::ObjectWrap<ImmMacroAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmMacro>, org::imm::ImmAdapterT<org::imm::ImmMacro>>(info,
-                                                                                                            getPtr(),
-                                                                                                            static_cast<org::imm::ImmAdapterT<org::imm::ImmMacro>(org::imm::ImmAdapterT<org::imm::ImmMacro>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmMacro>::ImmAdapterT),
-                                                                                                            std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmMacro>, org::imm::ImmMacroValueRead>(info,
                                                                                                    getPtr(),
@@ -6800,12 +6539,6 @@ struct ImmMacroAdapter : public Napi::ObjectWrap<ImmMacroAdapter> {
 };
 
 struct ImmSymbolAdapter : public Napi::ObjectWrap<ImmSymbolAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmSymbol>, org::imm::ImmAdapterT<org::imm::ImmSymbol>>(info,
-                                                                                                              getPtr(),
-                                                                                                              static_cast<org::imm::ImmAdapterT<org::imm::ImmSymbol>(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::ImmAdapterT),
-                                                                                                              std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmSymbol>, org::imm::ImmSymbolValueRead>(info,
                                                                                                      getPtr(),
@@ -6912,12 +6645,6 @@ struct ImmAdapterParAPIJs : public Napi::ObjectWrap<ImmAdapterParAPIJs> {
 };
 
 struct ImmLatexAdapter : public Napi::ObjectWrap<ImmLatexAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmLatex>, org::imm::ImmAdapterT<org::imm::ImmLatex>>(info,
-                                                                                                            getPtr(),
-                                                                                                            static_cast<org::imm::ImmAdapterT<org::imm::ImmLatex>(org::imm::ImmAdapterT<org::imm::ImmLatex>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmLatex>::ImmAdapterT),
-                                                                                                            std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmLatex>, org::imm::ImmLatexValueRead>(info,
                                                                                                    getPtr(),
@@ -6929,12 +6656,6 @@ struct ImmLatexAdapter : public Napi::ObjectWrap<ImmLatexAdapter> {
 };
 
 struct ImmSubtreeLogAdapter : public Napi::ObjectWrap<ImmSubtreeLogAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>, org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>>(info,
-                                                                                                                      getPtr(),
-                                                                                                                      static_cast<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::ImmAdapterT),
-                                                                                                                      std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>, org::imm::ImmSubtreeLogValueRead>(info,
                                                                                                              getPtr(),
@@ -6946,12 +6667,6 @@ struct ImmSubtreeLogAdapter : public Napi::ObjectWrap<ImmSubtreeLogAdapter> {
 };
 
 struct ImmColonExampleAdapter : public Napi::ObjectWrap<ImmColonExampleAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmColonExample>, org::imm::ImmAdapterT<org::imm::ImmColonExample>>(info,
-                                                                                                                          getPtr(),
-                                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmColonExample>(org::imm::ImmAdapterT<org::imm::ImmColonExample>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmColonExample>::ImmAdapterT),
-                                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmColonExample>, org::imm::ImmColonExampleValueRead>(info,
                                                                                                                  getPtr(),
@@ -6963,12 +6678,6 @@ struct ImmColonExampleAdapter : public Napi::ObjectWrap<ImmColonExampleAdapter> 
 };
 
 struct ImmCallAdapter : public Napi::ObjectWrap<ImmCallAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCall>, org::imm::ImmAdapterT<org::imm::ImmCall>>(info,
-                                                                                                          getPtr(),
-                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmCall>(org::imm::ImmAdapterT<org::imm::ImmCall>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCall>::ImmAdapterT),
-                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCall>, org::imm::ImmCallValueRead>(info,
                                                                                                  getPtr(),
@@ -6980,12 +6689,6 @@ struct ImmCallAdapter : public Napi::ObjectWrap<ImmCallAdapter> {
 };
 
 struct ImmFileAdapter : public Napi::ObjectWrap<ImmFileAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmFile>, org::imm::ImmAdapterT<org::imm::ImmFile>>(info,
-                                                                                                          getPtr(),
-                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmFile>(org::imm::ImmAdapterT<org::imm::ImmFile>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmFile>::ImmAdapterT),
-                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmFile>, org::imm::ImmFileValueRead>(info,
                                                                                                  getPtr(),
@@ -6997,12 +6700,6 @@ struct ImmFileAdapter : public Napi::ObjectWrap<ImmFileAdapter> {
 };
 
 struct ImmDirectoryAdapter : public Napi::ObjectWrap<ImmDirectoryAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmDirectory>, org::imm::ImmAdapterT<org::imm::ImmDirectory>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmDirectory>(org::imm::ImmAdapterT<org::imm::ImmDirectory>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmDirectory>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmDirectory>, org::imm::ImmDirectoryValueRead>(info,
                                                                                                            getPtr(),
@@ -7014,12 +6711,6 @@ struct ImmDirectoryAdapter : public Napi::ObjectWrap<ImmDirectoryAdapter> {
 };
 
 struct ImmSymlinkAdapter : public Napi::ObjectWrap<ImmSymlinkAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmSymlink>, org::imm::ImmAdapterT<org::imm::ImmSymlink>>(info,
-                                                                                                                getPtr(),
-                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmSymlink>(org::imm::ImmAdapterT<org::imm::ImmSymlink>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmSymlink>::ImmAdapterT),
-                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmSymlink>, org::imm::ImmSymlinkValueRead>(info,
                                                                                                        getPtr(),
@@ -7031,12 +6722,6 @@ struct ImmSymlinkAdapter : public Napi::ObjectWrap<ImmSymlinkAdapter> {
 };
 
 struct ImmDocumentFragmentAdapter : public Napi::ObjectWrap<ImmDocumentFragmentAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>, org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>>(info,
-                                                                                                                                  getPtr(),
-                                                                                                                                  static_cast<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::ImmAdapterT),
-                                                                                                                                  std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>, org::imm::ImmDocumentFragmentValueRead>(info,
                                                                                                                          getPtr(),
@@ -7048,12 +6733,6 @@ struct ImmDocumentFragmentAdapter : public Napi::ObjectWrap<ImmDocumentFragmentA
 };
 
 struct ImmCriticMarkupAdapter : public Napi::ObjectWrap<ImmCriticMarkupAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>, org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>>(info,
-                                                                                                                          getPtr(),
-                                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>(org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::ImmAdapterT),
-                                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>, org::imm::ImmCriticMarkupValueRead>(info,
                                                                                                                  getPtr(),
@@ -7065,12 +6744,6 @@ struct ImmCriticMarkupAdapter : public Napi::ObjectWrap<ImmCriticMarkupAdapter> 
 };
 
 struct ImmListItemAdapter : public Napi::ObjectWrap<ImmListItemAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmListItem>, org::imm::ImmAdapterT<org::imm::ImmListItem>>(info,
-                                                                                                                  getPtr(),
-                                                                                                                  static_cast<org::imm::ImmAdapterT<org::imm::ImmListItem>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::ImmAdapterT),
-                                                                                                                  std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmListItem>, org::imm::ImmListItemValueRead>(info,
                                                                                                          getPtr(),
@@ -7082,12 +6755,6 @@ struct ImmListItemAdapter : public Napi::ObjectWrap<ImmListItemAdapter> {
 };
 
 struct ImmDocumentOptionsAdapter : public Napi::ObjectWrap<ImmDocumentOptionsAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>, org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>>(info,
-                                                                                                                                getPtr(),
-                                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::ImmAdapterT),
-                                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>, org::imm::ImmDocumentOptionsValueRead>(info,
                                                                                                                        getPtr(),
@@ -7099,12 +6766,6 @@ struct ImmDocumentOptionsAdapter : public Napi::ObjectWrap<ImmDocumentOptionsAda
 };
 
 struct ImmDocumentAdapter : public Napi::ObjectWrap<ImmDocumentAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmDocument>, org::imm::ImmAdapterT<org::imm::ImmDocument>>(info,
-                                                                                                                  getPtr(),
-                                                                                                                  static_cast<org::imm::ImmAdapterT<org::imm::ImmDocument>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::ImmAdapterT),
-                                                                                                                  std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmDocument>, org::imm::ImmDocumentValueRead>(info,
                                                                                                          getPtr(),
@@ -7116,12 +6777,6 @@ struct ImmDocumentAdapter : public Napi::ObjectWrap<ImmDocumentAdapter> {
 };
 
 struct ImmFileTargetAdapter : public Napi::ObjectWrap<ImmFileTargetAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmFileTarget>, org::imm::ImmAdapterT<org::imm::ImmFileTarget>>(info,
-                                                                                                                      getPtr(),
-                                                                                                                      static_cast<org::imm::ImmAdapterT<org::imm::ImmFileTarget>(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::ImmAdapterT),
-                                                                                                                      std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmFileTarget>, org::imm::ImmFileTargetValueRead>(info,
                                                                                                              getPtr(),
@@ -7133,12 +6788,6 @@ struct ImmFileTargetAdapter : public Napi::ObjectWrap<ImmFileTargetAdapter> {
 };
 
 struct ImmTextSeparatorAdapter : public Napi::ObjectWrap<ImmTextSeparatorAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>, org::imm::ImmAdapterT<org::imm::ImmTextSeparator>>(info,
-                                                                                                                            getPtr(),
-                                                                                                                            static_cast<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>(org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::ImmAdapterT),
-                                                                                                                            std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>, org::imm::ImmTextSeparatorValueRead>(info,
                                                                                                                    getPtr(),
@@ -7150,12 +6799,6 @@ struct ImmTextSeparatorAdapter : public Napi::ObjectWrap<ImmTextSeparatorAdapter
 };
 
 struct ImmCmdIncludeAdapter : public Napi::ObjectWrap<ImmCmdIncludeAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>, org::imm::ImmAdapterT<org::imm::ImmCmdInclude>>(info,
-                                                                                                                      getPtr(),
-                                                                                                                      static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::ImmAdapterT),
-                                                                                                                      std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>, org::imm::ImmCmdIncludeValueRead>(info,
                                                                                                              getPtr(),
@@ -7167,12 +6810,6 @@ struct ImmCmdIncludeAdapter : public Napi::ObjectWrap<ImmCmdIncludeAdapter> {
 };
 
 struct ImmDocumentGroupAdapter : public Napi::ObjectWrap<ImmDocumentGroupAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>, org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>>(info,
-                                                                                                                            getPtr(),
-                                                                                                                            static_cast<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>(org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::ImmAdapterT),
-                                                                                                                            std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>, org::imm::ImmDocumentGroupValueRead>(info,
                                                                                                                    getPtr(),
@@ -7341,12 +6978,6 @@ struct ImmAdapterRowAPIJs : public Napi::ObjectWrap<ImmAdapterRowAPIJs> {
 };
 
 struct ImmCmdCustomRawAdapter : public Napi::ObjectWrap<ImmCmdCustomRawAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>, org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>>(info,
-                                                                                                                          getPtr(),
-                                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::ImmAdapterT),
-                                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>, org::imm::ImmCmdCustomRawValueRead>(info,
                                                                                                                  getPtr(),
@@ -7358,12 +6989,6 @@ struct ImmCmdCustomRawAdapter : public Napi::ObjectWrap<ImmCmdCustomRawAdapter> 
 };
 
 struct ImmCmdCustomTextAdapter : public Napi::ObjectWrap<ImmCmdCustomTextAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>, org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>>(info,
-                                                                                                                            getPtr(),
-                                                                                                                            static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::ImmAdapterT),
-                                                                                                                            std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>, org::imm::ImmCmdCustomTextValueRead>(info,
                                                                                                                    getPtr(),
@@ -7375,12 +7000,6 @@ struct ImmCmdCustomTextAdapter : public Napi::ObjectWrap<ImmCmdCustomTextAdapter
 };
 
 struct ImmLinkAdapter : public Napi::ObjectWrap<ImmLinkAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmLink>, org::imm::ImmAdapterT<org::imm::ImmLink>>(info,
-                                                                                                          getPtr(),
-                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmLink>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmLink>::ImmAdapterT),
-                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmLink>, org::imm::ImmLinkValueRead>(info,
                                                                                                  getPtr(),
@@ -7392,12 +7011,6 @@ struct ImmLinkAdapter : public Napi::ObjectWrap<ImmLinkAdapter> {
 };
 
 struct ImmBlockCommentAdapter : public Napi::ObjectWrap<ImmBlockCommentAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, org::imm::ImmAdapterT<org::imm::ImmBlockComment>>(info,
-                                                                                                                          getPtr(),
-                                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockComment>(org::imm::ImmAdapterT<org::imm::ImmBlockComment>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockComment>::ImmAdapterT),
-                                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, org::imm::ImmBlockCommentValueRead>(info,
                                                                                                                  getPtr(),
@@ -7409,12 +7022,6 @@ struct ImmBlockCommentAdapter : public Napi::ObjectWrap<ImmBlockCommentAdapter> 
 };
 
 struct ImmParagraphAdapter : public Napi::ObjectWrap<ImmParagraphAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmParagraph>, org::imm::ImmAdapterT<org::imm::ImmParagraph>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmParagraph>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmParagraph>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmParagraph>, org::imm::ImmParagraphValueRead>(info,
                                                                                                            getPtr(),
@@ -7426,12 +7033,6 @@ struct ImmParagraphAdapter : public Napi::ObjectWrap<ImmParagraphAdapter> {
 };
 
 struct ImmListAdapter : public Napi::ObjectWrap<ImmListAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmList>, org::imm::ImmAdapterT<org::imm::ImmList>>(info,
-                                                                                                          getPtr(),
-                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmList>(org::imm::ImmAdapterT<org::imm::ImmList>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmList>::ImmAdapterT),
-                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmList>, org::imm::ImmListValueRead>(info,
                                                                                                  getPtr(),
@@ -7443,12 +7044,6 @@ struct ImmListAdapter : public Napi::ObjectWrap<ImmListAdapter> {
 };
 
 struct ImmHashTagAdapter : public Napi::ObjectWrap<ImmHashTagAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmHashTag>, org::imm::ImmAdapterT<org::imm::ImmHashTag>>(info,
-                                                                                                                getPtr(),
-                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmHashTag>(org::imm::ImmAdapterT<org::imm::ImmHashTag>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmHashTag>::ImmAdapterT),
-                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmHashTag>, org::imm::ImmHashTagValueRead>(info,
                                                                                                        getPtr(),
@@ -7460,12 +7055,6 @@ struct ImmHashTagAdapter : public Napi::ObjectWrap<ImmHashTagAdapter> {
 };
 
 struct ImmInlineFootnoteAdapter : public Napi::ObjectWrap<ImmInlineFootnoteAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>, org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>>(info,
-                                                                                                                              getPtr(),
-                                                                                                                              static_cast<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::ImmAdapterT),
-                                                                                                                              std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>, org::imm::ImmInlineFootnoteValueRead>(info,
                                                                                                                      getPtr(),
@@ -7477,12 +7066,6 @@ struct ImmInlineFootnoteAdapter : public Napi::ObjectWrap<ImmInlineFootnoteAdapt
 };
 
 struct ImmEscapedAdapter : public Napi::ObjectWrap<ImmEscapedAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmEscaped>, org::imm::ImmAdapterT<org::imm::ImmEscaped>>(info,
-                                                                                                                getPtr(),
-                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmEscaped>(org::imm::ImmAdapterT<org::imm::ImmEscaped>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmEscaped>::ImmAdapterT),
-                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmEscaped>, org::imm::ImmEscapedValueRead>(info,
                                                                                                        getPtr(),
@@ -7494,12 +7077,6 @@ struct ImmEscapedAdapter : public Napi::ObjectWrap<ImmEscapedAdapter> {
 };
 
 struct ImmNewlineAdapter : public Napi::ObjectWrap<ImmNewlineAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmNewline>, org::imm::ImmAdapterT<org::imm::ImmNewline>>(info,
-                                                                                                                getPtr(),
-                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmNewline>(org::imm::ImmAdapterT<org::imm::ImmNewline>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmNewline>::ImmAdapterT),
-                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmNewline>, org::imm::ImmNewlineValueRead>(info,
                                                                                                        getPtr(),
@@ -7511,12 +7088,6 @@ struct ImmNewlineAdapter : public Napi::ObjectWrap<ImmNewlineAdapter> {
 };
 
 struct ImmSpaceAdapter : public Napi::ObjectWrap<ImmSpaceAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmSpace>, org::imm::ImmAdapterT<org::imm::ImmSpace>>(info,
-                                                                                                            getPtr(),
-                                                                                                            static_cast<org::imm::ImmAdapterT<org::imm::ImmSpace>(org::imm::ImmAdapterT<org::imm::ImmSpace>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmSpace>::ImmAdapterT),
-                                                                                                            std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmSpace>, org::imm::ImmSpaceValueRead>(info,
                                                                                                    getPtr(),
@@ -7528,12 +7099,6 @@ struct ImmSpaceAdapter : public Napi::ObjectWrap<ImmSpaceAdapter> {
 };
 
 struct ImmWordAdapter : public Napi::ObjectWrap<ImmWordAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmWord>, org::imm::ImmAdapterT<org::imm::ImmWord>>(info,
-                                                                                                          getPtr(),
-                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmWord>(org::imm::ImmAdapterT<org::imm::ImmWord>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmWord>::ImmAdapterT),
-                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmWord>, org::imm::ImmWordValueRead>(info,
                                                                                                  getPtr(),
@@ -7545,12 +7110,6 @@ struct ImmWordAdapter : public Napi::ObjectWrap<ImmWordAdapter> {
 };
 
 struct ImmAtMentionAdapter : public Napi::ObjectWrap<ImmAtMentionAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmAtMention>, org::imm::ImmAdapterT<org::imm::ImmAtMention>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmAtMention>(org::imm::ImmAdapterT<org::imm::ImmAtMention>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmAtMention>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmAtMention>, org::imm::ImmAtMentionValueRead>(info,
                                                                                                            getPtr(),
@@ -7562,12 +7121,6 @@ struct ImmAtMentionAdapter : public Napi::ObjectWrap<ImmAtMentionAdapter> {
 };
 
 struct ImmRawTextAdapter : public Napi::ObjectWrap<ImmRawTextAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmRawText>, org::imm::ImmAdapterT<org::imm::ImmRawText>>(info,
-                                                                                                                getPtr(),
-                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmRawText>(org::imm::ImmAdapterT<org::imm::ImmRawText>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmRawText>::ImmAdapterT),
-                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmRawText>, org::imm::ImmRawTextValueRead>(info,
                                                                                                        getPtr(),
@@ -7579,12 +7132,6 @@ struct ImmRawTextAdapter : public Napi::ObjectWrap<ImmRawTextAdapter> {
 };
 
 struct ImmPunctuationAdapter : public Napi::ObjectWrap<ImmPunctuationAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmPunctuation>, org::imm::ImmAdapterT<org::imm::ImmPunctuation>>(info,
-                                                                                                                        getPtr(),
-                                                                                                                        static_cast<org::imm::ImmAdapterT<org::imm::ImmPunctuation>(org::imm::ImmAdapterT<org::imm::ImmPunctuation>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmPunctuation>::ImmAdapterT),
-                                                                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmPunctuation>, org::imm::ImmPunctuationValueRead>(info,
                                                                                                                getPtr(),
@@ -7596,12 +7143,6 @@ struct ImmPunctuationAdapter : public Napi::ObjectWrap<ImmPunctuationAdapter> {
 };
 
 struct ImmPlaceholderAdapter : public Napi::ObjectWrap<ImmPlaceholderAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>, org::imm::ImmAdapterT<org::imm::ImmPlaceholder>>(info,
-                                                                                                                        getPtr(),
-                                                                                                                        static_cast<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>(org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::ImmAdapterT),
-                                                                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>, org::imm::ImmPlaceholderValueRead>(info,
                                                                                                                getPtr(),
@@ -7613,12 +7154,6 @@ struct ImmPlaceholderAdapter : public Napi::ObjectWrap<ImmPlaceholderAdapter> {
 };
 
 struct ImmBigIdentAdapter : public Napi::ObjectWrap<ImmBigIdentAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBigIdent>, org::imm::ImmAdapterT<org::imm::ImmBigIdent>>(info,
-                                                                                                                  getPtr(),
-                                                                                                                  static_cast<org::imm::ImmAdapterT<org::imm::ImmBigIdent>(org::imm::ImmAdapterT<org::imm::ImmBigIdent>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBigIdent>::ImmAdapterT),
-                                                                                                                  std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBigIdent>, org::imm::ImmBigIdentValueRead>(info,
                                                                                                          getPtr(),
@@ -7630,12 +7165,6 @@ struct ImmBigIdentAdapter : public Napi::ObjectWrap<ImmBigIdentAdapter> {
 };
 
 struct ImmTextTargetAdapter : public Napi::ObjectWrap<ImmTextTargetAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmTextTarget>, org::imm::ImmAdapterT<org::imm::ImmTextTarget>>(info,
-                                                                                                                      getPtr(),
-                                                                                                                      static_cast<org::imm::ImmAdapterT<org::imm::ImmTextTarget>(org::imm::ImmAdapterT<org::imm::ImmTextTarget>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmTextTarget>::ImmAdapterT),
-                                                                                                                      std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmTextTarget>, org::imm::ImmTextTargetValueRead>(info,
                                                                                                              getPtr(),
@@ -7647,12 +7176,6 @@ struct ImmTextTargetAdapter : public Napi::ObjectWrap<ImmTextTargetAdapter> {
 };
 
 struct ImmBoldAdapter : public Napi::ObjectWrap<ImmBoldAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBold>, org::imm::ImmAdapterT<org::imm::ImmBold>>(info,
-                                                                                                          getPtr(),
-                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmBold>(org::imm::ImmAdapterT<org::imm::ImmBold>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBold>::ImmAdapterT),
-                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBold>, org::imm::ImmBoldValueRead>(info,
                                                                                                  getPtr(),
@@ -7664,12 +7187,6 @@ struct ImmBoldAdapter : public Napi::ObjectWrap<ImmBoldAdapter> {
 };
 
 struct ImmUnderlineAdapter : public Napi::ObjectWrap<ImmUnderlineAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmUnderline>, org::imm::ImmAdapterT<org::imm::ImmUnderline>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmUnderline>(org::imm::ImmAdapterT<org::imm::ImmUnderline>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmUnderline>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmUnderline>, org::imm::ImmUnderlineValueRead>(info,
                                                                                                            getPtr(),
@@ -7681,12 +7198,6 @@ struct ImmUnderlineAdapter : public Napi::ObjectWrap<ImmUnderlineAdapter> {
 };
 
 struct ImmMonospaceAdapter : public Napi::ObjectWrap<ImmMonospaceAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmMonospace>, org::imm::ImmAdapterT<org::imm::ImmMonospace>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmMonospace>(org::imm::ImmAdapterT<org::imm::ImmMonospace>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmMonospace>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmMonospace>, org::imm::ImmMonospaceValueRead>(info,
                                                                                                            getPtr(),
@@ -7698,12 +7209,6 @@ struct ImmMonospaceAdapter : public Napi::ObjectWrap<ImmMonospaceAdapter> {
 };
 
 struct ImmMarkQuoteAdapter : public Napi::ObjectWrap<ImmMarkQuoteAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>, org::imm::ImmAdapterT<org::imm::ImmMarkQuote>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>(org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>, org::imm::ImmMarkQuoteValueRead>(info,
                                                                                                            getPtr(),
@@ -7715,12 +7220,6 @@ struct ImmMarkQuoteAdapter : public Napi::ObjectWrap<ImmMarkQuoteAdapter> {
 };
 
 struct ImmRadioTargetAdapter : public Napi::ObjectWrap<ImmRadioTargetAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>, org::imm::ImmAdapterT<org::imm::ImmRadioTarget>>(info,
-                                                                                                                        getPtr(),
-                                                                                                                        static_cast<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>(org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::ImmAdapterT),
-                                                                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>, org::imm::ImmRadioTargetValueRead>(info,
                                                                                                                getPtr(),
@@ -7732,12 +7231,6 @@ struct ImmRadioTargetAdapter : public Napi::ObjectWrap<ImmRadioTargetAdapter> {
 };
 
 struct ImmVerbatimAdapter : public Napi::ObjectWrap<ImmVerbatimAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmVerbatim>, org::imm::ImmAdapterT<org::imm::ImmVerbatim>>(info,
-                                                                                                                  getPtr(),
-                                                                                                                  static_cast<org::imm::ImmAdapterT<org::imm::ImmVerbatim>(org::imm::ImmAdapterT<org::imm::ImmVerbatim>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmVerbatim>::ImmAdapterT),
-                                                                                                                  std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmVerbatim>, org::imm::ImmVerbatimValueRead>(info,
                                                                                                          getPtr(),
@@ -7749,12 +7242,6 @@ struct ImmVerbatimAdapter : public Napi::ObjectWrap<ImmVerbatimAdapter> {
 };
 
 struct ImmItalicAdapter : public Napi::ObjectWrap<ImmItalicAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmItalic>, org::imm::ImmAdapterT<org::imm::ImmItalic>>(info,
-                                                                                                              getPtr(),
-                                                                                                              static_cast<org::imm::ImmAdapterT<org::imm::ImmItalic>(org::imm::ImmAdapterT<org::imm::ImmItalic>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmItalic>::ImmAdapterT),
-                                                                                                              std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmItalic>, org::imm::ImmItalicValueRead>(info,
                                                                                                      getPtr(),
@@ -7766,12 +7253,6 @@ struct ImmItalicAdapter : public Napi::ObjectWrap<ImmItalicAdapter> {
 };
 
 struct ImmStrikeAdapter : public Napi::ObjectWrap<ImmStrikeAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmStrike>, org::imm::ImmAdapterT<org::imm::ImmStrike>>(info,
-                                                                                                              getPtr(),
-                                                                                                              static_cast<org::imm::ImmAdapterT<org::imm::ImmStrike>(org::imm::ImmAdapterT<org::imm::ImmStrike>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmStrike>::ImmAdapterT),
-                                                                                                              std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmStrike>, org::imm::ImmStrikeValueRead>(info,
                                                                                                      getPtr(),
@@ -7783,12 +7264,6 @@ struct ImmStrikeAdapter : public Napi::ObjectWrap<ImmStrikeAdapter> {
 };
 
 struct ImmParAdapter : public Napi::ObjectWrap<ImmParAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmPar>, org::imm::ImmAdapterT<org::imm::ImmPar>>(info,
-                                                                                                        getPtr(),
-                                                                                                        static_cast<org::imm::ImmAdapterT<org::imm::ImmPar>(org::imm::ImmAdapterT<org::imm::ImmPar>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmPar>::ImmAdapterT),
-                                                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmPar>, org::imm::ImmParValueRead>(info,
                                                                                                getPtr(),
@@ -7871,12 +7346,6 @@ struct ImmAdapterAttachedAPIJs : public Napi::ObjectWrap<ImmAdapterAttachedAPIJs
 };
 
 struct ImmCmdCustomArgsAdapter : public Napi::ObjectWrap<ImmCmdCustomArgsAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>, org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>>(info,
-                                                                                                                            getPtr(),
-                                                                                                                            static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::ImmAdapterT),
-                                                                                                                            std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>, org::imm::ImmCmdCustomArgsValueRead>(info,
                                                                                                                    getPtr(),
@@ -7888,12 +7357,6 @@ struct ImmCmdCustomArgsAdapter : public Napi::ObjectWrap<ImmCmdCustomArgsAdapter
 };
 
 struct ImmCmdTblfmAdapter : public Napi::ObjectWrap<ImmCmdTblfmAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>, org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>>(info,
-                                                                                                                  getPtr(),
-                                                                                                                  static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>(org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::ImmAdapterT),
-                                                                                                                  std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>, org::imm::ImmCmdTblfmValueRead>(info,
                                                                                                          getPtr(),
@@ -7965,12 +7428,6 @@ struct ImmAdapterTableAPIJs : public Napi::ObjectWrap<ImmAdapterTableAPIJs> {
 };
 
 struct ImmCellAdapter : public Napi::ObjectWrap<ImmCellAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCell>, org::imm::ImmAdapterT<org::imm::ImmCell>>(info,
-                                                                                                          getPtr(),
-                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmCell>(org::imm::ImmAdapterT<org::imm::ImmCell>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCell>::ImmAdapterT),
-                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCell>, org::imm::ImmCellValueRead>(info,
                                                                                                  getPtr(),
@@ -7982,12 +7439,6 @@ struct ImmCellAdapter : public Napi::ObjectWrap<ImmCellAdapter> {
 };
 
 struct ImmRowAdapter : public Napi::ObjectWrap<ImmRowAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmRow>, org::imm::ImmAdapterT<org::imm::ImmRow>>(info,
-                                                                                                        getPtr(),
-                                                                                                        static_cast<org::imm::ImmAdapterT<org::imm::ImmRow>(org::imm::ImmAdapterT<org::imm::ImmRow>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmRow>::ImmAdapterT),
-                                                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmRow>, org::imm::ImmRowValueRead>(info,
                                                                                                getPtr(),
@@ -8029,12 +7480,6 @@ struct ImmAdapterCmdAttrAPIJs : public Napi::ObjectWrap<ImmAdapterCmdAttrAPIJs> 
 };
 
 struct ImmBlockCenterAdapter : public Napi::ObjectWrap<ImmBlockCenterAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>, org::imm::ImmAdapterT<org::imm::ImmBlockCenter>>(info,
-                                                                                                                        getPtr(),
-                                                                                                                        static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>(org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::ImmAdapterT),
-                                                                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>, org::imm::ImmBlockCenterValueRead>(info,
                                                                                                                getPtr(),
@@ -8046,12 +7491,6 @@ struct ImmBlockCenterAdapter : public Napi::ObjectWrap<ImmBlockCenterAdapter> {
 };
 
 struct ImmBlockQuoteAdapter : public Napi::ObjectWrap<ImmBlockQuoteAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>, org::imm::ImmAdapterT<org::imm::ImmBlockQuote>>(info,
-                                                                                                                      getPtr(),
-                                                                                                                      static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>(org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::ImmAdapterT),
-                                                                                                                      std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>, org::imm::ImmBlockQuoteValueRead>(info,
                                                                                                              getPtr(),
@@ -8063,12 +7502,6 @@ struct ImmBlockQuoteAdapter : public Napi::ObjectWrap<ImmBlockQuoteAdapter> {
 };
 
 struct ImmBlockVerseAdapter : public Napi::ObjectWrap<ImmBlockVerseAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>, org::imm::ImmAdapterT<org::imm::ImmBlockVerse>>(info,
-                                                                                                                      getPtr(),
-                                                                                                                      static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>(org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::ImmAdapterT),
-                                                                                                                      std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>, org::imm::ImmBlockVerseValueRead>(info,
                                                                                                              getPtr(),
@@ -8080,12 +7513,6 @@ struct ImmBlockVerseAdapter : public Napi::ObjectWrap<ImmBlockVerseAdapter> {
 };
 
 struct ImmBlockExampleAdapter : public Napi::ObjectWrap<ImmBlockExampleAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockExample>, org::imm::ImmAdapterT<org::imm::ImmBlockExample>>(info,
-                                                                                                                          getPtr(),
-                                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockExample>(org::imm::ImmAdapterT<org::imm::ImmBlockExample>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockExample>::ImmAdapterT),
-                                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockExample>, org::imm::ImmBlockExampleValueRead>(info,
                                                                                                                  getPtr(),
@@ -8097,12 +7524,6 @@ struct ImmBlockExampleAdapter : public Napi::ObjectWrap<ImmBlockExampleAdapter> 
 };
 
 struct ImmInlineExportAdapter : public Napi::ObjectWrap<ImmInlineExportAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmInlineExport>, org::imm::ImmAdapterT<org::imm::ImmInlineExport>>(info,
-                                                                                                                          getPtr(),
-                                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmInlineExport>(org::imm::ImmAdapterT<org::imm::ImmInlineExport>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmInlineExport>::ImmAdapterT),
-                                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmInlineExport>, org::imm::ImmInlineExportValueRead>(info,
                                                                                                                  getPtr(),
@@ -8114,12 +7535,6 @@ struct ImmInlineExportAdapter : public Napi::ObjectWrap<ImmInlineExportAdapter> 
 };
 
 struct ImmCmdExportAdapter : public Napi::ObjectWrap<ImmCmdExportAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdExport>, org::imm::ImmAdapterT<org::imm::ImmCmdExport>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdExport>(org::imm::ImmAdapterT<org::imm::ImmCmdExport>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdExport>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdExport>, org::imm::ImmCmdExportValueRead>(info,
                                                                                                            getPtr(),
@@ -8131,12 +7546,6 @@ struct ImmCmdExportAdapter : public Napi::ObjectWrap<ImmCmdExportAdapter> {
 };
 
 struct ImmBlockExportAdapter : public Napi::ObjectWrap<ImmBlockExportAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockExport>, org::imm::ImmAdapterT<org::imm::ImmBlockExport>>(info,
-                                                                                                                        getPtr(),
-                                                                                                                        static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockExport>(org::imm::ImmAdapterT<org::imm::ImmBlockExport>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockExport>::ImmAdapterT),
-                                                                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockExport>, org::imm::ImmBlockExportValueRead>(info,
                                                                                                                getPtr(),
@@ -8148,12 +7557,6 @@ struct ImmBlockExportAdapter : public Napi::ObjectWrap<ImmBlockExportAdapter> {
 };
 
 struct ImmBlockDynamicFallbackAdapter : public Napi::ObjectWrap<ImmBlockDynamicFallbackAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>, org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>>(info,
-                                                                                                                                          getPtr(),
-                                                                                                                                          static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>(org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::ImmAdapterT),
-                                                                                                                                          std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>, org::imm::ImmBlockDynamicFallbackValueRead>(info,
                                                                                                                                  getPtr(),
@@ -8165,12 +7568,6 @@ struct ImmBlockDynamicFallbackAdapter : public Napi::ObjectWrap<ImmBlockDynamicF
 };
 
 struct ImmBlockAdmonitionAdapter : public Napi::ObjectWrap<ImmBlockAdmonitionAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>, org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>>(info,
-                                                                                                                                getPtr(),
-                                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>(org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::ImmAdapterT),
-                                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>, org::imm::ImmBlockAdmonitionValueRead>(info,
                                                                                                                        getPtr(),
@@ -8182,12 +7579,6 @@ struct ImmBlockAdmonitionAdapter : public Napi::ObjectWrap<ImmBlockAdmonitionAda
 };
 
 struct ImmBlockCodeEvalResultAdapter : public Napi::ObjectWrap<ImmBlockCodeEvalResultAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>>(info,
-                                                                                                                                        getPtr(),
-                                                                                                                                        static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::ImmAdapterT),
-                                                                                                                                        std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmBlockCodeEvalResultValueRead>(info,
                                                                                                                                getPtr(),
@@ -8199,12 +7590,6 @@ struct ImmBlockCodeEvalResultAdapter : public Napi::ObjectWrap<ImmBlockCodeEvalR
 };
 
 struct ImmBlockCodeAdapter : public Napi::ObjectWrap<ImmBlockCodeAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmBlockCode>, org::imm::ImmAdapterT<org::imm::ImmBlockCode>>(info,
-                                                                                                                    getPtr(),
-                                                                                                                    static_cast<org::imm::ImmAdapterT<org::imm::ImmBlockCode>(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::ImmAdapterT),
-                                                                                                                    std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmBlockCode>, org::imm::ImmBlockCodeValueRead>(info,
                                                                                                            getPtr(),
@@ -8216,12 +7601,6 @@ struct ImmBlockCodeAdapter : public Napi::ObjectWrap<ImmBlockCodeAdapter> {
 };
 
 struct ImmTableAdapter : public Napi::ObjectWrap<ImmTableAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmTable>, org::imm::ImmAdapterT<org::imm::ImmTable>>(info,
-                                                                                                            getPtr(),
-                                                                                                            static_cast<org::imm::ImmAdapterT<org::imm::ImmTable>(org::imm::ImmAdapterT<org::imm::ImmTable>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmTable>::ImmAdapterT),
-                                                                                                            std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmTable>, org::imm::ImmTableValueRead>(info,
                                                                                                    getPtr(),
@@ -8233,12 +7612,6 @@ struct ImmTableAdapter : public Napi::ObjectWrap<ImmTableAdapter> {
 };
 
 struct ImmCmdCaptionAdapter : public Napi::ObjectWrap<ImmCmdCaptionAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>, org::imm::ImmAdapterT<org::imm::ImmCmdCaption>>(info,
-                                                                                                                      getPtr(),
-                                                                                                                      static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>(org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::ImmAdapterT),
-                                                                                                                      std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>, org::imm::ImmCmdCaptionValueRead>(info,
                                                                                                              getPtr(),
@@ -8250,12 +7623,6 @@ struct ImmCmdCaptionAdapter : public Napi::ObjectWrap<ImmCmdCaptionAdapter> {
 };
 
 struct ImmCmdColumnsAdapter : public Napi::ObjectWrap<ImmCmdColumnsAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>, org::imm::ImmAdapterT<org::imm::ImmCmdColumns>>(info,
-                                                                                                                      getPtr(),
-                                                                                                                      static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>(org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::ImmAdapterT),
-                                                                                                                      std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>, org::imm::ImmCmdColumnsValueRead>(info,
                                                                                                              getPtr(),
@@ -8267,12 +7634,6 @@ struct ImmCmdColumnsAdapter : public Napi::ObjectWrap<ImmCmdColumnsAdapter> {
 };
 
 struct ImmCmdNameAdapter : public Napi::ObjectWrap<ImmCmdNameAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdName>, org::imm::ImmAdapterT<org::imm::ImmCmdName>>(info,
-                                                                                                                getPtr(),
-                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdName>(org::imm::ImmAdapterT<org::imm::ImmCmdName>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdName>::ImmAdapterT),
-                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdName>, org::imm::ImmCmdNameValueRead>(info,
                                                                                                        getPtr(),
@@ -8284,12 +7645,6 @@ struct ImmCmdNameAdapter : public Napi::ObjectWrap<ImmCmdNameAdapter> {
 };
 
 struct ImmCmdCallAdapter : public Napi::ObjectWrap<ImmCmdCallAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCall>, org::imm::ImmAdapterT<org::imm::ImmCmdCall>>(info,
-                                                                                                                getPtr(),
-                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdCall>(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::ImmAdapterT),
-                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdCall>, org::imm::ImmCmdCallValueRead>(info,
                                                                                                        getPtr(),
@@ -8301,12 +7656,6 @@ struct ImmCmdCallAdapter : public Napi::ObjectWrap<ImmCmdCallAdapter> {
 };
 
 struct ImmCmdAttrAdapter : public Napi::ObjectWrap<ImmCmdAttrAdapter> {
-  Napi::Value ImmAdapterT(Napi::CallbackInfo const& info) {
-    return WrapMethod<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>, org::imm::ImmAdapterT<org::imm::ImmCmdAttr>>(info,
-                                                                                                                getPtr(),
-                                                                                                                static_cast<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>(org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::*)(org::imm::ImmAdapter const&)>(&org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::ImmAdapterT),
-                                                                                                                std::make_tuple(CxxArgSpec<org::imm::ImmAdapter>{}));
-  }
   Napi::Value getValue(Napi::CallbackInfo const& info) {
     return WrapConstMethod<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>, org::imm::ImmCmdAttrValueRead>(info,
                                                                                                        getPtr(),
@@ -8426,8 +7775,6 @@ Napi::Object InitModule(Napi::Env env, Napi::Object exports) {
   MapEdgeJs::Init(env, exports)
   MapGraphJs::Init(env, exports)
   MapGraphStateJs::Init(env, exports)
-  PyCodeEvalParametersJs::Init(env, exports)
-  ExporterPythonJs::Init(env, exports)
   LispCodeJs::Init(env, exports)
   TblfmJs::Init(env, exports)
   AttrValueJs::Init(env, exports)

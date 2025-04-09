@@ -57,7 +57,7 @@ class NapiMethod():
                                     b.line([
                                         b.Type(OriginalClass),
                                         b.string("::"),
-                                        b.string(self.getNapiName()),
+                                        b.string(self.Func.name),
                                     ]))
                             ],
                             Params=[self.Func.get_function_type(OriginalClass)],
@@ -128,6 +128,9 @@ class NapiClass():
         override_counts: Dict[str, int] = defaultdict(lambda: 0)
 
         for m in self.ClassMethods:
+            if m.Func.IsConstructor:
+                continue
+            
             override_counts[m.getNapiName()] += 1
             bind = m.build_bind(
                 Class=QualType(name=self.getNapiName()),

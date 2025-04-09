@@ -1942,11 +1942,6 @@ ingoing elements.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::PyCodeEvalParameters {
-                        org::bind::python::PyCodeEvalParameters result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def_readwrite("evalBlock", &org::bind::python::PyCodeEvalParameters::evalBlock)
     .def("setTraceFile",
          static_cast<void(org::bind::python::PyCodeEvalParameters::*)(std::string const&)>(&org::bind::python::PyCodeEvalParameters::setTraceFile),
@@ -1961,11 +1956,6 @@ ingoing elements.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::bind::python::ExporterPython>(m, "ExporterPython")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::ExporterPython {
-                        org::bind::python::ExporterPython result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
     .def("enableBufferTrace", static_cast<void(org::bind::python::ExporterPython::*)()>(&org::bind::python::ExporterPython::enableBufferTrace))
     .def("getTraceBuffer", static_cast<std::string(org::bind::python::ExporterPython::*)() const>(&org::bind::python::ExporterPython::getTraceBuffer))
     .def("enableFileTrace",

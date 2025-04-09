@@ -206,7 +206,8 @@ struct [[refl]] MapGraph {
         return adjList.contains(id);
     }
 
-    [[refl]] bool isRegisteredNode(org::imm::ImmUniqId const& id) const {
+    [[refl(R"({"unique-name": "isRegisteredNodeById"})")]] bool isRegisteredNode(
+        org::imm::ImmUniqId const& id) const {
         return adjList.contains(MapNode{id});
     }
 
@@ -230,7 +231,9 @@ struct [[refl]] MapGraph {
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
     [[refl]] void addNode(MapNode const& node);
-    [[refl]] void addNode(MapNode const& node, MapNodeProp const& prop) {
+    [[refl(R"({"unique-name": "addNodeWithProp"})")]] void addNode(
+        MapNode const&     node,
+        MapNodeProp const& prop) {
         addNode(node);
         nodeProps.insert_or_assign(node, prop);
     }
