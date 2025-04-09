@@ -90,6 +90,16 @@ class AstbuilderBase:
         else:
             return self.Line()
 
+    def ToBlockId(self, value: str | BlockId | None) -> BlockId:
+        if value is None:
+            return self.b.empty()
+
+        elif isinstance(value, str):
+            return self.string(value)
+
+        else:
+            return value
+
     def Line(self):
         return AstLineCtx(self)
 

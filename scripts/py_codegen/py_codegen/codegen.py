@@ -1141,7 +1141,9 @@ def gen_pyhaxorg_napi_wrappers(groups: PyhaxorgTypeGroups, ast: ASTBuilder) -> G
     for decl in groups.get_entries_for_wrapping():
         res.add_decl(decl)
 
-    # res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
+    res.Header.append(napi.NapiBindPass(ast.Include("node_utils.hpp")))
+    res.Header.append(napi.NapiBindPass(ast.Include("node_org_include.hpp")))
+    res.Header.append(napi.NapiBindPass(ast.string("using namespace org::bind::js;")))
 
     return GenFiles([
         GenUnit(

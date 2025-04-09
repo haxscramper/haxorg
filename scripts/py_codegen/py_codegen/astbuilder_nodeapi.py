@@ -31,24 +31,50 @@ class NapiMethod():
         else:
             return self.Func.name
 
-    def build_bind(self, Class: str, b: cpp.ASTBuilder) -> cpp.MethodDeclParams:
+    def build_bind(self, Class: QualType, OriginalClass: QualType,
+                   b: cpp.ASTBuilder) -> cpp.MethodDeclParams:
         f = cpp.FunctionParams(Name=self.getNapiName())
         f.Args.append(cpp.ParmVarParams(name="info", type=T_CALLBACK_INFO.asConstRef()))
         f.ResultTy = T_VALUE
+        f.AllowOneLine = False
+
         f.Body = [
             b.Return(
-                b.Call(
-                    b.string("WrapConstMethod" if self.Func.isConst else "WrapMethod"),
-                    Args=[
+                b.XCall(
+                    opc="WrapConstMethod" if self.Func.isConst else "WrapMethod",
+                    Params=[
+                        OriginalClass,
+                        self.Func.result or QualType(name="void"),
+                    ],
+                    args=[
                         b.string("info"),
                         b.Call(b.string("getPtr")),
-                        b.Addr(
-                            b.line([
-                                b.string(Class),
-                                b.string("::"),
-                                b.string(self.getNapiName()),
-                            ]))
+                        b.XCall(
+                            "static_cast",
+                            args=[
+                                b.Addr(
+                                    b.line([
+                                        b.Type(OriginalClass),
+                                        b.string("::"),
+                                        b.string(self.getNapiName()),
+                                    ]))
+                            ],
+                            Params=[self.Func.get_function_type(OriginalClass)],
+                        ),
+                        b.CallStatic(
+                            typ=QualType(name="std"),
+                            opc="make_tuple",
+                            Args=[
+                                b.XConstructObj(
+                                    obj=arg.type.withoutCVRef().withWrapperType(
+                                        QualType(name="CxxArgSpec")),
+                                    Args=cond(arg.value, [b.ToBlockId(arg.value)], []),
+                                ) for arg in self.Func.arguments
+                            ],
+                            Line=len(self.Func.arguments) <= 1,
+                        ),
                     ],
+                    Line=False,
                 ))
         ]
         m = cpp.MethodDeclParams(f)
@@ -75,6 +101,17 @@ class NapiClass():
         else:
             return self.Record.name.name + "Js"
 
+    def getCxxName(self) -> QualType:
+        return self.Record.declarationQualName()
+
+    def build_module_registration(self, b: cpp.ASTBuilder) -> BlockId:
+        return b.CallStatic(QualType(name=self.getNapiName()),
+                            opc="Init",
+                            Args=[
+                                b.string("env"),
+                                b.string("exports"),
+                            ])
+
     def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder) -> BlockId:
         WrapperClass = cpp.RecordParams(name=QualType(name=self.getNapiName()))
 
@@ -88,14 +125,40 @@ class NapiClass():
         wrapper_methods: List[cpp.MethodDeclParams] = []
 
         for m in self.ClassMethods:
-            bind = m.build_bind(self.getNapiName(), b=b)
+            bind = m.build_bind(
+                Class=QualType(name=self.getNapiName()),
+                OriginalClass=self.getCxxName(),
+                b=b,
+            )
             WrapperClass.members.append(bind)
             wrapper_methods.append(bind)
+
+        WrapperClass.members.append(
+            cpp.RecordField(
+                params=ParmVarParams(name="_stored",
+                                     type=QualType(
+                                         name="shared_ptr",
+                                         Spaces=[QualType(name="std", isNamespace=True)],
+                                         Parameters=[self.getCxxName()],
+                                     ))))
+
+        WrapperClass.members.append(
+            cpp.MethodDeclParams(Params=cpp.FunctionParams(
+                Name="getPtr",
+                ResultTy=self.getCxxName().asPtr(),
+                Body=[b.Return(b.Call(b.Dot(b.string("_stored"), b.string("get"))))],
+            )))
 
         return b.Record(WrapperClass)
 
 
-NapiUnion = Union[NapiClass]
+@beartype
+@dataclass
+class NapiBindPass:
+    Id: BlockId
+
+
+NapiUnion = Union[NapiClass, NapiBindPass]
 
 
 @beartype
@@ -103,6 +166,7 @@ NapiUnion = Union[NapiClass]
 class NapiModule():
     name: str
     items: List[NapiUnion] = field(default_factory=list)
+    Header: List[NapiBindPass] = field(default_factory=list)
 
     def add_decl(self, item: GenTuUnion):
         match item:
@@ -115,6 +179,9 @@ class NapiModule():
             case GenTuFunction():
                 pass
 
+            case NapiBindPass():
+                self.items.append(item)
+
             case _:
                 raise ValueError(f"Unhandled declaration type {type(item)}")
 
@@ -122,17 +189,15 @@ class NapiModule():
         Result = b.b.stack()
 
         Body = []
+
+        for it in self.Header:
+            b.b.add_at(Result, it.Id)
+
         for item in self.items:
             match item:
                 case NapiClass():
                     b.b.add_at(Result, item.build_bind(ast=ast, b=b))
-                    Body.append(
-                        b.CallStatic(QualType(name=item.getNapiName()),
-                                     opc="Init",
-                                     Args=[
-                                         b.string("env"),
-                                         b.string("exports"),
-                                     ]))
+                    Body.append(item.build_module_registration(b=b))
 
                 case _:
                     raise ValueError("Unahn")

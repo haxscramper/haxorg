@@ -152,6 +152,17 @@ class GenTuFunction:
 
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
 
+    def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
+        return QualType(
+                func=QualType.Function(
+                    ReturnTy=self.result,
+                    Args=[A.type for A in self.arguments],
+                    Class=Class,
+                    IsConst=self.isConst,
+                ),
+                Kind=QualTypeKind.FunctionPtr,
+            )
+
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
             [Arg.name + " " + Arg.type.format() for Arg in self.arguments]))

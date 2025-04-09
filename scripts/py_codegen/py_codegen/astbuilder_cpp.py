@@ -149,6 +149,13 @@ class QualType(BaseModel, extra="forbid"):
         assert isinstance(added, QualType), type(added)
         return flat.model_copy(update=dict(Spaces=[added] + flat.Spaces))
 
+    def withoutCVRef(self) -> "QualType":
+        return self.model_copy(update=dict(
+            isConst=False,
+            ptrCount=0,
+            RefKind=ReferenceKind.NotRef,
+        ))
+
     def withoutSpace(self, name: str) -> 'QualType':
         flat = self.flatten()
         return flat.model_copy(update=dict(
@@ -193,7 +200,7 @@ class QualType(BaseModel, extra="forbid"):
     def flat_repr_flatten(self, with_modifiers: bool = True) -> Any:
         ## NOTE: Used for hashing, order of append is important, it must match the actual representation,
         ## otherwise namespace nesting might throw off the hashing results, and make `[org::[sem::[Id]]]`
-        ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked. 
+        ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked.
         result = []
 
         def aux(T: QualType):
@@ -212,9 +219,7 @@ class QualType(BaseModel, extra="forbid"):
                 ))
 
             else:
-                result.append((
-                    T.name,
-                ))
+                result.append((T.name,))
 
         aux(self)
         return tuple(result)
@@ -506,7 +511,7 @@ class MacroParams:
 @dataclass
 class RecordField:
     params: ParmVarParams
-    doc: DocParams
+    doc: Optional[DocParams] = None
     isStatic: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
@@ -656,6 +661,20 @@ class ASTBuilder(base.AstbuilderBase):
                          Stmt=Stmt,
                          Line=Line,
                          Params=Params)
+
+    def XConstructObj(self,
+                      obj: QualType,
+                      Args: List[BlockId] = [],
+                      Line: bool = True) -> BlockId:
+        if Line:
+            return self.line([self.Type(obj), self.string("{"), *Args, self.string("}")])
+
+        else:
+            return self.stack([
+                self.line([self.Type(obj), self.string("{")]),
+                self.indent(2, *Args),
+                self.string("}")
+            ])
 
     def XCallObj(self,
                  obj: BlockId,
@@ -1303,7 +1322,8 @@ class ASTBuilder(base.AstbuilderBase):
                                 self.string("::")] if type_.func.Class else []
 
                 return self.b.line([
-                    self.Type(type_.func.ReturnTy),
+                    self.Type(type_.func.ReturnTy)
+                    if type_.func.ReturnTy else self.string("void"),
                     self.pars(self.b.line(pointer_type + [self.string("*")])),
                     self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
                     self.string(" const" if type_.func.IsConst else ""),

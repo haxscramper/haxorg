@@ -379,15 +379,7 @@ class Py11Function:
         IsConst: bool = False,
     ) -> BlockId:
         if self.Body is None:
-            function_type = QualType(
-                func=QualType.Function(
-                    ReturnTy=self.Func.result,
-                    Args=[A.type for A in Args],
-                    Class=Class,
-                    IsConst=IsConst,
-                ),
-                Kind=QualTypeKind.FunctionPtr,
-            )
+            function_type = self.Func.get_function_type(Class=Class)
 
             return ast.XCall(
                 "static_cast",
