@@ -376,7 +376,7 @@ class FunctionParams:
     Storage: StorageClass = StorageClass.None_
     Body: Optional[List[BlockId]] = None
     Inline: bool = False
-    InitList: List[Tuple[str, BlockId]] = field(default_factory=list)
+    InitList: List[BlockId] = field(default_factory=list)
     AllowOneLine: bool = True
 
 
@@ -1092,7 +1092,9 @@ class ASTBuilder(base.AstbuilderBase):
                     self.string("::"),
                     self.string(m.Params.Name),
                     self.Arguments(m.Params),
-                    self.string(" const {" if m.IsConst else " {")
+                    self.string("const " if m.IsConst else " "),
+                    self.InitList(m.Params),
+                    self.string("{"),
                 ]),
                 self.b.indent(2, self.b.stack(m.Params.Body)),
                 self.string("}")
@@ -1110,7 +1112,8 @@ class ASTBuilder(base.AstbuilderBase):
             self.Arguments(method.Params),
             self.string(" const" if method.isConst else ""),
             self.string(" override" if method.isOverride else ""),
-            self.string(" = 0" if method.isPureVirtual else "")
+            self.string(" = 0" if method.isPureVirtual else ""),
+            self.InitList(method.Params),
         ])
 
         return self.WithAccess(
@@ -1262,6 +1265,18 @@ class ASTBuilder(base.AstbuilderBase):
 
         return head
 
+    def InitList(self, p: FunctionParams) -> BlockId:
+        if p.InitList:
+            head = self.b.line([])
+            self.b.add_at(head, self.string(" : "))
+            self.b.add_at(
+                head, self.csv([self.b.line([item]) for item in p.InitList]))
+
+            return head
+
+        else:
+            return self.b.text("")
+
     def Function(self, p: FunctionParams) -> BlockId:
         head = self.b.line([
             *([] if p.ResultTy is None else [self.Type(p.ResultTy),
@@ -1270,17 +1285,7 @@ class ASTBuilder(base.AstbuilderBase):
             self.Arguments(p)
         ])
 
-        if p.InitList:
-            self.b.add_at(head, self.string(" : "))
-            self.b.add_at(
-                head,
-                self.csv([
-                    self.b.line([
-                        self.string(item[0]),
-                        self.string("("), item[1],
-                        self.string(")")
-                    ]) for item in p.InitList
-                ]))
+        self.b.add_at(head, self.InitList(p))
 
         return self.WithTemplate(
             p.Template,

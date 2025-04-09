@@ -45,44 +45,45 @@ class NapiMethod():
             b.Return(
                 b.XCall(
                     opc="WrapConstMethod" if self.Func.isConst else "WrapMethod",
-                    Params=[
-                        OriginalClass,
-                        self.Func.result or QualType(name="void"),
-                        # *[m.type for m in self.Func.arguments],
-                    ],
                     args=[
                         b.string("info"),
                         b.Call(b.string("getPtr")),
                         b.XCall(
-                            "static_cast",
+                            "makeCallable",
                             args=[
-                                b.Addr(
-                                    b.line([
-                                        b.Type(OriginalClass),
-                                        b.string("::"),
-                                        b.string(self.Func.name),
-                                    ]))
+                                b.XCall(
+                                    "static_cast",
+                                    args=[
+                                        b.Addr(
+                                            b.line([
+                                                b.Type(OriginalClass),
+                                                b.string("::"),
+                                                b.string(self.Func.name),
+                                            ]))
+                                    ],
+                                    Params=[self.Func.get_function_type(OriginalClass)],
+                                ),
+                                b.CallStatic(
+                                    typ=QualType(name="std"),
+                                    opc="make_tuple",
+                                    Args=[
+                                        b.XConstructObj(
+                                            obj=arg.type.withoutCVRef().withWrapperType(
+                                                QualType(name="CxxArgSpec")),
+                                            Args=cond(
+                                                arg.value,
+                                                [
+                                                    b.StringLiteral(arg.name),
+                                                    b.ToBlockId(arg.value)
+                                                ],
+                                                [b.StringLiteral(arg.name)],
+                                            ),
+                                        ) for arg in self.Func.arguments
+                                    ],
+                                    Line=len(self.Func.arguments) <= 1,
+                                ),
                             ],
-                            Params=[self.Func.get_function_type(OriginalClass)],
-                        ),
-                        b.CallStatic(
-                            typ=QualType(name="std"),
-                            opc="make_tuple",
-                            Args=[
-                                b.XConstructObj(
-                                    obj=arg.type.withoutCVRef().withWrapperType(
-                                        QualType(name="CxxArgSpec")),
-                                    Args=cond(
-                                        arg.value,
-                                        [
-                                            b.StringLiteral(arg.name),
-                                            b.ToBlockId(arg.value)
-                                        ],
-                                        [b.StringLiteral(arg.name)],
-                                    ),
-                                ) for arg in self.Func.arguments
-                            ],
-                            Line=len(self.Func.arguments) <= 1,
+                            Line=False,
                         ),
                     ],
                     Line=False,
@@ -129,12 +130,13 @@ class NapiClass():
     def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder) -> BlockId:
         WrapperClass = cpp.RecordParams(name=QualType(name=self.getNapiName()))
 
-        WrapperClass.bases.append(
-            QualType(
-                name="ObjectWrap",
-                Spaces=[N_SPACE],
-                Parameters=[QualType(name=self.getNapiName())],
-            ))
+        BaseWrap = QualType(
+            name="ObjectWrap",
+            Spaces=[N_SPACE],
+            Parameters=[QualType(name=self.getNapiName())],
+        )
+
+        WrapperClass.bases.append(BaseWrap)
 
         wrapper_methods: List[cpp.MethodDeclParams] = []
 
@@ -218,6 +220,23 @@ class NapiClass():
                 log(CAT).warning(
                     f"{self.Record.name}::{key} is overloaded without unique name, has {value} overloads"
                 )
+
+        WrapperClass.members.append(
+            cpp.MethodDeclParams(Params=cpp.FunctionParams(
+                Name=self.getNapiName(),
+                ResultTy=None,
+                InitList=[b.XConstructObj(obj=BaseWrap, Args=[b.string("info")])],
+                Args=[ParmVarParams(type=T_CALLBACK_INFO.asConstRef(), name="info")],
+                Body=[
+                    b.string("Napi::Env env = info.Env();"),
+                    b.string("Napi::HandleScope scope(env);"),
+                    b.line([
+                        b.string("_stored"),
+                        b.string(" = "),
+                        b.XCall("std::make_shared", Params=[self.getCxxName()]),
+                        b.string(";"),
+                    ])
+                ])))
 
         WrapperClass.members.append(
             cpp.RecordField(

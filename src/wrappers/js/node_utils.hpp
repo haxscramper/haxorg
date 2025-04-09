@@ -6,12 +6,171 @@
 #include <utility>
 
 namespace org::bind::js {
+
 // Argument specification template
 template <typename T>
 struct CxxArgSpec {
     std::string      name;
     std::optional<T> defaultValue = std::nullopt;
+
+    using value_type = T;
 };
+
+// CallableClass template for method pointers
+template <typename T>
+struct CallableClass {
+    T* instance;
+
+    explicit CallableClass(T* inst) : instance(inst) {}
+};
+
+// Specialization for standalone functions
+template <>
+struct CallableClass<std::monostate> {
+    explicit CallableClass() {}
+};
+
+// Primary template for Callable
+template <typename ClassType, typename ReturnType, typename... Args>
+class Callable {
+  private:
+    // Static assertion to prevent instantiation of primary template
+    static_assert(
+        std::is_void<ClassType>::value,
+        "This primary template should not be instantiated directly");
+};
+
+// Specialization for standalone functions
+template <typename ReturnType, typename... Args>
+class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
+  public:
+    using FunctionType = ReturnType (*)(Args...);
+    using ArgsTuple    = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
+
+    Callable(FunctionType func, ArgsTuple args)
+        : function_(func), args_(std::move(args)) {}
+
+    template <typename... CallArgs>
+    ReturnType operator()(CallArgs&&... callArgs) const {
+        return invoke(
+            std::index_sequence_for<Args...>{},
+            std::forward<CallArgs>(callArgs)...);
+    }
+
+    const ArgsTuple& args() const { return args_; }
+    FunctionType     function() const { return function_; }
+
+  private:
+    FunctionType function_;
+    ArgsTuple    args_;
+
+    template <size_t... Indices, typename... CallArgs>
+    ReturnType invoke(
+        std::index_sequence<Indices...>,
+        CallArgs&&... callArgs) const {
+        return function_(std::forward<CallArgs>(callArgs)...);
+    }
+};
+
+// Specialization for method pointers
+template <typename ClassType, typename ReturnType, typename... Args>
+class Callable<CallableClass<ClassType>, ReturnType, Args...> {
+  public:
+    using MethodType = ReturnType (ClassType::*)(Args...);
+    using ArgsTuple  = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
+
+    Callable(MethodType method, ArgsTuple args)
+        : method_(method), args_(std::move(args)) {}
+
+    template <typename... CallArgs>
+    ReturnType operator()(ClassType* instance, CallArgs&&... callArgs)
+        const {
+        return invoke(
+            instance,
+            std::index_sequence_for<Args...>{},
+            std::forward<CallArgs>(callArgs)...);
+    }
+
+    const ArgsTuple& args() const { return args_; }
+    MethodType       method() const { return method_; }
+
+  private:
+    MethodType method_;
+    ArgsTuple  args_;
+
+    template <size_t... Indices, typename... CallArgs>
+    ReturnType invoke(
+        ClassType* instance,
+        std::index_sequence<Indices...>,
+        CallArgs&&... callArgs) const {
+        return (instance->*method_)(std::forward<CallArgs>(callArgs)...);
+    }
+};
+
+// Specialization for const method pointers
+template <typename ClassType, typename ReturnType, typename... Args>
+class Callable<CallableClass<const ClassType>, ReturnType, Args...> {
+  public:
+    using MethodType = ReturnType (ClassType::*)(Args...) const;
+    using ArgsTuple  = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
+
+    Callable(MethodType method, ArgsTuple args)
+        : method_(method), args_(std::move(args)) {}
+
+    template <typename... CallArgs>
+    ReturnType operator()(
+        const ClassType* instance,
+        CallArgs&&... callArgs) const {
+        return invoke(
+            instance,
+            std::index_sequence_for<Args...>{},
+            std::forward<CallArgs>(callArgs)...);
+    }
+
+    const ArgsTuple& args() const { return args_; }
+    MethodType       method() const { return method_; }
+
+  private:
+    MethodType method_;
+    ArgsTuple  args_;
+
+    template <size_t... Indices, typename... CallArgs>
+    ReturnType invoke(
+        const ClassType* instance,
+        std::index_sequence<Indices...>,
+        CallArgs&&... callArgs) const {
+        return (instance->*method_)(std::forward<CallArgs>(callArgs)...);
+    }
+};
+
+// Factory functions for creating Callable objects
+
+// For standalone functions
+template <typename ReturnType, typename... Args>
+auto makeCallable(
+    ReturnType (*func)(Args...),
+    std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
+    return Callable<CallableClass<std::monostate>, ReturnType, Args...>(
+        func, std::move(args));
+}
+
+// For non-const methods
+template <typename ClassType, typename ReturnType, typename... Args>
+auto makeCallable(
+    ReturnType (ClassType::*method)(Args...),
+    std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
+    return Callable<CallableClass<ClassType>, ReturnType, Args...>(
+        method, std::move(args));
+}
+
+// For const methods
+template <typename ClassType, typename ReturnType, typename... Args>
+auto makeCallable(
+    ReturnType (ClassType::*method)(Args...) const,
+    std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
+    return Callable<CallableClass<const ClassType>, ReturnType, Args...>(
+        method, std::move(args));
+}
 
 // Converter template for JS <-> C++ type conversions
 template <typename T, typename Enable = void>
@@ -83,108 +242,70 @@ struct JsConverter<int> {
     }
 };
 
-// Specialization for int64_t
-template <>
-struct JsConverter<int64_t> {
-    static int64_t from_js_value(const Napi::Value& value) {
-        if (value.IsNumber() || value.IsBigInt()) {
-            return value.IsBigInt()
-                     ? value.As<Napi::BigInt>().Int64Value(nullptr)
-                     : static_cast<int64_t>(
-                           value.As<Napi::Number>().Int64Value());
-        }
-        throw Napi::TypeError::New(
-            value.Env(), "Integer or BigInt expected");
-    }
-
-    static Napi::Value to_js_value(Napi::Env env, const int64_t& value) {
-        return Napi::BigInt::New(env, value);
-    }
-};
-
-// Specialization for arrays using std::vector
-template <typename T>
-struct JsConverter<std::vector<T>> {
-    static std::vector<T> from_js_value(const Napi::Value& value) {
-        if (!value.IsArray()) {
-            throw Napi::TypeError::New(value.Env(), "Array expected");
-        }
-
-        Napi::Array    array = value.As<Napi::Array>();
-        std::vector<T> result;
-        result.reserve(array.Length());
-
-        for (uint32_t i = 0; i < array.Length(); i++) {
-            result.push_back(JsConverter<T>::from_js_value(array[i]));
-        }
-
-        return result;
-    }
-
-    static Napi::Value to_js_value(
-        Napi::Env             env,
-        const std::vector<T>& value) {
-        Napi::Array array = Napi::Array::New(env, value.size());
-
-        for (size_t i = 0; i < value.size(); i++) {
-            array[i] = JsConverter<T>::to_js_value(env, value[i]);
-        }
-
-        return array;
-    }
-};
-
-// Specialization for optional values
-template <typename T>
-struct JsConverter<std::optional<T>> {
-    static std::optional<T> from_js_value(const Napi::Value& value) {
-        if (value.IsNull() || value.IsUndefined()) { return std::nullopt; }
-        return JsConverter<T>::from_js_value(value);
-    }
-
-    static Napi::Value to_js_value(
-        Napi::Env               env,
-        const std::optional<T>& value) {
-        if (!value.has_value()) { return env.Null(); }
-        return JsConverter<T>::to_js_value(env, value.value());
-    }
-};
-
-// Main wrapper function for free functions
-template <typename ReturnType, typename... Args, size_t... Indices>
-Napi::Value WrapFunctionImpl(
+// Generic wrapper function for any Callable
+template <typename CallableType, typename ClassInstance, size_t... Indices>
+Napi::Value WrapCallableImpl(
     const Napi::CallbackInfo& info,
-    ReturnType (*func)(Args...),
-    const std::tuple<CxxArgSpec<std::decay_t<Args>>...>& argSpecs,
+    const CallableType&       callable,
+    ClassInstance             instance,
     std::index_sequence<Indices...>) {
     Napi::Env env = info.Env();
 
     try {
-        // Convert arguments with proper type checking
-        auto convertArg = [&](size_t index, const auto& argSpec) {
-            using ArgType = typename std::decay<
-                decltype(std::get<Indices...>(
-                    std::tuple<Args...>{}))>::type;
+        // Get the argument specifications
+        const auto& argSpecs = callable.args();
 
-            if (index < info.Length()) {
-                return JsConverter<ArgType>::from_js_value(info[index]);
+        // Convert arguments with proper type checking - now using pack
+        // expansion instead of indexing into the tuple at runtime
+        auto convertArg = [&info, &argSpecs]<size_t Index>() {
+            // Get the type of the argument at compile-time index
+            using ArgSpecType = std::
+                tuple_element_t<Index, std::decay_t<decltype(argSpecs)>>;
+            using ArgType = typename ArgSpecType::value_type;
+
+            const auto& argSpec = std::get<Index>(argSpecs);
+
+            if (Index < info.Length()) {
+                return JsConverter<ArgType>::from_js_value(info[Index]);
             } else if (argSpec.defaultValue) {
                 return *argSpec.defaultValue;
             } else {
                 throw Napi::TypeError::New(
-                    env, "Missing required argument: " + argSpec.name);
+                    info.Env(),
+                    "Missing required argument: " + argSpec.name);
             }
         };
 
-        if constexpr (std::is_void_v<ReturnType>) {
-            // Call function with void return type
-            func(convertArg(Indices, std::get<Indices>(argSpecs))...);
-            return env.Undefined();
+        // Invoke the callable with appropriate arguments
+        if constexpr (std::is_same_v<ClassInstance, std::nullptr_t>) {
+            // Function call (no instance)
+            using ReturnType = decltype(callable(
+                convertArg.template operator()<Indices>()...));
+
+            if constexpr (std::is_void_v<ReturnType>) {
+                callable(convertArg.template operator()<Indices>()...);
+                return env.Undefined();
+            } else {
+                ReturnType result = callable(
+                    convertArg.template operator()<Indices>()...);
+                return JsConverter<ReturnType>::to_js_value(env, result);
+            }
         } else {
-            // Call function with non-void return type
-            ReturnType result = func(
-                convertArg(Indices, std::get<Indices>(argSpecs))...);
-            return JsConverter<ReturnType>::to_js_value(env, result);
+            // Method call (with instance)
+            using ReturnType = decltype(callable(
+                instance, convertArg.template operator()<Indices>()...));
+
+            if constexpr (std::is_void_v<ReturnType>) {
+                callable(
+                    instance,
+                    convertArg.template operator()<Indices>()...);
+                return env.Undefined();
+            } else {
+                ReturnType result = callable(
+                    instance,
+                    convertArg.template operator()<Indices>()...);
+                return JsConverter<ReturnType>::to_js_value(env, result);
+            }
         }
     } catch (const Napi::Error& e) {
         // Re-throw Napi errors
@@ -198,103 +319,38 @@ Napi::Value WrapFunctionImpl(
     }
 }
 
-// Main wrapper function for methods
-template <
-    typename ClassType,
-    typename ReturnType,
-    typename... Args,
-    size_t... Indices>
-Napi::Value WrapMethodImpl(
-    const Napi::CallbackInfo& info,
-    ClassType*                instance,
-    ReturnType (ClassType::*method)(Args...),
-    const std::tuple<CxxArgSpec<std::decay_t<Args>>...>& argSpecs,
-    std::index_sequence<Indices...>) {
-    Napi::Env env = info.Env();
-
-    try {
-        // Convert arguments with proper type checking
-        auto convertArg = [&](size_t index, const auto& argSpec) {
-            using ArgType = typename std::decay<
-                decltype(std::get<Indices...>(
-                    std::tuple<Args...>{}))>::type;
-
-            if (index < info.Length()) {
-                return JsConverter<ArgType>::from_js_value(info[index]);
-            } else if (argSpec.defaultValue) {
-                return *argSpec.defaultValue;
-            } else {
-                throw Napi::TypeError::New(
-                    env, "Missing required argument: " + argSpec.name);
-            }
-        };
-
-        if constexpr (std::is_void_v<ReturnType>) {
-            // Call method with void return type
-            (instance->*method)(
-                convertArg(Indices, std::get<Indices>(argSpecs))...);
-            return env.Undefined();
-        } else {
-            // Call method with non-void return type
-            ReturnType result = (instance->*method)(
-                convertArg(Indices, std::get<Indices>(argSpecs))...);
-            return JsConverter<ReturnType>::to_js_value(env, result);
-        }
-    } catch (const Napi::Error& e) {
-        // Re-throw Napi errors
-        throw e;
-    } catch (const std::exception& e) {
-        // Convert C++ exceptions to JavaScript errors
-        throw Napi::Error::New(env, e.what());
-    } catch (...) {
-        // Handle unknown exceptions
-        throw Napi::Error::New(env, "Unknown C++ exception occurred");
-    }
-}
-
-// Public API for wrapping free functions
+// Wrapper for standalone functions
 template <typename ReturnType, typename... Args>
 Napi::Value WrapFunction(
     const Napi::CallbackInfo& info,
-    ReturnType (*func)(Args...),
-    const std::tuple<CxxArgSpec<std::decay_t<Args>>...>& argSpecs) {
-    return WrapFunctionImpl(
-        info, func, argSpecs, std::index_sequence_for<Args...>{});
+    const Callable<CallableClass<std::monostate>, ReturnType, Args...>&
+        callable) {
+    return WrapCallableImpl(
+        info, callable, nullptr, std::index_sequence_for<Args...>{});
 }
 
-// Public API for wrapping methods
+// Wrapper for non-const methods
 template <typename ClassType, typename ReturnType, typename... Args>
 Napi::Value WrapMethod(
     const Napi::CallbackInfo& info,
     ClassType*                instance,
-    ReturnType (ClassType::*method)(Args...),
-    const std::tuple<CxxArgSpec<std::decay_t<Args>>...>& argSpecs) {
-    return WrapMethodImpl(
-        info,
-        instance,
-        method,
-        argSpecs,
-        std::index_sequence_for<Args...>{});
+    const Callable<CallableClass<ClassType>, ReturnType, Args...>&
+        callable) {
+    return WrapCallableImpl(
+        info, callable, instance, std::index_sequence_for<Args...>{});
 }
 
-// Helper for const methods
+
+// Wrapper for const methods
 template <typename ClassType, typename ReturnType, typename... Args>
 Napi::Value WrapConstMethod(
     const Napi::CallbackInfo& info,
     const ClassType*          instance,
-    ReturnType (ClassType::*method)(Args...) const,
-    const std::tuple<CxxArgSpec<std::decay_t<Args>>...>& argSpecs) {
-    // Convert const method to a compatible form for our implementation
-    auto nonConstInstance = const_cast<ClassType*>(instance);
-    auto nonConstMethod   = reinterpret_cast<ReturnType (ClassType::*)(
-        Args...)>(method);
-
-    return WrapMethodImpl(
-        info,
-        nonConstInstance,
-        nonConstMethod,
-        argSpecs,
-        std::index_sequence_for<Args...>{});
+    const Callable<CallableClass<const ClassType>, ReturnType, Args...>&
+        callable) {
+    return WrapCallableImpl(
+        info, callable, instance, std::index_sequence_for<Args...>{});
 }
+
 
 } // namespace org::bind::js
