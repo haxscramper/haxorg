@@ -103,8 +103,6 @@ class NapiClass():
 
     def __init__(self, Record: GenTuStruct):
         self.Record = Record
-        self.ClassMethods = [NapiMethod(m) for m in Record.methods]
-        self.FieldAccessors = []
 
     def getNapiName(self) -> str:
         if self.Record.reflectionParams.wrapper_name:
@@ -127,7 +125,12 @@ class NapiClass():
             Stmt=True,
         )
 
-    def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder) -> BlockId:
+    def build_bind(
+        self,
+        ast: ASTBuilder,
+        b: cpp.ASTBuilder,
+        base_map: GenTypeMap,
+    ) -> BlockId:
         WrapperClass = cpp.RecordParams(name=QualType(name=self.getNapiName()))
 
         BaseWrap = QualType(
@@ -137,16 +140,26 @@ class NapiClass():
         )
 
         WrapperClass.bases.append(BaseWrap)
-
         wrapper_methods: List[cpp.MethodDeclParams] = []
+        overload_counts: Dict[str, int] = defaultdict(lambda: 0)
+        override_groups: Dict[Tuple[str, int], List[NapiMethod]] = defaultdict(list)
 
-        override_counts: Dict[str, int] = defaultdict(lambda: 0)
+        def rec_methods(Record: GenTuStruct):
+            for base in Record.bases:
+                base_type = base_map.get_one_type_for_name(base.name)
+                if base_type:
+                    rec_methods(base_type)
 
-        for m in self.ClassMethods:
-            if m.Func.IsConstructor or m.Func.isStatic:
-                continue
+            for _m in Record.methods:
+                if _m.IsConstructor or _m.isStatic:
+                    continue
 
-            override_counts[m.getNapiName()] += 1
+                override_groups[(_m.name, _m.get_function_type().qual_hash())].append(
+                    NapiMethod(_m))
+
+        for override_key, method_list in override_groups.items():
+            m = method_list[-1]
+            overload_counts[m.getNapiName()] += 1
             bind = m.build_bind(
                 Class=QualType(name=self.getNapiName()),
                 OriginalClass=self.getCxxName(),
@@ -154,6 +167,12 @@ class NapiClass():
             )
             WrapperClass.members.append(bind)
             wrapper_methods.append(bind)
+
+        for key, value in overload_counts.items():
+            if 1 < value:
+                log(CAT).warning(
+                    f"{self.Record.name}::{key} is overloaded without unique name, has {value} overloads"
+                )
 
         BindCalls = [
             b.XCall("InstanceMethod",
@@ -215,12 +234,6 @@ class NapiClass():
                 isStatic=True,
             ))
 
-        for key, value in override_counts.items():
-            if 1 < value:
-                log(CAT).warning(
-                    f"{self.Record.name}::{key} is overloaded without unique name, has {value} overloads"
-                )
-
         WrapperClass.members.append(
             cpp.MethodDeclParams(Params=cpp.FunctionParams(
                 Name=self.getNapiName(),
@@ -235,7 +248,7 @@ class NapiClass():
                         b.string(" = "),
                         b.XCall("std::make_shared", Params=[self.getCxxName()]),
                         b.string(";"),
-                    ])
+                    ] if self.Record.reflectionParams.default_constructor else []),
                 ])))
 
         WrapperClass.members.append(
@@ -290,7 +303,8 @@ class NapiModule():
             case _:
                 raise ValueError(f"Unhandled declaration type {type(item)}")
 
-    def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder) -> BlockId:
+    def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder,
+                   base_map: GenTypeMap) -> BlockId:
         Result = b.b.stack()
 
         Body = []
@@ -301,7 +315,7 @@ class NapiModule():
         for item in self.items:
             match item:
                 case NapiClass():
-                    b.b.add_at(Result, item.build_bind(ast=ast, b=b))
+                    b.b.add_at(Result, item.build_bind(ast=ast, b=b, base_map=base_map))
                     Body.append(item.build_module_registration(b=b))
 
                 case _:

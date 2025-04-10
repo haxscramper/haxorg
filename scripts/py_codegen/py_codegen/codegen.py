@@ -1138,7 +1138,11 @@ def gen_pyhaxorg_python_wrappers(
 
 
 @beartype
-def gen_pyhaxorg_napi_wrappers(groups: PyhaxorgTypeGroups, ast: ASTBuilder) -> GenFiles:
+def gen_pyhaxorg_napi_wrappers(
+    groups: PyhaxorgTypeGroups,
+    ast: ASTBuilder,
+    base_map: GenTypeMap,
+) -> GenFiles:
 
     cpp_builder = cpp.ASTBuilder(ast.b)
 
@@ -1146,7 +1150,13 @@ def gen_pyhaxorg_napi_wrappers(groups: PyhaxorgTypeGroups, ast: ASTBuilder) -> G
 
     for decl in groups.get_entries_for_wrapping():
         if decl.reflectionParams.isAcceptedBackend("node"):
-            res.add_decl(decl)
+            match decl:
+                case GenTuStruct():
+                    if not decl.IsAbstract:
+                        res.add_decl(decl)
+
+                case _:
+                    res.add_decl(decl)
 
     res.Header.append(napi.NapiBindPass(ast.Include("node_utils.hpp")))
     res.Header.append(napi.NapiBindPass(ast.Include("node_org_include.hpp")))
@@ -1157,7 +1167,7 @@ def gen_pyhaxorg_napi_wrappers(groups: PyhaxorgTypeGroups, ast: ASTBuilder) -> G
             GenTu(
                 "{root}/src/wrappers/js/nodehaxorg.cpp",
                 [
-                    GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
+                    GenTuPass(res.build_bind(ast=ast, b=cpp_builder, base_map=base_map)),
                 ],
             )),
     ])
@@ -1408,6 +1418,7 @@ def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
             write_files_group(gen_pyhaxorg_napi_wrappers(
                 groups=groups,
                 ast=builder,
+                base_map=groups.base_map,
             ))
 
             write_files_group(

@@ -40,6 +40,14 @@ class Callable {
         "This primary template should not be instantiated directly");
 };
 
+// Type trait to detect if a type is callable with given arguments
+template <typename F, typename... Args>
+using is_callable = std::is_invocable<F, Args...>;
+
+// Type trait to get the return type of a callable
+template <typename F, typename... Args>
+using callable_result_t = std::invoke_result_t<F, Args...>;
+
 // Specialization for standalone functions
 template <typename ReturnType, typename... Args>
 class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
@@ -48,29 +56,77 @@ class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
     using ArgsTuple    = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
 
     Callable(FunctionType func, ArgsTuple args)
-        : function_(func), args_(std::move(args)) {}
+        : function_(func), args_(std::move(args)), functor_(nullptr) {}
+
+    // Constructor for functors/lambdas
+    template <
+        typename Functor,
+        typename = std::enable_if_t<
+            !std::is_same_v<std::decay_t<Functor>, Callable>
+            && is_callable<Functor, Args...>::value
+            && std::is_same_v<
+                callable_result_t<Functor, Args...>,
+                ReturnType>>>
+    Callable(Functor&& functor, ArgsTuple args)
+        : function_(nullptr)
+        , args_(std::move(args))
+        , functor_(std::make_shared<FunctorWrapper<std::decay_t<Functor>>>(
+              std::forward<Functor>(functor))) {}
+
+    // Constructor for type constructors
+    template <
+        typename ConstructedType,
+        typename = std::enable_if_t<
+            std::is_constructible_v<ConstructedType, Args...>
+            && std::is_same_v<ReturnType, ConstructedType>>>
+    static Callable ForConstructor(ArgsTuple args) {
+        auto constructorFunc = [](Args... args) -> ConstructedType {
+            return ConstructedType(std::forward<Args>(args)...);
+        };
+        return Callable(constructorFunc, std::move(args));
+    }
 
     template <typename... CallArgs>
     ReturnType operator()(CallArgs&&... callArgs) const {
-        return invoke(
-            std::index_sequence_for<Args...>{},
-            std::forward<CallArgs>(callArgs)...);
+        if (function_) {
+            return function_(std::forward<CallArgs>(callArgs)...);
+        } else if (functor_) {
+            return functor_->invoke(std::forward<CallArgs>(callArgs)...);
+        } else {
+            throw std::runtime_error(
+                "Callable has no valid function or functor");
+        }
     }
 
     const ArgsTuple& args() const { return args_; }
     FunctionType     function() const { return function_; }
+    bool             isFunctor() const { return functor_ != nullptr; }
 
   private:
-    FunctionType function_;
-    ArgsTuple    args_;
+    // Base class for type-erased functor
+    struct FunctorBase {
+        virtual ~FunctorBase()                        = default;
+        virtual ReturnType invoke(Args... args) const = 0;
+    };
 
-    template <size_t... Indices, typename... CallArgs>
-    ReturnType invoke(
-        std::index_sequence<Indices...>,
-        CallArgs&&... callArgs) const {
-        return function_(std::forward<CallArgs>(callArgs)...);
-    }
+    // Type-specific functor wrapper
+    template <typename Functor>
+    struct FunctorWrapper : FunctorBase {
+        Functor functor;
+
+        explicit FunctorWrapper(Functor&& f)
+            : functor(std::forward<Functor>(f)) {}
+
+        ReturnType invoke(Args... args) const override {
+            return functor(std::forward<Args>(args)...);
+        }
+    };
+
+    FunctionType                       function_;
+    ArgsTuple                          args_;
+    std::shared_ptr<const FunctorBase> functor_;
 };
+
 
 // Specialization for method pointers
 template <typename ClassType, typename ReturnType, typename... Args>
@@ -170,6 +226,30 @@ auto makeCallable(
     std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
     return Callable<CallableClass<const ClassType>, ReturnType, Args...>(
         method, std::move(args));
+}
+
+// For functors and lambdas
+template <
+    typename Functor,
+    typename... Args,
+    typename ReturnType = callable_result_t<Functor, Args...>,
+    typename = std::enable_if_t<is_callable<Functor, Args...>::value>>
+auto makeCallable(
+    Functor&&                                     functor,
+    std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
+    return Callable<CallableClass<std::monostate>, ReturnType, Args...>(
+        std::forward<Functor>(functor), std::move(args));
+}
+
+// For constructors
+template <typename ConstructedType, typename... Args>
+auto makeConstructorCallable(
+    std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
+    return Callable<
+        CallableClass<std::monostate>,
+        ConstructedType,
+        Args...>::
+        template ForConstructor<ConstructedType>(std::move(args));
 }
 
 // Converter template for JS <-> C++ type conversions
