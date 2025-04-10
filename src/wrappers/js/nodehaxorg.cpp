@@ -7929,6 +7929,132 @@ Napi::Object InitModule(Napi::Env env, Napi::Object exports) {
   ImmCmdNameAdapter::Init(env, exports);
   ImmCmdCallAdapter::Init(env, exports);
   ImmCmdAttrAdapter::Init(env, exports);
+  {
+    auto callable = makeCallable(&org::newSemTimeStatic, std::make_tuple(CxxArgSpec<hstd::UserTimeBreakdown>{"breakdown"},
+                                                                         CxxArgSpec<bool>{"isActive", 0}));
+    exports.Set("newSemTimeStatic", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::parseFile, std::make_tuple(CxxArgSpec<std::string>{"file"},
+                                                                  CxxArgSpec<org::OrgParseParameters>{"opts"}));
+    exports.Set("parseFile", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::parseString, std::make_tuple(CxxArgSpec<std::string>{"text"}));
+    exports.Set("parseString", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::parseStringOpts, std::make_tuple(CxxArgSpec<std::string>{"text"},
+                                                                        CxxArgSpec<org::OrgParseParameters>{"opts"}));
+    exports.Set("parseStringOpts", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::parseDirectoryOpts, std::make_tuple(CxxArgSpec<std::string>{"path"},
+                                                                           CxxArgSpec<org::OrgDirectoryParseParameters>{"opts"}));
+    exports.Set("parseDirectoryOpts", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::parseFileWithIncludes, std::make_tuple(CxxArgSpec<std::string>{"file"},
+                                                                              CxxArgSpec<org::OrgDirectoryParseParameters>{"opts"}));
+    exports.Set("parseFileWithIncludes", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::initImmutableAstContext, std::make_tuple());
+    exports.Set("initImmutableAstContext", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::asOneNode, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"arg"}));
+    exports.Set("asOneNode", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::formatToString, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"arg"}));
+    exports.Set("formatToString", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::exportToYamlString, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"node"},
+                                                                           CxxArgSpec<org::OrgYamlExportOpts>{"opts"}));
+    exports.Set("exportToYamlString", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::exportToYamlFile, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"node"},
+                                                                         CxxArgSpec<std::string>{"path"},
+                                                                         CxxArgSpec<org::OrgYamlExportOpts>{"opts"}));
+    exports.Set("exportToYamlFile", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::exportToJsonString, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"node"}));
+    exports.Set("exportToJsonString", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::exportToJsonFile, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"node"},
+                                                                         CxxArgSpec<std::string>{"path"}));
+    exports.Set("exportToJsonFile", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::readProtobufFile, std::make_tuple(CxxArgSpec<std::string>{"file"}));
+    exports.Set("readProtobufFile", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::exportToProtobufFile, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Document>>{"doc"},
+                                                                             CxxArgSpec<std::string>{"file"}));
+    exports.Set("exportToProtobufFile", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::exportToTreeString, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"node"},
+                                                                           CxxArgSpec<org::OrgTreeExportOpts>{"opts"}));
+    exports.Set("exportToTreeString", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::exportToTreeFile, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"node"},
+                                                                         CxxArgSpec<std::string>{"path"},
+                                                                         CxxArgSpec<org::OrgTreeExportOpts>{"opts"}));
+    exports.Set("exportToTreeFile", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::getAstTrackingMap, std::make_tuple(CxxArgSpec<hstd::Vec<org::sem::SemId<org::sem::Org>>>{"nodes"}));
+    exports.Set("getAstTrackingMap", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::getSubnodeGroups, std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"node"},
+                                                                         CxxArgSpec<org::AstTrackingMap>{"map"}));
+    exports.Set("getSubnodeGroups", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&hstd::annotateSequence, std::make_tuple(CxxArgSpec<hstd::Vec<hstd::SequenceSegmentGroup>>{"groups"},
+                                                                          CxxArgSpec<int>{"first"},
+                                                                          CxxArgSpec<int>{"last"}));
+    exports.Set("annotateSequence", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::graph::registerNode, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"s"},
+                                                                            CxxArgSpec<org::graph::MapNodeProp>{"node"},
+                                                                            CxxArgSpec<org::graph::MapConfig>{"conf"}));
+    exports.Set("registerNode", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::graph::addNode, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"g"},
+                                                                       CxxArgSpec<org::imm::ImmAdapter>{"node"},
+                                                                       CxxArgSpec<org::graph::MapConfig>{"conf"}));
+    exports.Set("addNode", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::graph::addNodeRec, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"g"},
+                                                                          CxxArgSpec<org::imm::ImmAdapter>{"node"},
+                                                                          CxxArgSpec<org::graph::MapConfig>{"conf"}));
+    exports.Set("addNodeRec", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::graph::getUnresolvedSubtreeLinks, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"s"},
+                                                                                         CxxArgSpec<org::imm::ImmAdapterT<org::imm::ImmSubtree>>{"node"},
+                                                                                         CxxArgSpec<org::graph::MapConfig>{"conf"}));
+    exports.Set("getUnresolvedSubtreeLinks", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
+  {
+    auto callable = makeCallable(&org::graph::getUnresolvedLink, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"s"},
+                                                                                 CxxArgSpec<org::imm::ImmAdapterT<org::imm::ImmLink>>{"node"},
+                                                                                 CxxArgSpec<org::graph::MapConfig>{"conf"}));
+    exports.Set("getUnresolvedLink", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
+  }
   return exports;
 }
 

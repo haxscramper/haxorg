@@ -849,7 +849,7 @@ sem::SemId<Time> org::newSemTimeStatic(
     return result;
 }
 
-sem::SemId<Org> org::asOneNode(OrgArg arg) {
+sem::SemId<Org> org::asOneNode(org::sem::SemId<org::sem::Org> const& arg) {
     switch (arg->getKind()) {
         case osk::StmtList:
         case osk::Document:

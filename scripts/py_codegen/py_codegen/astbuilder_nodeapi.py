@@ -21,18 +21,43 @@ class NapiField():
 
 
 @beartype
+def build_callable_argument_list(Func: GenTuFunction, b: cpp.ASTBuilder) -> BlockId:
+    return b.CallStatic(
+        typ=QualType(name="std"),
+        opc="make_tuple",
+        Args=[
+            b.XConstructObj(
+                obj=arg.type.withoutCVRef().withWrapperType(QualType(name="CxxArgSpec")),
+                Args=cond(
+                    arg.value,
+                    [b.StringLiteral(arg.name),
+                     b.ToBlockId(arg.value)],
+                    [b.StringLiteral(arg.name)],
+                ),
+            ) for arg in Func.arguments
+        ],
+        Line=len(Func.arguments) <= 1,
+    )
+
+
+@beartype
+def get_function_napi_name(Func: GenTuFunction):
+    if Func.reflectionParams.unique_name:
+        return Func.reflectionParams.unique_name
+
+    elif Func.reflectionParams.wrapper_name:
+        return Func.reflectionParams.wrapper_name
+
+    else:
+        return Func.name
+
+
+@beartype
 class NapiMethod():
     Func: GenTuFunction
 
-    def getNapiName(self):
-        if self.Func.reflectionParams.unique_name:
-            return self.Func.reflectionParams.unique_name
-
-        elif self.Func.reflectionParams.wrapper_name:
-            return self.Func.reflectionParams.wrapper_name
-
-        else:
-            return self.Func.name
+    def getNapiName(self) -> str:
+        return get_function_napi_name(self.Func)
 
     def build_bind(self, Class: QualType, OriginalClass: QualType,
                    b: cpp.ASTBuilder) -> cpp.MethodDeclParams:
@@ -56,32 +81,12 @@ class NapiMethod():
                                     args=[
                                         b.Addr(
                                             b.line([
-                                                b.Type(OriginalClass),
-                                                b.string("::"),
-                                                b.string(self.Func.name),
+                                                b.Scoped(OriginalClass, self.Func.name),
                                             ]))
                                     ],
                                     Params=[self.Func.get_function_type(OriginalClass)],
                                 ),
-                                b.CallStatic(
-                                    typ=QualType(name="std"),
-                                    opc="make_tuple",
-                                    Args=[
-                                        b.XConstructObj(
-                                            obj=arg.type.withoutCVRef().withWrapperType(
-                                                QualType(name="CxxArgSpec")),
-                                            Args=cond(
-                                                arg.value,
-                                                [
-                                                    b.StringLiteral(arg.name),
-                                                    b.ToBlockId(arg.value)
-                                                ],
-                                                [b.StringLiteral(arg.name)],
-                                            ),
-                                        ) for arg in self.Func.arguments
-                                    ],
-                                    Line=len(self.Func.arguments) <= 1,
-                                ),
+                                build_callable_argument_list(self.Func, b=b),
                             ],
                             Line=False,
                         ),
@@ -271,6 +276,67 @@ class NapiClass():
 
 
 @beartype
+class NapiFunction():
+    Func: GenTuFunction
+
+    def __init__(self, Func: GenTuFunction):
+        self.Func = Func
+
+    def getNapiName(self) -> str:
+        return get_function_napi_name(self.Func)
+
+    def build_bind(self, b: cpp.ASTBuilder) -> BlockId:
+        return b.block(None, [
+            b.VarDecl(
+                cpp.ParmVarParams(
+                    type=QualType(name="auto"),
+                    name="callable",
+                    defArg=b.XCall(
+                        "makeCallable",
+                        args=[
+                            b.Addr(b.Type(self.Func.get_full_qualified_name())),
+                            build_callable_argument_list(self.Func, b=b),
+                        ],
+                    ),
+                )),
+            b.XCallRef(
+                b.string("exports"),
+                "Set",
+                args=[
+                    b.StringLiteral(self.getNapiName()),
+                    b.CallStatic(
+                        typ=QualType(name="Function",
+                                     Spaces=[QualType(name="Napi", isNamespace=True)]),
+                        opc="New",
+                        Args=[
+                            b.string("env"),
+                            b.Lambda(
+                                cpp.LambdaParams(
+                                    CaptureList=[
+                                        cpp.LambdaCapture(Name="callable", ByRef=False)
+                                    ],
+                                    Args=[
+                                        ParmVarParams(type=T_CALLBACK_INFO.asConstRef(),
+                                                      name="info")
+                                    ],
+                                    Body=[
+                                        b.Return(
+                                            b.XCall("WrapFunction",
+                                                    args=[
+                                                        b.string("info"),
+                                                        b.string("callable")
+                                                    ]))
+                                    ],
+                                )),
+                        ],
+                    ),
+                ],
+                Stmt=True,
+            ),
+        ])
+
+
+@beartype
 @dataclass
 class NapiBindPass:
     Id: BlockId
@@ -295,7 +361,7 @@ class NapiModule():
                 pass
 
             case GenTuFunction():
-                pass
+                self.items.append(NapiFunction(item))
 
             case NapiBindPass():
                 self.items.append(item)
@@ -312,14 +378,25 @@ class NapiModule():
         for it in self.Header:
             b.b.add_at(Result, it.Id)
 
+        overload_counts: Dict[str, int] = defaultdict(lambda: 0)
+
         for item in self.items:
             match item:
                 case NapiClass():
                     b.b.add_at(Result, item.build_bind(ast=ast, b=b, base_map=base_map))
                     Body.append(item.build_module_registration(b=b))
 
+                case NapiFunction():
+                    overload_counts[item.getNapiName()] += 1
+                    Body.append(item.build_bind(b=b))
+
                 case _:
                     raise ValueError("Unahn")
+
+        for key, value in overload_counts.items():
+            if 1 < value:
+                log(CAT).warning(
+                    f"{key} is overloaded without unique name, has {value} overloads")
 
         Body.append(b.Return(b.string("exports")))
 

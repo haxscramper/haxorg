@@ -94,7 +94,8 @@ sem::SemId<sem::Org> evaluateCodeBlocks(
 /// Intended to be used for `asOneNode(parseString("some paragraph"))` --
 /// remove the outer `Document` node and get to the actual paragraph entry
 /// at hand.
-[[refl]] sem::SemId<sem::Org> asOneNode(sem::OrgArg arg);
+[[refl]] sem::SemId<sem::Org> asOneNode(
+    org::sem::SemId<org::sem::Org> const& arg);
 
 [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
 

@@ -160,6 +160,9 @@ class GenTuFunction:
 
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
 
+    def get_full_qualified_name(self) -> QualType:
+        return QualType(name=self.name, Spaces=self.spaces)
+
     def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
         return QualType(
             func=QualType.Function(

@@ -1012,20 +1012,25 @@ class ASTBuilder(base.AstbuilderBase):
 
     def block(
         self,
-        head: BlockId,
+        head: Optional[BlockId],
         content: List[BlockId],
         trailingLine: bool = False,
         allowOneLine: bool = True,
     ) -> BlockId:
         if allowOneLine and len(content) < 2:
-            result = self.b.line(
-                [head, self.string(" { "),
-                 self.b.stack(content),
-                 self.string(" }")])
+            result = self.b.line([
+                head or self.string(""),
+                self.string(" { " if head else "{"),
+                self.b.stack(content),
+                self.string(" }"),
+            ])
 
         else:
             result = self.b.stack([
-                self.b.line([head, self.string(" {")]),
+                self.b.line([
+                    head or self.string(""),
+                    self.string(" {" if head else "{"),
+                ]),
                 self.b.indent(2, self.b.stack(content)),
                 self.string("}")
             ])
@@ -1269,8 +1274,7 @@ class ASTBuilder(base.AstbuilderBase):
         if p.InitList:
             head = self.b.line([])
             self.b.add_at(head, self.string(" : "))
-            self.b.add_at(
-                head, self.csv([self.b.line([item]) for item in p.InitList]))
+            self.b.add_at(head, self.csv([self.b.line([item]) for item in p.InitList]))
 
             return head
 

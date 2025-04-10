@@ -8872,7 +8872,7 @@ ingoing elements.)RAW")
         pybind11::arg("opts"));
   m.def("initImmutableAstContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(*)()>(&org::initImmutableAstContext));
   m.def("asOneNode",
-        static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::OrgArg)>(&org::asOneNode),
+        static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org> const&)>(&org::asOneNode),
         pybind11::arg("arg"));
   m.def("formatToString",
         static_cast<std::string(*)(org::sem::SemId<org::sem::Org>)>(&org::formatToString),
