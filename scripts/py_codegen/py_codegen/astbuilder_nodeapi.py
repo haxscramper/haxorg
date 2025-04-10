@@ -192,6 +192,8 @@ class NapiClass():
                     ]) for m in wrapper_methods
         ]
 
+        WrapperClass.nested.append(b.string("static inline Napi::FunctionReference constructor;"))
+
         WrapperClass.members.append(
             cpp.MethodDeclParams(
                 Params=cpp.FunctionParams(
@@ -219,11 +221,8 @@ class NapiClass():
                                     ),
                                 )),
                         ]),
-                        b.string(
-                            "Napi::FunctionReference* constructor = new Napi::FunctionReference();"
-                        ),
-                        b.string("*constructor = Napi::Persistent(func);"),
-                        b.string("env.SetInstanceData(constructor);"),
+                        b.string("constructor = Napi::Persistent(func);"),
+                        b.string("env.SetInstanceData(&constructor);"),
                         b.XCallRef(
                             b.string("exports"),
                             "Set",
@@ -272,7 +271,33 @@ class NapiClass():
                 Body=[b.Return(b.Call(b.Dot(b.string("_stored"), b.string("get"))))],
             )))
 
-        return b.Record(WrapperClass)
+        return b.stack([
+            b.Record(WrapperClass),
+            b.Record(
+                cpp.RecordParams(
+                    name=QualType(name="js_to_org_type",
+                                  Parameters=[QualType(name=self.getNapiName())]),
+                    Template=TemplateParams(Stacks=[TemplateGroup()]),
+                    IsTemplateSpecialization=True,
+                    nested=[
+                        b.Using(
+                            cpp.UsingParams(newName="type",
+                                            baseType=self.Record.declarationQualName()))
+                    ],
+                )),
+            b.Record(
+                cpp.RecordParams(
+                    name=QualType(name="org_to_js_type",
+                                  Parameters=[self.Record.declarationQualName()]),
+                    Template=TemplateParams(Stacks=[TemplateGroup()]),
+                    IsTemplateSpecialization=True,
+                    nested=[
+                        b.Using(
+                            cpp.UsingParams(newName="type",
+                                            baseType=QualType(name=self.getNapiName())))
+                    ],
+                )),
+        ])
 
 
 @beartype

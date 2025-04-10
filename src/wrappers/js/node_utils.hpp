@@ -7,6 +7,45 @@
 
 namespace org::bind::js {
 
+template <typename T>
+struct org_to_js_type {};
+
+template <typename T>
+struct js_to_org_type {};
+
+// Helper to check if a specialization exists
+template <typename T, typename = void>
+struct has_js_to_org_mapping : std::false_type {};
+
+template <typename T>
+struct has_js_to_org_mapping<
+    T,
+    std::void_t<typename js_to_org_type<T>::type>> : std::true_type {};
+
+template <typename T, typename = void>
+struct has_org_to_js_mapping : std::false_type {};
+
+template <typename T>
+struct has_org_to_js_mapping<
+    T,
+    std::void_t<typename org_to_js_type<T>::type>> : std::true_type {};
+
+// Concept to check if a JS type has a mapping to an org type
+template <typename JsType>
+concept HasOrgMapping = has_js_to_org_mapping<JsType>::value;
+
+// Concept to check if an org type has a mapping to a JS type
+template <typename OrgType>
+concept HasJsMapping = has_org_to_js_mapping<OrgType>::value;
+
+// Concept to check if a bidirectional mapping exists
+template <typename JsType, typename OrgType>
+concept HasBidirectionalMapping //
+    = HasOrgMapping<JsType>     //
+   && HasJsMapping<OrgType>
+   && std::is_same_v<typename js_to_org_type<JsType>::type, OrgType>
+   && std::is_same_v<typename org_to_js_type<OrgType>::type, JsType>;
+
 // Argument specification template
 template <typename T>
 struct CxxArgSpec {
@@ -52,8 +91,9 @@ using callable_result_t = std::invoke_result_t<F, Args...>;
 template <typename ReturnType, typename... Args>
 class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
   public:
-    using FunctionType = ReturnType (*)(Args...);
-    using ArgsTuple    = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
+    using FunctionType  = ReturnType (*)(Args...);
+    using ArgsTuple     = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
+    using ArgsBaseTypes = std::tuple<Args...>;
 
     Callable(FunctionType func, ArgsTuple args)
         : function_(func), args_(std::move(args)), functor_(nullptr) {}
@@ -132,8 +172,9 @@ class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
 template <typename ClassType, typename ReturnType, typename... Args>
 class Callable<CallableClass<ClassType>, ReturnType, Args...> {
   public:
-    using MethodType = ReturnType (ClassType::*)(Args...);
-    using ArgsTuple  = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
+    using MethodType    = ReturnType (ClassType::*)(Args...);
+    using ArgsTuple     = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
+    using ArgsBaseTypes = std::tuple<Args...>;
 
     Callable(MethodType method, ArgsTuple args)
         : method_(method), args_(std::move(args)) {}
@@ -167,8 +208,9 @@ class Callable<CallableClass<ClassType>, ReturnType, Args...> {
 template <typename ClassType, typename ReturnType, typename... Args>
 class Callable<CallableClass<const ClassType>, ReturnType, Args...> {
   public:
-    using MethodType = ReturnType (ClassType::*)(Args...) const;
-    using ArgsTuple  = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
+    using MethodType    = ReturnType (ClassType::*)(Args...) const;
+    using ArgsTuple     = std::tuple<CxxArgSpec<std::decay_t<Args>>...>;
+    using ArgsBaseTypes = std::tuple<Args...>;
 
     Callable(MethodType method, ArgsTuple args)
         : method_(method), args_(std::move(args)) {}
@@ -322,6 +364,38 @@ struct JsConverter<int> {
     }
 };
 
+template <typename T>
+T* ExtractWrappedObject(const Napi::Value& value) {
+    if (!value.IsObject()) {
+        throw Napi::TypeError::New(value.Env(), "Object expected");
+    }
+
+    Napi::Object obj = value.As<Napi::Object>();
+
+    // Method 1: For objects created with ObjectWrap
+    if (obj.InstanceOf(T::constructor.Value())) {
+        return Napi::ObjectWrap<T>::Unwrap(obj);
+    }
+
+    // Method 2: For objects with an external field
+    if (obj.Has("__external")) {
+        Napi::External<T> external = obj.Get("__external")
+                                         .As<Napi::External<T>>();
+        return external.Data();
+    }
+
+    // Method 3: For objects with an external field holding a shared_ptr
+    if (obj.Has("__ptr")) {
+        Napi::External<std::shared_ptr<T>>
+            external = obj.Get("__ptr")
+                           .As<Napi::External<std::shared_ptr<T>>>();
+        return external.Data()->get();
+    }
+
+    throw Napi::Error::New(
+        value.Env(), "Cannot extract wrapped C++ object");
+}
+
 // Generic wrapper function for any Callable
 template <typename CallableType, typename ClassInstance, size_t... Indices>
 Napi::Value WrapCallableImpl(
@@ -337,7 +411,12 @@ Napi::Value WrapCallableImpl(
 
         // Convert arguments with proper type checking - now using pack
         // expansion instead of indexing into the tuple at runtime
-        auto convertArg = [&info, &argSpecs]<size_t Index>() {
+        auto convertArg = [&info, &argSpecs]<
+                              size_t Index,
+                              typename ExactResult = std::tuple_element_t<
+                                  Index,
+                                  typename CallableType::ArgsBaseTypes>>()
+            -> ExactResult {
             // Get the type of the argument at compile-time index
             using ArgSpecType = std::
                 tuple_element_t<Index, std::decay_t<decltype(argSpecs)>>;
@@ -345,14 +424,25 @@ Napi::Value WrapCallableImpl(
 
             const auto& argSpec = std::get<Index>(argSpecs);
 
-            if (Index < info.Length()) {
-                return JsConverter<ArgType>::from_js_value(info[Index]);
-            } else if (argSpec.defaultValue) {
-                return *argSpec.defaultValue;
+            if constexpr (HasJsMapping<ArgType>) {
+                using MappedJsType = typename org_to_js_type<
+                    ArgType>::type;
+                MappedJsType* ptr = ExtractWrappedObject<MappedJsType>(
+                    info[Index]);
+                ArgType* argPtr = ptr->getPtr();
+                return *argPtr;
+
             } else {
-                throw Napi::TypeError::New(
-                    info.Env(),
-                    "Missing required argument: " + argSpec.name);
+                if (Index < info.Length()) {
+                    return JsConverter<ArgType>::from_js_value(
+                        info[Index]);
+                } else if (argSpec.defaultValue) {
+                    return *argSpec.defaultValue;
+                } else {
+                    throw Napi::TypeError::New(
+                        info.Env(),
+                        "Missing required argument: " + argSpec.name);
+                }
             }
         };
 
