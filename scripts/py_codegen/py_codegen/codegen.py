@@ -1158,6 +1158,8 @@ def gen_pyhaxorg_napi_wrappers(
                 case _:
                     res.add_decl(decl)
 
+
+
     res.Header.append(napi.NapiBindPass(ast.Include("node_utils.hpp")))
     res.Header.append(napi.NapiBindPass(ast.Include("node_org_include.hpp")))
     res.Header.append(napi.NapiBindPass(ast.string("using namespace org::bind::js;")))

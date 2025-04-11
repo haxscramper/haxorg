@@ -192,7 +192,8 @@ class NapiClass():
                     ]) for m in wrapper_methods
         ]
 
-        WrapperClass.nested.append(b.string("static inline Napi::FunctionReference* constructor;"))
+        WrapperClass.nested.append(
+            b.string("static inline Napi::FunctionReference* constructor;"))
 
         WrapperClass.members.append(
             cpp.MethodDeclParams(
@@ -256,14 +257,30 @@ class NapiClass():
                     ] if self.Record.reflectionParams.default_constructor else []),
                 ])))
 
+        shared_stored_ptr_type = QualType(
+            name="shared_ptr",
+            Spaces=[QualType(name="std", isNamespace=True)],
+            Parameters=[self.getCxxName()],
+        )
+
+        WrapperClass.members.append(
+            cpp.MethodDeclParams(Params=cpp.FunctionParams(
+                Name=self.getNapiName(),
+                ResultTy=None,
+                InitList=[b.XConstructObj(obj=BaseWrap, Args=[b.string("info")])],
+                Args=[
+                    ParmVarParams(type=T_CALLBACK_INFO.asConstRef(), name="info"),
+                    ParmVarParams(type=shared_stored_ptr_type.asConstRef(), name="ptr"),
+                ],
+                Body=[
+                    b.string("Napi::Env env = info.Env();"),
+                    b.string("Napi::HandleScope scope(env);"),
+                    b.string("_stored = ptr;"),
+                ])))
+
         WrapperClass.members.append(
             cpp.RecordField(
-                params=ParmVarParams(name="_stored",
-                                     type=QualType(
-                                         name="shared_ptr",
-                                         Spaces=[QualType(name="std", isNamespace=True)],
-                                         Parameters=[self.getCxxName()],
-                                     ))))
+                params=ParmVarParams(name="_stored", type=shared_stored_ptr_type)))
 
         WrapperClass.members.append(
             cpp.MethodDeclParams(Params=cpp.FunctionParams(

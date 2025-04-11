@@ -4,9 +4,10 @@
 #include <tuple>
 #include <stdexcept>
 #include <utility>
-#include <iostream>
 #include <cpptrace.hpp>
-#include <sstream>
+#include <hstd/system/reflection.hpp>
+#include <haxorg/sem/SemOrg.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 
 namespace org::bind::js {
 
@@ -372,16 +373,12 @@ auto makeConstructorCallable(
 
 // Converter template for JS <-> C++ type conversions
 template <typename T, typename Enable = void>
-struct JsConverter {
-    // Default implementations will cause compile errors if not specialized
-    static T           from_js_value(const Napi::Value& value);
-    static Napi::Value to_js_value(Napi::Env env, const T& value);
-};
+struct JsConverter {};
 
 // Specialization for string
 template <>
 struct JsConverter<std::string> {
-    static std::string from_js_value(const Napi::Value& value) {
+    static std::string from_js_value(Napi::Value const& value) {
         if (value.IsString()) {
             return value.As<Napi::String>().Utf8Value();
         }
@@ -398,11 +395,14 @@ struct JsConverter<std::string> {
 // Specialization for boolean
 template <>
 struct JsConverter<bool> {
-    static bool from_js_value(const Napi::Value& value) {
+    static bool from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
         if (value.IsBoolean()) {
             return value.As<Napi::Boolean>().Value();
+        } else {
+            throw OrgJsTypeError::New(value.Env(), "Boolean expected");
         }
-        throw OrgJsTypeError::New(value.Env(), "Boolean expected");
     }
 
     static Napi::Value to_js_value(Napi::Env env, const bool& value) {
@@ -413,26 +413,34 @@ struct JsConverter<bool> {
 // Specialization for number (double)
 template <>
 struct JsConverter<double> {
-    static double from_js_value(const Napi::Value& value) {
+    static double from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
         if (value.IsNumber()) {
             return value.As<Napi::Number>().DoubleValue();
+        } else {
+            throw OrgJsTypeError::New(value.Env(), "Number expected");
         }
-        throw OrgJsTypeError::New(value.Env(), "Number expected");
     }
 
-    static Napi::Value to_js_value(Napi::Env env, const double& value) {
-        return Napi::Number::New(env, value);
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        const double&             value) {
+        return Napi::Number::New(info.Env(), value);
     }
 };
 
 // Specialization for integer
 template <>
 struct JsConverter<int> {
-    static int from_js_value(const Napi::Value& value) {
+    static int from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
         if (value.IsNumber()) {
             return value.As<Napi::Number>().Int32Value();
+        } else {
+            throw OrgJsTypeError::New(value.Env(), "Integer expected");
         }
-        throw OrgJsTypeError::New(value.Env(), "Integer expected");
     }
 
     static Napi::Value to_js_value(Napi::Env env, const int& value) {
@@ -440,10 +448,34 @@ struct JsConverter<int> {
     }
 };
 
+
+template <typename T, typename... Args>
+Napi::Value CreateWrappedObject(
+    Napi::CallbackInfo const& info,
+    Args&&... args) {
+    // Check if the constructor reference has been initialized
+    if (T::constructor->IsEmpty()) {
+        throw Napi::Error::New(
+            info.Env(),
+            "Constructor not initialized. Make sure to call T::Init() "
+            "first.");
+    } else {
+        return T{
+            info,
+            std::make_shared<typename js_to_org_type<T>::type>(
+                std::forward<Args>(args)...),
+        };
+    }
+}
+
 template <typename T>
-T* ExtractWrappedObject(const Napi::Value& value) {
+T* ExtractWrappedObject(Napi::Value const& value) {
     if (!value.IsObject()) {
-        throw OrgJsTypeError::New(value.Env(), "Object expected");
+        throw OrgJsTypeError::New(
+            value.Env(),
+            std::format(
+                "Object expected for extraction of {}",
+                hstd::value_metadata<T>::typeName()));
     }
 
     Napi::Object obj = value.As<Napi::Object>();
@@ -472,10 +504,53 @@ T* ExtractWrappedObject(const Napi::Value& value) {
         value.Env(), "Cannot extract wrapped C++ object");
 }
 
+
+template <org::sem::IsOrg T>
+struct JsConverter<org::sem::SemId<T>> {
+    static org::sem::SemId<T> from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        auto* wrappedPtr = ExtractWrappedObject<org_to_js_type<T>::type>(
+            value);
+        return org::sem::SemId<T>(wrappedPtr->_stored);
+    }
+
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        org::sem::SemId<T> const& value) {
+        return CreateWrappedObject<typename org_to_js_type<T>::type>(
+            info, value.value);
+    }
+};
+
+template <>
+struct JsConverter<org::sem::SemId<org::sem::Org>> {
+    static org::sem::SemId<org::sem::Org> from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        throw Napi::Error::New(info.Env(), "TODO implement conversion");
+    }
+
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const&             info,
+        org::sem::SemId<org::sem::Org> const& value) {
+        Napi::Value result;
+        org::switch_node_id(
+            value, [&]<typename T>(org::sem::SemId<T> const& convId) {
+                result = JsConverter<org::sem::SemId<T>>::to_js_value(
+                    info, convId);
+            });
+        return result;
+    }
+};
+
+
 // Generic wrapper function for any Callable
 template <typename CallableType, typename ClassInstance, size_t... Indices>
 Napi::Value WrapCallableImpl(
-    const Napi::CallbackInfo& info,
+    Napi::CallbackInfo const& info,
     const CallableType&       callable,
     ClassInstance             instance,
     std::index_sequence<Indices...>) {
@@ -512,7 +587,7 @@ Napi::Value WrapCallableImpl(
                 } else {
                     if (Index < info.Length()) {
                         return JsConverter<ArgType>::from_js_value(
-                            info[Index]);
+                            info, info[Index]);
                     } else if (argSpec.defaultValue) {
                         return *argSpec.defaultValue;
                     } else {
@@ -525,7 +600,8 @@ Napi::Value WrapCallableImpl(
                 throw OrgJsTypeError::New(
                     info.Env(),
                     std::format(
-                        "Type error when processing argument {}: {}",
+                        "Type error when processing argument #{}, {}: {}",
+                        Index,
                         argSpec.name,
                         t.message()));
             }
@@ -543,7 +619,7 @@ Napi::Value WrapCallableImpl(
             } else {
                 ReturnType result = callable(
                     convertArg.template operator()<Indices>()...);
-                return JsConverter<ReturnType>::to_js_value(env, result);
+                return JsConverter<ReturnType>::to_js_value(info, result);
             }
         } else {
             // Method call (with instance)
@@ -559,7 +635,7 @@ Napi::Value WrapCallableImpl(
                 ReturnType result = callable(
                     instance,
                     convertArg.template operator()<Indices>()...);
-                return JsConverter<ReturnType>::to_js_value(env, result);
+                return JsConverter<ReturnType>::to_js_value(info, result);
             }
         }
     } catch (const Napi::Error& e) {
@@ -577,7 +653,7 @@ Napi::Value WrapCallableImpl(
 // Wrapper for standalone functions
 template <typename ReturnType, typename... Args>
 Napi::Value WrapFunction(
-    const Napi::CallbackInfo& info,
+    Napi::CallbackInfo const& info,
     const Callable<CallableClass<std::monostate>, ReturnType, Args...>&
         callable) {
     return WrapCallableImpl(
@@ -587,7 +663,7 @@ Napi::Value WrapFunction(
 // Wrapper for non-const methods
 template <typename ClassType, typename ReturnType, typename... Args>
 Napi::Value WrapMethod(
-    const Napi::CallbackInfo& info,
+    Napi::CallbackInfo const& info,
     ClassType*                instance,
     const Callable<CallableClass<ClassType>, ReturnType, Args...>&
         callable) {
@@ -599,7 +675,7 @@ Napi::Value WrapMethod(
 // Wrapper for const methods
 template <typename ClassType, typename ReturnType, typename... Args>
 Napi::Value WrapConstMethod(
-    const Napi::CallbackInfo& info,
+    Napi::CallbackInfo const& info,
     const ClassType*          instance,
     const Callable<CallableClass<const ClassType>, ReturnType, Args...>&
         callable) {

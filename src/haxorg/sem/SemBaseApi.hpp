@@ -358,6 +358,22 @@ void eachSubnodeRecSimplePath(
     SemSubnodeVisitorSimplePath cb);
 
 
+template <typename Func>
+void switch_node_id(org::sem::SemId<org::sem::Org> id, Func const& cb) {
+    switch (id->getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        cb(id.as<org::sem::__Kind>());                                    \
+        break;                                                            \
+    }
+
+        EACH_SEM_ORG_KIND(_case)
+#undef _case
+        default: {
+        }
+    }
+}
+
 using ImmSubnodeVisitor = hstd::Func<void(imm::ImmAdapter)>;
 void eachSubnodeRec(
     org::imm::ImmAdapter id,

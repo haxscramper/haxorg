@@ -17,6 +17,11 @@ struct UserTimeBreakdownJs : public Napi::ObjectWrap<UserTimeBreakdownJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<hstd::UserTimeBreakdown>();
   }
+  UserTimeBreakdownJs(Napi::CallbackInfo const& info, std::shared_ptr<hstd::UserTimeBreakdown> const& ptr) : Napi::ObjectWrap<UserTimeBreakdownJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<hstd::UserTimeBreakdown> _stored;
   hstd::UserTimeBreakdown* getPtr() { return _stored.get(); }
 };
@@ -45,6 +50,11 @@ struct UserTimeJs : public Napi::ObjectWrap<UserTimeJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<hstd::UserTime>();
+  }
+  UserTimeJs(Napi::CallbackInfo const& info, std::shared_ptr<hstd::UserTime> const& ptr) : Napi::ObjectWrap<UserTimeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<hstd::UserTime> _stored;
   hstd::UserTime* getPtr() { return _stored.get(); }
@@ -75,6 +85,11 @@ struct LineColJs : public Napi::ObjectWrap<LineColJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::parse::LineCol>();
   }
+  LineColJs(Napi::CallbackInfo const& info, std::shared_ptr<org::parse::LineCol> const& ptr) : Napi::ObjectWrap<LineColJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::parse::LineCol> _stored;
   org::parse::LineCol* getPtr() { return _stored.get(); }
 };
@@ -103,6 +118,11 @@ struct OrgJsonJs : public Napi::ObjectWrap<OrgJsonJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::OrgJson>();
+  }
+  OrgJsonJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::OrgJson> const& ptr) : Napi::ObjectWrap<OrgJsonJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::OrgJson> _stored;
   org::sem::OrgJson* getPtr() { return _stored.get(); }
@@ -133,6 +153,11 @@ struct OperationsTracerJs : public Napi::ObjectWrap<OperationsTracerJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<hstd::OperationsTracer>();
   }
+  OperationsTracerJs(Napi::CallbackInfo const& info, std::shared_ptr<hstd::OperationsTracer> const& ptr) : Napi::ObjectWrap<OperationsTracerJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<hstd::OperationsTracer> _stored;
   hstd::OperationsTracer* getPtr() { return _stored.get(); }
 };
@@ -161,6 +186,11 @@ struct ImmIdJs : public Napi::ObjectWrap<ImmIdJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmId>();
+  }
+  ImmIdJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmId> const& ptr) : Napi::ObjectWrap<ImmIdJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmId> _stored;
   org::imm::ImmId* getPtr() { return _stored.get(); }
@@ -191,6 +221,11 @@ struct ImmPathStepJs : public Napi::ObjectWrap<ImmPathStepJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmPathStep>();
   }
+  ImmPathStepJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmPathStep> const& ptr) : Napi::ObjectWrap<ImmPathStepJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmPathStep> _stored;
   org::imm::ImmPathStep* getPtr() { return _stored.get(); }
 };
@@ -219,6 +254,11 @@ struct ImmPathJs : public Napi::ObjectWrap<ImmPathJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmPath>();
+  }
+  ImmPathJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmPath> const& ptr) : Napi::ObjectWrap<ImmPathJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmPath> _stored;
   org::imm::ImmPath* getPtr() { return _stored.get(); }
@@ -249,6 +289,11 @@ struct ImmUniqIdJs : public Napi::ObjectWrap<ImmUniqIdJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmUniqId>();
   }
+  ImmUniqIdJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmUniqId> const& ptr) : Napi::ObjectWrap<ImmUniqIdJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmUniqId> _stored;
   org::imm::ImmUniqId* getPtr() { return _stored.get(); }
 };
@@ -276,6 +321,11 @@ struct ImmNoneValueReadJs : public Napi::ObjectWrap<ImmNoneValueReadJs> {
   ImmNoneValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmNoneValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmNoneValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmNoneValueRead> const& ptr) : Napi::ObjectWrap<ImmNoneValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmNoneValueRead> _stored;
   org::imm::ImmNoneValueRead* getPtr() { return _stored.get(); }
@@ -305,6 +355,11 @@ struct ImmErrorItemValueReadJs : public Napi::ObjectWrap<ImmErrorItemValueReadJs
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmErrorItemValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmErrorItemValueRead> const& ptr) : Napi::ObjectWrap<ImmErrorItemValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmErrorItemValueRead> _stored;
   org::imm::ImmErrorItemValueRead* getPtr() { return _stored.get(); }
 };
@@ -332,6 +387,11 @@ struct ImmErrorGroupValueReadJs : public Napi::ObjectWrap<ImmErrorGroupValueRead
   ImmErrorGroupValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmErrorGroupValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmErrorGroupValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmErrorGroupValueRead> const& ptr) : Napi::ObjectWrap<ImmErrorGroupValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmErrorGroupValueRead> _stored;
   org::imm::ImmErrorGroupValueRead* getPtr() { return _stored.get(); }
@@ -361,6 +421,11 @@ struct ImmStmtListValueReadJs : public Napi::ObjectWrap<ImmStmtListValueReadJs> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmStmtListValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmStmtListValueRead> const& ptr) : Napi::ObjectWrap<ImmStmtListValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmStmtListValueRead> _stored;
   org::imm::ImmStmtListValueRead* getPtr() { return _stored.get(); }
 };
@@ -388,6 +453,11 @@ struct ImmEmptyValueReadJs : public Napi::ObjectWrap<ImmEmptyValueReadJs> {
   ImmEmptyValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmEmptyValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmEmptyValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmEmptyValueRead> const& ptr) : Napi::ObjectWrap<ImmEmptyValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmEmptyValueRead> _stored;
   org::imm::ImmEmptyValueRead* getPtr() { return _stored.get(); }
@@ -417,6 +487,11 @@ struct ImmCmdCaptionValueReadJs : public Napi::ObjectWrap<ImmCmdCaptionValueRead
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdCaptionValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCaptionValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdCaptionValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdCaptionValueRead> _stored;
   org::imm::ImmCmdCaptionValueRead* getPtr() { return _stored.get(); }
 };
@@ -444,6 +519,11 @@ struct ImmCmdColumnsValueReadJs : public Napi::ObjectWrap<ImmCmdColumnsValueRead
   ImmCmdColumnsValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdColumnsValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdColumnsValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdColumnsValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdColumnsValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdColumnsValueRead> _stored;
   org::imm::ImmCmdColumnsValueRead* getPtr() { return _stored.get(); }
@@ -473,6 +553,11 @@ struct ImmCmdNameValueReadJs : public Napi::ObjectWrap<ImmCmdNameValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdNameValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdNameValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdNameValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdNameValueRead> _stored;
   org::imm::ImmCmdNameValueRead* getPtr() { return _stored.get(); }
 };
@@ -500,6 +585,11 @@ struct ImmCmdCustomArgsValueReadJs : public Napi::ObjectWrap<ImmCmdCustomArgsVal
   ImmCmdCustomArgsValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdCustomArgsValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdCustomArgsValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCustomArgsValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdCustomArgsValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdCustomArgsValueRead> _stored;
   org::imm::ImmCmdCustomArgsValueRead* getPtr() { return _stored.get(); }
@@ -529,6 +619,11 @@ struct ImmCmdCustomRawValueReadJs : public Napi::ObjectWrap<ImmCmdCustomRawValue
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdCustomRawValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCustomRawValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdCustomRawValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdCustomRawValueRead> _stored;
   org::imm::ImmCmdCustomRawValueRead* getPtr() { return _stored.get(); }
 };
@@ -556,6 +651,11 @@ struct ImmCmdCustomTextValueReadJs : public Napi::ObjectWrap<ImmCmdCustomTextVal
   ImmCmdCustomTextValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdCustomTextValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdCustomTextValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCustomTextValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdCustomTextValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdCustomTextValueRead> _stored;
   org::imm::ImmCmdCustomTextValueRead* getPtr() { return _stored.get(); }
@@ -585,6 +685,11 @@ struct ImmCmdCallValueReadJs : public Napi::ObjectWrap<ImmCmdCallValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdCallValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCallValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdCallValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdCallValueRead> _stored;
   org::imm::ImmCmdCallValueRead* getPtr() { return _stored.get(); }
 };
@@ -612,6 +717,11 @@ struct ImmCmdTblfmValueReadJs : public Napi::ObjectWrap<ImmCmdTblfmValueReadJs> 
   ImmCmdTblfmValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdTblfmValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdTblfmValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdTblfmValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdTblfmValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdTblfmValueRead> _stored;
   org::imm::ImmCmdTblfmValueRead* getPtr() { return _stored.get(); }
@@ -641,6 +751,11 @@ struct ImmHashTagValueReadJs : public Napi::ObjectWrap<ImmHashTagValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmHashTagValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmHashTagValueRead> const& ptr) : Napi::ObjectWrap<ImmHashTagValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmHashTagValueRead> _stored;
   org::imm::ImmHashTagValueRead* getPtr() { return _stored.get(); }
 };
@@ -668,6 +783,11 @@ struct ImmInlineFootnoteValueReadJs : public Napi::ObjectWrap<ImmInlineFootnoteV
   ImmInlineFootnoteValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmInlineFootnoteValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmInlineFootnoteValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmInlineFootnoteValueRead> const& ptr) : Napi::ObjectWrap<ImmInlineFootnoteValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmInlineFootnoteValueRead> _stored;
   org::imm::ImmInlineFootnoteValueRead* getPtr() { return _stored.get(); }
@@ -697,6 +817,11 @@ struct ImmInlineExportValueReadJs : public Napi::ObjectWrap<ImmInlineExportValue
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmInlineExportValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmInlineExportValueRead> const& ptr) : Napi::ObjectWrap<ImmInlineExportValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmInlineExportValueRead> _stored;
   org::imm::ImmInlineExportValueRead* getPtr() { return _stored.get(); }
 };
@@ -724,6 +849,11 @@ struct ImmTimeValueReadJs : public Napi::ObjectWrap<ImmTimeValueReadJs> {
   ImmTimeValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmTimeValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmTimeValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTimeValueRead> const& ptr) : Napi::ObjectWrap<ImmTimeValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmTimeValueRead> _stored;
   org::imm::ImmTimeValueRead* getPtr() { return _stored.get(); }
@@ -753,6 +883,11 @@ struct ImmTimeRangeValueReadJs : public Napi::ObjectWrap<ImmTimeRangeValueReadJs
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTimeRangeValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTimeRangeValueRead> const& ptr) : Napi::ObjectWrap<ImmTimeRangeValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmTimeRangeValueRead> _stored;
   org::imm::ImmTimeRangeValueRead* getPtr() { return _stored.get(); }
 };
@@ -780,6 +915,11 @@ struct ImmMacroValueReadJs : public Napi::ObjectWrap<ImmMacroValueReadJs> {
   ImmMacroValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmMacroValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmMacroValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmMacroValueRead> const& ptr) : Napi::ObjectWrap<ImmMacroValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmMacroValueRead> _stored;
   org::imm::ImmMacroValueRead* getPtr() { return _stored.get(); }
@@ -809,6 +949,11 @@ struct ImmSymbolValueReadJs : public Napi::ObjectWrap<ImmSymbolValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmSymbolValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSymbolValueRead> const& ptr) : Napi::ObjectWrap<ImmSymbolValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmSymbolValueRead> _stored;
   org::imm::ImmSymbolValueRead* getPtr() { return _stored.get(); }
 };
@@ -836,6 +981,11 @@ struct ImmEscapedValueReadJs : public Napi::ObjectWrap<ImmEscapedValueReadJs> {
   ImmEscapedValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmEscapedValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmEscapedValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmEscapedValueRead> const& ptr) : Napi::ObjectWrap<ImmEscapedValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmEscapedValueRead> _stored;
   org::imm::ImmEscapedValueRead* getPtr() { return _stored.get(); }
@@ -865,6 +1015,11 @@ struct ImmNewlineValueReadJs : public Napi::ObjectWrap<ImmNewlineValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmNewlineValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmNewlineValueRead> const& ptr) : Napi::ObjectWrap<ImmNewlineValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmNewlineValueRead> _stored;
   org::imm::ImmNewlineValueRead* getPtr() { return _stored.get(); }
 };
@@ -892,6 +1047,11 @@ struct ImmSpaceValueReadJs : public Napi::ObjectWrap<ImmSpaceValueReadJs> {
   ImmSpaceValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmSpaceValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmSpaceValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSpaceValueRead> const& ptr) : Napi::ObjectWrap<ImmSpaceValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmSpaceValueRead> _stored;
   org::imm::ImmSpaceValueRead* getPtr() { return _stored.get(); }
@@ -921,6 +1081,11 @@ struct ImmWordValueReadJs : public Napi::ObjectWrap<ImmWordValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmWordValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmWordValueRead> const& ptr) : Napi::ObjectWrap<ImmWordValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmWordValueRead> _stored;
   org::imm::ImmWordValueRead* getPtr() { return _stored.get(); }
 };
@@ -948,6 +1113,11 @@ struct ImmAtMentionValueReadJs : public Napi::ObjectWrap<ImmAtMentionValueReadJs
   ImmAtMentionValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmAtMentionValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmAtMentionValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAtMentionValueRead> const& ptr) : Napi::ObjectWrap<ImmAtMentionValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAtMentionValueRead> _stored;
   org::imm::ImmAtMentionValueRead* getPtr() { return _stored.get(); }
@@ -977,6 +1147,11 @@ struct ImmRawTextValueReadJs : public Napi::ObjectWrap<ImmRawTextValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmRawTextValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmRawTextValueRead> const& ptr) : Napi::ObjectWrap<ImmRawTextValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmRawTextValueRead> _stored;
   org::imm::ImmRawTextValueRead* getPtr() { return _stored.get(); }
 };
@@ -1004,6 +1179,11 @@ struct ImmPunctuationValueReadJs : public Napi::ObjectWrap<ImmPunctuationValueRe
   ImmPunctuationValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmPunctuationValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmPunctuationValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmPunctuationValueRead> const& ptr) : Napi::ObjectWrap<ImmPunctuationValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmPunctuationValueRead> _stored;
   org::imm::ImmPunctuationValueRead* getPtr() { return _stored.get(); }
@@ -1033,6 +1213,11 @@ struct ImmPlaceholderValueReadJs : public Napi::ObjectWrap<ImmPlaceholderValueRe
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmPlaceholderValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmPlaceholderValueRead> const& ptr) : Napi::ObjectWrap<ImmPlaceholderValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmPlaceholderValueRead> _stored;
   org::imm::ImmPlaceholderValueRead* getPtr() { return _stored.get(); }
 };
@@ -1060,6 +1245,11 @@ struct ImmBigIdentValueReadJs : public Napi::ObjectWrap<ImmBigIdentValueReadJs> 
   ImmBigIdentValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBigIdentValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBigIdentValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBigIdentValueRead> const& ptr) : Napi::ObjectWrap<ImmBigIdentValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBigIdentValueRead> _stored;
   org::imm::ImmBigIdentValueRead* getPtr() { return _stored.get(); }
@@ -1089,6 +1279,11 @@ struct ImmTextTargetValueReadJs : public Napi::ObjectWrap<ImmTextTargetValueRead
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTextTargetValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTextTargetValueRead> const& ptr) : Napi::ObjectWrap<ImmTextTargetValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmTextTargetValueRead> _stored;
   org::imm::ImmTextTargetValueRead* getPtr() { return _stored.get(); }
 };
@@ -1116,6 +1311,11 @@ struct ImmBoldValueReadJs : public Napi::ObjectWrap<ImmBoldValueReadJs> {
   ImmBoldValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBoldValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBoldValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBoldValueRead> const& ptr) : Napi::ObjectWrap<ImmBoldValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBoldValueRead> _stored;
   org::imm::ImmBoldValueRead* getPtr() { return _stored.get(); }
@@ -1145,6 +1345,11 @@ struct ImmUnderlineValueReadJs : public Napi::ObjectWrap<ImmUnderlineValueReadJs
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmUnderlineValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmUnderlineValueRead> const& ptr) : Napi::ObjectWrap<ImmUnderlineValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmUnderlineValueRead> _stored;
   org::imm::ImmUnderlineValueRead* getPtr() { return _stored.get(); }
 };
@@ -1172,6 +1377,11 @@ struct ImmMonospaceValueReadJs : public Napi::ObjectWrap<ImmMonospaceValueReadJs
   ImmMonospaceValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmMonospaceValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmMonospaceValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmMonospaceValueRead> const& ptr) : Napi::ObjectWrap<ImmMonospaceValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmMonospaceValueRead> _stored;
   org::imm::ImmMonospaceValueRead* getPtr() { return _stored.get(); }
@@ -1201,6 +1411,11 @@ struct ImmMarkQuoteValueReadJs : public Napi::ObjectWrap<ImmMarkQuoteValueReadJs
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmMarkQuoteValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmMarkQuoteValueRead> const& ptr) : Napi::ObjectWrap<ImmMarkQuoteValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmMarkQuoteValueRead> _stored;
   org::imm::ImmMarkQuoteValueRead* getPtr() { return _stored.get(); }
 };
@@ -1228,6 +1443,11 @@ struct ImmVerbatimValueReadJs : public Napi::ObjectWrap<ImmVerbatimValueReadJs> 
   ImmVerbatimValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmVerbatimValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmVerbatimValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmVerbatimValueRead> const& ptr) : Napi::ObjectWrap<ImmVerbatimValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmVerbatimValueRead> _stored;
   org::imm::ImmVerbatimValueRead* getPtr() { return _stored.get(); }
@@ -1257,6 +1477,11 @@ struct ImmItalicValueReadJs : public Napi::ObjectWrap<ImmItalicValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmItalicValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmItalicValueRead> const& ptr) : Napi::ObjectWrap<ImmItalicValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmItalicValueRead> _stored;
   org::imm::ImmItalicValueRead* getPtr() { return _stored.get(); }
 };
@@ -1284,6 +1509,11 @@ struct ImmStrikeValueReadJs : public Napi::ObjectWrap<ImmStrikeValueReadJs> {
   ImmStrikeValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmStrikeValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmStrikeValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmStrikeValueRead> const& ptr) : Napi::ObjectWrap<ImmStrikeValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmStrikeValueRead> _stored;
   org::imm::ImmStrikeValueRead* getPtr() { return _stored.get(); }
@@ -1313,6 +1543,11 @@ struct ImmParValueReadJs : public Napi::ObjectWrap<ImmParValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmParValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmParValueRead> const& ptr) : Napi::ObjectWrap<ImmParValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmParValueRead> _stored;
   org::imm::ImmParValueRead* getPtr() { return _stored.get(); }
 };
@@ -1340,6 +1575,11 @@ struct ImmRadioTargetValueReadJs : public Napi::ObjectWrap<ImmRadioTargetValueRe
   ImmRadioTargetValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmRadioTargetValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmRadioTargetValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmRadioTargetValueRead> const& ptr) : Napi::ObjectWrap<ImmRadioTargetValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmRadioTargetValueRead> _stored;
   org::imm::ImmRadioTargetValueRead* getPtr() { return _stored.get(); }
@@ -1369,6 +1609,11 @@ struct ImmLatexValueReadJs : public Napi::ObjectWrap<ImmLatexValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmLatexValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmLatexValueRead> const& ptr) : Napi::ObjectWrap<ImmLatexValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmLatexValueRead> _stored;
   org::imm::ImmLatexValueRead* getPtr() { return _stored.get(); }
 };
@@ -1396,6 +1641,11 @@ struct ImmLinkValueReadJs : public Napi::ObjectWrap<ImmLinkValueReadJs> {
   ImmLinkValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmLinkValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmLinkValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmLinkValueRead> const& ptr) : Napi::ObjectWrap<ImmLinkValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmLinkValueRead> _stored;
   org::imm::ImmLinkValueRead* getPtr() { return _stored.get(); }
@@ -1425,6 +1675,11 @@ struct ImmBlockCenterValueReadJs : public Napi::ObjectWrap<ImmBlockCenterValueRe
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockCenterValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockCenterValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockCenterValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockCenterValueRead> _stored;
   org::imm::ImmBlockCenterValueRead* getPtr() { return _stored.get(); }
 };
@@ -1452,6 +1707,11 @@ struct ImmBlockQuoteValueReadJs : public Napi::ObjectWrap<ImmBlockQuoteValueRead
   ImmBlockQuoteValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockQuoteValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockQuoteValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockQuoteValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockQuoteValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockQuoteValueRead> _stored;
   org::imm::ImmBlockQuoteValueRead* getPtr() { return _stored.get(); }
@@ -1481,6 +1741,11 @@ struct ImmBlockCommentValueReadJs : public Napi::ObjectWrap<ImmBlockCommentValue
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockCommentValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockCommentValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockCommentValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockCommentValueRead> _stored;
   org::imm::ImmBlockCommentValueRead* getPtr() { return _stored.get(); }
 };
@@ -1508,6 +1773,11 @@ struct ImmBlockVerseValueReadJs : public Napi::ObjectWrap<ImmBlockVerseValueRead
   ImmBlockVerseValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockVerseValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockVerseValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockVerseValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockVerseValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockVerseValueRead> _stored;
   org::imm::ImmBlockVerseValueRead* getPtr() { return _stored.get(); }
@@ -1537,6 +1807,11 @@ struct ImmBlockDynamicFallbackValueReadJs : public Napi::ObjectWrap<ImmBlockDyna
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockDynamicFallbackValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockDynamicFallbackValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockDynamicFallbackValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockDynamicFallbackValueRead> _stored;
   org::imm::ImmBlockDynamicFallbackValueRead* getPtr() { return _stored.get(); }
 };
@@ -1564,6 +1839,11 @@ struct ImmBlockExampleValueReadJs : public Napi::ObjectWrap<ImmBlockExampleValue
   ImmBlockExampleValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockExampleValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockExampleValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockExampleValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockExampleValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockExampleValueRead> _stored;
   org::imm::ImmBlockExampleValueRead* getPtr() { return _stored.get(); }
@@ -1593,6 +1873,11 @@ struct ImmBlockExportValueReadJs : public Napi::ObjectWrap<ImmBlockExportValueRe
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockExportValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockExportValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockExportValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockExportValueRead> _stored;
   org::imm::ImmBlockExportValueRead* getPtr() { return _stored.get(); }
 };
@@ -1620,6 +1905,11 @@ struct ImmBlockAdmonitionValueReadJs : public Napi::ObjectWrap<ImmBlockAdmonitio
   ImmBlockAdmonitionValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockAdmonitionValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockAdmonitionValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockAdmonitionValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockAdmonitionValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockAdmonitionValueRead> _stored;
   org::imm::ImmBlockAdmonitionValueRead* getPtr() { return _stored.get(); }
@@ -1649,6 +1939,11 @@ struct ImmBlockCodeEvalResultValueReadJs : public Napi::ObjectWrap<ImmBlockCodeE
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockCodeEvalResultValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockCodeEvalResultValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockCodeEvalResultValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockCodeEvalResultValueRead> _stored;
   org::imm::ImmBlockCodeEvalResultValueRead* getPtr() { return _stored.get(); }
 };
@@ -1676,6 +1971,11 @@ struct ImmBlockCodeValueReadJs : public Napi::ObjectWrap<ImmBlockCodeValueReadJs
   ImmBlockCodeValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockCodeValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockCodeValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockCodeValueRead> const& ptr) : Napi::ObjectWrap<ImmBlockCodeValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockCodeValueRead> _stored;
   org::imm::ImmBlockCodeValueRead* getPtr() { return _stored.get(); }
@@ -1705,6 +2005,11 @@ struct ImmSubtreeLogValueReadJs : public Napi::ObjectWrap<ImmSubtreeLogValueRead
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmSubtreeLogValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSubtreeLogValueRead> const& ptr) : Napi::ObjectWrap<ImmSubtreeLogValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmSubtreeLogValueRead> _stored;
   org::imm::ImmSubtreeLogValueRead* getPtr() { return _stored.get(); }
 };
@@ -1732,6 +2037,11 @@ struct ImmSubtreeValueReadJs : public Napi::ObjectWrap<ImmSubtreeValueReadJs> {
   ImmSubtreeValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmSubtreeValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmSubtreeValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSubtreeValueRead> const& ptr) : Napi::ObjectWrap<ImmSubtreeValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmSubtreeValueRead> _stored;
   org::imm::ImmSubtreeValueRead* getPtr() { return _stored.get(); }
@@ -1761,6 +2071,11 @@ struct ImmCellValueReadJs : public Napi::ObjectWrap<ImmCellValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCellValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCellValueRead> const& ptr) : Napi::ObjectWrap<ImmCellValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCellValueRead> _stored;
   org::imm::ImmCellValueRead* getPtr() { return _stored.get(); }
 };
@@ -1788,6 +2103,11 @@ struct ImmRowValueReadJs : public Napi::ObjectWrap<ImmRowValueReadJs> {
   ImmRowValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmRowValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmRowValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmRowValueRead> const& ptr) : Napi::ObjectWrap<ImmRowValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmRowValueRead> _stored;
   org::imm::ImmRowValueRead* getPtr() { return _stored.get(); }
@@ -1817,6 +2137,11 @@ struct ImmTableValueReadJs : public Napi::ObjectWrap<ImmTableValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTableValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTableValueRead> const& ptr) : Napi::ObjectWrap<ImmTableValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmTableValueRead> _stored;
   org::imm::ImmTableValueRead* getPtr() { return _stored.get(); }
 };
@@ -1844,6 +2169,11 @@ struct ImmParagraphValueReadJs : public Napi::ObjectWrap<ImmParagraphValueReadJs
   ImmParagraphValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmParagraphValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmParagraphValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmParagraphValueRead> const& ptr) : Napi::ObjectWrap<ImmParagraphValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmParagraphValueRead> _stored;
   org::imm::ImmParagraphValueRead* getPtr() { return _stored.get(); }
@@ -1873,6 +2203,11 @@ struct ImmColonExampleValueReadJs : public Napi::ObjectWrap<ImmColonExampleValue
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmColonExampleValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmColonExampleValueRead> const& ptr) : Napi::ObjectWrap<ImmColonExampleValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmColonExampleValueRead> _stored;
   org::imm::ImmColonExampleValueRead* getPtr() { return _stored.get(); }
 };
@@ -1900,6 +2235,11 @@ struct ImmCmdAttrValueReadJs : public Napi::ObjectWrap<ImmCmdAttrValueReadJs> {
   ImmCmdAttrValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdAttrValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdAttrValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdAttrValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdAttrValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdAttrValueRead> _stored;
   org::imm::ImmCmdAttrValueRead* getPtr() { return _stored.get(); }
@@ -1929,6 +2269,11 @@ struct ImmCmdExportValueReadJs : public Napi::ObjectWrap<ImmCmdExportValueReadJs
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdExportValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdExportValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdExportValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdExportValueRead> _stored;
   org::imm::ImmCmdExportValueRead* getPtr() { return _stored.get(); }
 };
@@ -1956,6 +2301,11 @@ struct ImmCallValueReadJs : public Napi::ObjectWrap<ImmCallValueReadJs> {
   ImmCallValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCallValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCallValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCallValueRead> const& ptr) : Napi::ObjectWrap<ImmCallValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCallValueRead> _stored;
   org::imm::ImmCallValueRead* getPtr() { return _stored.get(); }
@@ -1985,6 +2335,11 @@ struct ImmListValueReadJs : public Napi::ObjectWrap<ImmListValueReadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmListValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmListValueRead> const& ptr) : Napi::ObjectWrap<ImmListValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmListValueRead> _stored;
   org::imm::ImmListValueRead* getPtr() { return _stored.get(); }
 };
@@ -2012,6 +2367,11 @@ struct ImmListItemValueReadJs : public Napi::ObjectWrap<ImmListItemValueReadJs> 
   ImmListItemValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmListItemValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmListItemValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmListItemValueRead> const& ptr) : Napi::ObjectWrap<ImmListItemValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmListItemValueRead> _stored;
   org::imm::ImmListItemValueRead* getPtr() { return _stored.get(); }
@@ -2041,6 +2401,11 @@ struct ImmDocumentOptionsValueReadJs : public Napi::ObjectWrap<ImmDocumentOption
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmDocumentOptionsValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDocumentOptionsValueRead> const& ptr) : Napi::ObjectWrap<ImmDocumentOptionsValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmDocumentOptionsValueRead> _stored;
   org::imm::ImmDocumentOptionsValueRead* getPtr() { return _stored.get(); }
 };
@@ -2068,6 +2433,11 @@ struct ImmDocumentFragmentValueReadJs : public Napi::ObjectWrap<ImmDocumentFragm
   ImmDocumentFragmentValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmDocumentFragmentValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmDocumentFragmentValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDocumentFragmentValueRead> const& ptr) : Napi::ObjectWrap<ImmDocumentFragmentValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmDocumentFragmentValueRead> _stored;
   org::imm::ImmDocumentFragmentValueRead* getPtr() { return _stored.get(); }
@@ -2097,6 +2467,11 @@ struct ImmCriticMarkupValueReadJs : public Napi::ObjectWrap<ImmCriticMarkupValue
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCriticMarkupValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCriticMarkupValueRead> const& ptr) : Napi::ObjectWrap<ImmCriticMarkupValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCriticMarkupValueRead> _stored;
   org::imm::ImmCriticMarkupValueRead* getPtr() { return _stored.get(); }
 };
@@ -2124,6 +2499,11 @@ struct ImmDocumentValueReadJs : public Napi::ObjectWrap<ImmDocumentValueReadJs> 
   ImmDocumentValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmDocumentValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmDocumentValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDocumentValueRead> const& ptr) : Napi::ObjectWrap<ImmDocumentValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmDocumentValueRead> _stored;
   org::imm::ImmDocumentValueRead* getPtr() { return _stored.get(); }
@@ -2153,6 +2533,11 @@ struct ImmFileTargetValueReadJs : public Napi::ObjectWrap<ImmFileTargetValueRead
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmFileTargetValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmFileTargetValueRead> const& ptr) : Napi::ObjectWrap<ImmFileTargetValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmFileTargetValueRead> _stored;
   org::imm::ImmFileTargetValueRead* getPtr() { return _stored.get(); }
 };
@@ -2180,6 +2565,11 @@ struct ImmTextSeparatorValueReadJs : public Napi::ObjectWrap<ImmTextSeparatorVal
   ImmTextSeparatorValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmTextSeparatorValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmTextSeparatorValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTextSeparatorValueRead> const& ptr) : Napi::ObjectWrap<ImmTextSeparatorValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmTextSeparatorValueRead> _stored;
   org::imm::ImmTextSeparatorValueRead* getPtr() { return _stored.get(); }
@@ -2209,6 +2599,11 @@ struct ImmDocumentGroupValueReadJs : public Napi::ObjectWrap<ImmDocumentGroupVal
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmDocumentGroupValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDocumentGroupValueRead> const& ptr) : Napi::ObjectWrap<ImmDocumentGroupValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmDocumentGroupValueRead> _stored;
   org::imm::ImmDocumentGroupValueRead* getPtr() { return _stored.get(); }
 };
@@ -2236,6 +2631,11 @@ struct ImmFileValueReadJs : public Napi::ObjectWrap<ImmFileValueReadJs> {
   ImmFileValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmFileValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmFileValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmFileValueRead> const& ptr) : Napi::ObjectWrap<ImmFileValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmFileValueRead> _stored;
   org::imm::ImmFileValueRead* getPtr() { return _stored.get(); }
@@ -2265,6 +2665,11 @@ struct ImmDirectoryValueReadJs : public Napi::ObjectWrap<ImmDirectoryValueReadJs
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmDirectoryValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDirectoryValueRead> const& ptr) : Napi::ObjectWrap<ImmDirectoryValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmDirectoryValueRead> _stored;
   org::imm::ImmDirectoryValueRead* getPtr() { return _stored.get(); }
 };
@@ -2292,6 +2697,11 @@ struct ImmSymlinkValueReadJs : public Napi::ObjectWrap<ImmSymlinkValueReadJs> {
   ImmSymlinkValueReadJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmSymlinkValueReadJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmSymlinkValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSymlinkValueRead> const& ptr) : Napi::ObjectWrap<ImmSymlinkValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmSymlinkValueRead> _stored;
   org::imm::ImmSymlinkValueRead* getPtr() { return _stored.get(); }
@@ -2321,6 +2731,11 @@ struct ImmCmdIncludeValueReadJs : public Napi::ObjectWrap<ImmCmdIncludeValueRead
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdIncludeValueReadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdIncludeValueRead> const& ptr) : Napi::ObjectWrap<ImmCmdIncludeValueReadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdIncludeValueRead> _stored;
   org::imm::ImmCmdIncludeValueRead* getPtr() { return _stored.get(); }
 };
@@ -2348,6 +2763,11 @@ struct ImmAstContextJs : public Napi::ObjectWrap<ImmAstContextJs> {
   ImmAstContextJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmAstContextJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmAstContextJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAstContext> const& ptr) : Napi::ObjectWrap<ImmAstContextJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAstContext> _stored;
   org::imm::ImmAstContext* getPtr() { return _stored.get(); }
@@ -2378,6 +2798,11 @@ struct ImmAstVersionJs : public Napi::ObjectWrap<ImmAstVersionJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmAstVersion>();
   }
+  ImmAstVersionJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAstVersion> const& ptr) : Napi::ObjectWrap<ImmAstVersionJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAstVersion> _stored;
   org::imm::ImmAstVersion* getPtr() { return _stored.get(); }
 };
@@ -2405,6 +2830,11 @@ struct ImmAdapterJs : public Napi::ObjectWrap<ImmAdapterJs> {
   ImmAdapterJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmAdapterJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmAdapterJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapter> const& ptr) : Napi::ObjectWrap<ImmAdapterJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapter> _stored;
   org::imm::ImmAdapter* getPtr() { return _stored.get(); }
@@ -2435,6 +2865,11 @@ struct OrgParseFragmentJs : public Napi::ObjectWrap<OrgParseFragmentJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::OrgParseFragment>();
   }
+  OrgParseFragmentJs(Napi::CallbackInfo const& info, std::shared_ptr<org::OrgParseFragment> const& ptr) : Napi::ObjectWrap<OrgParseFragmentJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::OrgParseFragment> _stored;
   org::OrgParseFragment* getPtr() { return _stored.get(); }
 };
@@ -2463,6 +2898,11 @@ struct OrgParseParametersJs : public Napi::ObjectWrap<OrgParseParametersJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::OrgParseParameters>();
+  }
+  OrgParseParametersJs(Napi::CallbackInfo const& info, std::shared_ptr<org::OrgParseParameters> const& ptr) : Napi::ObjectWrap<OrgParseParametersJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::OrgParseParameters> _stored;
   org::OrgParseParameters* getPtr() { return _stored.get(); }
@@ -2493,6 +2933,11 @@ struct OrgDirectoryParseParametersJs : public Napi::ObjectWrap<OrgDirectoryParse
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::OrgDirectoryParseParameters>();
   }
+  OrgDirectoryParseParametersJs(Napi::CallbackInfo const& info, std::shared_ptr<org::OrgDirectoryParseParameters> const& ptr) : Napi::ObjectWrap<OrgDirectoryParseParametersJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::OrgDirectoryParseParameters> _stored;
   org::OrgDirectoryParseParameters* getPtr() { return _stored.get(); }
 };
@@ -2521,6 +2966,11 @@ struct OrgYamlExportOptsJs : public Napi::ObjectWrap<OrgYamlExportOptsJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::OrgYamlExportOpts>();
+  }
+  OrgYamlExportOptsJs(Napi::CallbackInfo const& info, std::shared_ptr<org::OrgYamlExportOpts> const& ptr) : Napi::ObjectWrap<OrgYamlExportOptsJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::OrgYamlExportOpts> _stored;
   org::OrgYamlExportOpts* getPtr() { return _stored.get(); }
@@ -2551,6 +3001,11 @@ struct OrgTreeExportOptsJs : public Napi::ObjectWrap<OrgTreeExportOptsJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::OrgTreeExportOpts>();
   }
+  OrgTreeExportOptsJs(Napi::CallbackInfo const& info, std::shared_ptr<org::OrgTreeExportOpts> const& ptr) : Napi::ObjectWrap<OrgTreeExportOptsJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::OrgTreeExportOpts> _stored;
   org::OrgTreeExportOpts* getPtr() { return _stored.get(); }
 };
@@ -2579,6 +3034,11 @@ struct AstTrackingPathJs : public Napi::ObjectWrap<AstTrackingPathJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::AstTrackingPath>();
+  }
+  AstTrackingPathJs(Napi::CallbackInfo const& info, std::shared_ptr<org::AstTrackingPath> const& ptr) : Napi::ObjectWrap<AstTrackingPathJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::AstTrackingPath> _stored;
   org::AstTrackingPath* getPtr() { return _stored.get(); }
@@ -2609,6 +3069,11 @@ struct AstTrackingAlternativesJs : public Napi::ObjectWrap<AstTrackingAlternativ
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::AstTrackingAlternatives>();
   }
+  AstTrackingAlternativesJs(Napi::CallbackInfo const& info, std::shared_ptr<org::AstTrackingAlternatives> const& ptr) : Napi::ObjectWrap<AstTrackingAlternativesJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::AstTrackingAlternatives> _stored;
   org::AstTrackingAlternatives* getPtr() { return _stored.get(); }
 };
@@ -2637,6 +3102,11 @@ struct AstTrackingGroupJs : public Napi::ObjectWrap<AstTrackingGroupJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::AstTrackingGroup>();
+  }
+  AstTrackingGroupJs(Napi::CallbackInfo const& info, std::shared_ptr<org::AstTrackingGroup> const& ptr) : Napi::ObjectWrap<AstTrackingGroupJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::AstTrackingGroup> _stored;
   org::AstTrackingGroup* getPtr() { return _stored.get(); }
@@ -2667,6 +3137,11 @@ struct AstTrackingMapJs : public Napi::ObjectWrap<AstTrackingMapJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::AstTrackingMap>();
   }
+  AstTrackingMapJs(Napi::CallbackInfo const& info, std::shared_ptr<org::AstTrackingMap> const& ptr) : Napi::ObjectWrap<AstTrackingMapJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::AstTrackingMap> _stored;
   org::AstTrackingMap* getPtr() { return _stored.get(); }
 };
@@ -2695,6 +3170,11 @@ struct SequenceSegmentJs : public Napi::ObjectWrap<SequenceSegmentJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<hstd::SequenceSegment>();
+  }
+  SequenceSegmentJs(Napi::CallbackInfo const& info, std::shared_ptr<hstd::SequenceSegment> const& ptr) : Napi::ObjectWrap<SequenceSegmentJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<hstd::SequenceSegment> _stored;
   hstd::SequenceSegment* getPtr() { return _stored.get(); }
@@ -2725,6 +3205,11 @@ struct SequenceSegmentGroupJs : public Napi::ObjectWrap<SequenceSegmentGroupJs> 
     Napi::HandleScope scope(env);
     _stored = std::make_shared<hstd::SequenceSegmentGroup>();
   }
+  SequenceSegmentGroupJs(Napi::CallbackInfo const& info, std::shared_ptr<hstd::SequenceSegmentGroup> const& ptr) : Napi::ObjectWrap<SequenceSegmentGroupJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<hstd::SequenceSegmentGroup> _stored;
   hstd::SequenceSegmentGroup* getPtr() { return _stored.get(); }
 };
@@ -2753,6 +3238,11 @@ struct SequenceAnnotationTagJs : public Napi::ObjectWrap<SequenceAnnotationTagJs
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<hstd::SequenceAnnotationTag>();
+  }
+  SequenceAnnotationTagJs(Napi::CallbackInfo const& info, std::shared_ptr<hstd::SequenceAnnotationTag> const& ptr) : Napi::ObjectWrap<SequenceAnnotationTagJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<hstd::SequenceAnnotationTag> _stored;
   hstd::SequenceAnnotationTag* getPtr() { return _stored.get(); }
@@ -2783,6 +3273,11 @@ struct SequenceAnnotationJs : public Napi::ObjectWrap<SequenceAnnotationJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<hstd::SequenceAnnotation>();
   }
+  SequenceAnnotationJs(Napi::CallbackInfo const& info, std::shared_ptr<hstd::SequenceAnnotation> const& ptr) : Napi::ObjectWrap<SequenceAnnotationJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<hstd::SequenceAnnotation> _stored;
   hstd::SequenceAnnotation* getPtr() { return _stored.get(); }
 };
@@ -2811,6 +3306,11 @@ struct MapLinkJs : public Napi::ObjectWrap<MapLinkJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::graph::MapLink>();
+  }
+  MapLinkJs(Napi::CallbackInfo const& info, std::shared_ptr<org::graph::MapLink> const& ptr) : Napi::ObjectWrap<MapLinkJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::graph::MapLink> _stored;
   org::graph::MapLink* getPtr() { return _stored.get(); }
@@ -2841,6 +3341,11 @@ struct MapNodePropJs : public Napi::ObjectWrap<MapNodePropJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::graph::MapNodeProp>();
   }
+  MapNodePropJs(Napi::CallbackInfo const& info, std::shared_ptr<org::graph::MapNodeProp> const& ptr) : Napi::ObjectWrap<MapNodePropJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::graph::MapNodeProp> _stored;
   org::graph::MapNodeProp* getPtr() { return _stored.get(); }
 };
@@ -2869,6 +3374,11 @@ struct MapEdgePropJs : public Napi::ObjectWrap<MapEdgePropJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::graph::MapEdgeProp>();
+  }
+  MapEdgePropJs(Napi::CallbackInfo const& info, std::shared_ptr<org::graph::MapEdgeProp> const& ptr) : Napi::ObjectWrap<MapEdgePropJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::graph::MapEdgeProp> _stored;
   org::graph::MapEdgeProp* getPtr() { return _stored.get(); }
@@ -2899,6 +3409,11 @@ struct MapNodeJs : public Napi::ObjectWrap<MapNodeJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::graph::MapNode>();
   }
+  MapNodeJs(Napi::CallbackInfo const& info, std::shared_ptr<org::graph::MapNode> const& ptr) : Napi::ObjectWrap<MapNodeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::graph::MapNode> _stored;
   org::graph::MapNode* getPtr() { return _stored.get(); }
 };
@@ -2927,6 +3442,11 @@ struct MapEdgeJs : public Napi::ObjectWrap<MapEdgeJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::graph::MapEdge>();
+  }
+  MapEdgeJs(Napi::CallbackInfo const& info, std::shared_ptr<org::graph::MapEdge> const& ptr) : Napi::ObjectWrap<MapEdgeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::graph::MapEdge> _stored;
   org::graph::MapEdge* getPtr() { return _stored.get(); }
@@ -2957,6 +3477,11 @@ struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::graph::MapGraph>();
   }
+  MapGraphJs(Napi::CallbackInfo const& info, std::shared_ptr<org::graph::MapGraph> const& ptr) : Napi::ObjectWrap<MapGraphJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::graph::MapGraph> _stored;
   org::graph::MapGraph* getPtr() { return _stored.get(); }
 };
@@ -2984,6 +3509,11 @@ struct MapGraphStateJs : public Napi::ObjectWrap<MapGraphStateJs> {
   MapGraphStateJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<MapGraphStateJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  MapGraphStateJs(Napi::CallbackInfo const& info, std::shared_ptr<org::graph::MapGraphState> const& ptr) : Napi::ObjectWrap<MapGraphStateJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::graph::MapGraphState> _stored;
   org::graph::MapGraphState* getPtr() { return _stored.get(); }
@@ -3014,6 +3544,11 @@ struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::LispCode>();
   }
+  LispCodeJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::LispCode> const& ptr) : Napi::ObjectWrap<LispCodeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::LispCode> _stored;
   org::sem::LispCode* getPtr() { return _stored.get(); }
 };
@@ -3042,6 +3577,11 @@ struct TblfmJs : public Napi::ObjectWrap<TblfmJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Tblfm>();
+  }
+  TblfmJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Tblfm> const& ptr) : Napi::ObjectWrap<TblfmJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Tblfm> _stored;
   org::sem::Tblfm* getPtr() { return _stored.get(); }
@@ -3072,6 +3612,11 @@ struct AttrValueJs : public Napi::ObjectWrap<AttrValueJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::AttrValue>();
   }
+  AttrValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::AttrValue> const& ptr) : Napi::ObjectWrap<AttrValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::AttrValue> _stored;
   org::sem::AttrValue* getPtr() { return _stored.get(); }
 };
@@ -3100,6 +3645,11 @@ struct HashTagFlatJs : public Napi::ObjectWrap<HashTagFlatJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::HashTagFlat>();
+  }
+  HashTagFlatJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::HashTagFlat> const& ptr) : Napi::ObjectWrap<HashTagFlatJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::HashTagFlat> _stored;
   org::sem::HashTagFlat* getPtr() { return _stored.get(); }
@@ -3130,6 +3680,11 @@ struct HashTagTextJs : public Napi::ObjectWrap<HashTagTextJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::HashTagText>();
   }
+  HashTagTextJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::HashTagText> const& ptr) : Napi::ObjectWrap<HashTagTextJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::HashTagText> _stored;
   org::sem::HashTagText* getPtr() { return _stored.get(); }
 };
@@ -3158,6 +3713,11 @@ struct SubtreePathJs : public Napi::ObjectWrap<SubtreePathJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::SubtreePath>();
+  }
+  SubtreePathJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::SubtreePath> const& ptr) : Napi::ObjectWrap<SubtreePathJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::SubtreePath> _stored;
   org::sem::SubtreePath* getPtr() { return _stored.get(); }
@@ -3188,6 +3748,11 @@ struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::LinkTarget>();
   }
+  LinkTargetJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::LinkTarget> const& ptr) : Napi::ObjectWrap<LinkTargetJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::LinkTarget> _stored;
   org::sem::LinkTarget* getPtr() { return _stored.get(); }
 };
@@ -3216,6 +3781,11 @@ struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::SubtreeLogHead>();
+  }
+  SubtreeLogHeadJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::SubtreeLogHead> const& ptr) : Napi::ObjectWrap<SubtreeLogHeadJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::SubtreeLogHead> _stored;
   org::sem::SubtreeLogHead* getPtr() { return _stored.get(); }
@@ -3246,6 +3816,11 @@ struct SubtreeCompletionJs : public Napi::ObjectWrap<SubtreeCompletionJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::SubtreeCompletion>();
   }
+  SubtreeCompletionJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::SubtreeCompletion> const& ptr) : Napi::ObjectWrap<SubtreeCompletionJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::SubtreeCompletion> _stored;
   org::sem::SubtreeCompletion* getPtr() { return _stored.get(); }
 };
@@ -3274,6 +3849,11 @@ struct AttrListJs : public Napi::ObjectWrap<AttrListJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::AttrList>();
+  }
+  AttrListJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::AttrList> const& ptr) : Napi::ObjectWrap<AttrListJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::AttrList> _stored;
   org::sem::AttrList* getPtr() { return _stored.get(); }
@@ -3304,6 +3884,11 @@ struct AttrGroupJs : public Napi::ObjectWrap<AttrGroupJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::AttrGroup>();
   }
+  AttrGroupJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::AttrGroup> const& ptr) : Napi::ObjectWrap<AttrGroupJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::AttrGroup> _stored;
   org::sem::AttrGroup* getPtr() { return _stored.get(); }
 };
@@ -3332,6 +3917,11 @@ struct OrgCodeEvalInputJs : public Napi::ObjectWrap<OrgCodeEvalInputJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::OrgCodeEvalInput>();
+  }
+  OrgCodeEvalInputJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::OrgCodeEvalInput> const& ptr) : Napi::ObjectWrap<OrgCodeEvalInputJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::OrgCodeEvalInput> _stored;
   org::sem::OrgCodeEvalInput* getPtr() { return _stored.get(); }
@@ -3362,6 +3952,11 @@ struct OrgCodeEvalOutputJs : public Napi::ObjectWrap<OrgCodeEvalOutputJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::OrgCodeEvalOutput>();
   }
+  OrgCodeEvalOutputJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::OrgCodeEvalOutput> const& ptr) : Napi::ObjectWrap<OrgCodeEvalOutputJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::OrgCodeEvalOutput> _stored;
   org::sem::OrgCodeEvalOutput* getPtr() { return _stored.get(); }
 };
@@ -3390,6 +3985,11 @@ struct ColumnViewJs : public Napi::ObjectWrap<ColumnViewJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::ColumnView>();
+  }
+  ColumnViewJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::ColumnView> const& ptr) : Napi::ObjectWrap<ColumnViewJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::ColumnView> _stored;
   org::sem::ColumnView* getPtr() { return _stored.get(); }
@@ -3420,6 +4020,11 @@ struct BlockCodeLineJs : public Napi::ObjectWrap<BlockCodeLineJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockCodeLine>();
   }
+  BlockCodeLineJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockCodeLine> const& ptr) : Napi::ObjectWrap<BlockCodeLineJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::BlockCodeLine> _stored;
   org::sem::BlockCodeLine* getPtr() { return _stored.get(); }
 };
@@ -3448,6 +4053,11 @@ struct DocumentExportConfigJs : public Napi::ObjectWrap<DocumentExportConfigJs> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::DocumentExportConfig>();
+  }
+  DocumentExportConfigJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::DocumentExportConfig> const& ptr) : Napi::ObjectWrap<DocumentExportConfigJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::DocumentExportConfig> _stored;
   org::sem::DocumentExportConfig* getPtr() { return _stored.get(); }
@@ -3478,6 +4088,11 @@ struct SubtreePeriodJs : public Napi::ObjectWrap<SubtreePeriodJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::SubtreePeriod>();
   }
+  SubtreePeriodJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::SubtreePeriod> const& ptr) : Napi::ObjectWrap<SubtreePeriodJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::SubtreePeriod> _stored;
   org::sem::SubtreePeriod* getPtr() { return _stored.get(); }
 };
@@ -3506,6 +4121,11 @@ struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::NamedProperty>();
+  }
+  NamedPropertyJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::NamedProperty> const& ptr) : Napi::ObjectWrap<NamedPropertyJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::NamedProperty> _stored;
   org::sem::NamedProperty* getPtr() { return _stored.get(); }
@@ -3536,6 +4156,11 @@ struct NoneJs : public Napi::ObjectWrap<NoneJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::None>();
   }
+  NoneJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::None> const& ptr) : Napi::ObjectWrap<NoneJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::None> _stored;
   org::sem::None* getPtr() { return _stored.get(); }
 };
@@ -3564,6 +4189,11 @@ struct ErrorItemJs : public Napi::ObjectWrap<ErrorItemJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::ErrorItem>();
+  }
+  ErrorItemJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::ErrorItem> const& ptr) : Napi::ObjectWrap<ErrorItemJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::ErrorItem> _stored;
   org::sem::ErrorItem* getPtr() { return _stored.get(); }
@@ -3594,6 +4224,11 @@ struct ErrorGroupJs : public Napi::ObjectWrap<ErrorGroupJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::ErrorGroup>();
   }
+  ErrorGroupJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::ErrorGroup> const& ptr) : Napi::ObjectWrap<ErrorGroupJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::ErrorGroup> _stored;
   org::sem::ErrorGroup* getPtr() { return _stored.get(); }
 };
@@ -3622,6 +4257,11 @@ struct StmtListJs : public Napi::ObjectWrap<StmtListJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::StmtList>();
+  }
+  StmtListJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::StmtList> const& ptr) : Napi::ObjectWrap<StmtListJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::StmtList> _stored;
   org::sem::StmtList* getPtr() { return _stored.get(); }
@@ -3652,6 +4292,11 @@ struct EmptyJs : public Napi::ObjectWrap<EmptyJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Empty>();
   }
+  EmptyJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Empty> const& ptr) : Napi::ObjectWrap<EmptyJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Empty> _stored;
   org::sem::Empty* getPtr() { return _stored.get(); }
 };
@@ -3680,6 +4325,11 @@ struct TimeJs : public Napi::ObjectWrap<TimeJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Time>();
+  }
+  TimeJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Time> const& ptr) : Napi::ObjectWrap<TimeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Time> _stored;
   org::sem::Time* getPtr() { return _stored.get(); }
@@ -3710,6 +4360,11 @@ struct TimeRangeJs : public Napi::ObjectWrap<TimeRangeJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::TimeRange>();
   }
+  TimeRangeJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::TimeRange> const& ptr) : Napi::ObjectWrap<TimeRangeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::TimeRange> _stored;
   org::sem::TimeRange* getPtr() { return _stored.get(); }
 };
@@ -3738,6 +4393,11 @@ struct MacroJs : public Napi::ObjectWrap<MacroJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Macro>();
+  }
+  MacroJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Macro> const& ptr) : Napi::ObjectWrap<MacroJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Macro> _stored;
   org::sem::Macro* getPtr() { return _stored.get(); }
@@ -3768,6 +4428,11 @@ struct SymbolJs : public Napi::ObjectWrap<SymbolJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Symbol>();
   }
+  SymbolJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Symbol> const& ptr) : Napi::ObjectWrap<SymbolJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Symbol> _stored;
   org::sem::Symbol* getPtr() { return _stored.get(); }
 };
@@ -3796,6 +4461,11 @@ struct RadioTargetJs : public Napi::ObjectWrap<RadioTargetJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::RadioTarget>();
+  }
+  RadioTargetJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::RadioTarget> const& ptr) : Napi::ObjectWrap<RadioTargetJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::RadioTarget> _stored;
   org::sem::RadioTarget* getPtr() { return _stored.get(); }
@@ -3826,6 +4496,11 @@ struct LatexJs : public Napi::ObjectWrap<LatexJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Latex>();
   }
+  LatexJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Latex> const& ptr) : Napi::ObjectWrap<LatexJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Latex> _stored;
   org::sem::Latex* getPtr() { return _stored.get(); }
 };
@@ -3854,6 +4529,11 @@ struct SubtreeLogJs : public Napi::ObjectWrap<SubtreeLogJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::SubtreeLog>();
+  }
+  SubtreeLogJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::SubtreeLog> const& ptr) : Napi::ObjectWrap<SubtreeLogJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::SubtreeLog> _stored;
   org::sem::SubtreeLog* getPtr() { return _stored.get(); }
@@ -3884,6 +4564,11 @@ struct SubtreeJs : public Napi::ObjectWrap<SubtreeJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Subtree>();
   }
+  SubtreeJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Subtree> const& ptr) : Napi::ObjectWrap<SubtreeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Subtree> _stored;
   org::sem::Subtree* getPtr() { return _stored.get(); }
 };
@@ -3912,6 +4597,11 @@ struct ColonExampleJs : public Napi::ObjectWrap<ColonExampleJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::ColonExample>();
+  }
+  ColonExampleJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::ColonExample> const& ptr) : Napi::ObjectWrap<ColonExampleJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::ColonExample> _stored;
   org::sem::ColonExample* getPtr() { return _stored.get(); }
@@ -3942,6 +4632,11 @@ struct CallJs : public Napi::ObjectWrap<CallJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Call>();
   }
+  CallJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Call> const& ptr) : Napi::ObjectWrap<CallJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Call> _stored;
   org::sem::Call* getPtr() { return _stored.get(); }
 };
@@ -3970,6 +4665,11 @@ struct ListItemJs : public Napi::ObjectWrap<ListItemJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::ListItem>();
+  }
+  ListItemJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::ListItem> const& ptr) : Napi::ObjectWrap<ListItemJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::ListItem> _stored;
   org::sem::ListItem* getPtr() { return _stored.get(); }
@@ -4000,6 +4700,11 @@ struct DocumentOptionsJs : public Napi::ObjectWrap<DocumentOptionsJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::DocumentOptions>();
   }
+  DocumentOptionsJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::DocumentOptions> const& ptr) : Napi::ObjectWrap<DocumentOptionsJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::DocumentOptions> _stored;
   org::sem::DocumentOptions* getPtr() { return _stored.get(); }
 };
@@ -4028,6 +4733,11 @@ struct DocumentFragmentJs : public Napi::ObjectWrap<DocumentFragmentJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::DocumentFragment>();
+  }
+  DocumentFragmentJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::DocumentFragment> const& ptr) : Napi::ObjectWrap<DocumentFragmentJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::DocumentFragment> _stored;
   org::sem::DocumentFragment* getPtr() { return _stored.get(); }
@@ -4058,6 +4768,11 @@ struct CriticMarkupJs : public Napi::ObjectWrap<CriticMarkupJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CriticMarkup>();
   }
+  CriticMarkupJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CriticMarkup> const& ptr) : Napi::ObjectWrap<CriticMarkupJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::CriticMarkup> _stored;
   org::sem::CriticMarkup* getPtr() { return _stored.get(); }
 };
@@ -4086,6 +4801,11 @@ struct DocumentJs : public Napi::ObjectWrap<DocumentJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Document>();
+  }
+  DocumentJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Document> const& ptr) : Napi::ObjectWrap<DocumentJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Document> _stored;
   org::sem::Document* getPtr() { return _stored.get(); }
@@ -4116,6 +4836,11 @@ struct FileTargetJs : public Napi::ObjectWrap<FileTargetJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::FileTarget>();
   }
+  FileTargetJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::FileTarget> const& ptr) : Napi::ObjectWrap<FileTargetJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::FileTarget> _stored;
   org::sem::FileTarget* getPtr() { return _stored.get(); }
 };
@@ -4144,6 +4869,11 @@ struct TextSeparatorJs : public Napi::ObjectWrap<TextSeparatorJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::TextSeparator>();
+  }
+  TextSeparatorJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::TextSeparator> const& ptr) : Napi::ObjectWrap<TextSeparatorJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::TextSeparator> _stored;
   org::sem::TextSeparator* getPtr() { return _stored.get(); }
@@ -4174,6 +4904,11 @@ struct DocumentGroupJs : public Napi::ObjectWrap<DocumentGroupJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::DocumentGroup>();
   }
+  DocumentGroupJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::DocumentGroup> const& ptr) : Napi::ObjectWrap<DocumentGroupJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::DocumentGroup> _stored;
   org::sem::DocumentGroup* getPtr() { return _stored.get(); }
 };
@@ -4202,6 +4937,11 @@ struct FileJs : public Napi::ObjectWrap<FileJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::File>();
+  }
+  FileJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::File> const& ptr) : Napi::ObjectWrap<FileJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::File> _stored;
   org::sem::File* getPtr() { return _stored.get(); }
@@ -4232,6 +4972,11 @@ struct DirectoryJs : public Napi::ObjectWrap<DirectoryJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Directory>();
   }
+  DirectoryJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Directory> const& ptr) : Napi::ObjectWrap<DirectoryJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Directory> _stored;
   org::sem::Directory* getPtr() { return _stored.get(); }
 };
@@ -4260,6 +5005,11 @@ struct SymlinkJs : public Napi::ObjectWrap<SymlinkJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Symlink>();
+  }
+  SymlinkJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Symlink> const& ptr) : Napi::ObjectWrap<SymlinkJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Symlink> _stored;
   org::sem::Symlink* getPtr() { return _stored.get(); }
@@ -4290,6 +5040,11 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdInclude>();
   }
+  CmdIncludeJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdInclude> const& ptr) : Napi::ObjectWrap<CmdIncludeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::CmdInclude> _stored;
   org::sem::CmdInclude* getPtr() { return _stored.get(); }
 };
@@ -4318,6 +5073,11 @@ struct MapConfigJs : public Napi::ObjectWrap<MapConfigJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::graph::MapConfig>();
+  }
+  MapConfigJs(Napi::CallbackInfo const& info, std::shared_ptr<org::graph::MapConfig> const& ptr) : Napi::ObjectWrap<MapConfigJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::graph::MapConfig> _stored;
   org::graph::MapConfig* getPtr() { return _stored.get(); }
@@ -4348,6 +5108,11 @@ struct ImmIdTNone : public Napi::ObjectWrap<ImmIdTNone> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmNone>>();
   }
+  ImmIdTNone(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmNone>> const& ptr) : Napi::ObjectWrap<ImmIdTNone>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmNone>> _stored;
   org::imm::ImmIdT<org::imm::ImmNone>* getPtr() { return _stored.get(); }
 };
@@ -4376,6 +5141,11 @@ struct ImmIdTErrorItem : public Napi::ObjectWrap<ImmIdTErrorItem> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmErrorItem>>();
+  }
+  ImmIdTErrorItem(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmErrorItem>> const& ptr) : Napi::ObjectWrap<ImmIdTErrorItem>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmErrorItem>> _stored;
   org::imm::ImmIdT<org::imm::ImmErrorItem>* getPtr() { return _stored.get(); }
@@ -4406,6 +5176,11 @@ struct ImmIdTErrorGroup : public Napi::ObjectWrap<ImmIdTErrorGroup> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmErrorGroup>>();
   }
+  ImmIdTErrorGroup(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmErrorGroup>> const& ptr) : Napi::ObjectWrap<ImmIdTErrorGroup>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmErrorGroup>> _stored;
   org::imm::ImmIdT<org::imm::ImmErrorGroup>* getPtr() { return _stored.get(); }
 };
@@ -4434,6 +5209,11 @@ struct ImmIdTStmt : public Napi::ObjectWrap<ImmIdTStmt> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmStmt>>();
+  }
+  ImmIdTStmt(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmStmt>> const& ptr) : Napi::ObjectWrap<ImmIdTStmt>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmStmt>> _stored;
   org::imm::ImmIdT<org::imm::ImmStmt>* getPtr() { return _stored.get(); }
@@ -4464,6 +5244,11 @@ struct ImmIdTInline : public Napi::ObjectWrap<ImmIdTInline> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmInline>>();
   }
+  ImmIdTInline(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmInline>> const& ptr) : Napi::ObjectWrap<ImmIdTInline>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmInline>> _stored;
   org::imm::ImmIdT<org::imm::ImmInline>* getPtr() { return _stored.get(); }
 };
@@ -4492,6 +5277,11 @@ struct ImmIdTStmtList : public Napi::ObjectWrap<ImmIdTStmtList> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmStmtList>>();
+  }
+  ImmIdTStmtList(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmStmtList>> const& ptr) : Napi::ObjectWrap<ImmIdTStmtList>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmStmtList>> _stored;
   org::imm::ImmIdT<org::imm::ImmStmtList>* getPtr() { return _stored.get(); }
@@ -4522,6 +5312,11 @@ struct ImmIdTEmpty : public Napi::ObjectWrap<ImmIdTEmpty> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmEmpty>>();
   }
+  ImmIdTEmpty(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmEmpty>> const& ptr) : Napi::ObjectWrap<ImmIdTEmpty>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmEmpty>> _stored;
   org::imm::ImmIdT<org::imm::ImmEmpty>* getPtr() { return _stored.get(); }
 };
@@ -4550,6 +5345,11 @@ struct ImmIdTCmd : public Napi::ObjectWrap<ImmIdTCmd> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmd>>();
+  }
+  ImmIdTCmd(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmd>> const& ptr) : Napi::ObjectWrap<ImmIdTCmd>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmd>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmd>* getPtr() { return _stored.get(); }
@@ -4580,6 +5380,11 @@ struct ImmIdTBlock : public Napi::ObjectWrap<ImmIdTBlock> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlock>>();
   }
+  ImmIdTBlock(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlock>> const& ptr) : Napi::ObjectWrap<ImmIdTBlock>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlock>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlock>* getPtr() { return _stored.get(); }
 };
@@ -4608,6 +5413,11 @@ struct ImmIdTLineCommand : public Napi::ObjectWrap<ImmIdTLineCommand> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmLineCommand>>();
+  }
+  ImmIdTLineCommand(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmLineCommand>> const& ptr) : Napi::ObjectWrap<ImmIdTLineCommand>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmLineCommand>> _stored;
   org::imm::ImmIdT<org::imm::ImmLineCommand>* getPtr() { return _stored.get(); }
@@ -4638,6 +5448,11 @@ struct ImmIdTAttached : public Napi::ObjectWrap<ImmIdTAttached> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmAttached>>();
   }
+  ImmIdTAttached(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmAttached>> const& ptr) : Napi::ObjectWrap<ImmIdTAttached>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmAttached>> _stored;
   org::imm::ImmIdT<org::imm::ImmAttached>* getPtr() { return _stored.get(); }
 };
@@ -4666,6 +5481,11 @@ struct ImmIdTLeaf : public Napi::ObjectWrap<ImmIdTLeaf> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmLeaf>>();
+  }
+  ImmIdTLeaf(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmLeaf>> const& ptr) : Napi::ObjectWrap<ImmIdTLeaf>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmLeaf>> _stored;
   org::imm::ImmIdT<org::imm::ImmLeaf>* getPtr() { return _stored.get(); }
@@ -4696,6 +5516,11 @@ struct ImmIdTCmdCaption : public Napi::ObjectWrap<ImmIdTCmdCaption> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdCaption>>();
   }
+  ImmIdTCmdCaption(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCaption>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdCaption>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCaption>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdCaption>* getPtr() { return _stored.get(); }
 };
@@ -4724,6 +5549,11 @@ struct ImmIdTCmdColumns : public Napi::ObjectWrap<ImmIdTCmdColumns> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdColumns>>();
+  }
+  ImmIdTCmdColumns(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdColumns>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdColumns>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdColumns>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdColumns>* getPtr() { return _stored.get(); }
@@ -4754,6 +5584,11 @@ struct ImmIdTCmdName : public Napi::ObjectWrap<ImmIdTCmdName> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdName>>();
   }
+  ImmIdTCmdName(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdName>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdName>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdName>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdName>* getPtr() { return _stored.get(); }
 };
@@ -4782,6 +5617,11 @@ struct ImmIdTCmdCustomArgs : public Napi::ObjectWrap<ImmIdTCmdCustomArgs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdCustomArgs>>();
+  }
+  ImmIdTCmdCustomArgs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCustomArgs>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdCustomArgs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCustomArgs>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdCustomArgs>* getPtr() { return _stored.get(); }
@@ -4812,6 +5652,11 @@ struct ImmIdTCmdCustomRaw : public Napi::ObjectWrap<ImmIdTCmdCustomRaw> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdCustomRaw>>();
   }
+  ImmIdTCmdCustomRaw(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCustomRaw>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdCustomRaw>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCustomRaw>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdCustomRaw>* getPtr() { return _stored.get(); }
 };
@@ -4840,6 +5685,11 @@ struct ImmIdTCmdCustomText : public Napi::ObjectWrap<ImmIdTCmdCustomText> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdCustomText>>();
+  }
+  ImmIdTCmdCustomText(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCustomText>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdCustomText>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCustomText>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdCustomText>* getPtr() { return _stored.get(); }
@@ -4870,6 +5720,11 @@ struct ImmIdTCmdCall : public Napi::ObjectWrap<ImmIdTCmdCall> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdCall>>();
   }
+  ImmIdTCmdCall(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCall>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdCall>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdCall>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdCall>* getPtr() { return _stored.get(); }
 };
@@ -4898,6 +5753,11 @@ struct ImmIdTCmdTblfm : public Napi::ObjectWrap<ImmIdTCmdTblfm> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdTblfm>>();
+  }
+  ImmIdTCmdTblfm(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdTblfm>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdTblfm>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdTblfm>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdTblfm>* getPtr() { return _stored.get(); }
@@ -4928,6 +5788,11 @@ struct ImmIdTHashTag : public Napi::ObjectWrap<ImmIdTHashTag> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmHashTag>>();
   }
+  ImmIdTHashTag(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmHashTag>> const& ptr) : Napi::ObjectWrap<ImmIdTHashTag>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmHashTag>> _stored;
   org::imm::ImmIdT<org::imm::ImmHashTag>* getPtr() { return _stored.get(); }
 };
@@ -4956,6 +5821,11 @@ struct ImmIdTInlineFootnote : public Napi::ObjectWrap<ImmIdTInlineFootnote> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmInlineFootnote>>();
+  }
+  ImmIdTInlineFootnote(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmInlineFootnote>> const& ptr) : Napi::ObjectWrap<ImmIdTInlineFootnote>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmInlineFootnote>> _stored;
   org::imm::ImmIdT<org::imm::ImmInlineFootnote>* getPtr() { return _stored.get(); }
@@ -4986,6 +5856,11 @@ struct ImmIdTInlineExport : public Napi::ObjectWrap<ImmIdTInlineExport> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmInlineExport>>();
   }
+  ImmIdTInlineExport(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmInlineExport>> const& ptr) : Napi::ObjectWrap<ImmIdTInlineExport>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmInlineExport>> _stored;
   org::imm::ImmIdT<org::imm::ImmInlineExport>* getPtr() { return _stored.get(); }
 };
@@ -5014,6 +5889,11 @@ struct ImmIdTTime : public Napi::ObjectWrap<ImmIdTTime> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmTime>>();
+  }
+  ImmIdTTime(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTime>> const& ptr) : Napi::ObjectWrap<ImmIdTTime>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTime>> _stored;
   org::imm::ImmIdT<org::imm::ImmTime>* getPtr() { return _stored.get(); }
@@ -5044,6 +5924,11 @@ struct ImmIdTTimeRange : public Napi::ObjectWrap<ImmIdTTimeRange> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmTimeRange>>();
   }
+  ImmIdTTimeRange(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTimeRange>> const& ptr) : Napi::ObjectWrap<ImmIdTTimeRange>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTimeRange>> _stored;
   org::imm::ImmIdT<org::imm::ImmTimeRange>* getPtr() { return _stored.get(); }
 };
@@ -5072,6 +5957,11 @@ struct ImmIdTMacro : public Napi::ObjectWrap<ImmIdTMacro> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmMacro>>();
+  }
+  ImmIdTMacro(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmMacro>> const& ptr) : Napi::ObjectWrap<ImmIdTMacro>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmMacro>> _stored;
   org::imm::ImmIdT<org::imm::ImmMacro>* getPtr() { return _stored.get(); }
@@ -5102,6 +5992,11 @@ struct ImmIdTSymbol : public Napi::ObjectWrap<ImmIdTSymbol> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmSymbol>>();
   }
+  ImmIdTSymbol(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSymbol>> const& ptr) : Napi::ObjectWrap<ImmIdTSymbol>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSymbol>> _stored;
   org::imm::ImmIdT<org::imm::ImmSymbol>* getPtr() { return _stored.get(); }
 };
@@ -5130,6 +6025,11 @@ struct ImmIdTEscaped : public Napi::ObjectWrap<ImmIdTEscaped> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmEscaped>>();
+  }
+  ImmIdTEscaped(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmEscaped>> const& ptr) : Napi::ObjectWrap<ImmIdTEscaped>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmEscaped>> _stored;
   org::imm::ImmIdT<org::imm::ImmEscaped>* getPtr() { return _stored.get(); }
@@ -5160,6 +6060,11 @@ struct ImmIdTNewline : public Napi::ObjectWrap<ImmIdTNewline> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmNewline>>();
   }
+  ImmIdTNewline(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmNewline>> const& ptr) : Napi::ObjectWrap<ImmIdTNewline>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmNewline>> _stored;
   org::imm::ImmIdT<org::imm::ImmNewline>* getPtr() { return _stored.get(); }
 };
@@ -5188,6 +6093,11 @@ struct ImmIdTSpace : public Napi::ObjectWrap<ImmIdTSpace> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmSpace>>();
+  }
+  ImmIdTSpace(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSpace>> const& ptr) : Napi::ObjectWrap<ImmIdTSpace>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSpace>> _stored;
   org::imm::ImmIdT<org::imm::ImmSpace>* getPtr() { return _stored.get(); }
@@ -5218,6 +6128,11 @@ struct ImmIdTWord : public Napi::ObjectWrap<ImmIdTWord> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmWord>>();
   }
+  ImmIdTWord(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmWord>> const& ptr) : Napi::ObjectWrap<ImmIdTWord>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmWord>> _stored;
   org::imm::ImmIdT<org::imm::ImmWord>* getPtr() { return _stored.get(); }
 };
@@ -5246,6 +6161,11 @@ struct ImmIdTAtMention : public Napi::ObjectWrap<ImmIdTAtMention> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmAtMention>>();
+  }
+  ImmIdTAtMention(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmAtMention>> const& ptr) : Napi::ObjectWrap<ImmIdTAtMention>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmAtMention>> _stored;
   org::imm::ImmIdT<org::imm::ImmAtMention>* getPtr() { return _stored.get(); }
@@ -5276,6 +6196,11 @@ struct ImmIdTRawText : public Napi::ObjectWrap<ImmIdTRawText> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmRawText>>();
   }
+  ImmIdTRawText(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmRawText>> const& ptr) : Napi::ObjectWrap<ImmIdTRawText>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmRawText>> _stored;
   org::imm::ImmIdT<org::imm::ImmRawText>* getPtr() { return _stored.get(); }
 };
@@ -5304,6 +6229,11 @@ struct ImmIdTPunctuation : public Napi::ObjectWrap<ImmIdTPunctuation> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmPunctuation>>();
+  }
+  ImmIdTPunctuation(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmPunctuation>> const& ptr) : Napi::ObjectWrap<ImmIdTPunctuation>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmPunctuation>> _stored;
   org::imm::ImmIdT<org::imm::ImmPunctuation>* getPtr() { return _stored.get(); }
@@ -5334,6 +6264,11 @@ struct ImmIdTPlaceholder : public Napi::ObjectWrap<ImmIdTPlaceholder> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmPlaceholder>>();
   }
+  ImmIdTPlaceholder(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmPlaceholder>> const& ptr) : Napi::ObjectWrap<ImmIdTPlaceholder>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmPlaceholder>> _stored;
   org::imm::ImmIdT<org::imm::ImmPlaceholder>* getPtr() { return _stored.get(); }
 };
@@ -5362,6 +6297,11 @@ struct ImmIdTBigIdent : public Napi::ObjectWrap<ImmIdTBigIdent> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBigIdent>>();
+  }
+  ImmIdTBigIdent(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBigIdent>> const& ptr) : Napi::ObjectWrap<ImmIdTBigIdent>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBigIdent>> _stored;
   org::imm::ImmIdT<org::imm::ImmBigIdent>* getPtr() { return _stored.get(); }
@@ -5392,6 +6332,11 @@ struct ImmIdTTextTarget : public Napi::ObjectWrap<ImmIdTTextTarget> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmTextTarget>>();
   }
+  ImmIdTTextTarget(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTextTarget>> const& ptr) : Napi::ObjectWrap<ImmIdTTextTarget>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTextTarget>> _stored;
   org::imm::ImmIdT<org::imm::ImmTextTarget>* getPtr() { return _stored.get(); }
 };
@@ -5420,6 +6365,11 @@ struct ImmIdTMarkup : public Napi::ObjectWrap<ImmIdTMarkup> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmMarkup>>();
+  }
+  ImmIdTMarkup(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmMarkup>> const& ptr) : Napi::ObjectWrap<ImmIdTMarkup>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmMarkup>> _stored;
   org::imm::ImmIdT<org::imm::ImmMarkup>* getPtr() { return _stored.get(); }
@@ -5450,6 +6400,11 @@ struct ImmIdTBold : public Napi::ObjectWrap<ImmIdTBold> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBold>>();
   }
+  ImmIdTBold(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBold>> const& ptr) : Napi::ObjectWrap<ImmIdTBold>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBold>> _stored;
   org::imm::ImmIdT<org::imm::ImmBold>* getPtr() { return _stored.get(); }
 };
@@ -5478,6 +6433,11 @@ struct ImmIdTUnderline : public Napi::ObjectWrap<ImmIdTUnderline> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmUnderline>>();
+  }
+  ImmIdTUnderline(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmUnderline>> const& ptr) : Napi::ObjectWrap<ImmIdTUnderline>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmUnderline>> _stored;
   org::imm::ImmIdT<org::imm::ImmUnderline>* getPtr() { return _stored.get(); }
@@ -5508,6 +6468,11 @@ struct ImmIdTMonospace : public Napi::ObjectWrap<ImmIdTMonospace> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmMonospace>>();
   }
+  ImmIdTMonospace(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmMonospace>> const& ptr) : Napi::ObjectWrap<ImmIdTMonospace>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmMonospace>> _stored;
   org::imm::ImmIdT<org::imm::ImmMonospace>* getPtr() { return _stored.get(); }
 };
@@ -5536,6 +6501,11 @@ struct ImmIdTMarkQuote : public Napi::ObjectWrap<ImmIdTMarkQuote> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmMarkQuote>>();
+  }
+  ImmIdTMarkQuote(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmMarkQuote>> const& ptr) : Napi::ObjectWrap<ImmIdTMarkQuote>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmMarkQuote>> _stored;
   org::imm::ImmIdT<org::imm::ImmMarkQuote>* getPtr() { return _stored.get(); }
@@ -5566,6 +6536,11 @@ struct ImmIdTVerbatim : public Napi::ObjectWrap<ImmIdTVerbatim> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmVerbatim>>();
   }
+  ImmIdTVerbatim(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmVerbatim>> const& ptr) : Napi::ObjectWrap<ImmIdTVerbatim>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmVerbatim>> _stored;
   org::imm::ImmIdT<org::imm::ImmVerbatim>* getPtr() { return _stored.get(); }
 };
@@ -5594,6 +6569,11 @@ struct ImmIdTItalic : public Napi::ObjectWrap<ImmIdTItalic> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmItalic>>();
+  }
+  ImmIdTItalic(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmItalic>> const& ptr) : Napi::ObjectWrap<ImmIdTItalic>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmItalic>> _stored;
   org::imm::ImmIdT<org::imm::ImmItalic>* getPtr() { return _stored.get(); }
@@ -5624,6 +6604,11 @@ struct ImmIdTStrike : public Napi::ObjectWrap<ImmIdTStrike> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmStrike>>();
   }
+  ImmIdTStrike(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmStrike>> const& ptr) : Napi::ObjectWrap<ImmIdTStrike>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmStrike>> _stored;
   org::imm::ImmIdT<org::imm::ImmStrike>* getPtr() { return _stored.get(); }
 };
@@ -5652,6 +6637,11 @@ struct ImmIdTPar : public Napi::ObjectWrap<ImmIdTPar> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmPar>>();
+  }
+  ImmIdTPar(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmPar>> const& ptr) : Napi::ObjectWrap<ImmIdTPar>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmPar>> _stored;
   org::imm::ImmIdT<org::imm::ImmPar>* getPtr() { return _stored.get(); }
@@ -5682,6 +6672,11 @@ struct ImmIdTRadioTarget : public Napi::ObjectWrap<ImmIdTRadioTarget> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmRadioTarget>>();
   }
+  ImmIdTRadioTarget(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmRadioTarget>> const& ptr) : Napi::ObjectWrap<ImmIdTRadioTarget>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmRadioTarget>> _stored;
   org::imm::ImmIdT<org::imm::ImmRadioTarget>* getPtr() { return _stored.get(); }
 };
@@ -5710,6 +6705,11 @@ struct ImmIdTLatex : public Napi::ObjectWrap<ImmIdTLatex> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmLatex>>();
+  }
+  ImmIdTLatex(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmLatex>> const& ptr) : Napi::ObjectWrap<ImmIdTLatex>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmLatex>> _stored;
   org::imm::ImmIdT<org::imm::ImmLatex>* getPtr() { return _stored.get(); }
@@ -5740,6 +6740,11 @@ struct ImmIdTLink : public Napi::ObjectWrap<ImmIdTLink> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmLink>>();
   }
+  ImmIdTLink(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmLink>> const& ptr) : Napi::ObjectWrap<ImmIdTLink>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmLink>> _stored;
   org::imm::ImmIdT<org::imm::ImmLink>* getPtr() { return _stored.get(); }
 };
@@ -5768,6 +6773,11 @@ struct ImmIdTBlockCenter : public Napi::ObjectWrap<ImmIdTBlockCenter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockCenter>>();
+  }
+  ImmIdTBlockCenter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockCenter>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockCenter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockCenter>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockCenter>* getPtr() { return _stored.get(); }
@@ -5798,6 +6808,11 @@ struct ImmIdTBlockQuote : public Napi::ObjectWrap<ImmIdTBlockQuote> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockQuote>>();
   }
+  ImmIdTBlockQuote(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockQuote>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockQuote>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockQuote>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockQuote>* getPtr() { return _stored.get(); }
 };
@@ -5826,6 +6841,11 @@ struct ImmIdTBlockComment : public Napi::ObjectWrap<ImmIdTBlockComment> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockComment>>();
+  }
+  ImmIdTBlockComment(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockComment>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockComment>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockComment>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockComment>* getPtr() { return _stored.get(); }
@@ -5856,6 +6876,11 @@ struct ImmIdTBlockVerse : public Napi::ObjectWrap<ImmIdTBlockVerse> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockVerse>>();
   }
+  ImmIdTBlockVerse(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockVerse>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockVerse>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockVerse>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockVerse>* getPtr() { return _stored.get(); }
 };
@@ -5884,6 +6909,11 @@ struct ImmIdTBlockDynamicFallback : public Napi::ObjectWrap<ImmIdTBlockDynamicFa
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockDynamicFallback>>();
+  }
+  ImmIdTBlockDynamicFallback(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockDynamicFallback>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockDynamicFallback>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockDynamicFallback>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockDynamicFallback>* getPtr() { return _stored.get(); }
@@ -5914,6 +6944,11 @@ struct ImmIdTBlockExample : public Napi::ObjectWrap<ImmIdTBlockExample> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockExample>>();
   }
+  ImmIdTBlockExample(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockExample>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockExample>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockExample>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockExample>* getPtr() { return _stored.get(); }
 };
@@ -5942,6 +6977,11 @@ struct ImmIdTBlockExport : public Napi::ObjectWrap<ImmIdTBlockExport> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockExport>>();
+  }
+  ImmIdTBlockExport(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockExport>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockExport>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockExport>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockExport>* getPtr() { return _stored.get(); }
@@ -5972,6 +7012,11 @@ struct ImmIdTBlockAdmonition : public Napi::ObjectWrap<ImmIdTBlockAdmonition> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockAdmonition>>();
   }
+  ImmIdTBlockAdmonition(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockAdmonition>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockAdmonition>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockAdmonition>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockAdmonition>* getPtr() { return _stored.get(); }
 };
@@ -6000,6 +7045,11 @@ struct ImmIdTBlockCodeEvalResult : public Napi::ObjectWrap<ImmIdTBlockCodeEvalRe
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>();
+  }
+  ImmIdTBlockCodeEvalResult(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockCodeEvalResult>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>* getPtr() { return _stored.get(); }
@@ -6030,6 +7080,11 @@ struct ImmIdTBlockCode : public Napi::ObjectWrap<ImmIdTBlockCode> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmBlockCode>>();
   }
+  ImmIdTBlockCode(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockCode>> const& ptr) : Napi::ObjectWrap<ImmIdTBlockCode>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmBlockCode>> _stored;
   org::imm::ImmIdT<org::imm::ImmBlockCode>* getPtr() { return _stored.get(); }
 };
@@ -6058,6 +7113,11 @@ struct ImmIdTSubtreeLog : public Napi::ObjectWrap<ImmIdTSubtreeLog> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>();
+  }
+  ImmIdTSubtreeLog(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> const& ptr) : Napi::ObjectWrap<ImmIdTSubtreeLog>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> _stored;
   org::imm::ImmIdT<org::imm::ImmSubtreeLog>* getPtr() { return _stored.get(); }
@@ -6088,6 +7148,11 @@ struct ImmIdTSubtree : public Napi::ObjectWrap<ImmIdTSubtree> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmSubtree>>();
   }
+  ImmIdTSubtree(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSubtree>> const& ptr) : Napi::ObjectWrap<ImmIdTSubtree>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSubtree>> _stored;
   org::imm::ImmIdT<org::imm::ImmSubtree>* getPtr() { return _stored.get(); }
 };
@@ -6116,6 +7181,11 @@ struct ImmIdTCell : public Napi::ObjectWrap<ImmIdTCell> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCell>>();
+  }
+  ImmIdTCell(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCell>> const& ptr) : Napi::ObjectWrap<ImmIdTCell>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCell>> _stored;
   org::imm::ImmIdT<org::imm::ImmCell>* getPtr() { return _stored.get(); }
@@ -6146,6 +7216,11 @@ struct ImmIdTRow : public Napi::ObjectWrap<ImmIdTRow> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmRow>>();
   }
+  ImmIdTRow(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmRow>> const& ptr) : Napi::ObjectWrap<ImmIdTRow>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmRow>> _stored;
   org::imm::ImmIdT<org::imm::ImmRow>* getPtr() { return _stored.get(); }
 };
@@ -6174,6 +7249,11 @@ struct ImmIdTTable : public Napi::ObjectWrap<ImmIdTTable> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmTable>>();
+  }
+  ImmIdTTable(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTable>> const& ptr) : Napi::ObjectWrap<ImmIdTTable>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTable>> _stored;
   org::imm::ImmIdT<org::imm::ImmTable>* getPtr() { return _stored.get(); }
@@ -6204,6 +7284,11 @@ struct ImmIdTParagraph : public Napi::ObjectWrap<ImmIdTParagraph> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmParagraph>>();
   }
+  ImmIdTParagraph(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmParagraph>> const& ptr) : Napi::ObjectWrap<ImmIdTParagraph>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmParagraph>> _stored;
   org::imm::ImmIdT<org::imm::ImmParagraph>* getPtr() { return _stored.get(); }
 };
@@ -6232,6 +7317,11 @@ struct ImmIdTColonExample : public Napi::ObjectWrap<ImmIdTColonExample> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmColonExample>>();
+  }
+  ImmIdTColonExample(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmColonExample>> const& ptr) : Napi::ObjectWrap<ImmIdTColonExample>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmColonExample>> _stored;
   org::imm::ImmIdT<org::imm::ImmColonExample>* getPtr() { return _stored.get(); }
@@ -6262,6 +7352,11 @@ struct ImmIdTCmdAttr : public Napi::ObjectWrap<ImmIdTCmdAttr> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdAttr>>();
   }
+  ImmIdTCmdAttr(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdAttr>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdAttr>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdAttr>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdAttr>* getPtr() { return _stored.get(); }
 };
@@ -6290,6 +7385,11 @@ struct ImmIdTCmdExport : public Napi::ObjectWrap<ImmIdTCmdExport> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdExport>>();
+  }
+  ImmIdTCmdExport(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdExport>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdExport>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdExport>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdExport>* getPtr() { return _stored.get(); }
@@ -6320,6 +7420,11 @@ struct ImmIdTCall : public Napi::ObjectWrap<ImmIdTCall> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCall>>();
   }
+  ImmIdTCall(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCall>> const& ptr) : Napi::ObjectWrap<ImmIdTCall>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCall>> _stored;
   org::imm::ImmIdT<org::imm::ImmCall>* getPtr() { return _stored.get(); }
 };
@@ -6348,6 +7453,11 @@ struct ImmIdTList : public Napi::ObjectWrap<ImmIdTList> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmList>>();
+  }
+  ImmIdTList(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmList>> const& ptr) : Napi::ObjectWrap<ImmIdTList>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmList>> _stored;
   org::imm::ImmIdT<org::imm::ImmList>* getPtr() { return _stored.get(); }
@@ -6378,6 +7488,11 @@ struct ImmIdTListItem : public Napi::ObjectWrap<ImmIdTListItem> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmListItem>>();
   }
+  ImmIdTListItem(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmListItem>> const& ptr) : Napi::ObjectWrap<ImmIdTListItem>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmListItem>> _stored;
   org::imm::ImmIdT<org::imm::ImmListItem>* getPtr() { return _stored.get(); }
 };
@@ -6406,6 +7521,11 @@ struct ImmIdTDocumentOptions : public Napi::ObjectWrap<ImmIdTDocumentOptions> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmDocumentOptions>>();
+  }
+  ImmIdTDocumentOptions(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDocumentOptions>> const& ptr) : Napi::ObjectWrap<ImmIdTDocumentOptions>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDocumentOptions>> _stored;
   org::imm::ImmIdT<org::imm::ImmDocumentOptions>* getPtr() { return _stored.get(); }
@@ -6436,6 +7556,11 @@ struct ImmIdTDocumentFragment : public Napi::ObjectWrap<ImmIdTDocumentFragment> 
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmDocumentFragment>>();
   }
+  ImmIdTDocumentFragment(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDocumentFragment>> const& ptr) : Napi::ObjectWrap<ImmIdTDocumentFragment>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDocumentFragment>> _stored;
   org::imm::ImmIdT<org::imm::ImmDocumentFragment>* getPtr() { return _stored.get(); }
 };
@@ -6464,6 +7589,11 @@ struct ImmIdTCriticMarkup : public Napi::ObjectWrap<ImmIdTCriticMarkup> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCriticMarkup>>();
+  }
+  ImmIdTCriticMarkup(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCriticMarkup>> const& ptr) : Napi::ObjectWrap<ImmIdTCriticMarkup>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCriticMarkup>> _stored;
   org::imm::ImmIdT<org::imm::ImmCriticMarkup>* getPtr() { return _stored.get(); }
@@ -6494,6 +7624,11 @@ struct ImmIdTDocument : public Napi::ObjectWrap<ImmIdTDocument> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmDocument>>();
   }
+  ImmIdTDocument(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDocument>> const& ptr) : Napi::ObjectWrap<ImmIdTDocument>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDocument>> _stored;
   org::imm::ImmIdT<org::imm::ImmDocument>* getPtr() { return _stored.get(); }
 };
@@ -6522,6 +7657,11 @@ struct ImmIdTFileTarget : public Napi::ObjectWrap<ImmIdTFileTarget> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmFileTarget>>();
+  }
+  ImmIdTFileTarget(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmFileTarget>> const& ptr) : Napi::ObjectWrap<ImmIdTFileTarget>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmFileTarget>> _stored;
   org::imm::ImmIdT<org::imm::ImmFileTarget>* getPtr() { return _stored.get(); }
@@ -6552,6 +7692,11 @@ struct ImmIdTTextSeparator : public Napi::ObjectWrap<ImmIdTTextSeparator> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmTextSeparator>>();
   }
+  ImmIdTTextSeparator(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTextSeparator>> const& ptr) : Napi::ObjectWrap<ImmIdTTextSeparator>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmTextSeparator>> _stored;
   org::imm::ImmIdT<org::imm::ImmTextSeparator>* getPtr() { return _stored.get(); }
 };
@@ -6580,6 +7725,11 @@ struct ImmIdTDocumentGroup : public Napi::ObjectWrap<ImmIdTDocumentGroup> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmDocumentGroup>>();
+  }
+  ImmIdTDocumentGroup(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDocumentGroup>> const& ptr) : Napi::ObjectWrap<ImmIdTDocumentGroup>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDocumentGroup>> _stored;
   org::imm::ImmIdT<org::imm::ImmDocumentGroup>* getPtr() { return _stored.get(); }
@@ -6610,6 +7760,11 @@ struct ImmIdTFile : public Napi::ObjectWrap<ImmIdTFile> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmFile>>();
   }
+  ImmIdTFile(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmFile>> const& ptr) : Napi::ObjectWrap<ImmIdTFile>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmFile>> _stored;
   org::imm::ImmIdT<org::imm::ImmFile>* getPtr() { return _stored.get(); }
 };
@@ -6638,6 +7793,11 @@ struct ImmIdTDirectory : public Napi::ObjectWrap<ImmIdTDirectory> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmDirectory>>();
+  }
+  ImmIdTDirectory(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDirectory>> const& ptr) : Napi::ObjectWrap<ImmIdTDirectory>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmDirectory>> _stored;
   org::imm::ImmIdT<org::imm::ImmDirectory>* getPtr() { return _stored.get(); }
@@ -6668,6 +7828,11 @@ struct ImmIdTSymlink : public Napi::ObjectWrap<ImmIdTSymlink> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmSymlink>>();
   }
+  ImmIdTSymlink(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSymlink>> const& ptr) : Napi::ObjectWrap<ImmIdTSymlink>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmSymlink>> _stored;
   org::imm::ImmIdT<org::imm::ImmSymlink>* getPtr() { return _stored.get(); }
 };
@@ -6697,6 +7862,11 @@ struct ImmIdTCmdInclude : public Napi::ObjectWrap<ImmIdTCmdInclude> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::imm::ImmIdT<org::imm::ImmCmdInclude>>();
   }
+  ImmIdTCmdInclude(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdInclude>> const& ptr) : Napi::ObjectWrap<ImmIdTCmdInclude>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmIdT<org::imm::ImmCmdInclude>> _stored;
   org::imm::ImmIdT<org::imm::ImmCmdInclude>* getPtr() { return _stored.get(); }
 };
@@ -6724,6 +7894,11 @@ struct ImmNoneValueJs : public Napi::ObjectWrap<ImmNoneValueJs> {
   ImmNoneValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmNoneValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmNoneValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmNoneValue> const& ptr) : Napi::ObjectWrap<ImmNoneValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmNoneValue> _stored;
   org::imm::ImmNoneValue* getPtr() { return _stored.get(); }
@@ -6753,6 +7928,11 @@ struct ImmErrorItemValueJs : public Napi::ObjectWrap<ImmErrorItemValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmErrorItemValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmErrorItemValue> const& ptr) : Napi::ObjectWrap<ImmErrorItemValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmErrorItemValue> _stored;
   org::imm::ImmErrorItemValue* getPtr() { return _stored.get(); }
 };
@@ -6780,6 +7960,11 @@ struct ImmErrorGroupValueJs : public Napi::ObjectWrap<ImmErrorGroupValueJs> {
   ImmErrorGroupValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmErrorGroupValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmErrorGroupValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmErrorGroupValue> const& ptr) : Napi::ObjectWrap<ImmErrorGroupValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmErrorGroupValue> _stored;
   org::imm::ImmErrorGroupValue* getPtr() { return _stored.get(); }
@@ -6809,6 +7994,11 @@ struct ImmStmtListValueJs : public Napi::ObjectWrap<ImmStmtListValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmStmtListValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmStmtListValue> const& ptr) : Napi::ObjectWrap<ImmStmtListValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmStmtListValue> _stored;
   org::imm::ImmStmtListValue* getPtr() { return _stored.get(); }
 };
@@ -6836,6 +8026,11 @@ struct ImmEmptyValueJs : public Napi::ObjectWrap<ImmEmptyValueJs> {
   ImmEmptyValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmEmptyValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmEmptyValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmEmptyValue> const& ptr) : Napi::ObjectWrap<ImmEmptyValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmEmptyValue> _stored;
   org::imm::ImmEmptyValue* getPtr() { return _stored.get(); }
@@ -6865,6 +8060,11 @@ struct ImmCmdCaptionValueJs : public Napi::ObjectWrap<ImmCmdCaptionValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdCaptionValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCaptionValue> const& ptr) : Napi::ObjectWrap<ImmCmdCaptionValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdCaptionValue> _stored;
   org::imm::ImmCmdCaptionValue* getPtr() { return _stored.get(); }
 };
@@ -6892,6 +8092,11 @@ struct ImmCmdColumnsValueJs : public Napi::ObjectWrap<ImmCmdColumnsValueJs> {
   ImmCmdColumnsValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdColumnsValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdColumnsValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdColumnsValue> const& ptr) : Napi::ObjectWrap<ImmCmdColumnsValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdColumnsValue> _stored;
   org::imm::ImmCmdColumnsValue* getPtr() { return _stored.get(); }
@@ -6921,6 +8126,11 @@ struct ImmCmdNameValueJs : public Napi::ObjectWrap<ImmCmdNameValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdNameValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdNameValue> const& ptr) : Napi::ObjectWrap<ImmCmdNameValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdNameValue> _stored;
   org::imm::ImmCmdNameValue* getPtr() { return _stored.get(); }
 };
@@ -6948,6 +8158,11 @@ struct ImmCmdCustomArgsValueJs : public Napi::ObjectWrap<ImmCmdCustomArgsValueJs
   ImmCmdCustomArgsValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdCustomArgsValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdCustomArgsValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCustomArgsValue> const& ptr) : Napi::ObjectWrap<ImmCmdCustomArgsValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdCustomArgsValue> _stored;
   org::imm::ImmCmdCustomArgsValue* getPtr() { return _stored.get(); }
@@ -6977,6 +8192,11 @@ struct ImmCmdCustomRawValueJs : public Napi::ObjectWrap<ImmCmdCustomRawValueJs> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdCustomRawValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCustomRawValue> const& ptr) : Napi::ObjectWrap<ImmCmdCustomRawValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdCustomRawValue> _stored;
   org::imm::ImmCmdCustomRawValue* getPtr() { return _stored.get(); }
 };
@@ -7004,6 +8224,11 @@ struct ImmCmdCustomTextValueJs : public Napi::ObjectWrap<ImmCmdCustomTextValueJs
   ImmCmdCustomTextValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdCustomTextValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdCustomTextValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCustomTextValue> const& ptr) : Napi::ObjectWrap<ImmCmdCustomTextValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdCustomTextValue> _stored;
   org::imm::ImmCmdCustomTextValue* getPtr() { return _stored.get(); }
@@ -7033,6 +8258,11 @@ struct ImmCmdCallValueJs : public Napi::ObjectWrap<ImmCmdCallValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdCallValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdCallValue> const& ptr) : Napi::ObjectWrap<ImmCmdCallValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdCallValue> _stored;
   org::imm::ImmCmdCallValue* getPtr() { return _stored.get(); }
 };
@@ -7060,6 +8290,11 @@ struct ImmCmdTblfmValueJs : public Napi::ObjectWrap<ImmCmdTblfmValueJs> {
   ImmCmdTblfmValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdTblfmValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdTblfmValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdTblfmValue> const& ptr) : Napi::ObjectWrap<ImmCmdTblfmValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdTblfmValue> _stored;
   org::imm::ImmCmdTblfmValue* getPtr() { return _stored.get(); }
@@ -7089,6 +8324,11 @@ struct ImmHashTagValueJs : public Napi::ObjectWrap<ImmHashTagValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmHashTagValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmHashTagValue> const& ptr) : Napi::ObjectWrap<ImmHashTagValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmHashTagValue> _stored;
   org::imm::ImmHashTagValue* getPtr() { return _stored.get(); }
 };
@@ -7116,6 +8356,11 @@ struct ImmInlineFootnoteValueJs : public Napi::ObjectWrap<ImmInlineFootnoteValue
   ImmInlineFootnoteValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmInlineFootnoteValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmInlineFootnoteValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmInlineFootnoteValue> const& ptr) : Napi::ObjectWrap<ImmInlineFootnoteValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmInlineFootnoteValue> _stored;
   org::imm::ImmInlineFootnoteValue* getPtr() { return _stored.get(); }
@@ -7145,6 +8390,11 @@ struct ImmInlineExportValueJs : public Napi::ObjectWrap<ImmInlineExportValueJs> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmInlineExportValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmInlineExportValue> const& ptr) : Napi::ObjectWrap<ImmInlineExportValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmInlineExportValue> _stored;
   org::imm::ImmInlineExportValue* getPtr() { return _stored.get(); }
 };
@@ -7172,6 +8422,11 @@ struct ImmTimeValueJs : public Napi::ObjectWrap<ImmTimeValueJs> {
   ImmTimeValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmTimeValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmTimeValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTimeValue> const& ptr) : Napi::ObjectWrap<ImmTimeValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmTimeValue> _stored;
   org::imm::ImmTimeValue* getPtr() { return _stored.get(); }
@@ -7201,6 +8456,11 @@ struct ImmTimeRangeValueJs : public Napi::ObjectWrap<ImmTimeRangeValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTimeRangeValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTimeRangeValue> const& ptr) : Napi::ObjectWrap<ImmTimeRangeValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmTimeRangeValue> _stored;
   org::imm::ImmTimeRangeValue* getPtr() { return _stored.get(); }
 };
@@ -7228,6 +8488,11 @@ struct ImmMacroValueJs : public Napi::ObjectWrap<ImmMacroValueJs> {
   ImmMacroValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmMacroValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmMacroValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmMacroValue> const& ptr) : Napi::ObjectWrap<ImmMacroValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmMacroValue> _stored;
   org::imm::ImmMacroValue* getPtr() { return _stored.get(); }
@@ -7257,6 +8522,11 @@ struct ImmSymbolValueJs : public Napi::ObjectWrap<ImmSymbolValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmSymbolValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSymbolValue> const& ptr) : Napi::ObjectWrap<ImmSymbolValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmSymbolValue> _stored;
   org::imm::ImmSymbolValue* getPtr() { return _stored.get(); }
 };
@@ -7284,6 +8554,11 @@ struct ImmEscapedValueJs : public Napi::ObjectWrap<ImmEscapedValueJs> {
   ImmEscapedValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmEscapedValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmEscapedValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmEscapedValue> const& ptr) : Napi::ObjectWrap<ImmEscapedValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmEscapedValue> _stored;
   org::imm::ImmEscapedValue* getPtr() { return _stored.get(); }
@@ -7313,6 +8588,11 @@ struct ImmNewlineValueJs : public Napi::ObjectWrap<ImmNewlineValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmNewlineValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmNewlineValue> const& ptr) : Napi::ObjectWrap<ImmNewlineValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmNewlineValue> _stored;
   org::imm::ImmNewlineValue* getPtr() { return _stored.get(); }
 };
@@ -7340,6 +8620,11 @@ struct ImmSpaceValueJs : public Napi::ObjectWrap<ImmSpaceValueJs> {
   ImmSpaceValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmSpaceValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmSpaceValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSpaceValue> const& ptr) : Napi::ObjectWrap<ImmSpaceValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmSpaceValue> _stored;
   org::imm::ImmSpaceValue* getPtr() { return _stored.get(); }
@@ -7369,6 +8654,11 @@ struct ImmWordValueJs : public Napi::ObjectWrap<ImmWordValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmWordValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmWordValue> const& ptr) : Napi::ObjectWrap<ImmWordValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmWordValue> _stored;
   org::imm::ImmWordValue* getPtr() { return _stored.get(); }
 };
@@ -7396,6 +8686,11 @@ struct ImmAtMentionValueJs : public Napi::ObjectWrap<ImmAtMentionValueJs> {
   ImmAtMentionValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmAtMentionValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmAtMentionValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAtMentionValue> const& ptr) : Napi::ObjectWrap<ImmAtMentionValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAtMentionValue> _stored;
   org::imm::ImmAtMentionValue* getPtr() { return _stored.get(); }
@@ -7425,6 +8720,11 @@ struct ImmRawTextValueJs : public Napi::ObjectWrap<ImmRawTextValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmRawTextValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmRawTextValue> const& ptr) : Napi::ObjectWrap<ImmRawTextValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmRawTextValue> _stored;
   org::imm::ImmRawTextValue* getPtr() { return _stored.get(); }
 };
@@ -7452,6 +8752,11 @@ struct ImmPunctuationValueJs : public Napi::ObjectWrap<ImmPunctuationValueJs> {
   ImmPunctuationValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmPunctuationValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmPunctuationValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmPunctuationValue> const& ptr) : Napi::ObjectWrap<ImmPunctuationValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmPunctuationValue> _stored;
   org::imm::ImmPunctuationValue* getPtr() { return _stored.get(); }
@@ -7481,6 +8786,11 @@ struct ImmPlaceholderValueJs : public Napi::ObjectWrap<ImmPlaceholderValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmPlaceholderValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmPlaceholderValue> const& ptr) : Napi::ObjectWrap<ImmPlaceholderValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmPlaceholderValue> _stored;
   org::imm::ImmPlaceholderValue* getPtr() { return _stored.get(); }
 };
@@ -7508,6 +8818,11 @@ struct ImmBigIdentValueJs : public Napi::ObjectWrap<ImmBigIdentValueJs> {
   ImmBigIdentValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBigIdentValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBigIdentValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBigIdentValue> const& ptr) : Napi::ObjectWrap<ImmBigIdentValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBigIdentValue> _stored;
   org::imm::ImmBigIdentValue* getPtr() { return _stored.get(); }
@@ -7537,6 +8852,11 @@ struct ImmTextTargetValueJs : public Napi::ObjectWrap<ImmTextTargetValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTextTargetValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTextTargetValue> const& ptr) : Napi::ObjectWrap<ImmTextTargetValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmTextTargetValue> _stored;
   org::imm::ImmTextTargetValue* getPtr() { return _stored.get(); }
 };
@@ -7564,6 +8884,11 @@ struct ImmBoldValueJs : public Napi::ObjectWrap<ImmBoldValueJs> {
   ImmBoldValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBoldValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBoldValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBoldValue> const& ptr) : Napi::ObjectWrap<ImmBoldValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBoldValue> _stored;
   org::imm::ImmBoldValue* getPtr() { return _stored.get(); }
@@ -7593,6 +8918,11 @@ struct ImmUnderlineValueJs : public Napi::ObjectWrap<ImmUnderlineValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmUnderlineValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmUnderlineValue> const& ptr) : Napi::ObjectWrap<ImmUnderlineValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmUnderlineValue> _stored;
   org::imm::ImmUnderlineValue* getPtr() { return _stored.get(); }
 };
@@ -7620,6 +8950,11 @@ struct ImmMonospaceValueJs : public Napi::ObjectWrap<ImmMonospaceValueJs> {
   ImmMonospaceValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmMonospaceValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmMonospaceValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmMonospaceValue> const& ptr) : Napi::ObjectWrap<ImmMonospaceValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmMonospaceValue> _stored;
   org::imm::ImmMonospaceValue* getPtr() { return _stored.get(); }
@@ -7649,6 +8984,11 @@ struct ImmMarkQuoteValueJs : public Napi::ObjectWrap<ImmMarkQuoteValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmMarkQuoteValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmMarkQuoteValue> const& ptr) : Napi::ObjectWrap<ImmMarkQuoteValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmMarkQuoteValue> _stored;
   org::imm::ImmMarkQuoteValue* getPtr() { return _stored.get(); }
 };
@@ -7676,6 +9016,11 @@ struct ImmVerbatimValueJs : public Napi::ObjectWrap<ImmVerbatimValueJs> {
   ImmVerbatimValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmVerbatimValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmVerbatimValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmVerbatimValue> const& ptr) : Napi::ObjectWrap<ImmVerbatimValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmVerbatimValue> _stored;
   org::imm::ImmVerbatimValue* getPtr() { return _stored.get(); }
@@ -7705,6 +9050,11 @@ struct ImmItalicValueJs : public Napi::ObjectWrap<ImmItalicValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmItalicValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmItalicValue> const& ptr) : Napi::ObjectWrap<ImmItalicValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmItalicValue> _stored;
   org::imm::ImmItalicValue* getPtr() { return _stored.get(); }
 };
@@ -7732,6 +9082,11 @@ struct ImmStrikeValueJs : public Napi::ObjectWrap<ImmStrikeValueJs> {
   ImmStrikeValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmStrikeValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmStrikeValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmStrikeValue> const& ptr) : Napi::ObjectWrap<ImmStrikeValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmStrikeValue> _stored;
   org::imm::ImmStrikeValue* getPtr() { return _stored.get(); }
@@ -7761,6 +9116,11 @@ struct ImmParValueJs : public Napi::ObjectWrap<ImmParValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmParValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmParValue> const& ptr) : Napi::ObjectWrap<ImmParValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmParValue> _stored;
   org::imm::ImmParValue* getPtr() { return _stored.get(); }
 };
@@ -7788,6 +9148,11 @@ struct ImmRadioTargetValueJs : public Napi::ObjectWrap<ImmRadioTargetValueJs> {
   ImmRadioTargetValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmRadioTargetValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmRadioTargetValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmRadioTargetValue> const& ptr) : Napi::ObjectWrap<ImmRadioTargetValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmRadioTargetValue> _stored;
   org::imm::ImmRadioTargetValue* getPtr() { return _stored.get(); }
@@ -7817,6 +9182,11 @@ struct ImmLatexValueJs : public Napi::ObjectWrap<ImmLatexValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmLatexValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmLatexValue> const& ptr) : Napi::ObjectWrap<ImmLatexValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmLatexValue> _stored;
   org::imm::ImmLatexValue* getPtr() { return _stored.get(); }
 };
@@ -7844,6 +9214,11 @@ struct ImmLinkValueJs : public Napi::ObjectWrap<ImmLinkValueJs> {
   ImmLinkValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmLinkValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmLinkValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmLinkValue> const& ptr) : Napi::ObjectWrap<ImmLinkValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmLinkValue> _stored;
   org::imm::ImmLinkValue* getPtr() { return _stored.get(); }
@@ -7873,6 +9248,11 @@ struct ImmBlockCenterValueJs : public Napi::ObjectWrap<ImmBlockCenterValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockCenterValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockCenterValue> const& ptr) : Napi::ObjectWrap<ImmBlockCenterValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockCenterValue> _stored;
   org::imm::ImmBlockCenterValue* getPtr() { return _stored.get(); }
 };
@@ -7900,6 +9280,11 @@ struct ImmBlockQuoteValueJs : public Napi::ObjectWrap<ImmBlockQuoteValueJs> {
   ImmBlockQuoteValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockQuoteValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockQuoteValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockQuoteValue> const& ptr) : Napi::ObjectWrap<ImmBlockQuoteValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockQuoteValue> _stored;
   org::imm::ImmBlockQuoteValue* getPtr() { return _stored.get(); }
@@ -7929,6 +9314,11 @@ struct ImmBlockCommentValueJs : public Napi::ObjectWrap<ImmBlockCommentValueJs> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockCommentValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockCommentValue> const& ptr) : Napi::ObjectWrap<ImmBlockCommentValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockCommentValue> _stored;
   org::imm::ImmBlockCommentValue* getPtr() { return _stored.get(); }
 };
@@ -7956,6 +9346,11 @@ struct ImmBlockVerseValueJs : public Napi::ObjectWrap<ImmBlockVerseValueJs> {
   ImmBlockVerseValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockVerseValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockVerseValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockVerseValue> const& ptr) : Napi::ObjectWrap<ImmBlockVerseValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockVerseValue> _stored;
   org::imm::ImmBlockVerseValue* getPtr() { return _stored.get(); }
@@ -7985,6 +9380,11 @@ struct ImmBlockDynamicFallbackValueJs : public Napi::ObjectWrap<ImmBlockDynamicF
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockDynamicFallbackValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockDynamicFallbackValue> const& ptr) : Napi::ObjectWrap<ImmBlockDynamicFallbackValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockDynamicFallbackValue> _stored;
   org::imm::ImmBlockDynamicFallbackValue* getPtr() { return _stored.get(); }
 };
@@ -8012,6 +9412,11 @@ struct ImmBlockExampleValueJs : public Napi::ObjectWrap<ImmBlockExampleValueJs> 
   ImmBlockExampleValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockExampleValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockExampleValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockExampleValue> const& ptr) : Napi::ObjectWrap<ImmBlockExampleValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockExampleValue> _stored;
   org::imm::ImmBlockExampleValue* getPtr() { return _stored.get(); }
@@ -8041,6 +9446,11 @@ struct ImmBlockExportValueJs : public Napi::ObjectWrap<ImmBlockExportValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockExportValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockExportValue> const& ptr) : Napi::ObjectWrap<ImmBlockExportValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockExportValue> _stored;
   org::imm::ImmBlockExportValue* getPtr() { return _stored.get(); }
 };
@@ -8068,6 +9478,11 @@ struct ImmBlockAdmonitionValueJs : public Napi::ObjectWrap<ImmBlockAdmonitionVal
   ImmBlockAdmonitionValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockAdmonitionValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockAdmonitionValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockAdmonitionValue> const& ptr) : Napi::ObjectWrap<ImmBlockAdmonitionValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockAdmonitionValue> _stored;
   org::imm::ImmBlockAdmonitionValue* getPtr() { return _stored.get(); }
@@ -8097,6 +9512,11 @@ struct ImmBlockCodeEvalResultValueJs : public Napi::ObjectWrap<ImmBlockCodeEvalR
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockCodeEvalResultValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockCodeEvalResultValue> const& ptr) : Napi::ObjectWrap<ImmBlockCodeEvalResultValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmBlockCodeEvalResultValue> _stored;
   org::imm::ImmBlockCodeEvalResultValue* getPtr() { return _stored.get(); }
 };
@@ -8124,6 +9544,11 @@ struct ImmBlockCodeValueJs : public Napi::ObjectWrap<ImmBlockCodeValueJs> {
   ImmBlockCodeValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockCodeValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockCodeValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmBlockCodeValue> const& ptr) : Napi::ObjectWrap<ImmBlockCodeValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmBlockCodeValue> _stored;
   org::imm::ImmBlockCodeValue* getPtr() { return _stored.get(); }
@@ -8153,6 +9578,11 @@ struct ImmSubtreeLogValueJs : public Napi::ObjectWrap<ImmSubtreeLogValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmSubtreeLogValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSubtreeLogValue> const& ptr) : Napi::ObjectWrap<ImmSubtreeLogValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmSubtreeLogValue> _stored;
   org::imm::ImmSubtreeLogValue* getPtr() { return _stored.get(); }
 };
@@ -8180,6 +9610,11 @@ struct ImmSubtreeValueJs : public Napi::ObjectWrap<ImmSubtreeValueJs> {
   ImmSubtreeValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmSubtreeValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmSubtreeValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSubtreeValue> const& ptr) : Napi::ObjectWrap<ImmSubtreeValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmSubtreeValue> _stored;
   org::imm::ImmSubtreeValue* getPtr() { return _stored.get(); }
@@ -8209,6 +9644,11 @@ struct ImmCellValueJs : public Napi::ObjectWrap<ImmCellValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCellValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCellValue> const& ptr) : Napi::ObjectWrap<ImmCellValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCellValue> _stored;
   org::imm::ImmCellValue* getPtr() { return _stored.get(); }
 };
@@ -8236,6 +9676,11 @@ struct ImmRowValueJs : public Napi::ObjectWrap<ImmRowValueJs> {
   ImmRowValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmRowValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmRowValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmRowValue> const& ptr) : Napi::ObjectWrap<ImmRowValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmRowValue> _stored;
   org::imm::ImmRowValue* getPtr() { return _stored.get(); }
@@ -8265,6 +9710,11 @@ struct ImmTableValueJs : public Napi::ObjectWrap<ImmTableValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTableValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTableValue> const& ptr) : Napi::ObjectWrap<ImmTableValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmTableValue> _stored;
   org::imm::ImmTableValue* getPtr() { return _stored.get(); }
 };
@@ -8292,6 +9742,11 @@ struct ImmParagraphValueJs : public Napi::ObjectWrap<ImmParagraphValueJs> {
   ImmParagraphValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmParagraphValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmParagraphValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmParagraphValue> const& ptr) : Napi::ObjectWrap<ImmParagraphValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmParagraphValue> _stored;
   org::imm::ImmParagraphValue* getPtr() { return _stored.get(); }
@@ -8321,6 +9776,11 @@ struct ImmColonExampleValueJs : public Napi::ObjectWrap<ImmColonExampleValueJs> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmColonExampleValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmColonExampleValue> const& ptr) : Napi::ObjectWrap<ImmColonExampleValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmColonExampleValue> _stored;
   org::imm::ImmColonExampleValue* getPtr() { return _stored.get(); }
 };
@@ -8348,6 +9808,11 @@ struct ImmCmdAttrValueJs : public Napi::ObjectWrap<ImmCmdAttrValueJs> {
   ImmCmdAttrValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdAttrValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdAttrValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdAttrValue> const& ptr) : Napi::ObjectWrap<ImmCmdAttrValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdAttrValue> _stored;
   org::imm::ImmCmdAttrValue* getPtr() { return _stored.get(); }
@@ -8377,6 +9842,11 @@ struct ImmCmdExportValueJs : public Napi::ObjectWrap<ImmCmdExportValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdExportValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdExportValue> const& ptr) : Napi::ObjectWrap<ImmCmdExportValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCmdExportValue> _stored;
   org::imm::ImmCmdExportValue* getPtr() { return _stored.get(); }
 };
@@ -8404,6 +9874,11 @@ struct ImmCallValueJs : public Napi::ObjectWrap<ImmCallValueJs> {
   ImmCallValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCallValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCallValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCallValue> const& ptr) : Napi::ObjectWrap<ImmCallValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCallValue> _stored;
   org::imm::ImmCallValue* getPtr() { return _stored.get(); }
@@ -8433,6 +9908,11 @@ struct ImmListValueJs : public Napi::ObjectWrap<ImmListValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmListValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmListValue> const& ptr) : Napi::ObjectWrap<ImmListValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmListValue> _stored;
   org::imm::ImmListValue* getPtr() { return _stored.get(); }
 };
@@ -8460,6 +9940,11 @@ struct ImmListItemValueJs : public Napi::ObjectWrap<ImmListItemValueJs> {
   ImmListItemValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmListItemValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmListItemValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmListItemValue> const& ptr) : Napi::ObjectWrap<ImmListItemValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmListItemValue> _stored;
   org::imm::ImmListItemValue* getPtr() { return _stored.get(); }
@@ -8489,6 +9974,11 @@ struct ImmDocumentOptionsValueJs : public Napi::ObjectWrap<ImmDocumentOptionsVal
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmDocumentOptionsValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDocumentOptionsValue> const& ptr) : Napi::ObjectWrap<ImmDocumentOptionsValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmDocumentOptionsValue> _stored;
   org::imm::ImmDocumentOptionsValue* getPtr() { return _stored.get(); }
 };
@@ -8516,6 +10006,11 @@ struct ImmDocumentFragmentValueJs : public Napi::ObjectWrap<ImmDocumentFragmentV
   ImmDocumentFragmentValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmDocumentFragmentValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmDocumentFragmentValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDocumentFragmentValue> const& ptr) : Napi::ObjectWrap<ImmDocumentFragmentValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmDocumentFragmentValue> _stored;
   org::imm::ImmDocumentFragmentValue* getPtr() { return _stored.get(); }
@@ -8545,6 +10040,11 @@ struct ImmCriticMarkupValueJs : public Napi::ObjectWrap<ImmCriticMarkupValueJs> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCriticMarkupValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCriticMarkupValue> const& ptr) : Napi::ObjectWrap<ImmCriticMarkupValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmCriticMarkupValue> _stored;
   org::imm::ImmCriticMarkupValue* getPtr() { return _stored.get(); }
 };
@@ -8572,6 +10072,11 @@ struct ImmDocumentValueJs : public Napi::ObjectWrap<ImmDocumentValueJs> {
   ImmDocumentValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmDocumentValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmDocumentValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDocumentValue> const& ptr) : Napi::ObjectWrap<ImmDocumentValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmDocumentValue> _stored;
   org::imm::ImmDocumentValue* getPtr() { return _stored.get(); }
@@ -8601,6 +10106,11 @@ struct ImmFileTargetValueJs : public Napi::ObjectWrap<ImmFileTargetValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmFileTargetValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmFileTargetValue> const& ptr) : Napi::ObjectWrap<ImmFileTargetValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmFileTargetValue> _stored;
   org::imm::ImmFileTargetValue* getPtr() { return _stored.get(); }
 };
@@ -8628,6 +10138,11 @@ struct ImmTextSeparatorValueJs : public Napi::ObjectWrap<ImmTextSeparatorValueJs
   ImmTextSeparatorValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmTextSeparatorValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmTextSeparatorValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmTextSeparatorValue> const& ptr) : Napi::ObjectWrap<ImmTextSeparatorValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmTextSeparatorValue> _stored;
   org::imm::ImmTextSeparatorValue* getPtr() { return _stored.get(); }
@@ -8657,6 +10172,11 @@ struct ImmDocumentGroupValueJs : public Napi::ObjectWrap<ImmDocumentGroupValueJs
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmDocumentGroupValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDocumentGroupValue> const& ptr) : Napi::ObjectWrap<ImmDocumentGroupValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmDocumentGroupValue> _stored;
   org::imm::ImmDocumentGroupValue* getPtr() { return _stored.get(); }
 };
@@ -8684,6 +10204,11 @@ struct ImmFileValueJs : public Napi::ObjectWrap<ImmFileValueJs> {
   ImmFileValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmFileValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmFileValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmFileValue> const& ptr) : Napi::ObjectWrap<ImmFileValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmFileValue> _stored;
   org::imm::ImmFileValue* getPtr() { return _stored.get(); }
@@ -8713,6 +10238,11 @@ struct ImmDirectoryValueJs : public Napi::ObjectWrap<ImmDirectoryValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmDirectoryValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmDirectoryValue> const& ptr) : Napi::ObjectWrap<ImmDirectoryValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmDirectoryValue> _stored;
   org::imm::ImmDirectoryValue* getPtr() { return _stored.get(); }
 };
@@ -8741,6 +10271,11 @@ struct ImmSymlinkValueJs : public Napi::ObjectWrap<ImmSymlinkValueJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmSymlinkValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmSymlinkValue> const& ptr) : Napi::ObjectWrap<ImmSymlinkValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmSymlinkValue> _stored;
   org::imm::ImmSymlinkValue* getPtr() { return _stored.get(); }
 };
@@ -8768,6 +10303,11 @@ struct ImmCmdIncludeValueJs : public Napi::ObjectWrap<ImmCmdIncludeValueJs> {
   ImmCmdIncludeValueJs(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdIncludeValueJs>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdIncludeValueJs(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmCmdIncludeValue> const& ptr) : Napi::ObjectWrap<ImmCmdIncludeValueJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmCmdIncludeValue> _stored;
   org::imm::ImmCmdIncludeValue* getPtr() { return _stored.get(); }
@@ -8798,6 +10338,11 @@ struct CmdCustomRawJs : public Napi::ObjectWrap<CmdCustomRawJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdCustomRaw>();
   }
+  CmdCustomRawJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdCustomRaw> const& ptr) : Napi::ObjectWrap<CmdCustomRawJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::CmdCustomRaw> _stored;
   org::sem::CmdCustomRaw* getPtr() { return _stored.get(); }
 };
@@ -8826,6 +10371,11 @@ struct CmdCustomTextJs : public Napi::ObjectWrap<CmdCustomTextJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdCustomText>();
+  }
+  CmdCustomTextJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdCustomText> const& ptr) : Napi::ObjectWrap<CmdCustomTextJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::CmdCustomText> _stored;
   org::sem::CmdCustomText* getPtr() { return _stored.get(); }
@@ -8856,6 +10406,11 @@ struct LinkJs : public Napi::ObjectWrap<LinkJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Link>();
   }
+  LinkJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Link> const& ptr) : Napi::ObjectWrap<LinkJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Link> _stored;
   org::sem::Link* getPtr() { return _stored.get(); }
 };
@@ -8884,6 +10439,11 @@ struct BlockCommentJs : public Napi::ObjectWrap<BlockCommentJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockComment>();
+  }
+  BlockCommentJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockComment> const& ptr) : Napi::ObjectWrap<BlockCommentJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::BlockComment> _stored;
   org::sem::BlockComment* getPtr() { return _stored.get(); }
@@ -8914,6 +10474,11 @@ struct ParagraphJs : public Napi::ObjectWrap<ParagraphJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Paragraph>();
   }
+  ParagraphJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Paragraph> const& ptr) : Napi::ObjectWrap<ParagraphJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Paragraph> _stored;
   org::sem::Paragraph* getPtr() { return _stored.get(); }
 };
@@ -8942,6 +10507,11 @@ struct ListJs : public Napi::ObjectWrap<ListJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::List>();
+  }
+  ListJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::List> const& ptr) : Napi::ObjectWrap<ListJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::List> _stored;
   org::sem::List* getPtr() { return _stored.get(); }
@@ -8972,6 +10542,11 @@ struct HashTagJs : public Napi::ObjectWrap<HashTagJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::HashTag>();
   }
+  HashTagJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::HashTag> const& ptr) : Napi::ObjectWrap<HashTagJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::HashTag> _stored;
   org::sem::HashTag* getPtr() { return _stored.get(); }
 };
@@ -9000,6 +10575,11 @@ struct InlineFootnoteJs : public Napi::ObjectWrap<InlineFootnoteJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::InlineFootnote>();
+  }
+  InlineFootnoteJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::InlineFootnote> const& ptr) : Napi::ObjectWrap<InlineFootnoteJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::InlineFootnote> _stored;
   org::sem::InlineFootnote* getPtr() { return _stored.get(); }
@@ -9030,6 +10610,11 @@ struct InlineExportJs : public Napi::ObjectWrap<InlineExportJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::InlineExport>();
   }
+  InlineExportJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::InlineExport> const& ptr) : Napi::ObjectWrap<InlineExportJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::InlineExport> _stored;
   org::sem::InlineExport* getPtr() { return _stored.get(); }
 };
@@ -9058,6 +10643,11 @@ struct EscapedJs : public Napi::ObjectWrap<EscapedJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Escaped>();
+  }
+  EscapedJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Escaped> const& ptr) : Napi::ObjectWrap<EscapedJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Escaped> _stored;
   org::sem::Escaped* getPtr() { return _stored.get(); }
@@ -9088,6 +10678,11 @@ struct NewlineJs : public Napi::ObjectWrap<NewlineJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Newline>();
   }
+  NewlineJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Newline> const& ptr) : Napi::ObjectWrap<NewlineJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Newline> _stored;
   org::sem::Newline* getPtr() { return _stored.get(); }
 };
@@ -9116,6 +10711,11 @@ struct SpaceJs : public Napi::ObjectWrap<SpaceJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Space>();
+  }
+  SpaceJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Space> const& ptr) : Napi::ObjectWrap<SpaceJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Space> _stored;
   org::sem::Space* getPtr() { return _stored.get(); }
@@ -9146,6 +10746,11 @@ struct WordJs : public Napi::ObjectWrap<WordJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Word>();
   }
+  WordJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Word> const& ptr) : Napi::ObjectWrap<WordJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Word> _stored;
   org::sem::Word* getPtr() { return _stored.get(); }
 };
@@ -9174,6 +10779,11 @@ struct AtMentionJs : public Napi::ObjectWrap<AtMentionJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::AtMention>();
+  }
+  AtMentionJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::AtMention> const& ptr) : Napi::ObjectWrap<AtMentionJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::AtMention> _stored;
   org::sem::AtMention* getPtr() { return _stored.get(); }
@@ -9204,6 +10814,11 @@ struct RawTextJs : public Napi::ObjectWrap<RawTextJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::RawText>();
   }
+  RawTextJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::RawText> const& ptr) : Napi::ObjectWrap<RawTextJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::RawText> _stored;
   org::sem::RawText* getPtr() { return _stored.get(); }
 };
@@ -9232,6 +10847,11 @@ struct PunctuationJs : public Napi::ObjectWrap<PunctuationJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Punctuation>();
+  }
+  PunctuationJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Punctuation> const& ptr) : Napi::ObjectWrap<PunctuationJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Punctuation> _stored;
   org::sem::Punctuation* getPtr() { return _stored.get(); }
@@ -9262,6 +10882,11 @@ struct PlaceholderJs : public Napi::ObjectWrap<PlaceholderJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Placeholder>();
   }
+  PlaceholderJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Placeholder> const& ptr) : Napi::ObjectWrap<PlaceholderJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Placeholder> _stored;
   org::sem::Placeholder* getPtr() { return _stored.get(); }
 };
@@ -9290,6 +10915,11 @@ struct BigIdentJs : public Napi::ObjectWrap<BigIdentJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BigIdent>();
+  }
+  BigIdentJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BigIdent> const& ptr) : Napi::ObjectWrap<BigIdentJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::BigIdent> _stored;
   org::sem::BigIdent* getPtr() { return _stored.get(); }
@@ -9320,6 +10950,11 @@ struct TextTargetJs : public Napi::ObjectWrap<TextTargetJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::TextTarget>();
   }
+  TextTargetJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::TextTarget> const& ptr) : Napi::ObjectWrap<TextTargetJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::TextTarget> _stored;
   org::sem::TextTarget* getPtr() { return _stored.get(); }
 };
@@ -9348,6 +10983,11 @@ struct BoldJs : public Napi::ObjectWrap<BoldJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Bold>();
+  }
+  BoldJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Bold> const& ptr) : Napi::ObjectWrap<BoldJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Bold> _stored;
   org::sem::Bold* getPtr() { return _stored.get(); }
@@ -9378,6 +11018,11 @@ struct UnderlineJs : public Napi::ObjectWrap<UnderlineJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Underline>();
   }
+  UnderlineJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Underline> const& ptr) : Napi::ObjectWrap<UnderlineJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Underline> _stored;
   org::sem::Underline* getPtr() { return _stored.get(); }
 };
@@ -9406,6 +11051,11 @@ struct MonospaceJs : public Napi::ObjectWrap<MonospaceJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Monospace>();
+  }
+  MonospaceJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Monospace> const& ptr) : Napi::ObjectWrap<MonospaceJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Monospace> _stored;
   org::sem::Monospace* getPtr() { return _stored.get(); }
@@ -9436,6 +11086,11 @@ struct MarkQuoteJs : public Napi::ObjectWrap<MarkQuoteJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::MarkQuote>();
   }
+  MarkQuoteJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::MarkQuote> const& ptr) : Napi::ObjectWrap<MarkQuoteJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::MarkQuote> _stored;
   org::sem::MarkQuote* getPtr() { return _stored.get(); }
 };
@@ -9464,6 +11119,11 @@ struct VerbatimJs : public Napi::ObjectWrap<VerbatimJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Verbatim>();
+  }
+  VerbatimJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Verbatim> const& ptr) : Napi::ObjectWrap<VerbatimJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Verbatim> _stored;
   org::sem::Verbatim* getPtr() { return _stored.get(); }
@@ -9494,6 +11154,11 @@ struct ItalicJs : public Napi::ObjectWrap<ItalicJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Italic>();
   }
+  ItalicJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Italic> const& ptr) : Napi::ObjectWrap<ItalicJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Italic> _stored;
   org::sem::Italic* getPtr() { return _stored.get(); }
 };
@@ -9522,6 +11187,11 @@ struct StrikeJs : public Napi::ObjectWrap<StrikeJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Strike>();
+  }
+  StrikeJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Strike> const& ptr) : Napi::ObjectWrap<StrikeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Strike> _stored;
   org::sem::Strike* getPtr() { return _stored.get(); }
@@ -9552,6 +11222,11 @@ struct ParJs : public Napi::ObjectWrap<ParJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Par>();
   }
+  ParJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Par> const& ptr) : Napi::ObjectWrap<ParJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Par> _stored;
   org::sem::Par* getPtr() { return _stored.get(); }
 };
@@ -9580,6 +11255,11 @@ struct CmdCustomArgsJs : public Napi::ObjectWrap<CmdCustomArgsJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdCustomArgs>();
+  }
+  CmdCustomArgsJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdCustomArgs> const& ptr) : Napi::ObjectWrap<CmdCustomArgsJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::CmdCustomArgs> _stored;
   org::sem::CmdCustomArgs* getPtr() { return _stored.get(); }
@@ -9610,6 +11290,11 @@ struct CmdTblfmJs : public Napi::ObjectWrap<CmdTblfmJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdTblfm>();
   }
+  CmdTblfmJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdTblfm> const& ptr) : Napi::ObjectWrap<CmdTblfmJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::CmdTblfm> _stored;
   org::sem::CmdTblfm* getPtr() { return _stored.get(); }
 };
@@ -9638,6 +11323,11 @@ struct CellJs : public Napi::ObjectWrap<CellJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Cell>();
+  }
+  CellJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Cell> const& ptr) : Napi::ObjectWrap<CellJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::Cell> _stored;
   org::sem::Cell* getPtr() { return _stored.get(); }
@@ -9668,6 +11358,11 @@ struct RowJs : public Napi::ObjectWrap<RowJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Row>();
   }
+  RowJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Row> const& ptr) : Napi::ObjectWrap<RowJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Row> _stored;
   org::sem::Row* getPtr() { return _stored.get(); }
 };
@@ -9695,6 +11390,11 @@ struct ImmSubtreeAdapter : public Napi::ObjectWrap<ImmSubtreeAdapter> {
   ImmSubtreeAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmSubtreeAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmSubtreeAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSubtree>> const& ptr) : Napi::ObjectWrap<ImmSubtreeAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSubtree>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmSubtree>* getPtr() { return _stored.get(); }
@@ -9724,6 +11424,11 @@ struct ImmNoneAdapter : public Napi::ObjectWrap<ImmNoneAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmNoneAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmNone>> const& ptr) : Napi::ObjectWrap<ImmNoneAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmNone>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmNone>* getPtr() { return _stored.get(); }
 };
@@ -9751,6 +11456,11 @@ struct ImmErrorItemAdapter : public Napi::ObjectWrap<ImmErrorItemAdapter> {
   ImmErrorItemAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmErrorItemAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmErrorItemAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmErrorItem>> const& ptr) : Napi::ObjectWrap<ImmErrorItemAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmErrorItem>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmErrorItem>* getPtr() { return _stored.get(); }
@@ -9780,6 +11490,11 @@ struct ImmErrorGroupAdapter : public Napi::ObjectWrap<ImmErrorGroupAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmErrorGroupAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>> const& ptr) : Napi::ObjectWrap<ImmErrorGroupAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmErrorGroup>* getPtr() { return _stored.get(); }
 };
@@ -9807,6 +11522,11 @@ struct ImmStmtListAdapter : public Napi::ObjectWrap<ImmStmtListAdapter> {
   ImmStmtListAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmStmtListAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmStmtListAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmStmtList>> const& ptr) : Napi::ObjectWrap<ImmStmtListAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmStmtList>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmStmtList>* getPtr() { return _stored.get(); }
@@ -9836,6 +11556,11 @@ struct ImmEmptyAdapter : public Napi::ObjectWrap<ImmEmptyAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmEmptyAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmEmpty>> const& ptr) : Napi::ObjectWrap<ImmEmptyAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmEmpty>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmEmpty>* getPtr() { return _stored.get(); }
 };
@@ -9863,6 +11588,11 @@ struct ImmTimeAdapter : public Napi::ObjectWrap<ImmTimeAdapter> {
   ImmTimeAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmTimeAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmTimeAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTime>> const& ptr) : Napi::ObjectWrap<ImmTimeAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTime>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmTime>* getPtr() { return _stored.get(); }
@@ -9892,6 +11622,11 @@ struct ImmTimeRangeAdapter : public Napi::ObjectWrap<ImmTimeRangeAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTimeRangeAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTimeRange>> const& ptr) : Napi::ObjectWrap<ImmTimeRangeAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTimeRange>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmTimeRange>* getPtr() { return _stored.get(); }
 };
@@ -9919,6 +11654,11 @@ struct ImmMacroAdapter : public Napi::ObjectWrap<ImmMacroAdapter> {
   ImmMacroAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmMacroAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmMacroAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmMacro>> const& ptr) : Napi::ObjectWrap<ImmMacroAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmMacro>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmMacro>* getPtr() { return _stored.get(); }
@@ -9948,6 +11688,11 @@ struct ImmSymbolAdapter : public Napi::ObjectWrap<ImmSymbolAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmSymbolAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSymbol>> const& ptr) : Napi::ObjectWrap<ImmSymbolAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSymbol>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmSymbol>* getPtr() { return _stored.get(); }
 };
@@ -9975,6 +11720,11 @@ struct ImmLatexAdapter : public Napi::ObjectWrap<ImmLatexAdapter> {
   ImmLatexAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmLatexAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmLatexAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmLatex>> const& ptr) : Napi::ObjectWrap<ImmLatexAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmLatex>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmLatex>* getPtr() { return _stored.get(); }
@@ -10004,6 +11754,11 @@ struct ImmSubtreeLogAdapter : public Napi::ObjectWrap<ImmSubtreeLogAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmSubtreeLogAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>> const& ptr) : Napi::ObjectWrap<ImmSubtreeLogAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>* getPtr() { return _stored.get(); }
 };
@@ -10031,6 +11786,11 @@ struct ImmColonExampleAdapter : public Napi::ObjectWrap<ImmColonExampleAdapter> 
   ImmColonExampleAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmColonExampleAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmColonExampleAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmColonExample>> const& ptr) : Napi::ObjectWrap<ImmColonExampleAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmColonExample>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmColonExample>* getPtr() { return _stored.get(); }
@@ -10060,6 +11820,11 @@ struct ImmCallAdapter : public Napi::ObjectWrap<ImmCallAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCallAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCall>> const& ptr) : Napi::ObjectWrap<ImmCallAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCall>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCall>* getPtr() { return _stored.get(); }
 };
@@ -10087,6 +11852,11 @@ struct ImmFileAdapter : public Napi::ObjectWrap<ImmFileAdapter> {
   ImmFileAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmFileAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmFileAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmFile>> const& ptr) : Napi::ObjectWrap<ImmFileAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmFile>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmFile>* getPtr() { return _stored.get(); }
@@ -10116,6 +11886,11 @@ struct ImmDirectoryAdapter : public Napi::ObjectWrap<ImmDirectoryAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmDirectoryAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDirectory>> const& ptr) : Napi::ObjectWrap<ImmDirectoryAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDirectory>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmDirectory>* getPtr() { return _stored.get(); }
 };
@@ -10143,6 +11918,11 @@ struct ImmSymlinkAdapter : public Napi::ObjectWrap<ImmSymlinkAdapter> {
   ImmSymlinkAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmSymlinkAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmSymlinkAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSymlink>> const& ptr) : Napi::ObjectWrap<ImmSymlinkAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSymlink>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmSymlink>* getPtr() { return _stored.get(); }
@@ -10172,6 +11952,11 @@ struct ImmDocumentFragmentAdapter : public Napi::ObjectWrap<ImmDocumentFragmentA
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmDocumentFragmentAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>> const& ptr) : Napi::ObjectWrap<ImmDocumentFragmentAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>* getPtr() { return _stored.get(); }
 };
@@ -10199,6 +11984,11 @@ struct ImmCriticMarkupAdapter : public Napi::ObjectWrap<ImmCriticMarkupAdapter> 
   ImmCriticMarkupAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCriticMarkupAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCriticMarkupAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>> const& ptr) : Napi::ObjectWrap<ImmCriticMarkupAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>* getPtr() { return _stored.get(); }
@@ -10228,6 +12018,11 @@ struct ImmListItemAdapter : public Napi::ObjectWrap<ImmListItemAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmListItemAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmListItem>> const& ptr) : Napi::ObjectWrap<ImmListItemAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmListItem>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmListItem>* getPtr() { return _stored.get(); }
 };
@@ -10255,6 +12050,11 @@ struct ImmDocumentOptionsAdapter : public Napi::ObjectWrap<ImmDocumentOptionsAda
   ImmDocumentOptionsAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmDocumentOptionsAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmDocumentOptionsAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>> const& ptr) : Napi::ObjectWrap<ImmDocumentOptionsAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>* getPtr() { return _stored.get(); }
@@ -10284,6 +12084,11 @@ struct ImmDocumentAdapter : public Napi::ObjectWrap<ImmDocumentAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmDocumentAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDocument>> const& ptr) : Napi::ObjectWrap<ImmDocumentAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDocument>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmDocument>* getPtr() { return _stored.get(); }
 };
@@ -10311,6 +12116,11 @@ struct ImmFileTargetAdapter : public Napi::ObjectWrap<ImmFileTargetAdapter> {
   ImmFileTargetAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmFileTargetAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmFileTargetAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmFileTarget>> const& ptr) : Napi::ObjectWrap<ImmFileTargetAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmFileTarget>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmFileTarget>* getPtr() { return _stored.get(); }
@@ -10340,6 +12150,11 @@ struct ImmTextSeparatorAdapter : public Napi::ObjectWrap<ImmTextSeparatorAdapter
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTextSeparatorAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>> const& ptr) : Napi::ObjectWrap<ImmTextSeparatorAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmTextSeparator>* getPtr() { return _stored.get(); }
 };
@@ -10368,6 +12183,11 @@ struct ImmCmdIncludeAdapter : public Napi::ObjectWrap<ImmCmdIncludeAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdIncludeAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>> const& ptr) : Napi::ObjectWrap<ImmCmdIncludeAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdInclude>* getPtr() { return _stored.get(); }
 };
@@ -10395,6 +12215,11 @@ struct ImmDocumentGroupAdapter : public Napi::ObjectWrap<ImmDocumentGroupAdapter
   ImmDocumentGroupAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmDocumentGroupAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmDocumentGroupAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>> const& ptr) : Napi::ObjectWrap<ImmDocumentGroupAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>* getPtr() { return _stored.get(); }
@@ -10425,6 +12250,11 @@ struct BlockCenterJs : public Napi::ObjectWrap<BlockCenterJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockCenter>();
   }
+  BlockCenterJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockCenter> const& ptr) : Napi::ObjectWrap<BlockCenterJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::BlockCenter> _stored;
   org::sem::BlockCenter* getPtr() { return _stored.get(); }
 };
@@ -10453,6 +12283,11 @@ struct BlockQuoteJs : public Napi::ObjectWrap<BlockQuoteJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockQuote>();
+  }
+  BlockQuoteJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockQuote> const& ptr) : Napi::ObjectWrap<BlockQuoteJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::BlockQuote> _stored;
   org::sem::BlockQuote* getPtr() { return _stored.get(); }
@@ -10483,6 +12318,11 @@ struct BlockVerseJs : public Napi::ObjectWrap<BlockVerseJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockVerse>();
   }
+  BlockVerseJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockVerse> const& ptr) : Napi::ObjectWrap<BlockVerseJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::BlockVerse> _stored;
   org::sem::BlockVerse* getPtr() { return _stored.get(); }
 };
@@ -10511,6 +12351,11 @@ struct BlockDynamicFallbackJs : public Napi::ObjectWrap<BlockDynamicFallbackJs> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockDynamicFallback>();
+  }
+  BlockDynamicFallbackJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockDynamicFallback> const& ptr) : Napi::ObjectWrap<BlockDynamicFallbackJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::BlockDynamicFallback> _stored;
   org::sem::BlockDynamicFallback* getPtr() { return _stored.get(); }
@@ -10541,6 +12386,11 @@ struct BlockExampleJs : public Napi::ObjectWrap<BlockExampleJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockExample>();
   }
+  BlockExampleJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockExample> const& ptr) : Napi::ObjectWrap<BlockExampleJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::BlockExample> _stored;
   org::sem::BlockExample* getPtr() { return _stored.get(); }
 };
@@ -10569,6 +12419,11 @@ struct BlockExportJs : public Napi::ObjectWrap<BlockExportJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockExport>();
+  }
+  BlockExportJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockExport> const& ptr) : Napi::ObjectWrap<BlockExportJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::BlockExport> _stored;
   org::sem::BlockExport* getPtr() { return _stored.get(); }
@@ -10599,6 +12454,11 @@ struct BlockAdmonitionJs : public Napi::ObjectWrap<BlockAdmonitionJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockAdmonition>();
   }
+  BlockAdmonitionJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockAdmonition> const& ptr) : Napi::ObjectWrap<BlockAdmonitionJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::BlockAdmonition> _stored;
   org::sem::BlockAdmonition* getPtr() { return _stored.get(); }
 };
@@ -10627,6 +12487,11 @@ struct BlockCodeEvalResultJs : public Napi::ObjectWrap<BlockCodeEvalResultJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockCodeEvalResult>();
+  }
+  BlockCodeEvalResultJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockCodeEvalResult> const& ptr) : Napi::ObjectWrap<BlockCodeEvalResultJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::BlockCodeEvalResult> _stored;
   org::sem::BlockCodeEvalResult* getPtr() { return _stored.get(); }
@@ -10657,6 +12522,11 @@ struct BlockCodeJs : public Napi::ObjectWrap<BlockCodeJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::BlockCode>();
   }
+  BlockCodeJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::BlockCode> const& ptr) : Napi::ObjectWrap<BlockCodeJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::BlockCode> _stored;
   org::sem::BlockCode* getPtr() { return _stored.get(); }
 };
@@ -10686,6 +12556,11 @@ struct TableJs : public Napi::ObjectWrap<TableJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::Table>();
   }
+  TableJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::Table> const& ptr) : Napi::ObjectWrap<TableJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::Table> _stored;
   org::sem::Table* getPtr() { return _stored.get(); }
 };
@@ -10713,6 +12588,11 @@ struct ImmCmdCustomRawAdapter : public Napi::ObjectWrap<ImmCmdCustomRawAdapter> 
   ImmCmdCustomRawAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdCustomRawAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdCustomRawAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>> const& ptr) : Napi::ObjectWrap<ImmCmdCustomRawAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>* getPtr() { return _stored.get(); }
@@ -10742,6 +12622,11 @@ struct ImmCmdCustomTextAdapter : public Napi::ObjectWrap<ImmCmdCustomTextAdapter
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdCustomTextAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>> const& ptr) : Napi::ObjectWrap<ImmCmdCustomTextAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>* getPtr() { return _stored.get(); }
 };
@@ -10769,6 +12654,11 @@ struct ImmLinkAdapter : public Napi::ObjectWrap<ImmLinkAdapter> {
   ImmLinkAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmLinkAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmLinkAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmLink>> const& ptr) : Napi::ObjectWrap<ImmLinkAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmLink>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmLink>* getPtr() { return _stored.get(); }
@@ -10798,6 +12688,11 @@ struct ImmBlockCommentAdapter : public Napi::ObjectWrap<ImmBlockCommentAdapter> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockCommentAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockComment>> const& ptr) : Napi::ObjectWrap<ImmBlockCommentAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockComment>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockComment>* getPtr() { return _stored.get(); }
 };
@@ -10825,6 +12720,11 @@ struct ImmParagraphAdapter : public Napi::ObjectWrap<ImmParagraphAdapter> {
   ImmParagraphAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmParagraphAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmParagraphAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmParagraph>> const& ptr) : Napi::ObjectWrap<ImmParagraphAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmParagraph>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmParagraph>* getPtr() { return _stored.get(); }
@@ -10854,6 +12754,11 @@ struct ImmListAdapter : public Napi::ObjectWrap<ImmListAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmListAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmList>> const& ptr) : Napi::ObjectWrap<ImmListAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmList>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmList>* getPtr() { return _stored.get(); }
 };
@@ -10881,6 +12786,11 @@ struct ImmHashTagAdapter : public Napi::ObjectWrap<ImmHashTagAdapter> {
   ImmHashTagAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmHashTagAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmHashTagAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmHashTag>> const& ptr) : Napi::ObjectWrap<ImmHashTagAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmHashTag>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmHashTag>* getPtr() { return _stored.get(); }
@@ -10910,6 +12820,11 @@ struct ImmInlineFootnoteAdapter : public Napi::ObjectWrap<ImmInlineFootnoteAdapt
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmInlineFootnoteAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>> const& ptr) : Napi::ObjectWrap<ImmInlineFootnoteAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>* getPtr() { return _stored.get(); }
 };
@@ -10937,6 +12852,11 @@ struct ImmEscapedAdapter : public Napi::ObjectWrap<ImmEscapedAdapter> {
   ImmEscapedAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmEscapedAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmEscapedAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmEscaped>> const& ptr) : Napi::ObjectWrap<ImmEscapedAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmEscaped>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmEscaped>* getPtr() { return _stored.get(); }
@@ -10966,6 +12886,11 @@ struct ImmNewlineAdapter : public Napi::ObjectWrap<ImmNewlineAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmNewlineAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmNewline>> const& ptr) : Napi::ObjectWrap<ImmNewlineAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmNewline>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmNewline>* getPtr() { return _stored.get(); }
 };
@@ -10993,6 +12918,11 @@ struct ImmSpaceAdapter : public Napi::ObjectWrap<ImmSpaceAdapter> {
   ImmSpaceAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmSpaceAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmSpaceAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSpace>> const& ptr) : Napi::ObjectWrap<ImmSpaceAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmSpace>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmSpace>* getPtr() { return _stored.get(); }
@@ -11022,6 +12952,11 @@ struct ImmWordAdapter : public Napi::ObjectWrap<ImmWordAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmWordAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmWord>> const& ptr) : Napi::ObjectWrap<ImmWordAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmWord>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmWord>* getPtr() { return _stored.get(); }
 };
@@ -11049,6 +12984,11 @@ struct ImmAtMentionAdapter : public Napi::ObjectWrap<ImmAtMentionAdapter> {
   ImmAtMentionAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmAtMentionAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmAtMentionAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmAtMention>> const& ptr) : Napi::ObjectWrap<ImmAtMentionAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmAtMention>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmAtMention>* getPtr() { return _stored.get(); }
@@ -11078,6 +13018,11 @@ struct ImmRawTextAdapter : public Napi::ObjectWrap<ImmRawTextAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmRawTextAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmRawText>> const& ptr) : Napi::ObjectWrap<ImmRawTextAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmRawText>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmRawText>* getPtr() { return _stored.get(); }
 };
@@ -11105,6 +13050,11 @@ struct ImmPunctuationAdapter : public Napi::ObjectWrap<ImmPunctuationAdapter> {
   ImmPunctuationAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmPunctuationAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmPunctuationAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmPunctuation>> const& ptr) : Napi::ObjectWrap<ImmPunctuationAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmPunctuation>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmPunctuation>* getPtr() { return _stored.get(); }
@@ -11134,6 +13084,11 @@ struct ImmPlaceholderAdapter : public Napi::ObjectWrap<ImmPlaceholderAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmPlaceholderAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>> const& ptr) : Napi::ObjectWrap<ImmPlaceholderAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmPlaceholder>* getPtr() { return _stored.get(); }
 };
@@ -11161,6 +13116,11 @@ struct ImmBigIdentAdapter : public Napi::ObjectWrap<ImmBigIdentAdapter> {
   ImmBigIdentAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBigIdentAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBigIdentAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBigIdent>> const& ptr) : Napi::ObjectWrap<ImmBigIdentAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBigIdent>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBigIdent>* getPtr() { return _stored.get(); }
@@ -11190,6 +13150,11 @@ struct ImmTextTargetAdapter : public Napi::ObjectWrap<ImmTextTargetAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTextTargetAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTextTarget>> const& ptr) : Napi::ObjectWrap<ImmTextTargetAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTextTarget>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmTextTarget>* getPtr() { return _stored.get(); }
 };
@@ -11217,6 +13182,11 @@ struct ImmBoldAdapter : public Napi::ObjectWrap<ImmBoldAdapter> {
   ImmBoldAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBoldAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBoldAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBold>> const& ptr) : Napi::ObjectWrap<ImmBoldAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBold>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBold>* getPtr() { return _stored.get(); }
@@ -11246,6 +13216,11 @@ struct ImmUnderlineAdapter : public Napi::ObjectWrap<ImmUnderlineAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmUnderlineAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmUnderline>> const& ptr) : Napi::ObjectWrap<ImmUnderlineAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmUnderline>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmUnderline>* getPtr() { return _stored.get(); }
 };
@@ -11273,6 +13248,11 @@ struct ImmMonospaceAdapter : public Napi::ObjectWrap<ImmMonospaceAdapter> {
   ImmMonospaceAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmMonospaceAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmMonospaceAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmMonospace>> const& ptr) : Napi::ObjectWrap<ImmMonospaceAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmMonospace>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmMonospace>* getPtr() { return _stored.get(); }
@@ -11302,6 +13282,11 @@ struct ImmMarkQuoteAdapter : public Napi::ObjectWrap<ImmMarkQuoteAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmMarkQuoteAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>> const& ptr) : Napi::ObjectWrap<ImmMarkQuoteAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmMarkQuote>* getPtr() { return _stored.get(); }
 };
@@ -11329,6 +13314,11 @@ struct ImmRadioTargetAdapter : public Napi::ObjectWrap<ImmRadioTargetAdapter> {
   ImmRadioTargetAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmRadioTargetAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmRadioTargetAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>> const& ptr) : Napi::ObjectWrap<ImmRadioTargetAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmRadioTarget>* getPtr() { return _stored.get(); }
@@ -11358,6 +13348,11 @@ struct ImmVerbatimAdapter : public Napi::ObjectWrap<ImmVerbatimAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmVerbatimAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmVerbatim>> const& ptr) : Napi::ObjectWrap<ImmVerbatimAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmVerbatim>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmVerbatim>* getPtr() { return _stored.get(); }
 };
@@ -11385,6 +13380,11 @@ struct ImmItalicAdapter : public Napi::ObjectWrap<ImmItalicAdapter> {
   ImmItalicAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmItalicAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmItalicAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmItalic>> const& ptr) : Napi::ObjectWrap<ImmItalicAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmItalic>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmItalic>* getPtr() { return _stored.get(); }
@@ -11414,6 +13414,11 @@ struct ImmStrikeAdapter : public Napi::ObjectWrap<ImmStrikeAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmStrikeAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmStrike>> const& ptr) : Napi::ObjectWrap<ImmStrikeAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmStrike>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmStrike>* getPtr() { return _stored.get(); }
 };
@@ -11441,6 +13446,11 @@ struct ImmParAdapter : public Napi::ObjectWrap<ImmParAdapter> {
   ImmParAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmParAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmParAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmPar>> const& ptr) : Napi::ObjectWrap<ImmParAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmPar>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmPar>* getPtr() { return _stored.get(); }
@@ -11471,6 +13481,11 @@ struct CmdCaptionJs : public Napi::ObjectWrap<CmdCaptionJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdCaption>();
   }
+  CmdCaptionJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdCaption> const& ptr) : Napi::ObjectWrap<CmdCaptionJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::CmdCaption> _stored;
   org::sem::CmdCaption* getPtr() { return _stored.get(); }
 };
@@ -11499,6 +13514,11 @@ struct CmdColumnsJs : public Napi::ObjectWrap<CmdColumnsJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdColumns>();
+  }
+  CmdColumnsJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdColumns> const& ptr) : Napi::ObjectWrap<CmdColumnsJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::CmdColumns> _stored;
   org::sem::CmdColumns* getPtr() { return _stored.get(); }
@@ -11529,6 +13549,11 @@ struct CmdNameJs : public Napi::ObjectWrap<CmdNameJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdName>();
   }
+  CmdNameJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdName> const& ptr) : Napi::ObjectWrap<CmdNameJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::CmdName> _stored;
   org::sem::CmdName* getPtr() { return _stored.get(); }
 };
@@ -11557,6 +13582,11 @@ struct CmdCallJs : public Napi::ObjectWrap<CmdCallJs> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdCall>();
+  }
+  CmdCallJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdCall> const& ptr) : Napi::ObjectWrap<CmdCallJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::sem::CmdCall> _stored;
   org::sem::CmdCall* getPtr() { return _stored.get(); }
@@ -11587,6 +13617,11 @@ struct CmdAttrJs : public Napi::ObjectWrap<CmdAttrJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdAttr>();
   }
+  CmdAttrJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdAttr> const& ptr) : Napi::ObjectWrap<CmdAttrJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::CmdAttr> _stored;
   org::sem::CmdAttr* getPtr() { return _stored.get(); }
 };
@@ -11616,6 +13651,11 @@ struct CmdExportJs : public Napi::ObjectWrap<CmdExportJs> {
     Napi::HandleScope scope(env);
     _stored = std::make_shared<org::sem::CmdExport>();
   }
+  CmdExportJs(Napi::CallbackInfo const& info, std::shared_ptr<org::sem::CmdExport> const& ptr) : Napi::ObjectWrap<CmdExportJs>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::sem::CmdExport> _stored;
   org::sem::CmdExport* getPtr() { return _stored.get(); }
 };
@@ -11643,6 +13683,11 @@ struct ImmCmdCustomArgsAdapter : public Napi::ObjectWrap<ImmCmdCustomArgsAdapter
   ImmCmdCustomArgsAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdCustomArgsAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdCustomArgsAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>> const& ptr) : Napi::ObjectWrap<ImmCmdCustomArgsAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>* getPtr() { return _stored.get(); }
@@ -11672,6 +13717,11 @@ struct ImmCmdTblfmAdapter : public Napi::ObjectWrap<ImmCmdTblfmAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdTblfmAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>> const& ptr) : Napi::ObjectWrap<ImmCmdTblfmAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>* getPtr() { return _stored.get(); }
 };
@@ -11699,6 +13749,11 @@ struct ImmCellAdapter : public Napi::ObjectWrap<ImmCellAdapter> {
   ImmCellAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCellAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCellAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCell>> const& ptr) : Napi::ObjectWrap<ImmCellAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCell>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCell>* getPtr() { return _stored.get(); }
@@ -11728,6 +13783,11 @@ struct ImmRowAdapter : public Napi::ObjectWrap<ImmRowAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmRowAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmRow>> const& ptr) : Napi::ObjectWrap<ImmRowAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmRow>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmRow>* getPtr() { return _stored.get(); }
 };
@@ -11755,6 +13815,11 @@ struct ImmBlockCenterAdapter : public Napi::ObjectWrap<ImmBlockCenterAdapter> {
   ImmBlockCenterAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockCenterAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockCenterAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>> const& ptr) : Napi::ObjectWrap<ImmBlockCenterAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockCenter>* getPtr() { return _stored.get(); }
@@ -11784,6 +13849,11 @@ struct ImmBlockQuoteAdapter : public Napi::ObjectWrap<ImmBlockQuoteAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockQuoteAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>> const& ptr) : Napi::ObjectWrap<ImmBlockQuoteAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockQuote>* getPtr() { return _stored.get(); }
 };
@@ -11811,6 +13881,11 @@ struct ImmBlockVerseAdapter : public Napi::ObjectWrap<ImmBlockVerseAdapter> {
   ImmBlockVerseAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockVerseAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockVerseAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>> const& ptr) : Napi::ObjectWrap<ImmBlockVerseAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockVerse>* getPtr() { return _stored.get(); }
@@ -11840,6 +13915,11 @@ struct ImmBlockExampleAdapter : public Napi::ObjectWrap<ImmBlockExampleAdapter> 
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockExampleAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockExample>> const& ptr) : Napi::ObjectWrap<ImmBlockExampleAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockExample>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockExample>* getPtr() { return _stored.get(); }
 };
@@ -11867,6 +13947,11 @@ struct ImmInlineExportAdapter : public Napi::ObjectWrap<ImmInlineExportAdapter> 
   ImmInlineExportAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmInlineExportAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmInlineExportAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmInlineExport>> const& ptr) : Napi::ObjectWrap<ImmInlineExportAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmInlineExport>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmInlineExport>* getPtr() { return _stored.get(); }
@@ -11896,6 +13981,11 @@ struct ImmCmdExportAdapter : public Napi::ObjectWrap<ImmCmdExportAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdExportAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdExport>> const& ptr) : Napi::ObjectWrap<ImmCmdExportAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdExport>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdExport>* getPtr() { return _stored.get(); }
 };
@@ -11923,6 +14013,11 @@ struct ImmBlockExportAdapter : public Napi::ObjectWrap<ImmBlockExportAdapter> {
   ImmBlockExportAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockExportAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockExportAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockExport>> const& ptr) : Napi::ObjectWrap<ImmBlockExportAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockExport>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockExport>* getPtr() { return _stored.get(); }
@@ -11952,6 +14047,11 @@ struct ImmBlockDynamicFallbackAdapter : public Napi::ObjectWrap<ImmBlockDynamicF
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockDynamicFallbackAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>> const& ptr) : Napi::ObjectWrap<ImmBlockDynamicFallbackAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>* getPtr() { return _stored.get(); }
 };
@@ -11979,6 +14079,11 @@ struct ImmBlockAdmonitionAdapter : public Napi::ObjectWrap<ImmBlockAdmonitionAda
   ImmBlockAdmonitionAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockAdmonitionAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockAdmonitionAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>> const& ptr) : Napi::ObjectWrap<ImmBlockAdmonitionAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>* getPtr() { return _stored.get(); }
@@ -12008,6 +14113,11 @@ struct ImmBlockCodeEvalResultAdapter : public Napi::ObjectWrap<ImmBlockCodeEvalR
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmBlockCodeEvalResultAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>> const& ptr) : Napi::ObjectWrap<ImmBlockCodeEvalResultAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>* getPtr() { return _stored.get(); }
 };
@@ -12035,6 +14145,11 @@ struct ImmBlockCodeAdapter : public Napi::ObjectWrap<ImmBlockCodeAdapter> {
   ImmBlockCodeAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmBlockCodeAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmBlockCodeAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockCode>> const& ptr) : Napi::ObjectWrap<ImmBlockCodeAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmBlockCode>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmBlockCode>* getPtr() { return _stored.get(); }
@@ -12064,6 +14179,11 @@ struct ImmTableAdapter : public Napi::ObjectWrap<ImmTableAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmTableAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTable>> const& ptr) : Napi::ObjectWrap<ImmTableAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmTable>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmTable>* getPtr() { return _stored.get(); }
 };
@@ -12091,6 +14211,11 @@ struct ImmCmdCaptionAdapter : public Napi::ObjectWrap<ImmCmdCaptionAdapter> {
   ImmCmdCaptionAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdCaptionAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdCaptionAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>> const& ptr) : Napi::ObjectWrap<ImmCmdCaptionAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdCaption>* getPtr() { return _stored.get(); }
@@ -12120,6 +14245,11 @@ struct ImmCmdColumnsAdapter : public Napi::ObjectWrap<ImmCmdColumnsAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdColumnsAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>> const& ptr) : Napi::ObjectWrap<ImmCmdColumnsAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdColumns>* getPtr() { return _stored.get(); }
 };
@@ -12147,6 +14277,11 @@ struct ImmCmdNameAdapter : public Napi::ObjectWrap<ImmCmdNameAdapter> {
   ImmCmdNameAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdNameAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdNameAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdName>> const& ptr) : Napi::ObjectWrap<ImmCmdNameAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdName>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdName>* getPtr() { return _stored.get(); }
@@ -12176,6 +14311,11 @@ struct ImmCmdCallAdapter : public Napi::ObjectWrap<ImmCmdCallAdapter> {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
   }
+  ImmCmdCallAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCall>> const& ptr) : Napi::ObjectWrap<ImmCmdCallAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
+  }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdCall>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdCall>* getPtr() { return _stored.get(); }
 };
@@ -12203,6 +14343,11 @@ struct ImmCmdAttrAdapter : public Napi::ObjectWrap<ImmCmdAttrAdapter> {
   ImmCmdAttrAdapter(Napi::CallbackInfo const& info) : Napi::ObjectWrap<ImmCmdAttrAdapter>{info} {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+  }
+  ImmCmdAttrAdapter(Napi::CallbackInfo const& info, std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>> const& ptr) : Napi::ObjectWrap<ImmCmdAttrAdapter>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    _stored = ptr;
   }
   std::shared_ptr<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>> _stored;
   org::imm::ImmAdapterT<org::imm::ImmCmdAttr>* getPtr() { return _stored.get(); }
