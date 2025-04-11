@@ -31,9 +31,8 @@ if(${ORG_DEPS_USE_PROTOBUF})
     "${BASE}/src/haxorg/sem/SemOrgProtoManual.proto"
     PROTOC_OUT_DIR
     "${CMAKE_CURRENT_BINARY_DIR}")
+  target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
 endif()
-
-target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
 
 target_link_libraries(
   haxorg

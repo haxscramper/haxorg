@@ -230,6 +230,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
         deps_name="protobuf",
         configure_args=[
             opt("protobuf_BUILD_TESTS", False),
+            opt("protobuf_BUILD_SHARED_LIBS", False),
             opt("utf8_range_ENABLE_TESTS", False),
             opt("utf8_range_ENABLE_INSTALL", True),
             opt("protobuf_ABSL_PROVIDER", "package"),

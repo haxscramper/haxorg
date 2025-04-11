@@ -6,3 +6,5 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrgGraph.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
+
+#include <haxorg/sem/SemOrgSerde.hpp>

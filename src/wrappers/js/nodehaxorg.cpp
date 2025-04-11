@@ -3,11 +3,12 @@
 #include "node_org_include.hpp"
 using namespace org::bind::js;
 struct UserTimeBreakdownJs : public Napi::ObjectWrap<UserTimeBreakdownJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "UserTimeBreakdownJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("UserTimeBreakdownJs", func);
     return exports;
   }
@@ -31,11 +32,12 @@ struct org_to_js_type<hstd::UserTimeBreakdown> {
 };
 
 struct UserTimeJs : public Napi::ObjectWrap<UserTimeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "UserTimeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("UserTimeJs", func);
     return exports;
   }
@@ -59,11 +61,12 @@ struct org_to_js_type<hstd::UserTime> {
 };
 
 struct LineColJs : public Napi::ObjectWrap<LineColJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "LineColJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("LineColJs", func);
     return exports;
   }
@@ -87,11 +90,12 @@ struct org_to_js_type<org::parse::LineCol> {
 };
 
 struct OrgJsonJs : public Napi::ObjectWrap<OrgJsonJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "OrgJsonJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("OrgJsonJs", func);
     return exports;
   }
@@ -115,11 +119,12 @@ struct org_to_js_type<org::sem::OrgJson> {
 };
 
 struct OperationsTracerJs : public Napi::ObjectWrap<OperationsTracerJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "OperationsTracerJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("OperationsTracerJs", func);
     return exports;
   }
@@ -143,11 +148,12 @@ struct org_to_js_type<hstd::OperationsTracer> {
 };
 
 struct ImmIdJs : public Napi::ObjectWrap<ImmIdJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdJs", func);
     return exports;
   }
@@ -171,11 +177,12 @@ struct org_to_js_type<org::imm::ImmId> {
 };
 
 struct ImmPathStepJs : public Napi::ObjectWrap<ImmPathStepJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmPathStepJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmPathStepJs", func);
     return exports;
   }
@@ -199,11 +206,12 @@ struct org_to_js_type<org::imm::ImmPathStep> {
 };
 
 struct ImmPathJs : public Napi::ObjectWrap<ImmPathJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmPathJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmPathJs", func);
     return exports;
   }
@@ -227,11 +235,12 @@ struct org_to_js_type<org::imm::ImmPath> {
 };
 
 struct ImmUniqIdJs : public Napi::ObjectWrap<ImmUniqIdJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmUniqIdJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmUniqIdJs", func);
     return exports;
   }
@@ -255,11 +264,12 @@ struct org_to_js_type<org::imm::ImmUniqId> {
 };
 
 struct ImmNoneValueReadJs : public Napi::ObjectWrap<ImmNoneValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmNoneValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmNoneValueReadJs", func);
     return exports;
   }
@@ -282,11 +292,12 @@ struct org_to_js_type<org::imm::ImmNoneValueRead> {
 };
 
 struct ImmErrorItemValueReadJs : public Napi::ObjectWrap<ImmErrorItemValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmErrorItemValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmErrorItemValueReadJs", func);
     return exports;
   }
@@ -309,11 +320,12 @@ struct org_to_js_type<org::imm::ImmErrorItemValueRead> {
 };
 
 struct ImmErrorGroupValueReadJs : public Napi::ObjectWrap<ImmErrorGroupValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmErrorGroupValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmErrorGroupValueReadJs", func);
     return exports;
   }
@@ -336,11 +348,12 @@ struct org_to_js_type<org::imm::ImmErrorGroupValueRead> {
 };
 
 struct ImmStmtListValueReadJs : public Napi::ObjectWrap<ImmStmtListValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmStmtListValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmStmtListValueReadJs", func);
     return exports;
   }
@@ -363,11 +376,12 @@ struct org_to_js_type<org::imm::ImmStmtListValueRead> {
 };
 
 struct ImmEmptyValueReadJs : public Napi::ObjectWrap<ImmEmptyValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmEmptyValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmEmptyValueReadJs", func);
     return exports;
   }
@@ -390,11 +404,12 @@ struct org_to_js_type<org::imm::ImmEmptyValueRead> {
 };
 
 struct ImmCmdCaptionValueReadJs : public Napi::ObjectWrap<ImmCmdCaptionValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCaptionValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCaptionValueReadJs", func);
     return exports;
   }
@@ -417,11 +432,12 @@ struct org_to_js_type<org::imm::ImmCmdCaptionValueRead> {
 };
 
 struct ImmCmdColumnsValueReadJs : public Napi::ObjectWrap<ImmCmdColumnsValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdColumnsValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdColumnsValueReadJs", func);
     return exports;
   }
@@ -444,11 +460,12 @@ struct org_to_js_type<org::imm::ImmCmdColumnsValueRead> {
 };
 
 struct ImmCmdNameValueReadJs : public Napi::ObjectWrap<ImmCmdNameValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdNameValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdNameValueReadJs", func);
     return exports;
   }
@@ -471,11 +488,12 @@ struct org_to_js_type<org::imm::ImmCmdNameValueRead> {
 };
 
 struct ImmCmdCustomArgsValueReadJs : public Napi::ObjectWrap<ImmCmdCustomArgsValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCustomArgsValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCustomArgsValueReadJs", func);
     return exports;
   }
@@ -498,11 +516,12 @@ struct org_to_js_type<org::imm::ImmCmdCustomArgsValueRead> {
 };
 
 struct ImmCmdCustomRawValueReadJs : public Napi::ObjectWrap<ImmCmdCustomRawValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCustomRawValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCustomRawValueReadJs", func);
     return exports;
   }
@@ -525,11 +544,12 @@ struct org_to_js_type<org::imm::ImmCmdCustomRawValueRead> {
 };
 
 struct ImmCmdCustomTextValueReadJs : public Napi::ObjectWrap<ImmCmdCustomTextValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCustomTextValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCustomTextValueReadJs", func);
     return exports;
   }
@@ -552,11 +572,12 @@ struct org_to_js_type<org::imm::ImmCmdCustomTextValueRead> {
 };
 
 struct ImmCmdCallValueReadJs : public Napi::ObjectWrap<ImmCmdCallValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCallValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCallValueReadJs", func);
     return exports;
   }
@@ -579,11 +600,12 @@ struct org_to_js_type<org::imm::ImmCmdCallValueRead> {
 };
 
 struct ImmCmdTblfmValueReadJs : public Napi::ObjectWrap<ImmCmdTblfmValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdTblfmValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdTblfmValueReadJs", func);
     return exports;
   }
@@ -606,11 +628,12 @@ struct org_to_js_type<org::imm::ImmCmdTblfmValueRead> {
 };
 
 struct ImmHashTagValueReadJs : public Napi::ObjectWrap<ImmHashTagValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmHashTagValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmHashTagValueReadJs", func);
     return exports;
   }
@@ -633,11 +656,12 @@ struct org_to_js_type<org::imm::ImmHashTagValueRead> {
 };
 
 struct ImmInlineFootnoteValueReadJs : public Napi::ObjectWrap<ImmInlineFootnoteValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmInlineFootnoteValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmInlineFootnoteValueReadJs", func);
     return exports;
   }
@@ -660,11 +684,12 @@ struct org_to_js_type<org::imm::ImmInlineFootnoteValueRead> {
 };
 
 struct ImmInlineExportValueReadJs : public Napi::ObjectWrap<ImmInlineExportValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmInlineExportValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmInlineExportValueReadJs", func);
     return exports;
   }
@@ -687,11 +712,12 @@ struct org_to_js_type<org::imm::ImmInlineExportValueRead> {
 };
 
 struct ImmTimeValueReadJs : public Napi::ObjectWrap<ImmTimeValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTimeValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTimeValueReadJs", func);
     return exports;
   }
@@ -714,11 +740,12 @@ struct org_to_js_type<org::imm::ImmTimeValueRead> {
 };
 
 struct ImmTimeRangeValueReadJs : public Napi::ObjectWrap<ImmTimeRangeValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTimeRangeValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTimeRangeValueReadJs", func);
     return exports;
   }
@@ -741,11 +768,12 @@ struct org_to_js_type<org::imm::ImmTimeRangeValueRead> {
 };
 
 struct ImmMacroValueReadJs : public Napi::ObjectWrap<ImmMacroValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmMacroValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmMacroValueReadJs", func);
     return exports;
   }
@@ -768,11 +796,12 @@ struct org_to_js_type<org::imm::ImmMacroValueRead> {
 };
 
 struct ImmSymbolValueReadJs : public Napi::ObjectWrap<ImmSymbolValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSymbolValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSymbolValueReadJs", func);
     return exports;
   }
@@ -795,11 +824,12 @@ struct org_to_js_type<org::imm::ImmSymbolValueRead> {
 };
 
 struct ImmEscapedValueReadJs : public Napi::ObjectWrap<ImmEscapedValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmEscapedValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmEscapedValueReadJs", func);
     return exports;
   }
@@ -822,11 +852,12 @@ struct org_to_js_type<org::imm::ImmEscapedValueRead> {
 };
 
 struct ImmNewlineValueReadJs : public Napi::ObjectWrap<ImmNewlineValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmNewlineValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmNewlineValueReadJs", func);
     return exports;
   }
@@ -849,11 +880,12 @@ struct org_to_js_type<org::imm::ImmNewlineValueRead> {
 };
 
 struct ImmSpaceValueReadJs : public Napi::ObjectWrap<ImmSpaceValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSpaceValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSpaceValueReadJs", func);
     return exports;
   }
@@ -876,11 +908,12 @@ struct org_to_js_type<org::imm::ImmSpaceValueRead> {
 };
 
 struct ImmWordValueReadJs : public Napi::ObjectWrap<ImmWordValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmWordValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmWordValueReadJs", func);
     return exports;
   }
@@ -903,11 +936,12 @@ struct org_to_js_type<org::imm::ImmWordValueRead> {
 };
 
 struct ImmAtMentionValueReadJs : public Napi::ObjectWrap<ImmAtMentionValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmAtMentionValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmAtMentionValueReadJs", func);
     return exports;
   }
@@ -930,11 +964,12 @@ struct org_to_js_type<org::imm::ImmAtMentionValueRead> {
 };
 
 struct ImmRawTextValueReadJs : public Napi::ObjectWrap<ImmRawTextValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmRawTextValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmRawTextValueReadJs", func);
     return exports;
   }
@@ -957,11 +992,12 @@ struct org_to_js_type<org::imm::ImmRawTextValueRead> {
 };
 
 struct ImmPunctuationValueReadJs : public Napi::ObjectWrap<ImmPunctuationValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmPunctuationValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmPunctuationValueReadJs", func);
     return exports;
   }
@@ -984,11 +1020,12 @@ struct org_to_js_type<org::imm::ImmPunctuationValueRead> {
 };
 
 struct ImmPlaceholderValueReadJs : public Napi::ObjectWrap<ImmPlaceholderValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmPlaceholderValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmPlaceholderValueReadJs", func);
     return exports;
   }
@@ -1011,11 +1048,12 @@ struct org_to_js_type<org::imm::ImmPlaceholderValueRead> {
 };
 
 struct ImmBigIdentValueReadJs : public Napi::ObjectWrap<ImmBigIdentValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBigIdentValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBigIdentValueReadJs", func);
     return exports;
   }
@@ -1038,11 +1076,12 @@ struct org_to_js_type<org::imm::ImmBigIdentValueRead> {
 };
 
 struct ImmTextTargetValueReadJs : public Napi::ObjectWrap<ImmTextTargetValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTextTargetValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTextTargetValueReadJs", func);
     return exports;
   }
@@ -1065,11 +1104,12 @@ struct org_to_js_type<org::imm::ImmTextTargetValueRead> {
 };
 
 struct ImmBoldValueReadJs : public Napi::ObjectWrap<ImmBoldValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBoldValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBoldValueReadJs", func);
     return exports;
   }
@@ -1092,11 +1132,12 @@ struct org_to_js_type<org::imm::ImmBoldValueRead> {
 };
 
 struct ImmUnderlineValueReadJs : public Napi::ObjectWrap<ImmUnderlineValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmUnderlineValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmUnderlineValueReadJs", func);
     return exports;
   }
@@ -1119,11 +1160,12 @@ struct org_to_js_type<org::imm::ImmUnderlineValueRead> {
 };
 
 struct ImmMonospaceValueReadJs : public Napi::ObjectWrap<ImmMonospaceValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmMonospaceValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmMonospaceValueReadJs", func);
     return exports;
   }
@@ -1146,11 +1188,12 @@ struct org_to_js_type<org::imm::ImmMonospaceValueRead> {
 };
 
 struct ImmMarkQuoteValueReadJs : public Napi::ObjectWrap<ImmMarkQuoteValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmMarkQuoteValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmMarkQuoteValueReadJs", func);
     return exports;
   }
@@ -1173,11 +1216,12 @@ struct org_to_js_type<org::imm::ImmMarkQuoteValueRead> {
 };
 
 struct ImmVerbatimValueReadJs : public Napi::ObjectWrap<ImmVerbatimValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmVerbatimValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmVerbatimValueReadJs", func);
     return exports;
   }
@@ -1200,11 +1244,12 @@ struct org_to_js_type<org::imm::ImmVerbatimValueRead> {
 };
 
 struct ImmItalicValueReadJs : public Napi::ObjectWrap<ImmItalicValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmItalicValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmItalicValueReadJs", func);
     return exports;
   }
@@ -1227,11 +1272,12 @@ struct org_to_js_type<org::imm::ImmItalicValueRead> {
 };
 
 struct ImmStrikeValueReadJs : public Napi::ObjectWrap<ImmStrikeValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmStrikeValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmStrikeValueReadJs", func);
     return exports;
   }
@@ -1254,11 +1300,12 @@ struct org_to_js_type<org::imm::ImmStrikeValueRead> {
 };
 
 struct ImmParValueReadJs : public Napi::ObjectWrap<ImmParValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmParValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmParValueReadJs", func);
     return exports;
   }
@@ -1281,11 +1328,12 @@ struct org_to_js_type<org::imm::ImmParValueRead> {
 };
 
 struct ImmRadioTargetValueReadJs : public Napi::ObjectWrap<ImmRadioTargetValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmRadioTargetValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmRadioTargetValueReadJs", func);
     return exports;
   }
@@ -1308,11 +1356,12 @@ struct org_to_js_type<org::imm::ImmRadioTargetValueRead> {
 };
 
 struct ImmLatexValueReadJs : public Napi::ObjectWrap<ImmLatexValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmLatexValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmLatexValueReadJs", func);
     return exports;
   }
@@ -1335,11 +1384,12 @@ struct org_to_js_type<org::imm::ImmLatexValueRead> {
 };
 
 struct ImmLinkValueReadJs : public Napi::ObjectWrap<ImmLinkValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmLinkValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmLinkValueReadJs", func);
     return exports;
   }
@@ -1362,11 +1412,12 @@ struct org_to_js_type<org::imm::ImmLinkValueRead> {
 };
 
 struct ImmBlockCenterValueReadJs : public Napi::ObjectWrap<ImmBlockCenterValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCenterValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCenterValueReadJs", func);
     return exports;
   }
@@ -1389,11 +1440,12 @@ struct org_to_js_type<org::imm::ImmBlockCenterValueRead> {
 };
 
 struct ImmBlockQuoteValueReadJs : public Napi::ObjectWrap<ImmBlockQuoteValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockQuoteValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockQuoteValueReadJs", func);
     return exports;
   }
@@ -1416,11 +1468,12 @@ struct org_to_js_type<org::imm::ImmBlockQuoteValueRead> {
 };
 
 struct ImmBlockCommentValueReadJs : public Napi::ObjectWrap<ImmBlockCommentValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCommentValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCommentValueReadJs", func);
     return exports;
   }
@@ -1443,11 +1496,12 @@ struct org_to_js_type<org::imm::ImmBlockCommentValueRead> {
 };
 
 struct ImmBlockVerseValueReadJs : public Napi::ObjectWrap<ImmBlockVerseValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockVerseValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockVerseValueReadJs", func);
     return exports;
   }
@@ -1470,11 +1524,12 @@ struct org_to_js_type<org::imm::ImmBlockVerseValueRead> {
 };
 
 struct ImmBlockDynamicFallbackValueReadJs : public Napi::ObjectWrap<ImmBlockDynamicFallbackValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockDynamicFallbackValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockDynamicFallbackValueReadJs", func);
     return exports;
   }
@@ -1497,11 +1552,12 @@ struct org_to_js_type<org::imm::ImmBlockDynamicFallbackValueRead> {
 };
 
 struct ImmBlockExampleValueReadJs : public Napi::ObjectWrap<ImmBlockExampleValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockExampleValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockExampleValueReadJs", func);
     return exports;
   }
@@ -1524,11 +1580,12 @@ struct org_to_js_type<org::imm::ImmBlockExampleValueRead> {
 };
 
 struct ImmBlockExportValueReadJs : public Napi::ObjectWrap<ImmBlockExportValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockExportValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockExportValueReadJs", func);
     return exports;
   }
@@ -1551,11 +1608,12 @@ struct org_to_js_type<org::imm::ImmBlockExportValueRead> {
 };
 
 struct ImmBlockAdmonitionValueReadJs : public Napi::ObjectWrap<ImmBlockAdmonitionValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockAdmonitionValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockAdmonitionValueReadJs", func);
     return exports;
   }
@@ -1578,11 +1636,12 @@ struct org_to_js_type<org::imm::ImmBlockAdmonitionValueRead> {
 };
 
 struct ImmBlockCodeEvalResultValueReadJs : public Napi::ObjectWrap<ImmBlockCodeEvalResultValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCodeEvalResultValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCodeEvalResultValueReadJs", func);
     return exports;
   }
@@ -1605,11 +1664,12 @@ struct org_to_js_type<org::imm::ImmBlockCodeEvalResultValueRead> {
 };
 
 struct ImmBlockCodeValueReadJs : public Napi::ObjectWrap<ImmBlockCodeValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCodeValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCodeValueReadJs", func);
     return exports;
   }
@@ -1632,11 +1692,12 @@ struct org_to_js_type<org::imm::ImmBlockCodeValueRead> {
 };
 
 struct ImmSubtreeLogValueReadJs : public Napi::ObjectWrap<ImmSubtreeLogValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSubtreeLogValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSubtreeLogValueReadJs", func);
     return exports;
   }
@@ -1659,11 +1720,12 @@ struct org_to_js_type<org::imm::ImmSubtreeLogValueRead> {
 };
 
 struct ImmSubtreeValueReadJs : public Napi::ObjectWrap<ImmSubtreeValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSubtreeValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSubtreeValueReadJs", func);
     return exports;
   }
@@ -1686,11 +1748,12 @@ struct org_to_js_type<org::imm::ImmSubtreeValueRead> {
 };
 
 struct ImmCellValueReadJs : public Napi::ObjectWrap<ImmCellValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCellValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCellValueReadJs", func);
     return exports;
   }
@@ -1713,11 +1776,12 @@ struct org_to_js_type<org::imm::ImmCellValueRead> {
 };
 
 struct ImmRowValueReadJs : public Napi::ObjectWrap<ImmRowValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmRowValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmRowValueReadJs", func);
     return exports;
   }
@@ -1740,11 +1804,12 @@ struct org_to_js_type<org::imm::ImmRowValueRead> {
 };
 
 struct ImmTableValueReadJs : public Napi::ObjectWrap<ImmTableValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTableValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTableValueReadJs", func);
     return exports;
   }
@@ -1767,11 +1832,12 @@ struct org_to_js_type<org::imm::ImmTableValueRead> {
 };
 
 struct ImmParagraphValueReadJs : public Napi::ObjectWrap<ImmParagraphValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmParagraphValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmParagraphValueReadJs", func);
     return exports;
   }
@@ -1794,11 +1860,12 @@ struct org_to_js_type<org::imm::ImmParagraphValueRead> {
 };
 
 struct ImmColonExampleValueReadJs : public Napi::ObjectWrap<ImmColonExampleValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmColonExampleValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmColonExampleValueReadJs", func);
     return exports;
   }
@@ -1821,11 +1888,12 @@ struct org_to_js_type<org::imm::ImmColonExampleValueRead> {
 };
 
 struct ImmCmdAttrValueReadJs : public Napi::ObjectWrap<ImmCmdAttrValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdAttrValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdAttrValueReadJs", func);
     return exports;
   }
@@ -1848,11 +1916,12 @@ struct org_to_js_type<org::imm::ImmCmdAttrValueRead> {
 };
 
 struct ImmCmdExportValueReadJs : public Napi::ObjectWrap<ImmCmdExportValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdExportValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdExportValueReadJs", func);
     return exports;
   }
@@ -1875,11 +1944,12 @@ struct org_to_js_type<org::imm::ImmCmdExportValueRead> {
 };
 
 struct ImmCallValueReadJs : public Napi::ObjectWrap<ImmCallValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCallValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCallValueReadJs", func);
     return exports;
   }
@@ -1902,11 +1972,12 @@ struct org_to_js_type<org::imm::ImmCallValueRead> {
 };
 
 struct ImmListValueReadJs : public Napi::ObjectWrap<ImmListValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmListValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmListValueReadJs", func);
     return exports;
   }
@@ -1929,11 +2000,12 @@ struct org_to_js_type<org::imm::ImmListValueRead> {
 };
 
 struct ImmListItemValueReadJs : public Napi::ObjectWrap<ImmListItemValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmListItemValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmListItemValueReadJs", func);
     return exports;
   }
@@ -1956,11 +2028,12 @@ struct org_to_js_type<org::imm::ImmListItemValueRead> {
 };
 
 struct ImmDocumentOptionsValueReadJs : public Napi::ObjectWrap<ImmDocumentOptionsValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentOptionsValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentOptionsValueReadJs", func);
     return exports;
   }
@@ -1983,11 +2056,12 @@ struct org_to_js_type<org::imm::ImmDocumentOptionsValueRead> {
 };
 
 struct ImmDocumentFragmentValueReadJs : public Napi::ObjectWrap<ImmDocumentFragmentValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentFragmentValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentFragmentValueReadJs", func);
     return exports;
   }
@@ -2010,11 +2084,12 @@ struct org_to_js_type<org::imm::ImmDocumentFragmentValueRead> {
 };
 
 struct ImmCriticMarkupValueReadJs : public Napi::ObjectWrap<ImmCriticMarkupValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCriticMarkupValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCriticMarkupValueReadJs", func);
     return exports;
   }
@@ -2037,11 +2112,12 @@ struct org_to_js_type<org::imm::ImmCriticMarkupValueRead> {
 };
 
 struct ImmDocumentValueReadJs : public Napi::ObjectWrap<ImmDocumentValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentValueReadJs", func);
     return exports;
   }
@@ -2064,11 +2140,12 @@ struct org_to_js_type<org::imm::ImmDocumentValueRead> {
 };
 
 struct ImmFileTargetValueReadJs : public Napi::ObjectWrap<ImmFileTargetValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmFileTargetValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmFileTargetValueReadJs", func);
     return exports;
   }
@@ -2091,11 +2168,12 @@ struct org_to_js_type<org::imm::ImmFileTargetValueRead> {
 };
 
 struct ImmTextSeparatorValueReadJs : public Napi::ObjectWrap<ImmTextSeparatorValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTextSeparatorValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTextSeparatorValueReadJs", func);
     return exports;
   }
@@ -2118,11 +2196,12 @@ struct org_to_js_type<org::imm::ImmTextSeparatorValueRead> {
 };
 
 struct ImmDocumentGroupValueReadJs : public Napi::ObjectWrap<ImmDocumentGroupValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentGroupValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentGroupValueReadJs", func);
     return exports;
   }
@@ -2145,11 +2224,12 @@ struct org_to_js_type<org::imm::ImmDocumentGroupValueRead> {
 };
 
 struct ImmFileValueReadJs : public Napi::ObjectWrap<ImmFileValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmFileValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmFileValueReadJs", func);
     return exports;
   }
@@ -2172,11 +2252,12 @@ struct org_to_js_type<org::imm::ImmFileValueRead> {
 };
 
 struct ImmDirectoryValueReadJs : public Napi::ObjectWrap<ImmDirectoryValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDirectoryValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDirectoryValueReadJs", func);
     return exports;
   }
@@ -2199,11 +2280,12 @@ struct org_to_js_type<org::imm::ImmDirectoryValueRead> {
 };
 
 struct ImmSymlinkValueReadJs : public Napi::ObjectWrap<ImmSymlinkValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSymlinkValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSymlinkValueReadJs", func);
     return exports;
   }
@@ -2226,11 +2308,12 @@ struct org_to_js_type<org::imm::ImmSymlinkValueRead> {
 };
 
 struct ImmCmdIncludeValueReadJs : public Napi::ObjectWrap<ImmCmdIncludeValueReadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdIncludeValueReadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdIncludeValueReadJs", func);
     return exports;
   }
@@ -2253,11 +2336,12 @@ struct org_to_js_type<org::imm::ImmCmdIncludeValueRead> {
 };
 
 struct ImmAstContextJs : public Napi::ObjectWrap<ImmAstContextJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmAstContextJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmAstContextJs", func);
     return exports;
   }
@@ -2280,11 +2364,12 @@ struct org_to_js_type<org::imm::ImmAstContext> {
 };
 
 struct ImmAstVersionJs : public Napi::ObjectWrap<ImmAstVersionJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmAstVersionJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmAstVersionJs", func);
     return exports;
   }
@@ -2308,11 +2393,12 @@ struct org_to_js_type<org::imm::ImmAstVersion> {
 };
 
 struct ImmAdapterJs : public Napi::ObjectWrap<ImmAdapterJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmAdapterJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmAdapterJs", func);
     return exports;
   }
@@ -2335,11 +2421,12 @@ struct org_to_js_type<org::imm::ImmAdapter> {
 };
 
 struct OrgParseFragmentJs : public Napi::ObjectWrap<OrgParseFragmentJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "OrgParseFragmentJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("OrgParseFragmentJs", func);
     return exports;
   }
@@ -2363,11 +2450,12 @@ struct org_to_js_type<org::OrgParseFragment> {
 };
 
 struct OrgParseParametersJs : public Napi::ObjectWrap<OrgParseParametersJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "OrgParseParametersJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("OrgParseParametersJs", func);
     return exports;
   }
@@ -2391,11 +2479,12 @@ struct org_to_js_type<org::OrgParseParameters> {
 };
 
 struct OrgDirectoryParseParametersJs : public Napi::ObjectWrap<OrgDirectoryParseParametersJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "OrgDirectoryParseParametersJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("OrgDirectoryParseParametersJs", func);
     return exports;
   }
@@ -2419,11 +2508,12 @@ struct org_to_js_type<org::OrgDirectoryParseParameters> {
 };
 
 struct OrgYamlExportOptsJs : public Napi::ObjectWrap<OrgYamlExportOptsJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "OrgYamlExportOptsJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("OrgYamlExportOptsJs", func);
     return exports;
   }
@@ -2447,11 +2537,12 @@ struct org_to_js_type<org::OrgYamlExportOpts> {
 };
 
 struct OrgTreeExportOptsJs : public Napi::ObjectWrap<OrgTreeExportOptsJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "OrgTreeExportOptsJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("OrgTreeExportOptsJs", func);
     return exports;
   }
@@ -2475,11 +2566,12 @@ struct org_to_js_type<org::OrgTreeExportOpts> {
 };
 
 struct AstTrackingPathJs : public Napi::ObjectWrap<AstTrackingPathJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AstTrackingPathJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("AstTrackingPathJs", func);
     return exports;
   }
@@ -2503,11 +2595,12 @@ struct org_to_js_type<org::AstTrackingPath> {
 };
 
 struct AstTrackingAlternativesJs : public Napi::ObjectWrap<AstTrackingAlternativesJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AstTrackingAlternativesJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("AstTrackingAlternativesJs", func);
     return exports;
   }
@@ -2531,11 +2624,12 @@ struct org_to_js_type<org::AstTrackingAlternatives> {
 };
 
 struct AstTrackingGroupJs : public Napi::ObjectWrap<AstTrackingGroupJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AstTrackingGroupJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("AstTrackingGroupJs", func);
     return exports;
   }
@@ -2559,11 +2653,12 @@ struct org_to_js_type<org::AstTrackingGroup> {
 };
 
 struct AstTrackingMapJs : public Napi::ObjectWrap<AstTrackingMapJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AstTrackingMapJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("AstTrackingMapJs", func);
     return exports;
   }
@@ -2587,11 +2682,12 @@ struct org_to_js_type<org::AstTrackingMap> {
 };
 
 struct SequenceSegmentJs : public Napi::ObjectWrap<SequenceSegmentJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SequenceSegmentJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SequenceSegmentJs", func);
     return exports;
   }
@@ -2615,11 +2711,12 @@ struct org_to_js_type<hstd::SequenceSegment> {
 };
 
 struct SequenceSegmentGroupJs : public Napi::ObjectWrap<SequenceSegmentGroupJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SequenceSegmentGroupJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SequenceSegmentGroupJs", func);
     return exports;
   }
@@ -2643,11 +2740,12 @@ struct org_to_js_type<hstd::SequenceSegmentGroup> {
 };
 
 struct SequenceAnnotationTagJs : public Napi::ObjectWrap<SequenceAnnotationTagJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SequenceAnnotationTagJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SequenceAnnotationTagJs", func);
     return exports;
   }
@@ -2671,11 +2769,12 @@ struct org_to_js_type<hstd::SequenceAnnotationTag> {
 };
 
 struct SequenceAnnotationJs : public Napi::ObjectWrap<SequenceAnnotationJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SequenceAnnotationJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SequenceAnnotationJs", func);
     return exports;
   }
@@ -2699,11 +2798,12 @@ struct org_to_js_type<hstd::SequenceAnnotation> {
 };
 
 struct MapLinkJs : public Napi::ObjectWrap<MapLinkJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MapLinkJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MapLinkJs", func);
     return exports;
   }
@@ -2727,11 +2827,12 @@ struct org_to_js_type<org::graph::MapLink> {
 };
 
 struct MapNodePropJs : public Napi::ObjectWrap<MapNodePropJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MapNodePropJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MapNodePropJs", func);
     return exports;
   }
@@ -2755,11 +2856,12 @@ struct org_to_js_type<org::graph::MapNodeProp> {
 };
 
 struct MapEdgePropJs : public Napi::ObjectWrap<MapEdgePropJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MapEdgePropJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MapEdgePropJs", func);
     return exports;
   }
@@ -2783,11 +2885,12 @@ struct org_to_js_type<org::graph::MapEdgeProp> {
 };
 
 struct MapNodeJs : public Napi::ObjectWrap<MapNodeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MapNodeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MapNodeJs", func);
     return exports;
   }
@@ -2811,11 +2914,12 @@ struct org_to_js_type<org::graph::MapNode> {
 };
 
 struct MapEdgeJs : public Napi::ObjectWrap<MapEdgeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MapEdgeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MapEdgeJs", func);
     return exports;
   }
@@ -2839,11 +2943,12 @@ struct org_to_js_type<org::graph::MapEdge> {
 };
 
 struct MapGraphJs : public Napi::ObjectWrap<MapGraphJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MapGraphJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MapGraphJs", func);
     return exports;
   }
@@ -2867,11 +2972,12 @@ struct org_to_js_type<org::graph::MapGraph> {
 };
 
 struct MapGraphStateJs : public Napi::ObjectWrap<MapGraphStateJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MapGraphStateJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MapGraphStateJs", func);
     return exports;
   }
@@ -2894,11 +3000,12 @@ struct org_to_js_type<org::graph::MapGraphState> {
 };
 
 struct LispCodeJs : public Napi::ObjectWrap<LispCodeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "LispCodeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("LispCodeJs", func);
     return exports;
   }
@@ -2922,11 +3029,12 @@ struct org_to_js_type<org::sem::LispCode> {
 };
 
 struct TblfmJs : public Napi::ObjectWrap<TblfmJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "TblfmJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("TblfmJs", func);
     return exports;
   }
@@ -2950,11 +3058,12 @@ struct org_to_js_type<org::sem::Tblfm> {
 };
 
 struct AttrValueJs : public Napi::ObjectWrap<AttrValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AttrValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("AttrValueJs", func);
     return exports;
   }
@@ -2978,11 +3087,12 @@ struct org_to_js_type<org::sem::AttrValue> {
 };
 
 struct HashTagFlatJs : public Napi::ObjectWrap<HashTagFlatJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "HashTagFlatJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("HashTagFlatJs", func);
     return exports;
   }
@@ -3006,11 +3116,12 @@ struct org_to_js_type<org::sem::HashTagFlat> {
 };
 
 struct HashTagTextJs : public Napi::ObjectWrap<HashTagTextJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "HashTagTextJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("HashTagTextJs", func);
     return exports;
   }
@@ -3034,11 +3145,12 @@ struct org_to_js_type<org::sem::HashTagText> {
 };
 
 struct SubtreePathJs : public Napi::ObjectWrap<SubtreePathJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SubtreePathJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SubtreePathJs", func);
     return exports;
   }
@@ -3062,11 +3174,12 @@ struct org_to_js_type<org::sem::SubtreePath> {
 };
 
 struct LinkTargetJs : public Napi::ObjectWrap<LinkTargetJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "LinkTargetJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("LinkTargetJs", func);
     return exports;
   }
@@ -3090,11 +3203,12 @@ struct org_to_js_type<org::sem::LinkTarget> {
 };
 
 struct SubtreeLogHeadJs : public Napi::ObjectWrap<SubtreeLogHeadJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SubtreeLogHeadJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SubtreeLogHeadJs", func);
     return exports;
   }
@@ -3118,11 +3232,12 @@ struct org_to_js_type<org::sem::SubtreeLogHead> {
 };
 
 struct SubtreeCompletionJs : public Napi::ObjectWrap<SubtreeCompletionJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SubtreeCompletionJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SubtreeCompletionJs", func);
     return exports;
   }
@@ -3146,11 +3261,12 @@ struct org_to_js_type<org::sem::SubtreeCompletion> {
 };
 
 struct AttrListJs : public Napi::ObjectWrap<AttrListJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AttrListJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("AttrListJs", func);
     return exports;
   }
@@ -3174,11 +3290,12 @@ struct org_to_js_type<org::sem::AttrList> {
 };
 
 struct AttrGroupJs : public Napi::ObjectWrap<AttrGroupJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AttrGroupJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("AttrGroupJs", func);
     return exports;
   }
@@ -3202,11 +3319,12 @@ struct org_to_js_type<org::sem::AttrGroup> {
 };
 
 struct OrgCodeEvalInputJs : public Napi::ObjectWrap<OrgCodeEvalInputJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "OrgCodeEvalInputJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("OrgCodeEvalInputJs", func);
     return exports;
   }
@@ -3230,11 +3348,12 @@ struct org_to_js_type<org::sem::OrgCodeEvalInput> {
 };
 
 struct OrgCodeEvalOutputJs : public Napi::ObjectWrap<OrgCodeEvalOutputJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "OrgCodeEvalOutputJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("OrgCodeEvalOutputJs", func);
     return exports;
   }
@@ -3258,11 +3377,12 @@ struct org_to_js_type<org::sem::OrgCodeEvalOutput> {
 };
 
 struct ColumnViewJs : public Napi::ObjectWrap<ColumnViewJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ColumnViewJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ColumnViewJs", func);
     return exports;
   }
@@ -3286,11 +3406,12 @@ struct org_to_js_type<org::sem::ColumnView> {
 };
 
 struct BlockCodeLineJs : public Napi::ObjectWrap<BlockCodeLineJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockCodeLineJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockCodeLineJs", func);
     return exports;
   }
@@ -3314,11 +3435,12 @@ struct org_to_js_type<org::sem::BlockCodeLine> {
 };
 
 struct DocumentExportConfigJs : public Napi::ObjectWrap<DocumentExportConfigJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "DocumentExportConfigJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("DocumentExportConfigJs", func);
     return exports;
   }
@@ -3342,11 +3464,12 @@ struct org_to_js_type<org::sem::DocumentExportConfig> {
 };
 
 struct SubtreePeriodJs : public Napi::ObjectWrap<SubtreePeriodJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SubtreePeriodJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SubtreePeriodJs", func);
     return exports;
   }
@@ -3370,11 +3493,12 @@ struct org_to_js_type<org::sem::SubtreePeriod> {
 };
 
 struct NamedPropertyJs : public Napi::ObjectWrap<NamedPropertyJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "NamedPropertyJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("NamedPropertyJs", func);
     return exports;
   }
@@ -3398,11 +3522,12 @@ struct org_to_js_type<org::sem::NamedProperty> {
 };
 
 struct NoneJs : public Napi::ObjectWrap<NoneJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "NoneJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("NoneJs", func);
     return exports;
   }
@@ -3426,11 +3551,12 @@ struct org_to_js_type<org::sem::None> {
 };
 
 struct ErrorItemJs : public Napi::ObjectWrap<ErrorItemJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ErrorItemJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ErrorItemJs", func);
     return exports;
   }
@@ -3454,11 +3580,12 @@ struct org_to_js_type<org::sem::ErrorItem> {
 };
 
 struct ErrorGroupJs : public Napi::ObjectWrap<ErrorGroupJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ErrorGroupJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ErrorGroupJs", func);
     return exports;
   }
@@ -3482,11 +3609,12 @@ struct org_to_js_type<org::sem::ErrorGroup> {
 };
 
 struct StmtListJs : public Napi::ObjectWrap<StmtListJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "StmtListJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("StmtListJs", func);
     return exports;
   }
@@ -3510,11 +3638,12 @@ struct org_to_js_type<org::sem::StmtList> {
 };
 
 struct EmptyJs : public Napi::ObjectWrap<EmptyJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "EmptyJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("EmptyJs", func);
     return exports;
   }
@@ -3538,11 +3667,12 @@ struct org_to_js_type<org::sem::Empty> {
 };
 
 struct TimeJs : public Napi::ObjectWrap<TimeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "TimeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("TimeJs", func);
     return exports;
   }
@@ -3566,11 +3696,12 @@ struct org_to_js_type<org::sem::Time> {
 };
 
 struct TimeRangeJs : public Napi::ObjectWrap<TimeRangeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "TimeRangeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("TimeRangeJs", func);
     return exports;
   }
@@ -3594,11 +3725,12 @@ struct org_to_js_type<org::sem::TimeRange> {
 };
 
 struct MacroJs : public Napi::ObjectWrap<MacroJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MacroJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MacroJs", func);
     return exports;
   }
@@ -3622,11 +3754,12 @@ struct org_to_js_type<org::sem::Macro> {
 };
 
 struct SymbolJs : public Napi::ObjectWrap<SymbolJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SymbolJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SymbolJs", func);
     return exports;
   }
@@ -3650,11 +3783,12 @@ struct org_to_js_type<org::sem::Symbol> {
 };
 
 struct RadioTargetJs : public Napi::ObjectWrap<RadioTargetJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "RadioTargetJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("RadioTargetJs", func);
     return exports;
   }
@@ -3678,11 +3812,12 @@ struct org_to_js_type<org::sem::RadioTarget> {
 };
 
 struct LatexJs : public Napi::ObjectWrap<LatexJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "LatexJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("LatexJs", func);
     return exports;
   }
@@ -3706,11 +3841,12 @@ struct org_to_js_type<org::sem::Latex> {
 };
 
 struct SubtreeLogJs : public Napi::ObjectWrap<SubtreeLogJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SubtreeLogJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SubtreeLogJs", func);
     return exports;
   }
@@ -3734,11 +3870,12 @@ struct org_to_js_type<org::sem::SubtreeLog> {
 };
 
 struct SubtreeJs : public Napi::ObjectWrap<SubtreeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SubtreeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SubtreeJs", func);
     return exports;
   }
@@ -3762,11 +3899,12 @@ struct org_to_js_type<org::sem::Subtree> {
 };
 
 struct ColonExampleJs : public Napi::ObjectWrap<ColonExampleJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ColonExampleJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ColonExampleJs", func);
     return exports;
   }
@@ -3790,11 +3928,12 @@ struct org_to_js_type<org::sem::ColonExample> {
 };
 
 struct CallJs : public Napi::ObjectWrap<CallJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CallJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CallJs", func);
     return exports;
   }
@@ -3818,11 +3957,12 @@ struct org_to_js_type<org::sem::Call> {
 };
 
 struct ListItemJs : public Napi::ObjectWrap<ListItemJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ListItemJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ListItemJs", func);
     return exports;
   }
@@ -3846,11 +3986,12 @@ struct org_to_js_type<org::sem::ListItem> {
 };
 
 struct DocumentOptionsJs : public Napi::ObjectWrap<DocumentOptionsJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "DocumentOptionsJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("DocumentOptionsJs", func);
     return exports;
   }
@@ -3874,11 +4015,12 @@ struct org_to_js_type<org::sem::DocumentOptions> {
 };
 
 struct DocumentFragmentJs : public Napi::ObjectWrap<DocumentFragmentJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "DocumentFragmentJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("DocumentFragmentJs", func);
     return exports;
   }
@@ -3902,11 +4044,12 @@ struct org_to_js_type<org::sem::DocumentFragment> {
 };
 
 struct CriticMarkupJs : public Napi::ObjectWrap<CriticMarkupJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CriticMarkupJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CriticMarkupJs", func);
     return exports;
   }
@@ -3930,11 +4073,12 @@ struct org_to_js_type<org::sem::CriticMarkup> {
 };
 
 struct DocumentJs : public Napi::ObjectWrap<DocumentJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "DocumentJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("DocumentJs", func);
     return exports;
   }
@@ -3958,11 +4102,12 @@ struct org_to_js_type<org::sem::Document> {
 };
 
 struct FileTargetJs : public Napi::ObjectWrap<FileTargetJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "FileTargetJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("FileTargetJs", func);
     return exports;
   }
@@ -3986,11 +4131,12 @@ struct org_to_js_type<org::sem::FileTarget> {
 };
 
 struct TextSeparatorJs : public Napi::ObjectWrap<TextSeparatorJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "TextSeparatorJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("TextSeparatorJs", func);
     return exports;
   }
@@ -4014,11 +4160,12 @@ struct org_to_js_type<org::sem::TextSeparator> {
 };
 
 struct DocumentGroupJs : public Napi::ObjectWrap<DocumentGroupJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "DocumentGroupJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("DocumentGroupJs", func);
     return exports;
   }
@@ -4042,11 +4189,12 @@ struct org_to_js_type<org::sem::DocumentGroup> {
 };
 
 struct FileJs : public Napi::ObjectWrap<FileJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "FileJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("FileJs", func);
     return exports;
   }
@@ -4070,11 +4218,12 @@ struct org_to_js_type<org::sem::File> {
 };
 
 struct DirectoryJs : public Napi::ObjectWrap<DirectoryJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "DirectoryJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("DirectoryJs", func);
     return exports;
   }
@@ -4098,11 +4247,12 @@ struct org_to_js_type<org::sem::Directory> {
 };
 
 struct SymlinkJs : public Napi::ObjectWrap<SymlinkJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SymlinkJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SymlinkJs", func);
     return exports;
   }
@@ -4126,11 +4276,12 @@ struct org_to_js_type<org::sem::Symlink> {
 };
 
 struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdIncludeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdIncludeJs", func);
     return exports;
   }
@@ -4154,11 +4305,12 @@ struct org_to_js_type<org::sem::CmdInclude> {
 };
 
 struct MapConfigJs : public Napi::ObjectWrap<MapConfigJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MapConfigJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MapConfigJs", func);
     return exports;
   }
@@ -4182,11 +4334,12 @@ struct org_to_js_type<org::graph::MapConfig> {
 };
 
 struct ImmIdTNone : public Napi::ObjectWrap<ImmIdTNone> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTNone", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTNone", func);
     return exports;
   }
@@ -4210,11 +4363,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmNone>> {
 };
 
 struct ImmIdTErrorItem : public Napi::ObjectWrap<ImmIdTErrorItem> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTErrorItem", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTErrorItem", func);
     return exports;
   }
@@ -4238,11 +4392,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmErrorItem>> {
 };
 
 struct ImmIdTErrorGroup : public Napi::ObjectWrap<ImmIdTErrorGroup> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTErrorGroup", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTErrorGroup", func);
     return exports;
   }
@@ -4266,11 +4421,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmErrorGroup>> {
 };
 
 struct ImmIdTStmt : public Napi::ObjectWrap<ImmIdTStmt> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTStmt", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTStmt", func);
     return exports;
   }
@@ -4294,11 +4450,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmStmt>> {
 };
 
 struct ImmIdTInline : public Napi::ObjectWrap<ImmIdTInline> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTInline", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTInline", func);
     return exports;
   }
@@ -4322,11 +4479,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmInline>> {
 };
 
 struct ImmIdTStmtList : public Napi::ObjectWrap<ImmIdTStmtList> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTStmtList", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTStmtList", func);
     return exports;
   }
@@ -4350,11 +4508,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmStmtList>> {
 };
 
 struct ImmIdTEmpty : public Napi::ObjectWrap<ImmIdTEmpty> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTEmpty", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTEmpty", func);
     return exports;
   }
@@ -4378,11 +4537,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmEmpty>> {
 };
 
 struct ImmIdTCmd : public Napi::ObjectWrap<ImmIdTCmd> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmd", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmd", func);
     return exports;
   }
@@ -4406,11 +4566,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmd>> {
 };
 
 struct ImmIdTBlock : public Napi::ObjectWrap<ImmIdTBlock> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlock", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlock", func);
     return exports;
   }
@@ -4434,11 +4595,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlock>> {
 };
 
 struct ImmIdTLineCommand : public Napi::ObjectWrap<ImmIdTLineCommand> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTLineCommand", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTLineCommand", func);
     return exports;
   }
@@ -4462,11 +4624,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmLineCommand>> {
 };
 
 struct ImmIdTAttached : public Napi::ObjectWrap<ImmIdTAttached> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTAttached", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTAttached", func);
     return exports;
   }
@@ -4490,11 +4653,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmAttached>> {
 };
 
 struct ImmIdTLeaf : public Napi::ObjectWrap<ImmIdTLeaf> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTLeaf", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTLeaf", func);
     return exports;
   }
@@ -4518,11 +4682,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmLeaf>> {
 };
 
 struct ImmIdTCmdCaption : public Napi::ObjectWrap<ImmIdTCmdCaption> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdCaption", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdCaption", func);
     return exports;
   }
@@ -4546,11 +4711,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdCaption>> {
 };
 
 struct ImmIdTCmdColumns : public Napi::ObjectWrap<ImmIdTCmdColumns> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdColumns", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdColumns", func);
     return exports;
   }
@@ -4574,11 +4740,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdColumns>> {
 };
 
 struct ImmIdTCmdName : public Napi::ObjectWrap<ImmIdTCmdName> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdName", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdName", func);
     return exports;
   }
@@ -4602,11 +4769,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdName>> {
 };
 
 struct ImmIdTCmdCustomArgs : public Napi::ObjectWrap<ImmIdTCmdCustomArgs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdCustomArgs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdCustomArgs", func);
     return exports;
   }
@@ -4630,11 +4798,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdCustomArgs>> {
 };
 
 struct ImmIdTCmdCustomRaw : public Napi::ObjectWrap<ImmIdTCmdCustomRaw> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdCustomRaw", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdCustomRaw", func);
     return exports;
   }
@@ -4658,11 +4827,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdCustomRaw>> {
 };
 
 struct ImmIdTCmdCustomText : public Napi::ObjectWrap<ImmIdTCmdCustomText> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdCustomText", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdCustomText", func);
     return exports;
   }
@@ -4686,11 +4856,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdCustomText>> {
 };
 
 struct ImmIdTCmdCall : public Napi::ObjectWrap<ImmIdTCmdCall> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdCall", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdCall", func);
     return exports;
   }
@@ -4714,11 +4885,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdCall>> {
 };
 
 struct ImmIdTCmdTblfm : public Napi::ObjectWrap<ImmIdTCmdTblfm> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdTblfm", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdTblfm", func);
     return exports;
   }
@@ -4742,11 +4914,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdTblfm>> {
 };
 
 struct ImmIdTHashTag : public Napi::ObjectWrap<ImmIdTHashTag> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTHashTag", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTHashTag", func);
     return exports;
   }
@@ -4770,11 +4943,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmHashTag>> {
 };
 
 struct ImmIdTInlineFootnote : public Napi::ObjectWrap<ImmIdTInlineFootnote> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTInlineFootnote", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTInlineFootnote", func);
     return exports;
   }
@@ -4798,11 +4972,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmInlineFootnote>> {
 };
 
 struct ImmIdTInlineExport : public Napi::ObjectWrap<ImmIdTInlineExport> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTInlineExport", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTInlineExport", func);
     return exports;
   }
@@ -4826,11 +5001,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmInlineExport>> {
 };
 
 struct ImmIdTTime : public Napi::ObjectWrap<ImmIdTTime> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTTime", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTTime", func);
     return exports;
   }
@@ -4854,11 +5030,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmTime>> {
 };
 
 struct ImmIdTTimeRange : public Napi::ObjectWrap<ImmIdTTimeRange> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTTimeRange", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTTimeRange", func);
     return exports;
   }
@@ -4882,11 +5059,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmTimeRange>> {
 };
 
 struct ImmIdTMacro : public Napi::ObjectWrap<ImmIdTMacro> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTMacro", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTMacro", func);
     return exports;
   }
@@ -4910,11 +5088,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmMacro>> {
 };
 
 struct ImmIdTSymbol : public Napi::ObjectWrap<ImmIdTSymbol> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTSymbol", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTSymbol", func);
     return exports;
   }
@@ -4938,11 +5117,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmSymbol>> {
 };
 
 struct ImmIdTEscaped : public Napi::ObjectWrap<ImmIdTEscaped> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTEscaped", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTEscaped", func);
     return exports;
   }
@@ -4966,11 +5146,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmEscaped>> {
 };
 
 struct ImmIdTNewline : public Napi::ObjectWrap<ImmIdTNewline> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTNewline", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTNewline", func);
     return exports;
   }
@@ -4994,11 +5175,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmNewline>> {
 };
 
 struct ImmIdTSpace : public Napi::ObjectWrap<ImmIdTSpace> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTSpace", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTSpace", func);
     return exports;
   }
@@ -5022,11 +5204,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmSpace>> {
 };
 
 struct ImmIdTWord : public Napi::ObjectWrap<ImmIdTWord> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTWord", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTWord", func);
     return exports;
   }
@@ -5050,11 +5233,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmWord>> {
 };
 
 struct ImmIdTAtMention : public Napi::ObjectWrap<ImmIdTAtMention> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTAtMention", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTAtMention", func);
     return exports;
   }
@@ -5078,11 +5262,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmAtMention>> {
 };
 
 struct ImmIdTRawText : public Napi::ObjectWrap<ImmIdTRawText> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTRawText", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTRawText", func);
     return exports;
   }
@@ -5106,11 +5291,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmRawText>> {
 };
 
 struct ImmIdTPunctuation : public Napi::ObjectWrap<ImmIdTPunctuation> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTPunctuation", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTPunctuation", func);
     return exports;
   }
@@ -5134,11 +5320,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmPunctuation>> {
 };
 
 struct ImmIdTPlaceholder : public Napi::ObjectWrap<ImmIdTPlaceholder> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTPlaceholder", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTPlaceholder", func);
     return exports;
   }
@@ -5162,11 +5349,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmPlaceholder>> {
 };
 
 struct ImmIdTBigIdent : public Napi::ObjectWrap<ImmIdTBigIdent> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBigIdent", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBigIdent", func);
     return exports;
   }
@@ -5190,11 +5378,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBigIdent>> {
 };
 
 struct ImmIdTTextTarget : public Napi::ObjectWrap<ImmIdTTextTarget> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTTextTarget", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTTextTarget", func);
     return exports;
   }
@@ -5218,11 +5407,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmTextTarget>> {
 };
 
 struct ImmIdTMarkup : public Napi::ObjectWrap<ImmIdTMarkup> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTMarkup", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTMarkup", func);
     return exports;
   }
@@ -5246,11 +5436,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmMarkup>> {
 };
 
 struct ImmIdTBold : public Napi::ObjectWrap<ImmIdTBold> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBold", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBold", func);
     return exports;
   }
@@ -5274,11 +5465,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBold>> {
 };
 
 struct ImmIdTUnderline : public Napi::ObjectWrap<ImmIdTUnderline> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTUnderline", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTUnderline", func);
     return exports;
   }
@@ -5302,11 +5494,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmUnderline>> {
 };
 
 struct ImmIdTMonospace : public Napi::ObjectWrap<ImmIdTMonospace> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTMonospace", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTMonospace", func);
     return exports;
   }
@@ -5330,11 +5523,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmMonospace>> {
 };
 
 struct ImmIdTMarkQuote : public Napi::ObjectWrap<ImmIdTMarkQuote> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTMarkQuote", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTMarkQuote", func);
     return exports;
   }
@@ -5358,11 +5552,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmMarkQuote>> {
 };
 
 struct ImmIdTVerbatim : public Napi::ObjectWrap<ImmIdTVerbatim> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTVerbatim", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTVerbatim", func);
     return exports;
   }
@@ -5386,11 +5581,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmVerbatim>> {
 };
 
 struct ImmIdTItalic : public Napi::ObjectWrap<ImmIdTItalic> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTItalic", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTItalic", func);
     return exports;
   }
@@ -5414,11 +5610,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmItalic>> {
 };
 
 struct ImmIdTStrike : public Napi::ObjectWrap<ImmIdTStrike> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTStrike", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTStrike", func);
     return exports;
   }
@@ -5442,11 +5639,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmStrike>> {
 };
 
 struct ImmIdTPar : public Napi::ObjectWrap<ImmIdTPar> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTPar", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTPar", func);
     return exports;
   }
@@ -5470,11 +5668,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmPar>> {
 };
 
 struct ImmIdTRadioTarget : public Napi::ObjectWrap<ImmIdTRadioTarget> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTRadioTarget", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTRadioTarget", func);
     return exports;
   }
@@ -5498,11 +5697,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmRadioTarget>> {
 };
 
 struct ImmIdTLatex : public Napi::ObjectWrap<ImmIdTLatex> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTLatex", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTLatex", func);
     return exports;
   }
@@ -5526,11 +5726,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmLatex>> {
 };
 
 struct ImmIdTLink : public Napi::ObjectWrap<ImmIdTLink> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTLink", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTLink", func);
     return exports;
   }
@@ -5554,11 +5755,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmLink>> {
 };
 
 struct ImmIdTBlockCenter : public Napi::ObjectWrap<ImmIdTBlockCenter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockCenter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockCenter", func);
     return exports;
   }
@@ -5582,11 +5784,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockCenter>> {
 };
 
 struct ImmIdTBlockQuote : public Napi::ObjectWrap<ImmIdTBlockQuote> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockQuote", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockQuote", func);
     return exports;
   }
@@ -5610,11 +5813,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockQuote>> {
 };
 
 struct ImmIdTBlockComment : public Napi::ObjectWrap<ImmIdTBlockComment> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockComment", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockComment", func);
     return exports;
   }
@@ -5638,11 +5842,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockComment>> {
 };
 
 struct ImmIdTBlockVerse : public Napi::ObjectWrap<ImmIdTBlockVerse> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockVerse", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockVerse", func);
     return exports;
   }
@@ -5666,11 +5871,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockVerse>> {
 };
 
 struct ImmIdTBlockDynamicFallback : public Napi::ObjectWrap<ImmIdTBlockDynamicFallback> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockDynamicFallback", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockDynamicFallback", func);
     return exports;
   }
@@ -5694,11 +5900,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockDynamicFallback>> {
 };
 
 struct ImmIdTBlockExample : public Napi::ObjectWrap<ImmIdTBlockExample> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockExample", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockExample", func);
     return exports;
   }
@@ -5722,11 +5929,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockExample>> {
 };
 
 struct ImmIdTBlockExport : public Napi::ObjectWrap<ImmIdTBlockExport> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockExport", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockExport", func);
     return exports;
   }
@@ -5750,11 +5958,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockExport>> {
 };
 
 struct ImmIdTBlockAdmonition : public Napi::ObjectWrap<ImmIdTBlockAdmonition> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockAdmonition", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockAdmonition", func);
     return exports;
   }
@@ -5778,11 +5987,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockAdmonition>> {
 };
 
 struct ImmIdTBlockCodeEvalResult : public Napi::ObjectWrap<ImmIdTBlockCodeEvalResult> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockCodeEvalResult", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockCodeEvalResult", func);
     return exports;
   }
@@ -5806,11 +6016,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> {
 };
 
 struct ImmIdTBlockCode : public Napi::ObjectWrap<ImmIdTBlockCode> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTBlockCode", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTBlockCode", func);
     return exports;
   }
@@ -5834,11 +6045,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmBlockCode>> {
 };
 
 struct ImmIdTSubtreeLog : public Napi::ObjectWrap<ImmIdTSubtreeLog> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTSubtreeLog", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTSubtreeLog", func);
     return exports;
   }
@@ -5862,11 +6074,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> {
 };
 
 struct ImmIdTSubtree : public Napi::ObjectWrap<ImmIdTSubtree> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTSubtree", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTSubtree", func);
     return exports;
   }
@@ -5890,11 +6103,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmSubtree>> {
 };
 
 struct ImmIdTCell : public Napi::ObjectWrap<ImmIdTCell> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCell", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCell", func);
     return exports;
   }
@@ -5918,11 +6132,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCell>> {
 };
 
 struct ImmIdTRow : public Napi::ObjectWrap<ImmIdTRow> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTRow", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTRow", func);
     return exports;
   }
@@ -5946,11 +6161,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmRow>> {
 };
 
 struct ImmIdTTable : public Napi::ObjectWrap<ImmIdTTable> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTTable", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTTable", func);
     return exports;
   }
@@ -5974,11 +6190,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmTable>> {
 };
 
 struct ImmIdTParagraph : public Napi::ObjectWrap<ImmIdTParagraph> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTParagraph", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTParagraph", func);
     return exports;
   }
@@ -6002,11 +6219,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmParagraph>> {
 };
 
 struct ImmIdTColonExample : public Napi::ObjectWrap<ImmIdTColonExample> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTColonExample", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTColonExample", func);
     return exports;
   }
@@ -6030,11 +6248,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmColonExample>> {
 };
 
 struct ImmIdTCmdAttr : public Napi::ObjectWrap<ImmIdTCmdAttr> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdAttr", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdAttr", func);
     return exports;
   }
@@ -6058,11 +6277,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdAttr>> {
 };
 
 struct ImmIdTCmdExport : public Napi::ObjectWrap<ImmIdTCmdExport> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdExport", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdExport", func);
     return exports;
   }
@@ -6086,11 +6306,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdExport>> {
 };
 
 struct ImmIdTCall : public Napi::ObjectWrap<ImmIdTCall> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCall", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCall", func);
     return exports;
   }
@@ -6114,11 +6335,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCall>> {
 };
 
 struct ImmIdTList : public Napi::ObjectWrap<ImmIdTList> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTList", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTList", func);
     return exports;
   }
@@ -6142,11 +6364,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmList>> {
 };
 
 struct ImmIdTListItem : public Napi::ObjectWrap<ImmIdTListItem> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTListItem", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTListItem", func);
     return exports;
   }
@@ -6170,11 +6393,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmListItem>> {
 };
 
 struct ImmIdTDocumentOptions : public Napi::ObjectWrap<ImmIdTDocumentOptions> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTDocumentOptions", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTDocumentOptions", func);
     return exports;
   }
@@ -6198,11 +6422,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmDocumentOptions>> {
 };
 
 struct ImmIdTDocumentFragment : public Napi::ObjectWrap<ImmIdTDocumentFragment> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTDocumentFragment", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTDocumentFragment", func);
     return exports;
   }
@@ -6226,11 +6451,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmDocumentFragment>> {
 };
 
 struct ImmIdTCriticMarkup : public Napi::ObjectWrap<ImmIdTCriticMarkup> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCriticMarkup", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCriticMarkup", func);
     return exports;
   }
@@ -6254,11 +6480,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCriticMarkup>> {
 };
 
 struct ImmIdTDocument : public Napi::ObjectWrap<ImmIdTDocument> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTDocument", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTDocument", func);
     return exports;
   }
@@ -6282,11 +6509,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmDocument>> {
 };
 
 struct ImmIdTFileTarget : public Napi::ObjectWrap<ImmIdTFileTarget> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTFileTarget", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTFileTarget", func);
     return exports;
   }
@@ -6310,11 +6538,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmFileTarget>> {
 };
 
 struct ImmIdTTextSeparator : public Napi::ObjectWrap<ImmIdTTextSeparator> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTTextSeparator", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTTextSeparator", func);
     return exports;
   }
@@ -6338,11 +6567,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmTextSeparator>> {
 };
 
 struct ImmIdTDocumentGroup : public Napi::ObjectWrap<ImmIdTDocumentGroup> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTDocumentGroup", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTDocumentGroup", func);
     return exports;
   }
@@ -6366,11 +6596,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmDocumentGroup>> {
 };
 
 struct ImmIdTFile : public Napi::ObjectWrap<ImmIdTFile> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTFile", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTFile", func);
     return exports;
   }
@@ -6394,11 +6625,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmFile>> {
 };
 
 struct ImmIdTDirectory : public Napi::ObjectWrap<ImmIdTDirectory> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTDirectory", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTDirectory", func);
     return exports;
   }
@@ -6422,11 +6654,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmDirectory>> {
 };
 
 struct ImmIdTSymlink : public Napi::ObjectWrap<ImmIdTSymlink> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTSymlink", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTSymlink", func);
     return exports;
   }
@@ -6450,11 +6683,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmSymlink>> {
 };
 
 struct ImmIdTCmdInclude : public Napi::ObjectWrap<ImmIdTCmdInclude> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmIdTCmdInclude", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmIdTCmdInclude", func);
     return exports;
   }
@@ -6478,11 +6712,12 @@ struct org_to_js_type<org::imm::ImmIdT<org::imm::ImmCmdInclude>> {
 };
 
 struct ImmNoneValueJs : public Napi::ObjectWrap<ImmNoneValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmNoneValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmNoneValueJs", func);
     return exports;
   }
@@ -6505,11 +6740,12 @@ struct org_to_js_type<org::imm::ImmNoneValue> {
 };
 
 struct ImmErrorItemValueJs : public Napi::ObjectWrap<ImmErrorItemValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmErrorItemValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmErrorItemValueJs", func);
     return exports;
   }
@@ -6532,11 +6768,12 @@ struct org_to_js_type<org::imm::ImmErrorItemValue> {
 };
 
 struct ImmErrorGroupValueJs : public Napi::ObjectWrap<ImmErrorGroupValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmErrorGroupValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmErrorGroupValueJs", func);
     return exports;
   }
@@ -6559,11 +6796,12 @@ struct org_to_js_type<org::imm::ImmErrorGroupValue> {
 };
 
 struct ImmStmtListValueJs : public Napi::ObjectWrap<ImmStmtListValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmStmtListValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmStmtListValueJs", func);
     return exports;
   }
@@ -6586,11 +6824,12 @@ struct org_to_js_type<org::imm::ImmStmtListValue> {
 };
 
 struct ImmEmptyValueJs : public Napi::ObjectWrap<ImmEmptyValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmEmptyValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmEmptyValueJs", func);
     return exports;
   }
@@ -6613,11 +6852,12 @@ struct org_to_js_type<org::imm::ImmEmptyValue> {
 };
 
 struct ImmCmdCaptionValueJs : public Napi::ObjectWrap<ImmCmdCaptionValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCaptionValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCaptionValueJs", func);
     return exports;
   }
@@ -6640,11 +6880,12 @@ struct org_to_js_type<org::imm::ImmCmdCaptionValue> {
 };
 
 struct ImmCmdColumnsValueJs : public Napi::ObjectWrap<ImmCmdColumnsValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdColumnsValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdColumnsValueJs", func);
     return exports;
   }
@@ -6667,11 +6908,12 @@ struct org_to_js_type<org::imm::ImmCmdColumnsValue> {
 };
 
 struct ImmCmdNameValueJs : public Napi::ObjectWrap<ImmCmdNameValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdNameValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdNameValueJs", func);
     return exports;
   }
@@ -6694,11 +6936,12 @@ struct org_to_js_type<org::imm::ImmCmdNameValue> {
 };
 
 struct ImmCmdCustomArgsValueJs : public Napi::ObjectWrap<ImmCmdCustomArgsValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCustomArgsValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCustomArgsValueJs", func);
     return exports;
   }
@@ -6721,11 +6964,12 @@ struct org_to_js_type<org::imm::ImmCmdCustomArgsValue> {
 };
 
 struct ImmCmdCustomRawValueJs : public Napi::ObjectWrap<ImmCmdCustomRawValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCustomRawValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCustomRawValueJs", func);
     return exports;
   }
@@ -6748,11 +6992,12 @@ struct org_to_js_type<org::imm::ImmCmdCustomRawValue> {
 };
 
 struct ImmCmdCustomTextValueJs : public Napi::ObjectWrap<ImmCmdCustomTextValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCustomTextValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCustomTextValueJs", func);
     return exports;
   }
@@ -6775,11 +7020,12 @@ struct org_to_js_type<org::imm::ImmCmdCustomTextValue> {
 };
 
 struct ImmCmdCallValueJs : public Napi::ObjectWrap<ImmCmdCallValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCallValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCallValueJs", func);
     return exports;
   }
@@ -6802,11 +7048,12 @@ struct org_to_js_type<org::imm::ImmCmdCallValue> {
 };
 
 struct ImmCmdTblfmValueJs : public Napi::ObjectWrap<ImmCmdTblfmValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdTblfmValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdTblfmValueJs", func);
     return exports;
   }
@@ -6829,11 +7076,12 @@ struct org_to_js_type<org::imm::ImmCmdTblfmValue> {
 };
 
 struct ImmHashTagValueJs : public Napi::ObjectWrap<ImmHashTagValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmHashTagValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmHashTagValueJs", func);
     return exports;
   }
@@ -6856,11 +7104,12 @@ struct org_to_js_type<org::imm::ImmHashTagValue> {
 };
 
 struct ImmInlineFootnoteValueJs : public Napi::ObjectWrap<ImmInlineFootnoteValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmInlineFootnoteValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmInlineFootnoteValueJs", func);
     return exports;
   }
@@ -6883,11 +7132,12 @@ struct org_to_js_type<org::imm::ImmInlineFootnoteValue> {
 };
 
 struct ImmInlineExportValueJs : public Napi::ObjectWrap<ImmInlineExportValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmInlineExportValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmInlineExportValueJs", func);
     return exports;
   }
@@ -6910,11 +7160,12 @@ struct org_to_js_type<org::imm::ImmInlineExportValue> {
 };
 
 struct ImmTimeValueJs : public Napi::ObjectWrap<ImmTimeValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTimeValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTimeValueJs", func);
     return exports;
   }
@@ -6937,11 +7188,12 @@ struct org_to_js_type<org::imm::ImmTimeValue> {
 };
 
 struct ImmTimeRangeValueJs : public Napi::ObjectWrap<ImmTimeRangeValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTimeRangeValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTimeRangeValueJs", func);
     return exports;
   }
@@ -6964,11 +7216,12 @@ struct org_to_js_type<org::imm::ImmTimeRangeValue> {
 };
 
 struct ImmMacroValueJs : public Napi::ObjectWrap<ImmMacroValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmMacroValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmMacroValueJs", func);
     return exports;
   }
@@ -6991,11 +7244,12 @@ struct org_to_js_type<org::imm::ImmMacroValue> {
 };
 
 struct ImmSymbolValueJs : public Napi::ObjectWrap<ImmSymbolValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSymbolValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSymbolValueJs", func);
     return exports;
   }
@@ -7018,11 +7272,12 @@ struct org_to_js_type<org::imm::ImmSymbolValue> {
 };
 
 struct ImmEscapedValueJs : public Napi::ObjectWrap<ImmEscapedValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmEscapedValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmEscapedValueJs", func);
     return exports;
   }
@@ -7045,11 +7300,12 @@ struct org_to_js_type<org::imm::ImmEscapedValue> {
 };
 
 struct ImmNewlineValueJs : public Napi::ObjectWrap<ImmNewlineValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmNewlineValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmNewlineValueJs", func);
     return exports;
   }
@@ -7072,11 +7328,12 @@ struct org_to_js_type<org::imm::ImmNewlineValue> {
 };
 
 struct ImmSpaceValueJs : public Napi::ObjectWrap<ImmSpaceValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSpaceValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSpaceValueJs", func);
     return exports;
   }
@@ -7099,11 +7356,12 @@ struct org_to_js_type<org::imm::ImmSpaceValue> {
 };
 
 struct ImmWordValueJs : public Napi::ObjectWrap<ImmWordValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmWordValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmWordValueJs", func);
     return exports;
   }
@@ -7126,11 +7384,12 @@ struct org_to_js_type<org::imm::ImmWordValue> {
 };
 
 struct ImmAtMentionValueJs : public Napi::ObjectWrap<ImmAtMentionValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmAtMentionValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmAtMentionValueJs", func);
     return exports;
   }
@@ -7153,11 +7412,12 @@ struct org_to_js_type<org::imm::ImmAtMentionValue> {
 };
 
 struct ImmRawTextValueJs : public Napi::ObjectWrap<ImmRawTextValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmRawTextValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmRawTextValueJs", func);
     return exports;
   }
@@ -7180,11 +7440,12 @@ struct org_to_js_type<org::imm::ImmRawTextValue> {
 };
 
 struct ImmPunctuationValueJs : public Napi::ObjectWrap<ImmPunctuationValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmPunctuationValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmPunctuationValueJs", func);
     return exports;
   }
@@ -7207,11 +7468,12 @@ struct org_to_js_type<org::imm::ImmPunctuationValue> {
 };
 
 struct ImmPlaceholderValueJs : public Napi::ObjectWrap<ImmPlaceholderValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmPlaceholderValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmPlaceholderValueJs", func);
     return exports;
   }
@@ -7234,11 +7496,12 @@ struct org_to_js_type<org::imm::ImmPlaceholderValue> {
 };
 
 struct ImmBigIdentValueJs : public Napi::ObjectWrap<ImmBigIdentValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBigIdentValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBigIdentValueJs", func);
     return exports;
   }
@@ -7261,11 +7524,12 @@ struct org_to_js_type<org::imm::ImmBigIdentValue> {
 };
 
 struct ImmTextTargetValueJs : public Napi::ObjectWrap<ImmTextTargetValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTextTargetValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTextTargetValueJs", func);
     return exports;
   }
@@ -7288,11 +7552,12 @@ struct org_to_js_type<org::imm::ImmTextTargetValue> {
 };
 
 struct ImmBoldValueJs : public Napi::ObjectWrap<ImmBoldValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBoldValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBoldValueJs", func);
     return exports;
   }
@@ -7315,11 +7580,12 @@ struct org_to_js_type<org::imm::ImmBoldValue> {
 };
 
 struct ImmUnderlineValueJs : public Napi::ObjectWrap<ImmUnderlineValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmUnderlineValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmUnderlineValueJs", func);
     return exports;
   }
@@ -7342,11 +7608,12 @@ struct org_to_js_type<org::imm::ImmUnderlineValue> {
 };
 
 struct ImmMonospaceValueJs : public Napi::ObjectWrap<ImmMonospaceValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmMonospaceValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmMonospaceValueJs", func);
     return exports;
   }
@@ -7369,11 +7636,12 @@ struct org_to_js_type<org::imm::ImmMonospaceValue> {
 };
 
 struct ImmMarkQuoteValueJs : public Napi::ObjectWrap<ImmMarkQuoteValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmMarkQuoteValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmMarkQuoteValueJs", func);
     return exports;
   }
@@ -7396,11 +7664,12 @@ struct org_to_js_type<org::imm::ImmMarkQuoteValue> {
 };
 
 struct ImmVerbatimValueJs : public Napi::ObjectWrap<ImmVerbatimValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmVerbatimValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmVerbatimValueJs", func);
     return exports;
   }
@@ -7423,11 +7692,12 @@ struct org_to_js_type<org::imm::ImmVerbatimValue> {
 };
 
 struct ImmItalicValueJs : public Napi::ObjectWrap<ImmItalicValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmItalicValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmItalicValueJs", func);
     return exports;
   }
@@ -7450,11 +7720,12 @@ struct org_to_js_type<org::imm::ImmItalicValue> {
 };
 
 struct ImmStrikeValueJs : public Napi::ObjectWrap<ImmStrikeValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmStrikeValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmStrikeValueJs", func);
     return exports;
   }
@@ -7477,11 +7748,12 @@ struct org_to_js_type<org::imm::ImmStrikeValue> {
 };
 
 struct ImmParValueJs : public Napi::ObjectWrap<ImmParValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmParValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmParValueJs", func);
     return exports;
   }
@@ -7504,11 +7776,12 @@ struct org_to_js_type<org::imm::ImmParValue> {
 };
 
 struct ImmRadioTargetValueJs : public Napi::ObjectWrap<ImmRadioTargetValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmRadioTargetValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmRadioTargetValueJs", func);
     return exports;
   }
@@ -7531,11 +7804,12 @@ struct org_to_js_type<org::imm::ImmRadioTargetValue> {
 };
 
 struct ImmLatexValueJs : public Napi::ObjectWrap<ImmLatexValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmLatexValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmLatexValueJs", func);
     return exports;
   }
@@ -7558,11 +7832,12 @@ struct org_to_js_type<org::imm::ImmLatexValue> {
 };
 
 struct ImmLinkValueJs : public Napi::ObjectWrap<ImmLinkValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmLinkValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmLinkValueJs", func);
     return exports;
   }
@@ -7585,11 +7860,12 @@ struct org_to_js_type<org::imm::ImmLinkValue> {
 };
 
 struct ImmBlockCenterValueJs : public Napi::ObjectWrap<ImmBlockCenterValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCenterValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCenterValueJs", func);
     return exports;
   }
@@ -7612,11 +7888,12 @@ struct org_to_js_type<org::imm::ImmBlockCenterValue> {
 };
 
 struct ImmBlockQuoteValueJs : public Napi::ObjectWrap<ImmBlockQuoteValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockQuoteValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockQuoteValueJs", func);
     return exports;
   }
@@ -7639,11 +7916,12 @@ struct org_to_js_type<org::imm::ImmBlockQuoteValue> {
 };
 
 struct ImmBlockCommentValueJs : public Napi::ObjectWrap<ImmBlockCommentValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCommentValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCommentValueJs", func);
     return exports;
   }
@@ -7666,11 +7944,12 @@ struct org_to_js_type<org::imm::ImmBlockCommentValue> {
 };
 
 struct ImmBlockVerseValueJs : public Napi::ObjectWrap<ImmBlockVerseValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockVerseValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockVerseValueJs", func);
     return exports;
   }
@@ -7693,11 +7972,12 @@ struct org_to_js_type<org::imm::ImmBlockVerseValue> {
 };
 
 struct ImmBlockDynamicFallbackValueJs : public Napi::ObjectWrap<ImmBlockDynamicFallbackValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockDynamicFallbackValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockDynamicFallbackValueJs", func);
     return exports;
   }
@@ -7720,11 +8000,12 @@ struct org_to_js_type<org::imm::ImmBlockDynamicFallbackValue> {
 };
 
 struct ImmBlockExampleValueJs : public Napi::ObjectWrap<ImmBlockExampleValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockExampleValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockExampleValueJs", func);
     return exports;
   }
@@ -7747,11 +8028,12 @@ struct org_to_js_type<org::imm::ImmBlockExampleValue> {
 };
 
 struct ImmBlockExportValueJs : public Napi::ObjectWrap<ImmBlockExportValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockExportValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockExportValueJs", func);
     return exports;
   }
@@ -7774,11 +8056,12 @@ struct org_to_js_type<org::imm::ImmBlockExportValue> {
 };
 
 struct ImmBlockAdmonitionValueJs : public Napi::ObjectWrap<ImmBlockAdmonitionValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockAdmonitionValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockAdmonitionValueJs", func);
     return exports;
   }
@@ -7801,11 +8084,12 @@ struct org_to_js_type<org::imm::ImmBlockAdmonitionValue> {
 };
 
 struct ImmBlockCodeEvalResultValueJs : public Napi::ObjectWrap<ImmBlockCodeEvalResultValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCodeEvalResultValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCodeEvalResultValueJs", func);
     return exports;
   }
@@ -7828,11 +8112,12 @@ struct org_to_js_type<org::imm::ImmBlockCodeEvalResultValue> {
 };
 
 struct ImmBlockCodeValueJs : public Napi::ObjectWrap<ImmBlockCodeValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCodeValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCodeValueJs", func);
     return exports;
   }
@@ -7855,11 +8140,12 @@ struct org_to_js_type<org::imm::ImmBlockCodeValue> {
 };
 
 struct ImmSubtreeLogValueJs : public Napi::ObjectWrap<ImmSubtreeLogValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSubtreeLogValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSubtreeLogValueJs", func);
     return exports;
   }
@@ -7882,11 +8168,12 @@ struct org_to_js_type<org::imm::ImmSubtreeLogValue> {
 };
 
 struct ImmSubtreeValueJs : public Napi::ObjectWrap<ImmSubtreeValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSubtreeValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSubtreeValueJs", func);
     return exports;
   }
@@ -7909,11 +8196,12 @@ struct org_to_js_type<org::imm::ImmSubtreeValue> {
 };
 
 struct ImmCellValueJs : public Napi::ObjectWrap<ImmCellValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCellValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCellValueJs", func);
     return exports;
   }
@@ -7936,11 +8224,12 @@ struct org_to_js_type<org::imm::ImmCellValue> {
 };
 
 struct ImmRowValueJs : public Napi::ObjectWrap<ImmRowValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmRowValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmRowValueJs", func);
     return exports;
   }
@@ -7963,11 +8252,12 @@ struct org_to_js_type<org::imm::ImmRowValue> {
 };
 
 struct ImmTableValueJs : public Napi::ObjectWrap<ImmTableValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTableValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTableValueJs", func);
     return exports;
   }
@@ -7990,11 +8280,12 @@ struct org_to_js_type<org::imm::ImmTableValue> {
 };
 
 struct ImmParagraphValueJs : public Napi::ObjectWrap<ImmParagraphValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmParagraphValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmParagraphValueJs", func);
     return exports;
   }
@@ -8017,11 +8308,12 @@ struct org_to_js_type<org::imm::ImmParagraphValue> {
 };
 
 struct ImmColonExampleValueJs : public Napi::ObjectWrap<ImmColonExampleValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmColonExampleValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmColonExampleValueJs", func);
     return exports;
   }
@@ -8044,11 +8336,12 @@ struct org_to_js_type<org::imm::ImmColonExampleValue> {
 };
 
 struct ImmCmdAttrValueJs : public Napi::ObjectWrap<ImmCmdAttrValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdAttrValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdAttrValueJs", func);
     return exports;
   }
@@ -8071,11 +8364,12 @@ struct org_to_js_type<org::imm::ImmCmdAttrValue> {
 };
 
 struct ImmCmdExportValueJs : public Napi::ObjectWrap<ImmCmdExportValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdExportValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdExportValueJs", func);
     return exports;
   }
@@ -8098,11 +8392,12 @@ struct org_to_js_type<org::imm::ImmCmdExportValue> {
 };
 
 struct ImmCallValueJs : public Napi::ObjectWrap<ImmCallValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCallValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCallValueJs", func);
     return exports;
   }
@@ -8125,11 +8420,12 @@ struct org_to_js_type<org::imm::ImmCallValue> {
 };
 
 struct ImmListValueJs : public Napi::ObjectWrap<ImmListValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmListValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmListValueJs", func);
     return exports;
   }
@@ -8152,11 +8448,12 @@ struct org_to_js_type<org::imm::ImmListValue> {
 };
 
 struct ImmListItemValueJs : public Napi::ObjectWrap<ImmListItemValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmListItemValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmListItemValueJs", func);
     return exports;
   }
@@ -8179,11 +8476,12 @@ struct org_to_js_type<org::imm::ImmListItemValue> {
 };
 
 struct ImmDocumentOptionsValueJs : public Napi::ObjectWrap<ImmDocumentOptionsValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentOptionsValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentOptionsValueJs", func);
     return exports;
   }
@@ -8206,11 +8504,12 @@ struct org_to_js_type<org::imm::ImmDocumentOptionsValue> {
 };
 
 struct ImmDocumentFragmentValueJs : public Napi::ObjectWrap<ImmDocumentFragmentValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentFragmentValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentFragmentValueJs", func);
     return exports;
   }
@@ -8233,11 +8532,12 @@ struct org_to_js_type<org::imm::ImmDocumentFragmentValue> {
 };
 
 struct ImmCriticMarkupValueJs : public Napi::ObjectWrap<ImmCriticMarkupValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCriticMarkupValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCriticMarkupValueJs", func);
     return exports;
   }
@@ -8260,11 +8560,12 @@ struct org_to_js_type<org::imm::ImmCriticMarkupValue> {
 };
 
 struct ImmDocumentValueJs : public Napi::ObjectWrap<ImmDocumentValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentValueJs", func);
     return exports;
   }
@@ -8287,11 +8588,12 @@ struct org_to_js_type<org::imm::ImmDocumentValue> {
 };
 
 struct ImmFileTargetValueJs : public Napi::ObjectWrap<ImmFileTargetValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmFileTargetValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmFileTargetValueJs", func);
     return exports;
   }
@@ -8314,11 +8616,12 @@ struct org_to_js_type<org::imm::ImmFileTargetValue> {
 };
 
 struct ImmTextSeparatorValueJs : public Napi::ObjectWrap<ImmTextSeparatorValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTextSeparatorValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTextSeparatorValueJs", func);
     return exports;
   }
@@ -8341,11 +8644,12 @@ struct org_to_js_type<org::imm::ImmTextSeparatorValue> {
 };
 
 struct ImmDocumentGroupValueJs : public Napi::ObjectWrap<ImmDocumentGroupValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentGroupValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentGroupValueJs", func);
     return exports;
   }
@@ -8368,11 +8672,12 @@ struct org_to_js_type<org::imm::ImmDocumentGroupValue> {
 };
 
 struct ImmFileValueJs : public Napi::ObjectWrap<ImmFileValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmFileValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmFileValueJs", func);
     return exports;
   }
@@ -8395,11 +8700,12 @@ struct org_to_js_type<org::imm::ImmFileValue> {
 };
 
 struct ImmDirectoryValueJs : public Napi::ObjectWrap<ImmDirectoryValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDirectoryValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDirectoryValueJs", func);
     return exports;
   }
@@ -8422,11 +8728,12 @@ struct org_to_js_type<org::imm::ImmDirectoryValue> {
 };
 
 struct ImmSymlinkValueJs : public Napi::ObjectWrap<ImmSymlinkValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSymlinkValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSymlinkValueJs", func);
     return exports;
   }
@@ -8449,11 +8756,12 @@ struct org_to_js_type<org::imm::ImmSymlinkValue> {
 };
 
 struct ImmCmdIncludeValueJs : public Napi::ObjectWrap<ImmCmdIncludeValueJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdIncludeValueJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdIncludeValueJs", func);
     return exports;
   }
@@ -8476,11 +8784,12 @@ struct org_to_js_type<org::imm::ImmCmdIncludeValue> {
 };
 
 struct CmdCustomRawJs : public Napi::ObjectWrap<CmdCustomRawJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdCustomRawJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdCustomRawJs", func);
     return exports;
   }
@@ -8504,11 +8813,12 @@ struct org_to_js_type<org::sem::CmdCustomRaw> {
 };
 
 struct CmdCustomTextJs : public Napi::ObjectWrap<CmdCustomTextJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdCustomTextJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdCustomTextJs", func);
     return exports;
   }
@@ -8532,11 +8842,12 @@ struct org_to_js_type<org::sem::CmdCustomText> {
 };
 
 struct LinkJs : public Napi::ObjectWrap<LinkJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "LinkJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("LinkJs", func);
     return exports;
   }
@@ -8560,11 +8871,12 @@ struct org_to_js_type<org::sem::Link> {
 };
 
 struct BlockCommentJs : public Napi::ObjectWrap<BlockCommentJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockCommentJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockCommentJs", func);
     return exports;
   }
@@ -8588,11 +8900,12 @@ struct org_to_js_type<org::sem::BlockComment> {
 };
 
 struct ParagraphJs : public Napi::ObjectWrap<ParagraphJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ParagraphJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ParagraphJs", func);
     return exports;
   }
@@ -8616,11 +8929,12 @@ struct org_to_js_type<org::sem::Paragraph> {
 };
 
 struct ListJs : public Napi::ObjectWrap<ListJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ListJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ListJs", func);
     return exports;
   }
@@ -8644,11 +8958,12 @@ struct org_to_js_type<org::sem::List> {
 };
 
 struct HashTagJs : public Napi::ObjectWrap<HashTagJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "HashTagJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("HashTagJs", func);
     return exports;
   }
@@ -8672,11 +8987,12 @@ struct org_to_js_type<org::sem::HashTag> {
 };
 
 struct InlineFootnoteJs : public Napi::ObjectWrap<InlineFootnoteJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "InlineFootnoteJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("InlineFootnoteJs", func);
     return exports;
   }
@@ -8700,11 +9016,12 @@ struct org_to_js_type<org::sem::InlineFootnote> {
 };
 
 struct InlineExportJs : public Napi::ObjectWrap<InlineExportJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "InlineExportJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("InlineExportJs", func);
     return exports;
   }
@@ -8728,11 +9045,12 @@ struct org_to_js_type<org::sem::InlineExport> {
 };
 
 struct EscapedJs : public Napi::ObjectWrap<EscapedJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "EscapedJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("EscapedJs", func);
     return exports;
   }
@@ -8756,11 +9074,12 @@ struct org_to_js_type<org::sem::Escaped> {
 };
 
 struct NewlineJs : public Napi::ObjectWrap<NewlineJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "NewlineJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("NewlineJs", func);
     return exports;
   }
@@ -8784,11 +9103,12 @@ struct org_to_js_type<org::sem::Newline> {
 };
 
 struct SpaceJs : public Napi::ObjectWrap<SpaceJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "SpaceJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("SpaceJs", func);
     return exports;
   }
@@ -8812,11 +9132,12 @@ struct org_to_js_type<org::sem::Space> {
 };
 
 struct WordJs : public Napi::ObjectWrap<WordJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "WordJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("WordJs", func);
     return exports;
   }
@@ -8840,11 +9161,12 @@ struct org_to_js_type<org::sem::Word> {
 };
 
 struct AtMentionJs : public Napi::ObjectWrap<AtMentionJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AtMentionJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("AtMentionJs", func);
     return exports;
   }
@@ -8868,11 +9190,12 @@ struct org_to_js_type<org::sem::AtMention> {
 };
 
 struct RawTextJs : public Napi::ObjectWrap<RawTextJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "RawTextJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("RawTextJs", func);
     return exports;
   }
@@ -8896,11 +9219,12 @@ struct org_to_js_type<org::sem::RawText> {
 };
 
 struct PunctuationJs : public Napi::ObjectWrap<PunctuationJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "PunctuationJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("PunctuationJs", func);
     return exports;
   }
@@ -8924,11 +9248,12 @@ struct org_to_js_type<org::sem::Punctuation> {
 };
 
 struct PlaceholderJs : public Napi::ObjectWrap<PlaceholderJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "PlaceholderJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("PlaceholderJs", func);
     return exports;
   }
@@ -8952,11 +9277,12 @@ struct org_to_js_type<org::sem::Placeholder> {
 };
 
 struct BigIdentJs : public Napi::ObjectWrap<BigIdentJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BigIdentJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BigIdentJs", func);
     return exports;
   }
@@ -8980,11 +9306,12 @@ struct org_to_js_type<org::sem::BigIdent> {
 };
 
 struct TextTargetJs : public Napi::ObjectWrap<TextTargetJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "TextTargetJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("TextTargetJs", func);
     return exports;
   }
@@ -9008,11 +9335,12 @@ struct org_to_js_type<org::sem::TextTarget> {
 };
 
 struct BoldJs : public Napi::ObjectWrap<BoldJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BoldJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BoldJs", func);
     return exports;
   }
@@ -9036,11 +9364,12 @@ struct org_to_js_type<org::sem::Bold> {
 };
 
 struct UnderlineJs : public Napi::ObjectWrap<UnderlineJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "UnderlineJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("UnderlineJs", func);
     return exports;
   }
@@ -9064,11 +9393,12 @@ struct org_to_js_type<org::sem::Underline> {
 };
 
 struct MonospaceJs : public Napi::ObjectWrap<MonospaceJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MonospaceJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MonospaceJs", func);
     return exports;
   }
@@ -9092,11 +9422,12 @@ struct org_to_js_type<org::sem::Monospace> {
 };
 
 struct MarkQuoteJs : public Napi::ObjectWrap<MarkQuoteJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "MarkQuoteJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("MarkQuoteJs", func);
     return exports;
   }
@@ -9120,11 +9451,12 @@ struct org_to_js_type<org::sem::MarkQuote> {
 };
 
 struct VerbatimJs : public Napi::ObjectWrap<VerbatimJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "VerbatimJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("VerbatimJs", func);
     return exports;
   }
@@ -9148,11 +9480,12 @@ struct org_to_js_type<org::sem::Verbatim> {
 };
 
 struct ItalicJs : public Napi::ObjectWrap<ItalicJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ItalicJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ItalicJs", func);
     return exports;
   }
@@ -9176,11 +9509,12 @@ struct org_to_js_type<org::sem::Italic> {
 };
 
 struct StrikeJs : public Napi::ObjectWrap<StrikeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "StrikeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("StrikeJs", func);
     return exports;
   }
@@ -9204,11 +9538,12 @@ struct org_to_js_type<org::sem::Strike> {
 };
 
 struct ParJs : public Napi::ObjectWrap<ParJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ParJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ParJs", func);
     return exports;
   }
@@ -9232,11 +9567,12 @@ struct org_to_js_type<org::sem::Par> {
 };
 
 struct CmdCustomArgsJs : public Napi::ObjectWrap<CmdCustomArgsJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdCustomArgsJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdCustomArgsJs", func);
     return exports;
   }
@@ -9260,11 +9596,12 @@ struct org_to_js_type<org::sem::CmdCustomArgs> {
 };
 
 struct CmdTblfmJs : public Napi::ObjectWrap<CmdTblfmJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdTblfmJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdTblfmJs", func);
     return exports;
   }
@@ -9288,11 +9625,12 @@ struct org_to_js_type<org::sem::CmdTblfm> {
 };
 
 struct CellJs : public Napi::ObjectWrap<CellJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CellJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CellJs", func);
     return exports;
   }
@@ -9316,11 +9654,12 @@ struct org_to_js_type<org::sem::Cell> {
 };
 
 struct RowJs : public Napi::ObjectWrap<RowJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "RowJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("RowJs", func);
     return exports;
   }
@@ -9344,11 +9683,12 @@ struct org_to_js_type<org::sem::Row> {
 };
 
 struct ImmSubtreeAdapter : public Napi::ObjectWrap<ImmSubtreeAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSubtreeAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSubtreeAdapter", func);
     return exports;
   }
@@ -9371,11 +9711,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmSubtree>> {
 };
 
 struct ImmNoneAdapter : public Napi::ObjectWrap<ImmNoneAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmNoneAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmNoneAdapter", func);
     return exports;
   }
@@ -9398,11 +9739,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmNone>> {
 };
 
 struct ImmErrorItemAdapter : public Napi::ObjectWrap<ImmErrorItemAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmErrorItemAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmErrorItemAdapter", func);
     return exports;
   }
@@ -9425,11 +9767,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmErrorItem>> {
 };
 
 struct ImmErrorGroupAdapter : public Napi::ObjectWrap<ImmErrorGroupAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmErrorGroupAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmErrorGroupAdapter", func);
     return exports;
   }
@@ -9452,11 +9795,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>> {
 };
 
 struct ImmStmtListAdapter : public Napi::ObjectWrap<ImmStmtListAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmStmtListAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmStmtListAdapter", func);
     return exports;
   }
@@ -9479,11 +9823,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmStmtList>> {
 };
 
 struct ImmEmptyAdapter : public Napi::ObjectWrap<ImmEmptyAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmEmptyAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmEmptyAdapter", func);
     return exports;
   }
@@ -9506,11 +9851,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmEmpty>> {
 };
 
 struct ImmTimeAdapter : public Napi::ObjectWrap<ImmTimeAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTimeAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTimeAdapter", func);
     return exports;
   }
@@ -9533,11 +9879,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmTime>> {
 };
 
 struct ImmTimeRangeAdapter : public Napi::ObjectWrap<ImmTimeRangeAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTimeRangeAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTimeRangeAdapter", func);
     return exports;
   }
@@ -9560,11 +9907,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmTimeRange>> {
 };
 
 struct ImmMacroAdapter : public Napi::ObjectWrap<ImmMacroAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmMacroAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmMacroAdapter", func);
     return exports;
   }
@@ -9587,11 +9935,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmMacro>> {
 };
 
 struct ImmSymbolAdapter : public Napi::ObjectWrap<ImmSymbolAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSymbolAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSymbolAdapter", func);
     return exports;
   }
@@ -9614,11 +9963,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmSymbol>> {
 };
 
 struct ImmLatexAdapter : public Napi::ObjectWrap<ImmLatexAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmLatexAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmLatexAdapter", func);
     return exports;
   }
@@ -9641,11 +9991,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmLatex>> {
 };
 
 struct ImmSubtreeLogAdapter : public Napi::ObjectWrap<ImmSubtreeLogAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSubtreeLogAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSubtreeLogAdapter", func);
     return exports;
   }
@@ -9668,11 +10019,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>> {
 };
 
 struct ImmColonExampleAdapter : public Napi::ObjectWrap<ImmColonExampleAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmColonExampleAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmColonExampleAdapter", func);
     return exports;
   }
@@ -9695,11 +10047,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmColonExample>> {
 };
 
 struct ImmCallAdapter : public Napi::ObjectWrap<ImmCallAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCallAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCallAdapter", func);
     return exports;
   }
@@ -9722,11 +10075,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCall>> {
 };
 
 struct ImmFileAdapter : public Napi::ObjectWrap<ImmFileAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmFileAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmFileAdapter", func);
     return exports;
   }
@@ -9749,11 +10103,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmFile>> {
 };
 
 struct ImmDirectoryAdapter : public Napi::ObjectWrap<ImmDirectoryAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDirectoryAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDirectoryAdapter", func);
     return exports;
   }
@@ -9776,11 +10131,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmDirectory>> {
 };
 
 struct ImmSymlinkAdapter : public Napi::ObjectWrap<ImmSymlinkAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSymlinkAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSymlinkAdapter", func);
     return exports;
   }
@@ -9803,11 +10159,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmSymlink>> {
 };
 
 struct ImmDocumentFragmentAdapter : public Napi::ObjectWrap<ImmDocumentFragmentAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentFragmentAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentFragmentAdapter", func);
     return exports;
   }
@@ -9830,11 +10187,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>> {
 };
 
 struct ImmCriticMarkupAdapter : public Napi::ObjectWrap<ImmCriticMarkupAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCriticMarkupAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCriticMarkupAdapter", func);
     return exports;
   }
@@ -9857,11 +10215,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>> {
 };
 
 struct ImmListItemAdapter : public Napi::ObjectWrap<ImmListItemAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmListItemAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmListItemAdapter", func);
     return exports;
   }
@@ -9884,11 +10243,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmListItem>> {
 };
 
 struct ImmDocumentOptionsAdapter : public Napi::ObjectWrap<ImmDocumentOptionsAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentOptionsAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentOptionsAdapter", func);
     return exports;
   }
@@ -9911,11 +10271,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>> {
 };
 
 struct ImmDocumentAdapter : public Napi::ObjectWrap<ImmDocumentAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentAdapter", func);
     return exports;
   }
@@ -9938,11 +10299,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmDocument>> {
 };
 
 struct ImmFileTargetAdapter : public Napi::ObjectWrap<ImmFileTargetAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmFileTargetAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmFileTargetAdapter", func);
     return exports;
   }
@@ -9965,11 +10327,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmFileTarget>> {
 };
 
 struct ImmTextSeparatorAdapter : public Napi::ObjectWrap<ImmTextSeparatorAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTextSeparatorAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTextSeparatorAdapter", func);
     return exports;
   }
@@ -9992,11 +10355,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>> {
 };
 
 struct ImmCmdIncludeAdapter : public Napi::ObjectWrap<ImmCmdIncludeAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdIncludeAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdIncludeAdapter", func);
     return exports;
   }
@@ -10019,11 +10383,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>> {
 };
 
 struct ImmDocumentGroupAdapter : public Napi::ObjectWrap<ImmDocumentGroupAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmDocumentGroupAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmDocumentGroupAdapter", func);
     return exports;
   }
@@ -10046,11 +10411,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>> {
 };
 
 struct BlockCenterJs : public Napi::ObjectWrap<BlockCenterJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockCenterJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockCenterJs", func);
     return exports;
   }
@@ -10074,11 +10440,12 @@ struct org_to_js_type<org::sem::BlockCenter> {
 };
 
 struct BlockQuoteJs : public Napi::ObjectWrap<BlockQuoteJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockQuoteJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockQuoteJs", func);
     return exports;
   }
@@ -10102,11 +10469,12 @@ struct org_to_js_type<org::sem::BlockQuote> {
 };
 
 struct BlockVerseJs : public Napi::ObjectWrap<BlockVerseJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockVerseJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockVerseJs", func);
     return exports;
   }
@@ -10130,11 +10498,12 @@ struct org_to_js_type<org::sem::BlockVerse> {
 };
 
 struct BlockDynamicFallbackJs : public Napi::ObjectWrap<BlockDynamicFallbackJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockDynamicFallbackJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockDynamicFallbackJs", func);
     return exports;
   }
@@ -10158,11 +10527,12 @@ struct org_to_js_type<org::sem::BlockDynamicFallback> {
 };
 
 struct BlockExampleJs : public Napi::ObjectWrap<BlockExampleJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockExampleJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockExampleJs", func);
     return exports;
   }
@@ -10186,11 +10556,12 @@ struct org_to_js_type<org::sem::BlockExample> {
 };
 
 struct BlockExportJs : public Napi::ObjectWrap<BlockExportJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockExportJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockExportJs", func);
     return exports;
   }
@@ -10214,11 +10585,12 @@ struct org_to_js_type<org::sem::BlockExport> {
 };
 
 struct BlockAdmonitionJs : public Napi::ObjectWrap<BlockAdmonitionJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockAdmonitionJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockAdmonitionJs", func);
     return exports;
   }
@@ -10242,11 +10614,12 @@ struct org_to_js_type<org::sem::BlockAdmonition> {
 };
 
 struct BlockCodeEvalResultJs : public Napi::ObjectWrap<BlockCodeEvalResultJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockCodeEvalResultJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockCodeEvalResultJs", func);
     return exports;
   }
@@ -10270,11 +10643,12 @@ struct org_to_js_type<org::sem::BlockCodeEvalResult> {
 };
 
 struct BlockCodeJs : public Napi::ObjectWrap<BlockCodeJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "BlockCodeJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("BlockCodeJs", func);
     return exports;
   }
@@ -10298,11 +10672,12 @@ struct org_to_js_type<org::sem::BlockCode> {
 };
 
 struct TableJs : public Napi::ObjectWrap<TableJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "TableJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("TableJs", func);
     return exports;
   }
@@ -10326,11 +10701,12 @@ struct org_to_js_type<org::sem::Table> {
 };
 
 struct ImmCmdCustomRawAdapter : public Napi::ObjectWrap<ImmCmdCustomRawAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCustomRawAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCustomRawAdapter", func);
     return exports;
   }
@@ -10353,11 +10729,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>> {
 };
 
 struct ImmCmdCustomTextAdapter : public Napi::ObjectWrap<ImmCmdCustomTextAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCustomTextAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCustomTextAdapter", func);
     return exports;
   }
@@ -10380,11 +10757,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>> {
 };
 
 struct ImmLinkAdapter : public Napi::ObjectWrap<ImmLinkAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmLinkAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmLinkAdapter", func);
     return exports;
   }
@@ -10407,11 +10785,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmLink>> {
 };
 
 struct ImmBlockCommentAdapter : public Napi::ObjectWrap<ImmBlockCommentAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCommentAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCommentAdapter", func);
     return exports;
   }
@@ -10434,11 +10813,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockComment>> {
 };
 
 struct ImmParagraphAdapter : public Napi::ObjectWrap<ImmParagraphAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmParagraphAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmParagraphAdapter", func);
     return exports;
   }
@@ -10461,11 +10841,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmParagraph>> {
 };
 
 struct ImmListAdapter : public Napi::ObjectWrap<ImmListAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmListAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmListAdapter", func);
     return exports;
   }
@@ -10488,11 +10869,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmList>> {
 };
 
 struct ImmHashTagAdapter : public Napi::ObjectWrap<ImmHashTagAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmHashTagAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmHashTagAdapter", func);
     return exports;
   }
@@ -10515,11 +10897,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmHashTag>> {
 };
 
 struct ImmInlineFootnoteAdapter : public Napi::ObjectWrap<ImmInlineFootnoteAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmInlineFootnoteAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmInlineFootnoteAdapter", func);
     return exports;
   }
@@ -10542,11 +10925,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>> {
 };
 
 struct ImmEscapedAdapter : public Napi::ObjectWrap<ImmEscapedAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmEscapedAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmEscapedAdapter", func);
     return exports;
   }
@@ -10569,11 +10953,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmEscaped>> {
 };
 
 struct ImmNewlineAdapter : public Napi::ObjectWrap<ImmNewlineAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmNewlineAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmNewlineAdapter", func);
     return exports;
   }
@@ -10596,11 +10981,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmNewline>> {
 };
 
 struct ImmSpaceAdapter : public Napi::ObjectWrap<ImmSpaceAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmSpaceAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmSpaceAdapter", func);
     return exports;
   }
@@ -10623,11 +11009,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmSpace>> {
 };
 
 struct ImmWordAdapter : public Napi::ObjectWrap<ImmWordAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmWordAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmWordAdapter", func);
     return exports;
   }
@@ -10650,11 +11037,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmWord>> {
 };
 
 struct ImmAtMentionAdapter : public Napi::ObjectWrap<ImmAtMentionAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmAtMentionAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmAtMentionAdapter", func);
     return exports;
   }
@@ -10677,11 +11065,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmAtMention>> {
 };
 
 struct ImmRawTextAdapter : public Napi::ObjectWrap<ImmRawTextAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmRawTextAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmRawTextAdapter", func);
     return exports;
   }
@@ -10704,11 +11093,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmRawText>> {
 };
 
 struct ImmPunctuationAdapter : public Napi::ObjectWrap<ImmPunctuationAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmPunctuationAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmPunctuationAdapter", func);
     return exports;
   }
@@ -10731,11 +11121,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmPunctuation>> {
 };
 
 struct ImmPlaceholderAdapter : public Napi::ObjectWrap<ImmPlaceholderAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmPlaceholderAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmPlaceholderAdapter", func);
     return exports;
   }
@@ -10758,11 +11149,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>> {
 };
 
 struct ImmBigIdentAdapter : public Napi::ObjectWrap<ImmBigIdentAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBigIdentAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBigIdentAdapter", func);
     return exports;
   }
@@ -10785,11 +11177,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBigIdent>> {
 };
 
 struct ImmTextTargetAdapter : public Napi::ObjectWrap<ImmTextTargetAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTextTargetAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTextTargetAdapter", func);
     return exports;
   }
@@ -10812,11 +11205,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmTextTarget>> {
 };
 
 struct ImmBoldAdapter : public Napi::ObjectWrap<ImmBoldAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBoldAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBoldAdapter", func);
     return exports;
   }
@@ -10839,11 +11233,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBold>> {
 };
 
 struct ImmUnderlineAdapter : public Napi::ObjectWrap<ImmUnderlineAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmUnderlineAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmUnderlineAdapter", func);
     return exports;
   }
@@ -10866,11 +11261,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmUnderline>> {
 };
 
 struct ImmMonospaceAdapter : public Napi::ObjectWrap<ImmMonospaceAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmMonospaceAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmMonospaceAdapter", func);
     return exports;
   }
@@ -10893,11 +11289,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmMonospace>> {
 };
 
 struct ImmMarkQuoteAdapter : public Napi::ObjectWrap<ImmMarkQuoteAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmMarkQuoteAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmMarkQuoteAdapter", func);
     return exports;
   }
@@ -10920,11 +11317,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>> {
 };
 
 struct ImmRadioTargetAdapter : public Napi::ObjectWrap<ImmRadioTargetAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmRadioTargetAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmRadioTargetAdapter", func);
     return exports;
   }
@@ -10947,11 +11345,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>> {
 };
 
 struct ImmVerbatimAdapter : public Napi::ObjectWrap<ImmVerbatimAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmVerbatimAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmVerbatimAdapter", func);
     return exports;
   }
@@ -10974,11 +11373,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmVerbatim>> {
 };
 
 struct ImmItalicAdapter : public Napi::ObjectWrap<ImmItalicAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmItalicAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmItalicAdapter", func);
     return exports;
   }
@@ -11001,11 +11401,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmItalic>> {
 };
 
 struct ImmStrikeAdapter : public Napi::ObjectWrap<ImmStrikeAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmStrikeAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmStrikeAdapter", func);
     return exports;
   }
@@ -11028,11 +11429,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmStrike>> {
 };
 
 struct ImmParAdapter : public Napi::ObjectWrap<ImmParAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmParAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmParAdapter", func);
     return exports;
   }
@@ -11055,11 +11457,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmPar>> {
 };
 
 struct CmdCaptionJs : public Napi::ObjectWrap<CmdCaptionJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdCaptionJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdCaptionJs", func);
     return exports;
   }
@@ -11083,11 +11486,12 @@ struct org_to_js_type<org::sem::CmdCaption> {
 };
 
 struct CmdColumnsJs : public Napi::ObjectWrap<CmdColumnsJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdColumnsJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdColumnsJs", func);
     return exports;
   }
@@ -11111,11 +11515,12 @@ struct org_to_js_type<org::sem::CmdColumns> {
 };
 
 struct CmdNameJs : public Napi::ObjectWrap<CmdNameJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdNameJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdNameJs", func);
     return exports;
   }
@@ -11139,11 +11544,12 @@ struct org_to_js_type<org::sem::CmdName> {
 };
 
 struct CmdCallJs : public Napi::ObjectWrap<CmdCallJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdCallJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdCallJs", func);
     return exports;
   }
@@ -11167,11 +11573,12 @@ struct org_to_js_type<org::sem::CmdCall> {
 };
 
 struct CmdAttrJs : public Napi::ObjectWrap<CmdAttrJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdAttrJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdAttrJs", func);
     return exports;
   }
@@ -11195,11 +11602,12 @@ struct org_to_js_type<org::sem::CmdAttr> {
 };
 
 struct CmdExportJs : public Napi::ObjectWrap<CmdExportJs> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "CmdExportJs", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("CmdExportJs", func);
     return exports;
   }
@@ -11223,11 +11631,12 @@ struct org_to_js_type<org::sem::CmdExport> {
 };
 
 struct ImmCmdCustomArgsAdapter : public Napi::ObjectWrap<ImmCmdCustomArgsAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCustomArgsAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCustomArgsAdapter", func);
     return exports;
   }
@@ -11250,11 +11659,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>> {
 };
 
 struct ImmCmdTblfmAdapter : public Napi::ObjectWrap<ImmCmdTblfmAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdTblfmAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdTblfmAdapter", func);
     return exports;
   }
@@ -11277,11 +11687,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>> {
 };
 
 struct ImmCellAdapter : public Napi::ObjectWrap<ImmCellAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCellAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCellAdapter", func);
     return exports;
   }
@@ -11304,11 +11715,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCell>> {
 };
 
 struct ImmRowAdapter : public Napi::ObjectWrap<ImmRowAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmRowAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmRowAdapter", func);
     return exports;
   }
@@ -11331,11 +11743,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmRow>> {
 };
 
 struct ImmBlockCenterAdapter : public Napi::ObjectWrap<ImmBlockCenterAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCenterAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCenterAdapter", func);
     return exports;
   }
@@ -11358,11 +11771,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>> {
 };
 
 struct ImmBlockQuoteAdapter : public Napi::ObjectWrap<ImmBlockQuoteAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockQuoteAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockQuoteAdapter", func);
     return exports;
   }
@@ -11385,11 +11799,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>> {
 };
 
 struct ImmBlockVerseAdapter : public Napi::ObjectWrap<ImmBlockVerseAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockVerseAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockVerseAdapter", func);
     return exports;
   }
@@ -11412,11 +11827,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>> {
 };
 
 struct ImmBlockExampleAdapter : public Napi::ObjectWrap<ImmBlockExampleAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockExampleAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockExampleAdapter", func);
     return exports;
   }
@@ -11439,11 +11855,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockExample>> {
 };
 
 struct ImmInlineExportAdapter : public Napi::ObjectWrap<ImmInlineExportAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmInlineExportAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmInlineExportAdapter", func);
     return exports;
   }
@@ -11466,11 +11883,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmInlineExport>> {
 };
 
 struct ImmCmdExportAdapter : public Napi::ObjectWrap<ImmCmdExportAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdExportAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdExportAdapter", func);
     return exports;
   }
@@ -11493,11 +11911,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdExport>> {
 };
 
 struct ImmBlockExportAdapter : public Napi::ObjectWrap<ImmBlockExportAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockExportAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockExportAdapter", func);
     return exports;
   }
@@ -11520,11 +11939,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockExport>> {
 };
 
 struct ImmBlockDynamicFallbackAdapter : public Napi::ObjectWrap<ImmBlockDynamicFallbackAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockDynamicFallbackAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockDynamicFallbackAdapter", func);
     return exports;
   }
@@ -11547,11 +11967,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>> 
 };
 
 struct ImmBlockAdmonitionAdapter : public Napi::ObjectWrap<ImmBlockAdmonitionAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockAdmonitionAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockAdmonitionAdapter", func);
     return exports;
   }
@@ -11574,11 +11995,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>> {
 };
 
 struct ImmBlockCodeEvalResultAdapter : public Napi::ObjectWrap<ImmBlockCodeEvalResultAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCodeEvalResultAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCodeEvalResultAdapter", func);
     return exports;
   }
@@ -11601,11 +12023,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>> {
 };
 
 struct ImmBlockCodeAdapter : public Napi::ObjectWrap<ImmBlockCodeAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmBlockCodeAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmBlockCodeAdapter", func);
     return exports;
   }
@@ -11628,11 +12051,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmBlockCode>> {
 };
 
 struct ImmTableAdapter : public Napi::ObjectWrap<ImmTableAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmTableAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmTableAdapter", func);
     return exports;
   }
@@ -11655,11 +12079,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmTable>> {
 };
 
 struct ImmCmdCaptionAdapter : public Napi::ObjectWrap<ImmCmdCaptionAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCaptionAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCaptionAdapter", func);
     return exports;
   }
@@ -11682,11 +12107,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>> {
 };
 
 struct ImmCmdColumnsAdapter : public Napi::ObjectWrap<ImmCmdColumnsAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdColumnsAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdColumnsAdapter", func);
     return exports;
   }
@@ -11709,11 +12135,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>> {
 };
 
 struct ImmCmdNameAdapter : public Napi::ObjectWrap<ImmCmdNameAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdNameAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdNameAdapter", func);
     return exports;
   }
@@ -11736,11 +12163,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdName>> {
 };
 
 struct ImmCmdCallAdapter : public Napi::ObjectWrap<ImmCmdCallAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdCallAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdCallAdapter", func);
     return exports;
   }
@@ -11763,11 +12191,12 @@ struct org_to_js_type<org::imm::ImmAdapterT<org::imm::ImmCmdCall>> {
 };
 
 struct ImmCmdAttrAdapter : public Napi::ObjectWrap<ImmCmdAttrAdapter> {
-  static inline Napi::FunctionReference constructor;
+  static inline Napi::FunctionReference* constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "ImmCmdAttrAdapter", {});
-    constructor = Napi::Persistent(func);
-    env.SetInstanceData(&constructor);
+    constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
+    env.SetInstanceData(constructor);
     exports.Set("ImmCmdAttrAdapter", func);
     return exports;
   }

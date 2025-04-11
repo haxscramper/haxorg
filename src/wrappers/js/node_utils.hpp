@@ -4,8 +4,84 @@
 #include <tuple>
 #include <stdexcept>
 #include <utility>
+#include <iostream>
+#include <cpptrace.hpp>
+#include <sstream>
 
 namespace org::bind::js {
+
+// CRTP base class for exceptions with backtrace in what()
+template <typename DerivedError, typename BaseError>
+class OrgJsErrorBase
+    : public cpptrace::lazy_exception
+    , public BaseError {
+  public:
+    // Constructor that forwards to base
+    cpptrace::stacktrace eager;
+    mutable std::string  error_text;
+    mutable std::string  what_text;
+    int                  line;
+    char const*          function;
+    char const*          file;
+
+    OrgJsErrorBase(BaseError const& base) : BaseError{base} {
+        eager = cpptrace::generate_trace();
+    }
+
+    static DerivedError New(
+        napi_env           env,
+        const std::string& message,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) {
+
+        BaseError    baseError = BaseError::New(env, message);
+        DerivedError result{baseError};
+        result.line     = line;
+        result.file     = file;
+        result.function = function;
+        return result;
+    }
+
+    virtual const char* message() const noexcept override {
+        error_text = std::format(
+            "{} at {}:{} in {}",
+            BaseError::Message(),
+            file,
+            line,
+            function);
+        return error_text.c_str();
+    }
+
+    const char* what() const noexcept override {
+        what_text = std::format(
+            "{}\n\n{}", message(), trace().to_string());
+        return what_text.c_str();
+    }
+
+    virtual cpptrace::stacktrace const& trace() const noexcept override {
+        return eager;
+    }
+};
+
+// Specific error types with backtrace
+class OrgJsError : public OrgJsErrorBase<OrgJsError, Napi::Error> {
+  public:
+    using OrgJsErrorBase<OrgJsError, Napi::Error>::OrgJsErrorBase;
+};
+
+class OrgJsTypeError
+    : public OrgJsErrorBase<OrgJsTypeError, Napi::TypeError> {
+  public:
+    using OrgJsErrorBase<OrgJsTypeError, Napi::TypeError>::OrgJsErrorBase;
+};
+
+class OrgJsRangeError
+    : public OrgJsErrorBase<OrgJsRangeError, Napi::RangeError> {
+  public:
+    using OrgJsErrorBase<OrgJsRangeError, Napi::RangeError>::
+        OrgJsErrorBase;
+};
 
 template <typename T>
 struct org_to_js_type {};
@@ -309,7 +385,7 @@ struct JsConverter<std::string> {
         if (value.IsString()) {
             return value.As<Napi::String>().Utf8Value();
         }
-        throw Napi::TypeError::New(value.Env(), "String expected");
+        throw OrgJsTypeError::New(value.Env(), "String expected");
     }
 
     static Napi::Value to_js_value(
@@ -326,7 +402,7 @@ struct JsConverter<bool> {
         if (value.IsBoolean()) {
             return value.As<Napi::Boolean>().Value();
         }
-        throw Napi::TypeError::New(value.Env(), "Boolean expected");
+        throw OrgJsTypeError::New(value.Env(), "Boolean expected");
     }
 
     static Napi::Value to_js_value(Napi::Env env, const bool& value) {
@@ -341,7 +417,7 @@ struct JsConverter<double> {
         if (value.IsNumber()) {
             return value.As<Napi::Number>().DoubleValue();
         }
-        throw Napi::TypeError::New(value.Env(), "Number expected");
+        throw OrgJsTypeError::New(value.Env(), "Number expected");
     }
 
     static Napi::Value to_js_value(Napi::Env env, const double& value) {
@@ -356,7 +432,7 @@ struct JsConverter<int> {
         if (value.IsNumber()) {
             return value.As<Napi::Number>().Int32Value();
         }
-        throw Napi::TypeError::New(value.Env(), "Integer expected");
+        throw OrgJsTypeError::New(value.Env(), "Integer expected");
     }
 
     static Napi::Value to_js_value(Napi::Env env, const int& value) {
@@ -367,13 +443,13 @@ struct JsConverter<int> {
 template <typename T>
 T* ExtractWrappedObject(const Napi::Value& value) {
     if (!value.IsObject()) {
-        throw Napi::TypeError::New(value.Env(), "Object expected");
+        throw OrgJsTypeError::New(value.Env(), "Object expected");
     }
 
     Napi::Object obj = value.As<Napi::Object>();
 
     // Method 1: For objects created with ObjectWrap
-    if (obj.InstanceOf(T::constructor.Value())) {
+    if (obj.InstanceOf(T::constructor->Value())) {
         return Napi::ObjectWrap<T>::Unwrap(obj);
     }
 
@@ -424,25 +500,34 @@ Napi::Value WrapCallableImpl(
 
             const auto& argSpec = std::get<Index>(argSpecs);
 
-            if constexpr (HasJsMapping<ArgType>) {
-                using MappedJsType = typename org_to_js_type<
-                    ArgType>::type;
-                MappedJsType* ptr = ExtractWrappedObject<MappedJsType>(
-                    info[Index]);
-                ArgType* argPtr = ptr->getPtr();
-                return *argPtr;
-
-            } else {
-                if (Index < info.Length()) {
-                    return JsConverter<ArgType>::from_js_value(
+            try {
+                if constexpr (HasJsMapping<ArgType>) {
+                    using MappedJsType = typename org_to_js_type<
+                        ArgType>::type;
+                    MappedJsType* ptr = ExtractWrappedObject<MappedJsType>(
                         info[Index]);
-                } else if (argSpec.defaultValue) {
-                    return *argSpec.defaultValue;
+                    ArgType* argPtr = ptr->getPtr();
+                    return *argPtr;
+
                 } else {
-                    throw Napi::TypeError::New(
-                        info.Env(),
-                        "Missing required argument: " + argSpec.name);
+                    if (Index < info.Length()) {
+                        return JsConverter<ArgType>::from_js_value(
+                            info[Index]);
+                    } else if (argSpec.defaultValue) {
+                        return *argSpec.defaultValue;
+                    } else {
+                        throw Napi::TypeError::New(
+                            info.Env(),
+                            "Missing required argument: " + argSpec.name);
+                    }
                 }
+            } catch (OrgJsTypeError& t) {
+                throw OrgJsTypeError::New(
+                    info.Env(),
+                    std::format(
+                        "Type error when processing argument {}: {}",
+                        argSpec.name,
+                        t.message()));
             }
         };
 

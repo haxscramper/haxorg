@@ -192,7 +192,7 @@ class NapiClass():
                     ]) for m in wrapper_methods
         ]
 
-        WrapperClass.nested.append(b.string("static inline Napi::FunctionReference constructor;"))
+        WrapperClass.nested.append(b.string("static inline Napi::FunctionReference* constructor;"))
 
         WrapperClass.members.append(
             cpp.MethodDeclParams(
@@ -221,8 +221,9 @@ class NapiClass():
                                     ),
                                 )),
                         ]),
-                        b.string("constructor = Napi::Persistent(func);"),
-                        b.string("env.SetInstanceData(&constructor);"),
+                        b.string("constructor = new Napi::FunctionReference();"),
+                        b.string("*constructor = Napi::Persistent(func);"),
+                        b.string("env.SetInstanceData(constructor);"),
                         b.XCallRef(
                             b.string("exports"),
                             "Set",

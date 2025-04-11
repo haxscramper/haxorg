@@ -145,9 +145,8 @@ if(${ORG_DEPS_USE_PACKAGED_BOOST})
   find_package(boost_mp11 CONFIG REQUIRED)
 endif()
 find_package(nlohmann_json CONFIG REQUIRED)
-if(${ORG_DEPS_USE_PROTOBUF})
-  find_package(protobuf CONFIG REQUIRED)
-endif()
+# Protobuf is necessary for reflection library, so it is enabled unconditionally
+find_package(protobuf CONFIG REQUIRED)
 find_package(Reflex CONFIG REQUIRED)
 find_package(lexy CONFIG REQUIRED)
 if(${ORG_USE_PERFETTO})
@@ -165,8 +164,8 @@ find_package(Boost REQUIRED COMPONENTS log)
 
 if(${ORG_DEPS_USE_PROTOBUF})
   add_definitions(-DORG_DEPS_USE_PROTOBUF)
-  include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 endif()
+include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
 
 set(JSON_BuildTests
