@@ -375,33 +375,72 @@ auto makeConstructorCallable(
 template <typename T, typename Enable = void>
 struct JsConverter {};
 
-template <typename T>
-struct HstdVecJs : public Napi::ObjectWrap<HstdVecJs<T>> {
+template <typename Derived, typename Data>
+struct SharedPtrWrapBase : public Napi::ObjectWrap<Derived> {
     static Napi::FunctionReference* constructor;
+    std::shared_ptr<Data>           _stored;
+    Data*                           getPtr() { return _stored.get(); }
+
+    SharedPtrWrapBase(const Napi::CallbackInfo& info)
+        : Napi::ObjectWrap<Derived>(info) {}
+
+
+    SharedPtrWrapBase(
+        Napi::CallbackInfo const&    info,
+        std::shared_ptr<Data> const& ptr)
+        : Napi::ObjectWrap<Derived>{info} {
+        Napi::Env         env = info.Env();
+        Napi::HandleScope scope(env);
+        _stored = ptr;
+    }
+
+    static Napi::Object InitSharedWrap(
+        Napi::Env    env,
+        Napi::Object exports,
+        const char*  utf8name,
+        const std::initializer_list<
+            typename Napi::ObjectWrap<Derived>::PropertyDescriptor>&
+            properties) {
+        Napi::Function func = Napi::ObjectWrap<Derived>::DefineClass(
+            env, utf8name, properties);
+
+        constructor  = new Napi::FunctionReference();
+        *constructor = Napi::Persistent(func);
+        env.SetInstanceData(constructor);
+        exports.Set(utf8name, func);
+        return exports;
+    }
+};
+
+
+template <typename T>
+struct hstdVec_bind
+    : public SharedPtrWrapBase<hstdVec_bind<T>, hstd::Vec<T>> {
+    using ThisDerived = hstdVec_bind<T>;
+    using ThisData    = hstd::Vec<T>;
+    using ThisBase    = SharedPtrWrapBase<ThisDerived, ThisData>;
+    using ThisBase::getPtr;
+    using ThisBase::InitSharedWrap;
+    using ThisBase::InstanceMethod;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::SharedPtrWrapBase;
 
     static Napi::Object Init(
         Napi::Env    env,
         Napi::Object exports,
         const char*  className) {
-        Napi::Function func = DefineClass(
+        return InitSharedWrap(
             env,
+            exports,
             className,
             {
-                InstanceMethod("push", &HstdVecJs::Push),
-                InstanceMethod("get", &HstdVecJs::Get),
-                InstanceMethod("size", &HstdVecJs::Size),
-                InstanceMethod("clear", &HstdVecJs::Clear),
+                InstanceMethod("push", &hstdVec_bind::Push),
+                InstanceMethod("get", &hstdVec_bind::Get),
+                InstanceMethod("size", &hstdVec_bind::Size),
+                InstanceMethod("clear", &hstdVec_bind::Clear),
             });
-
-        constructor  = new Napi::FunctionReference();
-        *constructor = Napi::Persistent(func);
-        env.SetInstanceData(constructor);
-        exports.Set(className, func);
-        return exports;
     }
 
-    HstdVecJs(const Napi::CallbackInfo& info)
-        : Napi::ObjectWrap<HstdVecJs<T>>(info) {
+    hstdVec_bind(const Napi::CallbackInfo& info) : ThisBase{info} {
         if (info.Length() > 0 && info[0].IsArray()) {
             Napi::Array jsArray = info[0].As<Napi::Array>();
             for (uint32_t i = 0; i < jsArray.Length(); ++i) {
@@ -410,18 +449,6 @@ struct HstdVecJs : public Napi::ObjectWrap<HstdVecJs<T>> {
             }
         }
     }
-
-    HstdVecJs(
-        Napi::CallbackInfo const&            info,
-        std::shared_ptr<hstd::Vec<T>> const& ptr)
-        : Napi::ObjectWrap<HstdVecJs<T>>{info} {
-        Napi::Env         env = info.Env();
-        Napi::HandleScope scope(env);
-        _stored = ptr;
-    }
-
-    std::shared_ptr<hstd::Vec<T>> _stored;
-    hstd::Vec<T>*                 getPtr() { return _stored.get(); }
 
     Napi::Value Push(const Napi::CallbackInfo& info) {
         if (info.Length() < 1) {
@@ -439,7 +466,7 @@ struct HstdVecJs : public Napi::ObjectWrap<HstdVecJs<T>> {
         if (index >= getPtr()->size()) {
             throw Napi::Error::New(info.Env(), "Index out of bounds");
         }
-        return JsConverter<T>::to_js_value(info, getPtr().at(index));
+        return JsConverter<T>::to_js_value(info, getPtr()->at(index));
     }
 
     Napi::Value Size(const Napi::CallbackInfo& info) {
@@ -453,13 +480,126 @@ struct HstdVecJs : public Napi::ObjectWrap<HstdVecJs<T>> {
 };
 
 template <typename T>
-struct js_to_org_type<HstdVecJs<T>> {
+struct js_to_org_type<hstdVec_bind<T>> {
     using type = hstd::Vec<T>;
 };
 
 template <typename T>
 struct org_to_js_type<hstd::Vec<T>> {
-    using type = HstdVecJs<T>;
+    using type = hstdVec_bind<T>;
+};
+
+
+template <typename T>
+struct immerflex_vector_bind
+    : public SharedPtrWrapBase<
+          immerflex_vector_bind<T>,
+          immer::flex_vector<T>> {
+    using ThisDerived = immerflex_vector_bind<T>;
+    using ThisData    = immer::flex_vector<T>;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::SharedPtrWrapBase;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::getPtr;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::InitSharedWrap;
+
+    static Napi::Object Init(
+        Napi::Env    env,
+        Napi::Object exports,
+        const char*  className) {
+        return InitSharedWrap(env, exports, className, {});
+    }
+};
+
+template <typename T>
+struct js_to_org_type<immerflex_vector_bind<T>> {
+    using type = immer::flex_vector<T>;
+};
+
+template <typename T>
+struct org_to_js_type<immer::flex_vector<T>> {
+    using type = immerflex_vector_bind<T>;
+};
+
+template <typename T>
+struct immerbox_bind
+    : public SharedPtrWrapBase<immerbox_bind<T>, immer::box<T>> {
+    using ThisDerived = immerbox_bind<T>;
+    using ThisData    = immer::box<T>;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::SharedPtrWrapBase;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::getPtr;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::InitSharedWrap;
+
+    static Napi::Object Init(
+        Napi::Env    env,
+        Napi::Object exports,
+        const char*  className) {
+        return InitSharedWrap(env, exports, className, {});
+    }
+};
+
+template <typename T>
+struct js_to_org_type<immerbox_bind<T>> {
+    using type = immer::box<T>;
+};
+
+template <typename T>
+struct org_to_js_type<immer::box<T>> {
+    using type = immerbox_bind<T>;
+};
+
+template <typename T>
+struct hstdIntSet_bind
+    : public SharedPtrWrapBase<hstdIntSet_bind<T>, hstd::IntSet<T>> {
+    using ThisDerived = hstdIntSet_bind<T>;
+    using ThisData    = hstd::IntSet<T>;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::SharedPtrWrapBase;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::getPtr;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::InitSharedWrap;
+
+    static Napi::Object Init(
+        Napi::Env    env,
+        Napi::Object exports,
+        const char*  className) {
+        return InitSharedWrap(env, exports, className, {});
+    }
+};
+
+template <typename T>
+struct js_to_org_type<hstdIntSet_bind<T>> {
+    using type = hstd::IntSet<T>;
+};
+
+template <typename T>
+struct org_to_js_type<hstd::IntSet<T>> {
+    using type = hstdIntSet_bind<T>;
+};
+
+template <typename K, typename V>
+struct hstdUnorderedMap_bind
+    : public SharedPtrWrapBase<
+          hstdUnorderedMap_bind<K, V>,
+          hstd::UnorderedMap<K, V>> {
+    using ThisDerived = hstdUnorderedMap_bind<K, V>;
+    using ThisData    = hstd::UnorderedMap<K, V>;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::SharedPtrWrapBase;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::getPtr;
+    using SharedPtrWrapBase<ThisDerived, ThisData>::InitSharedWrap;
+
+    static Napi::Object Init(
+        Napi::Env    env,
+        Napi::Object exports,
+        const char*  className) {
+        return InitSharedWrap(env, exports, className, {});
+    }
+};
+
+template <typename K, typename V>
+struct js_to_org_type<hstdUnorderedMap_bind<K, V>> {
+    using type = hstd::UnorderedMap<K, V>;
+};
+
+template <typename K, typename V>
+struct org_to_js_type<hstd::UnorderedMap<K, V>> {
+    using type = hstdUnorderedMap_bind<K, V>;
 };
 
 

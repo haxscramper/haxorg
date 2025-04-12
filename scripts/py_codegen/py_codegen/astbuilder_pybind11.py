@@ -967,10 +967,9 @@ class Py11Module:
             opaque_declarations.append(
                 ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(spec.used_type)]))
 
-            bind_join = "".join(spec.used_type.flatQualName())
             specialization_calls.append(
                 ast.XCall(
-                    f"bind_{bind_join}",
+                    f"bind_{spec.getFlatUsed()}",
                     [
                         ast.string("m"),
                         ast.StringLiteral(spec.bind_name),

@@ -395,6 +395,25 @@ class NapiModule():
     items: List[NapiUnion] = field(default_factory=list)
     Header: List[NapiBindPass] = field(default_factory=list)
 
+    def add_specializations(self, b: cpp.ASTBuilder,
+                            specializations: List[TypeSpecialization]):
+        for spec in specializations:
+            self.items.append(
+                NapiBindPass(
+                    b.CallStatic(
+                        QualType(
+                            name=spec.getFlatUsed() + "_bind",
+                            Parameters=spec.used_type.Parameters,
+                        ),
+                        opc="Init",
+                        Args=[
+                            b.string("env"),
+                            b.string("exports"),
+                            b.StringLiteral(spec.bind_name),
+                        ],
+                        Stmt=True,
+                    )))
+
     def add_decl(self, item: GenTuUnion):
         match item:
             case GenTuStruct():
@@ -432,9 +451,12 @@ class NapiModule():
                 case NapiFunction():
                     overload_counts[item.getNapiName()] += 1
                     Body.append(item.build_bind(b=b))
+                
+                case NapiBindPass():
+                    Body.append(item.Id)
 
                 case _:
-                    raise ValueError("Unahn")
+                    raise ValueError("Unexpected ")
 
         for key, value in overload_counts.items():
             if 1 < value:

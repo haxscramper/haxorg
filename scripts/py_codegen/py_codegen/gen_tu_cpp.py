@@ -986,6 +986,9 @@ class TypeSpecialization():
     bind_name: str
     std_type: Optional[QualType] = None
 
+    def getFlatUsed(self) -> str:
+        return "".join(self.used_type.flatQualName())
+
 
 IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "imm"]
 
@@ -997,15 +1000,28 @@ def collect_type_specializations(entries: List[GenTuUnion],
 
     @beartype
     def name_bind(Typ: QualType) -> str:
-        fullname = "".join([name_bind(T) for T in Typ.Spaces])
-        if Typ.name not in IGNORED_NAMESPACES:
-            fullname += Typ.name
+        flat = Typ.flatQualName() 
 
-        if 0 < len(Typ.Parameters):
-            fullname += "Of"
-            fullname += "".join([name_bind(T) for T in Typ.Parameters])
+        match flat: 
+            case ["immer", "box"]:
+                return "ImmBox"
 
-        return fullname
+            case ["immer", "flex_vector"]:
+                return "ImmFlexVector"
+
+            case ["immer", "map"]:
+                return "ImmMap"
+
+            case _:
+                fullname = "".join([name_bind(T) for T in Typ.Spaces])
+                if Typ.name not in IGNORED_NAMESPACES:
+                    fullname += Typ.name
+
+                if 0 < len(Typ.Parameters):
+                    fullname += "Of"
+                    fullname += "".join([name_bind(T) for T in Typ.Parameters])
+
+                return fullname
 
     type_use_context: List[Any] = []
     seen_types: Set[QualType] = set()

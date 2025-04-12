@@ -1064,6 +1064,11 @@ def gen_pyhaxorg_napi_wrappers(
 
     res = napi.NapiModule("pyhaxorg")
 
+    res.add_specializations(
+        b=ast,
+        specializations=groups.specializations,
+    )
+
     for decl in groups.get_entries_for_wrapping():
         if decl.reflectionParams.isAcceptedBackend("node"):
             match decl:
