@@ -375,20 +375,46 @@ auto makeConstructorCallable(
 template <typename T, typename Enable = void>
 struct JsConverter {};
 
-// Specialization for string
-template <>
-struct JsConverter<std::string> {
-    static std::string from_js_value(Napi::Value const& value) {
-        if (value.IsString()) {
-            return value.As<Napi::String>().Utf8Value();
+template <typename T>
+struct JsConverter<std::optional<T>> {
+    static std::optional<T> from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        if (value.IsNull()) {
+            return std::nullopt;
+        } else {
+            return JsConverter<T>::from_js_value(info, value);
         }
-        throw OrgJsTypeError::New(value.Env(), "String expected");
     }
 
     static Napi::Value to_js_value(
-        Napi::Env          env,
-        const std::string& value) {
-        return Napi::String::New(env, value);
+        Napi::CallbackInfo const& info,
+        const std::optional<T>&   value) {
+        if (value.has_value()) {
+            return JsConverter<T>::to_js_value(info, value.value());
+        } else {
+            return info.Env().Null();
+        }
+    }
+};
+
+// Specialization for string
+template <>
+struct JsConverter<std::string> {
+    static std::string from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        if (value.IsString()) {
+            return value.As<Napi::String>().Utf8Value();
+        } else {
+            throw OrgJsTypeError::New(value.Env(), "String expected");
+        }
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        const std::string&        value) {
+        return Napi::String::New(info.Env(), value);
     }
 };
 
@@ -449,24 +475,36 @@ struct JsConverter<int> {
 };
 
 
-template <typename T, typename... Args>
-Napi::Value CreateWrappedObject(
-    Napi::CallbackInfo const& info,
-    Args&&... args) {
+template <
+    typename JsType,
+    typename OrgType = typename js_to_org_type<JsType>::type>
+Napi::Value CreateWrappedObjectFromPtr(
+    Napi::CallbackInfo const&       info,
+    std::shared_ptr<OrgType> const& ptr) {
     // Check if the constructor reference has been initialized
-    if (T::constructor->IsEmpty()) {
+    if (JsType::constructor->IsEmpty()) {
         throw Napi::Error::New(
             info.Env(),
             "Constructor not initialized. Make sure to call T::Init() "
             "first.");
     } else {
-        return T{
-            info,
-            std::make_shared<typename js_to_org_type<T>::type>(
-                std::forward<Args>(args)...),
-        };
+        Napi::Object obj      = JsType::constructor->New({});
+        JsType*      instance = JsType::Unwrap(obj);
+        instance->_stored     = ptr;
+        return obj;
     }
 }
+
+
+template <typename JsType, typename... Args>
+Napi::Value CreateWrappedObject(
+    Napi::CallbackInfo const& info,
+    Args&&... args) {
+    using OrgType = typename js_to_org_type<JsType>::type;
+    return CreateWrappedObjectFromPtr<JsType>(
+        std::make_shared<OrgType>(std::forward<Args>(args)...));
+}
+
 
 template <typename T>
 T* ExtractWrappedObject(Napi::Value const& value) {
@@ -510,8 +548,8 @@ struct JsConverter<org::sem::SemId<T>> {
     static org::sem::SemId<T> from_js_value(
         Napi::CallbackInfo const& info,
         Napi::Value const&        value) {
-        auto* wrappedPtr = ExtractWrappedObject<org_to_js_type<T>::type>(
-            value);
+        auto* wrappedPtr = ExtractWrappedObject<
+            typename org_to_js_type<T>::type>(value);
         return org::sem::SemId<T>(wrappedPtr->_stored);
     }
 
@@ -519,8 +557,8 @@ struct JsConverter<org::sem::SemId<T>> {
     static Napi::Value to_js_value(
         Napi::CallbackInfo const& info,
         org::sem::SemId<T> const& value) {
-        return CreateWrappedObject<typename org_to_js_type<T>::type>(
-            info, value.value);
+        return CreateWrappedObjectFromPtr<
+            typename org_to_js_type<T>::type>(info, value.value);
     }
 };
 
@@ -546,6 +584,63 @@ struct JsConverter<org::sem::SemId<org::sem::Org>> {
     }
 };
 
+template <HasJsMapping OrgType>
+struct JsConverter<OrgType*> {
+    using JsType = typename org_to_js_type<OrgType>::type;
+    static OrgType& from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        JsType*  ptr    = ExtractWrappedObject<JsType>(value);
+        OrgType* argPtr = ptr->getPtr();
+        return argPtr;
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        OrgType*                  value) {
+        return CreateWrappedObjectFromPtr<JsType>(
+            info, std::make_shared(value, [](JsType*) {}));
+    }
+};
+
+template <HasJsMapping OrgType>
+struct JsConverter<OrgType> {
+    using JsType = typename org_to_js_type<OrgType>::type;
+    static OrgType from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        JsType*  ptr    = ExtractWrappedObject<JsType>(value);
+        OrgType* argPtr = ptr->getPtr();
+        return *argPtr;
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        OrgType const&            value) {
+        return CreateWrappedObjectFromPtr<JsType>(
+            info, std::make_shared(value));
+    }
+};
+
+
+template <HasJsMapping T>
+struct JsConverter<std::shared_ptr<T>> {
+    static std::shared_ptr<T> from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        auto* wrappedPtr = ExtractWrappedObject<
+            typename org_to_js_type<T>::type>(value);
+        return wrappedPtr->_stored;
+    }
+
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        std::shared_ptr<T> const& value) {
+        return CreateWrappedObjectFromPtr<
+            typename org_to_js_type<T>::type>(info, value);
+    }
+};
 
 // Generic wrapper function for any Callable
 template <typename CallableType, typename ClassInstance, size_t... Indices>
@@ -576,25 +671,15 @@ Napi::Value WrapCallableImpl(
             const auto& argSpec = std::get<Index>(argSpecs);
 
             try {
-                if constexpr (HasJsMapping<ArgType>) {
-                    using MappedJsType = typename org_to_js_type<
-                        ArgType>::type;
-                    MappedJsType* ptr = ExtractWrappedObject<MappedJsType>(
-                        info[Index]);
-                    ArgType* argPtr = ptr->getPtr();
-                    return *argPtr;
-
+                if (Index < info.Length()) {
+                    return JsConverter<ArgType>::from_js_value(
+                        info, info[Index]);
+                } else if (argSpec.defaultValue) {
+                    return *argSpec.defaultValue;
                 } else {
-                    if (Index < info.Length()) {
-                        return JsConverter<ArgType>::from_js_value(
-                            info, info[Index]);
-                    } else if (argSpec.defaultValue) {
-                        return *argSpec.defaultValue;
-                    } else {
-                        throw Napi::TypeError::New(
-                            info.Env(),
-                            "Missing required argument: " + argSpec.name);
-                    }
+                    throw Napi::TypeError::New(
+                        info.Env(),
+                        "Missing required argument: " + argSpec.name);
                 }
             } catch (OrgJsTypeError& t) {
                 throw OrgJsTypeError::New(
