@@ -152,7 +152,6 @@ class QualType(BaseModel, extra="forbid"):
     def withoutCVRef(self) -> "QualType":
         return self.model_copy(update=dict(
             isConst=False,
-            ptrCount=0,
             RefKind=ReferenceKind.NotRef,
         ))
 

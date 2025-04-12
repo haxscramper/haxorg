@@ -81,7 +81,10 @@ class NapiMethod():
                                     args=[
                                         b.Addr(
                                             b.line([
-                                                b.Scoped(OriginalClass, self.Func.name),
+                                                b.Scoped(
+                                                    OriginalClass,
+                                                    b.string(self.Func.name),
+                                                ),
                                             ]))
                                     ],
                                     Params=[self.Func.get_function_type(OriginalClass)],
@@ -114,7 +117,11 @@ class NapiClass():
             return self.Record.reflectionParams.wrapper_name
 
         else:
-            return self.Record.name.name + "Js"
+            return "".join([
+                N.capitalize()
+                for N in self.Record.name.flatQualName()
+                if N not in IGNORED_NAMESPACES
+            ]) + "Js"
 
     def getCxxName(self) -> QualType:
         return self.Record.declarationQualName()
@@ -162,8 +169,11 @@ class NapiClass():
                 override_groups[(_m.name, _m.get_function_type().qual_hash())].append(
                     NapiMethod(_m))
 
+        rec_methods(self.Record)
+
         for override_key, method_list in override_groups.items():
             m = method_list[-1]
+            # log(CAT).info(f"{m.getNapiName()}")
             overload_counts[m.getNapiName()] += 1
             bind = m.build_bind(
                 Class=QualType(name=self.getNapiName()),
@@ -419,6 +429,10 @@ class NapiModule():
             case GenTuStruct():
                 self.items.append(NapiClass(item))
 
+                for nested in item.nested:
+                    if not isinstance(nested, GenTuPass):
+                        self.add_decl(nested)
+
             case GenTuEnum():
                 pass
 
@@ -427,6 +441,9 @@ class NapiModule():
 
             case NapiBindPass():
                 self.items.append(item)
+
+            case GenTuTypedef():
+                pass
 
             case _:
                 raise ValueError(f"Unhandled declaration type {type(item)}")
@@ -451,7 +468,7 @@ class NapiModule():
                 case NapiFunction():
                     overload_counts[item.getNapiName()] += 1
                     Body.append(item.build_bind(b=b))
-                
+
                 case NapiBindPass():
                     Body.append(item.Id)
 
