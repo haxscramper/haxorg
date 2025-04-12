@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from py_codegen.astbuilder_cpp import *
-from beartype.typing import Sequence, List, TypeAlias, Mapping, Literal
+from beartype.typing import Sequence, List, TypeAlias, Mapping, Literal, Set
 from beartype import beartype
 from collections import defaultdict
 from py_textlayout.py_textlayout_wrap import *
@@ -81,7 +81,8 @@ class GenTuReflParams(BaseModel, extra="forbid"):
         default=None, alias="type-api", description="Reflection entity has a type API")
 
     def isAcceptedBackend(self, backend: str) -> bool:
-        return len(self.backend.targets_backends) == 0 or backend in self.backend.targets_backends
+        return len(self.backend.targets_backends
+                  ) == 0 or backend in self.backend.targets_backends
 
 
 @beartype
@@ -976,3 +977,118 @@ def get_base_list(
 @beartype
 def in_type_list(typ: QualType, enum_type_list: List[QualType]) -> bool:
     return any(typ.flatQualName() == it.flatQualName() for it in enum_type_list)
+
+
+@beartype
+@dataclass
+class TypeSpecialization():
+    used_type: QualType
+    bind_name: str
+    std_type: Optional[QualType] = None
+
+
+IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "imm"]
+
+
+@beartype
+def collect_type_specializations(entries: List[GenTuUnion],
+                                 base_map: GenTypeMap) -> List[TypeSpecialization]:
+    res = []
+
+    @beartype
+    def name_bind(Typ: QualType) -> str:
+        fullname = "".join([name_bind(T) for T in Typ.Spaces])
+        if Typ.name not in IGNORED_NAMESPACES:
+            fullname += Typ.name
+
+        if 0 < len(Typ.Parameters):
+            fullname += "Of"
+            fullname += "".join([name_bind(T) for T in Typ.Parameters])
+
+        return fullname
+
+    type_use_context: List[Any] = []
+    seen_types: Set[QualType] = set()
+
+    def record_specializations(value: Any):
+        nonlocal type_use_context
+        if isinstance(value, QualType):
+
+            def rec_type(T: QualType):
+
+                def rec_drop(T: QualType) -> QualType:
+                    return T.model_copy(update=dict(
+                        isConst=False,
+                        RefKind=ReferenceKind.NotRef,
+                        ptrCount=0,
+                        isNamespace=False,
+                        meta=dict(),
+                        Spaces=[rec_drop(S) for S in T.Spaces],
+                        Parameters=[rec_drop(P) for P in T.Parameters],
+                    ))
+
+                T = rec_drop(T)
+
+                if hash(T) in seen_types:
+                    return
+
+                else:
+                    seen_types.add(hash(T))
+
+                if T.name in [
+                        "Vec",
+                        "UnorderedMap",
+                        "IntSet",
+                        "vector",
+                        "flex_vector",
+                        "map",
+                        "box",
+                ]:
+                    std_type: str = {
+                        "Vec": "vector",
+                        "UnorderedMap": "unordered_map",
+                        "IntSet": "int_set",
+                        "vector": "imm_vector",
+                        "flex_vector": "imm_flex_vector",
+                        "map": "imm_map",
+                        "box": "imm_box",
+                    }.get(T.name, None)
+
+                    if T.name in ["Vec", "UnorderedMap"]:
+                        stdvec_t = QualType.ForName(
+                            std_type,
+                            Spaces=[QualType.ForName("std")],
+                            Parameters=T.Parameters,
+                        )
+
+                        res.append(
+                            TypeSpecialization(
+                                std_type=stdvec_t,
+                                used_type=T,
+                                bind_name=name_bind(T),
+                            ))
+
+                    else:
+                        res.append(
+                            TypeSpecialization(
+                                used_type=T,
+                                bind_name=name_bind(T),
+                            ))
+
+                else:
+                    for P in T.Parameters:
+                        rec_type(P)
+
+            if base_map.is_typedef(value):
+                rec_type(base_map.get_underlying_type(value))
+
+            else:
+                rec_type(value)
+
+    iterate_object_tree(
+        entries,
+        type_use_context,
+        pre_visit=record_specializations,
+    )
+
+    return res

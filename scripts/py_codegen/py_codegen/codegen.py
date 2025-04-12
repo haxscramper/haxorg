@@ -26,7 +26,6 @@ from py_codegen.astbuilder_pybind11 import (
     Py11Function,
     flat_scope,
     id_self,
-    py_type_bind,
     py_type,
 )
 
@@ -341,101 +340,6 @@ def topological_sort_entries(entries: List[GenTuUnion]) -> List[GenTuUnion]:
         return [entry_by_hash[h] for h in sorted_hashes] + cant_have_dependants
     except CycleError:
         raise ValueError("Cyclic inheritance detected")
-
-
-@beartype
-def add_type_specializations(res: Py11Module, ast: ASTBuilder, base_map: GenTypeMap):
-
-    opaque_declarations: List[BlockId] = []
-    specialization_calls: List[BlockId] = [
-        ast.string("org::bind::python::PyTypeRegistryGuard type_registry_guard{};")
-    ]
-
-    type_use_context: List[Any] = []
-    seen_types: Set[QualType] = set()
-
-    def record_specializations(value: Any):
-        nonlocal type_use_context
-        if isinstance(value, QualType):
-
-            def rec_type(T: QualType):
-
-                def rec_drop(T: QualType) -> QualType:
-                    return T.model_copy(update=dict(
-                        isConst=False,
-                        RefKind=ReferenceKind.NotRef,
-                        ptrCount=0,
-                        isNamespace=False,
-                        meta=dict(),
-                        Spaces=[rec_drop(S) for S in T.Spaces],
-                        Parameters=[rec_drop(P) for P in T.Parameters],
-                    ))
-
-                T = rec_drop(T)
-
-                if hash(T) in seen_types:
-                    return
-
-                else:
-                    seen_types.add(hash(T))
-
-                if T.name in [
-                        "Vec", "UnorderedMap", "IntSet", "vector", "flex_vector", "map",
-                        "box"
-                ]:
-                    std_type: str = {
-                        "Vec": "vector",
-                        "UnorderedMap": "unordered_map",
-                        "IntSet": "int_set",
-                        "vector": "imm_vector",
-                        "flex_vector": "imm_flex_vector",
-                        "map": "imm_map",
-                        "box": "imm_box",
-                    }.get(T.name, None)
-
-                    if T.name in ["Vec", "UnorderedMap"]:
-                        stdvec_t = QualType.ForName(std_type,
-                                                    Spaces=[QualType.ForName("std")],
-                                                    Parameters=T.Parameters)
-
-                        opaque_declarations.append(
-                            ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
-
-                    opaque_declarations.append(
-                        ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
-
-                    specialization_calls.append(
-                        ast.XCall(
-                            f"bind_{std_type}",
-                            [
-                                ast.string("m"),
-                                ast.StringLiteral(py_type_bind(T).Name),
-                                ast.string("type_registry_guard"),
-                            ],
-                            Params=T.Parameters,
-                            Stmt=True,
-                        ))
-
-                else:
-                    for P in T.Parameters:
-                        rec_type(P)
-
-            if base_map.is_typedef(value):
-                rec_type(base_map.get_underlying_type(value))
-
-            else:
-                rec_type(value)
-
-    iterate_object_tree(
-        res,
-        type_use_context,
-        pre_visit=record_specializations,
-    )
-
-    for decl in opaque_declarations:
-        res.Before.append(decl)
-
-    res.Decls = [Py11BindPass(D) for D in specialization_calls] + res.Decls
 
 
 @beartype
@@ -785,8 +689,11 @@ def gen_adaptagrams_wrappers(
     base_map = get_base_map(tu.enums + tu.structs + tu.typedefs)
     res = Py11Module("py_adaptagrams")
     res.add_all(tu.get_all(), ast=ast, base_map=base_map)
-    # add_translation_unit(res, ast=ast, tu=tu, base_map=base_map)
-    add_type_specializations(res, ast=ast, base_map=base_map)
+    specializations = collect_type_specializations(tu.get_all(), base_map=base_map)
+    res.add_type_specializations(
+        ast=ast,
+        specializations=specializations,
+    )
 
     with open("/tmp/adaptagrams_reflection.json", "w") as file:
         log(CAT).debug(f"Debug reflection data to {file.name}")
@@ -1050,6 +957,7 @@ class PyhaxorgTypeGroups():
     base_map: GenTypeMap = field(default_factory=lambda: GenTypeMap)
     full_enums: List[GenTuEnum] = field(default_factory=list)
     imm_id_specializations: List[GenTuStruct] = field(default_factory=list)
+    specializations: List[TypeSpecialization] = field(default_factory=list)
 
     def get_entries_for_wrapping(self) -> List[GenTuUnion]:
         return topological_sort_entries(
@@ -1071,6 +979,11 @@ def get_pyhaxorg_type_groups(
     res.base_map = get_base_map(res.expanded + res.shared_types + res.immutable +
                                 res.tu.enums + res.tu.structs + res.tu.typedefs)
     res.full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(res.expanded)]
+
+    res.specializations = collect_type_specializations(
+        res.get_entries_for_wrapping(),
+        base_map=res.base_map,
+    )
 
     for org_type in get_types():
         original_id = org_type.name.model_copy()
@@ -1110,7 +1023,10 @@ def gen_pyhaxorg_python_wrappers(
         if decl.reflectionParams.isAcceptedBackend("python"):
             res.add_decl(decl, ast=ast, base_map=groups.base_map)
 
-    add_type_specializations(res, ast, base_map=groups.base_map)
+    res.add_type_specializations(
+        ast,
+        specializations=groups.specializations,
+    )
 
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
@@ -1157,8 +1073,6 @@ def gen_pyhaxorg_napi_wrappers(
 
                 case _:
                     res.add_decl(decl)
-
-
 
     res.Header.append(napi.NapiBindPass(ast.Include("node_utils.hpp")))
     res.Header.append(napi.NapiBindPass(ast.Include("node_org_include.hpp")))
@@ -1417,11 +1331,12 @@ def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
                 log(CAT).debug(f"Debug reflection data to {file.name}")
                 file.write(open_proto_file(Path(opts.reflection_path)).to_json(2))
 
-            write_files_group(gen_pyhaxorg_napi_wrappers(
-                groups=groups,
-                ast=builder,
-                base_map=groups.base_map,
-            ))
+            write_files_group(
+                gen_pyhaxorg_napi_wrappers(
+                    groups=groups,
+                    ast=builder,
+                    base_map=groups.base_map,
+                ))
 
             write_files_group(
                 gen_pyhaxorg_python_wrappers(

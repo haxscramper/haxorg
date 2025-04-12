@@ -34,20 +34,6 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
-IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "imm"]
-
-
-@beartype
-def py_type_bind(Typ: QualType) -> pya.PyType:
-    fullname = "".join([py_type_bind(T).Name for T in Typ.Spaces])
-    if Typ.name not in IGNORED_NAMESPACES:
-        fullname += Typ.name
-
-    if 0 < len(Typ.Parameters):
-        fullname += "Of"
-        fullname += "".join([py_type_bind(T).Name for T in Typ.Parameters])
-
-    return pya.PyType(fullname)
 
 
 @beartype
@@ -960,6 +946,44 @@ class Py11Module:
     def add_all(self, decls: List[GenTuUnion], ast: ASTBuilder, base_map: GenTypeMap):
         for decl in decls:
             self.add_decl(decl, ast=ast, base_map=base_map)
+
+
+    def add_type_specializations(
+        self,
+        ast: ASTBuilder,
+        specializations: List[TypeSpecialization],
+    ):
+
+        opaque_declarations: List[BlockId] = []
+        specialization_calls: List[BlockId] = [
+            ast.string("org::bind::python::PyTypeRegistryGuard type_registry_guard{};")
+        ]
+
+        for spec in specializations:
+            if spec.std_type:
+                opaque_declarations.append(
+                    ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(spec.std_type)]))
+
+            opaque_declarations.append(
+                ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(spec.used_type)]))
+
+            bind_join = "".join(spec.used_type.flatQualName())
+            specialization_calls.append(
+                ast.XCall(
+                    f"bind_{bind_join}",
+                    [
+                        ast.string("m"),
+                        ast.StringLiteral(spec.bind_name),
+                        ast.string("type_registry_guard"),
+                    ],
+                    Params=spec.used_type.Parameters,
+                    Stmt=True,
+                ))
+
+        for decl in opaque_declarations:
+            self.Before.append(decl)
+
+        self.Decls = [Py11BindPass(D) for D in specialization_calls] + self.Decls
 
     def add_decl(self, decl: GenTuUnion, ast: ASTBuilder, base_map: GenTypeMap):
 

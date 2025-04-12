@@ -60,12 +60,12 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::graph::MapEdge>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::LispCode>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::LispCode>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Expr>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Expr>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign::Flag>)
-PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::AttrValue::DimensionSpan>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::AttrValue::DimensionSpan>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::Str>)
@@ -123,76 +123,76 @@ PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceSegmentGroup>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegmentGroup>)
 PYBIND11_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
-  bind_vector<org::sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
-  bind_imm_box<hstd::Str>(m, "immerboxOfStr", type_registry_guard);
-  bind_imm_box<std::optional<hstd::Str>>(m, "immerboxOfstdoptionalOfStr", type_registry_guard);
-  bind_imm_box<std::optional<int>>(m, "immerboxOfstdoptionalOfint", type_registry_guard);
-  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "immerflex_vectorOfImmIdTOfImmErrorItem", type_registry_guard);
-  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "immerflex_vectorOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
-  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmOrg", type_registry_guard);
-  bind_imm_flex_vector<org::imm::ImmSymbol::Param>(m, "immerflex_vectorOfImmSymbolParam", type_registry_guard);
-  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "immerflex_vectorOfImmIdTOfImmOrg", type_registry_guard);
-  bind_imm_flex_vector<hstd::Str>(m, "immerflex_vectorOfStr", type_registry_guard);
-  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmParagraph", type_registry_guard);
-  bind_imm_flex_vector<org::sem::OrgCodeEvalOutput>(m, "immerflex_vectorOfOrgCodeEvalOutput", type_registry_guard);
-  bind_imm_flex_vector<org::sem::BlockCodeLine>(m, "immerflex_vectorOfBlockCodeLine", type_registry_guard);
-  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmStmtList", type_registry_guard);
-  bind_imm_box<std::optional<org::sem::SubtreeCompletion>>(m, "immerboxOfstdoptionalOfSubtreeCompletion", type_registry_guard);
-  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "immerflex_vectorOfImmIdTOfImmHashTag", type_registry_guard);
-  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "immerflex_vectorOfImmIdTOfImmSubtreeLog", type_registry_guard);
-  bind_imm_flex_vector<org::sem::NamedProperty>(m, "immerflex_vectorOfNamedProperty", type_registry_guard);
-  bind_imm_box<std::optional<hstd::UserTime>>(m, "immerboxOfstdoptionalOfUserTime", type_registry_guard);
-  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "immerflex_vectorOfImmIdTOfImmCell", type_registry_guard);
-  bind_imm_flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "immerflex_vectorOfImmIdTOfImmRow", type_registry_guard);
-  bind_imm_box<std::optional<bool>>(m, "immerboxOfstdoptionalOfbool", type_registry_guard);
-  bind_imm_box<std::optional<org::sem::ColumnView>>(m, "immerboxOfstdoptionalOfColumnView", type_registry_guard);
-  bind_imm_box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmRawText", type_registry_guard);
-  bind_vector<int>(m, "VecOfint", type_registry_guard);
-  bind_vector<org::imm::ImmAdapter>(m, "VecOfImmAdapter", type_registry_guard);
-  bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
-  bind_unordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
-  bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
-  bind_vector<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
-  bind_vector<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
-  bind_vector<org::graph::MapLink>(m, "VecOfgraphMapLink", type_registry_guard);
-  bind_unordered_map<org::graph::MapNode, org::graph::MapNodeProp>(m, "UnorderedMapOfgraphMapNodegraphMapNodeProp", type_registry_guard);
-  bind_unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "UnorderedMapOfgraphMapEdgegraphMapEdgeProp", type_registry_guard);
-  bind_unordered_map<org::graph::MapNode, org::graph::AdjNodesList>(m, "UnorderedMapOfgraphMapNodegraphAdjNodesList", type_registry_guard);
-  bind_vector<org::graph::MapNode>(m, "VecOfgraphMapNode", type_registry_guard);
-  bind_vector<org::graph::MapEdge>(m, "VecOfgraphMapEdge", type_registry_guard);
-  bind_vector<org::sem::LispCode>(m, "VecOfLispCode", type_registry_guard);
-  bind_vector<org::sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
-  bind_vector<org::sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
-  bind_vector<org::sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
-  bind_vector<org::sem::AttrValue::DimensionSpan>(m, "VecOfAttrValueDimensionSpan", type_registry_guard);
-  bind_vector<hstd::Str>(m, "VecOfStr", type_registry_guard);
-  bind_vector<org::sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
-  bind_vector<org::sem::HashTagFlat>(m, "VecOfHashTagFlat", type_registry_guard);
-  bind_vector<org::sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
-  bind_unordered_map<hstd::Str, org::sem::AttrList>(m, "UnorderedMapOfStrAttrList", type_registry_guard);
-  bind_vector<org::sem::OrgCodeEvalInput::Var>(m, "VecOfOrgCodeEvalInputVar", type_registry_guard);
-  bind_vector<org::sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
-  bind_vector<org::sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
-  bind_unordered_map<hstd::Str, hstd::Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
-  bind_vector<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
-  bind_vector<org::sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
-  bind_vector<org::sem::SubtreePeriod>(m, "VecOfSubtreePeriod", type_registry_guard);
-  bind_int_set<org::sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
-  bind_vector<hstd::UserTime>(m, "VecOfUserTime", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::Cell>>(m, "VecOfSemIdOfCell", type_registry_guard);
-  bind_vector<org::sem::OrgCodeEvalOutput>(m, "VecOfOrgCodeEvalOutput", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "VecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
-  bind_vector<org::sem::BlockCodeLine>(m, "VecOfBlockCodeLine", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::Row>>(m, "VecOfSemIdOfRow", type_registry_guard);
-  bind_vector<org::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
-  bind_vector<hstd::SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
-  bind_vector<hstd::SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
+  bind_hstdVec<org::sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
+  bind_immerbox<hstd::Str>(m, "immerboxOfStr", type_registry_guard);
+  bind_immerbox<std::optional<hstd::Str>>(m, "immerboxOfstdoptionalOfStr", type_registry_guard);
+  bind_immerbox<std::optional<int>>(m, "immerboxOfstdoptionalOfint", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "immerflex_vectorOfImmIdTOfImmErrorItem", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "immerflex_vectorOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmOrg", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmSymbol::Param>(m, "immerflex_vectorOfImmSymbolParam", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "immerflex_vectorOfImmIdTOfImmOrg", type_registry_guard);
+  bind_immerflex_vector<hstd::Str>(m, "immerflex_vectorOfStr", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmParagraph", type_registry_guard);
+  bind_immerflex_vector<org::sem::OrgCodeEvalOutput>(m, "immerflex_vectorOfOrgCodeEvalOutput", type_registry_guard);
+  bind_immerflex_vector<org::sem::BlockCodeLine>(m, "immerflex_vectorOfBlockCodeLine", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmStmtList", type_registry_guard);
+  bind_immerbox<std::optional<org::sem::SubtreeCompletion>>(m, "immerboxOfstdoptionalOfSubtreeCompletion", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "immerflex_vectorOfImmIdTOfImmHashTag", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "immerflex_vectorOfImmIdTOfImmSubtreeLog", type_registry_guard);
+  bind_immerflex_vector<org::sem::NamedProperty>(m, "immerflex_vectorOfNamedProperty", type_registry_guard);
+  bind_immerbox<std::optional<hstd::UserTime>>(m, "immerboxOfstdoptionalOfUserTime", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "immerflex_vectorOfImmIdTOfImmCell", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "immerflex_vectorOfImmIdTOfImmRow", type_registry_guard);
+  bind_immerbox<std::optional<bool>>(m, "immerboxOfstdoptionalOfbool", type_registry_guard);
+  bind_immerbox<std::optional<org::sem::ColumnView>>(m, "immerboxOfstdoptionalOfColumnView", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "immerboxOfstdoptionalOfImmIdTOfImmRawText", type_registry_guard);
+  bind_hstdVec<int>(m, "VecOfint", type_registry_guard);
+  bind_hstdVec<org::imm::ImmAdapter>(m, "VecOfImmAdapter", type_registry_guard);
+  bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
+  bind_hstdUnorderedMap<hstd::Str, org::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
+  bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
+  bind_hstdVec<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
+  bind_hstdVec<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
+  bind_hstdVec<org::graph::MapLink>(m, "VecOfgraphMapLink", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "UnorderedMapOfgraphMapNodegraphMapNodeProp", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "UnorderedMapOfgraphMapEdgegraphMapEdgeProp", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "UnorderedMapOfgraphMapNodegraphAdjNodesList", type_registry_guard);
+  bind_hstdVec<org::graph::MapNode>(m, "VecOfgraphMapNode", type_registry_guard);
+  bind_hstdVec<org::graph::MapEdge>(m, "VecOfgraphMapEdge", type_registry_guard);
+  bind_hstdVec<org::sem::LispCode>(m, "VecOfLispCode", type_registry_guard);
+  bind_hstdVec<org::sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
+  bind_hstdVec<org::sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
+  bind_hstdVec<org::sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
+  bind_hstdVec<org::sem::AttrValue::DimensionSpan>(m, "VecOfAttrValueDimensionSpan", type_registry_guard);
+  bind_hstdVec<hstd::Str>(m, "VecOfStr", type_registry_guard);
+  bind_hstdVec<org::sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
+  bind_hstdVec<org::sem::HashTagFlat>(m, "VecOfHashTagFlat", type_registry_guard);
+  bind_hstdVec<org::sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
+  bind_hstdUnorderedMap<hstd::Str, org::sem::AttrList>(m, "UnorderedMapOfStrAttrList", type_registry_guard);
+  bind_hstdVec<org::sem::OrgCodeEvalInput::Var>(m, "VecOfOrgCodeEvalInputVar", type_registry_guard);
+  bind_hstdVec<org::sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
+  bind_hstdVec<org::sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
+  bind_hstdUnorderedMap<hstd::Str, hstd::Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
+  bind_hstdVec<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
+  bind_hstdVec<org::sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
+  bind_hstdVec<org::sem::SubtreePeriod>(m, "VecOfSubtreePeriod", type_registry_guard);
+  bind_hstdIntSet<org::sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
+  bind_hstdVec<hstd::UserTime>(m, "VecOfUserTime", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::Cell>>(m, "VecOfSemIdOfCell", type_registry_guard);
+  bind_hstdVec<org::sem::OrgCodeEvalOutput>(m, "VecOfOrgCodeEvalOutput", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "VecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
+  bind_hstdVec<org::sem::BlockCodeLine>(m, "VecOfBlockCodeLine", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::Row>>(m, "VecOfSemIdOfRow", type_registry_guard);
+  bind_hstdVec<org::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
+  bind_hstdVec<hstd::SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
+  bind_hstdVec<hstd::SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
   pybind11::class_<hstd::UserTimeBreakdown>(m, "UserTimeBreakdown")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::UserTimeBreakdown {
                         hstd::UserTimeBreakdown result{};
