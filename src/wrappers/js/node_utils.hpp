@@ -412,6 +412,66 @@ struct SharedPtrWrapBase : public Napi::ObjectWrap<Derived> {
     }
 };
 
+template <typename JsType, typename Func>
+Napi::Object CreateCxx(Func const& config) {
+    Napi::Object obj      = JsType::constructor->New({});
+    JsType*      instance = JsType::Unwrap(obj);
+    config(instance);
+    return obj;
+}
+
+template <typename E>
+struct JsEnumWrapper : public Napi::ObjectWrap<JsEnumWrapper<E>> {
+    E                               value;
+    static Napi::FunctionReference* constructor;
+    using Base = Napi::ObjectWrap<JsEnumWrapper<E>>;
+    using This = JsEnumWrapper<E>;
+
+    static Napi::Object Init(
+        Napi::Env    env,
+        Napi::Object exports,
+        const char*  className) {
+        using Prop = Base::PropertyDescriptor;
+        std::vector<Prop> props;
+        props.push_back(Base::InstanceMethod("toString", &This::ToString));
+        props.push_back(Base::InstanceMethod("toInt", &This::ToInt));
+
+        for (hstd::EnumFieldDesc<E> const& it :
+             hstd::describe_enumerators<E>()) {
+            props.push_back(Base::StaticValue(
+                it.name + "Int",
+                Napi::Number::New(env, static_cast<double>(it.value))));
+        }
+
+        Napi::Function func = Base::DefineClass(env, className, props);
+
+        constructor  = new Napi::FunctionReference();
+        *constructor = Napi::Persistent(func);
+        env.SetInstanceData(constructor);
+        exports.Set(className, func);
+        return exports;
+    }
+
+    static Napi::Value FromValue(Napi::CallbackInfo const& info, E value) {
+        return CreateCxx<This>(
+            [&](This* instance) { instance->value = value; });
+    }
+
+    static Napi::Value FromInt(Napi::CallbackInfo const& info, int value) {
+        return CreateCxx<This>([&](This* instance) {
+            instance->value = static_cast<E>(value);
+        });
+    }
+
+    Napi::Value ToString(Napi::CallbackInfo const& info) {
+        return Napi::String::New(
+            info.Env(), hstd::enum_serde<E>::to_string(value));
+    }
+
+    Napi::Value ToInt(Napi::CallbackInfo const& info) {
+        return Napi::Number::New(info.Env(), static_cast<double>(value));
+    }
+};
 
 template <typename T>
 struct hstdVec_bind
@@ -697,8 +757,10 @@ struct JsConverter<int> {
         }
     }
 
-    static Napi::Value to_js_value(Napi::Env env, const int& value) {
-        return Napi::Number::New(env, value);
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        const int&                value) {
+        return Napi::Number::New(info.Env(), value);
     }
 };
 
@@ -716,10 +778,8 @@ Napi::Value CreateWrappedObjectFromPtr(
             "Constructor not initialized. Make sure to call T::Init() "
             "first.");
     } else {
-        Napi::Object obj      = JsType::constructor->New({});
-        JsType*      instance = JsType::Unwrap(obj);
-        instance->_stored     = ptr;
-        return obj;
+        return CreateCxx<JsType>(
+            [&](JsType* instance) { instance->_stored = ptr; });
     }
 }
 
@@ -812,10 +872,28 @@ struct JsConverter<org::sem::SemId<org::sem::Org>> {
     }
 };
 
+template <hstd::DescribedEnum E>
+struct JsConverter<E> {
+    using JsType = JsEnumWrapper<E>;
+    static E from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        JsType* ptr = ExtractWrappedObject<JsType>(value);
+        return ptr->value;
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        E                         value) {
+        return JsType::FromValue(info, value);
+    }
+};
+
+
 template <HasJsMapping OrgType>
 struct JsConverter<OrgType*> {
     using JsType = typename org_to_js_type<OrgType>::type;
-    static OrgType& from_js_value(
+    static OrgType* from_js_value(
         Napi::CallbackInfo const& info,
         Napi::Value const&        value) {
         JsType*  ptr    = ExtractWrappedObject<JsType>(value);
@@ -828,6 +906,39 @@ struct JsConverter<OrgType*> {
         OrgType*                  value) {
         return CreateWrappedObjectFromPtr<JsType>(
             info, std::make_shared(value, [](JsType*) {}));
+    }
+};
+
+template <HasJsMapping OrgType>
+struct JsConverter<OrgType const&> {
+    using JsType = typename org_to_js_type<OrgType>::type;
+    static OrgType const& from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        return *JsConverter<OrgType*>::from_js_value(info, value);
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        OrgType const&            value) {
+        return JsConverter<OrgType*>::to_js_value(
+            info, const_cast<OrgType*>(&value));
+    }
+};
+
+template <HasJsMapping OrgType>
+struct JsConverter<OrgType&> {
+    using JsType = typename org_to_js_type<OrgType>::type;
+    static OrgType const& from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value&              value) {
+        return *JsConverter<OrgType*>::from_js_value(info, value);
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo& info,
+        OrgType&            value) {
+        return JsConverter<OrgType*>::to_js_value(info, &value);
     }
 };
 

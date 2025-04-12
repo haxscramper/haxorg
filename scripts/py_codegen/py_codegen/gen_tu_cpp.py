@@ -600,79 +600,6 @@ class GenConverter:
                 break
 
         if self.isSource:
-            if isToplevel:
-                Class = QualType(name="enum_serde",
-                                 Parameters=[entry.name],
-                                 Spaces=[n_hstd()])
-
-                SwichFrom = IfStmtParams(LookupIfStructure=True, Branches=[])
-                for _field in entry.fields:
-                    SwichFrom.Branches.append(
-                        IfStmtParams.Branch(
-                            OneLine=True,
-                            Then=self.ast.Return(
-                                self.ast.string(f"{entry.name.name}::{_field.name}")),
-                            Cond=self.ast.XCall(
-                                "==",
-                                [
-                                    self.ast.string("value"),
-                                    self.ast.Literal(_field.name),
-                                ],
-                            ),
-                        ))
-
-                SwichFrom.Branches.append(
-                    IfStmtParams.Branch(
-                        OneLine=True,
-                        Then=self.ast.Return(self.ast.string("std::nullopt")),
-                    ))
-
-                SwitchTo = SwitchStmtParams(
-                    Expr=self.ast.string("value"),
-                    Default=CaseStmtParams(
-                        IsDefault=True,
-                        Compound=False,
-                        Autobreak=False,
-                        OneLine=True,
-                        Body=[
-                            self.ast.Throw(
-                                self.ast.XCall(
-                                    "std::domain_error",
-                                    [
-                                        self.ast.Literal(
-                                            "Unexpected enum value -- cannot be converted to string"
-                                        )
-                                    ],
-                                ))
-                        ],
-                    ),
-                    Cases=list(
-                        map(
-                            lambda field: CaseStmtParams(
-                                Autobreak=False,
-                                Compound=False,
-                                OneLine=True,
-                                Expr=self.ast.string(f"{entry.name.name}::{field.name}"),
-                                Body=[self.ast.Return(self.ast.Literal(field.name))],
-                            ),
-                            entry.fields,
-                        )),
-                )
-
-                FromDefinition = FromParams
-                FromDefinition.Body = [self.ast.IfStmt(SwichFrom)]
-
-                self.pendingToplevel.append(
-                    self.ast.MethodDef(MethodDefParams(Class=Class,
-                                                       Params=FromDefinition)))
-
-                ToDefininition = ToParams
-                ToDefininition.Body = [self.ast.SwitchStmt(SwitchTo)]
-
-                self.pendingToplevel.append(
-                    self.ast.MethodDef(MethodDefParams(Class=Class,
-                                                       Params=ToDefininition)))
-
             return self.ast.string("")
 
         else:
@@ -690,50 +617,36 @@ class GenConverter:
                     ))
 
             if isToplevel:
-                Domain = RecordParams(
-                    name=QualType(name="value_domain", Spaces=[n_hstd()]),
-                    doc=DocParams(""),
-                    Template=TemplateParams.FinalSpecialization(),
-                    NameParams=[entry.name],
-                    IsTemplateSpecialization=True,
-                    bases=[
-                        QualType(
-                            name="value_domain_ungapped",
-                            Parameters=[
-                                entry.name,
-                                QualType(
-                                    Spaces=[entry.name],
-                                    name=entry.fields[0].name,
-                                ),
-                                QualType(
-                                    Spaces=[entry.name],
-                                    name=entry.fields[-1].name,
-                                ),
-                            ],
-                        ).withVerticalParams()
-                    ],
-                )
+                Describe = []
+                Describe.append(
+                    self.ast.line([
+                        self.ast.string("BOOST_DESCRIBE_ENUM_BEGIN"),
+                        self.ast.pars(self.ast.Type(entry.name)),
+                    ]))
+
+                for field in entry.fields:
+                    Describe.append(
+                        self.ast.line([
+                            self.ast.string("  BOOST_DESCRIBE_ENUM_ENTRY"),
+                            self.ast.pars(
+                                self.ast.csv([
+                                    self.ast.Type(entry.name),
+                                    self.ast.string(field.name),
+                                ]))
+                        ]))
+
+                Describe.append(
+                    self.ast.line([
+                        self.ast.string("BOOST_DESCRIBE_ENUM_END"),
+                        self.ast.pars(self.ast.Type(entry.name)),
+                    ]))
 
                 FromDefinition = FromParams
                 ToDefininition = ToParams
 
-                Serde = RecordParams(
-                    name=QualType(name="enum_serde", Spaces=[n_hstd()]),
-                    doc=DocParams(""),
-                    Template=TemplateParams.FinalSpecialization(),
-                    NameParams=[entry.name],
-                    IsTemplateSpecialization=True,
-                )
-
-                Serde.members.append(
-                    MethodDeclParams(isStatic=True, Params=FromDefinition))
-                Serde.members.append(
-                    MethodDeclParams(isStatic=True, Params=ToDefininition))
-
                 res = self.ast.b.stack([
                     self.ast.Enum(params),
-                    self.ast.Record(Serde),
-                    self.ast.Record(Domain),
+                    self.ast.stack(Describe),
                 ])
 
                 return res
@@ -1000,9 +913,9 @@ def collect_type_specializations(entries: List[GenTuUnion],
 
     @beartype
     def name_bind(Typ: QualType) -> str:
-        flat = Typ.flatQualName() 
+        flat = Typ.flatQualName()
 
-        match flat: 
+        match flat:
             case ["immer", "box"]:
                 return "ImmBox"
 

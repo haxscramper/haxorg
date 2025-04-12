@@ -10,13 +10,6 @@
 using namespace org;
 using namespace hstd;
 
-BOOST_DESCRIBE_ENUM(
-    ListFormattingMode,
-    None,
-    Table1D1Col,
-    Table1D2Col,
-    Table2DColFirst);
-
 template <class E>
 Opt<E> string_to_enum_insensitive(std::string const& name) {
     bool   found = false;
