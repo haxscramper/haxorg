@@ -14889,36 +14889,6 @@ Napi::Object InitModule(Napi::Env env, Napi::Object exports) {
                                                                           CxxArgSpec<int>{"last"}));
     exports.Set("annotateSequence", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
   }
-  {
-    auto callable = makeCallable(&org::graph::registerNode, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"s"},
-                                                                            CxxArgSpec<org::graph::MapNodeProp>{"node"},
-                                                                            CxxArgSpec<org::graph::MapConfig>{"conf"}));
-    exports.Set("registerNode", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
-  }
-  {
-    auto callable = makeCallable(&org::graph::addNode, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"g"},
-                                                                       CxxArgSpec<org::imm::ImmAdapter>{"node"},
-                                                                       CxxArgSpec<org::graph::MapConfig>{"conf"}));
-    exports.Set("addNode", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
-  }
-  {
-    auto callable = makeCallable(&org::graph::addNodeRec, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"g"},
-                                                                          CxxArgSpec<org::imm::ImmAdapter>{"node"},
-                                                                          CxxArgSpec<org::graph::MapConfig>{"conf"}));
-    exports.Set("addNodeRec", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
-  }
-  {
-    auto callable = makeCallable(&org::graph::getUnresolvedSubtreeLinks, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"s"},
-                                                                                         CxxArgSpec<org::imm::ImmAdapterT<org::imm::ImmSubtree>>{"node"},
-                                                                                         CxxArgSpec<org::graph::MapConfig>{"conf"}));
-    exports.Set("getUnresolvedSubtreeLinks", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
-  }
-  {
-    auto callable = makeCallable(&org::graph::getUnresolvedLink, std::make_tuple(CxxArgSpec<org::graph::MapGraphState>{"s"},
-                                                                                 CxxArgSpec<org::imm::ImmAdapterT<org::imm::ImmLink>>{"node"},
-                                                                                 CxxArgSpec<org::graph::MapConfig>{"conf"}));
-    exports.Set("getUnresolvedLink", Napi::Function::New(env, [callable](Napi::CallbackInfo const& info) -> auto { return WrapFunction(info, callable); }));
-  }
   return exports;
 }
 

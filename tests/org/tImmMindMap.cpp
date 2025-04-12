@@ -11,7 +11,7 @@ struct ImmMapApi : ImmOrgApiTestBase {
     ImmMapApi() : graph{start} {}
 
     void addNodeRec(CR<imm::ImmAdapter> node) {
-        ::org::graph::addNodeRec(graph, node, conf);
+        graph.addNodeRec(node, &conf);
     }
 
     void writeGraphviz(CR<Str> name) {
@@ -33,11 +33,11 @@ TEST_F(ImmMapApi, AddNode) {
     imm::ImmAstVersion        v1 = store->addRoot(n1);
     org::graph::MapGraphState s1{v1.context};
     EXPECT_EQ(s1.graph.nodeCount(), 0);
-    org::graph::addNode(s1, v1.getRootAdapter(), conf);
+    s1.addNode(v1.getRootAdapter(), &conf);
     EXPECT_EQ(s1.graph.nodeCount(), 1);
 
     hstd::ext::Graphviz gvc;
-    auto     gv = s1.graph.toGraphviz(v1.context);
+    auto                gv = s1.graph.toGraphviz(v1.context);
     gvc.renderToFile(getDebugFile("MapS2.png"), gv);
 }
 
@@ -70,7 +70,7 @@ Paragraph [[id:subtree-id]]
     {
         auto __scope = conf.scopeLevel();
         auto par     = root.at(1);
-        org::graph::addNode(s1, par, conf);
+        s1.addNode(par, &conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
         EXPECT_EQ(s1.graph.nodeCount(), 1);
         EXPECT_EQ(s1.graph.edgeCount(), 0);
@@ -81,7 +81,7 @@ Paragraph [[id:subtree-id]]
     conf.message("add second node");
     {
         auto __scope = conf.scopeLevel();
-        org::graph::addNode(s1, root.at(3), conf);
+        s1.addNode(root.at(3), &conf);
         EXPECT_EQ(s1.graph.nodeCount(), 2);
         EXPECT_EQ(s1.graph.edgeCount(), 1);
         EXPECT_EQ(s1.unresolved.size(), 0);
@@ -131,12 +131,12 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
     EXPECT_EQ(s1.graph.edgeCount(), 0);
     EXPECT_EQ(s1.unresolved.size(), 0);
 
-    org::graph::addNode(s1, v2.getRootAdapter().at(1), conf);
+    s1.addNode(v2.getRootAdapter().at(1), &conf);
     EXPECT_EQ(s1.graph.nodeCount(), 1);
     EXPECT_EQ(s1.graph.edgeCount(), 0);
     EXPECT_EQ(s1.unresolved.size(), 1);
 
-    org::graph::addNode(s1, v3.getRootAdapter().at(1), conf);
+    s1.addNode(v3.getRootAdapter().at(1), &conf);
     EXPECT_EQ(s1.graph.nodeCount(), 2);
     EXPECT_EQ(s1.graph.edgeCount(), 2);
     EXPECT_EQ(s1.unresolved.size(), 0);
@@ -172,7 +172,7 @@ radio user paragraph
     {
         auto __scope = conf.scopeLevel();
         auto par     = root.at(1);
-        org::graph::addNode(s1, par, conf);
+        s1.addNode(par, &conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
         EXPECT_EQ(s1.graph.nodeCount(), 1);
         EXPECT_EQ(s1.graph.edgeCount(), 0);
@@ -182,7 +182,7 @@ radio user paragraph
     conf.message("add second node");
     {
         auto __scope = conf.scopeLevel();
-        org::graph::addNode(s1, root.at(3), conf);
+        s1.addNode(root.at(3), &conf);
         EXPECT_EQ(s1.graph.nodeCount(), 2);
         EXPECT_EQ(s1.graph.edgeCount(), 1);
         EXPECT_EQ(s1.unresolved.size(), 0);
@@ -219,7 +219,7 @@ radio user paragraph
     {
         auto __scope = conf.scopeLevel();
         auto par     = root.at(1);
-        org::graph::addNode(s1, par, conf);
+        s1.addNode(par, &conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
         EXPECT_EQ(s1.graph.nodeCount(), 1);
         EXPECT_EQ(s1.graph.edgeCount(), 0);
@@ -233,7 +233,7 @@ radio user paragraph
     conf.message("add second node");
     {
         auto __scope = conf.scopeLevel();
-        org::graph::addNode(s1, root.at(3), conf);
+        s1.addNode(root.at(3), &conf);
         EXPECT_EQ(s1.graph.nodeCount(), 2);
         EXPECT_EQ(s1.graph.edgeCount(), 1);
         EXPECT_EQ(s1.unresolved.size(), 0);
@@ -393,7 +393,7 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
 
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("conf"));
-    org::graph::addNodeRec(s1, v2.getRootAdapter(), conf);
+    s1.addNodeRec(v2.getRootAdapter(), &conf);
 
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s12.uniq()));
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s10.uniq()));
@@ -497,9 +497,7 @@ void addAll(
     org::graph::MapGraphState& state,
     DocBlock const&            block,
     org::graph::MapConfig&     conf) {
-    for (auto const& it : block.items) {
-        org::graph::addNode(state, it.id, conf);
-    }
+    for (auto const& it : block.items) { state.addNode(it.id, &conf); }
 
     for (auto const& it : block.nested) { addAll(state, it, conf); }
 }
@@ -702,7 +700,7 @@ TEST_F(ImmMapApi, Doc1Graph) {
 
     org::graph::MapConfig     conf;
     org::graph::MapGraphState state{v.context};
-    org::graph::addNodeRec(state, root, conf);
+    state.addNodeRec(root, &conf);
 
     hstd::ext::Graphviz            gvc;
     org::graph::MapGraph::GvConfig gvConf;
@@ -857,7 +855,7 @@ TEST(ImmMapGraphApi, BoostPropertyWriter) {
     imm::ImmAstVersion        v2   = store->addRoot(n);
     imm::ImmAdapter           file = v2.getRootAdapter();
     org::graph::MapGraphState s1{v2.context};
-    addNodeRec(s1, file, conf);
+    s1.addNodeRec(file, &conf);
 
     std::stringstream os;
 
@@ -878,7 +876,7 @@ TEST(ImmMapGraphApi, BoostVisitors) {
     imm::ImmAstVersion v2   = store->addRoot(n);
     imm::ImmAdapter    file = v2.getRootAdapter();
     MapGraphState      s1{v2.context};
-    addNodeRec(s1, file, conf);
+    s1.addNodeRec(file, &conf);
 
     UnorderedMap<MapNode, int> forwardBfsExamineOrder;
     UnorderedMap<MapNode, int> undirectedBfsExamineOrder;

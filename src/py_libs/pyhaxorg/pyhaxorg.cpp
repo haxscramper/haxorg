@@ -1932,6 +1932,26 @@ ingoing elements.)RAW")
     .def_static("FromAstContextStatic",
                 static_cast<org::graph::MapGraphState(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext),
                 pybind11::arg("ast"))
+    .def("registerNode",
+         static_cast<void(org::graph::MapGraphState::*)(org::graph::MapNodeProp const&, org::graph::MapConfig*)>(&org::graph::MapGraphState::registerNode),
+         pybind11::arg("node"),
+         pybind11::arg("conf"))
+    .def("addNode",
+         static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, org::graph::MapConfig*)>(&org::graph::MapGraphState::addNode),
+         pybind11::arg("node"),
+         pybind11::arg("conf"))
+    .def("addNodeRec",
+         static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, org::graph::MapConfig*)>(&org::graph::MapGraphState::addNodeRec),
+         pybind11::arg("node"),
+         pybind11::arg("conf"))
+    .def("getUnresolvedSubtreeLinks",
+         static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::graph::MapConfig*) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks),
+         pybind11::arg("node"),
+         pybind11::arg("conf"))
+    .def("getUnresolvedLink",
+         static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, org::graph::MapConfig*) const>(&org::graph::MapGraphState::getUnresolvedLink),
+         pybind11::arg("node"),
+         pybind11::arg("conf"))
     .def("__repr__", [](org::graph::MapGraphState const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -8921,31 +8941,6 @@ ingoing elements.)RAW")
         pybind11::arg("groups"),
         pybind11::arg("first"),
         pybind11::arg("last"));
-  m.def("registerNode",
-        static_cast<void(*)(org::graph::MapGraphState&, org::graph::MapNodeProp const&, org::graph::MapConfig&)>(&org::graph::registerNode),
-        pybind11::arg("s"),
-        pybind11::arg("node"),
-        pybind11::arg("conf"));
-  m.def("addNode",
-        static_cast<void(*)(org::graph::MapGraphState&, org::imm::ImmAdapter const&, org::graph::MapConfig&)>(&org::graph::addNode),
-        pybind11::arg("g"),
-        pybind11::arg("node"),
-        pybind11::arg("conf"));
-  m.def("addNodeRec",
-        static_cast<void(*)(org::graph::MapGraphState&, org::imm::ImmAdapter const&, org::graph::MapConfig&)>(&org::graph::addNodeRec),
-        pybind11::arg("g"),
-        pybind11::arg("node"),
-        pybind11::arg("conf"));
-  m.def("getUnresolvedSubtreeLinks",
-        static_cast<hstd::Vec<org::graph::MapLink>(*)(org::graph::MapGraphState const&, org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::graph::MapConfig&)>(&org::graph::getUnresolvedSubtreeLinks),
-        pybind11::arg("s"),
-        pybind11::arg("node"),
-        pybind11::arg("conf"));
-  m.def("getUnresolvedLink",
-        static_cast<std::optional<org::graph::MapLink>(*)(org::graph::MapGraphState const&, org::imm::ImmAdapterT<org::imm::ImmLink>, org::graph::MapConfig&)>(&org::graph::getUnresolvedLink),
-        pybind11::arg("s"),
-        pybind11::arg("node"),
-        pybind11::arg("conf"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRec),
         pybind11::arg("node"),

@@ -374,33 +374,28 @@ struct [[refl(
         return MapGraphState{ast};
     }
 
+
+    [[refl]] void registerNode(MapNodeProp const& node, MapConfig* conf);
+
+    [[refl]] void addNode(
+        org::imm::ImmAdapter const& node,
+        MapConfig*                  conf);
+
+    [[refl]] void addNodeRec(
+        org::imm::ImmAdapter const& node,
+        MapConfig*                  conf);
+
+    [[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
+        org::imm::ImmAdapterT<org::imm::ImmSubtree> node,
+        MapConfig*                                  conf) const;
+
+    [[refl]] hstd::Opt<MapLink> getUnresolvedLink(
+        org::imm::ImmAdapterT<org::imm::ImmLink> node,
+        MapConfig*                               conf) const;
+
+
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };
-
-[[refl]] void registerNode(
-    MapGraphState&     s,
-    MapNodeProp const& node,
-    MapConfig&         conf);
-
-[[refl]] void addNode(
-    MapGraphState&              g,
-    org::imm::ImmAdapter const& node,
-    MapConfig&                  conf);
-
-[[refl]] void addNodeRec(
-    MapGraphState&              g,
-    org::imm::ImmAdapter const& node,
-    MapConfig&                  conf);
-
-[[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
-    MapGraphState const&                        s,
-    org::imm::ImmAdapterT<org::imm::ImmSubtree> node,
-    MapConfig&                                  conf);
-
-[[refl]] hstd::Opt<MapLink> getUnresolvedLink(
-    MapGraphState const&                     s,
-    org::imm::ImmAdapterT<org::imm::ImmLink> node,
-    MapConfig&                               conf);
 
 struct MapLinkResolveResult {
     MapLink link;

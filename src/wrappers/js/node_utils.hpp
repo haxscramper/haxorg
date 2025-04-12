@@ -376,6 +376,94 @@ template <typename T, typename Enable = void>
 struct JsConverter {};
 
 template <typename T>
+struct HstdVecJs : public Napi::ObjectWrap<HstdVecJs<T>> {
+    static Napi::FunctionReference* constructor;
+
+    static Napi::Object Init(
+        Napi::Env    env,
+        Napi::Object exports,
+        const char*  className) {
+        Napi::Function func = DefineClass(
+            env,
+            className,
+            {
+                InstanceMethod("push", &HstdVecJs::Push),
+                InstanceMethod("get", &HstdVecJs::Get),
+                InstanceMethod("size", &HstdVecJs::Size),
+                InstanceMethod("clear", &HstdVecJs::Clear),
+            });
+
+        constructor  = new Napi::FunctionReference();
+        *constructor = Napi::Persistent(func);
+        env.SetInstanceData(constructor);
+        exports.Set(className, func);
+        return exports;
+    }
+
+    HstdVecJs(const Napi::CallbackInfo& info)
+        : Napi::ObjectWrap<HstdVecJs<T>>(info) {
+        if (info.Length() > 0 && info[0].IsArray()) {
+            Napi::Array jsArray = info[0].As<Napi::Array>();
+            for (uint32_t i = 0; i < jsArray.Length(); ++i) {
+                getPtr()->push_back(
+                    JsConverter<T>::from_js_value(info, jsArray.Get(i)));
+            }
+        }
+    }
+
+    HstdVecJs(
+        Napi::CallbackInfo const&            info,
+        std::shared_ptr<hstd::Vec<T>> const& ptr)
+        : Napi::ObjectWrap<HstdVecJs<T>>{info} {
+        Napi::Env         env = info.Env();
+        Napi::HandleScope scope(env);
+        _stored = ptr;
+    }
+
+    std::shared_ptr<hstd::Vec<T>> _stored;
+    hstd::Vec<T>*                 getPtr() { return _stored.get(); }
+
+    Napi::Value Push(const Napi::CallbackInfo& info) {
+        if (info.Length() < 1) {
+            throw Napi::Error::New(info.Env(), "Missing argument");
+        }
+        getPtr()->push_back(JsConverter<T>::from_js_value(info, info[0]));
+        return info.Env().Undefined();
+    }
+
+    Napi::Value Get(const Napi::CallbackInfo& info) {
+        if (info.Length() < 1) {
+            throw Napi::Error::New(info.Env(), "Missing index");
+        }
+        uint32_t index = info[0].ToNumber().Uint32Value();
+        if (index >= getPtr()->size()) {
+            throw Napi::Error::New(info.Env(), "Index out of bounds");
+        }
+        return JsConverter<T>::to_js_value(info, getPtr().at(index));
+    }
+
+    Napi::Value Size(const Napi::CallbackInfo& info) {
+        return Napi::Number::New(info.Env(), getPtr()->size());
+    }
+
+    Napi::Value Clear(const Napi::CallbackInfo& info) {
+        getPtr()->clear();
+        return info.Env().Undefined();
+    }
+};
+
+template <typename T>
+struct js_to_org_type<HstdVecJs<T>> {
+    using type = hstd::Vec<T>;
+};
+
+template <typename T>
+struct org_to_js_type<hstd::Vec<T>> {
+    using type = HstdVecJs<T>;
+};
+
+
+template <typename T>
 struct JsConverter<std::optional<T>> {
     static std::optional<T> from_js_value(
         Napi::CallbackInfo const& info,
@@ -618,7 +706,7 @@ struct JsConverter<OrgType> {
         Napi::CallbackInfo const& info,
         OrgType const&            value) {
         return CreateWrappedObjectFromPtr<JsType>(
-            info, std::make_shared(value));
+            info, std::make_shared<OrgType>(value));
     }
 };
 
