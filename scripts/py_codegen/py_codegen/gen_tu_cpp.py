@@ -46,6 +46,8 @@ class GenTuTypeApiTraits(BaseModel, extra="forbid"):
         description="Type provides `begin()` and `end()` method to construct iterator pair"
     )
 
+    is_org_ast_value: bool = Field(default=False,)
+
 
 @beartype
 class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
@@ -108,6 +110,7 @@ class GenTuTypedef:
     base: QualType
     original: Optional[Path] = None
     OriginName: Optional[str] = None
+    reflectionParams: GenTuReflParams = field(default_factory=lambda: GenTuReflParams())
 
 
 @beartype
@@ -132,6 +135,9 @@ class GenTuEnum:
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
     IsDescribedEnum: bool = False
+
+    def __str__(self) -> str:
+        return f"GenTuEnum({self.name.format()})"
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "enum " + self.name.format(dbgOrigin=dbgOrigin)
@@ -242,6 +248,9 @@ class GenTuStruct:
     ExplicitTemplateParams: List[QualType] = field(default_factory=list)
     OriginName: Optional[str] = None
     IsDescribedRecord: bool = False
+
+    def __str__(self) -> str:
+        return f"GenTuStruct({self.name.format()})"
 
     def declarationQualName(self) -> QualType:
         return self.name.model_copy(update=dict(Parameters=self.ExplicitTemplateParams))
@@ -913,28 +922,36 @@ def collect_type_specializations(entries: List[GenTuUnion],
 
     @beartype
     def name_bind(Typ: QualType) -> str:
-        flat = Typ.flatQualName()
+        return Typ.getBindName(withParams=True,
+                               ignored_spaces=IGNORED_NAMESPACES,
+                               rename_map={
+                                   ("immer", "box"): "ImmBox",
+                                   ("immer", "flex_vector"): "ImmFlexVector",
+                                   ("immer", "map"): "ImmMap",
+                               })
 
-        match flat:
-            case ["immer", "box"]:
-                return "ImmBox"
+        # flat = Typ.flatQualName()
 
-            case ["immer", "flex_vector"]:
-                return "ImmFlexVector"
+        # match flat:
+        #     case ["immer", "box"]:
+        #         return "ImmBox"
 
-            case ["immer", "map"]:
-                return "ImmMap"
+        #     case ["immer", "flex_vector"]:
+        #         return "ImmFlexVector"
 
-            case _:
-                fullname = "".join([name_bind(T) for T in Typ.Spaces])
-                if Typ.name not in IGNORED_NAMESPACES:
-                    fullname += Typ.name
+        #     case ["immer", "map"]:
+        #         return "ImmMap"
 
-                if 0 < len(Typ.Parameters):
-                    fullname += "Of"
-                    fullname += "".join([name_bind(T) for T in Typ.Parameters])
+        #     case _:
+        #         fullname = "".join([name_bind(T) for T in Typ.Spaces])
+        #         if Typ.name not in IGNORED_NAMESPACES:
+        #             fullname += Typ.name
 
-                return fullname
+        #         if 0 < len(Typ.Parameters):
+        #             fullname += "Of"
+        #             fullname += "".join([name_bind(T) for T in Typ.Parameters])
+
+        #         return fullname
 
     type_use_context: List[Any] = []
     seen_types: Set[QualType] = set()

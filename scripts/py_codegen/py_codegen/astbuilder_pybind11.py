@@ -35,7 +35,6 @@ else:
     BlockId = NewType('BlockId', int)
 
 
-
 @beartype
 def flat_scope(Typ: QualType) -> List[str]:
     res: List[str] = []
@@ -941,12 +940,11 @@ class Py11Module:
     Before: List[BlockId] = field(default_factory=list)
     After: List[BlockId] = field(default_factory=list)
 
-    nameTrack: Set[str] = field(default_factory=set)
+    nameTrack: Dict[str, QualType] = field(default_factory=dict)
 
     def add_all(self, decls: List[GenTuUnion], ast: ASTBuilder, base_map: GenTypeMap):
         for decl in decls:
             self.add_decl(decl, ast=ast, base_map=base_map)
-
 
     def add_type_specializations(
         self,
@@ -991,22 +989,33 @@ class Py11Module:
             match d:
                 case Py11Class():
                     name = d.getPyName(base_map=base_map)
+                    orig_name = d.Struct.name
 
                 case Py11Enum():
                     name = d.getPyName(base_map=base_map)
+                    orig_name = d.Enum.name
 
             if name:
-                assert name not in self.nameTrack, f"{name} is already registered for the module"
-                self.nameTrack.add(name)
+                # assert name not in self.nameTrack, f"{name} is already registered for the module for {self.nameTrack[name]}, attempting to map{orig_name} to the same name"
+                self.Decls.append(d)
+                self.nameTrack[name] = orig_name
 
-            self.Decls.append(d)
+            else:
+                self.Decls.append(d)
 
         match decl:
             case GenTuStruct():
+                visit_context = []
 
                 def codegenConstructCallback(value: Any) -> None:
                     if isinstance(value, GenTuStruct):
-                        append_decl(Py11Class(ast=ast, value=value))
+                        if value.reflectionParams.type_api and value.reflectionParams.type_api.is_org_ast_value and value.name.name.startswith(
+                                "Imm"):
+                            pass
+
+                        else:
+                            # log(CAT).info(f"{'  ' * len(visit_context)} {value.name}")
+                            append_decl(Py11Class(ast=ast, value=value))
 
                     elif isinstance(value, GenTuEnum):
                         append_decl(Py11Enum(value))
@@ -1024,7 +1033,7 @@ class Py11Module:
 
                 iterate_object_tree(
                     decl,
-                    [],
+                    visit_context,
                     post_visit=codegenConstructCallback,
                     # item_visit_format=tree_visit_repr,
                 )

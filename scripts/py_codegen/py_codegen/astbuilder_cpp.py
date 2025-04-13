@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 import itertools
 
 from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
+from py_codegen.astbuilder_base import pascal_case
 
 DEBUG_TYPE_ORIGIN = False
 
@@ -59,6 +60,42 @@ class QualType(BaseModel, extra="forbid"):
     Kind: QualTypeKind = QualTypeKind.RegularType
 
     meta: Dict[str, Any] = Field(default={})
+
+    def getBindName(
+            self,
+            ignored_spaces: List[str] = [],
+            withParams: bool = False,
+            rename_map: Dict[Tuple[str, ...], str] = dict(),
+    ) -> str:
+
+        def aux(t: QualType) -> str:
+            res = ""
+
+            flat = tuple(t.flatQualName())
+
+            if flat in rename_map:
+                res += rename_map[flat]
+
+            else:
+                if t.name not in ignored_spaces:
+                    res += pascal_case(t.name)
+
+                
+                for N in t.Spaces:
+                    res += aux(N)
+
+            if withParams and 0 < len(t.Parameters):
+                res += "Of"
+                res += "".join([aux(T) for T in t.Parameters])
+
+            return res
+
+        
+        return aux(self)
+
+
+
+
 
     def par0(self) -> Optional["QualType"]:
         if 0 < len(self.Parameters):
@@ -235,7 +272,7 @@ class QualType(BaseModel, extra="forbid"):
     def __str__(self) -> str:
         return self.format()
 
-    def format(self, dbgOrigin: bool = False) -> str:
+    def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN) -> str:
 
         def aux(Typ: QualType) -> str:
             cvref = "{const}{ptr}{ref}".format(
@@ -248,7 +285,7 @@ class QualType(BaseModel, extra="forbid"):
                 }[Typ.RefKind],
             )
 
-            origin = f"FROM:[{Typ.dbg_origin}]" if dbgOrigin else ""
+            origin = f" FROM:{Typ.dbg_origin}" if (dbgOrigin and Typ.dbg_origin) else ""
 
             spaces = "".join([f"{aux(S)}::" for S in Typ.Spaces])
             # if spaces:

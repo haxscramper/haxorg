@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from beartype.typing import Union
 import py_codegen.astbuilder_cpp as cpp
 from collections import defaultdict
+from py_codegen.astbuilder_base import pascal_case
 
 N_SPACE = QualType(name="Napi", isNamespace=True)
 T_CALLBACK_INFO = QualType(name="CallbackInfo", Spaces=[N_SPACE])
@@ -106,6 +107,27 @@ class NapiMethod():
 
 
 @beartype
+class NapiEnum():
+    Enum: GenTuEnum
+
+    def __init__(self, Enum: GenTuEnum):
+        self.Enum = Enum
+
+    def build_module_registration(self, b: cpp.ASTBuilder) -> BlockId:
+        return b.CallStatic(
+            QualType(name="JsEnumWrapper", Parameters=[self.Enum.name]),
+            opc="Init",
+            Args=[
+                b.string("env"),
+                b.string("exports"),
+                b.StringLiteral(
+                    self.Enum.name.getBindName(ignored_spaces=IGNORED_NAMESPACES,)),
+            ],
+            Stmt=True,
+        )
+
+
+@beartype
 class NapiClass():
     ClassMethods: List[NapiMethod]
 
@@ -117,11 +139,7 @@ class NapiClass():
             return self.Record.reflectionParams.wrapper_name
 
         else:
-            return "".join([
-                N.capitalize()
-                for N in self.Record.name.flatQualName()
-                if N not in IGNORED_NAMESPACES
-            ]) + "Js"
+            return self.Record.name.getBindName(ignored_spaces=IGNORED_NAMESPACES) + "Js"
 
     def getCxxName(self) -> QualType:
         return self.Record.declarationQualName()
@@ -164,6 +182,9 @@ class NapiClass():
 
             for _m in Record.methods:
                 if _m.IsConstructor or _m.isStatic:
+                    continue
+
+                elif _m.name in ["sub_variant_get_name", "sub_variant_get_data"]:
                     continue
 
                 override_groups[(_m.name, _m.get_function_type().qual_hash())].append(
@@ -434,7 +455,7 @@ class NapiModule():
                         self.add_decl(nested)
 
             case GenTuEnum():
-                pass
+                self.items.append(NapiEnum(item))
 
             case GenTuFunction():
                 self.items.append(NapiFunction(item))
@@ -471,6 +492,9 @@ class NapiModule():
 
                 case NapiBindPass():
                     Body.append(item.Id)
+
+                case NapiEnum():
+                    Body.append(item.build_module_registration(b=b))
 
                 case _:
                     raise ValueError("Unexpected ")

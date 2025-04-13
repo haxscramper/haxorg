@@ -125,63 +125,63 @@ PYBIND11_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
   bind_hstdVec<org::sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
-  bind_immerbox<hstd::Str>(m, "ImmBox", type_registry_guard);
-  bind_immerbox<std::optional<hstd::Str>>(m, "ImmBox", type_registry_guard);
-  bind_immerbox<std::optional<int>>(m, "ImmBox", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBox", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmSymbol::Param>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerflex_vector<hstd::Str>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBox", type_registry_guard);
-  bind_immerflex_vector<org::sem::OrgCodeEvalOutput>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerflex_vector<org::sem::BlockCodeLine>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "ImmBox", type_registry_guard);
-  bind_immerbox<std::optional<org::sem::SubtreeCompletion>>(m, "ImmBox", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerflex_vector<org::sem::NamedProperty>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerbox<std::optional<hstd::UserTime>>(m, "ImmBox", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmFlexVector", type_registry_guard);
-  bind_immerbox<std::optional<bool>>(m, "ImmBox", type_registry_guard);
-  bind_immerbox<std::optional<org::sem::ColumnView>>(m, "ImmBox", type_registry_guard);
-  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBox", type_registry_guard);
-  bind_hstdVec<int>(m, "VecOfint", type_registry_guard);
+  bind_immerbox<hstd::Str>(m, "ImmBoxOfStr", type_registry_guard);
+  bind_immerbox<std::optional<hstd::Str>>(m, "ImmBoxOfOptionalStdOfStr", type_registry_guard);
+  bind_immerbox<std::optional<int>>(m, "ImmBoxOfOptionalStdOfInt", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmFlexVectorOfImmIdTOfImmErrorItem", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmFlexVectorOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBoxOfOptionalStdOfImmIdTOfImmOrg", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmSymbol::Param>(m, "ImmFlexVectorOfParamImmSymbol", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "ImmFlexVectorOfImmIdTOfImmOrg", type_registry_guard);
+  bind_immerflex_vector<hstd::Str>(m, "ImmFlexVectorOfStr", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBoxOfOptionalStdOfImmIdTOfImmParagraph", type_registry_guard);
+  bind_immerflex_vector<org::sem::OrgCodeEvalOutput>(m, "ImmFlexVectorOfOrgCodeEvalOutput", type_registry_guard);
+  bind_immerflex_vector<org::sem::BlockCodeLine>(m, "ImmFlexVectorOfBlockCodeLine", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "ImmBoxOfOptionalStdOfImmIdTOfImmStmtList", type_registry_guard);
+  bind_immerbox<std::optional<org::sem::SubtreeCompletion>>(m, "ImmBoxOfOptionalStdOfSubtreeCompletion", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "ImmFlexVectorOfImmIdTOfImmHashTag", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "ImmFlexVectorOfImmIdTOfImmSubtreeLog", type_registry_guard);
+  bind_immerflex_vector<org::sem::NamedProperty>(m, "ImmFlexVectorOfNamedProperty", type_registry_guard);
+  bind_immerbox<std::optional<hstd::UserTime>>(m, "ImmBoxOfOptionalStdOfUserTime", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmFlexVectorOfImmIdTOfImmCell", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmFlexVectorOfImmIdTOfImmRow", type_registry_guard);
+  bind_immerbox<std::optional<bool>>(m, "ImmBoxOfOptionalStdOfBool", type_registry_guard);
+  bind_immerbox<std::optional<org::sem::ColumnView>>(m, "ImmBoxOfOptionalStdOfColumnView", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfOptionalStdOfImmIdTOfImmRawText", type_registry_guard);
+  bind_hstdVec<int>(m, "VecOfInt", type_registry_guard);
   bind_hstdVec<org::imm::ImmAdapter>(m, "VecOfImmAdapter", type_registry_guard);
   bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
   bind_hstdUnorderedMap<hstd::Str, org::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
   bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
   bind_hstdVec<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_hstdVec<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
-  bind_hstdVec<org::graph::MapLink>(m, "VecOfgraphMapLink", type_registry_guard);
-  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "UnorderedMapOfgraphMapNodegraphMapNodeProp", type_registry_guard);
-  bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "UnorderedMapOfgraphMapEdgegraphMapEdgeProp", type_registry_guard);
-  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "UnorderedMapOfgraphMapNodegraphAdjNodesList", type_registry_guard);
-  bind_hstdVec<org::graph::MapNode>(m, "VecOfgraphMapNode", type_registry_guard);
-  bind_hstdVec<org::graph::MapEdge>(m, "VecOfgraphMapEdge", type_registry_guard);
+  bind_hstdVec<org::graph::MapLink>(m, "VecOfMapLinkGraph", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "UnorderedMapOfMapNodeGraphMapNodePropGraph", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "UnorderedMapOfMapEdgeGraphMapEdgePropGraph", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "UnorderedMapOfMapNodeGraphAdjNodesListGraph", type_registry_guard);
+  bind_hstdVec<org::graph::MapNode>(m, "VecOfMapNodeGraph", type_registry_guard);
+  bind_hstdVec<org::graph::MapEdge>(m, "VecOfMapEdgeGraph", type_registry_guard);
   bind_hstdVec<org::sem::LispCode>(m, "VecOfLispCode", type_registry_guard);
-  bind_hstdVec<org::sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
-  bind_hstdVec<org::sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
-  bind_hstdVec<org::sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
-  bind_hstdVec<org::sem::AttrValue::DimensionSpan>(m, "VecOfAttrValueDimensionSpan", type_registry_guard);
+  bind_hstdVec<org::sem::Tblfm::Assign>(m, "VecOfAssignTblfm", type_registry_guard);
+  bind_hstdVec<org::sem::Tblfm::Expr>(m, "VecOfExprTblfm", type_registry_guard);
+  bind_hstdVec<org::sem::Tblfm::Assign::Flag>(m, "VecOfFlagTblfmAssign", type_registry_guard);
+  bind_hstdVec<org::sem::AttrValue::DimensionSpan>(m, "VecOfDimensionSpanAttrValue", type_registry_guard);
   bind_hstdVec<hstd::Str>(m, "VecOfStr", type_registry_guard);
   bind_hstdVec<org::sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
   bind_hstdVec<org::sem::HashTagFlat>(m, "VecOfHashTagFlat", type_registry_guard);
   bind_hstdVec<org::sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
   bind_hstdUnorderedMap<hstd::Str, org::sem::AttrList>(m, "UnorderedMapOfStrAttrList", type_registry_guard);
-  bind_hstdVec<org::sem::OrgCodeEvalInput::Var>(m, "VecOfOrgCodeEvalInputVar", type_registry_guard);
-  bind_hstdVec<org::sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
-  bind_hstdVec<org::sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
+  bind_hstdVec<org::sem::OrgCodeEvalInput::Var>(m, "VecOfVarOrgCodeEvalInput", type_registry_guard);
+  bind_hstdVec<org::sem::ColumnView::Column>(m, "VecOfColumnColumnView", type_registry_guard);
+  bind_hstdVec<org::sem::BlockCodeLine::Part>(m, "VecOfPartBlockCodeLine", type_registry_guard);
   bind_hstdUnorderedMap<hstd::Str, hstd::Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
-  bind_hstdVec<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
+  bind_hstdVec<org::sem::Symbol::Param>(m, "VecOfParamSymbol", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
   bind_hstdVec<org::sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
   bind_hstdVec<org::sem::SubtreePeriod>(m, "VecOfSubtreePeriod", type_registry_guard);
-  bind_hstdIntSet<org::sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
+  bind_hstdIntSet<org::sem::SubtreePeriod::Kind>(m, "IntSetOfKindSubtreePeriod", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
   bind_hstdVec<hstd::UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
@@ -4871,6 +4871,403 @@ ingoing elements.)RAW")
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::imm::ImmTime::Repeat::Mode>(m, "ImmTimeRepeatMode", type_registry_guard);
+  pybind11::enum_<org::imm::ImmTime::Repeat::Mode>(m, "ImmTimeRepeatMode")
+    .value("None", org::imm::ImmTime::Repeat::Mode::None, R"RAW(Do not repeat task on completion)RAW")
+    .value("Exact", org::imm::ImmTime::Repeat::Mode::Exact, R"RAW(?)RAW")
+    .value("FirstMatch", org::imm::ImmTime::Repeat::Mode::FirstMatch, R"RAW(Repeat on the first matching day in the future)RAW")
+    .value("SameDay", org::imm::ImmTime::Repeat::Mode::SameDay, R"RAW(Repeat task on the same day next week/month/year)RAW")
+    .def("__iter__", [](org::imm::ImmTime::Repeat::Mode const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Mode> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Mode>();
+                     })
+    .def("__eq__",
+         [](org::imm::ImmTime::Repeat::Mode const& _self, org::imm::ImmTime::Repeat::Mode lhs, org::imm::ImmTime::Repeat::Mode rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::imm::ImmTime::Repeat::Mode const& _self, org::imm::ImmTime::Repeat::Mode it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  bind_enum_iterator<org::imm::ImmTime::Repeat::Period>(m, "ImmTimeRepeatPeriod", type_registry_guard);
+  pybind11::enum_<org::imm::ImmTime::Repeat::Period>(m, "ImmTimeRepeatPeriod")
+    .value("Year", org::imm::ImmTime::Repeat::Period::Year)
+    .value("Month", org::imm::ImmTime::Repeat::Period::Month)
+    .value("Week", org::imm::ImmTime::Repeat::Period::Week)
+    .value("Day", org::imm::ImmTime::Repeat::Period::Day)
+    .value("Hour", org::imm::ImmTime::Repeat::Period::Hour)
+    .value("Minute", org::imm::ImmTime::Repeat::Period::Minute)
+    .def("__iter__", [](org::imm::ImmTime::Repeat::Period const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Period> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Period>();
+                     })
+    .def("__eq__",
+         [](org::imm::ImmTime::Repeat::Period const& _self, org::imm::ImmTime::Repeat::Period lhs, org::imm::ImmTime::Repeat::Period rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::imm::ImmTime::Repeat::Period const& _self, org::imm::ImmTime::Repeat::Period it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  pybind11::class_<org::imm::ImmTime::Repeat>(m, "ImmTimeRepeat")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTime::Repeat {
+                        org::imm::ImmTime::Repeat result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("mode", &org::imm::ImmTime::Repeat::mode, R"RAW(mode)RAW")
+    .def_readwrite("period", &org::imm::ImmTime::Repeat::period, R"RAW(period)RAW")
+    .def_readwrite("count", &org::imm::ImmTime::Repeat::count, R"RAW(count)RAW")
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmTime::Repeat::*)(org::imm::ImmTime::Repeat const&) const>(&org::imm::ImmTime::Repeat::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmTime::Repeat const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmTime::Repeat const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmTime::Static>(m, "ImmTimeStatic")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTime::Static {
+                        org::imm::ImmTime::Static result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("repeat", &org::imm::ImmTime::Static::repeat)
+    .def_readwrite("time", &org::imm::ImmTime::Static::time)
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmTime::Static::*)(org::imm::ImmTime::Static const&) const>(&org::imm::ImmTime::Static::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmTime::Static const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmTime::Static const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmTime::Dynamic>(m, "ImmTimeDynamic")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmTime::Dynamic {
+                        org::imm::ImmTime::Dynamic result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("expr", &org::imm::ImmTime::Dynamic::expr)
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmTime::Dynamic::*)(org::imm::ImmTime::Dynamic const&) const>(&org::imm::ImmTime::Dynamic::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmTime::Dynamic const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmTime::Dynamic const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::imm::ImmTime::TimeKind>(m, "ImmTimeTimeKind", type_registry_guard);
+  pybind11::enum_<org::imm::ImmTime::TimeKind>(m, "ImmTimeTimeKind")
+    .value("Static", org::imm::ImmTime::TimeKind::Static)
+    .value("Dynamic", org::imm::ImmTime::TimeKind::Dynamic)
+    .def("__iter__", [](org::imm::ImmTime::TimeKind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind>();
+                     })
+    .def("__eq__",
+         [](org::imm::ImmTime::TimeKind const& _self, org::imm::ImmTime::TimeKind lhs, org::imm::ImmTime::TimeKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::imm::ImmTime::TimeKind const& _self, org::imm::ImmTime::TimeKind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  pybind11::class_<org::imm::ImmSymbol::Param>(m, "ImmSymbolParam")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmSymbol::Param {
+                        org::imm::ImmSymbol::Param result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("key", &org::imm::ImmSymbol::Param::key, R"RAW(Key -- for non-positional)RAW")
+    .def_readwrite("value", &org::imm::ImmSymbol::Param::value, R"RAW(Uninterpreted value)RAW")
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmSymbol::Param::*)(org::imm::ImmSymbol::Param const&) const>(&org::imm::ImmSymbol::Param::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmSymbol::Param const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmSymbol::Param const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::sem::ListItem::Checkbox>(m, "ListItemCheckbox", type_registry_guard);
+  pybind11::enum_<org::sem::ListItem::Checkbox>(m, "ListItemCheckbox")
+    .value("None", org::sem::ListItem::Checkbox::None)
+    .value("Done", org::sem::ListItem::Checkbox::Done)
+    .value("Empty", org::sem::ListItem::Checkbox::Empty)
+    .value("Partial", org::sem::ListItem::Checkbox::Partial)
+    .def("__iter__", [](org::sem::ListItem::Checkbox const& _self) -> org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox> {
+                     return org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox>();
+                     })
+    .def("__eq__",
+         [](org::sem::ListItem::Checkbox const& _self, org::sem::ListItem::Checkbox lhs, org::sem::ListItem::Checkbox rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::ListItem::Checkbox const& _self, org::sem::ListItem::Checkbox it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  bind_enum_iterator<org::imm::ImmCriticMarkup::Kind>(m, "ImmCriticMarkupKind", type_registry_guard);
+  pybind11::enum_<org::imm::ImmCriticMarkup::Kind>(m, "ImmCriticMarkupKind")
+    .value("Deletion", org::imm::ImmCriticMarkup::Kind::Deletion)
+    .value("Addition", org::imm::ImmCriticMarkup::Kind::Addition)
+    .value("Substitution", org::imm::ImmCriticMarkup::Kind::Substitution)
+    .value("Highlighting", org::imm::ImmCriticMarkup::Kind::Highlighting)
+    .value("Comment", org::imm::ImmCriticMarkup::Kind::Comment)
+    .def("__iter__", [](org::imm::ImmCriticMarkup::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmCriticMarkup::Kind> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmCriticMarkup::Kind>();
+                     })
+    .def("__eq__",
+         [](org::imm::ImmCriticMarkup::Kind const& _self, org::imm::ImmCriticMarkup::Kind lhs, org::imm::ImmCriticMarkup::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::imm::ImmCriticMarkup::Kind const& _self, org::imm::ImmCriticMarkup::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  pybind11::class_<org::imm::ImmFile::Document>(m, "ImmFileDocument")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmFile::Document {
+                        org::imm::ImmFile::Document result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmFile::Document::*)(org::imm::ImmFile::Document const&) const>(&org::imm::ImmFile::Document::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmFile::Document const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmFile::Document const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmFile::Attachment>(m, "ImmFileAttachment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmFile::Attachment {
+                        org::imm::ImmFile::Attachment result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmFile::Attachment::*)(org::imm::ImmFile::Attachment const&) const>(&org::imm::ImmFile::Attachment::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmFile::Attachment const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmFile::Attachment const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmFile::Source>(m, "ImmFileSource")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmFile::Source {
+                        org::imm::ImmFile::Source result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmFile::Source::*)(org::imm::ImmFile::Source const&) const>(&org::imm::ImmFile::Source::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmFile::Source const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmFile::Source const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::imm::ImmFile::Kind>(m, "ImmFileKind", type_registry_guard);
+  pybind11::enum_<org::imm::ImmFile::Kind>(m, "ImmFileKind")
+    .value("Document", org::imm::ImmFile::Kind::Document)
+    .value("Attachment", org::imm::ImmFile::Kind::Attachment)
+    .value("Source", org::imm::ImmFile::Kind::Source)
+    .def("__iter__", [](org::imm::ImmFile::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind>();
+                     })
+    .def("__eq__",
+         [](org::imm::ImmFile::Kind const& _self, org::imm::ImmFile::Kind lhs, org::imm::ImmFile::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::imm::ImmFile::Kind const& _self, org::imm::ImmFile::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  pybind11::class_<org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeIncludeBase")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdInclude::IncludeBase {
+                        org::imm::ImmCmdInclude::IncludeBase result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmCmdInclude::IncludeBase::*)(org::imm::ImmCmdInclude::IncludeBase const&) const>(&org::imm::ImmCmdInclude::IncludeBase::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmCmdInclude::IncludeBase const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdInclude::IncludeBase const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdInclude::Example, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExample")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdInclude::Example {
+                        org::imm::ImmCmdInclude::Example result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmCmdInclude::Example::*)(org::imm::ImmCmdInclude::Example const&) const>(&org::imm::ImmCmdInclude::Example::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmCmdInclude::Example const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdInclude::Example const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdInclude::Export, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExport")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdInclude::Export {
+                        org::imm::ImmCmdInclude::Export result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("language", &org::imm::ImmCmdInclude::Export::language, R"RAW(Source code language for export)RAW")
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmCmdInclude::Export::*)(org::imm::ImmCmdInclude::Export const&) const>(&org::imm::ImmCmdInclude::Export::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmCmdInclude::Export const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdInclude::Export const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdInclude::Custom, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeCustom")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdInclude::Custom {
+                        org::imm::ImmCmdInclude::Custom result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("blockName", &org::imm::ImmCmdInclude::Custom::blockName, R"RAW(Block name not covered by the default values)RAW")
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmCmdInclude::Custom::*)(org::imm::ImmCmdInclude::Custom const&) const>(&org::imm::ImmCmdInclude::Custom::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmCmdInclude::Custom const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdInclude::Custom const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdInclude::Src, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeSrc")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdInclude::Src {
+                        org::imm::ImmCmdInclude::Src result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("language", &org::imm::ImmCmdInclude::Src::language, R"RAW(Source code language for code block)RAW")
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmCmdInclude::Src::*)(org::imm::ImmCmdInclude::Src const&) const>(&org::imm::ImmCmdInclude::Src::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmCmdInclude::Src const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdInclude::Src const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdInclude::OrgDocument, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeOrgDocument")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmCmdInclude::OrgDocument {
+                        org::imm::ImmCmdInclude::OrgDocument result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("onlyContent", &org::imm::ImmCmdInclude::OrgDocument::onlyContent, R"RAW(omits any planning lines or property drawers)RAW")
+    .def_readwrite("subtreePath", &org::imm::ImmCmdInclude::OrgDocument::subtreePath, R"RAW(Include first subtree matching path with `file.org::* tree`)RAW")
+    .def_readwrite("minLevel", &org::imm::ImmCmdInclude::OrgDocument::minLevel, R"RAW(The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.)RAW")
+    .def_readwrite("customIdTarget", &org::imm::ImmCmdInclude::OrgDocument::customIdTarget, R"RAW(Include target subtree content with `file.org::#custom`)RAW")
+    .def("__eq__",
+         static_cast<bool(org::imm::ImmCmdInclude::OrgDocument::*)(org::imm::ImmCmdInclude::OrgDocument const&) const>(&org::imm::ImmCmdInclude::OrgDocument::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::imm::ImmCmdInclude::OrgDocument const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdInclude::OrgDocument const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::imm::ImmCmdInclude::Kind>(m, "ImmCmdIncludeKind", type_registry_guard);
+  pybind11::enum_<org::imm::ImmCmdInclude::Kind>(m, "ImmCmdIncludeKind")
+    .value("Example", org::imm::ImmCmdInclude::Kind::Example)
+    .value("Export", org::imm::ImmCmdInclude::Kind::Export)
+    .value("Custom", org::imm::ImmCmdInclude::Kind::Custom)
+    .value("Src", org::imm::ImmCmdInclude::Kind::Src)
+    .value("OrgDocument", org::imm::ImmCmdInclude::Kind::OrgDocument)
+    .def("__iter__", [](org::imm::ImmCmdInclude::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind>();
+                     })
+    .def("__eq__",
+         [](org::imm::ImmCmdInclude::Kind const& _self, org::imm::ImmCmdInclude::Kind lhs, org::imm::ImmCmdInclude::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::imm::ImmCmdInclude::Kind const& _self, org::imm::ImmCmdInclude::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::None, org::sem::SemId<org::sem::None>, org::sem::Org>(m, "None")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::None {

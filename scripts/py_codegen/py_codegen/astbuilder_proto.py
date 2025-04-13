@@ -12,11 +12,6 @@ from py_scriptutils.algorithm import drop_none, iterate_object_tree
 PROTO_VALUE_NAME = "out"
 ORG_VALUE_NAME = "in"
 
-
-def pascal_case(s: str) -> str:
-    return s[0].upper() + s[1:].lower() if s else ""
-
-
 @beartype
 class ProtoBuilder():
 
@@ -182,7 +177,7 @@ class ProtoBuilder():
             params=[cpp.MacroParams.Param("__MAP")],
             definition=[
                 "__MAP(k{}, {}, {})".format(
-                    pascal_case(rec.name.name),
+                    rec.name.name.capitalize(),
                     self.sanitize_ident_for_protobuf(rec.name.name),
                     rec.name.name,
                 ) for rec in self.get_all_concrete_types()
@@ -541,7 +536,7 @@ class ProtoBuilder():
                     ))
 
                 field_enum_value = kind_type.asSpaceFor(
-                    cpp.QualType.ForName(f"k{pascal_case(var_field.name)}"))
+                    cpp.QualType.ForName(f"k{var_field.name.capitalize()}"))
 
                 reader_switch.Cases.append(
                     cpp.CaseStmtParams(

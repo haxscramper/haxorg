@@ -12,6 +12,10 @@ else:
     BlockId = NewType('BlockId', int)
 
 
+def pascal_case(s: str) -> str:
+    return s[0].upper() + s[1:] if s else ""
+
+
 class AstLineCtx:
 
     def __init__(self, builder):

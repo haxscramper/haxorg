@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field, replace
 import itertools
 from typing import *
+from copy import deepcopy
 
 import py_codegen.astbuilder_py as pya
 import py_codegen.astbuilder_nodeapi as napi
@@ -310,13 +311,19 @@ def topological_sort_entries(entries: List[GenTuUnion]) -> List[GenTuUnion]:
     for it in entries:
         match it:
             case GenTuStruct():
-                entry_by_hash[it.declarationQualName().qual_hash()] = it
+                qual_hash = it.declarationQualName().qual_hash()
+                assert qual_hash not in entry_by_hash, f"Duplicate hash for {it.declarationQualName()}, already mapped to {it}"
+                entry_by_hash[qual_hash] = it
 
             case GenTuTypedef():
                 entry_by_hash[it.name.qual_hash()] = it
 
             case _:
                 cant_have_dependants.append(it)
+
+    assert (len(entry_by_hash) + len(cant_have_dependants)) == len(
+        entries
+    ), f"Sorting order mismatch len(hash): {len(entry_by_hash)} + len(no-deps): {len(cant_have_dependants)} len(entries): {len(entries)}"
 
     graph = {}
     for entry in entries:
@@ -337,7 +344,13 @@ def topological_sort_entries(entries: List[GenTuUnion]) -> List[GenTuUnion]:
     ts = TopologicalSorter(graph)
     try:
         sorted_hashes = list(ts.static_order())
-        return [entry_by_hash[h] for h in sorted_hashes] + cant_have_dependants
+        result = [entry_by_hash[h] for h in sorted_hashes] + cant_have_dependants
+
+        # assert len(result) == len(
+        #     entries
+        # ), f"Sorting order mismatch len(in): {len(entries)} len(out): {len(result)} len(no-deps): {len(cant_have_dependants)} len(hash): {len(entry_by_hash)}"
+
+        return result
     except CycleError:
         raise ValueError("Cyclic inheritance detected")
 
@@ -550,6 +563,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
 @beartype
 def mutate_type_to_immutable(obj: QualType):
+    obj.dbg_origin += "imm_write"
     match obj:
         case QualType(name="SemId", parameters=[]):
             obj.name = "ImmId"
@@ -960,10 +974,32 @@ class PyhaxorgTypeGroups():
     specializations: List[TypeSpecialization] = field(default_factory=list)
 
     def get_entries_for_wrapping(self) -> List[GenTuUnion]:
-        return topological_sort_entries(
-            self.full_enums + self.tu.enums + self.tu.structs + self.tu.typedefs +
-            self.shared_types + self.expanded + self.tu.functions +
-            self.imm_id_specializations,)
+
+        def aux(e: GenTuEntry, ind: int):
+            match e:
+                case GenTuStruct():
+                    log(CAT).info(
+                        f"{'  ' * ind}{e.name.name} {e.name} wrapper:{e.reflectionParams.wrapper_name} py:{py_type(e.name, self.base_map)}"
+                    )
+                    for sub in e.nested:
+                        aux(sub, ind + 1)
+
+        # for e in self.immutable:
+        #     aux(e, 0)
+
+        result = self.full_enums + \
+            self.tu.enums + \
+            self.tu.structs + \
+            self.tu.typedefs + \
+            self.shared_types + \
+            self.expanded + \
+            self.tu.functions + \
+            self.immutable + \
+            self.imm_id_specializations
+
+        # return result
+
+        return topological_sort_entries(result)
 
 
 @beartype
@@ -975,6 +1011,7 @@ def get_pyhaxorg_type_groups(
     res.shared_types = expand_type_groups(ast, get_shared_sem_types())
     res.expanded = expand_type_groups(ast, get_types())
     res.immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
+
     res.tu = conv_proto_file(reflection_path)
     res.base_map = get_base_map(res.expanded + res.shared_types + res.immutable +
                                 res.tu.enums + res.tu.structs + res.tu.typedefs)
@@ -1337,17 +1374,17 @@ def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
                 file.write(open_proto_file(Path(opts.reflection_path)).to_json(2))
 
             write_files_group(
-                gen_pyhaxorg_napi_wrappers(
-                    groups=groups,
-                    ast=builder,
-                    base_map=groups.base_map,
-                ))
-
-            write_files_group(
                 gen_pyhaxorg_python_wrappers(
                     groups=groups,
                     ast=builder,
                     pyast=pyast,
+                ))
+
+            write_files_group(
+                gen_pyhaxorg_napi_wrappers(
+                    groups=groups,
+                    ast=builder,
+                    base_map=groups.base_map,
                 ))
 
             write_files_group(gen_pyhaxorg_source(

@@ -62,7 +62,7 @@ struct out_of_range_error : CRTP_hexception<out_of_range_error> {};
             ::hstd::fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));        \
     }
 
-#define logic_todo_impl() throw logic_assertion_error::init("TODO");
+#define logic_todo_impl() throw hstd::logic_assertion_error::init("TODO");
 
 
 inline void assert_has_idx(int size, int wanted, std::string failure) {

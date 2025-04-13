@@ -208,7 +208,12 @@ def default_constructor_method(name: str) -> GenTuFunction:
 
 def d_org(name: str, *args, **kwargs) -> GenTuStruct:
     res = GenTuStruct(
-        QualType(name=name, meta=dict(isOrgType=True), Spaces=[n_sem()]),
+        QualType(
+            name=name,
+            meta=dict(isOrgType=True),
+            Spaces=[n_sem()],
+            dbg_origin="d_org",
+        ),
         *args,
         **kwargs,
     )
@@ -227,6 +232,10 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
             QualType(name="org"),
             QualType(name="sem"),
         ],
+    )
+
+    res.reflectionParams.type_api = GenTuTypeApiTraits(
+        is_org_ast_value=True,
     )
 
     res.IsDescribedRecord = True

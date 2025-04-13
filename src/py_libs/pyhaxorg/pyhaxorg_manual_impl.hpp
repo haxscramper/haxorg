@@ -86,7 +86,8 @@ struct [[refl(
         org::sem::SemId<org::sem::Org> node,
         PyCodeEvalParameters const&    conf);
 
-enum class [[refl]] LeafFieldType
+enum class [[refl(
+    R"({"backend": {"target-backends": ["python"]}})")]] LeafFieldType
 {
     Int,
     UserTimeKind,

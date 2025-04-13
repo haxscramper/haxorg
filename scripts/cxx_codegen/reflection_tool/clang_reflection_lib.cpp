@@ -1332,6 +1332,11 @@ bool ReflASTVisitor::VisitEnumDecl(c::EnumDecl* Decl) {
         Enum* rec = out->add_enums();
         rec->set_isdescribedenum(isDescribedEnum(Decl));
         rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
+
+        if (auto args = get_refl_params(Decl)) {
+            rec->set_reflectionparams(args.value());
+        }
+
         std::string origin = (Typedef
                                   ? "typedef:" + Typedef->getNameAsString()
                                   : "")

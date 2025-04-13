@@ -8,6 +8,7 @@
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
+#include <hstd/stdlib/Exception.hpp>
 
 namespace org::bind::js {
 
@@ -439,7 +440,7 @@ struct JsEnumWrapper : public Napi::ObjectWrap<JsEnumWrapper<E>> {
         for (hstd::EnumFieldDesc<E> const& it :
              hstd::describe_enumerators<E>()) {
             props.push_back(Base::StaticValue(
-                it.name + "Int",
+                std::string(it.name + "Int").c_str(),
                 Napi::Number::New(env, static_cast<double>(it.value))));
         }
 
@@ -451,6 +452,41 @@ struct JsEnumWrapper : public Napi::ObjectWrap<JsEnumWrapper<E>> {
         exports.Set(className, func);
         return exports;
     }
+
+    JsEnumWrapper(Napi::CallbackInfo const& info)
+        : Napi::ObjectWrap<JsEnumWrapper<E>>{info} {
+        Napi::Env         env = info.Env();
+        Napi::HandleScope scope(env);
+        if (info[0].IsNumber()) {
+            value = static_cast<E>(
+                info[0].As<Napi::Number>().Int64Value());
+        } else {
+            throw OrgJsError::New(
+                info.Env(),
+                std::format(
+                    "value cannot be converted to {}",
+                    hstd::value_metadata<E>::typeName()));
+        }
+    }
+
+    static Napi::Value FromString(
+        Napi::CallbackInfo const& info,
+        std::string const&        value) {
+        return CreateCxx<This>([&](This* instance) {
+            auto opt = hstd::enum_serde<E>::from_string(value);
+            if (opt) {
+                instance->value = opt.value();
+            } else {
+                throw OrgJsError::New(
+                    info.Env(),
+                    std::format(
+                        "{} cannot be converted to {}",
+                        value,
+                        hstd::value_metadata<E>::typeName()));
+            }
+        });
+    }
+
 
     static Napi::Value FromValue(Napi::CallbackInfo const& info, E value) {
         return CreateCxx<This>(
@@ -706,6 +742,25 @@ struct JsConverter<std::string> {
     }
 };
 
+template <>
+struct JsConverter<hstd::Str> {
+    static hstd::Str from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        if (value.IsString()) {
+            return value.As<Napi::String>().Utf8Value();
+        } else {
+            throw OrgJsTypeError::New(value.Env(), "String expected");
+        }
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        const hstd::Str&          value) {
+        return Napi::String::New(info.Env(), value.toBase());
+    }
+};
+
 // Specialization for boolean
 template <>
 struct JsConverter<bool> {
@@ -719,8 +774,10 @@ struct JsConverter<bool> {
         }
     }
 
-    static Napi::Value to_js_value(Napi::Env env, const bool& value) {
-        return Napi::Boolean::New(env, value);
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        const bool&               value) {
+        return Napi::Boolean::New(info.Env(), value);
     }
 };
 
@@ -764,6 +821,46 @@ struct JsConverter<int> {
     }
 };
 
+template <>
+struct JsConverter<unsigned int> {
+    static unsigned int from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        if (value.IsNumber()) {
+            return value.As<Napi::Number>().Uint32Value();
+        } else {
+            throw OrgJsTypeError::New(value.Env(), "Integer expected");
+        }
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const& info,
+        const unsigned int&       value) {
+        return Napi::Number::New(info.Env(), value);
+    }
+};
+
+template <typename... Args>
+struct JsConverter<std::variant<Args...>> {
+    static std::variant<Args...> from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        logic_todo_impl();
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const&    info,
+        const std::variant<Args...>& var) {
+        Napi::Value result;
+        std::visit(
+            [&]<typename T>(T const& value) -> int {
+                result = JsConverter<T>::to_js_value(info, value);
+                return int{};
+            },
+            var);
+        return result;
+    }
+};
 
 template <
     typename JsType,
@@ -905,7 +1002,25 @@ struct JsConverter<OrgType*> {
         Napi::CallbackInfo const& info,
         OrgType*                  value) {
         return CreateWrappedObjectFromPtr<JsType>(
-            info, std::make_shared(value, [](JsType*) {}));
+            info, std::shared_ptr<OrgType>(value, [](OrgType*) {}));
+    }
+};
+
+template <org::imm::IsImmOrg T>
+struct JsConverter<org::imm::ImmIdT<T>> {
+    static org::imm::ImmIdT<T> from_js_value(
+        Napi::CallbackInfo const& info,
+        Napi::Value const&        value) {
+        bool lossless = false;
+        return org::imm::ImmIdT<T>::FromValue(
+            value.As<Napi::BigInt>().Uint64Value(&lossless));
+    }
+
+    static Napi::Value to_js_value(
+        Napi::CallbackInfo const&  info,
+        org::imm::ImmIdT<T> const& value) {
+        return Napi::BigInt::New(
+            info.Env(), static_cast<uint64_t>(value.getValue()));
     }
 };
 
@@ -1059,7 +1174,10 @@ Napi::Value WrapCallableImpl(
                 ReturnType result = callable(
                     instance,
                     convertArg.template operator()<Indices>()...);
-                return JsConverter<ReturnType>::to_js_value(info, result);
+                // Returning `T const&` is not directly handled by the
+                // converter
+                return JsConverter<std::remove_cvref_t<ReturnType>>::
+                    to_js_value(info, result);
             }
         }
     } catch (const Napi::Error& e) {
