@@ -80,7 +80,6 @@ class QualType(BaseModel, extra="forbid"):
                 if t.name not in ignored_spaces:
                     res += pascal_case(t.name)
 
-                
                 for N in t.Spaces:
                     res += aux(N)
 
@@ -90,12 +89,7 @@ class QualType(BaseModel, extra="forbid"):
 
             return res
 
-        
         return aux(self)
-
-
-
-
 
     def par0(self) -> Optional["QualType"]:
         if 0 < len(self.Parameters):
@@ -579,8 +573,8 @@ class RecordParams:
 @beartype
 @dataclass
 class UsingParams:
-    newName: str
     baseType: QualType
+    newName: Optional[str] = None
     Template: TemplateParams = field(default_factory=TemplateParams)
 
 
@@ -1110,7 +1104,11 @@ class ASTBuilder(base.AstbuilderBase):
                 self.string(params.newName),
                 self.string(" = "),
                 self.Type(params.baseType),
-                self.string(";")
+                self.string(";"),
+            ] if params.newName else [
+                self.string("using "),
+                self.Type(params.baseType),
+                self.string(";"),
             ]))
 
     def Field(self, field: RecordField) -> BlockId:

@@ -192,6 +192,7 @@ void org::exportToTreeFile(
 sem::SemId<sem::Org> org::parseFile(
     std::string               file,
     const OrgParseParameters& opts) {
+    LOG(INFO) << "org parse file call";
     return parseStringOpts(readFile(fs::path{file}), opts);
 }
 

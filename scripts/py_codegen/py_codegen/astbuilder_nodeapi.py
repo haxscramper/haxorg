@@ -164,9 +164,11 @@ class NapiClass():
         WrapperClass = cpp.RecordParams(name=QualType(name=self.getNapiName()))
 
         BaseWrap = QualType(
-            name="ObjectWrap",
-            Spaces=[N_SPACE],
-            Parameters=[QualType(name=self.getNapiName())],
+            name="SharedPtrWrapBase",
+            Parameters=[
+                QualType(name=self.getNapiName()),
+                self.getCxxName(),
+            ],
         )
 
         WrapperClass.bases.append(BaseWrap)
@@ -224,7 +226,11 @@ class NapiClass():
         ]
 
         WrapperClass.nested.append(
-            b.string("static inline Napi::FunctionReference* constructor;"))
+            b.Using(
+                cpp.UsingParams(baseType=QualType(
+                    name="SharedPtrWrapBase",
+                    Spaces=[BaseWrap],
+                ))))
 
         WrapperClass.members.append(
             cpp.MethodDeclParams(
@@ -236,89 +242,28 @@ class NapiClass():
                     ],
                     ResultTy=T_OBJECT,
                     Body=[
-                        b.line([
-                            b.VarDecl(
-                                ParmVarParams(
-                                    type=QualType(name="Function", Spaces=[N_SPACE]),
-                                    name="func",
-                                    defArg=b.XCall(
-                                        "DefineClass",
-                                        args=[
-                                            b.string("env"),
-                                            b.StringLiteral(self.getNapiName()),
-                                            b.pars(b.csv(BindCalls, isLine=False),
-                                                   left="{",
-                                                   right="}"),
-                                        ],
-                                    ),
-                                )),
-                        ]),
-                        b.string("constructor = new Napi::FunctionReference();"),
-                        b.string("*constructor = Napi::Persistent(func);"),
-                        b.string("env.SetInstanceData(constructor);"),
-                        b.XCallRef(
-                            b.string("exports"),
-                            "Set",
-                            args=[
-                                b.StringLiteral(self.getNapiName()),
-                                b.string("func"),
-                            ],
-                            Stmt=True,
-                        ),
-                        b.Return(b.string("exports")),
+                        b.Return(
+                            b.XCall(
+                                "InitSharedWrap",
+                                args=[
+                                    b.string("env"),
+                                    b.string("exports"),
+                                    b.StringLiteral(self.getNapiName()),
+                                    b.pars(b.csv(BindCalls, isLine=False),
+                                           left="{",
+                                           right="}"),
+                                ],
+                            )),
                     ],
                 ),
                 isStatic=True,
             ))
-
-        WrapperClass.members.append(
-            cpp.MethodDeclParams(Params=cpp.FunctionParams(
-                Name=self.getNapiName(),
-                ResultTy=None,
-                InitList=[b.XConstructObj(obj=BaseWrap, Args=[b.string("info")])],
-                Args=[ParmVarParams(type=T_CALLBACK_INFO.asConstRef(), name="info")],
-                Body=[
-                    b.string("Napi::Env env = info.Env();"),
-                    b.string("Napi::HandleScope scope(env);"),
-                    b.line([
-                        b.string("_stored"),
-                        b.string(" = "),
-                        b.XCall("std::make_shared", Params=[self.getCxxName()]),
-                        b.string(";"),
-                    ] if self.Record.reflectionParams.default_constructor else []),
-                ])))
 
         shared_stored_ptr_type = QualType(
             name="shared_ptr",
             Spaces=[QualType(name="std", isNamespace=True)],
             Parameters=[self.getCxxName()],
         )
-
-        WrapperClass.members.append(
-            cpp.MethodDeclParams(Params=cpp.FunctionParams(
-                Name=self.getNapiName(),
-                ResultTy=None,
-                InitList=[b.XConstructObj(obj=BaseWrap, Args=[b.string("info")])],
-                Args=[
-                    ParmVarParams(type=T_CALLBACK_INFO.asConstRef(), name="info"),
-                    ParmVarParams(type=shared_stored_ptr_type.asConstRef(), name="ptr"),
-                ],
-                Body=[
-                    b.string("Napi::Env env = info.Env();"),
-                    b.string("Napi::HandleScope scope(env);"),
-                    b.string("_stored = ptr;"),
-                ])))
-
-        WrapperClass.members.append(
-            cpp.RecordField(
-                params=ParmVarParams(name="_stored", type=shared_stored_ptr_type)))
-
-        WrapperClass.members.append(
-            cpp.MethodDeclParams(Params=cpp.FunctionParams(
-                Name="getPtr",
-                ResultTy=self.getCxxName().asPtr(),
-                Body=[b.Return(b.Call(b.Dot(b.string("_stored"), b.string("get"))))],
-            )))
 
         return b.stack([
             b.Record(WrapperClass),

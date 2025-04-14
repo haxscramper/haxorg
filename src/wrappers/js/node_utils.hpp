@@ -432,10 +432,21 @@ template <typename Derived, typename Data>
 struct SharedPtrWrapBase : public Napi::ObjectWrap<Derived> {
     static Napi::FunctionReference* constructor;
     std::shared_ptr<Data>           _stored;
-    Data*                           getPtr() { return _stored.get(); }
+    Data*                           getPtr() {
+        LOGIC_ASSERTION_CHECK(
+            _stored.get() != nullptr,
+            "Stored object data is not initialized");
+        return _stored.get();
+    }
 
     SharedPtrWrapBase(const Napi::CallbackInfo& info)
-        : Napi::ObjectWrap<Derived>(info) {}
+        : Napi::ObjectWrap<Derived>(info) {
+        Napi::Env         env = info.Env();
+        Napi::HandleScope scope(env);
+        if constexpr (std::is_default_constructible_v<Data>) {
+            _stored = std::make_shared<Data>();
+        }
+    }
 
 
     SharedPtrWrapBase(
@@ -1180,6 +1191,7 @@ Napi::Value WrapCallableImpl(
                 info.Length()));
     }
 
+
     try {
         // Get the argument specifications
         const auto& argSpecs = callable.args();
@@ -1202,8 +1214,9 @@ Napi::Value WrapCallableImpl(
 
             try {
                 if (Index < info.Length()) {
-                    return JsConverter<ArgType>::from_js_value(
+                    CallResult&& tmp = JsConverter<ArgType>::from_js_value(
                         info, info[Index]);
+                    return tmp;
                 } else if (argSpec.defaultValue) {
                     return *argSpec.defaultValue;
                 } else {
