@@ -12,6 +12,28 @@
 
 namespace org::bind::js {
 
+std::string FormatNapiValue(const Napi::Value& value) {
+    if (value.IsNull()) {
+        return "null";
+    } else if (value.IsUndefined()) {
+        return "undefined";
+    } else if (value.IsBoolean()) {
+        return value.As<Napi::Boolean>().Value() ? "true" : "false";
+    } else if (value.IsNumber()) {
+        return std::to_string(value.As<Napi::Number>().DoubleValue());
+    } else if (value.IsString()) {
+        return value.As<Napi::String>().Utf8Value();
+    } else if (value.IsObject()) {
+        return "[object]";
+    } else if (value.IsArray()) {
+        return "[array]";
+    } else if (value.IsFunction()) {
+        return "[function]";
+    } else {
+        return "[unknown]";
+    }
+}
+
 // CRTP base class for exceptions with backtrace in what()
 template <typename DerivedError, typename BaseError>
 class OrgJsErrorBase
@@ -37,7 +59,15 @@ class OrgJsErrorBase
         char const*        function = __builtin_FUNCTION(),
         char const*        file     = __builtin_FILE()) {
 
-        BaseError    baseError = BaseError::New(env, message);
+        BaseError baseError = BaseError::New(
+            env,
+            std::format(
+                "{} at {}:{} in {}\n\n{}",
+                message,
+                file,
+                line,
+                function,
+                cpptrace::generate_trace().to_string()));
         DerivedError result{baseError};
         result.line     = line;
         result.file     = file;
@@ -46,12 +76,7 @@ class OrgJsErrorBase
     }
 
     virtual const char* message() const noexcept override {
-        error_text = std::format(
-            "{} at {}:{} in {}",
-            BaseError::Message(),
-            file,
-            line,
-            function);
+        error_text = BaseError::Message();
         return error_text.c_str();
     }
 
@@ -65,6 +90,7 @@ class OrgJsErrorBase
         return eager;
     }
 };
+
 
 // Specific error types with backtrace
 class OrgJsError : public OrgJsErrorBase<OrgJsError, Napi::Error> {
@@ -132,6 +158,19 @@ struct CxxArgSpec {
 
     using value_type = T;
 };
+
+template <typename Tuple>
+constexpr std::size_t count_required_args(const Tuple& args) {
+    if constexpr (std::tuple_size_v<std::decay_t<Tuple>> == 0) {
+        return 0;
+    } else {
+        std::size_t count = 0;
+        boost::mp11::tuple_for_each(args, [&count](const auto& arg) {
+            if (!arg.defaultValue.has_value()) { count++; }
+        });
+        return count;
+    }
+}
 
 // CallableClass template for method pointers
 template <typename T>
@@ -220,6 +259,10 @@ class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
     FunctionType     function() const { return function_; }
     bool             isFunctor() const { return functor_ != nullptr; }
 
+    int getRequiredArgsCount() const {
+        return count_required_args(args());
+    }
+
   private:
     // Base class for type-erased functor
     struct FunctorBase {
@@ -269,6 +312,11 @@ class Callable<CallableClass<ClassType>, ReturnType, Args...> {
     const ArgsTuple& args() const { return args_; }
     MethodType       method() const { return method_; }
 
+    int getRequiredArgsCount() const {
+        return count_required_args(args());
+    }
+
+
   private:
     MethodType method_;
     ArgsTuple  args_;
@@ -305,6 +353,10 @@ class Callable<CallableClass<const ClassType>, ReturnType, Args...> {
 
     const ArgsTuple& args() const { return args_; }
     MethodType       method() const { return method_; }
+
+    int getRequiredArgsCount() const {
+        return count_required_args(args());
+    }
 
   private:
     MethodType method_;
@@ -413,6 +465,9 @@ struct SharedPtrWrapBase : public Napi::ObjectWrap<Derived> {
     }
 };
 
+template <typename Derived, typename Data>
+Napi::FunctionReference* SharedPtrWrapBase<Derived, Data>::constructor = nullptr;
+
 template <typename JsType, typename Func>
 Napi::Object CreateCxx(Func const& config) {
     Napi::Object obj      = JsType::constructor->New({});
@@ -437,12 +492,12 @@ struct JsEnumWrapper : public Napi::ObjectWrap<JsEnumWrapper<E>> {
         props.push_back(Base::InstanceMethod("toString", &This::ToString));
         props.push_back(Base::InstanceMethod("toInt", &This::ToInt));
 
-        for (hstd::EnumFieldDesc<E> const& it :
-             hstd::describe_enumerators<E>()) {
-            props.push_back(Base::StaticValue(
-                std::string(it.name + "Int").c_str(),
-                Napi::Number::New(env, static_cast<double>(it.value))));
-        }
+        // for (hstd::EnumFieldDesc<E> const& it :
+        //      hstd::describe_enumerators<E>()) {
+        //     props.push_back(Base::StaticValue(
+        //         std::string(it.name + "Int").c_str(),
+        //         Napi::Number::New(env, static_cast<double>(it.value))));
+        // }
 
         Napi::Function func = Base::DefineClass(env, className, props);
 
@@ -460,12 +515,6 @@ struct JsEnumWrapper : public Napi::ObjectWrap<JsEnumWrapper<E>> {
         if (info[0].IsNumber()) {
             value = static_cast<E>(
                 info[0].As<Napi::Number>().Int64Value());
-        } else {
-            throw OrgJsError::New(
-                info.Env(),
-                std::format(
-                    "value cannot be converted to {}",
-                    hstd::value_metadata<E>::typeName()));
         }
     }
 
@@ -480,7 +529,7 @@ struct JsEnumWrapper : public Napi::ObjectWrap<JsEnumWrapper<E>> {
                 throw OrgJsError::New(
                     info.Env(),
                     std::format(
-                        "{} cannot be converted to {}",
+                        "'{}' cannot be converted to {}",
                         value,
                         hstd::value_metadata<E>::typeName()));
             }
@@ -508,6 +557,9 @@ struct JsEnumWrapper : public Napi::ObjectWrap<JsEnumWrapper<E>> {
         return Napi::Number::New(info.Env(), static_cast<double>(value));
     }
 };
+
+template <typename E>
+Napi::FunctionReference* JsEnumWrapper<E>::constructor = nullptr;
 
 template <typename T>
 struct hstdVec_bind
@@ -1102,8 +1154,31 @@ Napi::Value WrapCallableImpl(
     Napi::CallbackInfo const& info,
     const CallableType&       callable,
     ClassInstance             instance,
-    std::index_sequence<Indices...>) {
+    std::index_sequence<Indices...>,
+    int         line     = __builtin_LINE(),
+    char const* function = __builtin_FUNCTION(),
+    char const* file     = __builtin_FILE()) {
     Napi::Env env = info.Env();
+
+    LOG(INFO) << std::format(
+        "Triggering callable {} arguments at {}:{}",
+        info.Length(),
+        function,
+        line);
+    for (int i = 0; i < info.Length(); ++i) {
+        LOG(INFO) << std::format(
+            "  @[{}] = {}", i, FormatNapiValue(info[i]));
+    }
+
+    if (info.Length() < callable.getRequiredArgsCount()) {
+        throw OrgJsError::New(
+            info.Env(),
+            std::format(
+                "Argument count mismatch, expected at least {}, but got "
+                "{}",
+                callable.getRequiredArgsCount(),
+                info.Length()));
+    }
 
     try {
         // Get the argument specifications
@@ -1111,12 +1186,13 @@ Napi::Value WrapCallableImpl(
 
         // Convert arguments with proper type checking - now using pack
         // expansion instead of indexing into the tuple at runtime
-        auto convertArg = [&info, &argSpecs]<
-                              size_t Index,
-                              typename ExactResult = std::tuple_element_t<
-                                  Index,
-                                  typename CallableType::ArgsBaseTypes>>()
-            -> ExactResult {
+        auto convertArg =
+            [&info, &argSpecs]<
+                size_t Index,
+                typename CallResult = std::decay_t<std::tuple_element_t<
+                    Index,
+                    typename CallableType::ArgsBaseTypes>>>()
+            -> CallResult {
             // Get the type of the argument at compile-time index
             using ArgSpecType = std::
                 tuple_element_t<Index, std::decay_t<decltype(argSpecs)>>;
@@ -1197,9 +1273,18 @@ template <typename ReturnType, typename... Args>
 Napi::Value WrapFunction(
     Napi::CallbackInfo const& info,
     const Callable<CallableClass<std::monostate>, ReturnType, Args...>&
-        callable) {
+                callable,
+    int         line     = __builtin_LINE(),
+    char const* function = __builtin_FUNCTION(),
+    char const* file     = __builtin_FILE()) {
     return WrapCallableImpl(
-        info, callable, nullptr, std::index_sequence_for<Args...>{});
+        info,
+        callable,
+        nullptr,
+        std::index_sequence_for<Args...>{},
+        line,
+        function,
+        file);
 }
 
 // Wrapper for non-const methods
@@ -1208,9 +1293,18 @@ Napi::Value WrapMethod(
     Napi::CallbackInfo const& info,
     ClassType*                instance,
     const Callable<CallableClass<ClassType>, ReturnType, Args...>&
-        callable) {
+                callable,
+    int         line     = __builtin_LINE(),
+    char const* function = __builtin_FUNCTION(),
+    char const* file     = __builtin_FILE()) {
     return WrapCallableImpl(
-        info, callable, instance, std::index_sequence_for<Args...>{});
+        info,
+        callable,
+        instance,
+        std::index_sequence_for<Args...>{},
+        line,
+        function,
+        file);
 }
 
 
@@ -1220,9 +1314,18 @@ Napi::Value WrapConstMethod(
     Napi::CallbackInfo const& info,
     const ClassType*          instance,
     const Callable<CallableClass<const ClassType>, ReturnType, Args...>&
-        callable) {
+                callable,
+    int         line     = __builtin_LINE(),
+    char const* function = __builtin_FUNCTION(),
+    char const* file     = __builtin_FILE()) {
     return WrapCallableImpl(
-        info, callable, instance, std::index_sequence_for<Args...>{});
+        info,
+        callable,
+        instance,
+        std::index_sequence_for<Args...>{},
+        line,
+        function,
+        file);
 }
 
 

@@ -296,6 +296,7 @@ node can have subnodes.)RAW")
     .def("push_back",
          static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back),
          pybind11::arg("sub"))
+    .def("size", static_cast<int(org::sem::Org::*)() const>(&org::sem::Org::size))
     .def("insert",
          static_cast<void(org::sem::Org::*)(int, org::sem::SemId<org::sem::Org>)>(&org::sem::Org::insert),
          pybind11::arg("pos"),

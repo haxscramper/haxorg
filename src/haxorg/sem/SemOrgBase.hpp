@@ -315,6 +315,8 @@ struct [[refl(R"({
     SubnodeVec::const_iterator begin() const { return subnodes.begin(); }
     SubnodeVec::const_iterator end() const { return subnodes.end(); }
 
+    [[refl]] int size() const { return subnodes.size(); }
+
     [[refl]] void insert(int pos, SemId<Org> node) {
         subnodes.insert(begin() + pos, node);
     }

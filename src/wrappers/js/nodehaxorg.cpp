@@ -12414,6 +12414,12 @@ struct NoneJs : public Napi::ObjectWrap<NoneJs> {
                       makeCallable(static_cast<void(org::sem::None::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::None::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::None::*)() const>(&org::sem::None::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -12437,6 +12443,7 @@ struct NoneJs : public Napi::ObjectWrap<NoneJs> {
     Napi::Function func = DefineClass(env, "NoneJs", {InstanceMethod("getKind", &NoneJs::getKind),
                                                       InstanceMethod("isGenerated", &NoneJs::isGenerated),
                                                       InstanceMethod("push_back", &NoneJs::push_back),
+                                                      InstanceMethod("size", &NoneJs::size),
                                                       InstanceMethod("insert", &NoneJs::insert),
                                                       InstanceMethod("at", &NoneJs::at),
                                                       InstanceMethod("is", &NoneJs::is)});
@@ -12490,6 +12497,12 @@ struct ErrorItemJs : public Napi::ObjectWrap<ErrorItemJs> {
                       makeCallable(static_cast<void(org::sem::ErrorItem::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::ErrorItem::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::ErrorItem::*)() const>(&org::sem::ErrorItem::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -12513,6 +12526,7 @@ struct ErrorItemJs : public Napi::ObjectWrap<ErrorItemJs> {
     Napi::Function func = DefineClass(env, "ErrorItemJs", {InstanceMethod("getKind", &ErrorItemJs::getKind),
                                                            InstanceMethod("isGenerated", &ErrorItemJs::isGenerated),
                                                            InstanceMethod("push_back", &ErrorItemJs::push_back),
+                                                           InstanceMethod("size", &ErrorItemJs::size),
                                                            InstanceMethod("insert", &ErrorItemJs::insert),
                                                            InstanceMethod("at", &ErrorItemJs::at),
                                                            InstanceMethod("is", &ErrorItemJs::is)});
@@ -12566,6 +12580,12 @@ struct ErrorGroupJs : public Napi::ObjectWrap<ErrorGroupJs> {
                       makeCallable(static_cast<void(org::sem::ErrorGroup::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::ErrorGroup::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::ErrorGroup::*)() const>(&org::sem::ErrorGroup::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -12589,6 +12609,7 @@ struct ErrorGroupJs : public Napi::ObjectWrap<ErrorGroupJs> {
     Napi::Function func = DefineClass(env, "ErrorGroupJs", {InstanceMethod("getKind", &ErrorGroupJs::getKind),
                                                             InstanceMethod("isGenerated", &ErrorGroupJs::isGenerated),
                                                             InstanceMethod("push_back", &ErrorGroupJs::push_back),
+                                                            InstanceMethod("size", &ErrorGroupJs::size),
                                                             InstanceMethod("insert", &ErrorGroupJs::insert),
                                                             InstanceMethod("at", &ErrorGroupJs::at),
                                                             InstanceMethod("is", &ErrorGroupJs::is)});
@@ -12642,6 +12663,12 @@ struct StmtListJs : public Napi::ObjectWrap<StmtListJs> {
                       makeCallable(static_cast<void(org::sem::StmtList::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::StmtList::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::StmtList::*)() const>(&org::sem::StmtList::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -12665,6 +12692,7 @@ struct StmtListJs : public Napi::ObjectWrap<StmtListJs> {
     Napi::Function func = DefineClass(env, "StmtListJs", {InstanceMethod("getKind", &StmtListJs::getKind),
                                                           InstanceMethod("isGenerated", &StmtListJs::isGenerated),
                                                           InstanceMethod("push_back", &StmtListJs::push_back),
+                                                          InstanceMethod("size", &StmtListJs::size),
                                                           InstanceMethod("insert", &StmtListJs::insert),
                                                           InstanceMethod("at", &StmtListJs::at),
                                                           InstanceMethod("is", &StmtListJs::is)});
@@ -12718,6 +12746,12 @@ struct EmptyJs : public Napi::ObjectWrap<EmptyJs> {
                       makeCallable(static_cast<void(org::sem::Empty::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Empty::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Empty::*)() const>(&org::sem::Empty::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -12741,6 +12775,7 @@ struct EmptyJs : public Napi::ObjectWrap<EmptyJs> {
     Napi::Function func = DefineClass(env, "EmptyJs", {InstanceMethod("getKind", &EmptyJs::getKind),
                                                        InstanceMethod("isGenerated", &EmptyJs::isGenerated),
                                                        InstanceMethod("push_back", &EmptyJs::push_back),
+                                                       InstanceMethod("size", &EmptyJs::size),
                                                        InstanceMethod("insert", &EmptyJs::insert),
                                                        InstanceMethod("at", &EmptyJs::at),
                                                        InstanceMethod("is", &EmptyJs::is)});
@@ -12793,6 +12828,12 @@ struct TimeJs : public Napi::ObjectWrap<TimeJs> {
                       getPtr(),
                       makeCallable(static_cast<void(org::sem::Time::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Time::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
+  }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Time::*)() const>(&org::sem::Time::size),
+                                        std::make_tuple()));
   }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
@@ -12895,6 +12936,7 @@ struct TimeJs : public Napi::ObjectWrap<TimeJs> {
     Napi::Function func = DefineClass(env, "TimeJs", {InstanceMethod("getKind", &TimeJs::getKind),
                                                       InstanceMethod("isGenerated", &TimeJs::isGenerated),
                                                       InstanceMethod("push_back", &TimeJs::push_back),
+                                                      InstanceMethod("size", &TimeJs::size),
                                                       InstanceMethod("insert", &TimeJs::insert),
                                                       InstanceMethod("at", &TimeJs::at),
                                                       InstanceMethod("is", &TimeJs::is),
@@ -13063,6 +13105,12 @@ struct TimeRangeJs : public Napi::ObjectWrap<TimeRangeJs> {
                       makeCallable(static_cast<void(org::sem::TimeRange::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::TimeRange::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::TimeRange::*)() const>(&org::sem::TimeRange::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13086,6 +13134,7 @@ struct TimeRangeJs : public Napi::ObjectWrap<TimeRangeJs> {
     Napi::Function func = DefineClass(env, "TimeRangeJs", {InstanceMethod("getKind", &TimeRangeJs::getKind),
                                                            InstanceMethod("isGenerated", &TimeRangeJs::isGenerated),
                                                            InstanceMethod("push_back", &TimeRangeJs::push_back),
+                                                           InstanceMethod("size", &TimeRangeJs::size),
                                                            InstanceMethod("insert", &TimeRangeJs::insert),
                                                            InstanceMethod("at", &TimeRangeJs::at),
                                                            InstanceMethod("is", &TimeRangeJs::is)});
@@ -13139,6 +13188,12 @@ struct MacroJs : public Napi::ObjectWrap<MacroJs> {
                       makeCallable(static_cast<void(org::sem::Macro::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Macro::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Macro::*)() const>(&org::sem::Macro::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13162,6 +13217,7 @@ struct MacroJs : public Napi::ObjectWrap<MacroJs> {
     Napi::Function func = DefineClass(env, "MacroJs", {InstanceMethod("getKind", &MacroJs::getKind),
                                                        InstanceMethod("isGenerated", &MacroJs::isGenerated),
                                                        InstanceMethod("push_back", &MacroJs::push_back),
+                                                       InstanceMethod("size", &MacroJs::size),
                                                        InstanceMethod("insert", &MacroJs::insert),
                                                        InstanceMethod("at", &MacroJs::at),
                                                        InstanceMethod("is", &MacroJs::is)});
@@ -13215,6 +13271,12 @@ struct SymbolJs : public Napi::ObjectWrap<SymbolJs> {
                       makeCallable(static_cast<void(org::sem::Symbol::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Symbol::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Symbol::*)() const>(&org::sem::Symbol::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13238,6 +13300,7 @@ struct SymbolJs : public Napi::ObjectWrap<SymbolJs> {
     Napi::Function func = DefineClass(env, "SymbolJs", {InstanceMethod("getKind", &SymbolJs::getKind),
                                                         InstanceMethod("isGenerated", &SymbolJs::isGenerated),
                                                         InstanceMethod("push_back", &SymbolJs::push_back),
+                                                        InstanceMethod("size", &SymbolJs::size),
                                                         InstanceMethod("insert", &SymbolJs::insert),
                                                         InstanceMethod("at", &SymbolJs::at),
                                                         InstanceMethod("is", &SymbolJs::is)});
@@ -13325,6 +13388,12 @@ struct RadioTargetJs : public Napi::ObjectWrap<RadioTargetJs> {
                       makeCallable(static_cast<void(org::sem::RadioTarget::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::RadioTarget::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::RadioTarget::*)() const>(&org::sem::RadioTarget::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13348,6 +13417,7 @@ struct RadioTargetJs : public Napi::ObjectWrap<RadioTargetJs> {
     Napi::Function func = DefineClass(env, "RadioTargetJs", {InstanceMethod("getKind", &RadioTargetJs::getKind),
                                                              InstanceMethod("isGenerated", &RadioTargetJs::isGenerated),
                                                              InstanceMethod("push_back", &RadioTargetJs::push_back),
+                                                             InstanceMethod("size", &RadioTargetJs::size),
                                                              InstanceMethod("insert", &RadioTargetJs::insert),
                                                              InstanceMethod("at", &RadioTargetJs::at),
                                                              InstanceMethod("is", &RadioTargetJs::is)});
@@ -13401,6 +13471,12 @@ struct LatexJs : public Napi::ObjectWrap<LatexJs> {
                       makeCallable(static_cast<void(org::sem::Latex::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Latex::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Latex::*)() const>(&org::sem::Latex::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13424,6 +13500,7 @@ struct LatexJs : public Napi::ObjectWrap<LatexJs> {
     Napi::Function func = DefineClass(env, "LatexJs", {InstanceMethod("getKind", &LatexJs::getKind),
                                                        InstanceMethod("isGenerated", &LatexJs::isGenerated),
                                                        InstanceMethod("push_back", &LatexJs::push_back),
+                                                       InstanceMethod("size", &LatexJs::size),
                                                        InstanceMethod("insert", &LatexJs::insert),
                                                        InstanceMethod("at", &LatexJs::at),
                                                        InstanceMethod("is", &LatexJs::is)});
@@ -13477,6 +13554,12 @@ struct SubtreeLogJs : public Napi::ObjectWrap<SubtreeLogJs> {
                       makeCallable(static_cast<void(org::sem::SubtreeLog::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::SubtreeLog::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::SubtreeLog::*)() const>(&org::sem::SubtreeLog::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13506,6 +13589,7 @@ struct SubtreeLogJs : public Napi::ObjectWrap<SubtreeLogJs> {
     Napi::Function func = DefineClass(env, "SubtreeLogJs", {InstanceMethod("getKind", &SubtreeLogJs::getKind),
                                                             InstanceMethod("isGenerated", &SubtreeLogJs::isGenerated),
                                                             InstanceMethod("push_back", &SubtreeLogJs::push_back),
+                                                            InstanceMethod("size", &SubtreeLogJs::size),
                                                             InstanceMethod("insert", &SubtreeLogJs::insert),
                                                             InstanceMethod("at", &SubtreeLogJs::at),
                                                             InstanceMethod("is", &SubtreeLogJs::is),
@@ -13559,6 +13643,12 @@ struct SubtreeJs : public Napi::ObjectWrap<SubtreeJs> {
                       getPtr(),
                       makeCallable(static_cast<void(org::sem::Subtree::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Subtree::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
+  }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Subtree::*)() const>(&org::sem::Subtree::size),
+                                        std::make_tuple()));
   }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
@@ -13630,6 +13720,7 @@ struct SubtreeJs : public Napi::ObjectWrap<SubtreeJs> {
     Napi::Function func = DefineClass(env, "SubtreeJs", {InstanceMethod("getKind", &SubtreeJs::getKind),
                                                          InstanceMethod("isGenerated", &SubtreeJs::isGenerated),
                                                          InstanceMethod("push_back", &SubtreeJs::push_back),
+                                                         InstanceMethod("size", &SubtreeJs::size),
                                                          InstanceMethod("insert", &SubtreeJs::insert),
                                                          InstanceMethod("at", &SubtreeJs::at),
                                                          InstanceMethod("is", &SubtreeJs::is),
@@ -13690,6 +13781,12 @@ struct ColonExampleJs : public Napi::ObjectWrap<ColonExampleJs> {
                       makeCallable(static_cast<void(org::sem::ColonExample::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::ColonExample::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::ColonExample::*)() const>(&org::sem::ColonExample::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13713,6 +13810,7 @@ struct ColonExampleJs : public Napi::ObjectWrap<ColonExampleJs> {
     Napi::Function func = DefineClass(env, "ColonExampleJs", {InstanceMethod("getKind", &ColonExampleJs::getKind),
                                                               InstanceMethod("isGenerated", &ColonExampleJs::isGenerated),
                                                               InstanceMethod("push_back", &ColonExampleJs::push_back),
+                                                              InstanceMethod("size", &ColonExampleJs::size),
                                                               InstanceMethod("insert", &ColonExampleJs::insert),
                                                               InstanceMethod("at", &ColonExampleJs::at),
                                                               InstanceMethod("is", &ColonExampleJs::is)});
@@ -13766,6 +13864,12 @@ struct CallJs : public Napi::ObjectWrap<CallJs> {
                       makeCallable(static_cast<void(org::sem::Call::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Call::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Call::*)() const>(&org::sem::Call::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13789,6 +13893,7 @@ struct CallJs : public Napi::ObjectWrap<CallJs> {
     Napi::Function func = DefineClass(env, "CallJs", {InstanceMethod("getKind", &CallJs::getKind),
                                                       InstanceMethod("isGenerated", &CallJs::isGenerated),
                                                       InstanceMethod("push_back", &CallJs::push_back),
+                                                      InstanceMethod("size", &CallJs::size),
                                                       InstanceMethod("insert", &CallJs::insert),
                                                       InstanceMethod("at", &CallJs::at),
                                                       InstanceMethod("is", &CallJs::is)});
@@ -13842,6 +13947,12 @@ struct ListItemJs : public Napi::ObjectWrap<ListItemJs> {
                       makeCallable(static_cast<void(org::sem::ListItem::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::ListItem::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::ListItem::*)() const>(&org::sem::ListItem::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13877,6 +13988,7 @@ struct ListItemJs : public Napi::ObjectWrap<ListItemJs> {
     Napi::Function func = DefineClass(env, "ListItemJs", {InstanceMethod("getKind", &ListItemJs::getKind),
                                                           InstanceMethod("isGenerated", &ListItemJs::isGenerated),
                                                           InstanceMethod("push_back", &ListItemJs::push_back),
+                                                          InstanceMethod("size", &ListItemJs::size),
                                                           InstanceMethod("insert", &ListItemJs::insert),
                                                           InstanceMethod("at", &ListItemJs::at),
                                                           InstanceMethod("is", &ListItemJs::is),
@@ -13932,6 +14044,12 @@ struct DocumentOptionsJs : public Napi::ObjectWrap<DocumentOptionsJs> {
                       makeCallable(static_cast<void(org::sem::DocumentOptions::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::DocumentOptions::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::DocumentOptions::*)() const>(&org::sem::DocumentOptions::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -13969,6 +14087,7 @@ struct DocumentOptionsJs : public Napi::ObjectWrap<DocumentOptionsJs> {
     Napi::Function func = DefineClass(env, "DocumentOptionsJs", {InstanceMethod("getKind", &DocumentOptionsJs::getKind),
                                                                  InstanceMethod("isGenerated", &DocumentOptionsJs::isGenerated),
                                                                  InstanceMethod("push_back", &DocumentOptionsJs::push_back),
+                                                                 InstanceMethod("size", &DocumentOptionsJs::size),
                                                                  InstanceMethod("insert", &DocumentOptionsJs::insert),
                                                                  InstanceMethod("at", &DocumentOptionsJs::at),
                                                                  InstanceMethod("is", &DocumentOptionsJs::is),
@@ -14024,6 +14143,12 @@ struct DocumentFragmentJs : public Napi::ObjectWrap<DocumentFragmentJs> {
                       makeCallable(static_cast<void(org::sem::DocumentFragment::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::DocumentFragment::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::DocumentFragment::*)() const>(&org::sem::DocumentFragment::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -14047,6 +14172,7 @@ struct DocumentFragmentJs : public Napi::ObjectWrap<DocumentFragmentJs> {
     Napi::Function func = DefineClass(env, "DocumentFragmentJs", {InstanceMethod("getKind", &DocumentFragmentJs::getKind),
                                                                   InstanceMethod("isGenerated", &DocumentFragmentJs::isGenerated),
                                                                   InstanceMethod("push_back", &DocumentFragmentJs::push_back),
+                                                                  InstanceMethod("size", &DocumentFragmentJs::size),
                                                                   InstanceMethod("insert", &DocumentFragmentJs::insert),
                                                                   InstanceMethod("at", &DocumentFragmentJs::at),
                                                                   InstanceMethod("is", &DocumentFragmentJs::is)});
@@ -14100,6 +14226,12 @@ struct CriticMarkupJs : public Napi::ObjectWrap<CriticMarkupJs> {
                       makeCallable(static_cast<void(org::sem::CriticMarkup::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CriticMarkup::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CriticMarkup::*)() const>(&org::sem::CriticMarkup::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -14123,6 +14255,7 @@ struct CriticMarkupJs : public Napi::ObjectWrap<CriticMarkupJs> {
     Napi::Function func = DefineClass(env, "CriticMarkupJs", {InstanceMethod("getKind", &CriticMarkupJs::getKind),
                                                               InstanceMethod("isGenerated", &CriticMarkupJs::isGenerated),
                                                               InstanceMethod("push_back", &CriticMarkupJs::push_back),
+                                                              InstanceMethod("size", &CriticMarkupJs::size),
                                                               InstanceMethod("insert", &CriticMarkupJs::insert),
                                                               InstanceMethod("at", &CriticMarkupJs::at),
                                                               InstanceMethod("is", &CriticMarkupJs::is)});
@@ -14176,6 +14309,12 @@ struct DocumentJs : public Napi::ObjectWrap<DocumentJs> {
                       makeCallable(static_cast<void(org::sem::Document::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Document::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Document::*)() const>(&org::sem::Document::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -14213,6 +14352,7 @@ struct DocumentJs : public Napi::ObjectWrap<DocumentJs> {
     Napi::Function func = DefineClass(env, "DocumentJs", {InstanceMethod("getKind", &DocumentJs::getKind),
                                                           InstanceMethod("isGenerated", &DocumentJs::isGenerated),
                                                           InstanceMethod("push_back", &DocumentJs::push_back),
+                                                          InstanceMethod("size", &DocumentJs::size),
                                                           InstanceMethod("insert", &DocumentJs::insert),
                                                           InstanceMethod("at", &DocumentJs::at),
                                                           InstanceMethod("is", &DocumentJs::is),
@@ -14268,6 +14408,12 @@ struct FileTargetJs : public Napi::ObjectWrap<FileTargetJs> {
                       makeCallable(static_cast<void(org::sem::FileTarget::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::FileTarget::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::FileTarget::*)() const>(&org::sem::FileTarget::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -14291,6 +14437,7 @@ struct FileTargetJs : public Napi::ObjectWrap<FileTargetJs> {
     Napi::Function func = DefineClass(env, "FileTargetJs", {InstanceMethod("getKind", &FileTargetJs::getKind),
                                                             InstanceMethod("isGenerated", &FileTargetJs::isGenerated),
                                                             InstanceMethod("push_back", &FileTargetJs::push_back),
+                                                            InstanceMethod("size", &FileTargetJs::size),
                                                             InstanceMethod("insert", &FileTargetJs::insert),
                                                             InstanceMethod("at", &FileTargetJs::at),
                                                             InstanceMethod("is", &FileTargetJs::is)});
@@ -14344,6 +14491,12 @@ struct TextSeparatorJs : public Napi::ObjectWrap<TextSeparatorJs> {
                       makeCallable(static_cast<void(org::sem::TextSeparator::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::TextSeparator::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::TextSeparator::*)() const>(&org::sem::TextSeparator::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -14367,6 +14520,7 @@ struct TextSeparatorJs : public Napi::ObjectWrap<TextSeparatorJs> {
     Napi::Function func = DefineClass(env, "TextSeparatorJs", {InstanceMethod("getKind", &TextSeparatorJs::getKind),
                                                                InstanceMethod("isGenerated", &TextSeparatorJs::isGenerated),
                                                                InstanceMethod("push_back", &TextSeparatorJs::push_back),
+                                                               InstanceMethod("size", &TextSeparatorJs::size),
                                                                InstanceMethod("insert", &TextSeparatorJs::insert),
                                                                InstanceMethod("at", &TextSeparatorJs::at),
                                                                InstanceMethod("is", &TextSeparatorJs::is)});
@@ -14420,6 +14574,12 @@ struct DocumentGroupJs : public Napi::ObjectWrap<DocumentGroupJs> {
                       makeCallable(static_cast<void(org::sem::DocumentGroup::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::DocumentGroup::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::DocumentGroup::*)() const>(&org::sem::DocumentGroup::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -14443,6 +14603,7 @@ struct DocumentGroupJs : public Napi::ObjectWrap<DocumentGroupJs> {
     Napi::Function func = DefineClass(env, "DocumentGroupJs", {InstanceMethod("getKind", &DocumentGroupJs::getKind),
                                                                InstanceMethod("isGenerated", &DocumentGroupJs::isGenerated),
                                                                InstanceMethod("push_back", &DocumentGroupJs::push_back),
+                                                               InstanceMethod("size", &DocumentGroupJs::size),
                                                                InstanceMethod("insert", &DocumentGroupJs::insert),
                                                                InstanceMethod("at", &DocumentGroupJs::at),
                                                                InstanceMethod("is", &DocumentGroupJs::is)});
@@ -14495,6 +14656,12 @@ struct FileJs : public Napi::ObjectWrap<FileJs> {
                       getPtr(),
                       makeCallable(static_cast<void(org::sem::File::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::File::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
+  }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::File::*)() const>(&org::sem::File::size),
+                                        std::make_tuple()));
   }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
@@ -14567,6 +14734,7 @@ struct FileJs : public Napi::ObjectWrap<FileJs> {
     Napi::Function func = DefineClass(env, "FileJs", {InstanceMethod("getKind", &FileJs::getKind),
                                                       InstanceMethod("isGenerated", &FileJs::isGenerated),
                                                       InstanceMethod("push_back", &FileJs::push_back),
+                                                      InstanceMethod("size", &FileJs::size),
                                                       InstanceMethod("insert", &FileJs::insert),
                                                       InstanceMethod("at", &FileJs::at),
                                                       InstanceMethod("is", &FileJs::is),
@@ -14730,6 +14898,12 @@ struct DirectoryJs : public Napi::ObjectWrap<DirectoryJs> {
                       makeCallable(static_cast<void(org::sem::Directory::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Directory::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Directory::*)() const>(&org::sem::Directory::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -14753,6 +14927,7 @@ struct DirectoryJs : public Napi::ObjectWrap<DirectoryJs> {
     Napi::Function func = DefineClass(env, "DirectoryJs", {InstanceMethod("getKind", &DirectoryJs::getKind),
                                                            InstanceMethod("isGenerated", &DirectoryJs::isGenerated),
                                                            InstanceMethod("push_back", &DirectoryJs::push_back),
+                                                           InstanceMethod("size", &DirectoryJs::size),
                                                            InstanceMethod("insert", &DirectoryJs::insert),
                                                            InstanceMethod("at", &DirectoryJs::at),
                                                            InstanceMethod("is", &DirectoryJs::is)});
@@ -14806,6 +14981,12 @@ struct SymlinkJs : public Napi::ObjectWrap<SymlinkJs> {
                       makeCallable(static_cast<void(org::sem::Symlink::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Symlink::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Symlink::*)() const>(&org::sem::Symlink::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -14829,6 +15010,7 @@ struct SymlinkJs : public Napi::ObjectWrap<SymlinkJs> {
     Napi::Function func = DefineClass(env, "SymlinkJs", {InstanceMethod("getKind", &SymlinkJs::getKind),
                                                          InstanceMethod("isGenerated", &SymlinkJs::isGenerated),
                                                          InstanceMethod("push_back", &SymlinkJs::push_back),
+                                                         InstanceMethod("size", &SymlinkJs::size),
                                                          InstanceMethod("insert", &SymlinkJs::insert),
                                                          InstanceMethod("at", &SymlinkJs::at),
                                                          InstanceMethod("is", &SymlinkJs::is)});
@@ -14881,6 +15063,12 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
                       getPtr(),
                       makeCallable(static_cast<void(org::sem::CmdInclude::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdInclude::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
+  }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::size),
+                                        std::make_tuple()));
   }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
@@ -14977,6 +15165,7 @@ struct CmdIncludeJs : public Napi::ObjectWrap<CmdIncludeJs> {
     Napi::Function func = DefineClass(env, "CmdIncludeJs", {InstanceMethod("getKind", &CmdIncludeJs::getKind),
                                                             InstanceMethod("isGenerated", &CmdIncludeJs::isGenerated),
                                                             InstanceMethod("push_back", &CmdIncludeJs::push_back),
+                                                            InstanceMethod("size", &CmdIncludeJs::size),
                                                             InstanceMethod("insert", &CmdIncludeJs::insert),
                                                             InstanceMethod("at", &CmdIncludeJs::at),
                                                             InstanceMethod("is", &CmdIncludeJs::is),
@@ -25705,6 +25894,12 @@ struct CmdCustomRawJs : public Napi::ObjectWrap<CmdCustomRawJs> {
                       makeCallable(static_cast<void(org::sem::CmdCustomRaw::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdCustomRaw::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdCustomRaw::*)() const>(&org::sem::CmdCustomRaw::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -25758,6 +25953,7 @@ struct CmdCustomRawJs : public Napi::ObjectWrap<CmdCustomRawJs> {
     Napi::Function func = DefineClass(env, "CmdCustomRawJs", {InstanceMethod("getKind", &CmdCustomRawJs::getKind),
                                                               InstanceMethod("isGenerated", &CmdCustomRawJs::isGenerated),
                                                               InstanceMethod("push_back", &CmdCustomRawJs::push_back),
+                                                              InstanceMethod("size", &CmdCustomRawJs::size),
                                                               InstanceMethod("insert", &CmdCustomRawJs::insert),
                                                               InstanceMethod("at", &CmdCustomRawJs::at),
                                                               InstanceMethod("is", &CmdCustomRawJs::is),
@@ -25816,6 +26012,12 @@ struct CmdCustomTextJs : public Napi::ObjectWrap<CmdCustomTextJs> {
                       makeCallable(static_cast<void(org::sem::CmdCustomText::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdCustomText::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdCustomText::*)() const>(&org::sem::CmdCustomText::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -25869,6 +26071,7 @@ struct CmdCustomTextJs : public Napi::ObjectWrap<CmdCustomTextJs> {
     Napi::Function func = DefineClass(env, "CmdCustomTextJs", {InstanceMethod("getKind", &CmdCustomTextJs::getKind),
                                                                InstanceMethod("isGenerated", &CmdCustomTextJs::isGenerated),
                                                                InstanceMethod("push_back", &CmdCustomTextJs::push_back),
+                                                               InstanceMethod("size", &CmdCustomTextJs::size),
                                                                InstanceMethod("insert", &CmdCustomTextJs::insert),
                                                                InstanceMethod("at", &CmdCustomTextJs::at),
                                                                InstanceMethod("is", &CmdCustomTextJs::is),
@@ -25927,6 +26130,12 @@ struct LinkJs : public Napi::ObjectWrap<LinkJs> {
                       makeCallable(static_cast<void(org::sem::Link::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Link::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Link::*)() const>(&org::sem::Link::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -25980,6 +26189,7 @@ struct LinkJs : public Napi::ObjectWrap<LinkJs> {
     Napi::Function func = DefineClass(env, "LinkJs", {InstanceMethod("getKind", &LinkJs::getKind),
                                                       InstanceMethod("isGenerated", &LinkJs::isGenerated),
                                                       InstanceMethod("push_back", &LinkJs::push_back),
+                                                      InstanceMethod("size", &LinkJs::size),
                                                       InstanceMethod("insert", &LinkJs::insert),
                                                       InstanceMethod("at", &LinkJs::at),
                                                       InstanceMethod("is", &LinkJs::is),
@@ -26038,6 +26248,12 @@ struct BlockCommentJs : public Napi::ObjectWrap<BlockCommentJs> {
                       makeCallable(static_cast<void(org::sem::BlockComment::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockComment::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockComment::*)() const>(&org::sem::BlockComment::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -26091,6 +26307,7 @@ struct BlockCommentJs : public Napi::ObjectWrap<BlockCommentJs> {
     Napi::Function func = DefineClass(env, "BlockCommentJs", {InstanceMethod("getKind", &BlockCommentJs::getKind),
                                                               InstanceMethod("isGenerated", &BlockCommentJs::isGenerated),
                                                               InstanceMethod("push_back", &BlockCommentJs::push_back),
+                                                              InstanceMethod("size", &BlockCommentJs::size),
                                                               InstanceMethod("insert", &BlockCommentJs::insert),
                                                               InstanceMethod("at", &BlockCommentJs::at),
                                                               InstanceMethod("is", &BlockCommentJs::is),
@@ -26148,6 +26365,12 @@ struct ParagraphJs : public Napi::ObjectWrap<ParagraphJs> {
                       getPtr(),
                       makeCallable(static_cast<void(org::sem::Paragraph::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Paragraph::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
+  }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::size),
+                                        std::make_tuple()));
   }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
@@ -26268,6 +26491,7 @@ struct ParagraphJs : public Napi::ObjectWrap<ParagraphJs> {
     Napi::Function func = DefineClass(env, "ParagraphJs", {InstanceMethod("getKind", &ParagraphJs::getKind),
                                                            InstanceMethod("isGenerated", &ParagraphJs::isGenerated),
                                                            InstanceMethod("push_back", &ParagraphJs::push_back),
+                                                           InstanceMethod("size", &ParagraphJs::size),
                                                            InstanceMethod("insert", &ParagraphJs::insert),
                                                            InstanceMethod("at", &ParagraphJs::at),
                                                            InstanceMethod("is", &ParagraphJs::is),
@@ -26336,6 +26560,12 @@ struct ListJs : public Napi::ObjectWrap<ListJs> {
                       getPtr(),
                       makeCallable(static_cast<void(org::sem::List::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::List::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
+  }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::List::*)() const>(&org::sem::List::size),
+                                        std::make_tuple()));
   }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
@@ -26414,6 +26644,7 @@ struct ListJs : public Napi::ObjectWrap<ListJs> {
     Napi::Function func = DefineClass(env, "ListJs", {InstanceMethod("getKind", &ListJs::getKind),
                                                       InstanceMethod("isGenerated", &ListJs::isGenerated),
                                                       InstanceMethod("push_back", &ListJs::push_back),
+                                                      InstanceMethod("size", &ListJs::size),
                                                       InstanceMethod("insert", &ListJs::insert),
                                                       InstanceMethod("at", &ListJs::at),
                                                       InstanceMethod("is", &ListJs::is),
@@ -26476,6 +26707,12 @@ struct HashTagJs : public Napi::ObjectWrap<HashTagJs> {
                       makeCallable(static_cast<void(org::sem::HashTag::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::HashTag::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::HashTag::*)() const>(&org::sem::HashTag::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -26499,6 +26736,7 @@ struct HashTagJs : public Napi::ObjectWrap<HashTagJs> {
     Napi::Function func = DefineClass(env, "HashTagJs", {InstanceMethod("getKind", &HashTagJs::getKind),
                                                          InstanceMethod("isGenerated", &HashTagJs::isGenerated),
                                                          InstanceMethod("push_back", &HashTagJs::push_back),
+                                                         InstanceMethod("size", &HashTagJs::size),
                                                          InstanceMethod("insert", &HashTagJs::insert),
                                                          InstanceMethod("at", &HashTagJs::at),
                                                          InstanceMethod("is", &HashTagJs::is)});
@@ -26552,6 +26790,12 @@ struct InlineFootnoteJs : public Napi::ObjectWrap<InlineFootnoteJs> {
                       makeCallable(static_cast<void(org::sem::InlineFootnote::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::InlineFootnote::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::InlineFootnote::*)() const>(&org::sem::InlineFootnote::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -26575,6 +26819,7 @@ struct InlineFootnoteJs : public Napi::ObjectWrap<InlineFootnoteJs> {
     Napi::Function func = DefineClass(env, "InlineFootnoteJs", {InstanceMethod("getKind", &InlineFootnoteJs::getKind),
                                                                 InstanceMethod("isGenerated", &InlineFootnoteJs::isGenerated),
                                                                 InstanceMethod("push_back", &InlineFootnoteJs::push_back),
+                                                                InstanceMethod("size", &InlineFootnoteJs::size),
                                                                 InstanceMethod("insert", &InlineFootnoteJs::insert),
                                                                 InstanceMethod("at", &InlineFootnoteJs::at),
                                                                 InstanceMethod("is", &InlineFootnoteJs::is)});
@@ -26628,6 +26873,12 @@ struct InlineExportJs : public Napi::ObjectWrap<InlineExportJs> {
                       makeCallable(static_cast<void(org::sem::InlineExport::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::InlineExport::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::InlineExport::*)() const>(&org::sem::InlineExport::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -26651,6 +26902,7 @@ struct InlineExportJs : public Napi::ObjectWrap<InlineExportJs> {
     Napi::Function func = DefineClass(env, "InlineExportJs", {InstanceMethod("getKind", &InlineExportJs::getKind),
                                                               InstanceMethod("isGenerated", &InlineExportJs::isGenerated),
                                                               InstanceMethod("push_back", &InlineExportJs::push_back),
+                                                              InstanceMethod("size", &InlineExportJs::size),
                                                               InstanceMethod("insert", &InlineExportJs::insert),
                                                               InstanceMethod("at", &InlineExportJs::at),
                                                               InstanceMethod("is", &InlineExportJs::is)});
@@ -26704,6 +26956,12 @@ struct EscapedJs : public Napi::ObjectWrap<EscapedJs> {
                       makeCallable(static_cast<void(org::sem::Escaped::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Escaped::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Escaped::*)() const>(&org::sem::Escaped::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -26733,6 +26991,7 @@ struct EscapedJs : public Napi::ObjectWrap<EscapedJs> {
     Napi::Function func = DefineClass(env, "EscapedJs", {InstanceMethod("getKind", &EscapedJs::getKind),
                                                          InstanceMethod("isGenerated", &EscapedJs::isGenerated),
                                                          InstanceMethod("push_back", &EscapedJs::push_back),
+                                                         InstanceMethod("size", &EscapedJs::size),
                                                          InstanceMethod("insert", &EscapedJs::insert),
                                                          InstanceMethod("at", &EscapedJs::at),
                                                          InstanceMethod("is", &EscapedJs::is),
@@ -26787,6 +27046,12 @@ struct NewlineJs : public Napi::ObjectWrap<NewlineJs> {
                       makeCallable(static_cast<void(org::sem::Newline::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Newline::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Newline::*)() const>(&org::sem::Newline::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -26816,6 +27081,7 @@ struct NewlineJs : public Napi::ObjectWrap<NewlineJs> {
     Napi::Function func = DefineClass(env, "NewlineJs", {InstanceMethod("getKind", &NewlineJs::getKind),
                                                          InstanceMethod("isGenerated", &NewlineJs::isGenerated),
                                                          InstanceMethod("push_back", &NewlineJs::push_back),
+                                                         InstanceMethod("size", &NewlineJs::size),
                                                          InstanceMethod("insert", &NewlineJs::insert),
                                                          InstanceMethod("at", &NewlineJs::at),
                                                          InstanceMethod("is", &NewlineJs::is),
@@ -26870,6 +27136,12 @@ struct SpaceJs : public Napi::ObjectWrap<SpaceJs> {
                       makeCallable(static_cast<void(org::sem::Space::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Space::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Space::*)() const>(&org::sem::Space::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -26899,6 +27171,7 @@ struct SpaceJs : public Napi::ObjectWrap<SpaceJs> {
     Napi::Function func = DefineClass(env, "SpaceJs", {InstanceMethod("getKind", &SpaceJs::getKind),
                                                        InstanceMethod("isGenerated", &SpaceJs::isGenerated),
                                                        InstanceMethod("push_back", &SpaceJs::push_back),
+                                                       InstanceMethod("size", &SpaceJs::size),
                                                        InstanceMethod("insert", &SpaceJs::insert),
                                                        InstanceMethod("at", &SpaceJs::at),
                                                        InstanceMethod("is", &SpaceJs::is),
@@ -26953,6 +27226,12 @@ struct WordJs : public Napi::ObjectWrap<WordJs> {
                       makeCallable(static_cast<void(org::sem::Word::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Word::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Word::*)() const>(&org::sem::Word::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -26982,6 +27261,7 @@ struct WordJs : public Napi::ObjectWrap<WordJs> {
     Napi::Function func = DefineClass(env, "WordJs", {InstanceMethod("getKind", &WordJs::getKind),
                                                       InstanceMethod("isGenerated", &WordJs::isGenerated),
                                                       InstanceMethod("push_back", &WordJs::push_back),
+                                                      InstanceMethod("size", &WordJs::size),
                                                       InstanceMethod("insert", &WordJs::insert),
                                                       InstanceMethod("at", &WordJs::at),
                                                       InstanceMethod("is", &WordJs::is),
@@ -27036,6 +27316,12 @@ struct AtMentionJs : public Napi::ObjectWrap<AtMentionJs> {
                       makeCallable(static_cast<void(org::sem::AtMention::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::AtMention::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::AtMention::*)() const>(&org::sem::AtMention::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27065,6 +27351,7 @@ struct AtMentionJs : public Napi::ObjectWrap<AtMentionJs> {
     Napi::Function func = DefineClass(env, "AtMentionJs", {InstanceMethod("getKind", &AtMentionJs::getKind),
                                                            InstanceMethod("isGenerated", &AtMentionJs::isGenerated),
                                                            InstanceMethod("push_back", &AtMentionJs::push_back),
+                                                           InstanceMethod("size", &AtMentionJs::size),
                                                            InstanceMethod("insert", &AtMentionJs::insert),
                                                            InstanceMethod("at", &AtMentionJs::at),
                                                            InstanceMethod("is", &AtMentionJs::is),
@@ -27119,6 +27406,12 @@ struct RawTextJs : public Napi::ObjectWrap<RawTextJs> {
                       makeCallable(static_cast<void(org::sem::RawText::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::RawText::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::RawText::*)() const>(&org::sem::RawText::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27148,6 +27441,7 @@ struct RawTextJs : public Napi::ObjectWrap<RawTextJs> {
     Napi::Function func = DefineClass(env, "RawTextJs", {InstanceMethod("getKind", &RawTextJs::getKind),
                                                          InstanceMethod("isGenerated", &RawTextJs::isGenerated),
                                                          InstanceMethod("push_back", &RawTextJs::push_back),
+                                                         InstanceMethod("size", &RawTextJs::size),
                                                          InstanceMethod("insert", &RawTextJs::insert),
                                                          InstanceMethod("at", &RawTextJs::at),
                                                          InstanceMethod("is", &RawTextJs::is),
@@ -27202,6 +27496,12 @@ struct PunctuationJs : public Napi::ObjectWrap<PunctuationJs> {
                       makeCallable(static_cast<void(org::sem::Punctuation::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Punctuation::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Punctuation::*)() const>(&org::sem::Punctuation::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27231,6 +27531,7 @@ struct PunctuationJs : public Napi::ObjectWrap<PunctuationJs> {
     Napi::Function func = DefineClass(env, "PunctuationJs", {InstanceMethod("getKind", &PunctuationJs::getKind),
                                                              InstanceMethod("isGenerated", &PunctuationJs::isGenerated),
                                                              InstanceMethod("push_back", &PunctuationJs::push_back),
+                                                             InstanceMethod("size", &PunctuationJs::size),
                                                              InstanceMethod("insert", &PunctuationJs::insert),
                                                              InstanceMethod("at", &PunctuationJs::at),
                                                              InstanceMethod("is", &PunctuationJs::is),
@@ -27285,6 +27586,12 @@ struct PlaceholderJs : public Napi::ObjectWrap<PlaceholderJs> {
                       makeCallable(static_cast<void(org::sem::Placeholder::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Placeholder::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Placeholder::*)() const>(&org::sem::Placeholder::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27314,6 +27621,7 @@ struct PlaceholderJs : public Napi::ObjectWrap<PlaceholderJs> {
     Napi::Function func = DefineClass(env, "PlaceholderJs", {InstanceMethod("getKind", &PlaceholderJs::getKind),
                                                              InstanceMethod("isGenerated", &PlaceholderJs::isGenerated),
                                                              InstanceMethod("push_back", &PlaceholderJs::push_back),
+                                                             InstanceMethod("size", &PlaceholderJs::size),
                                                              InstanceMethod("insert", &PlaceholderJs::insert),
                                                              InstanceMethod("at", &PlaceholderJs::at),
                                                              InstanceMethod("is", &PlaceholderJs::is),
@@ -27368,6 +27676,12 @@ struct BigIdentJs : public Napi::ObjectWrap<BigIdentJs> {
                       makeCallable(static_cast<void(org::sem::BigIdent::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BigIdent::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BigIdent::*)() const>(&org::sem::BigIdent::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27397,6 +27711,7 @@ struct BigIdentJs : public Napi::ObjectWrap<BigIdentJs> {
     Napi::Function func = DefineClass(env, "BigIdentJs", {InstanceMethod("getKind", &BigIdentJs::getKind),
                                                           InstanceMethod("isGenerated", &BigIdentJs::isGenerated),
                                                           InstanceMethod("push_back", &BigIdentJs::push_back),
+                                                          InstanceMethod("size", &BigIdentJs::size),
                                                           InstanceMethod("insert", &BigIdentJs::insert),
                                                           InstanceMethod("at", &BigIdentJs::at),
                                                           InstanceMethod("is", &BigIdentJs::is),
@@ -27451,6 +27766,12 @@ struct TextTargetJs : public Napi::ObjectWrap<TextTargetJs> {
                       makeCallable(static_cast<void(org::sem::TextTarget::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::TextTarget::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::TextTarget::*)() const>(&org::sem::TextTarget::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27480,6 +27801,7 @@ struct TextTargetJs : public Napi::ObjectWrap<TextTargetJs> {
     Napi::Function func = DefineClass(env, "TextTargetJs", {InstanceMethod("getKind", &TextTargetJs::getKind),
                                                             InstanceMethod("isGenerated", &TextTargetJs::isGenerated),
                                                             InstanceMethod("push_back", &TextTargetJs::push_back),
+                                                            InstanceMethod("size", &TextTargetJs::size),
                                                             InstanceMethod("insert", &TextTargetJs::insert),
                                                             InstanceMethod("at", &TextTargetJs::at),
                                                             InstanceMethod("is", &TextTargetJs::is),
@@ -27534,6 +27856,12 @@ struct BoldJs : public Napi::ObjectWrap<BoldJs> {
                       makeCallable(static_cast<void(org::sem::Bold::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Bold::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Bold::*)() const>(&org::sem::Bold::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27557,6 +27885,7 @@ struct BoldJs : public Napi::ObjectWrap<BoldJs> {
     Napi::Function func = DefineClass(env, "BoldJs", {InstanceMethod("getKind", &BoldJs::getKind),
                                                       InstanceMethod("isGenerated", &BoldJs::isGenerated),
                                                       InstanceMethod("push_back", &BoldJs::push_back),
+                                                      InstanceMethod("size", &BoldJs::size),
                                                       InstanceMethod("insert", &BoldJs::insert),
                                                       InstanceMethod("at", &BoldJs::at),
                                                       InstanceMethod("is", &BoldJs::is)});
@@ -27610,6 +27939,12 @@ struct UnderlineJs : public Napi::ObjectWrap<UnderlineJs> {
                       makeCallable(static_cast<void(org::sem::Underline::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Underline::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Underline::*)() const>(&org::sem::Underline::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27633,6 +27968,7 @@ struct UnderlineJs : public Napi::ObjectWrap<UnderlineJs> {
     Napi::Function func = DefineClass(env, "UnderlineJs", {InstanceMethod("getKind", &UnderlineJs::getKind),
                                                            InstanceMethod("isGenerated", &UnderlineJs::isGenerated),
                                                            InstanceMethod("push_back", &UnderlineJs::push_back),
+                                                           InstanceMethod("size", &UnderlineJs::size),
                                                            InstanceMethod("insert", &UnderlineJs::insert),
                                                            InstanceMethod("at", &UnderlineJs::at),
                                                            InstanceMethod("is", &UnderlineJs::is)});
@@ -27686,6 +28022,12 @@ struct MonospaceJs : public Napi::ObjectWrap<MonospaceJs> {
                       makeCallable(static_cast<void(org::sem::Monospace::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Monospace::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Monospace::*)() const>(&org::sem::Monospace::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27709,6 +28051,7 @@ struct MonospaceJs : public Napi::ObjectWrap<MonospaceJs> {
     Napi::Function func = DefineClass(env, "MonospaceJs", {InstanceMethod("getKind", &MonospaceJs::getKind),
                                                            InstanceMethod("isGenerated", &MonospaceJs::isGenerated),
                                                            InstanceMethod("push_back", &MonospaceJs::push_back),
+                                                           InstanceMethod("size", &MonospaceJs::size),
                                                            InstanceMethod("insert", &MonospaceJs::insert),
                                                            InstanceMethod("at", &MonospaceJs::at),
                                                            InstanceMethod("is", &MonospaceJs::is)});
@@ -27762,6 +28105,12 @@ struct MarkQuoteJs : public Napi::ObjectWrap<MarkQuoteJs> {
                       makeCallable(static_cast<void(org::sem::MarkQuote::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::MarkQuote::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::MarkQuote::*)() const>(&org::sem::MarkQuote::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27785,6 +28134,7 @@ struct MarkQuoteJs : public Napi::ObjectWrap<MarkQuoteJs> {
     Napi::Function func = DefineClass(env, "MarkQuoteJs", {InstanceMethod("getKind", &MarkQuoteJs::getKind),
                                                            InstanceMethod("isGenerated", &MarkQuoteJs::isGenerated),
                                                            InstanceMethod("push_back", &MarkQuoteJs::push_back),
+                                                           InstanceMethod("size", &MarkQuoteJs::size),
                                                            InstanceMethod("insert", &MarkQuoteJs::insert),
                                                            InstanceMethod("at", &MarkQuoteJs::at),
                                                            InstanceMethod("is", &MarkQuoteJs::is)});
@@ -27838,6 +28188,12 @@ struct VerbatimJs : public Napi::ObjectWrap<VerbatimJs> {
                       makeCallable(static_cast<void(org::sem::Verbatim::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Verbatim::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Verbatim::*)() const>(&org::sem::Verbatim::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27861,6 +28217,7 @@ struct VerbatimJs : public Napi::ObjectWrap<VerbatimJs> {
     Napi::Function func = DefineClass(env, "VerbatimJs", {InstanceMethod("getKind", &VerbatimJs::getKind),
                                                           InstanceMethod("isGenerated", &VerbatimJs::isGenerated),
                                                           InstanceMethod("push_back", &VerbatimJs::push_back),
+                                                          InstanceMethod("size", &VerbatimJs::size),
                                                           InstanceMethod("insert", &VerbatimJs::insert),
                                                           InstanceMethod("at", &VerbatimJs::at),
                                                           InstanceMethod("is", &VerbatimJs::is)});
@@ -27914,6 +28271,12 @@ struct ItalicJs : public Napi::ObjectWrap<ItalicJs> {
                       makeCallable(static_cast<void(org::sem::Italic::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Italic::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Italic::*)() const>(&org::sem::Italic::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -27937,6 +28300,7 @@ struct ItalicJs : public Napi::ObjectWrap<ItalicJs> {
     Napi::Function func = DefineClass(env, "ItalicJs", {InstanceMethod("getKind", &ItalicJs::getKind),
                                                         InstanceMethod("isGenerated", &ItalicJs::isGenerated),
                                                         InstanceMethod("push_back", &ItalicJs::push_back),
+                                                        InstanceMethod("size", &ItalicJs::size),
                                                         InstanceMethod("insert", &ItalicJs::insert),
                                                         InstanceMethod("at", &ItalicJs::at),
                                                         InstanceMethod("is", &ItalicJs::is)});
@@ -27990,6 +28354,12 @@ struct StrikeJs : public Napi::ObjectWrap<StrikeJs> {
                       makeCallable(static_cast<void(org::sem::Strike::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Strike::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Strike::*)() const>(&org::sem::Strike::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -28013,6 +28383,7 @@ struct StrikeJs : public Napi::ObjectWrap<StrikeJs> {
     Napi::Function func = DefineClass(env, "StrikeJs", {InstanceMethod("getKind", &StrikeJs::getKind),
                                                         InstanceMethod("isGenerated", &StrikeJs::isGenerated),
                                                         InstanceMethod("push_back", &StrikeJs::push_back),
+                                                        InstanceMethod("size", &StrikeJs::size),
                                                         InstanceMethod("insert", &StrikeJs::insert),
                                                         InstanceMethod("at", &StrikeJs::at),
                                                         InstanceMethod("is", &StrikeJs::is)});
@@ -28066,6 +28437,12 @@ struct ParJs : public Napi::ObjectWrap<ParJs> {
                       makeCallable(static_cast<void(org::sem::Par::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Par::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Par::*)() const>(&org::sem::Par::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -28089,6 +28466,7 @@ struct ParJs : public Napi::ObjectWrap<ParJs> {
     Napi::Function func = DefineClass(env, "ParJs", {InstanceMethod("getKind", &ParJs::getKind),
                                                      InstanceMethod("isGenerated", &ParJs::isGenerated),
                                                      InstanceMethod("push_back", &ParJs::push_back),
+                                                     InstanceMethod("size", &ParJs::size),
                                                      InstanceMethod("insert", &ParJs::insert),
                                                      InstanceMethod("at", &ParJs::at),
                                                      InstanceMethod("is", &ParJs::is)});
@@ -28330,6 +28708,12 @@ struct CmdCustomArgsJs : public Napi::ObjectWrap<CmdCustomArgsJs> {
                       makeCallable(static_cast<void(org::sem::CmdCustomArgs::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdCustomArgs::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdCustomArgs::*)() const>(&org::sem::CmdCustomArgs::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -28383,6 +28767,7 @@ struct CmdCustomArgsJs : public Napi::ObjectWrap<CmdCustomArgsJs> {
     Napi::Function func = DefineClass(env, "CmdCustomArgsJs", {InstanceMethod("getKind", &CmdCustomArgsJs::getKind),
                                                                InstanceMethod("isGenerated", &CmdCustomArgsJs::isGenerated),
                                                                InstanceMethod("push_back", &CmdCustomArgsJs::push_back),
+                                                               InstanceMethod("size", &CmdCustomArgsJs::size),
                                                                InstanceMethod("insert", &CmdCustomArgsJs::insert),
                                                                InstanceMethod("at", &CmdCustomArgsJs::at),
                                                                InstanceMethod("is", &CmdCustomArgsJs::is),
@@ -28441,6 +28826,12 @@ struct CmdTblfmJs : public Napi::ObjectWrap<CmdTblfmJs> {
                       makeCallable(static_cast<void(org::sem::CmdTblfm::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdTblfm::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdTblfm::*)() const>(&org::sem::CmdTblfm::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -28494,6 +28885,7 @@ struct CmdTblfmJs : public Napi::ObjectWrap<CmdTblfmJs> {
     Napi::Function func = DefineClass(env, "CmdTblfmJs", {InstanceMethod("getKind", &CmdTblfmJs::getKind),
                                                           InstanceMethod("isGenerated", &CmdTblfmJs::isGenerated),
                                                           InstanceMethod("push_back", &CmdTblfmJs::push_back),
+                                                          InstanceMethod("size", &CmdTblfmJs::size),
                                                           InstanceMethod("insert", &CmdTblfmJs::insert),
                                                           InstanceMethod("at", &CmdTblfmJs::at),
                                                           InstanceMethod("is", &CmdTblfmJs::is),
@@ -28552,6 +28944,12 @@ struct CellJs : public Napi::ObjectWrap<CellJs> {
                       makeCallable(static_cast<void(org::sem::Cell::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Cell::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Cell::*)() const>(&org::sem::Cell::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -28605,6 +29003,7 @@ struct CellJs : public Napi::ObjectWrap<CellJs> {
     Napi::Function func = DefineClass(env, "CellJs", {InstanceMethod("getKind", &CellJs::getKind),
                                                       InstanceMethod("isGenerated", &CellJs::isGenerated),
                                                       InstanceMethod("push_back", &CellJs::push_back),
+                                                      InstanceMethod("size", &CellJs::size),
                                                       InstanceMethod("insert", &CellJs::insert),
                                                       InstanceMethod("at", &CellJs::at),
                                                       InstanceMethod("is", &CellJs::is),
@@ -28663,6 +29062,12 @@ struct RowJs : public Napi::ObjectWrap<RowJs> {
                       makeCallable(static_cast<void(org::sem::Row::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Row::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Row::*)() const>(&org::sem::Row::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -28716,6 +29121,7 @@ struct RowJs : public Napi::ObjectWrap<RowJs> {
     Napi::Function func = DefineClass(env, "RowJs", {InstanceMethod("getKind", &RowJs::getKind),
                                                      InstanceMethod("isGenerated", &RowJs::isGenerated),
                                                      InstanceMethod("push_back", &RowJs::push_back),
+                                                     InstanceMethod("size", &RowJs::size),
                                                      InstanceMethod("insert", &RowJs::insert),
                                                      InstanceMethod("at", &RowJs::at),
                                                      InstanceMethod("is", &RowJs::is),
@@ -30266,6 +30672,12 @@ struct BlockCenterJs : public Napi::ObjectWrap<BlockCenterJs> {
                       makeCallable(static_cast<void(org::sem::BlockCenter::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockCenter::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockCenter::*)() const>(&org::sem::BlockCenter::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -30319,6 +30731,7 @@ struct BlockCenterJs : public Napi::ObjectWrap<BlockCenterJs> {
     Napi::Function func = DefineClass(env, "BlockCenterJs", {InstanceMethod("getKind", &BlockCenterJs::getKind),
                                                              InstanceMethod("isGenerated", &BlockCenterJs::isGenerated),
                                                              InstanceMethod("push_back", &BlockCenterJs::push_back),
+                                                             InstanceMethod("size", &BlockCenterJs::size),
                                                              InstanceMethod("insert", &BlockCenterJs::insert),
                                                              InstanceMethod("at", &BlockCenterJs::at),
                                                              InstanceMethod("is", &BlockCenterJs::is),
@@ -30377,6 +30790,12 @@ struct BlockQuoteJs : public Napi::ObjectWrap<BlockQuoteJs> {
                       makeCallable(static_cast<void(org::sem::BlockQuote::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockQuote::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockQuote::*)() const>(&org::sem::BlockQuote::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -30430,6 +30849,7 @@ struct BlockQuoteJs : public Napi::ObjectWrap<BlockQuoteJs> {
     Napi::Function func = DefineClass(env, "BlockQuoteJs", {InstanceMethod("getKind", &BlockQuoteJs::getKind),
                                                             InstanceMethod("isGenerated", &BlockQuoteJs::isGenerated),
                                                             InstanceMethod("push_back", &BlockQuoteJs::push_back),
+                                                            InstanceMethod("size", &BlockQuoteJs::size),
                                                             InstanceMethod("insert", &BlockQuoteJs::insert),
                                                             InstanceMethod("at", &BlockQuoteJs::at),
                                                             InstanceMethod("is", &BlockQuoteJs::is),
@@ -30488,6 +30908,12 @@ struct BlockVerseJs : public Napi::ObjectWrap<BlockVerseJs> {
                       makeCallable(static_cast<void(org::sem::BlockVerse::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockVerse::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockVerse::*)() const>(&org::sem::BlockVerse::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -30541,6 +30967,7 @@ struct BlockVerseJs : public Napi::ObjectWrap<BlockVerseJs> {
     Napi::Function func = DefineClass(env, "BlockVerseJs", {InstanceMethod("getKind", &BlockVerseJs::getKind),
                                                             InstanceMethod("isGenerated", &BlockVerseJs::isGenerated),
                                                             InstanceMethod("push_back", &BlockVerseJs::push_back),
+                                                            InstanceMethod("size", &BlockVerseJs::size),
                                                             InstanceMethod("insert", &BlockVerseJs::insert),
                                                             InstanceMethod("at", &BlockVerseJs::at),
                                                             InstanceMethod("is", &BlockVerseJs::is),
@@ -30599,6 +31026,12 @@ struct BlockDynamicFallbackJs : public Napi::ObjectWrap<BlockDynamicFallbackJs> 
                       makeCallable(static_cast<void(org::sem::BlockDynamicFallback::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockDynamicFallback::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockDynamicFallback::*)() const>(&org::sem::BlockDynamicFallback::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -30652,6 +31085,7 @@ struct BlockDynamicFallbackJs : public Napi::ObjectWrap<BlockDynamicFallbackJs> 
     Napi::Function func = DefineClass(env, "BlockDynamicFallbackJs", {InstanceMethod("getKind", &BlockDynamicFallbackJs::getKind),
                                                                       InstanceMethod("isGenerated", &BlockDynamicFallbackJs::isGenerated),
                                                                       InstanceMethod("push_back", &BlockDynamicFallbackJs::push_back),
+                                                                      InstanceMethod("size", &BlockDynamicFallbackJs::size),
                                                                       InstanceMethod("insert", &BlockDynamicFallbackJs::insert),
                                                                       InstanceMethod("at", &BlockDynamicFallbackJs::at),
                                                                       InstanceMethod("is", &BlockDynamicFallbackJs::is),
@@ -30710,6 +31144,12 @@ struct BlockExampleJs : public Napi::ObjectWrap<BlockExampleJs> {
                       makeCallable(static_cast<void(org::sem::BlockExample::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockExample::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockExample::*)() const>(&org::sem::BlockExample::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -30763,6 +31203,7 @@ struct BlockExampleJs : public Napi::ObjectWrap<BlockExampleJs> {
     Napi::Function func = DefineClass(env, "BlockExampleJs", {InstanceMethod("getKind", &BlockExampleJs::getKind),
                                                               InstanceMethod("isGenerated", &BlockExampleJs::isGenerated),
                                                               InstanceMethod("push_back", &BlockExampleJs::push_back),
+                                                              InstanceMethod("size", &BlockExampleJs::size),
                                                               InstanceMethod("insert", &BlockExampleJs::insert),
                                                               InstanceMethod("at", &BlockExampleJs::at),
                                                               InstanceMethod("is", &BlockExampleJs::is),
@@ -30820,6 +31261,12 @@ struct BlockExportJs : public Napi::ObjectWrap<BlockExportJs> {
                       getPtr(),
                       makeCallable(static_cast<void(org::sem::BlockExport::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockExport::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
+  }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockExport::*)() const>(&org::sem::BlockExport::size),
+                                        std::make_tuple()));
   }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
@@ -30880,6 +31327,7 @@ struct BlockExportJs : public Napi::ObjectWrap<BlockExportJs> {
     Napi::Function func = DefineClass(env, "BlockExportJs", {InstanceMethod("getKind", &BlockExportJs::getKind),
                                                              InstanceMethod("isGenerated", &BlockExportJs::isGenerated),
                                                              InstanceMethod("push_back", &BlockExportJs::push_back),
+                                                             InstanceMethod("size", &BlockExportJs::size),
                                                              InstanceMethod("insert", &BlockExportJs::insert),
                                                              InstanceMethod("at", &BlockExportJs::at),
                                                              InstanceMethod("is", &BlockExportJs::is),
@@ -30939,6 +31387,12 @@ struct BlockAdmonitionJs : public Napi::ObjectWrap<BlockAdmonitionJs> {
                       makeCallable(static_cast<void(org::sem::BlockAdmonition::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockAdmonition::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockAdmonition::*)() const>(&org::sem::BlockAdmonition::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -30992,6 +31446,7 @@ struct BlockAdmonitionJs : public Napi::ObjectWrap<BlockAdmonitionJs> {
     Napi::Function func = DefineClass(env, "BlockAdmonitionJs", {InstanceMethod("getKind", &BlockAdmonitionJs::getKind),
                                                                  InstanceMethod("isGenerated", &BlockAdmonitionJs::isGenerated),
                                                                  InstanceMethod("push_back", &BlockAdmonitionJs::push_back),
+                                                                 InstanceMethod("size", &BlockAdmonitionJs::size),
                                                                  InstanceMethod("insert", &BlockAdmonitionJs::insert),
                                                                  InstanceMethod("at", &BlockAdmonitionJs::at),
                                                                  InstanceMethod("is", &BlockAdmonitionJs::is),
@@ -31050,6 +31505,12 @@ struct BlockCodeEvalResultJs : public Napi::ObjectWrap<BlockCodeEvalResultJs> {
                       makeCallable(static_cast<void(org::sem::BlockCodeEvalResult::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockCodeEvalResult::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -31103,6 +31564,7 @@ struct BlockCodeEvalResultJs : public Napi::ObjectWrap<BlockCodeEvalResultJs> {
     Napi::Function func = DefineClass(env, "BlockCodeEvalResultJs", {InstanceMethod("getKind", &BlockCodeEvalResultJs::getKind),
                                                                      InstanceMethod("isGenerated", &BlockCodeEvalResultJs::isGenerated),
                                                                      InstanceMethod("push_back", &BlockCodeEvalResultJs::push_back),
+                                                                     InstanceMethod("size", &BlockCodeEvalResultJs::size),
                                                                      InstanceMethod("insert", &BlockCodeEvalResultJs::insert),
                                                                      InstanceMethod("at", &BlockCodeEvalResultJs::at),
                                                                      InstanceMethod("is", &BlockCodeEvalResultJs::is),
@@ -31160,6 +31622,12 @@ struct BlockCodeJs : public Napi::ObjectWrap<BlockCodeJs> {
                       getPtr(),
                       makeCallable(static_cast<void(org::sem::BlockCode::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::BlockCode::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
+  }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::BlockCode::*)() const>(&org::sem::BlockCode::size),
+                                        std::make_tuple()));
   }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
@@ -31220,6 +31688,7 @@ struct BlockCodeJs : public Napi::ObjectWrap<BlockCodeJs> {
     Napi::Function func = DefineClass(env, "BlockCodeJs", {InstanceMethod("getKind", &BlockCodeJs::getKind),
                                                            InstanceMethod("isGenerated", &BlockCodeJs::isGenerated),
                                                            InstanceMethod("push_back", &BlockCodeJs::push_back),
+                                                           InstanceMethod("size", &BlockCodeJs::size),
                                                            InstanceMethod("insert", &BlockCodeJs::insert),
                                                            InstanceMethod("at", &BlockCodeJs::at),
                                                            InstanceMethod("is", &BlockCodeJs::is),
@@ -31279,6 +31748,12 @@ struct TableJs : public Napi::ObjectWrap<TableJs> {
                       makeCallable(static_cast<void(org::sem::Table::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Table::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::Table::*)() const>(&org::sem::Table::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -31332,6 +31807,7 @@ struct TableJs : public Napi::ObjectWrap<TableJs> {
     Napi::Function func = DefineClass(env, "TableJs", {InstanceMethod("getKind", &TableJs::getKind),
                                                        InstanceMethod("isGenerated", &TableJs::isGenerated),
                                                        InstanceMethod("push_back", &TableJs::push_back),
+                                                       InstanceMethod("size", &TableJs::size),
                                                        InstanceMethod("insert", &TableJs::insert),
                                                        InstanceMethod("at", &TableJs::at),
                                                        InstanceMethod("is", &TableJs::is),
@@ -32725,6 +33201,12 @@ struct CmdCaptionJs : public Napi::ObjectWrap<CmdCaptionJs> {
                       makeCallable(static_cast<void(org::sem::CmdCaption::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdCaption::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdCaption::*)() const>(&org::sem::CmdCaption::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -32778,6 +33260,7 @@ struct CmdCaptionJs : public Napi::ObjectWrap<CmdCaptionJs> {
     Napi::Function func = DefineClass(env, "CmdCaptionJs", {InstanceMethod("getKind", &CmdCaptionJs::getKind),
                                                             InstanceMethod("isGenerated", &CmdCaptionJs::isGenerated),
                                                             InstanceMethod("push_back", &CmdCaptionJs::push_back),
+                                                            InstanceMethod("size", &CmdCaptionJs::size),
                                                             InstanceMethod("insert", &CmdCaptionJs::insert),
                                                             InstanceMethod("at", &CmdCaptionJs::at),
                                                             InstanceMethod("is", &CmdCaptionJs::is),
@@ -32836,6 +33319,12 @@ struct CmdColumnsJs : public Napi::ObjectWrap<CmdColumnsJs> {
                       makeCallable(static_cast<void(org::sem::CmdColumns::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdColumns::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdColumns::*)() const>(&org::sem::CmdColumns::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -32889,6 +33378,7 @@ struct CmdColumnsJs : public Napi::ObjectWrap<CmdColumnsJs> {
     Napi::Function func = DefineClass(env, "CmdColumnsJs", {InstanceMethod("getKind", &CmdColumnsJs::getKind),
                                                             InstanceMethod("isGenerated", &CmdColumnsJs::isGenerated),
                                                             InstanceMethod("push_back", &CmdColumnsJs::push_back),
+                                                            InstanceMethod("size", &CmdColumnsJs::size),
                                                             InstanceMethod("insert", &CmdColumnsJs::insert),
                                                             InstanceMethod("at", &CmdColumnsJs::at),
                                                             InstanceMethod("is", &CmdColumnsJs::is),
@@ -32947,6 +33437,12 @@ struct CmdNameJs : public Napi::ObjectWrap<CmdNameJs> {
                       makeCallable(static_cast<void(org::sem::CmdName::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdName::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdName::*)() const>(&org::sem::CmdName::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -33000,6 +33496,7 @@ struct CmdNameJs : public Napi::ObjectWrap<CmdNameJs> {
     Napi::Function func = DefineClass(env, "CmdNameJs", {InstanceMethod("getKind", &CmdNameJs::getKind),
                                                          InstanceMethod("isGenerated", &CmdNameJs::isGenerated),
                                                          InstanceMethod("push_back", &CmdNameJs::push_back),
+                                                         InstanceMethod("size", &CmdNameJs::size),
                                                          InstanceMethod("insert", &CmdNameJs::insert),
                                                          InstanceMethod("at", &CmdNameJs::at),
                                                          InstanceMethod("is", &CmdNameJs::is),
@@ -33058,6 +33555,12 @@ struct CmdCallJs : public Napi::ObjectWrap<CmdCallJs> {
                       makeCallable(static_cast<void(org::sem::CmdCall::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdCall::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdCall::*)() const>(&org::sem::CmdCall::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -33111,6 +33614,7 @@ struct CmdCallJs : public Napi::ObjectWrap<CmdCallJs> {
     Napi::Function func = DefineClass(env, "CmdCallJs", {InstanceMethod("getKind", &CmdCallJs::getKind),
                                                          InstanceMethod("isGenerated", &CmdCallJs::isGenerated),
                                                          InstanceMethod("push_back", &CmdCallJs::push_back),
+                                                         InstanceMethod("size", &CmdCallJs::size),
                                                          InstanceMethod("insert", &CmdCallJs::insert),
                                                          InstanceMethod("at", &CmdCallJs::at),
                                                          InstanceMethod("is", &CmdCallJs::is),
@@ -33169,6 +33673,12 @@ struct CmdAttrJs : public Napi::ObjectWrap<CmdAttrJs> {
                       makeCallable(static_cast<void(org::sem::CmdAttr::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdAttr::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdAttr::*)() const>(&org::sem::CmdAttr::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -33222,6 +33732,7 @@ struct CmdAttrJs : public Napi::ObjectWrap<CmdAttrJs> {
     Napi::Function func = DefineClass(env, "CmdAttrJs", {InstanceMethod("getKind", &CmdAttrJs::getKind),
                                                          InstanceMethod("isGenerated", &CmdAttrJs::isGenerated),
                                                          InstanceMethod("push_back", &CmdAttrJs::push_back),
+                                                         InstanceMethod("size", &CmdAttrJs::size),
                                                          InstanceMethod("insert", &CmdAttrJs::insert),
                                                          InstanceMethod("at", &CmdAttrJs::at),
                                                          InstanceMethod("is", &CmdAttrJs::is),
@@ -33280,6 +33791,12 @@ struct CmdExportJs : public Napi::ObjectWrap<CmdExportJs> {
                       makeCallable(static_cast<void(org::sem::CmdExport::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::CmdExport::push_back),
                                    std::make_tuple(CxxArgSpec<org::sem::SemId<org::sem::Org>>{"sub"})));
   }
+  Napi::Value size(Napi::CallbackInfo const& info) {
+    return WrapConstMethod(info,
+                           getPtr(),
+                           makeCallable(static_cast<int(org::sem::CmdExport::*)() const>(&org::sem::CmdExport::size),
+                                        std::make_tuple()));
+  }
   Napi::Value insert(Napi::CallbackInfo const& info) {
     return WrapMethod(info,
                       getPtr(),
@@ -33333,6 +33850,7 @@ struct CmdExportJs : public Napi::ObjectWrap<CmdExportJs> {
     Napi::Function func = DefineClass(env, "CmdExportJs", {InstanceMethod("getKind", &CmdExportJs::getKind),
                                                            InstanceMethod("isGenerated", &CmdExportJs::isGenerated),
                                                            InstanceMethod("push_back", &CmdExportJs::push_back),
+                                                           InstanceMethod("size", &CmdExportJs::size),
                                                            InstanceMethod("insert", &CmdExportJs::insert),
                                                            InstanceMethod("at", &CmdExportJs::at),
                                                            InstanceMethod("is", &CmdExportJs::is),
