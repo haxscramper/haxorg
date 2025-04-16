@@ -33,7 +33,7 @@ import signal
 import psutil
 import subprocess
 from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count
-import py_ci
+from py_ci.data_build import get_emscripten_cmake_flags
 from py_scriptutils.repo_files import (
     HaxorgConfig,
     get_haxorg_repo_root_config,
@@ -75,6 +75,14 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
 
 # Register the custom traceback handler
 sys.excepthook = custom_traceback_handler
+
+
+@beartype
+def ensure_clean_dir(dir: Path):
+    if dir.exists():
+        shutil.rmtree(str(dir))
+
+    dir.mkdir(parents=True, exist_ok=True)
 
 
 def get_script_root(relative: Optional[str] = None) -> Path:
@@ -133,6 +141,9 @@ def get_real_build_basename(ctx: Context, component: Literal["haxorg", "utils"])
     Get basename of the binary output directory for component
     """
     result = component + "_" + ("debug" if get_config(ctx).debug else "release")
+    if get_config(ctx).emscripten:
+        result += "_emscripten"
+
     if get_config(ctx).instrument.coverage:
         result += "_instrumented"
 
@@ -470,6 +481,14 @@ def org_task(
     return org_inner
 
 
+def get_toolchain_path(ctx: Context) -> Path:
+    if get_config(ctx).emscripten:
+        return Path("/usr/lib/emscripten/cmake/Modules/Platform/Emscripten.cmake")
+
+    else:
+        return get_script_root().joinpath("toolchain.cmake")
+
+
 def get_cmake_defines(ctx: Context) -> List[str]:
     result: List[str] = []
     conf = get_config(ctx)
@@ -483,6 +502,18 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("SQLITECPP_RUN_CPPLINT", False))
 
     result.append(cmake_opt("ORG_FORCE_ADAPTAGRAMS_BUILD", False))
+
+    if conf.emscripten:
+        result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))
+        result.append(cmake_opt("ORG_EMCC_BUILD", True))
+
+        for flag in get_emscripten_cmake_flags():
+            result.append(cmake_opt(flag.name, flag.value))
+
+    else:
+        result.append(cmake_opt("ORG_EMCC_BUILD", True))
+
+    result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", True))
 
     return result
 
@@ -654,8 +685,18 @@ def base_environment(ctx: Context):
 
 
 @beartype
+def get_deps_tmp_dir() -> Path:
+    return get_build_root().joinpath("deps_emcc" if conf.emscripten else "deps_bin")
+
+
+@beartype
 def get_deps_install_dir() -> Path:
-    return get_build_root().joinpath("deps_install")
+    return get_deps_tmp_dir().joinpath("install")
+
+
+@beartype
+def get_deps_build_dir() -> Path:
+    return get_deps_tmp_dir().joinpath("build")
 
 
 @org_task(pre=[base_environment], force_notify=True)
@@ -798,6 +839,7 @@ def configure_cmake_haxorg(ctx: Context, force: bool = False):
                 *get_cmake_defines(ctx),
                 cmake_opt("ORG_CPACK_PACKAGE_VERSION", HAXORG_VERSION),
                 cmake_opt("ORG_CPACK_PACKAGE_NAME", HAXORG_NAME),
+                cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()),
                 *cond(
                     conf.python_version,
                     [cmake_opt("ORG_DEPS_USE_PYTHON_VERSION", conf.python_version)],
@@ -844,18 +886,10 @@ def build_develop_deps(
 ):
     "Install dependencies for cmake project development"
     conf = get_config(ctx)
-    build_dir = get_build_root().joinpath("deps_build")
-    if rebuild and build_dir.exists():
-        shutil.rmtree(build_dir)
-
-    build_dir.mkdir(parents=True, exist_ok=True)
-
+    build_dir = get_deps_build_dir()
+    ensure_clean_dir(build_dir)
     install_dir = get_deps_install_dir()
-    if rebuild and install_dir.exists():
-        shutil.rmtree(install_dir)
-
-    install_dir.mkdir(parents=True, exist_ok=True)
-
+    ensure_clean_dir(install_dir)
     deps_dir = get_script_root().joinpath("thirdparty")
 
     def dep(
@@ -877,8 +911,7 @@ def build_develop_deps(
                 "Ninja",
                 cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(build_name)),
                 cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
-                cmake_opt("CMAKE_TOOLCHAIN_FILE",
-                          get_script_root().joinpath("toolchain.cmake")),
+                cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
                 *configure_args,
                 *maybe_splice(force, "--fresh"),
             ])
@@ -903,7 +936,10 @@ def build_develop_deps(
 
     from py_ci.data_build import get_external_deps_list
 
-    for item in get_external_deps_list(install_dir):
+    for item in get_external_deps_list(
+            install_dir,
+            is_emcc=get_config(ctx).emscripten,
+    ):
         dep(
             build_name=item.build_name,
             deps_name=item.deps_name,

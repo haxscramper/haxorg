@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import {array, Schema, string, z} from "zod";
+import { createRequire } from "node:module";
 
 import * as org from "./org_data.ts";
 
@@ -371,12 +372,14 @@ export class ZoomFlamegraphVisualization {
   }
 
   async render() {
-    const client = await org.openClient(
-        8089,
-        "/home/haxscramper/tmp/org_trivial.org",
-    );
+    const require_impl = createRequire(import.meta.url);
+    let addon = require_impl('../../../build/haxorg_debug_qt/nodehaxorg.node');
 
-    this.gantt = await this.get_gantt(client, await client.getRoot({}));
+    const params = new addon.OrgParseParametersJs();
+    // console.log("Parsing file");
+    const node = addon.parseFile("/home/haxscramper/tmp/org_trivial.org", params);
+
+    this.gantt = await this.get_gantt(node);
     this.update();
   }
 

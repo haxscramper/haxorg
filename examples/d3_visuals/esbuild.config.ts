@@ -8,7 +8,7 @@ await esbuild.build({
   platform : "node",
   target : "node16",
   format : "cjs",
-  external : [ "electron" ],
+  external : [ "electron",  "../../../build/haxorg_debug_qt/nodehaxorg.node" ],
   sourcemap : true,
 });
 
@@ -24,5 +24,6 @@ await esbuild.build({
     ".js" : "js",
   },
   jsx : "automatic",
-  sourcemap : true
+  sourcemap : true,
+  inject: ["./app/preload-stub.ts"],
 });

@@ -52,6 +52,7 @@ option(ORG_USE_SANITIZER "Use sanitizers" ON)
 # changes in the main environment. Sometimes it does not build or does not rebuild things. By
 # default this option forces the dependency to be configured for all builds.
 option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" ON)
+option(ORG_EMCC_BUILD "Building for emscripten target" OFF)
 
 option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" OFF)
 option(ORG_DEPS_USE_PROTOBUF "Include protobuf functionality in the build" ON)
@@ -67,8 +68,7 @@ option(ORG_BUILD_USE_NAPI_WRAPPER "" ON)
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
 
 set(DEPS_DIR "${BASE}/thirdparty")
-set(DEPS_BINARY "${CMAKE_BINARY_DIR}/deps")
-message(STATUS "Binary directory for dependencies ${DEPS_BINARY}")
+message(STATUS "ORG_DEPS_INSTALL_ROOT = '${ORG_DEPS_INSTALL_ROOT}'")
 
 if(ORG_DEPS_INSTALL_ROOT STREQUAL "OFF")
   set(DEPS_INSTALL "${BASE}/build/deps_install")
@@ -79,6 +79,7 @@ endif()
 message(STATUS "DEPS_INSTALL = ${DEPS_INSTALL}")
 
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/yaml/share/cmake/yaml-cpp")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/yaml/lib/cmake/yaml-cpp")
 if(${ORG_BUILD_IS_DEVELOP})
   list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/SQLiteCpp/lib/cmake/SQLiteCpp")
 endif()
@@ -115,8 +116,11 @@ if(${ORG_BUILD_IS_DEVELOP})
 endif()
 
 find_package(PkgConfig)
-pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
-if(${ORG_BUILD_IS_DEVELOP})
+if(NOT ${ORG_EMCC_BUILD})
+  pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
+endif()
+
+if(${ORG_BUILD_IS_DEVELOP} AND NOT ${ORG_EMCC_BUILD})
   pkg_check_modules(LIBGIT2 REQUIRED libgit2)
 endif()
 

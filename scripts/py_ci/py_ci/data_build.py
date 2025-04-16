@@ -19,6 +19,7 @@ class ExternalDep():
     deps_name: str
     configure_args: List[CmakeOptConfig] = field(default_factory=list)
     install_prefixes: List[str] = field(default_factory=list)
+    is_emcc_ready: bool = field(default=False)
 
     def get_install_prefix(self, install_dir: Path) -> str:
         return ";".join([str(install_dir.joinpath(it)) for it in self.install_prefixes])
@@ -27,7 +28,22 @@ class ExternalDep():
         return [str(it) for it in self.configure_args]
 
 
-def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
+def get_emscripten_cmake_flags() -> List[CmakeOptConfig]:
+    return [
+        CmakeOptConfig(
+            name="CMAKE_CXX_FLAGS",
+            value=" ".join([
+                "-fexceptions",
+                # "-sASYNCIFY_STACK_SIZE=65536",
+            ]),
+        ),
+        CmakeOptConfig(name="HAVE_NEON", value=False),
+        CmakeOptConfig(name="HAVE_AVX", value=False),
+        CmakeOptConfig(name="HAVE_SSE", value=False),
+    ]
+
+
+def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep]:
     result: List[ExternalDep] = []
 
     def opt(name: str, value: any) -> CmakeOptConfig:
@@ -38,6 +54,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
             deps_name: str,
             configure_args: List[str] = list(),
             install_prefixes: List[str] = list(),
+            is_emcc_ready: bool = False,
     ):
         ext = ExternalDep(
             build_name=build_name,
@@ -45,7 +62,15 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
             configure_args=configure_args,
             install_prefixes=install_prefixes,
         )
-        result.append(ext)
+
+        if is_emcc:
+            if is_emcc_ready:
+                ext.configure_args.extend(get_emscripten_cmake_flags())
+                result.append(ext)
+
+        else:
+            result.append(ext)
+
         return ext
 
     # NOTE! Order of dependencies is important here. Assuming the build is happening on the
@@ -56,6 +81,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     dep(
         build_name="cpptrace",
         deps_name="cpptrace",
+        is_emcc_ready=False,
         install_prefixes=[
             "cpptrace/lib/cmake/cpptrace",
             "cpptrace/lib64/cmake/cpptrace",
@@ -67,6 +93,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     # dep(build_name="scintilla", deps_name="scintilla/")
     dep(
         build_name="describe",
+        is_emcc_ready=True,
         deps_name="cmake_wrap/describe",
         install_prefixes=[
             "describe/lib/cmake/BoostDescribe",
@@ -100,6 +127,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     dep(
         build_name="immer",
         deps_name="immer",
+        is_emcc_ready=True,
         configure_args=[
             opt("immer_BUILD_TESTS", False),
             opt("immer_BUILD_EXAMPLES", False),
@@ -112,6 +140,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     dep(
         build_name="lager",
         deps_name="lager",
+        is_emcc_ready=True,
         configure_args=[
             opt("lager_BUILD_EXAMPLES", False),
             opt("lager_BUILD_TESTS", False),
@@ -160,6 +189,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     dep(
         build_name="mp11",
         deps_name="mp11",
+        is_emcc_ready=True,
         install_prefixes=[
             "mp11/lib/cmake/boost_mp11-1.85.0",
             "mp11/lib64/cmake/boost_mp11-1.85.0",
@@ -169,6 +199,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     dep(
         build_name="json",
         deps_name="json",
+        is_emcc_ready=True,
         configure_args=[
             opt("JSON_BuildTests", False),
         ],
@@ -180,6 +211,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     dep(
         build_name="yaml",
         deps_name="yaml-cpp",
+        is_emcc_ready=True,
         configure_args=[
             opt("YAML_CPP_BUILD_TESTS", False),
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
@@ -192,6 +224,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     dep(
         build_name="range-v3",
         deps_name="range-v3",
+        is_emcc_ready=True,
         configure_args=[
             opt("RANGE_V3_TESTS", False),
             opt("RANGE_V3_EXAMPLES", False),
@@ -260,6 +293,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     dep(
         build_name="reflex",
         deps_name="RE-flex",
+        is_emcc_ready=True,
         configure_args=[
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],
@@ -272,6 +306,7 @@ def get_external_deps_list(install_dir: Path) -> List[ExternalDep]:
     dep(
         build_name="lexy",
         deps_name="lexy",
+        is_emcc_ready=True,
         configure_args=[
             opt("LEXY_BUILD_EXAMPLES", False),
             opt("LEXY_BUILD_TESTS", False),
