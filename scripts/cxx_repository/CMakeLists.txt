@@ -4,7 +4,6 @@ set(CXX_STANDARD 23)
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
-# find_package(PCRE REQUIRED)
 
 add_executable(code_forensics)
 

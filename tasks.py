@@ -33,7 +33,7 @@ import signal
 import psutil
 import subprocess
 from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count
-from py_ci.data_build import get_emscripten_cmake_flags
+from py_ci.data_build import get_emscripten_cmake_flags, get_external_deps_list
 from py_scriptutils.repo_files import (
     HaxorgConfig,
     get_haxorg_repo_root_config,
@@ -82,6 +82,11 @@ def ensure_clean_dir(dir: Path):
     if dir.exists():
         shutil.rmtree(str(dir))
 
+    dir.mkdir(parents=True, exist_ok=True)
+
+
+@beartype
+def ensure_existing_dir(dir: Path):
     dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -256,6 +261,8 @@ def run_command(
     cwd: Optional[Union[str, Path]] = None,
     stderr_debug: Optional[Path] = None,
     stdout_debug: Optional[Path] = None,
+    append_stdout_debug: bool = False,
+    append_stderr_debug: bool = False,
     run_mode: Literal["nohup", "bg", "fg"] = "fg",
 ) -> tuple[int, str, str]:
     stderr_debug = stderr_debug or get_cmd_debug_file("stderr")
@@ -339,13 +346,25 @@ def run_command(
         else:
             retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
 
+        @beartype
+        def write_file(path: Path, append: bool, text: str):
+            if append:
+                if not path.exists():
+                    path.write_text("")
+
+                with path.open("a") as file:
+                    file.write(remove_ansi(text))
+
+            else:
+                path.write_text(remove_ansi(text))
+
         if stdout_debug and stdout:
             log(CAT).info(f"Wrote stdout to {stdout_debug}")
-            stdout_debug.write_text(remove_ansi(stdout))
+            write_file(stdout_debug, append_stdout_debug, stdout)
 
         if stderr_debug and stderr:
             log(CAT).info(f"Wrote stderr to {stderr_debug}")
-            stderr_debug.write_text(remove_ansi(stderr))
+            write_file(stderr_debug, append_stderr_debug, stderr)
 
         if allow_fail or retcode == 0:
             return (retcode, stdout, stderr)
@@ -502,10 +521,13 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("SQLITECPP_RUN_CPPLINT", False))
 
     result.append(cmake_opt("ORG_FORCE_ADAPTAGRAMS_BUILD", False))
+    result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()))
 
     if conf.emscripten:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))
         result.append(cmake_opt("ORG_EMCC_BUILD", True))
+        # result.append(cmake_opt("CMAKE_SIZEOF_VOID_P", "4"))
+        # result.append(cmake_opt("CMAKE_SYSTEM_PROCESSOR", "wasm32"))
 
         for flag in get_emscripten_cmake_flags():
             result.append(cmake_opt(flag.name, flag.value))
@@ -513,7 +535,13 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     else:
         result.append(cmake_opt("ORG_EMCC_BUILD", True))
 
-    result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", True))
+    debug = True
+    if debug:
+        result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", True))
+        result.append("--trace")
+
+    else:
+        result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", False))
 
     return result
 
@@ -813,7 +841,23 @@ def generate_python_protobuf_files(ctx: Context):
             log(CAT).info("Skipping protoc run " + explain)
 
 
-@org_task(pre=[base_environment])
+@org_task()
+def generate_develop_deps_install_paths(ctx: Context):
+    cmake_paths = []
+
+    install_dir = get_deps_install_dir()
+    for item in get_external_deps_list(
+            install_dir,
+            is_emcc=get_config(ctx).emscripten,
+    ):
+        for dir in item.cmake_dirs:
+            path = install_dir.joinpath(dir[1])
+            cmake_paths.append(f"set({dir[0]}_DIR \"{path}\")")
+
+    install_dir.joinpath("paths.cmake").write_text("\n".join(cmake_paths))
+
+
+@org_task(pre=[base_environment, generate_develop_deps_install_paths])
 def configure_cmake_haxorg(ctx: Context, force: bool = False):
     """Execute cmake configuration step for haxorg"""
 
@@ -875,7 +919,8 @@ def run_cmake_haxorg_clean(ctx: Context):
     os_utils.rmdir_quiet(get_deps_install_dir())
 
 
-@org_task(iterable=["build_whitelist", "ninja_flag"])
+@org_task(iterable=["build_whitelist", "ninja_flag"],
+          pre=[generate_develop_deps_install_paths])
 def build_develop_deps(
     ctx: Context,
     rebuild: bool = False,
@@ -887,10 +932,20 @@ def build_develop_deps(
     "Install dependencies for cmake project development"
     conf = get_config(ctx)
     build_dir = get_deps_build_dir()
-    ensure_clean_dir(build_dir)
+    ensure_existing_dir(build_dir)
     install_dir = get_deps_install_dir()
-    ensure_clean_dir(install_dir)
+    ensure_existing_dir(install_dir)
     deps_dir = get_script_root().joinpath("thirdparty")
+
+    dep_debug_stdout = get_cmd_debug_file("stdout")
+    dep_debug_stderr = get_cmd_debug_file("stderr")
+
+    debug_conf = dict(
+        append_stderr_debug=True,
+        append_stdout_debug=True,
+        stdout_debug=dep_debug_stdout,
+        stderr_debug=dep_debug_stderr,
+    )
 
     def dep(
         build_name: str,
@@ -902,28 +957,38 @@ def build_develop_deps(
 
         log(CAT).info(f"Running build name='{build_name}' deps='{deps_name}'")
         if configure:
-            run_command(ctx, "cmake", [
-                "-B",
-                build_dir.joinpath(build_name),
-                "-S",
-                deps_dir.joinpath(deps_name),
-                "-G",
-                "Ninja",
-                cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(build_name)),
-                cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
-                cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
-                *configure_args,
-                *maybe_splice(force, "--fresh"),
-            ])
+            run_command(
+                ctx,
+                "cmake",
+                [
+                    "-B",
+                    build_dir.joinpath(build_name),
+                    "-S",
+                    deps_dir.joinpath(deps_name),
+                    "-G",
+                    "Ninja",
+                    cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(build_name)),
+                    cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
+                    cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
+                    *configure_args,
+                    *maybe_splice(force, "--fresh"),
+                ],
+                **debug_conf,
+            )
 
-        run_command(ctx, "cmake", [
-            "--build",
-            build_dir.joinpath(build_name),
-            "--target",
-            "install",
-            *get_j_cap(),
-            *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
-        ])
+        run_command(
+            ctx,
+            "cmake",
+            [
+                "--build",
+                build_dir.joinpath(build_name),
+                "--target",
+                "install",
+                *get_j_cap(),
+                *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
+            ],
+            **debug_conf,
+        )
 
     if is_ci():
         run_command(ctx, "git", [
@@ -934,8 +999,6 @@ def build_develop_deps(
             deps_dir.joinpath("range-v3"),
         ])
 
-    from py_ci.data_build import get_external_deps_list
-
     for item in get_external_deps_list(
             install_dir,
             is_emcc=get_config(ctx).emscripten,
@@ -945,6 +1008,8 @@ def build_develop_deps(
             deps_name=item.deps_name,
             configure_args=[cmake_opt(it.name, it.value) for it in item.configure_args],
         )
+
+    log(CAT).info(f"Finished develop dependencies installation, {debug_conf}")
 
 
 @org_task(pre=[configure_cmake_haxorg], iterable=["target", "ninja_flag"])

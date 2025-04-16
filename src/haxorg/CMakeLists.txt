@@ -34,31 +34,26 @@ if(${ORG_DEPS_USE_PROTOBUF})
   target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
 endif()
 
-target_link_libraries(
-  haxorg
-  PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY}
-         ${GRAPHVIZ_GVC_LIBRARY}
-         hstd
-         Reflex::ReflexLibStatic
-         range-v3::range-v3
-         absl::base
-         absl::log
-         nlohmann_json::nlohmann_json
-         foonathan::lexy
-         immer)
+target_link_libraries(haxorg PUBLIC hstd Reflex::ReflexLibStatic range-v3::range-v3
+                                    nlohmann_json::nlohmann_json foonathan::lexy immer)
 
-if(${ORG_DEPS_USE_PROTOBUF})
+if(NOT ${ORG_EMCC_BUILD})
+  target_link_libraries(haxorg PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY} absl::base
+                                      absl::log)
+endif()
+
+if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
   target_link_libraries(haxorg PUBLIC protobuf::libprotobuf protobuf::libprotoc)
 endif()
 
-if(${ORG_USE_PERFETTO})
+if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
   target_link_libraries(haxorg PUBLIC Perfetto::perfetto)
 endif()
 
 target_include_directories(haxorg PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                                          $<INSTALL_INTERFACE:include>)
 
-if(${ORG_BUILD_TESTS})
+if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
   add_executable(tests_org)
   target_link_libraries(tests_org PUBLIC haxorg)
   set_common_files(tests_org)
