@@ -29,6 +29,7 @@
 #    include <boost/thread/shared_mutex.hpp>
 #    include <boost/thread/locks.hpp>
 #    include <fstream>
+#    include <absl/log/log.h>
 
 using namespace hstd;
 
@@ -91,7 +92,6 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(
 }
 
 #    define OLOG_INNER_DEBUG false
-
 #    define OLOG_MSG() LOG_IF(INFO, OLOG_INNER_DEBUG)
 
 class log_sink_manager {
@@ -545,10 +545,7 @@ sink_ptr hstd::log::set_sink_filter(
         if (!!rec) {
             try {
                 return filter(*rec);
-            } catch (...) {
-                LOG(INFO) << "????";
-                return true;
-            }
+            } catch (...) { return true; }
         } else {
             return true;
         }

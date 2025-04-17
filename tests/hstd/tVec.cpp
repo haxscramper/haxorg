@@ -73,7 +73,7 @@ TYPED_TEST(IntVecTypedTest, SliceAndIndexingOperators) {
 TYPED_TEST(IntVecTypedTest, VectorAlloc) {
     {
         std::vector<int> v{0, 0, 0, 0, 0};
-        CHECK(v.data() != nullptr);
+        LOGIC_ASSERTION_CHECK(v.data() != nullptr, "");
         EXPECT_EQ(v[0], 0);
     }
     {
@@ -94,7 +94,7 @@ TYPED_TEST(IntVecTypedTest, SpanViews) {
         TypeParam v{0, 0, 0, 0, 0};
         // Test modification using slice operator
         std::span<int> span = v[slice(1, 3)];
-        CHECK(span.data() != nullptr);
+        LOGIC_ASSERTION_CHECK(span.data() != nullptr, "");
         for (int& x : span) { x = 42; }
         EXPECT_EQ(v[0], 0);
         EXPECT_EQ(v[1], 42);

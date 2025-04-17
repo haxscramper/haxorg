@@ -1,6 +1,6 @@
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF
 
 using namespace org::algo;
 using namespace org;

@@ -12,7 +12,7 @@
 #include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF
 #    include <SemOrgProto.pb.h>
 #endif
 
@@ -588,7 +588,7 @@ sem::SemId<File> org::parseFileWithIncludes(
 
 
 sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF
     sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
     std::ifstream     stream{file};
     orgproto::AnyNode result;
@@ -608,7 +608,7 @@ sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
 void org::exportToProtobufFile(
     sem::SemId<sem::Document> doc,
     const std::string&        file) {
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF
     std::ofstream     stream{file};
     orgproto::AnyNode result;
     org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(

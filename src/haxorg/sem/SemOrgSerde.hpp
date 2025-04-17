@@ -4,7 +4,7 @@
 
 namespace org::algo {}
 
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF
 #    include <SemOrgProto.pb.h>
 #    include <concepts>
 

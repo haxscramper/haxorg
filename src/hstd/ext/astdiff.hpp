@@ -218,7 +218,7 @@ struct Node {
     template <typename T>
     T* getStore() const {
         auto res = dynamic_cast<T*>(store);
-        CHECK(res != nullptr);
+        LOGIC_ASSERTION_CHECK(res != nullptr, "");
         return res;
     }
 };

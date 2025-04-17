@@ -17,7 +17,7 @@
 #include <haxorg/exporters/Exporter.hpp>
 
 
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #    include <SemOrgProto.pb.h>
 #endif
 #include <py_libs/py_type_casters.hpp>
@@ -87,8 +87,7 @@ struct [[refl(
         PyCodeEvalParameters const&    conf);
 
 enum class [[refl(
-    R"({"backend": {"target-backends": ["python"]}})")]] LeafFieldType
-{
+    R"({"backend": {"target-backends": ["python"]}})")]] LeafFieldType{
     Int,
     UserTimeKind,
     QDate,
@@ -97,8 +96,7 @@ enum class [[refl(
     TopIdVec,
     QDateTime,
     Str,
-    Any
-};
+    Any};
 
 } // namespace org::bind::python
 

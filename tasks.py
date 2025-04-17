@@ -827,7 +827,7 @@ def generate_python_protobuf_files(ctx: Context):
 
             run_command(
                 ctx,
-                get_build_root("deps_install/protobuf/bin/protoc"),
+                get_deps_install_dir().joinpath("protobuf/bin/protoc"),
                 [
                     f"--plugin={protoc_plugin}",
                     "-I",

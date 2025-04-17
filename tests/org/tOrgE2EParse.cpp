@@ -15,7 +15,7 @@ EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
 }
 
 TEST(TestFiles, AllNodeSerde) {
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     MockFull    p{false, false};
     std::string source = readFile(fs::path(file));
