@@ -128,7 +128,7 @@ class RangeTree {
     }
 
     Vec<Node*> getNodes(CR<T> point) const {
-        CHECK(root.get() != nullptr);
+        LOGIC_ASSERTION_CHECK(root.get() != nullptr, "Root must not be nil");
         return root->getAllNodes(point);
     }
 

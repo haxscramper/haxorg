@@ -6,9 +6,6 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/system/reflection.hpp>
-#include <absl/log/log.h>
-#include <absl/log/initialize.h>
-#include <absl/log/internal/globals.h>
 #include <hstd/stdlib/Json.hpp>
 
 namespace hstd {

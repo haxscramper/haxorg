@@ -9,7 +9,8 @@ set_target_flags(hstd)
 find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
-target_link_libraries(hstd PUBLIC yaml-cpp range-v3::range-v3 nlohmann_json::nlohmann_json)
+target_link_libraries(hstd PUBLIC yaml-cpp range-v3::range-v3 nlohmann_json::nlohmann_json
+                                  absl::time)
 
 if(NOT ${ORG_EMCC_BUILD})
   target_link_libraries(

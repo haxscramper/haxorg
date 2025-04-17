@@ -14,10 +14,12 @@ glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/test/.*" SEARCH_BAS
 set_target_output(haxorg)
 set_target_flags(haxorg)
 
-find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
-find_library(GRAPHVIZ_GVC_LIBRARY gvc)
+if(NOT ${ORG_EMCC_BUILD})
+  find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
+  find_library(GRAPHVIZ_GVC_LIBRARY gvc)
+endif()
 
-if(${ORG_DEPS_USE_PROTOBUF})
+if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
 
   protobuf_generate(
     LANGUAGE

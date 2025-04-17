@@ -4,7 +4,6 @@
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <boost/algorithm/string/replace.hpp>
 
 
 using otk = OrgTokenKind;
@@ -1390,7 +1389,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     skip(lex, Newline);
 
     if (isDynamic) {
-        boost::replace_all(tmp, "begin", "end");
+        hstd::replace_all(tmp, "begin", "end");
         Str endName = normalize(tmp);
         print(fmt("Dynamic block, name {}", endName));
         while (lex.can_search(Vec<otk>{otk::CmdPrefix, endTok})

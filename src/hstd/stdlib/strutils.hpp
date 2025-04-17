@@ -46,6 +46,11 @@ Str      escape_for_write(Str const& str, bool quote = true);
 int      rune_length(const std::string& str);
 std::vector<std::string> rune_chunks(const std::string& str);
 
+void replace_all(
+    std::string&       str,
+    const std::string& from,
+    const std::string& to);
+
 Str wrap_text(const Vec<Str>& words, int maxWidth, bool justified);
 
 

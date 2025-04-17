@@ -2282,8 +2282,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             t_nest_shared("OrgCodeEvalOutput"),
             doc="Single command/subprocess executed to evaluate org babel code entry",
             fields=[
-                str_field("stdout"),
-                str_field("stderr"),
+                str_field("stdoutText"),
+                str_field("stderrText"),
                 int_field("code"),
                 opt_field(
                     t_str(), "cmd",

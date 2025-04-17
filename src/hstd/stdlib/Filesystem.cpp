@@ -1,8 +1,6 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <fstream>
-#include <absl/log/check.h>
 #include <sstream>
-#include <absl/log/log.h>
 
 using namespace hstd;
 
@@ -56,10 +54,6 @@ void hstd::writeDebugFile(
         "/tmp/{}_{}{}.{}", filename, function, stem_suffix, extension);
 
     writeFile(full_path, content);
-    if (writeLog) {
-        LOG(INFO) << fmt(
-            "{}:{}:{} wrote to {}", filename, function, line, full_path);
-    }
 }
 
 void hstd::createDirectory(

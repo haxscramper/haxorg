@@ -1,7 +1,8 @@
-#include <boost/algorithm/string/replace.hpp>
-#include <hstd/ext/graphviz.hpp>
-#include <filesystem>
-#include <format>
+#if !ORG_EMCC_BUILD
+#    include <hstd/ext/graphviz.hpp>
+#    include <filesystem>
+#    include <format>
+
 
 using namespace hstd;
 using namespace hstd::ext;
@@ -292,11 +293,11 @@ std::string Graphviz::escapeHtmlForGraphviz(
     const std::string& input,
     TextAlign          direction) {
     std::string escaped = input;
-    boost::replace_all(escaped, "&", "&amp;");
-    boost::replace_all(escaped, "<", "&lt;");
-    boost::replace_all(escaped, ">", "&gt;");
-    boost::replace_all(escaped, "\"", "&quot;");
-    boost::replace_all(escaped, "\'", "&#39;");
+    hstd::replace_all(escaped, "&", "&amp;");
+    hstd::replace_all(escaped, "<", "&lt;");
+    hstd::replace_all(escaped, ">", "&gt;");
+    hstd::replace_all(escaped, "\"", "&quot;");
+    hstd::replace_all(escaped, "\'", "&#39;");
     std::string newline_replace = "<BR ALIGN=\"";
 
     switch (direction) {
@@ -307,7 +308,7 @@ std::string Graphviz::escapeHtmlForGraphviz(
 
     newline_replace += "\"/>";
 
-    boost::replace_all(escaped, "\n", newline_replace);
+    hstd::replace_all(escaped, "\n", newline_replace);
     escaped += newline_replace;
     return escaped;
 }
@@ -439,3 +440,5 @@ generator<CRw<Graphviz::Edge>> Graphviz::Node::edges() {
         co_yield std::ref(value);
     }
 }
+
+#endif

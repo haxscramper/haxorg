@@ -54,9 +54,9 @@ class Span : public std::span<T> {
 
 
     int clampSize(int size, T const* data, T const* end) const {
-        CHECK(data <= end);
-        CHECK(data != nullptr);
-        CHECK(end != nullptr);
+        LOGIC_ASSERTION_CHECK(data <= end, "");
+        LOGIC_ASSERTION_CHECK(data != nullptr, "");
+        LOGIC_ASSERTION_CHECK(end != nullptr, "");
         auto d_raw    = std::distance(data, end);
         int  distance = static_cast<int>(d_raw + 1);
         return std::clamp<int>(size, 0, distance);

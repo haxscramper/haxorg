@@ -8,7 +8,6 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
-#include <absl/log/check.h>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 
@@ -413,7 +412,8 @@ class SyntaxTree {
 
         LOGIC_ASSERTION_CHECK(
             false, "Node not found in parent's children.");
-        return -1;    }
+        return -1;
+    }
 
 
   private:
@@ -519,13 +519,13 @@ class ASTDiff {
 
         template <typename Store>
         Store::value_type getSrcValue(Store* store) const {
-            CHECK(src.isValid());
+            LOGIC_ASSERTION_CHECK(src.isValid(), "");
             return store->getNodeValue(diff->src.getStoreId(src));
         }
 
         template <typename Store>
         Store::value_type getDstValue(Store* store) const {
-            CHECK(dst.isValid());
+            LOGIC_ASSERTION_CHECK(dst.isValid(), "");
             return store->getNodeValue(diff->dst.getStoreId(dst));
         }
     };

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <hstd/stdlib/Func.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <boost/graph/breadth_first_search.hpp>
-#include <boost/graph/depth_first_search.hpp>
+#if !ORG_EMCC_BUILD
+#    include <hstd/stdlib/Func.hpp>
+#    include <boost/graph/adjacency_list.hpp>
+#    include <hstd/stdlib/Json.hpp>
+#    include <boost/graph/breadth_first_search.hpp>
+#    include <boost/graph/depth_first_search.hpp>
 
 namespace hstd::ext {
 
@@ -107,3 +108,5 @@ struct boost_lambda_astar_visitor
           boost_lambda_astar_visitor<Graph>> {};
 
 } // namespace hstd::ext
+
+#endif

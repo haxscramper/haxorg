@@ -12,8 +12,6 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <format>
-#include <absl/log/check.h>
 
 
 /// \brief Text block layouts used in exporters and code generation
@@ -311,16 +309,14 @@ struct Block {
 
         template <typename T>
         std::size_t operator()(CR<Vec<T>> items) const {
-            LOG(FATAL) << "TODO";
+            logic_todo_impl();
         }
 
-        std::size_t operator()(CR<Solution>) const {
-            LOG(FATAL) << "TODO";
-        }
+        std::size_t operator()(CR<Solution>) const { logic_todo_impl(); }
 
         template <typename T>
         std::size_t operator()(CR<SPtr<T>> opt) const {
-            CHECK(opt != nullptr);
+            LOGIC_ASSERTION_CHECK(opt != nullptr, "");
             return std::hash<T*>{}(opt.get());
         }
     };
@@ -395,7 +391,7 @@ struct BlockStore {
     /// the possible layouts.
     Layout::Ptr toLayout(BlockId id, const Options& opts) {
         Vec<Layout::Ptr> layouts = toLayouts(id, opts);
-        CHECK(!layouts.empty());
+        LOGIC_ASSERTION_CHECK(!layouts.empty(), "");
         return layouts[0];
     }
 
