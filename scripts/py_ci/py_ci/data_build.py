@@ -89,7 +89,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         is_emcc_ready=False,
         cmake_dirs=[
             ("cpptrace", "cpptrace/lib/cmake/cpptrace"),
-            ("libdwarf", "cpptrace/lib64/cmake/libdwarf"),
+            ("libdwarf", "cpptrace/lib/cmake/libdwarf"),
         ],
         install_prefixes=[
             "cpptrace/lib/cmake/cpptrace",

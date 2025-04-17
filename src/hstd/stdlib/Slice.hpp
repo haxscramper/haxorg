@@ -2,18 +2,13 @@
 
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/string_convert.hpp>
-#include <boost/container_hash/hash.hpp>
 
 #include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/BackwardsIndex.hpp>
 #include <format>
 
-#include <stdexcept>
-
 namespace hstd {
-
-
 template <typename A, typename B>
 struct HSlice {
     A first;
@@ -222,8 +217,8 @@ template <typename T>
 struct std::hash<hstd::Slice<T>> {
     std::size_t operator()(hstd::Slice<T> const& it) const noexcept {
         std::size_t result = 0;
-        boost::hash_combine(result, it.first);
-        boost::hash_combine(result, it.last);
+        hax_hash_combine(result, it.first);
+        hax_hash_combine(result, it.last);
         return result;
     }
 };

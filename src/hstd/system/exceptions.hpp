@@ -6,28 +6,39 @@
 #include <string>
 #include <hstd/system/aux_utils.hpp>
 #include <format>
-#include <cpptrace.hpp>
+#if !ORG_EMCC_BUILD
+#    include <cpptrace.hpp>
+#endif
 #include <sstream>
 
 namespace hstd {
 
 template <typename Derived>
 struct CRTP_hexception
-    : cpptrace::lazy_exception
+    :
+#if ORG_EMCC_BUILD
+    std::exception
+#else
+    cpptrace::lazy_exception
+#endif
     , CRTP_this_method<Derived> {
-    std::string          msg;
-    int                  line;
-    char const*          function;
-    char const*          file;
+    std::string msg;
+    int         line;
+    char const* function;
+    char const* file;
+#if !ORG_EMCC_BUILD
     cpptrace::stacktrace eager;
+#endif
 
     static Derived init(
         std::string const& msg,
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION(),
         char const*        file     = __builtin_FILE()) {
-        auto result     = Derived{};
-        result.eager    = cpptrace::generate_trace();
+        auto result = Derived{};
+#if !ORG_EMCC_BUILD
+        result.eager = cpptrace::generate_trace();
+#endif
         result.msg      = msg;
         result.line     = line;
         result.file     = file;
@@ -37,6 +48,13 @@ struct CRTP_hexception
 
 
   public:
+#if ORG_EMCC_BUILD
+    virtual const char* what() const noexcept override {
+        return strdup(
+            std::format("{} at {}:{} in {}", msg, file, line, function)
+                .c_str());
+    }
+#else
     virtual cpptrace::stacktrace const& trace() const noexcept override {
         return eager;
     }
@@ -46,6 +64,7 @@ struct CRTP_hexception
             std::format("{} at {}:{} in {}", msg, file, line, function)
                 .c_str());
     }
+#endif
 };
 
 

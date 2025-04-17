@@ -533,12 +533,13 @@ def get_cmake_defines(ctx: Context) -> List[str]:
             result.append(cmake_opt(flag.name, flag.value))
 
     else:
-        result.append(cmake_opt("ORG_EMCC_BUILD", True))
+        result.append(cmake_opt("ORG_EMCC_BUILD", False))
 
     debug = True
     if debug:
         result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", True))
         result.append("--trace")
+        result.append("--trace-expand")
 
     else:
         result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", False))
@@ -854,6 +855,7 @@ def generate_develop_deps_install_paths(ctx: Context):
             path = install_dir.joinpath(dir[1])
             cmake_paths.append(f"set({dir[0]}_DIR \"{path}\")")
 
+    ensure_existing_dir(install_dir)
     install_dir.joinpath("paths.cmake").write_text("\n".join(cmake_paths))
 
 
@@ -1010,6 +1012,7 @@ def build_develop_deps(
         )
 
     log(CAT).info(f"Finished develop dependencies installation, {debug_conf}")
+    log(CAT).info(f"Installed into {install_dir}")
 
 
 @org_task(pre=[configure_cmake_haxorg], iterable=["target", "ninja_flag"])

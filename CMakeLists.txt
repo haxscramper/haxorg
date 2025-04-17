@@ -54,7 +54,7 @@ option(ORG_USE_SANITIZER "Use sanitizers" ON)
 option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" ON)
 option(ORG_EMCC_BUILD "Building for emscripten target" OFF)
 
-option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" OFF)
+option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
 option(ORG_DEPS_USE_PROTOBUF "Include protobuf functionality in the build" ON)
 option(ORG_DEPS_USE_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)" ON)
 option(ORG_BUILD_IS_DEVELOP "Don't build and configure internal development dependencies" ON)
@@ -80,7 +80,7 @@ endif()
 set(DEPS_DIR "${BASE}/thirdparty")
 message(STATUS "ORG_DEPS_INSTALL_ROOT = '${ORG_DEPS_INSTALL_ROOT}'")
 
-if(ORG_DEPS_INSTALL_ROOT STREQUAL "OFF")
+if(ORG_DEPS_INSTALL_ROOT STREQUAL "")
   message(
     FATAL_ERROR
       "ORG_DEPS_INSTALL_ROOT is set to '${ORG_DEPS_INSTALL_ROOT}' -- this option must be configured explicitly for build."
