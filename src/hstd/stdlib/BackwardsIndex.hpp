@@ -48,6 +48,6 @@ struct std::formatter<hstd::BackwardsIndex> : std::formatter<std::string> {
     }
 };
 
-inline hstd::BackwardsIndex operator"" _B(unsigned long long int value) {
+inline hstd::BackwardsIndex operator""_B(unsigned long long int value) {
     return hstd::backIndex(value);
 }

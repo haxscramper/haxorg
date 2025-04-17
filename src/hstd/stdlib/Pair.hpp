@@ -1,7 +1,6 @@
 #pragma once
 
 #include <utility>
-#include <boost/container_hash/hash.hpp>
 #include <hstd/system/Formatter.hpp>
 #include <hstd/system/reflection.hpp>
 

@@ -35,7 +35,7 @@ def get_emscripten_cmake_flags() -> List[CmakeOptConfig]:
             name="CMAKE_CXX_FLAGS",
             value=" ".join([
                 "-fexceptions",
-                # "-sASYNCIFY_STACK_SIZE=65536",
+                # "-sUSE_BOOST_HEADERS=1",
             ]),
         ),
         CmakeOptConfig(name="HAVE_NEON", value=False),
@@ -114,6 +114,19 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
     )
 
     dep(
+        build_name="preprocessor",
+        is_emcc_ready=True,
+        deps_name="cmake_wrap/boost_preprocessor",
+        cmake_dirs=[
+            ("BoostPreprocessor", "preprocessor/lib/cmake/BoostPreprocessor"),
+        ],
+        install_prefixes=[
+            "preprocessor/lib/cmake/BoostPreprocessor",
+            "preprocessor/lib64/cmake/BoostPreprocessor",
+        ],
+    )
+
+    dep(
         build_name="adaptagrams",
         deps_name="cmake_wrap/adaptagrams",
         configure_args=[
@@ -184,6 +197,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
     absl = dep(
         build_name="abseil",
         deps_name="abseil-cpp",
+        is_emcc_ready=True,
         configure_args=[
             opt("ABSL_CC_LIB_COPTS", "-fPIC"),
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),

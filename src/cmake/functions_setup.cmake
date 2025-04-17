@@ -59,8 +59,7 @@ function(set_target_flags_impl)
   endif()
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-    # Avoid getting flooded with compilation errors
-    set(CMAKE_CXX_COMPILER clang++)
+    # Avoid getting flooded with compilation errors set(CMAKE_CXX_COMPILER clang++)
 
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fPIC")

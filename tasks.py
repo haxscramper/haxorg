@@ -534,8 +534,9 @@ def get_cmake_defines(ctx: Context) -> List[str]:
 
     else:
         result.append(cmake_opt("ORG_EMCC_BUILD", False))
+        result.append(cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")))
 
-    debug = True
+    debug = False
     if debug:
         result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", True))
         result.append("--trace")
@@ -881,7 +882,6 @@ def configure_cmake_haxorg(ctx: Context, force: bool = False):
                 get_script_root(),
                 "-G",
                 "Ninja",
-                f"-DCMAKE_CXX_COMPILER={get_llvm_root('bin/clang++')}",
                 *get_cmake_defines(ctx),
                 cmake_opt("ORG_CPACK_PACKAGE_VERSION", HAXORG_VERSION),
                 cmake_opt("ORG_CPACK_PACKAGE_NAME", HAXORG_NAME),

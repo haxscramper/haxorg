@@ -4,8 +4,6 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/system/string_convert.hpp>
 #include <span>
-#include <absl/log/log.h>
-#include <absl/log/check.h>
 #include <optional>
 #include <hstd/system/Formatter.hpp>
 
