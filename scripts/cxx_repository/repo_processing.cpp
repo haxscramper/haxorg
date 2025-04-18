@@ -119,10 +119,13 @@ struct FileModifyAction {
 };
 
 struct NameAction {
-    NameAction(ir::FilePathId path) : path(path) { CHECK(!path.isNil()); }
+    NameAction(ir::FilePathId path) : path(path) {
+        LOGIC_ASSERTION_CHECK(!path.isNil(), "");
+    }
+
     BOOST_DESCRIBE_CLASS(NameAction, (), (path), (), ());
     ir::FilePathId getPath() const {
-        CHECK(!path.isNil());
+        LOGIC_ASSERTION_CHECK(!path.isNil(), "");
         return path;
     }
 
@@ -276,7 +279,7 @@ void file_name_actions(walker_state* state, CommitActions& result) {
 
                 auto  track   = state->content->getFilePath(path);
                 auto& actions = result.actions[track];
-                CHECK(!actions.leading_name);
+                LOGIC_ASSERTION_CHECK(!actions.leading_name, "");
                 actions.leading_name = NameAction{
                     state->content->getFilePath(path)};
             } else if (
@@ -352,12 +355,13 @@ CommitActions get_commit_actions(
         ir::FilePathId path_id = state->content->getFilePath(path);
 
         if (delta->status == GIT_DELTA_DELETED) {
-            CHECK(!result.actions.contains(path_id));
+            LOGIC_ASSERTION_CHECK(!result.actions.contains(path_id), "");
             result.actions[state->content->getFilePath(path)].leading_name = NameAction{
                 state->content->getFilePath(path)};
         }
 
-        CHECK(result.actions.contains(path_id)) << std::format(
+        LOGIC_ASSERTION_CHECK(
+            result.actions.contains(path_id),
             "Missing action group for path '{}' path_id {} for commit {}, "
             "delta kind {}. The path is a known directory: {}",
             path,
@@ -532,7 +536,7 @@ struct ChangeIterationState {
             << std::format(" on track:{}", track)
             << format_section_lines(section_id);
 
-        CHECK(to_add <= section.lines.size());
+        LOGIC_ASSERTION_CHECK(to_add <= section.lines.size(), "");
 
         section.added_lines.push_back(to_add);
         section.lines = section.lines.insert(to_add, add.id);
@@ -553,13 +557,17 @@ struct ChangeIterationState {
         int to_remove  = remove.removed;
         int lines_size = section.lines.size();
 
-        CHECK(to_remove < lines_size)
-            << "[apply] Cannot remove line index " << to_remove
-            << " from section version " << section.lines.size()
-            << " path '" << state->str(state->at(section.path).path)
-            << "' commit " << state->at(commit_id).hash << " "
-            << fmt1(remove) << std::format(" on track:{}", track)
-            << format_section_lines(section_id);
+        LOGIC_ASSERTION_CHECK(
+            to_remove < lines_size,
+            "[apply] Cannot remove line index {} from section version {} "
+            "path '{}' commit {} {}  on track:{} {}",
+            to_remove,
+            section.lines.size(),
+            state->str(state->at(section.path).path),
+            state->at(commit_id).hash,
+            remove,
+            track,
+            format_section_lines(section_id));
 
         auto remove_content = state->at(section.lines.at(to_remove))
                                   .content;
@@ -580,7 +588,7 @@ struct ChangeIterationState {
             << std::format(" on track:{}", track)
             << format_section_lines(section_id);
 
-        CHECK(remove_content == remove.id);
+        LOGIC_ASSERTION_CHECK(remove_content == remove.id, "");
 
         section.removed_lines.push_back(to_remove);
         section.lines = section.lines.erase(to_remove);
@@ -588,7 +596,7 @@ struct ChangeIterationState {
 
     auto apply(ir::CommitId commit_id, CR<NameAction> name)
         -> Pair<ir::FileTrackId, ir::FileTrackSectionId> {
-        CHECK(!name.getPath().isNil());
+        LOGIC_ASSERTION_CHECK(!name.getPath().isNil(), "");
         ir::FileTrackId track = which_track(name.getPath());
 
         if (state->should_debug()
@@ -612,23 +620,22 @@ struct ChangeIterationState {
 
         tmp_track.sections.push_back(section_id);
 
-        CHECK(!section.path.isNil());
+        LOGIC_ASSERTION_CHECK(!section.path.isNil(), "");
         if (1 < tmp_track.sections.size()) {
             ir::FileTrackSectionId prev_section = tmp_track.sections.at(
                 tmp_track.sections.size() - 2);
             section.lines = state->at(prev_section).lines;
-            CHECK(
+            LOGIC_ASSERTION_CHECK(
                 state->at(prev_section).track
-                == state->at(section_id).track)
-                << std::format(
-                       "[apply] New track section copied lines from the "
-                       "wrong "
-                       "track. Section {} is placed in track {}, but the "
-                       "previous section {} had track {}",
-                       section_id,
-                       state->at(section_id).track,
-                       prev_section,
-                       state->at(prev_section).track);
+                    == state->at(section_id).track,
+                "[apply] New track section copied lines from the "
+                "wrong "
+                "track. Section {} is placed in track {}, but the "
+                "previous section {} had track {}",
+                section_id,
+                state->at(section_id).track,
+                prev_section,
+                state->at(prev_section).track);
         }
 
         return {track, section_id};
@@ -751,7 +758,8 @@ void check_tree_entry_consistency(
                where,
                concat_content);
 
-    CHECK(content_lines.size() == section.lines.size());
+    LOGIC_ASSERTION_CHECK(
+        content_lines.size() == section.lines.size(), "");
 
     for (auto const& [idx, pair] :
          rv::zip(section.lines, content_lines) | rv::enumerate) {
@@ -770,7 +778,7 @@ void check_tree_entry_consistency(
             path,
             where,
             concat_content);
-        CHECK(section_line == content_line);
+        LOGIC_ASSERTION_CHECK(section_line == content_line, "");
     }
 
     LOG(INFO) << std::format(

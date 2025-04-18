@@ -78,7 +78,7 @@ TYPED_TEST(IntVecTypedTest, VectorAlloc) {
     }
     {
         TypeParam v{0, 0, 0, 0, 0};
-        CHECK(v.data() != nullptr);
+        LOGIC_ASSERTION_CHECK(v.data() != nullptr, "");
         EXPECT_EQ(v[0], 0);
     }
 }

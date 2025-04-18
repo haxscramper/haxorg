@@ -1,11 +1,11 @@
-#include "ImmOrgGraph.hpp"
-#include "haxorg/sem/ImmOrgEdit.hpp"
-#include "haxorg/sem/SemBaseApi.hpp"
-#include <boost/algorithm/string/replace.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <immer/set_transient.hpp>
-#include <immer/vector_transient.hpp>
-#include <haxorg/exporters/ExporterUltraplain.hpp>
+#if !ORG_EMCC_BUILD
+#    include "ImmOrgGraph.hpp"
+#    include "haxorg/sem/ImmOrgEdit.hpp"
+#    include "haxorg/sem/SemBaseApi.hpp"
+#    include <hstd/stdlib/Ranges.hpp>
+#    include <immer/set_transient.hpp>
+#    include <immer/vector_transient.hpp>
+#    include <haxorg/exporters/ExporterUltraplain.hpp>
 
 using namespace org::graph;
 using namespace hstd;
@@ -17,10 +17,10 @@ using slk = org::sem::LinkTarget::Kind;
 MapConfig* __conf_ptr(MapConfig* c) { return c; }
 MapConfig* __conf_ptr(MapConfig& c) { return &c; }
 
-#define GRAPH_TRACE() __conf_ptr(conf)->OperationsTracer::TraceState
+#    define GRAPH_TRACE() __conf_ptr(conf)->OperationsTracer::TraceState
 
-#define GRAPH_MSG(...)                                                    \
-    if (GRAPH_TRACE()) { __conf_ptr(conf)->message(__VA_ARGS__); }
+#    define GRAPH_MSG(...)                                                \
+        if (GRAPH_TRACE()) { __conf_ptr(conf)->message(__VA_ARGS__); }
 
 bool org::graph::isDescriptionItem(ImmAdapter const& node) {
     return node.as<ImmListItem>()->header->has_value();
@@ -884,3 +884,4 @@ void org::graph::MapGraphState::addNodeRec(
 
     aux(node);
 }
+#endif

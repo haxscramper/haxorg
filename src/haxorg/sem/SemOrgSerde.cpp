@@ -1,6 +1,6 @@
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
-#if ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 
 using namespace org::algo;
 using namespace org;

@@ -1349,3 +1349,15 @@ void hstd::replace_all(
         pos += to.length();
     }
 }
+
+bool hstd::iequals(const std::string& a, const std::string& b) {
+    if (a.length() != b.length()) {
+        return false;
+    } else {
+        return std::equal(
+            a.begin(), a.end(), b.begin(), b.end(), [](char a, char b) {
+                return std::tolower(static_cast<unsigned char>(a))
+                    == std::tolower(static_cast<unsigned char>(b));
+            });
+    }
+}

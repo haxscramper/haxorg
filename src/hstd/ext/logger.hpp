@@ -1,6 +1,17 @@
 #pragma once
 
-#if !ORG_EMCC_BUILD
+#if ORG_EMCC_BUILD
+
+#    define HSLOG_TRACE(__cat, ...)
+#    define HSLOG_DEBUG(__cat, ...)
+#    define HSLOG_INFO(__cat, ...)
+#    define HSLOG_WARNING(__cat, ...)
+#    define HSLOG_ERROR(__cat, ...)
+#    define HSLOG_FATAL(__cat, ...)
+#    define HSLOG_SINK_SCOPE()
+#    define HSLOG_NOSINK_SCOPE()
+
+#else
 #    include <boost/log/attributes/mutable_constant.hpp>
 #    include <boost/log/sinks/basic_sink_frontend.hpp>
 #    include <boost/preprocessor.hpp>

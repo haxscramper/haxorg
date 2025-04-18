@@ -14,7 +14,7 @@ std::size_t imm_hash_build(T const& value) {
             && field.name == loc_field) {
             // pass
         } else {
-            boost::hash_combine(
+            hstd::hax_hash_combine(
                 result,
                 std::hash<
                     std::remove_cvref_t<decltype(value.*field.pointer)>>{}(

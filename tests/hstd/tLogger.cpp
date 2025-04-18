@@ -47,7 +47,9 @@ struct LoggerTest : public ::testing::Test {
     }
 
     void debug() {
-        for (auto const& it : buffer) { LOG(INFO) << fmt1(it); }
+        for (auto const& it : buffer) {
+            std::cout << fmt1(it) << std::endl;
+        }
     }
 };
 

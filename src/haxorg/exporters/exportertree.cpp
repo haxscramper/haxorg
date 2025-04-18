@@ -61,8 +61,8 @@ void ExporterTree::treeRepr(
         os.colored = false;
         ExporterTree(os).evalTop(org);
     } else {
-        LOG(ERROR) << "Could not open file" << path
-                   << "for writing tree repr";
+        throw FilesystemError::init(std::format(
+            "Could not open file {} for writing tree repr", path));
     }
 }
 

@@ -3660,8 +3660,8 @@ ingoing elements.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("stdout", &org::sem::OrgCodeEvalOutput::stdout)
-    .def_readwrite("stderr", &org::sem::OrgCodeEvalOutput::stderr)
+    .def_readwrite("stdoutText", &org::sem::OrgCodeEvalOutput::stdoutText)
+    .def_readwrite("stderrText", &org::sem::OrgCodeEvalOutput::stderrText)
     .def_readwrite("code", &org::sem::OrgCodeEvalOutput::code)
     .def_readwrite("cmd", &org::sem::OrgCodeEvalOutput::cmd, R"RAW(Command evaluated, if none then eval output did not run CLI subprocess)RAW")
     .def_readwrite("args", &org::sem::OrgCodeEvalOutput::args, R"RAW(Command line arguments provided for execution)RAW")

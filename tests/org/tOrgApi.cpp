@@ -95,7 +95,7 @@ content
     conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
         -> Vec<sem::OrgCodeEvalOutput> {
         buf.push_back(in);
-        return {sem::OrgCodeEvalOutput{.stdout = "*bold*"}};
+        return {sem::OrgCodeEvalOutput{.stdoutText = "*bold*"}};
     };
     conf.debug->setTraceFile(getDebugFile("EvalCodeBlock.log"));
     auto ev = org::evaluateCodeBlocks(doc, conf);
@@ -148,7 +148,7 @@ input text
         -> Vec<sem::OrgCodeEvalOutput> {
         buf.push_back(in);
         // LOG(INFO) << fmt1(in);
-        return {sem::OrgCodeEvalOutput{.stdout = "*bold*"}};
+        return {sem::OrgCodeEvalOutput{.stdoutText = "*bold*"}};
     };
     conf.debug->setTraceFile(getDebugFile("EvalCallCommand.log"));
     auto ev = org::evaluateCodeBlocks(doc, conf);
@@ -204,7 +204,7 @@ return tab
 
     conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
         -> Vec<sem::OrgCodeEvalOutput> {
-        return {sem::OrgCodeEvalOutput{.stdout = R"(| a | b | c |
+        return {sem::OrgCodeEvalOutput{.stdoutText = R"(| a | b | c |
 | d | e | f |
 | g | h | i |
 )"}};

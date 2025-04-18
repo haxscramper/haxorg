@@ -8,7 +8,6 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <absl/log/log.h>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <lexy/dsl/identifier.hpp>
@@ -22,6 +21,7 @@
 #include <lexy/callback.hpp>
 #include <lexy/callback/container.hpp>
 #include <lexy/action/trace.hpp>
+#include <stack>
 
 struct convert_logic_error : hstd::CRTP_hexception<convert_logic_error> {};
 
@@ -1758,7 +1758,7 @@ OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
     result->attrs                       = convertAttrs(one(a, N::Args));
 
     result->name = normalize(get_text(one(a, N::Name)));
-    boost::replace_all(result->name, "begin", "");
+    hstd::replace_all(result->name, "begin", "");
     for (auto const& it : many(a, N::Body)) {
         result->subnodes.push_back(convert(it));
     }

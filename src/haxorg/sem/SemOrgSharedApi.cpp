@@ -5,7 +5,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
-#include <boost/algorithm/string.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 using namespace org;
 using namespace hstd;
@@ -17,7 +17,7 @@ Opt<E> string_to_enum_insensitive(std::string const& name) {
 
     boost::mp11::mp_for_each<boost::describe::describe_enumerators<E>>(
         [&](auto D) {
-            if (!r && boost::iequals(D.name, name)) { r = D.value; }
+            if (!r && hstd::iequals(D.name, name)) { r = D.value; }
         });
 
     return r;

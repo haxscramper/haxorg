@@ -45,6 +45,7 @@ Str      repeat(CR<Str> str, int count);
 Str      escape_for_write(Str const& str, bool quote = true);
 int      rune_length(const std::string& str);
 std::vector<std::string> rune_chunks(const std::string& str);
+bool iequals(const std::string& a, const std::string& b);
 
 void replace_all(
     std::string&       str,

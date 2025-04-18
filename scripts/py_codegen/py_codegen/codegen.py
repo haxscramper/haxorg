@@ -1121,13 +1121,6 @@ def gen_pyhaxorg_napi_wrappers(
     res.Header.append(napi.NapiBindPass(ast.string("using namespace org::bind::js;")))
 
     return GenFiles([
-        GenUnit(
-            GenTu(
-                "{root}/src/wrappers/js/nodehaxorg.cpp",
-                [
-                    GenTuPass(res.build_bind(ast=ast, b=cpp_builder, base_map=base_map)),
-                ],
-            )),
     ])
 
 
@@ -1159,7 +1152,7 @@ def gen_pyhaxorg_source(
             GenTu(
                 "{base}/sem/SemOrgSerdeDeclarations.hpp",
                 [
-                    GenTuPass("#if ORG_DEPS_USE_PROTOBUF"),
+                    GenTuPass("#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD"),
                     GenTuPass("#pragma once"),
                     GenTuPass("#include <haxorg/sem/SemOrgSerde.hpp>"),
                     GenTuPass(ast.Macro(proto.get_any_node_field_mapping())),
@@ -1173,7 +1166,7 @@ def gen_pyhaxorg_source(
             GenTu(
                 "{base}/sem/SemOrgSerdeDefinitions.cpp",
                 [
-                    GenTuPass("#if ORG_DEPS_USE_PROTOBUF"),
+                    GenTuPass("#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD"),
                     GenTuPass("#include <haxorg/sem/SemOrgSerde.hpp>"),
                     GenTuPass("#include <haxorg/sem/SemOrgSerdeDeclarations.hpp>"),
                 ] + [

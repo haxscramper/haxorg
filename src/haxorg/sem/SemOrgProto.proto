@@ -746,8 +746,8 @@ message OrgCodeEvalInput {
 }
 
 message OrgCodeEvalOutput {
-  string                                           stdout                           = 1;
-  string                                           stderr                           = 2;
+  string                                           stdoutText                       = 1;
+  string                                           stderrText                       = 2;
   int32                                            code                             = 3;
   optional string                                  cmd                              = 4;
   repeated string                                  args                             = 5;

@@ -111,19 +111,21 @@ void OrgLexerImpl::maybe_pop_expect_impl(int current, int next, int line) {
 
 void OrgLexerImpl::pop_expect_impl(int current, int next, int line) {
     if (current != -1) {
-        CHECK(impl->start() == current) << std::format(
+        LOGIC_ASSERTION_CHECK(
+            impl->start() == current,
             "Expected current state to be {} line:{} but got {} '{}'",
             state_name(current),
             line,
             state_name(impl->start()),
-            view(this));
+            view(this))
     }
 
     impl->pop_state();
 
-    CHECK(impl->start() == next) << std::format(
-        "After popping {} expected next state to be {} line:{} but got "
-        "{} '{}'",
+    LOGIC_ASSERTION_CHECK(
+        impl->start() == next,
+        "After popping {} expected next state to be {} line:{} but got {} "
+        "'{}'",
         state_name(current),
         state_name(next),
         line,
@@ -131,7 +133,9 @@ void OrgLexerImpl::pop_expect_impl(int current, int next, int line) {
         view(this));
 
     states.pop_back();
-    if (!states.empty()) { CHECK(states.back().stateId == next); }
+    if (!states.empty()) {
+        LOGIC_ASSERTION_CHECK(states.back().stateId == next, "");
+    }
 
     if (p.traceStream) {
         if (p.traceStructured) {
@@ -155,7 +159,8 @@ void OrgLexerImpl::pop_expect_impl(int current, int next, int line) {
 }
 
 void OrgLexerImpl::push_expect_impl(int current, int next, int line) {
-    CHECK(impl->start() == current) << std::format(
+    LOGIC_ASSERTION_CHECK(
+        impl->start() == current,
         "Expected current state to be {} line:{} but got {} when "
         "transitioning to {} at '{}'",
         state_name(current),
@@ -234,11 +239,8 @@ std::pair<const char*, size_t> OrgLexerImpl::get_capture(
         id = impl->matcher().group_next_id();
     }
 
-    if (id.first != 0) {
-        return impl->matcher()[id.first];
-    } else {
-        LOG(FATAL) << "??? " << name;
-    }
+    LOGIC_ASSERTION_CHECK(id.first == 0, "{}", name);
+    return impl->matcher()[id.first];
 }
 
 
@@ -255,12 +257,13 @@ void OrgLexerImpl::unknown() {
             (*p.traceStream) << get_print_indent() << "  X unknown "
                              << view(this) << std::endl;
         }
-    } else {
-        // LOG(ERROR) << "Unknown " << view(this);
     }
 
-    CHECK(++p.visitedUnknown < p.maxUnknown) << std::format(
-        "Max {} visited {}", p.maxUnknown, p.visitedUnknown);
+    LOGIC_ASSERTION_CHECK(
+        ++p.visitedUnknown < p.maxUnknown,
+        "Max {} visited {}",
+        p.maxUnknown,
+        p.visitedUnknown);
 }
 
 std::string OrgLexerImpl::get_print_indent() const {

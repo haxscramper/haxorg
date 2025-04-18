@@ -9,7 +9,9 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <immer/map_transient.hpp>
-#include <hstd/ext/graphviz.hpp>
+#if !ORG_EMCC_BUILD
+#    include <hstd/ext/graphviz.hpp>
+#endif
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <immer/flex_vector_transient.hpp>
@@ -127,6 +129,20 @@ struct [[refl]] ImmPathStep {
     }
 };
 
+} // namespace org::imm
+
+template <>
+struct std::formatter<org::imm::ImmPathStep>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::imm::ImmPathStep& p, FormatContext& ctx) const {
+        return hstd::ReflPathFormatter<org::imm::ImmReflPathTag>{}.format(
+            p.path, ctx);
+    }
+};
+
+
+namespace org::imm {
 /// \brief Full path from the root of the document to a specific node.
 struct [[refl]] ImmPath {
     using Store = immer::flex_vector<ImmPathStep>;
@@ -786,9 +802,11 @@ void switch_node_fields(
 }
 
 
+#if !ORG_EMCC_BUILD
 hstd::ext::Graphviz::Graph toGraphviz(
     hstd::Vec<ImmAstVersion> const& history,
     ImmAstGraphvizConf const&       conf = ImmAstGraphvizConf{});
+#endif
 
 template <typename T>
 struct ImmAdapterT;
@@ -1596,15 +1614,6 @@ struct hstd::JsonSerde<org::imm::ImmAdapterT<T>> {
     }
 };
 
-template <>
-struct std::formatter<org::imm::ImmPathStep>
-    : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const org::imm::ImmPathStep& p, FormatContext& ctx) const {
-        return hstd::ReflPathFormatter<org::imm::ImmReflPathTag>{}.format(
-            p.path, ctx);
-    }
-};
 
 template <>
 struct std::hash<org::imm::ImmPathStep> {

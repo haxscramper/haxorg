@@ -1,5 +1,5 @@
 /* clang-format off */
-#if ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
 void org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call>::write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in) {
@@ -825,8 +825,8 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalI
 }
 
 void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput>::write(::orgproto::OrgCodeEvalOutput* out, org::sem::OrgCodeEvalOutput const& in) {
-  proto_serde<std::string, hstd::Str>::write(out->mutable_stdout(), in.stdout);
-  proto_serde<std::string, hstd::Str>::write(out->mutable_stderr(), in.stderr);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_stdouttext(), in.stdoutText);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_stderrtext(), in.stderrText);
   out->set_code(in.code);
   if (in.cmd) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_cmd(), *in.cmd);
@@ -837,8 +837,8 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEval
 }
 
 void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput>::read(::orgproto::OrgCodeEvalOutput const& out, proto_write_accessor<org::sem::OrgCodeEvalOutput> in) {
-  proto_serde<std::string, hstd::Str>::read(out.stdout(), in.for_field(&org::sem::OrgCodeEvalOutput::stdout));
-  proto_serde<std::string, hstd::Str>::read(out.stderr(), in.for_field(&org::sem::OrgCodeEvalOutput::stderr));
+  proto_serde<std::string, hstd::Str>::read(out.stdouttext(), in.for_field(&org::sem::OrgCodeEvalOutput::stdoutText));
+  proto_serde<std::string, hstd::Str>::read(out.stderrtext(), in.for_field(&org::sem::OrgCodeEvalOutput::stderrText));
   in.for_field(&org::sem::OrgCodeEvalOutput::code).get() = out.code();
   if (out.has_cmd()) {
     proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.cmd(), in.for_field(&org::sem::OrgCodeEvalOutput::cmd));

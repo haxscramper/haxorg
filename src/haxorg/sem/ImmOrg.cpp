@@ -658,6 +658,7 @@ struct value_metadata<hstd::ext::ImmBox<T>> {
 };
 
 
+#if !ORG_EMCC_BUILD
 hstd::ext::Graphviz::Graph org::imm::toGraphviz(
     const Vec<ImmAstVersion>& history,
     ImmAstGraphvizConf const& conf) {
@@ -836,6 +837,7 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
     return g;
 }
 
+#endif
 
 template <typename T>
 struct ImmSubnodeCollectionVisitor {};

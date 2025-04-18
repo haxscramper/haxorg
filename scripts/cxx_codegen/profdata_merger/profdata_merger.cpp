@@ -35,6 +35,7 @@
 #include <hstd/stdlib/Map.hpp>
 
 #include <hstd/ext/perfetto_aux.hpp>
+#include <absl/log/log.h>
 
 #ifdef ORG_USE_PERFETTO
 

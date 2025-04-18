@@ -1,11 +1,11 @@
 #pragma once
+#if !ORG_EMCC_BUILD
+#    include <boost/graph/properties.hpp>
+#    include <haxorg/sem/ImmOrg.hpp>
 
-#include <boost/graph/properties.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
-
-#include <hstd/stdlib/TraceBase.hpp>
-#include <immer/map_transient.hpp>
-#include <hstd/ext/graphviz.hpp>
+#    include <hstd/stdlib/TraceBase.hpp>
+#    include <immer/map_transient.hpp>
+#    include <hstd/ext/graphviz.hpp>
 
 namespace org::graph {
 
@@ -454,3 +454,4 @@ bool hasGraphAnnotations(
 bool isMmapIgnored(org::imm::ImmAdapter const& n);
 
 } // namespace org::graph
+#endif

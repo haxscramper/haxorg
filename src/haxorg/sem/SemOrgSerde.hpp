@@ -4,7 +4,7 @@
 
 namespace org::algo {}
 
-#if ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #    include <SemOrgProto.pb.h>
 #    include <concepts>
 

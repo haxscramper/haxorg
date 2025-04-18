@@ -84,9 +84,10 @@ bool move_latest_xray_log_to_path(const std::string& path) {
         return true;
 
     } else {
-        LOG(WARNING)
+        std::cerr
             << ("No matching xray-log files found for program name '"
-                + program_name + "'");
+                + program_name + "'")
+            << std::endl;
         return false;
     }
 }

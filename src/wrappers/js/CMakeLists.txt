@@ -1,14 +1,18 @@
-add_library(nodehaxorg MODULE nodehaxorg.cpp node_utils.hpp node_org_include.hpp)
-target_include_directories(nodehaxorg PRIVATE "node_modules/node-addon-api" "/usr/include/node")
+if(${ORG_EMCC_BUILD})
 
-target_link_libraries(nodehaxorg PUBLIC hstd haxorg)
+  add_library(wasmorg MODULE wasmorg.cpp node_utils.hpp node_org_include.hpp)
+  target_include_directories(wasmorg PRIVATE "node_modules/node-addon-api" "/usr/include/node")
 
-set_common_files(nodehaxorg)
-set_target_output(nodehaxorg)
-set_target_flags(nodehaxorg)
+  target_link_libraries(wasmorg PUBLIC hstd haxorg)
 
-set_target_properties(
-  nodehaxorg
-  PROPERTIES PREFIX ""
-             SUFFIX ".node"
-             OUTPUT_NAME "nodehaxorg")
+  set_common_files(wasmorg)
+  set_target_output(wasmorg)
+  set_target_flags(wasmorg)
+
+  set_target_properties(
+    wasmorg
+    PROPERTIES PREFIX ""
+               SUFFIX ".node"
+               OUTPUT_NAME "wasmorg")
+
+endif()

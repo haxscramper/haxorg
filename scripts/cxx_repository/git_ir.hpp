@@ -206,9 +206,10 @@ struct content_manager {
         auto result = add(
             ir::FilePath{.path = add(String{file.native()})});
 
-        CHECK(!at(at(result).path).text.starts_with(" "));
-        CHECK(!result.isNil())
-            << std::format("ID:{} PATH:{}", result, file);
+        LOGIC_ASSERTION_CHECK(
+            !at(at(result).path).text.starts_with(" "), "");
+        LOGIC_ASSERTION_CHECK(
+            !result.isNil(), "ID:{} PATH:{}", result, file, "");
 
         return result;
     }
