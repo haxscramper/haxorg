@@ -1,11 +1,14 @@
 #pragma once
 #if !ORG_EMCC_BUILD
 #    include <boost/graph/properties.hpp>
-#    include <haxorg/sem/ImmOrg.hpp>
+#endif
+#include <haxorg/sem/ImmOrg.hpp>
 
-#    include <hstd/stdlib/TraceBase.hpp>
-#    include <immer/map_transient.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
+#include <immer/map_transient.hpp>
+#if !ORG_EMCC_BUILD
 #    include <hstd/ext/graphviz.hpp>
+#endif
 
 namespace org::graph {
 
@@ -240,7 +243,7 @@ struct [[refl]] MapGraph {
 
     [[refl]] bool hasEdge(MapNode const& source, MapNode const& target)
         const {
-        if (adjList.find(source) != nullptr) {
+        if (adjList.find(source) != adjList.end()) {
             for (auto const& it : adjList.at(source)) {
                 if (it == target) { return true; }
             }
@@ -259,6 +262,7 @@ struct [[refl]] MapGraph {
         return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});
     }
 
+#if !ORG_EMCC_BUILD
     struct GvConfig {
         hstd::Func<bool(MapNode const& node)> acceptNode;
         hstd::Func<bool(MapEdge const& edge)> acceptEdge;
@@ -280,6 +284,7 @@ struct [[refl]] MapGraph {
     hstd::ext::Graphviz::Graph toGraphviz(
         const org::imm::ImmAstContext::Ptr& ctx,
         GvConfig const&                     conf) const;
+#endif
 };
 
 struct MapGraphInverse {
@@ -454,4 +459,3 @@ bool hasGraphAnnotations(
 bool isMmapIgnored(org::imm::ImmAdapter const& n);
 
 } // namespace org::graph
-#endif

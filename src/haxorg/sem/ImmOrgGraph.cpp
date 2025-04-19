@@ -1,11 +1,10 @@
-#if !ORG_EMCC_BUILD
-#    include "ImmOrgGraph.hpp"
-#    include "haxorg/sem/ImmOrgEdit.hpp"
-#    include "haxorg/sem/SemBaseApi.hpp"
-#    include <hstd/stdlib/Ranges.hpp>
-#    include <immer/set_transient.hpp>
-#    include <immer/vector_transient.hpp>
-#    include <haxorg/exporters/ExporterUltraplain.hpp>
+#include "ImmOrgGraph.hpp"
+#include "haxorg/sem/ImmOrgEdit.hpp"
+#include "haxorg/sem/SemBaseApi.hpp"
+#include <hstd/stdlib/Ranges.hpp>
+#include <immer/set_transient.hpp>
+#include <immer/vector_transient.hpp>
+#include <haxorg/exporters/ExporterUltraplain.hpp>
 
 using namespace org::graph;
 using namespace hstd;
@@ -17,10 +16,10 @@ using slk = org::sem::LinkTarget::Kind;
 MapConfig* __conf_ptr(MapConfig* c) { return c; }
 MapConfig* __conf_ptr(MapConfig& c) { return &c; }
 
-#    define GRAPH_TRACE() __conf_ptr(conf)->OperationsTracer::TraceState
+#define GRAPH_TRACE() __conf_ptr(conf)->OperationsTracer::TraceState
 
-#    define GRAPH_MSG(...)                                                \
-        if (GRAPH_TRACE()) { __conf_ptr(conf)->message(__VA_ARGS__); }
+#define GRAPH_MSG(...)                                                    \
+    if (GRAPH_TRACE()) { __conf_ptr(conf)->message(__VA_ARGS__); }
 
 bool org::graph::isDescriptionItem(ImmAdapter const& node) {
     return node.as<ImmListItem>()->header->has_value();
@@ -215,7 +214,8 @@ void traceNodeResolve(
                 resolved_node.node.unresolved,
                 resolved_node.resolved));
 
-        if (outputState.graph.nodeProps.find(mapNode) != nullptr) {
+        if (outputState.graph.nodeProps.find(mapNode)
+            != outputState.graph.nodeProps.end()) {
             for (auto const& u :
                  outputState.graph.at(mapNode).unresolved) {
                 GRAPH_MSG(fmt(">> g[v] unresolved {}", u));
@@ -523,7 +523,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     auto ctx = node.id.ctx.lock();
 
     LOGIC_ASSERTION_CHECK(
-        s.unresolved.find(MapNode{node.id.uniq()}) == nullptr,
+        s.unresolved.find(MapNode{node.id.uniq()}) == s.unresolved.end(),
         "Node {} is already marked as unresolved in the graph",
         node.id);
 
@@ -707,6 +707,7 @@ void MapGraph::addNode(const MapNode& node) {
 }
 
 
+#if !ORG_EMCC_BUILD
 Graphviz::Graph MapGraph::toGraphviz(
     imm::ImmAstContext::Ptr const& ctx,
     GvConfig const&                conf) const {
@@ -753,12 +754,13 @@ Graphviz::Graph MapGraph::toGraphviz(
 
     return res;
 }
-
+#endif
 
 MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
 
 MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
+#if !ORG_EMCC_BUILD
 Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
     const ImmAdapter&  node,
     const MapNodeProp& prop) {
@@ -830,6 +832,7 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
 
     return rec;
 }
+#endif
 
 void org::graph::MapGraphState::addNodeRec(
     const ImmAdapter& node,
@@ -884,4 +887,3 @@ void org::graph::MapGraphState::addNodeRec(
 
     aux(node);
 }
-#endif
