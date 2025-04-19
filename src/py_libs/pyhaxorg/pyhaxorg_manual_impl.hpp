@@ -50,16 +50,16 @@ org::sem::SemId<org::sem::Org> getSingleSubnode(
     org::sem::SemId<org::sem::Org> id,
     int                            index);
 
-[[refl(R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] void eachSubnodeRec(
+[[refl(R"({"backend": {"target-backends": ["python"]}})")]] void eachSubnodeRec(
     org::sem::SemId<org::sem::Org> node,
     py::function                   callback);
 
-[[refl(R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] void eachSubnodeRecSimplePath(
+[[refl(R"({"backend": {"target-backends": ["python"]}})")]] void eachSubnodeRecSimplePath(
     org::sem::SemId<org::sem::Org> node,
     py::function                   callback);
 
 struct [[refl(
-    R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] PyCodeEvalParameters {
+    R"({ "backend": {"target-backends": ["python"]}})")]] PyCodeEvalParameters {
     hstd::SPtr<hstd::OperationsTracer> debug;
     [[refl]] py::function              evalBlock;
 
@@ -71,20 +71,17 @@ struct [[refl(
     BOOST_DESCRIBE_CLASS(PyCodeEvalParameters, (), (evalBlock), (), ());
 };
 
-[[refl(R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] void setShouldProcessPath(
+[[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setShouldProcessPath(
     OrgDirectoryParseParameters* parameters,
     py::function                 callback);
 
-[[refl(R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] void setGetParsedNode(
+[[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setGetParsedNode(
     OrgDirectoryParseParameters* params,
     py::function                 callback);
 
-[[refl(
-    R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] org::
-    sem::SemId<sem::Org>
-    evaluateCodeBlocks(
-        org::sem::SemId<org::sem::Org> node,
-        PyCodeEvalParameters const&    conf);
+[[refl(R"({"backend": {"target-backends": ["python"]}})")]] org::sem::SemId<sem::Org> evaluateCodeBlocks(
+    org::sem::SemId<org::sem::Org> node,
+    PyCodeEvalParameters const&    conf);
 
 enum class [[refl(
     R"({"backend": {"target-backends": ["python"]}})")]] LeafFieldType{
@@ -166,7 +163,7 @@ concept IsOneOf = FixedTypeUnion<Ts...>::template contains<
     std::remove_cvref_t<T>>;
 
 struct [[refl(
-    R"({"default-constructor": false, "backend": {"target-backends": ["python"]}})")]] ExporterPython
+    R"({"backend": {"target-backends": ["python"]}})")]] ExporterPython
     : org::algo::Exporter<ExporterPython, py::object> {
     using Base = org::algo::Exporter<ExporterPython, py::object>;
 #define __ExporterBase Base

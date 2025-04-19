@@ -997,7 +997,9 @@ class Py11Module:
 
             if name:
                 # assert name not in self.nameTrack, f"{name} is already registered for the module for {self.nameTrack[name]}, attempting to map{orig_name} to the same name"
-                self.Decls.append(d)
+                if name not in self.nameTrack:
+                    self.Decls.append(d)
+
                 self.nameTrack[name] = orig_name
 
             else:

@@ -745,7 +745,7 @@ def generate_haxorg_base_lexer(ctx: Context):
     ]
 
     # if get_config(ctx).emscripten:
-    reflex_run_params.append("−−matcher=pcre2-perl")
+    # reflex_run_params.append("−−matcher=pcre2-perl")
 
     with FileOperation.InTmp(
             input=[py_file, py_file.with_suffix(".yaml")],

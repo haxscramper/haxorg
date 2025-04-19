@@ -126,28 +126,28 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_hstdVec<org::sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
   bind_immerbox<hstd::Str>(m, "ImmBoxOfStr", type_registry_guard);
-  bind_immerbox<std::optional<hstd::Str>>(m, "ImmBoxOfOptionalStdOfStr", type_registry_guard);
-  bind_immerbox<std::optional<int>>(m, "ImmBoxOfOptionalStdOfInt", type_registry_guard);
+  bind_immerbox<std::optional<hstd::Str>>(m, "ImmBoxOfStdOptionalOfStr", type_registry_guard);
+  bind_immerbox<std::optional<int>>(m, "ImmBoxOfStdOptionalOfInt", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmFlexVectorOfImmIdTOfImmErrorItem", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmFlexVectorOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
-  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBoxOfOptionalStdOfImmIdTOfImmOrg", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmSymbol::Param>(m, "ImmFlexVectorOfParamImmSymbol", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmOrg", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmSymbol::Param>(m, "ImmFlexVectorOfImmSymbolParam", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "ImmFlexVectorOfImmIdTOfImmOrg", type_registry_guard);
   bind_immerflex_vector<hstd::Str>(m, "ImmFlexVectorOfStr", type_registry_guard);
-  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBoxOfOptionalStdOfImmIdTOfImmParagraph", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmParagraph", type_registry_guard);
   bind_immerflex_vector<org::sem::OrgCodeEvalOutput>(m, "ImmFlexVectorOfOrgCodeEvalOutput", type_registry_guard);
   bind_immerflex_vector<org::sem::BlockCodeLine>(m, "ImmFlexVectorOfBlockCodeLine", type_registry_guard);
-  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "ImmBoxOfOptionalStdOfImmIdTOfImmStmtList", type_registry_guard);
-  bind_immerbox<std::optional<org::sem::SubtreeCompletion>>(m, "ImmBoxOfOptionalStdOfSubtreeCompletion", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmStmtList", type_registry_guard);
+  bind_immerbox<std::optional<org::sem::SubtreeCompletion>>(m, "ImmBoxOfStdOptionalOfSubtreeCompletion", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "ImmFlexVectorOfImmIdTOfImmHashTag", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "ImmFlexVectorOfImmIdTOfImmSubtreeLog", type_registry_guard);
   bind_immerflex_vector<org::sem::NamedProperty>(m, "ImmFlexVectorOfNamedProperty", type_registry_guard);
-  bind_immerbox<std::optional<hstd::UserTime>>(m, "ImmBoxOfOptionalStdOfUserTime", type_registry_guard);
+  bind_immerbox<std::optional<hstd::UserTime>>(m, "ImmBoxOfStdOptionalOfUserTime", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmFlexVectorOfImmIdTOfImmCell", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmFlexVectorOfImmIdTOfImmRow", type_registry_guard);
-  bind_immerbox<std::optional<bool>>(m, "ImmBoxOfOptionalStdOfBool", type_registry_guard);
-  bind_immerbox<std::optional<org::sem::ColumnView>>(m, "ImmBoxOfOptionalStdOfColumnView", type_registry_guard);
-  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfOptionalStdOfImmIdTOfImmRawText", type_registry_guard);
+  bind_immerbox<std::optional<bool>>(m, "ImmBoxOfStdOptionalOfBool", type_registry_guard);
+  bind_immerbox<std::optional<org::sem::ColumnView>>(m, "ImmBoxOfStdOptionalOfColumnView", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmRawText", type_registry_guard);
   bind_hstdVec<int>(m, "VecOfInt", type_registry_guard);
   bind_hstdVec<org::imm::ImmAdapter>(m, "VecOfImmAdapter", type_registry_guard);
   bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
@@ -155,33 +155,33 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
   bind_hstdVec<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_hstdVec<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
-  bind_hstdVec<org::graph::MapLink>(m, "VecOfMapLinkGraph", type_registry_guard);
-  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "UnorderedMapOfMapNodeGraphMapNodePropGraph", type_registry_guard);
-  bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "UnorderedMapOfMapEdgeGraphMapEdgePropGraph", type_registry_guard);
-  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "UnorderedMapOfMapNodeGraphAdjNodesListGraph", type_registry_guard);
-  bind_hstdVec<org::graph::MapNode>(m, "VecOfMapNodeGraph", type_registry_guard);
-  bind_hstdVec<org::graph::MapEdge>(m, "VecOfMapEdgeGraph", type_registry_guard);
+  bind_hstdVec<org::graph::MapLink>(m, "VecOfGraphMapLink", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "UnorderedMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "UnorderedMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "UnorderedMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
+  bind_hstdVec<org::graph::MapNode>(m, "VecOfGraphMapNode", type_registry_guard);
+  bind_hstdVec<org::graph::MapEdge>(m, "VecOfGraphMapEdge", type_registry_guard);
   bind_hstdVec<org::sem::LispCode>(m, "VecOfLispCode", type_registry_guard);
-  bind_hstdVec<org::sem::Tblfm::Assign>(m, "VecOfAssignTblfm", type_registry_guard);
-  bind_hstdVec<org::sem::Tblfm::Expr>(m, "VecOfExprTblfm", type_registry_guard);
-  bind_hstdVec<org::sem::Tblfm::Assign::Flag>(m, "VecOfFlagTblfmAssign", type_registry_guard);
-  bind_hstdVec<org::sem::AttrValue::DimensionSpan>(m, "VecOfDimensionSpanAttrValue", type_registry_guard);
+  bind_hstdVec<org::sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
+  bind_hstdVec<org::sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
+  bind_hstdVec<org::sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
+  bind_hstdVec<org::sem::AttrValue::DimensionSpan>(m, "VecOfAttrValueDimensionSpan", type_registry_guard);
   bind_hstdVec<hstd::Str>(m, "VecOfStr", type_registry_guard);
   bind_hstdVec<org::sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
   bind_hstdVec<org::sem::HashTagFlat>(m, "VecOfHashTagFlat", type_registry_guard);
   bind_hstdVec<org::sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
   bind_hstdUnorderedMap<hstd::Str, org::sem::AttrList>(m, "UnorderedMapOfStrAttrList", type_registry_guard);
-  bind_hstdVec<org::sem::OrgCodeEvalInput::Var>(m, "VecOfVarOrgCodeEvalInput", type_registry_guard);
-  bind_hstdVec<org::sem::ColumnView::Column>(m, "VecOfColumnColumnView", type_registry_guard);
-  bind_hstdVec<org::sem::BlockCodeLine::Part>(m, "VecOfPartBlockCodeLine", type_registry_guard);
+  bind_hstdVec<org::sem::OrgCodeEvalInput::Var>(m, "VecOfOrgCodeEvalInputVar", type_registry_guard);
+  bind_hstdVec<org::sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
+  bind_hstdVec<org::sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
   bind_hstdUnorderedMap<hstd::Str, hstd::Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
-  bind_hstdVec<org::sem::Symbol::Param>(m, "VecOfParamSymbol", type_registry_guard);
+  bind_hstdVec<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
   bind_hstdVec<org::sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
   bind_hstdVec<org::sem::SubtreePeriod>(m, "VecOfSubtreePeriod", type_registry_guard);
-  bind_hstdIntSet<org::sem::SubtreePeriod::Kind>(m, "IntSetOfKindSubtreePeriod", type_registry_guard);
+  bind_hstdIntSet<org::sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
   bind_hstdVec<hstd::UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
@@ -1963,6 +1963,11 @@ ingoing elements.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::PyCodeEvalParameters {
+                        org::bind::python::PyCodeEvalParameters result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
     .def_readwrite("evalBlock", &org::bind::python::PyCodeEvalParameters::evalBlock)
     .def("setTraceFile",
          static_cast<void(org::bind::python::PyCodeEvalParameters::*)(std::string const&)>(&org::bind::python::PyCodeEvalParameters::setTraceFile),
@@ -1977,6 +1982,11 @@ ingoing elements.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::bind::python::ExporterPython>(m, "ExporterPython")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::ExporterPython {
+                        org::bind::python::ExporterPython result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
     .def("enableBufferTrace", static_cast<void(org::bind::python::ExporterPython::*)()>(&org::bind::python::ExporterPython::enableBufferTrace))
     .def("getTraceBuffer", static_cast<std::string(org::bind::python::ExporterPython::*)() const>(&org::bind::python::ExporterPython::getTraceBuffer))
     .def("enableFileTrace",
@@ -5734,27 +5744,6 @@ ingoing elements.)RAW")
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
-    ;
-  bind_enum_iterator<org::sem::ListItem::Checkbox>(m, "ListItemCheckbox", type_registry_guard);
-  pybind11::enum_<org::sem::ListItem::Checkbox>(m, "ListItemCheckbox")
-    .value("None", org::sem::ListItem::Checkbox::None)
-    .value("Done", org::sem::ListItem::Checkbox::Done)
-    .value("Empty", org::sem::ListItem::Checkbox::Empty)
-    .value("Partial", org::sem::ListItem::Checkbox::Partial)
-    .def("__iter__", [](org::sem::ListItem::Checkbox const& _self) -> org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox> {
-                     return org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox>();
-                     })
-    .def("__eq__",
-         [](org::sem::ListItem::Checkbox const& _self, org::sem::ListItem::Checkbox lhs, org::sem::ListItem::Checkbox rhs) -> bool {
-         return lhs == rhs;
-         },
-         pybind11::arg("lhs"),
-         pybind11::arg("rhs"))
-    .def("__hash__",
-         [](org::sem::ListItem::Checkbox const& _self, org::sem::ListItem::Checkbox it) -> int {
-         return static_cast<int>(it);
-         },
-         pybind11::arg("it"))
     ;
   pybind11::class_<org::sem::ListItem, org::sem::SemId<org::sem::ListItem>, org::sem::Org>(m, "ListItem")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ListItem {

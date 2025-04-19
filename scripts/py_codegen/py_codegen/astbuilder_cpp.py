@@ -77,11 +77,11 @@ class QualType(BaseModel, extra="forbid"):
                 res += rename_map[flat]
 
             else:
-                if t.name not in ignored_spaces:
-                    res += pascal_case(t.name)
-
                 for N in t.Spaces:
                     res += aux(N)
+
+                if t.name not in ignored_spaces:
+                    res += pascal_case(t.name)
 
             if withParams and 0 < len(t.Parameters):
                 res += "Of"

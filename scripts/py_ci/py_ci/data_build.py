@@ -99,18 +99,19 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         ],
     )
 
-    dep(
-        build_name="pcre2",
-        is_emcc_ready=True,
-        deps_name="pcre2",
-        cmake_dirs=[
-            ("pcre2", "pcre2/lib/cmake/pcre2"),
-        ],
-        install_prefixes=[
-            "pcre2/lib/cmake/pcre2",
-            "pcre2/lib64/cmake/pcre2",
-        ],
-    )
+    if False:
+        dep(
+            build_name="pcre2",
+            is_emcc_ready=True,
+            deps_name="pcre2",
+            cmake_dirs=[
+                ("pcre2", "pcre2/lib/cmake/pcre2"),
+            ],
+            install_prefixes=[
+                "pcre2/lib/cmake/pcre2",
+                "pcre2/lib64/cmake/pcre2",
+            ],
+        )
 
     # dep(build_name="scintilla", deps_name="scintilla/")
     dep(
