@@ -1,7 +1,7 @@
 {
   "tasks": {
     "build": "deno run -A --unstable --node-modules-dir esbuild.config.ts",
-    "run-gui": "ELECTRON_DISABLE_SECURITY_WARNINGS=true electron ."
+    "run-gui": "ELECTRON_DISABLE_SECURITY_WARNINGS=true electron dist/main/main.js"
   },
   "nodeModulesDir": "auto",
   "imports": {

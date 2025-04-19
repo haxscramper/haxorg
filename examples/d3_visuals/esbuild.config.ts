@@ -1,10 +1,22 @@
 // esbuild.config.ts
 import * as esbuild from "esbuild";
+import * as fs from "node:fs";
 
 await esbuild.build({
-  entryPoints : [ "main.ts", "renderer/index.ts" ],
+  entryPoints : [ "src/preload.ts" ],
   bundle : true,
-  outdir : "dist",
+  outfile : "dist/preload.js",
+  platform : "node",
+  target : "es2020",
+  format : "cjs",
+  external : [ "electron" ],
+  define : {"process.env.NODE_ENV" : "\"production\""},
+});
+
+await esbuild.build({
+  entryPoints : [ "src/main/main.ts", "src/main/index.ts" ],
+  bundle : true,
+  outdir : "dist/main",
   platform : "node",
   target : "node16",
   format : "cjs",
@@ -13,9 +25,9 @@ await esbuild.build({
 });
 
 await esbuild.build({
-  entryPoints : [ "app/main.tsx" ],
+  entryPoints : [ "src/renderer/app.tsx" ],
   bundle : true,
-  outdir : "dist/app",
+  outdir : "dist/renderer",
   platform : "browser",
   format : "esm",
   loader : {
@@ -26,3 +38,6 @@ await esbuild.build({
   jsx : "automatic",
   sourcemap : true
 });
+
+fs.copyFileSync("src/renderer/index.html", "dist/renderer/index.html");
+fs.copyFileSync("src/renderer/index.css", "dist/renderer/index.css");

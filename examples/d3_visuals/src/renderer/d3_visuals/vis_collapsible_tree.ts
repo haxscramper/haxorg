@@ -1,8 +1,8 @@
 import * as d3 from "d3";
 
-import * as org from "./org_data.ts";
-import {log} from "./org_logger.ts";
-import {dump_html} from "./utils.ts";
+import * as org from "../org_data.ts";
+import {log} from "../org_logger.ts";
+import {dump_html} from "../utils.ts";
 
 interface OrgTreeNode {
   id: org.ImmUniqId;

@@ -744,8 +744,8 @@ def generate_haxorg_base_lexer(ctx: Context):
         gen_lexer,
     ]
 
-    if get_config(ctx).emscripten:
-        reflex_run_params.append("−−matcher=pcre2-perl")
+    # if get_config(ctx).emscripten:
+    reflex_run_params.append("−−matcher=pcre2-perl")
 
     with FileOperation.InTmp(
             input=[py_file, py_file.with_suffix(".yaml")],
@@ -1399,23 +1399,20 @@ def build_d3_example(ctx: Context):
     Build d3.js visualization example
     """
 
-    web_build = get_example_build("rest_access").joinpath("org_server")
-    run_command(ctx, web_build, [
-        json.dumps({
-            "operation":
-                "WriteSchema",
-            "schema_path":
-                str(get_script_root().joinpath(
-                    "examples/d3_visuals/renderer/org_schema.ts")),
-        })
-    ])
+    # web_build = get_example_build("rest_access").joinpath("org_server")
+    # run_command(ctx, web_build, [
+    #     json.dumps({
+    #         "operation":
+    #             "WriteSchema",
+    #         "schema_path":
+    #             str(get_script_root().joinpath(
+    #                 "examples/d3_visuals/renderer/org_schema.ts")),
+    #     })
+    # ])
 
-    run_command(
-        ctx,
-        "deno",
-        ["task", "build"],
-        cwd=get_script_root().joinpath("examples/d3_visuals"),
-    )
+    dir = get_script_root().joinpath("examples/d3_visuals")
+    ensure_clean_dir(dir.joinpath("dist"))
+    run_command(ctx, "deno", ["task", "build"], cwd=dir)
 
 
 @beartype
@@ -1424,27 +1421,16 @@ def get_log_dir() -> Path:
 
 
 @org_task(pre=[build_d3_example, build_web_example])
-def run_d3_example(ctx: Context, with_server: bool = True):
-    web_build = get_example_build("rest_access").joinpath("org_server")
+def run_d3_example(ctx: Context, sync: bool = False):
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
-
-    if with_server:
-        run_command(
-            ctx,
-            web_build,
-            [json.dumps(dict(operation="RunServer"))],
-            run_mode="bg",
-            stderr_debug=get_log_dir().joinpath("rest_stderr.log"),
-            stdout_debug=get_log_dir().joinpath("rest_stdout.log"),
-        )
 
     import time
     time.sleep(1)
 
-    if deno_run:
+    if not sync and deno_run:
         log(CAT).info("Sending user signal to electron")
-        electron = find_process("electron", d3_example_dir, ["."])
+        electron = find_process("electron", d3_example_dir)
         electron.send_signal(signal.SIGUSR1)
 
     else:
@@ -1453,7 +1439,7 @@ def run_d3_example(ctx: Context, with_server: bool = True):
             "deno",
             ["task", "run-gui"],
             cwd=d3_example_dir,
-            run_mode="nohup",
+            run_mode="fg" if sync else "nohup",
             stderr_debug=get_log_dir().joinpath("electron_stderr.log"),
             stdout_debug=get_log_dir().joinpath("electron_stdout.log"),
         )

@@ -1,11 +1,11 @@
 import {
   CollapsibleTreeVisualization,
   CollapsibleTreeVisualizationConfig,
-} from "./vis_collapsible_tree.ts";
+} from "../renderer/d3_visuals/vis_collapsible_tree.ts";
 import {
   ZoomFlamegraphVisualization,
   ZoomFlamegraphVisualizationConfig,
-} from "./vis_zoom_flamegraph.ts"
+} from "../renderer/d3_visuals/vis_zoom_flamegraph.ts"
 
 if (false) {
   window.addEventListener("DOMContentLoaded", () => {

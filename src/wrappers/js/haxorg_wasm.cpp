@@ -16,7 +16,7 @@ class Calculator {
 
 using namespace emscripten;
 
-EMSCRIPTEN_BINDINGS(my_module) {
+EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     class_<Calculator>("Calculator")
         .constructor<>()
         .function("add", &Calculator::add)
