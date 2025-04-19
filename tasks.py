@@ -33,7 +33,7 @@ import signal
 import psutil
 import subprocess
 from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count
-from py_ci.data_build import get_emscripten_cmake_flags, get_external_deps_list
+from py_ci.data_build import get_emscripten_cmake_flags, get_external_deps_list, get_deps_install_config
 from py_scriptutils.repo_files import (
     HaxorgConfig,
     get_haxorg_repo_root_config,
@@ -88,6 +88,12 @@ def ensure_clean_dir(dir: Path):
 @beartype
 def ensure_existing_dir(dir: Path):
     dir.mkdir(parents=True, exist_ok=True)
+
+
+@beartype
+def ensure_clean_file(file: Path):
+    ensure_existing_dir(file.parent)
+    file.write_text("")
 
 
 def get_script_root(relative: Optional[str] = None) -> Path:
@@ -287,6 +293,24 @@ def run_command(
     args: List[str] = [conv_arg(it) for it in args]
 
     args_repr = " ".join((f"\"[cyan]{s}[/cyan]\"" for s in args))
+
+    def append_to_log(path: Path):
+        with path.open('w+') as file:
+            file.write(f"""
+{'*' * 120}
+cwd : {cwd}
+args: {args}
+cmd:  {cmd}
+{'*' * 120}
+
+
+""")
+
+    if append_stderr_debug:
+        append_to_log(stderr_debug)
+
+    if append_stdout_debug:
+        append_to_log(stdout_debug)
 
     log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
                    (f" in [green]{cwd}[/green]" if cwd else ""))
@@ -849,19 +873,13 @@ def generate_python_protobuf_files(ctx: Context):
 
 @org_task()
 def generate_develop_deps_install_paths(ctx: Context):
-    cmake_paths = []
-
     install_dir = get_deps_install_dir()
-    for item in get_external_deps_list(
-            install_dir,
-            is_emcc=get_config(ctx).emscripten,
-    ):
-        for dir in item.cmake_dirs:
-            path = install_dir.joinpath(dir[1])
-            cmake_paths.append(f"set({dir[0]}_DIR \"{path}\")")
-
     ensure_existing_dir(install_dir)
-    install_dir.joinpath("paths.cmake").write_text("\n".join(cmake_paths))
+    install_dir.joinpath("paths.cmake").write_text(
+        get_deps_install_config(
+            is_emcc=get_config(ctx).emscripten,
+            install_dir=install_dir,
+        ))
 
 
 @org_task(pre=[base_environment, generate_develop_deps_install_paths])
@@ -1226,15 +1244,40 @@ def run_docker_release_test(
 ):
     CPACK_TEST_IMAGE = "docker-haxorg-cpack"
 
-    run_command(ctx, "docker", ["rm", CPACK_TEST_IMAGE], allow_fail=True)
-    run_command(ctx, "docker", [
-        "build",
-        "-t",
-        CPACK_TEST_IMAGE,
-        "-f",
-        get_script_root("scripts/py_repository/cpack_build_in_fedora.dockerfile"),
-        ".",
-    ])
+    dep_debug_stdout = get_cmd_debug_file("stdout")
+    dep_debug_stderr = get_cmd_debug_file("stderr")
+
+    ensure_clean_file(dep_debug_stderr)
+    ensure_clean_file(dep_debug_stdout)
+
+    debug_conf = dict(
+        append_stderr_debug=True,
+        append_stdout_debug=True,
+        stdout_debug=dep_debug_stdout,
+        stderr_debug=dep_debug_stderr,
+    )
+
+    run_command(
+        ctx,
+        "docker",
+        ["rm", CPACK_TEST_IMAGE],
+        allow_fail=True,
+        **debug_conf,
+    )
+
+    run_command(
+        ctx,
+        "docker",
+        [
+            "build",
+            "-t",
+            CPACK_TEST_IMAGE,
+            "-f",
+            get_script_root("scripts/py_repository/cpack_build_in_fedora.dockerfile"),
+            ".",
+        ],
+        **debug_conf,
+    )
 
     @beartype
     def run_docker(clone_dir: Path, build_dir: Path):
@@ -1253,7 +1296,12 @@ def run_docker_release_test(
         elif clone_code == "comitted":
             if clone_dir.exists():
                 shutil.rmtree(clone_dir)
-            run_command(ctx, "git", ["clone", get_script_root(), clone_dir])
+            run_command(
+                ctx,
+                "git",
+                ["clone", get_script_root(), clone_dir],
+                **debug_conf,
+            )
             source_prefix = clone_dir
 
         @beartype
@@ -1297,7 +1345,9 @@ def run_docker_release_test(
                 "python",
                 "-m",
                 "py_ci.test_cpack_build",
-            ])
+            ],
+            **debug_conf,
+        )
 
     def run_with_build_dir(build_dir: Path):
         if clone_dir:

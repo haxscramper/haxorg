@@ -46,7 +46,11 @@ def get_emscripten_cmake_flags() -> List[CmakeOptConfig]:
     ]
 
 
-def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep]:
+def get_external_deps_list(
+    install_dir: Path,
+    is_emcc: bool,
+    is_lib64: bool,
+) -> List[ExternalDep]:
     result: List[ExternalDep] = []
 
     def opt(name: str, value: any) -> CmakeOptConfig:
@@ -78,6 +82,8 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
 
         return ext
 
+    cmake_lib = "lib64" if is_lib64 else "lib"
+
     # NOTE! Order of dependencies is important here. Assuming the build is happening on the
     # system with all system-wide library packages missing, the build of the third-party
     # dependenices should happen in exact order as specified, this is especially important
@@ -88,8 +94,8 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         deps_name="cpptrace",
         is_emcc_ready=False,
         cmake_dirs=[
-            ("cpptrace", "cpptrace/lib/cmake/cpptrace"),
-            ("libdwarf", "cpptrace/lib/cmake/libdwarf"),
+            ("cpptrace", f"cpptrace/{cmake_lib}/cmake/cpptrace"),
+            ("libdwarf", f"cpptrace/{cmake_lib}/cmake/libdwarf"),
         ],
         install_prefixes=[
             "cpptrace/lib/cmake/cpptrace",
@@ -119,7 +125,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         is_emcc_ready=True,
         deps_name="cmake_wrap/describe",
         cmake_dirs=[
-            ("BoostDescribe", "describe/lib/cmake/BoostDescribe"),
+            ("BoostDescribe", f"describe/{cmake_lib}/cmake/BoostDescribe"),
         ],
         install_prefixes=[
             "describe/lib/cmake/BoostDescribe",
@@ -132,7 +138,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         is_emcc_ready=True,
         deps_name="cmake_wrap/boost_preprocessor",
         cmake_dirs=[
-            ("BoostPreprocessor", "preprocessor/lib/cmake/BoostPreprocessor"),
+            ("BoostPreprocessor", f"preprocessor/{cmake_lib}/cmake/BoostPreprocessor"),
         ],
         install_prefixes=[
             "preprocessor/lib/cmake/BoostPreprocessor",
@@ -147,7 +153,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],
         cmake_dirs=[
-            ("Adaptagrams", "adaptagrams/lib/cmake/Adaptagrams"),
+            ("Adaptagrams", f"adaptagrams/{cmake_lib}/cmake/Adaptagrams"),
         ],
         install_prefixes=[
             "adaptagrams/lib/cmake/Adaptagrams",
@@ -161,7 +167,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],
         cmake_dirs=[
-            ("Perfetto", "perfetto/lib/cmake/Perfetto"),
+            ("Perfetto", f"perfetto/{cmake_lib}/cmake/Perfetto"),
         ],
         install_prefixes=[
             "perfetto/lib/cmake/Perfetto",
@@ -174,7 +180,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         deps_name="immer",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("Immer", "immer/lib/cmake/Immer"),
+            ("Immer", f"immer/{cmake_lib}/cmake/Immer"),
         ],
         configure_args=[
             opt("immer_BUILD_TESTS", False),
@@ -193,7 +199,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         deps_name="lager",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("Lager", "lager/lib/cmake/Lager"),
+            ("Lager", f"lager/{cmake_lib}/cmake/Lager"),
         ],
         configure_args=[
             opt("lager_BUILD_EXAMPLES", False),
@@ -217,7 +223,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],
         cmake_dirs=[
-            ("absl", "abseil/lib/cmake/absl"),
+            ("absl", f"abseil/{cmake_lib}/cmake/absl"),
         ],
         install_prefixes=[
             "abseil/lib/cmake/absl",
@@ -230,7 +236,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         deps_name="SQLiteCpp",
         configure_args=[opt("SQLITECPP_RUN_CPPLINT", False)],
         cmake_dirs=[
-            ("SQLiteCpp", "SQLiteCpp/lib/cmake/SQLiteCpp"),
+            ("SQLiteCpp", f"SQLiteCpp/{cmake_lib}/cmake/SQLiteCpp"),
         ],
         install_prefixes=[
             "SQLiteCpp/lib/cmake/SQLiteCpp",
@@ -252,7 +258,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         build_name="mp11",
         deps_name="mp11",
         cmake_dirs=[
-            ("boost_mp11", "mp11/lib/cmake/boost_mp11-1.85.0"),
+            ("boost_mp11", f"mp11/{cmake_lib}/cmake/boost_mp11-1.85.0"),
         ],
         is_emcc_ready=True,
         install_prefixes=[
@@ -281,8 +287,8 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         deps_name="yaml-cpp",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("yaml-cpp",
-             "yaml/lib/cmake/yaml-cpp" if is_emcc else "yaml/share/cmake/yaml-cpp"),
+            ("yaml-cpp", f"yaml/lib/cmake/yaml-cpp" if is_emcc else
+             ("yaml/lib64/cmake/yaml-cpp" if is_lib64 else "yaml/share/cmake/yaml-cpp")),
         ],
         configure_args=[
             opt("YAML_CPP_BUILD_TESTS", False),
@@ -298,7 +304,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         deps_name="range-v3",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("range-v3", "range-v3/lib/cmake/range-v3"),
+            ("range-v3", f"range-v3/{cmake_lib}/cmake/range-v3"),
         ],
         configure_args=[
             opt("RANGE_V3_TESTS", False),
@@ -331,7 +337,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
             opt("utf8_range_ENABLE_TESTS", False),
         ],
         cmake_dirs=[
-            ("utf8_range", "utf8_range/lib/cmake/utf8_range"),
+            ("utf8_range", f"utf8_range/{cmake_lib}/cmake/utf8_range"),
         ],
         install_prefixes=[
             "utf8_range/lib/cmake/utf8_range",
@@ -343,7 +349,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         build_name="protobuf",
         deps_name="protobuf",
         cmake_dirs=[
-            ("protobuf", "protobuf/lib/cmake/protobuf"),
+            ("protobuf", f"protobuf/{cmake_lib}/cmake/protobuf"),
         ],
         configure_args=[
             opt("protobuf_BUILD_TESTS", False),
@@ -369,7 +375,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         build_name="googletest",
         deps_name="googletest",
         cmake_dirs=[
-            ("googletest", "googletest/lib/cmake/GTest"),
+            ("googletest", f"googletest/{cmake_lib}/cmake/GTest"),
         ],
         install_prefixes=[
             "googletest/lib/cmake/GTest",
@@ -385,7 +391,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],
         cmake_dirs=[
-            ("Reflex", "reflex/lib/cmake/reflex"),
+            ("Reflex", f"reflex/{cmake_lib}/cmake/reflex"),
         ],
         install_prefixes=[
             "reflex/lib/cmake/reflex",
@@ -398,7 +404,7 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
         deps_name="lexy",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("lexy", "lexy/lib/cmake/lexy"),
+            ("lexy", f"lexy/{cmake_lib}/cmake/lexy"),
         ],
         configure_args=[
             opt("LEXY_BUILD_EXAMPLES", False),
@@ -411,6 +417,20 @@ def get_external_deps_list(install_dir: Path, is_emcc: bool) -> List[ExternalDep
     )
 
     return result
+
+
+def get_deps_install_config(is_emcc: bool, install_dir: Path, is_lib64: bool) -> str:
+    cmake_paths = []
+    for item in get_external_deps_list(
+            install_dir,
+            is_emcc=is_emcc,
+            is_lib64=is_lib64,
+    ):
+        for dir in item.cmake_dirs:
+            path = install_dir.joinpath(dir[1])
+            cmake_paths.append(f"set({dir[0]}_DIR \"{path}\")")
+
+    return "\n".join(cmake_paths)
 
 
 def get_published_build_opts() -> List[CmakeOptConfig]:
