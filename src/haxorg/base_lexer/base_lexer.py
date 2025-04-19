@@ -289,7 +289,7 @@ org::parse::TokenGroup<OrgTokenKind, org::parse::OrgFill> org::parse::tokenize(c
     base_lexer::Lexer lex(input);
     org::parse::OrgTokenGroup result;
     lex.impl.tokens = &result;
-    lex.impl.impl = &lex;
+    //lex.impl.impl = &lex;
     lex.impl.p = p;
     lex.impl.tokens->tokens.reserve(size / 3);
     lex.lex();
@@ -316,9 +316,13 @@ void base_lexer::Lexer::{sub_run_name(name)}(std::string const& values) {{
     base_lexer::Lexer lex(values.c_str());
     lex.start({sub_state_name(name)});
     lex.impl.tokens = this->impl.tokens;
-    lex.impl.impl = &lex;
+    // lex.impl.impl = &lex;
     lex.impl.p = this->impl.p;
+#if ORG_EMCC_BUILD
+    lex.impl.p.sub_locations.push_back({{}});
+#else
     lex.impl.p.sub_locations.push_back({{static_cast<int>(impl.impl->lineno()), static_cast<int>(impl.impl->columno())}});
+#endif
     ++lex.impl.p.indentation;
     lex.lex();
 }}                              

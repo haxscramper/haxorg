@@ -1,6 +1,14 @@
 function(set_target_flags_impl)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
 
+  if(${ORG_EMCC_BUILD})
+    add_target_property(
+      ${ARG_TARGET}
+      LINK_OPTIONS
+      "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORT_NAME='haxorg_wasm' -s USE_PTHREADS=0 -s ASSERTIONS=1 --bind"
+    )
+  endif()
+
   if(NOT ${ORG_BUILD_IS_DEVELOP})
     if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")

@@ -743,6 +743,10 @@ def generate_haxorg_base_lexer(ctx: Context):
         "--namespace=base_lexer",
         gen_lexer,
     ]
+
+    if get_config(ctx).emscripten:
+        reflex_run_params.append("−−matcher=pcre2-perl")
+
     with FileOperation.InTmp(
             input=[py_file, py_file.with_suffix(".yaml")],
             output=[gen_lexer],
@@ -1324,6 +1328,7 @@ def get_example_build(example_name: str) -> Path:
 
 @beartype
 def cmake_example_project(ctx: Context, example_name: str):
+    generate_develop_deps_install_paths(ctx)
     example_build = get_example_build(example_name)
     toolchain = get_script_root().joinpath("toolchain.cmake")
     assert toolchain.exists()
@@ -1336,6 +1341,7 @@ def cmake_example_project(ctx: Context, example_name: str):
         "Ninja",
         cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")),
         cmake_opt("CMAKE_C_COMPILER", get_llvm_root("bin/clang")),
+        cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()),
     ])
 
     run_command(ctx, "cmake", [
