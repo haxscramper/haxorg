@@ -170,10 +170,10 @@ endif()
 
 if(${ORG_DEPS_USE_PROTOBUF})
   add_definitions(-DORG_DEPS_USE_PROTOBUF=1)
+  include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 else()
   add_definitions(-DORG_DEPS_USE_PROTOBUF=0)
 endif()
-include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
 
 set(JSON_BuildTests

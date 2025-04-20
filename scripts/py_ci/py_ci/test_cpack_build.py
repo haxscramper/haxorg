@@ -105,6 +105,7 @@ def install_all_deps(is_lib64: bool) -> List[str]:
         is_lib64=is_lib64,
     )
 
+    DEPS_INSTALL.mkdir(parents=True, exist_ok=True)
     DEPS_INSTALL.joinpath("paths.cmake").write_text(cmake_paths)
 
     cmake_config: List[str] = []

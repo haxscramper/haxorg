@@ -251,9 +251,16 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
         return {}
 
 
+
+@beartype
+def get_log_dir() -> Path:
+    res = get_build_root().joinpath("logs")
+    ensure_existing_dir(res)
+    return res
+
 @beartype
 def get_cmd_debug_file(kind: str):
-    return get_build_root().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
+    return get_log_dir().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
 
 
 @beartype
@@ -1204,8 +1211,8 @@ def build_release_deps(
                 "all",
                 *get_j_cap(),
             ],
-            stderr_debug=Path("/tmp/cpack_build_stderr.log"),
-            stdout_debug=Path("/tmp/cpack_build_stdout.log"),
+            stderr_debug=get_log_dir().joinpath("cpack_build_stderr.log"),
+            stdout_debug=get_log_dir().joinpath("cpack_build_stdout.log"),
         )
 
 
@@ -1465,9 +1472,6 @@ def build_d3_example(ctx: Context):
     run_command(ctx, "deno", ["task", "build"], cwd=dir)
 
 
-@beartype
-def get_log_dir() -> Path:
-    return Path("/tmp")
 
 
 @org_task(pre=[build_d3_example, build_web_example])
@@ -1601,8 +1605,8 @@ def generate_reflection_snapshot(
                         out_file,
                         src_file,
                     ],
-                    stderr_debug=Path(f"/tmp/debug_reflection_{task}_stderr.txt"),
-                    stdout_debug=Path(f"/tmp/debug_reflection_{task}_stdout.txt"),
+                    stderr_debug=get_log_dir().joinpath(f"debug_reflection_{task}_stderr.txt"),
+                    stdout_debug=get_log_dir().joinpath(f"debug_reflection_{task}_stdout.txt"),
                 )
 
                 log(CAT).info("Updated reflection")

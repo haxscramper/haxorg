@@ -375,7 +375,7 @@ def get_external_deps_list(
         build_name="googletest",
         deps_name="googletest",
         cmake_dirs=[
-            ("googletest", f"googletest/{cmake_lib}/cmake/GTest"),
+            ("GTest", f"googletest/{cmake_lib}/cmake/GTest"),
         ],
         install_prefixes=[
             "googletest/lib/cmake/GTest",
