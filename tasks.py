@@ -251,12 +251,12 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
         return {}
 
 
-
 @beartype
 def get_log_dir() -> Path:
     res = get_build_root().joinpath("logs")
     ensure_existing_dir(res)
     return res
+
 
 @beartype
 def get_cmd_debug_file(kind: str):
@@ -886,7 +886,10 @@ def generate_develop_deps_install_paths(ctx: Context):
     ensure_existing_dir(install_dir)
     install_dir.joinpath("paths.cmake").write_text(
         get_deps_install_config(
-            is_emcc=get_config(ctx).emscripten,
+            deps=get_external_deps_list(
+                install_dir=install_dir,
+                is_emcc=get_config(ctx).emscripten,
+            ),
             install_dir=install_dir,
         ))
 
@@ -1474,8 +1477,6 @@ def build_d3_example(ctx: Context):
     run_command(ctx, "deno", ["task", "build"], cwd=dir)
 
 
-
-
 @org_task(pre=[build_d3_example, build_web_example])
 def run_d3_example(ctx: Context, sync: bool = False):
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
@@ -1607,8 +1608,10 @@ def generate_reflection_snapshot(
                         out_file,
                         src_file,
                     ],
-                    stderr_debug=get_log_dir().joinpath(f"debug_reflection_{task}_stderr.txt"),
-                    stdout_debug=get_log_dir().joinpath(f"debug_reflection_{task}_stdout.txt"),
+                    stderr_debug=get_log_dir().joinpath(
+                        f"debug_reflection_{task}_stderr.txt"),
+                    stdout_debug=get_log_dir().joinpath(
+                        f"debug_reflection_{task}_stdout.txt"),
                 )
 
                 log(CAT).info("Updated reflection")

@@ -245,7 +245,7 @@ def get_external_deps_list(
         deps_name="yaml-cpp",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("yaml-cpp", make_lib("yaml/lib/cmake/yaml-cpp") + ["yaml/share/cmake/yaml-cpp"]),
+            ("yaml-cpp", make_lib("yaml/{}/cmake/yaml-cpp") + ["yaml/share/cmake/yaml-cpp"]),
         ],
         configure_args=[
             opt("YAML_CPP_BUILD_TESTS", False),
@@ -346,12 +346,9 @@ def get_external_deps_list(
     return result
 
 
-def get_deps_install_config(is_emcc: bool, install_dir: Path) -> str:
+def get_deps_install_config(deps: List[ExternalDep], install_dir: Path) -> str:
     cmake_paths = []
-    for item in get_external_deps_list(
-            install_dir,
-            is_emcc=is_emcc,
-    ):
+    for item in deps:
         for dir in item.cmake_dirs:
             path = None
             for possible_install in dir[1]:

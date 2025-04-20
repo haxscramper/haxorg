@@ -99,13 +99,6 @@ def build_reflex_codgen():
 
 
 def install_all_deps() -> List[str]:
-    cmake_paths = data_build.get_deps_install_config(
-        is_emcc=False,
-        install_dir=DEPS_INSTALL,
-    )
-
-    DEPS_INSTALL.mkdir(parents=True, exist_ok=True)
-    DEPS_INSTALL.joinpath("paths.cmake").write_text(cmake_paths)
 
     cmake_config: List[str] = []
 
@@ -127,6 +120,14 @@ def install_all_deps() -> List[str]:
     logger.info("Starting dependency installation")
     for dep in deps_list:
         install_dep(dep)
+
+    cmake_paths = data_build.get_deps_install_config(
+        deps=deps_list,
+        install_dir=DEPS_INSTALL,
+    )
+
+    DEPS_INSTALL.mkdir(parents=True, exist_ok=True)
+    DEPS_INSTALL.joinpath("paths.cmake").write_text(cmake_paths)
 
     logger.info("All dependencies installed successfully")
     logger.info(f"Cmake paths:\n{cmake_paths}")
