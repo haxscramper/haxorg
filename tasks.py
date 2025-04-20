@@ -61,7 +61,7 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
     Custom traceback handler that filters and prints stack traces
     only for frames that originate from 'tasks.py'.
     """
-    print("tasks traceback ----------------------")
+    log(CAT).error("tasks traceback ----------------------")
     for frame in traceback.extract_tb(exc_traceback):
         log(CAT).error("File \"{}\", line {}, in {}  {}".format(
             frame.filename,
@@ -70,7 +70,7 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
             frame.line,
         ))
 
-    print(exc_type, exc_value)
+    log(CAT).error(f"{exc_type}, {exc_value}")
 
 
 # Register the custom traceback handler
@@ -302,7 +302,7 @@ def run_command(
     args_repr = " ".join((f"\"[cyan]{s}[/cyan]\"" for s in args))
 
     def append_to_log(path: Path):
-        with path.open('w+') as file:
+        with path.open("a") as file:
             file.write(f"""
 {'*' * 120}
 cwd : {cwd}
@@ -312,6 +312,7 @@ cmd:  {cmd}
 
 
 """)
+            file.flush()
 
     if append_stderr_debug:
         append_to_log(stderr_debug)
@@ -385,6 +386,7 @@ cmd:  {cmd}
 
                 with path.open("a") as file:
                     file.write(remove_ansi(text))
+                    file.flush()
 
             else:
                 path.write_text(remove_ansi(text))

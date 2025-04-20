@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.28)
 cmake_policy(SET CMP0135 NEW)
 cmake_policy(SET CMP0148 OLD) # or NEW
 cmake_policy(SET CMP0155 NEW)
-cmake_policy(SET CMP0167 NEW)
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 NEW)
+endif()
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 

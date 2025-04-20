@@ -98,11 +98,10 @@ def build_reflex_codgen():
             env={"LD_LIBRARY_PATH": str(DEPS_INSTALL.joinpath("reflex/lib"))})
 
 
-def install_all_deps(is_lib64: bool) -> List[str]:
+def install_all_deps() -> List[str]:
     cmake_paths = data_build.get_deps_install_config(
         is_emcc=False,
         install_dir=DEPS_INSTALL,
-        is_lib64=is_lib64,
     )
 
     DEPS_INSTALL.mkdir(parents=True, exist_ok=True)
@@ -118,7 +117,6 @@ def install_all_deps(is_lib64: bool) -> List[str]:
     for dep in data_build.get_external_deps_list(
             install_dir=DEPS_INSTALL,
             is_emcc=False,
-            is_lib64=is_lib64,
     ):
         if dep.build_name in ["reflex", "lexy", "abseil", "immer", "lager", "cpptrace", "yaml"]:
             deps_list.append(dep)
@@ -212,7 +210,7 @@ def build_cpack_archive(cmake_config: List[str]):
 
 def main():
     prepare_env()
-    cmake_config = install_all_deps(is_lib64=True)
+    cmake_config = install_all_deps()
     build_reflex_codgen()
     if not ASSUME_CPACK_PRESENT:
         update_cpack_archive(cmake_config=cmake_config)
