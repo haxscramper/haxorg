@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field
 from py_codegen.astbuilder_cpp import *
-from beartype.typing import Sequence, List, TypeAlias, Mapping, Literal
+from beartype.typing import Sequence, List, TypeAlias, Mapping, Literal, Set
 from beartype import beartype
 from collections import defaultdict
 from py_textlayout.py_textlayout_wrap import *
 from pathlib import Path
 from py_scriptutils.algorithm import iterate_object_tree, cond
+from pydantic import AliasChoices
 
 from py_scriptutils.script_logging import log
 
@@ -20,20 +21,70 @@ if not TYPE_CHECKING:
 class GenTuParam:
     name: str
 
+
 @beartype
 class GenTuBackendPythonParams(BaseModel, extra="forbid"):
-    holder_type: Optional[Literal["shared", "unique"] | str] = Field(alias="holder-type", default=None)
+    holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(
+        alias="holder-type", default=None)
+
 
 @beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
     python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
+    targets_backends: List[str] = Field(
+        default_factory=list,
+        description="Which backends should generate wrappers for the entry?",
+        alias=AliasChoices("target_backends", "target-backends"),
+    )
+
+
+@beartype
+class GenTuTypeApiTraits(BaseModel, extra="forbid"):
+    has_begin_end_iteration: bool = Field(
+        alias=AliasChoices("has-begin-end-iteration", "has_begin_end_iteration"),
+        default=False,
+        description="Type provides `begin()` and `end()` method to construct iterator pair"
+    )
+
+    is_org_ast_value: bool = Field(default=False,)
+
+
+@beartype
+class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
+    is_get_item: bool = Field(
+        alias=AliasChoices("is-getitem", "is_getitem"),
+        default=False,
+        description="This method can provide __getitem__ implementation")
+
 
 @beartype
 class GenTuReflParams(BaseModel, extra="forbid"):
-    default_constructor: bool = Field(default=True, alias="default-constructor")
-    wrapper_name: Optional[str] = Field(default=None, alias="wrapper-name")
-    wrapper_has_params: bool = Field(default=True, alias="wrapper-has-params")
+    default_constructor: bool = Field(default=True,
+                                      alias=AliasChoices("default-constructor",
+                                                         "default_constructor"))
+    wrapper_name: Optional[str] = Field(default=None,
+                                        alias=AliasChoices("wrapper-name",
+                                                           "wrapper_name"))
+    wrapper_has_params: bool = Field(default=True,
+                                     alias=AliasChoices("wrapper-has-params",
+                                                        "wrapper_has_params"))
+    unique_name: Optional[str] = Field(
+        default=None,
+        alias=AliasChoices("unique-name", "unique_name"),
+        description=
+        "Reflection entry name unique in the scope of the class/namespace -- for wrapper backends that don't support overloading"
+    )
     backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
+    function_api: Optional[GenTuFunctionApiTraits] = Field(
+        default=None,
+        alias=AliasChoices("function-api", "function_api"),
+        description="Reflection entity has a function/method API")
+    type_api: Optional[GenTuTypeApiTraits] = Field(
+        default=None, alias="type-api", description="Reflection entity has a type API")
+
+    def isAcceptedBackend(self, backend: str) -> bool:
+        return len(self.backend.targets_backends
+                  ) == 0 or backend in self.backend.targets_backends
 
 
 @beartype
@@ -59,6 +110,7 @@ class GenTuTypedef:
     base: QualType
     original: Optional[Path] = None
     OriginName: Optional[str] = None
+    reflectionParams: GenTuReflParams = field(default_factory=lambda: GenTuReflParams())
 
 
 @beartype
@@ -82,6 +134,10 @@ class GenTuEnum:
     original: Optional[Path] = None
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
+    IsDescribedEnum: bool = False
+
+    def __str__(self) -> str:
+        return f"GenTuEnum({self.name.format()})"
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "enum " + self.name.format(dbgOrigin=dbgOrigin)
@@ -90,8 +146,8 @@ class GenTuEnum:
 @beartype
 @dataclass
 class GenTuFunction:
-    result: Optional[QualType]
-    name: str
+    result: Optional[QualType] = None
+    name: str = ""
     doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     params: List[GenTuParam] = field(default_factory=list)
     arguments: List[GenTuIdent] = field(default_factory=list)
@@ -110,6 +166,20 @@ class GenTuFunction:
     IsConstructor: bool = False
 
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
+
+    def get_full_qualified_name(self) -> QualType:
+        return QualType(name=self.name, Spaces=self.spaces)
+
+    def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
+        return QualType(
+            func=QualType.Function(
+                ReturnTy=self.result,
+                Args=[A.type for A in self.arguments],
+                Class=Class,
+                IsConst=self.isConst,
+            ),
+            Kind=QualTypeKind.FunctionPtr,
+        )
 
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
@@ -166,7 +236,6 @@ class GenTuStruct:
     methods: List[GenTuFunction] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)
     nested: List[GenTuEntry] = field(default_factory=list)
-    concreteKind: bool = True
     IsForwardDecl: bool = False
     IsAbstract: bool = False
     has_name: bool = True
@@ -178,12 +247,39 @@ class GenTuStruct:
     IsTemplateRecord: bool = False
     ExplicitTemplateParams: List[QualType] = field(default_factory=list)
     OriginName: Optional[str] = None
+    IsDescribedRecord: bool = False
+
+    def __str__(self) -> str:
+        return f"GenTuStruct({self.name.format()})"
 
     def declarationQualName(self) -> QualType:
         return self.name.model_copy(update=dict(Parameters=self.ExplicitTemplateParams))
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.name.format(dbgOrigin=dbgOrigin)
+
+    def getGetitemMethods(self) -> List[GenTuFunction]:
+        return [
+            m for m in self.methods if m.reflectionParams.function_api and
+            m.reflectionParams.function_api.is_get_item
+        ]
+
+    def getBeginEndPair(self) -> Optional[Tuple[GenTuFunction, GenTuFunction]]:
+        begin_func: Optional[GenTuFunction] = None
+        end_func: Optional[GenTuFunction] = None
+
+        for m in self.methods:
+            if m.name == "begin":
+                begin_func = m
+
+            elif m.name == "end":
+                end_func = m
+
+        if begin_func and end_func:
+            return (begin_func, end_func)
+
+        else:
+            return None
 
 
 @beartype
@@ -246,11 +342,9 @@ class GenTypeMap:
             else:
                 return None
 
-
     def get_wrapper_type(self, t: QualType) -> Optional[str]:
         struct = self.get_struct_for_qual_name(t)
         return struct and struct.reflectionParams.wrapper_name
-        
 
     def is_known_type(self, t: QualType) -> bool:
         return t.qual_hash() in self.qual_hash_to_index
@@ -282,8 +376,8 @@ class GenTypeMap:
             case GenTuStruct():
                 qual_name = typ.declarationQualName()
 
-                if typ.reflectionParams.wrapper_name:
-                    log(CAT).info(f"{qual_name} has explicit wrapper")
+                # if typ.reflectionParams.wrapper_name:
+                #     log(CAT).info(f"{qual_name} has explicit wrapper")
 
             case GenTuEnum():
                 qual_name = typ.name.model_copy()
@@ -316,8 +410,6 @@ class GenTypeMap:
             match obj:
                 case GenTuStruct() | GenTuTypedef():
                     result.add_type(obj)
-
-
 
         context = []
         iterate_object_tree(types, context, pre_visit=callback)
@@ -517,79 +609,6 @@ class GenConverter:
                 break
 
         if self.isSource:
-            if isToplevel:
-                Class = QualType(name="enum_serde",
-                                 Parameters=[entry.name],
-                                 Spaces=[n_hstd()])
-
-                SwichFrom = IfStmtParams(LookupIfStructure=True, Branches=[])
-                for _field in entry.fields:
-                    SwichFrom.Branches.append(
-                        IfStmtParams.Branch(
-                            OneLine=True,
-                            Then=self.ast.Return(
-                                self.ast.string(f"{entry.name.name}::{_field.name}")),
-                            Cond=self.ast.XCall(
-                                "==",
-                                [
-                                    self.ast.string("value"),
-                                    self.ast.Literal(_field.name),
-                                ],
-                            ),
-                        ))
-
-                SwichFrom.Branches.append(
-                    IfStmtParams.Branch(
-                        OneLine=True,
-                        Then=self.ast.Return(self.ast.string("std::nullopt")),
-                    ))
-
-                SwitchTo = SwitchStmtParams(
-                    Expr=self.ast.string("value"),
-                    Default=CaseStmtParams(
-                        IsDefault=True,
-                        Compound=False,
-                        Autobreak=False,
-                        OneLine=True,
-                        Body=[
-                            self.ast.Throw(
-                                self.ast.XCall(
-                                    "std::domain_error",
-                                    [
-                                        self.ast.Literal(
-                                            "Unexpected enum value -- cannot be converted to string"
-                                        )
-                                    ],
-                                ))
-                        ],
-                    ),
-                    Cases=list(
-                        map(
-                            lambda field: CaseStmtParams(
-                                Autobreak=False,
-                                Compound=False,
-                                OneLine=True,
-                                Expr=self.ast.string(f"{entry.name.name}::{field.name}"),
-                                Body=[self.ast.Return(self.ast.Literal(field.name))],
-                            ),
-                            entry.fields,
-                        )),
-                )
-
-                FromDefinition = FromParams
-                FromDefinition.Body = [self.ast.IfStmt(SwichFrom)]
-
-                self.pendingToplevel.append(
-                    self.ast.MethodDef(MethodDefParams(Class=Class,
-                                                       Params=FromDefinition)))
-
-                ToDefininition = ToParams
-                ToDefininition.Body = [self.ast.SwitchStmt(SwitchTo)]
-
-                self.pendingToplevel.append(
-                    self.ast.MethodDef(MethodDefParams(Class=Class,
-                                                       Params=ToDefininition)))
-
             return self.ast.string("")
 
         else:
@@ -607,50 +626,36 @@ class GenConverter:
                     ))
 
             if isToplevel:
-                Domain = RecordParams(
-                    name=QualType(name="value_domain", Spaces=[n_hstd()]),
-                    doc=DocParams(""),
-                    Template=TemplateParams.FinalSpecialization(),
-                    NameParams=[entry.name],
-                    IsTemplateSpecialization=True,
-                    bases=[
-                        QualType(
-                            name="value_domain_ungapped",
-                            Parameters=[
-                                entry.name,
-                                QualType(
-                                    Spaces=[entry.name],
-                                    name=entry.fields[0].name,
-                                ),
-                                QualType(
-                                    Spaces=[entry.name],
-                                    name=entry.fields[-1].name,
-                                ),
-                            ],
-                        ).withVerticalParams()
-                    ],
-                )
+                Describe = []
+                Describe.append(
+                    self.ast.line([
+                        self.ast.string("BOOST_DESCRIBE_ENUM_BEGIN"),
+                        self.ast.pars(self.ast.Type(entry.name)),
+                    ]))
+
+                for field in entry.fields:
+                    Describe.append(
+                        self.ast.line([
+                            self.ast.string("  BOOST_DESCRIBE_ENUM_ENTRY"),
+                            self.ast.pars(
+                                self.ast.csv([
+                                    self.ast.Type(entry.name),
+                                    self.ast.string(field.name),
+                                ]))
+                        ]))
+
+                Describe.append(
+                    self.ast.line([
+                        self.ast.string("BOOST_DESCRIBE_ENUM_END"),
+                        self.ast.pars(self.ast.Type(entry.name)),
+                    ]))
 
                 FromDefinition = FromParams
                 ToDefininition = ToParams
 
-                Serde = RecordParams(
-                    name=QualType(name="enum_serde", Spaces=[n_hstd()]),
-                    doc=DocParams(""),
-                    Template=TemplateParams.FinalSpecialization(),
-                    NameParams=[entry.name],
-                    IsTemplateSpecialization=True,
-                )
-
-                Serde.members.append(
-                    MethodDeclParams(isStatic=True, Params=FromDefinition))
-                Serde.members.append(
-                    MethodDeclParams(isStatic=True, Params=ToDefininition))
-
                 res = self.ast.b.stack([
                     self.ast.Enum(params),
-                    self.ast.Record(Serde),
-                    self.ast.Record(Domain),
+                    self.ast.stack(Describe),
                 ])
 
                 return res
@@ -894,3 +899,142 @@ def get_base_list(
 @beartype
 def in_type_list(typ: QualType, enum_type_list: List[QualType]) -> bool:
     return any(typ.flatQualName() == it.flatQualName() for it in enum_type_list)
+
+
+@beartype
+@dataclass
+class TypeSpecialization():
+    used_type: QualType
+    bind_name: str
+    std_type: Optional[QualType] = None
+
+    def getFlatUsed(self) -> str:
+        return "".join(self.used_type.flatQualName())
+
+
+IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "imm"]
+
+
+@beartype
+def collect_type_specializations(entries: List[GenTuUnion],
+                                 base_map: GenTypeMap) -> List[TypeSpecialization]:
+    res = []
+
+    @beartype
+    def name_bind(Typ: QualType) -> str:
+        return Typ.getBindName(withParams=True,
+                               ignored_spaces=IGNORED_NAMESPACES,
+                               rename_map={
+                                   ("immer", "box"): "ImmBox",
+                                   ("immer", "flex_vector"): "ImmFlexVector",
+                                   ("immer", "map"): "ImmMap",
+                               })
+
+        # flat = Typ.flatQualName()
+
+        # match flat:
+        #     case ["immer", "box"]:
+        #         return "ImmBox"
+
+        #     case ["immer", "flex_vector"]:
+        #         return "ImmFlexVector"
+
+        #     case ["immer", "map"]:
+        #         return "ImmMap"
+
+        #     case _:
+        #         fullname = "".join([name_bind(T) for T in Typ.Spaces])
+        #         if Typ.name not in IGNORED_NAMESPACES:
+        #             fullname += Typ.name
+
+        #         if 0 < len(Typ.Parameters):
+        #             fullname += "Of"
+        #             fullname += "".join([name_bind(T) for T in Typ.Parameters])
+
+        #         return fullname
+
+    type_use_context: List[Any] = []
+    seen_types: Set[QualType] = set()
+
+    def record_specializations(value: Any):
+        nonlocal type_use_context
+        if isinstance(value, QualType):
+
+            def rec_type(T: QualType):
+
+                def rec_drop(T: QualType) -> QualType:
+                    return T.model_copy(update=dict(
+                        isConst=False,
+                        RefKind=ReferenceKind.NotRef,
+                        ptrCount=0,
+                        isNamespace=False,
+                        meta=dict(),
+                        Spaces=[rec_drop(S) for S in T.Spaces],
+                        Parameters=[rec_drop(P) for P in T.Parameters],
+                    ))
+
+                T = rec_drop(T)
+
+                if hash(T) in seen_types:
+                    return
+
+                else:
+                    seen_types.add(hash(T))
+
+                if T.name in [
+                        "Vec",
+                        "UnorderedMap",
+                        "IntSet",
+                        "vector",
+                        "flex_vector",
+                        "map",
+                        "box",
+                ]:
+                    std_type: str = {
+                        "Vec": "vector",
+                        "UnorderedMap": "unordered_map",
+                        "IntSet": "int_set",
+                        "vector": "imm_vector",
+                        "flex_vector": "imm_flex_vector",
+                        "map": "imm_map",
+                        "box": "imm_box",
+                    }.get(T.name, None)
+
+                    if T.name in ["Vec", "UnorderedMap"]:
+                        stdvec_t = QualType.ForName(
+                            std_type,
+                            Spaces=[QualType.ForName("std")],
+                            Parameters=T.Parameters,
+                        )
+
+                        res.append(
+                            TypeSpecialization(
+                                std_type=stdvec_t,
+                                used_type=T,
+                                bind_name=name_bind(T),
+                            ))
+
+                    else:
+                        res.append(
+                            TypeSpecialization(
+                                used_type=T,
+                                bind_name=name_bind(T),
+                            ))
+
+                else:
+                    for P in T.Parameters:
+                        rec_type(P)
+
+            if base_map.is_typedef(value):
+                rec_type(base_map.get_underlying_type(value))
+
+            else:
+                rec_type(value)
+
+    iterate_object_tree(
+        entries,
+        type_use_context,
+        pre_visit=record_specializations,
+    )
+
+    return res

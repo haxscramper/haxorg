@@ -18,3 +18,4 @@ src/haxorg/sem/SemOrgSerdeDefinitions.cpp
 src/haxorg/sem/SemOrgTypes.hpp
 src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp
 src/py_libs/pyhaxorg/pyhaxorg.cpp
+src/wrappers/js/nodehaxorg.cpp

@@ -1,20 +1,32 @@
 #pragma once
 
-#include <boost/log/attributes/mutable_constant.hpp>
-#include <boost/log/sinks/basic_sink_frontend.hpp>
-#include <boost/preprocessor.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/system/macros.hpp>
-#include <stack>
+#if ORG_EMCC_BUILD
 
-#include <hstd/stdlib/Set.hpp>
-#include <boost/log/core.hpp>
-#include <boost/log/sinks/sink.hpp>
-#include <hstd/stdlib/TraceBase.hpp>
+#    define HSLOG_TRACE(__cat, ...)
+#    define HSLOG_DEBUG(__cat, ...)
+#    define HSLOG_INFO(__cat, ...)
+#    define HSLOG_WARNING(__cat, ...)
+#    define HSLOG_ERROR(__cat, ...)
+#    define HSLOG_FATAL(__cat, ...)
+#    define HSLOG_SINK_SCOPE()
+#    define HSLOG_NOSINK_SCOPE()
+
+#else
+#    include <boost/log/attributes/mutable_constant.hpp>
+#    include <boost/log/sinks/basic_sink_frontend.hpp>
+#    include <boost/preprocessor.hpp>
+#    include <hstd/stdlib/Func.hpp>
+#    include <hstd/stdlib/Json.hpp>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <hstd/stdlib/Str.hpp>
+#    include <hstd/system/reflection.hpp>
+#    include <hstd/system/macros.hpp>
+#    include <stack>
+
+#    include <hstd/stdlib/Set.hpp>
+#    include <boost/log/core.hpp>
+#    include <boost/log/sinks/sink.hpp>
+#    include <hstd/stdlib/TraceBase.hpp>
 
 namespace hstd::log {
 
@@ -72,8 +84,8 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
 }
 
 
-#define HSLOG_SINK_FACTORY(impl)                                          \
-    ::hstd::log::log_sink_mutable_factory<__COUNTER__>(impl)
+#    define HSLOG_SINK_FACTORY(impl)                                      \
+        ::hstd::log::log_sink_mutable_factory<__COUNTER__>(impl)
 
 
 sink_ptr            init_file_sink(hstd::Str const& log_file_name);
@@ -186,8 +198,8 @@ using log_filter_cb = hstd::Func<bool(log_record const&)>;
 sink_ptr set_sink_filter(sink_ptr, log_filter_cb filter);
 
 
-#define HSLOG_SINK_FACTORY_SCOPED(generator)                              \
-    ::hstd::log::log_sink_scoped_factory<__COUNTER__>(generator)
+#    define HSLOG_SINK_FACTORY_SCOPED(generator)                          \
+        ::hstd::log::log_sink_scoped_factory<__COUNTER__>(generator)
 
 template <int Unique, typename Generator>
 log_sink_scope log_sink_scoped_factory(Generator&& gen) {
@@ -298,11 +310,11 @@ class log_scoped_depth_attr {
     };
 };
 
-#define HSLOG_DEPTH_SCOPE()                                               \
-    ::hstd::log::log_scoped_depth_attr::raii {}
+#    define HSLOG_DEPTH_SCOPE()                                           \
+        ::hstd::log::log_scoped_depth_attr::raii {}
 
-#define HSLOG_DEPTH_SCOPE_ANON()                                          \
-    auto BOOST_PP_CAT(__scope, __COUNTER__) = HSLOG_DEPTH_SCOPE();
+#    define HSLOG_DEPTH_SCOPE_ANON()                                      \
+        auto BOOST_PP_CAT(__scope, __COUNTER__) = HSLOG_DEPTH_SCOPE();
 
 /// \brief Create a finalizer that can use a mutable generator object as a
 /// filter on the callsite.
@@ -352,9 +364,10 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter_unique_records(
         reset);
 }
 
-#define HSLOG_UNIQUE_VALUE_FILTER_FINALIZER(__reset)                      \
-    ::hstd::log::log_builder_get_mutable_finalizer_filter_unique_records< \
-        __COUNTER__>(__reset)
+#    define HSLOG_UNIQUE_VALUE_FILTER_FINALIZER(__reset)                  \
+        ::hstd::log::                                                     \
+            log_builder_get_mutable_finalizer_filter_unique_records<      \
+                __COUNTER__>(__reset)
 
 template <int Unique>
 log_builder::Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
@@ -372,9 +385,10 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
         reset);
 }
 
-#define HSLOG_CHANGED_VALUE_FILTER_FINALIZER(__reset)                     \
-    ::hstd::log::log_builder_get_mutable_finalizer_filter_changed_value<  \
-        __COUNTER__>(__reset)
+#    define HSLOG_CHANGED_VALUE_FILTER_FINALIZER(__reset)                 \
+        ::hstd::log::                                                     \
+            log_builder_get_mutable_finalizer_filter_changed_value<       \
+                __COUNTER__>(__reset)
 
 bool is_log_accepted(hstd::Str const& category, severity_level level);
 
@@ -389,47 +403,50 @@ constexpr ::hstd::log::severity_level  l_fatal   = ::hstd::log::severity_level::
 
 } // namespace hstd::log
 
-#define __ORG_LOG_MESSAGE(_1, _2, arg) .message((arg))
+#    define __ORG_LOG_MESSAGE(_1, _2, arg) .message((arg))
 
-#define __ORG_LOG_ALL_ARGS(...)                                           \
-    BOOST_PP_SEQ_FOR_EACH(                                                \
-        __ORG_LOG_MESSAGE, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+#    define __ORG_LOG_ALL_ARGS(...)                                       \
+        BOOST_PP_SEQ_FOR_EACH(                                            \
+            __ORG_LOG_MESSAGE, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
 
-#define HSLOG_BUILDER()                                                   \
-    ::hstd::log::log_builder {}
+#    define HSLOG_BUILDER()                                               \
+        ::hstd::log::log_builder {}
 
-#define __ORG_LOG_IMPL(__cat, __severity, ...)                            \
-    if (::hstd::log::is_log_accepted(                                     \
-            __cat, ::hstd::log::severity_level::__severity)) {            \
-        HSLOG_INIT(__cat, __severity)                                     \
-        __ORG_LOG_ALL_ARGS(__VA_ARGS__).end();                            \
-    }
+#    define __ORG_LOG_IMPL(__cat, __severity, ...)                        \
+        if (::hstd::log::is_log_accepted(                                 \
+                __cat, ::hstd::log::severity_level::__severity)) {        \
+            HSLOG_INIT(__cat, __severity)                                 \
+            __ORG_LOG_ALL_ARGS(__VA_ARGS__).end();                        \
+        }
 
-#define HSLOG_INIT(__cat, __severity)                                     \
-    ::hstd::log::log_record{}                                             \
-        .file(__FILE__)                                                   \
-        .line(__LINE__)                                                   \
-        .category(__cat)                                                  \
-        .function(__FUNCTION__)                                           \
-        .severity(::hstd::log::severity_level::__severity)
+#    define HSLOG_INIT(__cat, __severity)                                 \
+        ::hstd::log::log_record{}                                         \
+            .file(__FILE__)                                               \
+            .line(__LINE__)                                               \
+            .category(__cat)                                              \
+            .function(__FUNCTION__)                                       \
+            .severity(::hstd::log::severity_level::__severity)
 
-#define HSLOG_TRACE(__cat, ...) __ORG_LOG_IMPL(__cat, trace, __VA_ARGS__)
-#define HSLOG_DEBUG(__cat, ...) __ORG_LOG_IMPL(__cat, debug, __VA_ARGS__)
-#define HSLOG_INFO(__cat, ...) __ORG_LOG_IMPL(__cat, info, __VA_ARGS__)
-#define HSLOG_WARNING(__cat, ...)                                         \
-    __ORG_LOG_IMPL(__cat, warning, __VA_ARGS__)
-#define HSLOG_ERROR(__cat, ...) __ORG_LOG_IMPL(__cat, error, __VA_ARGS__)
-#define HSLOG_FATAL(__cat, ...) __ORG_LOG_IMPL(__cat, fatal, __VA_ARGS__)
+#    define HSLOG_TRACE(__cat, ...)                                       \
+        __ORG_LOG_IMPL(__cat, trace, __VA_ARGS__)
+#    define HSLOG_DEBUG(__cat, ...)                                       \
+        __ORG_LOG_IMPL(__cat, debug, __VA_ARGS__)
+#    define HSLOG_INFO(__cat, ...) __ORG_LOG_IMPL(__cat, info, __VA_ARGS__)
+#    define HSLOG_WARNING(__cat, ...)                                     \
+        __ORG_LOG_IMPL(__cat, warning, __VA_ARGS__)
+#    define HSLOG_ERROR(__cat, ...)                                       \
+        __ORG_LOG_IMPL(__cat, error, __VA_ARGS__)
+#    define HSLOG_FATAL(__cat, ...)                                       \
+        __ORG_LOG_IMPL(__cat, fatal, __VA_ARGS__)
 
-#define HSLOG_SINK_SCOPE() ::hstd::log::log_sink_scope()
+#    define HSLOG_SINK_SCOPE() ::hstd::log::log_sink_scope()
 /// \brief Create logging sink scope and clear all the current sink state
-#define HSLOG_NOSINK_SCOPE() HSLOG_SINK_SCOPE().drop_current_sinks()
+#    define HSLOG_NOSINK_SCOPE() HSLOG_SINK_SCOPE().drop_current_sinks()
 
 
-#define HSLOG_RECORD_FIELD "record"
-#define HSLOG_SCOPE_DEPTH_FIELD "CommonDepth"
-#define HSLOG_TIMESTAMP_FIELD "TimeStamp"
-
+#    define HSLOG_RECORD_FIELD "record"
+#    define HSLOG_SCOPE_DEPTH_FIELD "CommonDepth"
+#    define HSLOG_TIMESTAMP_FIELD "TimeStamp"
 
 
 template <>
@@ -447,3 +464,5 @@ struct std::hash<hstd::log::log_record::log_data> {
         return it.hash();
     }
 };
+
+#endif

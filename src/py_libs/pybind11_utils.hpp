@@ -80,7 +80,7 @@ void bind_enum_iterator(
 }
 
 template <typename T>
-void bind_int_set(
+void bind_hstdIntSet(
     py::module&          m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
@@ -97,7 +97,7 @@ void bind_int_set(
 }
 
 template <typename T>
-void bind_imm_box(
+void bind_immerbox(
     py::module&          m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
@@ -152,7 +152,7 @@ void bind_imm_vector(
 }
 
 template <typename T>
-void bind_imm_flex_vector(
+void bind_immerflex_vector(
     py::module&          m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
@@ -161,7 +161,21 @@ void bind_imm_flex_vector(
 }
 
 template <typename T>
-void bind_vector(
+void bind_stdvector(
+    py::module&          m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+
+    auto base_name = std::string(PyNameType) + "StdVector";
+
+    if (!guard.contains(base_name)) {
+        guard.incl(base_name);
+        py::bind_vector<std::vector<T>>(m, base_name.c_str());
+    }
+}
+
+template <typename T>
+void bind_hstdVec(
     py::module&          m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
@@ -197,7 +211,7 @@ void bind_vector(
 }
 
 template <typename K, typename V>
-void bind_unordered_map(
+void bind_hstdUnorderedMap(
     py::module&          m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {

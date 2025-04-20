@@ -36,12 +36,12 @@ def test_immutable_ast_mind_map():
     # graph_state.
     # conf.setTraceFileStr("/tmp/test_immutable_ast_mind_map.log", True)
 
-    org.addNode(graph_state, root.at(0), conf)
+    graph_state.addNode(root.at(0), conf)
     assert graph_state.graph.nodeCount() == 1
     assert graph_state.graph.edgeCount() == 0
     # assert graph_state.
 
-    org.addNode(graph_state, root.at(2), conf)
+    graph_state.addNode(root.at(2), conf)
 
     assert graph_state.graph.nodeCount() == 2
     assert graph_state.graph.edgeCount() == 1
@@ -74,7 +74,7 @@ def test_mind_map_from_directory():
     conf = org.graphMapConfig()
     root = version.getRootAdapter()
 
-    org.addNodeRec(graph_state, root, conf)
+    graph_state.addNodeRec(root, conf)
 
     assert root.getKind() == org.OrgSemKind.Directory
     root_dir = org.ImmDirectoryAdapter(root)

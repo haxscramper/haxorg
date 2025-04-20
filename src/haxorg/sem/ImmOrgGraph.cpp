@@ -1,7 +1,6 @@
 #include "ImmOrgGraph.hpp"
 #include "haxorg/sem/ImmOrgEdit.hpp"
 #include "haxorg/sem/SemBaseApi.hpp"
-#include <boost/algorithm/string/replace.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <immer/set_transient.hpp>
 #include <immer/vector_transient.hpp>
@@ -14,10 +13,13 @@ using namespace hstd::ext;
 using osk = OrgSemKind;
 using slk = org::sem::LinkTarget::Kind;
 
-#define GRAPH_TRACE() conf.OperationsTracer::TraceState
+MapConfig* __conf_ptr(MapConfig* c) { return c; }
+MapConfig* __conf_ptr(MapConfig& c) { return &c; }
+
+#define GRAPH_TRACE() __conf_ptr(conf)->OperationsTracer::TraceState
 
 #define GRAPH_MSG(...)                                                    \
-    if (GRAPH_TRACE()) { conf.message(__VA_ARGS__); }
+    if (GRAPH_TRACE()) { __conf_ptr(conf)->message(__VA_ARGS__); }
 
 bool org::graph::isDescriptionItem(ImmAdapter const& node) {
     return node.as<ImmListItem>()->header->has_value();
@@ -212,7 +214,8 @@ void traceNodeResolve(
                 resolved_node.node.unresolved,
                 resolved_node.resolved));
 
-        if (outputState.graph.nodeProps.find(mapNode) != nullptr) {
+        if (outputState.graph.nodeProps.find(mapNode)
+            != outputState.graph.nodeProps.end()) {
             for (auto const& u :
                  outputState.graph.at(mapNode).unresolved) {
                 GRAPH_MSG(fmt(">> g[v] unresolved {}", u));
@@ -234,23 +237,22 @@ void traceNodeResolve(
     }
 }
 
-void org::graph::registerNode(
-    MapGraphState&     s,
+void org::graph::MapGraphState::registerNode(
     MapNodeProp const& node,
-    MapConfig&         conf) {
+    MapConfig*         conf) {
 
-    auto&   graph = s.graph;
     MapNode mapNode{node.id.uniq()};
 
-    s.graph.addNode(node.id.uniq());
+    graph.addNode(node.id.uniq());
 
-    GRAPH_MSG(fmt("unresolved:{}", s.unresolved));
+    GRAPH_MSG(fmt("unresolved:{}", unresolved));
 
 
-    MapNodeResolveResult resolved = getResolvedNodeInsert(s, node, conf);
+    MapNodeResolveResult resolved = getResolvedNodeInsert(
+        *this, node, *conf);
 
     // debug-print node resolution state
-    traceNodeResolve(s, resolved, conf, mapNode);
+    traceNodeResolve(*this, resolved, *conf, mapNode);
 
     // Assign node resolution result to node properties, all links have
     // been finalized.
@@ -259,14 +261,14 @@ void org::graph::registerNode(
     // Iterate over all known unresolved nodes and adjust node property
     // values in the graph to account for new property changes.
     removeUnresolvedNodeProps(
-        graph.nodeProps, resolved, mapNode, s.unresolved, conf);
+        graph.nodeProps, resolved, mapNode, unresolved, *conf);
 
     // Collect new list of unresolved nodes for the changes.
     updateUnresolvedNodeTracking(
-        s, graph.nodeProps, resolved, mapNode, conf);
+        *this, graph.nodeProps, resolved, mapNode, *conf);
 
     // Add all resolved edges to the graph
-    updateResolvedEdges(s, resolved, conf);
+    updateResolvedEdges(*this, resolved, *conf);
 }
 
 
@@ -278,10 +280,9 @@ static const SemSet NestedNodes{
 };
 
 
-Opt<MapLink> org::graph::getUnresolvedLink(
-    const MapGraphState& s,
+Opt<MapLink> org::graph::MapGraphState::getUnresolvedLink(
     ImmAdapterT<ImmLink> link,
-    MapConfig&           conf) {
+    MapConfig*           conf) const {
     if (SkipLinks.contains(link->target.getKind())) {
         return std::nullopt;
     } else {
@@ -300,10 +301,9 @@ Opt<MapLink> org::graph::getUnresolvedLink(
 }
 
 
-Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
-    const MapGraphState&    s,
+Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
     ImmAdapterT<ImmSubtree> tree,
-    MapConfig&              conf) {
+    MapConfig*              conf) const {
     Vec<MapLink> unresolved;
     // Description lists with links in header are attached as the
     // outgoing link to the parent subtree. It is the only supported
@@ -365,7 +365,7 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
         // Unconditionally register all links as unresolved -- some of
         // them will be converted to edges later on.
         if (auto link = arg.asOpt<ImmLink>()) {
-            if (auto target = getUnresolvedLink(s, link.value(), conf)) {
+            if (auto target = s.getUnresolvedLink(link.value(), &conf)) {
                 GRAPH_MSG(
                     fmt("Got unresolved link for adapter {} under {}",
                         arg,
@@ -377,7 +377,7 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
 
     if (auto tree = node.asOpt<ImmSubtree>()) {
         result.unresolved.append(
-            getUnresolvedSubtreeLinks(s, tree.value(), conf));
+            s.getUnresolvedSubtreeLinks(tree.value(), &conf));
     } else if (auto par = node.asOpt<ImmParagraph>();
                par && par->isFootnoteDefinition()) {
         auto sub = par->sub();
@@ -523,7 +523,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     auto ctx = node.id.ctx.lock();
 
     LOGIC_ASSERTION_CHECK(
-        s.unresolved.find(MapNode{node.id.uniq()}) == nullptr,
+        s.unresolved.find(MapNode{node.id.uniq()}) == s.unresolved.end(),
         "Node {} is already marked as unresolved in the graph",
         node.id);
 
@@ -666,16 +666,15 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     return result;
 }
 
-void org::graph::addNode(
-    MapGraphState&    g,
+void org::graph::MapGraphState::addNode(
     ImmAdapter const& node,
-    MapConfig&        conf) {
+    MapConfig*        conf) {
     GRAPH_MSG(fmt("{} {}", node, Str("- ").repeated(32)));
-    auto prop = conf.getInitialNodeProp(g, node);
+    auto prop = conf->getInitialNodeProp(*this, node);
     if (prop) {
         GRAPH_MSG("ID maps to graph node");
-        auto __init = conf.scopeLevel();
-        registerNode(g, *prop, conf);
+        auto __init = conf->scopeLevel();
+        registerNode(*prop, conf);
     } else {
         GRAPH_MSG(fmt("No initial properties for {}, skipping", node.id));
     }
@@ -708,6 +707,7 @@ void MapGraph::addNode(const MapNode& node) {
 }
 
 
+#if !ORG_EMCC_BUILD
 Graphviz::Graph MapGraph::toGraphviz(
     imm::ImmAstContext::Ptr const& ctx,
     GvConfig const&                conf) const {
@@ -754,12 +754,13 @@ Graphviz::Graph MapGraph::toGraphviz(
 
     return res;
 }
-
+#endif
 
 MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
 
 MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
+#if !ORG_EMCC_BUILD
 Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
     const ImmAdapter&  node,
     const MapNodeProp& prop) {
@@ -831,15 +832,15 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
 
     return rec;
 }
+#endif
 
-void org::graph::addNodeRec(
-    MapGraphState&    g,
+void org::graph::MapGraphState::addNodeRec(
     const ImmAdapter& node,
-    MapConfig&        conf) {
+    MapConfig*        conf) {
     Func<void(ImmAdapter const&)> aux;
     aux = [&](ImmAdapter const& node) {
-        conf.message(fmt("recursive add {}", node), "addNodeRec");
-        auto __tmp = conf.scopeLevel();
+        conf->message(fmt("recursive add {}", node), "addNodeRec");
+        auto __tmp = conf->scopeLevel();
         switch (node->getKind()) {
             case OrgSemKind::CmdInclude:
             case OrgSemKind::File:
@@ -858,14 +859,14 @@ void org::graph::addNodeRec(
                 //         par,
                 //         par.treeRepr().toString()));
                 if (org::graph::hasGraphAnnotations(par)) {
-                    addNode(g, node, conf);
+                    addNode(node, conf);
                 } else {
                     auto group = imm::getSubnodeGroups(node, false);
                     if (rs::any_of(group, [](auto const& it) {
                             return it.isRadioTarget();
                         })) {
                         // conf.message(fmt("Paragraph has radio target"));
-                        addNode(g, node, conf);
+                        addNode(node, conf);
                     }
                 }
                 break;
@@ -873,7 +874,7 @@ void org::graph::addNodeRec(
             case OrgSemKind::Subtree: {
                 if (auto tree = node.as<imm::ImmSubtree>();
                     org::graph::hasGraphAnnotations(tree)) {
-                    addNode(g, node, conf);
+                    addNode(node, conf);
                 }
 
                 for (auto const& it : node) { aux(it); }

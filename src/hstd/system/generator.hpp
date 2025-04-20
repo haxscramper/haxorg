@@ -1,11 +1,8 @@
 #pragma once
 
-#include "hstd/stdlib/Exception.hpp"
 #include <coroutine>
 #include <optional>
 #include <hstd/system/exceptions.hpp>
-#include <cpptrace.hpp>
-#include <cpptrace/from_current.hpp>
 
 namespace hstd {
 

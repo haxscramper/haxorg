@@ -29,6 +29,7 @@ class HaxorgCoverageAggregateFilter(BaseModel, extra="forbid"):
 class HaxorgConfig(BaseModel, extra="forbid"):
     quiet: bool = Field(default=False)
     debug: bool = Field(default=False)
+    emscripten: bool = Field(default=False)
     instrument: HaxorgInstrumentConfig = Field(
         default_factory=lambda: HaxorgInstrumentConfig())
     tasks: HaxorgTasksConfig = Field(default_factory=lambda: HaxorgTasksConfig())

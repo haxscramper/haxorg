@@ -94,7 +94,8 @@ sem::SemId<sem::Org> evaluateCodeBlocks(
 /// Intended to be used for `asOneNode(parseString("some paragraph"))` --
 /// remove the outer `Document` node and get to the actual paragraph entry
 /// at hand.
-[[refl]] sem::SemId<sem::Org> asOneNode(sem::OrgArg arg);
+[[refl]] sem::SemId<sem::Org> asOneNode(
+    org::sem::SemId<org::sem::Org> const& arg);
 
 [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
 
@@ -252,30 +253,35 @@ struct [[refl]] AstTrackingGroup {
 
     Kind getKind() const { return static_cast<Kind>(data.index()); }
 
-    [[refl]] RadioTarget const& getRadioTarget() const {
+    [[refl(R"({"unique-name": "getRadioTargetConst"})")]] RadioTarget const& getRadioTarget()
+        const {
         return hstd::get_sub_variant<RadioTarget, AstTrackingGroup>(data);
     }
 
 
-    [[refl]] TrackedHashtag const& getTrackedHashtag() const {
+    [[refl(R"({"unique-name": "getTrackedHashtagConst"})")]] TrackedHashtag const& getTrackedHashtag()
+        const {
         return hstd::get_sub_variant<TrackedHashtag, AstTrackingGroup>(
             data);
     }
 
-    [[refl]] TrackedHashtag& getTrackedHashtag() {
+    [[refl(R"({"unique-name": "getTrackedHashtagMut"})")]] TrackedHashtag& getTrackedHashtag() {
         return hstd::get_sub_variant<TrackedHashtag, AstTrackingGroup>(
             data);
     }
 
-    [[refl]] Single const& getSingle() const {
+    [[refl(R"({"unique-name": "getSingleConst"})")]] Single const& getSingle()
+        const {
         return hstd::get_sub_variant<Single, AstTrackingGroup>(data);
     }
 
-    [[refl]] RadioTarget& getRadioTarget() {
+    [[refl(R"({"unique-name": "getRadioTargetMut"})")]] RadioTarget& getRadioTarget() {
         return hstd::get_sub_variant<RadioTarget, AstTrackingGroup>(data);
     }
 
-    [[refl]] Single& getSingle() { return std::get<Single>(data); }
+    [[refl(R"({"unique-name": "getSingleMut"})")]] Single& getSingle() {
+        return std::get<Single>(data);
+    }
 
     [[refl]] bool isSingle() const { return getKind() == Kind::Single; }
     [[refl]] bool isTrackedHashtag() const {
@@ -351,6 +357,22 @@ void eachSubnodeRecSimplePath(
     sem::SemId<sem::Org>        id,
     SemSubnodeVisitorSimplePath cb);
 
+
+template <typename Func>
+void switch_node_id(org::sem::SemId<org::sem::Org> id, Func const& cb) {
+    switch (id->getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        cb(id.as<org::sem::__Kind>());                                    \
+        break;                                                            \
+    }
+
+        EACH_SEM_ORG_KIND(_case)
+#undef _case
+        default: {
+        }
+    }
+}
 
 using ImmSubnodeVisitor = hstd::Func<void(imm::ImmAdapter)>;
 void eachSubnodeRec(

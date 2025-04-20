@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import React from "react";
 import * as d3 from 'd3';
-import { ZoomFlamegraphVisualization, ZoomFlamegraphVisualizationConfig } from "../../renderer/vis_zoom_flamegraph.ts";
+import { ZoomFlamegraphVisualization, ZoomFlamegraphVisualizationConfig } from "../../d3_visuals/vis_zoom_flamegraph.ts";
 
 export function FlameGraph() {
   const [horizontalEventPlacement, setHorizontalEventPlacement] = useState(true);

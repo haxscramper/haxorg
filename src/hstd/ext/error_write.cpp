@@ -705,8 +705,9 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
         std::shared_ptr<Source> src = cache->fetch(label.span.source());
         if (!src) { continue; }
 
-        CHECK(label.span.start() <= label.span.end())
-            << "Label start is after its end";
+        LOGIC_ASSERTION_CHECK(
+            label.span.start() <= label.span.end(),
+            "Label start is after its end");
 
         auto start_line //
             = src->get_offset_line(label.span.start()).value().idx;
@@ -1061,8 +1062,11 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
         if (it != lines.begin()) { --it; }
         int         idx  = std::distance(lines.begin(), it);
         const Line& line = lines[idx];
-        CHECK(line.offset <= offset)
-            << fmt("line.offset = {} <= offset = {}", line.offset, offset);
+        LOGIC_ASSERTION_CHECK(
+            line.offset <= offset,
+            "line.offset = {} <= offset = {}",
+            line.offset,
+            offset);
         return OffsetLine{std::ref(line), idx, offset - line.offset};
     } else {
         return std::nullopt;

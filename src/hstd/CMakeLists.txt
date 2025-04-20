@@ -9,21 +9,23 @@ set_target_flags(hstd)
 find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
-target_link_libraries(
-  hstd
-  PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY}
-         ${GRAPHVIZ_GVC_LIBRARY}
-         yaml-cpp
-         Boost::log
-         absl::base
-         absl::log
-         absl::flags
-         range-v3::range-v3
-         nlohmann_json::nlohmann_json
-         cpptrace::cpptrace)
+target_link_libraries(hstd PUBLIC yaml-cpp::yaml-cpp range-v3::range-v3
+                                  nlohmann_json::nlohmann_json absl::time)
+
+if(NOT ${ORG_EMCC_BUILD})
+  target_link_libraries(
+    hstd
+    PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY}
+           ${GRAPHVIZ_GVC_LIBRARY}
+           Boost::log
+           absl::base
+           absl::log
+           absl::flags
+           cpptrace::cpptrace)
+endif()
 
 if(${ORG_DEPS_USE_PACKAGED_BOOST})
-  target_link_libraries(hstd PUBLIC Boost::boost_describe)
+  target_link_libraries(hstd PUBLIC Boost::boost_describe Boost::boost_preprocessor)
 endif()
 
 if(${ORG_USE_PERFETTO})
@@ -33,7 +35,7 @@ endif()
 target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/immer>"
                                        "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
 
-if(${ORG_BUILD_TESTS})
+if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
   add_executable(tests_hstd)
   set_common_files(tests_hstd)
   set_target_output(tests_hstd)

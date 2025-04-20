@@ -87,7 +87,13 @@ def first_if(items: Iterable[T], pred: Callable[[T], bool]) -> Optional[T]:
             return value
 
 
-def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=None):
+def iterate_object_tree(
+    tree,
+    context: List[Any],
+    pre_visit=None,
+    post_visit=None,
+    item_visit_format: Optional[Callable[[Any, List[Any]], str]] = None,
+):
     """
     Recursively iterate the data tree, irrespective of the types -- treat the whole object
     as an untyped dict/etc. 
@@ -106,11 +112,20 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
 
     recursion_guard: set[int] = set()
 
-    def aux(tree, context: List[Any]):
+    def aux(tree, context: List[Any], depth: int):
         if pre_visit:
             pre_visit(tree)
 
-        # prefix = "  " * (len(context) if len(context) < 30 else 30)
+        if item_visit_format:
+            prefix = "  " * (depth if depth < 30 else 30)
+            value_format = ""
+            match tree:
+                case bool() | int() | float() | str() | None:
+                    value_format = str(tree)
+
+            value_format = value_format.replace("\n", "\\n")
+
+            print(f"{prefix} {type(tree)} {item_visit_format(tree, context)} {value_format}")
 
         if id(tree) in recursion_guard:
             return
@@ -119,33 +134,40 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
             recursion_guard.add(id(tree))
 
         context.append(tree)
-        
-        if isinstance(tree, (list, tuple)):
+
+        if isinstance(tree, (list, tuple, set)):
             for it in tree:
                 aux(
                     it,
                     context,
+                    depth + 1,
                 )
 
         elif isinstance(tree, dict):
             for key, value in tree.items():
+                if item_visit_format:
+                    print(f"{prefix}   {key}:")
                 aux(
                     value,
                     context,
+                    depth + 2,
                 )
 
         # Primitive types cannot be walked over, end iteration
         elif (tree is True or tree is False or tree is None or isinstance(tree, str) or
-            isinstance(tree, type) or isinstance(tree, int)):
+              isinstance(tree, type) or isinstance(tree, int)):
             pass
 
         elif isinstance(tree, object):
             # If any object -- walk all slots (attributes)
             if hasattr(tree, "__dict__"):
                 for slot, value in vars(tree).items():
+                    if item_visit_format:
+                        print(f"{prefix}   {slot}=")
                     aux(
                         value,
                         context,
+                        depth + 2,
                     )
 
             else:
@@ -160,7 +182,7 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
         if post_visit:
             post_visit(tree)
 
-    aux(tree, context)
+    aux(tree, context, 0)
 
 
 @beartype
@@ -178,6 +200,7 @@ def trim_both(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
     trimmed_left = list(dropwhile(predicate, lst))
     return list(dropwhile(predicate, trimmed_left[::-1]))[::-1]
 
+
 @beartype
 def validate_unique(items: Iterable[T], key: Callable[[T], Any] = lambda x: x) -> None:
     seen = defaultdict(list)
@@ -187,6 +210,7 @@ def validate_unique(items: Iterable[T], key: Callable[[T], Any] = lambda x: x) -
     duplicates = {k: v for k, v in seen.items() if len(v) > 1}
     if duplicates:
         raise ValueError(f"Found duplicate items: {duplicates}")
+
 
 @beartype
 def partition_list(items: List[T], predicate: Callable[[T], bool]) -> List[List[T]]:

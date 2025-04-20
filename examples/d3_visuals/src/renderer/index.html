@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>D3 Interactive Demo</title>
+</head>
+<script>
+  var Module = {
+    onRuntimeInitialized: function() {
+      console.log('global add result: ' + Module.globalAdd(1, 2));
+    }
+  };
+</script>
+<body>
+  <div id="root"></div>
+  <!-- <div id="visualization"></div> -->
+  <script type="module" src="../main/index.js"></script>
+  <script type="module" src="app.js"></script>
+  <script type="style" src="renderer/index.css"> </script>
+</body>
+
+</html>

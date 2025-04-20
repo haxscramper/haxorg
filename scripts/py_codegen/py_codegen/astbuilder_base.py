@@ -12,6 +12,10 @@ else:
     BlockId = NewType('BlockId', int)
 
 
+def pascal_case(s: str) -> str:
+    return s[0].upper() + s[1:] if s else ""
+
+
 class AstLineCtx:
 
     def __init__(self, builder):
@@ -89,6 +93,16 @@ class AstbuilderBase:
 
         else:
             return self.Line()
+
+    def ToBlockId(self, value: str | BlockId | None) -> BlockId:
+        if value is None:
+            return self.b.empty()
+
+        elif isinstance(value, str):
+            return self.string(value)
+
+        else:
+            return value
 
     def Line(self):
         return AstLineCtx(self)

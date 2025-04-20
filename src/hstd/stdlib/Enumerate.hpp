@@ -2,6 +2,7 @@
 
 #include <iterator>
 #include <algorithm>
+#include <stdexcept>
 
 namespace hstd {
 

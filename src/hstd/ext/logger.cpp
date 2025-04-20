@@ -1,33 +1,35 @@
 #include "logger.hpp"
 
-#include <boost/log/attributes.hpp>
-#include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/sinks/sync_frontend.hpp>
-#include <boost/log/sinks/text_file_backend.hpp>
-#include <boost/log/sources/global_logger_storage.hpp>
-#include <boost/log/sources/logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/support/date_time.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/utility/manipulators/add_value.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/format.hpp>
-#include <boost/property_map/property_map.hpp>
-#include <hstd/stdlib/Enumerate.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
+#if !ORG_EMCC_BUILD
+#    include <boost/log/attributes.hpp>
+#    include <boost/log/core.hpp>
+#    include <boost/log/expressions.hpp>
+#    include <boost/log/sinks/sync_frontend.hpp>
+#    include <boost/log/sinks/text_file_backend.hpp>
+#    include <boost/log/sources/global_logger_storage.hpp>
+#    include <boost/log/sources/logger.hpp>
+#    include <boost/log/sources/record_ostream.hpp>
+#    include <boost/log/sources/severity_logger.hpp>
+#    include <boost/log/support/date_time.hpp>
+#    include <boost/log/trivial.hpp>
+#    include <boost/log/utility/manipulators/add_value.hpp>
+#    include <boost/log/utility/setup/common_attributes.hpp>
+#    include <boost/algorithm/string.hpp>
+#    include <boost/algorithm/string/classification.hpp>
+#    include <boost/format.hpp>
+#    include <boost/property_map/property_map.hpp>
+#    include <hstd/stdlib/Enumerate.hpp>
+#    include <hstd/stdlib/Filesystem.hpp>
 
-#include <boost/log/core.hpp>
-#include <boost/log/sinks/sink.hpp>
-#include <stack>
-#include <mutex>
-#include <hstd/stdlib/Opt.hpp>
-#include <boost/thread/shared_mutex.hpp>
-#include <boost/thread/locks.hpp>
-#include <fstream>
+#    include <boost/log/core.hpp>
+#    include <boost/log/sinks/sink.hpp>
+#    include <stack>
+#    include <mutex>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <boost/thread/shared_mutex.hpp>
+#    include <boost/thread/locks.hpp>
+#    include <fstream>
+#    include <absl/log/log.h>
 
 using namespace hstd;
 
@@ -89,9 +91,8 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(
     return logger;
 }
 
-#define OLOG_INNER_DEBUG false
-
-#define OLOG_MSG() LOG_IF(INFO, OLOG_INNER_DEBUG)
+#    define OLOG_INNER_DEBUG false
+#    define OLOG_MSG() LOG_IF(INFO, OLOG_INNER_DEBUG)
 
 class log_sink_manager {
   public:
@@ -544,10 +545,7 @@ sink_ptr hstd::log::set_sink_filter(
         if (!!rec) {
             try {
                 return filter(*rec);
-            } catch (...) {
-                LOG(INFO) << "????";
-                return true;
-            }
+            } catch (...) { return true; }
         } else {
             return true;
         }
@@ -580,3 +578,4 @@ Opt<sink_ptr> hstd::log::get_last_sink() {
         return stack.top();
     }
 }
+#endif

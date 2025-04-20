@@ -22,8 +22,8 @@ struct std::hash<hstd::ext::ImmMap<K, V>> {
         for (auto const& [key, _] : it) { keys.push_back(key); }
         hstd::rs::sort(keys);
         for (auto const& key : keys) {
-            boost::hash_combine(result, get_std_hash<K>(key));
-            boost::hash_combine(result, get_std_hash<V>(it[key]));
+            hstd::hax_hash_combine(result, get_std_hash<K>(key));
+            hstd::hax_hash_combine(result, get_std_hash<V>(it[key]));
         }
         return result;
     }

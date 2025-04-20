@@ -1,5 +1,5 @@
 /* clang-format off */
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #pragma once
 #include <haxorg/sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \

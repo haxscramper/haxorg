@@ -273,8 +273,8 @@ void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalInput::Var const& object) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalOutput const& object) {
-  __obj_field(res, object, stdout);
-  __obj_field(res, object, stderr);
+  __obj_field(res, object, stdoutText);
+  __obj_field(res, object, stderrText);
   __obj_field(res, object, code);
   __obj_field(res, object, cmd);
   __obj_field(res, object, args);

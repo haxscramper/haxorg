@@ -5,7 +5,6 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/Set.hpp>
 #include <algorithm>
-#include <absl/log/check.h>
 #include <numeric>
 #include <hstd/system/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
@@ -188,7 +187,7 @@ Layout::Ptr getStacked(const Vec<Layout::Ptr>& layouts) {
 ///   A Solution::Ptr object that lays out the solutions vertically,
 ///   separated by newlines, with the same left margin.
 Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
-    CHECK(solutions.size() > 0);
+    LOGIC_ASSERTION_CHECK(solutions.size() > 0, "");
 
     if (solutions.size() == 1) { return solutions[0]; }
 
@@ -273,8 +272,8 @@ Solution::Ptr hPlusSolution(
     Solution::Ptr& s1,
     Solution::Ptr& s2,
     const Options& opts) {
-    CHECK(s1 != nullptr);
-    CHECK(s2 != nullptr);
+    LOGIC_ASSERTION_CHECK(s1 != nullptr, "");
+    LOGIC_ASSERTION_CHECK(s2 != nullptr, "");
     s1->reset();
     s2->reset();
     int s1Margin = 0;
@@ -482,7 +481,7 @@ Opt<Solution::Ptr> doOptLineLayout(
     }
 
     if (elementLines.size() > 1) {
-        CHECK(opts.formatPolicy != nullptr);
+        LOGIC_ASSERTION_CHECK(opts.formatPolicy != nullptr, "");
         elementLines = opts.formatPolicy(store, elementLines);
     }
 
@@ -840,7 +839,9 @@ void Block::add(CR<BlockId> other) {
             [&](Stack& w) { w.elements.push_back(other); },
             [&](Choice& w) { w.elements.push_back(other); },
             [&](Wrap& w) { w.wrapElements.push_back(other); },
-            [&](const auto&) { LOG(FATAL) << ("TODO ERRMSG"); },
+            [&](const auto&) {
+                LOGIC_ASSERTION_CHECK(false, "TODO ERRMSG");
+            },
         },
         data);
 }
@@ -852,7 +853,9 @@ void Block::add(CVec<BlockId> others) {
             [&](Stack& w) { w.elements.append(others); },
             [&](Choice& w) { w.elements.append(others); },
             [&](Wrap& w) { w.wrapElements.append(others); },
-            [&](const auto&) { LOG(FATAL) << ("TODO ERRMSG"); },
+            [&](const auto&) {
+                LOGIC_ASSERTION_CHECK(false, "TODO ERRMSG");
+            },
         },
         data);
 }

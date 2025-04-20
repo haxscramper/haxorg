@@ -1,7 +1,9 @@
 #include "ImmOrgGraphBoost.hpp"
 
-#include <boost/graph/graphml.hpp>
-#include <boost/graph/graphviz.hpp>
+#if !ORG_EMCC_BUILD
+
+#    include <boost/graph/graphml.hpp>
+#    include <boost/graph/graphviz.hpp>
 
 boost::dynamic_properties org::graph::toGraphvizDynamicProperties(
     const MapGraph& g) {
@@ -40,3 +42,5 @@ boost::dynamic_properties org::graph::toGraphvizDynamicProperties(
 
     return dp;
 }
+
+#endif

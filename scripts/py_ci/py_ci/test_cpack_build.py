@@ -99,7 +99,6 @@ def build_reflex_codgen():
 
 
 def install_all_deps() -> List[str]:
-    logger.info("All dependencies installed successfully")
 
     cmake_config: List[str] = []
 
@@ -108,8 +107,11 @@ def install_all_deps() -> List[str]:
 
     deps_list: List[data_build.ExternalDep] = []
     dep: data_build.ExternalDep
-    for dep in data_build.get_external_deps_list(install_dir=DEPS_INSTALL):
-        if dep.build_name in ["reflex", "lexy", "abseil", "immer", "lager", "cpptrace"]:
+    for dep in data_build.get_external_deps_list(
+            install_dir=DEPS_INSTALL,
+            is_emcc=False,
+    ):
+        if dep.build_name in ["reflex", "lexy", "abseil", "immer", "lager", "cpptrace", "yaml"]:
             deps_list.append(dep)
 
         elif BUILD_TESTS and dep.build_name == "googletest":
@@ -119,8 +121,18 @@ def install_all_deps() -> List[str]:
     for dep in deps_list:
         install_dep(dep)
 
-    cmake_config.append("-DCMAKE_PREFIX_PATH={}".format(";".join(
-        [str(it.get_install_prefix(install_dir=DEPS_INSTALL)) for it in deps_list])))
+    cmake_paths = data_build.get_deps_install_config(
+        deps=deps_list,
+        install_dir=DEPS_INSTALL,
+    )
+
+    DEPS_INSTALL.mkdir(parents=True, exist_ok=True)
+    DEPS_INSTALL.joinpath("paths.cmake").write_text(cmake_paths)
+
+    logger.info("All dependencies installed successfully")
+    logger.info(f"Cmake paths:\n{cmake_paths}")
+
+    cmake_config.append(f"-DORG_DEPS_INSTALL_ROOT={DEPS_INSTALL}")
 
     logger.info("Configuring project build")
 

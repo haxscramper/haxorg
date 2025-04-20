@@ -1,7 +1,4 @@
-#include "hstd/stdlib/Debug.hpp"
 #include <hstd/stdlib/strutils.hpp>
-#include <absl/log/log.h>
-#include <absl/log/check.h>
 #include <numeric>
 
 using namespace hstd;
@@ -1026,7 +1023,7 @@ Str hstd::strip(
     CR<CharSet> trailing) {
     if (0 < string.size()) {
         Span<char> view = string.toSpan();
-        CHECK(view.data() != nullptr);
+        LOGIC_ASSERTION_CHECK(view.data() != nullptr, "");
         char* end = view.data() + string.size();
 
         while (0 < view.size() && leading.contains(view.at(0))) {
@@ -1337,5 +1334,30 @@ Str hstd::wrap_text(const Vec<Str>& words, int maxWidth, bool justified) {
             lines.end(),
             lines[0],
             [](const Str& a, const Str& b) { return a + "\n"_ss + b; });
+    }
+}
+
+void hstd::replace_all(
+    std::string&       str,
+    const std::string& from,
+    const std::string& to) {
+    if (from.empty()) { return; }
+
+    size_t pos = 0;
+    while ((pos = str.find(from, pos)) != std::string::npos) {
+        str.replace(pos, from.length(), to);
+        pos += to.length();
+    }
+}
+
+bool hstd::iequals(const std::string& a, const std::string& b) {
+    if (a.length() != b.length()) {
+        return false;
+    } else {
+        return std::equal(
+            a.begin(), a.end(), b.begin(), b.end(), [](char a, char b) {
+                return std::tolower(static_cast<unsigned char>(a))
+                    == std::tolower(static_cast<unsigned char>(b));
+            });
     }
 }

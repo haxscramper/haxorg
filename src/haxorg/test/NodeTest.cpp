@@ -131,14 +131,14 @@ fs::path ParseSpec::debugFile(
     CR<std::string> relDebug,
     bool            create) const {
     if (debug.debugOutDir.empty()) {
-        throw FilesystemError(
+        throw FilesystemError::init(
             "Cannot get relative path for the spec configuration that "
             "does not provide debug output directory path");
     } else {
         auto dir = fs::path{debug.debugOutDir} / fs::path{relDebug};
         if (!fs::exists(dir)) {
             if (!fs::create_directories(dir)) {
-                throw FilesystemError(
+                throw FilesystemError::init(
                     "Failed to create debugging directory for writing "
                     "test log"
                     + debug.debugOutDir);

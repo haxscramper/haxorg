@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 import itertools
 
 from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
+from py_codegen.astbuilder_base import pascal_case
 
 DEBUG_TYPE_ORIGIN = False
 
@@ -59,6 +60,36 @@ class QualType(BaseModel, extra="forbid"):
     Kind: QualTypeKind = QualTypeKind.RegularType
 
     meta: Dict[str, Any] = Field(default={})
+
+    def getBindName(
+            self,
+            ignored_spaces: List[str] = [],
+            withParams: bool = False,
+            rename_map: Dict[Tuple[str, ...], str] = dict(),
+    ) -> str:
+
+        def aux(t: QualType) -> str:
+            res = ""
+
+            flat = tuple(t.flatQualName())
+
+            if flat in rename_map:
+                res += rename_map[flat]
+
+            else:
+                for N in t.Spaces:
+                    res += aux(N)
+
+                if t.name not in ignored_spaces:
+                    res += pascal_case(t.name)
+
+            if withParams and 0 < len(t.Parameters):
+                res += "Of"
+                res += "".join([aux(T) for T in t.Parameters])
+
+            return res
+
+        return aux(self)
 
     def par0(self) -> Optional["QualType"]:
         if 0 < len(self.Parameters):
@@ -133,6 +164,9 @@ class QualType(BaseModel, extra="forbid"):
             isGlobalNamespace=self.isGlobalNamespace,
         ))
 
+    def withTemplateParams(self, Params: List["QualType"]) -> "QualType":
+        return self.model_copy(update=dict(Parameters=Params))
+
     def withWrapperType(self, name: Union[str, "QualType"]) -> "QualType":
         if isinstance(name, str):
             return QualType(name=name, Parameters=[self])
@@ -145,6 +179,12 @@ class QualType(BaseModel, extra="forbid"):
         added: QualType = QualType(name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
         return flat.model_copy(update=dict(Spaces=[added] + flat.Spaces))
+
+    def withoutCVRef(self) -> "QualType":
+        return self.model_copy(update=dict(
+            isConst=False,
+            RefKind=ReferenceKind.NotRef,
+        ))
 
     def withoutSpace(self, name: str) -> 'QualType':
         flat = self.flatten()
@@ -190,7 +230,7 @@ class QualType(BaseModel, extra="forbid"):
     def flat_repr_flatten(self, with_modifiers: bool = True) -> Any:
         ## NOTE: Used for hashing, order of append is important, it must match the actual representation,
         ## otherwise namespace nesting might throw off the hashing results, and make `[org::[sem::[Id]]]`
-        ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked. 
+        ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked.
         result = []
 
         def aux(T: QualType):
@@ -209,9 +249,7 @@ class QualType(BaseModel, extra="forbid"):
                 ))
 
             else:
-                result.append((
-                    T.name,
-                ))
+                result.append((T.name,))
 
         aux(self)
         return tuple(result)
@@ -228,7 +266,7 @@ class QualType(BaseModel, extra="forbid"):
     def __str__(self) -> str:
         return self.format()
 
-    def format(self, dbgOrigin: bool = False) -> str:
+    def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN) -> str:
 
         def aux(Typ: QualType) -> str:
             cvref = "{const}{ptr}{ref}".format(
@@ -241,7 +279,7 @@ class QualType(BaseModel, extra="forbid"):
                 }[Typ.RefKind],
             )
 
-            origin = f"FROM:[{Typ.dbg_origin}]" if dbgOrigin else ""
+            origin = f" FROM:{Typ.dbg_origin}" if (dbgOrigin and Typ.dbg_origin) else ""
 
             spaces = "".join([f"{aux(S)}::" for S in Typ.Spaces])
             # if spaces:
@@ -368,7 +406,7 @@ class FunctionParams:
     Storage: StorageClass = StorageClass.None_
     Body: Optional[List[BlockId]] = None
     Inline: bool = False
-    InitList: List[Tuple[str, BlockId]] = field(default_factory=list)
+    InitList: List[BlockId] = field(default_factory=list)
     AllowOneLine: bool = True
 
 
@@ -503,7 +541,7 @@ class MacroParams:
 @dataclass
 class RecordField:
     params: ParmVarParams
-    doc: DocParams
+    doc: Optional[DocParams] = None
     isStatic: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
@@ -535,8 +573,8 @@ class RecordParams:
 @beartype
 @dataclass
 class UsingParams:
-    newName: str
     baseType: QualType
+    newName: Optional[str] = None
     Template: TemplateParams = field(default_factory=TemplateParams)
 
 
@@ -653,6 +691,25 @@ class ASTBuilder(base.AstbuilderBase):
                          Stmt=Stmt,
                          Line=Line,
                          Params=Params)
+
+    def XConstructObj(self,
+                      obj: QualType,
+                      Args: List[BlockId] = [],
+                      Line: bool = True) -> BlockId:
+        if Line:
+            return self.line([
+                self.Type(obj),
+                self.string("{"),
+                self.csv(Args),
+                self.string("}"),
+            ])
+
+        else:
+            return self.stack([
+                self.line([self.Type(obj), self.string("{")]),
+                self.csv(Args, isLine=False, isTrailing=True),
+                self.string("}")
+            ])
 
     def XCallObj(self,
                  obj: BlockId,
@@ -985,20 +1042,25 @@ class ASTBuilder(base.AstbuilderBase):
 
     def block(
         self,
-        head: BlockId,
+        head: Optional[BlockId],
         content: List[BlockId],
         trailingLine: bool = False,
         allowOneLine: bool = True,
     ) -> BlockId:
         if allowOneLine and len(content) < 2:
-            result = self.b.line(
-                [head, self.string(" { "),
-                 self.b.stack(content),
-                 self.string(" }")])
+            result = self.b.line([
+                head or self.string(""),
+                self.string(" { " if head else "{"),
+                self.b.stack(content),
+                self.string(" }"),
+            ])
 
         else:
             result = self.b.stack([
-                self.b.line([head, self.string(" {")]),
+                self.b.line([
+                    head or self.string(""),
+                    self.string(" {" if head else "{"),
+                ]),
                 self.b.indent(2, self.b.stack(content)),
                 self.string("}")
             ])
@@ -1042,7 +1104,11 @@ class ASTBuilder(base.AstbuilderBase):
                 self.string(params.newName),
                 self.string(" = "),
                 self.Type(params.baseType),
-                self.string(";")
+                self.string(";"),
+            ] if params.newName else [
+                self.string("using "),
+                self.Type(params.baseType),
+                self.string(";"),
             ]))
 
     def Field(self, field: RecordField) -> BlockId:
@@ -1065,7 +1131,9 @@ class ASTBuilder(base.AstbuilderBase):
                     self.string("::"),
                     self.string(m.Params.Name),
                     self.Arguments(m.Params),
-                    self.string(" const {" if m.IsConst else " {")
+                    self.string("const " if m.IsConst else " "),
+                    self.InitList(m.Params),
+                    self.string("{"),
                 ]),
                 self.b.indent(2, self.b.stack(m.Params.Body)),
                 self.string("}")
@@ -1083,7 +1151,8 @@ class ASTBuilder(base.AstbuilderBase):
             self.Arguments(method.Params),
             self.string(" const" if method.isConst else ""),
             self.string(" override" if method.isOverride else ""),
-            self.string(" = 0" if method.isPureVirtual else "")
+            self.string(" = 0" if method.isPureVirtual else ""),
+            self.InitList(method.Params),
         ])
 
         return self.WithAccess(
@@ -1235,6 +1304,17 @@ class ASTBuilder(base.AstbuilderBase):
 
         return head
 
+    def InitList(self, p: FunctionParams) -> BlockId:
+        if p.InitList:
+            head = self.b.line([])
+            self.b.add_at(head, self.string(" : "))
+            self.b.add_at(head, self.csv([self.b.line([item]) for item in p.InitList]))
+
+            return head
+
+        else:
+            return self.b.text("")
+
     def Function(self, p: FunctionParams) -> BlockId:
         head = self.b.line([
             *([] if p.ResultTy is None else [self.Type(p.ResultTy),
@@ -1243,17 +1323,7 @@ class ASTBuilder(base.AstbuilderBase):
             self.Arguments(p)
         ])
 
-        if p.InitList:
-            self.b.add_at(head, self.string(" : "))
-            self.b.add_at(
-                head,
-                self.csv([
-                    self.b.line([
-                        self.string(item[0]),
-                        self.string("("), item[1],
-                        self.string(")")
-                    ]) for item in p.InitList
-                ]))
+        self.b.add_at(head, self.InitList(p))
 
         return self.WithTemplate(
             p.Template,
@@ -1300,7 +1370,8 @@ class ASTBuilder(base.AstbuilderBase):
                                 self.string("::")] if type_.func.Class else []
 
                 return self.b.line([
-                    self.Type(type_.func.ReturnTy),
+                    self.Type(type_.func.ReturnTy)
+                    if type_.func.ReturnTy else self.string("void"),
                     self.pars(self.b.line(pointer_type + [self.string("*")])),
                     self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
                     self.string(" const" if type_.func.IsConst else ""),

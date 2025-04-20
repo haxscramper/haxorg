@@ -22,15 +22,15 @@ using u64 = unsigned long long;
 static_assert(sizeof(u32) == 4, "Expected 4 bytes for u32");
 static_assert(sizeof(u64) == 8, "Expected 8 bytes for u64");
 
-inline i8 operator"" _i8(unsigned long long int value) {
+inline i8 operator""_i8(unsigned long long int value) {
     return static_cast<i8>(value);
 }
 
-inline u8 operator"" _u8(unsigned long long int value) {
+inline u8 operator""_u8(unsigned long long int value) {
     return static_cast<u8>(value);
 }
 
-inline std::string operator"" _qs(const char* value, unsigned long size) {
+inline std::string operator""_qs(const char* value, unsigned long size) {
     return std::string(value);
 }
 

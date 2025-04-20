@@ -166,6 +166,10 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     bool VisitRecordDecl(clang::RecordDecl* Decl);
     bool IndirectFieldDecl(clang::IndirectFieldDecl* Decl);
 
+
+    bool isDescribedEnum(const clang::EnumDecl* enumDecl);
+    bool isDescribedRecord(const clang::RecordDecl* recordDecl);
+
     bool                       isRefl(const clang::Decl* Decl);
     std::optional<std::string> getDoc(const clang::Decl* Decl);
 

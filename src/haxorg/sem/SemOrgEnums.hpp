@@ -1899,45 +1899,31 @@ enum class ListFormattingMode : short int {
   /// \brief for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values
   Table2DColFirst,
 };
-template <>
-struct hstd::enum_serde<ListFormattingMode> {
-  static hstd::Opt<ListFormattingMode> from_string(std::string value);
-  static std::string to_string(ListFormattingMode value);
-};
-
-template <>
-struct hstd::value_domain<ListFormattingMode> : public value_domain_ungapped<ListFormattingMode,
-                                                                             ListFormattingMode::None,
-                                                                             ListFormattingMode::Table2DColFirst> {};
-
+BOOST_DESCRIBE_ENUM_BEGIN(ListFormattingMode)
+  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, None)
+  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table1D1Col)
+  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table1D2Col)
+  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table2DColFirst)
+BOOST_DESCRIBE_ENUM_END(ListFormattingMode)
 enum class InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
-template <>
-struct hstd::enum_serde<InitialSubtreeVisibility> {
-  static hstd::Opt<InitialSubtreeVisibility> from_string(std::string value);
-  static std::string to_string(InitialSubtreeVisibility value);
-};
-
-template <>
-struct hstd::value_domain<InitialSubtreeVisibility> : public value_domain_ungapped<InitialSubtreeVisibility,
-                                                                                   InitialSubtreeVisibility::Overview,
-                                                                                   InitialSubtreeVisibility::ShowEverything> {};
-
+BOOST_DESCRIBE_ENUM_BEGIN(InitialSubtreeVisibility)
+  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Overview)
+  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Content)
+  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, ShowAll)
+  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Show2Levels)
+  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Show3Levels)
+  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Show4Levels)
+  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Show5Levels)
+  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, ShowEverything)
+BOOST_DESCRIBE_ENUM_END(InitialSubtreeVisibility)
 /// \brief What to do with newly evaluated result
 enum class BlockCodeResults : short int {
   /// \brief Remove old result, replace with new value
   Replace,
 };
-template <>
-struct hstd::enum_serde<BlockCodeResults> {
-  static hstd::Opt<BlockCodeResults> from_string(std::string value);
-  static std::string to_string(BlockCodeResults value);
-};
-
-template <>
-struct hstd::value_domain<BlockCodeResults> : public value_domain_ungapped<BlockCodeResults,
-                                                                           BlockCodeResults::Replace,
-                                                                           BlockCodeResults::Replace> {};
-
+BOOST_DESCRIBE_ENUM_BEGIN(BlockCodeResults)
+  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeResults, Replace)
+BOOST_DESCRIBE_ENUM_END(BlockCodeResults)
 /// \brief What part of the code block should be visible in export
 enum class BlockCodeExports : short int {
   /// \brief Hide both original code and run result
@@ -1949,29 +1935,73 @@ enum class BlockCodeExports : short int {
   /// \brief Show only evaluation results
   Results,
 };
-template <>
-struct hstd::enum_serde<BlockCodeExports> {
-  static hstd::Opt<BlockCodeExports> from_string(std::string value);
-  static std::string to_string(BlockCodeExports value);
-};
-
-template <>
-struct hstd::value_domain<BlockCodeExports> : public value_domain_ungapped<BlockCodeExports,
-                                                                           BlockCodeExports::None,
-                                                                           BlockCodeExports::Results> {};
-
+BOOST_DESCRIBE_ENUM_BEGIN(BlockCodeExports)
+  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, None)
+  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, Both)
+  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, Code)
+  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, Results)
+BOOST_DESCRIBE_ENUM_END(BlockCodeExports)
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
-template <>
-struct hstd::enum_serde<OrgSpecName> {
-  static hstd::Opt<OrgSpecName> from_string(std::string value);
-  static std::string to_string(OrgSpecName value);
-};
-
-template <>
-struct hstd::value_domain<OrgSpecName> : public value_domain_ungapped<OrgSpecName,
-                                                                      OrgSpecName::Unnamed,
-                                                                      OrgSpecName::Chunks> {};
-
+BOOST_DESCRIBE_ENUM_BEGIN(OrgSpecName)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Unnamed)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Result)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Year)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Day)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Clock)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Repeater)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Zone)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Link)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Tags)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Tag)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, State)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Protocol)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Desc)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Times)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Drawer)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Args)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Name)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Definition)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Body)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, HeaderArgs)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, File)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Kind)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Lang)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Prefix)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Text)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Todo)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Importance)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Title)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Completion)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Head)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Subnodes)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Properties)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Logbook)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Description)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Logs)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Newstate)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Oldstate)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Time)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, From)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, EndArgs)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Flags)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Value)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Assoc)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Main)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Hash)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Bullet)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Counter)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Checkbox)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Header)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, To)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Diff)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Property)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Subname)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Values)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Cells)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Rows)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Lines)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Chunks)
+BOOST_DESCRIBE_ENUM_END(OrgSpecName)
 enum class OrgNodeKind : short int {
   /// \brief Default valye for node - invalid state
   None,
@@ -2196,41 +2226,217 @@ enum class OrgNodeKind : short int {
   /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.
   SubtreeImportance,
 };
-template <>
-struct hstd::enum_serde<OrgNodeKind> {
-  static hstd::Opt<OrgNodeKind> from_string(std::string value);
-  static std::string to_string(OrgNodeKind value);
-};
-
-template <>
-struct hstd::value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
-                                                                      OrgNodeKind::None,
-                                                                      OrgNodeKind::SubtreeImportance> {};
-
+BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, None)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Document)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Empty)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, InlineStmtList)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, StmtList)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Checkbox)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, List)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Bullet)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ListItem)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ListTag)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Counter)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, File)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ColonExample)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, TextSeparator)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Paragraph)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, TableRow)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, TableCell)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Table)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, InlineFootnote)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Footnote)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Cmd)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Attrs)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, AttrValue)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, AttrLisp)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdTitle)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdAuthor)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdCreator)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdInclude)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdLanguage)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdAttr)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdStartup)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdName)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdCustomTextCommand)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdCustomArgsCommand)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdCustomRawCommand)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdResults)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdHeader)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdOptions)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdTblfm)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdCaption)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdResult)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdCallCode)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdFlag)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdLatexClass)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdLatexHeader)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdLatexCompiler)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdLatexClassOptions)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdHtmlHead)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdColumns)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdPropertyArgs)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdPropertyText)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdPropertyRaw)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdFiletags)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockVerbatimMultiline)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CodeLine)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CodeText)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CodeTangle)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CodeCallout)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockCode)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockQuote)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockComment)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockCenter)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockVerse)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockExample)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockExport)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockDetails)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockSummary)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockDynamicFallback)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BigIdent)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Bold)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorWrap)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorToken)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Italic)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Verbatim)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Backtick)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Underline)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Strike)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Quote)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Angle)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Monospace)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Par)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CriticMarkStructure)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, InlineMath)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DisplayMath)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Space)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Punctuation)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Colon)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Word)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Escaped)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Newline)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, RawLink)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Link)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Macro)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Symbol)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, StaticActiveTime)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, StaticInactiveTime)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DynamicActiveTime)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DynamicInactiveTime)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, TimeRange)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SimpleTime)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, HashTag)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, MetaSymbol)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, AtMention)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Placeholder)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, RadioTarget)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Target)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SrcInlineCode)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, InlineCallCode)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, InlineExport)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, InlineComment)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, RawText)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeDescription)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeUrgency)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DrawerLogbook)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Drawer)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DrawerPropertyList)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DrawerProperty)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Subtree)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeTimes)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeStars)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeCompletion)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeImportance)
+BOOST_DESCRIBE_ENUM_END(OrgNodeKind)
 enum class OrgJsonKind : short int { Null, Object, Array, String, Boolean, Int, Float, };
-template <>
-struct hstd::enum_serde<OrgJsonKind> {
-  static hstd::Opt<OrgJsonKind> from_string(std::string value);
-  static std::string to_string(OrgJsonKind value);
-};
-
-template <>
-struct hstd::value_domain<OrgJsonKind> : public value_domain_ungapped<OrgJsonKind,
-                                                                      OrgJsonKind::Null,
-                                                                      OrgJsonKind::Float> {};
-
+BOOST_DESCRIBE_ENUM_BEGIN(OrgJsonKind)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Null)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Object)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Array)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, String)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Boolean)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Int)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Float)
+BOOST_DESCRIBE_ENUM_END(OrgJsonKind)
 enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
-template <>
-struct hstd::enum_serde<OrgSemKind> {
-  static hstd::Opt<OrgSemKind> from_string(std::string value);
-  static std::string to_string(OrgSemKind value);
-};
-
-template <>
-struct hstd::value_domain<OrgSemKind> : public value_domain_ungapped<OrgSemKind,
-                                                                     OrgSemKind::None,
-                                                                     OrgSemKind::CmdInclude> {};
-
+BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, None)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorItem)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorGroup)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, StmtList)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Empty)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCaption)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdColumns)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdName)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCustomArgs)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCustomRaw)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCustomText)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCall)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdTblfm)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, HashTag)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, InlineFootnote)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, InlineExport)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Time)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, TimeRange)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Macro)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Symbol)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Escaped)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Newline)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Space)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Word)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, AtMention)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, RawText)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Punctuation)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Placeholder)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BigIdent)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, TextTarget)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Bold)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Underline)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Monospace)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, MarkQuote)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Verbatim)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Italic)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Strike)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Par)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, RadioTarget)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Latex)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Link)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockCenter)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockQuote)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockComment)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockVerse)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockDynamicFallback)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockExample)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockExport)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockAdmonition)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockCodeEvalResult)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockCode)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, SubtreeLog)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Subtree)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Cell)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Row)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Table)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Paragraph)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ColonExample)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdAttr)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdExport)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Call)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, List)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ListItem)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, DocumentOptions)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, DocumentFragment)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CriticMarkup)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Document)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, FileTarget)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, TextSeparator)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, DocumentGroup)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, File)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Directory)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Symlink)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdInclude)
+BOOST_DESCRIBE_ENUM_END(OrgSemKind)
 
 template <>
 struct std::formatter<OrgSemKind> : std::formatter<std::string> {

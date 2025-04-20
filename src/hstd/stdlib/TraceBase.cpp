@@ -1,10 +1,11 @@
-#include <absl/log/log_sink_registry.h>
 #include <hstd/stdlib/TraceBase.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <fstream>
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/strutils.hpp>
-#include <cpptrace.hpp>
+#if !ORG_EMCC_BUILD
+#    include <cpptrace.hpp>
+#endif
 
 using namespace hstd;
 
@@ -19,8 +20,9 @@ void OperationsTracer::setTraceFile(SPtr<std::ostream> stream) {
 void OperationsTracer::setTraceFile(
     const fs::path& outfile,
     bool            overwrite) {
-    CHECK(outfile.native().size() != 0)
-        << "setTraceFile" << "Expected non-empty filename for the output";
+    LOGIC_ASSERTION_CHECK(
+        outfile.native().size() != 0,
+        "Expected non-empty filename for the output");
     TraceState  = true;
     traceToFile = true;
     createDirectory(outfile.parent_path(), true, true);
@@ -143,5 +145,7 @@ finally_std OperationsTracer::scopeTrace(bool state) {
 
 
 void OperationsMsg::use_stacktrace_as_msg() {
+#if !ORG_EMCC_BUILD
     this->msg = cpptrace::generate_trace().to_string(false);
+#endif
 }

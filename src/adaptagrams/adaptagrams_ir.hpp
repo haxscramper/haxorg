@@ -14,6 +14,7 @@
 #    include <libdialect/graphs.h>
 #    pragma warning(pop)
 #endif
+#pragma clang diagnostic ignored "-Wunknown-attributes"
 
 namespace hstd::ext {
 
@@ -296,9 +297,9 @@ struct std::hash<::hstd::ext::GraphEdge> {
     std::size_t operator()(
         ::hstd::ext::GraphEdge const& it) const noexcept {
         std::size_t result = 0;
-        boost::hash_combine(result, it.source);
-        boost::hash_combine(result, it.target);
-        boost::hash_combine(result, it.bundle);
+        hstd::hax_hash_combine(result, it.source);
+        hstd::hax_hash_combine(result, it.target);
+        hstd::hax_hash_combine(result, it.bundle);
         return result;
     }
 };

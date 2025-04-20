@@ -12,7 +12,7 @@
 #include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #    include <SemOrgProto.pb.h>
 #endif
 
@@ -243,7 +243,6 @@ sem::SemId<sem::Org> org::parseStringOpts(
             }
             p.traceStream = fileTrace.get();
 
-            LOG(INFO) << fmt1(frag.text);
             org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
                 frag.text.data(), frag.text.size(), p);
             org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
@@ -252,8 +251,6 @@ sem::SemId<sem::Org> org::parseStringOpts(
                 tokenizer.setTraceFile(*opts.tokenTracePath, false);
                 tokenizer.traceColored = false;
             }
-
-            LOG(INFO) << fmt1(baseTokens.size());
 
             tokenizer.convert(baseTokens);
             org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{
@@ -587,7 +584,7 @@ sem::SemId<File> org::parseFileWithIncludes(
 
 
 sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
     sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
     std::ifstream     stream{file};
     orgproto::AnyNode result;
@@ -597,6 +594,9 @@ sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
         org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(
             read_node));
     return read_node.as<sem::Document>();
+#elif ORG_EMCC_BUILD
+    throw std::logic_error(
+        "Protobuf file parsing is not supported for wasm");
 #else
     throw std::logic_error(
         "haxorg was not compiled with protobuf support. Enable "
@@ -607,12 +607,15 @@ sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
 void org::exportToProtobufFile(
     sem::SemId<sem::Document> doc,
     const std::string&        file) {
-#ifdef ORG_DEPS_USE_PROTOBUF
+#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
     std::ofstream     stream{file};
     orgproto::AnyNode result;
     org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, doc.asOrg());
     result.SerializeToOstream(&stream);
+#elif ORG_EMCC_BUILD
+    throw std::logic_error(
+        "Protobuf file writing is not supported for wasm");
 #else
     throw std::logic_error(
         "haxorg was not compiled with protobuf support. Enable "
@@ -849,7 +852,7 @@ sem::SemId<Time> org::newSemTimeStatic(
     return result;
 }
 
-sem::SemId<Org> org::asOneNode(OrgArg arg) {
+sem::SemId<Org> org::asOneNode(org::sem::SemId<org::sem::Org> const& arg) {
     switch (arg->getKind()) {
         case osk::StmtList:
         case osk::Document:
@@ -1350,7 +1353,7 @@ struct EvalContext {
         const OrgCodeEvalParameters&  conf) {
         EVAL_SCOPE();
         EVAL_TRACE(fmt("Parsing stdout"));
-        auto doc  = org::parseString(out.stdout);
+        auto doc  = org::parseString(out.stdoutText);
         auto stmt = sem::SemId<sem::StmtList>::New();
         for (auto const& node : doc) {
             EVAL_TRACE(fmt("Result node {}", node->getKind()));
@@ -1608,12 +1611,12 @@ struct EvalContext {
                         EVAL_TRACE(fmt("cwd: {}", it.cwd));
                     }
 
-                    if (!it.stderr.empty()) {
-                        EVAL_TRACE(fmt("stderr:\n{}", it.stderr));
+                    if (!it.stderrText.empty()) {
+                        EVAL_TRACE(fmt("stderr:\n{}", it.stderrText));
                     }
 
-                    if (!it.stdout.empty()) {
-                        EVAL_TRACE(fmt("stdout:\n{}", it.stdout));
+                    if (!it.stdoutText.empty()) {
+                        EVAL_TRACE(fmt("stdout:\n{}", it.stdoutText));
                     }
                 }
 
@@ -1628,8 +1631,10 @@ struct EvalContext {
         }
 
         if (isTraceEnabled()) {
+#if !ORG_EMCC_BUILD
             auto graph = org::imm::toGraphviz(history);
             graph.render("/tmp/CodeBlockEvalGraph.png");
+#endif
         }
 
         imm::ImmAdapter::TreeReprConf repr_conf;

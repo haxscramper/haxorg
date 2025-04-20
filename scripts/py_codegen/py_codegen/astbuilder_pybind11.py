@@ -1,13 +1,18 @@
 from py_codegen.gen_tu_cpp import *
 from beartype import beartype
-from dataclasses import dataclass, field
-from beartype.typing import List, Optional, NewType
+from dataclasses import dataclass, field, replace
+from beartype.typing import List, Optional, NewType, Set
 from py_scriptutils.algorithm import maybe_splice
 
 from typing import TYPE_CHECKING
 
-from py_codegen.gen_tu_cpp import (GenTuFunction, GenTuIdent, GenTuDoc, QualType,
-                                   QualTypeKind)
+from py_codegen.gen_tu_cpp import (
+    GenTuFunction,
+    GenTuIdent,
+    GenTuDoc,
+    QualType,
+    QualTypeKind,
+)
 import py_codegen.astbuilder_py as pya
 import itertools
 from rich.pretty import pprint
@@ -29,21 +34,6 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
-IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "imm"]
-
-
-@beartype
-def py_type_bind(Typ: QualType) -> pya.PyType:
-    fullname = "".join([py_type_bind(T).Name for T in Typ.Spaces])
-    if Typ.name not in IGNORED_NAMESPACES:
-        fullname += Typ.name
-
-    if 0 < len(Typ.Parameters):
-        fullname += "Of"
-        fullname += "".join([py_type_bind(T).Name for T in Typ.Parameters])
-
-    return pya.PyType(fullname)
-
 
 @beartype
 def flat_scope(Typ: QualType) -> List[str]:
@@ -57,7 +47,7 @@ def flat_scope(Typ: QualType) -> List[str]:
 
 @beartype
 def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
-    is_target = "ImmAdapterT" in Typ.name 
+    is_target = "ImmAdapterT" in Typ.name
     wrapper_override = base_map.get_wrapper_type(Typ)
 
     if wrapper_override:
@@ -125,7 +115,6 @@ def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
 
             case _:
                 name = "".join(flat)
-
 
     struct = base_map.get_struct_for_qual_name(Typ)
     if not struct or struct.reflectionParams.wrapper_has_params:
@@ -305,42 +294,44 @@ def id_self(Typ: QualType) -> ParmVarParams:
 @dataclass
 class Py11Function:
     PyName: str
-    CxxName: str
-    ResultTy: Optional[QualType]
-    Args: List[GenTuIdent] = field(default_factory=list)
+    Func: GenTuFunction
     Body: Optional[List[BlockId]] = None
-    Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     DefParams: Optional[List[BlockId]] = None
-    Spaces: List[QualType] = field(default_factory=list)
 
     def build_typedef(self, ast: pya.ASTBuilder,
                       base_map: GenTypeMap) -> pya.FunctionDefParams:
         return pya.FunctionDefParams(
             Name=py_ident(self.PyName),
-            ResultTy=self.ResultTy and py_type(self.ResultTy, base_map=base_map),
+            ResultTy=self.Func.result and py_type(self.Func.result, base_map=base_map),
             Args=[
                 pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
-                for Arg in self.Args
+                for Arg in self.Func.arguments
             ],
             IsStub=True,
         )
 
-    @staticmethod
-    def FromGenTu(
-        meth: GenTuFunction,
+    def __init__(
+        self,
+        Func: GenTuFunction,
         Body: Optional[List[BlockId]] = None,
-        pySideOverride: Optional[str] = None,
-    ) -> 'Py11Function':
+        PyName: Optional[str] = None,
+        DefParams: Optional[List[BlockId]] = None,
+    ):
+        name = ""
 
-        return Py11Function(
-            PyName=py_ident(meth.name) if pySideOverride is None else pySideOverride,
-            Body=Body,
-            ResultTy=meth.result,
-            CxxName=meth.name,
-            Doc=meth.doc,
-            Args=meth.arguments,
-            Spaces=meth.spaces,
-        )
+        if PyName:
+            name = PyName
+
+        elif Func.reflectionParams.wrapper_name:
+            name = Func.reflectionParams.wrapper_name
+
+        else:
+            name = py_ident(Func.name + ("Static" if Func.isStatic else ""))
+
+        self.PyName = name
+        self.Body = Body
+        self.Func = Func
+        self.DefParams = DefParams
 
     def build_argument_binder(self, Args: List[GenTuIdent],
                               ast: ASTBuilder) -> list[BlockId]:
@@ -373,15 +364,7 @@ class Py11Function:
         IsConst: bool = False,
     ) -> BlockId:
         if self.Body is None:
-            function_type = QualType(
-                func=QualType.Function(
-                    ReturnTy=self.ResultTy,
-                    Args=[A.type for A in Args],
-                    Class=Class,
-                    IsConst=IsConst,
-                ),
-                Kind=QualTypeKind.FunctionPtr,
-            )
+            function_type = self.Func.get_function_type(Class=Class)
 
             return ast.XCall(
                 "static_cast",
@@ -392,27 +375,27 @@ class Py11Function:
         else:
             return ast.Lambda(
                 LambdaParams(
-                    ResultTy=self.ResultTy,
+                    ResultTy=self.Func.result,
                     Args=[ParmVarParams(Arg.type, Arg.name) for Arg in Args],
                     Body=self.Body,
                     IsLine=False,
                 ))
 
     def build_doc_comment(self, ast: ASTBuilder) -> list[BlockId]:
-        if self.Doc.brief:
-            return [ast.StringLiteral(self.Doc.brief, forceRawStr=True)]
+        if self.Func.doc.brief:
+            return [ast.StringLiteral(self.Func.doc.brief, forceRawStr=True)]
 
         else:
             return []
 
     def build_bind(self, ast: ASTBuilder) -> BlockId:
-        if self.Spaces:
+        if self.Func.spaces:
             full_name = ast.Scoped(
-                QualType(name=self.Spaces[-1].name, Spaces=self.Spaces[:-1]),
-                ast.string(self.CxxName))
+                QualType(name=self.Func.spaces[-1].name, Spaces=self.Func.spaces[:-1]),
+                ast.string(self.Func.name))
 
         else:
-            full_name = ast.string(self.CxxName)
+            full_name = ast.string(self.Func.name)
 
         return ast.XCall(
             "m.def",
@@ -420,14 +403,14 @@ class Py11Function:
                 ast.Literal(self.PyName),
                 self.build_call_pass(
                     ast,
-                    self.Args,
+                    self.Func.arguments,
                     FunctionQualName=full_name,
                 ),
-                *self.build_argument_binder(self.Args, ast),
+                *self.build_argument_binder(self.Func.arguments, ast),
                 *self.build_doc_comment(ast),
                 *(self.DefParams if self.DefParams else []),
             ],
-            Line=len(self.Args) == 0,
+            Line=len(self.Func.arguments) == 0,
             Stmt=True,
         )
 
@@ -435,30 +418,18 @@ class Py11Function:
 @beartype
 @dataclass
 class Py11Method(Py11Function):
-    IsConst: bool = False
-    IsInit: bool = False
-    IsStatic: bool = False
     ExplicitClassParam: bool = False
 
-    @staticmethod
-    def FromGenTu(
-        meth: GenTuFunction,
+    def __init__(
+        self,
+        Func: GenTuFunction,
         Body: Optional[List[BlockId]] = None,
-        pySideOverride: Optional[str] = None,
-    ) -> 'Py11Method':
-
-        return Py11Method(
-            PyName=pySideOverride if pySideOverride else
-            py_ident(meth.name + ("Static" if meth.isStatic else "")),
-            Body=Body,
-            ResultTy=meth.result,
-            CxxName=meth.name,
-            Doc=meth.doc,
-            IsConst=meth.isConst,
-            Args=meth.arguments,
-            IsStatic=meth.isStatic,
-            IsInit=meth.IsConstructor,
-        )
+        PyName: Optional[str] = None,
+        ExplicitClassParam: bool = False,
+        DefParams: Optional[List[BlockId]] = None,
+    ):
+        super().__init__(Func, Body, PyName, DefParams=DefParams)
+        self.ExplicitClassParam = ExplicitClassParam
 
     def build_typedef(
         self,
@@ -467,15 +438,15 @@ class Py11Method(Py11Function):
         is_overload: bool = False,
     ) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
-            Name="__init__" if self.IsInit else py_ident(self.PyName),
-            ResultTy=self.ResultTy and py_type(self.ResultTy, base_map),
+            Name="__init__" if self.Func.IsConstructor else py_ident(self.PyName),
+            ResultTy=self.Func.result and py_type(self.Func.result, base_map),
             Args=[
                 pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
-                for Arg in self.Args
+                for Arg in self.Func.arguments
             ],
             IsStub=True,
             Decorators=[
-                *maybe_splice(self.IsStatic, pya.DecoratorParams("staticmethod")),
+                *maybe_splice(self.Func.isStatic, pya.DecoratorParams("staticmethod")),
                 *maybe_splice(is_overload, pya.DecoratorParams("overload")),
             ]))
 
@@ -483,45 +454,48 @@ class Py11Method(Py11Function):
         b = ast.b
 
         Args: List[GenTuIdent] = []
-        if self.IsInit or self.ExplicitClassParam:
+        if self.Func.IsConstructor or self.ExplicitClassParam:
             pass
 
         elif self.Body:
-            Args = [GenTuIdent(type=Class, name="_self")]
+            Args = [GenTuIdent(type=Class.asConstRef(), name="_self")]
 
-        Args += self.Args
+        Args += self.Func.arguments
 
-        if self.IsInit and not self.Body:
-            call_pass = ast.XCall("pybind11::init", Params=[t.type for t in self.Args])
+        if self.Func.IsConstructor and not self.Body:
+            call_pass = ast.XCall("pybind11::init",
+                                  Params=[t.type for t in self.Func.arguments])
             argument_binder = []
 
         else:
             call_pass = self.build_call_pass(
                 ast,
-                FunctionQualName=ast.Scoped(Class, ast.string(self.CxxName)),
-                Class=None if self.IsStatic else Class,
-                IsConst=self.IsConst,
+                FunctionQualName=ast.Scoped(Class, ast.string(self.Func.name)),
+                Class=None if self.Func.isStatic else Class,
+                IsConst=self.Func.isConst,
                 Args=Args,
             )
 
-            if self.IsInit:
+            if self.Func.IsConstructor:
                 call_pass = ast.XCall("pybind11::init", args=[call_pass])
 
-            if self.ExplicitClassParam and not self.IsInit:
-                argument_binder = self.build_argument_binder(self.Args[1:], ast=ast)
+            if self.ExplicitClassParam and not self.Func.IsConstructor:
+                argument_binder = self.build_argument_binder(self.Func.arguments[1:],
+                                                             ast=ast)
             else:
-                argument_binder = self.build_argument_binder(self.Args, ast=ast)
+                argument_binder = self.build_argument_binder(self.Func.arguments, ast=ast)
 
         return ast.XCall(
-            (".def_static" if (self.IsStatic and not self.IsInit) else ".def"),
+            (".def_static" if
+             (self.Func.isStatic and not self.Func.IsConstructor) else ".def"),
             [
-                *([] if self.IsInit else [ast.Literal(self.PyName)]),
+                *([] if self.Func.IsConstructor else [ast.Literal(self.PyName)]),
                 call_pass,
                 *argument_binder,
                 *self.build_doc_comment(ast),
                 *(self.DefParams if self.DefParams else []),
             ],
-            Line=len(self.Args) == 0,
+            Line=len(self.Func.arguments) == 0,
         )
 
 
@@ -532,45 +506,39 @@ class Py11EnumField:
     CxxName: str
     Doc: GenTuDoc
 
-    @staticmethod
-    def FromGenTu(
+    def __init__(
+        self,
         Field: GenTuEnumField,
         pyNameOverride: Optional[str] = None,
-    ) -> 'Py11EnumField':
-        return Py11EnumField(
-            PyName=Field.name if pyNameOverride is None else pyNameOverride,
-            CxxName=Field.name,
-            Doc=Field.doc,
-        )
+    ):
+        self.PyName = Field.name if pyNameOverride is None else pyNameOverride
+        self.CxxName = Field.name
+        self.Doc = Field.doc
 
     def build_bind(self, Enum: 'Py11Enum', ast: ASTBuilder) -> BlockId:
         return ast.XCall(".value", [
             ast.Literal(self.PyName),
-            ast.Type(QualType.ForName(self.CxxName, Spaces=[Enum.Enum]))
+            ast.Type(QualType.ForName(self.CxxName, Spaces=[Enum.Enum.name]))
         ] + maybe_list(get_doc_literal(ast, self.Doc)))
 
 
 @beartype
 @dataclass
 class Py11Enum:
-    PyName: str
-    Enum: QualType
+    Enum: GenTuEnum
     Fields: List[Py11EnumField]
-    Doc: GenTuDoc
 
-    @staticmethod
-    def FromGenTu(Enum: GenTuEnum, PyName: str) -> 'Py11Enum':
-        return Py11Enum(
-            PyName=PyName,
-            Enum=Enum.name,
-            Doc=Enum.doc,
-            Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields],
-        )
+    def __init__(self, Enum: GenTuEnum):
+        self.Enum = Enum
+        self.Fields = [Py11EnumField(F) for F in Enum.fields]
 
-    def build_typedef(self) -> pya.EnumParams:
+    def getPyName(self, base_map: GenTypeMap) -> str:
+        return py_type(self.Enum.name, base_map=base_map).Name
+
+    def build_typedef(self, base_map: GenTypeMap) -> pya.EnumParams:
         count = 0
         return pya.EnumParams(
-            Name=self.PyName,
+            Name=self.getPyName(base_map),
             Fields=[
                 pya.EnumFieldParams(
                     ("_" +
@@ -578,11 +546,11 @@ class Py11Enum:
                     str(count := count + 1)) for F in self.Fields
             ])
 
-    def build_bind(self, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
         b = ast.b
         iter_type = QualType(
             name="PyEnumIterator",
-            Parameters=[self.Enum],
+            Parameters=[self.Enum.name],
             Spaces=[n_org(), t_namespace("bind"),
                     t_namespace("python")],
         )
@@ -591,56 +559,56 @@ class Py11Enum:
                 "bind_enum_iterator",
                 args=[
                     b.text("m"),
-                    ast.Literal(self.PyName),
+                    ast.Literal(self.getPyName(base_map)),
                     ast.string("type_registry_guard"),
                 ],
-                Params=[self.Enum],
+                Params=[self.Enum.name],
                 Stmt=True,
             ),
             ast.XCall(
                 "pybind11::enum_",
-                [b.text("m"), ast.Literal(self.PyName)],
-                Params=[self.Enum],
+                [b.text("m"), ast.Literal(self.getPyName(base_map))],
+                Params=[self.Enum.name],
             ),
             b.indent(
                 2,
                 b.stack([Field.build_bind(self, ast) for Field in self.Fields] + [
                     Py11Method(
                         PyName="__iter__",
-                        CxxName="",
-                        ResultTy=iter_type,
+                        Func=GenTuFunction(name="", result=iter_type),
                         Body=[
                             ast.Return(ast.b.line([ast.Type(iter_type),
                                                    ast.string("()")])),
                         ],
-                    ).build_bind(self.Enum, ast),
+                    ).build_bind(self.Enum.name, ast),
                     Py11Method(
                         PyName="__eq__",
-                        CxxName="",
-                        ResultTy=QualType(name="bool"),
-                        Args=[
-                            GenTuIdent(self.Enum, "lhs"),
-                            GenTuIdent(self.Enum, "rhs"),
-                        ],
+                        Func=GenTuFunction(
+                            name="",
+                            result=QualType(name="bool"),
+                            arguments=[
+                                GenTuIdent(self.Enum.name, "lhs"),
+                                GenTuIdent(self.Enum.name, "rhs"),
+                            ],
+                        ),
                         Body=[
                             ast.Return(
                                 ast.XCall("==", [ast.string("lhs"),
                                                  ast.string("rhs")])),
                         ],
-                    ).build_bind(self.Enum, ast),
+                    ).build_bind(self.Enum.name, ast),
                     Py11Method(
                         PyName="__hash__",
-                        CxxName="",
-                        ResultTy=QualType(name="int"),
-                        Args=[
-                            GenTuIdent(self.Enum, "it"),
-                        ],
+                        Func=GenTuFunction(
+                            result=QualType(name="int"),
+                            arguments=[GenTuIdent(self.Enum.name, "it")],
+                        ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast", [ast.string("it")],
                                           Params=[QualType(name="int")])),
                         ],
-                    ).build_bind(self.Enum, ast),
+                    ).build_bind(self.Enum.name, ast),
                 ] + [b.text(";")]),
             )
         ])
@@ -649,31 +617,25 @@ class Py11Enum:
 @beartype
 @dataclass
 class Py11Field:
-    PyName: str
-    CxxName: str
-    Type: QualType
+    Field: GenTuField
     GetImpl: Optional[List[BlockId]] = None
     SetImpl: Optional[List[BlockId]] = None
-    Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
-    Default: Optional[Union[BlockId, str]] = None
 
-    @staticmethod
-    def FromGenTu(Field: GenTuField,
-                  pyNameOveride: Optional[str] = None,
-                  GetImpl: Optional[List[BlockId]] = None,
-                  SetImpl: Optional[List[BlockId]] = None) -> 'Py11Field':
-        return Py11Field(
-            PyName=py_ident(Field.name) if pyNameOveride is None else pyNameOveride,
-            Type=Field.type,
-            CxxName=Field.name,
-            GetImpl=GetImpl,
-            Doc=Field.doc,
-            SetImpl=SetImpl,
-            Default=Field.value,
-        )
+    def getPyName(self) -> str:
+        return py_ident(self.Field.name)
+
+    def __init__(self,
+                 Field: GenTuField,
+                 GetImpl: Optional[List[BlockId]] = None,
+                 SetImpl: Optional[List[BlockId]] = None):
+
+        self.Field = Field
+        self.GetImpl = GetImpl
+        self.SetImpl = SetImpl
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.FieldParams:
-        return pya.FieldParams(py_type(self.Type, base_map=base_map), self.PyName)
+        return pya.FieldParams(py_type(self.Field.type, base_map=base_map),
+                               self.getPyName())
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -682,153 +644,175 @@ class Py11Field:
             return ast.XCall(
                 ".def_property",
                 [
-                    ast.Literal(self.PyName),
+                    ast.Literal(self.getPyName()),
                     ast.Lambda(
                         LambdaParams(
-                            ResultTy=self.Type,
+                            ResultTy=self.Field.type,
                             Body=self.GetImpl,
                             Args=[_self],
                         )),
                     ast.Lambda(
                         LambdaParams(
                             ResultTy=None,
-                            Body=[
-                                b.text(f"{_self.name}->{self.CxxName} = {self.CxxName};")
-                            ],
-                            Args=[_self, ParmVarParams(self.Type, self.CxxName)],
+                            Body=[b.text(f"{_self.name}->{self.Field.name} = _arg;")],
+                            Args=[_self, ParmVarParams(self.Field.type, "_arg")],
                         )),
                 ],
                 Line=False,
             )
         else:
             return ast.XCall(".def_readwrite", [
-                ast.Literal(self.PyName),
-                b.line([b.text("&"),
-                        ast.Type(Class),
-                        b.text("::"),
-                        b.text(self.CxxName)]),
-                *maybe_list(get_doc_literal(ast, self.Doc))
+                ast.Literal(self.getPyName()),
+                b.line([
+                    b.text("&"),
+                    ast.Type(Class),
+                    b.text("::"),
+                    b.text(self.Field.name)
+                ]), *maybe_list(get_doc_literal(ast, self.Field.doc))
             ])
 
 
 @beartype
-@dataclass
 class Py11Class:
-    PyName: str
-    Class: QualType
-    ReflectionParams: Optional[GenTuReflParams]
-    Bases: List[QualType] = field(default_factory=list)
-    PyHolderType: Optional[QualType] = None
-    Fields: List[Py11Field] = field(default_factory=list)
-    Methods: List[Py11Method] = field(default_factory=list)
-    InitImpls: List[Py11Method] = field(default_factory=list)
+    Struct: GenTuStruct
+    Fields: List[Py11Field]
+    Methods: List[Py11Method]
+    InitImpls: List[Py11Method]
 
-    @staticmethod
-    def FromGenTu(ast: ASTBuilder,
-                  value: GenTuStruct,
-                  base_map: GenTypeMap,
-                  pyNameOveride: Optional[str] = None) -> 'Py11Class':
-        res = Py11Class(
-            PyName=value.reflectionParams.wrapper_name or pyNameOveride or
-            py_type(value.name, base_map=base_map).Name,
-            Class=value.declarationQualName(),
-            ReflectionParams=value.reflectionParams,
-        )
+    def getPyName(self, base_map: GenTypeMap) -> str:
+        return self.Struct.reflectionParams.wrapper_name or py_type(
+            self.Struct.name, base_map=base_map).Name
 
-        res.ReflectionParams = value.reflectionParams
+    def getCxxName(self) -> QualType:
+        return self.Struct.declarationQualName()
 
-        for base in value.bases:
-            res.Bases.append(base)
+    def __init__(self, ast: ASTBuilder, value: GenTuStruct):
+        self.Struct = value
+        self.Fields = []
+        self.Methods = []
+        self.InitImpls = []
 
         for meth in value.methods:
-            res.Methods.append(Py11Method.FromGenTu(meth))
+            if meth.isExposedForWrap and not meth.isPureVirtual:
+                self.Methods.append(Py11Method(meth))
 
         for _field in value.fields:
-            res.Fields.append(Py11Field.FromGenTu(_field))
+            if _field.isExposedForWrap:
+                self.Fields.append(Py11Field(_field))
 
-        return res
+        if not value.IsAbstract and value.reflectionParams.default_constructor:
+            self.InitDefault(ast, filter_init_fields(self.Fields))
+
+        self.InitMagicMethods(ast=ast)
 
     def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
-
-        self.InitImpls.append(
-            Py11Method(
-                "",
-                "",
-                self.Class,
-                Args=[
-                    GenTuIdent(
-                        QualType(
-                            name="kwargs",
-                            Spaces=[QualType.ForName("pybind11")],
-                            isConst=True,
-                            RefKind=ReferenceKind.LValue,
-                        ), "kwargs")
-                ],
-                Body=[
-                    ast.b.line([ast.Type(self.Class),
-                                ast.string(" result{};")]),
-                    ast.XCall(
-                        "org::bind::python::init_fields_from_kwargs",
-                        args=[ast.string("result"),
-                              ast.string("kwargs")],
-                        Stmt=True,
+        if self.Struct.IsDescribedRecord:
+            self.InitImpls.append(
+                Py11Method(
+                    PyName="",
+                    Func=GenTuFunction(
+                        name="",
+                        result=self.getCxxName(),
+                        arguments=[
+                            GenTuIdent(
+                                QualType(
+                                    name="kwargs",
+                                    Spaces=[QualType.ForName("pybind11")],
+                                    isConst=True,
+                                    RefKind=ReferenceKind.LValue,
+                                ), "kwargs")
+                        ],
+                        IsConstructor=True,
                     ),
-                    ast.Return(ast.string("result")),
-                ],
-                IsInit=True,
-                ExplicitClassParam=True,
-            ))
+                    Body=[
+                        ast.b.line(
+                            [ast.Type(self.getCxxName()),
+                             ast.string(" result{};")]),
+                        ast.XCall(
+                            "org::bind::python::init_fields_from_kwargs",
+                            args=[ast.string("result"),
+                                  ast.string("kwargs")],
+                            Stmt=True,
+                        ),
+                        ast.Return(ast.string("result")),
+                    ],
+                    ExplicitClassParam=True,
+                ))
 
     def InitMagicMethods(self, ast: ASTBuilder):
         str_type = QualType.ForName("string", Spaces=[QualType.ForName("std")])
         pyobj_type = QualType.ForName("object", Spaces=[QualType.ForName("pybind11")])
-        self.Methods.append(
-            Py11Method(PyName="__repr__",
-                       CxxName="",
-                       ResultTy=str_type,
-                       Body=[
-                           ast.Return(
-                               ast.XCall("org::bind::python::py_repr_impl",
-                                         [ast.string("_self")])),
-                       ]))
 
-        self.Methods.append(
-            Py11Method(PyName="__getattr__",
-                       CxxName="",
-                       ResultTy=pyobj_type,
-                       Args=[GenTuIdent(str_type, "name")],
-                       Body=[
-                           ast.Return(
-                               ast.XCall("org::bind::python::py_getattr_impl", [
-                                   ast.string("_self"),
-                                   ast.string("name"),
-                               ])),
-                       ]))
+        if not self.Struct.IsAbstract:
+            if self.Struct.IsDescribedRecord:
+                self.Methods.append(
+                    Py11Method(
+                        PyName="__repr__",
+                        Func=GenTuFunction(
+                            name="",
+                            result=str_type,
+                        ),
+                        Body=[
+                            ast.Return(
+                                ast.XCall("org::bind::python::py_repr_impl",
+                                          args=[ast.string("_self")])),
+                        ],
+                    ))
 
-        # self.Methods.append(
-        #     Py11Method(
-        #         PyName="__setattr__",
-        #         CxxName="",
-        #         ResultTy=None,
-        #         Args=[GenTuIdent(str_type, "name"),
-        #               GenTuIdent(pyobj_type, "value")],
-        #         Body=[
-        #             ast.XCall("py_setattr_impl", [
-        #                 ast.string("_self"),
-        #                 ast.string("name"),
-        #                 ast.string("value"),
-        #             ], Stmt=True),
-        #         ]))
+                self.Methods.append(
+                    Py11Method(
+                        PyName="__getattr__",
+                        Func=GenTuFunction(
+                            name="",
+                            result=pyobj_type,
+                            arguments=[GenTuIdent(str_type.asConstRef(), "name")],
+                        ),
+                        Body=[
+                            ast.Return(
+                                ast.XCall("org::bind::python::py_getattr_impl", [
+                                    ast.string("_self"),
+                                    ast.string("name"),
+                                ])),
+                        ],
+                    ))
+
+            # else:
+            #     log(CAT).warning(f"Non-abstract type {self.Class} is missing boost reflection annotation")
+
+        getitem_list = []
+        for m in self.Methods:
+            if m.Func.reflectionParams and m.Func.reflectionParams.function_api and m.Func.reflectionParams.function_api.is_get_item:
+                getitem_list.append(replace(m, PyName="__getitem__"))
+
+        self.Methods += getitem_list
+
+        if self.Struct.reflectionParams.type_api and self.Struct.reflectionParams.type_api.has_begin_end_iteration:
+            self.Methods.append(
+                Py11Method(
+                    PyName="__iter__",
+                    Func=GenTuFunction(
+                        name="at",
+                        result=QualType.ForName("auto"),
+                        arguments=[GenTuIdent(self.getCxxName().asConstRef(), "node")],
+                    ),
+                    Body=[
+                        ast.b.text(
+                            "return pybind11::make_iterator(node.begin(), node.end());")
+                    ],
+                    DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
+                    ExplicitClassParam=True,
+                ))
 
     def dedup_methods(self) -> List[Py11Method]:
         res: List[Py11Method] = []
-        for key, _group in itertools.groupby(self.Methods, lambda M: (M.CxxName, M.Args)):
+        for key, _group in itertools.groupby(self.Methods, lambda M:
+                                             (M.Func.name, M.Func.arguments)):
             group: List[Py11Method] = list(_group)
             if len(group) == 1:
                 res.append(group[0])
 
-            elif len(group) == 2 and group[1].Args == group[0].Args:
-                res.append(group[0 if group[1].IsConst else 1])
+            elif len(group) == 2 and group[1].Func.arguments == group[0].Func.arguments:
+                res.append(group[0 if group[1].Func.isConst else 1])
 
             else:
                 print(len(group))
@@ -837,17 +821,21 @@ class Py11Class:
         return res
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.ClassParams:
-        res = pya.ClassParams(Name=self.PyName,
-                              Bases=[py_type(T, base_map=base_map) for T in self.Bases])
+        res = pya.ClassParams(
+            Name=self.getPyName(base_map=base_map),
+            Bases=[py_type(T, base_map=base_map) for T in self.Struct.bases])
 
         Init = Py11Method(
             PyName="__init__",
-            CxxName="",
-            ResultTy=QualType.ForName("None"),
-            Args=[
-                GenTuIdent(name=it.PyName, type=it.Type, value=ast.b.text("None"))
-                for it in self.Fields
-            ],
+            Func=GenTuFunction(
+                name="",
+                result=QualType.ForName("None"),
+                arguments=[
+                    GenTuIdent(name=it.getPyName(),
+                               type=it.Field.type,
+                               value=ast.b.text("None")) for it in self.Fields
+                ],
+            ),
         )
 
         res.Methods.append(Init.build_typedef(ast, base_map=base_map))
@@ -873,46 +861,48 @@ class Py11Class:
         sub: List[BlockId] = []
 
         for Init in self.InitImpls:
-            sub.append(Init.build_bind(self.Class, ast))
+            sub.append(Init.build_bind(self.getCxxName(), ast))
 
         for Field in self.Fields:
-            sub.append(Field.build_bind(self.Class, ast))
+            sub.append(Field.build_bind(self.getCxxName(), ast))
 
         for Meth in self.dedup_methods():
-            if Meth.ResultTy is None:
+            if Meth.Func.result is None:
                 # do not bind constructors as function pointers
                 pass
 
             else:
-                sub.append(Meth.build_bind(self.Class, ast))
+                sub.append(Meth.build_bind(self.getCxxName(), ast))
 
         sub.append(b.text(";"))
 
         HolderType = None
 
-        if self.PyHolderType:
-            HolderType = self.PyHolderType
+        if self.Struct.reflectionParams:
+            match self.Struct.reflectionParams.backend.python.holder_type:
+                case QualType():
+                    HolderType = self.Struct.reflectionParams.backend.python.holder_type.withTemplateParams(
+                        [self.getCxxName()])
 
-        elif self.ReflectionParams:
-            match self.ReflectionParams.backend.python.holder_type:
                 case "shared":
-                    HolderType = self.Class.withWrapperType(
+                    HolderType = self.getCxxName().withWrapperType(
                         QualType.ForName("shared_ptr", Spaces=[QualType.ForName("std")]))
 
                 case "unique":
-                    HolderType = self.Class.withWrapperType(
+                    HolderType = self.getCxxName().withWrapperType(
                         QualType.ForName("unique_ptr", Spaces=[QualType.ForName("std")]))
 
                 case holder:
                     if holder is not None:
-                        HolderType = self.Class.withWrapperType(QualType.ForName(holder))
+                        HolderType = self.getCxxName().withWrapperType(
+                            QualType.ForName(holder))
 
         return b.stack([
             ast.XCall(
                 "pybind11::class_",
-                [b.text("m"), ast.Literal(self.PyName)],
-                Params=[self.Class] + ([HolderType] if HolderType else []) +
-                [B for B in self.Bases if base_map.is_known_type(B)],
+                [b.text("m"), ast.Literal(self.getPyName(base_map=base_map))],
+                Params=[self.getCxxName()] + ([HolderType] if HolderType else []) +
+                [B for B in self.Struct.bases if base_map.is_known_type(B)],
             ),
             b.indent(2, b.stack(sub))
         ])
@@ -930,15 +920,16 @@ class Py11TypedefPass:
     name: pya.PyType
     base: pya.PyType
 
-    @staticmethod
-    def FromGenTu(typedef: GenTuTypedef, base_map: GenTypeMap) -> "Py11TypedefPass":
-        return Py11TypedefPass(
-            name=py_type(typedef.name, base_map),
-            base=py_type(typedef.base, base_map),
-        )
+    def __init__(self, typedef: GenTuTypedef, base_map: GenTypeMap):
+        self.name = py_type(typedef.name, base_map)
+        self.base = py_type(typedef.base, base_map)
 
 
 Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass, Py11Function]
+
+
+def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
+    return [F for F in Fields if F.Field.type.name not in ["SemId"]]
 
 
 @beartype
@@ -948,6 +939,115 @@ class Py11Module:
     Decls: List[Py11Entry] = field(default_factory=list)
     Before: List[BlockId] = field(default_factory=list)
     After: List[BlockId] = field(default_factory=list)
+
+    nameTrack: Dict[str, QualType] = field(default_factory=dict)
+
+    def add_all(self, decls: List[GenTuUnion], ast: ASTBuilder, base_map: GenTypeMap):
+        for decl in decls:
+            self.add_decl(decl, ast=ast, base_map=base_map)
+
+    def add_type_specializations(
+        self,
+        ast: ASTBuilder,
+        specializations: List[TypeSpecialization],
+    ):
+
+        opaque_declarations: List[BlockId] = []
+        specialization_calls: List[BlockId] = [
+            ast.string("org::bind::python::PyTypeRegistryGuard type_registry_guard{};")
+        ]
+
+        for spec in specializations:
+            if spec.std_type:
+                opaque_declarations.append(
+                    ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(spec.std_type)]))
+
+            opaque_declarations.append(
+                ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(spec.used_type)]))
+
+            specialization_calls.append(
+                ast.XCall(
+                    f"bind_{spec.getFlatUsed()}",
+                    [
+                        ast.string("m"),
+                        ast.StringLiteral(spec.bind_name),
+                        ast.string("type_registry_guard"),
+                    ],
+                    Params=spec.used_type.Parameters,
+                    Stmt=True,
+                ))
+
+        for decl in opaque_declarations:
+            self.Before.append(decl)
+
+        self.Decls = [Py11BindPass(D) for D in specialization_calls] + self.Decls
+
+    def add_decl(self, decl: GenTuUnion, ast: ASTBuilder, base_map: GenTypeMap):
+
+        def append_decl(d: Py11Entry):
+            name = None
+            match d:
+                case Py11Class():
+                    name = d.getPyName(base_map=base_map)
+                    orig_name = d.Struct.name
+
+                case Py11Enum():
+                    name = d.getPyName(base_map=base_map)
+                    orig_name = d.Enum.name
+
+            if name:
+                # assert name not in self.nameTrack, f"{name} is already registered for the module for {self.nameTrack[name]}, attempting to map{orig_name} to the same name"
+                if name not in self.nameTrack:
+                    self.Decls.append(d)
+
+                self.nameTrack[name] = orig_name
+
+            else:
+                self.Decls.append(d)
+
+        match decl:
+            case GenTuStruct():
+                visit_context = []
+
+                def codegenConstructCallback(value: Any) -> None:
+                    if isinstance(value, GenTuStruct):
+                        if value.reflectionParams.type_api and value.reflectionParams.type_api.is_org_ast_value and value.name.name.startswith(
+                                "Imm"):
+                            pass
+
+                        else:
+                            # log(CAT).info(f"{'  ' * len(visit_context)} {value.name}")
+                            append_decl(Py11Class(ast=ast, value=value))
+
+                    elif isinstance(value, GenTuEnum):
+                        append_decl(Py11Enum(value))
+
+                    elif isinstance(value, GenTuTypedef):
+                        append_decl(Py11TypedefPass(value, base_map))
+
+                def tree_visit_repr(value: Any, context: List[Any]) -> str:
+                    match value:
+                        case GenTuStruct():
+                            return str(value.name)
+
+                        case _:
+                            return ""
+
+                iterate_object_tree(
+                    decl,
+                    visit_context,
+                    post_visit=codegenConstructCallback,
+                    # item_visit_format=tree_visit_repr,
+                )
+
+            case GenTuFunction():
+                append_decl(Py11Function(decl))
+
+            case GenTuEnum():
+                append_decl(Py11Enum(decl))
+
+            case GenTuTypedef():
+                append_decl(Py11TypedefPass(decl, base_map=base_map))
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> BlockId:
         passes: List[BlockId] = []
@@ -977,7 +1077,7 @@ class ImmAdapterTBase[T](ImmAdapter):
         for item in self.Decls:
             match item:
                 case Py11Enum():
-                    passes.append(ast.Enum(item.build_typedef()))
+                    passes.append(ast.Enum(item.build_typedef(base_map=base_map)))
                     passes.append(ast.string(""))
 
                 case Py11Class():
@@ -1019,7 +1119,7 @@ class ImmAdapterTBase[T](ImmAdapter):
                     passes.append(entry.build_bind(ast, base_map=base_map))
 
                 case Py11Enum():
-                    passes.append(entry.build_bind(ast))
+                    passes.append(entry.build_bind(ast, base_map=base_map))
 
                 case Py11Function():
                     passes.append(entry.build_bind(ast))

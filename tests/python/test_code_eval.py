@@ -16,7 +16,7 @@ content
     def eval_block(input: org.OrgCodeEvalInput) -> org.VecOfOrgCodeEvalOutputVec:
         result = org.VecOfOrgCodeEvalOutputVec()
         item  = org.OrgCodeEvalOutput()
-        item.stdout = "*bold*"
+        item.stdoutText = "*bold*"
         result.append(item)
         buf.append(input)
         return result

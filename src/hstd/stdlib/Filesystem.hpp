@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <format>
+#include <hstd/system/exceptions.hpp>
 
 namespace hstd {
 
@@ -13,10 +14,7 @@ namespace fs = std::filesystem;
 #define __CURRENT_FILE_PATH__ ::hstd::fs::path(__FILE__)
 #define __CURRENT_FILE_DIR__ ::hstd::fs::path(__FILE__).parent_path()
 
-struct FilesystemError : public std::runtime_error {
-    explicit FilesystemError(const std::string& message)
-        : std::runtime_error(message) {}
-};
+struct FilesystemError : public CRTP_hexception<FilesystemError> {};
 
 void writeFileOrStdout(
     const fs::path&    target,

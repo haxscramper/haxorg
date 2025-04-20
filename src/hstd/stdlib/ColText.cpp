@@ -121,7 +121,7 @@ void hstd::ColStream::write(const ColText& text) {
     if (buffered) {
         append(text);
     } else {
-        CHECK(ostream != nullptr);
+        LOGIC_ASSERTION_CHECK(ostream != nullptr, "");
         (*ostream) << to_colored_string(text, colored);
     }
 }

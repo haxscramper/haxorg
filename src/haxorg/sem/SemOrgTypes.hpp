@@ -971,15 +971,15 @@ struct OrgCodeEvalOutput {
                        (),
                        (),
                        (),
-                       (stdout,
-                        stderr,
+                       (stdoutText,
+                        stderrText,
                         code,
                         cmd,
                         args,
                         cwd,
                         appliedHeaderArg))
-  hstd::Str stdout = "";
-  hstd::Str stderr = "";
+  hstd::Str stdoutText = "";
+  hstd::Str stderrText = "";
   int code;
   /// \brief Command evaluated, if none then eval output did not run CLI subprocess
   hstd::Opt<hstd::Str> cmd = std::nullopt;

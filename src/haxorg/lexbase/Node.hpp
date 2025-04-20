@@ -29,7 +29,7 @@ template <
     typename M,
     typename IdBase   = hstd::u64,
     typename MaskType = IdBase>
-struct [[nodiscard]] NodeId
+struct NodeId
     : hstd::dod::
           Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
     using base_type = hstd::dod::
@@ -173,9 +173,9 @@ struct NodeGroup {
     int treeDepth() const { return pendingTrees.size(); }
 
     /// \brief Add token node to the list of nodes
-    [[nodiscard]] Id token(NodeT const& node) { return nodes.add(node); }
+    Id token(NodeT const& node) { return nodes.add(node); }
     /// \brief Create new token node
-    [[nodiscard]] Id token(N node, TokenId<K, V> tok) {
+    Id token(N node, TokenId<K, V> tok) {
         return nodes.add(Node<N, K, V, M>(node, tok));
     }
 
@@ -194,7 +194,7 @@ struct NodeGroup {
     /// snippet:
     ///
     /// \snippet tNode.cpp nested tree construction
-    [[nodiscard]] Id startTree(NodeT const& node) {
+    Id startTree(NodeT const& node) {
         auto res = nodes.add(node);
         pendingTrees.push_back(res);
         return res;

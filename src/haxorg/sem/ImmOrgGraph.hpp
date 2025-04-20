@@ -1,11 +1,14 @@
 #pragma once
-
-#include <boost/graph/properties.hpp>
+#if !ORG_EMCC_BUILD
+#    include <boost/graph/properties.hpp>
+#endif
 #include <haxorg/sem/ImmOrg.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>
 #include <immer/map_transient.hpp>
-#include <hstd/ext/graphviz.hpp>
+#if !ORG_EMCC_BUILD
+#    include <hstd/ext/graphviz.hpp>
+#endif
 
 namespace org::graph {
 
@@ -206,15 +209,18 @@ struct [[refl]] MapGraph {
         return adjList.contains(id);
     }
 
-    [[refl]] bool isRegisteredNode(org::imm::ImmUniqId const& id) const {
+    [[refl(R"({"unique-name": "isRegisteredNodeById"})")]] bool isRegisteredNode(
+        org::imm::ImmUniqId const& id) const {
         return adjList.contains(MapNode{id});
     }
 
-    [[refl]] MapNodeProp const& at(MapNode const& node) const {
+    [[refl(R"({"unique-name": "atMapNode"})")]] MapNodeProp const& at(
+        MapNode const& node) const {
         return nodeProps.at(node);
     }
 
-    [[refl]] MapEdgeProp const& at(MapEdge const& edge) const {
+    [[refl(R"({"unique-name": "atMapEdge"})")]] MapEdgeProp const& at(
+        MapEdge const& edge) const {
         return edgeProps.at(edge);
     }
 
@@ -222,18 +228,22 @@ struct [[refl]] MapGraph {
     [[refl]] void addEdge(MapEdge const& edge) {
         addEdge(edge, MapEdgeProp{});
     }
-    [[refl]] void addEdge(MapEdge const& edge, MapEdgeProp const& prop);
+    [[refl(R"({"unique-name": "addEdgeWithProp"})")]] void addEdge(
+        MapEdge const&     edge,
+        MapEdgeProp const& prop);
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
     [[refl]] void addNode(MapNode const& node);
-    [[refl]] void addNode(MapNode const& node, MapNodeProp const& prop) {
+    [[refl(R"({"unique-name": "addNodeWithProp"})")]] void addNode(
+        MapNode const&     node,
+        MapNodeProp const& prop) {
         addNode(node);
         nodeProps.insert_or_assign(node, prop);
     }
 
     [[refl]] bool hasEdge(MapNode const& source, MapNode const& target)
         const {
-        if (adjList.find(source) != nullptr) {
+        if (adjList.find(source) != adjList.end()) {
             for (auto const& it : adjList.at(source)) {
                 if (it == target) { return true; }
             }
@@ -246,12 +256,13 @@ struct [[refl]] MapGraph {
         return adjList.contains(node);
     }
 
-    [[refl]] bool hasEdge(
+    [[refl(R"({"unique-name": "has2AdapterEdge"})")]] bool hasEdge(
         org::imm::ImmAdapter const& source,
         org::imm::ImmAdapter const& target) const {
         return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});
     }
 
+#if !ORG_EMCC_BUILD
     struct GvConfig {
         hstd::Func<bool(MapNode const& node)> acceptNode;
         hstd::Func<bool(MapEdge const& edge)> acceptEdge;
@@ -273,6 +284,7 @@ struct [[refl]] MapGraph {
     hstd::ext::Graphviz::Graph toGraphviz(
         const org::imm::ImmAstContext::Ptr& ctx,
         GvConfig const&                     conf) const;
+#endif
 };
 
 struct MapGraphInverse {
@@ -367,33 +379,28 @@ struct [[refl(
         return MapGraphState{ast};
     }
 
+
+    [[refl]] void registerNode(MapNodeProp const& node, MapConfig* conf);
+
+    [[refl]] void addNode(
+        org::imm::ImmAdapter const& node,
+        MapConfig*                  conf);
+
+    [[refl]] void addNodeRec(
+        org::imm::ImmAdapter const& node,
+        MapConfig*                  conf);
+
+    [[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
+        org::imm::ImmAdapterT<org::imm::ImmSubtree> node,
+        MapConfig*                                  conf) const;
+
+    [[refl]] hstd::Opt<MapLink> getUnresolvedLink(
+        org::imm::ImmAdapterT<org::imm::ImmLink> node,
+        MapConfig*                               conf) const;
+
+
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };
-
-[[refl]] void registerNode(
-    MapGraphState&     s,
-    MapNodeProp const& node,
-    MapConfig&         conf);
-
-[[refl]] void addNode(
-    MapGraphState&              g,
-    org::imm::ImmAdapter const& node,
-    MapConfig&                  conf);
-
-[[refl]] void addNodeRec(
-    MapGraphState&              g,
-    org::imm::ImmAdapter const& node,
-    MapConfig&                  conf);
-
-[[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
-    MapGraphState const&                        s,
-    org::imm::ImmAdapterT<org::imm::ImmSubtree> node,
-    MapConfig&                                  conf);
-
-[[refl]] hstd::Opt<MapLink> getUnresolvedLink(
-    MapGraphState const&                     s,
-    org::imm::ImmAdapterT<org::imm::ImmLink> node,
-    MapConfig&                               conf);
 
 struct MapLinkResolveResult {
     MapLink link;

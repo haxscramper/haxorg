@@ -145,6 +145,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
     result.IsForwardDecl = record.is_forward_decl
     result.IsAbstract = record.is_abstract
     result.has_name = record.has_name
+    result.IsDescribedRecord = record.is_described_record
 
     for arg in record.explicit_template_params:
         result.ExplicitTemplateParams.append(conv_proto_type(arg))
@@ -186,25 +187,31 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
         if IsConstructor:
             if result.IsExplicitInstantiation:
-                final_result = result.name.model_copy(update=dict(Parameters=result.ExplicitTemplateParams))
+                final_result = result.name.model_copy(update=dict(
+                    Parameters=result.ExplicitTemplateParams))
             else:
                 final_result = result.name
         else:
             final_result = conv_proto_type(meth.return_ty)
 
-        result.methods.append(
-            GenTuFunction(
-                result=final_result,
-                name=meth.name,
-                doc=conv_doc_comment(meth.doc),
-                isConst=meth.is_const,
-                isStatic=meth.is_static,
-                original=original,
-                arguments=[conv_proto_arg(arg) for arg in meth.args],
-                parentClass=result,
-                OriginName="refl",
-                IsConstructor=IsConstructor,
-            ))
+        func = GenTuFunction(
+            result=final_result,
+            name=meth.name,
+            doc=conv_doc_comment(meth.doc),
+            isConst=meth.is_const,
+            isStatic=meth.is_static,
+            original=original,
+            arguments=[conv_proto_arg(arg) for arg in meth.args],
+            parentClass=result,
+            OriginName="refl",
+            IsConstructor=IsConstructor,
+        )
+
+        if meth.reflection_params:
+            func.reflectionParams = GenTuReflParams.model_validate_json(
+                meth.reflection_params)
+
+        result.methods.append(func)
 
     for record in record.nested_rec:
         result.nested.append(conv_proto_record(record, original))
@@ -220,6 +227,7 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
     result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
     result.IsForwardDecl = en.is_forward_decl
     result.original = copy(original)
+    result.IsDescribedEnum = en.is_described_enum
     for _field in en.fields:
         result.fields.append(
             GenTuEnumField(
@@ -278,10 +286,13 @@ def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypede
 @beartype
 @dataclass
 class ConvTu:
-    structs: List[GenTuStruct]
-    functions: List[GenTuFunction]
-    enums: List[GenTuEnum]
-    typedefs: List[GenTuTypedef]
+    structs: List[GenTuStruct] = field(default_factory=list)
+    functions: List[GenTuFunction] = field(default_factory=list)
+    enums: List[GenTuEnum] = field(default_factory=list)
+    typedefs: List[GenTuTypedef] = field(default_factory=list)
+
+    def get_all(self) -> List[GenTuUnion]:
+        return self.enums + self.typedefs + self.structs + self.functions
 
 
 @beartype

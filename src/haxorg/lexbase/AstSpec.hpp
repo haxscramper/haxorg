@@ -457,21 +457,17 @@ struct AstPattern {
 template <typename Node, typename Kind, typename Name>
 struct AstSpec {
   private:
-    hstd::TypArray<Kind, hstd::Opt<AstPattern<Node, Kind, Name>>> spec;
-    hstd::TypArray<Kind, hstd::UnorderedMap<Name, AstRange<Name>>>
+    hstd::UnorderedMap<Kind, AstPattern<Node, Kind, Name>> spec;
+    hstd::UnorderedMap<Kind, hstd::UnorderedMap<Name, AstRange<Name>>>
         nodeRanges;
 
-    hstd::TypArray<Kind, hstd::UnorderedMap<Name, AstRange<Name>>> getNodeRanges()
+    hstd::UnorderedMap<Kind, hstd::UnorderedMap<Name, AstRange<Name>>> getNodeRanges()
         const {
-        hstd::TypArray<Kind, hstd::UnorderedMap<Name, AstRange<Name>>>
+        hstd::UnorderedMap<Kind, hstd::UnorderedMap<Name, AstRange<Name>>>
             result;
-        for (const auto& [kind, pattern] : spec.pairs()) {
-            if (pattern->has_value()) {
-                for (const auto& range : pattern->value().ranges) {
-                    // if (!range.range.fieldName.empty()) {
-                    result[kind][range.range.fieldName] = range.range;
-                    // }
-                }
+        for (const auto& [kind, pattern] : spec) {
+            for (const auto& range : pattern.ranges) {
+                result[kind][range.range.fieldName] = range.range;
             }
         }
         return result;
@@ -482,7 +478,7 @@ struct AstSpec {
         const hstd::Vec<hstd::Pair<Kind, AstPattern<Node, Kind, Name>>>&
             patterns) {
         for (const auto& [kind, pattern] : patterns) {
-            spec[kind] = pattern;
+            spec.insert_or_assign(kind, pattern);
         }
         nodeRanges = getNodeRanges();
     }
@@ -703,7 +699,7 @@ struct AstSpec {
     }
 
     int getSingleSubnodeIdx(Node const& node, Name const& name) const {
-        if (nodeRanges[node.getKind()].contains(name)) {
+        if (nodeRanges.at(node.getKind()).contains(name)) {
             const auto range = nodeRanges.at(node.getKind()).at(name);
             const auto slice = range.toSlice(node.size());
             if (slice.has_value()) {
@@ -756,7 +752,7 @@ struct AstSpec {
 
     hstd::Vec<Node> getMultipleSubnode(Node const& node, Name const& name)
         const {
-        if (nodeRanges[node.getKind()].contains(name)) {
+        if (nodeRanges.at(node.getKind()).contains(name)) {
             hstd::Vec<Node> result;
             const auto      range = nodeRanges.at(node.getKind()).at(name);
             const auto      slice = range.toSlice(node.size());
@@ -774,9 +770,9 @@ struct AstSpec {
 
     hstd::Opt<AstRange<Name>> fieldRange(Node const& node, const int& idx)
         const {
-        if (spec.at(node.getKind()).has_value()) {
-            const auto pattern = spec.at(node.getKind()).value();
-            for (const auto field : pattern.ranges) {
+        if (spec.contains(node.getKind())) {
+            auto const& pattern = spec.at(node.getKind());
+            for (auto const& field : pattern.ranges) {
                 if (field.range.contains(idx, node.size())) {
                     return field.range;
                 }

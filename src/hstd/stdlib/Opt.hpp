@@ -30,7 +30,7 @@ T opt_value(
 template <
     typename T,
     typename F,
-    typename Res = std::result_of<T(int)>::type>
+    typename Res = std::invoke_result<T(int)>::type>
 Opt<Res> opt_map(CR<Opt<T>> opt, CR<F> cb) {
     if (opt) {
         return cb(*opt);
@@ -69,4 +69,3 @@ struct std::formatter<std::nullopt_t> : std::formatter<std::string> {
         return fmt_ctx("nullopt", ctx);
     }
 };
-

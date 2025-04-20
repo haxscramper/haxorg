@@ -38,7 +38,7 @@ struct Org;
 template <typename T>
 struct SemId;
 
-#define COMMA ,
+#define COMMA
 #define SKIP_FIRST_ARG_AUX(op, ...) __VA_ARGS__
 #define SKIP_FIRST_ARG(op, ...) SKIP_FIRST_ARG_AUX(op)
 
@@ -229,8 +229,11 @@ struct [[refl]] OrgJson {
     }
 
     [[refl]] std::string getJsonString() const { return getRef().dump(); }
-    [[refl]] OrgJson     at(int idx) const { return &getRef().at(idx); }
-    [[refl]] OrgJson     at(std::string const& name) const {
+    [[refl(R"({"unique-name": "atIndex"})")]] OrgJson at(int idx) const {
+        return &getRef().at(idx);
+    }
+    [[refl(R"({"unique-name": "atField"})")]] OrgJson at(
+        std::string const& name) const {
         return &getRef().at(name);
     }
     [[refl]] std::string getString() const {
@@ -256,7 +259,26 @@ struct [[refl]] OrgJson {
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.
-struct [[refl]] Org {
+struct [[refl(R"({
+  "backend": {
+    "python": {
+      "holder-type": {
+        "name": "SemId",
+        "Spaces": [
+          {
+            "name": "org"
+          },
+          {
+            "name": "sem"
+          }
+        ]
+      }
+    }
+  },
+  "type-api": {
+    "has-begin-end-iteration": true
+  }
+})")]] Org {
     /// \brief Adapter to the original parsed node.
     ///
     /// Set by the conversion functions from linearized representation,
@@ -293,6 +315,8 @@ struct [[refl]] Org {
     SubnodeVec::const_iterator begin() const { return subnodes.begin(); }
     SubnodeVec::const_iterator end() const { return subnodes.end(); }
 
+    [[refl]] int size() const { return subnodes.size(); }
+
     [[refl]] void insert(int pos, SemId<Org> node) {
         subnodes.insert(begin() + pos, node);
     }
@@ -308,7 +332,8 @@ struct [[refl]] Org {
     }
 
     /// \brief Get subnode at specified index
-    [[refl]] inline SemId<Org> at(int idx) const {
+    [[refl(R"({"function-api": {"is-getitem": true}})")]] inline SemId<Org> at(
+        int idx) const {
         return subnodes.at(idx);
     }
 

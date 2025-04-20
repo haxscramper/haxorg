@@ -1,8 +1,6 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <fstream>
-#include <absl/log/check.h>
 #include <sstream>
-#include <absl/log/log.h>
 
 using namespace hstd;
 
@@ -13,7 +11,7 @@ void hstd::writeFile(const fs::path& target, const std::string& content) {
     if (file.is_open()) {
         file << content;
     } else {
-        throw FilesystemError(
+        throw FilesystemError::init(
             "Could not write to file '" + target.native());
     }
 }
@@ -25,7 +23,7 @@ std::string hstd::readFile(const fs::path& target) {
         result << in.rdbuf();
         return result.str();
     } else {
-        throw FilesystemError(
+        throw FilesystemError::init(
             "Could not open file '" + target.native() + "'");
     }
 }
@@ -56,10 +54,6 @@ void hstd::writeDebugFile(
         "/tmp/{}_{}{}.{}", filename, function, stem_suffix, extension);
 
     writeFile(full_path, content);
-    if (writeLog) {
-        LOG(INFO) << fmt(
-            "{}:{}:{} wrote to {}", filename, function, line, full_path);
-    }
 }
 
 void hstd::createDirectory(
@@ -67,25 +61,25 @@ void hstd::createDirectory(
     bool            parents,
     bool            existsOk) {
     if (target.native().empty()) {
-        throw FilesystemError{
-            fmt("Cannot create directory, target is empty")};
+        throw FilesystemError::init(
+            fmt("Cannot create directory, target is empty"));
     }
 
     if (fs::is_regular_file(target)) {
-        throw FilesystemError(
+        throw FilesystemError::init(
             fmt("Cannot create directory {} -- the file with this name "
                 "already exists",
                 target));
     }
 
     if (fs::is_directory(target) && !existsOk) {
-        throw FilesystemError(
+        throw FilesystemError::init(
             fmt("Cannot create directory {} -- the path already exists",
                 target));
     }
 
     if (!fs::is_directory(target.parent_path()) && !parents) {
-        throw FilesystemError(
+        throw FilesystemError::init(
             fmt("Cannot create directory {} -- parent path does not exist",
                 target));
     }

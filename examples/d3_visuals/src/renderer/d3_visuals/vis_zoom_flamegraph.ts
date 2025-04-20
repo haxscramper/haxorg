@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import {array, Schema, string, z} from "zod";
 
-import * as org from "./org_data.ts";
+import * as org from "../org_data.ts";
 
 class RangeClose {
   constructor(public start: Date, public end: Date) {}
