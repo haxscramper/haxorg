@@ -33,7 +33,6 @@ sem::SemId<sem::Org> testParseString(
     org::test::MockFull     p{debug.has_value(), debug.has_value()};
     sem::OrgConverter       converter{};
     org::parse::LexerParams params;
-    params.maxUnknown = 1;
     if (debug) {
         fs::path tokenizer_trace{debug.value() + "_tokenizer_trace.log"};
         fs::path parser_trace{debug.value() + "_parser_trace.log"};
@@ -44,9 +43,7 @@ sem::SemId<sem::Org> testParseString(
         converter.setTraceFile(sem_trace);
         p.parser->traceColored    = false;
         p.tokenizer->traceColored = false;
-        std::ofstream fileTrace{lex_trace.c_str()};
-
-        params.traceStream = &fileTrace;
+        params.setTraceFile(lex_trace);
         p.tokenizeBase(text, params);
     } else {
         p.tokenizeBase(text, params);

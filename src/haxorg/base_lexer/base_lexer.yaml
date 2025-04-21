@@ -403,32 +403,10 @@ rules:
     token: ColonExampleLine
 
   #region DSL-commands
-  - re: "columns{prop_colon}"
-    token: CmdColumns
-    states: [COMMAND]
-    actions:
-      - { do: push, from: COMMAND, to: COMMAND_RAW }
-
   - re: "startup{prop_colon}"
     states: [COMMAND]
     token: CmdStartup
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "options{prop_colon}"
-    states: [COMMAND]
-    token: CmdOptions
-    # Full options parsing is deferred to the sem stage
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
-  - re: "tblfm{prop_colon}"
-    states: [COMMAND]
-    token: CmdTblfm
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
-  - re: "property{prop_colon}"
-    states: [COMMAND]
-    token: CmdPropertyRaw
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   - re: "email{prop_colon}"
     states: [COMMAND]
@@ -448,11 +426,6 @@ rules:
   - re: "bind{prop_colon}"
     states: [COMMAND]
     token: CmdBindRaw
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
-  - re: "tags{prop_colon}"
-    states: [COMMAND]
-    token: CmdTagsRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   - re: "exclude_tags{prop_colon}"
@@ -776,7 +749,6 @@ rules:
   - re: "(sun|mon|tue|wed|thu|fri|sat|sunday|monday|tuesday|wednesday|thursday|friday|saturday)"
     token: WeekdayName
   - { re: "=>", token: TimeArrow }
-  - { re: "--", token: DoubleDash }
   - { lit: "::", token: DoubleColon }
   - { re: "#{space}+.*?$", token: Comment }
 
@@ -787,28 +759,16 @@ rules:
   - { lit: "&", token: Ampersand }
   - { lit: "!", token: Exclamation }
   - { lit: "/", token: ForwardSlash }
-  - { lit: "_", token: "Underline" }
   - { re: "[\\.?]", token: AnyPunct }
   - { re: "{lead_space}-(?={space}+)", token: LeadingMinus }
   - { re: "{lead_space}\\+(?={space}+)", token: LeadingPlus }
   - { re: "\\[(\\s|x|X|-)\\]", token: Checkbox }
 
   - { re: "\\+", token: Plus }
-  - { re: "^\\-{{5,}}", token: TextSeparator }
-  - { re: "\\-", token: Minus }
-  - { re: "\\\"", token: DoubleQuote }
-  - { re: "\\'", token: SingleQuote }
   - { re: "\\\\\\\\", token: DoubleSlash }
   - { re: "src_\\w+", token: TextSrcBegin }
   - { re: "#\\w+", token: HashIdent }
   - { re: "##", token: DoubleHash }
-  - { lit: "(", token: ParBegin }
-  - { lit: ")", token: ParEnd }
-  - { lit: "~", token: Tilda }
-  - { lit: "=", token: Equals }
-  - { lit: ";", token: Semicolon }
-  - { lit: "*", token: Asterisk }
-  - { lit: ",", token: Comma }
   - { re: "<(\\w|\\s)+>", token: "Placeholder" }
   - { lit: "<<<", token: TripleAngleBegin }
   - { lit: ">>>", token: TripleAngleEnd }
@@ -816,31 +776,16 @@ rules:
   - { lit: ">>", token: DoubleAngleEnd }
   - { lit: "<", token: AngleBegin }
   - { lit: ">", token: AngleEnd }
-  - { lit: "^", token: Circumflex }
-  - { lit: ":", token: Colon }
-  - { lit: "{--", token: CriticDeleteBegin }
-  - { lit: "--}", token: CriticDeleteEnd }
-  - { lit: "{++", token: CriticAddBegin }
   - { lit: "++}", token: CriticAddEnd }
-  - { lit: "{~~", token: CriticReplaceBegin }
-  - { lit: "~~}", token: CriticReplaceEnd }
-  - { lit: "~>", token: "CriticReplaceMiddle"}
-  - { lit: "{==", token: CriticHighlightBegin }
-  - { lit: "==}", token: CriticHighlightEnd }
-  - { lit: "{>>", token: CriticCommentBegin }
   - { lit: "<<}", token: CriticCommentEnd }
-  - { lit: "{", token: CurlyBegin }
   - { lit: "}", token: CurlyEnd }
 
   - { re: "\\\\\\w+", token: Symbol }
   - { re: "\\\\.", token: Escaped }
-  - { lit: "%", token: Percent }
-  - { re: "@\\w+", token: At }
   - { lit: "|", token: Pipe }
   - { lit: "`", token: Backtick }
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
   - { re: "({word_letter})|({word_letter}({word_letter}|[-'_])*{word_letter}'?)", token: Word }
-  - { re: "\\$", token: Dollar }
   - {
       re: "[\\x{{0128}}-\\x{{10FFFF}}]|×|©|°|¹|²|³|¥|π|√|¶|∆",
       token: MiscUnicode,

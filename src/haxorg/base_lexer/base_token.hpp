@@ -1,8 +1,7 @@
 #pragma once
 
 #include <string>
-#include <string_view>
-#include <vector>
+#include <hstd/stdlib/TraceBase.hpp>
 #include <haxorg/lexbase/Token.hpp>
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
@@ -20,21 +19,15 @@ using OrgToken      = Token<OrgTokenKind, OrgFill>;
 using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
 using OrgTokenId    = TokenId<OrgTokenKind, OrgFill>;
 
-struct LexerParams {
+struct LexerParams : hstd::OperationsTracer {
     struct Loc {
         int line;
         int col;
     };
-    int            maxUnknown      = 100;
-    int            visitedUnknown  = 0;
-    std::ostream*  traceStream     = nullptr;
-    int            indentation     = 0;
-    bool           traceStructured = false;
-    hstd::Vec<Loc> sub_locations;
 };
 
 
-OrgTokenGroup tokenize(const char* input, int size, LexerParams const& p);
+OrgTokenGroup tokenize(std::string const& text, LexerParams const& p);
 
 
 } // namespace org::parse

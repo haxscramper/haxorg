@@ -2,41 +2,16 @@
 
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <string>
 #include <iostream>
 #include <format>
-#include <sstream>
-
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
 
-#include <locale>
-#include <codecvt>
 #include <format>
 
 
 namespace hstd {
-
-/// \brief Escape string literal, converting newline and other (TODO)
-/// control characters into unicode.
-inline std::string escape_literal(std::string const& in) {
-    std::string res;
-    res.reserve(in.size() + 2);
-    res += "«";
-    for (char c : in) {
-        if (c == '\n') {
-            res += "␤";
-
-        } else {
-            res += c;
-        }
-    }
-
-    res += "»";
-
-    return res;
-}
 
 template <typename Iterable>
 std::string join(std::string const& sep, Iterable const& list) {

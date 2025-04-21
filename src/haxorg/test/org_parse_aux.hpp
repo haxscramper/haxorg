@@ -52,8 +52,7 @@ struct MockFull {
     void tokenizeBase(
         hstd::CR<std::string>          content,
         org::parse::LexerParams const& p) {
-        baseTokens = org::parse::tokenize(
-            content.data(), content.size(), p);
+        baseTokens = org::parse::tokenize(content, p);
     }
 
     void tokenizeConvert() { tokenizer->convert(baseTokens); }

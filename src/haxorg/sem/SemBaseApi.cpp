@@ -237,14 +237,11 @@ sem::SemId<sem::Org> org::parseStringOpts(
             org::parse::LexerParams p;
             SPtr<std::ofstream>     fileTrace;
             if (opts.baseTokenTracePath) {
-                fileTrace = std::make_shared<std::ofstream>(
-                    *opts.baseTokenTracePath,
-                    std::ios_base::out | std::ios_base::app);
+                p.setTraceFile(opts.baseTokenTracePath.value());
             }
-            p.traceStream = fileTrace.get();
 
             org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
-                frag.text.data(), frag.text.size(), p);
+                frag.text, p);
             org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
 
             if (opts.tokenTracePath) {
@@ -288,13 +285,12 @@ sem::SemId<sem::Org> org::parseStringOpts(
         org::parse::LexerParams p;
         SPtr<std::ofstream>     fileTrace;
         if (opts.baseTokenTracePath) {
-            fileTrace = std::make_shared<std::ofstream>(
-                *opts.baseTokenTracePath);
+            p.setTraceFile(opts.baseTokenTracePath.value());
         }
-        p.traceStream = fileTrace.get();
 
         org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
-            text.data(), text.size(), p);
+            text, p);
+
         org::parse::OrgTokenGroup tokens;
         org::parse::OrgTokenizer  tokenizer{&tokens};
 

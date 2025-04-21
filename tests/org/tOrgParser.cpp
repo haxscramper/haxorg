@@ -61,13 +61,11 @@ TEST(OrgParseSem, TracerOperations1) {
     converter.setTraceFile(sem_trace);
     converter.traceStructured = true;
 
-    fs::path      lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
-    std::ofstream fileTrace{lex_trace.c_str()};
 
     org::parse::LexerParams params;
+    fs::path lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
+    params.setTraceFile(lex_trace);
     params.traceStructured = true;
-    params.maxUnknown      = 1;
-    params.traceStream     = &fileTrace;
     p.tokenizeBase(text, params);
     p.tokenizeConvert();
     p.parse();
