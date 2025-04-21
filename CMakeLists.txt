@@ -141,7 +141,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
   find_package(protobuf CONFIG REQUIRED)
 endif()
-find_package(Reflex CONFIG REQUIRED)
+
 find_package(lexy CONFIG REQUIRED)
 if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
   find_package(Perfetto CONFIG REQUIRED)

@@ -15,6 +15,42 @@ using namespace hstd;
 using namespace org::test;
 using namespace org;
 
+TEST(ManualFileRun, TestCoverallOrg) {
+    {
+        fs::path file{
+            __CURRENT_FILE_DIR__ / "corpus" / "org"
+            / "py_validated_all.org"};
+        std::string content = readFile(file);
+        auto        spec    = ParseSpec::FromSource(std::move(content));
+        spec.debug.traceAll = true;
+        spec.debug.maxBaseLexUnknownCount = 0;
+        gtest_run_spec(TestParams{
+            .spec = spec,
+            .file = "coverall",
+        });
+
+        auto start = imm::ImmAstContext::init_start_context();
+        auto n     = start->init(org::parseString(content));
+
+        writeFile(
+            "/tmp/TestDoc1_clean.txt",
+            n.getRootAdapter()
+                .treeRepr(imm::ImmAdapter::TreeReprConf{
+                    .withAuxFields = true,
+                })
+                .toString(false));
+
+        writeFile(
+            "/tmp/TestDoc1_refl.txt",
+            n.getRootAdapter()
+                .treeRepr(imm::ImmAdapter::TreeReprConf{
+                    .withAuxFields  = true,
+                    .withReflFields = true,
+                })
+                .toString(false));
+    }
+}
+
 TEST(ManualFileRun, TestDoc1) {
     {
         fs::path file{"/home/haxscramper/tmp/doc1.org"};

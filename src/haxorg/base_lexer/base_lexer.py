@@ -338,6 +338,6 @@ def write_if_new(path: str, content: str):
             file.write(content)
 
 
-write_if_new(os.path.join(DIR, "base_token_kind.hpp"), generate_enum(config))
-write_if_new(os.path.join(DIR, "base_token_state.tcc"), generate_state(config))
-write_if_new(os.path.join(DIR, "base_lexer.l"), generate_reflex_code(config))
+# write_if_new(os.path.join(DIR, "base_token_kind.hpp"), generate_enum(config))
+# write_if_new(os.path.join(DIR, "base_token_state.tcc"), generate_state(config))
+# write_if_new(os.path.join(DIR, "base_lexer.l"), generate_reflex_code(config))
