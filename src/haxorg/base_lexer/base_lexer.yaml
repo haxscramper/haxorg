@@ -166,11 +166,6 @@ tokens:
 rules:
   #region Blocks
   #tag begin_quote
-  - re: "begin_quote"
-    states: [COMMAND]
-    token: CmdQuoteBegin
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
   - re: "end_quote"
     states: [COMMAND]
     token: CmdQuoteEnd
@@ -329,55 +324,10 @@ rules:
   - { re: "\\n", states: [BODY_SRC], token: Newline }
   #endregion
 
-  - re: "begin_\\w+"
-    states: [COMMAND]
-    token: CmdDynamicBlockBegin
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
   - re: "end_\\w+"
     states: [COMMAND]
     token: CmdDynamicBlockEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
-
-
-  #endregion
-
-  #region Command-parameters
-  - lit: "("
-    token: ParBegin
-    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-    
-  - lit: ")"
-    token: ParEnd
-    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-    
-  - re: "\\["
-    token: BraceBegin
-    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-    
-  - re: "\\]"
-    token: BraceEnd
-    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-    
-  - lit: "="
-    token: Equals
-    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-    
-  - lit: ","
-    token: Comma
-    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-
-  - re: ":(\\w|-)+"
-    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-    token: CmdColonIdent
-    
-  - re: "{space}+"
-    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-    token: Whitespace
-
-  - re: "[\\H--[\\n\\[\\]\\(\\)=,]]+"
-    states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-    token: CmdRawArg
   #endregion
 
   #region Line-commands
@@ -490,54 +440,9 @@ rules:
   #endregion
 
   #region Text-commands
-  - re: "caption{prop_colon}"
-    states: [COMMAND]
-    token: CmdCaption
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  - re: "description{prop_colon}"
-    states: [COMMAND]
-    token: CmdDescription
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  - re: "date{prop_colon}"
-    states: [COMMAND]
-    token: CmdDateRaw
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  - re: "link{prop_colon}"
-    states: [COMMAND]
-    token: CmdLinkRaw
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
   - re: "property{prop_colon}({text_properties})"
     states: [COMMAND]
     token: CmdPropertyText
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  - re: "title{prop_colon}"
-    states: [COMMAND]
-    token: CmdTitle
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  - re: "creator{prop_colon}"
-    states: [COMMAND]
-    token: CmdCreator
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  - re: "author{prop_colon}"
-    states: [COMMAND]
-    token: CmdAuthor
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  - re: "language{prop_colon}"
-    states: [COMMAND]
-    token: CmdLanguage
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  - re: "filetags{prop_colon}"
-    states: [COMMAND]
-    token: CmdFiletags
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
   #endregion
@@ -548,71 +453,6 @@ rules:
     token: CmdPropertyArgs
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
-  - re: "header{prop_colon}"
-    states: [COMMAND]
-    token: CmdHeader
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "results{prop_colon}"
-    states: [COMMAND]
-    token: CmdResults
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "name{prop_colon}"
-    states: [COMMAND]
-    token: CmdName
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "constants{prop_colon}"
-    states: [COMMAND]
-    token: CmdConstants
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-
-  - re: "attr_\\w+{prop_colon}"
-    states: [COMMAND]
-    token: CmdAttr
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "include{prop_colon}"
-    states: [COMMAND]
-    token: CmdInclude
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "call{prop_colon}"
-    states: [COMMAND]
-    token: CmdCall
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "row{prop_colon}"
-    states: [COMMAND]
-    token: CmdRow
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "cell{prop_colon}"
-    states: [COMMAND]
-    token: CmdCell
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_class{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexClass
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_class_options{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexClassOptions
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_compiler{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexCompiler
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_header{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexHeader
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
   #endregion
 
   - re: "(\\w|_)+?{prop_colon}"
@@ -627,10 +467,6 @@ rules:
     token: SubtreeStars
     actions:
       - { do: push, from: INITIAL, to: SUBTREE_HEAD }
-
-  - re: "\\[#\\w\\]"
-    token: SubtreePriority
-    states: [SUBTREE_HEAD]
 
   - { re: "{lead_space}[0-9]+[\\.\\)](?={space}+)", token: LeadingNumber }
   - { re: "[0-9]+", token: Number }
@@ -748,7 +584,6 @@ rules:
 
   - re: "(sun|mon|tue|wed|thu|fri|sat|sunday|monday|tuesday|wednesday|thursday|friday|saturday)"
     token: WeekdayName
-  - { re: "=>", token: TimeArrow }
   - { lit: "::", token: DoubleColon }
   - { re: "#{space}+.*?$", token: Comment }
 
@@ -756,9 +591,6 @@ rules:
   - { re: "(CLOSED|SCHEDULED|DEADLINE):", token: TreeTime }
 
   #region Punctuation
-  - { lit: "&", token: Ampersand }
-  - { lit: "!", token: Exclamation }
-  - { lit: "/", token: ForwardSlash }
   - { re: "[\\.?]", token: AnyPunct }
   - { re: "{lead_space}-(?={space}+)", token: LeadingMinus }
   - { re: "{lead_space}\\+(?={space}+)", token: LeadingPlus }
@@ -770,15 +602,7 @@ rules:
   - { re: "#\\w+", token: HashIdent }
   - { re: "##", token: DoubleHash }
   - { re: "<(\\w|\\s)+>", token: "Placeholder" }
-  - { lit: "<<<", token: TripleAngleBegin }
-  - { lit: ">>>", token: TripleAngleEnd }
-  - { lit: "<<", token: DoubleAngleBegin }
-  - { lit: ">>", token: DoubleAngleEnd }
-  - { lit: "<", token: AngleBegin }
-  - { lit: ">", token: AngleEnd }
   - { lit: "++}", token: CriticAddEnd }
-  - { lit: "<<}", token: CriticCommentEnd }
-  - { lit: "}", token: CurlyEnd }
 
   - { re: "\\\\\\w+", token: Symbol }
   - { re: "\\\\.", token: Escaped }
@@ -790,7 +614,6 @@ rules:
       re: "[\\x{{0128}}-\\x{{10FFFF}}]|×|©|°|¹|²|³|¥|π|√|¶|∆",
       token: MiscUnicode,
     }
-  - { lit: "<%%", token: DynamicTimeContent }
   #endregion
   #endregion
 

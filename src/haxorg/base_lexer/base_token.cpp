@@ -25,8 +25,48 @@ struct Cursor {
     bool has_pos(int offset) const { return pos + offset < text.size(); }
     bool has_text() const { return has_pos(0); }
 
+    void skip(char c) {
+        LOGIC_ASSERTION_CHECK(get() == c, "{}", c);
+        next();
+    }
+
     bool can_search(char c, int offset = 0) const {
         return has_pos(offset) && !is_at(c, offset);
+    }
+
+    template <typename... Chars>
+    bool is_at_any_of(int offset, Chars... chars) {
+        char c = get(offset);
+        return ((c == chars) || ...);
+    }
+
+    template <typename... Args>
+    bool is_at_all_of(size_t offset = 0) {
+        return true;
+    }
+
+    template <typename T, typename... Args>
+    bool is_at_all_of(size_t offset, T first, Args... rest) {
+        if (!has_pos(offset)) { return false; }
+
+        bool matches = false;
+        if constexpr (std::is_same_v<T, char>) {
+            matches = text[pos + offset] == first;
+        } else if constexpr (std::is_invocable_r_v<bool, T, char>) {
+            matches = first(text[pos + offset]);
+        } else {
+            static_assert(
+                std::is_same_v<T, char>
+                    || std::is_invocable_r_v<bool, T, char>,
+                "Arguments must be either chars or char predicates");
+            return false;
+        }
+
+        if (!matches) {
+            return false;
+        } else {
+            return is_at_all_of(offset + 1, rest...);
+        }
     }
 
     bool is_at(char ch, int offset = 0) const {
@@ -36,6 +76,17 @@ struct Cursor {
     bool is_at(std::string const& text, int offset = 0) const {
         for (int i = 0; i < text.size(); ++i) {
             if (get(i + offset) != text.at(i)) { return false; }
+        }
+
+        return true;
+    }
+
+    bool is_iat(std::string const& text, int offset = 0) const {
+        for (int i = 0; i < text.size(); ++i) {
+            if (std::tolower(static_cast<unsigned char>(get(i + offset)))
+                != std::tolower(static_cast<unsigned char>(text.at(i)))) {
+                return false;
+            }
         }
 
         return true;
@@ -128,6 +179,13 @@ struct Cursor {
     int              pos  = 0;
     int              line = 0;
     int              col  = 0;
+
+    void unhandled(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) const {
+        LOGIC_ASSERTION_CHECK(
+            false, "unhandled {} at {}:{}", format(), function, line);
+    }
 
     std::string format() const {
         int end = std::min<int>(20, text.size() - pos);
@@ -263,7 +321,113 @@ void advace_charset(Cursor& c, CharSet const& set) {
 
 namespace {
 
-void switch_cmd_argument(Cursor& c) {}
+void switch_cmd_argument(Cursor& c) {
+    switch (c.get()) {
+        case '(': c.token0(otk::ParBegin, &advance1); break;
+        case ')': c.token0(otk::ParEnd, &advance1); break;
+        case ']': c.token0(otk::BraceEnd, &advance1); break;
+        case '=': c.token0(otk::Equals, &advance1); break;
+        case ',': c.token0(otk::Comma, &advance1); break;
+        case ' ': c.token1(otk::Whitespace, &advance_char1, ' '); break;
+        case '\n': c.unhandled(); break;
+        case '[': c.token0(otk::BraceBegin, &advance1); break;
+        case ':': {
+            if (c.has_pos(+1) && std::isalnum(c.get(+1))) {
+                c.token0(otk::CmdColonIdent, [](Cursor& c) {
+                    c.skip(':');
+                    advance_ident(c);
+                });
+            } else {
+                c.token0(otk::CmdRawArg, [](Cursor& c) {
+                    c.next();
+                    while (!c.is_at_any_of(
+                        0, '(', ')', ']', '[', '=', ',', ' ', '\n')) {
+                        c.next();
+                    }
+                });
+            }
+            break;
+        }
+        default: {
+            c.token0(otk::CmdRawArg, [](Cursor& c) {
+                while (!c.is_at_any_of(
+                    0, '(', ')', ']', '[', '=', ',', ' ', '\n')) {
+                    c.next();
+                }
+            });
+        }
+    }
+}
+
+void switch_regular_char(Cursor& c);
+
+enum class CommandType
+{
+    Raw,
+    Text,
+    Args,
+};
+
+struct CommandSpec {
+    OrgTokenKind token;
+    CommandType  type;
+};
+
+UnorderedMap<std::string, CommandSpec> CmdSpec{
+    {"columns",
+     CommandSpec{.token = otk::CmdColumns, .type = CommandType::Raw}},
+    {"tblfm",
+     CommandSpec{.token = otk::CmdTblfm, .type = CommandType::Raw}},
+    {"options",
+     CommandSpec{.token = otk::CmdOptions, .type = CommandType::Raw}},
+    {"tags",
+     CommandSpec{.token = otk::CmdTagsRaw, .type = CommandType::Raw}},
+    {"title",
+     CommandSpec{.token = otk::CmdTitle, .type = CommandType::Text}},
+    {"author",
+     CommandSpec{.token = otk::CmdAuthor, .type = CommandType::Text}},
+    {"filetags",
+     CommandSpec{.token = otk::CmdFiletags, .type = CommandType::Text}},
+    {"caption",
+     CommandSpec{.token = otk::CmdCaption, .type = CommandType::Text}},
+    {"date",
+     CommandSpec{.token = otk::CmdDateRaw, .type = CommandType::Text}},
+    {"link",
+     CommandSpec{.token = otk::CmdLinkRaw, .type = CommandType::Text}},
+    {"description",
+     CommandSpec{.token = otk::CmdDescription, .type = CommandType::Text}},
+    {"language",
+     CommandSpec{.token = otk::CmdLanguage, .type = CommandType::Text}},
+    {"creator",
+     CommandSpec{.token = otk::CmdCreator, .type = CommandType::Text}},
+    {"name",
+     CommandSpec{.token = otk::CmdName, .type = CommandType::Args}},
+    {"constants",
+     CommandSpec{.token = otk::CmdConstants, .type = CommandType::Args}},
+    {"results",
+     CommandSpec{.token = otk::CmdResults, .type = CommandType::Args}},
+    {"include",
+     CommandSpec{.token = otk::CmdInclude, .type = CommandType::Args}},
+    {"header",
+     CommandSpec{.token = otk::CmdHeader, .type = CommandType::Args}},
+    {"call",
+     CommandSpec{.token = otk::CmdCall, .type = CommandType::Args}},
+    {"row", CommandSpec{.token = otk::CmdRow, .type = CommandType::Args}},
+    {"cell",
+     CommandSpec{.token = otk::CmdCell, .type = CommandType::Args}},
+    {"latex_class",
+     CommandSpec{.token = otk::CmdLatexClass, .type = CommandType::Args}},
+    {"latex_compiler",
+     CommandSpec{
+         .token = otk::CmdLatexCompiler,
+         .type  = CommandType::Args}},
+    {"latex_header",
+     CommandSpec{.token = otk::CmdLatexHeader, .type = CommandType::Args}},
+    {"latex_class_options",
+     CommandSpec{
+         .token = otk::CmdLatexClassOptions,
+         .type  = CommandType::Args}},
+};
 
 void switch_command(Cursor& c) {
     auto __scope = c.p.scopeLevel();
@@ -291,28 +455,123 @@ void switch_command(Cursor& c) {
         }
     };
 
-    if (norm_head == "columns") {
-        head.kind = otk::CmdColumns;
-        head_raw();
-    } else if (norm_head == "options") {
-        head.kind = otk::CmdOptions;
-        head_raw();
-    } else if (norm_head == "tblfm") {
-        head.kind = otk::CmdTblfm;
-        head_raw();
-    } else if (norm_head == "property") {
-        head.kind = otk::CmdTblfm;
-        head_raw();
-    } else if (norm_head == "tags") {
-        head.kind = otk::CmdTagsRaw;
-        head_raw();
+    auto head_text = [&]() {
+        c.token(head);
+        while (c.has_text() && !c.is_at('\n')) {
+            auto __guard = c.advance_guard();
+            switch_regular_char(c);
+        }
+    };
+
+
+    auto get_end_block_offset = [&](std::string const& end) -> int {
+        int pos = 0;
+        while (c.is_at(' ', pos)) { ++pos; }
+        if (c.is_at('#', pos)) {
+            ++pos;
+        } else {
+            return false;
+        }
+
+        if (c.is_at('+', pos)) {
+            ++pos;
+        } else {
+            return false;
+        }
+
+        if (c.is_iat("end", pos)) {
+            pos += 3;
+        } else {
+            return false;
+        }
+
+        if (c.is_at('_', pos)) { ++pos; }
+
+        if (c.is_iat(end, pos)) {
+            return pos;
+        } else {
+            return -1;
+        }
+    };
+
+    if (auto it = CmdSpec.get(norm_head)) {
+        head.kind = it->token;
+        switch (it->type) {
+            case CommandType::Args: head_args(); break;
+            case CommandType::Raw: head_raw(); break;
+            case CommandType::Text: head_text(); break;
+        }
+    } else if (norm_head.starts_with("attr")) {
+        head.kind = otk::CmdAttr;
+        head_args();
+    } else if (norm_head.starts_with("begin")) {
+        auto block_kind = norm_head.substr(5);
+        if (block_kind == "quote") {
+            head.kind = otk::CmdQuoteBegin;
+            head_args();
+        } else if (block_kind == "export") {
+            head.kind = otk::CmdExportBegin;
+            head_args();
+            c.skip('\n');
+            while (get_end_block_offset("export") == -1) {
+                auto __guard = c.advance_guard();
+                if (c.is_at('\n')) { c.token0(otk::Newline, &advance1); }
+                c.token0(otk::CmdExportLine, [](Cursor& c) {
+                    while (c.can_search('\n')) { c.next(); }
+                });
+            }
+            int offset = get_end_block_offset("export");
+            c.token1(otk::CmdExportEnd, &advance_count, offset);
+        } else {
+            head.kind = otk::CmdDynamicBlockBegin;
+            head_args();
+            c.skip('\n');
+        }
+    } else if (norm_head.starts_with("end")) {
+        auto block_kind = norm_head.substr(3);
+        head.kind       = otk::CmdDynamicBlockBegin;
+        head_args();
+    } else {
+        LOGIC_ASSERTION_CHECK(false, "{}", escape_literal(norm_head));
+    }
+}
+
+void switch_subtree_head(Cursor& c) {
+    switch (c.get()) {
+        case '[': {
+            if (c.is_at('#', +1) && c.has_pos(+2)
+                && std::isalnum(c.get(+2))) {
+                c.token0(otk::SubtreePriority, [](Cursor& c) {
+                    c.skip('[');
+                    c.skip('#');
+                    advance_alnum(c);
+                    c.skip(']');
+                });
+            } else {
+                switch_regular_char(c);
+            }
+            break;
+        }
+        default: {
+            switch_regular_char(c);
+        }
     }
 }
 
 
 void switch_regular_char(Cursor& c) {
     switch (c.get()) {
-        case '*': c.token0(otk::Asterisk, &advance1); break;
+        case '*': {
+            if (c.col == 0) {
+                c.token0(otk::Asterisk, [](Cursor& c) {
+                    advance_char1(c, '*');
+                    advance_char1(c, ' ');
+                });
+            } else {
+                c.token0(otk::Asterisk, &advance1);
+            }
+            break;
+        }
         case '(': c.token0(otk::ParBegin, &advance1); break;
         case ')': c.token0(otk::ParEnd, &advance1); break;
         case '%': c.token0(otk::Percent, &advance1); break;
@@ -322,11 +581,47 @@ void switch_regular_char(Cursor& c) {
         case ';': c.token0(otk::Semicolon, &advance1); break;
         case ',': c.token0(otk::Colon, &advance1); break;
         case '^': c.token0(otk::Circumflex, &advance1); break;
-        case ':': c.token0(otk::Colon, &advance1); break;
         case '$': c.token0(otk::Dollar, &advance1); break;
+        case '!': c.token0(otk::Exclamation, &advance1); break;
+        case '&': c.token0(otk::Ampersand, &advance1); break;
+        case '/': c.token0(otk::ForwardSlash, &advance1); break;
+        case ':': {
+            if (c.is_at(':', +1)) {
+                c.token1(otk::DoubleColon, &advance_count, 2);
+            } else {
+                c.token0(otk::Colon, &advance1);
+            }
+            break;
+        }
+        case '>': {
+            if (c.is_at_all_of(0, '>', '>', '>')) {
+                c.token1(otk::TripleAngleEnd, &advance_count, 3);
+            } else if (c.is_at_all_of(0, '>', '>')) {
+                c.token1(otk::DoubleAngleEnd, &advance_count, 2);
+            } else {
+                c.token0(otk::AngleEnd, &advance1);
+            }
+            break;
+        }
+        case '<': {
+            if (c.is_at_all_of(0, '<', '<', '<')) {
+                c.token1(otk::TripleAngleBegin, &advance_count, 3);
+            } else if (c.is_at_all_of(0, '<', '<', '}')) {
+                c.token1(otk::CriticCommentEnd, &advance_count, 3);
+            } else if (c.is_at_all_of(0, '<', '<')) {
+                c.token1(otk::DoubleAngleBegin, &advance_count, 2);
+            } else if (c.is_at_all_of(0, '<', '%', '%')) {
+                c.token1(otk::DynamicTimeContent, &advance_count, 3);
+            } else {
+                c.token0(otk::AngleEnd, &advance1);
+            }
+            break;
+        }
         case '#': {
             if (c.is_at('+', +1)) {
                 switch_command(c);
+            } else if (c.is_at('#', +1)) {
+                c.token1(otk::DoubleHash, &advance_count, 2);
             } else {
                 c.token0(otk::Punctuation, &advance1);
             }
@@ -344,8 +639,10 @@ void switch_regular_char(Cursor& c) {
             break;
         }
         case '=': {
-            if (c.is_at("==}")) {
+            if (c.is_at_all_of(1, '=', '}')) {
                 c.token1(otk::CriticHighlightEnd, &advance_count, 3);
+            } else if (c.is_at('>', +1)) {
+                c.token1(otk::TimeArrow, &advance_count, 2);
             } else {
                 c.token0(otk::Equals, &advance1);
             }
@@ -373,16 +670,20 @@ void switch_regular_char(Cursor& c) {
             }
             break;
         }
+        case '}': {
+            c.token1(otk::CurlyEnd, &advance_count, 1);
+            break;
+        }
         case '{': {
-            if (c.is_at("++", 1)) {
+            if (c.is_at_all_of(1, '+', '+')) {
                 c.token1(otk::CriticAddBegin, &advance_count, 3);
-            } else if (c.is_at("--", 1)) {
+            } else if (c.is_at_all_of(1, '-', '-')) {
                 c.token1(otk::CriticDeleteBegin, &advance_count, 3);
-            } else if (c.is_at("==", 1)) {
+            } else if (c.is_at_all_of(1, '=', '=')) {
                 c.token1(otk::CriticHighlightBegin, &advance_count, 3);
-            } else if (c.is_at("~~", 1)) {
+            } else if (c.is_at_all_of(1, '~', '~')) {
                 c.token1(otk::CriticReplaceBegin, &advance_count, 3);
-            } else if (c.is_at(">>", 1)) {
+            } else if (c.is_at_all_of(1, '>', '>')) {
                 c.token1(otk::CriticCommentBegin, &advance_count, 3);
             } else {
                 c.token1(otk::CurlyBegin, &advance_count, 1);
