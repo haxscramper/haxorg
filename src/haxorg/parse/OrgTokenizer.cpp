@@ -927,8 +927,12 @@ struct TokenVisitor {
         using Iter = Vec<LineToken>::iterator;
         Func<Opt<GroupToken>(Iter & it)> rec_group;
         rec_group = [&](Iter& it) -> Opt<GroupToken> {
+            auto __scope  = d->scopeLevel();
             auto end      = lines.end();
             auto nextline = [&]() { ++it; };
+            if (TraceState) {
+                d->message(fmt("{} {}", it->kind, it->tokens));
+            }
 
             auto start = it;
             switch (start->kind) {

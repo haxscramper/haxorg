@@ -270,36 +270,6 @@ rules:
 
   #endregion
 
-  #region begin_export
-  - re: "begin_export"
-    states: [COMMAND]
-    token: CmdExportBegin
-    actions: [{ do: push, from: COMMAND, to: COMMAND_EXPORT }]
-
-  - re: "^{space}*#\\+end_export{space}*$"
-    states: [BODY_EXPORT]
-    token: CmdExportEnd
-    actions:
-      - { do: pop, from: BODY_EXPORT, to: INITIAL }
-
-  - re: ".*"
-    states: [BODY_EXPORT]
-    token: CmdExportLine
-
-  - re: "\\n"
-    states: [BODY_EXPORT]
-    token: Newline
-
-  - re: "\\n"
-    states: [COMMAND_EXPORT]
-    token: Newline
-    actions:
-      - { do: "pop", from: COMMAND_EXPORT, to: COMMAND }
-      - { do: "pop", from: COMMAND, to: INITIAL }
-      - { do: "push", to: BODY_EXPORT, from: INITIAL }
-
-  #endregion
-
   #region begin_src
   - re: "begin_src"
     states: [COMMAND]

@@ -22,6 +22,7 @@ struct Cursor {
         return text[pos + offset];
     }
 
+    /// \brief Check if there is at least `offset` characters more to read
     bool has_pos(int offset) const { return pos + offset < text.size(); }
     bool has_text() const { return has_pos(0); }
 
@@ -34,19 +35,47 @@ struct Cursor {
         return has_pos(offset) && !is_at(c, offset);
     }
 
-    template <typename... Chars>
-    bool is_at_any_of(int offset, Chars... chars) {
+    /// \brief Check if the current cursor positioned at any of the
+    /// characters or matches any of the boolean predicates.
+    template <typename T, typename... Args>
+    bool is_at_any_of(int offset, T first, Args... rest) {
+        if (!has_pos(offset)) { return false; }
+
         char c = get(offset);
-        return ((c == chars) || ...);
+
+        if constexpr (std::is_same_v<T, char>) {
+            if (c == first) { return true; }
+        } else if constexpr (std::is_invocable_r_v<bool, T, char>) {
+            if (first(c)) { return true; }
+        } else {
+            static_assert(
+                std::is_same_v<T, char>
+                    || std::is_invocable_r_v<bool, T, char>,
+                "Arguments must be either chars or char predicates");
+            return false;
+        }
+
+        if constexpr (sizeof...(rest) > 0) {
+            return is_at_any_of(offset, rest...);
+        } else {
+            return false;
+        }
     }
 
     template <typename... Args>
-    bool is_at_all_of(size_t offset = 0) {
+    bool is_at_all_of(size_t offset = 0) const {
         return true;
     }
 
+    /// \brief Check if cursor is positioned at the start of the sequence
+    /// matching variadic argument list. The first argument is matched for
+    /// offset 0, the sceond for offset 1 etc. Arguments can be character
+    /// literals like `' '` to check for space, or unary predicates, like
+    /// `std::isalnum`.
+    ///
+    /// Usage example `c.is_at_all_of(1, '-', std::isalnum)`
     template <typename T, typename... Args>
-    bool is_at_all_of(size_t offset, T first, Args... rest) {
+    bool is_at_all_of(size_t offset, T first, Args... rest) const {
         if (!has_pos(offset)) { return false; }
 
         bool matches = false;
@@ -69,6 +98,7 @@ struct Cursor {
         }
     }
 
+    /// \brief Check if the cursor+offset is at the specified character
     bool is_at(char ch, int offset = 0) const {
         return has_pos(offset) && get(offset) == ch;
     }
@@ -103,9 +133,9 @@ struct Cursor {
     bool next() {
         if (text.size() <= pos) {
             return false;
-        } else if (current() == '\n') {
+        } else if (get() == '\n') {
             line++;
-            col = 1;
+            col = 0;
         } else {
             col++;
         }
@@ -206,8 +236,8 @@ struct Cursor {
         int          line     = __builtin_LINE(),
         char const*  function = __builtin_FUNCTION()) {
         OrgToken tok;
-        tok->col  = col;
-        tok->line = line;
+        tok->col  = this->col;
+        tok->line = this->line;
         tok.kind  = kind;
 
         tok.value.text = std::string{
@@ -233,10 +263,21 @@ struct Cursor {
         char const*  function,
         Func const&  adv,
         Args&&... args) {
+        OrgToken tok;
+        tok->col  = this->col;
+        tok->line = this->line;
+        tok.kind  = kind;
+
         int start = pos;
         adv(*this, args...);
         int end = pos;
-        range_token(kind, start, end, line, function);
+
+        tok.value.text = std::string{
+            text.begin() + start,
+            text.begin() + end,
+        };
+
+        token(tok, line, function);
     }
 
     template <typename Func, typename Arg1>
@@ -335,7 +376,11 @@ void switch_cmd_argument(Cursor& c) {
             if (c.has_pos(+1) && std::isalnum(c.get(+1))) {
                 c.token0(otk::CmdColonIdent, [](Cursor& c) {
                     c.skip(':');
-                    advance_ident(c);
+                    while (c.has_text()
+                           && (std::isalnum(c.get()) || c.get() == '_'
+                               || c.get() == '-')) {
+                        c.next();
+                    }
                 });
             } else {
                 c.token0(otk::CmdRawArg, [](Cursor& c) {
@@ -470,24 +515,26 @@ void switch_command(Cursor& c) {
         if (c.is_at('#', pos)) {
             ++pos;
         } else {
-            return false;
+            return -1;
         }
 
         if (c.is_at('+', pos)) {
             ++pos;
         } else {
-            return false;
+            return -1;
         }
 
         if (c.is_iat("end", pos)) {
             pos += 3;
         } else {
-            return false;
+            return -1;
         }
 
         if (c.is_at('_', pos)) { ++pos; }
 
         if (c.is_iat(end, pos)) {
+            c.p.message(fmt("end {} {}", pos, c.format()));
+            pos += end.size();
             return pos;
         } else {
             return -1;
@@ -513,23 +560,26 @@ void switch_command(Cursor& c) {
             head.kind = otk::CmdExportBegin;
             head_args();
             c.skip('\n');
-            while (get_end_block_offset("export") == -1) {
+            int offset;
+            while ((offset = get_end_block_offset("export")) == -1) {
                 auto __guard = c.advance_guard();
-                if (c.is_at('\n')) { c.token0(otk::Newline, &advance1); }
                 c.token0(otk::CmdExportLine, [](Cursor& c) {
                     while (c.can_search('\n')) { c.next(); }
                 });
+                if (c.is_at('\n')) { c.token0(otk::Newline, &advance1); }
             }
-            int offset = get_end_block_offset("export");
             c.token1(otk::CmdExportEnd, &advance_count, offset);
         } else {
             head.kind = otk::CmdDynamicBlockBegin;
             head_args();
-            c.skip('\n');
         }
     } else if (norm_head.starts_with("end")) {
         auto block_kind = norm_head.substr(3);
-        head.kind       = otk::CmdDynamicBlockBegin;
+        if (block_kind == "quote") {
+            head.kind = otk::CmdQuoteEnd;
+        } else {
+            head.kind = otk::CmdDynamicBlockEnd;
+        }
         head_args();
     } else {
         LOGIC_ASSERTION_CHECK(false, "{}", escape_literal(norm_head));
@@ -560,10 +610,30 @@ void switch_subtree_head(Cursor& c) {
 
 
 void switch_regular_char(Cursor& c) {
+    if (c.col == 0) {
+        int skip = 0;
+        if (c.is_at('-')) {
+            c.p.message(fmt("leading minus at col 0 {}", c.format()));
+        }
+        while (c.is_at(' ', skip)) { ++skip; }
+        if (c.is_at('-', skip) && c.is_at(' ', skip + 1)) {
+            skip += 2;
+            while (c.is_at(' ', skip)) { ++skip; }
+            c.token1(otk::LeadingMinus, &advance_count, skip);
+            return;
+        } else if (c.is_at('-', skip) && c.is_at(' ', skip + 1)) {
+            skip += 2;
+            while (c.is_at(' ', skip)) { ++skip; }
+            c.token1(otk::LeadingPlus, &advance_count, skip);
+            return;
+        }
+    }
+
+
     switch (c.get()) {
         case '*': {
             if (c.col == 0) {
-                c.token0(otk::Asterisk, [](Cursor& c) {
+                c.token0(otk::SubtreeStars, [](Cursor& c) {
                     advance_char1(c, '*');
                     advance_char1(c, ' ');
                 });
