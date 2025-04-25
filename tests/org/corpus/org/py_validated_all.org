@@ -436,3 +436,30 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 ******** subtree 8
 ********* subtree 9
 ********** subtree 10
+
+* Tables 
+
+#+begin_table
+| col1 | col2 | col3 |
+#+row: :color red 
+| column1 
+| column2 
+| column3 
+
+#+row:
+#+cell:
+
+Tadc
+Cell
+
+#+cell: :name named-cell
+
+Line31
+Linsdfe
+
+#+begin_table
+| nest1 | nest2 |
+| nest1 | nest2 |
+#+end_table
+
+#+end_table

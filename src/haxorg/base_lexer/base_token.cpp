@@ -522,6 +522,20 @@ UnorderedMap<std::string, CommandSpec> CmdSpec{
      CommandSpec{.token = otk::CmdOptions, .type = CommandType::Raw}},
     {"tags",
      CommandSpec{.token = otk::CmdTagsRaw, .type = CommandType::Raw}},
+    {"drawers",
+     CommandSpec{.token = otk::CmdDrawersRaw, .type = CommandType::Raw}},
+    {"category",
+     CommandSpec{.token = otk::CmdCategoryRaw, .type = CommandType::Raw}},
+    {"priorities",
+     CommandSpec{
+         .token = otk::CmdPrioritiesRaw,
+         .type  = CommandType::Raw}},
+    {"htmlhead",
+     CommandSpec{.token = otk::CmdHtmlHeadRaw, .type = CommandType::Raw}},
+    {"latexheaderextra",
+     CommandSpec{
+         .token = otk::CmdLatexHeaderExtraRaw,
+         .type  = CommandType::Raw}},
     {"title",
      CommandSpec{.token = otk::CmdTitle, .type = CommandType::Text}},
     {"author",
@@ -651,6 +665,15 @@ void switch_command(Cursor& c) {
         if (block_kind == "quote") {
             head.kind = otk::CmdQuoteBegin;
             head_args();
+        } else if (block_kind == "cell") {
+            head.kind = otk::CmdCellBegin;
+            head_args();
+        } else if (block_kind == "row") {
+            head.kind = otk::CmdRowBegin;
+            head_args();
+        } else if (block_kind == "table") {
+            head.kind = otk::CmdTableBegin;
+            head_args();
         } else if (block_kind == "export") {
             head.kind = otk::CmdExportBegin;
             head_args();
@@ -664,6 +687,31 @@ void switch_command(Cursor& c) {
                 if (c.is_at('\n')) { c.token0(otk::Newline, &advance1); }
             }
             c.token1(otk::CmdExportEnd, &advance_count, offset);
+        } else if (block_kind == "src") {
+            head.kind = otk::CmdSrcBegin;
+            head_args();
+            c.skip('\n');
+            int offset;
+            while ((offset = get_end_block_offset("src")) == -1) {
+                auto __guard = c.advance_guard();
+                if (c.is_at_all_of(0, '<', '<')) {
+                    c.token1(otk::SrcTangleOpen, &advance_count, 2);
+                } else if (c.is_at_all_of(0, '>', '>')) {
+                    c.token1(otk::SrcTangleClose, &advance_count, 2);
+                } else {
+                    c.token0(otk::SrcContent, [](Cursor& c) {
+                        while (c.has_text()
+                               && !(
+                                   c.is_at('\n')
+                                   || c.is_at_all_of(0, '>', '>')
+                                   || c.is_at_all_of(0, '<', '<'))) {
+                            c.next();
+                        }
+                    });
+                }
+                if (c.is_at('\n')) { c.token0(otk::Newline, &advance1); }
+            }
+            c.token1(otk::CmdSrcEnd, &advance_count, offset);
         } else {
             head.kind = otk::CmdDynamicBlockBegin;
             head_args();
@@ -672,6 +720,12 @@ void switch_command(Cursor& c) {
         auto block_kind = norm_head.substr(3);
         if (block_kind == "quote") {
             head.kind = otk::CmdQuoteEnd;
+        } else if (block_kind == "cell") {
+            head.kind = otk::CmdCellEnd;
+        } else if (block_kind == "row") {
+            head.kind = otk::CmdRowEnd;
+        } else if (block_kind == "table") {
+            head.kind = otk::CmdTableEnd;
         } else {
             head.kind = otk::CmdDynamicBlockEnd;
         }
@@ -704,23 +758,36 @@ void switch_subtree_head(Cursor& c) {
 }
 
 
+auto check_leading(Cursor& c, int skip, char ch) -> std::optional<int> {
+    if (c.is_at(ch, skip) && c.is_at(' ', skip + 1)) {
+        skip += 2;
+        while (c.is_at(' ', skip)) { ++skip; }
+        return skip;
+    } else {
+        return std::nullopt;
+    }
+};
+
 void switch_regular_char(Cursor& c) {
     if (c.col == 0) {
         int skip = 0;
-        if (c.is_at('-')) {
-            c.p.message(fmt("leading minus at col 0 {}", c.format()));
-        }
         while (c.is_at(' ', skip)) { ++skip; }
-        if (c.is_at('-', skip) && c.is_at(' ', skip + 1)) {
-            skip += 2;
-            while (c.is_at(' ', skip)) { ++skip; }
-            c.token1(otk::LeadingMinus, &advance_count, skip);
-            return;
-        } else if (c.is_at('+', skip) && c.is_at(' ', skip + 1)) {
-            skip += 2;
-            while (c.is_at(' ', skip)) { ++skip; }
-            c.token1(otk::LeadingPlus, &advance_count, skip);
-            return;
+
+        if (auto span = check_leading(c, skip, '-')) {
+            c.token1(otk::LeadingMinus, &advance_count, *span);
+        } else if (auto span = check_leading(c, skip, '+')) {
+            c.token_adv(otk::LeadingPlus, *span);
+        } else if (check_leading(c, skip, '|')) {
+            c.token_adv(otk::LeadingPipe, *span);
+        } else if (
+            auto span = c.try_lexy_patt<
+                        dsl::lit_c<'|'>
+                        + dsl::while_one(
+                            dsl::while_one(LEXY_ASCII_ONE_OF(":-"))
+                            + dsl::while_one(LEXY_ASCII_ONE_OF("|+")))
+                        + dsl::while_(LEXY_ASCII_ONE_OF(":|-"))
+                        + dsl::lit_c<'|'>>()) {
+            c.token_adv(otk::TableSeparator, *span);
         }
     }
 

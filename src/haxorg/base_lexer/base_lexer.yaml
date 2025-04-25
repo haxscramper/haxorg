@@ -159,42 +159,6 @@ tokens:
 rules:
   #region Blocks
   #tag begin_quote
-  - re: "end_quote"
-    states: [COMMAND]
-    token: CmdQuoteEnd
-    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
-
-  #tag begin_table
-  - re: "begin_table"
-    states: [COMMAND]
-    token: CmdTableBegin
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "end_table"
-    states: [COMMAND]
-    token: CmdTableEnd
-    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
-
-  - re: "begin_cell"
-    states: [COMMAND]
-    token: CmdCellBegin
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "end_cell"
-    states: [COMMAND]
-    token: CmdCellEnd
-    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
-
-  - re: "begin_row"
-    states: [COMMAND]
-    token: CmdRowBegin
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "end_row"
-    states: [COMMAND]
-    token: CmdRowEnd
-    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
-
   #tag begin_comment
   - re: "begin_comment"
     states: [COMMAND]
@@ -262,35 +226,6 @@ rules:
     token: Newline
 
   #endregion
-
-  #region begin_src
-  - re: "begin_src"
-    states: [COMMAND]
-    token: CmdSrcBegin
-    actions: [{ do: "push", to: COMMAND_SRC, from: COMMAND }]
-  - re: "^{space}*#\\+end_src{space}*$"
-    states: [BODY_SRC]
-    token: CmdSrcEnd
-    actions:
-      - { do: pop, from: BODY_SRC, to: INITIAL }
-
-  - re: "\\n"
-    states: [COMMAND_SRC]
-    token: Newline
-    actions:
-      - { do: "pop", from: COMMAND_SRC, to: COMMAND }
-      - { do: "pop", from: COMMAND, to: INITIAL }
-      - { do: "push", to: BODY_SRC, from: INITIAL }
-  - { lit: "<<", states: [BODY_SRC], token: SrcTangleOpen }
-  - { lit: ">>", states: [BODY_SRC], token: SrcTangleClose }
-  - { re: ".+", states: [BODY_SRC], token: SrcContent }
-  - { re: "\\n", states: [BODY_SRC], token: Newline }
-  #endregion
-
-  - re: "end_\\w+"
-    states: [COMMAND]
-    token: CmdDynamicBlockEnd
-    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
   #endregion
 
   #region Line-commands
@@ -351,24 +286,9 @@ rules:
     token: CmdSelectTagsRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
-  - re: "drawers{prop_colon}"
-    states: [COMMAND]
-    token: CmdDrawersRaw
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
   - re: "keywords{prop_colon}"
     states: [COMMAND]
     token: CmdDateRaw
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
-  - re: "category{prop_colon}"
-    states: [COMMAND]
-    token: CmdCategoryRaw
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
-  - re: "priorities{prop_colon}"
-    states: [COMMAND]
-    token: CmdPrioritiesRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   - re: "setupfile{prop_colon}"
@@ -376,28 +296,13 @@ rules:
     token: CmdSetupfileRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
-  - re: "html_head{prop_colon}"
-    states: [COMMAND]
-    token: CmdHtmlHeadRaw
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
-  - re: "latex_header_extra{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexHeaderExtraRaw
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
   - re: ".*"
     states: [COMMAND_RAW]
     token: RawText
 
   #region Table-command
-  - re: "{lead_space}\\|"
-    token: LeadingPipe
   - re: "\\|$"
     token: TrailingPipe
-  - re: "{lead_space}\\|([:-]+[\\|\\+]+)+[:|-]*\\|"
-    token: TableSeparator
-
   #endregion
 
   #endregion
