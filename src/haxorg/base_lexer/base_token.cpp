@@ -2,11 +2,33 @@
 #include <haxorg/lexbase/TraceStructured.hpp>
 #include <cctype>
 
+#include <lexy/dsl.hpp>
+#include <lexy/callback.hpp>
+#include <lexy/action/parse.hpp>
+#include <lexy/input/string_input.hpp>
+#include <lexy/action/trace.hpp>
+#include <lexy/callback.hpp>
+#include <lexy/dsl.hpp>
+#include <lexy/input/string_input.hpp>
+#include <lexy/action/parse.hpp>
+#include <lexy/callback.hpp>
+#include <lexy/callback/container.hpp>
+#include <lexy/action/trace.hpp>
+
+
 #pragma clang diagnostic error "-Wswitch"
 
 using namespace hstd;
 using namespace org::parse;
 using namespace org::report;
+
+namespace dsl = lexy::dsl;
+
+
+namespace {
+bool is_digit_char(char c) { return std::isdigit(c); }
+} // namespace
+
 
 struct Cursor {
     char current() const {
@@ -63,19 +85,12 @@ struct Cursor {
     }
 
     template <typename... Args>
-    bool is_at_all_of(size_t offset = 0) const {
+    bool is_at_all_of(int offset = 0) const {
         return true;
     }
 
-    /// \brief Check if cursor is positioned at the start of the sequence
-    /// matching variadic argument list. The first argument is matched for
-    /// offset 0, the sceond for offset 1 etc. Arguments can be character
-    /// literals like `' '` to check for space, or unary predicates, like
-    /// `std::isalnum`.
-    ///
-    /// Usage example `c.is_at_all_of(1, '-', std::isalnum)`
-    template <typename T, typename... Args>
-    bool is_at_all_of(size_t offset, T first, Args... rest) const {
+    template <typename T>
+    bool is_at_thing(int offset, T first) const {
         if (!has_pos(offset)) { return false; }
 
         bool matches = false;
@@ -91,11 +106,30 @@ struct Cursor {
             return false;
         }
 
+        return matches;
+    }
+
+    /// \brief Check if cursor is positioned at the start of the sequence
+    /// matching variadic argument list. The first argument is matched for
+    /// offset 0, the sceond for offset 1 etc. Arguments can be character
+    /// literals like `' '` to check for space, or unary predicates, like
+    /// `std::isalnum`.
+    ///
+    /// Usage example `c.is_at_all_of(1, '-', std::isalnum)`
+    template <typename T, typename... Args>
+    bool is_at_all_of(int offset, T first, Args... rest) const {
+        bool matches = is_at_thing(offset, first);
+
         if (!matches) {
             return false;
         } else {
             return is_at_all_of(offset + 1, rest...);
         }
+    }
+
+    template <typename T>
+    bool is_at_all_of(int offset, T first) const {
+        return is_at_thing(offset, first);
     }
 
     /// \brief Check if the cursor+offset is at the specified character
@@ -149,6 +183,41 @@ struct Cursor {
             if (!next()) { return false; }
         }
         return true;
+    }
+
+    lexy::string_input<lexy::default_encoding> lexy_input() const {
+        return lexy::string_input{text.data() + pos, text.size() - pos};
+    }
+
+    template <typename Rule>
+    bool try_lexy_tok(
+        OrgTokenKind kind,
+        int          line     = __builtin_LINE(),
+        char const*  function = __builtin_FUNCTION()) {
+        if (p.TraceState) {
+            std::string        str;
+            lexy::string_input input = lexy_input();
+
+            lexy::visualization_options opts{};
+            opts.flags = lexy::visualize_use_unicode
+                       | lexy::visualize_use_symbols
+                       | lexy::visualize_space;
+            lexy::trace_to<Rule>(
+                std::back_insert_iterator(str),
+                lexy::zstring_input(input.data()),
+                opts);
+            p.message(str);
+        }
+
+        auto result = lexy::parse<Rule>(lexy_input(), lexy::noop);
+        if (result.has_value()) {
+            int matched_length = result.value();
+            range_token(kind, pos, pos + matched_length, line, function);
+            pos += matched_length;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     bool nextUnicode() {
@@ -361,6 +430,17 @@ void advace_charset(Cursor& c, CharSet const& set) {
     if (c.p.TraceState) { c.p.message(__text); }
 
 namespace {
+
+struct subtree_completion_rule {
+    static constexpr auto value = lexy::callback<int>(
+        [](lexy::string_lexeme<> lex) {
+            return std::distance(lex.begin(), lex.end());
+        });
+
+    static constexpr auto rule = dsl::capture(dsl::token(
+        dsl::lit_c<'['> + dsl::digits<> + dsl::lit_c<'%'>
+        + dsl::lit_c<']'>));
+};
 
 void switch_cmd_argument(Cursor& c) {
     switch (c.get()) {
@@ -655,6 +735,14 @@ void switch_regular_char(Cursor& c) {
         case '!': c.token0(otk::Exclamation, &advance1); break;
         case '&': c.token0(otk::Ampersand, &advance1); break;
         case '/': c.token0(otk::ForwardSlash, &advance1); break;
+        case '[': {
+            if (c.try_lexy_tok<subtree_completion_rule>(
+                    otk::SubtreeCompletion)) {
+            } else {
+                c.token0(otk::BraceBegin, &advance1);
+            }
+            break;
+        }
         case ':': {
             if (c.is_at(':', +1)) {
                 c.token1(otk::DoubleColon, &advance_count, 2);
