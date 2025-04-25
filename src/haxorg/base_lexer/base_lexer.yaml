@@ -47,13 +47,6 @@ sub_lexers:
     - re: ":\\/\\/.*?$"
       token: LinkTarget
 
-  inline_export:
-    - re: "^@@\\w+"
-      token: InlineExportBackend
-
-    - re: ":.*?@@$"
-      token: InlineExportContent
-
   link_protocol_split:
     - re: "^\\[\\["
       token: LinkBegin
@@ -531,12 +524,6 @@ rules:
   - re: "\\[\\d+\\/\\d+\\]"
     token: SubtreeCompletion
 
-  - re: "@@\\w+:[^@]+@@"
-    sub: "inline_export"
-
-  - re: "\\[\\d+%\\]"
-    token: SubtreeCompletion
-
   - { re: "\\]\\]", token: LinkEnd }
   - { re: "\\]\\[", token: LinkSplit }
   #endregion
@@ -554,16 +541,12 @@ rules:
 
   - re: "(sun|mon|tue|wed|thu|fri|sat|sunday|monday|tuesday|wednesday|thursday|friday|saturday)"
     token: WeekdayName
-  - { lit: "::", token: DoubleColon }
-  - { re: "#{space}+.*?$", token: Comment }
 
   - { re: "{lead_space}CLOCK:", token: TreeClock }
   - { re: "(CLOSED|SCHEDULED|DEADLINE):", token: TreeTime }
 
   #region Punctuation
   - { re: "[\\.?]", token: AnyPunct }
-  - { re: "{lead_space}-(?={space}+)", token: LeadingMinus }
-  - { re: "{lead_space}\\+(?={space}+)", token: LeadingPlus }
   - { re: "\\[(\\s|x|X|-)\\]", token: Checkbox }
 
   - { re: "\\+", token: Plus }
@@ -576,8 +559,6 @@ rules:
 
   - { re: "\\\\\\w+", token: Symbol }
   - { re: "\\\\.", token: Escaped }
-  - { lit: "|", token: Pipe }
-  - { lit: "`", token: Backtick }
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
   - { re: "({word_letter})|({word_letter}({word_letter}|[-'_])*{word_letter}'?)", token: Word }
   - {

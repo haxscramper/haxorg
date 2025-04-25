@@ -189,11 +189,21 @@ struct Cursor {
         return lexy::string_input{text.data() + pos, text.size() - pos};
     }
 
+    template <auto Pattern>
+    struct lexeme_completion_rule {
+        static constexpr auto value = lexy::callback<int>(
+            [](lexy::string_lexeme<> lex) {
+                return std::distance(lex.begin(), lex.end());
+            });
+
+        static constexpr auto rule = dsl::capture(dsl::token(Pattern));
+    };
+
+
     template <typename Rule>
-    bool try_lexy_tok(
-        OrgTokenKind kind,
-        int          line     = __builtin_LINE(),
-        char const*  function = __builtin_FUNCTION()) {
+    std::optional<int> try_lexy_tok(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
         if (p.TraceState) {
             std::string        str;
             lexy::string_input input = lexy_input();
@@ -211,13 +221,18 @@ struct Cursor {
 
         auto result = lexy::parse<Rule>(lexy_input(), lexy::noop);
         if (result.has_value()) {
-            int matched_length = result.value();
-            range_token(kind, pos, pos + matched_length, line, function);
-            pos += matched_length;
-            return true;
+            return result.value();
         } else {
-            return false;
+            return std::nullopt;
         }
+    }
+
+    template <auto Pattern>
+    std::optional<int> try_lexy_patt(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        return try_lexy_tok<lexeme_completion_rule<Pattern>>(
+            line, function);
     }
 
     bool nextUnicode() {
@@ -368,6 +383,16 @@ struct Cursor {
         token_cb(kind, line, function, cb);
     }
 
+    void token_adv(
+        OrgTokenKind kind,
+        int          count,
+        int          line     = __builtin_LINE(),
+        char const*  function = __builtin_FUNCTION()) {
+        token_cb(kind, line, function, [&](Cursor& c) {
+            for (int i = 0; i < count; ++i) { c.next(); }
+        });
+    }
+
     OrgToken pop_token() { return group->tokens.content.pop_back_v(); }
 
     hstd::finally_std advance_guard(
@@ -431,16 +456,6 @@ void advace_charset(Cursor& c, CharSet const& set) {
 
 namespace {
 
-struct subtree_completion_rule {
-    static constexpr auto value = lexy::callback<int>(
-        [](lexy::string_lexeme<> lex) {
-            return std::distance(lex.begin(), lex.end());
-        });
-
-    static constexpr auto rule = dsl::capture(dsl::token(
-        dsl::lit_c<'['> + dsl::digits<> + dsl::lit_c<'%'>
-        + dsl::lit_c<']'>));
-};
 
 void switch_cmd_argument(Cursor& c) {
     switch (c.get()) {
@@ -701,7 +716,7 @@ void switch_regular_char(Cursor& c) {
             while (c.is_at(' ', skip)) { ++skip; }
             c.token1(otk::LeadingMinus, &advance_count, skip);
             return;
-        } else if (c.is_at('-', skip) && c.is_at(' ', skip + 1)) {
+        } else if (c.is_at('+', skip) && c.is_at(' ', skip + 1)) {
             skip += 2;
             while (c.is_at(' ', skip)) { ++skip; }
             c.token1(otk::LeadingPlus, &advance_count, skip);
@@ -731,13 +746,24 @@ void switch_regular_char(Cursor& c) {
         case ';': c.token0(otk::Semicolon, &advance1); break;
         case ',': c.token0(otk::Colon, &advance1); break;
         case '^': c.token0(otk::Circumflex, &advance1); break;
+        case '|': c.token0(otk::Pipe, &advance1); break;
+        case '`': c.token0(otk::Backtick, &advance1); break;
         case '$': c.token0(otk::Dollar, &advance1); break;
         case '!': c.token0(otk::Exclamation, &advance1); break;
         case '&': c.token0(otk::Ampersand, &advance1); break;
         case '/': c.token0(otk::ForwardSlash, &advance1); break;
         case '[': {
-            if (c.try_lexy_tok<subtree_completion_rule>(
-                    otk::SubtreeCompletion)) {
+            if (auto span = c.try_lexy_patt<
+                            dsl::lit_c<'['> + dsl::digits<>
+                            + dsl::lit_c<'%'> + dsl::lit_c<']'>>()) {
+                c.token_adv(otk::SubtreeCompletion, *span);
+
+            } else if (
+                auto span = c.try_lexy_patt<
+                            dsl::lit_c<'['> + dsl::digits<>
+                            + dsl::lit_c<'/'> + dsl::digits<>
+                            + dsl::lit_c<']'>>()) {
+                c.token_adv(otk::SubtreeCompletion, *span);
             } else {
                 c.token0(otk::BraceBegin, &advance1);
             }
@@ -780,6 +806,10 @@ void switch_regular_char(Cursor& c) {
                 switch_command(c);
             } else if (c.is_at('#', +1)) {
                 c.token1(otk::DoubleHash, &advance_count, 2);
+            } else if (c.is_at(' ', +1)) {
+                c.token0(otk::Comment, [](Cursor& c) {
+                    while (c.can_search('\n')) { c.next(); }
+                });
             } else {
                 c.token0(otk::Punctuation, &advance1);
             }
@@ -790,6 +820,24 @@ void switch_regular_char(Cursor& c) {
                 c.token0(otk::At, [](Cursor& c) {
                     c.next();
                     advance_alnum(c);
+                });
+            } else if (
+                auto span = c.try_lexy_patt<
+                            dsl::lit_c<'@'> + dsl::lit_c<'@'>
+                            + dsl::while_one(dsl::ascii::word)
+                            + dsl::lit_c<':'>
+                            + dsl::until(LEXY_LIT("@@"))>()) {
+                c.token0(otk::InlineExportBackend, [](Cursor& c) {
+                    c.skip('@');
+                    c.skip('@');
+                    advance_ident(c);
+                });
+
+                c.token0(otk::InlineExportContent, [](Cursor& c) {
+                    c.skip(':');
+                    while (!c.is_at_all_of(0, '@', '@')) { c.next(); }
+                    c.skip('@');
+                    c.skip('@');
                 });
             } else {
                 c.token0(otk::Punctuation, &advance1);
