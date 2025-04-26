@@ -235,7 +235,7 @@ struct Cursor {
                 std::back_insert_iterator(str),
                 lexy::zstring_input(input.data()),
                 opts);
-            p.message(str);
+            p.message(str, function, line);
         }
 
         auto result = lexy::parse<Rule>(lexy_input(), lexy::noop);
@@ -878,6 +878,7 @@ void switch_regular_char(Cursor& c) {
         case '!': c.token0(otk::Exclamation, &advance1); break;
         case '&': c.token0(otk::Ampersand, &advance1); break;
         case '/': c.token0(otk::ForwardSlash, &advance1); break;
+        case ']': c.token0(otk::BraceEnd, &advance1); break;
         case '\\': {
             if (c.is_at_all_of(1, &is_alpha_char)) {
                 c.token0(otk::Symbol, [](Cursor& c) {
@@ -1071,10 +1072,40 @@ void switch_regular_char(Cursor& c) {
         default: {
             if (std::isalpha(c.get())) {
                 switch_word(c);
-
+            } else if (std::isdigit(c.get())) {
+                if (auto span = c.try_lexy_patt<
+                                dsl::digit<> + dsl::digit<>
+                                + dsl::lit_c<':'> + dsl::digit<>
+                                + dsl::digit<> + dsl::lit_c<':'>
+                                + dsl::digit<> + dsl::digit<>>()) {
+                    int pos = *span;
+                    if (c.is_at(' ', pos)) { ++pos; }
+                    if (c.is_iat("am", pos) || c.is_iat("pm", pos)) {
+                        pos += 2;
+                    }
+                    c.token_adv(otk::Time, pos);
+                } else if (
+                    auto span = c.try_lexy_patt<
+                                dsl::while_one(dsl::digit<>)
+                                + dsl::lit_c<':'> + dsl::digit<>
+                                + dsl::digit<>>()) {
+                    int pos = *span;
+                    if (c.is_at(' ', pos)) { ++pos; }
+                    if (c.is_iat("am", pos) || c.is_iat("pm", pos)) {
+                        pos += 2;
+                    }
+                    c.token_adv(otk::Time, pos);
+                } else if (
+                    auto span = c.try_lexy_patt<
+                                dsl::times<4>(dsl::digit<>)
+                                + dsl::lit_c<'-'>
+                                + dsl::times<2>(dsl::digit<>)
+                                + dsl::lit_c<'-'>
+                                + dsl::times<2>(dsl::digit<>)>()) {
+                    c.token_adv(otk::Date, *span);
+                }
             } else {
-                MSG(fmt("Unknown c {}", c.format()));
-                c.next();
+                c.unhandled();
             }
         }
     }

@@ -426,18 +426,12 @@ rules:
   - re: "\\[\\[\\w+:"
     sub: link_protocol_split
 
-  - re: "\\[\\d+\\/\\d+\\]"
-    token: SubtreeCompletion
-
   - { re: "\\]\\]", token: LinkEnd }
   - { re: "\\]\\[", token: LinkSplit }
   #endregion
 
   - { re: "\\[", token: BraceBegin }
   - { re: "\\]", token: BraceEnd }
-  - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
-  - { re: "\\d{{2}}:\\d{{2}}:\\d{{2}}{maybe_12h_time}", token: Time }
-  - { re: "\\d{{1,}}:\\d{{2}}{maybe_12h_time}", token: Time }
   - re: "(\\.|\\+)?\\+(\\d+[a-zA-Z])+"
     sub: timestamp_repeater
 
