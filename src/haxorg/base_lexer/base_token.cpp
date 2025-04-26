@@ -27,6 +27,7 @@ namespace dsl = lexy::dsl;
 
 namespace {
 bool is_digit_char(char c) { return std::isdigit(c); }
+bool is_alpha_char(char c) { return std::isalpha(c); }
 } // namespace
 
 
@@ -778,6 +779,40 @@ void switch_subtree_head(Cursor& c) {
 }
 
 
+void switch_word(Cursor& c) {
+    switch (c.get()) {
+        case 's':
+        case 'S':
+            if (c.is_at("SCHEDULED:")) {
+                c.token_adv(otk::TreeTime, 10);
+                return;
+            } else if (
+                auto span = c.try_lexy_patt<
+                            dsl::ascii::case_folding(LEXY_LIT("src"))
+                            + dsl::opt(dsl::lit_c<'_'>)
+                            + dsl::while_one(
+                                dsl::ascii::alpha_digit_underscore)>()) {
+                c.token_adv(otk::TextSrcBegin, *span);
+                return;
+            }
+            break;
+        case 'D':
+            if (c.is_at("DEADLINE:")) {
+                c.token_adv(otk::TreeTime, 9);
+                return;
+            }
+            break;
+        case 'C':
+            if (c.is_at("CLOSED:")) {
+                c.token_adv(otk::TreeTime, 7);
+                return;
+            }
+            break;
+    }
+
+    c.token0(otk::Word, &advance_alnum);
+}
+
 auto check_leading(Cursor& c, int skip, char ch) -> std::optional<int> {
     if (c.is_at(ch, skip) && c.is_at(' ', skip + 1)) {
         skip += 2;
@@ -808,6 +843,8 @@ void switch_regular_char(Cursor& c) {
                         + dsl::while_(LEXY_ASCII_ONE_OF(":|-"))
                         + dsl::lit_c<'|'>>()) {
             c.token_adv(otk::TableSeparator, *span);
+        } else if (auto span = c.try_lexy_patt<LEXY_LIT("CLOCK:")>()) {
+            c.token_adv(otk::TreeClock, *span);
         }
     }
 
@@ -824,6 +861,8 @@ void switch_regular_char(Cursor& c) {
             }
             break;
         }
+
+        case '+': c.token0(otk::Plus, &advance1); break;
         case '(': c.token0(otk::ParBegin, &advance1); break;
         case ')': c.token0(otk::ParEnd, &advance1); break;
         case '%': c.token0(otk::Percent, &advance1); break;
@@ -839,6 +878,17 @@ void switch_regular_char(Cursor& c) {
         case '!': c.token0(otk::Exclamation, &advance1); break;
         case '&': c.token0(otk::Ampersand, &advance1); break;
         case '/': c.token0(otk::ForwardSlash, &advance1); break;
+        case '\\': {
+            if (c.is_at_all_of(1, &is_alpha_char)) {
+                c.token0(otk::Symbol, [](Cursor& c) {
+                    c.skip('\\');
+                    advance_alnum(c);
+                });
+            } else {
+                c.token0(otk::Punctuation, &advance1);
+            }
+            break;
+        }
         case '[': {
             if (auto span = c.try_lexy_patt<
                             dsl::lit_c<'['> + dsl::digits<>
@@ -896,6 +946,11 @@ void switch_regular_char(Cursor& c) {
             } else if (c.is_at(' ', +1)) {
                 c.token0(otk::Comment, [](Cursor& c) {
                     while (c.can_search('\n')) { c.next(); }
+                });
+            } else if (c.is_at_all_of(1, &is_alpha_char)) {
+                c.token0(otk::HashIdent, [](Cursor& c) {
+                    c.skip('#');
+                    advance_alnum(c);
                 });
             } else {
                 c.token0(otk::Punctuation, &advance1);
@@ -1015,7 +1070,8 @@ void switch_regular_char(Cursor& c) {
         }
         default: {
             if (std::isalpha(c.get())) {
-                c.token0(otk::Word, &advance_alnum);
+                switch_word(c);
+
             } else {
                 MSG(fmt("Unknown c {}", c.format()));
                 c.next();

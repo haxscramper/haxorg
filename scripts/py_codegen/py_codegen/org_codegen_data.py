@@ -3538,7 +3538,6 @@ def get_org_token_kind():
         efield("VerbatimBegin", ""),
         efield("VerbatimEnd", ""),
         efield("VerbatimUnknown", ""),
-        efield("WeekdayName", ""),
         efield("Whitespace", ""),
         efield("Word", ""),
     ]

@@ -444,25 +444,14 @@ rules:
   - re: "-\\d+\\w"
     token: TimeWarnPeriod
 
-  - re: "(sun|mon|tue|wed|thu|fri|sat|sunday|monday|tuesday|wednesday|thursday|friday|saturday)"
-    token: WeekdayName
-
-  - { re: "{lead_space}CLOCK:", token: TreeClock }
-  - { re: "(CLOSED|SCHEDULED|DEADLINE):", token: TreeTime }
-
   #region Punctuation
   - { re: "[\\.?]", token: AnyPunct }
   - { re: "\\[(\\s|x|X|-)\\]", token: Checkbox }
 
-  - { re: "\\+", token: Plus }
   - { re: "\\\\\\\\", token: DoubleSlash }
-  - { re: "src_\\w+", token: TextSrcBegin }
-  - { re: "#\\w+", token: HashIdent }
-  - { re: "##", token: DoubleHash }
   - { re: "<(\\w|\\s)+>", token: "Placeholder" }
   - { lit: "++}", token: CriticAddEnd }
 
-  - { re: "\\\\\\w+", token: Symbol }
   - { re: "\\\\.", token: Escaped }
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
   - { re: "({word_letter})|({word_letter}({word_letter}|[-'_])*{word_letter}'?)", token: Word }
