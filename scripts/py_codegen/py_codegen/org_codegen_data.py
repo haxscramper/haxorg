@@ -3507,8 +3507,6 @@ def get_org_token_kind():
         efield("Semicolon", ""),
         efield("SingleQuote", ""),
         efield("SrcContent", ""),
-        efield("SrcTangleClose", ""),
-        efield("SrcTangleOpen", ""),
         efield("StmtListBegin", ""),
         efield("StmtListEnd", ""),
         efield("StrikeBegin", ""),

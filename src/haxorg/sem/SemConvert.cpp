@@ -2354,6 +2354,13 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
                             }));
                         break;
                     }
+                    case onk::CodeTangle: {
+                        line.parts.push_back(BlockCodeLine::Part{
+                            BlockCodeLine::Part::Tangle{
+                                // .target =
+                            }});
+                        break;
+                    }
                     default: {
                         throw convert_logic_error::init(fmt1(part.kind()));
                     }

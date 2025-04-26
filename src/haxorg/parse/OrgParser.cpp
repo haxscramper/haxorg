@@ -78,7 +78,13 @@ SubLexer<OrgTokenKind, OrgFill> subToEol(
 void OrgParser::parseCSVArguments(OrgLexer& lex) {
     __perf_trace("parsing", "parseCSVArguments");
     auto __trace = trace(lex);
-    token(onk::Word, pop(lex, OrgTokSet{otk::Word}));
+    token(
+        onk::Word,
+        pop(lex,
+            OrgTokSet{
+                otk::Word,
+                otk::SrcContent,
+            }));
 
     if (lex.at(otk::ParBegin)) {
         skip(lex, otk::ParBegin);
@@ -1550,6 +1556,11 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
                         parseCSVArguments(lex);
                         end();
                         skip(lex, otk::DoubleAngleEnd);
+                        break;
+                    }
+                    case otk::DoubleAngleEnd: {
+                        token(
+                            onk::CodeText, pop(lex, otk::DoubleAngleEnd));
                         break;
                     }
                     default: {

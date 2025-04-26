@@ -980,6 +980,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     if (p.tokenizer->TraceState) {
         p.tokenizer->setTraceFile(
             spec.debugFile("trace_lex.log", relDebug));
+        p.tokenizer->traceColored = false;
     }
 
     __perf_trace("cli", "tokenize convert");

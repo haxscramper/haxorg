@@ -48,8 +48,19 @@ struct Cursor {
     bool has_pos(int offset) const { return pos + offset < text.size(); }
     bool has_text() const { return has_pos(0); }
 
-    void skip(char c) {
+    void skip(
+        char        c,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
         LOGIC_ASSERTION_CHECK(get() == c, "{}", c);
+        if (p.TraceState) {
+            p.message(
+                fmt("skip {} at {}",
+                    escape_literal(std::string{c}),
+                    format(5)),
+                function,
+                line);
+        }
         next();
     }
 
@@ -164,7 +175,9 @@ struct Cursor {
         }
     }
 
-    bool next() {
+    bool next(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
         if (text.size() <= pos) {
             return false;
         } else if (get() == '\n') {
@@ -173,6 +186,11 @@ struct Cursor {
         } else {
             col++;
         }
+
+        // if (p.TraceState) {
+        //     p.message(fmt("next over at {}", format(5)), function,
+        //     line);
+        // }
 
         pos++;
         return pos < text.size();
@@ -301,8 +319,8 @@ struct Cursor {
             false, "unhandled {} at {}:{}", format(), function, line);
     }
 
-    std::string format() const {
-        int end = std::min<int>(20, text.size() - pos);
+    std::string format(int ahead = 20) const {
+        int end = std::min<int>(ahead, text.size() - pos);
         return std::format(
             "col:{} line:{} pos:{}/{} text:{}",
             col,
@@ -336,7 +354,9 @@ struct Cursor {
         OrgToken const& tok,
         int             line     = __builtin_LINE(),
         char const*     function = __builtin_FUNCTION()) {
-        if (p.TraceState) { p.message(fmt1(tok), function, line); }
+        if (p.TraceState) {
+            p.message(fmt("{} {}", tok, format(10)), function, line);
+        }
         group->add(tok);
     }
 
@@ -690,14 +710,14 @@ void switch_command(Cursor& c) {
         } else if (block_kind == "src") {
             head.kind = otk::CmdSrcBegin;
             head_args();
-            c.skip('\n');
+            c.token0(otk::Newline, &advance1);
             int offset;
             while ((offset = get_end_block_offset("src")) == -1) {
                 auto __guard = c.advance_guard();
                 if (c.is_at_all_of(0, '<', '<')) {
-                    c.token1(otk::SrcTangleOpen, &advance_count, 2);
+                    c.token1(otk::DoubleAngleBegin, &advance_count, 2);
                 } else if (c.is_at_all_of(0, '>', '>')) {
-                    c.token1(otk::SrcTangleClose, &advance_count, 2);
+                    c.token1(otk::DoubleAngleEnd, &advance_count, 2);
                 } else {
                     c.token0(otk::SrcContent, [](Cursor& c) {
                         while (c.has_text()
