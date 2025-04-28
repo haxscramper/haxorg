@@ -629,7 +629,7 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
             }
             case otk::LinkProtocolCustomId: {
                 token(onk::Word, pop(lex, otk::LinkProtocolCustomId));
-                token(onk::RawText, pop(lex, otk::LinkProtocolInternal));
+                token(onk::RawText, pop(lex, otk::LinkTarget));
                 break;
             }
             case otk::LinkProtocolAttachment: {

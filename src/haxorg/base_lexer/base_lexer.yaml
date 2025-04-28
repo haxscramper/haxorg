@@ -19,17 +19,8 @@ states:
 rx_macros:
   - { name: space, value: "[\\h\\xA0]" }
   - { name: lead_space, value: "^[\\h\\xA0]*" }
-  # Group of built-in org-mode properties that can be statically identified
-  # and lexed to corresponding tokens. All unknown properties and directives
-  # will be converted to raw string literals and processed at later
-  # stages, mostly in sem layer
-  - { name: literal_properties, value: "id|effort|(archive_(olpath|file|time|category|todo))|archive|prop_json" }
-  # `:header-args` property for setting the parameters of the code blocks
-  # `:property-set` and `:property-set-sub` for configuring how individual properties are computed
-  - { name: argument_properties, value: "header-args|prop_args" }
-  - { name: text_properties, value: "description|created|hashtag_?def" }
   - { name: dsl_links, value: "file|attachment|id" }
-  - { name: "property_sub_kind", "value": "\\S+:"}
+  - { name: "property_sub_kind", "value": "\\S+:" }
   # Property colon with optional text extension pattern an any number of
   # following spaces. Used both in line command directives and subtree
   # properties
@@ -50,18 +41,6 @@ sub_lexers:
   link_protocol_split:
     - re: "^\\[\\["
       token: LinkBegin
-
-    - re: "id"
-      token: LinkProtocolId
-
-    - re: "file"
-      token: LinkProtocolFile
-
-    - re: "attachment"
-      token: LinkProtocolAttachment
-
-    - re: https?
-      token: LinkProtocolHttp
 
     - re: "\\w+:"
       token: LinkProtocol
@@ -95,9 +74,6 @@ sub_lexers:
 
     - re: "#"
       token: LinkProtocolCustomId
-
-    - re: "\\*+[^\\]]+"
-      token: LinkProtocolTitle
 
   timestamp_repeater:
     - re: "(\\.|\\+)?\\+"
@@ -202,7 +178,6 @@ rules:
     states: [COMMAND]
     token: CmdDynamicEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
-
 
   #region begin_example
   - re: "begin_example"
@@ -337,67 +312,6 @@ rules:
       - { do: push, from: INITIAL, to: SUBTREE_HEAD }
 
   - { re: "{lead_space}[0-9]+[\\.\\)](?={space}+)", token: LeadingNumber }
-  - { re: "[0-9]+", token: Number }
-  - re: "^{space}+"
-    token: LeadingSpace
-    keepLead: true
-    actions:
-      - { do: push, to: LEAD, from: INITIAL }
-
-  #region Properties
-  - re: "{lead_space}:LOGBOOK:"
-    token: ColonLogbook
-  - re: "{lead_space}:PROPERTIES:"
-    token: ColonProperties
-  - re: "{lead_space}:END:"
-    token: ColonEnd
-  - re: "{lead_space}:({literal_properties}):({property_sub_kind})?"
-    token: ColonLiteralProperty
-    actions:
-      - { do: push, from: INITIAL, to: PROPERTY_LITERAL }
-
-  - re: "{space}+"
-    token: Whitespace
-    states: [PROPERTY_LITERAL]
-
-  - re: ".*$"
-    token: RawText
-    states: [PROPERTY_LITERAL]
-
-  - re: "\\n"
-    token: Newline
-    states: [PROPERTIES]
-
-  - re: "\\n"
-    token: Newline
-    states: [PROPERTY_LITERAL]
-    actions:
-      - { do: pop, from: PROPERTY_LITERAL, to: INITIAL }
-
-  - re: "{lead_space}:({argument_properties}):({property_sub_kind})?"
-    token: ColonArgumentsProperty
-    actions:
-      - { do: push, from: INITIAL, to: PROPERTY_ARGUMENT }
-
-  - re: "{space}+"
-    token: Whitespace
-    states: [PROPERTY_ARGUMENT]
-
-  - re: "\\n"
-    token: Newline
-    states: [PROPERTY_ARGUMENT]
-    actions:
-      - { do: pop, from: PROPERTY_ARGUMENT, to: INITIAL }
-
-  # Properties with text content
-  - re: "{lead_space}:({text_properties}):"
-    token: ColonPropertyText
-  - re: "{lead_space}:\\w+:"
-    token: ColonLiteralProperty
-    actions:
-      - { do: push, from: INITIAL, to: PROPERTY_LITERAL }
-  #endregion
-
   #endregion
 
   #region Text-elements
@@ -406,8 +320,6 @@ rules:
   - re: "https?:\\/\\/{any_non_space_link}+"
     sub: "http_link"
 
-  - { re: "\\[fn:[^:].*?\\]", token: FootnoteLinked }
-  - { re: "\\[fn::", token: FootnoteInlineBegin }
   - re: "\\[\\[({dsl_links}):({any_non_brace_link})+"
     sub: raw_dsl_link
 
@@ -426,8 +338,6 @@ rules:
   - re: "\\[\\[\\w+:"
     sub: link_protocol_split
 
-  - { re: "\\]\\]", token: LinkEnd }
-  - { re: "\\]\\[", token: LinkSplit }
   #endregion
 
   - { re: "\\[", token: BraceBegin }
@@ -455,4 +365,3 @@ rules:
     }
   #endregion
   #endregion
-
