@@ -22,7 +22,8 @@ TEST(OrgParseSem, LinkAttachedGet1) {
     auto doc = testParseString(
         R"(#+attr_link: :attach-method copy :attach-on-export t
 [[attachment:image 1.jpg]]
-)");
+)",
+        getDebugFile("LinkAttachedGet1"));
 
     EXPECT_EQ2(doc->getKind(), OrgSemKind::Document);
     auto par = doc->subnodes.at(0);
@@ -109,7 +110,9 @@ TEST(OrgParseSem, ParagraphBody) {
     }
 
     {
-        auto par = parseOne<sem::Paragraph>("[fn:footnote] content");
+        auto par = parseOne<sem::Paragraph>(
+            "[fn:footnote] content",
+            getDebugFile("paragraph_body_footnote"));
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 1);
@@ -295,7 +298,9 @@ TEST(OrgParseSem, HashtagParse) {
     }
 
     {
-        auto h = parseOne<sem::HashTag>("#one##[two##[three,four,five]]");
+        auto h = parseOne<sem::HashTag>(
+            "#one##[two##[three,four,five]]",
+            getDebugFile("hashtag_parse_nested"));
         EXPECT_EQ(h->text.head, "one");
         EXPECT_EQ(h->text.subtags.size(), 1);
         auto flat = h->text.getFlatHashes();
@@ -321,7 +326,8 @@ TEST(OrgParseSem, HashtagParse) {
 
 TEST(OrgParseSem, SubtreeLogParsing) {
     {
-        auto s = parseOne<sem::Subtree>(R"(**** COMPLETED Subtree
+        auto s = parseOne<sem::Subtree>(
+            R"(**** COMPLETED Subtree
      CLOSED: [2000-01-03 Wed 10:43:40 +04]
      :PROPERTIES:
      :CREATED:  [2000-01-03 Wed 09:51:41 +04]
@@ -331,7 +337,8 @@ TEST(OrgParseSem, SubtreeLogParsing) {
      CLOCK: [2000-01-03 Wed 09:51:50 +04]--[2000-01-03 Wed 10:43:40 +04] =>  0:52
      - State "WIP"        from "TODO"       [2000-01-03 Wed 09:51:50 +04]
      - State "COMPLETED"  from "WIP"        [2000-01-03 Wed 10:43:40 +04]
-     :END:)");
+     :END:)",
+            getDebugFile("subtree_log_parsing_1"));
 
         EXPECT_EQ(s->logbook.size(), 4);
         auto const& l = s->logbook;

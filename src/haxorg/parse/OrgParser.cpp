@@ -504,31 +504,6 @@ void OrgParser::textFold(OrgLexer& lex) {
                     break;
                 }
 
-                    // case otk::DoubleAngleBegin: {
-                    //     if (lex.ahead(
-                    //             OrgTokSet{
-                    //                 otk::Whitespace,
-                    //                 otk::Word,
-                    //                 otk::DoubleAngleBegin},
-                    //             otk::DoubleAngleEnd)) {
-                    //         skip(lex, otk::DoubleAngleBegin);
-                    //         start(onk::Target);
-                    //         while (lex.can_search(otk::DoubleAngleEnd))
-                    //         {
-                    //             token(
-                    //                 onk::Target, pop(lex,
-                    //                 AngleTargetContent));
-                    //         }
-                    //         end();
-                    //         skip(lex, otk::DoubleAngleEnd);
-                    //     } else {
-                    //         token(onk::Punctuation, pop(lex,
-                    //         lex.kind()));
-                    //     }
-
-                    //     break;
-                    // }
-
                 case otk::DoubleAngleBegin:
                 case otk::TripleAngleBegin: {
                     parseAngleTarget(lex);

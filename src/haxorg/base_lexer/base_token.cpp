@@ -176,22 +176,41 @@ struct Cursor {
         }
     }
 
+    struct Recall {
+        int line = 0;
+        int col  = 0;
+        int pos  = 0;
+    };
+
+    Recall getRecall() const {
+        return Recall{.line = line, .col = col, .pos = pos};
+    }
+
+    void setRecall(Recall const& r) {
+        this->line = r.line;
+        this->col  = r.col;
+        this->pos  = r.pos;
+    }
+
     bool next(
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
         if (text.size() <= pos) {
             return false;
         } else if (get() == '\n') {
+            if (p.TraceState) {
+                p.message(
+                    fmt("next line over at {}", format(5)),
+                    function,
+                    line);
+            }
+
             line++;
             col = 0;
         } else {
             col++;
         }
 
-        // if (p.TraceState) {
-        //     p.message(fmt("next over at {}", format(5)), function,
-        //     line);
-        // }
 
         pos++;
         return pos < text.size();
@@ -204,10 +223,16 @@ struct Cursor {
         return true;
     }
 
+    std::string_view lexy_view(int offset) const {
+        auto start = text.begin() + pos + offset;
+        auto end   = text.end();
+        return std::string_view{start, end};
+    }
+
     lexy::string_input<lexy::default_encoding> lexy_input(
         int offset) const {
-        return lexy::string_input{
-            text.data() + pos + offset, text.size() - (pos + offset)};
+        auto view = lexy_view(offset);
+        return lexy::string_input{view.data(), view.size()};
     }
 
     template <auto Pattern>
@@ -226,7 +251,7 @@ struct Cursor {
         int         offset   = 0,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
-        if (p.TraceState && false) {
+        if (p.TraceState) {
             std::string        str;
             lexy::string_input input = lexy_input(offset);
 
@@ -238,6 +263,8 @@ struct Cursor {
                 std::back_insert_iterator(str),
                 lexy::zstring_input(input.data()),
                 opts);
+            p.message(
+                fmt("lexy view {}", escape_literal(lexy_view(offset))));
             p.message(str, function, line);
         }
 
@@ -910,8 +937,8 @@ void switch_word(Cursor& c) {
     c.token0(otk::Word, &advance_alnum);
 }
 
-auto check_leading(Cursor& c, char ch) -> std::optional<int> {
-    if (c.is_at(ch) && c.is_at(' ', 1)) {
+auto check_leading(Cursor& c, char ch, int skip) -> std::optional<int> {
+    if (c.is_at(ch, skip) && c.is_at(' ', 1 + skip)) {
         return 2;
     } else {
         return std::nullopt;
@@ -958,19 +985,38 @@ void switch_time_repeater(Cursor& c) {
 
 void switch_regular_char(Cursor& c) {
     if (c.col == 0) {
-        {
-            int skip = 0;
-            while (c.is_at(' ', skip)) { ++skip; }
+        int skip = 0;
 
-            if (0 < skip) { c.token_adv(otk::LeadingSpace, skip); }
-        }
+        auto leading_space =
+            [&](int         line     = __builtin_LINE(),
+                char const* function = __builtin_FUNCTION()) {
+                if (0 < skip) {
+                    c.token_adv(otk::LeadingSpace, skip, line, function);
+                }
+            };
 
-        if (auto span = check_leading(c, '-')) {
+        while (c.is_at(' ', skip)) { ++skip; }
+
+        auto property_subname = [&](int pos) -> int {
+            if (auto sub = c.try_lexy_patt<
+                           dsl::p<org_ident> + dsl::lit_c<':'>>(pos)) {
+                pos += *sub;
+            }
+            return pos;
+        };
+
+        if (auto span = check_leading(c, '-', skip)) {
+            leading_space();
             c.token1(otk::LeadingMinus, &advance_count, *span);
-        } else if (auto span = check_leading(c, '+')) {
+            return;
+        } else if (auto span = check_leading(c, '+', skip)) {
+            leading_space();
             c.token_adv(otk::LeadingPlus, *span);
-        } else if (auto span = check_leading(c, '|')) {
+            return;
+        } else if (auto span = check_leading(c, '|', skip)) {
+            leading_space();
             c.token_adv(otk::LeadingPipe, *span);
+            return;
         } else if (
             auto span = c.try_lexy_patt<
                         dsl::lit_c<'|'>
@@ -978,53 +1024,71 @@ void switch_regular_char(Cursor& c) {
                             dsl::while_one(LEXY_ASCII_ONE_OF(":-"))
                             + dsl::while_one(LEXY_ASCII_ONE_OF("|+")))
                         + dsl::while_(LEXY_ASCII_ONE_OF(":|-"))
-                        + dsl::lit_c<'|'>>()) {
+                        + dsl::lit_c<'|'>>(skip)) {
+            leading_space();
             c.token_adv(otk::TableSeparator, *span);
-        } else if (auto span = c.try_lexy_patt<LEXY_LIT("CLOCK:")>()) {
-            c.token_adv(otk::TreeClock, *span);
-        } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":END:")>()) {
-            c.token_adv(otk::ColonEnd, *span);
+            return;
         } else if (
-            auto span = c.try_lexy_patt<LEXY_ILIT(":PROPERTIES:")>()) {
-            c.token_adv(otk::ColonProperties, *span);
+            auto span = c.try_lexy_patt<LEXY_ILIT("clock:")>(skip)) {
+            c.token_adv(otk::TreeClock, *span + skip);
+            while (c.can_search('\n')) { switch_regular_char(c); }
+            return;
+        } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":end:")>(skip)) {
+            c.token_adv(otk::ColonEnd, *span + skip);
+            return;
+        } else if (
+            auto span = c.try_lexy_patt<LEXY_ILIT(":properties:")>(skip)) {
+            c.token_adv(otk::ColonProperties, *span + skip);
+            return;
         } else if (
             auto span = c.try_lexy_patt<
                         dsl::digits<>
                         + (dsl::lit_c<'.'>
-                           | dsl::lit_c<')'>)+dsl::lit_c<' '>>()) {
-            c.token_adv(otk::LeadingNumber, *span - 1);
-        } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":LOGBOOK:")>()) {
-            c.token_adv(otk::ColonLogbook, *span);
+                           | dsl::lit_c<')'>)+dsl::lit_c<' '>>(skip)) {
+            leading_space();
+            c.token_adv(otk::LeadingNumber, *span - 1 + skip);
+            return;
+        } else if (
+            auto span = c.try_lexy_patt<LEXY_ILIT(":logbook:")>(skip)) {
+            c.token_adv(otk::ColonLogbook, *span + skip);
+            return;
         } else if (
             auto span = c.try_lexy_patt<
                         dsl::lit_c<':'> + dsl::p<argument_properties>
-                        + dsl::lit_c<':'>>()) {
-            c.token_adv(otk::ColonArgumentsProperty, *span);
+                        + dsl::lit_c<':'>>(skip)) {
+            c.token_adv(
+                otk::ColonArgumentsProperty,
+                property_subname(*span + skip));
+            while (c.can_search('\n')) { switch_cmd_argument(c); }
+            return;
         } else if (
             auto span = c.try_lexy_patt<
                         dsl::lit_c<':'> + dsl::p<text_properties>
-                        + dsl::lit_c<':'>>()) {
-            c.token_adv(otk::ColonPropertyText, *span);
-            while (c.can_search('\n')) { switch_cmd_argument(c); }
+                        + dsl::lit_c<':'>>(skip)) {
+            c.token_adv(
+                otk::ColonPropertyText, property_subname(*span + skip));
+            while (c.can_search('\n')) { switch_regular_char(c); }
+            return;
         } else if (
             auto span = c.try_lexy_patt<
                         dsl::lit_c<':'> + dsl::p<org_ident>
-                        + dsl::lit_c<':'>>()) {
-            int pos = *span;
+                        + dsl::lit_c<':'>>(skip)) {
 
-            if (auto sub = c.try_lexy_patt<
-                           dsl::p<org_ident> + dsl::lit_c<':'>>()) {
-                pos += *sub;
-            }
-
-            c.token_adv(otk::ColonLiteralProperty, pos);
+            c.token_adv(
+                otk::ColonLiteralProperty, property_subname(*span + skip));
             c.token0(otk::RawText, [](Cursor& c) {
                 while (c.can_search('\n')) { c.next(); }
             });
-        } else if (auto span = check_leading(c, ':')) {
+            return;
+        } else if (auto span = check_leading(c, ':', skip)) {
+            leading_space();
             int pos = *span;
             while (c.can_search('\n')) { ++pos; }
             c.token_adv(otk::ColonExampleLine, pos);
+            return;
+        } else if (0 < skip) {
+            leading_space();
+            return;
         }
     }
 
@@ -1059,7 +1123,7 @@ void switch_regular_char(Cursor& c) {
         case '"': c.token0(otk::DoubleQuote, &advance1); break;
         case '_': c.token0(otk::Underline, &advance1); break;
         case ';': c.token0(otk::Semicolon, &advance1); break;
-        case ',': c.token0(otk::Colon, &advance1); break;
+        case ',': c.token0(otk::Comma, &advance1); break;
         case '^': c.token0(otk::Circumflex, &advance1); break;
         case '|': {
             if (c.is_at('\n', +1)) {
@@ -1122,10 +1186,12 @@ void switch_regular_char(Cursor& c) {
                             + dsl::lit_c<']'>>()) {
                 c.token_adv(otk::Checkbox, *span);
             } else if (
-                auto span = c.try_lexy_patt<dsl::not_followed_by(
-                                LEXY_LIT("[fn:"), dsl::lit_c<':'>)>()) {
+                auto span = c.try_lexy_patt<
+                            dsl::not_followed_by(
+                                LEXY_ILIT("[fn:"), dsl::lit_c<':'>)
+                            + dsl::p<org_ident> + dsl::lit_c<']'>>()) {
                 c.token_adv(otk::FootnoteLinked, *span);
-            } else if (auto span = c.try_lexy_patt<LEXY_LIT("[fn::")>()) {
+            } else if (auto span = c.try_lexy_patt<LEXY_ILIT("[fn::")>()) {
                 c.token_adv(otk::FootnoteInlineBegin, *span);
             } else if (
                 auto span = c.try_lexy_patt<
@@ -1139,8 +1205,9 @@ void switch_regular_char(Cursor& c) {
                     auto span = c.try_lexy_patt<dsl::until(link_end)>();
                     c.token_adv(otk::LinkTargetFile, *span - 2);
                 } else if (c.is_iat("attachment")) {
+                    c.token0(otk::LinkProtocolAttachment, &advance_ident);
                     auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                    c.token_adv(otk::LinkProtocolAttachment, *span - 2);
+                    c.token_adv(otk::LinkTarget, *span - 2);
                 } else if (c.is_iat("id")) {
                     c.token0(otk::LinkProtocolId, &advance_ident);
                     auto span = c.try_lexy_patt<dsl::until(link_end)>();
@@ -1353,11 +1420,12 @@ void switch_regular_char(Cursor& c) {
             while (c.is_at('\n')) {
                 ++newlineCount;
                 c.next();
-                end = c.pos;
+                end         = c.pos;
+                auto recall = c.getRecall();
                 while (c.is_at(' ')) { c.next(); }
 
                 if (!c.is_at('\n')) {
-                    c.pos = end;
+                    c.setRecall(recall);
                     break;
                 }
             }
@@ -1386,7 +1454,6 @@ void switch_regular_char(Cursor& c) {
                                 + dsl::digit<> + dsl::lit_c<':'>
                                 + dsl::digit<> + dsl::digit<>>()) {
                     int pos = *span;
-                    if (c.is_at(' ', pos)) { ++pos; }
                     if (c.is_iat("am", pos) || c.is_iat("pm", pos)) {
                         pos += 2;
                     }
@@ -1397,7 +1464,6 @@ void switch_regular_char(Cursor& c) {
                                 + dsl::lit_c<':'> + dsl::digit<>
                                 + dsl::digit<>>()) {
                     int pos = *span;
-                    if (c.is_at(' ', pos)) { ++pos; }
                     if (c.is_iat("am", pos) || c.is_iat("pm", pos)) {
                         pos += 2;
                     }

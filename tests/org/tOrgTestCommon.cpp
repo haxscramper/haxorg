@@ -34,22 +34,31 @@ sem::SemId<sem::Org> testParseString(
     sem::OrgConverter       converter{};
     org::parse::LexerParams params;
     if (debug) {
-        fs::path tokenizer_trace{debug.value() + "_tokenizer_trace.log"};
-        fs::path parser_trace{debug.value() + "_parser_trace.log"};
-        fs::path sem_trace{debug.value() + "_sem_trace.log"};
-        fs::path lex_trace{debug.value() + "_lex_trace.log"};
-        p.tokenizer->setTraceFile(tokenizer_trace);
-        p.parser->setTraceFile(parser_trace);
-        converter.setTraceFile(sem_trace);
+        p.tokenizer->setTraceFile(
+            fs::path{debug.value() + "_tokenizer_trace.log"});
+        p.parser->setTraceFile(
+            fs::path{debug.value() + "_parser_trace.log"});
+        converter.setTraceFile(fs::path{debug.value() + "_sem_trace.log"});
         p.parser->traceColored    = false;
         p.tokenizer->traceColored = false;
-        params.setTraceFile(lex_trace);
+        params.setTraceFile(fs::path{debug.value() + "_lex_trace.log"});
         p.tokenizeBase(text, params);
+
+        writeFile(
+            fs::path{debug.value() + "_base_lexed.yaml"},
+            std::format("{}", org::test::yamlRepr(p.baseTokens)));
     } else {
         p.tokenizeBase(text, params);
     }
 
     p.tokenizeConvert();
+
+    if (debug) {
+        writeFile(
+            fs::path{debug.value() + "_lexed.yaml"},
+            std::format("{}", org::test::yamlRepr(p.tokens)));
+    }
+
     p.parse();
 
     if (debug) {
