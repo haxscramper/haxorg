@@ -3395,6 +3395,7 @@ def get_org_token_kind():
         efield("CmdRowEnd", ""),
         efield("CmdSelectTagsRaw", ""),
         efield("CmdSeqTodoRaw", ""),
+        efield("CmdKeywordsRaw", ""),
         efield("CmdSetupfileRaw", ""),
         efield("CmdSrcBegin", ""),
         efield("CmdSrcEnd", ""),

@@ -439,7 +439,6 @@ void OrgParser::textFold(OrgLexer& lex) {
                 }
 
                 case otk::MiscUnicode:
-                case otk::WeekdayName:
                 case otk::Time:
                 case otk::Date:
                 case otk::SubtreePriority:
@@ -838,7 +837,7 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
         }
 
         // Day can sometimes be added to the timestamp
-        if (lex.at(otk::WeekdayName)) {
+        if (lex.at(otk::Word)) {
             skip(lex);
             space(lex);
         }
@@ -899,7 +898,7 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
         otk::AngleEnd,
         otk::DynamicTimeContent,
         otk::Date,
-        otk::WeekdayName,
+        otk::Word,
         otk::Time,
         otk::Number,
         otk::StrikeBegin,
