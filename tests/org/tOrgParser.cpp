@@ -337,8 +337,7 @@ TEST(OrgParseSem, SubtreeLogParsing) {
      CLOCK: [2000-01-03 Wed 09:51:50 +04]--[2000-01-03 Wed 10:43:40 +04] =>  0:52
      - State "WIP"        from "TODO"       [2000-01-03 Wed 09:51:50 +04]
      - State "COMPLETED"  from "WIP"        [2000-01-03 Wed 10:43:40 +04]
-     :END:)",
-            getDebugFile("subtree_log_parsing_1"));
+     :END:)");
 
         EXPECT_EQ(s->logbook.size(), 4);
         auto const& l = s->logbook;
@@ -367,7 +366,8 @@ TEST(OrgParseSem, SubtreeLogParsing) {
   - New deadline from "[2019-09-26 Thu]" on [2019-09-27 Fri 22:36] \\
     New week deadline
   :END:
-)");
+)",
+            getDebugFile("prolog"));
         EXPECT_TRUE(t->deadline.has_value());
         auto d = t->deadline->getBreakdown();
         EXPECT_EQ(d.day, 15);
@@ -645,7 +645,7 @@ TEST(OrgParseSem, TextParsing) {
 
     {
         auto par = parseOne<sem::Paragraph>(R"([2024-12])");
-        EXPECT_EQ(par.size(), 3);
+        EXPECT_EQ(par.size(), 5);
     }
 }
 
@@ -799,7 +799,8 @@ TEST(OrgParseSem, Macro) {
         EXPECT_EQ(m->attrs.atPositional(0).getString(), "arg"_ss);
     }
     {
-        auto m = parseOne<sem::Macro>(R"({{{dashed-name}}})");
+        auto m = parseOne<sem::Macro>(
+            R"({{{dashed-name}}})", getDebugFile("macro_dashed_name"));
         EXPECT_EQ(m->name, "dashed-name"_ss);
     }
     {
@@ -939,7 +940,9 @@ TEST(OrgParseSem, IncludeCommand) {
     };
 
     {
-        auto i = get(R"(#+include: data.org)");
+        auto i = get(
+            R"(#+include: data.org)",
+            getDebugFile("include_command_item"));
         EXPECT_EQ2(i->path, "data.org"_ss);
     }
     {

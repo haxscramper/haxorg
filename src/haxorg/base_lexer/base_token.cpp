@@ -485,7 +485,18 @@ void advance_count(Cursor& c, int count) {
 
 void advance1(Cursor& c) { c.next(); }
 
-void advance_alnum(Cursor& c) {
+void advance_word(Cursor& c) {
+    while (c.has_text() && std::isalnum(c.get())) { c.next(); }
+    while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1)
+           && std::isalnum(c.get(+1))) {
+        while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1)
+               && std::isalnum(c.get(+1))) {
+            c.next();
+        }
+        while (c.has_text() && std::isalnum(c.get())) { c.next(); }
+    }
+
+    if (c.is_at('\'')) { c.next(); }
     while (c.has_text() && std::isalnum(c.get())) { c.next(); }
 }
 
@@ -542,8 +553,9 @@ void switch_cmd_argument(Cursor& c) {
         }
         default: {
             c.token0(otk::CmdRawArg, [](Cursor& c) {
-                while (!c.is_at_any_of(
-                    0, '(', ')', ']', '[', '=', ',', ' ', '\n')) {
+                while (c.has_text()
+                       && !c.is_at_any_of(
+                           0, '(', ')', ']', '[', '=', ',', ' ', '\n')) {
                     c.next();
                 }
             });
@@ -867,7 +879,7 @@ void switch_subtree_head(Cursor& c) {
                 c.token0(otk::SubtreePriority, [](Cursor& c) {
                     c.skip('[');
                     c.skip('#');
-                    advance_alnum(c);
+                    advance_word(c);
                     c.skip(']');
                 });
             } else {
@@ -934,12 +946,12 @@ void switch_word(Cursor& c) {
             break;
     }
 
-    c.token0(otk::Word, &advance_alnum);
+    c.token0(otk::Word, &advance_word);
 }
 
 auto check_leading(Cursor& c, char ch, int skip) -> std::optional<int> {
     if (c.is_at(ch, skip) && c.is_at(' ', 1 + skip)) {
-        return 2;
+        return 1;
     } else {
         return std::nullopt;
     }
@@ -1006,16 +1018,13 @@ void switch_regular_char(Cursor& c) {
         };
 
         if (auto span = check_leading(c, '-', skip)) {
-            leading_space();
-            c.token1(otk::LeadingMinus, &advance_count, *span);
+            c.token1(otk::LeadingMinus, &advance_count, *span + skip);
             return;
         } else if (auto span = check_leading(c, '+', skip)) {
-            leading_space();
-            c.token_adv(otk::LeadingPlus, *span);
+            c.token_adv(otk::LeadingPlus, *span + skip);
             return;
         } else if (auto span = check_leading(c, '|', skip)) {
-            leading_space();
-            c.token_adv(otk::LeadingPipe, *span);
+            c.token_adv(otk::LeadingPipe, *span + skip);
             return;
         } else if (
             auto span = c.try_lexy_patt<
@@ -1045,7 +1054,6 @@ void switch_regular_char(Cursor& c) {
                         dsl::digits<>
                         + (dsl::lit_c<'.'>
                            | dsl::lit_c<')'>)+dsl::lit_c<' '>>(skip)) {
-            leading_space();
             c.token_adv(otk::LeadingNumber, *span - 1 + skip);
             return;
         } else if (
@@ -1095,10 +1103,11 @@ void switch_regular_char(Cursor& c) {
 
     switch (c.get()) {
         case '*': {
-            if (c.col == 0) {
+            if (c.col == 0
+                && c.try_lexy_patt<
+                    dsl::while_one(dsl::lit_c<'*'>) + dsl::lit_c<' '>>()) {
                 c.token0(otk::SubtreeStars, [](Cursor& c) {
                     advance_char1(c, '*');
-                    advance_char1(c, ' ');
                 });
             } else {
                 c.token0(otk::Asterisk, &advance1);
@@ -1152,7 +1161,7 @@ void switch_regular_char(Cursor& c) {
             if (c.is_at_all_of(1, &is_alpha_char)) {
                 c.token0(otk::Symbol, [](Cursor& c) {
                     c.skip('\\');
-                    advance_alnum(c);
+                    advance_word(c);
                 });
             } else if (c.is_at('\\', +1)) {
                 c.token_adv(otk::DoubleSlash, 2);
@@ -1254,7 +1263,8 @@ void switch_regular_char(Cursor& c) {
                         break;
                     }
                     default: {
-                        c.unhandled();
+                        c.token0(otk::LinkProtocol, &advance_ident);
+                        break;
                     }
                 }
 
@@ -1304,7 +1314,7 @@ void switch_regular_char(Cursor& c) {
                             + dsl::lit_c<'>'>>()) {
                 c.token_adv(otk::Placeholder, *span);
             } else {
-                c.token0(otk::AngleEnd, &advance1);
+                c.token0(otk::AngleBegin, &advance1);
             }
             break;
         }
@@ -1320,7 +1330,7 @@ void switch_regular_char(Cursor& c) {
             } else if (c.is_at_all_of(1, &is_alpha_char)) {
                 c.token0(otk::HashIdent, [](Cursor& c) {
                     c.skip('#');
-                    advance_alnum(c);
+                    advance_word(c);
                 });
             } else {
                 c.token0(otk::Punctuation, &advance1);
@@ -1331,7 +1341,7 @@ void switch_regular_char(Cursor& c) {
             if (c.has_pos(1) && std::isalpha(c.get(1))) {
                 c.token0(otk::At, [](Cursor& c) {
                     c.next();
-                    advance_alnum(c);
+                    advance_word(c);
                 });
             } else if (
                 auto span = c.try_lexy_patt<
