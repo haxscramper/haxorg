@@ -1296,6 +1296,22 @@ class HashTagFlat:
     def __getattr__(self, name: str) -> object: ...
     tags: List[str]
 
+class TodoKeywordTransition(Enum):
+    _None = 1
+    NoteWithTimestamp = 2
+    Timestamp = 3
+
+class TodoKeyword:
+    def __init__(self, name: str, shortcut: Optional[str], onEnter: TodoKeywordTransition, onLeave: TodoKeywordTransition) -> None: ...
+    def __eq__(self, other: TodoKeyword) -> bool: ...
+    def __lt__(self, other: TodoKeyword) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    name: str
+    shortcut: Optional[str]
+    onEnter: TodoKeywordTransition
+    onLeave: TodoKeywordTransition
+
 class HashTagText:
     def __init__(self, head: str, subtags: List[HashTagText]) -> None: ...
     def __eq__(self, other: HashTagText) -> bool: ...
@@ -2520,7 +2536,7 @@ class ListItem(Org):
     bullet: Optional[str]
 
 class DocumentOptions(Org):
-    def __init__(self, initialVisibility: InitialSubtreeVisibility, properties: List[NamedProperty], exportConfig: DocumentExportConfig, fixedWidthSections: Optional[bool], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], maxSubtreeLevelExport: Optional[int], columns: Optional[ColumnView]) -> None: ...
+    def __init__(self, initialVisibility: InitialSubtreeVisibility, properties: List[NamedProperty], exportConfig: DocumentExportConfig, fixedWidthSections: Optional[bool], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], maxSubtreeLevelExport: Optional[int], columns: Optional[ColumnView], todoKeywords: List[TodoKeyword], doneKeywords: List[TodoKeyword]) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[NamedProperty]: ...
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[NamedProperty]: ...
     def __repr__(self) -> str: ...
@@ -2534,6 +2550,8 @@ class DocumentOptions(Org):
     setupfile: Optional[str]
     maxSubtreeLevelExport: Optional[int]
     columns: Optional[ColumnView]
+    todoKeywords: List[TodoKeyword]
+    doneKeywords: List[TodoKeyword]
 
 class DocumentFragment(Org):
     def __init__(self, baseLine: int, baseCol: int) -> None: ...
@@ -4556,75 +4574,76 @@ class OrgNodeKind(Enum):
     CmdPropertyText = 51
     CmdPropertyRaw = 52
     CmdFiletags = 53
-    BlockVerbatimMultiline = 54
-    CodeLine = 55
-    CodeText = 56
-    CodeTangle = 57
-    CodeCallout = 58
-    BlockCode = 59
-    BlockQuote = 60
-    BlockComment = 61
-    BlockCenter = 62
-    BlockVerse = 63
-    BlockExample = 64
-    BlockExport = 65
-    BlockDetails = 66
-    BlockSummary = 67
-    BlockDynamicFallback = 68
-    BigIdent = 69
-    Bold = 70
-    ErrorWrap = 71
-    ErrorToken = 72
-    Italic = 73
-    Verbatim = 74
-    Backtick = 75
-    Underline = 76
-    Strike = 77
-    Quote = 78
-    Angle = 79
-    Monospace = 80
-    Par = 81
-    CriticMarkStructure = 82
-    InlineMath = 83
-    DisplayMath = 84
-    Space = 85
-    Punctuation = 86
-    Colon = 87
-    Word = 88
-    Escaped = 89
-    Newline = 90
-    RawLink = 91
-    Link = 92
-    Macro = 93
-    Symbol = 94
-    StaticActiveTime = 95
-    StaticInactiveTime = 96
-    DynamicActiveTime = 97
-    DynamicInactiveTime = 98
-    TimeRange = 99
-    SimpleTime = 100
-    HashTag = 101
-    MetaSymbol = 102
-    AtMention = 103
-    Placeholder = 104
-    RadioTarget = 105
-    Target = 106
-    SrcInlineCode = 107
-    InlineCallCode = 108
-    InlineExport = 109
-    InlineComment = 110
-    RawText = 111
-    SubtreeDescription = 112
-    SubtreeUrgency = 113
-    DrawerLogbook = 114
-    Drawer = 115
-    DrawerPropertyList = 116
-    DrawerProperty = 117
-    Subtree = 118
-    SubtreeTimes = 119
-    SubtreeStars = 120
-    SubtreeCompletion = 121
-    SubtreeImportance = 122
+    CmdKeywords = 54
+    BlockVerbatimMultiline = 55
+    CodeLine = 56
+    CodeText = 57
+    CodeTangle = 58
+    CodeCallout = 59
+    BlockCode = 60
+    BlockQuote = 61
+    BlockComment = 62
+    BlockCenter = 63
+    BlockVerse = 64
+    BlockExample = 65
+    BlockExport = 66
+    BlockDetails = 67
+    BlockSummary = 68
+    BlockDynamicFallback = 69
+    BigIdent = 70
+    Bold = 71
+    ErrorWrap = 72
+    ErrorToken = 73
+    Italic = 74
+    Verbatim = 75
+    Backtick = 76
+    Underline = 77
+    Strike = 78
+    Quote = 79
+    Angle = 80
+    Monospace = 81
+    Par = 82
+    CriticMarkStructure = 83
+    InlineMath = 84
+    DisplayMath = 85
+    Space = 86
+    Punctuation = 87
+    Colon = 88
+    Word = 89
+    Escaped = 90
+    Newline = 91
+    RawLink = 92
+    Link = 93
+    Macro = 94
+    Symbol = 95
+    StaticActiveTime = 96
+    StaticInactiveTime = 97
+    DynamicActiveTime = 98
+    DynamicInactiveTime = 99
+    TimeRange = 100
+    SimpleTime = 101
+    HashTag = 102
+    MetaSymbol = 103
+    AtMention = 104
+    Placeholder = 105
+    RadioTarget = 106
+    Target = 107
+    SrcInlineCode = 108
+    InlineCallCode = 109
+    InlineExport = 110
+    InlineComment = 111
+    RawText = 112
+    SubtreeDescription = 113
+    SubtreeUrgency = 114
+    DrawerLogbook = 115
+    Drawer = 116
+    DrawerPropertyList = 117
+    DrawerProperty = 118
+    Subtree = 119
+    SubtreeTimes = 120
+    SubtreeStars = 121
+    SubtreeCompletion = 122
+    SubtreeImportance = 123
 
 class OrgTokenKind(Enum):
     Ampersand = 1

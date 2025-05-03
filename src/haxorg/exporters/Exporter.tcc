@@ -127,6 +127,14 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::HashTagFlat const& object) { __obj_field(res, object, tags); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::TodoKeyword const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, shortcut);
+  __obj_field(res, object, onEnter);
+  __obj_field(res, object, onLeave);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::HashTagText const& object) {
   __obj_field(res, object, head);
   __obj_field(res, object, subtags);
@@ -1159,6 +1167,8 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
   __org_field(res, object, setupfile);
   __org_field(res, object, maxSubtreeLevelExport);
   __org_field(res, object, columns);
+  __org_field(res, object, todoKeywords);
+  __org_field(res, object, doneKeywords);
   __org_field(res, object, loc);
   __org_field(res, object, subnodes);
 }

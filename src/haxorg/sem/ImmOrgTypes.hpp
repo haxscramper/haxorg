@@ -1295,7 +1295,9 @@ struct ImmDocumentOptions : public org::imm::ImmOrg {
                         category,
                         setupfile,
                         maxSubtreeLevelExport,
-                        columns))
+                        columns,
+                        todoKeywords,
+                        doneKeywords))
   static OrgSemKind const staticKind;
   InitialSubtreeVisibility initialVisibility = InitialSubtreeVisibility::ShowEverything;
   hstd::ext::ImmVec<org::sem::NamedProperty> properties = {};
@@ -1306,6 +1308,8 @@ struct ImmDocumentOptions : public org::imm::ImmOrg {
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> setupfile = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<int>> maxSubtreeLevelExport = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>> columns = std::nullopt;
+  hstd::ext::ImmVec<org::sem::TodoKeyword> todoKeywords = {};
+  hstd::ext::ImmVec<org::sem::TodoKeyword> doneKeywords = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   bool operator==(org::imm::ImmDocumentOptions const& other) const;
 };

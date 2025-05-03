@@ -99,6 +99,8 @@ PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::NamedProperty>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SubtreePeriod>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SubtreePeriod>)
 PYBIND11_MAKE_OPAQUE(hstd::IntSet<org::sem::SubtreePeriod::Kind>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::TodoKeyword>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::TodoKeyword>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BigIdent>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BigIdent>>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::UserTime>)
@@ -182,6 +184,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_hstdVec<org::sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
   bind_hstdVec<org::sem::SubtreePeriod>(m, "VecOfSubtreePeriod", type_registry_guard);
   bind_hstdIntSet<org::sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
+  bind_hstdVec<org::sem::TodoKeyword>(m, "VecOfTodoKeyword", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
   bind_hstdVec<hstd::UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
@@ -2856,6 +2859,51 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::HashTagFlat const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::sem::TodoKeyword::Transition>(m, "TodoKeywordTransition", type_registry_guard);
+  pybind11::enum_<org::sem::TodoKeyword::Transition>(m, "TodoKeywordTransition")
+    .value("None", org::sem::TodoKeyword::Transition::None)
+    .value("NoteWithTimestamp", org::sem::TodoKeyword::Transition::NoteWithTimestamp)
+    .value("Timestamp", org::sem::TodoKeyword::Transition::Timestamp)
+    .def("__iter__", [](org::sem::TodoKeyword::Transition const& _self) -> org::bind::python::PyEnumIterator<org::sem::TodoKeyword::Transition> {
+                     return org::bind::python::PyEnumIterator<org::sem::TodoKeyword::Transition>();
+                     })
+    .def("__eq__",
+         [](org::sem::TodoKeyword::Transition const& _self, org::sem::TodoKeyword::Transition lhs, org::sem::TodoKeyword::Transition rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::TodoKeyword::Transition const& _self, org::sem::TodoKeyword::Transition it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  pybind11::class_<org::sem::TodoKeyword>(m, "TodoKeyword")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::TodoKeyword {
+                        org::sem::TodoKeyword result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &org::sem::TodoKeyword::name)
+    .def_readwrite("shortcut", &org::sem::TodoKeyword::shortcut)
+    .def_readwrite("onEnter", &org::sem::TodoKeyword::onEnter)
+    .def_readwrite("onLeave", &org::sem::TodoKeyword::onLeave)
+    .def("__eq__",
+         static_cast<bool(org::sem::TodoKeyword::*)(org::sem::TodoKeyword const&) const>(&org::sem::TodoKeyword::operator==),
+         pybind11::arg("other"))
+    .def("__lt__",
+         static_cast<bool(org::sem::TodoKeyword::*)(org::sem::TodoKeyword const&) const>(&org::sem::TodoKeyword::operator<),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::TodoKeyword const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::TodoKeyword const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -5780,6 +5828,8 @@ ingoing elements.)RAW")
     .def_readwrite("setupfile", &org::sem::DocumentOptions::setupfile)
     .def_readwrite("maxSubtreeLevelExport", &org::sem::DocumentOptions::maxSubtreeLevelExport)
     .def_readwrite("columns", &org::sem::DocumentOptions::columns)
+    .def_readwrite("todoKeywords", &org::sem::DocumentOptions::todoKeywords)
+    .def_readwrite("doneKeywords", &org::sem::DocumentOptions::doneKeywords)
     .def("getProperties",
          static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperties),
          pybind11::arg("kind"),
@@ -8992,6 +9042,7 @@ ingoing elements.)RAW")
     .value("CmdPropertyText", OrgNodeKind::CmdPropertyText, R"RAW(`#+property:` command)RAW")
     .value("CmdPropertyRaw", OrgNodeKind::CmdPropertyRaw, R"RAW(`#+property:` command)RAW")
     .value("CmdFiletags", OrgNodeKind::CmdFiletags, R"RAW(`#+filetags:` line command)RAW")
+    .value("CmdKeywords", OrgNodeKind::CmdKeywords)
     .value("BlockVerbatimMultiline", OrgNodeKind::BlockVerbatimMultiline, R"RAW(Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.)RAW")
     .value("CodeLine", OrgNodeKind::CodeLine, R"RAW(Single line of source code)RAW")
     .value("CodeText", OrgNodeKind::CodeText, R"RAW(Block of source code text)RAW")

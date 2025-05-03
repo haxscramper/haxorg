@@ -683,6 +683,7 @@ struct LineToken {
         otk::CmdHtmlHeadRaw,   otk::CmdSelectTagsRaw,
         otk::CmdDrawersRaw,    otk::CmdConstants,
         otk::CmdCreator,       otk::CmdCall,
+        otk::CmdKeywordsRaw,
     };
 
     Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {

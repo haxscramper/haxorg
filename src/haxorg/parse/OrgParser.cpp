@@ -1112,7 +1112,7 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
             end();
             end();
         }
-        skip(lex, otk::TrailingPipe);
+        skip(lex, otk::TrailingPipe, __LINE__, "parse_pipe_row");
         if (lex.at(Newline)) { skip(lex, Newline); }
 
         end();
@@ -1525,11 +1525,27 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
                         break;
                     }
                     case otk::DoubleAngleBegin: {
-                        skip(lex, otk::DoubleAngleBegin);
-                        start(onk::CodeTangle);
-                        parseCSVArguments(lex);
-                        end();
-                        skip(lex, otk::DoubleAngleEnd);
+                        bool hasClose = false;
+                        for (int offset = 0; lex.hasNext(offset);
+                             ++offset) {
+                            if (lex.at(otk::DoubleAngleEnd, offset)) {
+                                hasClose = true;
+                                break;
+                            } else if (lex.at(otk::Newline, offset)) {
+                                break;
+                            }
+                        }
+                        if (hasClose) {
+                            skip(lex, otk::DoubleAngleBegin);
+                            start(onk::CodeTangle);
+                            parseCSVArguments(lex);
+                            end();
+                            skip(lex, otk::DoubleAngleEnd);
+                        } else {
+                            token(
+                                onk::CodeText,
+                                pop(lex, otk::DoubleAngleBegin));
+                        }
                         break;
                     }
                     case otk::DoubleAngleEnd: {
@@ -2234,6 +2250,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
+        case otk::CmdKeywordsRaw:
         case otk::CmdTblfm:
         case otk::CmdColumns: {
             skip(lex, otk::CmdPrefix);
@@ -2241,6 +2258,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             switch (cmd_kind) {
                 case otk::CmdTblfm: start(onk::CmdTblfm); break;
                 case otk::CmdColumns: start(onk::CmdColumns); break;
+                case otk::CmdKeywordsRaw: start(onk::CmdKeywords); break;
                 default: throw fatalError(lex, "asdf");
             }
             get_cmd_arguments();

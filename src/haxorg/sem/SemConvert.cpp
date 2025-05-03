@@ -2746,6 +2746,9 @@ bool OrgConverter::updateDocument(
             doc->options->properties.push_back(Prop(res));
             return true;
         }
+        case onk::CmdKeywords: {
+            return true;
+        }
         case onk::CmdFiletags: {
             for (auto const& hash : many(sub, N::Tags)) {
                 doc->filetags.push_back(convertHashTag(hash).value());

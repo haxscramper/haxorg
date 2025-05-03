@@ -1720,6 +1720,33 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
         ),
         org_struct(
+            t_nest_shared("TodoKeyword"),
+            fields=[
+                str_field("name"),
+                opt_field(t_str(), "shortcut"),
+                org_field(t_nest_shared("Transition", [t("TodoKeyword")]), "onEnter"),
+                org_field(t_nest_shared("Transition", [t("TodoKeyword")]), "onLeave"),
+            ],
+            nested=[
+                d_simple_enum(
+                    t_nest_shared("Transition", [t("TodoKeyword")]),
+                    GenTuDoc(""),
+                    efield("None"),
+                    efield("NoteWithTimestamp"),
+                    efield("Timestamp"),
+                ),
+            ],
+            methods=[
+                eq_method(t_nest_shared("TodoKeyword")),
+                org_function(
+                    result=t_bool(),
+                    name="operator<",
+                    arguments=[arg_ident(t_cr(t_nest_shared("TodoKeyword")), "other")],
+                    isConst=True,
+                ),
+            ],
+        ),
+        org_struct(
             t_nest_shared("HashTagText"),
             org_doc("Single or nested inline hash-tag"),
             fields=[
@@ -2883,6 +2910,8 @@ def get_types() -> Sequence[GenTuStruct]:
                 opt_field(t_str(), "setupfile"),
                 opt_field(t_int(), "maxSubtreeLevelExport"),
                 opt_field(t_nest_shared("ColumnView"), "columns"),
+                vec_field(t_nest_shared("TodoKeyword"), "todoKeywords"),
+                vec_field(t_nest_shared("TodoKeyword"), "doneKeywords"),
             ],
         ),
         d_org(
@@ -3285,6 +3314,7 @@ def get_org_node_kind_commands():
         efield("CmdPropertyText", "`#+property:` command"),
         efield("CmdPropertyRaw", "`#+property:` command"),
         efield("CmdFiletags", "`#+filetags:` line command"),
+        efield("CmdKeywords", ""),
     ]
 
 

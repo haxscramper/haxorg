@@ -146,75 +146,76 @@ enum OrgNodeKind {
   OrgNodeKind_CmdPropertyText_f                                                     = 50;
   OrgNodeKind_CmdPropertyRaw_f                                                      = 51;
   OrgNodeKind_CmdFiletags_f                                                         = 52;
-  OrgNodeKind_BlockVerbatimMultiline_f                                              = 53;
-  OrgNodeKind_CodeLine_f                                                            = 54;
-  OrgNodeKind_CodeText_f                                                            = 55;
-  OrgNodeKind_CodeTangle_f                                                          = 56;
-  OrgNodeKind_CodeCallout_f                                                         = 57;
-  OrgNodeKind_BlockCode_f                                                           = 58;
-  OrgNodeKind_BlockQuote_f                                                          = 59;
-  OrgNodeKind_BlockComment_f                                                        = 60;
-  OrgNodeKind_BlockCenter_f                                                         = 61;
-  OrgNodeKind_BlockVerse_f                                                          = 62;
-  OrgNodeKind_BlockExample_f                                                        = 63;
-  OrgNodeKind_BlockExport_f                                                         = 64;
-  OrgNodeKind_BlockDetails_f                                                        = 65;
-  OrgNodeKind_BlockSummary_f                                                        = 66;
-  OrgNodeKind_BlockDynamicFallback_f                                                = 67;
-  OrgNodeKind_BigIdent_f                                                            = 68;
-  OrgNodeKind_Bold_f                                                                = 69;
-  OrgNodeKind_ErrorWrap_f                                                           = 70;
-  OrgNodeKind_ErrorToken_f                                                          = 71;
-  OrgNodeKind_Italic_f                                                              = 72;
-  OrgNodeKind_Verbatim_f                                                            = 73;
-  OrgNodeKind_Backtick_f                                                            = 74;
-  OrgNodeKind_Underline_f                                                           = 75;
-  OrgNodeKind_Strike_f                                                              = 76;
-  OrgNodeKind_Quote_f                                                               = 77;
-  OrgNodeKind_Angle_f                                                               = 78;
-  OrgNodeKind_Monospace_f                                                           = 79;
-  OrgNodeKind_Par_f                                                                 = 80;
-  OrgNodeKind_CriticMarkStructure_f                                                 = 81;
-  OrgNodeKind_InlineMath_f                                                          = 82;
-  OrgNodeKind_DisplayMath_f                                                         = 83;
-  OrgNodeKind_Space_f                                                               = 84;
-  OrgNodeKind_Punctuation_f                                                         = 85;
-  OrgNodeKind_Colon_f                                                               = 86;
-  OrgNodeKind_Word_f                                                                = 87;
-  OrgNodeKind_Escaped_f                                                             = 88;
-  OrgNodeKind_Newline_f                                                             = 89;
-  OrgNodeKind_RawLink_f                                                             = 90;
-  OrgNodeKind_Link_f                                                                = 91;
-  OrgNodeKind_Macro_f                                                               = 92;
-  OrgNodeKind_Symbol_f                                                              = 93;
-  OrgNodeKind_StaticActiveTime_f                                                    = 94;
-  OrgNodeKind_StaticInactiveTime_f                                                  = 95;
-  OrgNodeKind_DynamicActiveTime_f                                                   = 96;
-  OrgNodeKind_DynamicInactiveTime_f                                                 = 97;
-  OrgNodeKind_TimeRange_f                                                           = 98;
-  OrgNodeKind_SimpleTime_f                                                          = 99;
-  OrgNodeKind_HashTag_f                                                             = 100;
-  OrgNodeKind_MetaSymbol_f                                                          = 101;
-  OrgNodeKind_AtMention_f                                                           = 102;
-  OrgNodeKind_Placeholder_f                                                         = 103;
-  OrgNodeKind_RadioTarget_f                                                         = 104;
-  OrgNodeKind_Target_f                                                              = 105;
-  OrgNodeKind_SrcInlineCode_f                                                       = 106;
-  OrgNodeKind_InlineCallCode_f                                                      = 107;
-  OrgNodeKind_InlineExport_f                                                        = 108;
-  OrgNodeKind_InlineComment_f                                                       = 109;
-  OrgNodeKind_RawText_f                                                             = 110;
-  OrgNodeKind_SubtreeDescription_f                                                  = 111;
-  OrgNodeKind_SubtreeUrgency_f                                                      = 112;
-  OrgNodeKind_DrawerLogbook_f                                                       = 113;
-  OrgNodeKind_Drawer_f                                                              = 114;
-  OrgNodeKind_DrawerPropertyList_f                                                  = 115;
-  OrgNodeKind_DrawerProperty_f                                                      = 116;
-  OrgNodeKind_Subtree_f                                                             = 117;
-  OrgNodeKind_SubtreeTimes_f                                                        = 118;
-  OrgNodeKind_SubtreeStars_f                                                        = 119;
-  OrgNodeKind_SubtreeCompletion_f                                                   = 120;
-  OrgNodeKind_SubtreeImportance_f                                                   = 121;
+  OrgNodeKind_CmdKeywords_f                                                         = 53;
+  OrgNodeKind_BlockVerbatimMultiline_f                                              = 54;
+  OrgNodeKind_CodeLine_f                                                            = 55;
+  OrgNodeKind_CodeText_f                                                            = 56;
+  OrgNodeKind_CodeTangle_f                                                          = 57;
+  OrgNodeKind_CodeCallout_f                                                         = 58;
+  OrgNodeKind_BlockCode_f                                                           = 59;
+  OrgNodeKind_BlockQuote_f                                                          = 60;
+  OrgNodeKind_BlockComment_f                                                        = 61;
+  OrgNodeKind_BlockCenter_f                                                         = 62;
+  OrgNodeKind_BlockVerse_f                                                          = 63;
+  OrgNodeKind_BlockExample_f                                                        = 64;
+  OrgNodeKind_BlockExport_f                                                         = 65;
+  OrgNodeKind_BlockDetails_f                                                        = 66;
+  OrgNodeKind_BlockSummary_f                                                        = 67;
+  OrgNodeKind_BlockDynamicFallback_f                                                = 68;
+  OrgNodeKind_BigIdent_f                                                            = 69;
+  OrgNodeKind_Bold_f                                                                = 70;
+  OrgNodeKind_ErrorWrap_f                                                           = 71;
+  OrgNodeKind_ErrorToken_f                                                          = 72;
+  OrgNodeKind_Italic_f                                                              = 73;
+  OrgNodeKind_Verbatim_f                                                            = 74;
+  OrgNodeKind_Backtick_f                                                            = 75;
+  OrgNodeKind_Underline_f                                                           = 76;
+  OrgNodeKind_Strike_f                                                              = 77;
+  OrgNodeKind_Quote_f                                                               = 78;
+  OrgNodeKind_Angle_f                                                               = 79;
+  OrgNodeKind_Monospace_f                                                           = 80;
+  OrgNodeKind_Par_f                                                                 = 81;
+  OrgNodeKind_CriticMarkStructure_f                                                 = 82;
+  OrgNodeKind_InlineMath_f                                                          = 83;
+  OrgNodeKind_DisplayMath_f                                                         = 84;
+  OrgNodeKind_Space_f                                                               = 85;
+  OrgNodeKind_Punctuation_f                                                         = 86;
+  OrgNodeKind_Colon_f                                                               = 87;
+  OrgNodeKind_Word_f                                                                = 88;
+  OrgNodeKind_Escaped_f                                                             = 89;
+  OrgNodeKind_Newline_f                                                             = 90;
+  OrgNodeKind_RawLink_f                                                             = 91;
+  OrgNodeKind_Link_f                                                                = 92;
+  OrgNodeKind_Macro_f                                                               = 93;
+  OrgNodeKind_Symbol_f                                                              = 94;
+  OrgNodeKind_StaticActiveTime_f                                                    = 95;
+  OrgNodeKind_StaticInactiveTime_f                                                  = 96;
+  OrgNodeKind_DynamicActiveTime_f                                                   = 97;
+  OrgNodeKind_DynamicInactiveTime_f                                                 = 98;
+  OrgNodeKind_TimeRange_f                                                           = 99;
+  OrgNodeKind_SimpleTime_f                                                          = 100;
+  OrgNodeKind_HashTag_f                                                             = 101;
+  OrgNodeKind_MetaSymbol_f                                                          = 102;
+  OrgNodeKind_AtMention_f                                                           = 103;
+  OrgNodeKind_Placeholder_f                                                         = 104;
+  OrgNodeKind_RadioTarget_f                                                         = 105;
+  OrgNodeKind_Target_f                                                              = 106;
+  OrgNodeKind_SrcInlineCode_f                                                       = 107;
+  OrgNodeKind_InlineCallCode_f                                                      = 108;
+  OrgNodeKind_InlineExport_f                                                        = 109;
+  OrgNodeKind_InlineComment_f                                                       = 110;
+  OrgNodeKind_RawText_f                                                             = 111;
+  OrgNodeKind_SubtreeDescription_f                                                  = 112;
+  OrgNodeKind_SubtreeUrgency_f                                                      = 113;
+  OrgNodeKind_DrawerLogbook_f                                                       = 114;
+  OrgNodeKind_Drawer_f                                                              = 115;
+  OrgNodeKind_DrawerPropertyList_f                                                  = 116;
+  OrgNodeKind_DrawerProperty_f                                                      = 117;
+  OrgNodeKind_Subtree_f                                                             = 118;
+  OrgNodeKind_SubtreeTimes_f                                                        = 119;
+  OrgNodeKind_SubtreeStars_f                                                        = 120;
+  OrgNodeKind_SubtreeCompletion_f                                                   = 121;
+  OrgNodeKind_SubtreeImportance_f                                                   = 122;
 }
 
 enum OrgTokenKind {
@@ -747,6 +748,19 @@ message AttrValue {
 
 message HashTagFlat {
   repeated string                                  tags                             = 1;
+  string                                           debug                            = 1000;
+}
+
+message TodoKeyword {
+  enum Transition {
+    Transition_None_f                                                               = 0;
+    Transition_NoteWithTimestamp_f                                                  = 1;
+    Transition_Timestamp_f                                                          = 2;
+  }
+  string                                           name                             = 1;
+  optional string                                  shortcut                         = 2;
+  TodoKeyword.Transition                           onEnter                          = 3;
+  TodoKeyword.Transition                           onLeave                          = 4;
   string                                           debug                            = 1000;
 }
 
@@ -2027,6 +2041,8 @@ message DocumentOptions {
   optional string                                  setupfile                        = 10;
   optional int32                                   maxSubtreeLevelExport            = 11;
   optional ColumnView                              columns                          = 12;
+  repeated TodoKeyword                             todoKeywords                     = 13;
+  repeated TodoKeyword                             doneKeywords                     = 14;
   string                                           debug                            = 1000;
 }
 

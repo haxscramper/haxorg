@@ -92,6 +92,7 @@
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
     __IMPL(AttrValue, Kind, (Kind)) \
     __IMPL(AttrValue, DataKind, (DataKind)) \
+    __IMPL(TodoKeyword, Transition, (Transition)) \
     __IMPL(LinkTarget, Kind, (Kind)) \
     __IMPL(SubtreeLogHead, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLogHead, Kind, (Kind)) \
@@ -139,6 +140,7 @@
     __IMPL(AttrValue::FileReference, (AttrValue, FileReference)) \
     __IMPL(AttrValue::LispValue, (AttrValue, LispValue)) \
     __IMPL(HashTagFlat, (HashTagFlat)) \
+    __IMPL(TodoKeyword, (TodoKeyword)) \
     __IMPL(HashTagText, (HashTagText)) \
     __IMPL(SubtreePath, (SubtreePath)) \
     __IMPL(LinkTarget, (LinkTarget)) \
@@ -1106,6 +1108,8 @@
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<int>), maxSubtreeLevelExport, Maxsubtreelevelexport, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<org::sem::ColumnView>), columns, Columns, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), todoKeywords, Todokeywords, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), doneKeywords, Donekeywords, (org::sem::DocumentOptions), DocumentOptions) \
 
 #define EACH_SEM_ORG_DocumentOptions_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
@@ -1118,6 +1122,8 @@
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<int>), maxSubtreeLevelExport, Maxsubtreelevelexport, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<org::sem::ColumnView>), columns, Columns, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), todoKeywords, Todokeywords, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), doneKeywords, Donekeywords, (org::sem::DocumentOptions), DocumentOptions) \
 
 #define EACH_SEM_ORG_DocumentFragment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((int), baseLine, Baseline, (org::sem::DocumentFragment), DocumentFragment) \
@@ -1770,6 +1776,8 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), maxSubtreeLevelExport, Maxsubtreelevelexport, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>), columns, Columns, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), todoKeywords, Todokeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), doneKeywords, Donekeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
 
 #define EACH_IMM_ORG_ImmDocumentOptions_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
@@ -1782,6 +1790,8 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), maxSubtreeLevelExport, Maxsubtreelevelexport, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>), columns, Columns, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), todoKeywords, Todokeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), doneKeywords, Donekeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
 
 #define EACH_IMM_ORG_ImmDocumentFragment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((int), baseLine, Baseline, (org::imm::ImmDocumentFragment), DocumentFragment) \
@@ -2098,6 +2108,7 @@ enum class OrgNodeKind : short int {
   CmdPropertyRaw,
   /// \brief `#+filetags:` line command
   CmdFiletags,
+  CmdKeywords,
   /// \brief Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.
   BlockVerbatimMultiline,
   /// \brief Single line of source code
@@ -2280,6 +2291,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdPropertyText)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdPropertyRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdFiletags)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdKeywords)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockVerbatimMultiline)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CodeLine)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CodeText)

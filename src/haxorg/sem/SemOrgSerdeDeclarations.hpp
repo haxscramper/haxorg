@@ -275,6 +275,13 @@ struct org::algo::proto_serde<::orgproto::HashTagFlat, org::sem::HashTagFlat> {
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::TodoKeyword, org::sem::TodoKeyword> {
+  static void write(::orgproto::TodoKeyword* out, org::sem::TodoKeyword const& in);
+  static void read(::orgproto::TodoKeyword const& out, proto_write_accessor<org::sem::TodoKeyword> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::HashTagText, org::sem::HashTagText> {
   static void write(::orgproto::HashTagText* out, org::sem::HashTagText const& in);
   static void read(::orgproto::HashTagText const& out, proto_write_accessor<org::sem::HashTagText> in);

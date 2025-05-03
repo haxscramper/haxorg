@@ -151,7 +151,9 @@ struct Cursor {
 
     bool is_at(std::string const& text, int offset = 0) const {
         for (int i = 0; i < text.size(); ++i) {
-            if (get(i + offset) != text.at(i)) { return false; }
+            if (!has_pos(i + offset) || get(i + offset) != text.at(i)) {
+                return false;
+            }
         }
 
         return true;
@@ -327,6 +329,10 @@ struct Cursor {
 
     bool eof() const { return text.size() <= pos; }
 
+    bool is_last_line_char() const {
+        return !has_pos(+1) || is_at('\n', +1);
+    }
+
     int position() const { return pos; }
     int getLine() const { return line; }
     int getColumn() const { return col; }
@@ -498,6 +504,12 @@ void advance_word(Cursor& c) {
 
     if (c.is_at('\'')) { c.next(); }
     while (c.has_text() && std::isalnum(c.get())) { c.next(); }
+}
+
+void advance_number(Cursor& c) {
+    while (c.has_text() && (std::isdigit(c.get()) || c.get() == '_')) {
+        c.next();
+    }
 }
 
 void advance_ident(Cursor& c) {
@@ -907,9 +919,7 @@ void switch_word(Cursor& c) {
 
                 c.token0(otk::LinkTarget, [](Cursor& c) {
                     while (c.has_text()
-                           && !(
-                               c.is_at(' ') || c.is_at_all_of(0, ']', ']')
-                               || c.is_at_all_of(0, ']', '['))) {
+                           && !(c.is_at_any_of(0, ' ', ']', '\n'))) {
                         c.next();
                     }
                 });
@@ -985,7 +995,7 @@ struct argument_properties {
 };
 
 static constexpr auto time_repeater_pattern //
-    = dsl::opt(dsl::lit_c<'.'> | dsl::lit_c<'+'>) + dsl::lit_c<'+'>
+    = dsl::literal_set(LEXY_LIT(".+"), LEXY_LIT("++"), LEXY_LIT("+"))
     + dsl::while_one(dsl::while_one(dsl::digit<>) + dsl::ascii::alpha);
 
 void switch_time_repeater(Cursor& c) {
@@ -993,6 +1003,37 @@ void switch_time_repeater(Cursor& c) {
         if (c.is_at('.')) { c.next(); }
         while (c.is_at('+')) { c.next(); }
     });
+
+    c.token0(otk::TimeRepeaterDuration, [](Cursor& c) {
+        while (c.has_text() && std::isdigit(c.get())) {
+            advance_number(c);
+            advance_ident(c);
+        }
+    });
+}
+
+std::optional<int> is_at_table_separator(Cursor& c, int skip) {
+    int pos = skip;
+    if (c.is_at('|', pos)) { pos += 1; }
+
+    int column_count = 0;
+
+    while (true) {
+        if (!c.is_at('-', pos)) { break; }
+        while (c.is_at('-', pos)) { ++pos; }
+        if (c.is_at('+', pos) || c.is_at('|', pos)) {
+            ++pos;
+        } else {
+            break;
+        }
+        ++column_count;
+    }
+
+    if (0 < column_count) {
+        return pos;
+    } else {
+        return std::nullopt;
+    }
 }
 
 void switch_regular_char(Cursor& c) {
@@ -1026,16 +1067,8 @@ void switch_regular_char(Cursor& c) {
         } else if (auto span = check_leading(c, '|', skip)) {
             c.token_adv(otk::LeadingPipe, *span + skip);
             return;
-        } else if (
-            auto span = c.try_lexy_patt<
-                        dsl::lit_c<'|'>
-                        + dsl::while_one(
-                            dsl::while_one(LEXY_ASCII_ONE_OF(":-"))
-                            + dsl::while_one(LEXY_ASCII_ONE_OF("|+")))
-                        + dsl::while_(LEXY_ASCII_ONE_OF(":|-"))
-                        + dsl::lit_c<'|'>>(skip)) {
-            leading_space();
-            c.token_adv(otk::TableSeparator, *span);
+        } else if (auto span = is_at_table_separator(c, skip)) {
+            c.token_adv(otk::TableSeparator, *span + skip);
             return;
         } else if (
             auto span = c.try_lexy_patt<LEXY_ILIT("clock:")>(skip)) {
@@ -1091,8 +1124,12 @@ void switch_regular_char(Cursor& c) {
         } else if (auto span = check_leading(c, ':', skip)) {
             leading_space();
             int pos = *span;
-            while (c.can_search('\n')) { ++pos; }
+            while (c.can_search('\n', pos)) { ++pos; }
             c.token_adv(otk::ColonExampleLine, pos);
+            return;
+        } else if (c.is_at_all_of(skip, '#', '+')) {
+            leading_space();
+            switch_command(c);
             return;
         } else if (0 < skip) {
             leading_space();
@@ -1135,7 +1172,7 @@ void switch_regular_char(Cursor& c) {
         case ',': c.token0(otk::Comma, &advance1); break;
         case '^': c.token0(otk::Circumflex, &advance1); break;
         case '|': {
-            if (c.is_at('\n', +1)) {
+            if (c.is_last_line_char()) {
                 c.token_adv(otk::TrailingPipe, 1);
             } else {
                 c.token0(otk::Pipe, &advance1);
@@ -1319,9 +1356,7 @@ void switch_regular_char(Cursor& c) {
             break;
         }
         case '#': {
-            if (c.is_at('+', +1)) {
-                switch_command(c);
-            } else if (c.is_at('#', +1)) {
+            if (c.is_at('#', +1)) {
                 c.token1(otk::DoubleHash, &advance_count, 2);
             } else if (c.is_at(' ', +1)) {
                 c.token0(otk::Comment, [](Cursor& c) {

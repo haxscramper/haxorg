@@ -1370,6 +1370,8 @@ struct ImmSemSerde<org::sem::DocumentOptions, org::imm::ImmDocumentOptions> {
     assign_immer_field(result.setupfile, value.setupfile, ctx);
     assign_immer_field(result.maxSubtreeLevelExport, value.maxSubtreeLevelExport, ctx);
     assign_immer_field(result.columns, value.columns, ctx);
+    assign_immer_field(result.todoKeywords, value.todoKeywords, ctx);
+    assign_immer_field(result.doneKeywords, value.doneKeywords, ctx);
     assign_immer_field(result.loc, value.loc, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
@@ -1385,6 +1387,8 @@ struct ImmSemSerde<org::sem::DocumentOptions, org::imm::ImmDocumentOptions> {
     assign_sem_field(result.setupfile, value.setupfile, ctx);
     assign_sem_field(result.maxSubtreeLevelExport, value.maxSubtreeLevelExport, ctx);
     assign_sem_field(result.columns, value.columns, ctx);
+    assign_sem_field(result.todoKeywords, value.todoKeywords, ctx);
+    assign_sem_field(result.doneKeywords, value.doneKeywords, ctx);
     assign_sem_field(result.loc, value.loc, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;

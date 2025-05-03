@@ -471,6 +471,25 @@ struct HashTagFlat {
   bool operator<(org::sem::HashTagFlat const& other) const;
 };
 
+struct TodoKeyword {
+  enum class Transition : short int { None, NoteWithTimestamp, Timestamp, };
+  BOOST_DESCRIBE_NESTED_ENUM(Transition, None, NoteWithTimestamp, Timestamp)
+  BOOST_DESCRIBE_CLASS(TodoKeyword,
+                       (),
+                       (),
+                       (),
+                       (name,
+                        shortcut,
+                        onEnter,
+                        onLeave))
+  hstd::Str name = "";
+  hstd::Opt<hstd::Str> shortcut = std::nullopt;
+  org::sem::TodoKeyword::Transition onEnter;
+  org::sem::TodoKeyword::Transition onLeave;
+  bool operator==(org::sem::TodoKeyword const& other) const;
+  bool operator<(org::sem::TodoKeyword const& other) const;
+};
+
 /// \brief Single or nested inline hash-tag
 struct HashTagText {
   BOOST_DESCRIBE_CLASS(HashTagText,
@@ -2889,7 +2908,9 @@ struct DocumentOptions : public org::sem::Org {
                         category,
                         setupfile,
                         maxSubtreeLevelExport,
-                        columns))
+                        columns,
+                        todoKeywords,
+                        doneKeywords))
   static OrgSemKind const staticKind;
   InitialSubtreeVisibility initialVisibility = InitialSubtreeVisibility::ShowEverything;
   hstd::Vec<org::sem::NamedProperty> properties = {};
@@ -2900,6 +2921,8 @@ struct DocumentOptions : public org::sem::Org {
   hstd::Opt<hstd::Str> setupfile = std::nullopt;
   hstd::Opt<int> maxSubtreeLevelExport = std::nullopt;
   hstd::Opt<org::sem::ColumnView> columns = std::nullopt;
+  hstd::Vec<org::sem::TodoKeyword> todoKeywords = {};
+  hstd::Vec<org::sem::TodoKeyword> doneKeywords = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   hstd::Vec<org::sem::NamedProperty> getProperties(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
   hstd::Opt<org::sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;

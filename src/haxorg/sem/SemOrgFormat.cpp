@@ -53,6 +53,36 @@ void Formatter::add(Res id, Res other) {
     }
 }
 
+Formatter::Res Formatter::toString(
+    const sem::TodoKeyword& id,
+    const Context&          ctx) {
+    auto res = b.line();
+    b.add_at(res, str(id.name));
+    using T = sem::TodoKeyword::Transition;
+    if (id.onEnter != T::None || id.onLeave != T::None || id.shortcut) {
+        b.add_at(res, str(")"));
+        if (id.shortcut) { b.add_at(res, str(id.shortcut.value())); }
+
+        auto write = [&](T t) {
+            switch (t) {
+                case T::None: break;
+                case T::NoteWithTimestamp: b.add_at(res, str("@")); break;
+                case T::Timestamp: b.add_at(res, str("!")); break;
+            }
+        };
+
+        if (id.onEnter != T::None) { write(id.onEnter); }
+
+        if (id.onLeave != T::None) {
+            b.add_at(res, str("/"));
+            write(id.onLeave);
+        }
+
+        b.add_at(res, str("("));
+    }
+    return res;
+}
+
 
 void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
     for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
@@ -239,6 +269,28 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
                  colonHashtags(this, id->filetags),
                  str(":")}));
         hadDocumentProperties = true;
+    }
+
+    if (!id->options->todoKeywords.empty()
+        || !id->options->doneKeywords.empty()) {
+        auto keywords = b.line();
+        b.add_at(keywords, str("#+keywords"));
+
+        Vec<Res> tmp;
+        for (auto const& k : id->options->todoKeywords) {
+            tmp.push_back(toString(k, ctx));
+        }
+
+        if (id->options->doneKeywords.empty()) {
+            tmp.push_back(str("|"));
+            for (auto const& k : id->options->doneKeywords) {
+                tmp.push_back(toString(k, ctx));
+            }
+        }
+
+        b.add_at(keywords, b.join(tmp, str(" ")));
+
+        add(result, keywords);
     }
 
     if (id->author) {
