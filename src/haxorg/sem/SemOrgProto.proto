@@ -38,58 +38,59 @@ enum OrgSpecName {
   OrgSpecName_Day_f                                                                 = 3;
   OrgSpecName_Clock_f                                                               = 4;
   OrgSpecName_Repeater_f                                                            = 5;
-  OrgSpecName_Zone_f                                                                = 6;
-  OrgSpecName_Link_f                                                                = 7;
-  OrgSpecName_Tags_f                                                                = 8;
-  OrgSpecName_Tag_f                                                                 = 9;
-  OrgSpecName_State_f                                                               = 10;
-  OrgSpecName_Protocol_f                                                            = 11;
-  OrgSpecName_Desc_f                                                                = 12;
-  OrgSpecName_Times_f                                                               = 13;
-  OrgSpecName_Drawer_f                                                              = 14;
-  OrgSpecName_Args_f                                                                = 15;
-  OrgSpecName_Name_f                                                                = 16;
-  OrgSpecName_Definition_f                                                          = 17;
-  OrgSpecName_Body_f                                                                = 18;
-  OrgSpecName_HeaderArgs_f                                                          = 19;
-  OrgSpecName_File_f                                                                = 20;
-  OrgSpecName_Kind_f                                                                = 21;
-  OrgSpecName_Lang_f                                                                = 22;
-  OrgSpecName_Prefix_f                                                              = 23;
-  OrgSpecName_Text_f                                                                = 24;
-  OrgSpecName_Todo_f                                                                = 25;
-  OrgSpecName_Importance_f                                                          = 26;
-  OrgSpecName_Title_f                                                               = 27;
-  OrgSpecName_Completion_f                                                          = 28;
-  OrgSpecName_Head_f                                                                = 29;
-  OrgSpecName_Subnodes_f                                                            = 30;
-  OrgSpecName_Properties_f                                                          = 31;
-  OrgSpecName_Logbook_f                                                             = 32;
-  OrgSpecName_Description_f                                                         = 33;
-  OrgSpecName_Logs_f                                                                = 34;
-  OrgSpecName_Newstate_f                                                            = 35;
-  OrgSpecName_Oldstate_f                                                            = 36;
-  OrgSpecName_Time_f                                                                = 37;
-  OrgSpecName_From_f                                                                = 38;
-  OrgSpecName_EndArgs_f                                                             = 39;
-  OrgSpecName_Flags_f                                                               = 40;
-  OrgSpecName_Value_f                                                               = 41;
-  OrgSpecName_Assoc_f                                                               = 42;
-  OrgSpecName_Main_f                                                                = 43;
-  OrgSpecName_Hash_f                                                                = 44;
-  OrgSpecName_Bullet_f                                                              = 45;
-  OrgSpecName_Counter_f                                                             = 46;
-  OrgSpecName_Checkbox_f                                                            = 47;
-  OrgSpecName_Header_f                                                              = 48;
-  OrgSpecName_To_f                                                                  = 49;
-  OrgSpecName_Diff_f                                                                = 50;
-  OrgSpecName_Property_f                                                            = 51;
-  OrgSpecName_Subname_f                                                             = 52;
-  OrgSpecName_Values_f                                                              = 53;
-  OrgSpecName_Cells_f                                                               = 54;
-  OrgSpecName_Rows_f                                                                = 55;
-  OrgSpecName_Lines_f                                                               = 56;
-  OrgSpecName_Chunks_f                                                              = 57;
+  OrgSpecName_Warn_f                                                                = 6;
+  OrgSpecName_Zone_f                                                                = 7;
+  OrgSpecName_Link_f                                                                = 8;
+  OrgSpecName_Tags_f                                                                = 9;
+  OrgSpecName_Tag_f                                                                 = 10;
+  OrgSpecName_State_f                                                               = 11;
+  OrgSpecName_Protocol_f                                                            = 12;
+  OrgSpecName_Desc_f                                                                = 13;
+  OrgSpecName_Times_f                                                               = 14;
+  OrgSpecName_Drawer_f                                                              = 15;
+  OrgSpecName_Args_f                                                                = 16;
+  OrgSpecName_Name_f                                                                = 17;
+  OrgSpecName_Definition_f                                                          = 18;
+  OrgSpecName_Body_f                                                                = 19;
+  OrgSpecName_HeaderArgs_f                                                          = 20;
+  OrgSpecName_File_f                                                                = 21;
+  OrgSpecName_Kind_f                                                                = 22;
+  OrgSpecName_Lang_f                                                                = 23;
+  OrgSpecName_Prefix_f                                                              = 24;
+  OrgSpecName_Text_f                                                                = 25;
+  OrgSpecName_Todo_f                                                                = 26;
+  OrgSpecName_Importance_f                                                          = 27;
+  OrgSpecName_Title_f                                                               = 28;
+  OrgSpecName_Completion_f                                                          = 29;
+  OrgSpecName_Head_f                                                                = 30;
+  OrgSpecName_Subnodes_f                                                            = 31;
+  OrgSpecName_Properties_f                                                          = 32;
+  OrgSpecName_Logbook_f                                                             = 33;
+  OrgSpecName_Description_f                                                         = 34;
+  OrgSpecName_Logs_f                                                                = 35;
+  OrgSpecName_Newstate_f                                                            = 36;
+  OrgSpecName_Oldstate_f                                                            = 37;
+  OrgSpecName_Time_f                                                                = 38;
+  OrgSpecName_From_f                                                                = 39;
+  OrgSpecName_EndArgs_f                                                             = 40;
+  OrgSpecName_Flags_f                                                               = 41;
+  OrgSpecName_Value_f                                                               = 42;
+  OrgSpecName_Assoc_f                                                               = 43;
+  OrgSpecName_Main_f                                                                = 44;
+  OrgSpecName_Hash_f                                                                = 45;
+  OrgSpecName_Bullet_f                                                              = 46;
+  OrgSpecName_Counter_f                                                             = 47;
+  OrgSpecName_Checkbox_f                                                            = 48;
+  OrgSpecName_Header_f                                                              = 49;
+  OrgSpecName_To_f                                                                  = 50;
+  OrgSpecName_Diff_f                                                                = 51;
+  OrgSpecName_Property_f                                                            = 52;
+  OrgSpecName_Subname_f                                                             = 53;
+  OrgSpecName_Values_f                                                              = 54;
+  OrgSpecName_Cells_f                                                               = 55;
+  OrgSpecName_Rows_f                                                                = 56;
+  OrgSpecName_Lines_f                                                               = 57;
+  OrgSpecName_Chunks_f                                                              = 58;
 }
 
 enum OrgNodeKind {
@@ -1097,9 +1098,10 @@ message DocumentExportConfig {
     TaskFiltering_All_f                                                             = 3;
   }
   enum BrokenLinks {
-    BrokenLinks_Mark_f                                                              = 0;
-    BrokenLinks_Raise_f                                                             = 1;
-    BrokenLinks_Ignore_f                                                            = 2;
+    BrokenLinks_None_f                                                              = 0;
+    BrokenLinks_Mark_f                                                              = 1;
+    BrokenLinks_Raise_f                                                             = 2;
+    BrokenLinks_Ignore_f                                                            = 3;
   }
   message DoExport {
     bool                                           exportToc                        = 1;
@@ -1565,8 +1567,9 @@ message Time {
     string                                         debug                            = 1000;
   }
   message Static {
-    optional Time.Repeat                           repeat                           = 1;
-    hstd.UserTime                                  time                             = 2;
+    repeated Time.Repeat                           repeat                           = 1;
+    optional Time.Repeat                           warn                             = 2;
+    hstd.UserTime                                  time                             = 3;
     string                                         debug                            = 1000;
   }
   message Dynamic {

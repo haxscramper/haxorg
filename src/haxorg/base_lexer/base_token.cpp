@@ -225,6 +225,17 @@ struct Cursor {
         return true;
     }
 
+    std::string_view lexy_substr(int offset_start, int size) const {
+        auto start = text.begin() + pos + offset_start;
+        if (pos + offset_start + size < this->text.size()) {
+            auto end = text.begin() + pos + offset_start + size;
+            return std::string_view{start, end};
+        } else {
+            auto end = text.end();
+            return std::string_view{start, end};
+        }
+    }
+
     std::string_view lexy_view(int offset) const {
         auto start = text.begin() + pos + offset;
         auto end   = text.end();
@@ -507,6 +518,7 @@ void advance_word(Cursor& c) {
 }
 
 void advance_number(Cursor& c) {
+    if (c.is_at('-')) { c.next(); }
     while (c.has_text() && (std::isdigit(c.get()) || c.get() == '_')) {
         c.next();
     }
@@ -681,22 +693,35 @@ UnorderedMap<std::string, CommandSpec> CmdSpec{
          .type  = CommandType::Args}},
 };
 
+
+struct org_ident {
+    static constexpr auto oident = LEXY_CHAR_CLASS(
+        "oident",
+        dsl::ascii::alpha_digit_underscore / LEXY_LIT("-"));
+
+    static constexpr auto rule = dsl::identifier(oident);
+};
+
 void switch_command(Cursor& c) {
     auto __scope = c.p.scopeLevel();
     c.token1(otk::LineCommand, &advance_count, 2);
     c.token0(otk::Word, [](Cursor& c) {
         advance_ident(c);
         if (c.is_at(':')) { c.next(); }
-        advance_char1(c, ' ');
     });
     auto head      = c.pop_token();
     auto norm_head = normalize(head->text);
 
-    auto head_raw = [&]() {
-        c.token(head);
-        c.token0(otk::RawText, [](Cursor& c) {
-            while (c.can_search('\n')) { c.next(); }
-        });
+    auto head_raw = [&](int         line     = __builtin_LINE(),
+                        char const* function = __builtin_FUNCTION()) {
+        c.token(head, line, function);
+        c.token0(
+            otk::RawText,
+            [](Cursor& c) {
+                while (c.can_search('\n')) { c.next(); }
+            },
+            line,
+            function);
     };
 
     auto head_args = [&]() {
@@ -784,7 +809,7 @@ void switch_command(Cursor& c) {
         } else if (block_kind == "export") {
             head.kind = otk::CmdExportBegin;
             head_args();
-            c.skip('\n');
+            c.token0(otk::Newline, &advance1);
             int offset;
             while ((offset = get_end_block_offset("export")) == -1) {
                 auto __guard = c.advance_guard();
@@ -797,7 +822,7 @@ void switch_command(Cursor& c) {
         } else if (block_kind == "example") {
             head.kind = otk::CmdExampleBegin;
             head_args();
-            c.skip('\n');
+            c.token0(otk::Newline, &advance1);
             int offset;
             while ((offset = get_end_block_offset("example")) == -1) {
                 auto __guard = c.advance_guard();
@@ -862,21 +887,30 @@ void switch_command(Cursor& c) {
     } else if (norm_head == "end") {
         head.kind = otk::CmdDynamicEnd;
     } else if (norm_head.starts_with("property")) {
-        if (norm_head.ends_with("description")
-            || norm_head.ends_with("created")
-            || norm_head.ends_with("hashtag")
-            || norm_head.ends_with("hashtagdef")) {
-            head.kind = otk::CmdPropertyText;
-            head_text();
-        } else if (
-            norm_head.ends_with("headerargs")
-            || norm_head.ends_with("propargs")) {
-            head.kind = otk::CmdPropertyArgs;
-            head_args();
+        auto span = c.try_lexy_patt<
+            dsl::whitespace(dsl::ascii::space) + dsl::p<org_ident>>();
+        if (span) {
+            auto property_kind = normalize(Str{c.lexy_substr(0, *span)});
+            c.p.message(fmt("property kind {}", property_kind));
+            if (property_kind == "description"
+                || property_kind == "created" || property_kind == "hashtag"
+                || property_kind == "hashtagdef") {
+                head.kind = otk::CmdPropertyText;
+                head_text();
+            } else if (
+                property_kind == "headerargs"
+                || property_kind == "propargs") {
+                head.kind = otk::CmdPropertyArgs;
+                head_args();
+            } else {
+                head.kind = otk::CmdCustomRaw;
+                head_raw();
+            }
         } else {
             head.kind = otk::CmdCustomRaw;
             head_raw();
         }
+
     } else {
         head.kind = otk::CmdCustomRaw;
         head_raw();
@@ -967,13 +1001,6 @@ auto check_leading(Cursor& c, char ch, int skip) -> std::optional<int> {
     }
 };
 
-struct org_ident {
-    static constexpr auto oident = LEXY_CHAR_CLASS(
-        "oident",
-        dsl::ascii::alpha_digit_underscore / LEXY_LIT("-"));
-
-    static constexpr auto rule = dsl::identifier(oident);
-};
 
 struct text_properties {
     static constexpr auto rule //
@@ -1263,9 +1290,17 @@ void switch_regular_char(Cursor& c) {
                     auto span = c.try_lexy_patt<dsl::until(link_end)>();
                     c.token_adv(otk::LinkTarget, *span - 2);
                 } else {
-                    c.token0(otk::LinkProtocol, &advance_ident);
-                    auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                    c.token_adv(otk::LinkTarget, *span - 2);
+                    int offset = 0;
+                    while (c.has_pos(offset)
+                           && !c.is_at_any_of(offset, ']', ':', '\n')) {
+                        ++offset;
+                    }
+
+                    if (c.is_at(':', offset)) {
+                        c.token_adv(otk::LinkProtocol, offset + 1);
+                    } else {
+                        c.token_adv(otk::LinkProtocolInternal, offset);
+                    }
                 }
 
             } else if (
@@ -1300,7 +1335,18 @@ void switch_regular_char(Cursor& c) {
                         break;
                     }
                     default: {
-                        c.token0(otk::LinkProtocol, &advance_ident);
+                        int offset = 0;
+                        while (
+                            c.has_pos(offset)
+                            && !c.is_at_any_of(offset, ']', ':', '\n')) {
+                            ++offset;
+                        }
+
+                        if (c.is_at(':', offset)) {
+                            c.token_adv(otk::LinkProtocol, offset + 1);
+                        } else {
+                            c.token_adv(otk::LinkProtocolInternal, offset);
+                        }
                         break;
                     }
                 }

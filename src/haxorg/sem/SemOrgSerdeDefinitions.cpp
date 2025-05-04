@@ -1801,15 +1801,17 @@ void org::algo::proto_serde<::orgproto::Time::Repeat, org::sem::Time::Repeat>::r
 }
 
 void org::algo::proto_serde<::orgproto::Time::Static, org::sem::Time::Static>::write(::orgproto::Time::Static* out, org::sem::Time::Static const& in) {
-  if (in.repeat) {
-    proto_serde<orgproto::Time::Repeat, org::sem::Time::Repeat>::write(out->mutable_repeat(), *in.repeat);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Time::Repeat>, hstd::Vec<org::sem::Time::Repeat>>::write(out->mutable_repeat(), in.repeat);
+  if (in.warn) {
+    proto_serde<orgproto::Time::Repeat, org::sem::Time::Repeat>::write(out->mutable_warn(), *in.warn);
   }
   proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::write(out->mutable_time(), in.time);
 }
 
 void org::algo::proto_serde<::orgproto::Time::Static, org::sem::Time::Static>::read(::orgproto::Time::Static const& out, proto_write_accessor<org::sem::Time::Static> in) {
-  if (out.has_repeat()) {
-    proto_serde<hstd::Opt<orgproto::Time::Repeat>, hstd::Opt<org::sem::Time::Repeat>>::read(out.repeat(), in.for_field(&org::sem::Time::Static::repeat));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Time::Repeat>, hstd::Vec<org::sem::Time::Repeat>>::read(out.repeat(), in.for_field(&org::sem::Time::Static::repeat));
+  if (out.has_warn()) {
+    proto_serde<hstd::Opt<orgproto::Time::Repeat>, hstd::Opt<org::sem::Time::Repeat>>::read(out.warn(), in.for_field(&org::sem::Time::Static::warn));
   }
   proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::read(out.time(), in.for_field(&org::sem::Time::Static::time));
 }

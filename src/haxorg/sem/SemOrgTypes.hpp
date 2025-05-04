@@ -1185,8 +1185,8 @@ struct DocumentExportConfig {
     All,
   };
   BOOST_DESCRIBE_NESTED_ENUM(TaskFiltering, Whitelist, Done, None, All)
-  enum class BrokenLinks : short int { Mark, Raise, Ignore, };
-  BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Mark, Raise, Ignore)
+  enum class BrokenLinks : short int { None, Mark, Raise, Ignore, };
+  BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, None, Mark, Raise, Ignore)
   struct DoExport {
     BOOST_DESCRIBE_CLASS(DoExport,
                          (),
@@ -1239,7 +1239,7 @@ struct DocumentExportConfig {
   hstd::Opt<bool> statisticsCookies = std::nullopt;
   /// \brief Include todo keywords in export
   hstd::Opt<bool> todoText = std::nullopt;
-  org::sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::Mark;
+  org::sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::None;
   org::sem::DocumentExportConfig::TocExport tocExport;
   org::sem::DocumentExportConfig::TagExport tagExport = org::sem::DocumentExportConfig::TagExport::NotInToc;
   org::sem::DocumentExportConfig::TocExport data;
@@ -2070,24 +2070,33 @@ struct Time : public org::sem::Org {
     /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
     enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
     BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
-    BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
+    BOOST_DESCRIBE_CLASS(Repeat,
+                         (),
+                         (),
+                         (),
+                         (mode, period, count))
     /// \brief mode
     org::sem::Time::Repeat::Mode mode;
     /// \brief period
     org::sem::Time::Repeat::Period period;
     /// \brief count
     int count;
+    bool operator==(org::sem::Time::Repeat const& other) const;
+    Repeat() {  }
   };
 
   struct Static {
-    BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
-    hstd::Opt<org::sem::Time::Repeat> repeat;
+    BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, warn, time))
+    hstd::Vec<org::sem::Time::Repeat> repeat = {};
+    hstd::Opt<org::sem::Time::Repeat> warn = std::nullopt;
     hstd::UserTime time;
+    Static() {  }
   };
 
   struct Dynamic {
     BOOST_DESCRIBE_CLASS(Dynamic, (), (), (), (expr))
     hstd::Str expr;
+    Dynamic() {  }
   };
 
   using TimeVariant = std::variant<org::sem::Time::Static, org::sem::Time::Dynamic>;

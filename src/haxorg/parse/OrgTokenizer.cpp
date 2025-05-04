@@ -364,14 +364,14 @@ struct RecombineState {
         auto next = lex.tok(+1);
         pop_as(otk::CmdPrefix);
         switch (next.kind) {
-            case otk::CmdPropertyArgs: {
-                auto split = next->text.split(' ');
-                add_fake(
-                    otk::CmdPropertyArgs, OrgFill{.text = split.at(0)});
-                add_fake(otk::CmdRawArg, OrgFill{.text = split.at(1)});
-                lex.next();
-                break;
-            }
+            // case otk::CmdPropertyArgs: {
+            //     auto split = next->text.split(' ');
+            //     add_fake(
+            //         otk::CmdPropertyArgs, OrgFill{.text = split.at(0)});
+            //     add_fake(otk::CmdRawArg, OrgFill{.text = split.at(1)});
+            //     lex.next();
+            //     break;
+            // }
 
             case otk::CmdAttr: {
                 auto text = lex.tok().value.text;
@@ -429,7 +429,7 @@ struct RecombineState {
     };
 
     void map_command_args() {
-        while (!line_end.contains(lex.kind())) { pop_as(lex.kind()); }
+        while (lex.can_search(line_end)) { pop_as(lex.kind()); }
     }
 
     void map_interpreted_token() {

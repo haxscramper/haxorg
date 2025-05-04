@@ -1810,9 +1810,10 @@ class DocumentExportConfigTaskFiltering(Enum):
     All = 4
 
 class DocumentExportConfigBrokenLinks(Enum):
-    Mark = 1
-    Raise = 2
-    Ignore = 3
+    _None = 1
+    Mark = 2
+    Raise = 3
+    Ignore = 4
 
 class DocumentExportConfigDoExport:
     def __init__(self, exportToc: bool) -> None: ...
@@ -2193,6 +2194,7 @@ class ImmTimeRepeatPeriod(Enum):
 
 class ImmTimeRepeat:
     def __init__(self, mode: ImmTimeRepeatMode, period: ImmTimeRepeatPeriod, count: int) -> None: ...
+    def __init__(self): ...
     def __eq__(self, other: ImmTimeRepeat) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2201,15 +2203,18 @@ class ImmTimeRepeat:
     count: int
 
 class ImmTimeStatic:
-    def __init__(self, repeat: ImmBox[Optional[ImmTimeRepeat]], time: UserTime) -> None: ...
+    def __init__(self, repeat: ImmVec[ImmTimeRepeat], warn: ImmBox[Optional[ImmTimeRepeat]], time: UserTime) -> None: ...
+    def __init__(self): ...
     def __eq__(self, other: ImmTimeStatic) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    repeat: ImmBox[Optional[ImmTimeRepeat]]
+    repeat: ImmVec[ImmTimeRepeat]
+    warn: ImmBox[Optional[ImmTimeRepeat]]
     time: UserTime
 
 class ImmTimeDynamic:
     def __init__(self, expr: ImmBox[str]) -> None: ...
+    def __init__(self): ...
     def __eq__(self, other: ImmTimeDynamic) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2386,6 +2391,8 @@ class TimeRepeatPeriod(Enum):
 
 class TimeRepeat:
     def __init__(self, mode: TimeRepeatMode, period: TimeRepeatPeriod, count: int) -> None: ...
+    def __eq__(self, other: TimeRepeat) -> bool: ...
+    def __init__(self): ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     mode: TimeRepeatMode
@@ -2393,14 +2400,17 @@ class TimeRepeat:
     count: int
 
 class TimeStatic:
-    def __init__(self, repeat: Optional[TimeRepeat], time: UserTime) -> None: ...
+    def __init__(self, repeat: List[TimeRepeat], warn: Optional[TimeRepeat], time: UserTime) -> None: ...
+    def __init__(self): ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    repeat: Optional[TimeRepeat]
+    repeat: List[TimeRepeat]
+    warn: Optional[TimeRepeat]
     time: UserTime
 
 class TimeDynamic:
     def __init__(self, expr: str) -> None: ...
+    def __init__(self): ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     expr: str
@@ -4467,58 +4477,59 @@ class OrgSpecName(Enum):
     Day = 4
     Clock = 5
     Repeater = 6
-    Zone = 7
-    Link = 8
-    Tags = 9
-    Tag = 10
-    State = 11
-    Protocol = 12
-    Desc = 13
-    Times = 14
-    Drawer = 15
-    Args = 16
-    Name = 17
-    Definition = 18
-    Body = 19
-    HeaderArgs = 20
-    File = 21
-    Kind = 22
-    Lang = 23
-    Prefix = 24
-    Text = 25
-    Todo = 26
-    Importance = 27
-    Title = 28
-    Completion = 29
-    Head = 30
-    Subnodes = 31
-    Properties = 32
-    Logbook = 33
-    Description = 34
-    Logs = 35
-    Newstate = 36
-    Oldstate = 37
-    Time = 38
-    From = 39
-    EndArgs = 40
-    Flags = 41
-    Value = 42
-    Assoc = 43
-    Main = 44
-    Hash = 45
-    Bullet = 46
-    Counter = 47
-    Checkbox = 48
-    Header = 49
-    To = 50
-    Diff = 51
-    Property = 52
-    Subname = 53
-    Values = 54
-    Cells = 55
-    Rows = 56
-    Lines = 57
-    Chunks = 58
+    Warn = 7
+    Zone = 8
+    Link = 9
+    Tags = 10
+    Tag = 11
+    State = 12
+    Protocol = 13
+    Desc = 14
+    Times = 15
+    Drawer = 16
+    Args = 17
+    Name = 18
+    Definition = 19
+    Body = 20
+    HeaderArgs = 21
+    File = 22
+    Kind = 23
+    Lang = 24
+    Prefix = 25
+    Text = 26
+    Todo = 27
+    Importance = 28
+    Title = 29
+    Completion = 30
+    Head = 31
+    Subnodes = 32
+    Properties = 33
+    Logbook = 34
+    Description = 35
+    Logs = 36
+    Newstate = 37
+    Oldstate = 38
+    Time = 39
+    From = 40
+    EndArgs = 41
+    Flags = 42
+    Value = 43
+    Assoc = 44
+    Main = 45
+    Hash = 46
+    Bullet = 47
+    Counter = 48
+    Checkbox = 49
+    Header = 50
+    To = 51
+    Diff = 52
+    Property = 53
+    Subname = 54
+    Values = 55
+    Cells = 56
+    Rows = 57
+    Lines = 58
+    Chunks = 59
 
 class OrgNodeKind(Enum):
     _None = 1

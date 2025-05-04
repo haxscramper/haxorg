@@ -843,7 +843,11 @@ sem::SemId<Time> org::newSemTimeStatic(
         userTime.align = UserTime::Alignment::Year;
     }
 
-    result->time = Time::Static{.time = userTime};
+    {
+        Time::Static s{};
+        s.time       = userTime;
+        result->time = s;
+    }
 
     return result;
 }

@@ -836,13 +836,17 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
 
 
         if (lex.at(otk::TimeRepeaterSpec)) {
-            token(onk::RawText, pop(lex, otk::TimeRepeaterSpec));
             start(onk::InlineStmtList);
-            while (lex.at(otk::TimeRepeaterDuration)) {
-                token(onk::RawText, pop(lex));
+            while (lex.at(otk::TimeRepeaterSpec)) {
+                start(onk::InlineStmtList);
+                token(onk::RawText, pop(lex, otk::TimeRepeaterSpec));
+                while (lex.at(otk::TimeRepeaterDuration)) {
+                    token(onk::RawText, pop(lex));
+                }
+                end();
+                space(lex);
             }
             end();
-            space(lex);
         } else {
             empty();
         }
@@ -2237,6 +2241,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex);
             start(onk::CmdPropertyArgs);
+            space(lex);
             token(onk::RawText, pop(lex, otk::CmdRawArg));
             subParse(CommandArguments, lex);
             break;

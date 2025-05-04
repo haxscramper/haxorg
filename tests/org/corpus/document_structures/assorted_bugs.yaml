@@ -581,6 +581,7 @@ items:
     debug:
       doFlatParseCompare: false
     source: |
+      <2022-02-05>
       <2022-02-05 Sat .+1w>
       <2005-10-01 Sat +1m -3d>
       <2023-09-18 Mon 11:00:00 +04 +1d>

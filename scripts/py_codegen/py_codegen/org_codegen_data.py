@@ -951,11 +951,16 @@ def get_sem_text():
                 GenTuFunction(t_opt(t_int()), "getMinute", isConst=True),
                 GenTuFunction(t_opt(t_int()), "getSecond", isConst=True),
                 GenTuFunction(t_user_time(), "getStaticTime", isConst=True),
+                # default_constructor_method("Time"),
             ],
             nested=[
                 org_struct(
                     t_nest("Repeat", [t_org("Time")]),
                     GenTuDoc("Repetition information for static time"),
+                    methods=[
+                        eq_method(t_nest("Repeat", [t_org("Time")])),
+                        default_constructor_method("Repeat"),
+                    ],
                     nested=[
                         GenTuEnum(
                             t_nest("Mode", [t_org("Time"), t("Repeat")]),
@@ -1012,15 +1017,21 @@ def get_sem_text():
                             t_nest("Static", [t_org("Time")]),
                             GenTuDoc(""),
                             fields=[
-                                GenTuField(t_opt(t_nest("Repeat", [t_org("Time")])),
-                                           "repeat", GenTuDoc("")),
-                                GenTuField(t_user_time(), "time", GenTuDoc("")),
+                                vec_field(t_nest("Repeat", [t_org("Time")]), "repeat"),
+                                opt_field(t_nest("Repeat", [t_org("Time")]), "warn"),
+                                GenTuField(t_user_time(), "time"),
+                            ],
+                            methods=[
+                                default_constructor_method("Static"),
                             ],
                         ),
                         org_struct(
                             t_nest("Dynamic", [t_org("Time")]),
                             GenTuDoc(""),
                             fields=[GenTuField(t_str(), "expr", GenTuDoc(""))],
+                            methods=[
+                                default_constructor_method("Dynamic"),
+                            ],
                         ),
                     ],
                     kindGetter="getTimeKind",
@@ -2522,7 +2533,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 opt_field(t_bool(), "todoText", "Include todo keywords in export"),
                 org_field(t_nest("BrokenLinks", [t("DocumentExportConfig")]),
                           "brokenLinks",
-                          value="sem::DocumentExportConfig::BrokenLinks::Mark"),
+                          value="sem::DocumentExportConfig::BrokenLinks::None"),
                 org_field(t_nest("TocExport", [t("DocumentExportConfig")]), "tocExport"),
                 org_field(t_nest("TagExport", [t("DocumentExportConfig")]),
                           "tagExport",
@@ -2559,6 +2570,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 d_simple_enum(
                     t_nest("BrokenLinks", [t("DocumentExportConfig")]),
                     GenTuDoc(""),
+                    "None",
                     "Mark",
                     "Raise",
                     "Ignore",
@@ -3647,6 +3659,7 @@ def get_enums():
                 efield("Day"),
                 efield("Clock"),
                 efield("Repeater"),
+                efield("Warn"),
                 efield("Zone"),
                 efield("Link"),
                 efield("Tags"),

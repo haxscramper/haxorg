@@ -716,6 +716,7 @@ void Exporter<V, R>::visit(R& res, sem::Time::Repeat const& object) {
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Time::Static const& object) {
   __obj_field(res, object, repeat);
+  __obj_field(res, object, warn);
   __obj_field(res, object, time);
 }
 

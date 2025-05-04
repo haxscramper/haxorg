@@ -299,6 +299,31 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
         hadDocumentProperties = true;
     }
 
+    Vec<Res> exp;
+
+    {
+        auto const& ec = id->options->exportConfig;
+        using BL       = sem::DocumentExportConfig::BrokenLinks;
+        switch (ec.brokenLinks) {
+            case BL::None: break;
+            case BL::Ignore:
+                exp.push_back(str("broken-links:ignore"));
+                break;
+            case BL::Mark: exp.push_back(str("broken-links:mark")); break;
+            case BL::Raise:
+                exp.push_back(str("broken-links:raise"));
+                break;
+        }
+    }
+
+    if (!exp.empty()) {
+        add(result,
+            b.line({
+                str("#+options: "),
+                b.join(exp, str(" ")),
+            }));
+    }
+
     if (!id->options.isNil()) {
         for (auto const& prop : id->options->properties) {
             using P = sem::NamedProperty;
@@ -565,7 +590,9 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
                     break;
                 }
                 case BlockCodeLine::Part::Kind::Tangle: {
+                    add(line, str("<<"));
                     add(line, str(part.getTangle().target));
+                    add(line, str(">>"));
                     break;
                 }
             }
@@ -908,8 +935,40 @@ auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
 
     add(result, str(id->isActive ? "<" : "["));
     if (id->isStatic()) {
-        UserTime const& time = id->getStatic().time;
+        auto const&     s    = id->getStatic();
+        UserTime const& time = s.time;
         add(result, str(time.format(UserTime::Format::OrgFormat)));
+        using M = Time::Repeat::Mode;
+        using P = Time::Repeat::Period;
+
+        auto fmt_period = [](P p) {
+            switch (p) {
+                case P::Day: return "d";
+                case P::Month: return "m";
+                case P::Hour: return "h";
+                case P::Week: return "w";
+                case P::Year: return "y";
+                case P::Minute: return "M";
+            }
+        };
+
+        for (auto const& r : s.repeat) {
+            switch (r.mode) {
+                case M::None: break;
+                case M::Exact: add(result, str("+")); break;
+                case M::FirstMatch: add(result, str("++")); break;
+                case M::SameDay: add(result, str(".+")); break;
+            }
+
+            add(result, str(fmt1(r.count)));
+            add(result, str(fmt_period(r.period)));
+        }
+
+        if (s.warn) {
+            add(result, str(fmt1(s.warn->count)));
+            add(result, str(fmt_period(s.warn->period)));
+        }
+
     } else {
         add(result, str(id->getDynamic().expr));
     }

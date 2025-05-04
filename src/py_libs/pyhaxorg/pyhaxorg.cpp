@@ -88,6 +88,8 @@ PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Time::Repeat>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Time::Repeat>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::HashTag>>)
@@ -178,6 +180,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_hstdVec<org::sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
   bind_hstdUnorderedMap<hstd::Str, hstd::Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
+  bind_hstdVec<org::sem::Time::Repeat>(m, "VecOfTimeRepeat", type_registry_guard);
   bind_hstdVec<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
@@ -4099,6 +4102,7 @@ ingoing elements.)RAW")
     ;
   bind_enum_iterator<org::sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks", type_registry_guard);
   pybind11::enum_<org::sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks")
+    .value("None", org::sem::DocumentExportConfig::BrokenLinks::None)
     .value("Mark", org::sem::DocumentExportConfig::BrokenLinks::Mark)
     .value("Raise", org::sem::DocumentExportConfig::BrokenLinks::Raise)
     .value("Ignore", org::sem::DocumentExportConfig::BrokenLinks::Ignore)
@@ -5003,6 +5007,7 @@ ingoing elements.)RAW")
                         return result;
                         }))
     .def_readwrite("repeat", &org::imm::ImmTime::Static::repeat)
+    .def_readwrite("warn", &org::imm::ImmTime::Static::warn)
     .def_readwrite("time", &org::imm::ImmTime::Static::time)
     .def("__eq__",
          static_cast<bool(org::imm::ImmTime::Static::*)(org::imm::ImmTime::Static const&) const>(&org::imm::ImmTime::Static::operator==),
@@ -5485,6 +5490,9 @@ ingoing elements.)RAW")
     .def_readwrite("mode", &org::sem::Time::Repeat::mode, R"RAW(mode)RAW")
     .def_readwrite("period", &org::sem::Time::Repeat::period, R"RAW(period)RAW")
     .def_readwrite("count", &org::sem::Time::Repeat::count, R"RAW(count)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::Time::Repeat::*)(org::sem::Time::Repeat const&) const>(&org::sem::Time::Repeat::operator==),
+         pybind11::arg("other"))
     .def("__repr__", [](org::sem::Time::Repeat const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5501,6 +5509,7 @@ ingoing elements.)RAW")
                         return result;
                         }))
     .def_readwrite("repeat", &org::sem::Time::Static::repeat)
+    .def_readwrite("warn", &org::sem::Time::Static::warn)
     .def_readwrite("time", &org::sem::Time::Static::time)
     .def("__repr__", [](org::sem::Time::Static const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -8920,6 +8929,7 @@ ingoing elements.)RAW")
     .value("Day", OrgSpecName::Day)
     .value("Clock", OrgSpecName::Clock)
     .value("Repeater", OrgSpecName::Repeater)
+    .value("Warn", OrgSpecName::Warn)
     .value("Zone", OrgSpecName::Zone)
     .value("Link", OrgSpecName::Link)
     .value("Tags", OrgSpecName::Tags)

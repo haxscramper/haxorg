@@ -384,12 +384,14 @@ struct ImmSemSerde<org::sem::Time::Static, org::imm::ImmTime::Static> {
   static org::imm::ImmTime::Static to_immer(org::sem::Time::Static const& value, ImmAstEditContext& ctx) {
     org::imm::ImmTime::Static result = hstd::SerdeDefaultProvider<org::imm::ImmTime::Static>::get();
     assign_immer_field(result.repeat, value.repeat, ctx);
+    assign_immer_field(result.warn, value.warn, ctx);
     assign_immer_field(result.time, value.time, ctx);
     return result;
   }
   static org::sem::Time::Static from_immer(org::imm::ImmTime::Static const& value, ImmAstContext const& ctx) {
     org::sem::Time::Static result = hstd::SerdeDefaultProvider<org::sem::Time::Static>::get();
     assign_sem_field(result.repeat, value.repeat, ctx);
+    assign_sem_field(result.warn, value.warn, ctx);
     assign_sem_field(result.time, value.time, ctx);
     return result;
   }
