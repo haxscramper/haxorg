@@ -14,6 +14,7 @@
 #include <lexy/callback.hpp>
 #include <lexy/callback/container.hpp>
 #include <lexy/action/trace.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 
 
 #pragma clang diagnostic error "-Wswitch"
@@ -705,6 +706,7 @@ struct org_ident {
 };
 
 void switch_command(Cursor& c) {
+    __perf_trace("tokens", "command");
     auto __scope = c.p.scopeLevel();
     c.token1(otk::LineCommand, &advance_count, 2);
     c.token0(otk::Word, [](Cursor& c) {
@@ -922,6 +924,7 @@ void switch_command(Cursor& c) {
 }
 
 void switch_subtree_head(Cursor& c) {
+    __perf_trace("tokens", "subtree head");
     switch (c.get()) {
         case '[': {
             if (c.is_at('#', +1) && c.has_pos(+2)
@@ -946,6 +949,7 @@ void switch_subtree_head(Cursor& c) {
 #define LEXY_ILIT(__text) dsl::ascii::case_folding(LEXY_LIT(__text))
 
 void switch_word(Cursor& c) {
+    __perf_trace("tokens", "word");
     switch (c.get()) {
         case 'h':
         case 'H': {
@@ -1603,6 +1607,7 @@ void switch_regular_char(Cursor& c) {
 OrgTokenGroup org::parse::tokenize(
     const std::string&             text,
     org::parse::LexerParams const& params) {
+    __perf_trace("lexing", "base lexer run");
     OrgTokenGroup result;
 
     if (text.empty()) { return result; }

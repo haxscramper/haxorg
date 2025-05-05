@@ -56,7 +56,7 @@ TEST(ManualFileRun, TestDoc1) {
         if (fs::exists(file)) {
             std::string content = readFile(file);
             auto        spec = ParseSpec::FromSource(std::move(content));
-            spec.debug.traceAll = true;
+            spec.debug.traceAll = false;
             gtest_run_spec(TestParams{
                 .spec = spec,
                 .file = "doc1",
