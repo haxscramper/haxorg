@@ -911,8 +911,7 @@ def run_cmake_haxorg_clean(ctx: Context):
     os_utils.rmdir_quiet(get_deps_install_dir())
 
 
-@org_task(iterable=["build_whitelist", "ninja_flag"],
-          pre=[generate_develop_deps_install_paths])
+@org_task(iterable=["build_whitelist", "ninja_flag"])
 def build_develop_deps(
     ctx: Context,
     rebuild: bool = False,
@@ -1002,6 +1001,7 @@ def build_develop_deps(
         )
 
     log(CAT).info(f"Finished develop dependencies installation, {debug_conf}")
+    generate_develop_deps_install_paths(ctx)
     log(CAT).info(f"Installed into {install_dir}")
 
 

@@ -15,7 +15,6 @@ include("${ORG_DEPS_INSTALL_ROOT}/paths.cmake")
 
 find_package(Immer CONFIG REQUIRED)
 find_package(Lager CONFIG REQUIRED)
-find_package(Reflex CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(boost_mp11 CONFIG REQUIRED)

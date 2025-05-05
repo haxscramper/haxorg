@@ -65,39 +65,6 @@ def install_dep(dep: data_build.ExternalDep) -> None:
 
     logger.info(f"Successfully installed dependency: {dep.build_name}")
 
-
-def build_reflex_codgen():
-    py_file = SRC_DIR.joinpath("src/haxorg/base_lexer/base_lexer.py")
-    gen_lexer = SRC_DIR.joinpath("src/haxorg/base_lexer/base_lexer.l")
-    reflex_run_params = [
-        "--fast",
-        "--nodefault",
-        # "--debug",
-        "--case-insensitive",
-        f"--outfile={SRC_DIR.joinpath('src/haxorg/base_lexer/base_lexer_gen.cpp')}",
-        "--namespace=base_lexer",
-        gen_lexer,
-    ]
-
-    venv_dir = DEPS_INSTALL.joinpath("python_venv")
-
-    run_cmd(["python", "-m", "venv", str(venv_dir)])
-    pip_path = venv_dir / "bin" / "pip"
-    run_cmd([
-        str(pip_path),
-        "install",
-        "pyyaml==6.0.2",
-        "pydantic==2.10.6",
-        "beartype==0.20.1",
-    ])
-
-    python_path = venv_dir / "bin" / "python"
-    run_cmd([str(python_path), str(py_file)])
-
-    run_cmd([DEPS_INSTALL.joinpath("reflex/bin/reflex"), *reflex_run_params],
-            env={"LD_LIBRARY_PATH": str(DEPS_INSTALL.joinpath("reflex/lib"))})
-
-
 def install_all_deps() -> List[str]:
 
     cmake_config: List[str] = []
@@ -111,7 +78,7 @@ def install_all_deps() -> List[str]:
             install_dir=DEPS_INSTALL,
             is_emcc=False,
     ):
-        if dep.build_name in ["reflex", "lexy", "abseil", "immer", "lager", "cpptrace", "yaml"]:
+        if dep.build_name in ["lexy", "abseil", "immer", "lager", "cpptrace", "yaml"]:
             deps_list.append(dep)
 
         elif BUILD_TESTS and dep.build_name == "googletest":
@@ -212,7 +179,6 @@ def build_cpack_archive(cmake_config: List[str]):
 def main():
     prepare_env()
     cmake_config = install_all_deps()
-    build_reflex_codgen()
     if not ASSUME_CPACK_PRESENT:
         update_cpack_archive(cmake_config=cmake_config)
 
