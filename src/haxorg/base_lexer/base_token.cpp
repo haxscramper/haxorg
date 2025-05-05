@@ -277,7 +277,9 @@ struct Cursor {
                 lexy::zstring_input(input.data()),
                 opts);
             p.message(
-                fmt("lexy view {}", escape_literal(lexy_view(offset))));
+                fmt("lexy view {}", escape_literal(lexy_view(offset))),
+                function,
+                line);
             p.message(str, function, line);
         }
 
@@ -724,16 +726,18 @@ void switch_command(Cursor& c) {
             function);
     };
 
-    auto head_args = [&]() {
-        c.token(head);
+    auto head_args = [&](int         line     = __builtin_LINE(),
+                         char const* function = __builtin_FUNCTION()) {
+        c.token(head, line, function);
         while (c.has_text() && !c.is_at('\n')) {
             auto __guard = c.advance_guard();
             switch_cmd_argument(c);
         }
     };
 
-    auto head_text = [&]() {
-        c.token(head);
+    auto head_text = [&](int         line     = __builtin_LINE(),
+                         char const* function = __builtin_FUNCTION()) {
+        c.token(head, line, function);
         while (c.has_text() && !c.is_at('\n')) {
             auto __guard = c.advance_guard();
             switch_regular_char(c);
@@ -1235,8 +1239,20 @@ void switch_regular_char(Cursor& c) {
             break;
         }
         case '[': {
+            static constexpr auto link_continuation = LEXY_CHAR_CLASS(
+                "oident",
+                dsl::ascii::alpha_digit_underscore //
+                    / LEXY_LIT("-")                //
+                    / LEXY_LIT("*")                //
+                    / LEXY_LIT("#")                //
+                    / LEXY_LIT("*")                //
+                    / LEXY_LIT(".")                //
+                    / LEXY_LIT("/")                //
+            );
+
             static constexpr auto link_end = dsl::literal_set(
                 LEXY_LIT("]]"), LEXY_LIT("]["));
+
             if (auto span = c.try_lexy_patt<
                             dsl::lit_c<'['> + dsl::digits<>
                             + dsl::lit_c<'%'> + dsl::lit_c<']'>>()) {
@@ -1275,8 +1291,9 @@ void switch_regular_char(Cursor& c) {
                 if (c.is_iat("http")) {
                     switch_word(c);
                 } else if (c.is_iat("file")) {
+                    c.token_adv(otk::LinkProtocolFile, 4);
                     auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                    c.token_adv(otk::LinkTargetFile, *span - 2);
+                    c.token_adv(otk::LinkTarget, *span - 2);
                 } else if (c.is_iat("attachment")) {
                     c.token0(otk::LinkProtocolAttachment, &advance_ident);
                     auto span = c.try_lexy_patt<dsl::until(link_end)>();
@@ -1305,7 +1322,8 @@ void switch_regular_char(Cursor& c) {
 
             } else if (
                 auto span = c.try_lexy_patt<
-                            LEXY_LIT("[[") + dsl::until(link_end)>()) {
+                            LEXY_LIT("[[") + link_continuation
+                            + dsl::until(link_end)>()) {
                 c.token_adv(otk::LinkBegin, 2);
                 switch (c.get()) {
                     case '*': {

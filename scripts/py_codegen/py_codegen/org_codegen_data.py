@@ -958,7 +958,6 @@ def get_sem_text():
                     t_nest("Repeat", [t_org("Time")]),
                     GenTuDoc("Repetition information for static time"),
                     methods=[
-                        eq_method(t_nest("Repeat", [t_org("Time")])),
                         default_constructor_method("Repeat"),
                     ],
                     nested=[
@@ -1749,12 +1748,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
             methods=[
                 eq_method(t_nest_shared("TodoKeyword")),
-                org_function(
-                    result=t_bool(),
-                    name="operator<",
-                    arguments=[arg_ident(t_cr(t_nest_shared("TodoKeyword")), "other")],
-                    isConst=True,
-                ),
             ],
         ),
         org_struct(

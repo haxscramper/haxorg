@@ -31,6 +31,7 @@ PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<bool>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::ColumnView>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::TodoKeyword>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
@@ -151,6 +152,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmFlexVectorOfImmIdTOfImmRow", type_registry_guard);
   bind_immerbox<std::optional<bool>>(m, "ImmBoxOfStdOptionalOfBool", type_registry_guard);
   bind_immerbox<std::optional<org::sem::ColumnView>>(m, "ImmBoxOfStdOptionalOfColumnView", type_registry_guard);
+  bind_immerflex_vector<org::sem::TodoKeyword>(m, "ImmFlexVectorOfTodoKeyword", type_registry_guard);
   bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmRawText", type_registry_guard);
   bind_hstdVec<int>(m, "VecOfInt", type_registry_guard);
   bind_hstdVec<org::imm::ImmAdapter>(m, "VecOfImmAdapter", type_registry_guard);
@@ -256,6 +258,39 @@ PYBIND11_MODULE(pyhaxorg, m) {
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<hstd::OperationsTracer>(m, "OperationsTracer")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::OperationsTracer {
+                        hstd::OperationsTracer result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("TraceState", &hstd::OperationsTracer::TraceState)
+    .def_readwrite("traceToFile", &hstd::OperationsTracer::traceToFile)
+    .def_readwrite("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
+    .def_readwrite("traceStructured", &hstd::OperationsTracer::traceStructured)
+    .def_readwrite("traceColored", &hstd::OperationsTracer::traceColored)
+    .def_readwrite("activeLevel", &hstd::OperationsTracer::activeLevel)
+    .def_readwrite("traceBuffer", &hstd::OperationsTracer::traceBuffer)
+    .def("setTraceFileStr",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
+         pybind11::arg("outfile"),
+         pybind11::arg("overwrite"),
+         R"RAW(\brief Helper method for reflection)RAW")
+    .def("sendMessage",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
+         pybind11::arg("value"),
+         pybind11::arg("function"),
+         pybind11::arg("line"),
+         pybind11::arg("file"))
+    .def("__repr__", [](hstd::OperationsTracer const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::OperationsTracer const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::OrgJson>(m, "OrgJson")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgJson {
                         org::sem::OrgJson result{};
@@ -321,39 +356,6 @@ node can have subnodes.)RAW")
          return pybind11::make_iterator(node.begin(), node.end());
          },
          pybind11::keep_alive<0, 1>())
-    ;
-  pybind11::class_<hstd::OperationsTracer>(m, "OperationsTracer")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::OperationsTracer {
-                        hstd::OperationsTracer result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("TraceState", &hstd::OperationsTracer::TraceState)
-    .def_readwrite("traceToFile", &hstd::OperationsTracer::traceToFile)
-    .def_readwrite("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
-    .def_readwrite("traceStructured", &hstd::OperationsTracer::traceStructured)
-    .def_readwrite("traceColored", &hstd::OperationsTracer::traceColored)
-    .def_readwrite("activeLevel", &hstd::OperationsTracer::activeLevel)
-    .def_readwrite("traceBuffer", &hstd::OperationsTracer::traceBuffer)
-    .def("setTraceFileStr",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
-         pybind11::arg("outfile"),
-         pybind11::arg("overwrite"),
-         R"RAW(\brief Helper method for reflection)RAW")
-    .def("sendMessage",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
-         pybind11::arg("value"),
-         pybind11::arg("function"),
-         pybind11::arg("line"),
-         pybind11::arg("file"))
-    .def("__repr__", [](hstd::OperationsTracer const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::OperationsTracer const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmId>(m, "ImmId")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmId {
@@ -1154,6 +1156,8 @@ ImmPathStep documentation.)RAW")
     .def("getSetupfile", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getSetupfile))
     .def("getMaxsubtreelevelexport", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getMaxsubtreelevelexport))
     .def("getColumns", static_cast<immer::box<std::optional<org::sem::ColumnView>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getColumns))
+    .def("getTodokeywords", static_cast<immer::flex_vector<org::sem::TodoKeyword> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getTodokeywords))
+    .def("getDonekeywords", static_cast<immer::flex_vector<org::sem::TodoKeyword> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getDonekeywords))
     .def("__repr__", [](org::imm::ImmDocumentOptionsValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2898,9 +2902,6 @@ ingoing elements.)RAW")
     .def_readwrite("onLeave", &org::sem::TodoKeyword::onLeave)
     .def("__eq__",
          static_cast<bool(org::sem::TodoKeyword::*)(org::sem::TodoKeyword const&) const>(&org::sem::TodoKeyword::operator==),
-         pybind11::arg("other"))
-    .def("__lt__",
-         static_cast<bool(org::sem::TodoKeyword::*)(org::sem::TodoKeyword const&) const>(&org::sem::TodoKeyword::operator<),
          pybind11::arg("other"))
     .def("__repr__", [](org::sem::TodoKeyword const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -5333,6 +5334,21 @@ ingoing elements.)RAW")
          },
          pybind11::arg("it"))
     ;
+  pybind11::class_<org::graph::MapConfig, hstd::OperationsTracer>(m, "graphMapConfig")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapConfig {
+                        org::graph::MapConfig result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapConfig const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapConfig const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::None, org::sem::SemId<org::sem::None>, org::sem::Org>(m, "None")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::None {
                         org::sem::None result{};
@@ -5490,9 +5506,6 @@ ingoing elements.)RAW")
     .def_readwrite("mode", &org::sem::Time::Repeat::mode, R"RAW(mode)RAW")
     .def_readwrite("period", &org::sem::Time::Repeat::period, R"RAW(period)RAW")
     .def_readwrite("count", &org::sem::Time::Repeat::count, R"RAW(count)RAW")
-    .def("__eq__",
-         static_cast<bool(org::sem::Time::Repeat::*)(org::sem::Time::Repeat const&) const>(&org::sem::Time::Repeat::operator==),
-         pybind11::arg("other"))
     .def("__repr__", [](org::sem::Time::Repeat const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -6274,21 +6287,6 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::CmdInclude const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::graph::MapConfig, hstd::OperationsTracer>(m, "graphMapConfig")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapConfig {
-                        org::graph::MapConfig result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::graph::MapConfig const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapConfig const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -7375,6 +7373,12 @@ ingoing elements.)RAW")
          pybind11::arg("value"))
     .def("setColumns",
          static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<org::sem::ColumnView>> const&)>(&org::imm::ImmDocumentOptionsValue::setColumns),
+         pybind11::arg("value"))
+    .def("setTodokeywords",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::flex_vector<org::sem::TodoKeyword> const&)>(&org::imm::ImmDocumentOptionsValue::setTodokeywords),
+         pybind11::arg("value"))
+    .def("setDonekeywords",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::flex_vector<org::sem::TodoKeyword> const&)>(&org::imm::ImmDocumentOptionsValue::setDonekeywords),
          pybind11::arg("value"))
     .def("__repr__", [](org::imm::ImmDocumentOptionsValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);

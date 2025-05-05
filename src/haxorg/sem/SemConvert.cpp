@@ -1661,7 +1661,7 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     auto res     = Sem<CmdTblfm>(a);
 
 
-    Str expr = get_text(one(a, N::Values));
+    Str expr = strip_space(get_text(one(a, N::Values)));
 
     auto result = run_lexy_parse<tblfmt_grammar::tblfmt>(expr, this);
 
@@ -2738,7 +2738,7 @@ bool OrgConverter::updateDocument(
         }
 
         case onk::CmdStartup: {
-            Vec<Str> args = get_text(sub.at(0)).split(" ");
+            Vec<Str> args = strip_space(get_text(sub.at(0))).split(" ");
             Str      text = normalize(args.at(0));
             using K       = InitialSubtreeVisibility;
             if (text == "content") {

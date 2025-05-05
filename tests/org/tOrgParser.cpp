@@ -659,8 +659,7 @@ TEST(OrgParseSem, TblfmExpression) {
 
 TEST(OrgParseSem, LinkTarget) {
     {
-        auto l = parseOne<sem::Link>(
-            R"([[* Title]])", getDebugFile("subtree_title"));
+        auto        l = parseOne<sem::Link>(R"([[* Title]])");
         auto const& t = l->target;
         EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::SubtreeTitle);
         EXPECT_EQ(t.getSubtreeTitle().level, 1);
@@ -668,8 +667,7 @@ TEST(OrgParseSem, LinkTarget) {
         EXPECT_EQ(t.getSubtreeTitle().title.path.at(0), "Title");
     }
     {
-        auto l = parseOne<sem::Link>(
-            R"([[** Title/Sub]])", getDebugFile("subtree_title"));
+        auto        l = parseOne<sem::Link>(R"([[** Title/Sub]])");
         auto const& t = l->target;
         EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::SubtreeTitle);
         EXPECT_EQ(t.getSubtreeTitle().level, 2);
@@ -678,11 +676,17 @@ TEST(OrgParseSem, LinkTarget) {
         EXPECT_EQ(t.getSubtreeTitle().title.path.at(1), "Sub");
     }
     {
-        auto l = parseOne<sem::Link>(
-            R"([[#custom-id]])", getDebugFile("custom_id"));
+        auto        l = parseOne<sem::Link>(R"([[#custom-id]])");
         auto const& t = l->target;
         EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::CustomId);
         EXPECT_EQ(t.getCustomId().text, "custom-id");
+    }
+    {
+        auto l = parseOne<sem::Link>(
+            R"([[file:random-path.pdf]])", getDebugFile("file_link"));
+        auto const& t = l->target;
+        EXPECT_EQ2(t.getKind(), sem::LinkTarget::Kind::File);
+        EXPECT_EQ(t.getFile().file, "random-path.pdf");
     }
 }
 

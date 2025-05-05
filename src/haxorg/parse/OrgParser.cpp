@@ -2023,7 +2023,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdCustomRaw: {
             start(onk::CmdCustomRawCommand);
             skip(lex, otk::CmdPrefix);
-            token(onk::RawText, pop(lex));
+            token(onk::RawText, pop(lex, cmd_kind));
+            space(lex);
             while (lex.at(otk::RawText)) {
                 token(onk::RawText, pop(lex, otk::RawText));
                 if (lex.at(otk::Whitespace)) { space(lex); }
@@ -2035,7 +2036,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdDescription: {
             skip(lex, otk::CmdPrefix);
             start(onk::CmdCustomTextCommand);
-            token(onk::RawText, pop(lex));
+            token(onk::RawText, pop(lex, cmd_kind));
+            space(lex);
             start(onk::Attrs);
             auto sub = subToEol(
                 lex, ParagraphTerminator + OrgTokSet{otk::Newline});
@@ -2051,7 +2053,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdHtmlHeadRaw: {
             skip(lex, otk::CmdPrefix);
             start(onk::CmdCustomArgsCommand);
-            token(onk::RawText, pop(lex));
+            token(onk::RawText, pop(lex, cmd_kind));
+            space(lex);
             parseCommandArguments(lex);
             break;
         }
@@ -2060,6 +2063,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             start(onk::CmdCallCode);
             skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdCall);
+            space(lex);
             // Name
             token(onk::Word, pop(lex, otk::CmdRawArg));
             space(lex);
@@ -2093,7 +2097,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdTitle:
         case otk::CmdCaption: {
             skip(lex, otk::CmdPrefix);
-            skip(lex);
+            skip(lex, cmd_kind);
+            space(lex);
             if (cmd_kind == otk::CmdTitle) {
                 start(onk::CmdTitle);
             } else {
@@ -2131,7 +2136,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             }
 
             skip(lex, otk::CmdPrefix);
-            skip(lex);
+            skip(lex, cmd_kind);
+            space(lex);
             while (lex.at(OrgTokSet{otk::RawText, otk::CmdRawArg})) {
                 token(onk::RawText, pop(lex));
                 space(lex);
@@ -2142,6 +2148,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdFiletags: {
             skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdFiletags);
+            space(lex);
             start(onk::CmdFiletags);
             while (lex.at(OrgTokSet{otk::Word, otk::BigIdent}, +1)) {
                 if (lex.at(otk::Colon)) {
@@ -2172,6 +2179,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 default:
             }
 
+            space(lex);
             token(onk::Word, pop(lex, otk::CmdRawArg));
             break;
         }
@@ -2180,6 +2188,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdLatexClassOptions: {
             skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdLatexClassOptions);
+            space(lex);
             start(onk::CmdLatexClassOptions);
             get_cmd_arguments();
             break;
@@ -2187,7 +2196,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
         case otk::CmdPropertyRaw: {
             skip(lex, otk::CmdPrefix);
-            skip(lex);
+            skip(lex, cmd_kind);
+            space(lex);
             start(onk::CmdPropertyRaw);
             token(onk::RawText, pop(lex, otk::RawText));
             break;
@@ -2195,7 +2205,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
         case otk::CmdPropertyText: {
             skip(lex, otk::CmdPrefix);
-            skip(lex);
+            skip(lex, cmd_kind);
+            space(lex);
             start(onk::CmdPropertyArgs);
             token(onk::RawText, pop(lex, otk::CmdRawArg));
             subParse(CommandArguments, lex);
@@ -2205,8 +2216,9 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
         case otk::CmdInclude: {
             start(onk::CmdInclude);
-            skip(lex);
+            skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdInclude);
+            space(lex);
             subParse(CommandArguments, lex);
             break;
         }
@@ -2215,6 +2227,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             start(onk::CmdAttr);
             skip(lex, otk::CmdPrefix);
             token(onk::Word, pop(lex, otk::CmdAttr));
+            space(lex);
             subParse(CommandArguments, lex);
             break;
         }
@@ -2223,7 +2236,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdResults:
         case otk::CmdHeader: {
             skip(lex, otk::CmdPrefix);
-            skip(lex);
+            skip(lex, cmd_kind);
             switch (cmd_kind) {
                 case otk::CmdHeader: start(onk::CmdHeader); break;
                 case otk::CmdName: start(onk::CmdName); break;
@@ -2232,6 +2245,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             }
 
 
+            space(lex);
             subParse(CommandArguments, lex);
             break;
         }
@@ -2239,9 +2253,9 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
         case otk::CmdPropertyArgs: {
             skip(lex, otk::CmdPrefix);
-            skip(lex);
-            start(onk::CmdPropertyArgs);
+            skip(lex, cmd_kind);
             space(lex);
+            start(onk::CmdPropertyArgs);
             token(onk::RawText, pop(lex, otk::CmdRawArg));
             subParse(CommandArguments, lex);
             break;
@@ -2249,7 +2263,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
         case otk::CmdOptions: {
             skip(lex, otk::CmdPrefix);
-            skip(lex);
+            skip(lex, cmd_kind);
+            space(lex);
             start(onk::CmdOptions);
             get_cmd_arguments();
             break;
@@ -2259,7 +2274,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdTblfm:
         case otk::CmdColumns: {
             skip(lex, otk::CmdPrefix);
-            skip(lex);
+            skip(lex, cmd_kind);
+            space(lex);
             switch (cmd_kind) {
                 case otk::CmdTblfm: start(onk::CmdTblfm); break;
                 case otk::CmdColumns: start(onk::CmdColumns); break;

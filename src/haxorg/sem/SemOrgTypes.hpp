@@ -478,16 +478,12 @@ struct TodoKeyword {
                        (),
                        (),
                        (),
-                       (name,
-                        shortcut,
-                        onEnter,
-                        onLeave))
+                       (name, shortcut, onEnter, onLeave))
   hstd::Str name = "";
   hstd::Opt<hstd::Str> shortcut = std::nullopt;
   org::sem::TodoKeyword::Transition onEnter;
   org::sem::TodoKeyword::Transition onLeave;
   bool operator==(org::sem::TodoKeyword const& other) const;
-  bool operator<(org::sem::TodoKeyword const& other) const;
 };
 
 /// \brief Single or nested inline hash-tag
@@ -2070,18 +2066,13 @@ struct Time : public org::sem::Org {
     /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
     enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
     BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
-    BOOST_DESCRIBE_CLASS(Repeat,
-                         (),
-                         (),
-                         (),
-                         (mode, period, count))
+    BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
     /// \brief mode
     org::sem::Time::Repeat::Mode mode;
     /// \brief period
     org::sem::Time::Repeat::Period period;
     /// \brief count
     int count;
-    bool operator==(org::sem::Time::Repeat const& other) const;
     Repeat() {  }
   };
 
