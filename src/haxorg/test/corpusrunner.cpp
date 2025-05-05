@@ -926,15 +926,12 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     CR<Str>       relDebug) {
     __perf_trace("cli", "lex base");
 
-    SPtr<std::ofstream> fileTrace;
+    LexerParams params;
     if (spec.debug.traceAll || spec.debug.traceLexBase) {
-        fileTrace = std::make_shared<std::ofstream>(
+        params.setTraceFile(
             spec.debugFile("trace_lex_base.log", relDebug));
     }
 
-    LexerParams params;
-    params.maxUnknown  = spec.debug.maxBaseLexUnknownCount;
-    params.traceStream = fileTrace.get();
     __perf_trace("cli", "tokenize base");
     p.tokenizeBase(spec.source, params);
 
@@ -983,6 +980,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     if (p.tokenizer->TraceState) {
         p.tokenizer->setTraceFile(
             spec.debugFile("trace_lex.log", relDebug));
+        p.tokenizer->traceColored = false;
     }
 
     __perf_trace("cli", "tokenize convert");

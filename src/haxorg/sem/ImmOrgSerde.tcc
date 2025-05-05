@@ -384,12 +384,14 @@ struct ImmSemSerde<org::sem::Time::Static, org::imm::ImmTime::Static> {
   static org::imm::ImmTime::Static to_immer(org::sem::Time::Static const& value, ImmAstEditContext& ctx) {
     org::imm::ImmTime::Static result = hstd::SerdeDefaultProvider<org::imm::ImmTime::Static>::get();
     assign_immer_field(result.repeat, value.repeat, ctx);
+    assign_immer_field(result.warn, value.warn, ctx);
     assign_immer_field(result.time, value.time, ctx);
     return result;
   }
   static org::sem::Time::Static from_immer(org::imm::ImmTime::Static const& value, ImmAstContext const& ctx) {
     org::sem::Time::Static result = hstd::SerdeDefaultProvider<org::sem::Time::Static>::get();
     assign_sem_field(result.repeat, value.repeat, ctx);
+    assign_sem_field(result.warn, value.warn, ctx);
     assign_sem_field(result.time, value.time, ctx);
     return result;
   }
@@ -1370,6 +1372,8 @@ struct ImmSemSerde<org::sem::DocumentOptions, org::imm::ImmDocumentOptions> {
     assign_immer_field(result.setupfile, value.setupfile, ctx);
     assign_immer_field(result.maxSubtreeLevelExport, value.maxSubtreeLevelExport, ctx);
     assign_immer_field(result.columns, value.columns, ctx);
+    assign_immer_field(result.todoKeywords, value.todoKeywords, ctx);
+    assign_immer_field(result.doneKeywords, value.doneKeywords, ctx);
     assign_immer_field(result.loc, value.loc, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
@@ -1385,6 +1389,8 @@ struct ImmSemSerde<org::sem::DocumentOptions, org::imm::ImmDocumentOptions> {
     assign_sem_field(result.setupfile, value.setupfile, ctx);
     assign_sem_field(result.maxSubtreeLevelExport, value.maxSubtreeLevelExport, ctx);
     assign_sem_field(result.columns, value.columns, ctx);
+    assign_sem_field(result.todoKeywords, value.todoKeywords, ctx);
+    assign_sem_field(result.doneKeywords, value.doneKeywords, ctx);
     assign_sem_field(result.loc, value.loc, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;

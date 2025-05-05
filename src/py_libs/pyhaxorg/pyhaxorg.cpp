@@ -31,6 +31,7 @@ PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<bool>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::ColumnView>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::TodoKeyword>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
@@ -88,6 +89,8 @@ PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Time::Repeat>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Time::Repeat>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::HashTag>>)
@@ -99,6 +102,8 @@ PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::NamedProperty>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SubtreePeriod>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SubtreePeriod>)
 PYBIND11_MAKE_OPAQUE(hstd::IntSet<org::sem::SubtreePeriod::Kind>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::TodoKeyword>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::TodoKeyword>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BigIdent>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BigIdent>>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::UserTime>)
@@ -147,6 +152,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmFlexVectorOfImmIdTOfImmRow", type_registry_guard);
   bind_immerbox<std::optional<bool>>(m, "ImmBoxOfStdOptionalOfBool", type_registry_guard);
   bind_immerbox<std::optional<org::sem::ColumnView>>(m, "ImmBoxOfStdOptionalOfColumnView", type_registry_guard);
+  bind_immerflex_vector<org::sem::TodoKeyword>(m, "ImmFlexVectorOfTodoKeyword", type_registry_guard);
   bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmRawText", type_registry_guard);
   bind_hstdVec<int>(m, "VecOfInt", type_registry_guard);
   bind_hstdVec<org::imm::ImmAdapter>(m, "VecOfImmAdapter", type_registry_guard);
@@ -176,12 +182,14 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_hstdVec<org::sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
   bind_hstdUnorderedMap<hstd::Str, hstd::Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
+  bind_hstdVec<org::sem::Time::Repeat>(m, "VecOfTimeRepeat", type_registry_guard);
   bind_hstdVec<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
   bind_hstdVec<org::sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
   bind_hstdVec<org::sem::SubtreePeriod>(m, "VecOfSubtreePeriod", type_registry_guard);
   bind_hstdIntSet<org::sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
+  bind_hstdVec<org::sem::TodoKeyword>(m, "VecOfTodoKeyword", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
   bind_hstdVec<hstd::UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
@@ -246,6 +254,39 @@ PYBIND11_MODULE(pyhaxorg, m) {
                      })
     .def("__getattr__",
          [](org::parse::LineCol const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<hstd::OperationsTracer>(m, "OperationsTracer")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::OperationsTracer {
+                        hstd::OperationsTracer result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("TraceState", &hstd::OperationsTracer::TraceState)
+    .def_readwrite("traceToFile", &hstd::OperationsTracer::traceToFile)
+    .def_readwrite("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
+    .def_readwrite("traceStructured", &hstd::OperationsTracer::traceStructured)
+    .def_readwrite("traceColored", &hstd::OperationsTracer::traceColored)
+    .def_readwrite("activeLevel", &hstd::OperationsTracer::activeLevel)
+    .def_readwrite("traceBuffer", &hstd::OperationsTracer::traceBuffer)
+    .def("setTraceFileStr",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
+         pybind11::arg("outfile"),
+         pybind11::arg("overwrite"),
+         R"RAW(\brief Helper method for reflection)RAW")
+    .def("sendMessage",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
+         pybind11::arg("value"),
+         pybind11::arg("function"),
+         pybind11::arg("line"),
+         pybind11::arg("file"))
+    .def("__repr__", [](hstd::OperationsTracer const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::OperationsTracer const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -315,39 +356,6 @@ node can have subnodes.)RAW")
          return pybind11::make_iterator(node.begin(), node.end());
          },
          pybind11::keep_alive<0, 1>())
-    ;
-  pybind11::class_<hstd::OperationsTracer>(m, "OperationsTracer")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::OperationsTracer {
-                        hstd::OperationsTracer result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("TraceState", &hstd::OperationsTracer::TraceState)
-    .def_readwrite("traceToFile", &hstd::OperationsTracer::traceToFile)
-    .def_readwrite("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
-    .def_readwrite("traceStructured", &hstd::OperationsTracer::traceStructured)
-    .def_readwrite("traceColored", &hstd::OperationsTracer::traceColored)
-    .def_readwrite("activeLevel", &hstd::OperationsTracer::activeLevel)
-    .def_readwrite("traceBuffer", &hstd::OperationsTracer::traceBuffer)
-    .def("setTraceFileStr",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
-         pybind11::arg("outfile"),
-         pybind11::arg("overwrite"),
-         R"RAW(\brief Helper method for reflection)RAW")
-    .def("sendMessage",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
-         pybind11::arg("value"),
-         pybind11::arg("function"),
-         pybind11::arg("line"),
-         pybind11::arg("file"))
-    .def("__repr__", [](hstd::OperationsTracer const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::OperationsTracer const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmId>(m, "ImmId")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmId {
@@ -1148,6 +1156,8 @@ ImmPathStep documentation.)RAW")
     .def("getSetupfile", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getSetupfile))
     .def("getMaxsubtreelevelexport", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getMaxsubtreelevelexport))
     .def("getColumns", static_cast<immer::box<std::optional<org::sem::ColumnView>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getColumns))
+    .def("getTodokeywords", static_cast<immer::flex_vector<org::sem::TodoKeyword> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getTodokeywords))
+    .def("getDonekeywords", static_cast<immer::flex_vector<org::sem::TodoKeyword> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getDonekeywords))
     .def("__repr__", [](org::imm::ImmDocumentOptionsValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2860,6 +2870,48 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  bind_enum_iterator<org::sem::TodoKeyword::Transition>(m, "TodoKeywordTransition", type_registry_guard);
+  pybind11::enum_<org::sem::TodoKeyword::Transition>(m, "TodoKeywordTransition")
+    .value("None", org::sem::TodoKeyword::Transition::None)
+    .value("NoteWithTimestamp", org::sem::TodoKeyword::Transition::NoteWithTimestamp)
+    .value("Timestamp", org::sem::TodoKeyword::Transition::Timestamp)
+    .def("__iter__", [](org::sem::TodoKeyword::Transition const& _self) -> org::bind::python::PyEnumIterator<org::sem::TodoKeyword::Transition> {
+                     return org::bind::python::PyEnumIterator<org::sem::TodoKeyword::Transition>();
+                     })
+    .def("__eq__",
+         [](org::sem::TodoKeyword::Transition const& _self, org::sem::TodoKeyword::Transition lhs, org::sem::TodoKeyword::Transition rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::TodoKeyword::Transition const& _self, org::sem::TodoKeyword::Transition it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  pybind11::class_<org::sem::TodoKeyword>(m, "TodoKeyword")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::TodoKeyword {
+                        org::sem::TodoKeyword result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &org::sem::TodoKeyword::name)
+    .def_readwrite("shortcut", &org::sem::TodoKeyword::shortcut)
+    .def_readwrite("onEnter", &org::sem::TodoKeyword::onEnter)
+    .def_readwrite("onLeave", &org::sem::TodoKeyword::onLeave)
+    .def("__eq__",
+         static_cast<bool(org::sem::TodoKeyword::*)(org::sem::TodoKeyword const&) const>(&org::sem::TodoKeyword::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::TodoKeyword const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::TodoKeyword const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::HashTagText>(m, "HashTagText")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::HashTagText {
                         org::sem::HashTagText result{};
@@ -4051,6 +4103,7 @@ ingoing elements.)RAW")
     ;
   bind_enum_iterator<org::sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks", type_registry_guard);
   pybind11::enum_<org::sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks")
+    .value("None", org::sem::DocumentExportConfig::BrokenLinks::None)
     .value("Mark", org::sem::DocumentExportConfig::BrokenLinks::Mark)
     .value("Raise", org::sem::DocumentExportConfig::BrokenLinks::Raise)
     .value("Ignore", org::sem::DocumentExportConfig::BrokenLinks::Ignore)
@@ -4955,6 +5008,7 @@ ingoing elements.)RAW")
                         return result;
                         }))
     .def_readwrite("repeat", &org::imm::ImmTime::Static::repeat)
+    .def_readwrite("warn", &org::imm::ImmTime::Static::warn)
     .def_readwrite("time", &org::imm::ImmTime::Static::time)
     .def("__eq__",
          static_cast<bool(org::imm::ImmTime::Static::*)(org::imm::ImmTime::Static const&) const>(&org::imm::ImmTime::Static::operator==),
@@ -5280,6 +5334,21 @@ ingoing elements.)RAW")
          },
          pybind11::arg("it"))
     ;
+  pybind11::class_<org::graph::MapConfig, hstd::OperationsTracer>(m, "graphMapConfig")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapConfig {
+                        org::graph::MapConfig result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::graph::MapConfig const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapConfig const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::None, org::sem::SemId<org::sem::None>, org::sem::Org>(m, "None")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::None {
                         org::sem::None result{};
@@ -5453,6 +5522,7 @@ ingoing elements.)RAW")
                         return result;
                         }))
     .def_readwrite("repeat", &org::sem::Time::Static::repeat)
+    .def_readwrite("warn", &org::sem::Time::Static::warn)
     .def_readwrite("time", &org::sem::Time::Static::time)
     .def("__repr__", [](org::sem::Time::Static const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -5780,6 +5850,8 @@ ingoing elements.)RAW")
     .def_readwrite("setupfile", &org::sem::DocumentOptions::setupfile)
     .def_readwrite("maxSubtreeLevelExport", &org::sem::DocumentOptions::maxSubtreeLevelExport)
     .def_readwrite("columns", &org::sem::DocumentOptions::columns)
+    .def_readwrite("todoKeywords", &org::sem::DocumentOptions::todoKeywords)
+    .def_readwrite("doneKeywords", &org::sem::DocumentOptions::doneKeywords)
     .def("getProperties",
          static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperties),
          pybind11::arg("kind"),
@@ -6215,21 +6287,6 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::CmdInclude const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::graph::MapConfig, hstd::OperationsTracer>(m, "graphMapConfig")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapConfig {
-                        org::graph::MapConfig result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::graph::MapConfig const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapConfig const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -7316,6 +7373,12 @@ ingoing elements.)RAW")
          pybind11::arg("value"))
     .def("setColumns",
          static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<org::sem::ColumnView>> const&)>(&org::imm::ImmDocumentOptionsValue::setColumns),
+         pybind11::arg("value"))
+    .def("setTodokeywords",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::flex_vector<org::sem::TodoKeyword> const&)>(&org::imm::ImmDocumentOptionsValue::setTodokeywords),
+         pybind11::arg("value"))
+    .def("setDonekeywords",
+         static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::flex_vector<org::sem::TodoKeyword> const&)>(&org::imm::ImmDocumentOptionsValue::setDonekeywords),
          pybind11::arg("value"))
     .def("__repr__", [](org::imm::ImmDocumentOptionsValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -8870,6 +8933,7 @@ ingoing elements.)RAW")
     .value("Day", OrgSpecName::Day)
     .value("Clock", OrgSpecName::Clock)
     .value("Repeater", OrgSpecName::Repeater)
+    .value("Warn", OrgSpecName::Warn)
     .value("Zone", OrgSpecName::Zone)
     .value("Link", OrgSpecName::Link)
     .value("Tags", OrgSpecName::Tags)
@@ -8992,6 +9056,7 @@ ingoing elements.)RAW")
     .value("CmdPropertyText", OrgNodeKind::CmdPropertyText, R"RAW(`#+property:` command)RAW")
     .value("CmdPropertyRaw", OrgNodeKind::CmdPropertyRaw, R"RAW(`#+property:` command)RAW")
     .value("CmdFiletags", OrgNodeKind::CmdFiletags, R"RAW(`#+filetags:` line command)RAW")
+    .value("CmdKeywords", OrgNodeKind::CmdKeywords)
     .value("BlockVerbatimMultiline", OrgNodeKind::BlockVerbatimMultiline, R"RAW(Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.)RAW")
     .value("CodeLine", OrgNodeKind::CodeLine, R"RAW(Single line of source code)RAW")
     .value("CodeText", OrgNodeKind::CodeText, R"RAW(Block of source code text)RAW")
@@ -9089,6 +9154,249 @@ ingoing elements.)RAW")
          pybind11::arg("rhs"))
     .def("__hash__",
          [](OrgNodeKind const& _self, OrgNodeKind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  bind_enum_iterator<OrgTokenKind>(m, "OrgTokenKind", type_registry_guard);
+  pybind11::enum_<OrgTokenKind>(m, "OrgTokenKind")
+    .value("Ampersand", OrgTokenKind::Ampersand)
+    .value("AngleBegin", OrgTokenKind::AngleBegin)
+    .value("AngleEnd", OrgTokenKind::AngleEnd)
+    .value("AnyPunct", OrgTokenKind::AnyPunct)
+    .value("Asterisk", OrgTokenKind::Asterisk)
+    .value("At", OrgTokenKind::At)
+    .value("Backtick", OrgTokenKind::Backtick)
+    .value("BigIdent", OrgTokenKind::BigIdent)
+    .value("BoldBegin", OrgTokenKind::BoldBegin)
+    .value("BoldEnd", OrgTokenKind::BoldEnd)
+    .value("BoldUnknown", OrgTokenKind::BoldUnknown)
+    .value("BraceBegin", OrgTokenKind::BraceBegin)
+    .value("BraceEnd", OrgTokenKind::BraceEnd)
+    .value("Checkbox", OrgTokenKind::Checkbox)
+    .value("Circumflex", OrgTokenKind::Circumflex)
+    .value("CmdAdmonitionEnd", OrgTokenKind::CmdAdmonitionEnd)
+    .value("CmdAttr", OrgTokenKind::CmdAttr)
+    .value("CmdAuthor", OrgTokenKind::CmdAuthor)
+    .value("CmdBindRaw", OrgTokenKind::CmdBindRaw)
+    .value("CmdCall", OrgTokenKind::CmdCall)
+    .value("CmdCaption", OrgTokenKind::CmdCaption)
+    .value("CmdCategoryRaw", OrgTokenKind::CmdCategoryRaw)
+    .value("CmdCell", OrgTokenKind::CmdCell)
+    .value("CmdCellBegin", OrgTokenKind::CmdCellBegin)
+    .value("CmdCellEnd", OrgTokenKind::CmdCellEnd)
+    .value("CmdCenterBegin", OrgTokenKind::CmdCenterBegin)
+    .value("CmdCenterEnd", OrgTokenKind::CmdCenterEnd)
+    .value("CmdColonIdent", OrgTokenKind::CmdColonIdent)
+    .value("CmdColumns", OrgTokenKind::CmdColumns)
+    .value("CmdCommentBegin", OrgTokenKind::CmdCommentBegin)
+    .value("CmdCommentEnd", OrgTokenKind::CmdCommentEnd)
+    .value("CmdConstants", OrgTokenKind::CmdConstants)
+    .value("CmdContentBegin", OrgTokenKind::CmdContentBegin)
+    .value("CmdContentEnd", OrgTokenKind::CmdContentEnd)
+    .value("CmdCreator", OrgTokenKind::CmdCreator)
+    .value("CmdCustomRaw", OrgTokenKind::CmdCustomRaw)
+    .value("CmdDateRaw", OrgTokenKind::CmdDateRaw)
+    .value("CmdDescription", OrgTokenKind::CmdDescription)
+    .value("CmdDrawersRaw", OrgTokenKind::CmdDrawersRaw)
+    .value("CmdDynamicBegin", OrgTokenKind::CmdDynamicBegin)
+    .value("CmdDynamicBlockBegin", OrgTokenKind::CmdDynamicBlockBegin)
+    .value("CmdDynamicBlockEnd", OrgTokenKind::CmdDynamicBlockEnd)
+    .value("CmdDynamicEnd", OrgTokenKind::CmdDynamicEnd)
+    .value("CmdEmailRaw", OrgTokenKind::CmdEmailRaw)
+    .value("CmdExampleBegin", OrgTokenKind::CmdExampleBegin)
+    .value("CmdExampleEnd", OrgTokenKind::CmdExampleEnd)
+    .value("CmdExampleLine", OrgTokenKind::CmdExampleLine)
+    .value("CmdExcludeTagsRaw", OrgTokenKind::CmdExcludeTagsRaw)
+    .value("CmdExportBegin", OrgTokenKind::CmdExportBegin)
+    .value("CmdExportEnd", OrgTokenKind::CmdExportEnd)
+    .value("CmdExportLine", OrgTokenKind::CmdExportLine)
+    .value("CmdFiletags", OrgTokenKind::CmdFiletags)
+    .value("CmdFlag", OrgTokenKind::CmdFlag)
+    .value("CmdHeader", OrgTokenKind::CmdHeader)
+    .value("CmdHtmlHeadRaw", OrgTokenKind::CmdHtmlHeadRaw)
+    .value("CmdInclude", OrgTokenKind::CmdInclude)
+    .value("CmdLanguage", OrgTokenKind::CmdLanguage)
+    .value("CmdLatexClass", OrgTokenKind::CmdLatexClass)
+    .value("CmdLatexClassOptions", OrgTokenKind::CmdLatexClassOptions)
+    .value("CmdLatexCompiler", OrgTokenKind::CmdLatexCompiler)
+    .value("CmdLatexHeader", OrgTokenKind::CmdLatexHeader)
+    .value("CmdLatexHeaderExtraRaw", OrgTokenKind::CmdLatexHeaderExtraRaw)
+    .value("CmdLinkRaw", OrgTokenKind::CmdLinkRaw)
+    .value("CmdMacroRaw", OrgTokenKind::CmdMacroRaw)
+    .value("CmdName", OrgTokenKind::CmdName)
+    .value("CmdOptions", OrgTokenKind::CmdOptions)
+    .value("CmdPrefix", OrgTokenKind::CmdPrefix)
+    .value("CmdPrioritiesRaw", OrgTokenKind::CmdPrioritiesRaw)
+    .value("CmdPropertyArgs", OrgTokenKind::CmdPropertyArgs)
+    .value("CmdPropertyRaw", OrgTokenKind::CmdPropertyRaw)
+    .value("CmdPropertyText", OrgTokenKind::CmdPropertyText)
+    .value("CmdQuoteBegin", OrgTokenKind::CmdQuoteBegin)
+    .value("CmdQuoteEnd", OrgTokenKind::CmdQuoteEnd)
+    .value("CmdRawArg", OrgTokenKind::CmdRawArg)
+    .value("CmdResults", OrgTokenKind::CmdResults)
+    .value("CmdRow", OrgTokenKind::CmdRow)
+    .value("CmdRowBegin", OrgTokenKind::CmdRowBegin)
+    .value("CmdRowEnd", OrgTokenKind::CmdRowEnd)
+    .value("CmdSelectTagsRaw", OrgTokenKind::CmdSelectTagsRaw)
+    .value("CmdSeqTodoRaw", OrgTokenKind::CmdSeqTodoRaw)
+    .value("CmdKeywordsRaw", OrgTokenKind::CmdKeywordsRaw)
+    .value("CmdSetupfileRaw", OrgTokenKind::CmdSetupfileRaw)
+    .value("CmdSrcBegin", OrgTokenKind::CmdSrcBegin)
+    .value("CmdSrcEnd", OrgTokenKind::CmdSrcEnd)
+    .value("CmdStartup", OrgTokenKind::CmdStartup)
+    .value("CmdTableBegin", OrgTokenKind::CmdTableBegin)
+    .value("CmdTableEnd", OrgTokenKind::CmdTableEnd)
+    .value("CmdTagsRaw", OrgTokenKind::CmdTagsRaw)
+    .value("CmdTblfm", OrgTokenKind::CmdTblfm)
+    .value("CmdTitle", OrgTokenKind::CmdTitle)
+    .value("CmdVerseBegin", OrgTokenKind::CmdVerseBegin)
+    .value("CmdVerseEnd", OrgTokenKind::CmdVerseEnd)
+    .value("Colon", OrgTokenKind::Colon)
+    .value("ColonArgumentsProperty", OrgTokenKind::ColonArgumentsProperty)
+    .value("ColonEnd", OrgTokenKind::ColonEnd)
+    .value("ColonExampleLine", OrgTokenKind::ColonExampleLine)
+    .value("ColonLiteralProperty", OrgTokenKind::ColonLiteralProperty)
+    .value("ColonLogbook", OrgTokenKind::ColonLogbook)
+    .value("ColonProperties", OrgTokenKind::ColonProperties)
+    .value("ColonPropertyText", OrgTokenKind::ColonPropertyText)
+    .value("Comma", OrgTokenKind::Comma)
+    .value("Comment", OrgTokenKind::Comment)
+    .value("CriticAddBegin", OrgTokenKind::CriticAddBegin)
+    .value("CriticAddEnd", OrgTokenKind::CriticAddEnd)
+    .value("CriticCommentBegin", OrgTokenKind::CriticCommentBegin)
+    .value("CriticCommentEnd", OrgTokenKind::CriticCommentEnd)
+    .value("CriticDeleteBegin", OrgTokenKind::CriticDeleteBegin)
+    .value("CriticDeleteEnd", OrgTokenKind::CriticDeleteEnd)
+    .value("CriticHighlightBegin", OrgTokenKind::CriticHighlightBegin)
+    .value("CriticHighlightEnd", OrgTokenKind::CriticHighlightEnd)
+    .value("CriticReplaceBegin", OrgTokenKind::CriticReplaceBegin)
+    .value("CriticReplaceEnd", OrgTokenKind::CriticReplaceEnd)
+    .value("CriticReplaceMiddle", OrgTokenKind::CriticReplaceMiddle)
+    .value("CurlyBegin", OrgTokenKind::CurlyBegin)
+    .value("CurlyEnd", OrgTokenKind::CurlyEnd)
+    .value("Date", OrgTokenKind::Date)
+    .value("Dedent", OrgTokenKind::Dedent)
+    .value("Dollar", OrgTokenKind::Dollar)
+    .value("DoubleAngleBegin", OrgTokenKind::DoubleAngleBegin)
+    .value("DoubleAngleEnd", OrgTokenKind::DoubleAngleEnd)
+    .value("DoubleColon", OrgTokenKind::DoubleColon)
+    .value("DoubleDash", OrgTokenKind::DoubleDash)
+    .value("DoubleHash", OrgTokenKind::DoubleHash)
+    .value("DoubleQuote", OrgTokenKind::DoubleQuote)
+    .value("DoubleSlash", OrgTokenKind::DoubleSlash)
+    .value("DynamicTimeContent", OrgTokenKind::DynamicTimeContent)
+    .value("EndOfFile", OrgTokenKind::EndOfFile)
+    .value("Equals", OrgTokenKind::Equals)
+    .value("Escaped", OrgTokenKind::Escaped)
+    .value("Exclamation", OrgTokenKind::Exclamation)
+    .value("FootnoteInlineBegin", OrgTokenKind::FootnoteInlineBegin)
+    .value("FootnoteLinked", OrgTokenKind::FootnoteLinked)
+    .value("ForwardSlash", OrgTokenKind::ForwardSlash)
+    .value("HashIdent", OrgTokenKind::HashIdent)
+    .value("HashTagBegin", OrgTokenKind::HashTagBegin)
+    .value("Indent", OrgTokenKind::Indent)
+    .value("InlineExportBackend", OrgTokenKind::InlineExportBackend)
+    .value("InlineExportContent", OrgTokenKind::InlineExportContent)
+    .value("ItalicBegin", OrgTokenKind::ItalicBegin)
+    .value("ItalicEnd", OrgTokenKind::ItalicEnd)
+    .value("ItalicUnknown", OrgTokenKind::ItalicUnknown)
+    .value("LatexInlineRaw", OrgTokenKind::LatexInlineRaw)
+    .value("LatexParBegin", OrgTokenKind::LatexParBegin)
+    .value("LatexParEnd", OrgTokenKind::LatexParEnd)
+    .value("LeadingMinus", OrgTokenKind::LeadingMinus)
+    .value("LeadingNumber", OrgTokenKind::LeadingNumber)
+    .value("LeadingPipe", OrgTokenKind::LeadingPipe)
+    .value("LeadingPlus", OrgTokenKind::LeadingPlus)
+    .value("LeadingSpace", OrgTokenKind::LeadingSpace)
+    .value("LineCommand", OrgTokenKind::LineCommand)
+    .value("LinkBegin", OrgTokenKind::LinkBegin)
+    .value("LinkDescriptionBegin", OrgTokenKind::LinkDescriptionBegin)
+    .value("LinkDescriptionEnd", OrgTokenKind::LinkDescriptionEnd)
+    .value("LinkEnd", OrgTokenKind::LinkEnd)
+    .value("LinkFull", OrgTokenKind::LinkFull)
+    .value("LinkProtocol", OrgTokenKind::LinkProtocol)
+    .value("LinkProtocolAttachment", OrgTokenKind::LinkProtocolAttachment)
+    .value("LinkProtocolCustomId", OrgTokenKind::LinkProtocolCustomId)
+    .value("LinkProtocolFile", OrgTokenKind::LinkProtocolFile)
+    .value("LinkProtocolHttp", OrgTokenKind::LinkProtocolHttp)
+    .value("LinkProtocolId", OrgTokenKind::LinkProtocolId)
+    .value("LinkProtocolInternal", OrgTokenKind::LinkProtocolInternal)
+    .value("LinkProtocolTitle", OrgTokenKind::LinkProtocolTitle)
+    .value("LinkSplit", OrgTokenKind::LinkSplit)
+    .value("LinkTarget", OrgTokenKind::LinkTarget)
+    .value("LinkTargetBegin", OrgTokenKind::LinkTargetBegin)
+    .value("LinkTargetEnd", OrgTokenKind::LinkTargetEnd)
+    .value("LinkTargetFile", OrgTokenKind::LinkTargetFile)
+    .value("ListBegin", OrgTokenKind::ListBegin)
+    .value("ListEnd", OrgTokenKind::ListEnd)
+    .value("ListItemBegin", OrgTokenKind::ListItemBegin)
+    .value("ListItemEnd", OrgTokenKind::ListItemEnd)
+    .value("LongNewline", OrgTokenKind::LongNewline)
+    .value("MediumNewline", OrgTokenKind::MediumNewline)
+    .value("Minus", OrgTokenKind::Minus)
+    .value("MiscUnicode", OrgTokenKind::MiscUnicode)
+    .value("MonospaceBegin", OrgTokenKind::MonospaceBegin)
+    .value("MonospaceEnd", OrgTokenKind::MonospaceEnd)
+    .value("MonospaceUnknown", OrgTokenKind::MonospaceUnknown)
+    .value("Newline", OrgTokenKind::Newline)
+    .value("Number", OrgTokenKind::Number)
+    .value("ParBegin", OrgTokenKind::ParBegin)
+    .value("ParEnd", OrgTokenKind::ParEnd)
+    .value("Percent", OrgTokenKind::Percent)
+    .value("Pipe", OrgTokenKind::Pipe)
+    .value("Placeholder", OrgTokenKind::Placeholder)
+    .value("Plus", OrgTokenKind::Plus)
+    .value("Punctuation", OrgTokenKind::Punctuation)
+    .value("RawText", OrgTokenKind::RawText)
+    .value("SameIndent", OrgTokenKind::SameIndent)
+    .value("Semicolon", OrgTokenKind::Semicolon)
+    .value("SingleQuote", OrgTokenKind::SingleQuote)
+    .value("SrcContent", OrgTokenKind::SrcContent)
+    .value("StmtListBegin", OrgTokenKind::StmtListBegin)
+    .value("StmtListEnd", OrgTokenKind::StmtListEnd)
+    .value("StrikeBegin", OrgTokenKind::StrikeBegin)
+    .value("StrikeEnd", OrgTokenKind::StrikeEnd)
+    .value("StrikeUnknown", OrgTokenKind::StrikeUnknown)
+    .value("SubtreeCompletion", OrgTokenKind::SubtreeCompletion)
+    .value("SubtreePriority", OrgTokenKind::SubtreePriority)
+    .value("SubtreeStars", OrgTokenKind::SubtreeStars)
+    .value("Symbol", OrgTokenKind::Symbol)
+    .value("TableSeparator", OrgTokenKind::TableSeparator)
+    .value("TextSeparator", OrgTokenKind::TextSeparator)
+    .value("TextSrcBegin", OrgTokenKind::TextSrcBegin)
+    .value("Tilda", OrgTokenKind::Tilda)
+    .value("Time", OrgTokenKind::Time)
+    .value("TimeArrow", OrgTokenKind::TimeArrow)
+    .value("TimeRepeaterDuration", OrgTokenKind::TimeRepeaterDuration)
+    .value("TimeRepeaterSpec", OrgTokenKind::TimeRepeaterSpec)
+    .value("TimeWarnPeriod", OrgTokenKind::TimeWarnPeriod)
+    .value("TrailingPipe", OrgTokenKind::TrailingPipe)
+    .value("TreeClock", OrgTokenKind::TreeClock)
+    .value("TreeTime", OrgTokenKind::TreeTime)
+    .value("TripleAngleBegin", OrgTokenKind::TripleAngleBegin)
+    .value("TripleAngleEnd", OrgTokenKind::TripleAngleEnd)
+    .value("Underline", OrgTokenKind::Underline)
+    .value("UnderlineBegin", OrgTokenKind::UnderlineBegin)
+    .value("UnderlineEnd", OrgTokenKind::UnderlineEnd)
+    .value("UnderlineUnknown", OrgTokenKind::UnderlineUnknown)
+    .value("Unknown", OrgTokenKind::Unknown)
+    .value("VerbatimBegin", OrgTokenKind::VerbatimBegin)
+    .value("VerbatimEnd", OrgTokenKind::VerbatimEnd)
+    .value("VerbatimUnknown", OrgTokenKind::VerbatimUnknown)
+    .value("Whitespace", OrgTokenKind::Whitespace)
+    .value("Word", OrgTokenKind::Word)
+    .def("__iter__", [](OrgTokenKind const& _self) -> org::bind::python::PyEnumIterator<OrgTokenKind> {
+                     return org::bind::python::PyEnumIterator<OrgTokenKind>();
+                     })
+    .def("__eq__",
+         [](OrgTokenKind const& _self, OrgTokenKind lhs, OrgTokenKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](OrgTokenKind const& _self, OrgTokenKind it) -> int {
          return static_cast<int>(it);
          },
          pybind11::arg("it"))

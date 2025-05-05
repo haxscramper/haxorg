@@ -53,6 +53,36 @@ void Formatter::add(Res id, Res other) {
     }
 }
 
+Formatter::Res Formatter::toString(
+    const sem::TodoKeyword& id,
+    const Context&          ctx) {
+    auto res = b.line();
+    b.add_at(res, str(id.name));
+    using T = sem::TodoKeyword::Transition;
+    if (id.onEnter != T::None || id.onLeave != T::None || id.shortcut) {
+        b.add_at(res, str(")"));
+        if (id.shortcut) { b.add_at(res, str(id.shortcut.value())); }
+
+        auto write = [&](T t) {
+            switch (t) {
+                case T::None: break;
+                case T::NoteWithTimestamp: b.add_at(res, str("@")); break;
+                case T::Timestamp: b.add_at(res, str("!")); break;
+            }
+        };
+
+        if (id.onEnter != T::None) { write(id.onEnter); }
+
+        if (id.onLeave != T::None) {
+            b.add_at(res, str("/"));
+            write(id.onLeave);
+        }
+
+        b.add_at(res, str("("));
+    }
+    return res;
+}
+
 
 void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
     for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
@@ -241,10 +271,57 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
         hadDocumentProperties = true;
     }
 
+    if (!id->options->todoKeywords.empty()
+        || !id->options->doneKeywords.empty()) {
+        auto keywords = b.line();
+        b.add_at(keywords, str("#+keywords"));
+
+        Vec<Res> tmp;
+        for (auto const& k : id->options->todoKeywords) {
+            tmp.push_back(toString(k, ctx));
+        }
+
+        if (id->options->doneKeywords.empty()) {
+            tmp.push_back(str("|"));
+            for (auto const& k : id->options->doneKeywords) {
+                tmp.push_back(toString(k, ctx));
+            }
+        }
+
+        b.add_at(keywords, b.join(tmp, str(" ")));
+
+        add(result, keywords);
+    }
+
     if (id->author) {
         add(result,
             b.line({str("#+author: "), toString(*id->author, ctx)}));
         hadDocumentProperties = true;
+    }
+
+    Vec<Res> exp;
+
+    {
+        auto const& ec = id->options->exportConfig;
+        using BL       = sem::DocumentExportConfig::BrokenLinks;
+        switch (ec.brokenLinks) {
+            case BL::None: break;
+            case BL::Ignore:
+                exp.push_back(str("broken-links:ignore"));
+                break;
+            case BL::Mark: exp.push_back(str("broken-links:mark")); break;
+            case BL::Raise:
+                exp.push_back(str("broken-links:raise"));
+                break;
+        }
+    }
+
+    if (!exp.empty()) {
+        add(result,
+            b.line({
+                str("#+options: "),
+                b.join(exp, str(" ")),
+            }));
     }
 
     if (!id->options.isNil()) {
@@ -513,7 +590,9 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
                     break;
                 }
                 case BlockCodeLine::Part::Kind::Tangle: {
+                    add(line, str("<<"));
                     add(line, str(part.getTangle().target));
+                    add(line, str(">>"));
                     break;
                 }
             }
@@ -856,8 +935,40 @@ auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
 
     add(result, str(id->isActive ? "<" : "["));
     if (id->isStatic()) {
-        UserTime const& time = id->getStatic().time;
+        auto const&     s    = id->getStatic();
+        UserTime const& time = s.time;
         add(result, str(time.format(UserTime::Format::OrgFormat)));
+        using M = Time::Repeat::Mode;
+        using P = Time::Repeat::Period;
+
+        auto fmt_period = [](P p) {
+            switch (p) {
+                case P::Day: return "d";
+                case P::Month: return "m";
+                case P::Hour: return "h";
+                case P::Week: return "w";
+                case P::Year: return "y";
+                case P::Minute: return "M";
+            }
+        };
+
+        for (auto const& r : s.repeat) {
+            switch (r.mode) {
+                case M::None: break;
+                case M::Exact: add(result, str("+")); break;
+                case M::FirstMatch: add(result, str("++")); break;
+                case M::SameDay: add(result, str(".+")); break;
+            }
+
+            add(result, str(fmt1(r.count)));
+            add(result, str(fmt_period(r.period)));
+        }
+
+        if (s.warn) {
+            add(result, str(fmt1(s.warn->count)));
+            add(result, str(fmt_period(s.warn->period)));
+        }
+
     } else {
         add(result, str(id->getDynamic().expr));
     }

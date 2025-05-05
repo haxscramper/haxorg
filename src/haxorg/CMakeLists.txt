@@ -36,12 +36,8 @@ if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
   target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
 endif()
 
-target_link_libraries(haxorg PUBLIC hstd Reflex::ReflexLibStatic range-v3::range-v3
-                                    nlohmann_json::nlohmann_json foonathan::lexy immer)
-
-if(${ORG_EMCC_BUILD})
-  target_link_libraries(haxorg PUBLIC pcre2::pcre2-posix-static)
-endif()
+target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json
+                                    foonathan::lexy immer)
 
 if(NOT ${ORG_EMCC_BUILD})
   target_link_libraries(haxorg PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY} absl::base

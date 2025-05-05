@@ -65,6 +65,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         fieldN(1, N::Clock, {onk::RawText, onk::Empty}),
         fieldN(2, N::Zone, {onk::RawText, onk::Empty}),
         fieldN(3, N::Repeater, {onk::RawText, onk::Empty}),
+        fieldN(4, N::Warn, {onk::RawText, onk::Empty}),
     });
 
     const OrgPattern rawTextCmdPattern = OrgPattern({
@@ -538,6 +539,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 fieldN(0, N::Name),
                 fieldN(slice(1, 1_B), N::Args, onk::InlineStmtList),
+            })},
+        SpecPair{
+            onk::CodeTangle,
+            OrgPattern({
+                fieldN(0, N::Name),
             })},
         SpecPair{
             onk::CmdCallCode,

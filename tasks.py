@@ -761,50 +761,6 @@ def get_deps_install_dir() -> Path:
 def get_deps_build_dir() -> Path:
     return get_deps_tmp_dir().joinpath("build")
 
-
-@org_task(pre=[base_environment], force_notify=True)
-def generate_haxorg_base_lexer(ctx: Context):
-    """Generate base lexer file definitions and compile them to C code"""
-    py_file = get_script_root("src/haxorg/base_lexer/base_lexer.py")
-    gen_lexer = get_script_root("src/haxorg/base_lexer/base_lexer.l")
-    reflex_run_params = [
-        "--fast",
-        "--nodefault",
-        # "--debug",
-        "--case-insensitive",
-        f"--outfile={get_script_root('src/haxorg/base_lexer/base_lexer_gen.cpp')}",
-        "--namespace=base_lexer",
-        gen_lexer,
-    ]
-
-    # if get_config(ctx).emscripten:
-    # reflex_run_params.append("−−matcher=pcre2-perl")
-
-    with FileOperation.InTmp(
-            input=[py_file, py_file.with_suffix(".yaml")],
-            output=[gen_lexer],
-            stamp_path=get_task_stamp("generate_haxorg_base_lexer"),
-            stamp_content=str(reflex_run_params),
-    ) as op:
-        if op.should_run():
-            log(CAT).info(f"Generating base lexer for haxorg " +
-                          op.explain("generate_haxorg_base_lexer"))
-            run_command(ctx, "poetry", ["run", py_file])
-            run_command(
-                ctx,
-                get_deps_install_dir().joinpath("reflex/bin/reflex"),
-                reflex_run_params,
-                env={
-                    "LD_LIBRARY_PATH": str(get_deps_install_dir().joinpath("reflex/lib"))
-                },
-            )
-
-            gen_lexer.touch()
-
-        else:
-            log(CAT).info("No changes in base lexer config")
-
-
 @org_task()
 def symlink_build(ctx: Context):
     """
@@ -955,8 +911,7 @@ def run_cmake_haxorg_clean(ctx: Context):
     os_utils.rmdir_quiet(get_deps_install_dir())
 
 
-@org_task(iterable=["build_whitelist", "ninja_flag"],
-          pre=[generate_develop_deps_install_paths])
+@org_task(iterable=["build_whitelist", "ninja_flag"])
 def build_develop_deps(
     ctx: Context,
     rebuild: bool = False,
@@ -1046,6 +1001,7 @@ def build_develop_deps(
         )
 
     log(CAT).info(f"Finished develop dependencies installation, {debug_conf}")
+    generate_develop_deps_install_paths(ctx)
     log(CAT).info(f"Installed into {install_dir}")
 
 
@@ -1197,7 +1153,6 @@ def build_release_deps(
             cmake_opt("ORG_DEPS_USE_ADAPTAGRAMS", False),
             cmake_opt("ORG_DEPS_USE_PACKAGED_BOOST", False),
             cmake_opt("CMAKE_PREFIX_PATH", [
-                install_dir.joinpath("reflex/lib/cmake/reflex"),
                 install_dir.joinpath("lexy/lib/cmake/lexy"),
                 install_dir.joinpath("abseil/lib/cmake/absl"),
                 install_dir.joinpath("abseil/lib64/cmake/absl"),
@@ -1874,7 +1829,7 @@ def get_poetry_import_paths(ctx: Context) -> List[Path]:
     ]
 
 
-@org_task(pre=[generate_haxorg_base_lexer, build_haxorg])
+@org_task(pre=[build_haxorg])
 def build_all(ctx: Context):
     """Build all binary artifacts"""
     pass
@@ -2217,12 +2172,6 @@ def run_develop_ci(
 
     if build:
         log(CAT).info("Running CI cmake")
-        run_self(
-            ctx,
-            [generate_haxorg_base_lexer],
-            env=env,
-        )
-
         run_self(
             ctx,
             [

@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     std::unique_ptr<perfetto::TracingSession>
         tracing_session = StartProcessTracing("Perfetto track example");
 
-    finally end_trace{[&]() {
+    hstd::finally end_trace{[&]() {
         StopTracing(
             std::move(tracing_session),
             "/tmp/t_common_main_perfetto_trace.pftrace");

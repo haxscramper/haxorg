@@ -135,6 +135,8 @@ struct convert<org::parse::OrgToken> {
     static Node encode(org::parse::OrgToken const& str) {
         Node result;
         result["kind"] = hstd::fmt1(str.kind);
+        // result["col"]  = hstd::fmt1(str->col);
+        // result["line"] = hstd::fmt1(str->line);
         if (!str->text.empty()) { result["str"] = str->text; }
         return result;
     }

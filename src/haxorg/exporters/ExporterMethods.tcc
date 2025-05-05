@@ -31,6 +31,7 @@ void visit(R& res, sem::AttrValue::TextValue const& object);
 void visit(R& res, sem::AttrValue::FileReference const& object);
 void visit(R& res, sem::AttrValue::LispValue const& object);
 void visit(R& res, sem::HashTagFlat const& object);
+void visit(R& res, sem::TodoKeyword const& object);
 void visit(R& res, sem::HashTagText const& object);
 void visit(R& res, sem::SubtreePath const& object);
 void visit(R& res, org::sem::LinkTarget::Data const& object);

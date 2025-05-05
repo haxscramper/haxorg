@@ -404,6 +404,24 @@ void org::algo::proto_serde<::orgproto::HashTagFlat, org::sem::HashTagFlat>::rea
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::read(out.tags(), in.for_field(&org::sem::HashTagFlat::tags));
 }
 
+void org::algo::proto_serde<::orgproto::TodoKeyword, org::sem::TodoKeyword>::write(::orgproto::TodoKeyword* out, org::sem::TodoKeyword const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
+  if (in.shortcut) {
+    proto_serde<std::string, hstd::Str>::write(out->mutable_shortcut(), *in.shortcut);
+  }
+  out->set_onenter(static_cast<orgproto::TodoKeyword_Transition>(in.onEnter));
+  out->set_onleave(static_cast<orgproto::TodoKeyword_Transition>(in.onLeave));
+}
+
+void org::algo::proto_serde<::orgproto::TodoKeyword, org::sem::TodoKeyword>::read(::orgproto::TodoKeyword const& out, proto_write_accessor<org::sem::TodoKeyword> in) {
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::TodoKeyword::name));
+  if (out.has_shortcut()) {
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.shortcut(), in.for_field(&org::sem::TodoKeyword::shortcut));
+  }
+  in.for_field(&org::sem::TodoKeyword::onEnter).get() = static_cast<org::sem::TodoKeyword::Transition>(out.onenter());
+  in.for_field(&org::sem::TodoKeyword::onLeave).get() = static_cast<org::sem::TodoKeyword::Transition>(out.onleave());
+}
+
 void org::algo::proto_serde<::orgproto::HashTagText, org::sem::HashTagText>::write(::orgproto::HashTagText* out, org::sem::HashTagText const& in) {
   proto_serde<std::string, hstd::Str>::write(out->mutable_head(), in.head);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTagText>, hstd::Vec<org::sem::HashTagText>>::write(out->mutable_subtags(), in.subtags);
@@ -1783,15 +1801,17 @@ void org::algo::proto_serde<::orgproto::Time::Repeat, org::sem::Time::Repeat>::r
 }
 
 void org::algo::proto_serde<::orgproto::Time::Static, org::sem::Time::Static>::write(::orgproto::Time::Static* out, org::sem::Time::Static const& in) {
-  if (in.repeat) {
-    proto_serde<orgproto::Time::Repeat, org::sem::Time::Repeat>::write(out->mutable_repeat(), *in.repeat);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Time::Repeat>, hstd::Vec<org::sem::Time::Repeat>>::write(out->mutable_repeat(), in.repeat);
+  if (in.warn) {
+    proto_serde<orgproto::Time::Repeat, org::sem::Time::Repeat>::write(out->mutable_warn(), *in.warn);
   }
   proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::write(out->mutable_time(), in.time);
 }
 
 void org::algo::proto_serde<::orgproto::Time::Static, org::sem::Time::Static>::read(::orgproto::Time::Static const& out, proto_write_accessor<org::sem::Time::Static> in) {
-  if (out.has_repeat()) {
-    proto_serde<hstd::Opt<orgproto::Time::Repeat>, hstd::Opt<org::sem::Time::Repeat>>::read(out.repeat(), in.for_field(&org::sem::Time::Static::repeat));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Time::Repeat>, hstd::Vec<org::sem::Time::Repeat>>::read(out.repeat(), in.for_field(&org::sem::Time::Static::repeat));
+  if (out.has_warn()) {
+    proto_serde<hstd::Opt<orgproto::Time::Repeat>, hstd::Opt<org::sem::Time::Repeat>>::read(out.warn(), in.for_field(&org::sem::Time::Static::warn));
   }
   proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::read(out.time(), in.for_field(&org::sem::Time::Static::time));
 }
@@ -2491,6 +2511,8 @@ void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptio
   if (in.columns) {
     proto_serde<orgproto::ColumnView, org::sem::ColumnView>::write(out->mutable_columns(), *in.columns);
   }
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::TodoKeyword>, hstd::Vec<org::sem::TodoKeyword>>::write(out->mutable_todokeywords(), in.todoKeywords);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::TodoKeyword>, hstd::Vec<org::sem::TodoKeyword>>::write(out->mutable_donekeywords(), in.doneKeywords);
 }
 
 void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptions>::read(::orgproto::DocumentOptions const& out, proto_write_accessor<org::sem::DocumentOptions> in) {
@@ -2516,6 +2538,8 @@ void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptio
   if (out.has_columns()) {
     proto_serde<hstd::Opt<orgproto::ColumnView>, hstd::Opt<org::sem::ColumnView>>::read(out.columns(), in.for_field(&org::sem::DocumentOptions::columns));
   }
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::TodoKeyword>, hstd::Vec<org::sem::TodoKeyword>>::read(out.todokeywords(), in.for_field(&org::sem::DocumentOptions::todoKeywords));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::TodoKeyword>, hstd::Vec<org::sem::TodoKeyword>>::read(out.donekeywords(), in.for_field(&org::sem::DocumentOptions::doneKeywords));
 }
 
 void org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::DocumentFragment>::write(::orgproto::DocumentFragment* out, org::sem::DocumentFragment const& in) {

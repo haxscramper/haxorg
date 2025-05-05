@@ -93,7 +93,7 @@ class ASTBuilder(base.AstbuilderBase):
     def escape(self, text: str) -> str:
         res = ""
         for ch in text:
-            if ch in ["@", "#", "<", "*", "[", "$"]:
+            if ch in ["@", "#", "<", "*", "[", "$", "]"]:
                 res += "\\" + ch
 
             else:

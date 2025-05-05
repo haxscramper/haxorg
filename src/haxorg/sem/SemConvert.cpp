@@ -940,7 +940,9 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
 
     if (a.kind() == onk::DynamicInactiveTime
         || a.kind() == onk::DynamicActiveTime) {
-        time->time = Time::Dynamic{.expr = get_text(a)};
+        Time::Dynamic d{};
+        d.expr     = get_text(a);
+        time->time = d;
     } else if (
         a.kind() == onk::StaticActiveTime
         || a.kind() == onk::StaticInactiveTime) {
@@ -964,8 +966,55 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
 
         auto parsed = ParseUserTime(datetime, zone);
 
+
         if (parsed.has_value()) {
-            time->time = Time::Static{.time = parsed.value()};
+            Time::Static s{};
+            s.time  = parsed.value();
+            using M = Time::Repeat::Mode;
+            using P = Time::Repeat::Period;
+
+            auto which_period = [](char p) {
+                switch (p) {
+                    case 'd': return P::Day;
+                    case 'm': return P::Month;
+                    case 'w': return P::Week;
+                    case 'y': return P::Year;
+                    case 'M': return P::Minute;
+                    case 'h': return P::Hour;
+                    default: logic_todo_impl();
+                }
+            };
+
+            if (one(a, N::Repeater).kind() != onk::Empty) {
+                for (auto const& r : one(a, N::Repeater)) {
+                    Time::Repeat r_out;
+                    auto         spec = get_text(r.at(0));
+                    if (spec == "++") {
+                        r_out.mode = M::FirstMatch;
+                    } else if (spec == ".+") {
+                        r_out.mode = M::SameDay;
+                    } else if (spec == "+") {
+                        r_out.mode = M::Exact;
+                    }
+
+                    auto period = get_text(r.at(1));
+                    r_out.count = Str{period.substr(0, period.size() - 1)}
+                                      .toInt();
+                    r_out.period = which_period(period.at(1_B));
+
+                    s.repeat.push_back(r_out);
+                }
+            }
+
+            if (one(a, N::Warn).kind() != onk::Empty) {
+                Time::Repeat r_out;
+                auto         spec = get_text(one(a, N::Warn));
+                r_out.count = Str{spec.substr(0, spec.size() - 1)}.toInt();
+                r_out.period = which_period(spec.at(1_B));
+                s.warn       = r_out;
+            }
+
+            time->time = s;
 
         } else {
             return SemError(
@@ -1612,7 +1661,7 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     auto res     = Sem<CmdTblfm>(a);
 
 
-    Str expr = get_text(one(a, N::Values));
+    Str expr = strip_space(get_text(one(a, N::Values)));
 
     auto result = run_lexy_parse<tblfmt_grammar::tblfmt>(expr, this);
 
@@ -2239,7 +2288,7 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
     auto              __trace = trace(a);
     SemId<CmdColumns> result  = Sem<CmdColumns>(a);
 
-    Str expr = get_text(one(a, N::Args));
+    Str expr = strip_space(get_text(one(a, N::Args)));
 
     auto spec = run_lexy_parse<columns_grammar::columns>(expr, this);
 
@@ -2352,6 +2401,13 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
                             BlockCodeLine::Part(BlockCodeLine::Part::Raw{
                                 .code = get_text(part),
                             }));
+                        break;
+                    }
+                    case onk::CodeTangle: {
+                        line.parts.push_back(BlockCodeLine::Part{
+                            BlockCodeLine::Part::Tangle{
+                                .target = get_text(one(part, N::Name)),
+                            }});
                         break;
                     }
                     default: {
@@ -2682,7 +2738,7 @@ bool OrgConverter::updateDocument(
         }
 
         case onk::CmdStartup: {
-            Vec<Str> args = get_text(sub.at(0)).split(" ");
+            Vec<Str> args = strip_space(get_text(sub.at(0))).split(" ");
             Str      text = normalize(args.at(0));
             using K       = InitialSubtreeVisibility;
             if (text == "content") {
@@ -2737,6 +2793,9 @@ bool OrgConverter::updateDocument(
             Prop::ExportLatexClassOptions res;
             res.options.push_back(value);
             doc->options->properties.push_back(Prop(res));
+            return true;
+        }
+        case onk::CmdKeywords: {
             return true;
         }
         case onk::CmdFiletags: {

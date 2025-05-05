@@ -20,7 +20,6 @@ items:
       - {kind: SubtreeStars, str: "*"}
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: Subtree}
-      - {kind: EndOfFile, str: ""}
 
     tokens:
       - {kind: SubtreeStars, str: "*"}

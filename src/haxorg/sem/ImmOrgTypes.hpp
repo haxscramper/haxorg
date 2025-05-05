@@ -417,6 +417,7 @@ struct ImmTime : public org::imm::ImmOrg {
     org::imm::ImmTime::Repeat::Period period;
     /// \brief count
     int count;
+    Repeat() {  }
     bool operator==(org::imm::ImmTime::Repeat const& other) const;
   };
 
@@ -425,9 +426,11 @@ struct ImmTime : public org::imm::ImmOrg {
                          (),
                          (),
                          (),
-                         (repeat, time))
-    hstd::ext::ImmBox<hstd::Opt<org::imm::ImmTime::Repeat>> repeat;
+                         (repeat, warn, time))
+    hstd::ext::ImmVec<org::imm::ImmTime::Repeat> repeat = {};
+    hstd::ext::ImmBox<hstd::Opt<org::imm::ImmTime::Repeat>> warn = std::nullopt;
     hstd::UserTime time;
+    Static() {  }
     bool operator==(org::imm::ImmTime::Static const& other) const;
   };
 
@@ -438,6 +441,7 @@ struct ImmTime : public org::imm::ImmOrg {
                          (),
                          (expr))
     hstd::ext::ImmBox<hstd::Str> expr;
+    Dynamic() {  }
     bool operator==(org::imm::ImmTime::Dynamic const& other) const;
   };
 
@@ -1295,7 +1299,9 @@ struct ImmDocumentOptions : public org::imm::ImmOrg {
                         category,
                         setupfile,
                         maxSubtreeLevelExport,
-                        columns))
+                        columns,
+                        todoKeywords,
+                        doneKeywords))
   static OrgSemKind const staticKind;
   InitialSubtreeVisibility initialVisibility = InitialSubtreeVisibility::ShowEverything;
   hstd::ext::ImmVec<org::sem::NamedProperty> properties = {};
@@ -1306,6 +1312,8 @@ struct ImmDocumentOptions : public org::imm::ImmOrg {
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> setupfile = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<int>> maxSubtreeLevelExport = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>> columns = std::nullopt;
+  hstd::ext::ImmVec<org::sem::TodoKeyword> todoKeywords = {};
+  hstd::ext::ImmVec<org::sem::TodoKeyword> doneKeywords = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   bool operator==(org::imm::ImmDocumentOptions const& other) const;
 };

@@ -45,6 +45,20 @@ class parseLineCol:
     column: int
     pos: int
 
+class OperationsTracer:
+    def __init__(self, TraceState: bool, traceToFile: bool, traceToBuffer: bool, traceStructured: bool, traceColored: bool, activeLevel: int, traceBuffer: str) -> None: ...
+    def setTraceFileStr(self, outfile: str, overwrite: bool) -> None: ...
+    def sendMessage(self, value: str, function: str, line: int, file: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    TraceState: bool
+    traceToFile: bool
+    traceToBuffer: bool
+    traceStructured: bool
+    traceColored: bool
+    activeLevel: int
+    traceBuffer: str
+
 class OrgJson:
     def __init__(self) -> None: ...
     def getKind(self) -> OrgJsonKind: ...
@@ -75,20 +89,6 @@ class Org:
     def __iter__(self, node: Org) -> auto: ...
     loc: Optional[parseLineCol]
     subnodes: List[Org]
-
-class OperationsTracer:
-    def __init__(self, TraceState: bool, traceToFile: bool, traceToBuffer: bool, traceStructured: bool, traceColored: bool, activeLevel: int, traceBuffer: str) -> None: ...
-    def setTraceFileStr(self, outfile: str, overwrite: bool) -> None: ...
-    def sendMessage(self, value: str, function: str, line: int, file: str) -> None: ...
-    def __repr__(self) -> str: ...
-    def __getattr__(self, name: str) -> object: ...
-    TraceState: bool
-    traceToFile: bool
-    traceToBuffer: bool
-    traceStructured: bool
-    traceColored: bool
-    activeLevel: int
-    traceBuffer: str
 
 class ImmId(ImmIdBase):
     def __init__(self) -> None: ...
@@ -530,6 +530,8 @@ class ImmDocumentOptionsValueRead:
     def getSetupfile(self) -> ImmBox[Optional[str]]: ...
     def getMaxsubtreelevelexport(self) -> ImmBox[Optional[int]]: ...
     def getColumns(self) -> ImmBox[Optional[ColumnView]]: ...
+    def getTodokeywords(self) -> ImmFlexVector[TodoKeyword]: ...
+    def getDonekeywords(self) -> ImmFlexVector[TodoKeyword]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -1296,6 +1298,21 @@ class HashTagFlat:
     def __getattr__(self, name: str) -> object: ...
     tags: List[str]
 
+class TodoKeywordTransition(Enum):
+    _None = 1
+    NoteWithTimestamp = 2
+    Timestamp = 3
+
+class TodoKeyword:
+    def __init__(self, name: str, shortcut: Optional[str], onEnter: TodoKeywordTransition, onLeave: TodoKeywordTransition) -> None: ...
+    def __eq__(self, other: TodoKeyword) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    name: str
+    shortcut: Optional[str]
+    onEnter: TodoKeywordTransition
+    onLeave: TodoKeywordTransition
+
 class HashTagText:
     def __init__(self, head: str, subtags: List[HashTagText]) -> None: ...
     def __eq__(self, other: HashTagText) -> bool: ...
@@ -1794,9 +1811,10 @@ class DocumentExportConfigTaskFiltering(Enum):
     All = 4
 
 class DocumentExportConfigBrokenLinks(Enum):
-    Mark = 1
-    Raise = 2
-    Ignore = 3
+    _None = 1
+    Mark = 2
+    Raise = 3
+    Ignore = 4
 
 class DocumentExportConfigDoExport:
     def __init__(self, exportToc: bool) -> None: ...
@@ -2177,6 +2195,7 @@ class ImmTimeRepeatPeriod(Enum):
 
 class ImmTimeRepeat:
     def __init__(self, mode: ImmTimeRepeatMode, period: ImmTimeRepeatPeriod, count: int) -> None: ...
+    def __init__(self): ...
     def __eq__(self, other: ImmTimeRepeat) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2185,15 +2204,18 @@ class ImmTimeRepeat:
     count: int
 
 class ImmTimeStatic:
-    def __init__(self, repeat: ImmBox[Optional[ImmTimeRepeat]], time: UserTime) -> None: ...
+    def __init__(self, repeat: ImmVec[ImmTimeRepeat], warn: ImmBox[Optional[ImmTimeRepeat]], time: UserTime) -> None: ...
+    def __init__(self): ...
     def __eq__(self, other: ImmTimeStatic) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    repeat: ImmBox[Optional[ImmTimeRepeat]]
+    repeat: ImmVec[ImmTimeRepeat]
+    warn: ImmBox[Optional[ImmTimeRepeat]]
     time: UserTime
 
 class ImmTimeDynamic:
     def __init__(self, expr: ImmBox[str]) -> None: ...
+    def __init__(self): ...
     def __eq__(self, other: ImmTimeDynamic) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2306,6 +2328,11 @@ class ImmCmdIncludeKind(Enum):
     Src = 4
     OrgDocument = 5
 
+class graphMapConfig(OperationsTracer):
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
 class None(Org):
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
@@ -2370,6 +2397,7 @@ class TimeRepeatPeriod(Enum):
 
 class TimeRepeat:
     def __init__(self, mode: TimeRepeatMode, period: TimeRepeatPeriod, count: int) -> None: ...
+    def __init__(self): ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     mode: TimeRepeatMode
@@ -2377,14 +2405,17 @@ class TimeRepeat:
     count: int
 
 class TimeStatic:
-    def __init__(self, repeat: Optional[TimeRepeat], time: UserTime) -> None: ...
+    def __init__(self, repeat: List[TimeRepeat], warn: Optional[TimeRepeat], time: UserTime) -> None: ...
+    def __init__(self): ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    repeat: Optional[TimeRepeat]
+    repeat: List[TimeRepeat]
+    warn: Optional[TimeRepeat]
     time: UserTime
 
 class TimeDynamic:
     def __init__(self, expr: str) -> None: ...
+    def __init__(self): ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     expr: str
@@ -2520,7 +2551,7 @@ class ListItem(Org):
     bullet: Optional[str]
 
 class DocumentOptions(Org):
-    def __init__(self, initialVisibility: InitialSubtreeVisibility, properties: List[NamedProperty], exportConfig: DocumentExportConfig, fixedWidthSections: Optional[bool], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], maxSubtreeLevelExport: Optional[int], columns: Optional[ColumnView]) -> None: ...
+    def __init__(self, initialVisibility: InitialSubtreeVisibility, properties: List[NamedProperty], exportConfig: DocumentExportConfig, fixedWidthSections: Optional[bool], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], maxSubtreeLevelExport: Optional[int], columns: Optional[ColumnView], todoKeywords: List[TodoKeyword], doneKeywords: List[TodoKeyword]) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[NamedProperty]: ...
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[NamedProperty]: ...
     def __repr__(self) -> str: ...
@@ -2534,6 +2565,8 @@ class DocumentOptions(Org):
     setupfile: Optional[str]
     maxSubtreeLevelExport: Optional[int]
     columns: Optional[ColumnView]
+    todoKeywords: List[TodoKeyword]
+    doneKeywords: List[TodoKeyword]
 
 class DocumentFragment(Org):
     def __init__(self, baseLine: int, baseCol: int) -> None: ...
@@ -2721,11 +2754,6 @@ class CmdInclude(Org):
     firstLine: Optional[int]
     lastLine: Optional[int]
     data: CmdIncludeData
-
-class graphMapConfig(OperationsTracer):
-    def __init__(self) -> None: ...
-    def __repr__(self) -> str: ...
-    def __getattr__(self, name: str) -> object: ...
 
 class ImmIdTNone(ImmId):
     def __init__(self) -> None: ...
@@ -3386,6 +3414,8 @@ class ImmDocumentOptionsValue(ImmDocumentOptionsValueRead):
     def setSetupfile(self, value: ImmBox[Optional[str]]) -> None: ...
     def setMaxsubtreelevelexport(self, value: ImmBox[Optional[int]]) -> None: ...
     def setColumns(self, value: ImmBox[Optional[ColumnView]]) -> None: ...
+    def setTodokeywords(self, value: ImmFlexVector[TodoKeyword]) -> None: ...
+    def setDonekeywords(self, value: ImmFlexVector[TodoKeyword]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -4449,58 +4479,59 @@ class OrgSpecName(Enum):
     Day = 4
     Clock = 5
     Repeater = 6
-    Zone = 7
-    Link = 8
-    Tags = 9
-    Tag = 10
-    State = 11
-    Protocol = 12
-    Desc = 13
-    Times = 14
-    Drawer = 15
-    Args = 16
-    Name = 17
-    Definition = 18
-    Body = 19
-    HeaderArgs = 20
-    File = 21
-    Kind = 22
-    Lang = 23
-    Prefix = 24
-    Text = 25
-    Todo = 26
-    Importance = 27
-    Title = 28
-    Completion = 29
-    Head = 30
-    Subnodes = 31
-    Properties = 32
-    Logbook = 33
-    Description = 34
-    Logs = 35
-    Newstate = 36
-    Oldstate = 37
-    Time = 38
-    From = 39
-    EndArgs = 40
-    Flags = 41
-    Value = 42
-    Assoc = 43
-    Main = 44
-    Hash = 45
-    Bullet = 46
-    Counter = 47
-    Checkbox = 48
-    Header = 49
-    To = 50
-    Diff = 51
-    Property = 52
-    Subname = 53
-    Values = 54
-    Cells = 55
-    Rows = 56
-    Lines = 57
-    Chunks = 58
+    Warn = 7
+    Zone = 8
+    Link = 9
+    Tags = 10
+    Tag = 11
+    State = 12
+    Protocol = 13
+    Desc = 14
+    Times = 15
+    Drawer = 16
+    Args = 17
+    Name = 18
+    Definition = 19
+    Body = 20
+    HeaderArgs = 21
+    File = 22
+    Kind = 23
+    Lang = 24
+    Prefix = 25
+    Text = 26
+    Todo = 27
+    Importance = 28
+    Title = 29
+    Completion = 30
+    Head = 31
+    Subnodes = 32
+    Properties = 33
+    Logbook = 34
+    Description = 35
+    Logs = 36
+    Newstate = 37
+    Oldstate = 38
+    Time = 39
+    From = 40
+    EndArgs = 41
+    Flags = 42
+    Value = 43
+    Assoc = 44
+    Main = 45
+    Hash = 46
+    Bullet = 47
+    Counter = 48
+    Checkbox = 49
+    Header = 50
+    To = 51
+    Diff = 52
+    Property = 53
+    Subname = 54
+    Values = 55
+    Cells = 56
+    Rows = 57
+    Lines = 58
+    Chunks = 59
 
 class OrgNodeKind(Enum):
     _None = 1
@@ -4556,75 +4587,304 @@ class OrgNodeKind(Enum):
     CmdPropertyText = 51
     CmdPropertyRaw = 52
     CmdFiletags = 53
-    BlockVerbatimMultiline = 54
-    CodeLine = 55
-    CodeText = 56
-    CodeTangle = 57
-    CodeCallout = 58
-    BlockCode = 59
-    BlockQuote = 60
-    BlockComment = 61
-    BlockCenter = 62
-    BlockVerse = 63
-    BlockExample = 64
-    BlockExport = 65
-    BlockDetails = 66
-    BlockSummary = 67
-    BlockDynamicFallback = 68
-    BigIdent = 69
-    Bold = 70
-    ErrorWrap = 71
-    ErrorToken = 72
-    Italic = 73
-    Verbatim = 74
-    Backtick = 75
-    Underline = 76
-    Strike = 77
-    Quote = 78
-    Angle = 79
-    Monospace = 80
-    Par = 81
-    CriticMarkStructure = 82
-    InlineMath = 83
-    DisplayMath = 84
-    Space = 85
-    Punctuation = 86
-    Colon = 87
-    Word = 88
-    Escaped = 89
-    Newline = 90
-    RawLink = 91
-    Link = 92
-    Macro = 93
-    Symbol = 94
-    StaticActiveTime = 95
-    StaticInactiveTime = 96
-    DynamicActiveTime = 97
-    DynamicInactiveTime = 98
-    TimeRange = 99
-    SimpleTime = 100
-    HashTag = 101
-    MetaSymbol = 102
-    AtMention = 103
-    Placeholder = 104
-    RadioTarget = 105
-    Target = 106
-    SrcInlineCode = 107
-    InlineCallCode = 108
-    InlineExport = 109
-    InlineComment = 110
-    RawText = 111
-    SubtreeDescription = 112
-    SubtreeUrgency = 113
-    DrawerLogbook = 114
-    Drawer = 115
-    DrawerPropertyList = 116
-    DrawerProperty = 117
-    Subtree = 118
-    SubtreeTimes = 119
-    SubtreeStars = 120
-    SubtreeCompletion = 121
-    SubtreeImportance = 122
+    CmdKeywords = 54
+    BlockVerbatimMultiline = 55
+    CodeLine = 56
+    CodeText = 57
+    CodeTangle = 58
+    CodeCallout = 59
+    BlockCode = 60
+    BlockQuote = 61
+    BlockComment = 62
+    BlockCenter = 63
+    BlockVerse = 64
+    BlockExample = 65
+    BlockExport = 66
+    BlockDetails = 67
+    BlockSummary = 68
+    BlockDynamicFallback = 69
+    BigIdent = 70
+    Bold = 71
+    ErrorWrap = 72
+    ErrorToken = 73
+    Italic = 74
+    Verbatim = 75
+    Backtick = 76
+    Underline = 77
+    Strike = 78
+    Quote = 79
+    Angle = 80
+    Monospace = 81
+    Par = 82
+    CriticMarkStructure = 83
+    InlineMath = 84
+    DisplayMath = 85
+    Space = 86
+    Punctuation = 87
+    Colon = 88
+    Word = 89
+    Escaped = 90
+    Newline = 91
+    RawLink = 92
+    Link = 93
+    Macro = 94
+    Symbol = 95
+    StaticActiveTime = 96
+    StaticInactiveTime = 97
+    DynamicActiveTime = 98
+    DynamicInactiveTime = 99
+    TimeRange = 100
+    SimpleTime = 101
+    HashTag = 102
+    MetaSymbol = 103
+    AtMention = 104
+    Placeholder = 105
+    RadioTarget = 106
+    Target = 107
+    SrcInlineCode = 108
+    InlineCallCode = 109
+    InlineExport = 110
+    InlineComment = 111
+    RawText = 112
+    SubtreeDescription = 113
+    SubtreeUrgency = 114
+    DrawerLogbook = 115
+    Drawer = 116
+    DrawerPropertyList = 117
+    DrawerProperty = 118
+    Subtree = 119
+    SubtreeTimes = 120
+    SubtreeStars = 121
+    SubtreeCompletion = 122
+    SubtreeImportance = 123
+
+class OrgTokenKind(Enum):
+    Ampersand = 1
+    AngleBegin = 2
+    AngleEnd = 3
+    AnyPunct = 4
+    Asterisk = 5
+    At = 6
+    Backtick = 7
+    BigIdent = 8
+    BoldBegin = 9
+    BoldEnd = 10
+    BoldUnknown = 11
+    BraceBegin = 12
+    BraceEnd = 13
+    Checkbox = 14
+    Circumflex = 15
+    CmdAdmonitionEnd = 16
+    CmdAttr = 17
+    CmdAuthor = 18
+    CmdBindRaw = 19
+    CmdCall = 20
+    CmdCaption = 21
+    CmdCategoryRaw = 22
+    CmdCell = 23
+    CmdCellBegin = 24
+    CmdCellEnd = 25
+    CmdCenterBegin = 26
+    CmdCenterEnd = 27
+    CmdColonIdent = 28
+    CmdColumns = 29
+    CmdCommentBegin = 30
+    CmdCommentEnd = 31
+    CmdConstants = 32
+    CmdContentBegin = 33
+    CmdContentEnd = 34
+    CmdCreator = 35
+    CmdCustomRaw = 36
+    CmdDateRaw = 37
+    CmdDescription = 38
+    CmdDrawersRaw = 39
+    CmdDynamicBegin = 40
+    CmdDynamicBlockBegin = 41
+    CmdDynamicBlockEnd = 42
+    CmdDynamicEnd = 43
+    CmdEmailRaw = 44
+    CmdExampleBegin = 45
+    CmdExampleEnd = 46
+    CmdExampleLine = 47
+    CmdExcludeTagsRaw = 48
+    CmdExportBegin = 49
+    CmdExportEnd = 50
+    CmdExportLine = 51
+    CmdFiletags = 52
+    CmdFlag = 53
+    CmdHeader = 54
+    CmdHtmlHeadRaw = 55
+    CmdInclude = 56
+    CmdLanguage = 57
+    CmdLatexClass = 58
+    CmdLatexClassOptions = 59
+    CmdLatexCompiler = 60
+    CmdLatexHeader = 61
+    CmdLatexHeaderExtraRaw = 62
+    CmdLinkRaw = 63
+    CmdMacroRaw = 64
+    CmdName = 65
+    CmdOptions = 66
+    CmdPrefix = 67
+    CmdPrioritiesRaw = 68
+    CmdPropertyArgs = 69
+    CmdPropertyRaw = 70
+    CmdPropertyText = 71
+    CmdQuoteBegin = 72
+    CmdQuoteEnd = 73
+    CmdRawArg = 74
+    CmdResults = 75
+    CmdRow = 76
+    CmdRowBegin = 77
+    CmdRowEnd = 78
+    CmdSelectTagsRaw = 79
+    CmdSeqTodoRaw = 80
+    CmdKeywordsRaw = 81
+    CmdSetupfileRaw = 82
+    CmdSrcBegin = 83
+    CmdSrcEnd = 84
+    CmdStartup = 85
+    CmdTableBegin = 86
+    CmdTableEnd = 87
+    CmdTagsRaw = 88
+    CmdTblfm = 89
+    CmdTitle = 90
+    CmdVerseBegin = 91
+    CmdVerseEnd = 92
+    Colon = 93
+    ColonArgumentsProperty = 94
+    ColonEnd = 95
+    ColonExampleLine = 96
+    ColonLiteralProperty = 97
+    ColonLogbook = 98
+    ColonProperties = 99
+    ColonPropertyText = 100
+    Comma = 101
+    Comment = 102
+    CriticAddBegin = 103
+    CriticAddEnd = 104
+    CriticCommentBegin = 105
+    CriticCommentEnd = 106
+    CriticDeleteBegin = 107
+    CriticDeleteEnd = 108
+    CriticHighlightBegin = 109
+    CriticHighlightEnd = 110
+    CriticReplaceBegin = 111
+    CriticReplaceEnd = 112
+    CriticReplaceMiddle = 113
+    CurlyBegin = 114
+    CurlyEnd = 115
+    Date = 116
+    Dedent = 117
+    Dollar = 118
+    DoubleAngleBegin = 119
+    DoubleAngleEnd = 120
+    DoubleColon = 121
+    DoubleDash = 122
+    DoubleHash = 123
+    DoubleQuote = 124
+    DoubleSlash = 125
+    DynamicTimeContent = 126
+    EndOfFile = 127
+    Equals = 128
+    Escaped = 129
+    Exclamation = 130
+    FootnoteInlineBegin = 131
+    FootnoteLinked = 132
+    ForwardSlash = 133
+    HashIdent = 134
+    HashTagBegin = 135
+    Indent = 136
+    InlineExportBackend = 137
+    InlineExportContent = 138
+    ItalicBegin = 139
+    ItalicEnd = 140
+    ItalicUnknown = 141
+    LatexInlineRaw = 142
+    LatexParBegin = 143
+    LatexParEnd = 144
+    LeadingMinus = 145
+    LeadingNumber = 146
+    LeadingPipe = 147
+    LeadingPlus = 148
+    LeadingSpace = 149
+    LineCommand = 150
+    LinkBegin = 151
+    LinkDescriptionBegin = 152
+    LinkDescriptionEnd = 153
+    LinkEnd = 154
+    LinkFull = 155
+    LinkProtocol = 156
+    LinkProtocolAttachment = 157
+    LinkProtocolCustomId = 158
+    LinkProtocolFile = 159
+    LinkProtocolHttp = 160
+    LinkProtocolId = 161
+    LinkProtocolInternal = 162
+    LinkProtocolTitle = 163
+    LinkSplit = 164
+    LinkTarget = 165
+    LinkTargetBegin = 166
+    LinkTargetEnd = 167
+    LinkTargetFile = 168
+    ListBegin = 169
+    ListEnd = 170
+    ListItemBegin = 171
+    ListItemEnd = 172
+    LongNewline = 173
+    MediumNewline = 174
+    Minus = 175
+    MiscUnicode = 176
+    MonospaceBegin = 177
+    MonospaceEnd = 178
+    MonospaceUnknown = 179
+    Newline = 180
+    Number = 181
+    ParBegin = 182
+    ParEnd = 183
+    Percent = 184
+    Pipe = 185
+    Placeholder = 186
+    Plus = 187
+    Punctuation = 188
+    RawText = 189
+    SameIndent = 190
+    Semicolon = 191
+    SingleQuote = 192
+    SrcContent = 193
+    StmtListBegin = 194
+    StmtListEnd = 195
+    StrikeBegin = 196
+    StrikeEnd = 197
+    StrikeUnknown = 198
+    SubtreeCompletion = 199
+    SubtreePriority = 200
+    SubtreeStars = 201
+    Symbol = 202
+    TableSeparator = 203
+    TextSeparator = 204
+    TextSrcBegin = 205
+    Tilda = 206
+    Time = 207
+    TimeArrow = 208
+    TimeRepeaterDuration = 209
+    TimeRepeaterSpec = 210
+    TimeWarnPeriod = 211
+    TrailingPipe = 212
+    TreeClock = 213
+    TreeTime = 214
+    TripleAngleBegin = 215
+    TripleAngleEnd = 216
+    Underline = 217
+    UnderlineBegin = 218
+    UnderlineEnd = 219
+    UnderlineUnknown = 220
+    Unknown = 221
+    VerbatimBegin = 222
+    VerbatimEnd = 223
+    VerbatimUnknown = 224
+    Whitespace = 225
+    Word = 226
 
 class OrgJsonKind(Enum):
     Null = 1

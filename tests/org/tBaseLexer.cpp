@@ -15,14 +15,48 @@ using namespace hstd;
 using namespace org::test;
 using namespace org;
 
+TEST(ManualFileRun, TestCoverallOrg) {
+    {
+        fs::path file{
+            __CURRENT_FILE_DIR__ / "corpus" / "org"
+            / "py_validated_all.org"};
+        std::string content = readFile(file);
+        auto        spec    = ParseSpec::FromSource(std::move(content));
+        spec.debug.traceAll = true;
+        gtest_run_spec(TestParams{
+            .spec = spec,
+            .file = "coverall",
+        });
+
+        auto start = imm::ImmAstContext::init_start_context();
+        auto n     = start->init(org::parseString(content));
+
+        writeFile(
+            "/tmp/TestDoc1_clean.txt",
+            n.getRootAdapter()
+                .treeRepr(imm::ImmAdapter::TreeReprConf{
+                    .withAuxFields = true,
+                })
+                .toString(false));
+
+        writeFile(
+            "/tmp/TestDoc1_refl.txt",
+            n.getRootAdapter()
+                .treeRepr(imm::ImmAdapter::TreeReprConf{
+                    .withAuxFields  = true,
+                    .withReflFields = true,
+                })
+                .toString(false));
+    }
+}
+
 TEST(ManualFileRun, TestDoc1) {
     {
         fs::path file{"/home/haxscramper/tmp/doc1.org"};
         if (fs::exists(file)) {
             std::string content = readFile(file);
             auto        spec = ParseSpec::FromSource(std::move(content));
-            spec.debug.traceAll               = true;
-            spec.debug.maxBaseLexUnknownCount = 0;
+            spec.debug.traceAll = false;
             gtest_run_spec(TestParams{
                 .spec = spec,
                 .file = "doc1",
@@ -55,8 +89,7 @@ TEST(ManualFileRun, TestDoc1) {
         if (fs::exists(file)) {
             std::string content = readFile(file);
             auto        spec = ParseSpec::FromSource(std::move(content));
-            spec.debug.maxBaseLexUnknownCount = 0;
-            spec.debug.doFormatReparse        = false;
+            spec.debug.doFormatReparse = false;
             // spec.debug.printSemToFile         = true;
             spec.debug.debugOutDir = "/tmp/doc2_run";
             gtest_run_spec(TestParams{

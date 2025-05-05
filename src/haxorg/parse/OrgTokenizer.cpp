@@ -364,14 +364,14 @@ struct RecombineState {
         auto next = lex.tok(+1);
         pop_as(otk::CmdPrefix);
         switch (next.kind) {
-            case otk::CmdPropertyArgs: {
-                auto split = next->text.split(' ');
-                add_fake(
-                    otk::CmdPropertyArgs, OrgFill{.text = split.at(0)});
-                add_fake(otk::CmdRawArg, OrgFill{.text = split.at(1)});
-                lex.next();
-                break;
-            }
+                // case otk::CmdPropertyArgs: {
+                //     auto split = next->text.split(' ');
+                //     add_fake(
+                //         otk::CmdPropertyArgs, OrgFill{.text =
+                //         split.at(0)});
+                //     add_fake(otk::CmdRawArg, OrgFill{.text =
+                //     split.at(1)}); lex.next(); break;
+                // }
 
             case otk::CmdAttr: {
                 auto text = lex.tok().value.text;
@@ -429,7 +429,7 @@ struct RecombineState {
     };
 
     void map_command_args() {
-        while (!line_end.contains(lex.kind())) { pop_as(lex.kind()); }
+        while (lex.can_search(line_end)) { pop_as(lex.kind()); }
     }
 
     void map_interpreted_token() {
@@ -683,6 +683,7 @@ struct LineToken {
         otk::CmdHtmlHeadRaw,   otk::CmdSelectTagsRaw,
         otk::CmdDrawersRaw,    otk::CmdConstants,
         otk::CmdCreator,       otk::CmdCall,
+        otk::CmdKeywordsRaw,
     };
 
     Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {
@@ -895,7 +896,7 @@ struct TokenVisitor {
     OrgTokenizer*  d;
     bool const&    TraceState;
     Vec<LineToken> to_lines(OrgLexer& lex) {
-        __perf_trace("lexing", "to_lines");
+        __perf_trace("tokens", "to_lines");
         Vec<LineToken> lines;
         auto const&    tokens = lex.in;
         auto           start  = tokens->begin();
@@ -923,12 +924,16 @@ struct TokenVisitor {
 
 
     Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
-        __perf_trace("lexing", "to_groups");
+        __perf_trace("tokens", "to_groups");
         using Iter = Vec<LineToken>::iterator;
         Func<Opt<GroupToken>(Iter & it)> rec_group;
         rec_group = [&](Iter& it) -> Opt<GroupToken> {
+            auto __scope  = d->scopeLevel();
             auto end      = lines.end();
             auto nextline = [&]() { ++it; };
+            if (TraceState) {
+                d->message(fmt("{} {}", it->kind, it->tokens));
+            }
 
             auto start = it;
             switch (start->kind) {
@@ -1386,13 +1391,13 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
     }
     if (TraceState) { visitor.print_groups(root); }
     {
-        __perf_trace("lexing", "rec convert groups");
+        __perf_trace("tokens", "rec convert groups");
         visitor.rec_convert_groups(root);
     }
     Lexer<OrgTokenKind, OrgFill> relex{&visitor.regroup};
     RecombineState               recombine_state{this, relex};
     {
-        __perf_trace("lexing", "recombine");
+        __perf_trace("tokens", "recombine");
         recombine_state.recombine_impl();
     }
 }
@@ -1403,6 +1408,7 @@ void OrgTokenizer::convert(OrgTokenGroup& input) {
 }
 
 void OrgTokenizer::convert(OrgLexer& lex) {
+    __perf_trace("tokens", "Org tokenizer convert");
     lex.pos = TokenId<OrgTokenKind, OrgFill>::FromValue(1);
     recombine(lex);
 }

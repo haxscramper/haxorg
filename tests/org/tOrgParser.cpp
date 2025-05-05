@@ -22,7 +22,8 @@ TEST(OrgParseSem, LinkAttachedGet1) {
     auto doc = testParseString(
         R"(#+attr_link: :attach-method copy :attach-on-export t
 [[attachment:image 1.jpg]]
-)");
+)",
+        getDebugFile("LinkAttachedGet1"));
 
     EXPECT_EQ2(doc->getKind(), OrgSemKind::Document);
     auto par = doc->subnodes.at(0);
@@ -61,13 +62,11 @@ TEST(OrgParseSem, TracerOperations1) {
     converter.setTraceFile(sem_trace);
     converter.traceStructured = true;
 
-    fs::path      lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
-    std::ofstream fileTrace{lex_trace.c_str()};
 
     org::parse::LexerParams params;
+    fs::path lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
+    params.setTraceFile(lex_trace);
     params.traceStructured = true;
-    params.maxUnknown      = 1;
-    params.traceStream     = &fileTrace;
     p.tokenizeBase(text, params);
     p.tokenizeConvert();
     p.parse();
@@ -111,7 +110,9 @@ TEST(OrgParseSem, ParagraphBody) {
     }
 
     {
-        auto par = parseOne<sem::Paragraph>("[fn:footnote] content");
+        auto par = parseOne<sem::Paragraph>(
+            "[fn:footnote] content",
+            getDebugFile("paragraph_body_footnote"));
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 1);
@@ -297,7 +298,9 @@ TEST(OrgParseSem, HashtagParse) {
     }
 
     {
-        auto h = parseOne<sem::HashTag>("#one##[two##[three,four,five]]");
+        auto h = parseOne<sem::HashTag>(
+            "#one##[two##[three,four,five]]",
+            getDebugFile("hashtag_parse_nested"));
         EXPECT_EQ(h->text.head, "one");
         EXPECT_EQ(h->text.subtags.size(), 1);
         auto flat = h->text.getFlatHashes();
@@ -323,7 +326,8 @@ TEST(OrgParseSem, HashtagParse) {
 
 TEST(OrgParseSem, SubtreeLogParsing) {
     {
-        auto s = parseOne<sem::Subtree>(R"(**** COMPLETED Subtree
+        auto s = parseOne<sem::Subtree>(
+            R"(**** COMPLETED Subtree
      CLOSED: [2000-01-03 Wed 10:43:40 +04]
      :PROPERTIES:
      :CREATED:  [2000-01-03 Wed 09:51:41 +04]
@@ -362,7 +366,8 @@ TEST(OrgParseSem, SubtreeLogParsing) {
   - New deadline from "[2019-09-26 Thu]" on [2019-09-27 Fri 22:36] \\
     New week deadline
   :END:
-)");
+)",
+            getDebugFile("prolog"));
         EXPECT_TRUE(t->deadline.has_value());
         auto d = t->deadline->getBreakdown();
         EXPECT_EQ(d.day, 15);
@@ -640,7 +645,7 @@ TEST(OrgParseSem, TextParsing) {
 
     {
         auto par = parseOne<sem::Paragraph>(R"([2024-12])");
-        EXPECT_EQ(par.size(), 3);
+        EXPECT_EQ(par.size(), 5);
     }
 }
 
@@ -654,8 +659,7 @@ TEST(OrgParseSem, TblfmExpression) {
 
 TEST(OrgParseSem, LinkTarget) {
     {
-        auto l = parseOne<sem::Link>(
-            R"([[* Title]])", getDebugFile("subtree_title"));
+        auto        l = parseOne<sem::Link>(R"([[* Title]])");
         auto const& t = l->target;
         EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::SubtreeTitle);
         EXPECT_EQ(t.getSubtreeTitle().level, 1);
@@ -663,8 +667,7 @@ TEST(OrgParseSem, LinkTarget) {
         EXPECT_EQ(t.getSubtreeTitle().title.path.at(0), "Title");
     }
     {
-        auto l = parseOne<sem::Link>(
-            R"([[** Title/Sub]])", getDebugFile("subtree_title"));
+        auto        l = parseOne<sem::Link>(R"([[** Title/Sub]])");
         auto const& t = l->target;
         EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::SubtreeTitle);
         EXPECT_EQ(t.getSubtreeTitle().level, 2);
@@ -673,11 +676,17 @@ TEST(OrgParseSem, LinkTarget) {
         EXPECT_EQ(t.getSubtreeTitle().title.path.at(1), "Sub");
     }
     {
-        auto l = parseOne<sem::Link>(
-            R"([[#custom-id]])", getDebugFile("custom_id"));
+        auto        l = parseOne<sem::Link>(R"([[#custom-id]])");
         auto const& t = l->target;
         EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::CustomId);
         EXPECT_EQ(t.getCustomId().text, "custom-id");
+    }
+    {
+        auto l = parseOne<sem::Link>(
+            R"([[file:random-path.pdf]])", getDebugFile("file_link"));
+        auto const& t = l->target;
+        EXPECT_EQ2(t.getKind(), sem::LinkTarget::Kind::File);
+        EXPECT_EQ(t.getFile().file, "random-path.pdf");
     }
 }
 
@@ -794,7 +803,8 @@ TEST(OrgParseSem, Macro) {
         EXPECT_EQ(m->attrs.atPositional(0).getString(), "arg"_ss);
     }
     {
-        auto m = parseOne<sem::Macro>(R"({{{dashed-name}}})");
+        auto m = parseOne<sem::Macro>(
+            R"({{{dashed-name}}})", getDebugFile("macro_dashed_name"));
         EXPECT_EQ(m->name, "dashed-name"_ss);
     }
     {
@@ -934,7 +944,9 @@ TEST(OrgParseSem, IncludeCommand) {
     };
 
     {
-        auto i = get(R"(#+include: data.org)");
+        auto i = get(
+            R"(#+include: data.org)",
+            getDebugFile("include_command_item"));
         EXPECT_EQ2(i->path, "data.org"_ss);
     }
     {

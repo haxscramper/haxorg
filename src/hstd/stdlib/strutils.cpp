@@ -1361,3 +1361,25 @@ bool hstd::iequals(const std::string& a, const std::string& b) {
             });
     }
 }
+
+std::string hstd::escape_literal(const std::string_view& in) {
+    std::string res;
+    res.reserve(in.size() + 2);
+    res += "«";
+    for (char c : in) {
+        if (c == '\n') {
+            res += "␤";
+
+        } else {
+            res += c;
+        }
+    }
+
+    res += "»";
+
+    return res;
+}
+
+std::string hstd::escape_literal(const std::string& in) {
+    return escape_literal(std::string_view{in});
+}

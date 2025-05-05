@@ -471,6 +471,21 @@ struct HashTagFlat {
   bool operator<(org::sem::HashTagFlat const& other) const;
 };
 
+struct TodoKeyword {
+  enum class Transition : short int { None, NoteWithTimestamp, Timestamp, };
+  BOOST_DESCRIBE_NESTED_ENUM(Transition, None, NoteWithTimestamp, Timestamp)
+  BOOST_DESCRIBE_CLASS(TodoKeyword,
+                       (),
+                       (),
+                       (),
+                       (name, shortcut, onEnter, onLeave))
+  hstd::Str name = "";
+  hstd::Opt<hstd::Str> shortcut = std::nullopt;
+  org::sem::TodoKeyword::Transition onEnter;
+  org::sem::TodoKeyword::Transition onLeave;
+  bool operator==(org::sem::TodoKeyword const& other) const;
+};
+
 /// \brief Single or nested inline hash-tag
 struct HashTagText {
   BOOST_DESCRIBE_CLASS(HashTagText,
@@ -1166,8 +1181,8 @@ struct DocumentExportConfig {
     All,
   };
   BOOST_DESCRIBE_NESTED_ENUM(TaskFiltering, Whitelist, Done, None, All)
-  enum class BrokenLinks : short int { Mark, Raise, Ignore, };
-  BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Mark, Raise, Ignore)
+  enum class BrokenLinks : short int { None, Mark, Raise, Ignore, };
+  BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, None, Mark, Raise, Ignore)
   struct DoExport {
     BOOST_DESCRIBE_CLASS(DoExport,
                          (),
@@ -1220,7 +1235,7 @@ struct DocumentExportConfig {
   hstd::Opt<bool> statisticsCookies = std::nullopt;
   /// \brief Include todo keywords in export
   hstd::Opt<bool> todoText = std::nullopt;
-  org::sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::Mark;
+  org::sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::None;
   org::sem::DocumentExportConfig::TocExport tocExport;
   org::sem::DocumentExportConfig::TagExport tagExport = org::sem::DocumentExportConfig::TagExport::NotInToc;
   org::sem::DocumentExportConfig::TocExport data;
@@ -2058,17 +2073,21 @@ struct Time : public org::sem::Org {
     org::sem::Time::Repeat::Period period;
     /// \brief count
     int count;
+    Repeat() {  }
   };
 
   struct Static {
-    BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
-    hstd::Opt<org::sem::Time::Repeat> repeat;
+    BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, warn, time))
+    hstd::Vec<org::sem::Time::Repeat> repeat = {};
+    hstd::Opt<org::sem::Time::Repeat> warn = std::nullopt;
     hstd::UserTime time;
+    Static() {  }
   };
 
   struct Dynamic {
     BOOST_DESCRIBE_CLASS(Dynamic, (), (), (), (expr))
     hstd::Str expr;
+    Dynamic() {  }
   };
 
   using TimeVariant = std::variant<org::sem::Time::Static, org::sem::Time::Dynamic>;
@@ -2889,7 +2908,9 @@ struct DocumentOptions : public org::sem::Org {
                         category,
                         setupfile,
                         maxSubtreeLevelExport,
-                        columns))
+                        columns,
+                        todoKeywords,
+                        doneKeywords))
   static OrgSemKind const staticKind;
   InitialSubtreeVisibility initialVisibility = InitialSubtreeVisibility::ShowEverything;
   hstd::Vec<org::sem::NamedProperty> properties = {};
@@ -2900,6 +2921,8 @@ struct DocumentOptions : public org::sem::Org {
   hstd::Opt<hstd::Str> setupfile = std::nullopt;
   hstd::Opt<int> maxSubtreeLevelExport = std::nullopt;
   hstd::Opt<org::sem::ColumnView> columns = std::nullopt;
+  hstd::Vec<org::sem::TodoKeyword> todoKeywords = {};
+  hstd::Vec<org::sem::TodoKeyword> doneKeywords = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   hstd::Vec<org::sem::NamedProperty> getProperties(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
   hstd::Opt<org::sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;

@@ -231,11 +231,13 @@ Opt<ImmAstReplace> setNewSubnodes(
                         [&](ImmVec<org::imm::ImmSymbol::Param> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
                         [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
+                        [&](ImmVec<sem::TodoKeyword> const&) { fail_field(); },
                         [&](sem::LinkTarget const&) { fail_field(); },
                         [&](sem::ColumnView const&) { fail_field(); },
                         [&](ImmBox<Opt<sem::ColumnView>> const&) { fail_field(); },
                         [&](sem::DocumentExportConfig const&) { fail_field(); },
                         [&](sem::AttrValue const&) { fail_field(); },
+                        [&](sem::TodoKeyword const&) { fail_field(); },
                         [&](sem::SubtreeLogHead const&) { fail_field(); },
                         [&](sem::OrgCodeEvalOutput const&) { fail_field(); },
                         [&](Vec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
@@ -852,6 +854,7 @@ __same_type(sem::Tblfm);
 __same_type(sem::LinkTarget);
 __same_type(sem::ColumnView);
 __same_type(sem::AttrGroup);
+__same_type(sem::TodoKeyword);
 __same_type(sem::AttrList);
 __same_type(sem::AttrValue);
 __same_type(sem::SubtreeCompletion);

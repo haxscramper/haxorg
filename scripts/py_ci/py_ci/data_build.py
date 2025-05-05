@@ -319,18 +319,6 @@ def get_external_deps_list(
     )
 
     dep(
-        build_name="reflex",
-        deps_name="RE-flex",
-        is_emcc_ready=True,
-        configure_args=[
-            opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
-        ],
-        cmake_dirs=[
-            ("Reflex", make_lib("reflex/{}/cmake/reflex")),
-        ],
-    )
-
-    dep(
         build_name="lexy",
         deps_name="lexy",
         is_emcc_ready=True,
