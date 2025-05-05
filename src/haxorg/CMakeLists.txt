@@ -40,8 +40,7 @@ target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohm
                                     foonathan::lexy immer)
 
 if(NOT ${ORG_EMCC_BUILD})
-  target_link_libraries(haxorg PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY} absl::base
-                                      absl::log)
+  target_link_libraries(haxorg PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY})
 endif()
 
 if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})

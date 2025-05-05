@@ -10,18 +10,11 @@ find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
 target_link_libraries(hstd PUBLIC yaml-cpp::yaml-cpp range-v3::range-v3
-                                  nlohmann_json::nlohmann_json absl::time)
+                                  nlohmann_json::nlohmann_json cctz::cctz)
 
 if(NOT ${ORG_EMCC_BUILD})
-  target_link_libraries(
-    hstd
-    PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY}
-           ${GRAPHVIZ_GVC_LIBRARY}
-           Boost::log
-           absl::base
-           absl::log
-           absl::flags
-           cpptrace::cpptrace)
+  target_link_libraries(hstd PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY} Boost::log
+                                    cpptrace::cpptrace)
 endif()
 
 if(${ORG_DEPS_USE_PACKAGED_BOOST})

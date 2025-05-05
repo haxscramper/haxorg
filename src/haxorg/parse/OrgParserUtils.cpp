@@ -88,7 +88,7 @@ OrgId OrgParser::start(OrgNodeKind kind, int line, const char* function) {
 }
 
 OrgId OrgParser::end(int line, const char* function) {
-    CHECK(0 <= group->treeDepth());
+    LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->endTree();
     if (TraceState) {
         report(Builder(
@@ -104,7 +104,7 @@ void OrgParser::fail(
     CR<OrgNode>  replace,
     int          line,
     const char*  function) {
-    CHECK(0 <= group->treeDepth());
+    LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->failTree(replace);
     if (TraceState) {
         report(

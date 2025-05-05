@@ -128,6 +128,22 @@ def get_external_deps_list(
     )
 
     dep(
+        build_name="cctz",
+        is_emcc_ready=True,
+        deps_name="cctz",
+        configure_args=[
+            opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+            opt("BUILD_TESTING", False),
+            opt("BUILD_TOOLS", False),
+            opt("BUILD_EXAMPLES", False),
+            opt("BUILD_BENCHMARK", False),
+        ],
+        cmake_dirs=[
+            ("cctz", make_lib("cctz/{}/cmake/cctz")),
+        ]
+    )
+
+    dep(
         build_name="preprocessor",
         is_emcc_ready=True,
         deps_name="cmake_wrap/boost_preprocessor",

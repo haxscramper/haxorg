@@ -1,8 +1,6 @@
 #include <haxorg/parse/OrgParser.hpp>
 #pragma clang diagnostic ignored "-Wunused-result"
 #pragma clang diagnostic ignored "-Wformat-security"
-#include <absl/log/log.h>
-#include <absl/log/check.h>
 #include <haxorg/sem/perfetto_org.hpp>
 
 
@@ -1978,7 +1976,7 @@ OrgId OrgParser::parseOrgFile(OrgLexer& lex) {
     __perf_trace("parsing", "parseOrgFile");
     auto __trace = trace(lex);
     start(onk::File);
-    LOG(FATAL);
+    logic_todo_impl();
     return end();
 }
 
@@ -2481,7 +2479,9 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
             parser->print(
                 "Found subtree on the lower level " + id.format());
             OrgId const tree = id;
-            if (g.size(tree) == 0) { LOG(INFO) << g.treeRepr(tree); }
+            if (g.size(tree) == 0 && parser->TraceState) {
+                parser->message(g.treeRepr(tree));
+            }
 
             OrgId subId = g.subnode(tree, 0);
             int   sub   = g.val(subId).text.size();

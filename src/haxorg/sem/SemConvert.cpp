@@ -8,7 +8,9 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
-#include <absl/log/log.h>
+#if !ORG_EMCC_BUILD
+#    include <absl/log/log.h>
+#endif
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <lexy/dsl/identifier.hpp>
 #include <lexy_ext/report_error.hpp>
@@ -2533,11 +2535,10 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::
 
 SemId<Org> OrgConverter::convert(__args) {
     auto __trace = trace(a);
-    if (!a.isValid()) {
-        LOG(WARNING) << "Invalid node encountered during conversion"
-                     << fmt1(a.id);
-        return Sem<Space>(a);
-    }
+    LOGIC_ASSERTION_CHECK(
+        a.isValid(),
+        "Invalid node encountered during conversion {}",
+        a.id);
 
     switch (a.kind()) {
         case onk::Newline: return convertNewline(a).unwrap();

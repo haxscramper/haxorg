@@ -155,7 +155,7 @@ struct SemId {
     template <typename T>
     SemId<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
-            CHECK(value->getKind() == T::staticKind);
+            LOGIC_ASSERTION_CHECK(value->getKind() == T::staticKind, "");
         }
         return SemId<T>{std::dynamic_pointer_cast<T>(value)};
     }

@@ -1,11 +1,11 @@
 #include "Time.hpp"
-#include <absl/hash/hash.h>
 
 using namespace hstd;
 
 UserTimeBreakdown UserTime::getBreakdown() const {
-    UserTimeBreakdown result;
-    absl::CivilSecond sec = absl::TimeZone{}.At(time).cs;
+    UserTimeBreakdown  result;
+    cctz::time_zone    tz  = zone ? *zone : cctz::utc_time_zone();
+    cctz::civil_second sec = cctz::convert(time, tz);
 
     switch (align) {
         case Alignment::Second: {
@@ -55,11 +55,16 @@ std::string UserTime::format(Format kind) const {
         default:
     }
 
+    cctz::time_zone tz = zone ? *zone : cctz::utc_time_zone();
+
     if (kind == Format::OrgFormat) {
         if (zone) {
-            int offset  = zone->At(absl::UnixEpoch()).offset / 60;
-            int hours   = offset / 60;
-            int minutes = offset % 60;
+            auto info    = tz.lookup(cctz::convert(
+                cctz::civil_second(1970, 1, 1, 0, 0, 0),
+                cctz::utc_time_zone()));
+            int  offset  = info.offset / 60;
+            int  hours   = offset / 60;
+            int  minutes = offset % 60;
 
             if (minutes == 0) {
                 format += fmt(" {:+03}", hours);
@@ -71,10 +76,8 @@ std::string UserTime::format(Format kind) const {
         if (zone) { format += " %z"; }
     }
 
-    std::string result = zone ? absl::FormatTime(format, time, *zone)
-                              : absl::FormatTime(
-                                    format, time, absl::TimeZone{});
-
+    std::string result;
+    cctz::format(format, time, tz, &result);
     return result;
 }
 
@@ -92,8 +95,9 @@ std::size_t std::hash<UserTime>::operator()(
     hstd::hax_hash_combine(result, it.align);
     if (it.zone) {
         hstd::hax_hash_combine(
-            result, absl::Hash<absl::TimeZone>{}(*it.zone));
+            result, std::hash<std::string>{}(it.zone->name()));
     }
-    hstd::hax_hash_combine(result, absl::Hash<absl::Time>{}(it.time));
+    hstd::hax_hash_combine(
+        result, std::hash<int64_t>{}(time.time_since_epoch().count()));
     return result;
 }

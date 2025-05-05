@@ -4,7 +4,6 @@
 #include <hstd/ext/textlayouter.hpp>
 #include <concepts>
 #include <hstd/stdlib/strutils.hpp>
-#include <absl/log/check.h>
 
 namespace org::algo {
 

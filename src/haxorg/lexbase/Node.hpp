@@ -8,14 +8,11 @@
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColText.hpp>
-#include <filesystem>
-#include <absl/log/check.h>
 
 #include <haxorg/lexbase/Token.hpp>
 #include <format>
 
 #include <variant>
-#include <absl/log/check.h>
 
 namespace org::parse {
 
@@ -76,8 +73,8 @@ struct Node {
     }
 
     void extend(int extent) {
-        CHECK(isNonTerminal());
-        CHECK(0 <= extent);
+        LOGIC_ASSERTION_CHECK(isNonTerminal(), "");
+        LOGIC_ASSERTION_CHECK(0 <= extent, "");
         value = extent;
     }
 
