@@ -10,11 +10,11 @@ using namespace org::algo;
 
 namespace {
 long GetTimeDelta(CR<UserTime> from, CR<UserTime> to) {
-    auto from_utc = absl::ToCivilSecond(
-        from.time, from.zone ? *from.zone : absl::TimeZone{});
-    auto to_utc = absl::ToCivilSecond(
-        to.time, to.zone ? *to.zone : absl::TimeZone{});
-    return to_utc - from_utc;
+    auto from_utc = cctz::convert(
+        from.time, from.zone ? *from.zone : cctz::utc_time_zone());
+    auto to_utc = cctz::convert(
+        to.time, to.zone ? *to.zone : cctz::utc_time_zone());
+    return (to_utc - from_utc).count();
 }
 
 std::string FormatTimeDelta(long delta_seconds) {
@@ -1599,8 +1599,11 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
 
             if (log->desc) {
                 add(log_head, str(" \\\\"));
-                CHECK(!log->desc.value().isNil())
-                    << fmt1(log->head.getLogKind());
+                LOGIC_ASSERTION_CHECK(
+                    !log->desc.value().isNil(),
+                    "{}",
+                    log->head.getLogKind());
+
                 add(head, log_head);
                 add(head,
                     b.indent(

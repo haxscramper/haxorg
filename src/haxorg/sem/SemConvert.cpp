@@ -55,7 +55,29 @@ org::sem::SubtreePath convertSubtreePath(Str const& path) {
     return res;
 }
 
-absl::TimeZone ConvertToTimeZone(std::string z) {
+cctz::time_zone create_time_zone_from_offset(int offset_seconds) {
+    cctz::time_zone tz;
+    std::string     offset_str;
+
+    char sign      = (offset_seconds >= 0) ? '+' : '-';
+    offset_seconds = std::abs(offset_seconds);
+    int hours      = offset_seconds / 3600;
+    int minutes    = (offset_seconds % 3600) / 60;
+    int seconds    = offset_seconds % 60;
+
+    if (seconds == 0) {
+        offset_str = std::format("{}{}:{:02d}", sign, hours, minutes);
+    } else {
+        offset_str = std::format(
+            "{}{}:{:02d}:{:02d}", sign, hours, minutes, seconds);
+    }
+
+    cctz::load_time_zone("Fixed/UTC" + offset_str, &tz);
+    return tz;
+}
+
+
+cctz::time_zone ConvertToTimeZone(std::string z) {
     int  hours    = 0;
     int  minutes  = 0;
     bool positive = true;
@@ -75,12 +97,12 @@ absl::TimeZone ConvertToTimeZone(std::string z) {
     int offset = hours * 3600 + minutes * 60;
     if (!positive) { offset = -offset; }
 
-    return absl::FixedTimeZone(offset);
+    return create_time_zone_from_offset(offset);
 }
 
 Opt<UserTime> ParseUserTime(
-    std::string                datetime,
-    Opt<absl::TimeZone> const& zone) {
+    std::string                 datetime,
+    Opt<cctz::time_zone> const& zone) {
     struct Spec {
         std::string         pattern;
         UserTime::Alignment align = UserTime::Alignment::Second;
@@ -97,21 +119,15 @@ Opt<UserTime> ParseUserTime(
             .align   = UserTime::Alignment::Minute,
         },
         Spec{.pattern = "%Y-%m-%d", .align = UserTime::Alignment::Day},
-        // Add other formats as needed
     };
 
-    absl::Time parsedDateTime;
-    for (const auto& format : formats) {
-        std::string error;
-        if (absl::ParseTime(
-                format.pattern,
-                datetime,
-                zone ? zone.value() : absl::TimeZone(),
-                &parsedDateTime,
-                &error)) {
+    cctz::time_zone tz = zone ? zone.value() : cctz::utc_time_zone();
 
+    for (const auto& format : formats) {
+        std::chrono::system_clock::time_point tp;
+        if (cctz::parse(format.pattern, datetime, tz, &tp)) {
             return UserTime{
-                .time  = parsedDateTime,
+                .time  = cctz::convert(tp, tz),
                 .align = format.align,
                 .zone  = zone,
             };
@@ -120,7 +136,6 @@ Opt<UserTime> ParseUserTime(
 
     return std::nullopt;
 }
-
 
 } // namespace
 
@@ -321,8 +336,12 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             | rs::to<Vec>();
 
         auto clock = Log::Clock{};
-        CHECK(!times.empty())
-            << a.treeRepr() << ExporterTree::treeRepr(item).toString();
+        LOGIC_ASSERTION_CHECK(
+            !times.empty(),
+            "{}{}",
+            a.treeRepr(),
+            ExporterTree::treeRepr(item).toString());
+
         if (times.at(0)->is(osk::Time)) {
             clock.from = times.at(0).as<Time>()->getStaticTime();
         } else {
@@ -386,8 +405,11 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             Vec<SemId<Time>> times   = filter_subnodes<Time>(par0, limit);
             Vec<SemId<Link>> link    = filter_subnodes<Link>(par0, limit);
             auto             refile  = Log::Refile{};
-            CHECK(!times.empty())
-                << a.treeRepr() << ExporterTree::treeRepr(item).toString();
+            LOGIC_ASSERTION_CHECK(
+                !times.empty(),
+                "{} {}",
+                a.treeRepr(),
+                ExporterTree::treeRepr(item).toString());
 
             if (auto time = time_after("on")) {
                 refile.on = time.value()->getStaticTime();
@@ -499,7 +521,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 }
             }
 
-            CHECK(!desc.isNil());
+            LOGIC_ASSERTION_CHECK(!desc.isNil(), "");
             log->setDescription(desc);
         }
     }
@@ -700,7 +722,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         NamedProperty::ArchiveTime prop{};
         Str                        time = get_values_text();
         Slice<int>                 span = slice(0, time.size() - 1);
-        Opt<absl::TimeZone>        zone;
+        Opt<cctz::time_zone>       zone;
         if (time.at(3_B) == '+' || time.at(3_B) == '-') {
             span.last -= 3;
             zone = ConvertToTimeZone(
@@ -934,7 +956,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
                   }
                      .contains(a.kind());
 
-    CHECK(cond) << "convert subtree" << fmt1(a.kind());
+    LOGIC_ASSERTION_CHECK(cond, "convert subtree {}", a.kind());
 
     auto time      = Sem<Time>(a);
     time->isActive = (a.kind() == onk::DynamicActiveTime)
@@ -960,7 +982,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
         }
 
 
-        Opt<absl::TimeZone> zone;
+        Opt<cctz::time_zone> zone;
 
         if (auto z = one(a, N::Zone); z.kind() != onk::Empty) {
             zone = ConvertToTimeZone(get_text(z));
@@ -2123,7 +2145,8 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
             push_argument(convertAttr(it)); //
         }
     } else {
-        CHECK(a.getKind() == onk::Empty) << a.treeRepr();
+        LOGIC_ASSERTION_CHECK(
+            a.getKind() == onk::Empty, "{}", a.treeRepr());
     }
 
     return result;

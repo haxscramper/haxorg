@@ -126,7 +126,7 @@ void OrgParser::report(CR<Report> in) {
             }
         };
 
-        CHECK(0 <= treeDepth()) << "Negative tree depth";
+        LOGIC_ASSERTION_CHECK(0 <= treeDepth(), "Negative tree depth");
 
         switch (in.kind) {
             case ReportKind::Error: {

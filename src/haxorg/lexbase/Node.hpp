@@ -259,7 +259,7 @@ struct NodeGroup {
         }
 
         iterator& operator++() {
-            CHECK(group->nodes.contains(id));
+            LOGIC_ASSERTION_CHECK(group->nodes.contains(id), "");
             int        extent = group->at(id).getExtent();
             const auto start  = id;
             id                = id + extent + 1;
@@ -379,7 +379,7 @@ struct NodeAdapter {
         NodeGroup<N, K, V, M> const* group,
         NodeId<N, K, V, M>           id)
         : group(group), id(id) {
-        CHECK(group->nodes.contains(id));
+        LOGIC_ASSERTION_CHECK(group->nodes.contains(id), "");
     }
 
     NodeAdapter() : group(nullptr), id(NodeId<N, K, V, M>::Nil()) {}

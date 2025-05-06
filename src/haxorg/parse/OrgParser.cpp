@@ -2403,51 +2403,52 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
     Func<void(Id)> aux;
     aux = [&](Id top) {
         auto& g = *group;
-        CHECK(g.nodes.contains(top));
+        LOGIC_ASSERTION_CHECK(g.nodes.contains(top), "");
         auto fmt_id = [&](CR<Id> id) {
             return fmt("{} {}", id.format(), g.at(id).kind);
         };
         if (g.at(top).isTerminal() || g.at(top).isMono()) { return; }
 
-        CHECK(g.at(top).kind != onk::Empty);
+        LOGIC_ASSERTION_CHECK(g.at(top).kind != onk::Empty, "");
 
         Id start = top + 1;
         Id id    = start;
 
         if (Opt<Slice<Id>> extentOpt = g.allSubnodesOf(top)) {
             Slice<Id> extent = extentOpt.value();
-            CHECK(g.nodes.contains(extent.first));
-            CHECK(g.nodes.contains(extent.last));
+            LOGIC_ASSERTION_CHECK(g.nodes.contains(extent.first), "");
+            LOGIC_ASSERTION_CHECK(g.nodes.contains(extent.last), "");
 
             int     index = 0;
             Vec<Id> visited;
             while (extent.contains(id)) {
-                CHECK(g.nodes.contains(id));
+                LOGIC_ASSERTION_CHECK(g.nodes.contains(id), "");
                 aux(id);
                 visited.push_back(id);
 
                 id = id + g.at(id).getExtent();
-                CHECK(g.nodes.contains(id))
-                    << "next subnode"
-                    << std::format(
-                           "Step over the subnode of {} with extent {} "
-                           "yielded id {} which is outsize of the group "
-                           "range (index is {}, group size is {}), "
-                           "subnode index is {}, size overflow is {}",
-                           fmt_id(start),
-                           extent,
-                           id.getUnmasked(),
-                           id.getIndex(),
-                           g.size(),
-                           index,
-                           id - g.nodes.back());
+                LOGIC_ASSERTION_CHECK(
+                    g.nodes.contains(id),
+                    "next subnode"
+                    "Step over the subnode of {} with extent {} "
+                    "yielded id {} which is outsize of the group "
+                    "range (index is {}, group size is {}), "
+                    "subnode index is {}, size overflow is {}",
+                    fmt_id(start),
+                    extent,
+                    id.getUnmasked(),
+                    id.getIndex(),
+                    g.size(),
+                    index,
+                    id - g.nodes.back());
 
 
                 id = id + 1;
                 ++index;
             }
 
-            CHECK(extent.last + 1 == id) << fmt(
+            LOGIC_ASSERTION_CHECK(
+                extent.last + 1 == id,
                 "range end Iteration over subnode ranges for {} did not "
                 "end at the {} -- combined subnode extent strides summed "
                 "up to {}. Total subnode count is {}, full extent is {} "
@@ -2487,9 +2488,10 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
             int   sub   = g.val(subId).text.size();
             if (level < sub) {
                 OrgId stmt = g.subnode(tree, 8);
-                CHECK(g.at(stmt).kind == onk::StmtList);
+                LOGIC_ASSERTION_CHECK(
+                    g.at(stmt).kind == onk::StmtList, "");
                 id = extendSubtreeTrailsImpl(parser, stmt + 1, sub);
-                CHECK(stmt + 1 <= id);
+                LOGIC_ASSERTION_CHECK(stmt + 1 <= id, "");
                 // AUX returns next position to start looping from, so
                 // the tree size is 'end - start - 1' to account for
                 // the offset.
@@ -2515,14 +2517,20 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
                 // debugging of the implementation, malformed incoming
                 // data is not expected.
                 assertValidStructure(parser->group, tree);
-                CHECK(treeSlice.last <= g.nodes.back());
-                CHECK(stmtSlice.last <= g.nodes.back());
-                CHECK(treeSlice.last == stmtSlice.last)
-                    << "extend tree"
-                    << "$# -- $#" % to_string_vec(treeSlice, stmtSlice);
-                CHECK(treeSlice.contains(stmtSlice))
-                    << "statement containment"
-                    << "$# -- $#" % to_string_vec(treeSlice, stmtSlice);
+                LOGIC_ASSERTION_CHECK(
+                    treeSlice.last <= g.nodes.back(), "");
+                LOGIC_ASSERTION_CHECK(
+                    stmtSlice.last <= g.nodes.back(), "");
+                LOGIC_ASSERTION_CHECK(
+                    treeSlice.last == stmtSlice.last,
+                    "extend tree {} -- {}",
+                    treeSlice,
+                    stmtSlice);
+                LOGIC_ASSERTION_CHECK(
+                    treeSlice.contains(stmtSlice),
+                    "statement containment {} -- {}",
+                    treeSlice,
+                    stmtSlice);
 
 
             } else {
