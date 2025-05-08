@@ -20,9 +20,10 @@ export const WasmUserTest: React.FC = () => {
       return;
     }
     
+    console.log("Parse string")
     // Direct synchronous call
-    const sum = window.haxorgWasm.globalAdd(5, 10);
-    setResult(sum);
+    const node = window.haxorgWasm.parseString("text");
+    setResult(1231);
   };
   
   return (

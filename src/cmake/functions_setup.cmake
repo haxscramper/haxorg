@@ -4,7 +4,7 @@ function(set_target_flags_impl)
   if(${ORG_EMCC_BUILD})
     add_target_property(
       ${ARG_TARGET}
-      LINK_OPTIONS
+      LINK_FLAGS
       "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORT_NAME='haxorg_wasm' -s USE_PTHREADS=0 -s ASSERTIONS=1 --bind"
     )
     # add_target_property(${ARG_TARGET} INCLUDE_DIRECTORIES "/usr/lib/emscripten/system/include/")

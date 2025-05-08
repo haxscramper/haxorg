@@ -1,11 +1,11 @@
-const module = require(
-    "/home/haxscramper/workspace/haxorg/build/haxorg_debug_emscripten/haxorg_wasm.js");
+// Don't do this:
+// const wasmBuffer = fs.readFileSync(wasmBinaryPath);
+// WebAssembly.instantiate(wasmBuffer, importObject);
 
-module.onRuntimeInitialized = () => {
-  try {
-    const sum = module.globalAdd(2, 3);
-    console.log("Result:", sum);
-  } catch (e) {
-    console.error("Error:", e);
-  }
-};
+const haxorg_wasm = require("../../../build/haxorg_debug_emscripten/haxorg_wasm");
+
+haxorg_wasm().then(org => {
+  console.log('WebAssembly loaded!');
+  // Access your functions (if bound by Embind):
+  console.log(org.parseString("* test"));
+});

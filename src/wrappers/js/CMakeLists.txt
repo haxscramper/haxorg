@@ -15,6 +15,6 @@ if(${ORG_EMCC_BUILD})
                SUFFIX ".js"
                OUTPUT_NAME "haxorg_wasm")
 
-  set_target_properties(haxorg_wasm PROPERTIES SUFFIX ".js" LINK_FLAGS "--bind")
+  set_target_properties(haxorg_wasm PROPERTIES SUFFIX ".js")
 
 endif()
