@@ -8,7 +8,6 @@
 #include <hstd/stdlib/algorithms.hpp>
 
 #include <py_type_casters.hpp>
-#include <absl/log/log.h>
 
 using namespace hstd::layout;
 
@@ -35,7 +34,7 @@ struct TextLayout {
     ~TextLayout() {}
 
     void dbg() {
-        DLOG(INFO) << __LINE__ << b.store.size() << store.strings.size();
+        std::cerr << __LINE__ << b.store.size() << store.strings.size();
     }
 
     Id text(std::string t) { return store.text(t); }

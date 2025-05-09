@@ -31,7 +31,7 @@ class GenTuBackendPythonParams(BaseModel, extra="forbid"):
 @beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
     python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
-    targets_backends: List[str] = Field(
+    target_backends: List[str] = Field(
         default_factory=list,
         description="Which backends should generate wrappers for the entry?",
         alias=AliasChoices("target_backends", "target-backends"),
@@ -83,8 +83,8 @@ class GenTuReflParams(BaseModel, extra="forbid"):
         default=None, alias="type-api", description="Reflection entity has a type API")
 
     def isAcceptedBackend(self, backend: str) -> bool:
-        return len(self.backend.targets_backends
-                  ) == 0 or backend in self.backend.targets_backends
+        return len(
+            self.backend.target_backends) == 0 or backend in self.backend.target_backends
 
 
 @beartype

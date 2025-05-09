@@ -356,7 +356,7 @@ struct proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>> {
     static void read(
         gpb::RepeatedPtrField<orgproto::AnyNode> const&       out,
         proto_write_accessor<hstd::Vec<sem::SemId<sem::Org>>> in) {
-        LOG(FATAL) << "??";
+        logic_todo_impl();
     }
 };
 
@@ -377,7 +377,7 @@ struct proto_serde<Proto, sem::SemId<sem::Org>> {
             out, proto_write_accessor<org_type>{[id]() -> org_type& {
                 return *id.as<org_type>().get();
             }});
-        CHECK(!in.get().isNil());
+        LOGIC_ASSERTION_CHECK(!in.get().isNil(), "");
     }
 };
 
@@ -399,7 +399,7 @@ struct proto_serde<orgproto::AnyNode, sem::SemId<T>> {
     static void write(
         gpb::RepeatedPtrField<Proto>*   out,
         hstd::Vec<sem::SemId<T>> const& in) {
-        LOG(FATAL) << "??";
+        logic_todo_impl();
     }
 };
 
@@ -430,7 +430,7 @@ struct proto_serde<Proto, sem::SemId<T>> {
         proto_serde<Proto, sem::SemId<sem::Org>>::read(
             out, proto_write_accessor<sem::SemId<sem::Org>>::for_ref(tmp));
         in.get() = tmp.template as<T>();
-        CHECK(!in.get().isNil());
+        LOGIC_ASSERTION_CHECK(!in.get().isNil(), "");
     }
 
     static void read(
@@ -440,7 +440,7 @@ struct proto_serde<Proto, sem::SemId<T>> {
         proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
             out, proto_write_accessor<sem::SemId<sem::Org>>::for_ref(tmp));
         in.get() = tmp.template as<T>();
-        CHECK(!in.get().isNil());
+        LOGIC_ASSERTION_CHECK(!in.get().isNil(), "");
     }
 };
 
@@ -593,22 +593,37 @@ struct proto_serde<float, float> {
 // };
 
 
+inline int64_t civil_second_to_unix_timestamp(
+    const cctz::civil_second& cs) {
+    const auto tp = cctz::convert(cs, cctz::utc_time_zone());
+    return std::chrono::duration_cast<std::chrono::seconds>(
+               tp.time_since_epoch())
+        .count();
+}
+
+inline cctz::civil_second unix_timestamp_to_civil_second(
+    int64_t unix_timestamp) {
+    const auto tp = std::chrono::system_clock::time_point{
+        std::chrono::seconds{unix_timestamp}};
+    return cctz::convert(tp, cctz::utc_time_zone());
+}
+
 template <>
 struct proto_serde<orgproto::hstd::UserTime, hstd::UserTime> {
     static void write(
         orgproto::hstd::UserTime* out,
         hstd::UserTime const&     in) {
-        out->set_time(absl::ToUnixSeconds(in.time));
+        out->set_time(civil_second_to_unix_timestamp(in.time));
         if (in.zone) { out->set_zone(in.zone->name()); }
         out->set_align(static_cast<orgproto::Alignment>(in.align));
     }
     static void read(
         orgproto::hstd::UserTime const&      out,
         proto_write_accessor<hstd::UserTime> in) {
-        in.get().time = absl::FromUnixSeconds(out.time());
+        in.get().time = unix_timestamp_to_civil_second(out.time());
         if (out.has_zone()) {
-            absl::TimeZone tz;
-            if (!absl::LoadTimeZone(out.zone(), &tz)) {}
+            cctz::time_zone tz;
+            if (!cctz::load_time_zone(out.zone(), &tz)) {}
             in.get().zone = tz;
         }
         in.get().align = static_cast<hstd::UserTime::Alignment>(

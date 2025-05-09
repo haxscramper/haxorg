@@ -29,7 +29,6 @@
 #    include <boost/thread/shared_mutex.hpp>
 #    include <boost/thread/locks.hpp>
 #    include <fstream>
-#    include <absl/log/log.h>
 
 using namespace hstd;
 
@@ -92,7 +91,7 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(
 }
 
 #    define OLOG_INNER_DEBUG false
-#    define OLOG_MSG() LOG_IF(INFO, OLOG_INNER_DEBUG)
+#    define OLOG_MSG() std::cerr
 
 class log_sink_manager {
   public:
@@ -102,10 +101,12 @@ class log_sink_manager {
     }
 
     void push_sink(sink_ptr sink) {
-        OLOG_MSG() << fmt(
-            "Push shink {:p}, current sink stack is {}",
-            (void*)sink.get(),
-            sinks_.size());
+        if (OLOG_INNER_DEBUG) {
+            OLOG_MSG() << fmt(
+                "Push shink {:p}, current sink stack is {}",
+                (void*)sink.get(),
+                sinks_.size());
+        }
 
         std::lock_guard<std::mutex> lock(m_);
         sinks_.push(sink);
@@ -115,10 +116,12 @@ class log_sink_manager {
     void pop_sink() {
         std::lock_guard<std::mutex> lock(m_);
         if (!sinks_.empty()) {
-            OLOG_MSG() << fmt(
-                "Pop sink {:p}, current sink stack is {}",
-                (void*)sinks_.top().get(),
-                sinks_.size());
+            if (OLOG_INNER_DEBUG) {
+                OLOG_MSG()
+                    << fmt("Pop sink {:p}, current sink stack is {}",
+                           (void*)sinks_.top().get(),
+                           sinks_.size());
+            }
             sinks_.pop();
             sync_sinks();
         }
@@ -139,7 +142,7 @@ class log_sink_manager {
     log_sink_manager() = default;
 
     void sync_sinks() {
-        OLOG_MSG() << "Sync sinks";
+        if (OLOG_INNER_DEBUG) { OLOG_MSG() << "Sync sinks"; }
         boost::log::core::get()->remove_all_sinks();
         std::stack<sink_ptr> temp = sinks_;
         std::stack<sink_ptr> reversed;

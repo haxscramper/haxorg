@@ -6,7 +6,7 @@ from typing import *
 from copy import deepcopy
 
 import py_codegen.astbuilder_py as pya
-import py_codegen.astbuilder_nodeapi as napi
+import py_codegen.astbuilder_embind as napi
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen.org_codegen_data import *
 from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
@@ -1099,7 +1099,7 @@ def gen_pyhaxorg_napi_wrappers(
 
     cpp_builder = cpp.ASTBuilder(ast.b)
 
-    res = napi.NapiModule("pyhaxorg")
+    res = napi.WasmModule("haxorg_wasm")
 
     res.add_specializations(
         b=ast,
@@ -1107,7 +1107,7 @@ def gen_pyhaxorg_napi_wrappers(
     )
 
     for decl in groups.get_entries_for_wrapping():
-        if decl.reflectionParams.isAcceptedBackend("node"):
+        if decl.reflectionParams.isAcceptedBackend("wasm"):
             match decl:
                 case GenTuStruct():
                     if not decl.IsAbstract:
@@ -1121,6 +1121,13 @@ def gen_pyhaxorg_napi_wrappers(
     res.Header.append(napi.NapiBindPass(ast.string("using namespace org::bind::js;")))
 
     return GenFiles([
+        GenUnit(
+            GenTu("{base}/src/wrappers/js/haxorg_wasm.cpp", [
+                GenTuPass(res.build_bind(
+                    ast=ast,
+                    base_map=base_map,
+                )),
+            ])),
     ])
 
 

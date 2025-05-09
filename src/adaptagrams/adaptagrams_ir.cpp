@@ -57,14 +57,14 @@ GraphPoint toGvPoint(pointf p, int height) {
 GraphRect getSubgraphBBox(CR<Graphviz::Graph> g, CR<GraphRect> bbox) {
     boxf      rect = g.info()->bb;
     GraphRect res{};
-    CHECK(0 <= bbox.height);
+    LOGIC_ASSERTION_CHECK(0 <= bbox.height, "");
     auto ll    = toGvPoint(rect.LL, bbox.height);
     auto ur    = toGvPoint(rect.UR, bbox.height);
     res.left   = ll.x;
     res.top    = ur.y;
     res.width  = ur.x - ll.x;
     res.height = ll.y - ur.y;
-    CHECK(0 <= res.height);
+    LOGIC_ASSERTION_CHECK(0 <= res.height, "");
     return res;
 }
 
@@ -937,7 +937,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     Result res;
     res.bbox = getGraphBBox(graph);
-    CHECK(res.bbox.size() != GraphSize(0, 0));
+    LOGIC_ASSERTION_CHECK(res.bbox.size() != GraphSize(0, 0), "");
 
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
@@ -1194,7 +1194,7 @@ Vec<GraphNodeConstraint::Res> GraphNodeConstraint::MultiSeparate::toCola()
     auto sep = std::make_shared<cola::MultiSeparationConstraint>(
         toVpsc(dimension), separationDistance, isExactSeparation);
 
-    CHECK(sep.get() != nullptr);
+    LOGIC_ASSERTION_CHECK(sep.get() != nullptr, "");
 
     for (auto const& it : enumerator(alignPairs)) {
         auto const& src = it.value().first;

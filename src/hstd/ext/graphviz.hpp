@@ -13,7 +13,6 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/system/generator.hpp>
-#include <absl/log/check.h>
 #include <hstd/stdlib/Filesystem.hpp>
 
 #define _attr_aligned(Method, key, Type)                                  \
@@ -636,13 +635,13 @@ class Graphviz {
         }
 
         Node node(Str const& name) {
-            CHECK(graph != nullptr);
+            LOGIC_ASSERTION_CHECK(graph != nullptr, "");
             auto tmp = Node(graph, name);
             return tmp;
         }
 
         Edge edge(CR<Node> head, CR<Node> tail) {
-            CHECK(graph != nullptr);
+            LOGIC_ASSERTION_CHECK(graph != nullptr, "");
             auto tmp = Edge(graph, head, tail);
             return tmp;
         }

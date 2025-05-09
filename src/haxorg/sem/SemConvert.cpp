@@ -8,9 +8,6 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
-#if !ORG_EMCC_BUILD
-#    include <absl/log/log.h>
-#endif
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <lexy/dsl/identifier.hpp>
 #include <lexy_ext/report_error.hpp>

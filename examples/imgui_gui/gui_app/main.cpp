@@ -375,7 +375,7 @@ void outline_tree_loop(
 
 int main(int argc, char** argv) {
     auto conf_file = hstd::fs::path{argv[1]};
-    CHECK(hstd::fs::is_regular_file(conf_file)) << conf_file;
+    LOGIC_ASSERTION_CHECK(hstd::fs::is_regular_file(conf_file), "{}", conf_file);
     auto conf_text = hstd::readFile(conf_file);
     auto conf_json = json::parse(conf_text);
     auto conf      = hstd::from_json_eval<Config>(conf_json);

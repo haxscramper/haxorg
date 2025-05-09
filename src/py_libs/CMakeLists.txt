@@ -9,7 +9,8 @@ set_target_properties(py_textlayout_cpp PROPERTIES OUTPUT_NAME "py_textlayout_cp
 target_include_directories(py_textlayout_cpp PUBLIC "${BASE}" "${BASE}/src/py_libs"
                                                     ${PYTHON_INCLUDE_DIRS})
 
-target_link_libraries(py_textlayout_cpp PRIVATE hstd ${PYTHON_LIBRARIES})
+target_link_libraries(py_textlayout_cpp PRIVATE hstd ${PYTHON_LIBRARIES} absl::base absl::log
+                                                absl::flags)
 
 if(${ORG_USE_SANITIZER})
   target_link_libraries(py_textlayout_cpp PRIVATE ubsan)
