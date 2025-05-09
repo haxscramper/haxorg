@@ -1436,6 +1436,16 @@ def run_d3_example(ctx: Context, sync: bool = False):
             stdout_debug=get_log_dir().joinpath("electron_stdout.log"),
         )
 
+@org_task(pre=[build_d3_example])
+def run_js_test_example(ctx: Context, sync: bool = False):
+    js_example_dir = get_script_root().joinpath("examples/js_test")
+
+    run_command(
+        ctx,
+        "node",
+        ["js_test.js"],
+        cwd=js_example_dir,
+    )
 
 def get_lldb_py_import() -> List[str]:
     return [
