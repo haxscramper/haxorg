@@ -677,16 +677,13 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         for (auto const& arg : get_values_text().split(" ")) {
             auto norm = normalize(arg);
             if (norm == "todo") {
-                p.source = sem::NamedProperty::CookieData::TodoSource::
-                    Todo;
+                p.source = SubtreeTodoSource::Todo;
             } else if (norm == "recursive") {
                 p.isRecursive = true;
             } else if (norm == "both") {
-                p.source = sem::NamedProperty::CookieData::TodoSource::
-                    Both;
+                p.source = SubtreeTodoSource::Both;
             } else if (norm == "checkbox") {
-                p.source = sem::NamedProperty::CookieData::TodoSource::
-                    Checkbox;
+                p.source = SubtreeTodoSource::Checkbox;
             } else {
                 return SemError(
                     a, fmt("Unexpected cookie data parameter: {}", arg));
@@ -1266,11 +1263,11 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
         print(fmt("Normalized checkbox: {}", escape_literal(text)));
 
         if (text == "x" || text == "X") {
-            item->checkbox = ListItem::Checkbox::Done;
+            item->checkbox = CheckboxState::Done;
         } else if (text == "") {
-            item->checkbox = ListItem::Checkbox::Empty;
+            item->checkbox = CheckboxState::Empty;
         } else if (text == "-") {
-            item->checkbox = ListItem::Checkbox::Partial;
+            item->checkbox = CheckboxState::Partial;
         } else {
             return SemError(
                 a, fmt("Unexpected list item checkbox {}", text));

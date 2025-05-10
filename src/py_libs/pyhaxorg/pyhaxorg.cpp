@@ -1134,7 +1134,7 @@ ImmPathStep documentation.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmListItemValueRead>(m, "ImmListItemValueRead")
-    .def("getCheckbox", static_cast<org::imm::ImmListItem::Checkbox const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getCheckbox))
+    .def("getCheckbox", static_cast<CheckboxState const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getCheckbox))
     .def("getHeader", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getHeader))
     .def("getBullet", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getBullet))
     .def("__repr__", [](org::imm::ImmListItemValueRead const& _self) -> std::string {
@@ -4437,26 +4437,6 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<org::sem::NamedProperty::CookieData::TodoSource>(m, "NamedPropertyCookieDataTodoSource", type_registry_guard);
-  pybind11::enum_<org::sem::NamedProperty::CookieData::TodoSource>(m, "NamedPropertyCookieDataTodoSource")
-    .value("Checkbox", org::sem::NamedProperty::CookieData::TodoSource::Checkbox, R"RAW(Only count checkbox subnodes as a progress completion)RAW")
-    .value("Todo", org::sem::NamedProperty::CookieData::TodoSource::Todo, R"RAW(Use subtrees with todo keywords)RAW")
-    .value("Both", org::sem::NamedProperty::CookieData::TodoSource::Both, R"RAW(Use both subtrees and todo keywords)RAW")
-    .def("__iter__", [](org::sem::NamedProperty::CookieData::TodoSource const& _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::CookieData::TodoSource> {
-                     return org::bind::python::PyEnumIterator<org::sem::NamedProperty::CookieData::TodoSource>();
-                     })
-    .def("__eq__",
-         [](org::sem::NamedProperty::CookieData::TodoSource const& _self, org::sem::NamedProperty::CookieData::TodoSource lhs, org::sem::NamedProperty::CookieData::TodoSource rhs) -> bool {
-         return lhs == rhs;
-         },
-         pybind11::arg("lhs"),
-         pybind11::arg("rhs"))
-    .def("__hash__",
-         [](org::sem::NamedProperty::CookieData::TodoSource const& _self, org::sem::NamedProperty::CookieData::TodoSource it) -> int {
-         return static_cast<int>(it);
-         },
-         pybind11::arg("it"))
-    ;
   pybind11::class_<org::sem::NamedProperty::CookieData>(m, "NamedPropertyCookieData")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::NamedProperty::CookieData {
                         org::sem::NamedProperty::CookieData result{};
@@ -5079,27 +5059,6 @@ ingoing elements.)RAW")
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
-    ;
-  bind_enum_iterator<org::sem::ListItem::Checkbox>(m, "ListItemCheckbox", type_registry_guard);
-  pybind11::enum_<org::sem::ListItem::Checkbox>(m, "ListItemCheckbox")
-    .value("None", org::sem::ListItem::Checkbox::None)
-    .value("Done", org::sem::ListItem::Checkbox::Done)
-    .value("Empty", org::sem::ListItem::Checkbox::Empty)
-    .value("Partial", org::sem::ListItem::Checkbox::Partial)
-    .def("__iter__", [](org::sem::ListItem::Checkbox const& _self) -> org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox> {
-                     return org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox>();
-                     })
-    .def("__eq__",
-         [](org::sem::ListItem::Checkbox const& _self, org::sem::ListItem::Checkbox lhs, org::sem::ListItem::Checkbox rhs) -> bool {
-         return lhs == rhs;
-         },
-         pybind11::arg("lhs"),
-         pybind11::arg("rhs"))
-    .def("__hash__",
-         [](org::sem::ListItem::Checkbox const& _self, org::sem::ListItem::Checkbox it) -> int {
-         return static_cast<int>(it);
-         },
-         pybind11::arg("it"))
     ;
   bind_enum_iterator<org::imm::ImmCriticMarkup::Kind>(m, "ImmCriticMarkupKind", type_registry_guard);
   pybind11::enum_<org::imm::ImmCriticMarkup::Kind>(m, "ImmCriticMarkupKind")
@@ -7329,7 +7288,7 @@ ingoing elements.)RAW")
     ;
   pybind11::class_<org::imm::ImmListItemValue, org::imm::ImmListItemValueRead>(m, "ImmListItemValue")
     .def("setCheckbox",
-         static_cast<void(org::imm::ImmListItemValue::*)(org::imm::ImmListItem::Checkbox const&)>(&org::imm::ImmListItemValue::setCheckbox),
+         static_cast<void(org::imm::ImmListItemValue::*)(CheckboxState const&)>(&org::imm::ImmListItemValue::setCheckbox),
          pybind11::arg("value"))
     .def("setHeader",
          static_cast<void(org::imm::ImmListItemValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmListItemValue::setHeader),
@@ -8839,6 +8798,47 @@ ingoing elements.)RAW")
   pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>, org::imm::ImmAdapterCmdAttrAPI>(m, "ImmCmdAttrAdapter")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdAttrValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::getValue))
+    ;
+  bind_enum_iterator<CheckboxState>(m, "CheckboxState", type_registry_guard);
+  pybind11::enum_<CheckboxState>(m, "CheckboxState")
+    .value("None", CheckboxState::None)
+    .value("Done", CheckboxState::Done)
+    .value("Empty", CheckboxState::Empty)
+    .value("Partial", CheckboxState::Partial)
+    .def("__iter__", [](CheckboxState const& _self) -> org::bind::python::PyEnumIterator<CheckboxState> {
+                     return org::bind::python::PyEnumIterator<CheckboxState>();
+                     })
+    .def("__eq__",
+         [](CheckboxState const& _self, CheckboxState lhs, CheckboxState rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](CheckboxState const& _self, CheckboxState it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  bind_enum_iterator<SubtreeTodoSource>(m, "SubtreeTodoSource", type_registry_guard);
+  pybind11::enum_<SubtreeTodoSource>(m, "SubtreeTodoSource")
+    .value("Checkbox", SubtreeTodoSource::Checkbox, R"RAW(Only count checkbox subnodes as a progress completion)RAW")
+    .value("Todo", SubtreeTodoSource::Todo, R"RAW(Use subtrees with todo keywords)RAW")
+    .value("Both", SubtreeTodoSource::Both, R"RAW(Use both subtrees and todo keywords)RAW")
+    .def("__iter__", [](SubtreeTodoSource const& _self) -> org::bind::python::PyEnumIterator<SubtreeTodoSource> {
+                     return org::bind::python::PyEnumIterator<SubtreeTodoSource>();
+                     })
+    .def("__eq__",
+         [](SubtreeTodoSource const& _self, SubtreeTodoSource lhs, SubtreeTodoSource rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](SubtreeTodoSource const& _self, SubtreeTodoSource it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
     ;
   bind_enum_iterator<ListFormattingMode>(m, "ListFormattingMode", type_registry_guard);
   pybind11::enum_<ListFormattingMode>(m, "ListFormattingMode")

@@ -1108,13 +1108,7 @@ def gen_pyhaxorg_napi_wrappers(
 
     for decl in groups.get_entries_for_wrapping():
         if decl.reflectionParams.isAcceptedBackend("wasm"):
-            match decl:
-                case GenTuStruct():
-                    if not decl.IsAbstract:
-                        res.add_decl(decl)
-
-                case _:
-                    res.add_decl(decl)
+            res.add_decl(decl)
 
     res.Header.append(napi.WasmBindPass(ast.Include("node_utils.hpp")))
     res.Header.append(napi.WasmBindPass(ast.Include("node_org_include.hpp")))

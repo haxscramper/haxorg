@@ -1226,12 +1226,12 @@ void org::algo::proto_serde<::orgproto::NamedProperty::ExportLatexClass, org::se
 
 void org::algo::proto_serde<::orgproto::NamedProperty::CookieData, org::sem::NamedProperty::CookieData>::write(::orgproto::NamedProperty::CookieData* out, org::sem::NamedProperty::CookieData const& in) {
   out->set_isrecursive(in.isRecursive);
-  out->set_source(static_cast<orgproto::NamedProperty_CookieData_TodoSource>(in.source));
+  out->set_source(static_cast<orgproto::SubtreeTodoSource>(in.source));
 }
 
 void org::algo::proto_serde<::orgproto::NamedProperty::CookieData, org::sem::NamedProperty::CookieData>::read(::orgproto::NamedProperty::CookieData const& out, proto_write_accessor<org::sem::NamedProperty::CookieData> in) {
   in.for_field(&org::sem::NamedProperty::CookieData::isRecursive).get() = out.isrecursive();
-  in.for_field(&org::sem::NamedProperty::CookieData::source).get() = static_cast<org::sem::NamedProperty::CookieData::TodoSource>(out.source());
+  in.for_field(&org::sem::NamedProperty::CookieData::source).get() = static_cast<SubtreeTodoSource>(out.source());
 }
 
 void org::algo::proto_serde<::orgproto::NamedProperty::ExportLatexClassOptions, org::sem::NamedProperty::ExportLatexClassOptions>::write(::orgproto::NamedProperty::ExportLatexClassOptions* out, org::sem::NamedProperty::ExportLatexClassOptions const& in) {
@@ -2468,7 +2468,7 @@ void org::algo::proto_serde<::orgproto::List, org::sem::List>::read(::orgproto::
 
 void org::algo::proto_serde<::orgproto::ListItem, org::sem::ListItem>::write(::orgproto::ListItem* out, org::sem::ListItem const& in) {
   org::algo::proto_serde<::orgproto::ListItem, org::sem::Org>::write(out, in);
-  out->set_checkbox(static_cast<orgproto::ListItem_Checkbox>(in.checkbox));
+  out->set_checkbox(static_cast<orgproto::CheckboxState>(in.checkbox));
   if (in.header) {
     proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_header(), *in.header);
   }
@@ -2479,7 +2479,7 @@ void org::algo::proto_serde<::orgproto::ListItem, org::sem::ListItem>::write(::o
 
 void org::algo::proto_serde<::orgproto::ListItem, org::sem::ListItem>::read(::orgproto::ListItem const& out, proto_write_accessor<org::sem::ListItem> in) {
   org::algo::proto_serde<::orgproto::ListItem, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  in.for_field(&org::sem::ListItem::checkbox).get() = static_cast<org::sem::ListItem::Checkbox>(out.checkbox());
+  in.for_field(&org::sem::ListItem::checkbox).get() = static_cast<CheckboxState>(out.checkbox());
   if (out.has_header()) {
     proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.header(), in.for_field(&org::sem::ListItem::header));
   }

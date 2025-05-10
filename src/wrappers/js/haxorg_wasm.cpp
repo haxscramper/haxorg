@@ -118,6 +118,17 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getBool", static_cast<bool(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getBool))
     .function("getArray", static_cast<hstd::Vec<org::sem::OrgJson>(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getArray))
     ;
+  emscripten::class_<org::sem::Org>("Org")
+    .property("loc", &org::sem::Org::loc)
+    .property("subnodes", &org::sem::Org::subnodes)
+    .function("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind))
+    .function("isGenerated", static_cast<bool(org::sem::Org::*)() const>(&org::sem::Org::isGenerated))
+    .function("push_back", static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back))
+    .function("size", static_cast<int(org::sem::Org::*)() const>(&org::sem::Org::size))
+    .function("insert", static_cast<void(org::sem::Org::*)(int, org::sem::SemId<org::sem::Org>)>(&org::sem::Org::insert))
+    .function("at", static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at))
+    .function("is", static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is))
+    ;
   emscripten::class_<org::imm::ImmId>("ImmId")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
     .function("is", static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is))
@@ -342,7 +353,7 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   emscripten::class_<org::imm::ImmListValueRead>("ImmListValueRead")
     ;
   emscripten::class_<org::imm::ImmListItemValueRead>("ImmListItemValueRead")
-    .function("getCheckbox", static_cast<org::imm::ImmListItem::Checkbox const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getCheckbox))
+    .function("getCheckbox", static_cast<CheckboxState const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getCheckbox))
     .function("getHeader", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getHeader))
     .function("getBullet", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getBullet))
     ;
@@ -440,6 +451,8 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth)
     .property("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields)
     .property("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields)
+    ;
+  emscripten::class_<org::imm::ImmAdapterVirtualBase>("ImmAdapterVirtualBase")
     ;
   emscripten::class_<org::OrgParseFragment>("OrgParseFragment")
     .property("baseLine", &org::OrgParseFragment::baseLine)
@@ -1286,7 +1299,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("source", &org::sem::NamedProperty::CookieData::source)
     .function("operator==", static_cast<bool(org::sem::NamedProperty::CookieData::*)(org::sem::NamedProperty::CookieData const&) const>(&org::sem::NamedProperty::CookieData::operator==))
     ;
-  org::bind::js::bind_enum<org::sem::NamedProperty::CookieData::TodoSource>("OrgSemNamedPropertyCookieDataTodoSource");
   emscripten::class_<org::sem::NamedProperty::ExportLatexClassOptions>("NamedPropertyExportLatexClassOptions")
     .property("options", &org::sem::NamedProperty::ExportLatexClassOptions::options)
     .function("operator==", static_cast<bool(org::sem::NamedProperty::ExportLatexClassOptions::*)(org::sem::NamedProperty::ExportLatexClassOptions const&) const>(&org::sem::NamedProperty::ExportLatexClassOptions::operator==))
@@ -1377,6 +1389,13 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmErrorGroup::*)() const>(&org::imm::ImmErrorGroup::getKind))
     .function("operator==", static_cast<bool(org::imm::ImmErrorGroup::*)(org::imm::ImmErrorGroup const&) const>(&org::imm::ImmErrorGroup::operator==))
     ;
+  emscripten::class_<org::imm::ImmStmt>("ImmStmt")
+    .property("attached", &org::imm::ImmStmt::attached)
+    .function("operator==", static_cast<bool(org::imm::ImmStmt::*)(org::imm::ImmStmt const&) const>(&org::imm::ImmStmt::operator==))
+    ;
+  emscripten::class_<org::imm::ImmInline>("ImmInline")
+    .function("operator==", static_cast<bool(org::imm::ImmInline::*)(org::imm::ImmInline const&) const>(&org::imm::ImmInline::operator==))
+    ;
   emscripten::class_<org::imm::ImmStmtList>("ImmStmtList")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmStmtList::*)() const>(&org::imm::ImmStmtList::getKind))
     .function("operator==", static_cast<bool(org::imm::ImmStmtList::*)(org::imm::ImmStmtList const&) const>(&org::imm::ImmStmtList::operator==))
@@ -1384,6 +1403,10 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   emscripten::class_<org::imm::ImmEmpty>("ImmEmpty")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmEmpty::*)() const>(&org::imm::ImmEmpty::getKind))
     .function("operator==", static_cast<bool(org::imm::ImmEmpty::*)(org::imm::ImmEmpty const&) const>(&org::imm::ImmEmpty::operator==))
+    ;
+  emscripten::class_<org::imm::ImmLeaf>("ImmLeaf")
+    .property("text", &org::imm::ImmLeaf::text)
+    .function("operator==", static_cast<bool(org::imm::ImmLeaf::*)(org::imm::ImmLeaf const&) const>(&org::imm::ImmLeaf::operator==))
     ;
   emscripten::class_<org::imm::ImmTime>("ImmTime")
     .property("isActive", &org::imm::ImmTime::isActive)
@@ -1442,6 +1465,9 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("value", &org::imm::ImmSymbol::Param::value)
     .function("operator==", static_cast<bool(org::imm::ImmSymbol::Param::*)(org::imm::ImmSymbol::Param const&) const>(&org::imm::ImmSymbol::Param::operator==))
     ;
+  emscripten::class_<org::imm::ImmMarkup>("ImmMarkup")
+    .function("operator==", static_cast<bool(org::imm::ImmMarkup::*)(org::imm::ImmMarkup const&) const>(&org::imm::ImmMarkup::operator==))
+    ;
   emscripten::class_<org::imm::ImmRadioTarget>("ImmRadioTarget")
     .property("words", &org::imm::ImmRadioTarget::words)
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmRadioTarget::*)() const>(&org::imm::ImmRadioTarget::getKind))
@@ -1494,7 +1520,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmListItem::*)() const>(&org::imm::ImmListItem::getKind))
     .function("operator==", static_cast<bool(org::imm::ImmListItem::*)(org::imm::ImmListItem const&) const>(&org::imm::ImmListItem::operator==))
     ;
-  org::bind::js::bind_enum<org::sem::ListItem::Checkbox>("OrgSemListItemCheckbox");
   emscripten::class_<org::imm::ImmDocumentOptions>("ImmDocumentOptions")
     .property("initialVisibility", &org::imm::ImmDocumentOptions::initialVisibility)
     .property("properties", &org::imm::ImmDocumentOptions::properties)
@@ -1661,11 +1686,25 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("line", &org::sem::ErrorGroup::line)
     .function("getKind", static_cast<OrgSemKind(org::sem::ErrorGroup::*)() const>(&org::sem::ErrorGroup::getKind))
     ;
+  emscripten::class_<org::sem::Stmt, emscripten::base<org::sem::Org>>("Stmt")
+    .property("attached", &org::sem::Stmt::attached)
+    .function("getAttached", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttached))
+    .function("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)() const>(&org::sem::Stmt::getCaption))
+    .function("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Stmt::*)() const>(&org::sem::Stmt::getName))
+    .function("getAttrs", static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttrs))
+    .function("getFirstAttr", static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttr))
+    ;
+  emscripten::class_<org::sem::Inline, emscripten::base<org::sem::Org>>("Inline")
+    ;
   emscripten::class_<org::sem::StmtList, emscripten::base<org::sem::Org>>("StmtList")
     .function("getKind", static_cast<OrgSemKind(org::sem::StmtList::*)() const>(&org::sem::StmtList::getKind))
     ;
   emscripten::class_<org::sem::Empty, emscripten::base<org::sem::Org>>("Empty")
     .function("getKind", static_cast<OrgSemKind(org::sem::Empty::*)() const>(&org::sem::Empty::getKind))
+    ;
+  emscripten::class_<org::sem::Leaf, emscripten::base<org::sem::Org>>("Leaf")
+    .property("text", &org::sem::Leaf::text)
+    .function("getText", static_cast<hstd::Str(org::sem::Leaf::*)() const>(&org::sem::Leaf::getText))
     ;
   emscripten::class_<org::sem::Time, emscripten::base<org::sem::Org>>("Time")
     .property("isActive", &org::sem::Time::isActive)
@@ -1723,6 +1762,8 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("key", &org::sem::Symbol::Param::key)
     .property("value", &org::sem::Symbol::Param::value)
     ;
+  emscripten::class_<org::sem::Markup, emscripten::base<org::sem::Org>>("Markup")
+    ;
   emscripten::class_<org::sem::RadioTarget, emscripten::base<org::sem::Org>>("RadioTarget")
     .property("words", &org::sem::RadioTarget::words)
     .function("getKind", static_cast<OrgSemKind(org::sem::RadioTarget::*)() const>(&org::sem::RadioTarget::getKind))
@@ -1778,7 +1819,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("isDescriptionItem", static_cast<bool(org::sem::ListItem::*)() const>(&org::sem::ListItem::isDescriptionItem))
     .function("getCleanHeader", static_cast<hstd::Opt<hstd::Str>(org::sem::ListItem::*)() const>(&org::sem::ListItem::getCleanHeader))
     ;
-  org::bind::js::bind_enum<org::sem::ListItem::Checkbox>("OrgSemListItemCheckbox");
   emscripten::class_<org::sem::DocumentOptions, emscripten::base<org::sem::Org>>("DocumentOptions")
     .property("initialVisibility", &org::sem::DocumentOptions::initialVisibility)
     .property("properties", &org::sem::DocumentOptions::properties)
@@ -2284,7 +2324,7 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   emscripten::class_<org::imm::ImmListValue, emscripten::base<org::imm::ImmListValueRead>>("ImmListValue")
     ;
   emscripten::class_<org::imm::ImmListItemValue, emscripten::base<org::imm::ImmListItemValueRead>>("ImmListItemValue")
-    .function("setCheckbox", static_cast<void(org::imm::ImmListItemValue::*)(org::imm::ImmListItem::Checkbox const&)>(&org::imm::ImmListItemValue::setCheckbox))
+    .function("setCheckbox", static_cast<void(org::imm::ImmListItemValue::*)(CheckboxState const&)>(&org::imm::ImmListItemValue::setCheckbox))
     .function("setHeader", static_cast<void(org::imm::ImmListItemValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmListItemValue::setHeader))
     .function("setBullet", static_cast<void(org::imm::ImmListItemValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmListItemValue::setBullet))
     ;
@@ -2348,6 +2388,12 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("setFirstline", static_cast<void(org::imm::ImmCmdIncludeValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmCmdIncludeValue::setFirstline))
     .function("setLastline", static_cast<void(org::imm::ImmCmdIncludeValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmCmdIncludeValue::setLastline))
     .function("setData", static_cast<void(org::imm::ImmCmdIncludeValue::*)(org::imm::ImmCmdInclude::Data const&)>(&org::imm::ImmCmdIncludeValue::setData))
+    ;
+  emscripten::class_<org::imm::ImmAdapterOrgAPI, emscripten::base<org::imm::ImmAdapterVirtualBase>>("ImmAdapterOrgAPI")
+    ;
+  emscripten::class_<org::imm::ImmCmd, emscripten::base<org::imm::ImmStmt>>("ImmCmd")
+    .property("attrs", &org::imm::ImmCmd::attrs)
+    .function("operator==", static_cast<bool(org::imm::ImmCmd::*)(org::imm::ImmCmd const&) const>(&org::imm::ImmCmd::operator==))
     ;
   emscripten::class_<org::imm::ImmCmdCustomRaw, emscripten::base<org::imm::ImmStmt>>("ImmCmdCustomRaw")
     .property("name", &org::imm::ImmCmdCustomRaw::name)
@@ -2470,6 +2516,11 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmPar::*)() const>(&org::imm::ImmPar::getKind))
     .function("operator==", static_cast<bool(org::imm::ImmPar::*)(org::imm::ImmPar const&) const>(&org::imm::ImmPar::operator==))
     ;
+  emscripten::class_<org::sem::Cmd, emscripten::base<org::sem::Stmt>>("Cmd")
+    .property("attrs", &org::sem::Cmd::attrs)
+    .function("getAttrs", static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cmd::getAttrs))
+    .function("getFirstAttr", static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Str const&) const>(&org::sem::Cmd::getFirstAttr))
+    ;
   emscripten::class_<org::sem::CmdCustomRaw, emscripten::base<org::sem::Stmt>>("CmdCustomRaw")
     .property("name", &org::sem::CmdCustomRaw::name)
     .property("isAttached", &org::sem::CmdCustomRaw::isAttached)
@@ -2579,6 +2630,79 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   emscripten::class_<org::sem::Par, emscripten::base<org::sem::Markup>>("Par")
     .function("getKind", static_cast<OrgSemKind(org::sem::Par::*)() const>(&org::sem::Par::getKind))
     ;
+  emscripten::class_<org::imm::ImmAdapterStmtAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterStmtAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterSubtreeAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterSubtreeAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterNoneAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterNoneAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterAttrAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterAttrAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterAttrListAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterAttrListAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterAttrsAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterAttrsAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterErrorItemAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterErrorItemAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterErrorGroupAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterErrorGroupAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterStmtListAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterStmtListAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterEmptyAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterEmptyAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterInlineAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterInlineAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterTimeAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterTimeAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterTimeRangeAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterTimeRangeAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterMacroAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterMacroAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterSymbolAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterSymbolAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterLeafAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterLeafAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterMarkupAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterMarkupAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterLatexAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterLatexAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterSubtreeLogAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterSubtreeLogAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterColonExampleAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterColonExampleAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCallAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterCallAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterFileAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterFileAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterDirectoryAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDirectoryAPI")
+    .function("getFsSubnode", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode))
+    ;
+  emscripten::class_<org::imm::ImmAdapterSymlinkAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterSymlinkAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterDocumentFragmentAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDocumentFragmentAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCriticMarkupAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterCriticMarkupAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterListItemAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterListItemAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterDocumentOptionsAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDocumentOptionsAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterDocumentAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDocumentAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterFileTargetAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterFileTargetAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterTextSeparatorAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterTextSeparatorAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdIncludeAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterCmdIncludeAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterDocumentGroupAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDocumentGroupAPI")
+    ;
+  emscripten::class_<org::imm::ImmBlock, emscripten::base<org::imm::ImmCmd>>("ImmBlock")
+    .function("operator==", static_cast<bool(org::imm::ImmBlock::*)(org::imm::ImmBlock const&) const>(&org::imm::ImmBlock::operator==))
+    ;
+  emscripten::class_<org::imm::ImmLineCommand, emscripten::base<org::imm::ImmCmd>>("ImmLineCommand")
+    .function("operator==", static_cast<bool(org::imm::ImmLineCommand::*)(org::imm::ImmLineCommand const&) const>(&org::imm::ImmLineCommand::operator==))
+    ;
   emscripten::class_<org::imm::ImmCmdCustomArgs, emscripten::base<org::imm::ImmCmd>>("ImmCmdCustomArgs")
     .property("name", &org::imm::ImmCmdCustomArgs::name)
     .property("isAttached", &org::imm::ImmCmdCustomArgs::isAttached)
@@ -2601,6 +2725,10 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmRow::*)() const>(&org::imm::ImmRow::getKind))
     .function("operator==", static_cast<bool(org::imm::ImmRow::*)(org::imm::ImmRow const&) const>(&org::imm::ImmRow::operator==))
     ;
+  emscripten::class_<org::sem::Block, emscripten::base<org::sem::Cmd>>("Block")
+    ;
+  emscripten::class_<org::sem::LineCommand, emscripten::base<org::sem::Cmd>>("LineCommand")
+    ;
   emscripten::class_<org::sem::CmdCustomArgs, emscripten::base<org::sem::Cmd>>("CmdCustomArgs")
     .property("name", &org::sem::CmdCustomArgs::name)
     .property("isAttached", &org::sem::CmdCustomArgs::isAttached)
@@ -2618,6 +2746,20 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("cells", &org::sem::Row::cells)
     .property("isBlock", &org::sem::Row::isBlock)
     .function("getKind", static_cast<OrgSemKind(org::sem::Row::*)() const>(&org::sem::Row::getKind))
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterCmdAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdCustomRawAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterCmdCustomRawAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdCustomTextAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterCmdCustomTextAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterLinkAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterLinkAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockCommentAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterBlockCommentAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterParagraphAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterParagraphAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterListAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterListAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSubtree>, emscripten::base<org::imm::ImmAdapterSubtreeAPI>>("ImmSubtreeAdapter")
     .constructor<org::imm::ImmAdapter const&>()
@@ -2643,6 +2785,12 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmEmptyValueRead(org::imm::ImmAdapterT<org::imm::ImmEmpty>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmEmpty>::getValue))
     ;
+  emscripten::class_<org::imm::ImmAdapterHashTagAPI, emscripten::base<org::imm::ImmAdapterInlineAPI>>("ImmAdapterHashTagAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterInlineFootnoteAPI, emscripten::base<org::imm::ImmAdapterInlineAPI>>("ImmAdapterInlineFootnoteAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterSubtreeCompletionAPI, emscripten::base<org::imm::ImmAdapterInlineAPI>>("ImmAdapterSubtreeCompletionAPI")
+    ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmTime>, emscripten::base<org::imm::ImmAdapterTimeAPI>>("ImmTimeAdapter")
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmTimeValueRead(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getValue))
@@ -2658,6 +2806,44 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSymbol>, emscripten::base<org::imm::ImmAdapterSymbolAPI>>("ImmSymbolAdapter")
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmSymbolValueRead(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getValue))
+    ;
+  emscripten::class_<org::imm::ImmAdapterEscapedAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterEscapedAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterNewlineAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterNewlineAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterSpaceAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterSpaceAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterWordAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterWordAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterAtMentionAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterAtMentionAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterRawTextAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterRawTextAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterPunctuationAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterPunctuationAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterPlaceholderAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterPlaceholderAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBigIdentAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterBigIdentAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterTextTargetAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterTextTargetAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBoldAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterBoldAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterUnderlineAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterUnderlineAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterMonospaceAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterMonospaceAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterMarkQuoteAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterMarkQuoteAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterRadioTargetAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterRadioTargetAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterVerbatimAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterVerbatimAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterItalicAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterItalicAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterStrikeAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterStrikeAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterParAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterParAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmLatex>, emscripten::base<org::imm::ImmAdapterLatexAPI>>("ImmLatexAdapter")
     .constructor<org::imm::ImmAdapter const&>()
@@ -2780,6 +2966,9 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmTable::*)() const>(&org::imm::ImmTable::getKind))
     .function("operator==", static_cast<bool(org::imm::ImmTable::*)(org::imm::ImmTable const&) const>(&org::imm::ImmTable::operator==))
     ;
+  emscripten::class_<org::imm::ImmAttached, emscripten::base<org::imm::ImmLineCommand>>("ImmAttached")
+    .function("operator==", static_cast<bool(org::imm::ImmAttached::*)(org::imm::ImmAttached const&) const>(&org::imm::ImmAttached::operator==))
+    ;
   emscripten::class_<org::sem::BlockCenter, emscripten::base<org::sem::Block>>("BlockCenter")
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockCenter::*)() const>(&org::sem::BlockCenter::getKind))
     ;
@@ -2828,6 +3017,20 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("rows", &org::sem::Table::rows)
     .property("isBlock", &org::sem::Table::isBlock)
     .function("getKind", static_cast<OrgSemKind(org::sem::Table::*)() const>(&org::sem::Table::getKind))
+    ;
+  emscripten::class_<org::sem::Attached, emscripten::base<org::sem::LineCommand>>("Attached")
+    ;
+  emscripten::class_<org::imm::ImmAdapterLineCommandAPI, emscripten::base<org::imm::ImmAdapterCmdAPI>>("ImmAdapterLineCommandAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdCustomArgsAPI, emscripten::base<org::imm::ImmAdapterCmdAPI>>("ImmAdapterCmdCustomArgsAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdTblfmAPI, emscripten::base<org::imm::ImmAdapterCmdAPI>>("ImmAdapterCmdTblfmAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockAPI, emscripten::base<org::imm::ImmAdapterCmdAPI>>("ImmAdapterBlockAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCellAPI, emscripten::base<org::imm::ImmAdapterCmdAPI>>("ImmAdapterCellAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterRowAPI, emscripten::base<org::imm::ImmAdapterCmdAPI>>("ImmAdapterRowAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>, emscripten::base<org::imm::ImmAdapterCmdCustomRawAPI>>("ImmCmdCustomRawAdapter")
     .constructor<org::imm::ImmAdapter const&>()
@@ -3003,6 +3206,8 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("content", &org::sem::CmdExport::content)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdExport::*)() const>(&org::sem::CmdExport::getKind))
     ;
+  emscripten::class_<org::imm::ImmAdapterAttachedAPI, emscripten::base<org::imm::ImmAdapterLineCommandAPI>>("ImmAdapterAttachedAPI")
+    ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>, emscripten::base<org::imm::ImmAdapterCmdCustomArgsAPI>>("ImmCmdCustomArgsAdapter")
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmCmdCustomArgsValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getValue))
@@ -3011,6 +3216,30 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmCmdTblfmValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::getValue))
     ;
+  emscripten::class_<org::imm::ImmAdapterBlockCenterAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockCenterAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockQuoteAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockQuoteAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockVerseAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockVerseAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockExampleAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockExampleAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterInlineExportAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterInlineExportAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdExportAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterCmdExportAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockExportAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockExportAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockDynamicFallbackAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockDynamicFallbackAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockAdmonitionAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockAdmonitionAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockCodeEvalResultAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockCodeEvalResultAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterBlockCodeAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockCodeAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterTableAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterTableAPI")
+    ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCell>, emscripten::base<org::imm::ImmAdapterCellAPI>>("ImmCellAdapter")
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmCellValueRead(org::imm::ImmAdapterT<org::imm::ImmCell>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCell>::getValue))
@@ -3018,6 +3247,18 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmRow>, emscripten::base<org::imm::ImmAdapterRowAPI>>("ImmRowAdapter")
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmRowValueRead(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getValue))
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdCaptionAPI, emscripten::base<org::imm::ImmAdapterAttachedAPI>>("ImmAdapterCmdCaptionAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdColumnsAPI, emscripten::base<org::imm::ImmAdapterAttachedAPI>>("ImmAdapterCmdColumnsAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdNameAPI, emscripten::base<org::imm::ImmAdapterAttachedAPI>>("ImmAdapterCmdNameAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdCallAPI, emscripten::base<org::imm::ImmAdapterAttachedAPI>>("ImmAdapterCmdCallAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdResultsAPI, emscripten::base<org::imm::ImmAdapterAttachedAPI>>("ImmAdapterCmdResultsAPI")
+    ;
+  emscripten::class_<org::imm::ImmAdapterCmdAttrAPI, emscripten::base<org::imm::ImmAdapterAttachedAPI>>("ImmAdapterCmdAttrAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>, emscripten::base<org::imm::ImmAdapterBlockCenterAPI>>("ImmBlockCenterAdapter")
     .constructor<org::imm::ImmAdapter const&>()
@@ -3087,6 +3328,8 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmCmdAttrValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::getValue))
     ;
+  org::bind::js::bind_enum<CheckboxState>("CheckboxState");
+  org::bind::js::bind_enum<SubtreeTodoSource>("SubtreeTodoSource");
   org::bind::js::bind_enum<ListFormattingMode>("ListFormattingMode");
   org::bind::js::bind_enum<InitialSubtreeVisibility>("InitialSubtreeVisibility");
   org::bind::js::bind_enum<BlockCodeResults>("BlockCodeResults");

@@ -350,24 +350,10 @@ def get_subtree_property_types():
         org_struct(
             t_nest_shared("CookieData", [t("NamedProperty")]),
             GenTuDoc("`:COOKIE_DATA:` for the subtree completion calculation"),
-            nested=[
-                d_simple_enum(
-                    t_nest_shared(
-                        "TodoSource",
-                        [t("NamedProperty"), t("CookieData")]),
-                    org_doc("Where to take todo completion statistics from"),
-                    efield("Checkbox",
-                           "Only count checkbox subnodes as a progress completion"),
-                    efield("Todo", "Use subtrees with todo keywords"),
-                    efield("Both", "Use both subtrees and todo keywords"),
-                ),
-            ],
+            nested=[],
             fields=[
                 org_field(t_bool(), "isRecursive"),
-                org_field(
-                    t_nest_shared(
-                        "TodoSource",
-                        [t("NamedProperty"), t("CookieData")]), "source"),
+                org_field(t("SubtreeTodoSource"), "source"),
             ],
             methods=[eq_method(t_nest_shared("CookieData", [t("NamedProperty")]))],
         ),
@@ -1263,6 +1249,21 @@ def get_sem_subtree():
 
 def get_shared_sem_enums() -> Sequence[GenTuEnum]:
     return [
+        d_simple_enum(
+            t("CheckboxState"),
+            GenTuDoc(""),
+            "None",
+            "Done",
+            "Empty",
+            "Partial",
+        ),
+        d_simple_enum(
+            t("SubtreeTodoSource"),
+            org_doc("Where to take todo completion statistics from"),
+            efield("Checkbox", "Only count checkbox subnodes as a progress completion"),
+            efield("Todo", "Use subtrees with todo keywords"),
+            efield("Both", "Use both subtrees and todo keywords"),
+        ),
         d_simple_enum(
             t("ListFormattingMode"),
             GenTuDoc(""),
@@ -2837,10 +2838,10 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc(""),
             bases=[t_nest(t_org("Org"))],
             fields=[
-                GenTuField(t_nest("Checkbox", [t_org("ListItem")]),
+                GenTuField(t("CheckboxState"),
                            "checkbox",
                            GenTuDoc(""),
-                           value="Checkbox::None"),
+                           value="CheckboxState::None"),
                 opt_field(
                     t_id("Paragraph"),
                     "header",
@@ -2849,16 +2850,6 @@ def get_types() -> Sequence[GenTuStruct]:
                 opt_field(
                     t_str(), "bullet",
                     GenTuDoc("Full text of the numbered list item, e.g. `a)`, `a.`",))
-            ],
-            nested=[
-                d_simple_enum(
-                    t_nest("Checkbox", [t("ListItem")]),
-                    GenTuDoc(""),
-                    "None",
-                    "Done",
-                    "Empty",
-                    "Partial",
-                )
             ],
             methods=[
                 GenTuFunction(

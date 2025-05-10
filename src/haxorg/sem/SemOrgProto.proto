@@ -2,6 +2,19 @@
 syntax = "proto3";
 package orgproto;
 import "SemOrgProtoManual.proto";
+enum CheckboxState {
+  CheckboxState_None_f                                                              = 0;
+  CheckboxState_Done_f                                                              = 1;
+  CheckboxState_Empty_f                                                             = 2;
+  CheckboxState_Partial_f                                                           = 3;
+}
+
+enum SubtreeTodoSource {
+  SubtreeTodoSource_Checkbox_f                                                      = 0;
+  SubtreeTodoSource_Todo_f                                                          = 1;
+  SubtreeTodoSource_Both_f                                                          = 2;
+}
+
 enum ListFormattingMode {
   ListFormattingMode_None_f                                                         = 0;
   ListFormattingMode_Table1D1Col_f                                                  = 1;
@@ -1191,13 +1204,8 @@ message NamedProperty {
     string                                         debug                            = 1000;
   }
   message CookieData {
-    enum TodoSource {
-      TodoSource_Checkbox_f                                                         = 0;
-      TodoSource_Todo_f                                                             = 1;
-      TodoSource_Both_f                                                             = 2;
-    }
     bool                                           isRecursive                      = 1;
-    NamedProperty.CookieData.TodoSource            source                           = 2;
+    SubtreeTodoSource                              source                           = 2;
     string                                         debug                            = 1000;
   }
   message ExportLatexClassOptions {
@@ -2016,16 +2024,10 @@ message List {
 }
 
 message ListItem {
-  enum Checkbox {
-    Checkbox_None_f                                                                 = 0;
-    Checkbox_Done_f                                                                 = 1;
-    Checkbox_Empty_f                                                                = 2;
-    Checkbox_Partial_f                                                              = 3;
-  }
   optional org.parse.LineCol                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
-  ListItem.Checkbox                                checkbox                         = 4;
+  CheckboxState                                    checkbox                         = 4;
   optional Paragraph                               header                           = 5;
   optional string                                  bullet                           = 6;
   string                                           debug                            = 1000;

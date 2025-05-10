@@ -1049,10 +1049,10 @@ auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
 
     Str checkbox;
     switch (id->checkbox) {
-        case ListItem::Checkbox::Empty: checkbox = "[ ] "; break;
-        case ListItem::Checkbox::Done: checkbox = "[x] "; break;
-        case ListItem::Checkbox::Partial: checkbox = "[-] "; break;
-        case ListItem::Checkbox::None: checkbox = ""; break;
+        case CheckboxState::Empty: checkbox = "[ ] "; break;
+        case CheckboxState::Done: checkbox = "[x] "; break;
+        case CheckboxState::Partial: checkbox = "[-] "; break;
+        case CheckboxState::None: checkbox = ""; break;
     }
 
 
