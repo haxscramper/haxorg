@@ -273,6 +273,19 @@ struct [[refl(R"({
           }
         ]
       }
+    },
+    "wasm": {
+      "holder-type": {
+        "name": "SemId",
+        "Spaces": [
+          {
+            "name": "org"
+          },
+          {
+            "name": "sem"
+          }
+        ]
+      }
     }
   },
   "type-api": {

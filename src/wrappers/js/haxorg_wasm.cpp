@@ -4,79 +4,121 @@
 #include "haxorg_wasm_manual.hpp"
 using namespace org::bind::js;
 EMSCRIPTEN_BINDINGS(haxorg_wasm) {
-  org::bind::js::hstdVec_bind<org::sem::OrgJson>("VecOfOrgJson");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Org>>("VecOfSemIdOfOrg");
-  org::bind::js::immerbox_bind<hstd::Str>("ImmBoxOfStr");
-  org::bind::js::immerbox_bind<std::optional<hstd::Str>>("ImmBoxOfStdOptionalOfStr");
-  org::bind::js::immerbox_bind<std::optional<int>>("ImmBoxOfStdOptionalOfInt");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmErrorItem>>("ImmFlexVectorOfImmIdTOfImmErrorItem");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>("ImmFlexVectorOfImmIdTOfImmBlockCodeEvalResult");
-  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>("ImmBoxOfStdOptionalOfImmIdTOfImmOrg");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmSymbol::Param>("ImmFlexVectorOfImmSymbolParam");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmOrg>>("ImmFlexVectorOfImmIdTOfImmOrg");
-  org::bind::js::immerflex_vector_bind<hstd::Str>("ImmFlexVectorOfStr");
-  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>("ImmBoxOfStdOptionalOfImmIdTOfImmParagraph");
-  org::bind::js::immerflex_vector_bind<org::sem::OrgCodeEvalOutput>("ImmFlexVectorOfOrgCodeEvalOutput");
-  org::bind::js::immerflex_vector_bind<org::sem::BlockCodeLine>("ImmFlexVectorOfBlockCodeLine");
-  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>("ImmBoxOfStdOptionalOfImmIdTOfImmStmtList");
-  org::bind::js::immerbox_bind<std::optional<org::sem::SubtreeCompletion>>("ImmBoxOfStdOptionalOfSubtreeCompletion");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmHashTag>>("ImmFlexVectorOfImmIdTOfImmHashTag");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>("ImmFlexVectorOfImmIdTOfImmSubtreeLog");
-  org::bind::js::immerflex_vector_bind<org::sem::NamedProperty>("ImmFlexVectorOfNamedProperty");
-  org::bind::js::immerbox_bind<std::optional<hstd::UserTime>>("ImmBoxOfStdOptionalOfUserTime");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmCell>>("ImmFlexVectorOfImmIdTOfImmCell");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmRow>>("ImmFlexVectorOfImmIdTOfImmRow");
-  org::bind::js::immerbox_bind<std::optional<bool>>("ImmBoxOfStdOptionalOfBool");
-  org::bind::js::immerbox_bind<std::optional<org::sem::ColumnView>>("ImmBoxOfStdOptionalOfColumnView");
-  org::bind::js::immerflex_vector_bind<org::sem::TodoKeyword>("ImmFlexVectorOfTodoKeyword");
-  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>("ImmBoxOfStdOptionalOfImmIdTOfImmRawText");
-  org::bind::js::hstdVec_bind<int>("VecOfInt");
-  org::bind::js::hstdVec_bind<org::imm::ImmAdapter>("VecOfImmAdapter");
-  org::bind::js::hstdUnorderedMap_bind<org::sem::HashTagFlat, org::AstTrackingPath>("UnorderedMapOfHashTagFlatAstTrackingPath");
-  org::bind::js::hstdUnorderedMap_bind<hstd::Str, org::AstTrackingAlternatives>("UnorderedMapOfStrAstTrackingAlternatives");
-  org::bind::js::hstdUnorderedMap_bind<org::sem::HashTagFlat, org::AstTrackingAlternatives>("UnorderedMapOfHashTagFlatAstTrackingAlternatives");
-  org::bind::js::hstdVec_bind<hstd::SequenceSegment>("VecOfSequenceSegment");
-  org::bind::js::hstdVec_bind<hstd::SequenceAnnotationTag>("VecOfSequenceAnnotationTag");
-  org::bind::js::hstdVec_bind<org::graph::MapLink>("VecOfGraphMapLink");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::MapNodeProp>("UnorderedMapOfGraphMapNodeGraphMapNodeProp");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapEdge, org::graph::MapEdgeProp>("UnorderedMapOfGraphMapEdgeGraphMapEdgeProp");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::AdjNodesList>("UnorderedMapOfGraphMapNodeGraphAdjNodesList");
-  org::bind::js::hstdVec_bind<org::graph::MapNode>("VecOfGraphMapNode");
-  org::bind::js::hstdVec_bind<org::graph::MapEdge>("VecOfGraphMapEdge");
-  org::bind::js::hstdVec_bind<org::sem::LispCode>("VecOfLispCode");
-  org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign>("VecOfTblfmAssign");
-  org::bind::js::hstdVec_bind<org::sem::Tblfm::Expr>("VecOfTblfmExpr");
-  org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign::Flag>("VecOfTblfmAssignFlag");
-  org::bind::js::hstdVec_bind<org::sem::AttrValue::DimensionSpan>("VecOfAttrValueDimensionSpan");
-  org::bind::js::hstdVec_bind<hstd::Str>("VecOfStr");
-  org::bind::js::hstdVec_bind<org::sem::HashTagText>("VecOfHashTagText");
-  org::bind::js::hstdVec_bind<org::sem::HashTagFlat>("VecOfHashTagFlat");
-  org::bind::js::hstdVec_bind<org::sem::AttrValue>("VecOfAttrValue");
-  org::bind::js::hstdUnorderedMap_bind<hstd::Str, org::sem::AttrList>("UnorderedMapOfStrAttrList");
-  org::bind::js::hstdVec_bind<org::sem::OrgCodeEvalInput::Var>("VecOfOrgCodeEvalInputVar");
-  org::bind::js::hstdVec_bind<org::sem::ColumnView::Column>("VecOfColumnViewColumn");
-  org::bind::js::hstdVec_bind<org::sem::BlockCodeLine::Part>("VecOfBlockCodeLinePart");
-  org::bind::js::hstdUnorderedMap_bind<hstd::Str, hstd::Str>("UnorderedMapOfStrStr");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorItem>>("VecOfSemIdOfErrorItem");
-  org::bind::js::hstdVec_bind<org::sem::Time::Repeat>("VecOfTimeRepeat");
-  org::bind::js::hstdVec_bind<org::sem::Symbol::Param>("VecOfSymbolParam");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::HashTag>>("VecOfSemIdOfHashTag");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::SubtreeLog>>("VecOfSemIdOfSubtreeLog");
-  org::bind::js::hstdVec_bind<org::sem::NamedProperty>("VecOfNamedProperty");
-  org::bind::js::hstdVec_bind<org::sem::SubtreePeriod>("VecOfSubtreePeriod");
-  org::bind::js::hstdIntSet_bind<org::sem::SubtreePeriod::Kind>("IntSetOfSubtreePeriodKind");
-  org::bind::js::hstdVec_bind<org::sem::TodoKeyword>("VecOfTodoKeyword");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::BigIdent>>("VecOfSemIdOfBigIdent");
-  org::bind::js::hstdVec_bind<hstd::UserTime>("VecOfUserTime");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Time>>("VecOfSemIdOfTime");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Cell>>("VecOfSemIdOfCell");
-  org::bind::js::hstdVec_bind<org::sem::OrgCodeEvalOutput>("VecOfOrgCodeEvalOutput");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::BlockCodeEvalResult>>("VecOfSemIdOfBlockCodeEvalResult");
-  org::bind::js::hstdVec_bind<org::sem::BlockCodeLine>("VecOfBlockCodeLine");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Row>>("VecOfSemIdOfRow");
-  org::bind::js::hstdVec_bind<org::AstTrackingGroup>("VecOfAstTrackingGroup");
-  org::bind::js::hstdVec_bind<hstd::SequenceAnnotation>("VecOfSequenceAnnotation");
-  org::bind::js::hstdVec_bind<hstd::SequenceSegmentGroup>("VecOfSequenceSegmentGroup");
+  org::bind::js::type_registration_guard g;
+  org::bind::js::stdoptional_bind<int>(g, "StdOptionalOfInt");
+  org::bind::js::stdoptional_bind<std::string>(g, "StdOptionalOfStdString");
+  org::bind::js::hstdVec_bind<org::sem::OrgJson>(g, "VecOfOrgJson");
+  org::bind::js::stdoptional_bind<org::parse::LineCol>(g, "StdOptionalOfParseLineCol");
+  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Org>>(g, "VecOfSemIdOfOrg");
+  org::bind::js::immerbox_bind<hstd::Str>(g, "ImmBoxOfStr");
+  org::bind::js::immerbox_bind<std::optional<hstd::Str>>(g, "ImmBoxOfStdOptionalOfStr");
+  org::bind::js::stdoptional_bind<hstd::Str>(g, "StdOptionalOfStr");
+  org::bind::js::immerbox_bind<std::optional<int>>(g, "ImmBoxOfStdOptionalOfInt");
+  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmErrorItem>>(g, "ImmFlexVectorOfImmIdTOfImmErrorItem");
+  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(g, "ImmFlexVectorOfImmIdTOfImmBlockCodeEvalResult");
+  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(g, "ImmBoxOfStdOptionalOfImmIdTOfImmOrg");
+  org::bind::js::stdoptional_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "StdOptionalOfImmIdTOfImmOrg");
+  org::bind::js::immerflex_vector_bind<org::imm::ImmSymbol::Param>(g, "ImmFlexVectorOfImmSymbolParam");
+  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "ImmFlexVectorOfImmIdTOfImmOrg");
+  org::bind::js::immerflex_vector_bind<hstd::Str>(g, "ImmFlexVectorOfStr");
+  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(g, "ImmBoxOfStdOptionalOfImmIdTOfImmParagraph");
+  org::bind::js::stdoptional_bind<org::imm::ImmIdT<org::imm::ImmParagraph>>(g, "StdOptionalOfImmIdTOfImmParagraph");
+  org::bind::js::immerflex_vector_bind<org::sem::OrgCodeEvalOutput>(g, "ImmFlexVectorOfOrgCodeEvalOutput");
+  org::bind::js::immerflex_vector_bind<org::sem::BlockCodeLine>(g, "ImmFlexVectorOfBlockCodeLine");
+  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(g, "ImmBoxOfStdOptionalOfImmIdTOfImmStmtList");
+  org::bind::js::stdoptional_bind<org::imm::ImmIdT<org::imm::ImmStmtList>>(g, "StdOptionalOfImmIdTOfImmStmtList");
+  org::bind::js::immerbox_bind<std::optional<org::sem::SubtreeCompletion>>(g, "ImmBoxOfStdOptionalOfSubtreeCompletion");
+  org::bind::js::stdoptional_bind<org::sem::SubtreeCompletion>(g, "StdOptionalOfSubtreeCompletion");
+  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmHashTag>>(g, "ImmFlexVectorOfImmIdTOfImmHashTag");
+  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(g, "ImmFlexVectorOfImmIdTOfImmSubtreeLog");
+  org::bind::js::immerflex_vector_bind<org::sem::NamedProperty>(g, "ImmFlexVectorOfNamedProperty");
+  org::bind::js::immerbox_bind<std::optional<hstd::UserTime>>(g, "ImmBoxOfStdOptionalOfUserTime");
+  org::bind::js::stdoptional_bind<hstd::UserTime>(g, "StdOptionalOfUserTime");
+  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmCell>>(g, "ImmFlexVectorOfImmIdTOfImmCell");
+  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmRow>>(g, "ImmFlexVectorOfImmIdTOfImmRow");
+  org::bind::js::immerbox_bind<std::optional<bool>>(g, "ImmBoxOfStdOptionalOfBool");
+  org::bind::js::stdoptional_bind<bool>(g, "StdOptionalOfBool");
+  org::bind::js::immerbox_bind<std::optional<org::sem::ColumnView>>(g, "ImmBoxOfStdOptionalOfColumnView");
+  org::bind::js::stdoptional_bind<org::sem::ColumnView>(g, "StdOptionalOfColumnView");
+  org::bind::js::immerflex_vector_bind<org::sem::TodoKeyword>(g, "ImmFlexVectorOfTodoKeyword");
+  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(g, "ImmBoxOfStdOptionalOfImmIdTOfImmRawText");
+  org::bind::js::stdoptional_bind<org::imm::ImmIdT<org::imm::ImmRawText>>(g, "StdOptionalOfImmIdTOfImmRawText");
+  org::bind::js::stdoptional_bind<org::imm::ImmAdapter>(g, "StdOptionalOfImmAdapter");
+  org::bind::js::hstdVec_bind<int>(g, "VecOfInt");
+  org::bind::js::hstdVec_bind<org::imm::ImmAdapter>(g, "VecOfImmAdapter");
+  org::bind::js::hstdUnorderedMap_bind<org::sem::HashTagFlat, org::AstTrackingPath>(g, "UnorderedMapOfHashTagFlatAstTrackingPath");
+  org::bind::js::hstdUnorderedMap_bind<hstd::Str, org::AstTrackingAlternatives>(g, "UnorderedMapOfStrAstTrackingAlternatives");
+  org::bind::js::hstdUnorderedMap_bind<org::sem::HashTagFlat, org::AstTrackingAlternatives>(g, "UnorderedMapOfHashTagFlatAstTrackingAlternatives");
+  org::bind::js::stdoptional_bind<org::AstTrackingAlternatives>(g, "StdOptionalOfAstTrackingAlternatives");
+  org::bind::js::hstdVec_bind<hstd::SequenceSegment>(g, "VecOfSequenceSegment");
+  org::bind::js::hstdVec_bind<hstd::SequenceAnnotationTag>(g, "VecOfSequenceAnnotationTag");
+  org::bind::js::hstdVec_bind<org::graph::MapLink>(g, "VecOfGraphMapLink");
+  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::MapNodeProp>(g, "UnorderedMapOfGraphMapNodeGraphMapNodeProp");
+  org::bind::js::hstdUnorderedMap_bind<org::graph::MapEdge, org::graph::MapEdgeProp>(g, "UnorderedMapOfGraphMapEdgeGraphMapEdgeProp");
+  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::AdjNodesList>(g, "UnorderedMapOfGraphMapNodeGraphAdjNodesList");
+  org::bind::js::hstdVec_bind<org::graph::MapNode>(g, "VecOfGraphMapNode");
+  org::bind::js::hstdVec_bind<org::graph::MapEdge>(g, "VecOfGraphMapEdge");
+  org::bind::js::stdoptional_bind<org::graph::MapLink>(g, "StdOptionalOfGraphMapLink");
+  org::bind::js::hstdVec_bind<org::sem::LispCode>(g, "VecOfLispCode");
+  org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign>(g, "VecOfTblfmAssign");
+  org::bind::js::hstdOpt_bind<org::sem::Tblfm::Expr::AxisRef::Position>(g, "OptOfTblfmExprAxisRefPosition");
+  org::bind::js::hstdOpt_bind<org::sem::Tblfm::Expr::AxisRef>(g, "OptOfTblfmExprAxisRef");
+  org::bind::js::hstdVec_bind<org::sem::Tblfm::Expr>(g, "VecOfTblfmExpr");
+  org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign::Flag>(g, "VecOfTblfmAssignFlag");
+  org::bind::js::hstdOpt_bind<hstd::Str>(g, "OptOfStr");
+  org::bind::js::hstdVec_bind<org::sem::AttrValue::DimensionSpan>(g, "VecOfAttrValueDimensionSpan");
+  org::bind::js::hstdOpt_bind<bool>(g, "OptOfBool");
+  org::bind::js::hstdOpt_bind<int>(g, "OptOfInt");
+  org::bind::js::hstdOpt_bind<double>(g, "OptOfDouble");
+  org::bind::js::hstdVec_bind<hstd::Str>(g, "VecOfStr");
+  org::bind::js::hstdVec_bind<org::sem::HashTagText>(g, "VecOfHashTagText");
+  org::bind::js::hstdVec_bind<org::sem::HashTagFlat>(g, "VecOfHashTagFlat");
+  org::bind::js::hstdOpt_bind<std::string>(g, "OptOfStdString");
+  org::bind::js::hstdOpt_bind<hstd::UserTime>(g, "OptOfUserTime");
+  org::bind::js::hstdVec_bind<org::sem::AttrValue>(g, "VecOfAttrValue");
+  org::bind::js::hstdUnorderedMap_bind<hstd::Str, org::sem::AttrList>(g, "UnorderedMapOfStrAttrList");
+  org::bind::js::hstdOpt_bind<org::sem::AttrValue>(g, "OptOfAttrValue");
+  org::bind::js::hstdOpt_bind<org::sem::AttrList>(g, "OptOfAttrList");
+  org::bind::js::hstdVec_bind<org::sem::OrgCodeEvalInput::Var>(g, "VecOfOrgCodeEvalInputVar");
+  org::bind::js::hstdVec_bind<org::sem::ColumnView::Column>(g, "VecOfColumnViewColumn");
+  org::bind::js::hstdOpt_bind<org::sem::ColumnView::Summary>(g, "OptOfColumnViewSummary");
+  org::bind::js::hstdVec_bind<org::sem::BlockCodeLine::Part>(g, "VecOfBlockCodeLinePart");
+  org::bind::js::hstdUnorderedMap_bind<hstd::Str, hstd::Str>(g, "UnorderedMapOfStrStr");
+  org::bind::js::hstdOpt_bind<org::imm::ImmTime::Repeat>(g, "OptOfImmTimeRepeat");
+  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmStmtList>>(g, "OptOfImmIdTOfImmStmtList");
+  org::bind::js::hstdOpt_bind<org::sem::SubtreeCompletion>(g, "OptOfSubtreeCompletion");
+  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmParagraph>>(g, "OptOfImmIdTOfImmParagraph");
+  org::bind::js::hstdOpt_bind<org::sem::ColumnView>(g, "OptOfColumnView");
+  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmRawText>>(g, "OptOfImmIdTOfImmRawText");
+  org::bind::js::hstdOpt_bind<org::sem::SubtreePath>(g, "OptOfSubtreePath");
+  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorItem>>(g, "VecOfSemIdOfErrorItem");
+  org::bind::js::hstdVec_bind<org::sem::Time::Repeat>(g, "VecOfTimeRepeat");
+  org::bind::js::hstdOpt_bind<org::sem::Time::Repeat>(g, "OptOfTimeRepeat");
+  org::bind::js::hstdVec_bind<org::sem::Symbol::Param>(g, "VecOfSymbolParam");
+  org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::StmtList>>(g, "OptOfSemIdOfStmtList");
+  org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::Paragraph>>(g, "OptOfSemIdOfParagraph");
+  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::HashTag>>(g, "VecOfSemIdOfHashTag");
+  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::SubtreeLog>>(g, "VecOfSemIdOfSubtreeLog");
+  org::bind::js::hstdVec_bind<org::sem::NamedProperty>(g, "VecOfNamedProperty");
+  org::bind::js::hstdVec_bind<org::sem::SubtreePeriod>(g, "VecOfSubtreePeriod");
+  org::bind::js::hstdIntSet_bind<org::sem::SubtreePeriod::Kind>(g, "IntSetOfSubtreePeriodKind");
+  org::bind::js::hstdOpt_bind<org::sem::NamedProperty>(g, "OptOfNamedProperty");
+  org::bind::js::hstdVec_bind<org::sem::TodoKeyword>(g, "VecOfTodoKeyword");
+  org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::RawText>>(g, "OptOfSemIdOfRawText");
+  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "OptOfImmIdTOfImmOrg");
+  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::BigIdent>>(g, "VecOfSemIdOfBigIdent");
+  org::bind::js::hstdVec_bind<hstd::UserTime>(g, "VecOfUserTime");
+  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Time>>(g, "VecOfSemIdOfTime");
+  org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::Org>>(g, "OptOfSemIdOfOrg");
+  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Cell>>(g, "VecOfSemIdOfCell");
+  org::bind::js::hstdVec_bind<org::sem::OrgCodeEvalOutput>(g, "VecOfOrgCodeEvalOutput");
+  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::BlockCodeEvalResult>>(g, "VecOfSemIdOfBlockCodeEvalResult");
+  org::bind::js::hstdVec_bind<org::sem::BlockCodeLine>(g, "VecOfBlockCodeLine");
+  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Row>>(g, "VecOfSemIdOfRow");
+  org::bind::js::stdoptional_bind<org::sem::SemId<org::sem::Org>>(g, "StdOptionalOfSemIdOfOrg");
+  org::bind::js::hstdVec_bind<org::AstTrackingGroup>(g, "VecOfAstTrackingGroup");
+  org::bind::js::hstdVec_bind<hstd::SequenceAnnotation>(g, "VecOfSequenceAnnotation");
+  org::bind::js::hstdVec_bind<hstd::SequenceSegmentGroup>(g, "VecOfSequenceSegmentGroup");
   emscripten::class_<hstd::UserTimeBreakdown>("UserTimeBreakdown")
     .property("year", &hstd::UserTimeBreakdown::year)
     .property("month", &hstd::UserTimeBreakdown::month)
@@ -119,6 +161,7 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getArray", static_cast<hstd::Vec<org::sem::OrgJson>(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getArray))
     ;
   emscripten::class_<org::sem::Org>("Org")
+    .smart_ptr<org::sem::SemId<org::sem::Org>>("Org")
     .property("loc", &org::sem::Org::loc)
     .property("subnodes", &org::sem::Org::subnodes)
     .function("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind))
@@ -1672,21 +1715,25 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .smart_ptr<std::shared_ptr<org::graph::MapConfig>>("GraphMapConfig")
     ;
   emscripten::class_<org::sem::None, emscripten::base<org::sem::Org>>("None")
+    .smart_ptr<org::sem::SemId<org::sem::None>>("None")
     .function("getKind", static_cast<OrgSemKind(org::sem::None::*)() const>(&org::sem::None::getKind))
     ;
   emscripten::class_<org::sem::ErrorItem, emscripten::base<org::sem::Org>>("ErrorItem")
+    .smart_ptr<org::sem::SemId<org::sem::ErrorItem>>("ErrorItem")
     .property("message", &org::sem::ErrorItem::message)
     .property("function", &org::sem::ErrorItem::function)
     .property("line", &org::sem::ErrorItem::line)
     .function("getKind", static_cast<OrgSemKind(org::sem::ErrorItem::*)() const>(&org::sem::ErrorItem::getKind))
     ;
   emscripten::class_<org::sem::ErrorGroup, emscripten::base<org::sem::Org>>("ErrorGroup")
+    .smart_ptr<org::sem::SemId<org::sem::ErrorGroup>>("ErrorGroup")
     .property("diagnostics", &org::sem::ErrorGroup::diagnostics)
     .property("function", &org::sem::ErrorGroup::function)
     .property("line", &org::sem::ErrorGroup::line)
     .function("getKind", static_cast<OrgSemKind(org::sem::ErrorGroup::*)() const>(&org::sem::ErrorGroup::getKind))
     ;
   emscripten::class_<org::sem::Stmt, emscripten::base<org::sem::Org>>("Stmt")
+    .smart_ptr<org::sem::SemId<org::sem::Stmt>>("Stmt")
     .property("attached", &org::sem::Stmt::attached)
     .function("getAttached", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttached))
     .function("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)() const>(&org::sem::Stmt::getCaption))
@@ -1695,18 +1742,23 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getFirstAttr", static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttr))
     ;
   emscripten::class_<org::sem::Inline, emscripten::base<org::sem::Org>>("Inline")
+    .smart_ptr<org::sem::SemId<org::sem::Inline>>("Inline")
     ;
   emscripten::class_<org::sem::StmtList, emscripten::base<org::sem::Org>>("StmtList")
+    .smart_ptr<org::sem::SemId<org::sem::StmtList>>("StmtList")
     .function("getKind", static_cast<OrgSemKind(org::sem::StmtList::*)() const>(&org::sem::StmtList::getKind))
     ;
   emscripten::class_<org::sem::Empty, emscripten::base<org::sem::Org>>("Empty")
+    .smart_ptr<org::sem::SemId<org::sem::Empty>>("Empty")
     .function("getKind", static_cast<OrgSemKind(org::sem::Empty::*)() const>(&org::sem::Empty::getKind))
     ;
   emscripten::class_<org::sem::Leaf, emscripten::base<org::sem::Org>>("Leaf")
+    .smart_ptr<org::sem::SemId<org::sem::Leaf>>("Leaf")
     .property("text", &org::sem::Leaf::text)
     .function("getText", static_cast<hstd::Str(org::sem::Leaf::*)() const>(&org::sem::Leaf::getText))
     ;
   emscripten::class_<org::sem::Time, emscripten::base<org::sem::Org>>("Time")
+    .smart_ptr<org::sem::SemId<org::sem::Time>>("Time")
     .property("isActive", &org::sem::Time::isActive)
     .property("time", &org::sem::Time::time)
     .function("getKind", static_cast<OrgSemKind(org::sem::Time::*)() const>(&org::sem::Time::getKind))
@@ -1743,16 +1795,19 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     ;
   org::bind::js::bind_enum<org::sem::Time::TimeKind>("OrgSemTimeTimeKind");
   emscripten::class_<org::sem::TimeRange, emscripten::base<org::sem::Org>>("TimeRange")
+    .smart_ptr<org::sem::SemId<org::sem::TimeRange>>("TimeRange")
     .property("from", &org::sem::TimeRange::from)
     .property("to", &org::sem::TimeRange::to)
     .function("getKind", static_cast<OrgSemKind(org::sem::TimeRange::*)() const>(&org::sem::TimeRange::getKind))
     ;
   emscripten::class_<org::sem::Macro, emscripten::base<org::sem::Org>>("Macro")
+    .smart_ptr<org::sem::SemId<org::sem::Macro>>("Macro")
     .property("name", &org::sem::Macro::name)
     .property("attrs", &org::sem::Macro::attrs)
     .function("getKind", static_cast<OrgSemKind(org::sem::Macro::*)() const>(&org::sem::Macro::getKind))
     ;
   emscripten::class_<org::sem::Symbol, emscripten::base<org::sem::Org>>("Symbol")
+    .smart_ptr<org::sem::SemId<org::sem::Symbol>>("Symbol")
     .property("name", &org::sem::Symbol::name)
     .property("parameters", &org::sem::Symbol::parameters)
     .property("positional", &org::sem::Symbol::positional)
@@ -1763,21 +1818,26 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("value", &org::sem::Symbol::Param::value)
     ;
   emscripten::class_<org::sem::Markup, emscripten::base<org::sem::Org>>("Markup")
+    .smart_ptr<org::sem::SemId<org::sem::Markup>>("Markup")
     ;
   emscripten::class_<org::sem::RadioTarget, emscripten::base<org::sem::Org>>("RadioTarget")
+    .smart_ptr<org::sem::SemId<org::sem::RadioTarget>>("RadioTarget")
     .property("words", &org::sem::RadioTarget::words)
     .function("getKind", static_cast<OrgSemKind(org::sem::RadioTarget::*)() const>(&org::sem::RadioTarget::getKind))
     ;
   emscripten::class_<org::sem::Latex, emscripten::base<org::sem::Org>>("Latex")
+    .smart_ptr<org::sem::SemId<org::sem::Latex>>("Latex")
     .function("getKind", static_cast<OrgSemKind(org::sem::Latex::*)() const>(&org::sem::Latex::getKind))
     ;
   emscripten::class_<org::sem::SubtreeLog, emscripten::base<org::sem::Org>>("SubtreeLog")
+    .smart_ptr<org::sem::SemId<org::sem::SubtreeLog>>("SubtreeLog")
     .property("head", &org::sem::SubtreeLog::head)
     .property("desc", &org::sem::SubtreeLog::desc)
     .function("getKind", static_cast<OrgSemKind(org::sem::SubtreeLog::*)() const>(&org::sem::SubtreeLog::getKind))
     .function("setDescription", static_cast<void(org::sem::SubtreeLog::*)(org::sem::SemId<org::sem::StmtList>)>(&org::sem::SubtreeLog::setDescription))
     ;
   emscripten::class_<org::sem::Subtree, emscripten::base<org::sem::Org>>("Subtree")
+    .smart_ptr<org::sem::SemId<org::sem::Subtree>>("Subtree")
     .property("level", &org::sem::Subtree::level)
     .property("treeId", &org::sem::Subtree::treeId)
     .property("todo", &org::sem::Subtree::todo)
@@ -1803,15 +1863,18 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getCleanTitle", static_cast<hstd::Str(org::sem::Subtree::*)() const>(&org::sem::Subtree::getCleanTitle))
     ;
   emscripten::class_<org::sem::ColonExample, emscripten::base<org::sem::Org>>("ColonExample")
+    .smart_ptr<org::sem::SemId<org::sem::ColonExample>>("ColonExample")
     .function("getKind", static_cast<OrgSemKind(org::sem::ColonExample::*)() const>(&org::sem::ColonExample::getKind))
     ;
   emscripten::class_<org::sem::Call, emscripten::base<org::sem::Org>>("Call")
+    .smart_ptr<org::sem::SemId<org::sem::Call>>("Call")
     .property("name", &org::sem::Call::name)
     .property("attrs", &org::sem::Call::attrs)
     .property("isCommand", &org::sem::Call::isCommand)
     .function("getKind", static_cast<OrgSemKind(org::sem::Call::*)() const>(&org::sem::Call::getKind))
     ;
   emscripten::class_<org::sem::ListItem, emscripten::base<org::sem::Org>>("ListItem")
+    .smart_ptr<org::sem::SemId<org::sem::ListItem>>("ListItem")
     .property("checkbox", &org::sem::ListItem::checkbox)
     .property("header", &org::sem::ListItem::header)
     .property("bullet", &org::sem::ListItem::bullet)
@@ -1820,6 +1883,7 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getCleanHeader", static_cast<hstd::Opt<hstd::Str>(org::sem::ListItem::*)() const>(&org::sem::ListItem::getCleanHeader))
     ;
   emscripten::class_<org::sem::DocumentOptions, emscripten::base<org::sem::Org>>("DocumentOptions")
+    .smart_ptr<org::sem::SemId<org::sem::DocumentOptions>>("DocumentOptions")
     .property("initialVisibility", &org::sem::DocumentOptions::initialVisibility)
     .property("properties", &org::sem::DocumentOptions::properties)
     .property("exportConfig", &org::sem::DocumentOptions::exportConfig)
@@ -1836,16 +1900,19 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getProperty", static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperty))
     ;
   emscripten::class_<org::sem::DocumentFragment, emscripten::base<org::sem::Org>>("DocumentFragment")
+    .smart_ptr<org::sem::SemId<org::sem::DocumentFragment>>("DocumentFragment")
     .property("baseLine", &org::sem::DocumentFragment::baseLine)
     .property("baseCol", &org::sem::DocumentFragment::baseCol)
     .function("getKind", static_cast<OrgSemKind(org::sem::DocumentFragment::*)() const>(&org::sem::DocumentFragment::getKind))
     ;
   emscripten::class_<org::sem::CriticMarkup, emscripten::base<org::sem::Org>>("CriticMarkup")
+    .smart_ptr<org::sem::SemId<org::sem::CriticMarkup>>("CriticMarkup")
     .property("kind", &org::sem::CriticMarkup::kind)
     .function("getKind", static_cast<OrgSemKind(org::sem::CriticMarkup::*)() const>(&org::sem::CriticMarkup::getKind))
     ;
   org::bind::js::bind_enum<org::sem::CriticMarkup::Kind>("OrgSemCriticMarkupKind");
   emscripten::class_<org::sem::Document, emscripten::base<org::sem::Org>>("Document")
+    .smart_ptr<org::sem::SemId<org::sem::Document>>("Document")
     .property("title", &org::sem::Document::title)
     .property("author", &org::sem::Document::author)
     .property("creator", &org::sem::Document::creator)
@@ -1859,6 +1926,7 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getProperty", static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document::getProperty))
     ;
   emscripten::class_<org::sem::FileTarget, emscripten::base<org::sem::Org>>("FileTarget")
+    .smart_ptr<org::sem::SemId<org::sem::FileTarget>>("FileTarget")
     .property("path", &org::sem::FileTarget::path)
     .property("line", &org::sem::FileTarget::line)
     .property("searchTarget", &org::sem::FileTarget::searchTarget)
@@ -1868,12 +1936,15 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getKind", static_cast<OrgSemKind(org::sem::FileTarget::*)() const>(&org::sem::FileTarget::getKind))
     ;
   emscripten::class_<org::sem::TextSeparator, emscripten::base<org::sem::Org>>("TextSeparator")
+    .smart_ptr<org::sem::SemId<org::sem::TextSeparator>>("TextSeparator")
     .function("getKind", static_cast<OrgSemKind(org::sem::TextSeparator::*)() const>(&org::sem::TextSeparator::getKind))
     ;
   emscripten::class_<org::sem::DocumentGroup, emscripten::base<org::sem::Org>>("DocumentGroup")
+    .smart_ptr<org::sem::SemId<org::sem::DocumentGroup>>("DocumentGroup")
     .function("getKind", static_cast<OrgSemKind(org::sem::DocumentGroup::*)() const>(&org::sem::DocumentGroup::getKind))
     ;
   emscripten::class_<org::sem::File, emscripten::base<org::sem::Org>>("File")
+    .smart_ptr<org::sem::SemId<org::sem::File>>("File")
     .property("relPath", &org::sem::File::relPath)
     .property("absPath", &org::sem::File::absPath)
     .property("data", &org::sem::File::data)
@@ -1898,16 +1969,19 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     ;
   org::bind::js::bind_enum<org::sem::File::Kind>("OrgSemFileKind");
   emscripten::class_<org::sem::Directory, emscripten::base<org::sem::Org>>("Directory")
+    .smart_ptr<org::sem::SemId<org::sem::Directory>>("Directory")
     .property("relPath", &org::sem::Directory::relPath)
     .property("absPath", &org::sem::Directory::absPath)
     .function("getKind", static_cast<OrgSemKind(org::sem::Directory::*)() const>(&org::sem::Directory::getKind))
     ;
   emscripten::class_<org::sem::Symlink, emscripten::base<org::sem::Org>>("Symlink")
+    .smart_ptr<org::sem::SemId<org::sem::Symlink>>("Symlink")
     .property("isDirectory", &org::sem::Symlink::isDirectory)
     .property("absPath", &org::sem::Symlink::absPath)
     .function("getKind", static_cast<OrgSemKind(org::sem::Symlink::*)() const>(&org::sem::Symlink::getKind))
     ;
   emscripten::class_<org::sem::CmdInclude, emscripten::base<org::sem::Org>>("CmdInclude")
+    .smart_ptr<org::sem::SemId<org::sem::CmdInclude>>("CmdInclude")
     .property("path", &org::sem::CmdInclude::path)
     .property("firstLine", &org::sem::CmdInclude::firstLine)
     .property("lastLine", &org::sem::CmdInclude::lastLine)
@@ -2517,31 +2591,37 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("operator==", static_cast<bool(org::imm::ImmPar::*)(org::imm::ImmPar const&) const>(&org::imm::ImmPar::operator==))
     ;
   emscripten::class_<org::sem::Cmd, emscripten::base<org::sem::Stmt>>("Cmd")
+    .smart_ptr<org::sem::SemId<org::sem::Cmd>>("Cmd")
     .property("attrs", &org::sem::Cmd::attrs)
     .function("getAttrs", static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cmd::getAttrs))
     .function("getFirstAttr", static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Str const&) const>(&org::sem::Cmd::getFirstAttr))
     ;
   emscripten::class_<org::sem::CmdCustomRaw, emscripten::base<org::sem::Stmt>>("CmdCustomRaw")
+    .smart_ptr<org::sem::SemId<org::sem::CmdCustomRaw>>("CmdCustomRaw")
     .property("name", &org::sem::CmdCustomRaw::name)
     .property("isAttached", &org::sem::CmdCustomRaw::isAttached)
     .property("text", &org::sem::CmdCustomRaw::text)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdCustomRaw::*)() const>(&org::sem::CmdCustomRaw::getKind))
     ;
   emscripten::class_<org::sem::CmdCustomText, emscripten::base<org::sem::Stmt>>("CmdCustomText")
+    .smart_ptr<org::sem::SemId<org::sem::CmdCustomText>>("CmdCustomText")
     .property("name", &org::sem::CmdCustomText::name)
     .property("isAttached", &org::sem::CmdCustomText::isAttached)
     .property("text", &org::sem::CmdCustomText::text)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdCustomText::*)() const>(&org::sem::CmdCustomText::getKind))
     ;
   emscripten::class_<org::sem::Link, emscripten::base<org::sem::Stmt>>("Link")
+    .smart_ptr<org::sem::SemId<org::sem::Link>>("Link")
     .property("description", &org::sem::Link::description)
     .property("target", &org::sem::Link::target)
     .function("getKind", static_cast<OrgSemKind(org::sem::Link::*)() const>(&org::sem::Link::getKind))
     ;
   emscripten::class_<org::sem::BlockComment, emscripten::base<org::sem::Stmt>>("BlockComment")
+    .smart_ptr<org::sem::SemId<org::sem::BlockComment>>("BlockComment")
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockComment::*)() const>(&org::sem::BlockComment::getKind))
     ;
   emscripten::class_<org::sem::Paragraph, emscripten::base<org::sem::Stmt>>("Paragraph")
+    .smart_ptr<org::sem::SemId<org::sem::Paragraph>>("Paragraph")
     .function("getKind", static_cast<OrgSemKind(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getKind))
     .function("isFootnoteDefinition", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::isFootnoteDefinition))
     .function("getFootnoteName", static_cast<hstd::Opt<hstd::Str>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getFootnoteName))
@@ -2556,6 +2636,7 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getBody", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getBody))
     ;
   emscripten::class_<org::sem::List, emscripten::base<org::sem::Stmt>>("List")
+    .smart_ptr<org::sem::SemId<org::sem::List>>("List")
     .function("getKind", static_cast<OrgSemKind(org::sem::List::*)() const>(&org::sem::List::getKind))
     .function("getListAttrs", static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::List::*)(hstd::Str const&) const>(&org::sem::List::getListAttrs))
     .function("getListFormattingMode", static_cast<ListFormattingMode(org::sem::List::*)() const>(&org::sem::List::getListFormattingMode))
@@ -2563,71 +2644,92 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("isNumberedList", static_cast<bool(org::sem::List::*)() const>(&org::sem::List::isNumberedList))
     ;
   emscripten::class_<org::sem::HashTag, emscripten::base<org::sem::Inline>>("HashTag")
+    .smart_ptr<org::sem::SemId<org::sem::HashTag>>("HashTag")
     .property("text", &org::sem::HashTag::text)
     .function("getKind", static_cast<OrgSemKind(org::sem::HashTag::*)() const>(&org::sem::HashTag::getKind))
     ;
   emscripten::class_<org::sem::InlineFootnote, emscripten::base<org::sem::Inline>>("InlineFootnote")
+    .smart_ptr<org::sem::SemId<org::sem::InlineFootnote>>("InlineFootnote")
     .property("tag", &org::sem::InlineFootnote::tag)
     .property("definition", &org::sem::InlineFootnote::definition)
     .function("getKind", static_cast<OrgSemKind(org::sem::InlineFootnote::*)() const>(&org::sem::InlineFootnote::getKind))
     ;
   emscripten::class_<org::sem::InlineExport, emscripten::base<org::sem::Inline>>("InlineExport")
+    .smart_ptr<org::sem::SemId<org::sem::InlineExport>>("InlineExport")
     .property("exporter", &org::sem::InlineExport::exporter)
     .property("content", &org::sem::InlineExport::content)
     .function("getKind", static_cast<OrgSemKind(org::sem::InlineExport::*)() const>(&org::sem::InlineExport::getKind))
     ;
   emscripten::class_<org::sem::Escaped, emscripten::base<org::sem::Leaf>>("Escaped")
+    .smart_ptr<org::sem::SemId<org::sem::Escaped>>("Escaped")
     .function("getKind", static_cast<OrgSemKind(org::sem::Escaped::*)() const>(&org::sem::Escaped::getKind))
     ;
   emscripten::class_<org::sem::Newline, emscripten::base<org::sem::Leaf>>("Newline")
+    .smart_ptr<org::sem::SemId<org::sem::Newline>>("Newline")
     .function("getKind", static_cast<OrgSemKind(org::sem::Newline::*)() const>(&org::sem::Newline::getKind))
     ;
   emscripten::class_<org::sem::Space, emscripten::base<org::sem::Leaf>>("Space")
+    .smart_ptr<org::sem::SemId<org::sem::Space>>("Space")
     .function("getKind", static_cast<OrgSemKind(org::sem::Space::*)() const>(&org::sem::Space::getKind))
     ;
   emscripten::class_<org::sem::Word, emscripten::base<org::sem::Leaf>>("Word")
+    .smart_ptr<org::sem::SemId<org::sem::Word>>("Word")
     .function("getKind", static_cast<OrgSemKind(org::sem::Word::*)() const>(&org::sem::Word::getKind))
     ;
   emscripten::class_<org::sem::AtMention, emscripten::base<org::sem::Leaf>>("AtMention")
+    .smart_ptr<org::sem::SemId<org::sem::AtMention>>("AtMention")
     .function("getKind", static_cast<OrgSemKind(org::sem::AtMention::*)() const>(&org::sem::AtMention::getKind))
     ;
   emscripten::class_<org::sem::RawText, emscripten::base<org::sem::Leaf>>("RawText")
+    .smart_ptr<org::sem::SemId<org::sem::RawText>>("RawText")
     .function("getKind", static_cast<OrgSemKind(org::sem::RawText::*)() const>(&org::sem::RawText::getKind))
     ;
   emscripten::class_<org::sem::Punctuation, emscripten::base<org::sem::Leaf>>("Punctuation")
+    .smart_ptr<org::sem::SemId<org::sem::Punctuation>>("Punctuation")
     .function("getKind", static_cast<OrgSemKind(org::sem::Punctuation::*)() const>(&org::sem::Punctuation::getKind))
     ;
   emscripten::class_<org::sem::Placeholder, emscripten::base<org::sem::Leaf>>("Placeholder")
+    .smart_ptr<org::sem::SemId<org::sem::Placeholder>>("Placeholder")
     .function("getKind", static_cast<OrgSemKind(org::sem::Placeholder::*)() const>(&org::sem::Placeholder::getKind))
     ;
   emscripten::class_<org::sem::BigIdent, emscripten::base<org::sem::Leaf>>("BigIdent")
+    .smart_ptr<org::sem::SemId<org::sem::BigIdent>>("BigIdent")
     .function("getKind", static_cast<OrgSemKind(org::sem::BigIdent::*)() const>(&org::sem::BigIdent::getKind))
     ;
   emscripten::class_<org::sem::TextTarget, emscripten::base<org::sem::Leaf>>("TextTarget")
+    .smart_ptr<org::sem::SemId<org::sem::TextTarget>>("TextTarget")
     .function("getKind", static_cast<OrgSemKind(org::sem::TextTarget::*)() const>(&org::sem::TextTarget::getKind))
     ;
   emscripten::class_<org::sem::Bold, emscripten::base<org::sem::Markup>>("Bold")
+    .smart_ptr<org::sem::SemId<org::sem::Bold>>("Bold")
     .function("getKind", static_cast<OrgSemKind(org::sem::Bold::*)() const>(&org::sem::Bold::getKind))
     ;
   emscripten::class_<org::sem::Underline, emscripten::base<org::sem::Markup>>("Underline")
+    .smart_ptr<org::sem::SemId<org::sem::Underline>>("Underline")
     .function("getKind", static_cast<OrgSemKind(org::sem::Underline::*)() const>(&org::sem::Underline::getKind))
     ;
   emscripten::class_<org::sem::Monospace, emscripten::base<org::sem::Markup>>("Monospace")
+    .smart_ptr<org::sem::SemId<org::sem::Monospace>>("Monospace")
     .function("getKind", static_cast<OrgSemKind(org::sem::Monospace::*)() const>(&org::sem::Monospace::getKind))
     ;
   emscripten::class_<org::sem::MarkQuote, emscripten::base<org::sem::Markup>>("MarkQuote")
+    .smart_ptr<org::sem::SemId<org::sem::MarkQuote>>("MarkQuote")
     .function("getKind", static_cast<OrgSemKind(org::sem::MarkQuote::*)() const>(&org::sem::MarkQuote::getKind))
     ;
   emscripten::class_<org::sem::Verbatim, emscripten::base<org::sem::Markup>>("Verbatim")
+    .smart_ptr<org::sem::SemId<org::sem::Verbatim>>("Verbatim")
     .function("getKind", static_cast<OrgSemKind(org::sem::Verbatim::*)() const>(&org::sem::Verbatim::getKind))
     ;
   emscripten::class_<org::sem::Italic, emscripten::base<org::sem::Markup>>("Italic")
+    .smart_ptr<org::sem::SemId<org::sem::Italic>>("Italic")
     .function("getKind", static_cast<OrgSemKind(org::sem::Italic::*)() const>(&org::sem::Italic::getKind))
     ;
   emscripten::class_<org::sem::Strike, emscripten::base<org::sem::Markup>>("Strike")
+    .smart_ptr<org::sem::SemId<org::sem::Strike>>("Strike")
     .function("getKind", static_cast<OrgSemKind(org::sem::Strike::*)() const>(&org::sem::Strike::getKind))
     ;
   emscripten::class_<org::sem::Par, emscripten::base<org::sem::Markup>>("Par")
+    .smart_ptr<org::sem::SemId<org::sem::Par>>("Par")
     .function("getKind", static_cast<OrgSemKind(org::sem::Par::*)() const>(&org::sem::Par::getKind))
     ;
   emscripten::class_<org::imm::ImmAdapterStmtAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterStmtAPI")
@@ -2726,23 +2828,29 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("operator==", static_cast<bool(org::imm::ImmRow::*)(org::imm::ImmRow const&) const>(&org::imm::ImmRow::operator==))
     ;
   emscripten::class_<org::sem::Block, emscripten::base<org::sem::Cmd>>("Block")
+    .smart_ptr<org::sem::SemId<org::sem::Block>>("Block")
     ;
   emscripten::class_<org::sem::LineCommand, emscripten::base<org::sem::Cmd>>("LineCommand")
+    .smart_ptr<org::sem::SemId<org::sem::LineCommand>>("LineCommand")
     ;
   emscripten::class_<org::sem::CmdCustomArgs, emscripten::base<org::sem::Cmd>>("CmdCustomArgs")
+    .smart_ptr<org::sem::SemId<org::sem::CmdCustomArgs>>("CmdCustomArgs")
     .property("name", &org::sem::CmdCustomArgs::name)
     .property("isAttached", &org::sem::CmdCustomArgs::isAttached)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdCustomArgs::*)() const>(&org::sem::CmdCustomArgs::getKind))
     ;
   emscripten::class_<org::sem::CmdTblfm, emscripten::base<org::sem::Cmd>>("CmdTblfm")
+    .smart_ptr<org::sem::SemId<org::sem::CmdTblfm>>("CmdTblfm")
     .property("expr", &org::sem::CmdTblfm::expr)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdTblfm::*)() const>(&org::sem::CmdTblfm::getKind))
     ;
   emscripten::class_<org::sem::Cell, emscripten::base<org::sem::Cmd>>("Cell")
+    .smart_ptr<org::sem::SemId<org::sem::Cell>>("Cell")
     .property("isBlock", &org::sem::Cell::isBlock)
     .function("getKind", static_cast<OrgSemKind(org::sem::Cell::*)() const>(&org::sem::Cell::getKind))
     ;
   emscripten::class_<org::sem::Row, emscripten::base<org::sem::Cmd>>("Row")
+    .smart_ptr<org::sem::SemId<org::sem::Row>>("Row")
     .property("cells", &org::sem::Row::cells)
     .property("isBlock", &org::sem::Row::isBlock)
     .function("getKind", static_cast<OrgSemKind(org::sem::Row::*)() const>(&org::sem::Row::getKind))
@@ -2970,36 +3078,45 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("operator==", static_cast<bool(org::imm::ImmAttached::*)(org::imm::ImmAttached const&) const>(&org::imm::ImmAttached::operator==))
     ;
   emscripten::class_<org::sem::BlockCenter, emscripten::base<org::sem::Block>>("BlockCenter")
+    .smart_ptr<org::sem::SemId<org::sem::BlockCenter>>("BlockCenter")
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockCenter::*)() const>(&org::sem::BlockCenter::getKind))
     ;
   emscripten::class_<org::sem::BlockQuote, emscripten::base<org::sem::Block>>("BlockQuote")
+    .smart_ptr<org::sem::SemId<org::sem::BlockQuote>>("BlockQuote")
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockQuote::*)() const>(&org::sem::BlockQuote::getKind))
     ;
   emscripten::class_<org::sem::BlockVerse, emscripten::base<org::sem::Block>>("BlockVerse")
+    .smart_ptr<org::sem::SemId<org::sem::BlockVerse>>("BlockVerse")
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockVerse::*)() const>(&org::sem::BlockVerse::getKind))
     ;
   emscripten::class_<org::sem::BlockDynamicFallback, emscripten::base<org::sem::Block>>("BlockDynamicFallback")
+    .smart_ptr<org::sem::SemId<org::sem::BlockDynamicFallback>>("BlockDynamicFallback")
     .property("name", &org::sem::BlockDynamicFallback::name)
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockDynamicFallback::*)() const>(&org::sem::BlockDynamicFallback::getKind))
     ;
   emscripten::class_<org::sem::BlockExample, emscripten::base<org::sem::Block>>("BlockExample")
+    .smart_ptr<org::sem::SemId<org::sem::BlockExample>>("BlockExample")
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockExample::*)() const>(&org::sem::BlockExample::getKind))
     ;
   emscripten::class_<org::sem::BlockExport, emscripten::base<org::sem::Block>>("BlockExport")
+    .smart_ptr<org::sem::SemId<org::sem::BlockExport>>("BlockExport")
     .property("exporter", &org::sem::BlockExport::exporter)
     .property("content", &org::sem::BlockExport::content)
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockExport::*)() const>(&org::sem::BlockExport::getKind))
     .function("getPlacement", static_cast<hstd::Opt<hstd::Str>(org::sem::BlockExport::*)() const>(&org::sem::BlockExport::getPlacement))
     ;
   emscripten::class_<org::sem::BlockAdmonition, emscripten::base<org::sem::Block>>("BlockAdmonition")
+    .smart_ptr<org::sem::SemId<org::sem::BlockAdmonition>>("BlockAdmonition")
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockAdmonition::*)() const>(&org::sem::BlockAdmonition::getKind))
     ;
   emscripten::class_<org::sem::BlockCodeEvalResult, emscripten::base<org::sem::Block>>("BlockCodeEvalResult")
+    .smart_ptr<org::sem::SemId<org::sem::BlockCodeEvalResult>>("BlockCodeEvalResult")
     .property("raw", &org::sem::BlockCodeEvalResult::raw)
     .property("node", &org::sem::BlockCodeEvalResult::node)
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::getKind))
     ;
   emscripten::class_<org::sem::BlockCode, emscripten::base<org::sem::Block>>("BlockCode")
+    .smart_ptr<org::sem::SemId<org::sem::BlockCode>>("BlockCode")
     .property("lang", &org::sem::BlockCode::lang)
     .property("exports", &org::sem::BlockCode::exports)
     .property("result", &org::sem::BlockCode::result)
@@ -3014,11 +3131,13 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getVariable", static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getVariable))
     ;
   emscripten::class_<org::sem::Table, emscripten::base<org::sem::Block>>("Table")
+    .smart_ptr<org::sem::SemId<org::sem::Table>>("Table")
     .property("rows", &org::sem::Table::rows)
     .property("isBlock", &org::sem::Table::isBlock)
     .function("getKind", static_cast<OrgSemKind(org::sem::Table::*)() const>(&org::sem::Table::getKind))
     ;
   emscripten::class_<org::sem::Attached, emscripten::base<org::sem::LineCommand>>("Attached")
+    .smart_ptr<org::sem::SemId<org::sem::Attached>>("Attached")
     ;
   emscripten::class_<org::imm::ImmAdapterLineCommandAPI, emscripten::base<org::imm::ImmAdapterCmdAPI>>("ImmAdapterLineCommandAPI")
     ;
@@ -3177,18 +3296,22 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("operator==", static_cast<bool(org::imm::ImmCmdExport::*)(org::imm::ImmCmdExport const&) const>(&org::imm::ImmCmdExport::operator==))
     ;
   emscripten::class_<org::sem::CmdCaption, emscripten::base<org::sem::Attached>>("CmdCaption")
+    .smart_ptr<org::sem::SemId<org::sem::CmdCaption>>("CmdCaption")
     .property("text", &org::sem::CmdCaption::text)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdCaption::*)() const>(&org::sem::CmdCaption::getKind))
     ;
   emscripten::class_<org::sem::CmdColumns, emscripten::base<org::sem::Attached>>("CmdColumns")
+    .smart_ptr<org::sem::SemId<org::sem::CmdColumns>>("CmdColumns")
     .property("view", &org::sem::CmdColumns::view)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdColumns::*)() const>(&org::sem::CmdColumns::getKind))
     ;
   emscripten::class_<org::sem::CmdName, emscripten::base<org::sem::Attached>>("CmdName")
+    .smart_ptr<org::sem::SemId<org::sem::CmdName>>("CmdName")
     .property("name", &org::sem::CmdName::name)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdName::*)() const>(&org::sem::CmdName::getKind))
     ;
   emscripten::class_<org::sem::CmdCall, emscripten::base<org::sem::Attached>>("CmdCall")
+    .smart_ptr<org::sem::SemId<org::sem::CmdCall>>("CmdCall")
     .property("name", &org::sem::CmdCall::name)
     .property("fileName", &org::sem::CmdCall::fileName)
     .property("insideHeaderAttrs", &org::sem::CmdCall::insideHeaderAttrs)
@@ -3198,10 +3321,12 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdCall::*)() const>(&org::sem::CmdCall::getKind))
     ;
   emscripten::class_<org::sem::CmdAttr, emscripten::base<org::sem::Attached>>("CmdAttr")
+    .smart_ptr<org::sem::SemId<org::sem::CmdAttr>>("CmdAttr")
     .property("target", &org::sem::CmdAttr::target)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdAttr::*)() const>(&org::sem::CmdAttr::getKind))
     ;
   emscripten::class_<org::sem::CmdExport, emscripten::base<org::sem::Attached>>("CmdExport")
+    .smart_ptr<org::sem::SemId<org::sem::CmdExport>>("CmdExport")
     .property("exporter", &org::sem::CmdExport::exporter)
     .property("content", &org::sem::CmdExport::content)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdExport::*)() const>(&org::sem::CmdExport::getKind))

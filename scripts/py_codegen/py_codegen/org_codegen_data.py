@@ -234,6 +234,14 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
         ],
     )
 
+    res.reflectionParams.backend.wasm.holder_type = QualType(
+        name="SemId",
+        Spaces=[
+            QualType(name="org"),
+            QualType(name="sem"),
+        ],
+    )
+
     res.reflectionParams.type_api = GenTuTypeApiTraits(is_org_ast_value=True,)
 
     res.IsDescribedRecord = True

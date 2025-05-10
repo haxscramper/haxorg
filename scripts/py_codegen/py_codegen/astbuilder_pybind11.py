@@ -958,6 +958,10 @@ class Py11Module:
         ]
 
         for spec in specializations:
+            if spec.used_type.name in ["Opt", "optional"]:
+                continue
+
+
             if spec.std_type:
                 opaque_declarations.append(
                     ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(spec.std_type)]))

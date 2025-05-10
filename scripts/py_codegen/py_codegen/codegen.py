@@ -639,6 +639,10 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.GenDescribeMethods = False
                 obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
                 self_arg = obj.name.asConstRef()
+
+                if obj.reflectionParams.backend.wasm.holder_type:
+                    obj.reflectionParams.backend.wasm.holder_type = None
+
                 obj.methods.append(
                     GenTuFunction(
                         result=QualType.ForName("bool"),

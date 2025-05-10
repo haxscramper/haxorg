@@ -27,11 +27,11 @@ class GenTuBackendPythonParams(BaseModel, extra="forbid"):
     holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(
         alias="holder-type", default=None)
 
+
 @beartype
 class GenTuBackendWasmParams(BaseModel, extra="forbid"):
     holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(
         alias="holder-type", default=None)
-
 
 
 @beartype
@@ -929,36 +929,15 @@ def collect_type_specializations(entries: List[GenTuUnion],
 
     @beartype
     def name_bind(Typ: QualType) -> str:
-        return Typ.getBindName(withParams=True,
-                               ignored_spaces=IGNORED_NAMESPACES,
-                               rename_map={
-                                   ("immer", "box"): "ImmBox",
-                                   ("immer", "flex_vector"): "ImmFlexVector",
-                                   ("immer", "map"): "ImmMap",
-                               })
-
-        # flat = Typ.flatQualName()
-
-        # match flat:
-        #     case ["immer", "box"]:
-        #         return "ImmBox"
-
-        #     case ["immer", "flex_vector"]:
-        #         return "ImmFlexVector"
-
-        #     case ["immer", "map"]:
-        #         return "ImmMap"
-
-        #     case _:
-        #         fullname = "".join([name_bind(T) for T in Typ.Spaces])
-        #         if Typ.name not in IGNORED_NAMESPACES:
-        #             fullname += Typ.name
-
-        #         if 0 < len(Typ.Parameters):
-        #             fullname += "Of"
-        #             fullname += "".join([name_bind(T) for T in Typ.Parameters])
-
-        #         return fullname
+        return Typ.getBindName(
+            withParams=True,
+            ignored_spaces=IGNORED_NAMESPACES,
+            rename_map={
+                ("immer", "box"): "ImmBox",
+                ("immer", "flex_vector"): "ImmFlexVector",
+                ("immer", "map"): "ImmMap",
+            },
+        )
 
     type_use_context: List[Any] = []
     seen_types: Set[QualType] = set()
@@ -996,6 +975,8 @@ def collect_type_specializations(entries: List[GenTuUnion],
                         "flex_vector",
                         "map",
                         "box",
+                        "Opt",
+                        "optional",
                 ]:
                     std_type: str = {
                         "Vec": "vector",

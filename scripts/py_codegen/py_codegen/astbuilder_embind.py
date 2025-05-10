@@ -297,6 +297,7 @@ class WasmModule():
                         func=b.string("org::bind::js::" + spec.getFlatUsed() + "_bind"),
                         Params=spec.used_type.Parameters,
                         Args=[
+                            b.string("g"),
                             b.StringLiteral(spec.bind_name),
                         ],
                         Stmt=True,
@@ -336,6 +337,8 @@ class WasmModule():
             b.b.add_at(Result, it.Id)
 
         overload_counts: Dict[str, int] = defaultdict(lambda: 0)
+
+        Body.append(b.string("org::bind::js::type_registration_guard g;"))
 
         for item in self.items:
             match item:

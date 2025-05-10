@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include <stdexcept>
+#include <typeindex>
 #include <utility>
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrg.hpp>
@@ -53,6 +54,18 @@ struct emscripten::smart_ptr_trait<org::sem::SemId<T>> {
 
 namespace org::bind::js {
 
+struct type_registration_guard {
+    hstd::UnorderedSet<std::size_t> idx;
+    template <typename T>
+    bool can_add() {
+        if (idx.contains(typeid(T).hash_code())) {
+            return false;
+        } else {
+            idx.incl(typeid(T).hash_code());
+            return true;
+        }
+    }
+};
 
 template <hstd::DescribedEnum E>
 void bind_enum(std::string const& name) {
@@ -68,35 +81,49 @@ void bind_enum(std::string const& name) {
 }
 
 template <typename T>
-void immerbox_bind(std::string const& name) {}
+void immerbox_bind(type_registration_guard& g, std::string const& name) {}
 
 template <typename T>
-void immerflex_vector_bind(std::string const& name) {}
+void immerflex_vector_bind(
+    type_registration_guard& g,
+    std::string const&       name) {}
 
 template <typename T>
-void hstdVec_bind(std::string const& name) {}
+void hstdVec_bind(type_registration_guard& g, std::string const& name) {}
 
 template <typename T>
-void hstdIntSet_bind(std::string const& name) {}
-
-template <typename K, typename V>
-void hstdUnorderedMap_bind(std::string const& name) {}
-
-
-template <typename T>
-void bind_optional(std::string const& name) {
-    emscripten::class_<std::optional<T>>(name.c_str()) //
-        .function(
-            "value",
-            +[](std::optional<T> const& opt) -> T const& {
-                return opt.value();
-            })
-        .function(
-            "has_value", +[](std::optional<T> const& opt) -> bool {
-                return opt.has_value();
-            });
+void hstdIntSet_bind(type_registration_guard& g, std::string const& name) {
 }
 
+template <typename K, typename V>
+void hstdUnorderedMap_bind(
+    type_registration_guard& g,
+    std::string const&       name) {}
+
+
+template <typename T>
+void stdoptional_bind(
+    type_registration_guard& g,
+    std::string const&       name) {
+    if (g.can_add<std::optional<T>>()) {
+        emscripten::class_<std::optional<T>>(name.c_str()) //
+            .function(
+                "value",
+                +[](std::optional<T> const& opt) -> T const& {
+                    return opt.value();
+                })
+            .function(
+                "has_value", +[](std::optional<T> const& opt) -> bool {
+                    return opt.has_value();
+                });
+    }
+}
+
+
+template <typename T>
+void hstdOpt_bind(type_registration_guard& g, std::string const& name) {
+    stdoptional_bind<T>(g, name);
+}
 
 // Argument specification template
 template <typename T>
