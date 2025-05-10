@@ -1130,6 +1130,13 @@ def gen_pyhaxorg_napi_wrappers(
                     base_map=base_map,
                 )),
             ])),
+        GenUnit(
+            GenTu("{root}/src/wrappers/js/haxorg_wasm_types.d.ts", [
+                GenTuPass(res.build_typedef(
+                    ast=ast,
+                    base_map=base_map,
+                )),
+            ])),
     ])
 
 

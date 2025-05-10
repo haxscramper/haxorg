@@ -4,13 +4,14 @@
 
 // /home/haxscramper/workspace/haxorg/build/haxorg_debug_emscripten/haxorg_wasm.js
 
-const haxorg_wasm = require("../../build/haxorg_debug_emscripten/haxorg_wasm");
 
 function dump_properties(obj) {
   Object.getOwnPropertyNames(obj).forEach(prop => {
     console.log(`${prop}: ${typeof obj[prop]}`, obj[prop]);
   });
 }
+
+const haxorg_wasm = require("../../build/haxorg_debug_emscripten/haxorg_wasm");
 
 haxorg_wasm().then(org => {
   console.log('WebAssembly loaded!');

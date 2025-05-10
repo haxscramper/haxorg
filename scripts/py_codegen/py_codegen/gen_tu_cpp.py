@@ -923,6 +923,121 @@ IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "im
 
 
 @beartype
+def sanitize_ident(
+    name: str,
+    lang_keywords: Set[str],
+    map_operator: Callable[[str], str] = None,
+) -> str:
+
+    # Operator mappings from C++ to Python
+    operator_mappings = {
+        # Comparison operators
+        "operator==": "eq",
+        "operator!=": "ne",
+        "operator>": "gt",
+        "operator<": "lt",
+        "operator>=": "ge",
+        "operator<=": "le",
+
+        # Arithmetic operators
+        "operator+": "add",
+        "operator-": "sub",
+        "operator*": "mul",
+        "operator/": "truediv",
+        "operator%": "mod",
+        "operator//": "floordiv",
+        "operator**": "pow",
+
+        # Unary operators
+        "operator++": "next",  # Note: not exact equivalent
+        "operator--": "prev",  # Note: not exact equivalent
+        "operator-@": "neg",  # Unary minus
+        "operator+@": "pos",  # Unary plus
+        "operator~": "invert",  # Bitwise NOT
+
+        # Bitwise operators
+        "operator&": "and",
+        "operator|": "or",
+        "operator^": "xor",
+        "operator<<": "lshift",
+        "operator>>": "rshift",
+
+        # Assignment operators (in-place operations)
+        "operator+=": "iadd",
+        "operator-=": "isub",
+        "operator*=": "imul",
+        "operator/=": "itruediv",
+        "operator%=": "imod",
+        "operator&=": "iand",
+        "operator|=": "ior",
+        "operator^=": "ixor",
+        "operator<<=": "ilshift",
+        "operator>>=": "irshift",
+
+        # Subscript operator
+        "operator[]": "getitem",
+
+        # Function call operator
+        "operator()": "call",
+
+        # Conversion operators
+        "operator bool": "bool",
+        "operator int": "int",
+        "operator float": "float",
+        "operator str": "str",
+
+        # Smart pointer operations
+        "operator*": "deref",  # Dereference (conflicts with multiply)
+        "operator->": "arrow",  # Arrow operator (no direct Python equivalent)
+
+        # Memory management
+        "operator new": "new",
+        "operator delete": "del",
+
+        # Stream operators
+        "operator<<": "lshift",  # Also used for stream insertion
+        "operator>>": "rshift",  # Also used for stream extraction
+
+        # Comma operator
+        "operator,": "comma",  # No direct Python equivalent
+    }
+
+    if map_operator and name in operator_mappings:
+        tmp_res = map_operator(name)
+        if tmp_res:
+            return tmp_res
+
+        else:
+            return f"__{operator_mappings[name]}__"
+
+    elif name in operator_mappings:
+        return f"__{operator_mappings[name]}__"
+
+    # Check if it's a Python keyword
+    if name in lang_keywords:
+        return name + "_"
+
+    # Handle special characters
+    # Replace invalid characters with underscores
+    result = ""
+    for char in name:
+        if char.isalnum() or char == '_':
+            result += char
+        else:
+            result += '_'
+
+    # Ensure the identifier doesn't start with a digit
+    if result and result[0].isdigit():
+        result = '_' + result
+
+    # Ensure the identifier isn't empty
+    if not result:
+        result = '_empty_'
+
+    return result
+
+
+@beartype
 def collect_type_specializations(entries: List[GenTuUnion],
                                  base_map: GenTypeMap) -> List[TypeSpecialization]:
     res = []
