@@ -1944,23 +1944,23 @@ ingoing elements.)RAW")
                 static_cast<org::graph::MapGraphState(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext),
                 pybind11::arg("ast"))
     .def("registerNode",
-         static_cast<void(org::graph::MapGraphState::*)(org::graph::MapNodeProp const&, org::graph::MapConfig*)>(&org::graph::MapGraphState::registerNode),
+         static_cast<void(org::graph::MapGraphState::*)(org::graph::MapNodeProp const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::registerNode),
          pybind11::arg("node"),
          pybind11::arg("conf"))
     .def("addNode",
-         static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, org::graph::MapConfig*)>(&org::graph::MapGraphState::addNode),
+         static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNode),
          pybind11::arg("node"),
          pybind11::arg("conf"))
     .def("addNodeRec",
-         static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, org::graph::MapConfig*)>(&org::graph::MapGraphState::addNodeRec),
+         static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec),
          pybind11::arg("node"),
          pybind11::arg("conf"))
     .def("getUnresolvedSubtreeLinks",
-         static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::graph::MapConfig*) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks),
+         static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks),
          pybind11::arg("node"),
          pybind11::arg("conf"))
     .def("getUnresolvedLink",
-         static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, org::graph::MapConfig*) const>(&org::graph::MapGraphState::getUnresolvedLink),
+         static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink),
          pybind11::arg("node"),
          pybind11::arg("conf"))
     .def("__repr__", [](org::graph::MapGraphState const& _self) -> std::string {
@@ -5334,7 +5334,7 @@ ingoing elements.)RAW")
          },
          pybind11::arg("it"))
     ;
-  pybind11::class_<org::graph::MapConfig, hstd::OperationsTracer>(m, "graphMapConfig")
+  pybind11::class_<org::graph::MapConfig, std::shared_ptr<org::graph::MapConfig>, hstd::OperationsTracer>(m, "graphMapConfig")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapConfig {
                         org::graph::MapConfig result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);

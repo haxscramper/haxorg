@@ -1116,15 +1116,19 @@ def gen_pyhaxorg_napi_wrappers(
                 case _:
                     res.add_decl(decl)
 
-    res.Header.append(napi.NapiBindPass(ast.Include("node_utils.hpp")))
-    res.Header.append(napi.NapiBindPass(ast.Include("node_org_include.hpp")))
-    res.Header.append(napi.NapiBindPass(ast.string("using namespace org::bind::js;")))
+    res.Header.append(napi.WasmBindPass(ast.Include("node_utils.hpp")))
+    res.Header.append(napi.WasmBindPass(ast.Include("node_org_include.hpp")))
+    res.Header.append(napi.WasmBindPass(ast.Include("haxorg_wasm_manual.hpp")))
+    res.Header.append(napi.WasmBindPass(ast.string("using namespace org::bind::js;")))
+
+    res.add_decl(napi.WasmBindPass(ast.string("haxorg_wasm_manual_register();")))
 
     return GenFiles([
         GenUnit(
-            GenTu("{base}/src/wrappers/js/haxorg_wasm.cpp", [
+            GenTu("{root}/src/wrappers/js/haxorg_wasm.cpp", [
                 GenTuPass(res.build_bind(
                     ast=ast,
+                    b=cpp_builder,
                     base_map=base_map,
                 )),
             ])),
@@ -1373,18 +1377,19 @@ def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
                 log(CAT).debug(f"Debug reflection data to {file.name}")
                 file.write(open_proto_file(Path(opts.reflection_path)).to_json(2))
 
-            write_files_group(
-                gen_pyhaxorg_python_wrappers(
-                    groups=groups,
-                    ast=builder,
-                    pyast=pyast,
-                ))
 
             write_files_group(
                 gen_pyhaxorg_napi_wrappers(
                     groups=groups,
                     ast=builder,
                     base_map=groups.base_map,
+                ))
+
+            write_files_group(
+                gen_pyhaxorg_python_wrappers(
+                    groups=groups,
+                    ast=builder,
+                    pyast=pyast,
                 ))
 
             write_files_group(gen_pyhaxorg_source(

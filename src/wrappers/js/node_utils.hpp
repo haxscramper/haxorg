@@ -68,6 +68,22 @@ void bind_enum(std::string const& name) {
 }
 
 template <typename T>
+void immerbox_bind(std::string const& name) {}
+
+template <typename T>
+void immerflex_vector_bind(std::string const& name) {}
+
+template <typename T>
+void hstdVec_bind(std::string const& name) {}
+
+template <typename T>
+void hstdIntSet_bind(std::string const& name) {}
+
+template <typename K, typename V>
+void hstdUnorderedMap_bind(std::string const& name) {}
+
+
+template <typename T>
 void bind_optional(std::string const& name) {
     emscripten::class_<std::optional<T>>(name.c_str()) //
         .function(

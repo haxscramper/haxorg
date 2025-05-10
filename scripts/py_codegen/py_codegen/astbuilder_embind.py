@@ -26,6 +26,15 @@ class WasmField():
     def __init__(self, Field: GenTuField):
         self.Field = Field
 
+    def build_bind(self, ast: ASTBuilder, Class: QualType) -> BlockId:
+        return ast.XCall(
+            ".property",
+            args=[
+                ast.StringLiteral(self.Field.name),
+                ast.Addr(ast.Scoped(Class, ast.string(self.Field.name))),
+            ],
+        )
+
 
 @beartype
 @dataclass
@@ -36,9 +45,65 @@ class WasmBindPass:
 @beartype
 class WasmFunction():
     Func: GenTuFunction
+    Body: List[BlockId] = []
 
-    def getNapiName(self) -> str:
+    def getWasmName(self) -> str:
         return get_function_wasm_name(self.Func)
+
+    def __init__(self, Func: GenTuFunction, Body: List[BlockId] = []):
+        self.Func = Func
+        self.Body = Body
+
+    def build_call_pass(
+        self,
+        ast: ASTBuilder,
+        Args: List[GenTuIdent],
+        FunctionQualName: BlockId,
+        Class: Optional[QualType] = None,
+        IsConst: bool = False,
+    ) -> BlockId:
+        if self.Body:
+            return ast.Lambda(
+                LambdaParams(
+                    ResultTy=self.Func.result,
+                    Args=[
+                        ParmVarParams(Arg.type, Arg.name) for Arg in self.Func.arguments
+                    ],
+                    Body=self.Body,
+                    IsLine=False,
+                ))
+
+        else:
+            function_type = self.Func.get_function_type(Class=Class)
+
+            return ast.XCall(
+                "static_cast",
+                args=[ast.Addr(FunctionQualName)],
+                Params=[function_type],
+            )
+
+    def build_bind(self, b: ASTBuilder) -> BlockId:
+
+        if self.Func.spaces:
+            full_name = b.Scoped(
+                QualType(name=self.Func.spaces[-1].name, Spaces=self.Func.spaces[:-1]),
+                b.string(self.Func.name))
+
+        else:
+            full_name = b.string(self.Func.name)
+
+        return b.XCall(
+            "emscripten::function",
+            [
+                b.Literal(self.getWasmName()),
+                self.build_call_pass(
+                    b,
+                    self.Func.arguments,
+                    FunctionQualName=full_name,
+                ),
+            ],
+            Stmt=True,
+        )
 
 
 @beartype
@@ -50,10 +115,164 @@ class WasmMethod():
 class WasmEnum():
     Enum: GenTuEnum
 
+    def __init__(self, Enum: GenTuEnum):
+        self.Enum = Enum
+
+    def build_bind(self, b: ASTBuilder) -> BlockId:
+        return b.Call(
+            func=b.string("org::bind::js::bind_enum"),
+            Params=[
+                self.Enum.name,
+            ],
+            Args=[b.StringLiteral(self.Enum.name.getBindName())],
+            Stmt=True,
+        )
+
+
+@beartype
+@dataclass
+class WasmMethod(WasmFunction):
+    ExplicitClassParam: bool = False
+
+    def __init__(
+        self,
+        Func: GenTuFunction,
+        ExplicitClassParam: bool = False,
+    ):
+        super().__init__(Func)
+        self.ExplicitClassParam = ExplicitClassParam
+
+    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
+        b = ast.b
+
+        Args: List[GenTuIdent] = []
+        if self.Func.IsConstructor or self.ExplicitClassParam:
+            pass
+
+        elif self.Func.impl:
+            Args = [GenTuIdent(type=Class.asConstRef(), name="_self")]
+
+        Args += self.Func.arguments
+
+        if self.Func.IsConstructor:
+            return ast.XCall(
+                ".constructor",
+                Params=[arg.type for arg in self.Func.arguments],
+                Line=True,
+            )
+
+        else:
+            call_pass = self.build_call_pass(
+                ast,
+                FunctionQualName=ast.Scoped(Class, ast.string(self.Func.name)),
+                Class=None if self.Func.isStatic else Class,
+                IsConst=self.Func.isConst,
+                Args=Args,
+            )
+
+            if self.Func.IsConstructor:
+                call_pass = ast.XCall("pybind11::init", args=[call_pass])
+
+            def_args = []
+            if not self.Func.IsConstructor:
+                def_args.append(ast.Literal(self.getWasmName()))
+
+            def_args.append(call_pass)
+
+            if self.Func.isPureVirtual:
+                def_args.append(ast.XCall("emscripten::pure_virtual"))
+
+            if self.Func.isStatic:
+                return ast.XCall(".class_function", def_args, Line=True)
+
+            else:
+                return ast.XCall(".function", def_args, Line=True)
+
 
 @beartype
 class WasmClass():
-    ClassMethods: List[WasmMethod]
+
+    def __init__(self, Record: GenTuStruct):
+        self.Record = Record
+
+    def getWasmName(self) -> str:
+        if self.Record.reflectionParams.wrapper_name:
+            return self.Record.reflectionParams.wrapper_name
+
+        else:
+            return self.Record.name.getBindName(ignored_spaces=IGNORED_NAMESPACES)
+
+    def getCxxName(self) -> QualType:
+        return self.Record.declarationQualName()
+
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
+        b = ast.b
+
+        sub: List[BlockId] = []
+
+        HolderType = None
+
+        if self.Record.reflectionParams:
+            match self.Record.reflectionParams.backend.wasm.holder_type:
+                case QualType():
+                    HolderType = self.Record.reflectionParams.backend.wasm.holder_type.withTemplateParams(
+                        [self.getCxxName()])
+
+                case "shared":
+                    HolderType = self.getCxxName().withWrapperType(
+                        QualType.ForName("shared_ptr", Spaces=[QualType.ForName("std")]))
+
+                case "unique":
+                    HolderType = self.getCxxName().withWrapperType(
+                        QualType.ForName("unique_ptr", Spaces=[QualType.ForName("std")]))
+
+                case holder:
+                    if holder is not None:
+                        HolderType = self.getCxxName().withWrapperType(
+                            QualType.ForName(holder))
+
+        if HolderType:
+            sub.append(
+                ast.XCall(
+                    ".smart_ptr",
+                    Params=[HolderType],
+                    args=[ast.StringLiteral(self.getWasmName())],
+                ))
+
+        for Field in self.Record.fields:
+            if Field.isStatic:
+                continue
+
+            else:
+                sub.append(WasmField(Field).build_bind(ast, self.getCxxName()))
+
+        for Meth in self.Record.methods:
+            # Skip explicit wrapping of default constructors
+            if Meth.IsConstructor and len(Meth.arguments) == 0:
+                continue
+
+            elif Meth.name.startswith("sub_variant_get"):
+                continue
+
+            else:
+                sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast))
+
+        sub.append(b.text(";"))
+
+        HolderType = None
+
+        return b.stack([
+            ast.XCall(
+                "emscripten::class_",
+                [ast.Literal(self.getWasmName())],
+                Params=[self.getCxxName()] + [
+                    QualType(name="emscripten::base", Parameters=[B])
+                    for B in self.Record.bases
+                    if base_map.is_known_type(B)
+                ],
+            ),
+            b.indent(2, b.stack(sub))
+        ])
 
 
 WasmUnion = Union[WasmClass, WasmBindPass, WasmFunction]
@@ -75,13 +294,37 @@ class WasmModule():
             self.items.append(
                 WasmBindPass(
                     b.Call(
-                        spec=b.string(spec.getFlatUsed() + "_bind"),
-                        Params=[spec.used_type.Parameters],
+                        func=b.string("org::bind::js::" + spec.getFlatUsed() + "_bind"),
+                        Params=spec.used_type.Parameters,
                         Args=[
                             b.StringLiteral(spec.bind_name),
                         ],
                         Stmt=True,
                     )))
+
+    def add_decl(self, item: GenTuUnion | WasmBindPass):
+        match item:
+            case GenTuStruct():
+                self.items.append(WasmClass(item))
+
+                for nested in item.nested:
+                    if not isinstance(nested, GenTuPass):
+                        self.add_decl(nested)
+
+            case GenTuEnum():
+                self.items.append(WasmEnum(item))
+
+            case GenTuFunction():
+                self.items.append(WasmFunction(item))
+
+            case WasmBindPass():
+                self.items.append(item)
+
+            case GenTuTypedef():
+                pass
+
+            case _:
+                raise ValueError(f"Unhandled declaration type {type(item)}")
 
     def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder,
                    base_map: GenTypeMap) -> BlockId:
@@ -97,8 +340,7 @@ class WasmModule():
         for item in self.items:
             match item:
                 case WasmClass():
-                    b.b.add_at(Result, item.build_bind(ast=ast, b=b, base_map=base_map))
-                    Body.append(item.build_module_registration(b=b))
+                    Body.append(item.build_bind(ast=ast, base_map=base_map))
 
                 case WasmFunction():
                     overload_counts[item.getWasmName()] += 1
@@ -118,13 +360,11 @@ class WasmModule():
                 log(CAT).warning(
                     f"{key} is overloaded without unique name, has {value} overloads")
 
-        Body.append(b.Return(b.string("exports")))
-
         b.b.add_at(
             Result,
             b.stack([
                 b.string(f"EMSCRIPTEN_BINDINGS({self.name}) {{"),
-                b.indent(2, Body),
+                b.indent(2, b.stack(Body)),
                 b.string("}"),
             ]))
 

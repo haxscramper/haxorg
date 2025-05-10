@@ -27,10 +27,17 @@ class GenTuBackendPythonParams(BaseModel, extra="forbid"):
     holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(
         alias="holder-type", default=None)
 
+@beartype
+class GenTuBackendWasmParams(BaseModel, extra="forbid"):
+    holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(
+        alias="holder-type", default=None)
+
+
 
 @beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
     python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
+    wasm: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
     target_backends: List[str] = Field(
         default_factory=list,
         description="Which backends should generate wrappers for the entry?",
