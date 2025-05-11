@@ -426,7 +426,7 @@ struct ImmIdT : public ImmId {
     static ImmIdT<T> Nil() { return ImmIdT<T>(ImmId::Nil()); }
 };
 
-struct ImmOrg {
+struct [[refl]] ImmOrg {
     hstd::ext::ImmVec<ImmId>       subnodes;
     hstd::Opt<org::parse::LineCol> loc             = std::nullopt;
     virtual OrgSemKind             getKind() const = 0;

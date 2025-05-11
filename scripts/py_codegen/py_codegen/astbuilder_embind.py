@@ -44,9 +44,12 @@ def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
     elif wrapper_override:
         name = wrapper_override
 
+    elif Typ.name == "char" and Typ.isConst and Typ.ptrCount == 1:
+        name = "string"
+
     else:
         match flat:
-            case ["int"]:
+            case ["int"] | ["float"] | ["double"]:
                 name = "number"
 
             case ["bool"]:
@@ -56,7 +59,7 @@ def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
                                                             ] | ["std", "basic_string"]:
                 name = "string"
 
-            case ["void"] | ["char"]:
+            case ["void"]:
                 name = flat[0]
 
             case ["SemId"]:
@@ -67,7 +70,9 @@ def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
 
             case ["Vec"] | ["immer", "box"] | ["ImmIdT"] | ["immer", "flex_vector"] | [
                 "hstd", "UnorderedMap"
-            ] | ["UnorderedMap"] | ["std", "variant"] | ["hstd", "Variant"]:
+            ] | ["UnorderedMap"] | ["std", "variant"] | ["hstd", "Variant"] | [
+                "ImmBox"
+            ] | ["ImmVec"] | ["hstd", "IntSet"] | ["IntSet"]:
                 name = GEN + "." + Typ.getBindName(
                     ignored_spaces=IGNORED_NAMESPACES,
                     withParams=False,
@@ -148,6 +153,7 @@ class WasmTypedef:
 
     def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return []
+
 
 @beartype
 class WasmFunction():
@@ -514,9 +520,12 @@ class WasmModule():
 
         for item in self.items:
             match item:
-                case WasmClass() | WasmEnum() | WasmFunction() | WasmTypedef():
+                case WasmClass() | WasmEnum() | WasmTypedef():
                     iface.extend(item.get_module_use(ast, base_map=base_map))
                     body.extend(item.get_typedef(ast, base_map=base_map))
+
+                case WasmFunction():
+                    iface.extend(item.get_typedef(ast, base_map=base_map))
 
         return ast.stack([
             ast.string("import * as haxorg_wasm from \"./haxorg_utility_types\";"),

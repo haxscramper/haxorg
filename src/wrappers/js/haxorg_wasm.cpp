@@ -84,18 +84,12 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   org::bind::js::hstdOpt_bind<org::sem::ColumnView::Summary>(g, "OptOfColumnViewSummary");
   org::bind::js::hstdVec_bind<org::sem::BlockCodeLine::Part>(g, "VecOfBlockCodeLinePart");
   org::bind::js::hstdUnorderedMap_bind<hstd::Str, hstd::Str>(g, "UnorderedMapOfStrStr");
-  org::bind::js::hstdOpt_bind<org::imm::ImmTime::Repeat>(g, "OptOfImmTimeRepeat");
-  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmStmtList>>(g, "OptOfImmIdTOfImmStmtList");
-  org::bind::js::hstdOpt_bind<org::sem::SubtreeCompletion>(g, "OptOfSubtreeCompletion");
-  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmParagraph>>(g, "OptOfImmIdTOfImmParagraph");
-  org::bind::js::hstdOpt_bind<org::sem::ColumnView>(g, "OptOfColumnView");
-  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmRawText>>(g, "OptOfImmIdTOfImmRawText");
-  org::bind::js::hstdOpt_bind<org::sem::SubtreePath>(g, "OptOfSubtreePath");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorItem>>(g, "VecOfSemIdOfErrorItem");
   org::bind::js::hstdVec_bind<org::sem::Time::Repeat>(g, "VecOfTimeRepeat");
   org::bind::js::hstdOpt_bind<org::sem::Time::Repeat>(g, "OptOfTimeRepeat");
   org::bind::js::hstdVec_bind<org::sem::Symbol::Param>(g, "VecOfSymbolParam");
   org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::StmtList>>(g, "OptOfSemIdOfStmtList");
+  org::bind::js::hstdOpt_bind<org::sem::SubtreeCompletion>(g, "OptOfSubtreeCompletion");
   org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::Paragraph>>(g, "OptOfSemIdOfParagraph");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::HashTag>>(g, "VecOfSemIdOfHashTag");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::SubtreeLog>>(g, "VecOfSemIdOfSubtreeLog");
@@ -103,13 +97,19 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   org::bind::js::hstdVec_bind<org::sem::SubtreePeriod>(g, "VecOfSubtreePeriod");
   org::bind::js::hstdIntSet_bind<org::sem::SubtreePeriod::Kind>(g, "IntSetOfSubtreePeriodKind");
   org::bind::js::hstdOpt_bind<org::sem::NamedProperty>(g, "OptOfNamedProperty");
+  org::bind::js::hstdOpt_bind<org::sem::ColumnView>(g, "OptOfColumnView");
   org::bind::js::hstdVec_bind<org::sem::TodoKeyword>(g, "VecOfTodoKeyword");
   org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::RawText>>(g, "OptOfSemIdOfRawText");
-  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "OptOfImmIdTOfImmOrg");
+  org::bind::js::hstdOpt_bind<org::sem::SubtreePath>(g, "OptOfSubtreePath");
+  org::bind::js::hstdOpt_bind<org::imm::ImmTime::Repeat>(g, "OptOfImmTimeRepeat");
+  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmStmtList>>(g, "OptOfImmIdTOfImmStmtList");
+  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmParagraph>>(g, "OptOfImmIdTOfImmParagraph");
+  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmRawText>>(g, "OptOfImmIdTOfImmRawText");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::BigIdent>>(g, "VecOfSemIdOfBigIdent");
   org::bind::js::hstdVec_bind<hstd::UserTime>(g, "VecOfUserTime");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Time>>(g, "VecOfSemIdOfTime");
   org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::Org>>(g, "OptOfSemIdOfOrg");
+  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "OptOfImmIdTOfImmOrg");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Cell>>(g, "VecOfSemIdOfCell");
   org::bind::js::hstdVec_bind<org::sem::OrgCodeEvalOutput>(g, "VecOfOrgCodeEvalOutput");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::BlockCodeEvalResult>>(g, "VecOfSemIdOfBlockCodeEvalResult");
@@ -177,6 +177,8 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("is", static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is))
     .function("getNodeIndex", static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex))
     .function("getReadableId", static_cast<std::string(org::imm::ImmId::*)() const>(&org::imm::ImmId::getReadableId))
+    ;
+  emscripten::class_<org::imm::ImmOrg>("ImmOrg")
     ;
   emscripten::class_<org::imm::ImmPathStep>("ImmPathStep")
     ;
@@ -1415,303 +1417,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("__eq__", static_cast<bool(org::sem::NamedProperty::CustomSubtreeFlags::*)(org::sem::NamedProperty::CustomSubtreeFlags const&) const>(&org::sem::NamedProperty::CustomSubtreeFlags::operator==))
     ;
   org::bind::js::bind_enum<org::sem::NamedProperty::Kind>("OrgSemNamedPropertyKind");
-  emscripten::class_<org::imm::ImmNone>("ImmNone")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmNone::*)() const>(&org::imm::ImmNone::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmNone::*)(org::imm::ImmNone const&) const>(&org::imm::ImmNone::operator==))
-    ;
-  emscripten::class_<org::imm::ImmErrorItem>("ImmErrorItem")
-    .property("message", &org::imm::ImmErrorItem::message)
-    .property("function", &org::imm::ImmErrorItem::function)
-    .property("line", &org::imm::ImmErrorItem::line)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmErrorItem::*)() const>(&org::imm::ImmErrorItem::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmErrorItem::*)(org::imm::ImmErrorItem const&) const>(&org::imm::ImmErrorItem::operator==))
-    ;
-  emscripten::class_<org::imm::ImmErrorGroup>("ImmErrorGroup")
-    .property("diagnostics", &org::imm::ImmErrorGroup::diagnostics)
-    .property("function", &org::imm::ImmErrorGroup::function)
-    .property("line", &org::imm::ImmErrorGroup::line)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmErrorGroup::*)() const>(&org::imm::ImmErrorGroup::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmErrorGroup::*)(org::imm::ImmErrorGroup const&) const>(&org::imm::ImmErrorGroup::operator==))
-    ;
-  emscripten::class_<org::imm::ImmStmt>("ImmStmt")
-    .property("attached", &org::imm::ImmStmt::attached)
-    .function("__eq__", static_cast<bool(org::imm::ImmStmt::*)(org::imm::ImmStmt const&) const>(&org::imm::ImmStmt::operator==))
-    ;
-  emscripten::class_<org::imm::ImmInline>("ImmInline")
-    .function("__eq__", static_cast<bool(org::imm::ImmInline::*)(org::imm::ImmInline const&) const>(&org::imm::ImmInline::operator==))
-    ;
-  emscripten::class_<org::imm::ImmStmtList>("ImmStmtList")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmStmtList::*)() const>(&org::imm::ImmStmtList::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmStmtList::*)(org::imm::ImmStmtList const&) const>(&org::imm::ImmStmtList::operator==))
-    ;
-  emscripten::class_<org::imm::ImmEmpty>("ImmEmpty")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmEmpty::*)() const>(&org::imm::ImmEmpty::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmEmpty::*)(org::imm::ImmEmpty const&) const>(&org::imm::ImmEmpty::operator==))
-    ;
-  emscripten::class_<org::imm::ImmLeaf>("ImmLeaf")
-    .property("text", &org::imm::ImmLeaf::text)
-    .function("__eq__", static_cast<bool(org::imm::ImmLeaf::*)(org::imm::ImmLeaf const&) const>(&org::imm::ImmLeaf::operator==))
-    ;
-  emscripten::class_<org::imm::ImmTime>("ImmTime")
-    .property("isActive", &org::imm::ImmTime::isActive)
-    .property("time", &org::imm::ImmTime::time)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmTime::*)(org::imm::ImmTime const&) const>(&org::imm::ImmTime::operator==))
-    .function("isStatic", static_cast<bool(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::isStatic))
-    .function("getStaticConst", static_cast<org::imm::ImmTime::Static const&(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::getStatic))
-    .function("getStaticMut", static_cast<org::imm::ImmTime::Static&(org::imm::ImmTime::*)()>(&org::imm::ImmTime::getStatic))
-    .function("isDynamic", static_cast<bool(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::isDynamic))
-    .function("getDynamicConst", static_cast<org::imm::ImmTime::Dynamic const&(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::getDynamic))
-    .function("getDynamicMut", static_cast<org::imm::ImmTime::Dynamic&(org::imm::ImmTime::*)()>(&org::imm::ImmTime::getDynamic))
-    .class_function("getTimeKindStatic", static_cast<org::imm::ImmTime::TimeKind(*)(org::imm::ImmTime::TimeVariant const&)>(&org::imm::ImmTime::getTimeKind))
-    .function("getTimeKind", static_cast<org::imm::ImmTime::TimeKind(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::getTimeKind))
-    ;
-  emscripten::class_<org::imm::ImmTime::Repeat>("ImmTimeRepeat")
-    .property("mode", &org::imm::ImmTime::Repeat::mode)
-    .property("period", &org::imm::ImmTime::Repeat::period)
-    .property("count", &org::imm::ImmTime::Repeat::count)
-    .function("__eq__", static_cast<bool(org::imm::ImmTime::Repeat::*)(org::imm::ImmTime::Repeat const&) const>(&org::imm::ImmTime::Repeat::operator==))
-    ;
-  org::bind::js::bind_enum<org::imm::ImmTime::Repeat::Mode>("OrgImmImmTimeRepeatMode");
-  org::bind::js::bind_enum<org::imm::ImmTime::Repeat::Period>("OrgImmImmTimeRepeatPeriod");
-  emscripten::class_<org::imm::ImmTime::Static>("ImmTimeStatic")
-    .property("repeat", &org::imm::ImmTime::Static::repeat)
-    .property("warn", &org::imm::ImmTime::Static::warn)
-    .property("time", &org::imm::ImmTime::Static::time)
-    .function("__eq__", static_cast<bool(org::imm::ImmTime::Static::*)(org::imm::ImmTime::Static const&) const>(&org::imm::ImmTime::Static::operator==))
-    ;
-  emscripten::class_<org::imm::ImmTime::Dynamic>("ImmTimeDynamic")
-    .property("expr", &org::imm::ImmTime::Dynamic::expr)
-    .function("__eq__", static_cast<bool(org::imm::ImmTime::Dynamic::*)(org::imm::ImmTime::Dynamic const&) const>(&org::imm::ImmTime::Dynamic::operator==))
-    ;
-  org::bind::js::bind_enum<org::imm::ImmTime::TimeKind>("OrgImmImmTimeTimeKind");
-  emscripten::class_<org::imm::ImmTimeRange>("ImmTimeRange")
-    .property("from", &org::imm::ImmTimeRange::from)
-    .property("to", &org::imm::ImmTimeRange::to)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTimeRange::*)() const>(&org::imm::ImmTimeRange::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmTimeRange::*)(org::imm::ImmTimeRange const&) const>(&org::imm::ImmTimeRange::operator==))
-    ;
-  emscripten::class_<org::imm::ImmMacro>("ImmMacro")
-    .property("name", &org::imm::ImmMacro::name)
-    .property("attrs", &org::imm::ImmMacro::attrs)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmMacro::*)() const>(&org::imm::ImmMacro::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmMacro::*)(org::imm::ImmMacro const&) const>(&org::imm::ImmMacro::operator==))
-    ;
-  emscripten::class_<org::imm::ImmSymbol>("ImmSymbol")
-    .property("name", &org::imm::ImmSymbol::name)
-    .property("parameters", &org::imm::ImmSymbol::parameters)
-    .property("positional", &org::imm::ImmSymbol::positional)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSymbol::*)() const>(&org::imm::ImmSymbol::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmSymbol::*)(org::imm::ImmSymbol const&) const>(&org::imm::ImmSymbol::operator==))
-    ;
-  emscripten::class_<org::imm::ImmSymbol::Param>("ImmSymbolParam")
-    .property("key", &org::imm::ImmSymbol::Param::key)
-    .property("value", &org::imm::ImmSymbol::Param::value)
-    .function("__eq__", static_cast<bool(org::imm::ImmSymbol::Param::*)(org::imm::ImmSymbol::Param const&) const>(&org::imm::ImmSymbol::Param::operator==))
-    ;
-  emscripten::class_<org::imm::ImmMarkup>("ImmMarkup")
-    .function("__eq__", static_cast<bool(org::imm::ImmMarkup::*)(org::imm::ImmMarkup const&) const>(&org::imm::ImmMarkup::operator==))
-    ;
-  emscripten::class_<org::imm::ImmRadioTarget>("ImmRadioTarget")
-    .property("words", &org::imm::ImmRadioTarget::words)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmRadioTarget::*)() const>(&org::imm::ImmRadioTarget::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmRadioTarget::*)(org::imm::ImmRadioTarget const&) const>(&org::imm::ImmRadioTarget::operator==))
-    ;
-  emscripten::class_<org::imm::ImmLatex>("ImmLatex")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmLatex::*)() const>(&org::imm::ImmLatex::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmLatex::*)(org::imm::ImmLatex const&) const>(&org::imm::ImmLatex::operator==))
-    ;
-  emscripten::class_<org::imm::ImmSubtreeLog>("ImmSubtreeLog")
-    .property("head", &org::imm::ImmSubtreeLog::head)
-    .property("desc", &org::imm::ImmSubtreeLog::desc)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSubtreeLog::*)() const>(&org::imm::ImmSubtreeLog::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmSubtreeLog::*)(org::imm::ImmSubtreeLog const&) const>(&org::imm::ImmSubtreeLog::operator==))
-    ;
-  emscripten::class_<org::imm::ImmSubtree>("ImmSubtree")
-    .property("level", &org::imm::ImmSubtree::level)
-    .property("treeId", &org::imm::ImmSubtree::treeId)
-    .property("todo", &org::imm::ImmSubtree::todo)
-    .property("completion", &org::imm::ImmSubtree::completion)
-    .property("description", &org::imm::ImmSubtree::description)
-    .property("tags", &org::imm::ImmSubtree::tags)
-    .property("title", &org::imm::ImmSubtree::title)
-    .property("logbook", &org::imm::ImmSubtree::logbook)
-    .property("properties", &org::imm::ImmSubtree::properties)
-    .property("closed", &org::imm::ImmSubtree::closed)
-    .property("deadline", &org::imm::ImmSubtree::deadline)
-    .property("scheduled", &org::imm::ImmSubtree::scheduled)
-    .property("isComment", &org::imm::ImmSubtree::isComment)
-    .property("isArchived", &org::imm::ImmSubtree::isArchived)
-    .property("priority", &org::imm::ImmSubtree::priority)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSubtree::*)() const>(&org::imm::ImmSubtree::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmSubtree::*)(org::imm::ImmSubtree const&) const>(&org::imm::ImmSubtree::operator==))
-    ;
-  emscripten::class_<org::imm::ImmColonExample>("ImmColonExample")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmColonExample::*)() const>(&org::imm::ImmColonExample::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmColonExample::*)(org::imm::ImmColonExample const&) const>(&org::imm::ImmColonExample::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCall>("ImmCall")
-    .property("name", &org::imm::ImmCall::name)
-    .property("attrs", &org::imm::ImmCall::attrs)
-    .property("isCommand", &org::imm::ImmCall::isCommand)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCall::*)() const>(&org::imm::ImmCall::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCall::*)(org::imm::ImmCall const&) const>(&org::imm::ImmCall::operator==))
-    ;
-  emscripten::class_<org::imm::ImmListItem>("ImmListItem")
-    .property("checkbox", &org::imm::ImmListItem::checkbox)
-    .property("header", &org::imm::ImmListItem::header)
-    .property("bullet", &org::imm::ImmListItem::bullet)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmListItem::*)() const>(&org::imm::ImmListItem::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmListItem::*)(org::imm::ImmListItem const&) const>(&org::imm::ImmListItem::operator==))
-    ;
-  emscripten::class_<org::imm::ImmDocumentOptions>("ImmDocumentOptions")
-    .property("initialVisibility", &org::imm::ImmDocumentOptions::initialVisibility)
-    .property("properties", &org::imm::ImmDocumentOptions::properties)
-    .property("exportConfig", &org::imm::ImmDocumentOptions::exportConfig)
-    .property("fixedWidthSections", &org::imm::ImmDocumentOptions::fixedWidthSections)
-    .property("startupIndented", &org::imm::ImmDocumentOptions::startupIndented)
-    .property("category", &org::imm::ImmDocumentOptions::category)
-    .property("setupfile", &org::imm::ImmDocumentOptions::setupfile)
-    .property("maxSubtreeLevelExport", &org::imm::ImmDocumentOptions::maxSubtreeLevelExport)
-    .property("columns", &org::imm::ImmDocumentOptions::columns)
-    .property("todoKeywords", &org::imm::ImmDocumentOptions::todoKeywords)
-    .property("doneKeywords", &org::imm::ImmDocumentOptions::doneKeywords)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDocumentOptions::*)() const>(&org::imm::ImmDocumentOptions::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmDocumentOptions::*)(org::imm::ImmDocumentOptions const&) const>(&org::imm::ImmDocumentOptions::operator==))
-    ;
-  emscripten::class_<org::imm::ImmDocumentFragment>("ImmDocumentFragment")
-    .property("baseLine", &org::imm::ImmDocumentFragment::baseLine)
-    .property("baseCol", &org::imm::ImmDocumentFragment::baseCol)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDocumentFragment::*)() const>(&org::imm::ImmDocumentFragment::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmDocumentFragment::*)(org::imm::ImmDocumentFragment const&) const>(&org::imm::ImmDocumentFragment::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCriticMarkup>("ImmCriticMarkup")
-    .property("kind", &org::imm::ImmCriticMarkup::kind)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCriticMarkup::*)() const>(&org::imm::ImmCriticMarkup::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCriticMarkup::*)(org::imm::ImmCriticMarkup const&) const>(&org::imm::ImmCriticMarkup::operator==))
-    ;
-  org::bind::js::bind_enum<org::imm::ImmCriticMarkup::Kind>("OrgImmImmCriticMarkupKind");
-  emscripten::class_<org::imm::ImmDocument>("ImmDocument")
-    .property("title", &org::imm::ImmDocument::title)
-    .property("author", &org::imm::ImmDocument::author)
-    .property("creator", &org::imm::ImmDocument::creator)
-    .property("filetags", &org::imm::ImmDocument::filetags)
-    .property("email", &org::imm::ImmDocument::email)
-    .property("language", &org::imm::ImmDocument::language)
-    .property("options", &org::imm::ImmDocument::options)
-    .property("exportFileName", &org::imm::ImmDocument::exportFileName)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDocument::*)() const>(&org::imm::ImmDocument::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmDocument::*)(org::imm::ImmDocument const&) const>(&org::imm::ImmDocument::operator==))
-    ;
-  emscripten::class_<org::imm::ImmFileTarget>("ImmFileTarget")
-    .property("path", &org::imm::ImmFileTarget::path)
-    .property("line", &org::imm::ImmFileTarget::line)
-    .property("searchTarget", &org::imm::ImmFileTarget::searchTarget)
-    .property("restrictToHeadlines", &org::imm::ImmFileTarget::restrictToHeadlines)
-    .property("targetId", &org::imm::ImmFileTarget::targetId)
-    .property("regexp", &org::imm::ImmFileTarget::regexp)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmFileTarget::*)() const>(&org::imm::ImmFileTarget::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmFileTarget::*)(org::imm::ImmFileTarget const&) const>(&org::imm::ImmFileTarget::operator==))
-    ;
-  emscripten::class_<org::imm::ImmTextSeparator>("ImmTextSeparator")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTextSeparator::*)() const>(&org::imm::ImmTextSeparator::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmTextSeparator::*)(org::imm::ImmTextSeparator const&) const>(&org::imm::ImmTextSeparator::operator==))
-    ;
-  emscripten::class_<org::imm::ImmDocumentGroup>("ImmDocumentGroup")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDocumentGroup::*)() const>(&org::imm::ImmDocumentGroup::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmDocumentGroup::*)(org::imm::ImmDocumentGroup const&) const>(&org::imm::ImmDocumentGroup::operator==))
-    ;
-  emscripten::class_<org::imm::ImmFile>("ImmFile")
-    .property("relPath", &org::imm::ImmFile::relPath)
-    .property("absPath", &org::imm::ImmFile::absPath)
-    .property("data", &org::imm::ImmFile::data)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmFile::*)(org::imm::ImmFile const&) const>(&org::imm::ImmFile::operator==))
-    .function("isDocument", static_cast<bool(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::isDocument))
-    .function("getDocumentConst", static_cast<org::imm::ImmFile::Document const&(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getDocument))
-    .function("getDocumentMut", static_cast<org::imm::ImmFile::Document&(org::imm::ImmFile::*)()>(&org::imm::ImmFile::getDocument))
-    .function("isAttachment", static_cast<bool(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::isAttachment))
-    .function("getAttachmentConst", static_cast<org::imm::ImmFile::Attachment const&(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getAttachment))
-    .function("getAttachmentMut", static_cast<org::imm::ImmFile::Attachment&(org::imm::ImmFile::*)()>(&org::imm::ImmFile::getAttachment))
-    .function("isSource", static_cast<bool(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::isSource))
-    .function("getSourceConst", static_cast<org::imm::ImmFile::Source const&(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getSource))
-    .function("getSourceMut", static_cast<org::imm::ImmFile::Source&(org::imm::ImmFile::*)()>(&org::imm::ImmFile::getSource))
-    .class_function("getFileKindStatic", static_cast<org::imm::ImmFile::Kind(*)(org::imm::ImmFile::Data const&)>(&org::imm::ImmFile::getFileKind))
-    .function("getFileKind", static_cast<org::imm::ImmFile::Kind(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getFileKind))
-    ;
-  emscripten::class_<org::imm::ImmFile::Document>("ImmFileDocument")
-    .function("__eq__", static_cast<bool(org::imm::ImmFile::Document::*)(org::imm::ImmFile::Document const&) const>(&org::imm::ImmFile::Document::operator==))
-    ;
-  emscripten::class_<org::imm::ImmFile::Attachment>("ImmFileAttachment")
-    .function("__eq__", static_cast<bool(org::imm::ImmFile::Attachment::*)(org::imm::ImmFile::Attachment const&) const>(&org::imm::ImmFile::Attachment::operator==))
-    ;
-  emscripten::class_<org::imm::ImmFile::Source>("ImmFileSource")
-    .function("__eq__", static_cast<bool(org::imm::ImmFile::Source::*)(org::imm::ImmFile::Source const&) const>(&org::imm::ImmFile::Source::operator==))
-    ;
-  org::bind::js::bind_enum<org::imm::ImmFile::Kind>("OrgImmImmFileKind");
-  emscripten::class_<org::imm::ImmDirectory>("ImmDirectory")
-    .property("relPath", &org::imm::ImmDirectory::relPath)
-    .property("absPath", &org::imm::ImmDirectory::absPath)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDirectory::*)() const>(&org::imm::ImmDirectory::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmDirectory::*)(org::imm::ImmDirectory const&) const>(&org::imm::ImmDirectory::operator==))
-    ;
-  emscripten::class_<org::imm::ImmSymlink>("ImmSymlink")
-    .property("isDirectory", &org::imm::ImmSymlink::isDirectory)
-    .property("absPath", &org::imm::ImmSymlink::absPath)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSymlink::*)() const>(&org::imm::ImmSymlink::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmSymlink::*)(org::imm::ImmSymlink const&) const>(&org::imm::ImmSymlink::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdInclude>("ImmCmdInclude")
-    .property("path", &org::imm::ImmCmdInclude::path)
-    .property("firstLine", &org::imm::ImmCmdInclude::firstLine)
-    .property("lastLine", &org::imm::ImmCmdInclude::lastLine)
-    .property("data", &org::imm::ImmCmdInclude::data)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::*)(org::imm::ImmCmdInclude const&) const>(&org::imm::ImmCmdInclude::operator==))
-    .function("isExample", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isExample))
-    .function("getExampleConst", static_cast<org::imm::ImmCmdInclude::Example const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getExample))
-    .function("getExampleMut", static_cast<org::imm::ImmCmdInclude::Example&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getExample))
-    .function("isExport", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isExport))
-    .function("getExportConst", static_cast<org::imm::ImmCmdInclude::Export const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getExport))
-    .function("getExportMut", static_cast<org::imm::ImmCmdInclude::Export&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getExport))
-    .function("isCustom", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isCustom))
-    .function("getCustomConst", static_cast<org::imm::ImmCmdInclude::Custom const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getCustom))
-    .function("getCustomMut", static_cast<org::imm::ImmCmdInclude::Custom&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getCustom))
-    .function("isSrc", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isSrc))
-    .function("getSrcConst", static_cast<org::imm::ImmCmdInclude::Src const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getSrc))
-    .function("getSrcMut", static_cast<org::imm::ImmCmdInclude::Src&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getSrc))
-    .function("isOrgDocument", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isOrgDocument))
-    .function("getOrgDocumentConst", static_cast<org::imm::ImmCmdInclude::OrgDocument const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getOrgDocument))
-    .function("getOrgDocumentMut", static_cast<org::imm::ImmCmdInclude::OrgDocument&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getOrgDocument))
-    .class_function("getIncludeKindStatic", static_cast<org::imm::ImmCmdInclude::Kind(*)(org::imm::ImmCmdInclude::Data const&)>(&org::imm::ImmCmdInclude::getIncludeKind))
-    .function("getIncludeKind", static_cast<org::imm::ImmCmdInclude::Kind(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getIncludeKind))
-    ;
-  emscripten::class_<org::imm::ImmCmdInclude::IncludeBase>("ImmCmdIncludeIncludeBase")
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::IncludeBase::*)(org::imm::ImmCmdInclude::IncludeBase const&) const>(&org::imm::ImmCmdInclude::IncludeBase::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdInclude::Example, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeExample")
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::Example::*)(org::imm::ImmCmdInclude::Example const&) const>(&org::imm::ImmCmdInclude::Example::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdInclude::Export, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeExport")
-    .property("language", &org::imm::ImmCmdInclude::Export::language)
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::Export::*)(org::imm::ImmCmdInclude::Export const&) const>(&org::imm::ImmCmdInclude::Export::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdInclude::Custom, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeCustom")
-    .property("blockName", &org::imm::ImmCmdInclude::Custom::blockName)
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::Custom::*)(org::imm::ImmCmdInclude::Custom const&) const>(&org::imm::ImmCmdInclude::Custom::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdInclude::Src, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeSrc")
-    .property("language", &org::imm::ImmCmdInclude::Src::language)
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::Src::*)(org::imm::ImmCmdInclude::Src const&) const>(&org::imm::ImmCmdInclude::Src::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdInclude::OrgDocument, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeOrgDocument")
-    .property("onlyContent", &org::imm::ImmCmdInclude::OrgDocument::onlyContent)
-    .property("subtreePath", &org::imm::ImmCmdInclude::OrgDocument::subtreePath)
-    .property("minLevel", &org::imm::ImmCmdInclude::OrgDocument::minLevel)
-    .property("customIdTarget", &org::imm::ImmCmdInclude::OrgDocument::customIdTarget)
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::OrgDocument::*)(org::imm::ImmCmdInclude::OrgDocument const&) const>(&org::imm::ImmCmdInclude::OrgDocument::operator==))
-    ;
-  org::bind::js::bind_enum<org::imm::ImmCmdInclude::Kind>("OrgImmImmCmdIncludeKind");
   emscripten::class_<org::graph::MapConfig, emscripten::base<hstd::OperationsTracer>>("GraphMapConfig")
     .smart_ptr<std::shared_ptr<org::graph::MapConfig>>("GraphMapConfig")
     ;
@@ -2190,6 +1895,303 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     ;
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmCmdInclude>, emscripten::base<org::imm::ImmId>>("ImmIdTCmdInclude")
     ;
+  emscripten::class_<org::imm::ImmNone, emscripten::base<org::imm::ImmOrg>>("ImmNone")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmNone::*)() const>(&org::imm::ImmNone::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmNone::*)(org::imm::ImmNone const&) const>(&org::imm::ImmNone::operator==))
+    ;
+  emscripten::class_<org::imm::ImmErrorItem, emscripten::base<org::imm::ImmOrg>>("ImmErrorItem")
+    .property("message", &org::imm::ImmErrorItem::message)
+    .property("function", &org::imm::ImmErrorItem::function)
+    .property("line", &org::imm::ImmErrorItem::line)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmErrorItem::*)() const>(&org::imm::ImmErrorItem::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmErrorItem::*)(org::imm::ImmErrorItem const&) const>(&org::imm::ImmErrorItem::operator==))
+    ;
+  emscripten::class_<org::imm::ImmErrorGroup, emscripten::base<org::imm::ImmOrg>>("ImmErrorGroup")
+    .property("diagnostics", &org::imm::ImmErrorGroup::diagnostics)
+    .property("function", &org::imm::ImmErrorGroup::function)
+    .property("line", &org::imm::ImmErrorGroup::line)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmErrorGroup::*)() const>(&org::imm::ImmErrorGroup::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmErrorGroup::*)(org::imm::ImmErrorGroup const&) const>(&org::imm::ImmErrorGroup::operator==))
+    ;
+  emscripten::class_<org::imm::ImmStmt, emscripten::base<org::imm::ImmOrg>>("ImmStmt")
+    .property("attached", &org::imm::ImmStmt::attached)
+    .function("__eq__", static_cast<bool(org::imm::ImmStmt::*)(org::imm::ImmStmt const&) const>(&org::imm::ImmStmt::operator==))
+    ;
+  emscripten::class_<org::imm::ImmInline, emscripten::base<org::imm::ImmOrg>>("ImmInline")
+    .function("__eq__", static_cast<bool(org::imm::ImmInline::*)(org::imm::ImmInline const&) const>(&org::imm::ImmInline::operator==))
+    ;
+  emscripten::class_<org::imm::ImmStmtList, emscripten::base<org::imm::ImmOrg>>("ImmStmtList")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmStmtList::*)() const>(&org::imm::ImmStmtList::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmStmtList::*)(org::imm::ImmStmtList const&) const>(&org::imm::ImmStmtList::operator==))
+    ;
+  emscripten::class_<org::imm::ImmEmpty, emscripten::base<org::imm::ImmOrg>>("ImmEmpty")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmEmpty::*)() const>(&org::imm::ImmEmpty::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmEmpty::*)(org::imm::ImmEmpty const&) const>(&org::imm::ImmEmpty::operator==))
+    ;
+  emscripten::class_<org::imm::ImmLeaf, emscripten::base<org::imm::ImmOrg>>("ImmLeaf")
+    .property("text", &org::imm::ImmLeaf::text)
+    .function("__eq__", static_cast<bool(org::imm::ImmLeaf::*)(org::imm::ImmLeaf const&) const>(&org::imm::ImmLeaf::operator==))
+    ;
+  emscripten::class_<org::imm::ImmTime, emscripten::base<org::imm::ImmOrg>>("ImmTime")
+    .property("isActive", &org::imm::ImmTime::isActive)
+    .property("time", &org::imm::ImmTime::time)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmTime::*)(org::imm::ImmTime const&) const>(&org::imm::ImmTime::operator==))
+    .function("isStatic", static_cast<bool(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::isStatic))
+    .function("getStaticConst", static_cast<org::imm::ImmTime::Static const&(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::getStatic))
+    .function("getStaticMut", static_cast<org::imm::ImmTime::Static&(org::imm::ImmTime::*)()>(&org::imm::ImmTime::getStatic))
+    .function("isDynamic", static_cast<bool(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::isDynamic))
+    .function("getDynamicConst", static_cast<org::imm::ImmTime::Dynamic const&(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::getDynamic))
+    .function("getDynamicMut", static_cast<org::imm::ImmTime::Dynamic&(org::imm::ImmTime::*)()>(&org::imm::ImmTime::getDynamic))
+    .class_function("getTimeKindStatic", static_cast<org::imm::ImmTime::TimeKind(*)(org::imm::ImmTime::TimeVariant const&)>(&org::imm::ImmTime::getTimeKind))
+    .function("getTimeKind", static_cast<org::imm::ImmTime::TimeKind(org::imm::ImmTime::*)() const>(&org::imm::ImmTime::getTimeKind))
+    ;
+  emscripten::class_<org::imm::ImmTime::Repeat>("ImmTimeRepeat")
+    .property("mode", &org::imm::ImmTime::Repeat::mode)
+    .property("period", &org::imm::ImmTime::Repeat::period)
+    .property("count", &org::imm::ImmTime::Repeat::count)
+    .function("__eq__", static_cast<bool(org::imm::ImmTime::Repeat::*)(org::imm::ImmTime::Repeat const&) const>(&org::imm::ImmTime::Repeat::operator==))
+    ;
+  org::bind::js::bind_enum<org::imm::ImmTime::Repeat::Mode>("OrgImmImmTimeRepeatMode");
+  org::bind::js::bind_enum<org::imm::ImmTime::Repeat::Period>("OrgImmImmTimeRepeatPeriod");
+  emscripten::class_<org::imm::ImmTime::Static>("ImmTimeStatic")
+    .property("repeat", &org::imm::ImmTime::Static::repeat)
+    .property("warn", &org::imm::ImmTime::Static::warn)
+    .property("time", &org::imm::ImmTime::Static::time)
+    .function("__eq__", static_cast<bool(org::imm::ImmTime::Static::*)(org::imm::ImmTime::Static const&) const>(&org::imm::ImmTime::Static::operator==))
+    ;
+  emscripten::class_<org::imm::ImmTime::Dynamic>("ImmTimeDynamic")
+    .property("expr", &org::imm::ImmTime::Dynamic::expr)
+    .function("__eq__", static_cast<bool(org::imm::ImmTime::Dynamic::*)(org::imm::ImmTime::Dynamic const&) const>(&org::imm::ImmTime::Dynamic::operator==))
+    ;
+  org::bind::js::bind_enum<org::imm::ImmTime::TimeKind>("OrgImmImmTimeTimeKind");
+  emscripten::class_<org::imm::ImmTimeRange, emscripten::base<org::imm::ImmOrg>>("ImmTimeRange")
+    .property("from", &org::imm::ImmTimeRange::from)
+    .property("to", &org::imm::ImmTimeRange::to)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTimeRange::*)() const>(&org::imm::ImmTimeRange::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmTimeRange::*)(org::imm::ImmTimeRange const&) const>(&org::imm::ImmTimeRange::operator==))
+    ;
+  emscripten::class_<org::imm::ImmMacro, emscripten::base<org::imm::ImmOrg>>("ImmMacro")
+    .property("name", &org::imm::ImmMacro::name)
+    .property("attrs", &org::imm::ImmMacro::attrs)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmMacro::*)() const>(&org::imm::ImmMacro::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmMacro::*)(org::imm::ImmMacro const&) const>(&org::imm::ImmMacro::operator==))
+    ;
+  emscripten::class_<org::imm::ImmSymbol, emscripten::base<org::imm::ImmOrg>>("ImmSymbol")
+    .property("name", &org::imm::ImmSymbol::name)
+    .property("parameters", &org::imm::ImmSymbol::parameters)
+    .property("positional", &org::imm::ImmSymbol::positional)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSymbol::*)() const>(&org::imm::ImmSymbol::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmSymbol::*)(org::imm::ImmSymbol const&) const>(&org::imm::ImmSymbol::operator==))
+    ;
+  emscripten::class_<org::imm::ImmSymbol::Param>("ImmSymbolParam")
+    .property("key", &org::imm::ImmSymbol::Param::key)
+    .property("value", &org::imm::ImmSymbol::Param::value)
+    .function("__eq__", static_cast<bool(org::imm::ImmSymbol::Param::*)(org::imm::ImmSymbol::Param const&) const>(&org::imm::ImmSymbol::Param::operator==))
+    ;
+  emscripten::class_<org::imm::ImmMarkup, emscripten::base<org::imm::ImmOrg>>("ImmMarkup")
+    .function("__eq__", static_cast<bool(org::imm::ImmMarkup::*)(org::imm::ImmMarkup const&) const>(&org::imm::ImmMarkup::operator==))
+    ;
+  emscripten::class_<org::imm::ImmRadioTarget, emscripten::base<org::imm::ImmOrg>>("ImmRadioTarget")
+    .property("words", &org::imm::ImmRadioTarget::words)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmRadioTarget::*)() const>(&org::imm::ImmRadioTarget::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmRadioTarget::*)(org::imm::ImmRadioTarget const&) const>(&org::imm::ImmRadioTarget::operator==))
+    ;
+  emscripten::class_<org::imm::ImmLatex, emscripten::base<org::imm::ImmOrg>>("ImmLatex")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmLatex::*)() const>(&org::imm::ImmLatex::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmLatex::*)(org::imm::ImmLatex const&) const>(&org::imm::ImmLatex::operator==))
+    ;
+  emscripten::class_<org::imm::ImmSubtreeLog, emscripten::base<org::imm::ImmOrg>>("ImmSubtreeLog")
+    .property("head", &org::imm::ImmSubtreeLog::head)
+    .property("desc", &org::imm::ImmSubtreeLog::desc)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSubtreeLog::*)() const>(&org::imm::ImmSubtreeLog::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmSubtreeLog::*)(org::imm::ImmSubtreeLog const&) const>(&org::imm::ImmSubtreeLog::operator==))
+    ;
+  emscripten::class_<org::imm::ImmSubtree, emscripten::base<org::imm::ImmOrg>>("ImmSubtree")
+    .property("level", &org::imm::ImmSubtree::level)
+    .property("treeId", &org::imm::ImmSubtree::treeId)
+    .property("todo", &org::imm::ImmSubtree::todo)
+    .property("completion", &org::imm::ImmSubtree::completion)
+    .property("description", &org::imm::ImmSubtree::description)
+    .property("tags", &org::imm::ImmSubtree::tags)
+    .property("title", &org::imm::ImmSubtree::title)
+    .property("logbook", &org::imm::ImmSubtree::logbook)
+    .property("properties", &org::imm::ImmSubtree::properties)
+    .property("closed", &org::imm::ImmSubtree::closed)
+    .property("deadline", &org::imm::ImmSubtree::deadline)
+    .property("scheduled", &org::imm::ImmSubtree::scheduled)
+    .property("isComment", &org::imm::ImmSubtree::isComment)
+    .property("isArchived", &org::imm::ImmSubtree::isArchived)
+    .property("priority", &org::imm::ImmSubtree::priority)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSubtree::*)() const>(&org::imm::ImmSubtree::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmSubtree::*)(org::imm::ImmSubtree const&) const>(&org::imm::ImmSubtree::operator==))
+    ;
+  emscripten::class_<org::imm::ImmColonExample, emscripten::base<org::imm::ImmOrg>>("ImmColonExample")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmColonExample::*)() const>(&org::imm::ImmColonExample::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmColonExample::*)(org::imm::ImmColonExample const&) const>(&org::imm::ImmColonExample::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCall, emscripten::base<org::imm::ImmOrg>>("ImmCall")
+    .property("name", &org::imm::ImmCall::name)
+    .property("attrs", &org::imm::ImmCall::attrs)
+    .property("isCommand", &org::imm::ImmCall::isCommand)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCall::*)() const>(&org::imm::ImmCall::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCall::*)(org::imm::ImmCall const&) const>(&org::imm::ImmCall::operator==))
+    ;
+  emscripten::class_<org::imm::ImmListItem, emscripten::base<org::imm::ImmOrg>>("ImmListItem")
+    .property("checkbox", &org::imm::ImmListItem::checkbox)
+    .property("header", &org::imm::ImmListItem::header)
+    .property("bullet", &org::imm::ImmListItem::bullet)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmListItem::*)() const>(&org::imm::ImmListItem::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmListItem::*)(org::imm::ImmListItem const&) const>(&org::imm::ImmListItem::operator==))
+    ;
+  emscripten::class_<org::imm::ImmDocumentOptions, emscripten::base<org::imm::ImmOrg>>("ImmDocumentOptions")
+    .property("initialVisibility", &org::imm::ImmDocumentOptions::initialVisibility)
+    .property("properties", &org::imm::ImmDocumentOptions::properties)
+    .property("exportConfig", &org::imm::ImmDocumentOptions::exportConfig)
+    .property("fixedWidthSections", &org::imm::ImmDocumentOptions::fixedWidthSections)
+    .property("startupIndented", &org::imm::ImmDocumentOptions::startupIndented)
+    .property("category", &org::imm::ImmDocumentOptions::category)
+    .property("setupfile", &org::imm::ImmDocumentOptions::setupfile)
+    .property("maxSubtreeLevelExport", &org::imm::ImmDocumentOptions::maxSubtreeLevelExport)
+    .property("columns", &org::imm::ImmDocumentOptions::columns)
+    .property("todoKeywords", &org::imm::ImmDocumentOptions::todoKeywords)
+    .property("doneKeywords", &org::imm::ImmDocumentOptions::doneKeywords)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDocumentOptions::*)() const>(&org::imm::ImmDocumentOptions::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmDocumentOptions::*)(org::imm::ImmDocumentOptions const&) const>(&org::imm::ImmDocumentOptions::operator==))
+    ;
+  emscripten::class_<org::imm::ImmDocumentFragment, emscripten::base<org::imm::ImmOrg>>("ImmDocumentFragment")
+    .property("baseLine", &org::imm::ImmDocumentFragment::baseLine)
+    .property("baseCol", &org::imm::ImmDocumentFragment::baseCol)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDocumentFragment::*)() const>(&org::imm::ImmDocumentFragment::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmDocumentFragment::*)(org::imm::ImmDocumentFragment const&) const>(&org::imm::ImmDocumentFragment::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCriticMarkup, emscripten::base<org::imm::ImmOrg>>("ImmCriticMarkup")
+    .property("kind", &org::imm::ImmCriticMarkup::kind)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCriticMarkup::*)() const>(&org::imm::ImmCriticMarkup::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCriticMarkup::*)(org::imm::ImmCriticMarkup const&) const>(&org::imm::ImmCriticMarkup::operator==))
+    ;
+  org::bind::js::bind_enum<org::imm::ImmCriticMarkup::Kind>("OrgImmImmCriticMarkupKind");
+  emscripten::class_<org::imm::ImmDocument, emscripten::base<org::imm::ImmOrg>>("ImmDocument")
+    .property("title", &org::imm::ImmDocument::title)
+    .property("author", &org::imm::ImmDocument::author)
+    .property("creator", &org::imm::ImmDocument::creator)
+    .property("filetags", &org::imm::ImmDocument::filetags)
+    .property("email", &org::imm::ImmDocument::email)
+    .property("language", &org::imm::ImmDocument::language)
+    .property("options", &org::imm::ImmDocument::options)
+    .property("exportFileName", &org::imm::ImmDocument::exportFileName)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDocument::*)() const>(&org::imm::ImmDocument::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmDocument::*)(org::imm::ImmDocument const&) const>(&org::imm::ImmDocument::operator==))
+    ;
+  emscripten::class_<org::imm::ImmFileTarget, emscripten::base<org::imm::ImmOrg>>("ImmFileTarget")
+    .property("path", &org::imm::ImmFileTarget::path)
+    .property("line", &org::imm::ImmFileTarget::line)
+    .property("searchTarget", &org::imm::ImmFileTarget::searchTarget)
+    .property("restrictToHeadlines", &org::imm::ImmFileTarget::restrictToHeadlines)
+    .property("targetId", &org::imm::ImmFileTarget::targetId)
+    .property("regexp", &org::imm::ImmFileTarget::regexp)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmFileTarget::*)() const>(&org::imm::ImmFileTarget::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmFileTarget::*)(org::imm::ImmFileTarget const&) const>(&org::imm::ImmFileTarget::operator==))
+    ;
+  emscripten::class_<org::imm::ImmTextSeparator, emscripten::base<org::imm::ImmOrg>>("ImmTextSeparator")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTextSeparator::*)() const>(&org::imm::ImmTextSeparator::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmTextSeparator::*)(org::imm::ImmTextSeparator const&) const>(&org::imm::ImmTextSeparator::operator==))
+    ;
+  emscripten::class_<org::imm::ImmDocumentGroup, emscripten::base<org::imm::ImmOrg>>("ImmDocumentGroup")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDocumentGroup::*)() const>(&org::imm::ImmDocumentGroup::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmDocumentGroup::*)(org::imm::ImmDocumentGroup const&) const>(&org::imm::ImmDocumentGroup::operator==))
+    ;
+  emscripten::class_<org::imm::ImmFile, emscripten::base<org::imm::ImmOrg>>("ImmFile")
+    .property("relPath", &org::imm::ImmFile::relPath)
+    .property("absPath", &org::imm::ImmFile::absPath)
+    .property("data", &org::imm::ImmFile::data)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmFile::*)(org::imm::ImmFile const&) const>(&org::imm::ImmFile::operator==))
+    .function("isDocument", static_cast<bool(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::isDocument))
+    .function("getDocumentConst", static_cast<org::imm::ImmFile::Document const&(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getDocument))
+    .function("getDocumentMut", static_cast<org::imm::ImmFile::Document&(org::imm::ImmFile::*)()>(&org::imm::ImmFile::getDocument))
+    .function("isAttachment", static_cast<bool(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::isAttachment))
+    .function("getAttachmentConst", static_cast<org::imm::ImmFile::Attachment const&(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getAttachment))
+    .function("getAttachmentMut", static_cast<org::imm::ImmFile::Attachment&(org::imm::ImmFile::*)()>(&org::imm::ImmFile::getAttachment))
+    .function("isSource", static_cast<bool(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::isSource))
+    .function("getSourceConst", static_cast<org::imm::ImmFile::Source const&(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getSource))
+    .function("getSourceMut", static_cast<org::imm::ImmFile::Source&(org::imm::ImmFile::*)()>(&org::imm::ImmFile::getSource))
+    .class_function("getFileKindStatic", static_cast<org::imm::ImmFile::Kind(*)(org::imm::ImmFile::Data const&)>(&org::imm::ImmFile::getFileKind))
+    .function("getFileKind", static_cast<org::imm::ImmFile::Kind(org::imm::ImmFile::*)() const>(&org::imm::ImmFile::getFileKind))
+    ;
+  emscripten::class_<org::imm::ImmFile::Document>("ImmFileDocument")
+    .function("__eq__", static_cast<bool(org::imm::ImmFile::Document::*)(org::imm::ImmFile::Document const&) const>(&org::imm::ImmFile::Document::operator==))
+    ;
+  emscripten::class_<org::imm::ImmFile::Attachment>("ImmFileAttachment")
+    .function("__eq__", static_cast<bool(org::imm::ImmFile::Attachment::*)(org::imm::ImmFile::Attachment const&) const>(&org::imm::ImmFile::Attachment::operator==))
+    ;
+  emscripten::class_<org::imm::ImmFile::Source>("ImmFileSource")
+    .function("__eq__", static_cast<bool(org::imm::ImmFile::Source::*)(org::imm::ImmFile::Source const&) const>(&org::imm::ImmFile::Source::operator==))
+    ;
+  org::bind::js::bind_enum<org::imm::ImmFile::Kind>("OrgImmImmFileKind");
+  emscripten::class_<org::imm::ImmDirectory, emscripten::base<org::imm::ImmOrg>>("ImmDirectory")
+    .property("relPath", &org::imm::ImmDirectory::relPath)
+    .property("absPath", &org::imm::ImmDirectory::absPath)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmDirectory::*)() const>(&org::imm::ImmDirectory::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmDirectory::*)(org::imm::ImmDirectory const&) const>(&org::imm::ImmDirectory::operator==))
+    ;
+  emscripten::class_<org::imm::ImmSymlink, emscripten::base<org::imm::ImmOrg>>("ImmSymlink")
+    .property("isDirectory", &org::imm::ImmSymlink::isDirectory)
+    .property("absPath", &org::imm::ImmSymlink::absPath)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSymlink::*)() const>(&org::imm::ImmSymlink::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmSymlink::*)(org::imm::ImmSymlink const&) const>(&org::imm::ImmSymlink::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdInclude, emscripten::base<org::imm::ImmOrg>>("ImmCmdInclude")
+    .property("path", &org::imm::ImmCmdInclude::path)
+    .property("firstLine", &org::imm::ImmCmdInclude::firstLine)
+    .property("lastLine", &org::imm::ImmCmdInclude::lastLine)
+    .property("data", &org::imm::ImmCmdInclude::data)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::*)(org::imm::ImmCmdInclude const&) const>(&org::imm::ImmCmdInclude::operator==))
+    .function("isExample", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isExample))
+    .function("getExampleConst", static_cast<org::imm::ImmCmdInclude::Example const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getExample))
+    .function("getExampleMut", static_cast<org::imm::ImmCmdInclude::Example&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getExample))
+    .function("isExport", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isExport))
+    .function("getExportConst", static_cast<org::imm::ImmCmdInclude::Export const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getExport))
+    .function("getExportMut", static_cast<org::imm::ImmCmdInclude::Export&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getExport))
+    .function("isCustom", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isCustom))
+    .function("getCustomConst", static_cast<org::imm::ImmCmdInclude::Custom const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getCustom))
+    .function("getCustomMut", static_cast<org::imm::ImmCmdInclude::Custom&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getCustom))
+    .function("isSrc", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isSrc))
+    .function("getSrcConst", static_cast<org::imm::ImmCmdInclude::Src const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getSrc))
+    .function("getSrcMut", static_cast<org::imm::ImmCmdInclude::Src&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getSrc))
+    .function("isOrgDocument", static_cast<bool(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::isOrgDocument))
+    .function("getOrgDocumentConst", static_cast<org::imm::ImmCmdInclude::OrgDocument const&(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getOrgDocument))
+    .function("getOrgDocumentMut", static_cast<org::imm::ImmCmdInclude::OrgDocument&(org::imm::ImmCmdInclude::*)()>(&org::imm::ImmCmdInclude::getOrgDocument))
+    .class_function("getIncludeKindStatic", static_cast<org::imm::ImmCmdInclude::Kind(*)(org::imm::ImmCmdInclude::Data const&)>(&org::imm::ImmCmdInclude::getIncludeKind))
+    .function("getIncludeKind", static_cast<org::imm::ImmCmdInclude::Kind(org::imm::ImmCmdInclude::*)() const>(&org::imm::ImmCmdInclude::getIncludeKind))
+    ;
+  emscripten::class_<org::imm::ImmCmdInclude::IncludeBase>("ImmCmdIncludeIncludeBase")
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::IncludeBase::*)(org::imm::ImmCmdInclude::IncludeBase const&) const>(&org::imm::ImmCmdInclude::IncludeBase::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdInclude::Example, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeExample")
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::Example::*)(org::imm::ImmCmdInclude::Example const&) const>(&org::imm::ImmCmdInclude::Example::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdInclude::Export, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeExport")
+    .property("language", &org::imm::ImmCmdInclude::Export::language)
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::Export::*)(org::imm::ImmCmdInclude::Export const&) const>(&org::imm::ImmCmdInclude::Export::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdInclude::Custom, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeCustom")
+    .property("blockName", &org::imm::ImmCmdInclude::Custom::blockName)
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::Custom::*)(org::imm::ImmCmdInclude::Custom const&) const>(&org::imm::ImmCmdInclude::Custom::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdInclude::Src, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeSrc")
+    .property("language", &org::imm::ImmCmdInclude::Src::language)
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::Src::*)(org::imm::ImmCmdInclude::Src const&) const>(&org::imm::ImmCmdInclude::Src::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdInclude::OrgDocument, emscripten::base<org::imm::ImmCmdInclude::IncludeBase>>("ImmCmdIncludeOrgDocument")
+    .property("onlyContent", &org::imm::ImmCmdInclude::OrgDocument::onlyContent)
+    .property("subtreePath", &org::imm::ImmCmdInclude::OrgDocument::subtreePath)
+    .property("minLevel", &org::imm::ImmCmdInclude::OrgDocument::minLevel)
+    .property("customIdTarget", &org::imm::ImmCmdInclude::OrgDocument::customIdTarget)
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdInclude::OrgDocument::*)(org::imm::ImmCmdInclude::OrgDocument const&) const>(&org::imm::ImmCmdInclude::OrgDocument::operator==))
+    ;
+  org::bind::js::bind_enum<org::imm::ImmCmdInclude::Kind>("OrgImmImmCmdIncludeKind");
   emscripten::class_<org::imm::ImmNoneValue, emscripten::base<org::imm::ImmNoneValueRead>>("ImmNoneValue")
     ;
   emscripten::class_<org::imm::ImmErrorItemValue, emscripten::base<org::imm::ImmErrorItemValueRead>>("ImmErrorItemValue")
@@ -2466,131 +2468,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     ;
   emscripten::class_<org::imm::ImmAdapterOrgAPI, emscripten::base<org::imm::ImmAdapterVirtualBase>>("ImmAdapterOrgAPI")
     ;
-  emscripten::class_<org::imm::ImmCmd, emscripten::base<org::imm::ImmStmt>>("ImmCmd")
-    .property("attrs", &org::imm::ImmCmd::attrs)
-    .function("__eq__", static_cast<bool(org::imm::ImmCmd::*)(org::imm::ImmCmd const&) const>(&org::imm::ImmCmd::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdCustomRaw, emscripten::base<org::imm::ImmStmt>>("ImmCmdCustomRaw")
-    .property("name", &org::imm::ImmCmdCustomRaw::name)
-    .property("isAttached", &org::imm::ImmCmdCustomRaw::isAttached)
-    .property("text", &org::imm::ImmCmdCustomRaw::text)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCustomRaw::*)() const>(&org::imm::ImmCmdCustomRaw::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdCustomRaw::*)(org::imm::ImmCmdCustomRaw const&) const>(&org::imm::ImmCmdCustomRaw::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdCustomText, emscripten::base<org::imm::ImmStmt>>("ImmCmdCustomText")
-    .property("name", &org::imm::ImmCmdCustomText::name)
-    .property("isAttached", &org::imm::ImmCmdCustomText::isAttached)
-    .property("text", &org::imm::ImmCmdCustomText::text)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCustomText::*)() const>(&org::imm::ImmCmdCustomText::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdCustomText::*)(org::imm::ImmCmdCustomText const&) const>(&org::imm::ImmCmdCustomText::operator==))
-    ;
-  emscripten::class_<org::imm::ImmLink, emscripten::base<org::imm::ImmStmt>>("ImmLink")
-    .property("description", &org::imm::ImmLink::description)
-    .property("target", &org::imm::ImmLink::target)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmLink::*)() const>(&org::imm::ImmLink::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmLink::*)(org::imm::ImmLink const&) const>(&org::imm::ImmLink::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBlockComment, emscripten::base<org::imm::ImmStmt>>("ImmBlockComment")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockComment::*)() const>(&org::imm::ImmBlockComment::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockComment::*)(org::imm::ImmBlockComment const&) const>(&org::imm::ImmBlockComment::operator==))
-    ;
-  emscripten::class_<org::imm::ImmParagraph, emscripten::base<org::imm::ImmStmt>>("ImmParagraph")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmParagraph::*)() const>(&org::imm::ImmParagraph::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmParagraph::*)(org::imm::ImmParagraph const&) const>(&org::imm::ImmParagraph::operator==))
-    ;
-  emscripten::class_<org::imm::ImmList, emscripten::base<org::imm::ImmStmt>>("ImmList")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmList::*)() const>(&org::imm::ImmList::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmList::*)(org::imm::ImmList const&) const>(&org::imm::ImmList::operator==))
-    ;
-  emscripten::class_<org::imm::ImmHashTag, emscripten::base<org::imm::ImmInline>>("ImmHashTag")
-    .property("text", &org::imm::ImmHashTag::text)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmHashTag::*)() const>(&org::imm::ImmHashTag::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmHashTag::*)(org::imm::ImmHashTag const&) const>(&org::imm::ImmHashTag::operator==))
-    ;
-  emscripten::class_<org::imm::ImmInlineFootnote, emscripten::base<org::imm::ImmInline>>("ImmInlineFootnote")
-    .property("tag", &org::imm::ImmInlineFootnote::tag)
-    .property("definition", &org::imm::ImmInlineFootnote::definition)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmInlineFootnote::*)() const>(&org::imm::ImmInlineFootnote::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmInlineFootnote::*)(org::imm::ImmInlineFootnote const&) const>(&org::imm::ImmInlineFootnote::operator==))
-    ;
-  emscripten::class_<org::imm::ImmInlineExport, emscripten::base<org::imm::ImmInline>>("ImmInlineExport")
-    .property("exporter", &org::imm::ImmInlineExport::exporter)
-    .property("content", &org::imm::ImmInlineExport::content)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmInlineExport::*)() const>(&org::imm::ImmInlineExport::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmInlineExport::*)(org::imm::ImmInlineExport const&) const>(&org::imm::ImmInlineExport::operator==))
-    ;
-  emscripten::class_<org::imm::ImmEscaped, emscripten::base<org::imm::ImmLeaf>>("ImmEscaped")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmEscaped::*)() const>(&org::imm::ImmEscaped::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmEscaped::*)(org::imm::ImmEscaped const&) const>(&org::imm::ImmEscaped::operator==))
-    ;
-  emscripten::class_<org::imm::ImmNewline, emscripten::base<org::imm::ImmLeaf>>("ImmNewline")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmNewline::*)() const>(&org::imm::ImmNewline::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmNewline::*)(org::imm::ImmNewline const&) const>(&org::imm::ImmNewline::operator==))
-    ;
-  emscripten::class_<org::imm::ImmSpace, emscripten::base<org::imm::ImmLeaf>>("ImmSpace")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSpace::*)() const>(&org::imm::ImmSpace::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmSpace::*)(org::imm::ImmSpace const&) const>(&org::imm::ImmSpace::operator==))
-    ;
-  emscripten::class_<org::imm::ImmWord, emscripten::base<org::imm::ImmLeaf>>("ImmWord")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmWord::*)() const>(&org::imm::ImmWord::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmWord::*)(org::imm::ImmWord const&) const>(&org::imm::ImmWord::operator==))
-    ;
-  emscripten::class_<org::imm::ImmAtMention, emscripten::base<org::imm::ImmLeaf>>("ImmAtMention")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmAtMention::*)() const>(&org::imm::ImmAtMention::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmAtMention::*)(org::imm::ImmAtMention const&) const>(&org::imm::ImmAtMention::operator==))
-    ;
-  emscripten::class_<org::imm::ImmRawText, emscripten::base<org::imm::ImmLeaf>>("ImmRawText")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmRawText::*)() const>(&org::imm::ImmRawText::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmRawText::*)(org::imm::ImmRawText const&) const>(&org::imm::ImmRawText::operator==))
-    ;
-  emscripten::class_<org::imm::ImmPunctuation, emscripten::base<org::imm::ImmLeaf>>("ImmPunctuation")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmPunctuation::*)() const>(&org::imm::ImmPunctuation::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmPunctuation::*)(org::imm::ImmPunctuation const&) const>(&org::imm::ImmPunctuation::operator==))
-    ;
-  emscripten::class_<org::imm::ImmPlaceholder, emscripten::base<org::imm::ImmLeaf>>("ImmPlaceholder")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmPlaceholder::*)() const>(&org::imm::ImmPlaceholder::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmPlaceholder::*)(org::imm::ImmPlaceholder const&) const>(&org::imm::ImmPlaceholder::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBigIdent, emscripten::base<org::imm::ImmLeaf>>("ImmBigIdent")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBigIdent::*)() const>(&org::imm::ImmBigIdent::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBigIdent::*)(org::imm::ImmBigIdent const&) const>(&org::imm::ImmBigIdent::operator==))
-    ;
-  emscripten::class_<org::imm::ImmTextTarget, emscripten::base<org::imm::ImmLeaf>>("ImmTextTarget")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTextTarget::*)() const>(&org::imm::ImmTextTarget::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmTextTarget::*)(org::imm::ImmTextTarget const&) const>(&org::imm::ImmTextTarget::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBold, emscripten::base<org::imm::ImmMarkup>>("ImmBold")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBold::*)() const>(&org::imm::ImmBold::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBold::*)(org::imm::ImmBold const&) const>(&org::imm::ImmBold::operator==))
-    ;
-  emscripten::class_<org::imm::ImmUnderline, emscripten::base<org::imm::ImmMarkup>>("ImmUnderline")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmUnderline::*)() const>(&org::imm::ImmUnderline::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmUnderline::*)(org::imm::ImmUnderline const&) const>(&org::imm::ImmUnderline::operator==))
-    ;
-  emscripten::class_<org::imm::ImmMonospace, emscripten::base<org::imm::ImmMarkup>>("ImmMonospace")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmMonospace::*)() const>(&org::imm::ImmMonospace::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmMonospace::*)(org::imm::ImmMonospace const&) const>(&org::imm::ImmMonospace::operator==))
-    ;
-  emscripten::class_<org::imm::ImmMarkQuote, emscripten::base<org::imm::ImmMarkup>>("ImmMarkQuote")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmMarkQuote::*)() const>(&org::imm::ImmMarkQuote::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmMarkQuote::*)(org::imm::ImmMarkQuote const&) const>(&org::imm::ImmMarkQuote::operator==))
-    ;
-  emscripten::class_<org::imm::ImmVerbatim, emscripten::base<org::imm::ImmMarkup>>("ImmVerbatim")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmVerbatim::*)() const>(&org::imm::ImmVerbatim::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmVerbatim::*)(org::imm::ImmVerbatim const&) const>(&org::imm::ImmVerbatim::operator==))
-    ;
-  emscripten::class_<org::imm::ImmItalic, emscripten::base<org::imm::ImmMarkup>>("ImmItalic")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmItalic::*)() const>(&org::imm::ImmItalic::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmItalic::*)(org::imm::ImmItalic const&) const>(&org::imm::ImmItalic::operator==))
-    ;
-  emscripten::class_<org::imm::ImmStrike, emscripten::base<org::imm::ImmMarkup>>("ImmStrike")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmStrike::*)() const>(&org::imm::ImmStrike::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmStrike::*)(org::imm::ImmStrike const&) const>(&org::imm::ImmStrike::operator==))
-    ;
-  emscripten::class_<org::imm::ImmPar, emscripten::base<org::imm::ImmMarkup>>("ImmPar")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmPar::*)() const>(&org::imm::ImmPar::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmPar::*)(org::imm::ImmPar const&) const>(&org::imm::ImmPar::operator==))
-    ;
   emscripten::class_<org::sem::Cmd, emscripten::base<org::sem::Stmt>>("Cmd")
     .smart_ptr<org::sem::SemId<org::sem::Cmd>>("Cmd")
     .property("attrs", &org::sem::Cmd::attrs)
@@ -2733,6 +2610,131 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .smart_ptr<org::sem::SemId<org::sem::Par>>("Par")
     .function("getKind", static_cast<OrgSemKind(org::sem::Par::*)() const>(&org::sem::Par::getKind))
     ;
+  emscripten::class_<org::imm::ImmCmd, emscripten::base<org::imm::ImmStmt>>("ImmCmd")
+    .property("attrs", &org::imm::ImmCmd::attrs)
+    .function("__eq__", static_cast<bool(org::imm::ImmCmd::*)(org::imm::ImmCmd const&) const>(&org::imm::ImmCmd::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdCustomRaw, emscripten::base<org::imm::ImmStmt>>("ImmCmdCustomRaw")
+    .property("name", &org::imm::ImmCmdCustomRaw::name)
+    .property("isAttached", &org::imm::ImmCmdCustomRaw::isAttached)
+    .property("text", &org::imm::ImmCmdCustomRaw::text)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCustomRaw::*)() const>(&org::imm::ImmCmdCustomRaw::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdCustomRaw::*)(org::imm::ImmCmdCustomRaw const&) const>(&org::imm::ImmCmdCustomRaw::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdCustomText, emscripten::base<org::imm::ImmStmt>>("ImmCmdCustomText")
+    .property("name", &org::imm::ImmCmdCustomText::name)
+    .property("isAttached", &org::imm::ImmCmdCustomText::isAttached)
+    .property("text", &org::imm::ImmCmdCustomText::text)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCustomText::*)() const>(&org::imm::ImmCmdCustomText::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdCustomText::*)(org::imm::ImmCmdCustomText const&) const>(&org::imm::ImmCmdCustomText::operator==))
+    ;
+  emscripten::class_<org::imm::ImmLink, emscripten::base<org::imm::ImmStmt>>("ImmLink")
+    .property("description", &org::imm::ImmLink::description)
+    .property("target", &org::imm::ImmLink::target)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmLink::*)() const>(&org::imm::ImmLink::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmLink::*)(org::imm::ImmLink const&) const>(&org::imm::ImmLink::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBlockComment, emscripten::base<org::imm::ImmStmt>>("ImmBlockComment")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockComment::*)() const>(&org::imm::ImmBlockComment::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockComment::*)(org::imm::ImmBlockComment const&) const>(&org::imm::ImmBlockComment::operator==))
+    ;
+  emscripten::class_<org::imm::ImmParagraph, emscripten::base<org::imm::ImmStmt>>("ImmParagraph")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmParagraph::*)() const>(&org::imm::ImmParagraph::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmParagraph::*)(org::imm::ImmParagraph const&) const>(&org::imm::ImmParagraph::operator==))
+    ;
+  emscripten::class_<org::imm::ImmList, emscripten::base<org::imm::ImmStmt>>("ImmList")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmList::*)() const>(&org::imm::ImmList::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmList::*)(org::imm::ImmList const&) const>(&org::imm::ImmList::operator==))
+    ;
+  emscripten::class_<org::imm::ImmHashTag, emscripten::base<org::imm::ImmInline>>("ImmHashTag")
+    .property("text", &org::imm::ImmHashTag::text)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmHashTag::*)() const>(&org::imm::ImmHashTag::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmHashTag::*)(org::imm::ImmHashTag const&) const>(&org::imm::ImmHashTag::operator==))
+    ;
+  emscripten::class_<org::imm::ImmInlineFootnote, emscripten::base<org::imm::ImmInline>>("ImmInlineFootnote")
+    .property("tag", &org::imm::ImmInlineFootnote::tag)
+    .property("definition", &org::imm::ImmInlineFootnote::definition)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmInlineFootnote::*)() const>(&org::imm::ImmInlineFootnote::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmInlineFootnote::*)(org::imm::ImmInlineFootnote const&) const>(&org::imm::ImmInlineFootnote::operator==))
+    ;
+  emscripten::class_<org::imm::ImmInlineExport, emscripten::base<org::imm::ImmInline>>("ImmInlineExport")
+    .property("exporter", &org::imm::ImmInlineExport::exporter)
+    .property("content", &org::imm::ImmInlineExport::content)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmInlineExport::*)() const>(&org::imm::ImmInlineExport::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmInlineExport::*)(org::imm::ImmInlineExport const&) const>(&org::imm::ImmInlineExport::operator==))
+    ;
+  emscripten::class_<org::imm::ImmEscaped, emscripten::base<org::imm::ImmLeaf>>("ImmEscaped")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmEscaped::*)() const>(&org::imm::ImmEscaped::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmEscaped::*)(org::imm::ImmEscaped const&) const>(&org::imm::ImmEscaped::operator==))
+    ;
+  emscripten::class_<org::imm::ImmNewline, emscripten::base<org::imm::ImmLeaf>>("ImmNewline")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmNewline::*)() const>(&org::imm::ImmNewline::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmNewline::*)(org::imm::ImmNewline const&) const>(&org::imm::ImmNewline::operator==))
+    ;
+  emscripten::class_<org::imm::ImmSpace, emscripten::base<org::imm::ImmLeaf>>("ImmSpace")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmSpace::*)() const>(&org::imm::ImmSpace::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmSpace::*)(org::imm::ImmSpace const&) const>(&org::imm::ImmSpace::operator==))
+    ;
+  emscripten::class_<org::imm::ImmWord, emscripten::base<org::imm::ImmLeaf>>("ImmWord")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmWord::*)() const>(&org::imm::ImmWord::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmWord::*)(org::imm::ImmWord const&) const>(&org::imm::ImmWord::operator==))
+    ;
+  emscripten::class_<org::imm::ImmAtMention, emscripten::base<org::imm::ImmLeaf>>("ImmAtMention")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmAtMention::*)() const>(&org::imm::ImmAtMention::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmAtMention::*)(org::imm::ImmAtMention const&) const>(&org::imm::ImmAtMention::operator==))
+    ;
+  emscripten::class_<org::imm::ImmRawText, emscripten::base<org::imm::ImmLeaf>>("ImmRawText")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmRawText::*)() const>(&org::imm::ImmRawText::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmRawText::*)(org::imm::ImmRawText const&) const>(&org::imm::ImmRawText::operator==))
+    ;
+  emscripten::class_<org::imm::ImmPunctuation, emscripten::base<org::imm::ImmLeaf>>("ImmPunctuation")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmPunctuation::*)() const>(&org::imm::ImmPunctuation::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmPunctuation::*)(org::imm::ImmPunctuation const&) const>(&org::imm::ImmPunctuation::operator==))
+    ;
+  emscripten::class_<org::imm::ImmPlaceholder, emscripten::base<org::imm::ImmLeaf>>("ImmPlaceholder")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmPlaceholder::*)() const>(&org::imm::ImmPlaceholder::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmPlaceholder::*)(org::imm::ImmPlaceholder const&) const>(&org::imm::ImmPlaceholder::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBigIdent, emscripten::base<org::imm::ImmLeaf>>("ImmBigIdent")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBigIdent::*)() const>(&org::imm::ImmBigIdent::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBigIdent::*)(org::imm::ImmBigIdent const&) const>(&org::imm::ImmBigIdent::operator==))
+    ;
+  emscripten::class_<org::imm::ImmTextTarget, emscripten::base<org::imm::ImmLeaf>>("ImmTextTarget")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTextTarget::*)() const>(&org::imm::ImmTextTarget::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmTextTarget::*)(org::imm::ImmTextTarget const&) const>(&org::imm::ImmTextTarget::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBold, emscripten::base<org::imm::ImmMarkup>>("ImmBold")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBold::*)() const>(&org::imm::ImmBold::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBold::*)(org::imm::ImmBold const&) const>(&org::imm::ImmBold::operator==))
+    ;
+  emscripten::class_<org::imm::ImmUnderline, emscripten::base<org::imm::ImmMarkup>>("ImmUnderline")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmUnderline::*)() const>(&org::imm::ImmUnderline::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmUnderline::*)(org::imm::ImmUnderline const&) const>(&org::imm::ImmUnderline::operator==))
+    ;
+  emscripten::class_<org::imm::ImmMonospace, emscripten::base<org::imm::ImmMarkup>>("ImmMonospace")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmMonospace::*)() const>(&org::imm::ImmMonospace::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmMonospace::*)(org::imm::ImmMonospace const&) const>(&org::imm::ImmMonospace::operator==))
+    ;
+  emscripten::class_<org::imm::ImmMarkQuote, emscripten::base<org::imm::ImmMarkup>>("ImmMarkQuote")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmMarkQuote::*)() const>(&org::imm::ImmMarkQuote::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmMarkQuote::*)(org::imm::ImmMarkQuote const&) const>(&org::imm::ImmMarkQuote::operator==))
+    ;
+  emscripten::class_<org::imm::ImmVerbatim, emscripten::base<org::imm::ImmMarkup>>("ImmVerbatim")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmVerbatim::*)() const>(&org::imm::ImmVerbatim::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmVerbatim::*)(org::imm::ImmVerbatim const&) const>(&org::imm::ImmVerbatim::operator==))
+    ;
+  emscripten::class_<org::imm::ImmItalic, emscripten::base<org::imm::ImmMarkup>>("ImmItalic")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmItalic::*)() const>(&org::imm::ImmItalic::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmItalic::*)(org::imm::ImmItalic const&) const>(&org::imm::ImmItalic::operator==))
+    ;
+  emscripten::class_<org::imm::ImmStrike, emscripten::base<org::imm::ImmMarkup>>("ImmStrike")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmStrike::*)() const>(&org::imm::ImmStrike::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmStrike::*)(org::imm::ImmStrike const&) const>(&org::imm::ImmStrike::operator==))
+    ;
+  emscripten::class_<org::imm::ImmPar, emscripten::base<org::imm::ImmMarkup>>("ImmPar")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmPar::*)() const>(&org::imm::ImmPar::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmPar::*)(org::imm::ImmPar const&) const>(&org::imm::ImmPar::operator==))
+    ;
   emscripten::class_<org::imm::ImmAdapterStmtAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterStmtAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterSubtreeAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterSubtreeAPI")
@@ -2800,34 +2802,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     ;
   emscripten::class_<org::imm::ImmAdapterDocumentGroupAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDocumentGroupAPI")
     ;
-  emscripten::class_<org::imm::ImmBlock, emscripten::base<org::imm::ImmCmd>>("ImmBlock")
-    .function("__eq__", static_cast<bool(org::imm::ImmBlock::*)(org::imm::ImmBlock const&) const>(&org::imm::ImmBlock::operator==))
-    ;
-  emscripten::class_<org::imm::ImmLineCommand, emscripten::base<org::imm::ImmCmd>>("ImmLineCommand")
-    .function("__eq__", static_cast<bool(org::imm::ImmLineCommand::*)(org::imm::ImmLineCommand const&) const>(&org::imm::ImmLineCommand::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdCustomArgs, emscripten::base<org::imm::ImmCmd>>("ImmCmdCustomArgs")
-    .property("name", &org::imm::ImmCmdCustomArgs::name)
-    .property("isAttached", &org::imm::ImmCmdCustomArgs::isAttached)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCustomArgs::*)() const>(&org::imm::ImmCmdCustomArgs::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdCustomArgs::*)(org::imm::ImmCmdCustomArgs const&) const>(&org::imm::ImmCmdCustomArgs::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdTblfm, emscripten::base<org::imm::ImmCmd>>("ImmCmdTblfm")
-    .property("expr", &org::imm::ImmCmdTblfm::expr)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdTblfm::*)() const>(&org::imm::ImmCmdTblfm::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdTblfm::*)(org::imm::ImmCmdTblfm const&) const>(&org::imm::ImmCmdTblfm::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCell, emscripten::base<org::imm::ImmCmd>>("ImmCell")
-    .property("isBlock", &org::imm::ImmCell::isBlock)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCell::*)() const>(&org::imm::ImmCell::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCell::*)(org::imm::ImmCell const&) const>(&org::imm::ImmCell::operator==))
-    ;
-  emscripten::class_<org::imm::ImmRow, emscripten::base<org::imm::ImmCmd>>("ImmRow")
-    .property("cells", &org::imm::ImmRow::cells)
-    .property("isBlock", &org::imm::ImmRow::isBlock)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmRow::*)() const>(&org::imm::ImmRow::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmRow::*)(org::imm::ImmRow const&) const>(&org::imm::ImmRow::operator==))
-    ;
   emscripten::class_<org::sem::Block, emscripten::base<org::sem::Cmd>>("Block")
     .smart_ptr<org::sem::SemId<org::sem::Block>>("Block")
     ;
@@ -2855,6 +2829,34 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("cells", &org::sem::Row::cells)
     .property("isBlock", &org::sem::Row::isBlock)
     .function("getKind", static_cast<OrgSemKind(org::sem::Row::*)() const>(&org::sem::Row::getKind))
+    ;
+  emscripten::class_<org::imm::ImmBlock, emscripten::base<org::imm::ImmCmd>>("ImmBlock")
+    .function("__eq__", static_cast<bool(org::imm::ImmBlock::*)(org::imm::ImmBlock const&) const>(&org::imm::ImmBlock::operator==))
+    ;
+  emscripten::class_<org::imm::ImmLineCommand, emscripten::base<org::imm::ImmCmd>>("ImmLineCommand")
+    .function("__eq__", static_cast<bool(org::imm::ImmLineCommand::*)(org::imm::ImmLineCommand const&) const>(&org::imm::ImmLineCommand::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdCustomArgs, emscripten::base<org::imm::ImmCmd>>("ImmCmdCustomArgs")
+    .property("name", &org::imm::ImmCmdCustomArgs::name)
+    .property("isAttached", &org::imm::ImmCmdCustomArgs::isAttached)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCustomArgs::*)() const>(&org::imm::ImmCmdCustomArgs::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdCustomArgs::*)(org::imm::ImmCmdCustomArgs const&) const>(&org::imm::ImmCmdCustomArgs::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdTblfm, emscripten::base<org::imm::ImmCmd>>("ImmCmdTblfm")
+    .property("expr", &org::imm::ImmCmdTblfm::expr)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdTblfm::*)() const>(&org::imm::ImmCmdTblfm::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdTblfm::*)(org::imm::ImmCmdTblfm const&) const>(&org::imm::ImmCmdTblfm::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCell, emscripten::base<org::imm::ImmCmd>>("ImmCell")
+    .property("isBlock", &org::imm::ImmCell::isBlock)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCell::*)() const>(&org::imm::ImmCell::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCell::*)(org::imm::ImmCell const&) const>(&org::imm::ImmCell::operator==))
+    ;
+  emscripten::class_<org::imm::ImmRow, emscripten::base<org::imm::ImmCmd>>("ImmRow")
+    .property("cells", &org::imm::ImmRow::cells)
+    .property("isBlock", &org::imm::ImmRow::isBlock)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmRow::*)() const>(&org::imm::ImmRow::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmRow::*)(org::imm::ImmRow const&) const>(&org::imm::ImmRow::operator==))
     ;
   emscripten::class_<org::imm::ImmAdapterCmdAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterCmdAPI")
     ;
@@ -3018,66 +3020,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmDocumentGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::getValue))
     ;
-  emscripten::class_<org::imm::ImmBlockCenter, emscripten::base<org::imm::ImmBlock>>("ImmBlockCenter")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockCenter::*)() const>(&org::imm::ImmBlockCenter::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockCenter::*)(org::imm::ImmBlockCenter const&) const>(&org::imm::ImmBlockCenter::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBlockQuote, emscripten::base<org::imm::ImmBlock>>("ImmBlockQuote")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockQuote::*)() const>(&org::imm::ImmBlockQuote::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockQuote::*)(org::imm::ImmBlockQuote const&) const>(&org::imm::ImmBlockQuote::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBlockVerse, emscripten::base<org::imm::ImmBlock>>("ImmBlockVerse")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockVerse::*)() const>(&org::imm::ImmBlockVerse::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockVerse::*)(org::imm::ImmBlockVerse const&) const>(&org::imm::ImmBlockVerse::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBlockDynamicFallback, emscripten::base<org::imm::ImmBlock>>("ImmBlockDynamicFallback")
-    .property("name", &org::imm::ImmBlockDynamicFallback::name)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockDynamicFallback::*)() const>(&org::imm::ImmBlockDynamicFallback::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockDynamicFallback::*)(org::imm::ImmBlockDynamicFallback const&) const>(&org::imm::ImmBlockDynamicFallback::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBlockExample, emscripten::base<org::imm::ImmBlock>>("ImmBlockExample")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockExample::*)() const>(&org::imm::ImmBlockExample::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockExample::*)(org::imm::ImmBlockExample const&) const>(&org::imm::ImmBlockExample::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBlockExport, emscripten::base<org::imm::ImmBlock>>("ImmBlockExport")
-    .property("exporter", &org::imm::ImmBlockExport::exporter)
-    .property("content", &org::imm::ImmBlockExport::content)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockExport::*)() const>(&org::imm::ImmBlockExport::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockExport::*)(org::imm::ImmBlockExport const&) const>(&org::imm::ImmBlockExport::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBlockAdmonition, emscripten::base<org::imm::ImmBlock>>("ImmBlockAdmonition")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockAdmonition::*)() const>(&org::imm::ImmBlockAdmonition::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockAdmonition::*)(org::imm::ImmBlockAdmonition const&) const>(&org::imm::ImmBlockAdmonition::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBlockCodeEvalResult, emscripten::base<org::imm::ImmBlock>>("ImmBlockCodeEvalResult")
-    .property("raw", &org::imm::ImmBlockCodeEvalResult::raw)
-    .property("node", &org::imm::ImmBlockCodeEvalResult::node)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockCodeEvalResult::*)() const>(&org::imm::ImmBlockCodeEvalResult::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockCodeEvalResult::*)(org::imm::ImmBlockCodeEvalResult const&) const>(&org::imm::ImmBlockCodeEvalResult::operator==))
-    ;
-  emscripten::class_<org::imm::ImmBlockCode, emscripten::base<org::imm::ImmBlock>>("ImmBlockCode")
-    .property("lang", &org::imm::ImmBlockCode::lang)
-    .property("exports", &org::imm::ImmBlockCode::exports)
-    .property("result", &org::imm::ImmBlockCode::result)
-    .property("lines", &org::imm::ImmBlockCode::lines)
-    .property("cache", &org::imm::ImmBlockCode::cache)
-    .property("eval", &org::imm::ImmBlockCode::eval)
-    .property("noweb", &org::imm::ImmBlockCode::noweb)
-    .property("hlines", &org::imm::ImmBlockCode::hlines)
-    .property("tangle", &org::imm::ImmBlockCode::tangle)
-    .property("switches", &org::imm::ImmBlockCode::switches)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockCode::*)() const>(&org::imm::ImmBlockCode::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmBlockCode::*)(org::imm::ImmBlockCode const&) const>(&org::imm::ImmBlockCode::operator==))
-    ;
-  emscripten::class_<org::imm::ImmTable, emscripten::base<org::imm::ImmBlock>>("ImmTable")
-    .property("rows", &org::imm::ImmTable::rows)
-    .property("isBlock", &org::imm::ImmTable::isBlock)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTable::*)() const>(&org::imm::ImmTable::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmTable::*)(org::imm::ImmTable const&) const>(&org::imm::ImmTable::operator==))
-    ;
-  emscripten::class_<org::imm::ImmAttached, emscripten::base<org::imm::ImmLineCommand>>("ImmAttached")
-    .function("__eq__", static_cast<bool(org::imm::ImmAttached::*)(org::imm::ImmAttached const&) const>(&org::imm::ImmAttached::operator==))
-    ;
   emscripten::class_<org::sem::BlockCenter, emscripten::base<org::sem::Block>>("BlockCenter")
     .smart_ptr<org::sem::SemId<org::sem::BlockCenter>>("BlockCenter")
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockCenter::*)() const>(&org::sem::BlockCenter::getKind))
@@ -3139,6 +3081,66 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     ;
   emscripten::class_<org::sem::Attached, emscripten::base<org::sem::LineCommand>>("Attached")
     .smart_ptr<org::sem::SemId<org::sem::Attached>>("Attached")
+    ;
+  emscripten::class_<org::imm::ImmBlockCenter, emscripten::base<org::imm::ImmBlock>>("ImmBlockCenter")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockCenter::*)() const>(&org::imm::ImmBlockCenter::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockCenter::*)(org::imm::ImmBlockCenter const&) const>(&org::imm::ImmBlockCenter::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBlockQuote, emscripten::base<org::imm::ImmBlock>>("ImmBlockQuote")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockQuote::*)() const>(&org::imm::ImmBlockQuote::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockQuote::*)(org::imm::ImmBlockQuote const&) const>(&org::imm::ImmBlockQuote::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBlockVerse, emscripten::base<org::imm::ImmBlock>>("ImmBlockVerse")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockVerse::*)() const>(&org::imm::ImmBlockVerse::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockVerse::*)(org::imm::ImmBlockVerse const&) const>(&org::imm::ImmBlockVerse::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBlockDynamicFallback, emscripten::base<org::imm::ImmBlock>>("ImmBlockDynamicFallback")
+    .property("name", &org::imm::ImmBlockDynamicFallback::name)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockDynamicFallback::*)() const>(&org::imm::ImmBlockDynamicFallback::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockDynamicFallback::*)(org::imm::ImmBlockDynamicFallback const&) const>(&org::imm::ImmBlockDynamicFallback::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBlockExample, emscripten::base<org::imm::ImmBlock>>("ImmBlockExample")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockExample::*)() const>(&org::imm::ImmBlockExample::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockExample::*)(org::imm::ImmBlockExample const&) const>(&org::imm::ImmBlockExample::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBlockExport, emscripten::base<org::imm::ImmBlock>>("ImmBlockExport")
+    .property("exporter", &org::imm::ImmBlockExport::exporter)
+    .property("content", &org::imm::ImmBlockExport::content)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockExport::*)() const>(&org::imm::ImmBlockExport::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockExport::*)(org::imm::ImmBlockExport const&) const>(&org::imm::ImmBlockExport::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBlockAdmonition, emscripten::base<org::imm::ImmBlock>>("ImmBlockAdmonition")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockAdmonition::*)() const>(&org::imm::ImmBlockAdmonition::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockAdmonition::*)(org::imm::ImmBlockAdmonition const&) const>(&org::imm::ImmBlockAdmonition::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBlockCodeEvalResult, emscripten::base<org::imm::ImmBlock>>("ImmBlockCodeEvalResult")
+    .property("raw", &org::imm::ImmBlockCodeEvalResult::raw)
+    .property("node", &org::imm::ImmBlockCodeEvalResult::node)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockCodeEvalResult::*)() const>(&org::imm::ImmBlockCodeEvalResult::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockCodeEvalResult::*)(org::imm::ImmBlockCodeEvalResult const&) const>(&org::imm::ImmBlockCodeEvalResult::operator==))
+    ;
+  emscripten::class_<org::imm::ImmBlockCode, emscripten::base<org::imm::ImmBlock>>("ImmBlockCode")
+    .property("lang", &org::imm::ImmBlockCode::lang)
+    .property("exports", &org::imm::ImmBlockCode::exports)
+    .property("result", &org::imm::ImmBlockCode::result)
+    .property("lines", &org::imm::ImmBlockCode::lines)
+    .property("cache", &org::imm::ImmBlockCode::cache)
+    .property("eval", &org::imm::ImmBlockCode::eval)
+    .property("noweb", &org::imm::ImmBlockCode::noweb)
+    .property("hlines", &org::imm::ImmBlockCode::hlines)
+    .property("tangle", &org::imm::ImmBlockCode::tangle)
+    .property("switches", &org::imm::ImmBlockCode::switches)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmBlockCode::*)() const>(&org::imm::ImmBlockCode::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmBlockCode::*)(org::imm::ImmBlockCode const&) const>(&org::imm::ImmBlockCode::operator==))
+    ;
+  emscripten::class_<org::imm::ImmTable, emscripten::base<org::imm::ImmBlock>>("ImmTable")
+    .property("rows", &org::imm::ImmTable::rows)
+    .property("isBlock", &org::imm::ImmTable::isBlock)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmTable::*)() const>(&org::imm::ImmTable::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmTable::*)(org::imm::ImmTable const&) const>(&org::imm::ImmTable::operator==))
+    ;
+  emscripten::class_<org::imm::ImmAttached, emscripten::base<org::imm::ImmLineCommand>>("ImmAttached")
+    .function("__eq__", static_cast<bool(org::imm::ImmAttached::*)(org::imm::ImmAttached const&) const>(&org::imm::ImmAttached::operator==))
     ;
   emscripten::class_<org::imm::ImmAdapterLineCommandAPI, emscripten::base<org::imm::ImmAdapterCmdAPI>>("ImmAdapterLineCommandAPI")
     ;
@@ -3260,42 +3262,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .constructor<org::imm::ImmAdapter const&>()
     .function("getValue", static_cast<org::imm::ImmParValueRead(org::imm::ImmAdapterT<org::imm::ImmPar>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPar>::getValue))
     ;
-  emscripten::class_<org::imm::ImmCmdCaption, emscripten::base<org::imm::ImmAttached>>("ImmCmdCaption")
-    .property("text", &org::imm::ImmCmdCaption::text)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCaption::*)() const>(&org::imm::ImmCmdCaption::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdCaption::*)(org::imm::ImmCmdCaption const&) const>(&org::imm::ImmCmdCaption::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdColumns, emscripten::base<org::imm::ImmAttached>>("ImmCmdColumns")
-    .property("view", &org::imm::ImmCmdColumns::view)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdColumns::*)() const>(&org::imm::ImmCmdColumns::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdColumns::*)(org::imm::ImmCmdColumns const&) const>(&org::imm::ImmCmdColumns::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdName, emscripten::base<org::imm::ImmAttached>>("ImmCmdName")
-    .property("name", &org::imm::ImmCmdName::name)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdName::*)() const>(&org::imm::ImmCmdName::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdName::*)(org::imm::ImmCmdName const&) const>(&org::imm::ImmCmdName::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdCall, emscripten::base<org::imm::ImmAttached>>("ImmCmdCall")
-    .property("name", &org::imm::ImmCmdCall::name)
-    .property("fileName", &org::imm::ImmCmdCall::fileName)
-    .property("insideHeaderAttrs", &org::imm::ImmCmdCall::insideHeaderAttrs)
-    .property("callAttrs", &org::imm::ImmCmdCall::callAttrs)
-    .property("endHeaderAttrs", &org::imm::ImmCmdCall::endHeaderAttrs)
-    .property("result", &org::imm::ImmCmdCall::result)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCall::*)() const>(&org::imm::ImmCmdCall::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdCall::*)(org::imm::ImmCmdCall const&) const>(&org::imm::ImmCmdCall::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdAttr, emscripten::base<org::imm::ImmAttached>>("ImmCmdAttr")
-    .property("target", &org::imm::ImmCmdAttr::target)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdAttr::*)() const>(&org::imm::ImmCmdAttr::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdAttr::*)(org::imm::ImmCmdAttr const&) const>(&org::imm::ImmCmdAttr::operator==))
-    ;
-  emscripten::class_<org::imm::ImmCmdExport, emscripten::base<org::imm::ImmAttached>>("ImmCmdExport")
-    .property("exporter", &org::imm::ImmCmdExport::exporter)
-    .property("content", &org::imm::ImmCmdExport::content)
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdExport::*)() const>(&org::imm::ImmCmdExport::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmCmdExport::*)(org::imm::ImmCmdExport const&) const>(&org::imm::ImmCmdExport::operator==))
-    ;
   emscripten::class_<org::sem::CmdCaption, emscripten::base<org::sem::Attached>>("CmdCaption")
     .smart_ptr<org::sem::SemId<org::sem::CmdCaption>>("CmdCaption")
     .property("text", &org::sem::CmdCaption::text)
@@ -3331,6 +3297,42 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .property("exporter", &org::sem::CmdExport::exporter)
     .property("content", &org::sem::CmdExport::content)
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdExport::*)() const>(&org::sem::CmdExport::getKind))
+    ;
+  emscripten::class_<org::imm::ImmCmdCaption, emscripten::base<org::imm::ImmAttached>>("ImmCmdCaption")
+    .property("text", &org::imm::ImmCmdCaption::text)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCaption::*)() const>(&org::imm::ImmCmdCaption::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdCaption::*)(org::imm::ImmCmdCaption const&) const>(&org::imm::ImmCmdCaption::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdColumns, emscripten::base<org::imm::ImmAttached>>("ImmCmdColumns")
+    .property("view", &org::imm::ImmCmdColumns::view)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdColumns::*)() const>(&org::imm::ImmCmdColumns::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdColumns::*)(org::imm::ImmCmdColumns const&) const>(&org::imm::ImmCmdColumns::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdName, emscripten::base<org::imm::ImmAttached>>("ImmCmdName")
+    .property("name", &org::imm::ImmCmdName::name)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdName::*)() const>(&org::imm::ImmCmdName::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdName::*)(org::imm::ImmCmdName const&) const>(&org::imm::ImmCmdName::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdCall, emscripten::base<org::imm::ImmAttached>>("ImmCmdCall")
+    .property("name", &org::imm::ImmCmdCall::name)
+    .property("fileName", &org::imm::ImmCmdCall::fileName)
+    .property("insideHeaderAttrs", &org::imm::ImmCmdCall::insideHeaderAttrs)
+    .property("callAttrs", &org::imm::ImmCmdCall::callAttrs)
+    .property("endHeaderAttrs", &org::imm::ImmCmdCall::endHeaderAttrs)
+    .property("result", &org::imm::ImmCmdCall::result)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdCall::*)() const>(&org::imm::ImmCmdCall::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdCall::*)(org::imm::ImmCmdCall const&) const>(&org::imm::ImmCmdCall::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdAttr, emscripten::base<org::imm::ImmAttached>>("ImmCmdAttr")
+    .property("target", &org::imm::ImmCmdAttr::target)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdAttr::*)() const>(&org::imm::ImmCmdAttr::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdAttr::*)(org::imm::ImmCmdAttr const&) const>(&org::imm::ImmCmdAttr::operator==))
+    ;
+  emscripten::class_<org::imm::ImmCmdExport, emscripten::base<org::imm::ImmAttached>>("ImmCmdExport")
+    .property("exporter", &org::imm::ImmCmdExport::exporter)
+    .property("content", &org::imm::ImmCmdExport::content)
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdExport::*)() const>(&org::imm::ImmCmdExport::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmCmdExport::*)(org::imm::ImmCmdExport const&) const>(&org::imm::ImmCmdExport::operator==))
     ;
   emscripten::class_<org::imm::ImmAdapterAttachedAPI, emscripten::base<org::imm::ImmAdapterLineCommandAPI>>("ImmAdapterAttachedAPI")
     ;
