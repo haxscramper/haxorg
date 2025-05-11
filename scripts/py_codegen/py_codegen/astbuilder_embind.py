@@ -9,7 +9,9 @@ from py_codegen.astbuilder_base import pascal_case
 
 @beartype
 def js_ident(name: str) -> str:
-    return sanitize_ident(name, set())
+    return sanitize_ident(name, {
+        "function",
+    })
 
 
 @beartype
@@ -31,39 +33,64 @@ GEN = "haxorg_wasm"
 def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
     flat = [N for N in Typ.flatQualName() if N not in IGNORED_NAMESPACES]
 
-    match flat:
-        case ["int"]:
-            name = "number"
+    wrapper_override = base_map.get_wrapper_type(Typ)
 
-        case ["bool"]:
-            name = "boolean"
+    if flat == ["std", "shared_ptr"] and 1 == len(
+            Typ.Parameters) and base_map.is_known_type(
+                Typ.par0()) and base_map.get_one_type_for_qual_name(
+                    Typ.par0()).reflectionParams.backend.wasm.holder_type == "shared":
+        return ts_type(Typ.par0(), base_map=base_map)
 
-        case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
-                                                        ] | ["std", "basic_string"]:
-            name = "string"
+    elif wrapper_override:
+        name = wrapper_override
 
-        case ["void"]:
-            name = "void"
+    else:
+        match flat:
+            case ["int"]:
+                name = "number"
 
-        case ["SemId"]:
-            return ts_type(Typ.par0(), base_map)
+            case ["bool"]:
+                name = "boolean"
 
-        case ["Opt"] | ["std", "optional"]:
-            name = GEN + ".Optional"
+            case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
+                                                            ] | ["std", "basic_string"]:
+                name = "string"
 
-        case _:
-            name = Typ.getBindName(
-                ignored_spaces=IGNORED_NAMESPACES,
-                withParams=False,
-            )
+            case ["void"] | ["char"]:
+                name = flat[0]
 
-    return QualType(
-        name=name,
-        Parameters=[ts_type(
-            P,
-            base_map=base_map,
-        ) for P in Typ.Parameters],
-    )
+            case ["SemId"]:
+                return ts_type(Typ.par0(), base_map)
+
+            case ["Opt"] | ["std", "optional"]:
+                name = GEN + ".Optional"
+
+            case ["Vec"] | ["immer", "box"] | ["ImmIdT"] | ["immer", "flex_vector"] | [
+                "hstd", "UnorderedMap"
+            ] | ["UnorderedMap"] | ["std", "variant"] | ["hstd", "Variant"]:
+                name = GEN + "." + Typ.getBindName(
+                    ignored_spaces=IGNORED_NAMESPACES,
+                    withParams=False,
+                )
+
+            case _:
+                name = Typ.getBindName(
+                    ignored_spaces=IGNORED_NAMESPACES,
+                    withParams=False,
+                )
+
+    struct = base_map.get_struct_for_qual_name(Typ)
+    if not struct or struct.reflectionParams.wrapper_has_params:
+        return QualType(
+            name=name,
+            Parameters=[ts_type(
+                P,
+                base_map=base_map,
+            ) for P in Typ.Parameters],
+        )
+
+    else:
+        return QualType(name=name)
 
 
 @beartype
@@ -99,6 +126,30 @@ class WasmBindPass:
 
 
 @beartype
+class WasmTypedef:
+    Def: GenTuTypedef
+
+    def __init__(self, Def: GenTuTypedef):
+        self.Def = Def
+
+    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+        return [
+            ast.line([
+                ast.string("export type "),
+                ast.Type(ts_type(self.Def.name, base_map)),
+                ast.string(" = "),
+                ast.Type(ts_type(self.Def.base, base_map)),
+                ast.string(";"),
+            ])
+        ]
+
+    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+        return []
+
+    def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+        return []
+
+@beartype
 class WasmFunction():
     Func: GenTuFunction
     Body: List[BlockId] = []
@@ -120,7 +171,7 @@ class WasmFunction():
                 ast.pars(
                     ast.csv([
                         ast.line([
-                            ast.string(F.name),
+                            ast.string(js_ident(F.name)),
                             ast.string(": "),
                             ast.Type(ts_type(F.type, base_map)),
                         ]) for F in self.Func.arguments
@@ -197,7 +248,7 @@ class WasmEnum():
         self.Enum = Enum
 
     def getWasmName(self) -> str:
-        return self.Enum.name.getBindName()
+        return self.Enum.name.getBindName(ignored_spaces=IGNORED_NAMESPACES)
 
     def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return [
@@ -452,7 +503,7 @@ class WasmModule():
                 self.items.append(item)
 
             case GenTuTypedef():
-                pass
+                self.items.append(WasmTypedef(item))
 
             case _:
                 raise ValueError(f"Unhandled declaration type {type(item)}")
@@ -463,7 +514,7 @@ class WasmModule():
 
         for item in self.items:
             match item:
-                case WasmClass() | WasmEnum() | WasmFunction():
+                case WasmClass() | WasmEnum() | WasmFunction() | WasmTypedef():
                     iface.extend(item.get_module_use(ast, base_map=base_map))
                     body.extend(item.get_typedef(ast, base_map=base_map))
 
@@ -507,6 +558,9 @@ class WasmModule():
 
                 case WasmEnum():
                     Body.append(item.build_bind(b=b))
+
+                case WasmTypedef():
+                    pass
 
                 case _:
                     raise ValueError("Unexpected ")

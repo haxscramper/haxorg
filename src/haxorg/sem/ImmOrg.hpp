@@ -606,7 +606,17 @@ EACH_SEM_ORG_KIND(__DECLARE_VALUE_READ_TYPE)
 struct
     [[nodiscard,
       refl(
-          R"({"default-constructor": false, "backend": {"python": {"holder-type": "shared"}}})")]] ImmAstContext
+          R"({
+  "default-constructor": false,
+  "backend": {
+    "python": {
+      "holder-type": "shared"
+    },
+    "wasm": {
+      "holder-type": "shared"
+    }
+  }
+})")]] ImmAstContext
     : hstd::SharedPtrApi<ImmAstContext> {
     /// \brief Shared operation tracer for the debug operations.
     hstd::SPtr<hstd::OperationsTracer> debug;

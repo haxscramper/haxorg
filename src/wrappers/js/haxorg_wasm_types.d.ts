@@ -125,33 +125,33 @@ declare module "haxorg_wasm_types" {
     LispCodeIdent: LispCodeIdentConstructor;
     LispCodeBoolean: LispCodeBooleanConstructor;
     LispCodeReal: LispCodeRealConstructor;
-    format_OrgSemLispCodeKind(value: OrgSemLispCodeKind): string;
+    format_LispCodeKind(value: LispCodeKind): string;
     Tblfm: TblfmConstructor;
     TblfmExpr: TblfmExprConstructor;
     TblfmExprAxisRef: TblfmExprAxisRefConstructor;
     TblfmExprAxisRefPosition: TblfmExprAxisRefPositionConstructor;
     TblfmExprAxisRefPositionIndex: TblfmExprAxisRefPositionIndexConstructor;
     TblfmExprAxisRefPositionName: TblfmExprAxisRefPositionNameConstructor;
-    format_OrgSemTblfmExprAxisRefPositionKind(value: OrgSemTblfmExprAxisRefPositionKind): string;
+    format_TblfmExprAxisRefPositionKind(value: TblfmExprAxisRefPositionKind): string;
     TblfmExprAxisName: TblfmExprAxisNameConstructor;
     TblfmExprIntLiteral: TblfmExprIntLiteralConstructor;
     TblfmExprFloatLiteral: TblfmExprFloatLiteralConstructor;
     TblfmExprRangeRef: TblfmExprRangeRefConstructor;
     TblfmExprCall: TblfmExprCallConstructor;
     TblfmExprElisp: TblfmExprElispConstructor;
-    format_OrgSemTblfmExprKind(value: OrgSemTblfmExprKind): string;
+    format_TblfmExprKind(value: TblfmExprKind): string;
     TblfmAssign: TblfmAssignConstructor;
-    format_OrgSemTblfmAssignFlag(value: OrgSemTblfmAssignFlag): string;
+    format_TblfmAssignFlag(value: TblfmAssignFlag): string;
     AttrValue: AttrValueConstructor;
-    format_OrgSemAttrValueKind(value: OrgSemAttrValueKind): string;
+    format_AttrValueKind(value: AttrValueKind): string;
     AttrValueDimensionSpan: AttrValueDimensionSpanConstructor;
     AttrValueTextValue: AttrValueTextValueConstructor;
     AttrValueFileReference: AttrValueFileReferenceConstructor;
     AttrValueLispValue: AttrValueLispValueConstructor;
-    format_OrgSemAttrValueDataKind(value: OrgSemAttrValueDataKind): string;
+    format_AttrValueDataKind(value: AttrValueDataKind): string;
     HashTagFlat: HashTagFlatConstructor;
     TodoKeyword: TodoKeywordConstructor;
-    format_OrgSemTodoKeywordTransition(value: OrgSemTodoKeywordTransition): string;
+    format_TodoKeywordTransition(value: TodoKeywordTransition): string;
     HashTagText: HashTagTextConstructor;
     SubtreePath: SubtreePathConstructor;
     LinkTarget: LinkTargetConstructor;
@@ -165,10 +165,10 @@ declare module "haxorg_wasm_types" {
     LinkTargetFootnote: LinkTargetFootnoteConstructor;
     LinkTargetFile: LinkTargetFileConstructor;
     LinkTargetAttachment: LinkTargetAttachmentConstructor;
-    format_OrgSemLinkTargetKind(value: OrgSemLinkTargetKind): string;
+    format_LinkTargetKind(value: LinkTargetKind): string;
     SubtreeLogHead: SubtreeLogHeadConstructor;
     SubtreeLogHeadPriority: SubtreeLogHeadPriorityConstructor;
-    format_OrgSemSubtreeLogHeadPriorityAction(value: OrgSemSubtreeLogHeadPriorityAction): string;
+    format_SubtreeLogHeadPriorityAction(value: SubtreeLogHeadPriorityAction): string;
     SubtreeLogHeadNote: SubtreeLogHeadNoteConstructor;
     SubtreeLogHeadRefile: SubtreeLogHeadRefileConstructor;
     SubtreeLogHeadClock: SubtreeLogHeadClockConstructor;
@@ -177,40 +177,40 @@ declare module "haxorg_wasm_types" {
     SubtreeLogHeadSchedule: SubtreeLogHeadScheduleConstructor;
     SubtreeLogHeadTag: SubtreeLogHeadTagConstructor;
     SubtreeLogHeadUnknown: SubtreeLogHeadUnknownConstructor;
-    format_OrgSemSubtreeLogHeadKind(value: OrgSemSubtreeLogHeadKind): string;
+    format_SubtreeLogHeadKind(value: SubtreeLogHeadKind): string;
     SubtreeCompletion: SubtreeCompletionConstructor;
     AttrList: AttrListConstructor;
     AttrGroup: AttrGroupConstructor;
     OrgCodeEvalInput: OrgCodeEvalInputConstructor;
     OrgCodeEvalInputVar: OrgCodeEvalInputVarConstructor;
-    format_OrgSemOrgCodeEvalInputResultType(value: OrgSemOrgCodeEvalInputResultType): string;
-    format_OrgSemOrgCodeEvalInputResultFormat(value: OrgSemOrgCodeEvalInputResultFormat): string;
-    format_OrgSemOrgCodeEvalInputResultHandling(value: OrgSemOrgCodeEvalInputResultHandling): string;
+    format_OrgCodeEvalInputResultType(value: OrgCodeEvalInputResultType): string;
+    format_OrgCodeEvalInputResultFormat(value: OrgCodeEvalInputResultFormat): string;
+    format_OrgCodeEvalInputResultHandling(value: OrgCodeEvalInputResultHandling): string;
     OrgCodeEvalOutput: OrgCodeEvalOutputConstructor;
     ColumnView: ColumnViewConstructor;
     ColumnViewSummary: ColumnViewSummaryConstructor;
     ColumnViewSummaryCheckboxAggregate: ColumnViewSummaryCheckboxAggregateConstructor;
-    format_OrgSemColumnViewSummaryCheckboxAggregateKind(value: OrgSemColumnViewSummaryCheckboxAggregateKind): string;
+    format_ColumnViewSummaryCheckboxAggregateKind(value: ColumnViewSummaryCheckboxAggregateKind): string;
     ColumnViewSummaryMathAggregate: ColumnViewSummaryMathAggregateConstructor;
-    format_OrgSemColumnViewSummaryMathAggregateKind(value: OrgSemColumnViewSummaryMathAggregateKind): string;
-    format_OrgSemColumnViewSummaryKind(value: OrgSemColumnViewSummaryKind): string;
+    format_ColumnViewSummaryMathAggregateKind(value: ColumnViewSummaryMathAggregateKind): string;
+    format_ColumnViewSummaryKind(value: ColumnViewSummaryKind): string;
     ColumnViewColumn: ColumnViewColumnConstructor;
     BlockCodeLine: BlockCodeLineConstructor;
     BlockCodeLinePart: BlockCodeLinePartConstructor;
     BlockCodeLinePartRaw: BlockCodeLinePartRawConstructor;
     BlockCodeLinePartCallout: BlockCodeLinePartCalloutConstructor;
     BlockCodeLinePartTangle: BlockCodeLinePartTangleConstructor;
-    format_OrgSemBlockCodeLinePartKind(value: OrgSemBlockCodeLinePartKind): string;
+    format_BlockCodeLinePartKind(value: BlockCodeLinePartKind): string;
     DocumentExportConfig: DocumentExportConfigConstructor;
     DocumentExportConfigTaskExport: DocumentExportConfigTaskExportConstructor;
-    format_OrgSemDocumentExportConfigTagExport(value: OrgSemDocumentExportConfigTagExport): string;
-    format_OrgSemDocumentExportConfigTaskFiltering(value: OrgSemDocumentExportConfigTaskFiltering): string;
-    format_OrgSemDocumentExportConfigBrokenLinks(value: OrgSemDocumentExportConfigBrokenLinks): string;
+    format_DocumentExportConfigTagExport(value: DocumentExportConfigTagExport): string;
+    format_DocumentExportConfigTaskFiltering(value: DocumentExportConfigTaskFiltering): string;
+    format_DocumentExportConfigBrokenLinks(value: DocumentExportConfigBrokenLinks): string;
     DocumentExportConfigDoExport: DocumentExportConfigDoExportConstructor;
     DocumentExportConfigExportFixed: DocumentExportConfigExportFixedConstructor;
-    format_OrgSemDocumentExportConfigTocExportKind(value: OrgSemDocumentExportConfigTocExportKind): string;
+    format_DocumentExportConfigTocExportKind(value: DocumentExportConfigTocExportKind): string;
     SubtreePeriod: SubtreePeriodConstructor;
-    format_OrgSemSubtreePeriodKind(value: OrgSemSubtreePeriodKind): string;
+    format_SubtreePeriodKind(value: SubtreePeriodKind): string;
     NamedProperty: NamedPropertyConstructor;
     NamedPropertyNonblocking: NamedPropertyNonblockingConstructor;
     NamedPropertyArchiveTime: NamedPropertyArchiveTimeConstructor;
@@ -228,7 +228,7 @@ declare module "haxorg_wasm_types" {
     NamedPropertyOrdered: NamedPropertyOrderedConstructor;
     NamedPropertyEffort: NamedPropertyEffortConstructor;
     NamedPropertyVisibility: NamedPropertyVisibilityConstructor;
-    format_OrgSemNamedPropertyVisibilityLevel(value: OrgSemNamedPropertyVisibilityLevel): string;
+    format_NamedPropertyVisibilityLevel(value: NamedPropertyVisibilityLevel): string;
     NamedPropertyExportOptions: NamedPropertyExportOptionsConstructor;
     NamedPropertyBlocker: NamedPropertyBlockerConstructor;
     NamedPropertyUnnumbered: NamedPropertyUnnumberedConstructor;
@@ -239,7 +239,7 @@ declare module "haxorg_wasm_types" {
     NamedPropertyCustomRaw: NamedPropertyCustomRawConstructor;
     NamedPropertyCustomSubtreeJson: NamedPropertyCustomSubtreeJsonConstructor;
     NamedPropertyCustomSubtreeFlags: NamedPropertyCustomSubtreeFlagsConstructor;
-    format_OrgSemNamedPropertyKind(value: OrgSemNamedPropertyKind): string;
+    format_NamedPropertyKind(value: NamedPropertyKind): string;
     ImmNone: ImmNoneConstructor;
     ImmErrorItem: ImmErrorItemConstructor;
     ImmErrorGroup: ImmErrorGroupConstructor;
@@ -250,11 +250,11 @@ declare module "haxorg_wasm_types" {
     ImmLeaf: ImmLeafConstructor;
     ImmTime: ImmTimeConstructor;
     ImmTimeRepeat: ImmTimeRepeatConstructor;
-    format_OrgImmImmTimeRepeatMode(value: OrgImmImmTimeRepeatMode): string;
-    format_OrgImmImmTimeRepeatPeriod(value: OrgImmImmTimeRepeatPeriod): string;
+    format_ImmTimeRepeatMode(value: ImmTimeRepeatMode): string;
+    format_ImmTimeRepeatPeriod(value: ImmTimeRepeatPeriod): string;
     ImmTimeStatic: ImmTimeStaticConstructor;
     ImmTimeDynamic: ImmTimeDynamicConstructor;
-    format_OrgImmImmTimeTimeKind(value: OrgImmImmTimeTimeKind): string;
+    format_ImmTimeTimeKind(value: ImmTimeTimeKind): string;
     ImmTimeRange: ImmTimeRangeConstructor;
     ImmMacro: ImmMacroConstructor;
     ImmSymbol: ImmSymbolConstructor;
@@ -270,7 +270,7 @@ declare module "haxorg_wasm_types" {
     ImmDocumentOptions: ImmDocumentOptionsConstructor;
     ImmDocumentFragment: ImmDocumentFragmentConstructor;
     ImmCriticMarkup: ImmCriticMarkupConstructor;
-    format_OrgImmImmCriticMarkupKind(value: OrgImmImmCriticMarkupKind): string;
+    format_ImmCriticMarkupKind(value: ImmCriticMarkupKind): string;
     ImmDocument: ImmDocumentConstructor;
     ImmFileTarget: ImmFileTargetConstructor;
     ImmTextSeparator: ImmTextSeparatorConstructor;
@@ -279,7 +279,7 @@ declare module "haxorg_wasm_types" {
     ImmFileDocument: ImmFileDocumentConstructor;
     ImmFileAttachment: ImmFileAttachmentConstructor;
     ImmFileSource: ImmFileSourceConstructor;
-    format_OrgImmImmFileKind(value: OrgImmImmFileKind): string;
+    format_ImmFileKind(value: ImmFileKind): string;
     ImmDirectory: ImmDirectoryConstructor;
     ImmSymlink: ImmSymlinkConstructor;
     ImmCmdInclude: ImmCmdIncludeConstructor;
@@ -289,7 +289,7 @@ declare module "haxorg_wasm_types" {
     ImmCmdIncludeCustom: ImmCmdIncludeCustomConstructor;
     ImmCmdIncludeSrc: ImmCmdIncludeSrcConstructor;
     ImmCmdIncludeOrgDocument: ImmCmdIncludeOrgDocumentConstructor;
-    format_OrgImmImmCmdIncludeKind(value: OrgImmImmCmdIncludeKind): string;
+    format_ImmCmdIncludeKind(value: ImmCmdIncludeKind): string;
     GraphMapConfig: GraphMapConfigConstructor;
     None: NoneConstructor;
     ErrorItem: ErrorItemConstructor;
@@ -301,11 +301,11 @@ declare module "haxorg_wasm_types" {
     Leaf: LeafConstructor;
     Time: TimeConstructor;
     TimeRepeat: TimeRepeatConstructor;
-    format_OrgSemTimeRepeatMode(value: OrgSemTimeRepeatMode): string;
-    format_OrgSemTimeRepeatPeriod(value: OrgSemTimeRepeatPeriod): string;
+    format_TimeRepeatMode(value: TimeRepeatMode): string;
+    format_TimeRepeatPeriod(value: TimeRepeatPeriod): string;
     TimeStatic: TimeStaticConstructor;
     TimeDynamic: TimeDynamicConstructor;
-    format_OrgSemTimeTimeKind(value: OrgSemTimeTimeKind): string;
+    format_TimeTimeKind(value: TimeTimeKind): string;
     TimeRange: TimeRangeConstructor;
     Macro: MacroConstructor;
     Symbol: SymbolConstructor;
@@ -321,7 +321,7 @@ declare module "haxorg_wasm_types" {
     DocumentOptions: DocumentOptionsConstructor;
     DocumentFragment: DocumentFragmentConstructor;
     CriticMarkup: CriticMarkupConstructor;
-    format_OrgSemCriticMarkupKind(value: OrgSemCriticMarkupKind): string;
+    format_CriticMarkupKind(value: CriticMarkupKind): string;
     Document: DocumentConstructor;
     FileTarget: FileTargetConstructor;
     TextSeparator: TextSeparatorConstructor;
@@ -330,7 +330,7 @@ declare module "haxorg_wasm_types" {
     FileDocument: FileDocumentConstructor;
     FileAttachment: FileAttachmentConstructor;
     FileSource: FileSourceConstructor;
-    format_OrgSemFileKind(value: OrgSemFileKind): string;
+    format_FileKind(value: FileKind): string;
     Directory: DirectoryConstructor;
     Symlink: SymlinkConstructor;
     CmdInclude: CmdIncludeConstructor;
@@ -340,7 +340,7 @@ declare module "haxorg_wasm_types" {
     CmdIncludeCustom: CmdIncludeCustomConstructor;
     CmdIncludeSrc: CmdIncludeSrcConstructor;
     CmdIncludeOrgDocument: CmdIncludeOrgDocumentConstructor;
-    format_OrgSemCmdIncludeKind(value: OrgSemCmdIncludeKind): string;
+    format_CmdIncludeKind(value: CmdIncludeKind): string;
     ImmIdTNone: ImmIdTNoneConstructor;
     ImmIdTErrorItem: ImmIdTErrorItemConstructor;
     ImmIdTErrorGroup: ImmIdTErrorGroupConstructor;
@@ -772,14 +772,14 @@ declare module "haxorg_wasm_types" {
     format_OrgTokenKind(value: OrgTokenKind): string;
     format_OrgJsonKind(value: OrgJsonKind): string;
     format_OrgSemKind(value: OrgSemKind): string;
-    format_OrgAstTrackingGroupKind(value: OrgAstTrackingGroupKind): string;
+    format_AstTrackingGroupKind(value: AstTrackingGroupKind): string;
     newSemTimeStatic(breakdown: UserTimeBreakdown, isActive: boolean): Time;
     parseFile(file: string, opts: OrgParseParameters): Org;
     parseString(text: string): Org;
     parseStringOpts(text: string, opts: OrgParseParameters): Org;
     parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
     parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
-    initImmutableAstContext(): StdShared_ptr<ImmAstContext>;
+    initImmutableAstContext(): ImmAstContext;
     asOneNode(arg: Org): Org;
     formatToString(arg: Org): string;
     exportToYamlString(node: Org, opts: OrgYamlExportOpts): string;
@@ -790,9 +790,9 @@ declare module "haxorg_wasm_types" {
     exportToProtobufFile(doc: Document, file: string): void;
     exportToTreeString(node: Org, opts: OrgTreeExportOpts): string;
     exportToTreeFile(node: Org, path: string, opts: OrgTreeExportOpts): void;
-    getAstTrackingMap(nodes: Vec<Org>): AstTrackingMap;
-    getSubnodeGroups(node: Org, map: AstTrackingMap): Vec<AstTrackingGroup>;
-    annotateSequence(groups: Vec<SequenceSegmentGroup>, first: number, last: number): Vec<SequenceAnnotation>;
+    getAstTrackingMap(nodes: haxorg_wasm.Vec<Org>): AstTrackingMap;
+    getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.Vec<AstTrackingGroup>;
+    annotateSequence(groups: haxorg_wasm.Vec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.Vec<SequenceAnnotation>;
   }
   export interface UserTimeBreakdownConstructor { new(): UserTimeBreakdown; }
   export interface UserTimeBreakdown {
@@ -818,7 +818,7 @@ declare module "haxorg_wasm_types" {
   export interface OperationsTracerConstructor { new(): OperationsTracer; }
   export interface OperationsTracer {
     setTraceFileStr(outfile: string, overwrite: boolean): void;
-    sendMessage(value: string, function: string, line: number, file: string): void;
+    sendMessage(value: string, function_: string, line: number, file: string): void;
     TraceState: boolean
     traceToFile: boolean
     traceToBuffer: boolean
@@ -838,7 +838,7 @@ declare module "haxorg_wasm_types" {
     getItem(index: number): OrgJson;
     getInt(): number;
     getBool(): boolean;
-    getArray(): Vec<OrgJson>;
+    getArray(): haxorg_wasm.Vec<OrgJson>;
   }
   export interface OrgConstructor { new(): Org; }
   export interface Org {
@@ -850,7 +850,7 @@ declare module "haxorg_wasm_types" {
     at(idx: number): Org;
     is(kind: OrgSemKind): boolean;
     loc: haxorg_wasm.Optional<ParseLineCol>
-    subnodes: Vec<Org>
+    subnodes: haxorg_wasm.Vec<Org>
   }
   export interface ImmIdConstructor { new(): ImmId; }
   export interface ImmId {
@@ -873,51 +873,51 @@ declare module "haxorg_wasm_types" {
   export interface ImmNoneValueRead {  }
   export interface ImmErrorItemValueReadConstructor { new(): ImmErrorItemValueRead; }
   export interface ImmErrorItemValueRead {
-    getMessage(): ImmerBox<string>;
-    getFunction(): ImmerBox<haxorg_wasm.Optional<string>>;
-    getLine(): ImmerBox<haxorg_wasm.Optional<number>>;
+    getMessage(): haxorg_wasm.ImmerBox<string>;
+    getFunction(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
+    getLine(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
   }
   export interface ImmErrorGroupValueReadConstructor { new(): ImmErrorGroupValueRead; }
   export interface ImmErrorGroupValueRead {
-    getDiagnostics(): ImmerFlex_vector<ImmIdT<ImmErrorItem>>;
-    getFunction(): ImmerBox<haxorg_wasm.Optional<string>>;
-    getLine(): ImmerBox<haxorg_wasm.Optional<number>>;
+    getDiagnostics(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>;
+    getFunction(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
+    getLine(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
   }
   export interface ImmStmtListValueReadConstructor { new(): ImmStmtListValueRead; }
   export interface ImmStmtListValueRead {  }
   export interface ImmEmptyValueReadConstructor { new(): ImmEmptyValueRead; }
   export interface ImmEmptyValueRead {  }
   export interface ImmCmdCaptionValueReadConstructor { new(): ImmCmdCaptionValueRead; }
-  export interface ImmCmdCaptionValueRead { getText(): ImmIdT<ImmParagraph>; }
+  export interface ImmCmdCaptionValueRead { getText(): haxorg_wasm.ImmIdT<ImmParagraph>; }
   export interface ImmCmdColumnsValueReadConstructor { new(): ImmCmdColumnsValueRead; }
   export interface ImmCmdColumnsValueRead { getView(): ColumnView; }
   export interface ImmCmdNameValueReadConstructor { new(): ImmCmdNameValueRead; }
-  export interface ImmCmdNameValueRead { getName(): ImmerBox<string>; }
+  export interface ImmCmdNameValueRead { getName(): haxorg_wasm.ImmerBox<string>; }
   export interface ImmCmdCustomArgsValueReadConstructor { new(): ImmCmdCustomArgsValueRead; }
   export interface ImmCmdCustomArgsValueRead {
-    getName(): ImmerBox<string>;
+    getName(): haxorg_wasm.ImmerBox<string>;
     getIsattached(): boolean;
   }
   export interface ImmCmdCustomRawValueReadConstructor { new(): ImmCmdCustomRawValueRead; }
   export interface ImmCmdCustomRawValueRead {
-    getName(): ImmerBox<string>;
+    getName(): haxorg_wasm.ImmerBox<string>;
     getIsattached(): boolean;
-    getText(): ImmerBox<string>;
+    getText(): haxorg_wasm.ImmerBox<string>;
   }
   export interface ImmCmdCustomTextValueReadConstructor { new(): ImmCmdCustomTextValueRead; }
   export interface ImmCmdCustomTextValueRead {
-    getName(): ImmerBox<string>;
+    getName(): haxorg_wasm.ImmerBox<string>;
     getIsattached(): boolean;
-    getText(): ImmIdT<ImmParagraph>;
+    getText(): haxorg_wasm.ImmIdT<ImmParagraph>;
   }
   export interface ImmCmdCallValueReadConstructor { new(): ImmCmdCallValueRead; }
   export interface ImmCmdCallValueRead {
-    getName(): ImmerBox<string>;
-    getFilename(): ImmerBox<haxorg_wasm.Optional<string>>;
+    getName(): haxorg_wasm.ImmerBox<string>;
+    getFilename(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
     getInsideheaderattrs(): AttrGroup;
     getCallattrs(): AttrGroup;
     getEndheaderattrs(): AttrGroup;
-    getResult(): ImmerFlex_vector<ImmIdT<ImmBlockCodeEvalResult>>;
+    getResult(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>;
   }
   export interface ImmCmdTblfmValueReadConstructor { new(): ImmCmdTblfmValueRead; }
   export interface ImmCmdTblfmValueRead { getExpr(): Tblfm; }
@@ -925,13 +925,13 @@ declare module "haxorg_wasm_types" {
   export interface ImmHashTagValueRead { getText(): HashTagText; }
   export interface ImmInlineFootnoteValueReadConstructor { new(): ImmInlineFootnoteValueRead; }
   export interface ImmInlineFootnoteValueRead {
-    getTag(): ImmerBox<string>;
-    getDefinition(): ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmOrg>>>;
+    getTag(): haxorg_wasm.ImmerBox<string>;
+    getDefinition(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmOrg>>>;
   }
   export interface ImmInlineExportValueReadConstructor { new(): ImmInlineExportValueRead; }
   export interface ImmInlineExportValueRead {
-    getExporter(): ImmerBox<string>;
-    getContent(): ImmerBox<string>;
+    getExporter(): haxorg_wasm.ImmerBox<string>;
+    getContent(): haxorg_wasm.ImmerBox<string>;
   }
   export interface ImmTimeValueReadConstructor { new(): ImmTimeValueRead; }
   export interface ImmTimeValueRead {
@@ -940,19 +940,19 @@ declare module "haxorg_wasm_types" {
   }
   export interface ImmTimeRangeValueReadConstructor { new(): ImmTimeRangeValueRead; }
   export interface ImmTimeRangeValueRead {
-    getFrom(): ImmIdT<ImmTime>;
-    getTo(): ImmIdT<ImmTime>;
+    getFrom(): haxorg_wasm.ImmIdT<ImmTime>;
+    getTo(): haxorg_wasm.ImmIdT<ImmTime>;
   }
   export interface ImmMacroValueReadConstructor { new(): ImmMacroValueRead; }
   export interface ImmMacroValueRead {
-    getName(): ImmerBox<string>;
+    getName(): haxorg_wasm.ImmerBox<string>;
     getAttrs(): AttrGroup;
   }
   export interface ImmSymbolValueReadConstructor { new(): ImmSymbolValueRead; }
   export interface ImmSymbolValueRead {
-    getName(): ImmerBox<string>;
-    getParameters(): ImmerFlex_vector<ImmSymbolParam>;
-    getPositional(): ImmerFlex_vector<ImmIdT<ImmOrg>>;
+    getName(): haxorg_wasm.ImmerBox<string>;
+    getParameters(): haxorg_wasm.ImmerFlex_vector<ImmSymbolParam>;
+    getPositional(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmOrg>>;
   }
   export interface ImmEscapedValueReadConstructor { new(): ImmEscapedValueRead; }
   export interface ImmEscapedValueRead {  }
@@ -991,12 +991,12 @@ declare module "haxorg_wasm_types" {
   export interface ImmParValueReadConstructor { new(): ImmParValueRead; }
   export interface ImmParValueRead {  }
   export interface ImmRadioTargetValueReadConstructor { new(): ImmRadioTargetValueRead; }
-  export interface ImmRadioTargetValueRead { getWords(): ImmerFlex_vector<string>; }
+  export interface ImmRadioTargetValueRead { getWords(): haxorg_wasm.ImmerFlex_vector<string>; }
   export interface ImmLatexValueReadConstructor { new(): ImmLatexValueRead; }
   export interface ImmLatexValueRead {  }
   export interface ImmLinkValueReadConstructor { new(): ImmLinkValueRead; }
   export interface ImmLinkValueRead {
-    getDescription(): ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>;
+    getDescription(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>;
     getTarget(): LinkTarget;
   }
   export interface ImmBlockCenterValueReadConstructor { new(): ImmBlockCenterValueRead; }
@@ -1008,27 +1008,27 @@ declare module "haxorg_wasm_types" {
   export interface ImmBlockVerseValueReadConstructor { new(): ImmBlockVerseValueRead; }
   export interface ImmBlockVerseValueRead {  }
   export interface ImmBlockDynamicFallbackValueReadConstructor { new(): ImmBlockDynamicFallbackValueRead; }
-  export interface ImmBlockDynamicFallbackValueRead { getName(): ImmerBox<string>; }
+  export interface ImmBlockDynamicFallbackValueRead { getName(): haxorg_wasm.ImmerBox<string>; }
   export interface ImmBlockExampleValueReadConstructor { new(): ImmBlockExampleValueRead; }
   export interface ImmBlockExampleValueRead {  }
   export interface ImmBlockExportValueReadConstructor { new(): ImmBlockExportValueRead; }
   export interface ImmBlockExportValueRead {
-    getExporter(): ImmerBox<string>;
-    getContent(): ImmerBox<string>;
+    getExporter(): haxorg_wasm.ImmerBox<string>;
+    getContent(): haxorg_wasm.ImmerBox<string>;
   }
   export interface ImmBlockAdmonitionValueReadConstructor { new(): ImmBlockAdmonitionValueRead; }
   export interface ImmBlockAdmonitionValueRead {  }
   export interface ImmBlockCodeEvalResultValueReadConstructor { new(): ImmBlockCodeEvalResultValueRead; }
   export interface ImmBlockCodeEvalResultValueRead {
-    getRaw(): ImmerFlex_vector<OrgCodeEvalOutput>;
-    getNode(): ImmIdT<ImmOrg>;
+    getRaw(): haxorg_wasm.ImmerFlex_vector<OrgCodeEvalOutput>;
+    getNode(): haxorg_wasm.ImmIdT<ImmOrg>;
   }
   export interface ImmBlockCodeValueReadConstructor { new(): ImmBlockCodeValueRead; }
   export interface ImmBlockCodeValueRead {
-    getLang(): ImmerBox<haxorg_wasm.Optional<string>>;
+    getLang(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
     getExports(): BlockCodeExports;
-    getResult(): ImmerFlex_vector<ImmIdT<ImmBlockCodeEvalResult>>;
-    getLines(): ImmerFlex_vector<BlockCodeLine>;
+    getResult(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>;
+    getLines(): haxorg_wasm.ImmerFlex_vector<BlockCodeLine>;
     getCache(): boolean;
     getEval(): boolean;
     getNoweb(): boolean;
@@ -1039,36 +1039,36 @@ declare module "haxorg_wasm_types" {
   export interface ImmSubtreeLogValueReadConstructor { new(): ImmSubtreeLogValueRead; }
   export interface ImmSubtreeLogValueRead {
     getHead(): SubtreeLogHead;
-    getDesc(): ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmStmtList>>>;
+    getDesc(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmStmtList>>>;
   }
   export interface ImmSubtreeValueReadConstructor { new(): ImmSubtreeValueRead; }
   export interface ImmSubtreeValueRead {
     getLevel(): number;
-    getTreeid(): ImmerBox<haxorg_wasm.Optional<string>>;
-    getTodo(): ImmerBox<haxorg_wasm.Optional<string>>;
-    getCompletion(): ImmerBox<haxorg_wasm.Optional<SubtreeCompletion>>;
-    getDescription(): ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>;
-    getTags(): ImmerFlex_vector<ImmIdT<ImmHashTag>>;
-    getTitle(): ImmIdT<ImmParagraph>;
-    getLogbook(): ImmerFlex_vector<ImmIdT<ImmSubtreeLog>>;
-    getProperties(): ImmerFlex_vector<NamedProperty>;
-    getClosed(): ImmerBox<haxorg_wasm.Optional<UserTime>>;
-    getDeadline(): ImmerBox<haxorg_wasm.Optional<UserTime>>;
-    getScheduled(): ImmerBox<haxorg_wasm.Optional<UserTime>>;
+    getTreeid(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
+    getTodo(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
+    getCompletion(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<SubtreeCompletion>>;
+    getDescription(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>;
+    getTags(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmHashTag>>;
+    getTitle(): haxorg_wasm.ImmIdT<ImmParagraph>;
+    getLogbook(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmSubtreeLog>>;
+    getProperties(): haxorg_wasm.ImmerFlex_vector<NamedProperty>;
+    getClosed(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>;
+    getDeadline(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>;
+    getScheduled(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>;
     getIscomment(): boolean;
     getIsarchived(): boolean;
-    getPriority(): ImmerBox<haxorg_wasm.Optional<string>>;
+    getPriority(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
   }
   export interface ImmCellValueReadConstructor { new(): ImmCellValueRead; }
   export interface ImmCellValueRead { getIsblock(): boolean; }
   export interface ImmRowValueReadConstructor { new(): ImmRowValueRead; }
   export interface ImmRowValueRead {
-    getCells(): ImmerFlex_vector<ImmIdT<ImmCell>>;
+    getCells(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmCell>>;
     getIsblock(): boolean;
   }
   export interface ImmTableValueReadConstructor { new(): ImmTableValueRead; }
   export interface ImmTableValueRead {
-    getRows(): ImmerFlex_vector<ImmIdT<ImmRow>>;
+    getRows(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmRow>>;
     getIsblock(): boolean;
   }
   export interface ImmParagraphValueReadConstructor { new(): ImmParagraphValueRead; }
@@ -1076,15 +1076,15 @@ declare module "haxorg_wasm_types" {
   export interface ImmColonExampleValueReadConstructor { new(): ImmColonExampleValueRead; }
   export interface ImmColonExampleValueRead {  }
   export interface ImmCmdAttrValueReadConstructor { new(): ImmCmdAttrValueRead; }
-  export interface ImmCmdAttrValueRead { getTarget(): ImmerBox<string>; }
+  export interface ImmCmdAttrValueRead { getTarget(): haxorg_wasm.ImmerBox<string>; }
   export interface ImmCmdExportValueReadConstructor { new(): ImmCmdExportValueRead; }
   export interface ImmCmdExportValueRead {
-    getExporter(): ImmerBox<string>;
-    getContent(): ImmerBox<string>;
+    getExporter(): haxorg_wasm.ImmerBox<string>;
+    getContent(): haxorg_wasm.ImmerBox<string>;
   }
   export interface ImmCallValueReadConstructor { new(): ImmCallValueRead; }
   export interface ImmCallValueRead {
-    getName(): ImmerBox<string>;
+    getName(): haxorg_wasm.ImmerBox<string>;
     getAttrs(): AttrGroup;
     getIscommand(): boolean;
   }
@@ -1093,22 +1093,22 @@ declare module "haxorg_wasm_types" {
   export interface ImmListItemValueReadConstructor { new(): ImmListItemValueRead; }
   export interface ImmListItemValueRead {
     getCheckbox(): CheckboxState;
-    getHeader(): ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>;
-    getBullet(): ImmerBox<haxorg_wasm.Optional<string>>;
+    getHeader(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>;
+    getBullet(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
   }
   export interface ImmDocumentOptionsValueReadConstructor { new(): ImmDocumentOptionsValueRead; }
   export interface ImmDocumentOptionsValueRead {
     getInitialvisibility(): InitialSubtreeVisibility;
-    getProperties(): ImmerFlex_vector<NamedProperty>;
+    getProperties(): haxorg_wasm.ImmerFlex_vector<NamedProperty>;
     getExportconfig(): DocumentExportConfig;
-    getFixedwidthsections(): ImmerBox<haxorg_wasm.Optional<boolean>>;
-    getStartupindented(): ImmerBox<haxorg_wasm.Optional<boolean>>;
-    getCategory(): ImmerBox<haxorg_wasm.Optional<string>>;
-    getSetupfile(): ImmerBox<haxorg_wasm.Optional<string>>;
-    getMaxsubtreelevelexport(): ImmerBox<haxorg_wasm.Optional<number>>;
-    getColumns(): ImmerBox<haxorg_wasm.Optional<ColumnView>>;
-    getTodokeywords(): ImmerFlex_vector<TodoKeyword>;
-    getDonekeywords(): ImmerFlex_vector<TodoKeyword>;
+    getFixedwidthsections(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<boolean>>;
+    getStartupindented(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<boolean>>;
+    getCategory(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
+    getSetupfile(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
+    getMaxsubtreelevelexport(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
+    getColumns(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<ColumnView>>;
+    getTodokeywords(): haxorg_wasm.ImmerFlex_vector<TodoKeyword>;
+    getDonekeywords(): haxorg_wasm.ImmerFlex_vector<TodoKeyword>;
   }
   export interface ImmDocumentFragmentValueReadConstructor { new(): ImmDocumentFragmentValueRead; }
   export interface ImmDocumentFragmentValueRead {
@@ -1119,23 +1119,23 @@ declare module "haxorg_wasm_types" {
   export interface ImmCriticMarkupValueRead { getKind(): ImmCriticMarkupKind; }
   export interface ImmDocumentValueReadConstructor { new(): ImmDocumentValueRead; }
   export interface ImmDocumentValueRead {
-    getTitle(): ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>;
-    getAuthor(): ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>;
-    getCreator(): ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>;
-    getFiletags(): ImmerFlex_vector<ImmIdT<ImmHashTag>>;
-    getEmail(): ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmRawText>>>;
-    getLanguage(): ImmerFlex_vector<string>;
-    getOptions(): ImmIdT<ImmDocumentOptions>;
-    getExportfilename(): ImmerBox<haxorg_wasm.Optional<string>>;
+    getTitle(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>;
+    getAuthor(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>;
+    getCreator(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>;
+    getFiletags(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmHashTag>>;
+    getEmail(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmRawText>>>;
+    getLanguage(): haxorg_wasm.ImmerFlex_vector<string>;
+    getOptions(): haxorg_wasm.ImmIdT<ImmDocumentOptions>;
+    getExportfilename(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
   }
   export interface ImmFileTargetValueReadConstructor { new(): ImmFileTargetValueRead; }
   export interface ImmFileTargetValueRead {
-    getPath(): ImmerBox<string>;
-    getLine(): ImmerBox<haxorg_wasm.Optional<number>>;
-    getSearchtarget(): ImmerBox<haxorg_wasm.Optional<string>>;
+    getPath(): haxorg_wasm.ImmerBox<string>;
+    getLine(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
+    getSearchtarget(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
     getRestricttoheadlines(): boolean;
-    getTargetid(): ImmerBox<haxorg_wasm.Optional<string>>;
-    getRegexp(): ImmerBox<haxorg_wasm.Optional<string>>;
+    getTargetid(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
+    getRegexp(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
   }
   export interface ImmTextSeparatorValueReadConstructor { new(): ImmTextSeparatorValueRead; }
   export interface ImmTextSeparatorValueRead {  }
@@ -1143,25 +1143,25 @@ declare module "haxorg_wasm_types" {
   export interface ImmDocumentGroupValueRead {  }
   export interface ImmFileValueReadConstructor { new(): ImmFileValueRead; }
   export interface ImmFileValueRead {
-    getRelpath(): ImmerBox<string>;
-    getAbspath(): ImmerBox<string>;
+    getRelpath(): haxorg_wasm.ImmerBox<string>;
+    getAbspath(): haxorg_wasm.ImmerBox<string>;
     getData(): ImmFileData;
   }
   export interface ImmDirectoryValueReadConstructor { new(): ImmDirectoryValueRead; }
   export interface ImmDirectoryValueRead {
-    getRelpath(): ImmerBox<string>;
-    getAbspath(): ImmerBox<string>;
+    getRelpath(): haxorg_wasm.ImmerBox<string>;
+    getAbspath(): haxorg_wasm.ImmerBox<string>;
   }
   export interface ImmSymlinkValueReadConstructor { new(): ImmSymlinkValueRead; }
   export interface ImmSymlinkValueRead {
     getIsdirectory(): boolean;
-    getAbspath(): ImmerBox<string>;
+    getAbspath(): haxorg_wasm.ImmerBox<string>;
   }
   export interface ImmCmdIncludeValueReadConstructor { new(): ImmCmdIncludeValueRead; }
   export interface ImmCmdIncludeValueRead {
-    getPath(): ImmerBox<string>;
-    getFirstline(): ImmerBox<haxorg_wasm.Optional<number>>;
-    getLastline(): ImmerBox<haxorg_wasm.Optional<number>>;
+    getPath(): haxorg_wasm.ImmerBox<string>;
+    getFirstline(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
+    getLastline(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
     getData(): ImmCmdIncludeData;
   }
   export interface ImmAstContextConstructor { new(): ImmAstContext; }
@@ -1173,7 +1173,7 @@ declare module "haxorg_wasm_types" {
   export interface ImmAstVersion {
     getRoot(): ImmId;
     getRootAdapter(): ImmAdapter;
-    getContext(): StdShared_ptr<ImmAstContext>;
+    getContext(): ImmAstContext;
   }
   export interface ImmAdapterConstructor { new(): ImmAdapter; }
   export interface ImmAdapter {
@@ -1192,9 +1192,9 @@ declare module "haxorg_wasm_types" {
     atIdReflPathStep(id: ImmId, idx: ImmPathStep): ImmAdapter;
     atField(field: ImmReflFieldId): ImmAdapter;
     atIndex(idx: number, withPath: boolean): ImmAdapter;
-    atPath(path: Vec<number>, withPath: boolean): ImmAdapter;
+    atPath(path: haxorg_wasm.Vec<number>, withPath: boolean): ImmAdapter;
     is(kind: OrgSemKind): boolean;
-    sub(withPath: boolean): Vec<ImmAdapter>;
+    sub(withPath: boolean): haxorg_wasm.Vec<ImmAdapter>;
   }
   export interface ImmAdapterTreeReprConfConstructor { new(): ImmAdapterTreeReprConf; }
   export interface ImmAdapterTreeReprConf {
@@ -1241,11 +1241,11 @@ declare module "haxorg_wasm_types" {
   export interface AstTrackingPath {
     getParent(offset: number): Org;
     getNode(): Org;
-    path: Vec<Org>
+    path: haxorg_wasm.Vec<Org>
   }
   export interface AstTrackingAlternativesConstructor { new(): AstTrackingAlternatives; }
   export interface AstTrackingAlternatives {
-    getAllNodes(): Vec<Org>;
+    getAllNodes(): haxorg_wasm.Vec<Org>;
     getNode(): Org;
   }
   export interface AstTrackingGroupConstructor { new(): AstTrackingGroup; }
@@ -1263,14 +1263,14 @@ declare module "haxorg_wasm_types" {
   export interface AstTrackingGroupRadioTargetConstructor { new(): AstTrackingGroupRadioTarget; }
   export interface AstTrackingGroupRadioTarget {
     target: AstTrackingPath
-    nodes: Vec<Org>
+    nodes: haxorg_wasm.Vec<Org>
   }
   export interface AstTrackingGroupSingleConstructor { new(): AstTrackingGroupSingle; }
   export interface AstTrackingGroupSingle { node: Org }
   export interface AstTrackingGroupTrackedHashtagConstructor { new(): AstTrackingGroupTrackedHashtag; }
   export interface AstTrackingGroupTrackedHashtag {
     tag: Org
-    targets: UnorderedMap<HashTagFlat, AstTrackingPath>
+    targets: haxorg_wasm.UnorderedMap<HashTagFlat, AstTrackingPath>
   }
   export interface AstTrackingMapConstructor { new(): AstTrackingMap; }
   export interface AstTrackingMap {
@@ -1278,12 +1278,12 @@ declare module "haxorg_wasm_types" {
     getNamePath(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
     getAnchorTarget(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
     getFootnotePath(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
-    footnotes: UnorderedMap<string, AstTrackingAlternatives>
-    subtrees: UnorderedMap<string, AstTrackingAlternatives>
-    names: UnorderedMap<string, AstTrackingAlternatives>
-    anchorTargets: UnorderedMap<string, AstTrackingAlternatives>
-    radioTargets: UnorderedMap<string, AstTrackingAlternatives>
-    hashtagDefinitions: UnorderedMap<HashTagFlat, AstTrackingAlternatives>
+    footnotes: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
+    subtrees: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
+    names: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
+    anchorTargets: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
+    radioTargets: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
+    hashtagDefinitions: haxorg_wasm.UnorderedMap<HashTagFlat, AstTrackingAlternatives>
   }
   export interface SequenceSegmentConstructor { new(): SequenceSegment; }
   export interface SequenceSegment {
@@ -1294,19 +1294,19 @@ declare module "haxorg_wasm_types" {
   export interface SequenceSegmentGroupConstructor { new(): SequenceSegmentGroup; }
   export interface SequenceSegmentGroup {
     kind: number
-    segments: Vec<SequenceSegment>
+    segments: haxorg_wasm.Vec<SequenceSegment>
   }
   export interface SequenceAnnotationTagConstructor { new(): SequenceAnnotationTag; }
   export interface SequenceAnnotationTag {
     groupKind: number
-    segmentKinds: Vec<number>
+    segmentKinds: haxorg_wasm.Vec<number>
   }
   export interface SequenceAnnotationConstructor { new(): SequenceAnnotation; }
   export interface SequenceAnnotation {
     isAnnotatedWith(groupKind: number, segmentKind: number): boolean;
     first: number
     last: number
-    annotations: Vec<SequenceAnnotationTag>
+    annotations: haxorg_wasm.Vec<SequenceAnnotationTag>
   }
   export interface GraphMapLinkConstructor { new(): GraphMapLink; }
   export interface GraphMapLink {  }
@@ -1319,7 +1319,7 @@ declare module "haxorg_wasm_types" {
     getSubtreeId(): haxorg_wasm.Optional<string>;
     getFootnoteName(): haxorg_wasm.Optional<string>;
     id: ImmAdapter
-    unresolved: Vec<GraphMapLink>
+    unresolved: haxorg_wasm.Vec<GraphMapLink>
   }
   export interface GraphMapEdgePropConstructor { new(): GraphMapEdgeProp; }
   export interface GraphMapEdgeProp { link: GraphMapLink }
@@ -1340,10 +1340,10 @@ declare module "haxorg_wasm_types" {
     edgeCount(): number;
     outNodes(node: GraphMapNode): GraphAdjNodesList;
     inNodes(node: GraphMapNode): GraphAdjNodesList;
-    adjEdges(node: GraphMapNode): Vec<GraphMapEdge>;
-    adjNodes(node: GraphMapNode): Vec<GraphMapNode>;
-    outEdges(node: GraphMapNode): Vec<GraphMapEdge>;
-    inEdges(node: GraphMapNode): Vec<GraphMapEdge>;
+    adjEdges(node: GraphMapNode): haxorg_wasm.Vec<GraphMapEdge>;
+    adjNodes(node: GraphMapNode): haxorg_wasm.Vec<GraphMapNode>;
+    outEdges(node: GraphMapNode): haxorg_wasm.Vec<GraphMapEdge>;
+    inEdges(node: GraphMapNode): haxorg_wasm.Vec<GraphMapEdge>;
     outDegree(node: GraphMapNode): number;
     inDegree(node: GraphMapNode): number;
     isRegisteredNode(id: GraphMapNode): boolean;
@@ -1364,14 +1364,14 @@ declare module "haxorg_wasm_types" {
   }
   export interface GraphMapGraphStateConstructor { new(): GraphMapGraphState; }
   export interface GraphMapGraphState {
-    FromAstContext(ast: StdShared_ptr<ImmAstContext>): GraphMapGraphState;
-    registerNode(node: GraphMapNodeProp, conf: StdShared_ptr<GraphMapConfig>): void;
-    addNode(node: ImmAdapter, conf: StdShared_ptr<GraphMapConfig>): void;
-    addNodeRec(node: ImmAdapter, conf: StdShared_ptr<GraphMapConfig>): void;
-    getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>, conf: StdShared_ptr<GraphMapConfig>): Vec<GraphMapLink>;
-    getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: StdShared_ptr<GraphMapConfig>): haxorg_wasm.Optional<GraphMapLink>;
+    FromAstContext(ast: ImmAstContext): GraphMapGraphState;
+    registerNode(node: GraphMapNodeProp, conf: GraphMapConfig): void;
+    addNode(node: ImmAdapter, conf: GraphMapConfig): void;
+    addNodeRec(node: ImmAdapter, conf: GraphMapConfig): void;
+    getUnresolvedSubtreeLinks(node: ImmSubtreeAdapter, conf: GraphMapConfig): haxorg_wasm.Vec<GraphMapLink>;
+    getUnresolvedLink(node: ImmLinkAdapter, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
     graph: GraphMapGraph
-    ast: StdShared_ptr<ImmAstContext>
+    ast: ImmAstContext
   }
   export interface LispCodeConstructor { new(): LispCode; }
   export interface LispCode {
@@ -1403,7 +1403,7 @@ declare module "haxorg_wasm_types" {
     getRealMut(): LispCodeReal;
     getKindStatic(__input: LispCodeData): LispCodeKind;
     getKind(): LispCodeKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): LispCodeData;
     sub_variant_get_kind(): LispCodeKind;
     data: LispCodeData
@@ -1413,20 +1413,20 @@ declare module "haxorg_wasm_types" {
     __eq__(other: LispCodeCall): boolean;
     Call(): void;
     name: string
-    args: Vec<LispCode>
+    args: haxorg_wasm.Vec<LispCode>
   }
   export interface LispCodeListConstructor { new(): LispCodeList; }
   export interface LispCodeList {
     __eq__(other: LispCodeList): boolean;
     List(): void;
-    items: Vec<LispCode>
+    items: haxorg_wasm.Vec<LispCode>
   }
   export interface LispCodeKeyValueConstructor { new(): LispCodeKeyValue; }
   export interface LispCodeKeyValue {
     __eq__(other: LispCodeKeyValue): boolean;
     KeyValue(): void;
     name: string
-    value: Vec<LispCode>
+    value: haxorg_wasm.Vec<LispCode>
   }
   export interface LispCodeNumberConstructor { new(): LispCodeNumber; }
   export interface LispCodeNumber {
@@ -1458,7 +1458,8 @@ declare module "haxorg_wasm_types" {
     Real(): void;
     value: Float
   }
-  export enum OrgSemLispCodeKind {
+  export type LispCodeData = haxorg_wasm.StdVariant<LispCodeCall, LispCodeList, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal>;
+  export enum LispCodeKind {
     Call,
     List,
     KeyValue,
@@ -1471,7 +1472,7 @@ declare module "haxorg_wasm_types" {
   export interface TblfmConstructor { new(): Tblfm; }
   export interface Tblfm {
     __eq__(other: Tblfm): boolean;
-    exprs: Vec<TblfmAssign>
+    exprs: haxorg_wasm.Vec<TblfmAssign>
   }
   export interface TblfmExprConstructor { new(): TblfmExpr; }
   export interface TblfmExpr {
@@ -1499,7 +1500,7 @@ declare module "haxorg_wasm_types" {
     getElispMut(): TblfmExprElisp;
     getKindStatic(__input: TblfmExprData): TblfmExprKind;
     getKind(): TblfmExprKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): TblfmExprData;
     sub_variant_get_kind(): TblfmExprKind;
     data: TblfmExprData
@@ -1521,7 +1522,7 @@ declare module "haxorg_wasm_types" {
     getNameMut(): TblfmExprAxisRefPositionName;
     getKindStatic(__input: TblfmExprAxisRefPositionData): TblfmExprAxisRefPositionKind;
     getKind(): TblfmExprAxisRefPositionKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): TblfmExprAxisRefPositionData;
     sub_variant_get_kind(): TblfmExprAxisRefPositionKind;
     data: TblfmExprAxisRefPositionData
@@ -1536,7 +1537,8 @@ declare module "haxorg_wasm_types" {
     __eq__(other: TblfmExprAxisRefPositionName): boolean;
     name: string
   }
-  export enum OrgSemTblfmExprAxisRefPositionKind {
+  export type TblfmExprAxisRefPositionData = haxorg_wasm.StdVariant<TblfmExprAxisRefPositionIndex, TblfmExprAxisRefPositionName>;
+  export enum TblfmExprAxisRefPositionKind {
     Index,
     Name,
   }
@@ -1565,14 +1567,15 @@ declare module "haxorg_wasm_types" {
   export interface TblfmExprCall {
     __eq__(other: TblfmExprCall): boolean;
     name: string
-    args: Vec<TblfmExpr>
+    args: haxorg_wasm.Vec<TblfmExpr>
   }
   export interface TblfmExprElispConstructor { new(): TblfmExprElisp; }
   export interface TblfmExprElisp {
     __eq__(other: TblfmExprElisp): boolean;
     value: string
   }
-  export enum OrgSemTblfmExprKind {
+  export type TblfmExprData = haxorg_wasm.StdVariant<TblfmExprAxisRef, TblfmExprAxisName, TblfmExprIntLiteral, TblfmExprFloatLiteral, TblfmExprRangeRef, TblfmExprCall, TblfmExprElisp>;
+  export enum TblfmExprKind {
     AxisRef,
     AxisName,
     IntLiteral,
@@ -1585,10 +1588,10 @@ declare module "haxorg_wasm_types" {
   export interface TblfmAssign {
     __eq__(other: TblfmAssign): boolean;
     target: TblfmExprAxisRef
-    expr: Vec<TblfmExpr>
-    flags: Vec<TblfmAssignFlag>
+    expr: haxorg_wasm.Vec<TblfmExpr>
+    flags: haxorg_wasm.Vec<TblfmAssignFlag>
   }
-  export enum OrgSemTblfmAssignFlag {
+  export enum TblfmAssignFlag {
     CellLeftAlign,
     CellRightAlign,
     CellCenterAlign,
@@ -1626,16 +1629,16 @@ declare module "haxorg_wasm_types" {
     getLispValueMut(): AttrValueLispValue;
     getDataKindStatic(__input: AttrValueDataVariant): AttrValueDataKind;
     getDataKind(): AttrValueDataKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): AttrValueDataVariant;
     sub_variant_get_kind(): AttrValueDataKind;
     name: haxorg_wasm.Optional<string>
     varname: haxorg_wasm.Optional<string>
-    span: Vec<AttrValueDimensionSpan>
+    span: haxorg_wasm.Vec<AttrValueDimensionSpan>
     isQuoted: boolean
     data: AttrValueDataVariant
   }
-  export enum OrgSemAttrValueKind {
+  export enum AttrValueKind {
     String,
     Boolean,
     Integer,
@@ -1668,7 +1671,8 @@ declare module "haxorg_wasm_types" {
     LispValue(): void;
     code: LispCode
   }
-  export enum OrgSemAttrValueDataKind {
+  export type AttrValueDataVariant = haxorg_wasm.StdVariant<AttrValueTextValue, AttrValueFileReference, AttrValueLispValue>;
+  export enum AttrValueDataKind {
     TextValue,
     FileReference,
     LispValue,
@@ -1677,7 +1681,7 @@ declare module "haxorg_wasm_types" {
   export interface HashTagFlat {
     __eq__(other: HashTagFlat): boolean;
     __lt__(other: HashTagFlat): boolean;
-    tags: Vec<string>
+    tags: haxorg_wasm.Vec<string>
   }
   export interface TodoKeywordConstructor { new(): TodoKeyword; }
   export interface TodoKeyword {
@@ -1687,7 +1691,7 @@ declare module "haxorg_wasm_types" {
     onEnter: TodoKeywordTransition
     onLeave: TodoKeywordTransition
   }
-  export enum OrgSemTodoKeywordTransition {
+  export enum TodoKeywordTransition {
     None,
     NoteWithTimestamp,
     Timestamp,
@@ -1695,15 +1699,15 @@ declare module "haxorg_wasm_types" {
   export interface HashTagTextConstructor { new(): HashTagText; }
   export interface HashTagText {
     __eq__(other: HashTagText): boolean;
-    prefixMatch(prefix: Vec<string>): boolean;
-    getFlatHashes(withIntermediate: boolean): Vec<HashTagFlat>;
+    prefixMatch(prefix: haxorg_wasm.Vec<string>): boolean;
+    getFlatHashes(withIntermediate: boolean): haxorg_wasm.Vec<HashTagFlat>;
     head: string
-    subtags: Vec<HashTagText>
+    subtags: haxorg_wasm.Vec<HashTagText>
   }
   export interface SubtreePathConstructor { new(): SubtreePath; }
   export interface SubtreePath {
     __eq__(other: SubtreePath): boolean;
-    path: Vec<string>
+    path: haxorg_wasm.Vec<string>
   }
   export interface LinkTargetConstructor { new(): LinkTarget; }
   export interface LinkTarget {
@@ -1740,7 +1744,7 @@ declare module "haxorg_wasm_types" {
     getAttachmentMut(): LinkTargetAttachment;
     getKindStatic(__input: LinkTargetData): LinkTargetKind;
     getKind(): LinkTargetKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): LinkTargetData;
     sub_variant_get_kind(): LinkTargetKind;
     data: LinkTargetData
@@ -1797,7 +1801,8 @@ declare module "haxorg_wasm_types" {
     __eq__(other: LinkTargetAttachment): boolean;
     file: string
   }
-  export enum OrgSemLinkTargetKind {
+  export type LinkTargetData = haxorg_wasm.StdVariant<LinkTargetRaw, LinkTargetId, LinkTargetCustomId, LinkTargetSubtreeTitle, LinkTargetPerson, LinkTargetUserProtocol, LinkTargetInternal, LinkTargetFootnote, LinkTargetFile, LinkTargetAttachment>;
+  export enum LinkTargetKind {
     Raw,
     Id,
     CustomId,
@@ -1841,7 +1846,7 @@ declare module "haxorg_wasm_types" {
     getUnknownMut(): SubtreeLogHeadUnknown;
     getLogKindStatic(__input: SubtreeLogHeadLogEntry): SubtreeLogHeadKind;
     getLogKind(): SubtreeLogHeadKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): SubtreeLogHeadLogEntry;
     sub_variant_get_kind(): SubtreeLogHeadKind;
     log: SubtreeLogHeadLogEntry
@@ -1854,7 +1859,7 @@ declare module "haxorg_wasm_types" {
     on: UserTime
     action: SubtreeLogHeadPriorityAction
   }
-  export enum OrgSemSubtreeLogHeadPriorityAction {
+  export enum SubtreeLogHeadPriorityAction {
     Added,
     Removed,
     Changed,
@@ -1906,7 +1911,8 @@ declare module "haxorg_wasm_types" {
   }
   export interface SubtreeLogHeadUnknownConstructor { new(): SubtreeLogHeadUnknown; }
   export interface SubtreeLogHeadUnknown { __eq__(other: SubtreeLogHeadUnknown): boolean; }
-  export enum OrgSemSubtreeLogHeadKind {
+  export type SubtreeLogHeadLogEntry = haxorg_wasm.StdVariant<SubtreeLogHeadPriority, SubtreeLogHeadNote, SubtreeLogHeadRefile, SubtreeLogHeadClock, SubtreeLogHeadState, SubtreeLogHeadDeadline, SubtreeLogHeadSchedule, SubtreeLogHeadTag, SubtreeLogHeadUnknown>;
+  export enum SubtreeLogHeadKind {
     Priority,
     Note,
     Refile,
@@ -1927,14 +1933,14 @@ declare module "haxorg_wasm_types" {
   export interface AttrListConstructor { new(): AttrList; }
   export interface AttrList {
     __eq__(other: AttrList): boolean;
-    items: Vec<AttrValue>
+    items: haxorg_wasm.Vec<AttrValue>
   }
   export interface AttrGroupConstructor { new(): AttrGroup; }
   export interface AttrGroup {
-    getFlatArgs(): Vec<AttrValue>;
-    getAttrs(key: haxorg_wasm.Optional<string>): Vec<AttrValue>;
-    setNamedAttr(key: string, attrs: Vec<AttrValue>): void;
-    setPositionalAttr(items: Vec<AttrValue>): void;
+    getFlatArgs(): haxorg_wasm.Vec<AttrValue>;
+    getAttrs(key: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<AttrValue>;
+    setNamedAttr(key: string, attrs: haxorg_wasm.Vec<AttrValue>): void;
+    setPositionalAttr(items: haxorg_wasm.Vec<AttrValue>): void;
     getPositionalSize(): number;
     getNamedSize(): number;
     isEmpty(): boolean;
@@ -1951,7 +1957,7 @@ declare module "haxorg_wasm_types" {
     getFirstVarNamed(index: string): haxorg_wasm.Optional<AttrValue>;
     __eq__(other: AttrGroup): boolean;
     positional: AttrList
-    named: UnorderedMap<string, AttrList>
+    named: haxorg_wasm.UnorderedMap<string, AttrList>
   }
   export interface OrgCodeEvalInputConstructor { new(): OrgCodeEvalInput; }
   export interface OrgCodeEvalInput {
@@ -1963,7 +1969,7 @@ declare module "haxorg_wasm_types" {
     resultFormat: OrgCodeEvalInputResultFormat
     resultHandling: OrgCodeEvalInputResultHandling
     language: string
-    argList: Vec<OrgCodeEvalInputVar>
+    argList: haxorg_wasm.Vec<OrgCodeEvalInputVar>
   }
   export interface OrgCodeEvalInputVarConstructor { new(): OrgCodeEvalInputVar; }
   export interface OrgCodeEvalInputVar {
@@ -1972,14 +1978,14 @@ declare module "haxorg_wasm_types" {
     name: string
     value: OrgJson
   }
-  export enum OrgSemOrgCodeEvalInputResultType {
+  export enum OrgCodeEvalInputResultType {
     None,
     Table,
     List,
     Scalar,
     SaveFile,
   }
-  export enum OrgSemOrgCodeEvalInputResultFormat {
+  export enum OrgCodeEvalInputResultFormat {
     None,
     Raw,
     Code,
@@ -1987,7 +1993,7 @@ declare module "haxorg_wasm_types" {
     ExportType,
     Link,
   }
-  export enum OrgSemOrgCodeEvalInputResultHandling {
+  export enum OrgCodeEvalInputResultHandling {
     None,
     Replace,
     Silent,
@@ -2002,14 +2008,14 @@ declare module "haxorg_wasm_types" {
     stderrText: string
     code: number
     cmd: haxorg_wasm.Optional<string>
-    args: Vec<string>
+    args: haxorg_wasm.Vec<string>
     cwd: string
     appliedHeaderArg: AttrGroup
   }
   export interface ColumnViewConstructor { new(): ColumnView; }
   export interface ColumnView {
     __eq__(other: ColumnView): boolean;
-    columns: Vec<ColumnViewColumn>
+    columns: haxorg_wasm.Vec<ColumnViewColumn>
   }
   export interface ColumnViewSummaryConstructor { new(): ColumnViewSummary; }
   export interface ColumnViewSummary {
@@ -2022,7 +2028,7 @@ declare module "haxorg_wasm_types" {
     getMathAggregateMut(): ColumnViewSummaryMathAggregate;
     getKindStatic(__input: ColumnViewSummaryData): ColumnViewSummaryKind;
     getKind(): ColumnViewSummaryKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): ColumnViewSummaryData;
     sub_variant_get_kind(): ColumnViewSummaryKind;
     data: ColumnViewSummaryData
@@ -2032,7 +2038,7 @@ declare module "haxorg_wasm_types" {
     __eq__(other: ColumnViewSummaryCheckboxAggregate): boolean;
     kind: ColumnViewSummaryCheckboxAggregateKind
   }
-  export enum OrgSemColumnViewSummaryCheckboxAggregateKind {
+  export enum ColumnViewSummaryCheckboxAggregateKind {
     IfAllNested,
     AggregateFractionRec,
     AggregatePercentRec,
@@ -2044,14 +2050,15 @@ declare module "haxorg_wasm_types" {
     formatDigits: haxorg_wasm.Optional<number>
     formatPrecision: haxorg_wasm.Optional<number>
   }
-  export enum OrgSemColumnViewSummaryMathAggregateKind {
+  export enum ColumnViewSummaryMathAggregateKind {
     Min,
     Max,
     Mean,
     Sum,
     LowHighEst,
   }
-  export enum OrgSemColumnViewSummaryKind {
+  export type ColumnViewSummaryData = haxorg_wasm.StdVariant<ColumnViewSummaryCheckboxAggregate, ColumnViewSummaryMathAggregate>;
+  export enum ColumnViewSummaryKind {
     CheckboxAggregate,
     MathAggregate,
   }
@@ -2066,7 +2073,7 @@ declare module "haxorg_wasm_types" {
   export interface BlockCodeLineConstructor { new(): BlockCodeLine; }
   export interface BlockCodeLine {
     __eq__(other: BlockCodeLine): boolean;
-    parts: Vec<BlockCodeLinePart>
+    parts: haxorg_wasm.Vec<BlockCodeLinePart>
   }
   export interface BlockCodeLinePartConstructor { new(): BlockCodeLinePart; }
   export interface BlockCodeLinePart {
@@ -2082,7 +2089,7 @@ declare module "haxorg_wasm_types" {
     getTangleMut(): BlockCodeLinePartTangle;
     getKindStatic(__input: BlockCodeLinePartData): BlockCodeLinePartKind;
     getKind(): BlockCodeLinePartKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): BlockCodeLinePartData;
     sub_variant_get_kind(): BlockCodeLinePartKind;
     data: BlockCodeLinePartData
@@ -2102,7 +2109,8 @@ declare module "haxorg_wasm_types" {
     __eq__(other: BlockCodeLinePartTangle): boolean;
     target: string
   }
-  export enum OrgSemBlockCodeLinePartKind {
+  export type BlockCodeLinePartData = haxorg_wasm.StdVariant<BlockCodeLinePartRaw, BlockCodeLinePartCallout, BlockCodeLinePartTangle>;
+  export enum BlockCodeLinePartKind {
     Raw,
     Callout,
     Tangle,
@@ -2118,7 +2126,7 @@ declare module "haxorg_wasm_types" {
     getExportFixedMut(): DocumentExportConfigExportFixed;
     getTocExportKindStatic(__input: DocumentExportConfigTocExport): DocumentExportConfigTocExportKind;
     getTocExportKind(): DocumentExportConfigTocExportKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): DocumentExportConfigTocExport;
     sub_variant_get_kind(): DocumentExportConfigTocExportKind;
     inlinetasks: haxorg_wasm.Optional<boolean>
@@ -2138,20 +2146,20 @@ declare module "haxorg_wasm_types" {
   export interface DocumentExportConfigTaskExportConstructor { new(): DocumentExportConfigTaskExport; }
   export interface DocumentExportConfigTaskExport {
     __eq__(other: DocumentExportConfigTaskExport): boolean;
-    taskWhitelist: Vec<string>
+    taskWhitelist: haxorg_wasm.Vec<string>
   }
-  export enum OrgSemDocumentExportConfigTagExport {
+  export enum DocumentExportConfigTagExport {
     None,
     All,
     NotInToc,
   }
-  export enum OrgSemDocumentExportConfigTaskFiltering {
+  export enum DocumentExportConfigTaskFiltering {
     Whitelist,
     Done,
     None,
     All,
   }
-  export enum OrgSemDocumentExportConfigBrokenLinks {
+  export enum DocumentExportConfigBrokenLinks {
     None,
     Mark,
     Raise,
@@ -2167,7 +2175,8 @@ declare module "haxorg_wasm_types" {
     __eq__(other: DocumentExportConfigExportFixed): boolean;
     exportLevels: number
   }
-  export enum OrgSemDocumentExportConfigTocExportKind {
+  export type DocumentExportConfigTocExport = haxorg_wasm.StdVariant<DocumentExportConfigDoExport, DocumentExportConfigExportFixed>;
+  export enum DocumentExportConfigTocExportKind {
     DoExport,
     ExportFixed,
   }
@@ -2178,7 +2187,7 @@ declare module "haxorg_wasm_types" {
     from: UserTime
     to: haxorg_wasm.Optional<UserTime>
   }
-  export enum OrgSemSubtreePeriodKind {
+  export enum SubtreePeriodKind {
     Clocked,
     Closed,
     Scheduled,
@@ -2273,7 +2282,7 @@ declare module "haxorg_wasm_types" {
     getCustomSubtreeFlagsMut(): NamedPropertyCustomSubtreeFlags;
     getKindStatic(__input: NamedPropertyData): NamedPropertyKind;
     getKind(): NamedPropertyKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): NamedPropertyData;
     sub_variant_get_kind(): NamedPropertyKind;
     data: NamedPropertyData
@@ -2330,7 +2339,7 @@ declare module "haxorg_wasm_types" {
   export interface NamedPropertyExportLatexClassOptionsConstructor { new(): NamedPropertyExportLatexClassOptions; }
   export interface NamedPropertyExportLatexClassOptions {
     __eq__(other: NamedPropertyExportLatexClassOptions): boolean;
-    options: Vec<string>
+    options: haxorg_wasm.Vec<string>
   }
   export interface NamedPropertyExportLatexHeaderConstructor { new(): NamedPropertyExportLatexHeader; }
   export interface NamedPropertyExportLatexHeader {
@@ -2358,7 +2367,7 @@ declare module "haxorg_wasm_types" {
     __eq__(other: NamedPropertyVisibility): boolean;
     level: NamedPropertyVisibilityLevel
   }
-  export enum OrgSemNamedPropertyVisibilityLevel {
+  export enum NamedPropertyVisibilityLevel {
     Folded,
     Children,
     Content,
@@ -2368,12 +2377,12 @@ declare module "haxorg_wasm_types" {
   export interface NamedPropertyExportOptions {
     __eq__(other: NamedPropertyExportOptions): boolean;
     backend: string
-    values: UnorderedMap<string, string>
+    values: haxorg_wasm.UnorderedMap<string, string>
   }
   export interface NamedPropertyBlockerConstructor { new(): NamedPropertyBlocker; }
   export interface NamedPropertyBlocker {
     __eq__(other: NamedPropertyBlocker): boolean;
-    blockers: Vec<string>
+    blockers: haxorg_wasm.Vec<string>
   }
   export interface NamedPropertyUnnumberedConstructor { new(): NamedPropertyUnnumbered; }
   export interface NamedPropertyUnnumbered { __eq__(other: NamedPropertyUnnumbered): boolean; }
@@ -2385,7 +2394,7 @@ declare module "haxorg_wasm_types" {
   export interface NamedPropertyRadioIdConstructor { new(): NamedPropertyRadioId; }
   export interface NamedPropertyRadioId {
     __eq__(other: NamedPropertyRadioId): boolean;
-    words: Vec<string>
+    words: haxorg_wasm.Vec<string>
   }
   export interface NamedPropertyHashtagDefConstructor { new(): NamedPropertyHashtagDef; }
   export interface NamedPropertyHashtagDef {
@@ -2417,7 +2426,8 @@ declare module "haxorg_wasm_types" {
     name: string
     value: AttrGroup
   }
-  export enum OrgSemNamedPropertyKind {
+  export type NamedPropertyData = haxorg_wasm.StdVariant<NamedPropertyNonblocking, NamedPropertyArchiveTime, NamedPropertyArchiveFile, NamedPropertyArchiveOlpath, NamedPropertyArchiveTarget, NamedPropertyArchiveCategory, NamedPropertyArchiveTodo, NamedPropertyTrigger, NamedPropertyExportLatexClass, NamedPropertyCookieData, NamedPropertyExportLatexClassOptions, NamedPropertyExportLatexHeader, NamedPropertyExportLatexCompiler, NamedPropertyOrdered, NamedPropertyEffort, NamedPropertyVisibility, NamedPropertyExportOptions, NamedPropertyBlocker, NamedPropertyUnnumbered, NamedPropertyCreated, NamedPropertyRadioId, NamedPropertyHashtagDef, NamedPropertyCustomArgs, NamedPropertyCustomRaw, NamedPropertyCustomSubtreeJson, NamedPropertyCustomSubtreeFlags>;
+  export enum NamedPropertyKind {
     Nonblocking,
     ArchiveTime,
     ArchiveFile,
@@ -2462,14 +2472,14 @@ declare module "haxorg_wasm_types" {
   export interface ImmErrorGroup {
     getKind(): OrgSemKind;
     __eq__(other: ImmErrorGroup): boolean;
-    diagnostics: ImmVec<ImmIdT<ImmErrorItem>>
+    diagnostics: ImmVec<haxorg_wasm.ImmIdT<ImmErrorItem>>
     function: ImmBox<haxorg_wasm.Optional<string>>
     line: ImmBox<haxorg_wasm.Optional<number>>
   }
   export interface ImmStmtConstructor { new(): ImmStmt; }
   export interface ImmStmt {
     __eq__(other: ImmStmt): boolean;
-    attached: ImmVec<ImmIdT<ImmOrg>>
+    attached: ImmVec<haxorg_wasm.ImmIdT<ImmOrg>>
   }
   export interface ImmInlineConstructor { new(): ImmInline; }
   export interface ImmInline { __eq__(other: ImmInline): boolean; }
@@ -2500,7 +2510,7 @@ declare module "haxorg_wasm_types" {
     getDynamicMut(): ImmTimeDynamic;
     getTimeKindStatic(__input: ImmTimeTimeVariant): ImmTimeTimeKind;
     getTimeKind(): ImmTimeTimeKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): ImmTimeTimeVariant;
     sub_variant_get_kind(): ImmTimeTimeKind;
     isActive: boolean
@@ -2514,13 +2524,13 @@ declare module "haxorg_wasm_types" {
     period: ImmTimeRepeatPeriod
     count: number
   }
-  export enum OrgImmImmTimeRepeatMode {
+  export enum ImmTimeRepeatMode {
     None,
     Exact,
     FirstMatch,
     SameDay,
   }
-  export enum OrgImmImmTimeRepeatPeriod {
+  export enum ImmTimeRepeatPeriod {
     Year,
     Month,
     Week,
@@ -2542,7 +2552,8 @@ declare module "haxorg_wasm_types" {
     __eq__(other: ImmTimeDynamic): boolean;
     expr: ImmBox<string>
   }
-  export enum OrgImmImmTimeTimeKind {
+  export type ImmTimeTimeVariant = haxorg_wasm.StdVariant<ImmTimeStatic, ImmTimeDynamic>;
+  export enum ImmTimeTimeKind {
     Static,
     Dynamic,
   }
@@ -2550,8 +2561,8 @@ declare module "haxorg_wasm_types" {
   export interface ImmTimeRange {
     getKind(): OrgSemKind;
     __eq__(other: ImmTimeRange): boolean;
-    from: ImmIdT<ImmTime>
-    to: ImmIdT<ImmTime>
+    from: haxorg_wasm.ImmIdT<ImmTime>
+    to: haxorg_wasm.ImmIdT<ImmTime>
   }
   export interface ImmMacroConstructor { new(): ImmMacro; }
   export interface ImmMacro {
@@ -2566,7 +2577,7 @@ declare module "haxorg_wasm_types" {
     __eq__(other: ImmSymbol): boolean;
     name: ImmBox<string>
     parameters: ImmVec<ImmSymbolParam>
-    positional: ImmVec<ImmIdT<ImmOrg>>
+    positional: ImmVec<haxorg_wasm.ImmIdT<ImmOrg>>
   }
   export interface ImmSymbolParamConstructor { new(): ImmSymbolParam; }
   export interface ImmSymbolParam {
@@ -2592,7 +2603,7 @@ declare module "haxorg_wasm_types" {
     getKind(): OrgSemKind;
     __eq__(other: ImmSubtreeLog): boolean;
     head: SubtreeLogHead
-    desc: ImmBox<haxorg_wasm.Optional<ImmIdT<ImmStmtList>>>
+    desc: ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmStmtList>>>
   }
   export interface ImmSubtreeConstructor { new(): ImmSubtree; }
   export interface ImmSubtree {
@@ -2602,10 +2613,10 @@ declare module "haxorg_wasm_types" {
     treeId: ImmBox<haxorg_wasm.Optional<string>>
     todo: ImmBox<haxorg_wasm.Optional<string>>
     completion: ImmBox<haxorg_wasm.Optional<SubtreeCompletion>>
-    description: ImmBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>
-    tags: ImmVec<ImmIdT<ImmHashTag>>
-    title: ImmIdT<ImmParagraph>
-    logbook: ImmVec<ImmIdT<ImmSubtreeLog>>
+    description: ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
+    tags: ImmVec<haxorg_wasm.ImmIdT<ImmHashTag>>
+    title: haxorg_wasm.ImmIdT<ImmParagraph>
+    logbook: ImmVec<haxorg_wasm.ImmIdT<ImmSubtreeLog>>
     properties: ImmVec<NamedProperty>
     closed: ImmBox<haxorg_wasm.Optional<UserTime>>
     deadline: ImmBox<haxorg_wasm.Optional<UserTime>>
@@ -2632,7 +2643,7 @@ declare module "haxorg_wasm_types" {
     getKind(): OrgSemKind;
     __eq__(other: ImmListItem): boolean;
     checkbox: CheckboxState
-    header: ImmBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>
+    header: ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
     bullet: ImmBox<haxorg_wasm.Optional<string>>
   }
   export interface ImmDocumentOptionsConstructor { new(): ImmDocumentOptions; }
@@ -2664,7 +2675,7 @@ declare module "haxorg_wasm_types" {
     __eq__(other: ImmCriticMarkup): boolean;
     kind: ImmCriticMarkupKind
   }
-  export enum OrgImmImmCriticMarkupKind {
+  export enum ImmCriticMarkupKind {
     Deletion,
     Addition,
     Substitution,
@@ -2675,13 +2686,13 @@ declare module "haxorg_wasm_types" {
   export interface ImmDocument {
     getKind(): OrgSemKind;
     __eq__(other: ImmDocument): boolean;
-    title: ImmBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>
-    author: ImmBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>
-    creator: ImmBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>
-    filetags: ImmVec<ImmIdT<ImmHashTag>>
-    email: ImmBox<haxorg_wasm.Optional<ImmIdT<ImmRawText>>>
+    title: ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
+    author: ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
+    creator: ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
+    filetags: ImmVec<haxorg_wasm.ImmIdT<ImmHashTag>>
+    email: ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmRawText>>>
     language: ImmVec<string>
-    options: ImmIdT<ImmDocumentOptions>
+    options: haxorg_wasm.ImmIdT<ImmDocumentOptions>
     exportFileName: ImmBox<haxorg_wasm.Optional<string>>
   }
   export interface ImmFileTargetConstructor { new(): ImmFileTarget; }
@@ -2720,7 +2731,7 @@ declare module "haxorg_wasm_types" {
     getSourceMut(): ImmFileSource;
     getFileKindStatic(__input: ImmFileData): ImmFileKind;
     getFileKind(): ImmFileKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): ImmFileData;
     sub_variant_get_kind(): ImmFileKind;
     relPath: ImmBox<string>
@@ -2733,7 +2744,8 @@ declare module "haxorg_wasm_types" {
   export interface ImmFileAttachment { __eq__(other: ImmFileAttachment): boolean; }
   export interface ImmFileSourceConstructor { new(): ImmFileSource; }
   export interface ImmFileSource { __eq__(other: ImmFileSource): boolean; }
-  export enum OrgImmImmFileKind {
+  export type ImmFileData = haxorg_wasm.StdVariant<ImmFileDocument, ImmFileAttachment, ImmFileSource>;
+  export enum ImmFileKind {
     Document,
     Attachment,
     Source,
@@ -2773,7 +2785,7 @@ declare module "haxorg_wasm_types" {
     getOrgDocumentMut(): ImmCmdIncludeOrgDocument;
     getIncludeKindStatic(__input: ImmCmdIncludeData): ImmCmdIncludeKind;
     getIncludeKind(): ImmCmdIncludeKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): ImmCmdIncludeData;
     sub_variant_get_kind(): ImmCmdIncludeKind;
     path: ImmBox<string>
@@ -2818,7 +2830,8 @@ declare module "haxorg_wasm_types" {
     minLevel: ImmBox<haxorg_wasm.Optional<number>>
     customIdTarget: ImmBox<haxorg_wasm.Optional<string>>
   }
-  export enum OrgImmImmCmdIncludeKind {
+  export type ImmCmdIncludeData = haxorg_wasm.StdVariant<ImmCmdIncludeExample, ImmCmdIncludeExport, ImmCmdIncludeCustom, ImmCmdIncludeSrc, ImmCmdIncludeOrgDocument>;
+  export enum ImmCmdIncludeKind {
     Example,
     Export,
     Custom,
@@ -2839,18 +2852,18 @@ declare module "haxorg_wasm_types" {
   export interface ErrorGroupConstructor { new(): ErrorGroup; }
   export interface ErrorGroup {
     getKind(): OrgSemKind;
-    diagnostics: Vec<ErrorItem>
+    diagnostics: haxorg_wasm.Vec<ErrorItem>
     function: haxorg_wasm.Optional<string>
     line: haxorg_wasm.Optional<number>
   }
   export interface StmtConstructor { new(): Stmt; }
   export interface Stmt {
-    getAttached(kind: haxorg_wasm.Optional<string>): Vec<Org>;
-    getCaption(): Vec<Org>;
-    getName(): Vec<string>;
-    getAttrs(kind: haxorg_wasm.Optional<string>): Vec<AttrValue>;
+    getAttached(kind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<Org>;
+    getCaption(): haxorg_wasm.Vec<Org>;
+    getName(): haxorg_wasm.Vec<string>;
+    getAttrs(kind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<AttrValue>;
     getFirstAttr(kind: string): haxorg_wasm.Optional<AttrValue>;
-    attached: Vec<Org>
+    attached: haxorg_wasm.Vec<Org>
   }
   export interface InlineConstructor { new(): Inline; }
   export interface Inline {  }
@@ -2881,7 +2894,7 @@ declare module "haxorg_wasm_types" {
     getDynamicMut(): TimeDynamic;
     getTimeKindStatic(__input: TimeTimeVariant): TimeTimeKind;
     getTimeKind(): TimeTimeKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): TimeTimeVariant;
     sub_variant_get_kind(): TimeTimeKind;
     isActive: boolean
@@ -2894,13 +2907,13 @@ declare module "haxorg_wasm_types" {
     period: TimeRepeatPeriod
     count: number
   }
-  export enum OrgSemTimeRepeatMode {
+  export enum TimeRepeatMode {
     None,
     Exact,
     FirstMatch,
     SameDay,
   }
-  export enum OrgSemTimeRepeatPeriod {
+  export enum TimeRepeatPeriod {
     Year,
     Month,
     Week,
@@ -2911,7 +2924,7 @@ declare module "haxorg_wasm_types" {
   export interface TimeStaticConstructor { new(): TimeStatic; }
   export interface TimeStatic {
     Static(): void;
-    repeat: Vec<TimeRepeat>
+    repeat: haxorg_wasm.Vec<TimeRepeat>
     warn: haxorg_wasm.Optional<TimeRepeat>
     time: UserTime
   }
@@ -2920,7 +2933,8 @@ declare module "haxorg_wasm_types" {
     Dynamic(): void;
     expr: string
   }
-  export enum OrgSemTimeTimeKind {
+  export type TimeTimeVariant = haxorg_wasm.StdVariant<TimeStatic, TimeDynamic>;
+  export enum TimeTimeKind {
     Static,
     Dynamic,
   }
@@ -2940,8 +2954,8 @@ declare module "haxorg_wasm_types" {
   export interface Symbol {
     getKind(): OrgSemKind;
     name: string
-    parameters: Vec<SymbolParam>
-    positional: Vec<Org>
+    parameters: haxorg_wasm.Vec<SymbolParam>
+    positional: haxorg_wasm.Vec<Org>
   }
   export interface SymbolParamConstructor { new(): SymbolParam; }
   export interface SymbolParam {
@@ -2953,7 +2967,7 @@ declare module "haxorg_wasm_types" {
   export interface RadioTargetConstructor { new(): RadioTarget; }
   export interface RadioTarget {
     getKind(): OrgSemKind;
-    words: Vec<string>
+    words: haxorg_wasm.Vec<string>
   }
   export interface LatexConstructor { new(): Latex; }
   export interface Latex { getKind(): OrgSemKind; }
@@ -2967,8 +2981,8 @@ declare module "haxorg_wasm_types" {
   export interface SubtreeConstructor { new(): Subtree; }
   export interface Subtree {
     getKind(): OrgSemKind;
-    getTimePeriods(kinds: IntSet<SubtreePeriodKind>): Vec<SubtreePeriod>;
-    getProperties(kind: string, subkind: haxorg_wasm.Optional<string>): Vec<NamedProperty>;
+    getTimePeriods(kinds: IntSet<SubtreePeriodKind>): haxorg_wasm.Vec<SubtreePeriod>;
+    getProperties(kind: string, subkind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<NamedProperty>;
     getProperty(kind: string, subkind: haxorg_wasm.Optional<string>): haxorg_wasm.Optional<NamedProperty>;
     removeProperty(kind: string, subkind: haxorg_wasm.Optional<string>): void;
     setProperty(value: NamedProperty): void;
@@ -2979,10 +2993,10 @@ declare module "haxorg_wasm_types" {
     todo: haxorg_wasm.Optional<string>
     completion: haxorg_wasm.Optional<SubtreeCompletion>
     description: haxorg_wasm.Optional<Paragraph>
-    tags: Vec<HashTag>
+    tags: haxorg_wasm.Vec<HashTag>
     title: Paragraph
-    logbook: Vec<SubtreeLog>
-    properties: Vec<NamedProperty>
+    logbook: haxorg_wasm.Vec<SubtreeLog>
+    properties: haxorg_wasm.Vec<NamedProperty>
     closed: haxorg_wasm.Optional<UserTime>
     deadline: haxorg_wasm.Optional<UserTime>
     scheduled: haxorg_wasm.Optional<UserTime>
@@ -3011,10 +3025,10 @@ declare module "haxorg_wasm_types" {
   export interface DocumentOptionsConstructor { new(): DocumentOptions; }
   export interface DocumentOptions {
     getKind(): OrgSemKind;
-    getProperties(kind: string, subKind: haxorg_wasm.Optional<string>): Vec<NamedProperty>;
+    getProperties(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<NamedProperty>;
     getProperty(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.Optional<NamedProperty>;
     initialVisibility: InitialSubtreeVisibility
-    properties: Vec<NamedProperty>
+    properties: haxorg_wasm.Vec<NamedProperty>
     exportConfig: DocumentExportConfig
     fixedWidthSections: haxorg_wasm.Optional<boolean>
     startupIndented: haxorg_wasm.Optional<boolean>
@@ -3022,8 +3036,8 @@ declare module "haxorg_wasm_types" {
     setupfile: haxorg_wasm.Optional<string>
     maxSubtreeLevelExport: haxorg_wasm.Optional<number>
     columns: haxorg_wasm.Optional<ColumnView>
-    todoKeywords: Vec<TodoKeyword>
-    doneKeywords: Vec<TodoKeyword>
+    todoKeywords: haxorg_wasm.Vec<TodoKeyword>
+    doneKeywords: haxorg_wasm.Vec<TodoKeyword>
   }
   export interface DocumentFragmentConstructor { new(): DocumentFragment; }
   export interface DocumentFragment {
@@ -3036,7 +3050,7 @@ declare module "haxorg_wasm_types" {
     getKind(): OrgSemKind;
     kind: CriticMarkupKind
   }
-  export enum OrgSemCriticMarkupKind {
+  export enum CriticMarkupKind {
     Deletion,
     Addition,
     Substitution,
@@ -3046,14 +3060,14 @@ declare module "haxorg_wasm_types" {
   export interface DocumentConstructor { new(): Document; }
   export interface Document {
     getKind(): OrgSemKind;
-    getProperties(kind: string, subKind: haxorg_wasm.Optional<string>): Vec<NamedProperty>;
+    getProperties(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<NamedProperty>;
     getProperty(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.Optional<NamedProperty>;
     title: haxorg_wasm.Optional<Paragraph>
     author: haxorg_wasm.Optional<Paragraph>
     creator: haxorg_wasm.Optional<Paragraph>
-    filetags: Vec<HashTag>
+    filetags: haxorg_wasm.Vec<HashTag>
     email: haxorg_wasm.Optional<RawText>
-    language: Vec<string>
+    language: haxorg_wasm.Vec<string>
     options: DocumentOptions
     exportFileName: haxorg_wasm.Optional<string>
   }
@@ -3085,7 +3099,7 @@ declare module "haxorg_wasm_types" {
     getSourceMut(): FileSource;
     getFileKindStatic(__input: FileData): FileKind;
     getFileKind(): FileKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): FileData;
     sub_variant_get_kind(): FileKind;
     relPath: string
@@ -3098,7 +3112,8 @@ declare module "haxorg_wasm_types" {
   export interface FileAttachment {  }
   export interface FileSourceConstructor { new(): FileSource; }
   export interface FileSource {  }
-  export enum OrgSemFileKind {
+  export type FileData = haxorg_wasm.StdVariant<FileDocument, FileAttachment, FileSource>;
+  export enum FileKind {
     Document,
     Attachment,
     Source,
@@ -3135,7 +3150,7 @@ declare module "haxorg_wasm_types" {
     getOrgDocumentMut(): CmdIncludeOrgDocument;
     getIncludeKindStatic(__input: CmdIncludeData): CmdIncludeKind;
     getIncludeKind(): CmdIncludeKind;
-    sub_variant_get_name(): Char;
+    sub_variant_get_name(): char;
     sub_variant_get_data(): CmdIncludeData;
     sub_variant_get_kind(): CmdIncludeKind;
     path: string
@@ -3170,7 +3185,8 @@ declare module "haxorg_wasm_types" {
     minLevel: haxorg_wasm.Optional<number>
     customIdTarget: haxorg_wasm.Optional<string>
   }
-  export enum OrgSemCmdIncludeKind {
+  export type CmdIncludeData = haxorg_wasm.StdVariant<CmdIncludeExample, CmdIncludeExport, CmdIncludeCustom, CmdIncludeSrc, CmdIncludeOrgDocument>;
+  export enum CmdIncludeKind {
     Example,
     Export,
     Custom,
@@ -3345,51 +3361,51 @@ declare module "haxorg_wasm_types" {
   export interface ImmNoneValue {  }
   export interface ImmErrorItemValueConstructor { new(): ImmErrorItemValue; }
   export interface ImmErrorItemValue {
-    setMessage(value: ImmerBox<string>): void;
-    setFunction(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
-    setLine(value: ImmerBox<haxorg_wasm.Optional<number>>): void;
+    setMessage(value: haxorg_wasm.ImmerBox<string>): void;
+    setFunction(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setLine(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
   }
   export interface ImmErrorGroupValueConstructor { new(): ImmErrorGroupValue; }
   export interface ImmErrorGroupValue {
-    setDiagnostics(value: ImmerFlex_vector<ImmIdT<ImmErrorItem>>): void;
-    setFunction(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
-    setLine(value: ImmerBox<haxorg_wasm.Optional<number>>): void;
+    setDiagnostics(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>): void;
+    setFunction(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setLine(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
   }
   export interface ImmStmtListValueConstructor { new(): ImmStmtListValue; }
   export interface ImmStmtListValue {  }
   export interface ImmEmptyValueConstructor { new(): ImmEmptyValue; }
   export interface ImmEmptyValue {  }
   export interface ImmCmdCaptionValueConstructor { new(): ImmCmdCaptionValue; }
-  export interface ImmCmdCaptionValue { setText(value: ImmIdT<ImmParagraph>): void; }
+  export interface ImmCmdCaptionValue { setText(value: haxorg_wasm.ImmIdT<ImmParagraph>): void; }
   export interface ImmCmdColumnsValueConstructor { new(): ImmCmdColumnsValue; }
   export interface ImmCmdColumnsValue { setView(value: ColumnView): void; }
   export interface ImmCmdNameValueConstructor { new(): ImmCmdNameValue; }
-  export interface ImmCmdNameValue { setName(value: ImmerBox<string>): void; }
+  export interface ImmCmdNameValue { setName(value: haxorg_wasm.ImmerBox<string>): void; }
   export interface ImmCmdCustomArgsValueConstructor { new(): ImmCmdCustomArgsValue; }
   export interface ImmCmdCustomArgsValue {
-    setName(value: ImmerBox<string>): void;
+    setName(value: haxorg_wasm.ImmerBox<string>): void;
     setIsattached(value: boolean): void;
   }
   export interface ImmCmdCustomRawValueConstructor { new(): ImmCmdCustomRawValue; }
   export interface ImmCmdCustomRawValue {
-    setName(value: ImmerBox<string>): void;
+    setName(value: haxorg_wasm.ImmerBox<string>): void;
     setIsattached(value: boolean): void;
-    setText(value: ImmerBox<string>): void;
+    setText(value: haxorg_wasm.ImmerBox<string>): void;
   }
   export interface ImmCmdCustomTextValueConstructor { new(): ImmCmdCustomTextValue; }
   export interface ImmCmdCustomTextValue {
-    setName(value: ImmerBox<string>): void;
+    setName(value: haxorg_wasm.ImmerBox<string>): void;
     setIsattached(value: boolean): void;
-    setText(value: ImmIdT<ImmParagraph>): void;
+    setText(value: haxorg_wasm.ImmIdT<ImmParagraph>): void;
   }
   export interface ImmCmdCallValueConstructor { new(): ImmCmdCallValue; }
   export interface ImmCmdCallValue {
-    setName(value: ImmerBox<string>): void;
-    setFilename(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setName(value: haxorg_wasm.ImmerBox<string>): void;
+    setFilename(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
     setInsideheaderattrs(value: AttrGroup): void;
     setCallattrs(value: AttrGroup): void;
     setEndheaderattrs(value: AttrGroup): void;
-    setResult(value: ImmerFlex_vector<ImmIdT<ImmBlockCodeEvalResult>>): void;
+    setResult(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>): void;
   }
   export interface ImmCmdTblfmValueConstructor { new(): ImmCmdTblfmValue; }
   export interface ImmCmdTblfmValue { setExpr(value: Tblfm): void; }
@@ -3397,13 +3413,13 @@ declare module "haxorg_wasm_types" {
   export interface ImmHashTagValue { setText(value: HashTagText): void; }
   export interface ImmInlineFootnoteValueConstructor { new(): ImmInlineFootnoteValue; }
   export interface ImmInlineFootnoteValue {
-    setTag(value: ImmerBox<string>): void;
-    setDefinition(value: ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmOrg>>>): void;
+    setTag(value: haxorg_wasm.ImmerBox<string>): void;
+    setDefinition(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmOrg>>>): void;
   }
   export interface ImmInlineExportValueConstructor { new(): ImmInlineExportValue; }
   export interface ImmInlineExportValue {
-    setExporter(value: ImmerBox<string>): void;
-    setContent(value: ImmerBox<string>): void;
+    setExporter(value: haxorg_wasm.ImmerBox<string>): void;
+    setContent(value: haxorg_wasm.ImmerBox<string>): void;
   }
   export interface ImmTimeValueConstructor { new(): ImmTimeValue; }
   export interface ImmTimeValue {
@@ -3412,19 +3428,19 @@ declare module "haxorg_wasm_types" {
   }
   export interface ImmTimeRangeValueConstructor { new(): ImmTimeRangeValue; }
   export interface ImmTimeRangeValue {
-    setFrom(value: ImmIdT<ImmTime>): void;
-    setTo(value: ImmIdT<ImmTime>): void;
+    setFrom(value: haxorg_wasm.ImmIdT<ImmTime>): void;
+    setTo(value: haxorg_wasm.ImmIdT<ImmTime>): void;
   }
   export interface ImmMacroValueConstructor { new(): ImmMacroValue; }
   export interface ImmMacroValue {
-    setName(value: ImmerBox<string>): void;
+    setName(value: haxorg_wasm.ImmerBox<string>): void;
     setAttrs(value: AttrGroup): void;
   }
   export interface ImmSymbolValueConstructor { new(): ImmSymbolValue; }
   export interface ImmSymbolValue {
-    setName(value: ImmerBox<string>): void;
-    setParameters(value: ImmerFlex_vector<ImmSymbolParam>): void;
-    setPositional(value: ImmerFlex_vector<ImmIdT<ImmOrg>>): void;
+    setName(value: haxorg_wasm.ImmerBox<string>): void;
+    setParameters(value: haxorg_wasm.ImmerFlex_vector<ImmSymbolParam>): void;
+    setPositional(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmOrg>>): void;
   }
   export interface ImmEscapedValueConstructor { new(): ImmEscapedValue; }
   export interface ImmEscapedValue {  }
@@ -3463,12 +3479,12 @@ declare module "haxorg_wasm_types" {
   export interface ImmParValueConstructor { new(): ImmParValue; }
   export interface ImmParValue {  }
   export interface ImmRadioTargetValueConstructor { new(): ImmRadioTargetValue; }
-  export interface ImmRadioTargetValue { setWords(value: ImmerFlex_vector<string>): void; }
+  export interface ImmRadioTargetValue { setWords(value: haxorg_wasm.ImmerFlex_vector<string>): void; }
   export interface ImmLatexValueConstructor { new(): ImmLatexValue; }
   export interface ImmLatexValue {  }
   export interface ImmLinkValueConstructor { new(): ImmLinkValue; }
   export interface ImmLinkValue {
-    setDescription(value: ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>): void;
+    setDescription(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>): void;
     setTarget(value: LinkTarget): void;
   }
   export interface ImmBlockCenterValueConstructor { new(): ImmBlockCenterValue; }
@@ -3480,27 +3496,27 @@ declare module "haxorg_wasm_types" {
   export interface ImmBlockVerseValueConstructor { new(): ImmBlockVerseValue; }
   export interface ImmBlockVerseValue {  }
   export interface ImmBlockDynamicFallbackValueConstructor { new(): ImmBlockDynamicFallbackValue; }
-  export interface ImmBlockDynamicFallbackValue { setName(value: ImmerBox<string>): void; }
+  export interface ImmBlockDynamicFallbackValue { setName(value: haxorg_wasm.ImmerBox<string>): void; }
   export interface ImmBlockExampleValueConstructor { new(): ImmBlockExampleValue; }
   export interface ImmBlockExampleValue {  }
   export interface ImmBlockExportValueConstructor { new(): ImmBlockExportValue; }
   export interface ImmBlockExportValue {
-    setExporter(value: ImmerBox<string>): void;
-    setContent(value: ImmerBox<string>): void;
+    setExporter(value: haxorg_wasm.ImmerBox<string>): void;
+    setContent(value: haxorg_wasm.ImmerBox<string>): void;
   }
   export interface ImmBlockAdmonitionValueConstructor { new(): ImmBlockAdmonitionValue; }
   export interface ImmBlockAdmonitionValue {  }
   export interface ImmBlockCodeEvalResultValueConstructor { new(): ImmBlockCodeEvalResultValue; }
   export interface ImmBlockCodeEvalResultValue {
-    setRaw(value: ImmerFlex_vector<OrgCodeEvalOutput>): void;
-    setNode(value: ImmIdT<ImmOrg>): void;
+    setRaw(value: haxorg_wasm.ImmerFlex_vector<OrgCodeEvalOutput>): void;
+    setNode(value: haxorg_wasm.ImmIdT<ImmOrg>): void;
   }
   export interface ImmBlockCodeValueConstructor { new(): ImmBlockCodeValue; }
   export interface ImmBlockCodeValue {
-    setLang(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setLang(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
     setExports(value: BlockCodeExports): void;
-    setResult(value: ImmerFlex_vector<ImmIdT<ImmBlockCodeEvalResult>>): void;
-    setLines(value: ImmerFlex_vector<BlockCodeLine>): void;
+    setResult(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>): void;
+    setLines(value: haxorg_wasm.ImmerFlex_vector<BlockCodeLine>): void;
     setCache(value: boolean): void;
     setEval(value: boolean): void;
     setNoweb(value: boolean): void;
@@ -3511,36 +3527,36 @@ declare module "haxorg_wasm_types" {
   export interface ImmSubtreeLogValueConstructor { new(): ImmSubtreeLogValue; }
   export interface ImmSubtreeLogValue {
     setHead(value: SubtreeLogHead): void;
-    setDesc(value: ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmStmtList>>>): void;
+    setDesc(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmStmtList>>>): void;
   }
   export interface ImmSubtreeValueConstructor { new(): ImmSubtreeValue; }
   export interface ImmSubtreeValue {
     setLevel(value: number): void;
-    setTreeid(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
-    setTodo(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
-    setCompletion(value: ImmerBox<haxorg_wasm.Optional<SubtreeCompletion>>): void;
-    setDescription(value: ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>): void;
-    setTags(value: ImmerFlex_vector<ImmIdT<ImmHashTag>>): void;
-    setTitle(value: ImmIdT<ImmParagraph>): void;
-    setLogbook(value: ImmerFlex_vector<ImmIdT<ImmSubtreeLog>>): void;
-    setProperties(value: ImmerFlex_vector<NamedProperty>): void;
-    setClosed(value: ImmerBox<haxorg_wasm.Optional<UserTime>>): void;
-    setDeadline(value: ImmerBox<haxorg_wasm.Optional<UserTime>>): void;
-    setScheduled(value: ImmerBox<haxorg_wasm.Optional<UserTime>>): void;
+    setTreeid(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setTodo(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setCompletion(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<SubtreeCompletion>>): void;
+    setDescription(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>): void;
+    setTags(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmHashTag>>): void;
+    setTitle(value: haxorg_wasm.ImmIdT<ImmParagraph>): void;
+    setLogbook(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmSubtreeLog>>): void;
+    setProperties(value: haxorg_wasm.ImmerFlex_vector<NamedProperty>): void;
+    setClosed(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>): void;
+    setDeadline(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>): void;
+    setScheduled(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>): void;
     setIscomment(value: boolean): void;
     setIsarchived(value: boolean): void;
-    setPriority(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setPriority(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
   }
   export interface ImmCellValueConstructor { new(): ImmCellValue; }
   export interface ImmCellValue { setIsblock(value: boolean): void; }
   export interface ImmRowValueConstructor { new(): ImmRowValue; }
   export interface ImmRowValue {
-    setCells(value: ImmerFlex_vector<ImmIdT<ImmCell>>): void;
+    setCells(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmCell>>): void;
     setIsblock(value: boolean): void;
   }
   export interface ImmTableValueConstructor { new(): ImmTableValue; }
   export interface ImmTableValue {
-    setRows(value: ImmerFlex_vector<ImmIdT<ImmRow>>): void;
+    setRows(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmRow>>): void;
     setIsblock(value: boolean): void;
   }
   export interface ImmParagraphValueConstructor { new(): ImmParagraphValue; }
@@ -3548,15 +3564,15 @@ declare module "haxorg_wasm_types" {
   export interface ImmColonExampleValueConstructor { new(): ImmColonExampleValue; }
   export interface ImmColonExampleValue {  }
   export interface ImmCmdAttrValueConstructor { new(): ImmCmdAttrValue; }
-  export interface ImmCmdAttrValue { setTarget(value: ImmerBox<string>): void; }
+  export interface ImmCmdAttrValue { setTarget(value: haxorg_wasm.ImmerBox<string>): void; }
   export interface ImmCmdExportValueConstructor { new(): ImmCmdExportValue; }
   export interface ImmCmdExportValue {
-    setExporter(value: ImmerBox<string>): void;
-    setContent(value: ImmerBox<string>): void;
+    setExporter(value: haxorg_wasm.ImmerBox<string>): void;
+    setContent(value: haxorg_wasm.ImmerBox<string>): void;
   }
   export interface ImmCallValueConstructor { new(): ImmCallValue; }
   export interface ImmCallValue {
-    setName(value: ImmerBox<string>): void;
+    setName(value: haxorg_wasm.ImmerBox<string>): void;
     setAttrs(value: AttrGroup): void;
     setIscommand(value: boolean): void;
   }
@@ -3565,22 +3581,22 @@ declare module "haxorg_wasm_types" {
   export interface ImmListItemValueConstructor { new(): ImmListItemValue; }
   export interface ImmListItemValue {
     setCheckbox(value: CheckboxState): void;
-    setHeader(value: ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>): void;
-    setBullet(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setHeader(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>): void;
+    setBullet(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
   }
   export interface ImmDocumentOptionsValueConstructor { new(): ImmDocumentOptionsValue; }
   export interface ImmDocumentOptionsValue {
     setInitialvisibility(value: InitialSubtreeVisibility): void;
-    setProperties(value: ImmerFlex_vector<NamedProperty>): void;
+    setProperties(value: haxorg_wasm.ImmerFlex_vector<NamedProperty>): void;
     setExportconfig(value: DocumentExportConfig): void;
-    setFixedwidthsections(value: ImmerBox<haxorg_wasm.Optional<boolean>>): void;
-    setStartupindented(value: ImmerBox<haxorg_wasm.Optional<boolean>>): void;
-    setCategory(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
-    setSetupfile(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
-    setMaxsubtreelevelexport(value: ImmerBox<haxorg_wasm.Optional<number>>): void;
-    setColumns(value: ImmerBox<haxorg_wasm.Optional<ColumnView>>): void;
-    setTodokeywords(value: ImmerFlex_vector<TodoKeyword>): void;
-    setDonekeywords(value: ImmerFlex_vector<TodoKeyword>): void;
+    setFixedwidthsections(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<boolean>>): void;
+    setStartupindented(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<boolean>>): void;
+    setCategory(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setSetupfile(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setMaxsubtreelevelexport(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
+    setColumns(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<ColumnView>>): void;
+    setTodokeywords(value: haxorg_wasm.ImmerFlex_vector<TodoKeyword>): void;
+    setDonekeywords(value: haxorg_wasm.ImmerFlex_vector<TodoKeyword>): void;
   }
   export interface ImmDocumentFragmentValueConstructor { new(): ImmDocumentFragmentValue; }
   export interface ImmDocumentFragmentValue {
@@ -3591,23 +3607,23 @@ declare module "haxorg_wasm_types" {
   export interface ImmCriticMarkupValue { setKind(value: ImmCriticMarkupKind): void; }
   export interface ImmDocumentValueConstructor { new(): ImmDocumentValue; }
   export interface ImmDocumentValue {
-    setTitle(value: ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>): void;
-    setAuthor(value: ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>): void;
-    setCreator(value: ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>): void;
-    setFiletags(value: ImmerFlex_vector<ImmIdT<ImmHashTag>>): void;
-    setEmail(value: ImmerBox<haxorg_wasm.Optional<ImmIdT<ImmRawText>>>): void;
-    setLanguage(value: ImmerFlex_vector<string>): void;
-    setOptions(value: ImmIdT<ImmDocumentOptions>): void;
-    setExportfilename(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setTitle(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>): void;
+    setAuthor(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>): void;
+    setCreator(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>): void;
+    setFiletags(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmHashTag>>): void;
+    setEmail(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmRawText>>>): void;
+    setLanguage(value: haxorg_wasm.ImmerFlex_vector<string>): void;
+    setOptions(value: haxorg_wasm.ImmIdT<ImmDocumentOptions>): void;
+    setExportfilename(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
   }
   export interface ImmFileTargetValueConstructor { new(): ImmFileTargetValue; }
   export interface ImmFileTargetValue {
-    setPath(value: ImmerBox<string>): void;
-    setLine(value: ImmerBox<haxorg_wasm.Optional<number>>): void;
-    setSearchtarget(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setPath(value: haxorg_wasm.ImmerBox<string>): void;
+    setLine(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
+    setSearchtarget(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
     setRestricttoheadlines(value: boolean): void;
-    setTargetid(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
-    setRegexp(value: ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setTargetid(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
+    setRegexp(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
   }
   export interface ImmTextSeparatorValueConstructor { new(): ImmTextSeparatorValue; }
   export interface ImmTextSeparatorValue {  }
@@ -3615,25 +3631,25 @@ declare module "haxorg_wasm_types" {
   export interface ImmDocumentGroupValue {  }
   export interface ImmFileValueConstructor { new(): ImmFileValue; }
   export interface ImmFileValue {
-    setRelpath(value: ImmerBox<string>): void;
-    setAbspath(value: ImmerBox<string>): void;
+    setRelpath(value: haxorg_wasm.ImmerBox<string>): void;
+    setAbspath(value: haxorg_wasm.ImmerBox<string>): void;
     setData(value: ImmFileData): void;
   }
   export interface ImmDirectoryValueConstructor { new(): ImmDirectoryValue; }
   export interface ImmDirectoryValue {
-    setRelpath(value: ImmerBox<string>): void;
-    setAbspath(value: ImmerBox<string>): void;
+    setRelpath(value: haxorg_wasm.ImmerBox<string>): void;
+    setAbspath(value: haxorg_wasm.ImmerBox<string>): void;
   }
   export interface ImmSymlinkValueConstructor { new(): ImmSymlinkValue; }
   export interface ImmSymlinkValue {
     setIsdirectory(value: boolean): void;
-    setAbspath(value: ImmerBox<string>): void;
+    setAbspath(value: haxorg_wasm.ImmerBox<string>): void;
   }
   export interface ImmCmdIncludeValueConstructor { new(): ImmCmdIncludeValue; }
   export interface ImmCmdIncludeValue {
-    setPath(value: ImmerBox<string>): void;
-    setFirstline(value: ImmerBox<haxorg_wasm.Optional<number>>): void;
-    setLastline(value: ImmerBox<haxorg_wasm.Optional<number>>): void;
+    setPath(value: haxorg_wasm.ImmerBox<string>): void;
+    setFirstline(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
+    setLastline(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
     setData(value: ImmCmdIncludeData): void;
   }
   export interface ImmAdapterOrgAPIConstructor { new(): ImmAdapterOrgAPI; }
@@ -3657,13 +3673,13 @@ declare module "haxorg_wasm_types" {
     __eq__(other: ImmCmdCustomText): boolean;
     name: ImmBox<string>
     isAttached: boolean
-    text: ImmIdT<ImmParagraph>
+    text: haxorg_wasm.ImmIdT<ImmParagraph>
   }
   export interface ImmLinkConstructor { new(): ImmLink; }
   export interface ImmLink {
     getKind(): OrgSemKind;
     __eq__(other: ImmLink): boolean;
-    description: ImmBox<haxorg_wasm.Optional<ImmIdT<ImmParagraph>>>
+    description: ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
     target: LinkTarget
   }
   export interface ImmBlockCommentConstructor { new(): ImmBlockComment; }
@@ -3692,7 +3708,7 @@ declare module "haxorg_wasm_types" {
     getKind(): OrgSemKind;
     __eq__(other: ImmInlineFootnote): boolean;
     tag: ImmBox<string>
-    definition: ImmBox<haxorg_wasm.Optional<ImmIdT<ImmOrg>>>
+    definition: ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmOrg>>>
   }
   export interface ImmInlineExportConstructor { new(): ImmInlineExport; }
   export interface ImmInlineExport {
@@ -3793,7 +3809,7 @@ declare module "haxorg_wasm_types" {
   }
   export interface CmdConstructor { new(): Cmd; }
   export interface Cmd {
-    getAttrs(key: haxorg_wasm.Optional<string>): Vec<AttrValue>;
+    getAttrs(key: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<AttrValue>;
     getFirstAttr(kind: string): haxorg_wasm.Optional<AttrValue>;
     attrs: AttrGroup
   }
@@ -3825,19 +3841,19 @@ declare module "haxorg_wasm_types" {
     isFootnoteDefinition(): boolean;
     getFootnoteName(): haxorg_wasm.Optional<string>;
     hasAdmonition(): boolean;
-    getAdmonitions(): Vec<string>;
-    getAdmonitionNodes(): Vec<BigIdent>;
+    getAdmonitions(): haxorg_wasm.Vec<string>;
+    getAdmonitionNodes(): haxorg_wasm.Vec<BigIdent>;
     hasTimestamp(): boolean;
-    getTimestamps(): Vec<UserTime>;
-    getTimestampNodes(): Vec<Time>;
+    getTimestamps(): haxorg_wasm.Vec<UserTime>;
+    getTimestampNodes(): haxorg_wasm.Vec<Time>;
     hasLeadHashtags(): boolean;
-    getLeadHashtags(): Vec<HashTag>;
-    getBody(): Vec<Org>;
+    getLeadHashtags(): haxorg_wasm.Vec<HashTag>;
+    getBody(): haxorg_wasm.Vec<Org>;
   }
   export interface ListConstructor { new(): List; }
   export interface List {
     getKind(): OrgSemKind;
-    getListAttrs(key: string): Vec<AttrValue>;
+    getListAttrs(key: string): haxorg_wasm.Vec<AttrValue>;
     getListFormattingMode(): ListFormattingMode;
     isDescriptionList(): boolean;
     isNumberedList(): boolean;
@@ -3988,7 +4004,7 @@ declare module "haxorg_wasm_types" {
   export interface ImmRow {
     getKind(): OrgSemKind;
     __eq__(other: ImmRow): boolean;
-    cells: ImmVec<ImmIdT<ImmCell>>
+    cells: ImmVec<haxorg_wasm.ImmIdT<ImmCell>>
     isBlock: boolean
   }
   export interface BlockConstructor { new(): Block; }
@@ -4014,7 +4030,7 @@ declare module "haxorg_wasm_types" {
   export interface RowConstructor { new(): Row; }
   export interface Row {
     getKind(): OrgSemKind;
-    cells: Vec<Cell>
+    cells: haxorg_wasm.Vec<Cell>
     isBlock: boolean
   }
   export interface ImmAdapterCmdAPIConstructor { new(): ImmAdapterCmdAPI; }
@@ -4033,32 +4049,32 @@ declare module "haxorg_wasm_types" {
   export interface ImmAdapterListAPI {  }
   export interface ImmSubtreeAdapterConstructor { new(): ImmSubtreeAdapter; }
   export interface ImmSubtreeAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmSubtree>;
+    ImmAdapterT(other: ImmAdapter): ImmSubtreeAdapter;
     getValue(): ImmSubtreeValueRead;
   }
   export interface ImmNoneAdapterConstructor { new(): ImmNoneAdapter; }
   export interface ImmNoneAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmNone>;
+    ImmAdapterT(other: ImmAdapter): ImmNoneAdapter;
     getValue(): ImmNoneValueRead;
   }
   export interface ImmErrorItemAdapterConstructor { new(): ImmErrorItemAdapter; }
   export interface ImmErrorItemAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmErrorItem>;
+    ImmAdapterT(other: ImmAdapter): ImmErrorItemAdapter;
     getValue(): ImmErrorItemValueRead;
   }
   export interface ImmErrorGroupAdapterConstructor { new(): ImmErrorGroupAdapter; }
   export interface ImmErrorGroupAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmErrorGroup>;
+    ImmAdapterT(other: ImmAdapter): ImmErrorGroupAdapter;
     getValue(): ImmErrorGroupValueRead;
   }
   export interface ImmStmtListAdapterConstructor { new(): ImmStmtListAdapter; }
   export interface ImmStmtListAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmStmtList>;
+    ImmAdapterT(other: ImmAdapter): ImmStmtListAdapter;
     getValue(): ImmStmtListValueRead;
   }
   export interface ImmEmptyAdapterConstructor { new(): ImmEmptyAdapter; }
   export interface ImmEmptyAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmEmpty>;
+    ImmAdapterT(other: ImmAdapter): ImmEmptyAdapter;
     getValue(): ImmEmptyValueRead;
   }
   export interface ImmAdapterHashTagAPIConstructor { new(): ImmAdapterHashTagAPI; }
@@ -4069,22 +4085,22 @@ declare module "haxorg_wasm_types" {
   export interface ImmAdapterSubtreeCompletionAPI {  }
   export interface ImmTimeAdapterConstructor { new(): ImmTimeAdapter; }
   export interface ImmTimeAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmTime>;
+    ImmAdapterT(other: ImmAdapter): ImmTimeAdapter;
     getValue(): ImmTimeValueRead;
   }
   export interface ImmTimeRangeAdapterConstructor { new(): ImmTimeRangeAdapter; }
   export interface ImmTimeRangeAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmTimeRange>;
+    ImmAdapterT(other: ImmAdapter): ImmTimeRangeAdapter;
     getValue(): ImmTimeRangeValueRead;
   }
   export interface ImmMacroAdapterConstructor { new(): ImmMacroAdapter; }
   export interface ImmMacroAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmMacro>;
+    ImmAdapterT(other: ImmAdapter): ImmMacroAdapter;
     getValue(): ImmMacroValueRead;
   }
   export interface ImmSymbolAdapterConstructor { new(): ImmSymbolAdapter; }
   export interface ImmSymbolAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmSymbol>;
+    ImmAdapterT(other: ImmAdapter): ImmSymbolAdapter;
     getValue(): ImmSymbolValueRead;
   }
   export interface ImmAdapterEscapedAPIConstructor { new(): ImmAdapterEscapedAPI; }
@@ -4127,82 +4143,82 @@ declare module "haxorg_wasm_types" {
   export interface ImmAdapterParAPI {  }
   export interface ImmLatexAdapterConstructor { new(): ImmLatexAdapter; }
   export interface ImmLatexAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmLatex>;
+    ImmAdapterT(other: ImmAdapter): ImmLatexAdapter;
     getValue(): ImmLatexValueRead;
   }
   export interface ImmSubtreeLogAdapterConstructor { new(): ImmSubtreeLogAdapter; }
   export interface ImmSubtreeLogAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmSubtreeLog>;
+    ImmAdapterT(other: ImmAdapter): ImmSubtreeLogAdapter;
     getValue(): ImmSubtreeLogValueRead;
   }
   export interface ImmColonExampleAdapterConstructor { new(): ImmColonExampleAdapter; }
   export interface ImmColonExampleAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmColonExample>;
+    ImmAdapterT(other: ImmAdapter): ImmColonExampleAdapter;
     getValue(): ImmColonExampleValueRead;
   }
   export interface ImmCallAdapterConstructor { new(): ImmCallAdapter; }
   export interface ImmCallAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCall>;
+    ImmAdapterT(other: ImmAdapter): ImmCallAdapter;
     getValue(): ImmCallValueRead;
   }
   export interface ImmFileAdapterConstructor { new(): ImmFileAdapter; }
   export interface ImmFileAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmFile>;
+    ImmAdapterT(other: ImmAdapter): ImmFileAdapter;
     getValue(): ImmFileValueRead;
   }
   export interface ImmDirectoryAdapterConstructor { new(): ImmDirectoryAdapter; }
   export interface ImmDirectoryAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmDirectory>;
+    ImmAdapterT(other: ImmAdapter): ImmDirectoryAdapter;
     getValue(): ImmDirectoryValueRead;
   }
   export interface ImmSymlinkAdapterConstructor { new(): ImmSymlinkAdapter; }
   export interface ImmSymlinkAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmSymlink>;
+    ImmAdapterT(other: ImmAdapter): ImmSymlinkAdapter;
     getValue(): ImmSymlinkValueRead;
   }
   export interface ImmDocumentFragmentAdapterConstructor { new(): ImmDocumentFragmentAdapter; }
   export interface ImmDocumentFragmentAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmDocumentFragment>;
+    ImmAdapterT(other: ImmAdapter): ImmDocumentFragmentAdapter;
     getValue(): ImmDocumentFragmentValueRead;
   }
   export interface ImmCriticMarkupAdapterConstructor { new(): ImmCriticMarkupAdapter; }
   export interface ImmCriticMarkupAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCriticMarkup>;
+    ImmAdapterT(other: ImmAdapter): ImmCriticMarkupAdapter;
     getValue(): ImmCriticMarkupValueRead;
   }
   export interface ImmListItemAdapterConstructor { new(): ImmListItemAdapter; }
   export interface ImmListItemAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmListItem>;
+    ImmAdapterT(other: ImmAdapter): ImmListItemAdapter;
     getValue(): ImmListItemValueRead;
   }
   export interface ImmDocumentOptionsAdapterConstructor { new(): ImmDocumentOptionsAdapter; }
   export interface ImmDocumentOptionsAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmDocumentOptions>;
+    ImmAdapterT(other: ImmAdapter): ImmDocumentOptionsAdapter;
     getValue(): ImmDocumentOptionsValueRead;
   }
   export interface ImmDocumentAdapterConstructor { new(): ImmDocumentAdapter; }
   export interface ImmDocumentAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmDocument>;
+    ImmAdapterT(other: ImmAdapter): ImmDocumentAdapter;
     getValue(): ImmDocumentValueRead;
   }
   export interface ImmFileTargetAdapterConstructor { new(): ImmFileTargetAdapter; }
   export interface ImmFileTargetAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmFileTarget>;
+    ImmAdapterT(other: ImmAdapter): ImmFileTargetAdapter;
     getValue(): ImmFileTargetValueRead;
   }
   export interface ImmTextSeparatorAdapterConstructor { new(): ImmTextSeparatorAdapter; }
   export interface ImmTextSeparatorAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmTextSeparator>;
+    ImmAdapterT(other: ImmAdapter): ImmTextSeparatorAdapter;
     getValue(): ImmTextSeparatorValueRead;
   }
   export interface ImmCmdIncludeAdapterConstructor { new(): ImmCmdIncludeAdapter; }
   export interface ImmCmdIncludeAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdInclude>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdIncludeAdapter;
     getValue(): ImmCmdIncludeValueRead;
   }
   export interface ImmDocumentGroupAdapterConstructor { new(): ImmDocumentGroupAdapter; }
   export interface ImmDocumentGroupAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmDocumentGroup>;
+    ImmAdapterT(other: ImmAdapter): ImmDocumentGroupAdapter;
     getValue(): ImmDocumentGroupValueRead;
   }
   export interface ImmBlockCenterConstructor { new(): ImmBlockCenter; }
@@ -4248,7 +4264,7 @@ declare module "haxorg_wasm_types" {
     getKind(): OrgSemKind;
     __eq__(other: ImmBlockCodeEvalResult): boolean;
     raw: ImmVec<OrgCodeEvalOutput>
-    node: ImmIdT<ImmOrg>
+    node: haxorg_wasm.ImmIdT<ImmOrg>
   }
   export interface ImmBlockCodeConstructor { new(): ImmBlockCode; }
   export interface ImmBlockCode {
@@ -4256,7 +4272,7 @@ declare module "haxorg_wasm_types" {
     __eq__(other: ImmBlockCode): boolean;
     lang: ImmBox<haxorg_wasm.Optional<string>>
     exports: BlockCodeExports
-    result: ImmVec<ImmIdT<ImmBlockCodeEvalResult>>
+    result: ImmVec<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>
     lines: ImmVec<BlockCodeLine>
     cache: boolean
     eval: boolean
@@ -4269,7 +4285,7 @@ declare module "haxorg_wasm_types" {
   export interface ImmTable {
     getKind(): OrgSemKind;
     __eq__(other: ImmTable): boolean;
-    rows: ImmVec<ImmIdT<ImmRow>>
+    rows: ImmVec<haxorg_wasm.ImmIdT<ImmRow>>
     isBlock: boolean
   }
   export interface ImmAttachedConstructor { new(): ImmAttached; }
@@ -4299,7 +4315,7 @@ declare module "haxorg_wasm_types" {
   export interface BlockCodeEvalResultConstructor { new(): BlockCodeEvalResult; }
   export interface BlockCodeEvalResult {
     getKind(): OrgSemKind;
-    raw: Vec<OrgCodeEvalOutput>
+    raw: haxorg_wasm.Vec<OrgCodeEvalOutput>
     node: Org
   }
   export interface BlockCodeConstructor { new(): BlockCode; }
@@ -4308,8 +4324,8 @@ declare module "haxorg_wasm_types" {
     getVariable(varname: string): haxorg_wasm.Optional<AttrValue>;
     lang: haxorg_wasm.Optional<string>
     exports: BlockCodeExports
-    result: Vec<BlockCodeEvalResult>
-    lines: Vec<BlockCodeLine>
+    result: haxorg_wasm.Vec<BlockCodeEvalResult>
+    lines: haxorg_wasm.Vec<BlockCodeLine>
     cache: boolean
     eval: boolean
     noweb: boolean
@@ -4320,7 +4336,7 @@ declare module "haxorg_wasm_types" {
   export interface TableConstructor { new(): Table; }
   export interface Table {
     getKind(): OrgSemKind;
-    rows: Vec<Row>
+    rows: haxorg_wasm.Vec<Row>
     isBlock: boolean
   }
   export interface AttachedConstructor { new(): Attached; }
@@ -4339,144 +4355,144 @@ declare module "haxorg_wasm_types" {
   export interface ImmAdapterRowAPI {  }
   export interface ImmCmdCustomRawAdapterConstructor { new(): ImmCmdCustomRawAdapter; }
   export interface ImmCmdCustomRawAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdCustomRaw>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdCustomRawAdapter;
     getValue(): ImmCmdCustomRawValueRead;
   }
   export interface ImmCmdCustomTextAdapterConstructor { new(): ImmCmdCustomTextAdapter; }
   export interface ImmCmdCustomTextAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdCustomText>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdCustomTextAdapter;
     getValue(): ImmCmdCustomTextValueRead;
   }
   export interface ImmLinkAdapterConstructor { new(): ImmLinkAdapter; }
   export interface ImmLinkAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmLink>;
+    ImmAdapterT(other: ImmAdapter): ImmLinkAdapter;
     getValue(): ImmLinkValueRead;
   }
   export interface ImmBlockCommentAdapterConstructor { new(): ImmBlockCommentAdapter; }
   export interface ImmBlockCommentAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockComment>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockCommentAdapter;
     getValue(): ImmBlockCommentValueRead;
   }
   export interface ImmParagraphAdapterConstructor { new(): ImmParagraphAdapter; }
   export interface ImmParagraphAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmParagraph>;
+    ImmAdapterT(other: ImmAdapter): ImmParagraphAdapter;
     getValue(): ImmParagraphValueRead;
   }
   export interface ImmListAdapterConstructor { new(): ImmListAdapter; }
   export interface ImmListAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmList>;
+    ImmAdapterT(other: ImmAdapter): ImmListAdapter;
     getValue(): ImmListValueRead;
   }
   export interface ImmHashTagAdapterConstructor { new(): ImmHashTagAdapter; }
   export interface ImmHashTagAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmHashTag>;
+    ImmAdapterT(other: ImmAdapter): ImmHashTagAdapter;
     getValue(): ImmHashTagValueRead;
   }
   export interface ImmInlineFootnoteAdapterConstructor { new(): ImmInlineFootnoteAdapter; }
   export interface ImmInlineFootnoteAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmInlineFootnote>;
+    ImmAdapterT(other: ImmAdapter): ImmInlineFootnoteAdapter;
     getValue(): ImmInlineFootnoteValueRead;
   }
   export interface ImmEscapedAdapterConstructor { new(): ImmEscapedAdapter; }
   export interface ImmEscapedAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmEscaped>;
+    ImmAdapterT(other: ImmAdapter): ImmEscapedAdapter;
     getValue(): ImmEscapedValueRead;
   }
   export interface ImmNewlineAdapterConstructor { new(): ImmNewlineAdapter; }
   export interface ImmNewlineAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmNewline>;
+    ImmAdapterT(other: ImmAdapter): ImmNewlineAdapter;
     getValue(): ImmNewlineValueRead;
   }
   export interface ImmSpaceAdapterConstructor { new(): ImmSpaceAdapter; }
   export interface ImmSpaceAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmSpace>;
+    ImmAdapterT(other: ImmAdapter): ImmSpaceAdapter;
     getValue(): ImmSpaceValueRead;
   }
   export interface ImmWordAdapterConstructor { new(): ImmWordAdapter; }
   export interface ImmWordAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmWord>;
+    ImmAdapterT(other: ImmAdapter): ImmWordAdapter;
     getValue(): ImmWordValueRead;
   }
   export interface ImmAtMentionAdapterConstructor { new(): ImmAtMentionAdapter; }
   export interface ImmAtMentionAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmAtMention>;
+    ImmAdapterT(other: ImmAdapter): ImmAtMentionAdapter;
     getValue(): ImmAtMentionValueRead;
   }
   export interface ImmRawTextAdapterConstructor { new(): ImmRawTextAdapter; }
   export interface ImmRawTextAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmRawText>;
+    ImmAdapterT(other: ImmAdapter): ImmRawTextAdapter;
     getValue(): ImmRawTextValueRead;
   }
   export interface ImmPunctuationAdapterConstructor { new(): ImmPunctuationAdapter; }
   export interface ImmPunctuationAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmPunctuation>;
+    ImmAdapterT(other: ImmAdapter): ImmPunctuationAdapter;
     getValue(): ImmPunctuationValueRead;
   }
   export interface ImmPlaceholderAdapterConstructor { new(): ImmPlaceholderAdapter; }
   export interface ImmPlaceholderAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmPlaceholder>;
+    ImmAdapterT(other: ImmAdapter): ImmPlaceholderAdapter;
     getValue(): ImmPlaceholderValueRead;
   }
   export interface ImmBigIdentAdapterConstructor { new(): ImmBigIdentAdapter; }
   export interface ImmBigIdentAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBigIdent>;
+    ImmAdapterT(other: ImmAdapter): ImmBigIdentAdapter;
     getValue(): ImmBigIdentValueRead;
   }
   export interface ImmTextTargetAdapterConstructor { new(): ImmTextTargetAdapter; }
   export interface ImmTextTargetAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmTextTarget>;
+    ImmAdapterT(other: ImmAdapter): ImmTextTargetAdapter;
     getValue(): ImmTextTargetValueRead;
   }
   export interface ImmBoldAdapterConstructor { new(): ImmBoldAdapter; }
   export interface ImmBoldAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBold>;
+    ImmAdapterT(other: ImmAdapter): ImmBoldAdapter;
     getValue(): ImmBoldValueRead;
   }
   export interface ImmUnderlineAdapterConstructor { new(): ImmUnderlineAdapter; }
   export interface ImmUnderlineAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmUnderline>;
+    ImmAdapterT(other: ImmAdapter): ImmUnderlineAdapter;
     getValue(): ImmUnderlineValueRead;
   }
   export interface ImmMonospaceAdapterConstructor { new(): ImmMonospaceAdapter; }
   export interface ImmMonospaceAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmMonospace>;
+    ImmAdapterT(other: ImmAdapter): ImmMonospaceAdapter;
     getValue(): ImmMonospaceValueRead;
   }
   export interface ImmMarkQuoteAdapterConstructor { new(): ImmMarkQuoteAdapter; }
   export interface ImmMarkQuoteAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmMarkQuote>;
+    ImmAdapterT(other: ImmAdapter): ImmMarkQuoteAdapter;
     getValue(): ImmMarkQuoteValueRead;
   }
   export interface ImmRadioTargetAdapterConstructor { new(): ImmRadioTargetAdapter; }
   export interface ImmRadioTargetAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmRadioTarget>;
+    ImmAdapterT(other: ImmAdapter): ImmRadioTargetAdapter;
     getValue(): ImmRadioTargetValueRead;
   }
   export interface ImmVerbatimAdapterConstructor { new(): ImmVerbatimAdapter; }
   export interface ImmVerbatimAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmVerbatim>;
+    ImmAdapterT(other: ImmAdapter): ImmVerbatimAdapter;
     getValue(): ImmVerbatimValueRead;
   }
   export interface ImmItalicAdapterConstructor { new(): ImmItalicAdapter; }
   export interface ImmItalicAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmItalic>;
+    ImmAdapterT(other: ImmAdapter): ImmItalicAdapter;
     getValue(): ImmItalicValueRead;
   }
   export interface ImmStrikeAdapterConstructor { new(): ImmStrikeAdapter; }
   export interface ImmStrikeAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmStrike>;
+    ImmAdapterT(other: ImmAdapter): ImmStrikeAdapter;
     getValue(): ImmStrikeValueRead;
   }
   export interface ImmParAdapterConstructor { new(): ImmParAdapter; }
   export interface ImmParAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmPar>;
+    ImmAdapterT(other: ImmAdapter): ImmParAdapter;
     getValue(): ImmParValueRead;
   }
   export interface ImmCmdCaptionConstructor { new(): ImmCmdCaption; }
   export interface ImmCmdCaption {
     getKind(): OrgSemKind;
     __eq__(other: ImmCmdCaption): boolean;
-    text: ImmIdT<ImmParagraph>
+    text: haxorg_wasm.ImmIdT<ImmParagraph>
   }
   export interface ImmCmdColumnsConstructor { new(): ImmCmdColumns; }
   export interface ImmCmdColumns {
@@ -4499,7 +4515,7 @@ declare module "haxorg_wasm_types" {
     insideHeaderAttrs: AttrGroup
     callAttrs: AttrGroup
     endHeaderAttrs: AttrGroup
-    result: ImmVec<ImmIdT<ImmBlockCodeEvalResult>>
+    result: ImmVec<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>
   }
   export interface ImmCmdAttrConstructor { new(): ImmCmdAttr; }
   export interface ImmCmdAttr {
@@ -4537,7 +4553,7 @@ declare module "haxorg_wasm_types" {
     insideHeaderAttrs: AttrGroup
     callAttrs: AttrGroup
     endHeaderAttrs: AttrGroup
-    result: Vec<BlockCodeEvalResult>
+    result: haxorg_wasm.Vec<BlockCodeEvalResult>
   }
   export interface CmdAttrConstructor { new(): CmdAttr; }
   export interface CmdAttr {
@@ -4554,12 +4570,12 @@ declare module "haxorg_wasm_types" {
   export interface ImmAdapterAttachedAPI {  }
   export interface ImmCmdCustomArgsAdapterConstructor { new(): ImmCmdCustomArgsAdapter; }
   export interface ImmCmdCustomArgsAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdCustomArgs>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdCustomArgsAdapter;
     getValue(): ImmCmdCustomArgsValueRead;
   }
   export interface ImmCmdTblfmAdapterConstructor { new(): ImmCmdTblfmAdapter; }
   export interface ImmCmdTblfmAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdTblfm>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdTblfmAdapter;
     getValue(): ImmCmdTblfmValueRead;
   }
   export interface ImmAdapterBlockCenterAPIConstructor { new(): ImmAdapterBlockCenterAPI; }
@@ -4588,12 +4604,12 @@ declare module "haxorg_wasm_types" {
   export interface ImmAdapterTableAPI {  }
   export interface ImmCellAdapterConstructor { new(): ImmCellAdapter; }
   export interface ImmCellAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCell>;
+    ImmAdapterT(other: ImmAdapter): ImmCellAdapter;
     getValue(): ImmCellValueRead;
   }
   export interface ImmRowAdapterConstructor { new(): ImmRowAdapter; }
   export interface ImmRowAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmRow>;
+    ImmAdapterT(other: ImmAdapter): ImmRowAdapter;
     getValue(): ImmRowValueRead;
   }
   export interface ImmAdapterCmdCaptionAPIConstructor { new(): ImmAdapterCmdCaptionAPI; }
@@ -4610,87 +4626,87 @@ declare module "haxorg_wasm_types" {
   export interface ImmAdapterCmdAttrAPI {  }
   export interface ImmBlockCenterAdapterConstructor { new(): ImmBlockCenterAdapter; }
   export interface ImmBlockCenterAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockCenter>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockCenterAdapter;
     getValue(): ImmBlockCenterValueRead;
   }
   export interface ImmBlockQuoteAdapterConstructor { new(): ImmBlockQuoteAdapter; }
   export interface ImmBlockQuoteAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockQuote>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockQuoteAdapter;
     getValue(): ImmBlockQuoteValueRead;
   }
   export interface ImmBlockVerseAdapterConstructor { new(): ImmBlockVerseAdapter; }
   export interface ImmBlockVerseAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockVerse>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockVerseAdapter;
     getValue(): ImmBlockVerseValueRead;
   }
   export interface ImmBlockExampleAdapterConstructor { new(): ImmBlockExampleAdapter; }
   export interface ImmBlockExampleAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockExample>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockExampleAdapter;
     getValue(): ImmBlockExampleValueRead;
   }
   export interface ImmInlineExportAdapterConstructor { new(): ImmInlineExportAdapter; }
   export interface ImmInlineExportAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmInlineExport>;
+    ImmAdapterT(other: ImmAdapter): ImmInlineExportAdapter;
     getValue(): ImmInlineExportValueRead;
   }
   export interface ImmCmdExportAdapterConstructor { new(): ImmCmdExportAdapter; }
   export interface ImmCmdExportAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdExport>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdExportAdapter;
     getValue(): ImmCmdExportValueRead;
   }
   export interface ImmBlockExportAdapterConstructor { new(): ImmBlockExportAdapter; }
   export interface ImmBlockExportAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockExport>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockExportAdapter;
     getValue(): ImmBlockExportValueRead;
   }
   export interface ImmBlockDynamicFallbackAdapterConstructor { new(): ImmBlockDynamicFallbackAdapter; }
   export interface ImmBlockDynamicFallbackAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockDynamicFallback>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockDynamicFallbackAdapter;
     getValue(): ImmBlockDynamicFallbackValueRead;
   }
   export interface ImmBlockAdmonitionAdapterConstructor { new(): ImmBlockAdmonitionAdapter; }
   export interface ImmBlockAdmonitionAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockAdmonition>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockAdmonitionAdapter;
     getValue(): ImmBlockAdmonitionValueRead;
   }
   export interface ImmBlockCodeEvalResultAdapterConstructor { new(): ImmBlockCodeEvalResultAdapter; }
   export interface ImmBlockCodeEvalResultAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockCodeEvalResult>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockCodeEvalResultAdapter;
     getValue(): ImmBlockCodeEvalResultValueRead;
   }
   export interface ImmBlockCodeAdapterConstructor { new(): ImmBlockCodeAdapter; }
   export interface ImmBlockCodeAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmBlockCode>;
+    ImmAdapterT(other: ImmAdapter): ImmBlockCodeAdapter;
     getValue(): ImmBlockCodeValueRead;
   }
   export interface ImmTableAdapterConstructor { new(): ImmTableAdapter; }
   export interface ImmTableAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmTable>;
+    ImmAdapterT(other: ImmAdapter): ImmTableAdapter;
     getValue(): ImmTableValueRead;
   }
   export interface ImmCmdCaptionAdapterConstructor { new(): ImmCmdCaptionAdapter; }
   export interface ImmCmdCaptionAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdCaption>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdCaptionAdapter;
     getValue(): ImmCmdCaptionValueRead;
   }
   export interface ImmCmdColumnsAdapterConstructor { new(): ImmCmdColumnsAdapter; }
   export interface ImmCmdColumnsAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdColumns>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdColumnsAdapter;
     getValue(): ImmCmdColumnsValueRead;
   }
   export interface ImmCmdNameAdapterConstructor { new(): ImmCmdNameAdapter; }
   export interface ImmCmdNameAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdName>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdNameAdapter;
     getValue(): ImmCmdNameValueRead;
   }
   export interface ImmCmdCallAdapterConstructor { new(): ImmCmdCallAdapter; }
   export interface ImmCmdCallAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdCall>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdCallAdapter;
     getValue(): ImmCmdCallValueRead;
   }
   export interface ImmCmdAttrAdapterConstructor { new(): ImmCmdAttrAdapter; }
   export interface ImmCmdAttrAdapter {
-    ImmAdapterT(other: ImmAdapter): ImmAdapterT<ImmCmdAttr>;
+    ImmAdapterT(other: ImmAdapter): ImmCmdAttrAdapter;
     getValue(): ImmCmdAttrValueRead;
   }
   export enum CheckboxState {
@@ -5226,7 +5242,7 @@ declare module "haxorg_wasm_types" {
     Symlink,
     CmdInclude,
   }
-  export enum OrgAstTrackingGroupKind {
+  export enum AstTrackingGroupKind {
     RadioTarget,
     Single = 1,
     TrackedHashtag = 2,
@@ -5237,7 +5253,7 @@ declare module "haxorg_wasm_types" {
   parseStringOpts(text: string, opts: OrgParseParameters): Org;
   parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
   parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
-  initImmutableAstContext(): StdShared_ptr<ImmAstContext>;
+  initImmutableAstContext(): ImmAstContext;
   asOneNode(arg: Org): Org;
   formatToString(arg: Org): string;
   exportToYamlString(node: Org, opts: OrgYamlExportOpts): string;
@@ -5248,8 +5264,8 @@ declare module "haxorg_wasm_types" {
   exportToProtobufFile(doc: Document, file: string): void;
   exportToTreeString(node: Org, opts: OrgTreeExportOpts): string;
   exportToTreeFile(node: Org, path: string, opts: OrgTreeExportOpts): void;
-  getAstTrackingMap(nodes: Vec<Org>): AstTrackingMap;
-  getSubnodeGroups(node: Org, map: AstTrackingMap): Vec<AstTrackingGroup>;
-  annotateSequence(groups: Vec<SequenceSegmentGroup>, first: number, last: number): Vec<SequenceAnnotation>;
+  getAstTrackingMap(nodes: haxorg_wasm.Vec<Org>): AstTrackingMap;
+  getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.Vec<AstTrackingGroup>;
+  annotateSequence(groups: haxorg_wasm.Vec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.Vec<SequenceAnnotation>;
 }
 /* clang-format on */

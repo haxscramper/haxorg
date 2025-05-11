@@ -462,6 +462,7 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("getData", static_cast<org::imm::ImmCmdInclude::Data const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getData))
     ;
   emscripten::class_<org::imm::ImmAstContext>("ImmAstContext")
+    .smart_ptr<std::shared_ptr<org::imm::ImmAstContext>>("ImmAstContext")
     .function("addRoot", static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)(org::sem::SemId<org::sem::Org>)>(&org::imm::ImmAstContext::addRoot))
     .function("get", static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId)>(&org::imm::ImmAstContext::get))
     ;
