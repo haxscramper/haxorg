@@ -258,6 +258,11 @@ class WasmEnum():
 
     def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return [
+            ast.block(head=ast.string(f"{self.getWasmName()}:"),
+                      content=[
+                          ast.string(f"{F.name}: {self.getWasmName()},")
+                          for F in self.Enum.fields
+                      ]),
             ast.string(
                 f"format_{self.getWasmName()}(value: {self.getWasmName()}): string;")
         ]
@@ -530,14 +535,10 @@ class WasmModule():
         return ast.stack([
             ast.string("import * as haxorg_wasm from \"./haxorg_utility_types\";"),
             ast.block(
-                ast.string(f"declare module \"{self.name}_types\""),
-                content=[
-                    ast.block(
-                        ast.string(f"export interface {self.name}_module"),
-                        iface,
-                    ),
-                ] + body,
-            )
+                ast.string(f"export interface {self.name}_module"),
+                iface,
+            ),
+            *body,
         ])
 
     def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder,
