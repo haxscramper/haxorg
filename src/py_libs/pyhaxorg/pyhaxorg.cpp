@@ -1939,6 +1939,22 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::graph::MapConfig, std::shared_ptr<org::graph::MapConfig>>(m, "graphMapConfig")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapConfig {
+                        org::graph::MapConfig result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("dbg", &org::graph::MapConfig::dbg)
+    .def("__repr__", [](org::graph::MapConfig const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapConfig const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::graph::MapGraphState, std::shared_ptr<org::graph::MapGraphState>>(m, "graphMapGraphState")
     .def_readwrite("graph", &org::graph::MapGraphState::graph)
     .def_readwrite("ast", &org::graph::MapGraphState::ast)
@@ -4914,21 +4930,6 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::NamedProperty const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::graph::MapConfig, std::shared_ptr<org::graph::MapConfig>, hstd::OperationsTracer>(m, "graphMapConfig")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapConfig {
-                        org::graph::MapConfig result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::graph::MapConfig const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapConfig const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))

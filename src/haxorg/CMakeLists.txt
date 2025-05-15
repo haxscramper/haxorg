@@ -56,7 +56,7 @@ target_include_directories(haxorg PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINAR
 
 if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
   add_executable(tests_org)
-  target_link_libraries(tests_org PUBLIC haxorg)
+  target_link_libraries(tests_org PUBLIC haxorg absl::base absl::log absl::flags)
   set_common_files(tests_org)
   set_target_output(tests_org)
   set_target_flags(tests_org)

@@ -74,47 +74,15 @@ struct std::hash<hstd::UserTime> {
 template <>
 struct std::formatter<cctz::civil_second> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const cctz::civil_second& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx(
-            std::format(
-                "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
-                p.year(),
-                p.month(),
-                p.day(),
-                p.hour(),
-                p.minute(),
-                p.second()),
-            ctx);
-    }
+    FormatContext::iterator format(
+        const cctz::civil_second& p,
+        FormatContext&            ctx) const;
 };
 
 template <>
 struct std::formatter<cctz::time_zone> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const cctz::time_zone& p, FormatContext& ctx) const {
-        // Format the time zone by its name
-        std::string formatted = p.name();
-
-        // Alternatively, you could include the current offset information
-        // Get current time
-        auto now = std::chrono::system_clock::now();
-        auto tp  = cctz::convert(
-            std::chrono::time_point_cast<std::chrono::seconds>(now),
-            cctz::utc_time_zone());
-
-
-        // Get time zone info
-        auto info = p.lookup(tp);
-
-        // Calculate offset in hours and minutes
-        int total_minutes = info.trans.time_since_epoch().count() / 60;
-        int hours         = total_minutes / 60;
-        int minutes       = std::abs(total_minutes % 60);
-
-        // Format with name and offset
-        formatted = std::format(
-            "{} (UTC{:+03d}:{:02d})", p.name(), hours, minutes);
-
-        return std::formatter<std::string>::format(formatted, ctx);
-    }
+    FormatContext::iterator format(
+        const cctz::time_zone& p,
+        FormatContext&         ctx) const;
 };

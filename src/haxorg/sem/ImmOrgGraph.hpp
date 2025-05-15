@@ -361,11 +361,9 @@ struct [[refl(
       "holder-type": "shared"
     }
   }
-})")]] MapConfig
-    : hstd::OperationsTracer
-    , hstd::SharedPtrApi<MapConfig> //
-{
-    hstd::SPtr<MapInterface> impl;
+})")]] MapConfig : hstd::SharedPtrApi<MapConfig> {
+    hstd::SPtr<MapInterface>        impl;
+    [[refl]] hstd::OperationsTracer dbg;
     MapConfig(hstd::SPtr<MapInterface> impl);
     MapConfig();
 

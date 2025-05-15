@@ -53,24 +53,7 @@ org::sem::SubtreePath convertSubtreePath(Str const& path) {
 }
 
 cctz::time_zone create_time_zone_from_offset(int offset_seconds) {
-    cctz::time_zone tz;
-    std::string     offset_str;
-
-    char sign      = (offset_seconds >= 0) ? '+' : '-';
-    offset_seconds = std::abs(offset_seconds);
-    int hours      = offset_seconds / 3600;
-    int minutes    = (offset_seconds % 3600) / 60;
-    int seconds    = offset_seconds % 60;
-
-    if (seconds == 0) {
-        offset_str = std::format("{}{}:{:02d}", sign, hours, minutes);
-    } else {
-        offset_str = std::format(
-            "{}{}:{:02d}:{:02d}", sign, hours, minutes, seconds);
-    }
-
-    cctz::load_time_zone("Fixed/UTC" + offset_str, &tz);
-    return tz;
+    return cctz::fixed_time_zone(cctz::seconds{offset_seconds});
 }
 
 
@@ -1887,7 +1870,7 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
     auto values       = convertAttrs(one(a, N::Args));
     eexport->exporter = get_text(one(a, N::Name));
     eexport->attrs    = values;
-    {
+    try {
         auto lines = one(a, N::Body);
         int  idx   = 0;
         int  size  = lines.size();
@@ -1895,7 +1878,7 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
             ++idx;
             if (idx < size) { eexport->content += get_text(item); }
         }
-    }
+    } catch (parse::FieldAccessError const& e) { print(e.what()); }
 
     return eexport;
 }
@@ -1904,10 +1887,12 @@ OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(
     __args) {
     auto               __trace = trace(a);
     SemId<BlockCenter> res     = Sem<BlockCenter>(a);
-    for (const auto& sub : many(a, N::Body)) {
-        auto aux = convert(sub);
-        res->push_back(aux);
-    }
+    try {
+        for (const auto& sub : many(a, N::Body)) {
+            auto aux = convert(sub);
+            res->push_back(aux);
+        }
+    } catch (parse::FieldAccessError const& e) { print(e.what()); }
     return res;
 }
 
@@ -1920,9 +1905,12 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
         quote->attrs = convertAttrs(args);
     }
 
-    for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
-        quote->push_back(sub.unwrap());
-    }
+    try {
+        for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
+            quote->push_back(sub.unwrap());
+        }
+    } catch (parse::FieldAccessError const& e) { print(e.what()); }
+
     return quote;
 }
 
@@ -1930,9 +1918,11 @@ OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
     __args) {
     auto                __trace = trace(a);
     SemId<BlockComment> result  = Sem<BlockComment>(a);
-    for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
-        result->push_back(sub.unwrap());
-    }
+    try {
+        for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
+            result->push_back(sub.unwrap());
+        }
+    } catch (parse::FieldAccessError const& e) { print(e.what()); }
     return result;
 }
 

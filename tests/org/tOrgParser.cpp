@@ -187,9 +187,7 @@ TEST(OrgParseSem, SubtreeProperties) {
             t);
         EXPECT_EQ(p.size(), 1);
         EXPECT_EQ(p.at(0).isRecursive, true);
-        EXPECT_EQ(
-            p.at(0).source,
-            sem::NamedProperty::CookieData::TodoSource::Todo);
+        EXPECT_EQ(p.at(0).source, SubtreeTodoSource::Todo);
     }
     {
         auto tree = parseOne<sem::Subtree>(
@@ -983,7 +981,9 @@ TEST(OrgParseSem, IncludeCommand) {
     }
 
     {
-        auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "5-10")");
+        auto i = get(
+            R"(#+INCLUDE: "~/.emacs" :lines "5-10")",
+            getDebugFile("include_qith_quotes"));
         EXPECT_EQ2(i->firstLine.value(), 5);
         EXPECT_EQ2(i->lastLine.value(), 10);
     }

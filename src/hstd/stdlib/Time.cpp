@@ -1,4 +1,5 @@
 #include "Time.hpp"
+#include <hstd/stdlib/Debug.hpp>
 
 using namespace hstd;
 
@@ -102,3 +103,33 @@ std::size_t std::hash<UserTime>::operator()(
     hstd::hax_hash_combine(result, it.time.second());
     return result;
 }
+
+template <typename FormatContext>
+FormatContext::iterator std::formatter<cctz::time_zone>::format(
+    const cctz::time_zone& p,
+    FormatContext&         ctx) const {
+    return fmt_ctx(p.name(), ctx);
+}
+
+template <typename FormatContext>
+FormatContext::iterator std::formatter<cctz::civil_second>::format(
+    const cctz::civil_second& p,
+    FormatContext&            ctx) const {
+    return hstd::fmt_ctx(
+        std::format(
+            "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+            p.year(),
+            p.month(),
+            p.day(),
+            p.hour(),
+            p.minute(),
+            p.second()),
+        ctx);
+}
+
+template std::format_context::iterator std::formatter<cctz::civil_second>::
+    format(const cctz::civil_second&, std::format_context&) const;
+
+template std::format_context::iterator std::formatter<
+    cctz::time_zone,
+    char>::format(const cctz::time_zone&, std::format_context&) const;

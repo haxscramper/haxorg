@@ -115,6 +115,7 @@ export interface haxorg_wasm_module {
   GraphMapNode: GraphMapNodeConstructor;
   GraphMapEdge: GraphMapEdgeConstructor;
   GraphMapGraph: GraphMapGraphConstructor;
+  GraphMapConfig: GraphMapConfigConstructor;
   GraphMapGraphState: GraphMapGraphStateConstructor;
   LispCode: LispCodeConstructor;
   LispCodeCall: LispCodeCallConstructor;
@@ -433,7 +434,6 @@ export interface haxorg_wasm_module {
     CustomSubtreeFlags: NamedPropertyKind,
   }
   format_NamedPropertyKind(value: NamedPropertyKind): string;
-  GraphMapConfig: GraphMapConfigConstructor;
   None: NoneConstructor;
   ErrorItem: ErrorItemConstructor;
   ErrorGroup: ErrorGroupConstructor;
@@ -2169,6 +2169,8 @@ export interface GraphMapGraph {
   adjList: GraphAdjList
   adjListIn: GraphAdjList
 }
+export interface GraphMapConfigConstructor { new(): GraphMapConfig; }
+export interface GraphMapConfig { dbg: OperationsTracer }
 export interface GraphMapGraphStateConstructor { new(): GraphMapGraphState; }
 export interface GraphMapGraphState {
   FromAstContext(ast: ImmAstContext): GraphMapGraphState;
@@ -3262,8 +3264,6 @@ export enum NamedPropertyKind {
   CustomSubtreeJson,
   CustomSubtreeFlags,
 }
-export interface GraphMapConfigConstructor { new(): GraphMapConfig; }
-export interface GraphMapConfig {  }
 export interface NoneConstructor { new(): None; }
 export interface None { getKind(): OrgSemKind; }
 export interface ErrorItemConstructor { new(): ErrorItem; }

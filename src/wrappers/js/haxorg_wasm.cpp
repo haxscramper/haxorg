@@ -642,6 +642,10 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("hasNode", static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::hasNode))
     .function("has2AdapterEdge", static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmAdapter const&, org::imm::ImmAdapter const&) const>(&org::graph::MapGraph::hasEdge))
     ;
+  emscripten::class_<org::graph::MapConfig>("GraphMapConfig")
+    .smart_ptr<std::shared_ptr<org::graph::MapConfig>>("GraphMapConfig")
+    .property("dbg", &org::graph::MapConfig::dbg)
+    ;
   emscripten::class_<org::graph::MapGraphState>("GraphMapGraphState")
     .smart_ptr<std::shared_ptr<org::graph::MapGraphState>>("GraphMapGraphState")
     .property("graph", &org::graph::MapGraphState::graph)
@@ -1417,9 +1421,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
     .function("__eq__", static_cast<bool(org::sem::NamedProperty::CustomSubtreeFlags::*)(org::sem::NamedProperty::CustomSubtreeFlags const&) const>(&org::sem::NamedProperty::CustomSubtreeFlags::operator==))
     ;
   org::bind::js::bind_enum<org::sem::NamedProperty::Kind>("OrgSemNamedPropertyKind");
-  emscripten::class_<org::graph::MapConfig, emscripten::base<hstd::OperationsTracer>>("GraphMapConfig")
-    .smart_ptr<std::shared_ptr<org::graph::MapConfig>>("GraphMapConfig")
-    ;
   emscripten::class_<org::sem::None, emscripten::base<org::sem::Org>>("None")
     .smart_ptr<org::sem::SemId<org::sem::None>>("None")
     .function("getKind", static_cast<OrgSemKind(org::sem::None::*)() const>(&org::sem::None::getKind))

@@ -46,8 +46,8 @@ TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
     auto state   = org::graph::MapGraphState::FromAstContext(
         version.getContext());
 
-    org::graph::MapConfig conf{};
-    state.addNodeRec(version.getRootAdapter(), &conf);
+    auto conf = org::graph::MapConfig::shared();
+    state.addNodeRec(version.getRootAdapter(), conf);
 }
 
 TEST_F(ImmOrgApi, ImmAstFieldIteration) {
