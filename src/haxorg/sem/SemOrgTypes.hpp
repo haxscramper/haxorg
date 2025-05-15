@@ -1392,23 +1392,13 @@ struct NamedProperty {
 
   /// \brief `:COOKIE_DATA:` for the subtree completion calculation
   struct CookieData {
-    /// \brief Where to take todo completion statistics from
-    enum class TodoSource : short int {
-      /// \brief Only count checkbox subnodes as a progress completion
-      Checkbox,
-      /// \brief Use subtrees with todo keywords
-      Todo,
-      /// \brief Use both subtrees and todo keywords
-      Both,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(TodoSource, Checkbox, Todo, Both)
     BOOST_DESCRIBE_CLASS(CookieData,
                          (),
                          (),
                          (),
                          (isRecursive, source))
     bool isRecursive;
-    org::sem::NamedProperty::CookieData::TodoSource source;
+    SubtreeTodoSource source;
     bool operator==(org::sem::NamedProperty::CookieData const& other) const;
   };
 
@@ -2870,8 +2860,6 @@ struct List : public org::sem::Stmt {
 struct ListItem : public org::sem::Org {
   using Org::Org;
   virtual ~ListItem() = default;
-  enum class Checkbox : short int { None, Done, Empty, Partial, };
-  BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty, Partial)
   BOOST_DESCRIBE_CLASS(ListItem,
                        (Org),
                        (),
@@ -2881,7 +2869,7 @@ struct ListItem : public org::sem::Org {
                         header,
                         bullet))
   static OrgSemKind const staticKind;
-  org::sem::ListItem::Checkbox checkbox = Checkbox::None;
+  CheckboxState checkbox = CheckboxState::None;
   /// \brief Description list item header
   hstd::Opt<org::sem::SemId<org::sem::Paragraph>> header = std::nullopt;
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`

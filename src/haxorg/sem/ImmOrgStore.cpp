@@ -496,7 +496,7 @@ sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {
 const ImmOrg* ImmAstContext::at(ImmId id) const {
     id.assertValid();
     ImmOrg const* res = store->at(id);
-    CHECK(res->getKind() == id.getKind());
+    LOGIC_ASSERTION_CHECK(res->getKind() == id.getKind(), "");
     return res;
 }
 
@@ -936,7 +936,7 @@ ImmId_t imm::ImmAstKindStore<ImmType>::add(
     ImmType value = ImmSemSerde<SemType, ImmType>::to_immer(
         *data.as<SemType>(), ctx);
 
-    CHECK(data->getKind() == ImmType::staticKind);
+    LOGIC_ASSERTION_CHECK(data->getKind() == ImmType::staticKind, "");
     return add(value, ctx);
 }
 
@@ -947,17 +947,18 @@ ImmId ImmAstKindStore<T>::add(const T& value, ImmAstEditContext& ctx) {
     HSLOG_TRACE(_cat, fmt("Insert value to kind store, {}", value));
     HSLOG_TRACE(_cat, fmt("Result ID {}", result));
 
-    CHECK(result.getKind() == value.getKind())
-        << fmt(R"(
+    LOGIC_ASSERTION_CHECK(
+        result.getKind() == value.getKind(),
+        R"(
 result.getValue(): {:064b}
 result.getKind():  {:064b}
 data->getKind():   {:064b}
 mask:              {:064b}
 )",
-               result.getValue(),
-               u64(result.getKind()),
-               u64(value.getKind()),
-               mask);
+        result.getValue(),
+        u64(result.getKind()),
+        u64(value.getKind()),
+        mask);
 
     return result;
 }

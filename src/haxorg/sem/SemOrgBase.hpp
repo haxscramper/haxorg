@@ -155,7 +155,7 @@ struct SemId {
     template <typename T>
     SemId<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
-            CHECK(value->getKind() == T::staticKind);
+            LOGIC_ASSERTION_CHECK(value->getKind() == T::staticKind, "");
         }
         return SemId<T>{std::dynamic_pointer_cast<T>(value)};
     }
@@ -262,6 +262,19 @@ struct [[refl]] OrgJson {
 struct [[refl(R"({
   "backend": {
     "python": {
+      "holder-type": {
+        "name": "SemId",
+        "Spaces": [
+          {
+            "name": "org"
+          },
+          {
+            "name": "sem"
+          }
+        ]
+      }
+    },
+    "wasm": {
       "holder-type": {
         "name": "SemId",
         "Spaces": [

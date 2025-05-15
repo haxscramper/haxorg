@@ -8,7 +8,6 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
-#include <absl/log/log.h>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <lexy/dsl/identifier.hpp>
 #include <lexy_ext/report_error.hpp>
@@ -53,7 +52,12 @@ org::sem::SubtreePath convertSubtreePath(Str const& path) {
     return res;
 }
 
-absl::TimeZone ConvertToTimeZone(std::string z) {
+cctz::time_zone create_time_zone_from_offset(int offset_seconds) {
+    return cctz::fixed_time_zone(cctz::seconds{offset_seconds});
+}
+
+
+cctz::time_zone ConvertToTimeZone(std::string z) {
     int  hours    = 0;
     int  minutes  = 0;
     bool positive = true;
@@ -73,12 +77,12 @@ absl::TimeZone ConvertToTimeZone(std::string z) {
     int offset = hours * 3600 + minutes * 60;
     if (!positive) { offset = -offset; }
 
-    return absl::FixedTimeZone(offset);
+    return create_time_zone_from_offset(offset);
 }
 
 Opt<UserTime> ParseUserTime(
-    std::string                datetime,
-    Opt<absl::TimeZone> const& zone) {
+    std::string                 datetime,
+    Opt<cctz::time_zone> const& zone) {
     struct Spec {
         std::string         pattern;
         UserTime::Alignment align = UserTime::Alignment::Second;
@@ -95,21 +99,15 @@ Opt<UserTime> ParseUserTime(
             .align   = UserTime::Alignment::Minute,
         },
         Spec{.pattern = "%Y-%m-%d", .align = UserTime::Alignment::Day},
-        // Add other formats as needed
     };
 
-    absl::Time parsedDateTime;
-    for (const auto& format : formats) {
-        std::string error;
-        if (absl::ParseTime(
-                format.pattern,
-                datetime,
-                zone ? zone.value() : absl::TimeZone(),
-                &parsedDateTime,
-                &error)) {
+    cctz::time_zone tz = zone ? zone.value() : cctz::utc_time_zone();
 
+    for (const auto& format : formats) {
+        std::chrono::system_clock::time_point tp;
+        if (cctz::parse(format.pattern, datetime, tz, &tp)) {
             return UserTime{
-                .time  = parsedDateTime,
+                .time  = cctz::convert(tp, tz),
                 .align = format.align,
                 .zone  = zone,
             };
@@ -118,7 +116,6 @@ Opt<UserTime> ParseUserTime(
 
     return std::nullopt;
 }
-
 
 } // namespace
 
@@ -319,8 +316,12 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             | rs::to<Vec>();
 
         auto clock = Log::Clock{};
-        CHECK(!times.empty())
-            << a.treeRepr() << ExporterTree::treeRepr(item).toString();
+        LOGIC_ASSERTION_CHECK(
+            !times.empty(),
+            "{}{}",
+            a.treeRepr(),
+            ExporterTree::treeRepr(item).toString());
+
         if (times.at(0)->is(osk::Time)) {
             clock.from = times.at(0).as<Time>()->getStaticTime();
         } else {
@@ -384,8 +385,11 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             Vec<SemId<Time>> times   = filter_subnodes<Time>(par0, limit);
             Vec<SemId<Link>> link    = filter_subnodes<Link>(par0, limit);
             auto             refile  = Log::Refile{};
-            CHECK(!times.empty())
-                << a.treeRepr() << ExporterTree::treeRepr(item).toString();
+            LOGIC_ASSERTION_CHECK(
+                !times.empty(),
+                "{} {}",
+                a.treeRepr(),
+                ExporterTree::treeRepr(item).toString());
 
             if (auto time = time_after("on")) {
                 refile.on = time.value()->getStaticTime();
@@ -497,7 +501,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 }
             }
 
-            CHECK(!desc.isNil());
+            LOGIC_ASSERTION_CHECK(!desc.isNil(), "");
             log->setDescription(desc);
         }
     }
@@ -656,16 +660,13 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         for (auto const& arg : get_values_text().split(" ")) {
             auto norm = normalize(arg);
             if (norm == "todo") {
-                p.source = sem::NamedProperty::CookieData::TodoSource::
-                    Todo;
+                p.source = SubtreeTodoSource::Todo;
             } else if (norm == "recursive") {
                 p.isRecursive = true;
             } else if (norm == "both") {
-                p.source = sem::NamedProperty::CookieData::TodoSource::
-                    Both;
+                p.source = SubtreeTodoSource::Both;
             } else if (norm == "checkbox") {
-                p.source = sem::NamedProperty::CookieData::TodoSource::
-                    Checkbox;
+                p.source = SubtreeTodoSource::Checkbox;
             } else {
                 return SemError(
                     a, fmt("Unexpected cookie data parameter: {}", arg));
@@ -698,7 +699,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         NamedProperty::ArchiveTime prop{};
         Str                        time = get_values_text();
         Slice<int>                 span = slice(0, time.size() - 1);
-        Opt<absl::TimeZone>        zone;
+        Opt<cctz::time_zone>       zone;
         if (time.at(3_B) == '+' || time.at(3_B) == '-') {
             span.last -= 3;
             zone = ConvertToTimeZone(
@@ -932,7 +933,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
                   }
                      .contains(a.kind());
 
-    CHECK(cond) << "convert subtree" << fmt1(a.kind());
+    LOGIC_ASSERTION_CHECK(cond, "convert subtree {}", a.kind());
 
     auto time      = Sem<Time>(a);
     time->isActive = (a.kind() == onk::DynamicActiveTime)
@@ -958,7 +959,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
         }
 
 
-        Opt<absl::TimeZone> zone;
+        Opt<cctz::time_zone> zone;
 
         if (auto z = one(a, N::Zone); z.kind() != onk::Empty) {
             zone = ConvertToTimeZone(get_text(z));
@@ -1245,11 +1246,11 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
         print(fmt("Normalized checkbox: {}", escape_literal(text)));
 
         if (text == "x" || text == "X") {
-            item->checkbox = ListItem::Checkbox::Done;
+            item->checkbox = CheckboxState::Done;
         } else if (text == "") {
-            item->checkbox = ListItem::Checkbox::Empty;
+            item->checkbox = CheckboxState::Empty;
         } else if (text == "-") {
-            item->checkbox = ListItem::Checkbox::Partial;
+            item->checkbox = CheckboxState::Partial;
         } else {
             return SemError(
                 a, fmt("Unexpected list item checkbox {}", text));
@@ -1869,7 +1870,7 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
     auto values       = convertAttrs(one(a, N::Args));
     eexport->exporter = get_text(one(a, N::Name));
     eexport->attrs    = values;
-    {
+    try {
         auto lines = one(a, N::Body);
         int  idx   = 0;
         int  size  = lines.size();
@@ -1877,7 +1878,7 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
             ++idx;
             if (idx < size) { eexport->content += get_text(item); }
         }
-    }
+    } catch (parse::FieldAccessError const& e) { print(e.what()); }
 
     return eexport;
 }
@@ -1886,10 +1887,12 @@ OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(
     __args) {
     auto               __trace = trace(a);
     SemId<BlockCenter> res     = Sem<BlockCenter>(a);
-    for (const auto& sub : many(a, N::Body)) {
-        auto aux = convert(sub);
-        res->push_back(aux);
-    }
+    try {
+        for (const auto& sub : many(a, N::Body)) {
+            auto aux = convert(sub);
+            res->push_back(aux);
+        }
+    } catch (parse::FieldAccessError const& e) { print(e.what()); }
     return res;
 }
 
@@ -1902,9 +1905,12 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
         quote->attrs = convertAttrs(args);
     }
 
-    for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
-        quote->push_back(sub.unwrap());
-    }
+    try {
+        for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
+            quote->push_back(sub.unwrap());
+        }
+    } catch (parse::FieldAccessError const& e) { print(e.what()); }
+
     return quote;
 }
 
@@ -1912,9 +1918,11 @@ OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
     __args) {
     auto                __trace = trace(a);
     SemId<BlockComment> result  = Sem<BlockComment>(a);
-    for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
-        result->push_back(sub.unwrap());
-    }
+    try {
+        for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
+            result->push_back(sub.unwrap());
+        }
+    } catch (parse::FieldAccessError const& e) { print(e.what()); }
     return result;
 }
 
@@ -2121,7 +2129,8 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
             push_argument(convertAttr(it)); //
         }
     } else {
-        CHECK(a.getKind() == onk::Empty) << a.treeRepr();
+        LOGIC_ASSERTION_CHECK(
+            a.getKind() == onk::Empty, "{}", a.treeRepr());
     }
 
     return result;
@@ -2533,11 +2542,10 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::
 
 SemId<Org> OrgConverter::convert(__args) {
     auto __trace = trace(a);
-    if (!a.isValid()) {
-        LOG(WARNING) << "Invalid node encountered during conversion"
-                     << fmt1(a.id);
-        return Sem<Space>(a);
-    }
+    LOGIC_ASSERTION_CHECK(
+        a.isValid(),
+        "Invalid node encountered during conversion {}",
+        a.id);
 
     switch (a.kind()) {
         case onk::Newline: return convertNewline(a).unwrap();

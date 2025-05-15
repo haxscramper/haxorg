@@ -62,20 +62,18 @@ Vec<TestParams> generateTestRuns() {
                                         + spec.testName();
         }
 
-        if (nameCounts.contains(spec.testName())) {
-            LOG(ERROR) << fmt(
-                "Found test with duplicate name: '{}', name comes from "
-                "'{}' "
-                "at {}:{}:{}",
-                spec.testName(),
-                spec.file.stem(),
-                spec.spec.name,
-                spec.spec.specLocation.line,
-                spec.spec.specLocation.column);
+        LOGIC_ASSERTION_CHECK(
+            !nameCounts.contains(spec.testName()),
+            "Found test with duplicate name: '{}', name comes from "
+            "'{}' "
+            "at {}:{}:{}",
+            spec.testName(),
+            spec.file.stem(),
+            spec.spec.name,
+            spec.spec.specLocation.line,
+            spec.spec.specLocation.column);
 
-        } else {
-            nameCounts.insert_or_assign(spec.testName(), 1);
-        }
+        nameCounts.insert_or_assign(spec.testName(), 1);
     }
 
     return results;

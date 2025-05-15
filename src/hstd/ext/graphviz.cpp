@@ -170,7 +170,7 @@ Str Graphviz::Node::Record::toString(bool braceCount) const {
 
 Graphviz::Edge::Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
     : graph(graph) {
-    CHECK(graph != nullptr);
+    LOGIC_ASSERTION_CHECK(graph != nullptr, "");
     Agedge_t* edge = agedge(
         graph,
         const_cast<Agnode_t*>(head.get()),
@@ -196,14 +196,14 @@ Graphviz::Graph::Graph(const Str& name, Agdesc_t desc)
     }
 
     initDefaultSetters();
-    CHECK(graph != nullptr);
+    LOGIC_ASSERTION_CHECK(graph != nullptr, "");
 }
 
 Graphviz::Graph::Graph(const fs::path& file)
     : graph(nullptr)
     , defaultEdge(graph, nullptr)
     , defaultNode(graph, nullptr) {
-    CHECK(fs::is_regular_file(file));
+    LOGIC_ASSERTION_CHECK(fs::is_regular_file(file), "");
 
     Str   absolute = file.native();
     FILE* fp       = fopen(absolute.data(), "r");
@@ -221,7 +221,7 @@ void Graphviz::Graph::initDefaultSetters() {
     defaultNode.setOverride = [graph = this->graph](
                                   Str const& key, Str const& value) {
         auto& r = *graph;
-        CHECK(graph != nullptr);
+        LOGIC_ASSERTION_CHECK(graph != nullptr, "");
         agattr(graph, AGNODE, strdup(key), strdup(value));
     };
 
@@ -229,7 +229,7 @@ void Graphviz::Graph::initDefaultSetters() {
     defaultEdge.setOverride = [graph = this->graph](
                                   Str const& key, Str const& value) {
         auto& r = *graph;
-        CHECK(graph != nullptr);
+        LOGIC_ASSERTION_CHECK(graph != nullptr, "");
         agattr(graph, AGEDGE, strdup(key), strdup(value));
     };
 }
@@ -349,9 +349,8 @@ void Graphviz::createLayout(CR<Graph> graph, LayoutType layout) const {
 }
 
 void Graphviz::freeLayout(Graph graph) const {
-    // CHECK(gvLayoutDone(graph.get()));
-    CHECK(graph.get() != nullptr);
-    CHECK(gvc != nullptr);
+    LOGIC_ASSERTION_CHECK(graph.get() != nullptr, "");
+    LOGIC_ASSERTION_CHECK(gvc != nullptr, "");
     gvFreeLayout(gvc.get(), const_cast<Agraph_t*>(graph.get()));
 }
 
@@ -370,11 +369,13 @@ void Graphviz::writeFile(
         fclose(output_file);
 
     } else {
-        CHECK(GD_drawing(graph.get()) != nullptr)
-            << "render to file"
-            << "Writing non-DOT format to file requires layout. Call "
-               "`createLayout()` before writing or use 'renderToFile' to "
-               "execute render in one step";
+        LOGIC_ASSERTION_CHECK(
+            GD_drawing(graph.get()) != nullptr,
+            "render to file"
+            "Writing non-DOT format to file requires layout. Call "
+            "`createLayout()` before writing or use 'renderToFile' to "
+            "execute render in one step");
+
         gvRenderFilename(
             gvc.get(),
             const_cast<Agraph_t*>(graph.get()),
@@ -388,8 +389,8 @@ void Graphviz::renderToFile(
     CR<Graph>    graph,
     RenderFormat format,
     LayoutType   layout) const {
-    CHECK(graph.get() != nullptr);
-    CHECK(gvc != nullptr);
+    LOGIC_ASSERTION_CHECK(graph.get() != nullptr, "");
+    LOGIC_ASSERTION_CHECK(gvc != nullptr, "");
     if (format == RenderFormat::DOT) {
         writeFile(fileName, graph, format);
 

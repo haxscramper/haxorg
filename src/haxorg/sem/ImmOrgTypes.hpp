@@ -1263,8 +1263,6 @@ struct ImmList : public org::imm::ImmStmt {
 struct ImmListItem : public org::imm::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmListItem() = default;
-  enum class Checkbox : short int { None, Done, Empty, Partial, };
-  BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty, Partial)
   BOOST_DESCRIBE_CLASS(ImmListItem,
                        (ImmOrg),
                        (),
@@ -1274,7 +1272,7 @@ struct ImmListItem : public org::imm::ImmOrg {
                         header,
                         bullet))
   static OrgSemKind const staticKind;
-  org::imm::ImmListItem::Checkbox checkbox = Checkbox::None;
+  CheckboxState checkbox = CheckboxState::None;
   /// \brief Description list item header
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> header = std::nullopt;
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`

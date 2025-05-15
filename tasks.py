@@ -555,6 +555,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
 
     result.append(cmake_opt("ORG_FORCE_ADAPTAGRAMS_BUILD", False))
     result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()))
+    result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
     if conf.emscripten:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))
@@ -760,6 +761,7 @@ def get_deps_install_dir() -> Path:
 @beartype
 def get_deps_build_dir() -> Path:
     return get_deps_tmp_dir().joinpath("build")
+
 
 @org_task()
 def symlink_build(ctx: Context):
@@ -1013,6 +1015,8 @@ def build_haxorg(
     ninja_flag: List[str] = [],
 ):
     """Compile main set of libraries and binaries for org-mode parser"""
+    log(CAT).info(f"Using dependency dir {get_deps_install_dir()}")
+    log(CAT).info(f"Building with\n{' '.join(get_cmake_defines(ctx))}")
     build_dir = get_component_build_dir(ctx, "haxorg")
     with FileOperation.InTmp(
         [
@@ -1397,42 +1401,18 @@ def find_process(
     return None
 
 
-@org_task(pre=[
-    # cmake_install_dev
-])
-def build_web_example(ctx: Context):
-    """
-    Build web access example project
-    """
-    cmake_example_project(ctx, "rest_access")
-
-
-@org_task(pre=[
-    # cmake_install_dev
-    build_web_example
-])
+@org_task(pre=[build_haxorg])
 def build_d3_example(ctx: Context):
     """
     Build d3.js visualization example
     """
-
-    # web_build = get_example_build("rest_access").joinpath("org_server")
-    # run_command(ctx, web_build, [
-    #     json.dumps({
-    #         "operation":
-    #             "WriteSchema",
-    #         "schema_path":
-    #             str(get_script_root().joinpath(
-    #                 "examples/d3_visuals/renderer/org_schema.ts")),
-    #     })
-    # ])
 
     dir = get_script_root().joinpath("examples/d3_visuals")
     ensure_clean_dir(dir.joinpath("dist"))
     run_command(ctx, "deno", ["task", "build"], cwd=dir)
 
 
-@org_task(pre=[build_d3_example, build_web_example])
+@org_task(pre=[build_d3_example])
 def run_d3_example(ctx: Context, sync: bool = False):
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
@@ -1456,6 +1436,16 @@ def run_d3_example(ctx: Context, sync: bool = False):
             stdout_debug=get_log_dir().joinpath("electron_stdout.log"),
         )
 
+@org_task(pre=[build_d3_example])
+def run_js_test_example(ctx: Context, sync: bool = False):
+    js_example_dir = get_script_root().joinpath("examples/js_test")
+
+    run_command(
+        ctx,
+        "node",
+        ["js_test.js"],
+        cwd=js_example_dir,
+    )
 
 def get_lldb_py_import() -> List[str]:
     return [

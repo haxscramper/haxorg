@@ -1,7 +1,6 @@
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/charsets.hpp>
 #include <gtest/gtest.h>
-#include <absl/log/log.h>
 
 using namespace hstd;
 

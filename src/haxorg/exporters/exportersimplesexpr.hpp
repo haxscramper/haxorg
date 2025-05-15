@@ -4,7 +4,6 @@
 #include <hstd/ext/textlayouter.hpp>
 #include <concepts>
 #include <hstd/stdlib/strutils.hpp>
-#include <absl/log/check.h>
 
 namespace org::algo {
 
@@ -91,7 +90,7 @@ struct ExporterSimpleSExpr
 
     template <typename T>
     void visitField(Res& res, char const* name, T const& value) {
-        CHECK(!res.isNil());
+        LOGIC_ASSERTION_CHECK(!res.isNil(), "");
         if (b.at(res).isLine()) { b.add_at(res, string(" ")); }
         b.add_at(res, b.line({string(name), string(": "), eval(value)}));
     }

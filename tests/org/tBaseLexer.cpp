@@ -56,7 +56,7 @@ TEST(ManualFileRun, TestDoc1) {
         if (fs::exists(file)) {
             std::string content = readFile(file);
             auto        spec = ParseSpec::FromSource(std::move(content));
-            spec.debug.traceAll = false;
+            spec.debug.traceAll = true;
             gtest_run_spec(TestParams{
                 .spec = spec,
                 .file = "doc1",
@@ -145,10 +145,10 @@ TEST(ManualFileRun, TestDir1) {
             root.context->currentTrack->toString().toString(false));
 
         LOG(INFO) << "Generating mind map";
-        org::graph::MapConfig conf;
+        auto conf = org::graph::MapConfig::shared();
         // conf.setTraceFile("/tmp/TestDirMindMapTrace.log");
         org::graph::MapGraphState graph{root.context};
-        graph.addNodeRec(root.getRootAdapter(), &conf);
+        graph.addNodeRec(root.getRootAdapter(), conf);
         auto gv = graph.graph.toGraphviz(
             root.context,
             org::graph::MapGraph::GvConfig{

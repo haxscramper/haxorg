@@ -88,8 +88,6 @@ TEST(RangeAlgorithmsTest, NestedTreeSegments) {
         /* */ slice(14, 15),
     }};
 
-    // LOG(INFO) << "\n" << fmt1(tree);
-
     {
         auto it = tree.getRanges(0);
         EXPECT_EQ(it.size(), 1);

@@ -1,6 +1,5 @@
 thirdparty
 *.css
-*.js
 ImmOrgTypes.hpp
 SemOrgTypes.hpp
 src/haxorg/exporters/Exporter.tcc

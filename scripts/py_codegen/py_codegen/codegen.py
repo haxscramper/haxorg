@@ -6,7 +6,7 @@ from typing import *
 from copy import deepcopy
 
 import py_codegen.astbuilder_py as pya
-import py_codegen.astbuilder_nodeapi as napi
+import py_codegen.astbuilder_embind as napi
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen.org_codegen_data import *
 from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
@@ -639,6 +639,10 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.GenDescribeMethods = False
                 obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
                 self_arg = obj.name.asConstRef()
+
+                if obj.reflectionParams.backend.wasm.holder_type:
+                    obj.reflectionParams.backend.wasm.holder_type = None
+
                 obj.methods.append(
                     GenTuFunction(
                         result=QualType.ForName("bool"),
@@ -1099,7 +1103,7 @@ def gen_pyhaxorg_napi_wrappers(
 
     cpp_builder = cpp.ASTBuilder(ast.b)
 
-    res = napi.NapiModule("pyhaxorg")
+    res = napi.WasmModule("haxorg_wasm")
 
     res.add_specializations(
         b=ast,
@@ -1107,20 +1111,32 @@ def gen_pyhaxorg_napi_wrappers(
     )
 
     for decl in groups.get_entries_for_wrapping():
-        if decl.reflectionParams.isAcceptedBackend("node"):
-            match decl:
-                case GenTuStruct():
-                    if not decl.IsAbstract:
-                        res.add_decl(decl)
+        if decl.reflectionParams.isAcceptedBackend("wasm"):
+            res.add_decl(decl)
 
-                case _:
-                    res.add_decl(decl)
+    res.Header.append(napi.WasmBindPass(ast.Include("node_utils.hpp")))
+    res.Header.append(napi.WasmBindPass(ast.Include("node_org_include.hpp")))
+    res.Header.append(napi.WasmBindPass(ast.Include("haxorg_wasm_manual.hpp")))
+    res.Header.append(napi.WasmBindPass(ast.string("using namespace org::bind::js;")))
 
-    res.Header.append(napi.NapiBindPass(ast.Include("node_utils.hpp")))
-    res.Header.append(napi.NapiBindPass(ast.Include("node_org_include.hpp")))
-    res.Header.append(napi.NapiBindPass(ast.string("using namespace org::bind::js;")))
+    res.add_decl(napi.WasmBindPass(ast.string("haxorg_wasm_manual_register();")))
 
     return GenFiles([
+        GenUnit(
+            GenTu("{root}/src/wrappers/js/haxorg_wasm.cpp", [
+                GenTuPass(res.build_bind(
+                    ast=ast,
+                    b=cpp_builder,
+                    base_map=base_map,
+                )),
+            ])),
+        GenUnit(
+            GenTu("{root}/src/wrappers/js/haxorg_wasm_types.d.ts", [
+                GenTuPass(res.build_typedef(
+                    ast=ast,
+                    base_map=base_map,
+                )),
+            ])),
     ])
 
 
@@ -1366,18 +1382,19 @@ def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
                 log(CAT).debug(f"Debug reflection data to {file.name}")
                 file.write(open_proto_file(Path(opts.reflection_path)).to_json(2))
 
-            write_files_group(
-                gen_pyhaxorg_python_wrappers(
-                    groups=groups,
-                    ast=builder,
-                    pyast=pyast,
-                ))
 
             write_files_group(
                 gen_pyhaxorg_napi_wrappers(
                     groups=groups,
                     ast=builder,
                     base_map=groups.base_map,
+                ))
+
+            write_files_group(
+                gen_pyhaxorg_python_wrappers(
+                    groups=groups,
+                    ast=builder,
+                    pyast=pyast,
                 ))
 
             write_files_group(gen_pyhaxorg_source(

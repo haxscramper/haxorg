@@ -1,6 +1,6 @@
 from copy import copy
 from dataclasses import dataclass, field, replace
-from beartype.typing import List, Union, NewType, Optional, Tuple, Dict, Any, Iterable
+from beartype.typing import List, Union, NewType, Optional, Tuple, Dict, Any, Iterable, Callable
 from enum import Enum
 from beartype import beartype
 import inspect
@@ -149,7 +149,15 @@ class QualType(BaseModel, extra="forbid"):
 
     def flatSpaceNames(self) -> List[str]:
         "Get flat list of names for fully qualified type"
-        return [S.name for S in self.Spaces]
+        def aux(Typ: QualType):
+            res: List[str] = []
+            for S in Typ.Spaces:
+                res += aux(S)
+
+            res += [Typ.name]
+            return res
+
+        return list(itertools.chain(*[aux(S) for S in self.Spaces]))
 
     def flatQualName(self) -> List[str]:
         return self.flatSpaceNames() + [self.name]

@@ -1,6 +1,7 @@
 if(${ORG_EMCC_BUILD})
 
-  add_executable(haxorg_wasm haxorg_wasm.cpp node_utils.hpp node_org_include.hpp)
+  add_executable(haxorg_wasm haxorg_wasm.cpp node_utils.hpp node_org_include.hpp
+                             haxorg_wasm_manual.cpp haxorg_wasm_manual.hpp)
   target_include_directories(haxorg_wasm PRIVATE "node_modules/node-addon-api" "/usr/include/node")
 
   target_link_libraries(haxorg_wasm PUBLIC hstd haxorg)
@@ -15,6 +16,6 @@ if(${ORG_EMCC_BUILD})
                SUFFIX ".js"
                OUTPUT_NAME "haxorg_wasm")
 
-  set_target_properties(haxorg_wasm PROPERTIES SUFFIX ".js" LINK_FLAGS "--bind")
+  set_target_properties(haxorg_wasm PROPERTIES SUFFIX ".js")
 
 endif()

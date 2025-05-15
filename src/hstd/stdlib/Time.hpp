@@ -1,13 +1,14 @@
 #pragma once
 
-#include <absl/time/clock.h>
+#include <cctz/civil_time.h>
+#include <cctz/time_zone.h>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/system/aux_utils.hpp>
-#include <absl/time/civil_time.h>
-#include <absl/time/time.h>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
+
+#pragma clang diagnostic ignored "-Wunknown-attributes"
 
 namespace hstd {
 
@@ -41,9 +42,9 @@ struct [[refl]] UserTime {
     DECL_DESCRIBED_ENUM(Alignment, Year, Month, Day, Hour, Minute, Second);
     DECL_DESCRIBED_ENUM(Format, ISO8601, OrgFormat);
 
-    absl::Time          time;
-    Opt<absl::TimeZone> zone;
-    Alignment           align;
+    cctz::civil_second   time;
+    Opt<cctz::time_zone> zone;
+    Alignment            align;
     BOOST_DESCRIBE_CLASS(UserTime, (), (time, zone, align), (), ());
 
     [[refl]] UserTimeBreakdown getBreakdown() const;
@@ -55,12 +56,12 @@ struct [[refl]] UserTime {
 
 
 template <typename Tag>
-struct ReflVisitor<absl::Time, Tag>
-    : ReflVisitorLeafType<absl::Time, Tag> {};
+struct ReflVisitor<cctz::civil_second, Tag>
+    : ReflVisitorLeafType<cctz::civil_second, Tag> {};
 
 template <typename Tag>
-struct ReflVisitor<absl::TimeZone, Tag>
-    : ReflVisitorLeafType<absl::TimeZone, Tag> {};
+struct ReflVisitor<cctz::time_zone, Tag>
+    : ReflVisitorLeafType<cctz::time_zone, Tag> {};
 
 } // namespace hstd
 
@@ -71,19 +72,17 @@ struct std::hash<hstd::UserTime> {
 
 
 template <>
-struct std::formatter<absl::Time> : std::formatter<std::string> {
+struct std::formatter<cctz::civil_second> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const absl::Time& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx(
-            absl::FormatTime("%Y-%m-%d %H:%M:%S", p, absl::TimeZone{}),
-            ctx);
-    }
+    FormatContext::iterator format(
+        const cctz::civil_second& p,
+        FormatContext&            ctx) const;
 };
 
 template <>
-struct std::formatter<absl::TimeZone> : std::formatter<std::string> {
+struct std::formatter<cctz::time_zone> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const absl::TimeZone& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx(absl::FormatTime("%z", absl::Now(), p), ctx);
-    }
+    FormatContext::iterator format(
+        const cctz::time_zone& p,
+        FormatContext&         ctx) const;
 };

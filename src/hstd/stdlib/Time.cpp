@@ -1,34 +1,34 @@
 #include "Time.hpp"
-#include <absl/hash/hash.h>
+#include <hstd/stdlib/Debug.hpp>
 
 using namespace hstd;
 
 UserTimeBreakdown UserTime::getBreakdown() const {
     UserTimeBreakdown result;
-    absl::CivilSecond sec = absl::TimeZone{}.At(time).cs;
+    cctz::time_zone   tz = zone ? *zone : cctz::utc_time_zone();
 
     switch (align) {
         case Alignment::Second: {
-            result.second = sec.second();
+            result.second = time.second();
             [[fallthrough]];
         }
         case Alignment::Minute: {
-            result.minute = sec.minute();
+            result.minute = time.minute();
             [[fallthrough]];
         }
         case Alignment::Hour: {
-            result.hour = sec.hour();
+            result.hour = time.hour();
             [[fallthrough]];
         }
         case Alignment::Day: {
-            result.day = sec.day();
+            result.day = time.day();
             [[fallthrough]];
         }
         case Alignment::Month: {
-            result.month = sec.month();
+            result.month = time.month();
             [[fallthrough]];
         }
-        case Alignment::Year: result.year = sec.year();
+        case Alignment::Year: result.year = time.year();
     }
 
     if (zone) { result.zone = zone->name(); }
@@ -55,11 +55,16 @@ std::string UserTime::format(Format kind) const {
         default:
     }
 
+    cctz::time_zone tz = zone ? *zone : cctz::utc_time_zone();
+
     if (kind == Format::OrgFormat) {
         if (zone) {
-            int offset  = zone->At(absl::UnixEpoch()).offset / 60;
-            int hours   = offset / 60;
-            int minutes = offset % 60;
+            auto info    = tz.lookup(cctz::convert(
+                cctz::civil_second(1970, 1, 1, 0, 0, 0),
+                cctz::utc_time_zone()));
+            int  offset  = info.offset / 60;
+            int  hours   = offset / 60;
+            int  minutes = offset % 60;
 
             if (minutes == 0) {
                 format += fmt(" {:+03}", hours);
@@ -71,11 +76,7 @@ std::string UserTime::format(Format kind) const {
         if (zone) { format += " %z"; }
     }
 
-    std::string result = zone ? absl::FormatTime(format, time, *zone)
-                              : absl::FormatTime(
-                                    format, time, absl::TimeZone{});
-
-    return result;
+    return cctz::format(format, cctz::convert(time, tz), tz);
 }
 
 bool UserTime::operator==(const UserTime& it) const {
@@ -92,8 +93,43 @@ std::size_t std::hash<UserTime>::operator()(
     hstd::hax_hash_combine(result, it.align);
     if (it.zone) {
         hstd::hax_hash_combine(
-            result, absl::Hash<absl::TimeZone>{}(*it.zone));
+            result, std::hash<std::string>{}(it.zone->name()));
     }
-    hstd::hax_hash_combine(result, absl::Hash<absl::Time>{}(it.time));
+    hstd::hax_hash_combine(result, it.time.year());
+    hstd::hax_hash_combine(result, it.time.month());
+    hstd::hax_hash_combine(result, it.time.day());
+    hstd::hax_hash_combine(result, it.time.hour());
+    hstd::hax_hash_combine(result, it.time.minute());
+    hstd::hax_hash_combine(result, it.time.second());
     return result;
 }
+
+template <typename FormatContext>
+FormatContext::iterator std::formatter<cctz::time_zone>::format(
+    const cctz::time_zone& p,
+    FormatContext&         ctx) const {
+    return fmt_ctx(p.name(), ctx);
+}
+
+template <typename FormatContext>
+FormatContext::iterator std::formatter<cctz::civil_second>::format(
+    const cctz::civil_second& p,
+    FormatContext&            ctx) const {
+    return hstd::fmt_ctx(
+        std::format(
+            "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+            p.year(),
+            p.month(),
+            p.day(),
+            p.hour(),
+            p.minute(),
+            p.second()),
+        ctx);
+}
+
+template std::format_context::iterator std::formatter<cctz::civil_second>::
+    format(const cctz::civil_second&, std::format_context&) const;
+
+template std::format_context::iterator std::formatter<
+    cctz::time_zone,
+    char>::format(const cctz::time_zone&, std::format_context&) const;

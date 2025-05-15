@@ -1,55 +1,129 @@
+#pragma once
+
 #include <optional>
 #include <string>
 #include <tuple>
 #include <stdexcept>
+#include <typeindex>
 #include <utility>
-#include <cpptrace.hpp>
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Exception.hpp>
+#include <utility>
+
+#include <emscripten.h>
+#include <emscripten/bind.h>
+
+
+template <typename T>
+struct emscripten::smart_ptr_trait<org::sem::SemId<T>> {
+    using PointerType  = org::sem::SemId<T>;
+    using element_type = T;
+
+    static T* get(PointerType const& ptr) {
+        return const_cast<T*>(ptr.get());
+    }
+
+    static sharing_policy get_sharing_policy() {
+        return sharing_policy::BY_EMVAL;
+    }
+
+    static PointerType* share(T* p, EM_VAL v) {
+        return new PointerType(
+            std::shared_ptr<T>(p, val_deleter(val::take_ownership(v))));
+    }
+
+    static PointerType* construct_null() { return new PointerType(); }
+
+    class val_deleter {
+      public:
+        val_deleter() = delete;
+        explicit val_deleter(val v) : v(v) {}
+        void operator()(void const*) {
+            v();
+            // eventually we'll need to support emptied out val
+            v = val::undefined();
+        }
+
+      private:
+        val v;
+    };
+};
+
 
 namespace org::bind::js {
 
+struct type_registration_guard {
+    hstd::UnorderedSet<std::size_t> idx;
+    template <typename T>
+    bool can_add() {
+        if (idx.contains(typeid(T).hash_code())) {
+            return false;
+        } else {
+            idx.incl(typeid(T).hash_code());
+            return true;
+        }
+    }
+};
+
+template <hstd::DescribedEnum E>
+void bind_enum(std::string const& name) {
+    auto&& e = emscripten::enum_<E>(name.c_str());
+    for (hstd::EnumFieldDesc<E> const& d :
+         hstd::describe_enumerators<E>()) {
+        e = e.value(d.name.c_str(), d.value);
+    }
+
+    emscripten::function(
+        ("format_" + name).c_str(),
+        +[](E const& value) -> std::string { return hstd::fmt1(value); });
+}
 
 template <typename T>
-struct org_to_js_type {};
+void immerbox_bind(type_registration_guard& g, std::string const& name) {}
 
 template <typename T>
-struct js_to_org_type {};
-
-// Helper to check if a specialization exists
-template <typename T, typename = void>
-struct has_js_to_org_mapping : std::false_type {};
+void immerflex_vector_bind(
+    type_registration_guard& g,
+    std::string const&       name) {}
 
 template <typename T>
-struct has_js_to_org_mapping<
-    T,
-    std::void_t<typename js_to_org_type<T>::type>> : std::true_type {};
-
-template <typename T, typename = void>
-struct has_org_to_js_mapping : std::false_type {};
+void hstdVec_bind(type_registration_guard& g, std::string const& name) {}
 
 template <typename T>
-struct has_org_to_js_mapping<
-    T,
-    std::void_t<typename org_to_js_type<T>::type>> : std::true_type {};
+void hstdIntSet_bind(type_registration_guard& g, std::string const& name) {
+}
 
-// Concept to check if a JS type has a mapping to an org type
-template <typename JsType>
-concept HasOrgMapping = has_js_to_org_mapping<JsType>::value;
+template <typename K, typename V>
+void hstdUnorderedMap_bind(
+    type_registration_guard& g,
+    std::string const&       name) {}
 
-// Concept to check if an org type has a mapping to a JS type
-template <typename OrgType>
-concept HasJsMapping = has_org_to_js_mapping<OrgType>::value;
 
-// Concept to check if a bidirectional mapping exists
-template <typename JsType, typename OrgType>
-concept HasBidirectionalMapping //
-    = HasOrgMapping<JsType>     //
-   && HasJsMapping<OrgType>
-   && std::is_same_v<typename js_to_org_type<JsType>::type, OrgType>
-   && std::is_same_v<typename org_to_js_type<OrgType>::type, JsType>;
+template <typename T>
+void stdoptional_bind(
+    type_registration_guard& g,
+    std::string const&       name) {
+    if (g.can_add<std::optional<T>>()) {
+        emscripten::class_<std::optional<T>>(name.c_str()) //
+            .function(
+                "value",
+                +[](std::optional<T> const& opt) -> T const& {
+                    return opt.value();
+                })
+            .function(
+                "has_value", +[](std::optional<T> const& opt) -> bool {
+                    return opt.has_value();
+                });
+    }
+}
+
+
+template <typename T>
+void hstdOpt_bind(type_registration_guard& g, std::string const& name) {
+    stdoptional_bind<T>(g, name);
+}
 
 // Argument specification template
 template <typename T>
@@ -325,8 +399,5 @@ auto makeConstructorCallable(
         template ForConstructor<ConstructedType>(std::move(args));
 }
 
-// Converter template for JS <-> C++ type conversions
-template <typename T, typename Enable = void>
-struct JsConverter {};
 
 } // namespace org::bind::js

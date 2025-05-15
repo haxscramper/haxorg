@@ -2,5 +2,6 @@
 
 int main() {
     auto node = org::parseFile("/home/haxscramper/tmp/doc1.org", {});
-    LOG(INFO) << org::exportToTreeString(node, org::OrgTreeExportOpts{});
+    std::cout << org::exportToTreeString(node, org::OrgTreeExportOpts{})
+              << std::endl;
 }

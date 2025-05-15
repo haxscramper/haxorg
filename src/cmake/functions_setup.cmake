@@ -4,9 +4,10 @@ function(set_target_flags_impl)
   if(${ORG_EMCC_BUILD})
     add_target_property(
       ${ARG_TARGET}
-      LINK_OPTIONS
-      "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORT_NAME='haxorg_wasm' -s USE_PTHREADS=0 -s ASSERTIONS=1 --bind"
+      LINK_FLAGS
+      "-s DEMANGLE_SUPPORT=1 -g3 -gsource-map -s WASM=1 -s STACK_SIZE=20MB -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORT_NAME='haxorg_wasm' -s USE_PTHREADS=0 -s ASSERTIONS=1 --bind -sNO_DISABLE_EXCEPTION_CATCHING"
     )
+    # add_target_property(${ARG_TARGET} INCLUDE_DIRECTORIES "/usr/lib/emscripten/system/include/")
   endif()
 
   if(NOT ${ORG_BUILD_IS_DEVELOP})

@@ -346,13 +346,24 @@ struct MapConfig;
 struct MapInterface {
     /// \brief Get node properties without resolving the target links.
     virtual hstd::Opt<MapNodeProp> getInitialNodeProp(
-        MapGraphState const& s,
-        org::imm::ImmAdapter node,
-        MapConfig&           conf);
+        MapGraphState const&       s,
+        org::imm::ImmAdapter       node,
+        std::shared_ptr<MapConfig> conf);
 };
 
-struct [[refl]] MapConfig : hstd::OperationsTracer {
-    hstd::SPtr<MapInterface> impl;
+struct [[refl(
+    R"({
+  "backend": {
+    "python": {
+      "holder-type": "shared"
+    },
+    "wasm": {
+      "holder-type": "shared"
+    }
+  }
+})")]] MapConfig : hstd::SharedPtrApi<MapConfig> {
+    hstd::SPtr<MapInterface>        impl;
+    [[refl]] hstd::OperationsTracer dbg;
     MapConfig(hstd::SPtr<MapInterface> impl);
     MapConfig();
 
@@ -361,12 +372,22 @@ struct [[refl]] MapConfig : hstd::OperationsTracer {
     hstd::Opt<MapNodeProp> getInitialNodeProp(
         MapGraphState const& s,
         org::imm::ImmAdapter node) {
-        return impl->getInitialNodeProp(s, node, *this);
+        return impl->getInitialNodeProp(s, node, shared_from_this());
     }
 };
 
 struct [[refl(
-    R"({"default-constructor": false, "backend": {"python": {"holder-type": "shared"}}})")]] MapGraphState {
+    R"({
+  "default-constructor": false,
+  "backend": {
+    "python": {
+      "holder-type": "shared"
+    },
+    "wasm": {
+      "holder-type": "shared"
+    }
+  }
+})")]] MapGraphState {
     /// \brief List of nodes with unresolved outgoing links.
     hstd::UnorderedSet<MapNode>                       unresolved;
     [[refl]] MapGraph                                 graph;
@@ -380,23 +401,25 @@ struct [[refl(
     }
 
 
-    [[refl]] void registerNode(MapNodeProp const& node, MapConfig* conf);
+    [[refl]] void registerNode(
+        MapNodeProp const&                node,
+        std::shared_ptr<MapConfig> const& conf);
 
     [[refl]] void addNode(
-        org::imm::ImmAdapter const& node,
-        MapConfig*                  conf);
+        org::imm::ImmAdapter const&       node,
+        std::shared_ptr<MapConfig> const& conf);
 
     [[refl]] void addNodeRec(
-        org::imm::ImmAdapter const& node,
-        MapConfig*                  conf);
+        org::imm::ImmAdapter const&       node,
+        std::shared_ptr<MapConfig> const& conf);
 
     [[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
         org::imm::ImmAdapterT<org::imm::ImmSubtree> node,
-        MapConfig*                                  conf) const;
+        std::shared_ptr<MapConfig> const&           conf) const;
 
     [[refl]] hstd::Opt<MapLink> getUnresolvedLink(
         org::imm::ImmAdapterT<org::imm::ImmLink> node,
-        MapConfig*                               conf) const;
+        std::shared_ptr<MapConfig> const&        conf) const;
 
 
     DESC_FIELDS(MapGraphState, (unresolved, graph));
@@ -416,10 +439,10 @@ struct MapLinkResolveResult {
 /// \brief Resolve a single link with the state `s` and return the edge.
 /// Use `source` as an edge origin.
 hstd::Vec<MapLinkResolveResult> getResolveTarget(
-    MapGraphState const& s,
-    MapNode const&       source,
-    MapLink const&       link,
-    MapConfig&           conf);
+    MapGraphState const&       s,
+    MapNode const&             source,
+    MapLink const&             link,
+    std::shared_ptr<MapConfig> conf);
 
 struct MapNodeResolveResult {
     MapNodeProp                     node = MapNodeProp{};
@@ -431,9 +454,9 @@ struct MapNodeResolveResult {
 /// graph links into `.node.unresolved` and `.resolved` fields of the
 /// returned.
 MapNodeResolveResult getResolvedNodeInsert(
-    MapGraphState const& s,
-    MapNodeProp const&   node,
-    MapConfig&           conf);
+    MapGraphState const&       s,
+    MapNodeProp const&         node,
+    std::shared_ptr<MapConfig> conf);
 
 
 bool isDescriptionItem(org::imm::ImmAdapter const& node);

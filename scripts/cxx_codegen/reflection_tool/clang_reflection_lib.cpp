@@ -1274,7 +1274,7 @@ bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
             "reflection-visit-record" + Decl->getNameAsString()};
 
         Record* rec = out->add_records();
-        CHECK(Decl != nullptr);
+        assert(Decl != nullptr);
         fillCxxRecordDecl(rec, Decl);
         if (Decl->hasDefinition()) {
             rec->set_isabstract(Decl->isAbstract());

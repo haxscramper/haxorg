@@ -78,10 +78,10 @@ def install_all_deps() -> List[str]:
             install_dir=DEPS_INSTALL,
             is_emcc=False,
     ):
-        if dep.build_name in ["lexy", "abseil", "immer", "lager", "cpptrace", "yaml"]:
+        if dep.build_name in ["lexy", "cctz", "immer", "lager", "cpptrace", "yaml"]:
             deps_list.append(dep)
 
-        elif BUILD_TESTS and dep.build_name == "googletest":
+        elif BUILD_TESTS and dep.build_name in ["googletest", "abseil"]:
             deps_list.append(dep)
 
     logger.info("Starting dependency installation")

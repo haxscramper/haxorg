@@ -585,7 +585,8 @@ struct RecombineState {
 
             map_interpreted_token();
 
-            CHECK((lex.pos != start)) << std::format(
+            LOGIC_ASSERTION_CHECK(
+                (lex.pos != start),
                 "Non-terminating token conversion case, got kind '{}' "
                 "text '{}' at id {} with no movement. This is a bug in "
                 "the implementation -- we iterated over baseline tokens, "
@@ -1014,7 +1015,7 @@ struct TokenVisitor {
             auto start = it;
             auto rec   = rec_group(it);
             if (rec) {
-                CHECK(start != it);
+                LOGIC_ASSERTION_CHECK(start != it, "");
                 root.push_back(rec.value());
             }
         }

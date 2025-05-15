@@ -2,6 +2,6 @@
 
 
 void org::sem::SubtreeLog::setDescription(sem::SemId<sem::StmtList> desc) {
-    CHECK(!desc.isNil());
+    LOGIC_ASSERTION_CHECK(!desc.isNil(), "");
     this->desc = desc;
 }

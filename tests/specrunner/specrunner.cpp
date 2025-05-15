@@ -39,7 +39,7 @@ struct hstd::JsonSerde<TestResult::Data> {
 };
 
 int main(int argc, char** argv) {
-    CHECK(argc == 2);
+    LOGIC_ASSERTION_CHECK(argc == 2, "");
     auto spec = hstd::JsonSerde<ParseSpec>::from_json(
         json::parse(std::string(argv[1])));
 

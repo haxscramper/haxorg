@@ -41,7 +41,8 @@ ImmId::IdType ImmId::combineMask(OrgSemKind kind) {
     auto res = (u64(kind) << NodeKindOffset) & NodeKindMask;
 
     auto t = ImmId{ImmId::FromMaskedIdx(0, res >> ImmIdMaskOffset)};
-    CHECK(t.getKind() == kind) << fmt(
+    LOGIC_ASSERTION_CHECK(
+        t.getKind() == kind,
         R"(
 kind:    {0:016X} {0:064b} {1}
 kind<<:  {2:016X} {2:064b}

@@ -797,9 +797,9 @@ Vec<SemId<Org>> getDirectSubnodes(
 } // namespace
 
 
-absl::TimeZone LoadTimeZone(CR<Str> name) {
-    absl::TimeZone result;
-    if (absl::LoadTimeZone(name, &result)) {
+cctz::time_zone LoadTimeZone(CR<Str> name) {
+    cctz::time_zone result;
+    if (cctz::load_time_zone(name, &result)) {
         return result;
     } else {
         throw std::logic_error("Unknown time zone " + name);
@@ -815,18 +815,16 @@ sem::SemId<Time> org::newSemTimeStatic(
 
 
     UserTime userTime{
-        .time = absl::FromCivil(
-            absl::CivilSecond{
-                breakdown.year.value_or(0),
-                breakdown.month.value_or(0),
-                breakdown.day.value_or(0),
-                breakdown.hour.value_or(0),
-                breakdown.minute.value_or(0),
-                breakdown.second.value_or(0),
-            },
-            absl::UTCTimeZone()),
+        .time =            cctz::civil_second{
+            breakdown.year.value_or(0),
+            breakdown.month.value_or(0),
+            breakdown.day.value_or(0),
+            breakdown.hour.value_or(0),
+            breakdown.minute.value_or(0),
+            breakdown.second.value_or(0),
+        },
         .zone = breakdown.zone ? LoadTimeZone(breakdown.zone.value())
-                               : Opt<absl::TimeZone>{std::nullopt},
+                               : Opt<cctz::time_zone>{std::nullopt},
     };
 
     if (breakdown.second) {

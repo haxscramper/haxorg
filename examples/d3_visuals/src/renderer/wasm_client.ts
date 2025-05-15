@@ -23,6 +23,7 @@ declare global {
 let wasmModule: HaxorgWasmModule|null               = null;
 let wasmInitPromise: Promise<HaxorgWasmModule>|null = null;
 
+
 export async function initWasmModule(): Promise<HaxorgWasmModule> {
   if (wasmModule) {
     return wasmModule;
@@ -34,22 +35,15 @@ export async function initWasmModule(): Promise<HaxorgWasmModule> {
 
   wasmInitPromise = (async () => {
     try {
+      console.log("Started loading WASM module");
       const isReady = await window.electronAPI.checkWasmStatus();
-      if (!isReady) {
+      if (isReady) {
+        console.log("Wasm is ready"); 
+      } else {
         throw new Error('WASM service is not ready in the main process');
       }
 
       const { jsPath, wasmPath } = await window.electronAPI.getWasmPaths();
-
-      // Create a Module configuration object before loading the script
-      window.Module = {
-        locateFile: (path: string) => {
-          if (path.endsWith('.wasm')) {
-            return `file://${wasmPath}`;
-          }
-          return path;
-        }
-      };
 
       // Load the JS file
       await new Promise<void>((resolve, reject) => {
@@ -67,36 +61,33 @@ export async function initWasmModule(): Promise<HaxorgWasmModule> {
         document.head.appendChild(script);
       });
 
-      // Wait for the runtime to be initialized
-      if (!window.Module) {
-        throw new Error('Module not defined after script load');
+      // Check if the factory function exists
+      if (typeof window.haxorg_wasm !== 'function') {
+        throw new Error('haxorg_wasm factory function not found after script load');
       }
 
-      // Wait for runtime initialization
-      await new Promise<void>((resolve) => {
-        if (window.Module.calledRun) {
-          // Already initialized
-          console.log("Module already initialized");
-          resolve();
-        } else {
-          // Set callback for initialization
-          const originalOnRuntimeInitialized = window.Module.onRuntimeInitialized || (() => {});
-          
-          window.Module.onRuntimeInitialized = () => {
-            console.log("Runtime initialized");
-            originalOnRuntimeInitialized();
-            resolve();
-          };
-        }
+      console.log("Initializing WASM module with factory function");
+      
+      // Call the factory function with configuration
+      const moduleInstance = await window.haxorg_wasm({
+        locateFile: (path: string) => {
+          if (path.endsWith('.wasm')) {
+            return `file://${wasmPath}`;
+          }
+          return path;
+        },
+        // Optional: Add any other Module configuration here
+        print: (text: string) => console.log(`WASM stdout: ${text}`),
+        printErr: (text: string) => console.error(`WASM stderr: ${text}`)
       });
 
-      console.log("Module ready for use");
+      console.log("Module initialized successfully");
       
       // Store the module globally
-      wasmModule = window.Module;
-      window.haxorgWasm = window.Module;
+      wasmModule = moduleInstance;
+      window.haxorgWasm = moduleInstance;
       
-      return wasmModule;
+      return moduleInstance;
     } catch (error) {
       console.error('Failed to initialize WASM module:', error);
       wasmInitPromise = null;
@@ -106,6 +97,7 @@ export async function initWasmModule(): Promise<HaxorgWasmModule> {
 
   return wasmInitPromise;
 }
+
 // Initialize at the earliest opportunity
 if (typeof window !== "undefined" && typeof document !== "undefined") {
   if (document.readyState === "loading") {

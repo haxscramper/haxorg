@@ -4,21 +4,19 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <boost/preprocessor.hpp>
 
-#if ORG_EMCC_BUILD
-#    define __HAX_LOG_STREAM() std::cout
-#else
-#    include <absl/log/log.h>
-#    define __HAX_LOG_STREAM() LOG(INFO)
-#endif
-
 #include <iostream>
 
 void setMessageStream(std::ostream& stream);
 
+#define __fmt_location()                                                  \
+    std::format("{}:{} {}", __FILE__, __LINE__, __FUNCTION__)
+
 #define _dbg(expr)                                                        \
     ([](auto const& it, char const* __base_function) {                    \
-        __HAX_LOG_STREAM << ::hstd::fmt(                                  \
-            "@{} {} = ⦃{}⦄", __base_function, #expr, it);                 \
+        std::cerr << __fmt_location()                                     \
+                  << ::hstd::fmt(                                         \
+                         "@{} {} = ⦃{}⦄", __base_function, #expr, it)     \
+                  << std::endl;                                           \
         return it;                                                        \
     }((expr), __FUNCTION__))
 
@@ -29,8 +27,9 @@ void setMessageStream(std::ostream& stream);
 /// \brief Print values to string `<expr1> = ⦃<value1>⦄ <expr2> =
 /// ⦃<value2>⦄ ...`
 #define _dfmt(...)                                                        \
-    __HAX_LOG_STREAM << "]" BOOST_PP_SEQ_FOR_EACH(                        \
-        _dfmt_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__));
+    std::cerr << __fmt_location() BOOST_PP_SEQ_FOR_EACH(                  \
+        _dfmt_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))             \
+              << std::endl;
 
 #define _dfmt_expr_impl(_1, _2, arg)                                      \
     +std::string{" "} + BOOST_PP_STRINGIZE(arg) + fmt(" = ⦃{}⦄", arg)
@@ -39,5 +38,5 @@ void setMessageStream(std::ostream& stream);
 /// \brief Format all values to string `<expr1> = ⦃<value1>⦄ <expr2> =
 /// ⦃<value2>⦄ ...`
 #define _dfmt_expr(...)                                                   \
-    (std::string{""} BOOST_PP_SEQ_FOR_EACH(                               \
+    (__fmt_location() BOOST_PP_SEQ_FOR_EACH(                              \
         _dfmt_expr_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)))

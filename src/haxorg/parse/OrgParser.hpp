@@ -108,14 +108,14 @@ struct OrgParser : public hstd::OperationsTracer {
 
   public:
     OrgNode const& pending() const {
-        CHECK(0 <= group->treeDepth());
+        LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
         return group->lastPending();
     }
 
     OrgId back() const { return group->nodes.back(); }
 
     int treeDepth() const {
-        CHECK(0 <= group->treeDepth());
+        LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
         return group->treeDepth();
     }
 

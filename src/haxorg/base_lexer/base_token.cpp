@@ -208,7 +208,7 @@ struct Cursor {
                     line);
             }
 
-            line++;
+            this->line++;
             col = 0;
         } else {
             col++;
@@ -273,12 +273,17 @@ struct Cursor {
             opts.flags = lexy::visualize_use_unicode
                        | lexy::visualize_use_symbols
                        | lexy::visualize_space;
+            auto view = lexy_view(offset);
             lexy::trace_to<Rule>(
                 std::back_insert_iterator(str),
                 lexy::zstring_input(input.data()),
                 opts);
             p.message(
-                fmt("lexy view {}", escape_literal(lexy_view(offset))),
+                fmt("lexy view @ {}:{} {}",
+                    line,
+                    col,
+                    escape_literal(
+                        view.substr(0, std::min<int>(40, view.size())))),
                 function,
                 line);
             p.message(str, function, line);
@@ -557,6 +562,24 @@ void switch_cmd_argument(Cursor& c) {
         case ' ': c.token1(otk::Whitespace, &advance_char1, ' '); break;
         case '\n': c.unhandled(); break;
         case '[': c.token0(otk::BraceBegin, &advance1); break;
+        case '"': {
+            c.token0(otk::CmdRawArg, [](Cursor& c) {
+                c.next();
+                while (c.can_search('"')) {
+                    if (c.is_at('\n')) {
+                        break;
+                    } else if (c.is_at_all_of(0, '\\', '"')) {
+                        c.next();
+                        c.next();
+                    } else {
+                        c.next();
+                    }
+                }
+                if (c.is_at('"')) { c.next(); }
+            });
+
+            break;
+        }
         case ':': {
             if (c.has_pos(+1) && std::isalnum(c.get(+1))) {
                 c.token0(otk::CmdColonIdent, [](Cursor& c) {
@@ -950,6 +973,47 @@ void switch_subtree_head(Cursor& c) {
 
 void switch_word(Cursor& c) {
     __perf_trace("tokens", "word");
+
+    auto lex_inline_src = [&]() {
+        c.token_adv(otk::CurlyBegin, 1);
+        c.token0(otk::RawText, [](Cursor& c) {
+            int open = 1;
+            while (c.has_text()) {
+                c.p.message(c.format());
+                switch (c.get()) {
+                    case '{': {
+                        ++open;
+                        c.next();
+                        break;
+                    }
+                    case '}': {
+                        --open;
+                        if (open == 0) {
+                            return;
+                        } else {
+                            c.next();
+                        }
+                        break;
+                    }
+                    case '\\': {
+                        if (c.is_at_any_of(+1, '{', '}')) {
+                            c.next();
+                            c.next();
+                        } else {
+                            c.next();
+                        }
+                        break;
+                    }
+                    default: {
+                        c.next();
+                    }
+                }
+            }
+        });
+
+        c.token_adv(otk::CurlyEnd, 1);
+    };
+
     switch (c.get()) {
         case 'h':
         case 'H': {
@@ -981,6 +1045,7 @@ void switch_word(Cursor& c) {
                             + dsl::while_one(
                                 dsl::ascii::alpha_digit_underscore)>()) {
                 c.token_adv(otk::TextSrcBegin, *span);
+                lex_inline_src();
                 return;
             }
             break;
@@ -994,7 +1059,16 @@ void switch_word(Cursor& c) {
             if (c.is_at("CLOSED:")) {
                 c.token_adv(otk::TreeTime, 7);
                 return;
-            }
+            } /*else if (
+                auto span = c.try_lexy_patt<
+                            dsl::ascii::case_folding(LEXY_LIT("call"))
+                            + dsl::opt(dsl::lit_c<'_'>)
+                            + dsl::while_one(
+                                dsl::ascii::alpha_digit_underscore)>()) {
+                c.token_adv(otk::Call, *span);
+                lex_inline_src();
+                return;
+            }*/
             break;
     }
 

@@ -6,7 +6,7 @@ using namespace hstd;
 template <typename N, typename K, typename V, typename M>
 typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::endTree(
     int offset) {
-    CHECK(0 < pendingTrees.size());
+    LOGIC_ASSERTION_CHECK(0 < pendingTrees.size(), "");
     auto start = pendingTrees.pop_back_v();
     nodes.at(start).extend(distance(start, nodes.back()) + offset);
     return start;
@@ -15,7 +15,7 @@ typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::endTree(
 template <typename N, typename K, typename V, typename M>
 typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::failTree(
     Node<N, K, V, M> replacement) {
-    CHECK(0 < pendingTrees.size());
+    LOGIC_ASSERTION_CHECK(0 < pendingTrees.size(), "");
     auto start      = pendingTrees.pop_back_v();
     nodes.at(start) = replacement;
     return start;
@@ -192,9 +192,9 @@ void NodeGroup<N, K, V, M>::treeRepr(
         for (; begin != end &&
                (begin.id <= end.id
                 /* FIXME hack to handle tree that is created by the sweep operation  */);) {
-            CHECK(id == end.id);
-            CHECK(begin.id != end.id);
-            CHECK(begin.id <= end.id);
+            LOGIC_ASSERTION_CHECK(id == end.id, "");
+            LOGIC_ASSERTION_CHECK(begin.id != end.id, "");
+            LOGIC_ASSERTION_CHECK(begin.id <= end.id, "");
             if (conf.flushEach) { os.flush(); }
             if (conf.customWrite) {
                 par.pos = Pos::LineEnd;

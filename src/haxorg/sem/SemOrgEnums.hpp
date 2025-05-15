@@ -108,7 +108,6 @@
     __IMPL(DocumentExportConfig, BrokenLinks, (BrokenLinks)) \
     __IMPL(DocumentExportConfig, TocExportKind, (TocExportKind)) \
     __IMPL(SubtreePeriod, Kind, (Kind)) \
-    __IMPL(NamedProperty, CookieData::TodoSource, (CookieData, TodoSource)) \
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
@@ -230,7 +229,6 @@
     __IMPL(Time, Repeat::Mode, (Repeat, Mode)) \
     __IMPL(Time, Repeat::Period, (Repeat, Period)) \
     __IMPL(Time, TimeKind, (TimeKind)) \
-    __IMPL(ListItem, Checkbox, (Checkbox)) \
     __IMPL(CriticMarkup, Kind, (Kind)) \
     __IMPL(File, Kind, (Kind)) \
     __IMPL(CmdInclude, Kind, (Kind))
@@ -1088,13 +1086,13 @@
     __IMPL_BASE((org::sem::Stmt)) \
 
 #define EACH_SEM_ORG_ListItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((org::sem::ListItem::Checkbox), checkbox, Checkbox, (org::sem::ListItem), ListItem) \
+    __IMPL_FIELD((CheckboxState), checkbox, Checkbox, (org::sem::ListItem), ListItem) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), header, Header, (org::sem::ListItem), ListItem) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), bullet, Bullet, (org::sem::ListItem), ListItem) \
 
 #define EACH_SEM_ORG_ListItem_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((org::sem::ListItem::Checkbox), checkbox, Checkbox, (org::sem::ListItem), ListItem) \
+    __IMPL_FIELD((CheckboxState), checkbox, Checkbox, (org::sem::ListItem), ListItem) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), header, Header, (org::sem::ListItem), ListItem) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), bullet, Bullet, (org::sem::ListItem), ListItem) \
 
@@ -1756,13 +1754,13 @@
     __IMPL_BASE((org::imm::ImmStmt)) \
 
 #define EACH_IMM_ORG_ImmListItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((org::imm::ImmListItem::Checkbox), checkbox, Checkbox, (org::imm::ImmListItem), ListItem) \
+    __IMPL_FIELD((CheckboxState), checkbox, Checkbox, (org::imm::ImmListItem), ListItem) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>), header, Header, (org::imm::ImmListItem), ListItem) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), bullet, Bullet, (org::imm::ImmListItem), ListItem) \
 
 #define EACH_IMM_ORG_ImmListItem_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((org::imm::ImmListItem::Checkbox), checkbox, Checkbox, (org::imm::ImmListItem), ListItem) \
+    __IMPL_FIELD((CheckboxState), checkbox, Checkbox, (org::imm::ImmListItem), ListItem) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>), header, Header, (org::imm::ImmListItem), ListItem) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), bullet, Bullet, (org::imm::ImmListItem), ListItem) \
 
@@ -1899,6 +1897,27 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), lastLine, Lastline, (org::imm::ImmCmdInclude), CmdInclude) \
     __IMPL_FIELD((org::imm::ImmCmdInclude::Data), data, Data, (org::imm::ImmCmdInclude), CmdInclude) \
 
+enum class CheckboxState : short int { None, Done, Empty, Partial, };
+BOOST_DESCRIBE_ENUM_BEGIN(CheckboxState)
+  BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, None)
+  BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Done)
+  BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Empty)
+  BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Partial)
+BOOST_DESCRIBE_ENUM_END(CheckboxState)
+/// \brief Where to take todo completion statistics from
+enum class SubtreeTodoSource : short int {
+  /// \brief Only count checkbox subnodes as a progress completion
+  Checkbox,
+  /// \brief Use subtrees with todo keywords
+  Todo,
+  /// \brief Use both subtrees and todo keywords
+  Both,
+};
+BOOST_DESCRIBE_ENUM_BEGIN(SubtreeTodoSource)
+  BOOST_DESCRIBE_ENUM_ENTRY(SubtreeTodoSource, Checkbox)
+  BOOST_DESCRIBE_ENUM_ENTRY(SubtreeTodoSource, Todo)
+  BOOST_DESCRIBE_ENUM_ENTRY(SubtreeTodoSource, Both)
+BOOST_DESCRIBE_ENUM_END(SubtreeTodoSource)
 enum class ListFormattingMode : short int {
   /// \brief Default, no custom formatting
   None,
