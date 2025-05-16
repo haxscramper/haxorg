@@ -20,6 +20,7 @@ enum ListFormattingMode {
   ListFormattingMode_Table1D1Col_f                                                  = 1;
   ListFormattingMode_Table1D2Col_f                                                  = 2;
   ListFormattingMode_Table2DColFirst_f                                              = 3;
+  ListFormattingMode_Table2DRowFirst_f                                              = 4;
 }
 
 enum InitialSubtreeVisibility {

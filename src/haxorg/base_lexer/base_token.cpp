@@ -1073,7 +1073,7 @@ void switch_word(Cursor& c) {
 }
 
 auto check_leading(Cursor& c, char ch, int skip) -> std::optional<int> {
-    if (c.is_at(ch, skip) && c.is_at(' ', 1 + skip)) {
+    if (c.is_at(ch, skip) && c.is_at_any_of(1 + skip, ' ', '\n')) {
         return 1;
     } else {
         return std::nullopt;
@@ -1556,7 +1556,22 @@ void switch_regular_char(Cursor& c) {
             } else if (c.is_at("~>")) {
                 c.token1(otk::CriticReplaceMiddle, &advance_count, 2);
             } else {
-                c.token0(otk::Tilda, &advance1);
+                if (c.has_pos(-1) && c.is_at(' ', -1)) {
+                    c.token0(otk::Tilda, &advance1);
+                    c.token0(otk::RawText, [](Cursor& c) {
+                        while (
+                            c.has_pos(+1)
+                            && !(
+                                c.is_at('~')
+                                && c.is_at_any_of(
+                                    +1, ' ', '.', '/', '(', '\n', ','))) {
+                            c.next();
+                        }
+                    });
+                    c.token0(otk::Tilda, &advance1);
+                } else {
+                    c.token0(otk::Tilda, &advance1);
+                }
             }
             break;
         }

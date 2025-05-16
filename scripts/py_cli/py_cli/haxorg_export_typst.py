@@ -43,6 +43,10 @@ def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
     pack_context(ctx, "typst", TypstExportOptions, config=config, kwargs=kwargs)
     opts: TypstExportOptions = ctx.obj["typst"]
     parse_opts = org.OrgParseParameters()
+    # parse_opts.parseTracePath = "/tmp/parse_trace.log"
+    # parse_opts.semTracePath = "/tmp/sem_trace.log"
+    # parse_opts.baseTokenTracePath = "/tmp/base_token.log"
+    # parse_opts.tokenTracePath = "/tmp/token_trace.log"
     node = parseFile(ctx.obj["root"], Path(opts.infile), parse_opts=parse_opts)
 
     typst = ExporterTypst()

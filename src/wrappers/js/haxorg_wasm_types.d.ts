@@ -1046,6 +1046,7 @@ export interface haxorg_wasm_module {
     Table1D1Col: ListFormattingMode,
     Table1D2Col: ListFormattingMode,
     Table2DColFirst: ListFormattingMode,
+    Table2DRowFirst: ListFormattingMode,
   }
   format_ListFormattingMode(value: ListFormattingMode): string;
   InitialSubtreeVisibility: {
@@ -5532,6 +5533,7 @@ export enum ListFormattingMode {
   Table1D1Col,
   Table1D2Col,
   Table2DColFirst,
+  Table2DRowFirst,
 }
 export enum InitialSubtreeVisibility {
   Overview,

@@ -299,6 +299,7 @@ class ExporterTypst(ExporterBase):
 
     @with_export_context
     def evalDocument(self, node: org.Document) -> BlockId:
+        Path("/tmp/debug.yaml").write_text(org.exportToYamlString(node, org.OrgYamlExportOpts()))
         res = self.t.stack([])
         self.printTrace(
             f"Eval document, context: {[n.getKind() for n in self.context]}, is in include {self.isInInclude()}"
@@ -424,6 +425,47 @@ class ExporterTypst(ExporterBase):
                     org_attrs=self.getNodeAttrs(node),
                 ),
             )
+
+        elif node.getListFormattingMode() == org.ListFormattingMode.Table2DRowFirst:
+            items = []
+            item: org.ListItem
+            column_count = 0
+            for item in node: 
+                for nested_list in item:
+                    if nested_list.is_(org.OrgSemKind.List):
+                        column_count = max(column_count, nested_list.size())
+
+            for item in node: 
+                for nested_list in item:
+                    if nested_list.is_(org.OrgSemKind.List):
+                        for idx, cell in enumerate(nested_list): 
+                            items.append(
+                                typ.RawBlock(
+                                    self.t.call(self.c.tags.table_cell,
+                                                isFirst=False,
+                                                args=dict(column=idx),
+                                                body=self.t.stack([self.eval(it) for it in cell]))))
+
+                        if nested_list.size() < column_count:
+                            for i in range(column_count - nested_list.size()):
+                                items.append(
+                                    typ.RawBlock(
+                                        self.t.call(self.c.tags.table_cell,
+                                                    isFirst=False,
+                                                    args=dict(column=idx),
+                                                    body=self.t.string(""))))
+
+
+            return self.t.call(
+                self.c.tags.table,
+                args=dict(
+                    items=items,
+                    kwargs=dict(columns=column_count),
+                    org_attrs=self.getNodeAttrs(node),
+                ),
+            )
+
+
 
         else:
             return self.wrapStmt(

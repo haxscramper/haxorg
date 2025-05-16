@@ -4456,6 +4456,7 @@ class ListFormattingMode(Enum):
     Table1D1Col = 2
     Table1D2Col = 3
     Table2DColFirst = 4
+    Table2DRowFirst = 5
 
 class InitialSubtreeVisibility(Enum):
     Overview = 1

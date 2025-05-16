@@ -101,6 +101,17 @@ class ASTBuilder(base.AstbuilderBase):
 
         return res
 
+    def escape_str_lit(self, text: str) -> str:
+        res = ""
+        for ch in text:
+            if ch in ["\""]:
+                res += "\\" + ch
+
+            else:
+                res += ch
+
+        return res
+
     def surround(self, text: str, nodes: List[BlockId]) -> BlockId:
         return self.line(self.string(text), *nodes, self.string(text))
 
@@ -251,7 +262,7 @@ class ASTBuilder(base.AstbuilderBase):
                 return self.string(value.value)
 
             case str():
-                return self.b.wrap_quote(value)
+                return self.b.wrap_quote(self.escape_str_lit(value))
 
             case list():
                 if all(isinstance(it, (int, str, float)) for it in value):

@@ -1,0 +1,35 @@
+
+#+begin_export typst
+#set page(margin: (
+  top: 5mm,
+  bottom: 5mm,
+  x: 5mm,
+))
+#outline()
+#+end_export
+
+* Multithreading
+
+** Standard library primitives
+
+#+attr_list: :list-format Table2DRowFirst
+- Header
+  - Standard Library Primitive
+  - Enabled Programming Patterns
+  - Elaboration
+- thread
+  - ~std::thread~
+  -
+    - Thread spawning (asynchronous execution pattern)
+    - Worker thread pool
+    - detached thread
+  - Most ~std::jthread~. But it is a good idea to check out ~std::async~ and ~std::jthread~, since they have a less error-prone API.
+- jthread
+  - ~std::jthread~
+  - Scoped thread management
+  - RAII-enabled version of the ~std::thread~ that performs join on destruction.
+- mutex
+  - ~std::mutex~
+  -
+    - Mutex-based critical sections
+    - Resource protection (mutual exclusion)
