@@ -42,7 +42,8 @@ from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
 def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
     pack_context(ctx, "typst", TypstExportOptions, config=config, kwargs=kwargs)
     opts: TypstExportOptions = ctx.obj["typst"]
-    node = parseFile(ctx.obj["root"], Path(opts.infile))
+    parse_opts = org.OrgParseParameters()
+    node = parseFile(ctx.obj["root"], Path(opts.infile), parse_opts=parse_opts)
 
     typst = ExporterTypst()
     # typst.exp.enableFileTrace("/tmp/trace.txt", False)

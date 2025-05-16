@@ -238,6 +238,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
             SPtr<std::ofstream>     fileTrace;
             if (opts.baseTokenTracePath) {
                 p.setTraceFile(opts.baseTokenTracePath.value());
+                p.traceColored = false;
             }
 
             org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
@@ -286,6 +287,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
         SPtr<std::ofstream>     fileTrace;
         if (opts.baseTokenTracePath) {
             p.setTraceFile(opts.baseTokenTracePath.value());
+            p.traceColored = false;
         }
 
         org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
@@ -296,6 +298,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
 
         if (opts.tokenTracePath) {
             tokenizer.setTraceFile(*opts.tokenTracePath);
+            tokenizer.traceColored = false;
         }
 
         tokenizer.convert(baseTokens);
@@ -305,12 +308,14 @@ sem::SemId<sem::Org> org::parseStringOpts(
         org::parse::OrgParser    parser{&nodes};
         if (opts.parseTracePath) {
             parser.setTraceFile(*opts.parseTracePath);
+            parser.traceColored = false;
         }
 
         auto              id = parser.parseFull(lex);
         sem::OrgConverter converter{};
         if (opts.semTracePath) {
             converter.setTraceFile(*opts.semTracePath);
+            converter.traceColored = false;
         }
 
         return converter

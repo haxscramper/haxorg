@@ -1730,7 +1730,8 @@ OrgConverter::ConvResult<TextTarget> OrgConverter::convertTextTarget(
 OrgConverter::ConvResult<Punctuation> OrgConverter::convertPunctuation(
     __args) {
     auto __trace = trace(a);
-    return SemLeaf<Punctuation>(a);
+    auto res     = SemLeaf<Punctuation>(a);
+    return res;
 }
 
 OrgConverter::ConvResult<BigIdent> OrgConverter::convertBigIdent(__args) {
