@@ -47,8 +47,13 @@ class RawBlock():
         self.value = value
 
 
+@beartype
+@dataclass
+class RawLiteral():
+    value: str
+
 AnyBlock = BlockId | List[BlockId] | RawBlock | List[RawBlock]
-AnySingleValue = BlockId | str | RawBlock | RawStr
+AnySingleValue = BlockId | str | RawBlock | RawStr | RawLiteral
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
@@ -254,6 +259,9 @@ class ASTBuilder(base.AstbuilderBase):
 
             case int() | float():
                 return self.string(str(value))
+
+            case RawLiteral():
+                return self.string(value.value)
 
             case RawStr():
                 return self.string(value.value)

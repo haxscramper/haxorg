@@ -23,6 +23,7 @@ TEST(ManualFileRun, TestCoverallOrg) {
         std::string content = readFile(file);
         auto        spec    = ParseSpec::FromSource(std::move(content));
         spec.debug.traceAll = true;
+        spec.debug.doFormatReparse = false;
         gtest_run_spec(TestParams{
             .spec = spec,
             .file = "coverall",
@@ -57,6 +58,7 @@ TEST(ManualFileRun, TestDoc1) {
             std::string content = readFile(file);
             auto        spec = ParseSpec::FromSource(std::move(content));
             spec.debug.traceAll = true;
+            spec.debug.doFormatReparse = false;
             gtest_run_spec(TestParams{
                 .spec = spec,
                 .file = "doc1",

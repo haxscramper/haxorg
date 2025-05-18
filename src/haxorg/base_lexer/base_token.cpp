@@ -1558,17 +1558,18 @@ void switch_regular_char(Cursor& c) {
             } else {
                 if (c.has_pos(-1) && c.is_at(' ', -1)) {
                     c.token0(otk::Tilda, &advance1);
-                    c.token0(otk::RawText, [](Cursor& c) {
-                        while (
-                            c.has_pos(+1)
-                            && !(
-                                c.is_at('~')
-                                && c.is_at_any_of(
-                                    +1, ' ', '.', '/', '(', '\n', ','))) {
-                            c.next();
-                        }
-                    });
-                    c.token0(otk::Tilda, &advance1);
+
+                    int offset = 0;
+                    while (c.has_pos(offset + +1)   //
+                           && !c.is_at('~', offset) //
+                           && !(std::isalnum(c.get(offset + 1)))) {
+                        ++offset;
+                    }
+
+                    if (c.is_at('~', offset)) {
+                        c.token_adv(otk::RawText, offset);
+                        c.token0(otk::Tilda, &advance1);
+                    }
                 } else {
                     c.token0(otk::Tilda, &advance1);
                 }
