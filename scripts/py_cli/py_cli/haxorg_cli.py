@@ -18,12 +18,8 @@ from py_scriptutils.toml_config_profiler import (
 from py_scriptutils.tracer import TraceCollector
 from pydantic import BaseModel, Field
 
-
-
-
-
 CONFIG_FILE_NAME = "pyhaxorg.toml"
-
+CAT = __name__
 
 class CliRootOptions(BaseModel, extra="forbid"):
     lex_traceDir: Optional[str] = None
@@ -66,15 +62,30 @@ def get_run(ctx: click.Context) -> CliRunContext:
 
 
 @beartype
-def parseCachedFile(file: Path, cache: Optional[Path], with_includes: bool = True) -> org.Org:
+def parseCachedFile(
+    file: Path,
+    cache: Optional[Path],
+    with_includes: bool = True,
+    parse_opts: Optional[org.OrgParseParameters] = None,
+) -> org.Org:
     cache_file = None if not cache else Path(cache).joinpath(file.name)
 
     def aux():
+        log(CAT).info(f"Processing {file}")
         if with_includes:
             opts = org.OrgDirectoryParseParameters()
+            if parse_opts:
+                def parse_node_impl(path: str):
+                    return org.parseStringOpts(Path(path).read_text(), parse_opts)
+
+                org.setGetParsedNode(opts, parse_node_impl)
+
             return org.parseFileWithIncludes(str(file.resolve()), opts)
         else:
-            return org.parseFile(str(file.resolve()))
+            if parse_opts:
+                return org.parseStringOpts(file.read_text(), parse_opts)
+            else:
+                return org.parseFile(str(file.resolve()))
 
     if cache_file:
         with FileOperation.InOut([file], [cache_file]) as op:
@@ -98,8 +109,12 @@ def parseCachedFile(file: Path, cache: Optional[Path], with_includes: bool = Tru
 
 
 @beartype
-def parseFile(root: CliRootOptions, file: Path) -> org.Org:
-    return parseCachedFile(file, root.cache)
+def parseFile(
+    root: CliRootOptions,
+    file: Path,
+    parse_opts: Optional[org.OrgParseParameters] = None,
+) -> org.Org:
+    return parseCachedFile(file, root.cache, parse_opts=parse_opts)
 
 
 def base_cli_options(f):

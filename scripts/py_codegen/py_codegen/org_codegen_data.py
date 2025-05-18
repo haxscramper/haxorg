@@ -1281,8 +1281,13 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
                    "for description lists, treat header row as an individual column"),
             efield(
                 "Table2DColFirst",
-                "for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values"
+                "for tables tables with arbitrary column count, treat the first level of items as "
+                "column names, treat all nested elements in these columns as row values"
             ),
+            efield("Table2DRowFirst", 
+                "for tables with arbitrary column count, each top-level list item is an individual "
+                "row, then each item in the nested list is a cell on this row."
+            )
         ),
         d_simple_enum(
             t("InitialSubtreeVisibility"),

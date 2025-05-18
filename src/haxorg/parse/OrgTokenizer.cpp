@@ -287,6 +287,7 @@ struct RecombineState {
         otk::ForwardSlash,
         otk::Asterisk,
         otk::Underline,
+        otk::Punctuation,
     };
 
     void recombine_markup() {
@@ -321,12 +322,14 @@ struct RecombineState {
         bool prev_empty = !prev || EmptyToken.contains(prev->kind);
         bool next_empty = !next || EmptyToken.contains(next->kind);
 
-        print(
-            fmt("prev kind {} next kind {} prev_empty={} next_empty={}",
+        if (TraceState) {
+            print(fmt(
+                "prev kind {} next kind {} prev_empty={} next_empty={}",
                 prev ? prev->kind : otk::Unknown,
                 next ? next->kind : otk::Unknown,
                 prev_empty,
                 next_empty));
+        }
 
         if (prev_empty && !next_empty) {
             add_fake(open, {lex.tok().value});
@@ -559,7 +562,10 @@ struct RecombineState {
             case otk::ColonExampleLine: {
                 add_fake(
                     otk::ColonExampleLine,
-                    loc_fill(lex.val().text.substr(2)));
+                    loc_fill(
+                        1 < lex.val().text.size()
+                            ? lex.val().text.substr(2)
+                            : ""));
                 lex.next();
                 break;
             }
@@ -1246,7 +1252,13 @@ struct GroupVisitorState {
                 int minIndent = nest.begin.indent;
                 for (auto const& sub : nest.subgroups) {
                     for (auto const& line : sub.getLeaf().lines) {
-                        if (!line.tokens.empty()) {
+                        auto const& t = line.tokens;
+                        if ((t.size() == 2 && t.at(0)->text.empty()
+                             && line_end.contains(t.at(1).kind))
+                            || (t.size() == 1
+                                && line_end.contains(t.at(0).kind))) {
+                            continue;
+                        } else if (!line.tokens.empty()) {
                             minIndent = std::min(line.indent, minIndent);
                         }
                     }
@@ -1266,8 +1278,10 @@ struct GroupVisitorState {
                                 tmp.value = OrgFill{
                                     .col  = tok.value.col,
                                     .line = tok.value.line,
-                                    .text = tok.value.text.substr(
-                                        minIndent),
+                                    .text = tok.value.text.empty()
+                                              ? tok.value.text
+                                              : tok.value.text.substr(
+                                                    minIndent),
                                 };
 
                                 add_base(tmp, ind);

@@ -1625,8 +1625,14 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     {
         // Search ahead for the description list tag
         Lexer<OrgTokenKind, OrgFill> tmp{lex.in};
-        tmp.pos = lex.pos;
-        while (tmp.can_search(otk::DoubleColon)) {
+        tmp.pos                  = lex.pos;
+        auto const colon_pattern = Vec<otk>{
+            otk::Whitespace,
+            otk::DoubleColon,
+            otk::Whitespace,
+        };
+
+        while (tmp.can_search(colon_pattern)) {
             if (tmp.at(Newline)) { break; }
             tmp.next();
         }
@@ -1641,18 +1647,17 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
                 lex.pos));
         }
 
-        if (tmp.at(otk::DoubleColon)) {
+        if (tmp.at(colon_pattern)) {
             SubLexer sub{lex};
 
-            while (lex.can_search(otk::DoubleColon)) {
-                sub.add(lex.pop());
-            }
+            while (lex.can_search(colon_pattern)) { sub.add(lex.pop()); }
 
             if (sub.empty()) {
                 empty();
             } else {
                 sub.start();
                 subParse(Paragraph, sub);
+                lex.skip(otk::Whitespace);
                 lex.skip(otk::DoubleColon);
                 space(lex);
             }

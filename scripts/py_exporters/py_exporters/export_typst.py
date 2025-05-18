@@ -157,14 +157,25 @@ class ExporterTypst(ExporterBase):
             )
 
     def evalBlockDynamicFallback(self, node: org.BlockDynamicFallback) -> BlockId:
-        return self.t.call(
-            self.c.tags.dynamic_block,
-            args=dict(
-                body=[typ.RawBlock(self.t.content(self.eval(it))) for it in node],
-                name=node.name,
-                org_attrs=self.getNodeAttrs(node),
-            ),
-        )
+        if 0 < len(node.attrs.positional.items) and node.attrs.getPositional(
+                0).getString() == "typst-call-wrap":
+            return self.t.call(
+                node.getFirstAttr("call").getString(),
+                args={
+                    a.varname: typ.RawLiteral(a.getString()) for a in node.getAttrs("arg")
+                },
+                body=[typ.RawBlock(self.t.b.stack([(self.eval(it)) for it in node]))],
+            )
+
+        else:
+            return self.t.call(
+                self.c.tags.dynamic_block,
+                args=dict(
+                    body=[typ.RawBlock(self.t.content(self.eval(it))) for it in node],
+                    name=node.name,
+                    org_attrs=self.getNodeAttrs(node),
+                ),
+            )
 
     def evalBlockCenter(self, node: org.BlockCenter) -> BlockId:
         return self.t.call(self.c.tags.center, body=[self.stackSubnodes(node)])
@@ -202,7 +213,19 @@ class ExporterTypst(ExporterBase):
         return self.t.surround("*", [self.lineSubnodes(node)])
 
     def evalMonospace(self, node: org.Monospace) -> BlockId:
-        return self.t.surround("`", [self.lineSubnodes(node)])
+
+        def escape(t: str) -> str:
+            res = ""
+            for c in t:
+                if c == "`":
+                    res += "\\u{0060}"
+
+                else:
+                    res += c
+
+            return res
+
+        return self.t.surround("`", [self.t.string(escape(sub.text)) for sub in node])
 
     def evalVerbatim(self, node: org.Verbatim) -> BlockId:
         return self.t.surround("*", [self.lineSubnodes(node)])
@@ -299,6 +322,8 @@ class ExporterTypst(ExporterBase):
 
     @with_export_context
     def evalDocument(self, node: org.Document) -> BlockId:
+        Path("/tmp/debug.yaml").write_text(
+            org.exportToYamlString(node, org.OrgYamlExportOpts()))
         res = self.t.stack([])
         self.printTrace(
             f"Eval document, context: {[n.getKind() for n in self.context]}, is in include {self.isInInclude()}"
@@ -370,11 +395,12 @@ class ExporterTypst(ExporterBase):
         res: Dict[str, List] = dict()
         arg: org.AttrValue
         for arg in node.getAttrs():
-            name = org.org_ident_normalize(arg.name)
-            if name not in res:
-                res[name] = []
+            if arg.name:
+                name = org.org_ident_normalize(arg.name)
+                if name not in res:
+                    res[name] = []
 
-            res[name].append(arg.getString())
+                res[name].append(arg.getString())
 
         if isinstance(node, org.Stmt):
             caption = node.getCaption()
@@ -421,6 +447,45 @@ class ExporterTypst(ExporterBase):
                 args=dict(
                     items=items,
                     kwargs=dict(columns=2),
+                    org_attrs=self.getNodeAttrs(node),
+                ),
+            )
+
+        elif node.getListFormattingMode() == org.ListFormattingMode.Table2DRowFirst:
+            items = []
+            item: org.ListItem
+            column_count = 0
+            for item in node:
+                for nested_list in item:
+                    if nested_list.is_(org.OrgSemKind.List):
+                        column_count = max(column_count, nested_list.size())
+
+            for item in node:
+                for nested_list in item:
+                    if nested_list.is_(org.OrgSemKind.List):
+                        for idx, cell in enumerate(nested_list):
+                            items.append(
+                                typ.RawBlock(
+                                    self.t.call(self.c.tags.table_cell,
+                                                isFirst=False,
+                                                args=dict(column=idx),
+                                                body=self.t.stack(
+                                                    [self.eval(it) for it in cell]))))
+
+                        if nested_list.size() < column_count:
+                            for i in range(column_count - nested_list.size()):
+                                items.append(
+                                    typ.RawBlock(
+                                        self.t.call(self.c.tags.table_cell,
+                                                    isFirst=False,
+                                                    args=dict(column=idx),
+                                                    body=self.t.string(""))))
+
+            return self.t.call(
+                self.c.tags.table,
+                args=dict(
+                    items=items,
+                    kwargs=dict(columns=column_count),
                     org_attrs=self.getNodeAttrs(node),
                 ),
             )

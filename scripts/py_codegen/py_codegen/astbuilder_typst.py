@@ -47,8 +47,13 @@ class RawBlock():
         self.value = value
 
 
+@beartype
+@dataclass
+class RawLiteral():
+    value: str
+
 AnyBlock = BlockId | List[BlockId] | RawBlock | List[RawBlock]
-AnySingleValue = BlockId | str | RawBlock | RawStr
+AnySingleValue = BlockId | str | RawBlock | RawStr | RawLiteral
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
@@ -94,6 +99,17 @@ class ASTBuilder(base.AstbuilderBase):
         res = ""
         for ch in text:
             if ch in ["@", "#", "<", "*", "[", "$", "]"]:
+                res += "\\" + ch
+
+            else:
+                res += ch
+
+        return res
+
+    def escape_str_lit(self, text: str) -> str:
+        res = ""
+        for ch in text:
+            if ch in ["\""]:
                 res += "\\" + ch
 
             else:
@@ -244,6 +260,9 @@ class ASTBuilder(base.AstbuilderBase):
             case int() | float():
                 return self.string(str(value))
 
+            case RawLiteral():
+                return self.string(value.value)
+
             case RawStr():
                 return self.string(value.value)
 
@@ -251,7 +270,7 @@ class ASTBuilder(base.AstbuilderBase):
                 return self.string(value.value)
 
             case str():
-                return self.b.wrap_quote(value)
+                return self.b.wrap_quote(self.escape_str_lit(value))
 
             case list():
                 if all(isinstance(it, (int, str, float)) for it in value):

@@ -219,11 +219,34 @@ struct Cursor {
         return pos < text.size();
     }
 
-    bool next(int count) {
-        for (int i = 0; i < count; i++) {
-            if (!next()) { return false; }
+
+    bool nextUnicode() {
+        if (text.size() <= pos) {
+            return false;
+        } else if (current() == '\n') {
+            line++;
+            col = 1;
+            pos++;
+            return pos < text.size();
+        } else {
+            unsigned char firstByte = static_cast<unsigned char>(
+                text[pos]);
+            size_t charSize = 1;
+
+            if (firstByte >= 0xF0) {
+                charSize = 4;
+            } else if (firstByte >= 0xE0) {
+                charSize = 3;
+            } else if (firstByte >= 0xC0) {
+                charSize = 2;
+            }
+
+            col++;
+            pos += charSize;
+            pos = std::min<int>(pos, text.size());
+
+            return pos < text.size();
         }
-        return true;
     }
 
     std::string_view lexy_substr(int offset_start, int size) const {
@@ -306,33 +329,6 @@ struct Cursor {
             offset, line, function);
     }
 
-    bool nextUnicode() {
-        if (pos >= text.size()) { return false; }
-
-        if (current() == '\n') {
-            line++;
-            col = 1;
-            pos++;
-            return pos < text.size();
-        }
-
-        unsigned char firstByte = static_cast<unsigned char>(text[pos]);
-        size_t        charSize  = 1;
-
-        if (firstByte >= 0xF0) {
-            charSize = 4;
-        } else if (firstByte >= 0xE0) {
-            charSize = 3;
-        } else if (firstByte >= 0xC0) {
-            charSize = 2;
-        }
-
-        col++;
-        pos += charSize;
-        pos = std::min<int>(pos, text.size());
-
-        return pos < text.size();
-    }
 
     template <typename Func>
     std::string_view readWhile(Func const& predicate) {
@@ -438,6 +434,7 @@ struct Cursor {
             text.begin() + end,
         };
 
+        // validate_utf8(tok.value.text);
         token(tok, line, function);
     }
 
@@ -1076,7 +1073,7 @@ void switch_word(Cursor& c) {
 }
 
 auto check_leading(Cursor& c, char ch, int skip) -> std::optional<int> {
-    if (c.is_at(ch, skip) && c.is_at(' ', 1 + skip)) {
+    if (c.is_at(ch, skip) && c.is_at_any_of(1 + skip, ' ', '\n')) {
         return 1;
     } else {
         return std::nullopt;
@@ -1559,7 +1556,23 @@ void switch_regular_char(Cursor& c) {
             } else if (c.is_at("~>")) {
                 c.token1(otk::CriticReplaceMiddle, &advance_count, 2);
             } else {
-                c.token0(otk::Tilda, &advance1);
+                if (c.has_pos(-1) && c.is_at(' ', -1)) {
+                    c.token0(otk::Tilda, &advance1);
+
+                    int offset = 0;
+                    while (c.has_pos(offset + +1)   //
+                           && !c.is_at('~', offset) //
+                           && !(std::isalnum(c.get(offset + 1)))) {
+                        ++offset;
+                    }
+
+                    if (c.is_at('~', offset)) {
+                        c.token_adv(otk::RawText, offset);
+                        c.token0(otk::Tilda, &advance1);
+                    }
+                } else {
+                    c.token0(otk::Tilda, &advance1);
+                }
             }
             break;
         }
@@ -1671,7 +1684,8 @@ void switch_regular_char(Cursor& c) {
                     });
                 }
             } else {
-                c.token_adv(otk::AnyPunct, 1);
+                c.token0(
+                    otk::AnyPunct, [](Cursor& c) { c.nextUnicode(); });
             }
         }
     }

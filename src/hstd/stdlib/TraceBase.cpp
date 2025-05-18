@@ -33,6 +33,7 @@ void OperationsTracer::setTraceFile(
         stream = std::make_shared<std::ofstream>(std::ofstream{
             outfile.native(), std::ios_base::out | std::ios_base::app});
     }
+    traceColored = false;
 }
 
 ColStream OperationsTracer::getStream() const {

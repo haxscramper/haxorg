@@ -1925,14 +1925,17 @@ enum class ListFormattingMode : short int {
   Table1D1Col,
   /// \brief for description lists, treat header row as an individual column
   Table1D2Col,
-  /// \brief for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values
+  /// \brief for tables tables with arbitrary column count, treat the first level of items as column names, treat all nested elements in these columns as row values
   Table2DColFirst,
+  /// \brief for tables with arbitrary column count, each top-level list item is an individual row, then each item in the nested list is a cell on this row.
+  Table2DRowFirst,
 };
 BOOST_DESCRIBE_ENUM_BEGIN(ListFormattingMode)
   BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, None)
   BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table1D1Col)
   BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table1D2Col)
   BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table2DColFirst)
+  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table2DRowFirst)
 BOOST_DESCRIBE_ENUM_END(ListFormattingMode)
 enum class InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
 BOOST_DESCRIBE_ENUM_BEGIN(InitialSubtreeVisibility)

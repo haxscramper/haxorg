@@ -306,6 +306,22 @@ example
 - =item 2= :: Content 2
 - =item 3= :: Content 3
 
+** List formatted as table
+
+*** Table2DRowFirst
+
+#+attr_list: :list-format Table2DRowFirst
+- Header
+  - Standard Library Primitive
+  - Enabled Programming Patterns
+  - Elaboration
+- thread
+  - ~std::thread~
+  - something
+  - Most fundamental 
+- tmp
+  - less columns
+
 
 * Subtree
 
@@ -402,6 +418,16 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 #+begin_export typst
 
 #+end_export
+
+#+begin: typst-call-wrap :call scale :arg x=80% :arg y=80%
+#+begin_src cpp
+for (size_t i = 0; i < worker_count; ++i) {
+  queue.push_back(workerFn);
+}
+#+end_src
+#+end:
+
+~`monospace~
 
 ** latex
 

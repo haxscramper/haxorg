@@ -8848,7 +8848,8 @@ ingoing elements.)RAW")
     .value("None", ListFormattingMode::None, R"RAW(Default, no custom formatting)RAW")
     .value("Table1D1Col", ListFormattingMode::Table1D1Col, R"RAW(one column, each table item is an individual row)RAW")
     .value("Table1D2Col", ListFormattingMode::Table1D2Col, R"RAW(for description lists, treat header row as an individual column)RAW")
-    .value("Table2DColFirst", ListFormattingMode::Table2DColFirst, R"RAW(for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values)RAW")
+    .value("Table2DColFirst", ListFormattingMode::Table2DColFirst, R"RAW(for tables tables with arbitrary column count, treat the first level of items as column names, treat all nested elements in these columns as row values)RAW")
+    .value("Table2DRowFirst", ListFormattingMode::Table2DRowFirst, R"RAW(for tables with arbitrary column count, each top-level list item is an individual row, then each item in the nested list is a cell on this row.)RAW")
     .def("__iter__", [](ListFormattingMode const& _self) -> org::bind::python::PyEnumIterator<ListFormattingMode> {
                      return org::bind::python::PyEnumIterator<ListFormattingMode>();
                      })

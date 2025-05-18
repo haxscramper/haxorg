@@ -10,6 +10,11 @@ import itertools
 class TypstExportOptions(BaseModel, extra="forbid"):
     infile: Path
     outfile: Path
+    trace_dir: Optional[str] = Field(
+        description="Write processing logs to the directory",
+        default=None,
+    )
+
     do_compile: bool = Field(
         description="Compile the typst document if the export was successful",
         default=True)
@@ -42,7 +47,18 @@ from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
 def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
     pack_context(ctx, "typst", TypstExportOptions, config=config, kwargs=kwargs)
     opts: TypstExportOptions = ctx.obj["typst"]
-    node = parseFile(ctx.obj["root"], Path(opts.infile))
+    parse_opts = org.OrgParseParameters()
+    if opts.trace_dir:
+        dir = Path(opts.trace_dir)
+        parse_opts.parseTracePath = str(dir.joinpath("parse_trace.log"))
+        parse_opts.semTracePath = str(dir.joinpath("sem_trace.log"))
+        parse_opts.baseTokenTracePath = str(dir.joinpath("base_token.log"))
+        parse_opts.tokenTracePath = str(dir.joinpath("token_trace.log"))
+    node = parseFile(ctx.obj["root"], Path(opts.infile), parse_opts=parse_opts)
+
+    if opts.trace_dir:
+        Path(opts.trace_dir).joinpath("node.yaml").write_text(
+            org.exportToYamlString(node, org.OrgYamlExportOpts()))
 
     typst = ExporterTypst()
     # typst.exp.enableFileTrace("/tmp/trace.txt", False)
