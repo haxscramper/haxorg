@@ -1,6 +1,7 @@
 // esbuild.config.ts
 import * as esbuild from "esbuild";
 import * as fs from "node:fs";
+import * as path from "node:path";
 
 await esbuild.build({
   entryPoints : [ "src/preload.ts" ],
@@ -36,7 +37,7 @@ await esbuild.build({
     ".js" : "js",
   },
   jsx : "automatic",
-  sourcemap : true
+  sourcemap : true,
 });
 
 fs.copyFileSync("src/renderer/index.html", "dist/renderer/index.html");

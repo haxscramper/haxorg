@@ -14,4 +14,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     console.log("Running ICP request to check wasm status");
     return await ipcRenderer.invoke("wasm:checkStatus");
   },
+  readFile : async(filePath: string) :
+      Promise<{success : boolean, data?: string, error?: string}> => {
+        return await ipcRenderer.invoke("file:read", filePath);
+      },
 });

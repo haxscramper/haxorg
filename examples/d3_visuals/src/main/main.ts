@@ -51,6 +51,17 @@ function setupIpcHandlers() {
         `${wasmBinaryPath} exists sync ${fs.existsSync(wasmBinaryPath)}`)
     return fs.existsSync(wasmJsPath) && fs.existsSync(wasmBinaryPath);
   });
+
+  ipcMain.handle("file:read", async (_, filePath: string) => {
+    try {
+      return {success : true, data : fs.readFileSync(filePath, "utf8")};
+    } catch (error) {
+      return {
+        success : false,
+        error : error instanceof Error ? error.message : String(error)
+      };
+    }
+  });
 }
 
 app.whenReady().then(() => {

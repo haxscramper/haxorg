@@ -1,30 +1,24 @@
 // src/renderer/wasm_client.ts
 
-interface HaxorgWasmModule {
-  globalAdd: (a: number, b: number) => number;
-  [key: string]: any;
-}
-
-interface HaxorgWasmFactory {
-  (options?: {locateFile?: (path: string, prefix: string) => string;}):
-      Promise<HaxorgWasmModule>;
-}
+import { haxorg_wasm_module } from "../../../../src/wrappers/js/haxorg_wasm_types";
+import { ElectronAPI } from "./electron";
 
 declare global {
   interface Window {
-    Module: HaxorgWasmModule & {
+    module: haxorg_wasm_module & {
       onRuntimeInitialized?: () => void;
       calledRun?: boolean;
       locateFile?: (path: string) => string;
     };
+    haxorg_wasm: Function;
   }
 }
 
-let wasmModule: HaxorgWasmModule|null               = null;
-let wasmInitPromise: Promise<HaxorgWasmModule>|null = null;
+let wasmModule: haxorg_wasm_module|null               = null;
+let wasmInitPromise: Promise<haxorg_wasm_module>|null = null;
 
 
-export async function initWasmModule(): Promise<HaxorgWasmModule> {
+export async function initWasmModule(): Promise<haxorg_wasm_module> {
   if (wasmModule) {
     return wasmModule;
   }
@@ -85,7 +79,7 @@ export async function initWasmModule(): Promise<HaxorgWasmModule> {
       
       // Store the module globally
       wasmModule = moduleInstance;
-      window.haxorgWasm = moduleInstance;
+      window.module = moduleInstance;
       
       return moduleInstance;
     } catch (error) {

@@ -3,7 +3,9 @@ export interface Optional<T> {
   value(): T;
 }
 
-export interface Vec<T> {}
+export interface Vec<T> {
+  toArray(): T[];
+}
 
 export interface ImmerBox<T> {}
 

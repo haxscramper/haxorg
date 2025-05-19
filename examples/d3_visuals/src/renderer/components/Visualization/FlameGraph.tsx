@@ -20,12 +20,12 @@ export function FlameGraph() {
     vizRef.current.render();
   }, []);
 
-  useEffect(() => {
-    if (!vizRef.current) return;
-    vizRef.current.conf.horizontal_event_placement = horizontalEventPlacement;
-    vizRef.current.conf.horizontal_brush_placement = horizontalBrushPlacement;
-    vizRef.current.render();
-  }, [horizontalEventPlacement, horizontalBrushPlacement]);
+  // useEffect(() => {
+  //   if (!vizRef.current) return;
+  //   vizRef.current.conf.horizontal_event_placement = horizontalEventPlacement;
+  //   vizRef.current.conf.horizontal_brush_placement = horizontalBrushPlacement;
+  //   vizRef.current.render();
+  // }, [horizontalEventPlacement, horizontalBrushPlacement]);
 
   return (
     <div>

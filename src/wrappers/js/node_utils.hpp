@@ -89,7 +89,41 @@ void immerflex_vector_bind(
     std::string const&       name) {}
 
 template <typename T>
-void hstdVec_bind(type_registration_guard& g, std::string const& name) {}
+void hstdVec_bind(type_registration_guard& g, std::string const& name) {
+    using VT = hstd::Vec<T>;
+    if (g.can_add<VT>()) {
+        emscripten::class_<VT>(name.c_str())
+            .function("size", &VT::size)
+            .function(
+                "push_back",
+                static_cast<void (VT::*)(T const&)>(&VT::push_back))
+            .function("pop_back", &VT::pop_back)
+            .function("clear", &VT::clear)
+            .function(
+                "empty", static_cast<bool (VT::*)() const>(&VT::empty))
+            .function("reserve", &VT::reserve)
+            .function(
+                "resize_with_value",
+                static_cast<void (VT::*)(size_t, T const&)>(&VT::resize))
+            .function(
+                "at", static_cast<T const& (VT::*)(int) const>(&VT::at))
+            .function(
+                "front", static_cast<T const& (VT::*)() const>(&VT::front))
+            .function(
+                "back", static_cast<T const& (VT::*)() const>(&VT::back))
+            .function(
+                "toArray",
+                +[](const hstd::Vec<T>& self) -> emscripten::val {
+                    emscripten::val result = emscripten::val::global(
+                                                 "Array")
+                                                 .new_();
+                    for (size_t i = 0; i < self.size(); ++i) {
+                        result.call<void>("push", self[i]);
+                    }
+                    return result;
+                });
+    }
+}
 
 template <typename T>
 void hstdIntSet_bind(type_registration_guard& g, std::string const& name) {
