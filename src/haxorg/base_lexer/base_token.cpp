@@ -1560,10 +1560,13 @@ void switch_regular_char(Cursor& c) {
                     c.token0(otk::Tilda, &advance1);
 
                     int offset = 0;
-                    while (c.has_pos(offset + +1)   //
-                           && !c.is_at('~', offset) //
-                           && !(std::isalnum(c.get(offset + 1)))) {
-                        ++offset;
+                    while (c.has_pos(offset + +1)) {
+                        if (c.is_at('~', offset)
+                            && !(std::isalnum(c.get(offset + 1)))) {
+                            break;
+                        } else {
+                            ++offset;
+                        }
                     }
 
                     if (c.is_at('~', offset)) {

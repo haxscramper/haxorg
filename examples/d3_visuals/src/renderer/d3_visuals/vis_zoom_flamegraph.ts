@@ -3,16 +3,7 @@ import {array, Schema, string, z} from "zod";
 
 import {ElectronAPI} from "../electron";
 import {org} from "../org_data.ts";
-import { initWasmModule } from '../wasm_client';
-
-declare global {
-  interface Window {
-    module: org.haxorg_wasm_module;
-    electronAPI: ElectronAPI;
-  }
-}
-
-function osk() { return window.module.OrgSemKind; }
+import {initWasmModule, osk} from "../wasm_client";
 
 class RangeClose {
   constructor(public start: Date, public end: Date) {}
@@ -180,6 +171,7 @@ export class ZoomFlamegraphVisualizationConfig {
   horizontal_brush_placement: boolean = true;
   event_domain_rect_padding: number   = 4;
   layer_domain_rect_padding: number   = 4;
+  path: string;
 
   get_zoom_area_offset_left(): number {
     if (this.horizontal_brush_placement) {
@@ -380,8 +372,7 @@ export class ZoomFlamegraphVisualization {
 
   async render() {
     await initWasmModule();
-    const result = await window.electronAPI.readFile(
-        "/home/haxscramper/tmp/org_trivial.org");
+    const result = await window.electronAPI.readFile(this.conf.path);
     if (result.success) {
       const node = window.module.parseString(result.data!);
       this.gantt = this.get_gantt(node);

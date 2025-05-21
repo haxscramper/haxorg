@@ -18,4 +18,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
       Promise<{success : boolean, data?: string, error?: string}> => {
         return await ipcRenderer.invoke("file:read", filePath);
       },
+  writeDebugHtml : async (filePath: string, content: string) => {
+    return await ipcRenderer.invoke("file:dump_debug_html", filePath, content);
+  },
 });

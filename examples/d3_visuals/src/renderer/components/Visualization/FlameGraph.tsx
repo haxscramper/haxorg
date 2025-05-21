@@ -15,6 +15,7 @@ export function FlameGraph() {
     const config = new ZoomFlamegraphVisualizationConfig();
     config.horizontal_event_placement = horizontalEventPlacement;
     config.horizontal_brush_placement = horizontalBrushPlacement;
+    config.path = "/home/haxscramper/tmp/org_trivial.org";
     d3.select(containerRef.current).selectAll('svg').remove();
     vizRef.current = new ZoomFlamegraphVisualization(containerRef.current.id, config);
     vizRef.current.render();

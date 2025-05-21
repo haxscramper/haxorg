@@ -3,6 +3,7 @@ export interface ElectronAPI {
   checkWasmStatus: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<
       {success : boolean, data?: string, error?: string}>;
+  writeDebugHtml: (filePath: string, content: string) => Promise<boolean>;
 }
 
 declare global {

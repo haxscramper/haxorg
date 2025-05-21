@@ -4,14 +4,15 @@ import { createContext } from "react";
 import {WasmUserTest} from "./WasmUserTest.tsx"
 
 import { FlameGraph } from "./Visualization/FlameGraph.tsx";
+import { CollapsibleTree } from "./Visualization/CollapsibleTree.tsx";
 import { Stack } from '@mui/material';
 
 export function App() {
   return (
     <Stack>
-      <WasmUserTest/>
-      <OrgEditor />
-      <FlameGraph />
+      {/* <OrgEditor /> */}
+      {/* <FlameGraph /> */}
+      <CollapsibleTree />
     </Stack>
   );
 }

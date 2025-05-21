@@ -1,3 +1,4 @@
+import {execSync} from "child_process";
 import {app, BrowserWindow, ipcMain} from "electron";
 import * as fs from "fs";
 import * as path from "path";
@@ -62,6 +63,15 @@ function setupIpcHandlers() {
       };
     }
   });
+
+  ipcMain.handle(
+      "file:dump_debug_html", async (_, filePath: string, content: string) => {
+        fs.writeFileSync(filePath, content, "utf-8");
+        try {
+          execSync(`tidy -q -m -i -w 120 --show-warnings no ${filePath}`);
+        } catch (e) {
+        }
+      });
 }
 
 app.whenReady().then(() => {

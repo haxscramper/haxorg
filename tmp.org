@@ -1,0 +1,1 @@
+1. *OpenGL Viewport Configuration*: When setting up the OpenGL viewport with ~glViewport()~, you need to convert floating-point coordinates to GLint parameters: ~glViewport(0, 0, static_cast<GLint>(windowWidth), static_cast<GLint>(windowHeight))~.
