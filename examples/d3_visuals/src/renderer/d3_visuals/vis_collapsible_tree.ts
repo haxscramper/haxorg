@@ -6,7 +6,6 @@ import {dump_html} from "../utils.ts";
 import {initWasmModule, osk} from "../wasm_client";
 
 interface OrgTreeNode {
-  node: org.Org;
   subtrees: OrgTreeNode[];
   visibility: string;
   tmp_children?: OrgHierarchyNode[];
@@ -54,7 +53,6 @@ export class CollapsibleTreeVisualization {
   toTreeHierarchy(node: org.Org): OrgTreeNode|null {
     if (node.getKind() == osk().Subtree || node.getKind() == osk().Document) {
       var   result: OrgTreeNode = {
-        node : node,
         subtrees : Array(),
         visibility : "showall",
         name : "",
@@ -62,7 +60,9 @@ export class CollapsibleTreeVisualization {
       };
 
       if (node.is(osk().Subtree)) {
-        result.name = window.module.cast_to_Subtree(node).getCleanTitle().toString();
+        var x = window.module.cast_to_Subtree(node); 
+        result.name = x.getCleanTitle().toString();
+        x.delete();
       } else if (node.is(osk().Document)) {
         // result.name = window.module.cast_to_Document(node).getCleanTitle().toString(); 
       }
@@ -91,6 +91,7 @@ export class CollapsibleTreeVisualization {
       if (hierarchy) {
         this.onLoadAll(hierarchy);
       }
+      node.delete(); 
     } else {
       console.log("Failed to construct");
       throw new Error(result.error);

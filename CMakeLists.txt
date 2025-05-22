@@ -143,7 +143,7 @@ if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
 endif()
 
 find_package(lexy CONFIG REQUIRED)
-if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_USE_PERFETTO})
   find_package(Perfetto CONFIG REQUIRED)
 endif()
 if(${ORG_DEPS_USE_PACKAGED_BOOST})

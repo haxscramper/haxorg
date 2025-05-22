@@ -165,6 +165,7 @@ def get_external_deps_list(
     dep(
         build_name="perfetto",
         deps_name="cmake_wrap/perfetto",
+        is_emcc_ready=True,
         configure_args=[
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],

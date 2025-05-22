@@ -2866,7 +2866,7 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   emscripten::class_<org::imm::ImmAdapterCmdCustomTextAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterCmdCustomTextAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterLinkAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterLinkAPI")
-    ;
+    ; 
   emscripten::class_<org::imm::ImmAdapterBlockCommentAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterBlockCommentAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterParagraphAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterParagraphAPI")
