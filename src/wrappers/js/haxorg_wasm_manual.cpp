@@ -32,6 +32,89 @@ void haxorg_wasm_manual_register() {
 
 #undef __cast
 
+    emscripten::function(
+        "setOrgDirectoryFileReaderCallback",
+        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const&
+                                   config,
+            emscripten::val const& value) {
+            config->getParsedNode = [value](std::string const& path)
+                -> org::sem::SemId<org::sem::Org> {
+                _dbg(path);
+                emscripten::val file_content = value(path);
+                return org::parseString(file_content.as<std::string>());
+            };
+        });
+
+    emscripten::function(
+        "setOrgDirectoryIsSymlinkCallback",
+        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const&
+                                   config,
+            emscripten::val const& value) {
+            config->isSymlinkImpl =
+                [value](std::string const& path) -> bool {
+                bool result = value(path).as<bool>();
+                _dfmt(path, result);
+                return result;
+            };
+        });
+
+    emscripten::function(
+        "setOrgDirectoryIsRegularFileCallback",
+        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const&
+                                   config,
+            emscripten::val const& value) {
+            config->isRegularFileImpl =
+                [value](std::string const& path) -> bool {
+                bool result = value(path).as<bool>();
+                _dfmt(path, result);
+                return result;
+            };
+        });
+
+    emscripten::function(
+        "setOrgDirectoryIsDirectoryCallback",
+        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const&
+                                   config,
+            emscripten::val const& value) {
+            config->isDirectoryImpl =
+                [value](std::string const& path) -> bool {
+                bool result = value(path).as<bool>();
+                _dfmt(path, result);
+                return result;
+            };
+        });
+
+    emscripten::function(
+        "setOrgDirectoryResolveSymlinkCallback",
+        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const&
+                                   config,
+            emscripten::val const& value) {
+            config->resolveSymlinkImpl =
+                [value](std::string const& path) -> std::string {
+                std::string result = value(path).as<std::string>();
+                _dfmt(path, result);
+                return result;
+            };
+        });
+
+    emscripten::function(
+        "setOrgDirectoryGetDirectoryEntriesCallback",
+        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const&
+                                   config,
+            emscripten::val const& value) {
+            config->getDirectoryEntriesImpl =
+                [value](
+                    std::string const& path) -> std::vector<std::string> {
+                emscripten::val          result = value(path);
+                std::vector<std::string> vec;
+                unsigned int length = result["length"].as<unsigned int>();
+                for (unsigned int i = 0; i < length; ++i) {
+                    vec.push_back(result[i].as<std::string>());
+                }
+                return vec;
+            };
+        });
+
     emscripten::class_<hstd::Str>("Str")
         .function(
             "size",

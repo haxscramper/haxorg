@@ -12,10 +12,10 @@ function(set_target_flags_impl)
         "-s MODULARIZE=1"
         "-s EXPORT_NAME='haxorg_wasm'"
         "-s USE_PTHREADS=0"
-        "-s ASSERTIONS=1"
         "--bind"
         "-sNO_DISABLE_EXCEPTION_CATCHING")
 
+    # "-s ASSERTIONS=1"
     if(${ORG_USE_PERFETTO})
       list(APPEND EMSCRIPTEN_FLAGS "-s INITIAL_HEAP=600MB")
     endif()

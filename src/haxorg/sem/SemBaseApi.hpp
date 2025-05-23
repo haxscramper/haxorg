@@ -69,6 +69,20 @@ struct [[refl(
     hstd::Func<hstd::Opt<std::string>(std::string const& includePath)>
         findIncludeTarget;
 
+    std::function<bool(std::string const&)>        isDirectoryImpl;
+    std::function<bool(std::string const&)>        isSymlinkImpl;
+    std::function<bool(std::string const&)>        isRegularFileImpl;
+    std::function<std::string(std::string const&)> resolveSymlinkImpl;
+    std::function<std::vector<std::string>(std::string const&)>
+        getDirectoryEntriesImpl;
+
+    bool                     isDirectory(std::string const& path) const;
+    bool                     isSymlink(std::string const& path) const;
+    bool                     isRegularFile(std::string const& path) const;
+    std::string              resolveSymlink(std::string const& path) const;
+    std::vector<std::string> getDirectoryEntries(
+        std::string const& path) const;
+
     BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
 };
 

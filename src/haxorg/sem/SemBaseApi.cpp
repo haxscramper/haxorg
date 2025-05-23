@@ -346,7 +346,7 @@ Opt<sem::SemId<sem::File>> parseFileAux(
     std::shared_ptr<OrgDirectoryParseParameters> const& opts,
     DirectoryParseState&                                state) {
     LOGIC_ASSERTION_CHECK(
-        fs::is_regular_file(path),
+        opts->isRegularFile(path),
         "'{}' should be a regular text file",
         path);
 
@@ -355,7 +355,7 @@ Opt<sem::SemId<sem::File>> parseFileAux(
                     : org::parseFile(
                           path.native(),
                           org::OrgParseParameters::shared());
-
+    _dbg(parsed.isNil());
     if (parsed.isNil()) { return std::nullopt; }
     postProcessFileReferences(path, activeRoot, parsed, opts, state);
 
@@ -371,14 +371,19 @@ Opt<sem::SemId<Org>> parsePathAux(
     fs::path const&                                     activeRoot,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts,
     DirectoryParseState&                                state) {
-    if (state.visited.contains(path.native())) { return std::nullopt; }
+    _dfmt(path, activeRoot);
+    if (state.visited.contains(path.native())) {
+        _dbg("Already visited");
+        return std::nullopt;
+    }
     state.visited.incl(path.native());
 
     if (opts->shouldProcessPath && !opts->shouldProcessPath(path)) {
+        _dbg("Should not process path");
         return std::nullopt;
-    } else if (fs::is_symlink(path)) {
-        auto target = fs::read_symlink(path);
-        if (fs::is_directory(target)) {
+    } else if (_dbg(opts->isSymlink(path))) {
+        auto target = fs::path{opts->resolveSymlink(path)};
+        if (opts->isDirectory(target)) {
             sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
             sym->isDirectory             = true;
             sym->absPath                 = target.native();
@@ -387,7 +392,7 @@ Opt<sem::SemId<Org>> parsePathAux(
             if (dir) { sym->push_back(dir.value()); }
             return sym;
 
-        } else if (fs::is_regular_file(target)) {
+        } else if (opts->isRegularFile(target)) {
             sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
             sym->absPath                 = target.parent_path().native();
             auto file                    = parsePathAux(
@@ -399,17 +404,17 @@ Opt<sem::SemId<Org>> parsePathAux(
         }
 
 
-    } else if (fs::is_directory(path)) {
+    } else if (_dbg(opts->isDirectory(path))) {
         sem::SemId<Directory> dir = sem::SemId<Directory>::New();
         dir->relPath = fs::relative(path, activeRoot).native();
         dir->absPath = path.native();
-        for (const auto& entry : fs::directory_iterator(path)) {
+        for (const auto& entry : opts->getDirectoryEntries(path)) {
             auto nested = parsePathAux(entry, activeRoot, opts, state);
             if (nested) { dir->push_back(nested.value()); }
         }
 
         return dir;
-    } else if (fs::is_regular_file(path)) {
+    } else if (_dbg(opts->isRegularFile(path))) {
         if (normalize(path.extension().native()) == "org") {
             return parseFileAux(path, activeRoot, opts, state);
         } else {
@@ -1672,4 +1677,53 @@ sem::SemId<Org> org::evaluateCodeBlocks(
 
 std::shared_ptr<imm::ImmAstContext> org::initImmutableAstContext() {
     return imm::ImmAstContext::init_start_context();
+}
+
+bool OrgDirectoryParseParameters::isDirectory(
+    const std::string& path) const {
+    if (isDirectoryImpl) {
+        return isDirectoryImpl(path);
+    } else {
+        return fs::is_directory(path);
+    }
+}
+
+bool OrgDirectoryParseParameters::isSymlink(
+    const std::string& path) const {
+    if (isSymlinkImpl) {
+        return isSymlinkImpl(path);
+    } else {
+        return fs::is_symlink(path);
+    }
+}
+
+bool OrgDirectoryParseParameters::isRegularFile(
+    const std::string& path) const {
+    if (isRegularFileImpl) {
+        return isRegularFileImpl(path);
+    } else {
+        return fs::is_regular_file(path);
+    }
+}
+
+std::string OrgDirectoryParseParameters::resolveSymlink(
+    const std::string& path) const {
+    if (resolveSymlinkImpl) {
+        return resolveSymlinkImpl(path);
+    } else {
+        return fs::read_symlink(path);
+    }
+}
+
+std::vector<std::string> OrgDirectoryParseParameters::getDirectoryEntries(
+    const std::string& path) const {
+    if (getDirectoryEntriesImpl) {
+        return getDirectoryEntriesImpl(path);
+    } else {
+        std::vector<std::string> content;
+        for (auto const& it : fs::directory_iterator(path)) {
+            content.push_back(it.path().native());
+        }
+        return content;
+    }
 }

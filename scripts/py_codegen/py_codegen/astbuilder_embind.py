@@ -457,6 +457,8 @@ class WasmClass():
                 sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast))
 
         if not has_constructor and not self.Record.IsAbstract:
+            # If the type has non-default holder type, `new` in JS will still create a raw pointer
+            # to the type, to fix this it necessary to provide own implementation for the constructor
             if self.Record.reflectionParams.default_constructor:
                 if HolderType:
                     sub.append(
