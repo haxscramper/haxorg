@@ -54,6 +54,38 @@ struct emscripten::smart_ptr_trait<org::sem::SemId<T>> {
 
 namespace org::bind::js {
 
+template <typename T>
+struct holder_type_builder {};
+
+template <typename T>
+struct holder_type_builder<std::shared_ptr<T>> {
+    template <typename... Args>
+    static std::shared_ptr<T> init(Args&&... args) {
+        return std::make_shared<T>(std::forward(args)...);
+    }
+};
+
+template <typename T>
+struct holder_type_builder<std::unique_ptr<T>> {
+    template <typename... Args>
+    static std::unique_ptr<T> init(Args&&... args) {
+        return std::make_unique<T>(std::forward(args)...);
+    }
+};
+
+template <typename T>
+struct holder_type_builder<org::sem::SemId<T>> {
+    template <typename... Args>
+    static org::sem::SemId<T> init(Args&&... args) {
+        return org::sem::SemId<T>::New(std::forward(args)...);
+    }
+};
+
+template <typename T, typename... Args>
+T holder_type_constructor(Args&&... args) {
+    return holder_type_builder<T>::init(std::forward(args)...);
+}
+
 struct type_registration_guard {
     hstd::UnorderedSet<std::size_t> idx;
     template <typename T>
