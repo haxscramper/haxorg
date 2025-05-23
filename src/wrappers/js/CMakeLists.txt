@@ -6,10 +6,6 @@ if(${ORG_EMCC_BUILD})
 
   target_link_libraries(haxorg_wasm PUBLIC hstd haxorg)
 
-  if(${ORG_USE_PERFETTO})
-    target_link_libraries(haxorg_wasm PRIVATE Perfetto::perfetto)
-  endif()
-
   set_common_files(haxorg_wasm)
   set_target_output(haxorg_wasm)
   set_target_flags(haxorg_wasm)

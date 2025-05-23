@@ -57,7 +57,7 @@ TEST(ManualFileRun, TestDoc1) {
         if (fs::exists(file)) {
             std::string content = readFile(file);
             auto        spec = ParseSpec::FromSource(std::move(content));
-            spec.debug.traceAll = true;
+            spec.debug.traceAll        = true;
             spec.debug.doFormatReparse = false;
             gtest_run_spec(TestParams{
                 .spec = spec,
@@ -108,10 +108,10 @@ TEST(ManualFileRun, TestDoc1) {
 TEST(ManualFileRun, TestMain1) {
     fs::path file{"/home/haxscramper/tmp/org_test_dir/main/main.org"};
     if (fs::exists(file)) {
-        OrgDirectoryParseParameters opts;
+        auto opts = OrgDirectoryParseParameters::shared();
 
-        opts.getParsedNode = [&](std::string const& path) {
-            return parseFile(path, org::OrgParseParameters{});
+        opts->getParsedNode = [&](std::string const& path) {
+            return parseFile(path, org::OrgParseParameters::shared());
         };
 
         auto parsed = parseFileWithIncludes(file, opts);
@@ -122,13 +122,13 @@ TEST(ManualFileRun, TestMain1) {
 TEST(ManualFileRun, TestDir1) {
     fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
     if (fs::exists(dir)) {
-        org::OrgDirectoryParseParameters opts;
+        auto opts = org::OrgDirectoryParseParameters::shared();
 
-        opts.getParsedNode = [&](std::string const& path) {
-            return org::parseFile(path, org::OrgParseParameters{});
+        opts->getParsedNode = [&](std::string const& path) {
+            return org::parseFile(path, org::OrgParseParameters::shared());
         };
 
-        opts.shouldProcessPath = [](std::string const& path) -> bool {
+        opts->shouldProcessPath = [](std::string const& path) -> bool {
             if (path.contains(".git") || path.contains(".trunk")) {
                 return false;
             } else {

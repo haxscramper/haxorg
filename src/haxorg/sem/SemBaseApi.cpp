@@ -4,7 +4,9 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <fstream>
-#include <haxorg/sem/perfetto_org.hpp>
+#if ORG_USE_PERFETTO && !ORG_EMCC_BUILD
+#    include <haxorg/sem/perfetto_org.hpp>
+#endif
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
@@ -190,36 +192,36 @@ void org::exportToTreeFile(
 }
 
 sem::SemId<sem::Org> org::parseFile(
-    std::string               file,
-    const OrgParseParameters& opts) {
+    std::string                                file,
+    std::shared_ptr<OrgParseParameters> const& opts) {
     return parseStringOpts(readFile(fs::path{file}), opts);
 }
 
 sem::SemId<sem::Org> org::parseString(std::string text) {
-    return parseStringOpts(text, OrgParseParameters{});
+    return parseStringOpts(text, OrgParseParameters::shared());
 }
 
 sem::SemId<sem::Org> org::parseStringOpts(
-    const std::string         text,
-    OrgParseParameters const& opts) {
+    const std::string                          text,
+    const std::shared_ptr<OrgParseParameters>& opts) {
 
 
-    if (opts.getFragments) {
-        auto                          fragments = opts.getFragments(text);
+    if (opts->getFragments) {
+        auto                          fragments = opts->getFragments(text);
         Vec<OrgConverter::InFragment> toConvert;
 
-        if (opts.baseTokenTracePath) {
-            fs::remove(opts.baseTokenTracePath.value());
+        if (opts->baseTokenTracePath) {
+            fs::remove(opts->baseTokenTracePath.value());
         }
 
-        if (opts.parseTracePath) {
-            fs::remove(opts.parseTracePath.value());
+        if (opts->parseTracePath) {
+            fs::remove(opts->parseTracePath.value());
         }
 
-        if (opts.semTracePath) { fs::remove(opts.semTracePath.value()); }
+        if (opts->semTracePath) { fs::remove(opts->semTracePath.value()); }
 
-        if (opts.tokenTracePath) {
-            fs::remove(opts.tokenTracePath.value());
+        if (opts->tokenTracePath) {
+            fs::remove(opts->tokenTracePath.value());
         }
 
         Vec<org::parse::OrgTokenGroup> tokens;
@@ -236,8 +238,8 @@ sem::SemId<sem::Org> org::parseStringOpts(
             auto const&             frag = fragments.at(i);
             org::parse::LexerParams p;
             SPtr<std::ofstream>     fileTrace;
-            if (opts.baseTokenTracePath) {
-                p.setTraceFile(opts.baseTokenTracePath.value());
+            if (opts->baseTokenTracePath) {
+                p.setTraceFile(opts->baseTokenTracePath.value());
                 p.traceColored = false;
             }
 
@@ -245,8 +247,8 @@ sem::SemId<sem::Org> org::parseStringOpts(
                 frag.text, p);
             org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
 
-            if (opts.tokenTracePath) {
-                tokenizer.setTraceFile(*opts.tokenTracePath, false);
+            if (opts->tokenTracePath) {
+                tokenizer.setTraceFile(*opts->tokenTracePath, false);
                 tokenizer.traceColored = false;
             }
 
@@ -255,8 +257,8 @@ sem::SemId<sem::Org> org::parseStringOpts(
                 &tokens.at(i)};
 
             org::parse::OrgParser parser{&nodes.at(i)};
-            if (opts.parseTracePath) {
-                parser.setTraceFile(*opts.parseTracePath, false);
+            if (opts->parseTracePath) {
+                parser.setTraceFile(*opts->parseTracePath, false);
                 parser.traceColored = false;
             }
 
@@ -273,8 +275,8 @@ sem::SemId<sem::Org> org::parseStringOpts(
         }
 
         sem::OrgConverter converter{};
-        if (opts.semTracePath) {
-            converter.setTraceFile(*opts.semTracePath);
+        if (opts->semTracePath) {
+            converter.setTraceFile(*opts->semTracePath);
             converter.traceColored = false;
         }
 
@@ -285,8 +287,8 @@ sem::SemId<sem::Org> org::parseStringOpts(
 
         org::parse::LexerParams p;
         SPtr<std::ofstream>     fileTrace;
-        if (opts.baseTokenTracePath) {
-            p.setTraceFile(opts.baseTokenTracePath.value());
+        if (opts->baseTokenTracePath) {
+            p.setTraceFile(opts->baseTokenTracePath.value());
             p.traceColored = false;
         }
 
@@ -296,8 +298,8 @@ sem::SemId<sem::Org> org::parseStringOpts(
         org::parse::OrgTokenGroup tokens;
         org::parse::OrgTokenizer  tokenizer{&tokens};
 
-        if (opts.tokenTracePath) {
-            tokenizer.setTraceFile(*opts.tokenTracePath);
+        if (opts->tokenTracePath) {
+            tokenizer.setTraceFile(*opts->tokenTracePath);
             tokenizer.traceColored = false;
         }
 
@@ -306,15 +308,15 @@ sem::SemId<sem::Org> org::parseStringOpts(
 
         org::parse::OrgNodeGroup nodes{&tokens};
         org::parse::OrgParser    parser{&nodes};
-        if (opts.parseTracePath) {
-            parser.setTraceFile(*opts.parseTracePath);
+        if (opts->parseTracePath) {
+            parser.setTraceFile(*opts->parseTracePath);
             parser.traceColored = false;
         }
 
         auto              id = parser.parseFull(lex);
         sem::OrgConverter converter{};
-        if (opts.semTracePath) {
-            converter.setTraceFile(*opts.semTracePath);
+        if (opts->semTracePath) {
+            converter.setTraceFile(*opts->semTracePath);
             converter.traceColored = false;
         }
 
@@ -332,26 +334,27 @@ struct DirectoryParseState {
 };
 
 void postProcessFileReferences(
-    fs::path const&                    path,
-    fs::path const&                    activeRoot,
-    sem::OrgArg                        parsed,
-    const OrgDirectoryParseParameters& opts,
-    DirectoryParseState&               state);
+    fs::path const&                                     path,
+    fs::path const&                                     activeRoot,
+    sem::OrgArg                                         parsed,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts,
+    DirectoryParseState&                                state);
 
 Opt<sem::SemId<sem::File>> parseFileAux(
-    fs::path const&                    path,
-    fs::path const&                    activeRoot,
-    const OrgDirectoryParseParameters& opts,
-    DirectoryParseState&               state) {
+    fs::path const&                                     path,
+    fs::path const&                                     activeRoot,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts,
+    DirectoryParseState&                                state) {
     LOGIC_ASSERTION_CHECK(
         fs::is_regular_file(path),
         "'{}' should be a regular text file",
         path);
 
-    auto parsed = opts.getParsedNode
-                    ? opts.getParsedNode(path)
+    auto parsed = opts->getParsedNode
+                    ? opts->getParsedNode(path)
                     : org::parseFile(
-                          path.native(), org::OrgParseParameters{});
+                          path.native(),
+                          org::OrgParseParameters::shared());
 
     if (parsed.isNil()) { return std::nullopt; }
     postProcessFileReferences(path, activeRoot, parsed, opts, state);
@@ -364,14 +367,14 @@ Opt<sem::SemId<sem::File>> parseFileAux(
 }
 
 Opt<sem::SemId<Org>> parsePathAux(
-    fs::path const&                    path,
-    fs::path const&                    activeRoot,
-    const OrgDirectoryParseParameters& opts,
-    DirectoryParseState&               state) {
+    fs::path const&                                     path,
+    fs::path const&                                     activeRoot,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts,
+    DirectoryParseState&                                state) {
     if (state.visited.contains(path.native())) { return std::nullopt; }
     state.visited.incl(path.native());
 
-    if (opts.shouldProcessPath && !opts.shouldProcessPath(path)) {
+    if (opts->shouldProcessPath && !opts->shouldProcessPath(path)) {
         return std::nullopt;
     } else if (fs::is_symlink(path)) {
         auto target = fs::read_symlink(path);
@@ -419,9 +422,9 @@ Opt<sem::SemId<Org>> parsePathAux(
 }
 
 Opt<fs::path> resolvePath(
-    fs::path const&                    workdir,
-    CR<Str>                            target,
-    const OrgDirectoryParseParameters& opts) {
+    fs::path const&                                     workdir,
+    CR<Str>                                             target,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
     LOGIC_ASSERTION_CHECK(
         fs::is_directory(workdir),
         "Workdir must be a directory, but got '{}'",
@@ -432,8 +435,8 @@ Opt<fs::path> resolvePath(
             ? fs::path{target.toBase()}
             : (workdir / target.toBase());
 
-    if (!fs::exists(full) && opts.findIncludeTarget) {
-        auto includeFound = opts.findIncludeTarget(target);
+    if (!fs::exists(full) && opts->findIncludeTarget) {
+        auto includeFound = opts->findIncludeTarget(target);
         if (includeFound) { full = includeFound.value(); }
     }
 
@@ -445,12 +448,12 @@ Opt<fs::path> resolvePath(
 }
 
 void postProcessInclude(
-    sem::SemId<sem::Org>               arg,
-    fs::path const&                    filePath,
-    fs::path const&                    activeRoot,
-    sem::OrgArg                        parsed,
-    const OrgDirectoryParseParameters& opts,
-    DirectoryParseState&               state) {
+    sem::SemId<sem::Org>                                arg,
+    fs::path const&                                     filePath,
+    fs::path const&                                     activeRoot,
+    sem::OrgArg                                         parsed,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts,
+    DirectoryParseState&                                state) {
     auto incl = arg.as<sem::CmdInclude>();
     auto full = resolvePath(filePath.parent_path(), incl->path, opts);
 
@@ -497,6 +500,9 @@ void postProcessInclude(
                 code->content = readFile(full.value());
                 break;
             }
+            case sem::CmdInclude::Kind::Custom: {
+                break;
+            }
         }
     } else {
         auto group     = sem::SemId<sem::ErrorGroup>::New();
@@ -510,12 +516,12 @@ void postProcessInclude(
 }
 
 void postProcessFileLink(
-    sem::SemId<sem::Org>               arg,
-    fs::path const&                    documentPath,
-    fs::path const&                    activeRoot,
-    sem::OrgArg                        parsed,
-    const OrgDirectoryParseParameters& opts,
-    DirectoryParseState&               state) {
+    sem::SemId<sem::Org>                                arg,
+    fs::path const&                                     documentPath,
+    fs::path const&                                     activeRoot,
+    sem::OrgArg                                         parsed,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts,
+    DirectoryParseState&                                state) {
     auto link = arg.as<sem::Link>();
     auto t    = link->target;
     switch (t.getKind()) {
@@ -545,11 +551,11 @@ void postProcessFileLink(
 }
 
 void postProcessFileReferences(
-    fs::path const&                    path,
-    fs::path const&                    activeRoot,
-    sem::OrgArg                        parsed,
-    const OrgDirectoryParseParameters& opts,
-    DirectoryParseState&               state) {
+    fs::path const&                                     path,
+    fs::path const&                                     activeRoot,
+    sem::OrgArg                                         parsed,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts,
+    DirectoryParseState&                                state) {
     org::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
         if (auto incl = arg.asOpt<sem::CmdInclude>()) {
             postProcessInclude(arg, path, activeRoot, parsed, opts, state);
@@ -563,16 +569,16 @@ void postProcessFileReferences(
 
 
 Opt<sem::SemId<Org>> org::parseDirectoryOpts(
-    const std::string&                 root,
-    const OrgDirectoryParseParameters& opts) {
+    const std::string&                                  root,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
 
     DirectoryParseState state;
     return parsePathAux(fs::absolute(root), root, opts, state);
 }
 
 sem::SemId<File> org::parseFileWithIncludes(
-    const std::string&                 file,
-    const OrgDirectoryParseParameters& opts) {
+    const std::string&                                  file,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
     DirectoryParseState state;
     auto                parsed = parseFileAux(
         file, fs::path{file}.parent_path(), opts, state);

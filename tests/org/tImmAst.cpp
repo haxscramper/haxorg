@@ -40,7 +40,7 @@ TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
     LOGIC_ASSERTION_CHECK(fs::exists(file), "{}", file);
     auto store = imm::ImmAstContext::init_start_context();
     auto node  = org::parseDirectoryOpts(
-        file, org::OrgDirectoryParseParameters{});
+        file, org::OrgDirectoryParseParameters::shared());
     ASSERT_TRUE(node.has_value());
     auto version = store->addRoot(node.value());
     auto state   = org::graph::MapGraphState::FromAstContext(

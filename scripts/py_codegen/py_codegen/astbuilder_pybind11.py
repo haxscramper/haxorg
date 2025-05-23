@@ -186,6 +186,7 @@ def py_ident(name: str) -> str:
 
     return sanitize_ident(name, python_keywords)
 
+
 @beartype
 def id_self(Typ: QualType) -> ParmVarParams:
     return ParmVarParams(Typ, "_self")
@@ -608,12 +609,51 @@ class Py11Class:
 
     def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
         if self.Struct.IsDescribedRecord:
+            body_impl = []
+
+            if self.Struct.reflectionParams.backend.python.holder_type == "shared":
+                result_type = self.getCxxName().withWrapperType(
+                    QualType(name="shared_ptr", Spaces=[QualType(name="std")]))
+
+                body_impl.append(
+                    ast.b.line([
+                        ast.VarDecl(
+                            ParmVarParams(
+                                type=QualType(name="auto"),
+                                name="result",
+                                defArg=ast.XCall("std::make_shared",
+                                                 Params=[self.getCxxName()]),
+                            ))
+                    ]))
+
+                body_impl.append(
+                    ast.XCall(
+                        "org::bind::python::init_fields_from_kwargs",
+                        args=[ast.string("*result"),
+                              ast.string("kwargs")],
+                        Stmt=True,
+                    ))
+            else:
+                result_type = self.getCxxName()
+                body_impl.append(
+                    ast.b.line([ast.Type(self.getCxxName()),
+                                ast.string(" result{};")]))
+                body_impl.append(
+                    ast.XCall(
+                        "org::bind::python::init_fields_from_kwargs",
+                        args=[ast.string("result"),
+                              ast.string("kwargs")],
+                        Stmt=True,
+                    ))
+
+            body_impl.append(ast.Return(ast.string("result")))
+
             self.InitImpls.append(
                 Py11Method(
                     PyName="",
                     Func=GenTuFunction(
                         name="",
-                        result=self.getCxxName(),
+                        result=result_type,
                         arguments=[
                             GenTuIdent(
                                 QualType(
@@ -625,18 +665,7 @@ class Py11Class:
                         ],
                         IsConstructor=True,
                     ),
-                    Body=[
-                        ast.b.line(
-                            [ast.Type(self.getCxxName()),
-                             ast.string(" result{};")]),
-                        ast.XCall(
-                            "org::bind::python::init_fields_from_kwargs",
-                            args=[ast.string("result"),
-                                  ast.string("kwargs")],
-                            Stmt=True,
-                        ),
-                        ast.Return(ast.string("result")),
-                    ],
+                    Body=body_impl,
                     ExplicitClassParam=True,
                 ))
 
@@ -861,7 +890,6 @@ class Py11Module:
         for spec in specializations:
             if spec.used_type.name in ["Opt", "optional"]:
                 continue
-
 
             if spec.std_type:
                 opaque_declarations.append(

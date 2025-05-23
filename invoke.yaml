@@ -5,7 +5,7 @@ instrument:
   coverage: false
   xray: false
   asan: true
-  perfetto: true
+  perfetto: false
 
 tasks:
   skip_python_refl: false

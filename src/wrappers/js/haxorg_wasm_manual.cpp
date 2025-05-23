@@ -1,21 +1,5 @@
 #include "haxorg_wasm_manual.hpp"
 
-#ifdef ORG_USE_PERFETTO
-#    include <haxorg/sem/perfetto_org.hpp>
-#    include <hstd/ext/perfetto_aux_impl_template.hpp>
-
-namespace perfetto {
-
-// This simply allows building the client library and using those parts of
-// it that do not depend on anything in the platform.
-
-// static
-Platform* Platform::GetDefaultPlatform() { return nullptr; }
-} // namespace perfetto
-
-#endif
-
-
 namespace {
 template <typename T>
 org::sem::SemId<T> cast_impl(
@@ -35,29 +19,6 @@ org::sem::SemId<T> cast_impl(
 }
 } // namespace
 
-#ifdef ORG_USE_PERFETTO
-struct TracingSessionHandle {
-    std::unique_ptr<perfetto::TracingSession> session;
-
-    TracingSessionHandle() {}
-
-    void start() {
-        session = StartProcessTracing("Perfetto WASM session");
-        LOGIC_ASSERTION_CHECK(session.get() != nullptr, "");
-    }
-
-    std::string finish() {
-        perfetto::TrackEvent::Flush();
-        session->StopBlocking();
-        std::vector<char> trace_data(session->ReadTraceBlocking());
-        std::stringstream ss;
-        ss.write(&trace_data[0], std::streamsize(trace_data.size()));
-        return ss.str();
-    }
-};
-#endif
-
-
 void haxorg_wasm_manual_register() {
 #define __cast(__Kind)                                                    \
     emscripten::function(                                                 \
@@ -70,13 +31,6 @@ void haxorg_wasm_manual_register() {
     EACH_SEM_ORG_KIND(__cast)
 
 #undef __cast
-
-#ifdef ORG_USE_PERFETTO
-    emscripten::class_<TracingSessionHandle>("TracingSessionHandle")
-        .constructor()
-        .function("start", &TracingSessionHandle::start)
-        .function("end", &TracingSessionHandle::finish);
-#endif
 
     emscripten::class_<hstd::Str>("Str")
         .function(

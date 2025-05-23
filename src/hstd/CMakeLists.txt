@@ -21,7 +21,7 @@ if(${ORG_DEPS_USE_PACKAGED_BOOST})
   target_link_libraries(hstd PUBLIC Boost::boost_describe Boost::boost_preprocessor)
 endif()
 
-if(${ORG_USE_PERFETTO})
+if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
   target_link_libraries(hstd PUBLIC Perfetto::perfetto)
 endif()
 

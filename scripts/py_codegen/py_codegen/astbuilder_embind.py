@@ -438,9 +438,13 @@ class WasmClass():
             else:
                 sub.append(WasmField(Field).build_bind(ast, self.getCxxName()))
 
+        has_constructor = False
         for Meth in self.Record.methods:
             # Skip explicit wrapping of default constructors
-            if Meth.IsConstructor and len(Meth.arguments) == 0:
+            if Meth.IsConstructor:
+                if len(Meth.arguments) != 0:
+                    has_constructor = True
+
                 continue
 
             elif Meth.name.startswith("sub_variant_get"):
@@ -448,6 +452,9 @@ class WasmClass():
 
             else:
                 sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast))
+
+        if not has_constructor and not self.Record.IsAbstract:
+            sub.append(ast.XCall(".constructor", Params=[self.getCxxName()]))
 
         sub.append(b.text(";"))
 
@@ -546,7 +553,43 @@ class WasmModule():
         Result = b.b.stack()
 
         Body = []
+        SubdivideBody = []
+        subivide_count = 0
 
+        def add_subdivide_body():
+            nonlocal SubdivideBody
+            nonlocal subivide_count
+            Body.append(
+                ast.XCall(
+                    f"subdivide_{subivide_count}",
+                    Stmt=True,
+                    args=[ast.string("g")],
+                ))
+            b.b.add_at(
+                Result,
+                ast.Function(
+                    FunctionParams(
+                        Name=f"subdivide_{subivide_count}",
+                        Args=[
+                            ParmVarParams(
+                                type=QualType(
+                                    name="org::bind::js::type_registration_guard",
+                                    RefKind=ReferenceKind.LValue,
+                                ),
+                                name="g",
+                            )
+                        ],
+                        Body=SubdivideBody,
+                    )))
+
+            subivide_count += 1
+            SubdivideBody = []
+
+        def add_binding_statement(stmt: BlockId):
+            SubdivideBody.append(stmt)
+
+            if 100 < len(SubdivideBody):
+                add_subdivide_body()
         for it in self.Header:
             b.b.add_at(Result, it.Id)
 
@@ -557,23 +600,26 @@ class WasmModule():
         for item in self.items:
             match item:
                 case WasmClass():
-                    Body.append(item.build_bind(ast=ast, base_map=base_map))
+                    add_binding_statement(item.build_bind(ast=ast, base_map=base_map))
 
                 case WasmFunction():
                     overload_counts[item.getWasmName()] += 1
-                    Body.append(item.build_bind(b=b))
+                    add_binding_statement(item.build_bind(b=b))
 
                 case WasmBindPass():
-                    Body.append(item.Id)
+                    add_binding_statement(item.Id)
 
                 case WasmEnum():
-                    Body.append(item.build_bind(b=b))
+                    add_binding_statement(item.build_bind(b=b))
 
                 case WasmTypedef():
                     pass
 
                 case _:
                     raise ValueError("Unexpected ")
+
+        if len(SubdivideBody) != 0:
+            add_subdivide_body()
 
         for key, value in overload_counts.items():
             if 1 < value:
