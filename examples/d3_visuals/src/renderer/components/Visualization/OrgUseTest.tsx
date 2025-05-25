@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { initWasmModule } from "../../wasm_client";
 import { ElectronAPI } from "../../electron";
+import {org} from "../../org_data.ts";
 
 type FileType = 'file' | 'directory' | 'symlink';
 
@@ -60,21 +61,26 @@ async function buildDirectoryStructure(rootPath: string): Promise<DirectoryStruc
   return new DirectoryStructure(root);
 }
 
+
+function is_accepted_path(path: string): boolean {
+  return path.indexOf("codex/lore") != -1 && path.endsWith('.org'); 
+}
+
 async function buildDirectoryEntry(path: string, name: string): Promise<DirectoryEntry> {
   const entries = await window.electronAPI.getDirectoryEntryList(path);
   const children: DirectoryContent[] = [];
 
-  for (const entryName of entries) {
-    const entryPath = `${entryName}`;
-
-    if (await window.electronAPI.isSymlink(entryPath)) {
-      const target = await window.electronAPI.resolveSymlink(entryPath);
-      children.push(new SymlinkEntry(entryName, entryPath, target));
-    } else if (await window.electronAPI.isDirectory(entryPath)) {
-      children.push(await buildDirectoryEntry(entryPath, entryName));
-    } else if (await window.electronAPI.isRegularFile(entryPath) && entryName.endsWith('.org')) {
-      const fileResult = await window.electronAPI.readFile(entryPath);
-      children.push(new FileEntry(entryName, entryPath, fileResult.success ? fileResult.data : undefined));
+  for (const path of entries) {
+    if (await window.electronAPI.isSymlink(path)) {
+      const target = await window.electronAPI.resolveSymlink(path);
+      children.push(new SymlinkEntry(path, path, target));
+    } else if (await window.electronAPI.isDirectory(path)) {
+      children.push(await buildDirectoryEntry(path, path));
+    } else if (await window.electronAPI.isRegularFile(path)) {
+      if (is_accepted_path(path)) {
+        const fileResult = await window.electronAPI.readFile(path);
+        children.push(new FileEntry(path, path, fileResult.success ? fileResult.data : undefined));
+      }
     }
   }
 
@@ -197,7 +203,21 @@ async function test_directory_read() {
   console.log("Running directory parsing");
   const recursive_node
     = window.module.parseDirectoryOpts(test_directory, directory_opts);
-  console.log("Recursive node done");
+    console.log("Recursive node done");
+
+  const context = window.module.initImmutableAstContext();
+  console.log("Created immutable AST context"); 
+  const root = context.addRoot(recursive_node.value()); 
+  console.log("Immutable AST build done");
+
+  const graph_conf = new window.module.GraphMapConfig();
+  var graph_state: org.GraphMapGraphState = window.module.GraphMapGraphState.FromAstContext(context);
+  // graph_state.
+  console.log("Created graph state"); 
+  graph_state.addNodeRec(root.getRootAdapter(), graph_conf);
+  console.log("Added data to the graph state"); 
+  console.log(`Created graph with ${graph_state.graph.nodeCount()} nodes`);
+  
 }
 
 

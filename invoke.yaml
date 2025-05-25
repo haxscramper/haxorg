@@ -1,5 +1,5 @@
 quiet: false
-debug: true
+debug: false
 emscripten: true
 instrument:
   coverage: false
