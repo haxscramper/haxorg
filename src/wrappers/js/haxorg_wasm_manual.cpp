@@ -39,7 +39,7 @@ void haxorg_wasm_manual_register() {
             emscripten::val const& value) {
             config->getParsedNode = [value](std::string const& path)
                 -> org::sem::SemId<org::sem::Org> {
-                _dbg(path);
+                // _dbg(path);
                 emscripten::val file_content = value(path);
                 return org::parseString(file_content.as<std::string>());
             };
@@ -53,7 +53,7 @@ void haxorg_wasm_manual_register() {
             config->isSymlinkImpl =
                 [value](std::string const& path) -> bool {
                 bool result = value(path).as<bool>();
-                _dfmt(path, result);
+                // _dfmt(path, result);
                 return result;
             };
         });
@@ -66,7 +66,7 @@ void haxorg_wasm_manual_register() {
             config->isRegularFileImpl =
                 [value](std::string const& path) -> bool {
                 bool result = value(path).as<bool>();
-                _dfmt(path, result);
+                // _dfmt(path, result);
                 return result;
             };
         });
@@ -79,7 +79,7 @@ void haxorg_wasm_manual_register() {
             config->isDirectoryImpl =
                 [value](std::string const& path) -> bool {
                 bool result = value(path).as<bool>();
-                _dfmt(path, result);
+                // _dfmt(path, result);
                 return result;
             };
         });
@@ -92,7 +92,7 @@ void haxorg_wasm_manual_register() {
             config->resolveSymlinkImpl =
                 [value](std::string const& path) -> std::string {
                 std::string result = value(path).as<std::string>();
-                _dfmt(path, result);
+                // _dfmt(path, result);
                 return result;
             };
         });

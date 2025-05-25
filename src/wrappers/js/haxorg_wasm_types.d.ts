@@ -1,6 +1,6 @@
 /* clang-format off */
 import * as haxorg_wasm from "./haxorg_utility_types";
-export interface haxorg_wasm_module {
+export interface haxorg_wasm_module_auto {
   UserTimeBreakdown: UserTimeBreakdownConstructor;
   UserTime: UserTimeConstructor;
   ParseLineCol: ParseLineColConstructor;
@@ -1600,6 +1600,7 @@ export interface haxorg_wasm_module {
   getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.Vec<AstTrackingGroup>;
   annotateSequence(groups: haxorg_wasm.Vec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.Vec<SequenceAnnotation>;
 }
+type haxorg_wasm_module = haxorg_wasm_module_auto & haxorg_wasm.haxorg_wasm_manual;
 export interface UserTimeBreakdownConstructor { new(): UserTimeBreakdown; }
 export interface UserTimeBreakdown {
   year: haxorg_wasm.Optional<number>

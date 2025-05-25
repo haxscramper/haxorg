@@ -355,7 +355,7 @@ Opt<sem::SemId<sem::File>> parseFileAux(
                     : org::parseFile(
                           path.native(),
                           org::OrgParseParameters::shared());
-    _dbg(parsed.isNil());
+    // _dbg(parsed.isNil());
     if (parsed.isNil()) { return std::nullopt; }
     postProcessFileReferences(path, activeRoot, parsed, opts, state);
 
@@ -371,17 +371,17 @@ Opt<sem::SemId<Org>> parsePathAux(
     fs::path const&                                     activeRoot,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts,
     DirectoryParseState&                                state) {
-    _dfmt(path, activeRoot);
+    // _dfmt(path, activeRoot);
     if (state.visited.contains(path.native())) {
-        _dbg("Already visited");
+        // _dbg("Already visited");
         return std::nullopt;
     }
     state.visited.incl(path.native());
 
     if (opts->shouldProcessPath && !opts->shouldProcessPath(path)) {
-        _dbg("Should not process path");
+        // _dbg("Should not process path");
         return std::nullopt;
-    } else if (_dbg(opts->isSymlink(path))) {
+    } else if (opts->isSymlink(path)) {
         auto target = fs::path{opts->resolveSymlink(path)};
         if (opts->isDirectory(target)) {
             sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
@@ -404,7 +404,7 @@ Opt<sem::SemId<Org>> parsePathAux(
         }
 
 
-    } else if (_dbg(opts->isDirectory(path))) {
+    } else if (opts->isDirectory(path)) {
         sem::SemId<Directory> dir = sem::SemId<Directory>::New();
         dir->relPath = fs::relative(path, activeRoot).native();
         dir->absPath = path.native();
@@ -414,7 +414,7 @@ Opt<sem::SemId<Org>> parsePathAux(
         }
 
         return dir;
-    } else if (_dbg(opts->isRegularFile(path))) {
+    } else if (opts->isRegularFile(path)) {
         if (normalize(path.extension().native()) == "org") {
             return parseFileAux(path, activeRoot, opts, state);
         } else {
@@ -431,7 +431,7 @@ Opt<fs::path> resolvePath(
     CR<Str>                                             target,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
     LOGIC_ASSERTION_CHECK(
-        fs::is_directory(workdir),
+        opts->isDirectory(workdir),
         "Workdir must be a directory, but got '{}'",
         workdir);
 

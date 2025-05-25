@@ -65,6 +65,29 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle(
+      "file:isDirectory",
+      async (_, path: string) => { return fs.lstatSync(path).isDirectory(); });
+
+  ipcMain.handle(
+      "file:isRegularFile",
+      async (_, path: string) => { return fs.lstatSync(path).isFile(); });
+
+  ipcMain.handle("file:isSymlink", async (_, path: string) => {
+    const result = fs.lstatSync(path).isSymbolicLink();
+    console.log(`Result done ${result}`);
+  });
+
+  ipcMain.handle("file:resolveSymlink", async (_, filePath: string) => {
+    const resolved = fs.realpathSync(filePath);
+    return path.resolve(resolved);
+  });
+
+  ipcMain.handle("file:getEntryList", async (_, filePath: string) => {
+    const files = fs.readdirSync(filePath);
+    return files.map(file => `${filePath}/${file}`);
+  });
+
+  ipcMain.handle(
       "file:dump_debug_html", async (_, filePath: string, content: string) => {
         fs.writeFileSync(filePath, content, "utf-8");
         try {

@@ -4,6 +4,12 @@ export interface ElectronAPI {
   readFile: (filePath: string) => Promise<
       {success : boolean, data?: string, error?: string}>;
   writeDebugHtml: (filePath: string, content: string) => Promise<boolean>;
+
+  resolveSymlink: (path: string)        => Promise<string>;
+  getDirectoryEntryList: (path: string) => Promise<string[]>;
+  isRegularFile: (path: string)         => Promise<boolean>;
+  isSymlink: (path: string)             => Promise<boolean>;
+  isDirectory: (path: string)           => Promise<boolean>;
 }
 
 declare global {

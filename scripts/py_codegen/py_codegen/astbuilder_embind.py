@@ -563,9 +563,10 @@ class WasmModule():
         return ast.stack([
             ast.string("import * as haxorg_wasm from \"./haxorg_utility_types\";"),
             ast.block(
-                ast.string(f"export interface {self.name}_module"),
+                ast.string(f"export interface {self.name}_module_auto"),
                 iface,
             ),
+            ast.string(f"type {self.name}_module = {self.name}_module_auto & haxorg_wasm.{self.name}_manual; "),
             *body,
         ])
 

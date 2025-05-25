@@ -22,17 +22,17 @@ function read_file_content(path) {
 }
 
 function is_directory_impl(path) {
-  console.log(`Checking if '${path}' is directory`);
+  // console.log(`Checking if '${path}' is directory`);
   return fs.lstatSync(path).isDirectory()
 }
 
 function is_regular_file(path) {
-  console.log(`Checking if '${path}' is directory`);
+  // console.log(`Checking if '${path}' is directory`);
   return fs.lstatSync(path).isFile();
 }
 
 function is_symlink(path) {
-  console.log(`Checking if '${path}' is symlink`);
+// console.log(`Checking if '${path}' is symlink`);
   return fs.lstatSync(path).isSymbolicLink();
 }
 

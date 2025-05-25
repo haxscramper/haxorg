@@ -26,3 +26,25 @@ export interface StdVariant<T1, T2 = never, T3 = never, T4 = never, T5 = never,
                             T22 = never, T23 = never, T24 = never, T25 = never
                             //
                             > {}
+
+export interface haxorg_wasm_manual {
+  setOrgDirectoryFileReaderCallback(config: any,
+                                    callback: (path: string) => string): void;
+
+  setOrgDirectoryIsSymlinkCallback(config: any,
+                                   callback: (path: string) => boolean): void;
+
+  setOrgDirectoryIsRegularFileCallback(config: any,
+                                       callback: (path: string) => boolean):
+      void;
+
+  setOrgDirectoryIsDirectoryCallback(config: any,
+                                     callback: (path: string) => boolean): void;
+
+  setOrgDirectoryResolveSymlinkCallback(config: any,
+                                        callback: (path: string) => string):
+      void;
+
+  setOrgDirectoryGetDirectoryEntriesCallback(
+      config: any, callback: (path: string) => string[]): void;
+}
