@@ -223,6 +223,8 @@ struct value_domain<E> {
     }
 };
 
+/// \brief Trigger callback on every described field entry. Pass field
+/// descriptor to callback.
 template <typename T, typename Func>
 void for_each_field_with_bases(Func cb, bool pre_bases = true) {
     if (pre_bases) {
@@ -248,6 +250,10 @@ void for_each_field_with_bases(Func cb, bool pre_bases = true) {
     }
 }
 
+/// \brief Trigger callback on every described field entry. Pass field
+/// reference to the class and field descriptor to the callback. The
+/// function iterates over inheritance tree, first passing the `T const&`
+/// as a class reference, then their bases etc.
 template <typename T, typename Func>
 void for_each_field_with_base_value(
     T const& value,
@@ -277,6 +283,8 @@ void for_each_field_with_base_value(
     }
 }
 
+/// \brief Invoke callback on all fields directly used in the type `T`,
+/// ignoring the fields from bases. Pass field descriptor to the callback.
 template <typename T, typename Func>
 void for_each_field_no_base(Func cb, bool pre_bases = true) {
     ::boost::mp11::mp_for_each<::boost::describe::describe_members<
@@ -285,8 +293,20 @@ void for_each_field_no_base(Func cb, bool pre_bases = true) {
 }
 
 
+/// \brief Invoke callback on all fields directly used in the const type
+/// `T`, ignoring the fields from bases. Pass field name and field value to
+/// the callback.
 template <typename T, typename Func>
 void for_each_field_value_with_bases(T const& value, Func const& cb) {
+    for_each_field_with_bases<T>(
+        [&](auto const& field) { cb(field.name, value.*field.pointer); });
+}
+
+/// \brief Invoke callback on all fields directly used in the mutable type
+/// `T`, ignoring the fields from bases. Pass field name and field value to
+/// the callback.
+template <typename T, typename Func>
+void for_each_field_value_with_bases(T& value, Func const& cb) {
     for_each_field_with_bases<T>(
         [&](auto const& field) { cb(field.name, value.*field.pointer); });
 }

@@ -1,5 +1,7 @@
 #include "tOrgTestCommon.hpp"
 
+#include <haxorg/sem/SemOrgCereal.hpp>
+
 using namespace org::parse;
 using namespace org::test;
 
@@ -14,9 +16,33 @@ EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
         it->getKind());
 }
 
-TEST(TestFiles, AllNodeSerde) {
+TEST(TestFiles, OrgCerealSerdeRoundtrip) {
+    auto node = org::parseFile(
+        __CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org",
+        OrgParseParameters::shared());
+    auto start_context = org::imm::ImmAstContext::init_start_context();
+    start_context->addRoot(node);
+
+    writeFile(
+        "/tmp/test_buffer.json", org::imm::serializeToJSON(start_context));
+    std::string binary_buffer = org::imm::serializeToPortableBinary(
+        start_context);
+
+    auto final_context = org::imm::ImmAstContext::init_start_context();
+    org::imm::readFromPortableBinary(binary_buffer, final_context);
+
+    Vec<compare_report> out;
+
+    reporting_comparator<org::imm::ImmAstStore>::compare(
+        *start_context->store, *final_context->store, out, {});
+
+    show_compare_reports(out);
+}
+
+TEST(TestFiles, AllNodeSerdeRoundtrip) {
 #if ORG_DEPS_USE_PROTOBUF
-    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string file
+        = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     MockFull    p{false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);
@@ -75,7 +101,8 @@ TEST(TestFiles, AllNodeSerde) {
 
 TEST(TestFiles, AllNodeCoverage) {
     GTEST_SKIP();
-    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string file
+        = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     MockFull    p{false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);

@@ -10,6 +10,7 @@
 #include <haxorg/test/corpusrunner.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/sem/SemOrgCereal.hpp>
 
 using namespace hstd;
 using namespace org::test;
@@ -83,6 +84,10 @@ TEST(ManualFileRun, TestDoc1) {
                         .withReflFields = true,
                     })
                     .toString(false));
+
+            writeFile(
+                "/tmp/cereal_dump.bin",
+                org::imm::serializeToPortableBinary(n.context));
         }
     }
     LOG(INFO) << "doc1.org ok";

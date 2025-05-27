@@ -1,6 +1,6 @@
 quiet: false
 debug: false
-emscripten: true
+emscripten: false
 instrument:
   coverage: false
   xray: false

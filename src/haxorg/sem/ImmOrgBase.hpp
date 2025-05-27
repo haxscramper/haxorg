@@ -352,10 +352,9 @@ using ImmIdBase                        = hstd::dod::Id<
                            std::integral_constant<hstd::u64, ImmIdMaskSize>>;
 
 struct [[refl]] ImmId : ImmIdBase {
+    BOOST_DESCRIBE_CLASS(ImmId, (ImmIdBase), (), (), ());
     using IdType   = hstd::u64;
     using NodeIdxT = hstd::u32;
-
-    DESC_FIELDS(ImmId, ());
 
     static const hstd::u64 NodeIdxMask;
     static const hstd::u64 NodeIdxOffset;
@@ -419,6 +418,7 @@ struct [[refl]] ImmId : ImmIdBase {
 
 template <typename T>
 struct ImmIdT : public ImmId {
+    BOOST_DESCRIBE_CLASS(ImmIdT, (ImmId), (), (), ());
     ImmId toId() const { return *this; }
     ImmIdT(ImmId base) : ImmId(base) {}
     ImmIdT() : ImmId(ImmId::Nil()) {}

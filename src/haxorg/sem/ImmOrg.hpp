@@ -407,6 +407,7 @@ template <org::imm::IsImmOrgValueType T>
 struct ImmAstKindStore {
     using NodeType = T;
     hstd::dod::InternStore<org::imm::ImmId, T> values;
+    DESC_FIELDS(ImmAstKindStore, (values));
 
     int size() const { return values.size(); }
 
@@ -616,8 +617,7 @@ struct
       "holder-type": "shared"
     }
   }
-})")]] ImmAstContext
-    : hstd::SharedPtrApi<ImmAstContext> {
+})")]] ImmAstContext : hstd::SharedPtrApi<ImmAstContext> {
     /// \brief Shared operation tracer for the debug operations.
     hstd::SPtr<hstd::OperationsTracer> debug;
     /// \brief Shared AST store, the underlying store data is shared
