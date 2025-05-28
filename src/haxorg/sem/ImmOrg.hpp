@@ -338,7 +338,13 @@ struct ImmAstTrackingMap {
 
     DESC_FIELDS(
         ImmAstTrackingMap,
-        (footnotes, subtrees, radioTargets, anchorTargets, parents));
+        (footnotes,
+         subtrees,
+         radioTargets,
+         anchorTargets,
+         parents,
+         hashtagDefinitions,
+         names));
 
     bool isParentTracked(ImmId const& item) const {
         return parents.contains(item);

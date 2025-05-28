@@ -3,11 +3,16 @@
 
 #include <hstd/system/reflection.hpp>
 
+namespace {
 int level = 0;
+}
+
 
 // #define __trace_call()                                                    \
 //     std::cerr << fmt(                                                     \
-//         "{}Calling {}", hstd::Str{level++, ' '}, __PRETTY_FUNCTION__)     \
+//         "{}Calling {}",                                                   \
+//         hstd::Str{level++, ' '},                                          \
+//         hstd::value_metadata<decltype(v)>::typeName())                    \
 //               << std::endl;                                               \
 //     auto __scope = hstd::finally{[&]() { --level; }};
 
@@ -15,6 +20,106 @@ int level = 0;
 
 using namespace org::imm;
 
+#include <msgpack.hpp>
+#include <string>
+#include <format>
+
+std::string msgpack_object_to_tree(
+    msgpack::object const& o,
+    int                    depth = 0) {
+    std::ostringstream ss;
+
+    std::function<void(msgpack::object const&, int)> traverse =
+        [&](msgpack::object const& obj, int d) {
+            std::string indent(d * 2, ' ');
+
+            switch (obj.type) {
+                case msgpack::type::NIL:
+                    ss << std::format("{}NIL\n", indent);
+                    break;
+
+                case msgpack::type::BOOLEAN:
+                    ss << std::format(
+                        "{}BOOLEAN: {}\n",
+                        indent,
+                        obj.via.boolean ? "true" : "false");
+                    break;
+
+                case msgpack::type::POSITIVE_INTEGER:
+                    ss << std::format(
+                        "{}POSITIVE_INTEGER: {}\n", indent, obj.via.u64);
+                    break;
+
+                case msgpack::type::NEGATIVE_INTEGER:
+                    ss << std::format(
+                        "{}NEGATIVE_INTEGER: {}\n", indent, obj.via.i64);
+                    break;
+
+                case msgpack::type::FLOAT32:
+                    ss << std::format(
+                        "{}FLOAT32: {}\n", indent, obj.via.f64);
+                    break;
+
+                case msgpack::type::FLOAT64:
+                    ss << std::format(
+                        "{}FLOAT64: {}\n", indent, obj.via.f64);
+                    break;
+
+                case msgpack::type::STR:
+                    ss << std::format(
+                        "{}STR[{}]: \"{}\"\n",
+                        indent,
+                        obj.via.str.size,
+                        std::string(obj.via.str.ptr, obj.via.str.size));
+                    break;
+
+                case msgpack::type::BIN:
+                    ss << std::format(
+                        "{}BIN[{}]: <binary data>\n",
+                        indent,
+                        obj.via.bin.size);
+                    break;
+
+                case msgpack::type::ARRAY:
+                    ss << std::format(
+                        "{}ARRAY[{}]:\n", indent, obj.via.array.size);
+                    for (uint32_t i = 0; i < obj.via.array.size; ++i) {
+                        ss << std::format("{}  [{}]:\n", indent, i);
+                        traverse(obj.via.array.ptr[i], d + 2);
+                    }
+                    break;
+
+                case msgpack::type::MAP:
+                    ss << std::format(
+                        "{}MAP[{}]:\n", indent, obj.via.map.size);
+                    for (uint32_t i = 0; i < obj.via.map.size; ++i) {
+                        ss << std::format("{}  Key[{}]:\n", indent, i);
+                        traverse(obj.via.map.ptr[i].key, d + 2);
+                        ss << std::format("{}  Value[{}]:\n", indent, i);
+                        traverse(obj.via.map.ptr[i].val, d + 2);
+                    }
+                    break;
+
+                case msgpack::type::EXT:
+                    ss << std::format(
+                        "{}EXT[type={}, size={}]: <extension data>\n",
+                        indent,
+                        obj.via.ext.type(),
+                        obj.via.ext.size);
+                    break;
+
+                default:
+                    ss << std::format(
+                        "{}UNKNOWN[type={}]\n",
+                        indent,
+                        static_cast<int>(obj.type));
+                    break;
+            }
+        };
+
+    traverse(o, depth);
+    return ss.str();
+}
 
 namespace msgpack {
 inline namespace MSGPACK_DEFAULT_API_NS {
@@ -30,8 +135,9 @@ void pack_field(
 }
 
 template <typename T>
-void convert_field(msgpack::object_kv* p, T& value) {
+void convert_field(msgpack::object_kv*& p, T& value) {
     p->val.convert(value);
+    ++p;
 }
 
 hstd::generator<msgpack::object_kv*> convert_map_pairs(
@@ -84,7 +190,7 @@ void expect_map(
 template <typename T>
 void expect_array(
     msgpack::object const& o,
-    int                    size,
+    int                    size     = -1,
     int                    line     = __builtin_LINE(),
     char const*            function = __builtin_FUNCTION(),
     char const*            file     = __builtin_FILE()) {
@@ -117,6 +223,7 @@ struct convert<std::variant<Args...>> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         std::variant<Args...>& v) const {
+        __trace_call();
         expect_array<VT>(o, 2);
 
         VT result = hstd::variant_from_index<VT>(
@@ -135,6 +242,7 @@ struct pack<std::variant<Args...>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>&     o,
         std::variant<Args...> const& v) const {
+        __trace_call();
         o.pack_array(2);
         o.pack(v.index());
         std::visit([&](auto const& it) { o.pack(it); }, v);
@@ -172,6 +280,7 @@ struct convert<cctz::time_zone> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         cctz::time_zone&       v) const {
+        __trace_call();
         expect_map<cctz::time_zone>(o, 1);
         std::string name;
         o.convert(name);
@@ -186,6 +295,7 @@ struct pack<cctz::time_zone> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>& o,
         cctz::time_zone const&   v) const {
+        __trace_call();
         o.pack_map(1);
         pack_field(o, "name", v.name());
         return o;
@@ -198,6 +308,7 @@ struct convert<cctz::civil_second> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         cctz::civil_second&    v) const {
+        __trace_call();
         expect_map<cctz::civil_second>(o, 6);
         int                 year{};
         int                 month{};
@@ -223,6 +334,7 @@ struct pack<cctz::civil_second> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>&  o,
         cctz::civil_second const& v) const {
+        __trace_call();
         o.pack_map(6);
         pack_field(o, "year", v.year());
         pack_field(o, "month", v.month());
@@ -239,6 +351,7 @@ struct convert<hstd::Str> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         hstd::Str&             v) const {
+        __trace_call();
         o.convert<std::string>(v);
         return o;
     }
@@ -250,6 +363,7 @@ struct pack<hstd::Str> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>& o,
         hstd::Str const&         v) const {
+        __trace_call();
         o.pack<std::string>(v);
         return o;
     }
@@ -261,6 +375,7 @@ struct convert<org::imm::ImmId> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         org::imm::ImmId&       v) const {
+        __trace_call();
         typename org::imm::ImmId::IdType id_value{};
         o.convert(id_value);
         v = org::imm::ImmId::FromValue(id_value);
@@ -274,6 +389,7 @@ struct pack<org::imm::ImmId> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>& o,
         org::imm::ImmId const&   v) const {
+        __trace_call();
         o.pack(v.getValue());
         return o;
     }
@@ -285,6 +401,7 @@ struct convert<org::imm::ImmIdT<T>> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         org::imm::ImmIdT<T>&   v) const {
+        __trace_call();
         typename org::imm::ImmIdT<T>::IdType id_value{};
         o.convert(id_value);
         v = org::imm::ImmIdT<T>::FromValue(id_value);
@@ -298,6 +415,7 @@ struct pack<org::imm::ImmIdT<T>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>&   o,
         org::imm::ImmIdT<T> const& v) const {
+        __trace_call();
         o.pack(v.getValue());
         return o;
     }
@@ -309,6 +427,7 @@ struct convert<immer::box<T>> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         immer::box<T>&         v) const {
+        __trace_call();
         T tmp = hstd::SerdeDefaultProvider<T>::get();
         o.convert(tmp);
         v = tmp;
@@ -322,6 +441,7 @@ struct pack<immer::box<T>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>& o,
         immer::box<T> const&     v) const {
+        __trace_call();
         o.pack(v.get());
         return o;
     }
@@ -333,6 +453,7 @@ struct convert<immer::flex_vector<T>> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         immer::flex_vector<T>& v) const {
+        __trace_call();
         if (o.type != msgpack::type::ARRAY) {
             throw msgpack::type_error();
         }
@@ -356,6 +477,7 @@ struct pack<immer::flex_vector<T>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>&     o,
         immer::flex_vector<T> const& v) const {
+        __trace_call();
         uint32_t size = checked_get_container_size(v.size());
         o.pack_array(size);
         for (auto const& it : v) { o.pack(it); }
@@ -368,6 +490,7 @@ struct convert_iterable_sequence {
     msgpack::object const& operator()(
         msgpack::object const& o,
         Container&             v) const {
+        __trace_call();
         if (o.type != msgpack::type::ARRAY) {
             throw msgpack::type_error();
         }
@@ -393,6 +516,7 @@ struct pack<hstd::Vec<T>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>& o,
         hstd::Vec<T> const&      v) const {
+        __trace_call();
         uint32_t size = checked_get_container_size(v.size());
         o.pack_array(size);
         for (auto const& it : v) { o.pack(it); }
@@ -410,9 +534,10 @@ struct pack<hstd::SmallVec<T, Size>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>&       o,
         hstd::SmallVec<T, Size> const& v) const {
+        __trace_call();
         uint32_t size = checked_get_container_size(v.size());
-        o.pack_array(size);
-        for (auto const& it : v) { o.pack(it); }
+        o.pack_array(v.size());
+        for (auto const& item : v) { o.pack(item); }
         return o;
     }
 };
@@ -423,13 +548,16 @@ struct convert<immer::map<K, V>> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         immer::map<K, V>&      v) const {
-        if (o.type != msgpack::type::MAP) { throw msgpack::type_error(); }
+        __trace_call();
+        expect_array<immer::map<K, V>>(o);
         auto tmp = v.transient();
-        for (auto p : convert_map_pairs(o)) {
+        for (uint32_t i = 0; i < o.via.array.size; ++i) {
+            msgpack::object const& pair_obj = o.via.array.ptr[i];
+            expect_array<std::pair<K, V>>(pair_obj);
             K key   = hstd::SerdeDefaultProvider<K>::get();
             V value = hstd::SerdeDefaultProvider<V>::get();
-            p->key.convert(key);
-            p->val.convert(value);
+            pair_obj.via.array.ptr[0].convert(key);
+            pair_obj.via.array.ptr[1].convert(value);
             tmp.set(key, value);
         }
 
@@ -445,10 +573,12 @@ struct pack<immer::map<K, V>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>& o,
         immer::map<K, V> const&  v) const {
+        __trace_call();
 
         uint32_t size = checked_get_container_size(v.size());
-        o.pack_map(size);
+        o.pack_array(size);
         for (auto const& [key, value] : v) {
+            o.pack_array(2);
             o.pack(key);
             o.pack(value);
         }
@@ -463,6 +593,7 @@ struct convert<hstd::ext::ImmMap<K, V>> {
     msgpack::object const& operator()(
         msgpack::object const&   o,
         hstd::ext::ImmMap<K, V>& v) const {
+        __trace_call();
         o.convert<immer::map<K, V>>(v);
         return o;
     }
@@ -474,6 +605,7 @@ struct pack<hstd::ext::ImmMap<K, V>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>&       o,
         hstd::ext::ImmMap<K, V> const& v) const {
+        __trace_call();
         o.pack<immer::map<K, V>>(v);
         return o;
     }
@@ -485,7 +617,22 @@ struct convert<hstd::UnorderedMap<K, V>> {
     msgpack::object const& operator()(
         msgpack::object const&    o,
         hstd::UnorderedMap<K, V>& v) const {
-        o.convert<std::unordered_map<K, V>>(v);
+        __trace_call();
+        expect_array<hstd::UnorderedMap<K, V>>(o);
+
+        v.clear();
+        v.reserve(o.via.array.size);
+
+        for (uint32_t i = 0; i < o.via.array.size; ++i) {
+            msgpack::object const& pair_obj = o.via.array.ptr[i];
+            expect_array<hstd::UnorderedMap<K, V>>(pair_obj, 2);
+
+            K key   = hstd::SerdeDefaultProvider<K>::get();
+            V value = hstd::SerdeDefaultProvider<V>::get();
+            pair_obj.via.array.ptr[0].convert(key);
+            pair_obj.via.array.ptr[1].convert(value);
+            v.emplace(std::move(key), std::move(value));
+        }
         return o;
     }
 };
@@ -496,7 +643,13 @@ struct pack<hstd::UnorderedMap<K, V>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>&        o,
         hstd::UnorderedMap<K, V> const& v) const {
-        o.pack<std::unordered_map<K, V>>(v);
+        __trace_call();
+        o.pack_array(v.size());
+        for (auto const& pair : v) {
+            o.pack_array(2);
+            o.pack(pair.first);
+            o.pack(pair.second);
+        }
         return o;
     }
 };
@@ -507,8 +660,9 @@ struct convert<hstd::dod::Store<Id, T>> {
     msgpack::object const& operator()(
         msgpack::object const&   o,
         hstd::dod::Store<Id, T>& v) const {
+        __trace_call();
         msgpack::object_kv* p(o.via.map.ptr);
-        p->val.convert(v.content);
+        convert_field(p, v.content);
         return o;
     }
 };
@@ -519,6 +673,7 @@ struct pack<hstd::dod::Store<Id, T>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>&       o,
         hstd::dod::Store<Id, T> const& v) const {
+        __trace_call();
         o.pack_map(1);
         pack_field(o, "content", v.content);
         return o;
@@ -530,6 +685,7 @@ template <hstd::DescribedRecord T>
 struct convert<T> {
     msgpack::object const& operator()(msgpack::object const& o, T& v)
         const {
+        __trace_call();
         int size = 0;
         hstd::for_each_field_value_with_bases(
             v, [&](char const*, auto const& field) { ++size; });
@@ -552,6 +708,7 @@ struct pack<T> {
     template <typename Stream>
     packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v)
         const {
+        __trace_call();
         int size = 0;
         hstd::for_each_field_value_with_bases(
             v, [&](char const*, auto const& field) { ++size; });
@@ -570,13 +727,14 @@ struct convert<ImmAstStore> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         ImmAstStore&           v) const {
-#define _kind(__Kind) +1;
+        __trace_call();
+#define _kind(__Kind) +1
         constexpr int store_size = 0 EACH_SEM_ORG_KIND(_kind);
 #undef _kind
 
         expect_map<ImmAstStore>(o, store_size);
-
-#define _kind(__Kind) o.convert(v.store##__Kind);
+        msgpack::object_kv* p(o.via.map.ptr);
+#define _kind(__Kind) convert_field(p, v.store##__Kind);
         EACH_SEM_ORG_KIND(_kind);
 #undef _kind
         return o;
@@ -589,39 +747,26 @@ struct pack<ImmAstStore> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>& o,
         ImmAstStore const&       v) const {
-#define _kind(__Kind) +1;
+        __trace_call();
+#define _kind(__Kind) +1
         constexpr int store_size = 0 EACH_SEM_ORG_KIND(_kind);
 #undef _kind
 
         o.pack_map(store_size);
 
-#define _kind(__Kind) o.pack(v.store##__Kind);
+#define _kind(__Kind) pack_field(o, "store" #__Kind, v.store##__Kind);
         EACH_SEM_ORG_KIND(_kind);
 #undef _kind
         return o;
     }
 };
 
-template <typename T>
-struct pack<std::shared_ptr<T>> {
-    template <typename Stream>
-    packer<Stream>& operator()(
-        msgpack::packer<Stream>&  o,
-        std::shared_ptr<T> const& v) const {
-        if (v) {
-            return o.pack(*v);
-        } else {
-            return o.pack_nil();
-        }
-    }
-};
-
-
 template <>
 struct convert<std::shared_ptr<ImmAstContext>> {
     msgpack::object const& operator()(
         msgpack::object const&          o,
         std::shared_ptr<ImmAstContext>& v) const {
+        __trace_call();
         expect_map<std::shared_ptr<ImmAstContext>>(o, 2);
         msgpack::object_kv* p(o.via.map.ptr);
         convert_field(p, *v->store);
@@ -636,6 +781,7 @@ struct pack<std::shared_ptr<ImmAstContext>> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>&              o,
         std::shared_ptr<ImmAstContext> const& v) const {
+        __trace_call();
         o.pack_map(2);
         pack_field(o, "store", *v->store);
         pack_field(o, "currentTrack", *v->currentTrack);
@@ -667,7 +813,9 @@ void org::imm::serializeFromText(
     std::shared_ptr<ImmAstContext>& store) {
     msgpack::object_handle o = msgpack::unpack(
         binary.data(), binary.size());
-    msgpack::object                              deserialized = o.get();
+    msgpack::object deserialized = o.get();
+    hstd::writeFile(
+        "/tmp/msgpack_dump.txt", msgpack_object_to_tree(deserialized));
     msgpack::type::tuple<int, bool, std::string> dst;
     deserialized.convert(store);
 }
