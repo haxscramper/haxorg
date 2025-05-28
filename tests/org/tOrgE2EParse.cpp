@@ -23,13 +23,10 @@ TEST(TestFiles, OrgCerealSerdeRoundtrip) {
     auto start_context = org::imm::ImmAstContext::init_start_context();
     start_context->addRoot(node);
 
-    writeFile(
-        "/tmp/test_buffer.json", org::imm::serializeToJSON(start_context));
-    std::string binary_buffer = org::imm::serializeToPortableBinary(
-        start_context);
-
+    std::string binary_buffer = org::imm::serializeToText(start_context);
+    writeFile("/tmp/msgpack_dump.bin", binary_buffer);
     auto final_context = org::imm::ImmAstContext::init_start_context();
-    org::imm::readFromPortableBinary(binary_buffer, final_context);
+    org::imm::serializeFromText(binary_buffer, final_context);
 
     Vec<compare_report> out;
 

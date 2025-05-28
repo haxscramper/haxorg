@@ -87,7 +87,7 @@ TEST(ManualFileRun, TestDoc1) {
 
             writeFile(
                 "/tmp/cereal_dump.bin",
-                org::imm::serializeToPortableBinary(n.context));
+                org::imm::serializeToText(n.context));
         }
     }
     LOG(INFO) << "doc1.org ok";

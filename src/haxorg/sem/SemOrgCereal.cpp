@@ -1,13 +1,6 @@
 #include "SemOrgCereal.hpp"
+#include "msgpack.hpp"
 
-#include <cereal/types/unordered_map.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/variant.hpp>
-#include <cereal/archives/portable_binary.hpp>
-#include <cereal/archives/binary.hpp>
-#include <cereal/archives/xml.hpp>
-#include <cereal/archives/json.hpp>
-#include <cereal/types/string.hpp>
 #include <hstd/system/reflection.hpp>
 
 int level = 0;
@@ -22,558 +15,659 @@ int level = 0;
 
 using namespace org::imm;
 
-template <typename T>
-struct OrgCereal {};
 
-template <typename T>
-concept HasOrgCerealSpecialization //
-    = requires { typename OrgCereal<T>; }
-   && requires(
-          cereal::BinaryOutputArchive&         bin_out,
-          cereal::BinaryInputArchive&          bin_in,
-          cereal::PortableBinaryOutputArchive& pbin_out,
-          cereal::PortableBinaryInputArchive&  pbin_in,
-          cereal::JSONOutputArchive&           json_out,
-          cereal::JSONInputArchive&            json_in,
-          cereal::XMLOutputArchive&            xml_out,
-          cereal::XMLInputArchive&             xml_in,
-          T const&                             const_value,
-          T&                                   value) {
-          {
-              OrgCereal<T>::save(bin_out, const_value)
-          } -> std::same_as<void>;
-          { OrgCereal<T>::load(bin_in, value) } -> std::same_as<void>;
-          {
-              OrgCereal<T>::save(pbin_out, const_value)
-          } -> std::same_as<void>;
-          { OrgCereal<T>::load(pbin_in, value) } -> std::same_as<void>;
-          {
-              OrgCereal<T>::save(json_out, const_value)
-          } -> std::same_as<void>;
-          { OrgCereal<T>::load(json_in, value) } -> std::same_as<void>;
-          {
-              OrgCereal<T>::save(xml_out, const_value)
-          } -> std::same_as<void>;
-          { OrgCereal<T>::load(xml_in, value) } -> std::same_as<void>;
-      };
+namespace msgpack {
+inline namespace MSGPACK_DEFAULT_API_NS {
+namespace adaptor {
 
-template <typename Archive, typename T>
-void org_cereal_save(Archive& archive, T const& value) {
-    OrgCereal<T>::save(archive, value);
+template <typename T, typename Stream>
+void pack_field(
+    msgpack::packer<Stream>& o,
+    std::string const&       name,
+    T const&                 value) {
+    o.pack(name);
+    o.pack(value);
 }
 
-template <typename Archive, typename T>
-void org_cereal_load(Archive& archive, T& value) {
-    OrgCereal<T>::load(archive, value);
+template <typename T>
+void convert_field(msgpack::object_kv* p, T& value) {
+    p->val.convert(value);
 }
+
+hstd::generator<msgpack::object_kv*> convert_map_pairs(
+    msgpack::object const& o) {
+    msgpack::object_kv*       p(o.via.map.ptr);
+    msgpack::object_kv* const pend(o.via.map.ptr + o.via.map.size);
+    for (; p != pend; ++p) { co_yield p; }
+}
+
+hstd::generator<msgpack::object*> convert_array_items(
+    msgpack::object const& o) {
+    msgpack::object*       p    = o.via.array.ptr;
+    msgpack::object* const pend = o.via.array.ptr + o.via.array.size;
+    for (; p != pend; ++p) { co_yield p; }
+}
+
+struct htype_error : hstd::CRTP_hexception<htype_error> {};
+
+
+template <typename T>
+void expect_map(
+    msgpack::object const& o,
+    int                    size     = -1,
+    int                    line     = __builtin_LINE(),
+    char const*            function = __builtin_FUNCTION(),
+    char const*            file     = __builtin_FILE()) {
+    if (o.type != msgpack::type::MAP) {
+        throw htype_error::init(
+            hstd::fmt(
+                "expected array, got {} in {}",
+                o.type,
+                hstd::value_metadata<T>::typeName()),
+            line,
+            function);
+    }
+    if (size != -1) {
+        if (o.via.map.size != size) {
+            throw htype_error::init(
+                hstd::fmt(
+                    "map size does not match, expected {} got {} in {}",
+                    size,
+                    o.via.map.size,
+                    hstd::value_metadata<T>::typeName()),
+                line,
+                function);
+        }
+    }
+}
+
+template <typename T>
+void expect_array(
+    msgpack::object const& o,
+    int                    size,
+    int                    line     = __builtin_LINE(),
+    char const*            function = __builtin_FUNCTION(),
+    char const*            file     = __builtin_FILE()) {
+    if (o.type != msgpack::type::ARRAY) {
+        throw htype_error::init(
+            hstd::fmt(
+                "expected map, got {} in {}",
+                o.type,
+                hstd::value_metadata<T>::typeName()),
+            line,
+            function);
+    }
+    if (size != -1) {
+        if (o.via.array.size != size) {
+            throw htype_error::init(
+                hstd::fmt(
+                    "array size does not match, expected {} got {} in {}",
+                    size,
+                    o.via.map.size,
+                    hstd::value_metadata<T>::typeName()),
+                line,
+                function);
+        }
+    }
+}
+
+template <typename... Args>
+struct convert<std::variant<Args...>> {
+    using VT = std::variant<Args...>;
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        std::variant<Args...>& v) const {
+        expect_array<VT>(o, 2);
+
+        VT result = hstd::variant_from_index<VT>(
+            o.via.array.ptr[0].as<int>());
+        std::visit(
+            [&](auto& out) { o.via.array.ptr[1].convert(out); }, result);
+
+        return o;
+    }
+};
+
+template <typename... Args>
+struct pack<std::variant<Args...>> {
+    using VT = std::variant<Args...>;
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&     o,
+        std::variant<Args...> const& v) const {
+        o.pack_array(2);
+        o.pack(v.index());
+        std::visit([&](auto const& it) { o.pack(it); }, v);
+        return o;
+    }
+};
 
 
 template <hstd::IsEnum E>
-struct OrgCereal<E> {
-    template <typename Archive>
-    static void save(Archive& archive, E const& id) {
-        __trace_call();
-        org_cereal_save(
-            archive, static_cast<std::underlying_type_t<E>>(id));
-    }
+struct convert<E> {
+    msgpack::object const& operator()(msgpack::object const& o, E& v)
+        const {
+        if (o.type != msgpack::type::POSITIVE_INTEGER) {
+            throw msgpack::type_error();
+        }
 
-    template <typename Archive>
-    static void load(Archive& archive, E& id) {
-        __trace_call();
-        std::underlying_type_t<E> value;
-        org_cereal_load(archive, value);
-        id = static_cast<E>(value);
+        v = static_cast<E>(o.via.u64);
+        return o;
     }
 };
 
-template <>
-struct OrgCereal<cctz::time_zone> {
-    template <typename Archive>
-    static void save(Archive& archive, cctz::time_zone const& zone) {
-        __trace_call();
-        org_cereal_save(archive, zone.name());
+template <hstd::IsEnum E>
+struct pack<E> {
+    template <typename Stream>
+    packer<Stream>& operator()(msgpack::packer<Stream>& o, E const& v)
+        const {
+        o.pack(static_cast<hstd::u64>(v));
+        return o;
     }
+};
 
-    template <typename Archive>
-    static void load(Archive& archive, cctz::time_zone& id) {
-        __trace_call();
+
+template <>
+struct convert<cctz::time_zone> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        cctz::time_zone&       v) const {
+        expect_map<cctz::time_zone>(o, 1);
         std::string name;
-        org_cereal_load(archive, name);
-        cctz::load_time_zone(name, &id);
+        o.convert(name);
+        cctz::load_time_zone(name, &v);
+        return o;
     }
 };
 
 template <>
-struct OrgCereal<cctz::civil_second> {
-    template <typename Archive>
-    static void save(Archive& archive, cctz::civil_second const& time) {
-        __trace_call();
-        org_cereal_save(archive, time.year());
-        org_cereal_save(archive, time.month());
-        org_cereal_save(archive, time.day());
-        org_cereal_save(archive, time.hour());
-        org_cereal_save(archive, time.minute());
-        org_cereal_save(archive, time.second());
-    }
-
-    template <typename Archive>
-    static void load(Archive& archive, cctz::civil_second& time) {
-        __trace_call();
-        int year{};
-        int month{};
-        int day{};
-        int hour{};
-        int minute{};
-        int second{};
-        org_cereal_load(archive, year);
-        org_cereal_load(archive, month);
-        org_cereal_load(archive, day);
-        org_cereal_load(archive, hour);
-        org_cereal_load(archive, minute);
-        org_cereal_load(archive, second);
-        time = cctz::civil_second{year, month, day, hour, minute, second};
+struct pack<cctz::time_zone> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        cctz::time_zone const&   v) const {
+        o.pack_map(1);
+        pack_field(o, "name", v.name());
+        return o;
     }
 };
 
 
 template <>
-struct OrgCereal<org::imm::ImmId> {
-    template <typename Archive>
-    static void save(Archive& archive, org::imm::ImmId const& id) {
-        __trace_call();
-        org_cereal_save(archive, id.getValue());
-    }
-
-    template <typename Archive>
-    static void load(Archive& archive, org::imm::ImmId& id) {
-        __trace_call();
-        org::imm::ImmId::IdType id_value{};
-        org_cereal_load(archive, id_value);
-        id = org::imm::ImmId::FromValue(id_value);
+struct convert<cctz::civil_second> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        cctz::civil_second&    v) const {
+        expect_map<cctz::civil_second>(o, 6);
+        int                 year{};
+        int                 month{};
+        int                 day{};
+        int                 hour{};
+        int                 minute{};
+        int                 second{};
+        msgpack::object_kv* p(o.via.map.ptr);
+        convert_field(p, year);
+        convert_field(p, month);
+        convert_field(p, day);
+        convert_field(p, hour);
+        convert_field(p, minute);
+        convert_field(p, second);
+        v = cctz::civil_second{year, month, day, hour, minute, second};
+        return o;
     }
 };
-
-#define CEREAL_TRIVIAL_BUILTIN(__type)                                    \
-    template <>                                                           \
-    struct OrgCereal<__type> {                                            \
-        template <typename Archive>                                       \
-        static void save(Archive& archive, __type const& id) {            \
-            __trace_call();                                               \
-            archive(id);                                                  \
-        }                                                                 \
-                                                                          \
-        template <typename Archive>                                       \
-        static void load(Archive& archive, __type& id) {                  \
-            __trace_call();                                               \
-            archive(id);                                                  \
-        }                                                                 \
-    };
-
-CEREAL_TRIVIAL_BUILTIN(int);
-CEREAL_TRIVIAL_BUILTIN(float);
-CEREAL_TRIVIAL_BUILTIN(hstd::u64);
-CEREAL_TRIVIAL_BUILTIN(bool);
-CEREAL_TRIVIAL_BUILTIN(std::string);
-CEREAL_TRIVIAL_BUILTIN(std::size_t);
-CEREAL_TRIVIAL_BUILTIN(short);
-CEREAL_TRIVIAL_BUILTIN(unsigned short);
-CEREAL_TRIVIAL_BUILTIN(long);
 
 template <>
-struct OrgCereal<hstd::Str> {
-    template <typename Archive>
-    static void save(Archive& archive, hstd::Str const& id) {
-        __trace_call();
-        org_cereal_save<Archive, std::string>(archive, id.toBase());
-    }
-
-    template <typename Archive>
-    static void load(Archive& archive, hstd::Str& id) {
-        __trace_call();
-        org_cereal_load<Archive, std::string>(archive, id);
+struct pack<cctz::civil_second> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&  o,
+        cctz::civil_second const& v) const {
+        o.pack_map(6);
+        pack_field(o, "year", v.year());
+        pack_field(o, "month", v.month());
+        pack_field(o, "day", v.day());
+        pack_field(o, "hour", v.hour());
+        pack_field(o, "minute", v.minute());
+        pack_field(o, "second", v.second());
+        return o;
     }
 };
+
+template <>
+struct convert<hstd::Str> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        hstd::Str&             v) const {
+        o.convert<std::string>(v);
+        return o;
+    }
+};
+
+template <>
+struct pack<hstd::Str> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        hstd::Str const&         v) const {
+        o.pack<std::string>(v);
+        return o;
+    }
+};
+
+
+template <>
+struct convert<org::imm::ImmId> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        org::imm::ImmId&       v) const {
+        typename org::imm::ImmId::IdType id_value{};
+        o.convert(id_value);
+        v = org::imm::ImmId::FromValue(id_value);
+        return o;
+    }
+};
+
+template <>
+struct pack<org::imm::ImmId> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        org::imm::ImmId const&   v) const {
+        o.pack(v.getValue());
+        return o;
+    }
+};
+
 
 template <typename T>
-struct OrgCereal<org::imm::ImmIdT<T>> {
-    template <typename Archive>
-    static void save(Archive& archive, org::imm::ImmIdT<T> const& id) {
-        __trace_call();
-        org_cereal_save(archive, id.getValue());
-    }
-
-    template <typename Archive>
-    static void load(Archive& archive, org::imm::ImmIdT<T>& id) {
-        __trace_call();
+struct convert<org::imm::ImmIdT<T>> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        org::imm::ImmIdT<T>&   v) const {
         typename org::imm::ImmIdT<T>::IdType id_value{};
-        org_cereal_load(archive, id_value);
-        id = org::imm::ImmIdT<T>::FromValue(id_value);
+        o.convert(id_value);
+        v = org::imm::ImmIdT<T>::FromValue(id_value);
+        return o;
     }
 };
-template <typename... Args>
-struct OrgCereal<std::variant<Args...>> {
-    using VT = std::variant<Args...>;
-    template <typename Archive>
-    static void save(Archive& archive, VT const& id) {
-        __trace_call();
-        org_cereal_save(archive, id.index());
-        std::visit(
-            [&](auto const& it) { org_cereal_save(archive, it); }, id);
-    }
 
-    template <typename Archive>
-    static void load(Archive& archive, VT& id) {
-        __trace_call();
-        int index{};
-        org_cereal_load(archive, index);
-        VT result = hstd::variant_from_index<VT>(index);
-        std::visit(
-            [&](auto& out) { org_cereal_load(archive, out); }, result);
+template <typename T>
+struct pack<org::imm::ImmIdT<T>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&   o,
+        org::imm::ImmIdT<T> const& v) const {
+        o.pack(v.getValue());
+        return o;
     }
 };
 
 
 template <typename T>
-struct OrgCereal<std::optional<T>> {
-    template <typename Archive>
-    static void save(Archive& archive, std::optional<T> const& value) {
-        __trace_call();
-        if (value) {
-            org_cereal_save(archive, true);
-            org_cereal_save(archive, value.value());
-        } else {
-            org_cereal_save(archive, false);
-        }
-    }
-
-    template <typename Archive>
-    static void load(Archive& archive, std::optional<T>& value) {
-        __trace_call();
-        bool has_value;
-        org_cereal_load(archive, has_value);
-        if (has_value) {
-            value = hstd::SerdeDefaultProvider<T>::get();
-            org_cereal_load(archive, *value);
-        } else {
-            value = std::nullopt;
-        }
-    }
-};
-
-template <typename T>
-struct OrgCereal<immer::box<T>> {
-    template <typename Archive>
-    static void save(Archive& archive, immer::box<T> const& value) {
-        __trace_call();
-        org_cereal_save(archive, value.get());
-    }
-
-    template <typename Archive>
-    static void load(Archive& archive, immer::box<T>& value) {
-        __trace_call();
+struct convert<immer::box<T>> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        immer::box<T>&         v) const {
         T tmp = hstd::SerdeDefaultProvider<T>::get();
-        org_cereal_load(archive, tmp);
-        value = tmp;
+        o.convert(tmp);
+        v = tmp;
+        return o;
     }
 };
 
 template <typename T>
-struct OrgCereal<immer::flex_vector<T>> {
-    template <typename Archive>
-    static void save(
-        Archive&                     archive,
-        immer::flex_vector<T> const& value) {
-        __trace_call();
-        archive(cereal::make_size_tag(value.size()));
-        for (auto const& it : value) { archive(it); }
+struct pack<immer::box<T>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        immer::box<T> const&     v) const {
+        o.pack(v.get());
+        return o;
     }
+};
 
-    template <typename Archive>
-    static void load(Archive& archive, immer::flex_vector<T>& value) {
-        __trace_call();
-        immer::flex_vector_transient<T> tmp  = value.transient();
-        int                             size = 0;
-        archive(size);
-        for (int i = 0; i < size; ++i) {
-            if constexpr (std::is_default_constructible_v<T>) {
-                T tmp_value{};
-                org_cereal_load(archive, tmp_value);
-                tmp.push_back(tmp_value);
-            } else {
-                T tmp_value = hstd::SerdeDefaultProvider<T>::get();
-                org_cereal_load(archive, tmp_value);
-                tmp.push_back(tmp_value);
-            }
+
+template <typename T>
+struct convert<immer::flex_vector<T>> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        immer::flex_vector<T>& v) const {
+        if (o.type != msgpack::type::ARRAY) {
+            throw msgpack::type_error();
         }
-        value = tmp.persistent();
+
+        immer::flex_vector_transient<T> tmp = v.transient();
+        for (auto p : convert_array_items(o)) {
+            T tmp_value = hstd::SerdeDefaultProvider<T>::get();
+            p->convert(tmp_value);
+            tmp.push_back(tmp_value);
+        }
+
+        v = tmp.persistent();
+
+        return o;
+    }
+};
+
+template <typename T>
+struct pack<immer::flex_vector<T>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&     o,
+        immer::flex_vector<T> const& v) const {
+        uint32_t size = checked_get_container_size(v.size());
+        o.pack_array(size);
+        for (auto const& it : v) { o.pack(it); }
+        return o;
     }
 };
 
 template <typename T, typename Container>
-struct OrgCerealIterableSequence {
-    template <typename Archive>
-    static void save(Archive& archive, Container const& value) {
-        __trace_call();
-        archive(cereal::make_size_tag(value.size()));
-        for (auto const& it : value) { org_cereal_save(archive, it); }
-    }
-
-    template <typename Archive>
-    static void load(Archive& archive, Container& value) {
-        __trace_call();
-        int size = 0;
-        archive(size);
-
-        if constexpr (std::is_default_constructible_v<T>) {
-            value.resize(size);
-        } else {
-            value.resize(size, hstd::SerdeDefaultProvider<T>::get());
+struct convert_iterable_sequence {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        Container&             v) const {
+        if (o.type != msgpack::type::ARRAY) {
+            throw msgpack::type_error();
+        }
+        v.reserve(o.via.array.size);
+        for (auto p : convert_array_items(o)) {
+            T tmp = hstd::SerdeDefaultProvider<T>::get();
+            p->convert(tmp);
+            v.push_back(tmp);
         }
 
-        for (auto& it : value) { org_cereal_load(archive, it); }
+        return o;
     }
 };
 
 template <typename T>
-struct OrgCereal<hstd::Vec<T>>
-    : public OrgCerealIterableSequence<T, hstd::Vec<T>> {};
+struct convert<hstd::Vec<T>>
+    : public convert_iterable_sequence<T, hstd::Vec<T>> {};
+
+
+template <typename T>
+struct pack<hstd::Vec<T>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        hstd::Vec<T> const&      v) const {
+        uint32_t size = checked_get_container_size(v.size());
+        o.pack_array(size);
+        for (auto const& it : v) { o.pack(it); }
+        return o;
+    }
+};
 
 template <typename T, int Size>
-struct OrgCereal<hstd::SmallVec<T, Size>>
-    : public OrgCerealIterableSequence<T, hstd::SmallVec<T, Size>> {};
+struct convert<hstd::SmallVec<T, Size>>
+    : convert_iterable_sequence<T, hstd::SmallVec<T, Size>> {};
+
+template <typename T, int Size>
+struct pack<hstd::SmallVec<T, Size>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&       o,
+        hstd::SmallVec<T, Size> const& v) const {
+        uint32_t size = checked_get_container_size(v.size());
+        o.pack_array(size);
+        for (auto const& it : v) { o.pack(it); }
+        return o;
+    }
+};
+
 
 template <typename K, typename V>
-struct OrgCereal<immer::map<K, V>> {
-    template <typename Archive>
-    static void save(Archive& archive, immer::map<K, V> const& map) {
-        __trace_call();
-        archive(cereal::make_size_tag(static_cast<int>(map.size())));
-        for (auto const& [key, value] : map) {
-            org_cereal_save(archive, key);
-            org_cereal_save(archive, value);
-        }
-    }
-
-    template <typename Archive>
-    static void load(Archive& archive, immer::map<K, V>& map) {
-        __trace_call();
-        int  size = 0;
-        auto tmp  = map.transient();
-        archive(cereal::make_size_tag(size));
-        for (int i = 0; i < size; ++i) {
+struct convert<immer::map<K, V>> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        immer::map<K, V>&      v) const {
+        if (o.type != msgpack::type::MAP) { throw msgpack::type_error(); }
+        auto tmp = v.transient();
+        for (auto p : convert_map_pairs(o)) {
             K key   = hstd::SerdeDefaultProvider<K>::get();
             V value = hstd::SerdeDefaultProvider<V>::get();
-            org_cereal_load(archive, key);
-            org_cereal_load(archive, value);
-            map.set(key, value);
+            p->key.convert(key);
+            p->val.convert(value);
+            tmp.set(key, value);
         }
-        map = tmp.persistent();
+
+        v = tmp.persistent();
+
+        return o;
     }
 };
 
 template <typename K, typename V>
-struct OrgCereal<hstd::ext::ImmMap<K, V>> {
-    template <typename Archive>
-    static void save(
-        Archive&                       archive,
-        hstd::ext::ImmMap<K, V> const& map) {
-        __trace_call();
-        OrgCereal<immer::map<K, V>>::save(archive, map);
-    }
+struct pack<immer::map<K, V>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        immer::map<K, V> const&  v) const {
 
-    template <typename Archive>
-    static void load(Archive& archive, hstd::ext::ImmMap<K, V>& map) {
-        __trace_call();
-        OrgCereal<immer::map<K, V>>::load(archive, map);
+        uint32_t size = checked_get_container_size(v.size());
+        o.pack_map(size);
+        for (auto const& [key, value] : v) {
+            o.pack(key);
+            o.pack(value);
+        }
+
+        return o;
+    }
+};
+
+
+template <typename K, typename V>
+struct convert<hstd::ext::ImmMap<K, V>> {
+    msgpack::object const& operator()(
+        msgpack::object const&   o,
+        hstd::ext::ImmMap<K, V>& v) const {
+        o.convert<immer::map<K, V>>(v);
+        return o;
     }
 };
 
 template <typename K, typename V>
-struct OrgCereal<std::unordered_map<K, V>> {
-    template <typename Archive>
-    static void save(
-        Archive&                        archive,
-        std::unordered_map<K, V> const& map) {
-        __trace_call();
-        archive(cereal::make_size_tag(static_cast<int>(map.size())));
-        for (auto const& [key, value] : map) {
-            org_cereal_save(archive, key);
-            org_cereal_save(archive, value);
-        }
+struct pack<hstd::ext::ImmMap<K, V>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&       o,
+        hstd::ext::ImmMap<K, V> const& v) const {
+        o.pack<immer::map<K, V>>(v);
+        return o;
     }
+};
 
-    template <typename Archive>
-    static void load(Archive& archive, std::unordered_map<K, V>& map) {
-        __trace_call();
-        int size = 0;
-        archive(cereal::make_size_tag(size));
-        for (int i = 0; i < size; ++i) {
-            K key   = hstd::SerdeDefaultProvider<K>::get();
-            V value = hstd::SerdeDefaultProvider<V>::get();
-            org_cereal_load(archive, key);
-            org_cereal_load(archive, value);
-            map.insert_or_assign(key, value);
-        }
+
+template <typename K, typename V>
+struct convert<hstd::UnorderedMap<K, V>> {
+    msgpack::object const& operator()(
+        msgpack::object const&    o,
+        hstd::UnorderedMap<K, V>& v) const {
+        o.convert<std::unordered_map<K, V>>(v);
+        return o;
     }
 };
 
 template <typename K, typename V>
-struct OrgCereal<hstd::UnorderedMap<K, V>> {
-    template <typename Archive>
-    static void save(
-        Archive&                        archive,
-        hstd::UnorderedMap<K, V> const& value) {
-        __trace_call();
-        OrgCereal<std::unordered_map<K, V>>::save(archive, value);
+struct pack<hstd::UnorderedMap<K, V>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&        o,
+        hstd::UnorderedMap<K, V> const& v) const {
+        o.pack<std::unordered_map<K, V>>(v);
+        return o;
     }
+};
 
-    template <typename Archive>
-    static void load(Archive& archive, hstd::UnorderedMap<K, V>& value) {
-        __trace_call();
-        OrgCereal<std::unordered_map<K, V>>::load(archive, value);
+
+template <hstd::dod::IsIdType Id, typename T>
+struct convert<hstd::dod::Store<Id, T>> {
+    msgpack::object const& operator()(
+        msgpack::object const&   o,
+        hstd::dod::Store<Id, T>& v) const {
+        msgpack::object_kv* p(o.via.map.ptr);
+        p->val.convert(v.content);
+        return o;
     }
 };
 
 template <hstd::dod::IsIdType Id, typename T>
-struct OrgCereal<hstd::dod::Store<Id, T>> {
-    template <typename Archive>
-    static void save(
-        Archive&                       archive,
-        hstd::dod::Store<Id, T> const& value) {
-        __trace_call();
-        org_cereal_save(archive, value.content);
+struct pack<hstd::dod::Store<Id, T>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&       o,
+        hstd::dod::Store<Id, T> const& v) const {
+        o.pack_map(1);
+        pack_field(o, "content", v.content);
+        return o;
     }
+};
 
-    template <typename Archive>
-    static void load(Archive& archive, hstd::dod::Store<Id, T>& value) {
-        __trace_call();
-        org_cereal_load(archive, value.content);
+
+template <hstd::DescribedRecord T>
+struct convert<T> {
+    msgpack::object const& operator()(msgpack::object const& o, T& v)
+        const {
+        int size = 0;
+        hstd::for_each_field_value_with_bases(
+            v, [&](char const*, auto const& field) { ++size; });
+
+        expect_map<T>(o, size);
+
+        msgpack::object_kv*       p(o.via.map.ptr);
+        msgpack::object_kv* const pend(o.via.map.ptr + o.via.map.size);
+        hstd::for_each_field_value_with_bases(
+            v, [&](char const*, auto& field) {
+                p->val.convert(field);
+                ++p;
+            });
+        return o;
     }
 };
 
 template <hstd::DescribedRecord T>
-struct OrgCereal<T> {
-    template <typename Archive>
-    static void save(Archive& archive, T const& value) {
-        __trace_call();
+struct pack<T> {
+    template <typename Stream>
+    packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v)
+        const {
+        int size = 0;
         hstd::for_each_field_value_with_bases(
-            value, [&](char const*, auto const& field) {
-                org_cereal_save(archive, field);
-            });
-    }
+            v, [&](char const*, auto const& field) { ++size; });
 
-    template <typename Archive>
-    static void load(Archive& archive, T& value) {
-        __trace_call();
+        o.pack_map(size);
         hstd::for_each_field_value_with_bases(
-            value, [&](char const*, auto& field) {
-                org_cereal_load(archive, field);
+            v, [&](char const* name, auto const& field) {
+                pack_field(o, name, field);
             });
-    }
-};
-
-template <org::imm::IsImmOrgValueType T>
-struct OrgCereal<ImmAstKindStore<T>> {
-    template <typename Archive>
-    static void save(Archive& archive, ImmAstKindStore<T> const& value) {
-        __trace_call();
-        archive(CEREAL_NVP_("content", value.values.content));
-        archive(CEREAL_NVP_("id_map", value.values.id_map));
-    }
-
-    template <typename Archive>
-    static void load(Archive& archive, ImmAstKindStore<T>& value) {
-        __trace_call();
-        org_cereal_load(archive, value.values.content);
-        org_cereal_load(archive, value.values.id_map);
+        return o;
     }
 };
 
 template <>
-struct OrgCereal<ImmAstStore> {
-    template <typename Archive>
-    static void save(Archive& archive, ImmAstStore const& value) {
-        __trace_call();
-#define _kind(__Kind)                                                     \
-    OrgCereal<ImmAstKindStore<Imm##__Kind>>::save(                        \
-        archive, value.store##__Kind);
-        EACH_SEM_ORG_KIND(_kind);
+struct convert<ImmAstStore> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        ImmAstStore&           v) const {
+#define _kind(__Kind) +1;
+        constexpr int store_size = 0 EACH_SEM_ORG_KIND(_kind);
 #undef _kind
-    };
 
-    template <typename Archive>
-    static void load(Archive& archive, ImmAstStore& value) {
-        __trace_call();
-#define _kind(__Kind)                                                     \
-    OrgCereal<ImmAstKindStore<Imm##__Kind>>::load(                        \
-        archive, value.store##__Kind);
+        expect_map<ImmAstStore>(o, store_size);
+
+#define _kind(__Kind) o.convert(v.store##__Kind);
         EACH_SEM_ORG_KIND(_kind);
 #undef _kind
-    };
+        return o;
+    }
 };
 
 template <>
-struct OrgCereal<std::shared_ptr<ImmAstContext>> {
-    template <typename Archive>
-    static void save(
-        Archive&                              archive,
-        std::shared_ptr<ImmAstContext> const& value) {
-        org_cereal_save(archive, *value->store);
-        org_cereal_save(archive, *value->currentTrack);
-    }
+struct pack<ImmAstStore> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        ImmAstStore const&       v) const {
+#define _kind(__Kind) +1;
+        constexpr int store_size = 0 EACH_SEM_ORG_KIND(_kind);
+#undef _kind
 
-    template <typename Archive>
-    static void load(
-        Archive&                        archive,
-        std::shared_ptr<ImmAstContext>& value) {
-        org_cereal_load(archive, *value->store);
-        org_cereal_load(archive, *value->currentTrack);
+        o.pack_map(store_size);
+
+#define _kind(__Kind) o.pack(v.store##__Kind);
+        EACH_SEM_ORG_KIND(_kind);
+#undef _kind
+        return o;
     }
 };
 
-namespace cereal {
-template <class Archive, HasOrgCerealSpecialization T>
-void save(Archive& archive, T const& value) {
-    __trace_call();
-    OrgCereal<T>::save(archive, value);
-}
+template <typename T>
+struct pack<std::shared_ptr<T>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&  o,
+        std::shared_ptr<T> const& v) const {
+        if (v) {
+            return o.pack(*v);
+        } else {
+            return o.pack_nil();
+        }
+    }
+};
 
-template <class Archive, HasOrgCerealSpecialization T>
-void load(Archive& archive, T& value) {
-    OrgCereal<T>::load(archive, value);
-}
-} // namespace cereal
+
+template <>
+struct convert<std::shared_ptr<ImmAstContext>> {
+    msgpack::object const& operator()(
+        msgpack::object const&          o,
+        std::shared_ptr<ImmAstContext>& v) const {
+        expect_map<std::shared_ptr<ImmAstContext>>(o, 2);
+        msgpack::object_kv* p(o.via.map.ptr);
+        convert_field(p, *v->store);
+        convert_field(p, *v->currentTrack);
+        return o;
+    }
+};
+
+template <>
+struct pack<std::shared_ptr<ImmAstContext>> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>&              o,
+        std::shared_ptr<ImmAstContext> const& v) const {
+        o.pack_map(2);
+        pack_field(o, "store", *v->store);
+        pack_field(o, "currentTrack", *v->currentTrack);
+        return o;
+    }
+};
 
 
-std::string org::imm::serializeToPortableBinary(
+} // namespace adaptor
+} // namespace MSGPACK_DEFAULT_API_NS
+} // namespace msgpack
+
+std::string org::imm::serializeToText(
     const std::shared_ptr<ImmAstContext>& store) {
-    std::ostringstream                  oss{std::ios::binary};
-    cereal::PortableBinaryOutputArchive archive{oss};
-    org_cereal_save(archive, store);
-    return oss.str();
+
+    std::stringstream oss{};
+
+    msgpack::pack(oss, store);
+    oss.seekg(0);
+
+    std::string tmp{oss.str()};
+
+    return tmp;
 }
 
-void org::imm::readFromPortableBinary(
-    std::string const&              binary,
+void org::imm::serializeFromText(
+    std::string const& binary,
+
     std::shared_ptr<ImmAstContext>& store) {
-    std::istringstream                 iss{binary};
-    cereal::PortableBinaryInputArchive archive{iss};
-    org_cereal_load<
-        cereal::PortableBinaryInputArchive,
-        std::shared_ptr<ImmAstContext>>(archive, store);
-}
-
-std::string org::imm::serializeToJSON(
-    const std::shared_ptr<ImmAstContext>& store) {
-
-    {
-        std::ofstream             oss{"/tmp/wip_json_dump.json"};
-        cereal::JSONOutputArchive archive{oss};
-        org_cereal_save(archive, store);
-    }
-
-    std::ostringstream        oss{};
-    cereal::JSONOutputArchive archive{oss};
-    org_cereal_save(archive, store);
-    return oss.str();
+    msgpack::object_handle o = msgpack::unpack(
+        binary.data(), binary.size());
+    msgpack::object                              deserialized = o.get();
+    msgpack::type::tuple<int, bool, std::string> dst;
+    deserialized.convert(store);
 }

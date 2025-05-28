@@ -93,20 +93,18 @@ def get_external_deps_list(
     # dependenices should happen in exact order as specified, this is especially important
     # for the google packages (gtest, protobuf, absl), as they depend on each other being
     # present.
-
+    
     dep(
-        build_name="cereal",
-        deps_name="cereal",
+        build_name="msgpack",
+        deps_name="msgpack-c",
         is_emcc_ready=True,
-        configure_args=[
-            opt("BUILD_DOC", False),
-            opt("BUILD_SANDBOX", False), 
-            opt("SKIP_PERFORMANCE_COMPARISON", True),
-            opt("BUILD_TESTS", False),
-        ],
         cmake_dirs=[
-            ("cereal", make_lib("cereal/{}/cmake/cereal")),
+            ("msgpack-cxx", ["msgpack/lib/cmake/msgpack-cxx"])
         ],
+        configure_args=[
+            opt("MSGPACK_USE_BOOST", False),
+            opt("SGPACK_BUILD_TESTS", False),
+        ]
     )
 
     dep(
@@ -118,7 +116,6 @@ def get_external_deps_list(
             ("libdwarf", make_lib("cpptrace/{}/cmake/libdwarf")),
         ],
     )
-
 
     dep(
         build_name="describe",

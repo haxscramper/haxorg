@@ -37,7 +37,7 @@ if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
 endif()
 
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json
-                                    foonathan::lexy immer cereal::cereal)
+                                    foonathan::lexy immer msgpack-cxx)
 
 if(NOT ${ORG_EMCC_BUILD})
   target_link_libraries(haxorg PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY})
