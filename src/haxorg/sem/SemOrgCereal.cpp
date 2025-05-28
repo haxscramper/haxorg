@@ -217,6 +217,26 @@ void expect_array(
     }
 }
 
+
+template <typename T>
+void expect_string(
+    msgpack::object const& o,
+    int                    line     = __builtin_LINE(),
+    char const*            function = __builtin_FUNCTION(),
+    char const*            file     = __builtin_FILE()) {
+    if (o.type != msgpack::type::STR) {
+        throw htype_error::init(
+            hstd::fmt(
+                "expected string, got {} in {} object is {}",
+                o.type,
+                hstd::value_metadata<T>::typeName(),
+                msgpack_object_to_tree(o)),
+            line,
+            function);
+    }
+}
+
+
 template <typename... Args>
 struct convert<std::variant<Args...>> {
     using VT = std::variant<Args...>;
@@ -282,8 +302,9 @@ struct convert<cctz::time_zone> {
         cctz::time_zone&       v) const {
         __trace_call();
         expect_map<cctz::time_zone>(o, 1);
-        std::string name;
-        o.convert(name);
+        msgpack::object_kv* p(o.via.map.ptr);
+        std::string         name;
+        convert_field(p, name);
         cctz::load_time_zone(name, &v);
         return o;
     }
@@ -695,10 +716,7 @@ struct convert<T> {
         msgpack::object_kv*       p(o.via.map.ptr);
         msgpack::object_kv* const pend(o.via.map.ptr + o.via.map.size);
         hstd::for_each_field_value_with_bases(
-            v, [&](char const*, auto& field) {
-                p->val.convert(field);
-                ++p;
-            });
+            v, [&](char const*, auto& field) { convert_field(p, field); });
         return o;
     }
 };

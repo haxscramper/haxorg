@@ -18,8 +18,8 @@ EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
 
 TEST(TestFiles, OrgCerealSerdeRoundtrip) {
     auto node = org::parseFile(
-        // __CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org",
-        "/home/haxscramper/tmp/doc1.org",
+        __CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org",
+        // "/home/haxscramper/tmp/doc1.org",
         OrgParseParameters::shared());
     auto start_context = org::imm::ImmAstContext::init_start_context();
     start_context->addRoot(node);
