@@ -25,9 +25,18 @@ TEST(TestFiles, OrgCerealSerdeRoundtrip) {
     start_context->addRoot(node);
 
     std::string binary_buffer = org::imm::serializeToText(start_context);
+    writeFile(
+        "/tmp/msgpack_first_dump.json",
+        org::imm::serializeFromTextToTreeDump(binary_buffer));
+
     writeFile("/tmp/msgpack_dump.bin", binary_buffer);
     auto final_context = org::imm::ImmAstContext::init_start_context();
     org::imm::serializeFromText(binary_buffer, final_context);
+
+    writeFile(
+        "/tmp/msgpack_second_dump.json",
+        org::imm::serializeFromTextToTreeDump(
+            org::imm::serializeToText(final_context)));
 
     Vec<compare_report> out;
 

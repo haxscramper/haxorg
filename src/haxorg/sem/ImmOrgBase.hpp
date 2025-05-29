@@ -414,6 +414,22 @@ struct [[refl]] ImmId : ImmIdBase {
     [[refl]] std::string getReadableId() const;
 
     void assertValid() const;
+
+    bool operator<(Id other) const noexcept {
+        return getValue() < other.getValue();
+    }
+
+    bool operator<=(Id other) const noexcept {
+        return getValue() <= other.getValue();
+    }
+
+    bool operator==(Id other) const noexcept {
+        return getValue() == other.getValue();
+    }
+
+    bool operator!=(Id other) const noexcept {
+        return getValue() != other.getValue();
+    }
 };
 
 template <typename T>

@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 
 /// \brief Data-oriented design primitives
@@ -493,7 +494,7 @@ struct InternStore {
     InternStore() = default;
 
     /// \brief Reverse ID mapping store
-    std::unordered_map<Val, Id> id_map;
+    hstd::UnorderedMap<Val, Id> id_map;
     /// \brief Underlying store for values
     dod::Store<Id, Val> content;
 

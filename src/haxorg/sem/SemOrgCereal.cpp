@@ -24,6 +24,69 @@ using namespace org::imm;
 #include <string>
 #include <format>
 
+#include <msgpack.hpp>
+#include <nlohmann/json.hpp>
+#include <functional>
+
+json msgpack_to_json(msgpack::object const& obj) {
+    std::function<json(msgpack::object const&)> convert =
+        [&](msgpack::object const& o) -> json {
+        switch (o.type) {
+            case msgpack::type::NIL: return json{};
+            case msgpack::type::BOOLEAN: return o.via.boolean;
+            case msgpack::type::POSITIVE_INTEGER: return o.via.u64;
+            case msgpack::type::NEGATIVE_INTEGER: return o.via.i64;
+            case msgpack::type::FLOAT32:
+            case msgpack::type::FLOAT64: return o.via.f64;
+
+            case msgpack::type::STR:
+                return std::string{o.via.str.ptr, o.via.str.size};
+
+            case msgpack::type::BIN: {
+                std::vector<uint8_t> bin_data{
+                    o.via.bin.ptr, o.via.bin.ptr + o.via.bin.size};
+                return json{bin_data};
+            }
+
+            case msgpack::type::ARRAY: {
+                json arr = json::array();
+                for (uint32_t i = 0; i < o.via.array.size; ++i) {
+                    arr.push_back(convert(o.via.array.ptr[i]));
+                }
+                return arr;
+            }
+
+            case msgpack::type::MAP: {
+                json obj_json = json::object();
+                for (uint32_t i = 0; i < o.via.map.size; ++i) {
+                    json value = convert(o.via.map.ptr[i].val);
+
+                    if (o.via.map.ptr[i].key.type == msgpack::type::STR) {
+                        obj_json[o.via.map.ptr[i].key.as<std::string>()] = value;
+                    } else {
+                        json key = convert(o.via.map.ptr[i].key);
+                        obj_json[key.dump()] = value;
+                    }
+                }
+                return obj_json;
+            }
+
+            case msgpack::type::EXT: {
+                json ext_obj    = json::object();
+                ext_obj["type"] = o.via.ext.type();
+                std::vector<uint8_t> ext_data{
+                    o.via.ext.data(), o.via.ext.data() + o.via.ext.size};
+                ext_obj["data"] = ext_data;
+                return ext_obj;
+            }
+
+            default: return json{};
+        }
+    };
+
+    return convert(obj);
+}
+
 std::string msgpack_object_to_tree(
     msgpack::object const& o,
     int                    depth = 0) {
@@ -246,10 +309,8 @@ struct convert<std::variant<Args...>> {
         __trace_call();
         expect_array<VT>(o, 2);
 
-        VT result = hstd::variant_from_index<VT>(
-            o.via.array.ptr[0].as<int>());
-        std::visit(
-            [&](auto& out) { o.via.array.ptr[1].convert(out); }, result);
+        v = hstd::variant_from_index<VT>(o.via.array.ptr[0].as<int>());
+        std::visit([&](auto& out) { o.via.array.ptr[1].convert(out); }, v);
 
         return o;
     }
@@ -344,6 +405,8 @@ struct convert<cctz::civil_second> {
         convert_field(p, hour);
         convert_field(p, minute);
         convert_field(p, second);
+        // _dfmt(year, month, day, hour, minute, second);
+        // _dbg(msgpack_object_to_tree(o));
         v = cctz::civil_second{year, month, day, hour, minute, second};
         return o;
     }
@@ -357,6 +420,7 @@ struct pack<cctz::civil_second> {
         cctz::civil_second const& v) const {
         __trace_call();
         o.pack_map(6);
+
         pack_field(o, "year", v.year());
         pack_field(o, "month", v.month());
         pack_field(o, "day", v.day());
@@ -598,10 +662,23 @@ struct pack<immer::map<K, V>> {
 
         uint32_t size = checked_get_container_size(v.size());
         o.pack_array(size);
-        for (auto const& [key, value] : v) {
-            o.pack_array(2);
-            o.pack(key);
-            o.pack(value);
+
+        if constexpr (requires(const K& a, const K& b) {
+                          { a < b } -> std::convertible_to<bool>;
+                      }) {
+            hstd::Vec<K> keys;
+            for (auto const& [key, value] : v) { keys.push_back(key); }
+            for (auto const& key : hstd::sorted(keys)) {
+                o.pack_array(2);
+                o.pack(key);
+                o.pack(v.at(key));
+            }
+        } else {
+            for (auto const& [key, value] : v) {
+                o.pack_array(2);
+                o.pack(key);
+                o.pack(value);
+            }
         }
 
         return o;
@@ -666,11 +743,23 @@ struct pack<hstd::UnorderedMap<K, V>> {
         hstd::UnorderedMap<K, V> const& v) const {
         __trace_call();
         o.pack_array(v.size());
-        for (auto const& pair : v) {
-            o.pack_array(2);
-            o.pack(pair.first);
-            o.pack(pair.second);
+        if constexpr (requires(const K& a, const K& b) {
+                          { a < b } -> std::convertible_to<bool>;
+                      }) {
+            for (auto const& key : hstd::sorted(v.keys())) {
+                o.pack_array(2);
+                o.pack(key);
+                o.pack(v.at(key));
+            }
+        } else {
+            for (auto const& item : v) {
+                o.pack_array(2);
+                o.pack(item.first);
+                o.pack(item.second);
+            }
         }
+
+
         return o;
     }
 };
@@ -713,10 +802,12 @@ struct convert<T> {
 
         expect_map<T>(o, size);
 
+
         msgpack::object_kv*       p(o.via.map.ptr);
         msgpack::object_kv* const pend(o.via.map.ptr + o.via.map.size);
         hstd::for_each_field_value_with_bases(
             v, [&](char const*, auto& field) { convert_field(p, field); });
+
         return o;
     }
 };
@@ -814,14 +905,10 @@ struct pack<std::shared_ptr<ImmAstContext>> {
 
 std::string org::imm::serializeToText(
     const std::shared_ptr<ImmAstContext>& store) {
-
     std::stringstream oss{};
-
     msgpack::pack(oss, store);
     oss.seekg(0);
-
     std::string tmp{oss.str()};
-
     return tmp;
 }
 
@@ -836,4 +923,19 @@ void org::imm::serializeFromText(
         "/tmp/msgpack_dump.txt", msgpack_object_to_tree(deserialized));
     msgpack::type::tuple<int, bool, std::string> dst;
     deserialized.convert(store);
+}
+
+json org::imm::serializeFromTextToJson(const std::string& binary) {
+    msgpack::object_handle o = msgpack::unpack(
+        binary.data(), binary.size());
+    msgpack::object deserialized = o.get();
+    return msgpack_to_json(deserialized);
+}
+
+std::string org::imm::serializeFromTextToTreeDump(
+    const std::string& binary) {
+    msgpack::object_handle o = msgpack::unpack(
+        binary.data(), binary.size());
+    msgpack::object deserialized = o.get();
+    return msgpack_object_to_tree(deserialized);
 }

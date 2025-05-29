@@ -106,6 +106,7 @@ sem::SemId<sem::Org> testParseString(
 }
 
 void show_compare_reports(const Vec<compare_report>& out) {
+    std::string buffer;
     for (auto const& it : out) {
         std::string ctx = it.context
                         | rv::transform(
@@ -116,7 +117,16 @@ void show_compare_reports(const Vec<compare_report>& out) {
                         | rv::join              //
                         | rs::to<std::string>();
 
-        ADD_FAILURE() << fmt(
-            "{} failed: original != parsed {}", ctx, it.message);
+        buffer += fmt(
+            "{} failed: original != parsed\n{}\n",
+            ctx,
+            hstd::indent(it.message, 2));
+    }
+
+    if (!out.empty()) {
+        auto path = getDebugFile("changes.txt");
+        ADD_FAILURE() << "Found differences in value wrote report to "
+                      << path;
+        writeFile(path.toBase(), buffer);
     }
 }
