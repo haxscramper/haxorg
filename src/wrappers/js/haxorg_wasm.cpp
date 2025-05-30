@@ -3832,8 +3832,12 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::function("getAstTrackingMap", static_cast<org::AstTrackingMap(*)(hstd::Vec<org::sem::SemId<org::sem::Org>> const&)>(&org::getAstTrackingMap));
   emscripten::function("getSubnodeGroups", static_cast<hstd::Vec<org::AstTrackingGroup>(*)(org::sem::SemId<org::sem::Org>, org::AstTrackingMap const&)>(&org::getSubnodeGroups));
   emscripten::function("annotateSequence", static_cast<hstd::Vec<hstd::SequenceAnnotation>(*)(hstd::Vec<hstd::SequenceSegmentGroup> const&, int, int)>(&hstd::annotateSequence));
-  haxorg_wasm_manual_register();
+  emscripten::function("serializeToText", static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText));
+  emscripten::function("serializeFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext>&)>(&org::imm::serializeFromText));
+  emscripten::function("serializeFromTextToTreeDump", static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump));
 }
+
+void subdivide_9(org::bind::js::type_registration_guard& g) { haxorg_wasm_manual_register(); }
 
 EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   org::bind::js::type_registration_guard g;
@@ -3846,5 +3850,6 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   subdivide_6(g);
   subdivide_7(g);
   subdivide_8(g);
+  subdivide_9(g);
 }
 /* clang-format on */

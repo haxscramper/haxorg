@@ -174,5 +174,10 @@ TEST(ManualFileRun, TestDir1) {
             gv,
             hstd::ext::Graphviz::RenderFormat::PNG,
             hstd::ext::Graphviz::LayoutType::Dot);
+
+        std::string binary_buffer = org::imm::serializeToText(
+            initial_context);
+
+        writeFile("/tmp/dir1_msgpack.bin", binary_buffer);
     }
 }

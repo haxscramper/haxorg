@@ -561,6 +561,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
 
     if conf.emscripten:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))
+        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", False))
         result.append(cmake_opt("ORG_EMCC_BUILD", True))
         # result.append(cmake_opt("CMAKE_SIZEOF_VOID_P", "4"))
         # result.append(cmake_opt("CMAKE_SYSTEM_PROCESSOR", "wasm32"))
@@ -571,6 +572,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     else:
         result.append(cmake_opt("ORG_EMCC_BUILD", False))
         result.append(cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")))
+        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", True))
 
     debug = False
     if debug:

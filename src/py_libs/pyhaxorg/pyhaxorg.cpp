@@ -9660,5 +9660,15 @@ ingoing elements.)RAW")
         static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&)>(&org::bind::python::evaluateCodeBlocks),
         pybind11::arg("node"),
         pybind11::arg("conf"));
+  m.def("serializeToText",
+        static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText),
+        pybind11::arg("store"));
+  m.def("serializeFromText",
+        static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext>&)>(&org::imm::serializeFromText),
+        pybind11::arg("binary"),
+        pybind11::arg("store"));
+  m.def("serializeFromTextToTreeDump",
+        static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump),
+        pybind11::arg("binary"));
 }
 /* clang-format on */

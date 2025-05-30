@@ -27,6 +27,7 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
 #include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/sem/SemOrgCereal.hpp>
 
 
 PYBIND11_DECLARE_HOLDER_TYPE(T, org::sem::SemId<T>);

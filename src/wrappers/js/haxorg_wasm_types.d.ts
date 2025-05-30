@@ -1599,6 +1599,9 @@ export interface haxorg_wasm_module_auto {
   getAstTrackingMap(nodes: haxorg_wasm.Vec<Org>): AstTrackingMap;
   getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.Vec<AstTrackingGroup>;
   annotateSequence(groups: haxorg_wasm.Vec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.Vec<SequenceAnnotation>;
+  serializeToText(store: ImmAstContext): string;
+  serializeFromText(binary: string, store: ImmAstContext): void;
+  serializeFromTextToTreeDump(binary: string): string;
 }
 type haxorg_wasm_module = haxorg_wasm_module_auto & haxorg_wasm.haxorg_wasm_manual;
 export interface UserTimeBreakdownConstructor { new(): UserTimeBreakdown; }
