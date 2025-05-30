@@ -19,32 +19,38 @@ struct [[refl]] MapLink {
         /// \brief Original link used to create the graph edge. Used to
         /// return an edge to unresolved state when target is deleted. When
         /// source is deleted the edge is simply dropped.
-        org::imm::ImmAdapterT<org::imm::ImmLink> link;
+        [[refl]] org::imm::ImmUniqId link;
         /// MapLink description field can be reused or, for description
         /// list items, this field contains a newly created statment list
-        hstd::Vec<org::imm::ImmAdapter> description;
+        [[refl]] hstd::Vec<org::imm::ImmUniqId> description;
         DESC_FIELDS(Link, (link, description));
     };
 
     /// \brief Unresolved radio link that was detected from AST context but
     /// the graph node has not been added yet.
     struct [[refl]] Radio {
-        org::imm::ImmAdapter target;
+        [[refl]] org::imm::ImmUniqId target;
         DESC_FIELDS(Radio, (target));
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Radio, Link);
+    SUB_VARIANTS_REFL(Kind, Data, data, getKind, Radio, Link);
     Data data;
     DESC_FIELDS(MapLink, (data));
 };
 
 
 struct [[refl]] MapNodeProp {
-    [[refl]] org::imm::ImmAdapter id;
-    [[refl]] hstd::Vec<MapLink>   unresolved;
+    [[refl]] org::imm::ImmUniqId id;
+    [[refl]] hstd::Vec<MapLink>  unresolved;
 
-    [[refl]] hstd::Opt<hstd::Str> getSubtreeId() const {
-        if (auto tree = id.asOpt<org::imm::ImmSubtree>();
+    [[refl]] org::imm::ImmAdapter getAdapter(
+        std::shared_ptr<org::imm::ImmAstContext> const& context) const {
+        return context->adapt(id);
+    }
+
+    [[refl]] hstd::Opt<hstd::Str> getSubtreeId(
+        std::shared_ptr<org::imm::ImmAstContext> const& context) const {
+        if (auto tree = getAdapter(context).asOpt<org::imm::ImmSubtree>();
             tree && tree.value()->treeId.get()) {
             return tree.value()->treeId->value();
         } else {
@@ -52,8 +58,9 @@ struct [[refl]] MapNodeProp {
         }
     }
 
-    [[refl]] hstd::Opt<hstd::Str> getFootnoteName() const {
-        if (auto par = id.asOpt<org::imm::ImmParagraph>();
+    [[refl]] hstd::Opt<hstd::Str> getFootnoteName(
+        std::shared_ptr<org::imm::ImmAstContext> const& context) const {
+        if (auto par = getAdapter(context).asOpt<org::imm::ImmParagraph>();
             par && par->isFootnoteDefinition()) {
             return par->getFootnoteName();
         } else {
@@ -128,7 +135,17 @@ namespace org::graph {
 
 struct MapGraph;
 
-struct [[refl]] MapGraph {
+struct [[refl(
+    R"({
+  "backend": {
+    "python": {
+      "holder-type": "shared"
+    },
+    "wasm": {
+      "holder-type": "shared"
+    }
+  }
+})")]] MapGraph : hstd::SharedPtrApi<MapGraph> {
     [[refl]] NodeProps nodeProps;
     [[refl]] EdgeProps edgeProps;
     [[refl]] AdjList   adjList;
@@ -288,7 +305,7 @@ struct [[refl]] MapGraph {
 };
 
 struct MapGraphInverse {
-    MapGraph* origin;
+    MapGraph::Ptr origin;
 
     AdjNodesList const& inNodes(MapNode const& n) const {
         return origin->outNodes(n);
@@ -312,7 +329,7 @@ struct MapGraphInverse {
 };
 
 struct MapGraphUndirected {
-    MapGraph*          origin;
+    MapGraph::Ptr      origin;
     hstd::Vec<MapNode> adjNodes(MapNode const& n) const {
         return origin->adjNodes(n);
     }
@@ -346,9 +363,9 @@ struct MapConfig;
 struct MapInterface {
     /// \brief Get node properties without resolving the target links.
     virtual hstd::Opt<MapNodeProp> getInitialNodeProp(
-        MapGraphState const&       s,
-        org::imm::ImmAdapter       node,
-        std::shared_ptr<MapConfig> conf);
+        std::shared_ptr<MapGraphState> const& s,
+        org::imm::ImmAdapter                  node,
+        std::shared_ptr<MapConfig>            conf);
 };
 
 struct [[refl(
@@ -370,8 +387,8 @@ struct [[refl(
     DESC_FIELDS(MapConfig, ());
 
     hstd::Opt<MapNodeProp> getInitialNodeProp(
-        MapGraphState const& s,
-        org::imm::ImmAdapter node) {
+        std::shared_ptr<MapGraphState> const& s,
+        org::imm::ImmAdapter                  node) {
         return impl->getInitialNodeProp(s, node, shared_from_this());
     }
 };
@@ -387,17 +404,18 @@ struct [[refl(
       "holder-type": "shared"
     }
   }
-})")]] MapGraphState {
+})")]] MapGraphState : hstd::SharedPtrApi<MapGraphState> {
     /// \brief List of nodes with unresolved outgoing links.
     hstd::UnorderedSet<MapNode>                       unresolved;
-    [[refl]] MapGraph                                 graph;
+    [[refl]] std::shared_ptr<MapGraph>                graph;
     [[refl]] std::shared_ptr<org::imm::ImmAstContext> ast;
 
-    MapGraphState(org::imm::ImmAstContext::Ptr ast) : ast{ast} {};
+    MapGraphState(org::imm::ImmAstContext::Ptr ast)
+        : ast{ast}, graph{std::make_shared<MapGraph>()} {};
 
-    [[refl]] static MapGraphState FromAstContext(
+    [[refl]] static std::shared_ptr<MapGraphState> FromAstContext(
         std::shared_ptr<org::imm::ImmAstContext> ast) {
-        return MapGraphState{ast};
+        return MapGraphState::shared(ast);
     }
 
 
@@ -439,7 +457,7 @@ struct MapLinkResolveResult {
 /// \brief Resolve a single link with the state `s` and return the edge.
 /// Use `source` as an edge origin.
 hstd::Vec<MapLinkResolveResult> getResolveTarget(
-    MapGraphState const&       s,
+    MapGraphState::Ptr const&  s,
     MapNode const&             source,
     MapLink const&             link,
     std::shared_ptr<MapConfig> conf);
@@ -454,7 +472,7 @@ struct MapNodeResolveResult {
 /// graph links into `.node.unresolved` and `.resolved` fields of the
 /// returned.
 MapNodeResolveResult getResolvedNodeInsert(
-    MapGraphState const&       s,
+    MapGraphState::Ptr const&  s,
     MapNodeProp const&         node,
     std::shared_ptr<MapConfig> conf);
 
@@ -482,3 +500,8 @@ bool hasGraphAnnotations(
 bool isMmapIgnored(org::imm::ImmAdapter const& n);
 
 } // namespace org::graph
+
+
+template <>
+struct std::formatter<org::graph::MapGraph*>
+    : hstd::std_format_ptr_as_value<org::graph::MapGraph> {};

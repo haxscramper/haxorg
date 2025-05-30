@@ -156,14 +156,14 @@ TEST(ManualFileRun, TestDir1) {
         // conf.setTraceFile("/tmp/TestDirMindMapTrace.log");
         org::graph::MapGraphState graph{root.context};
         graph.addNodeRec(root.getRootAdapter(), conf);
-        auto gv = graph.graph.toGraphviz(
+        auto gv = graph.graph->toGraphviz(
             root.context,
             org::graph::MapGraph::GvConfig{
                 .acceptNode =
                     [&](org::graph::MapNode const& node) -> bool {
                     // return true;
-                    return 0 < graph.graph.inDegree(node)
-                        || 0 < graph.graph.outDegree(node);
+                    return 0 < graph.graph->inDegree(node)
+                        || 0 < graph.graph->outDegree(node);
                 },
             });
         hstd::ext::Graphviz gvc;
@@ -175,9 +175,12 @@ TEST(ManualFileRun, TestDir1) {
             hstd::ext::Graphviz::RenderFormat::PNG,
             hstd::ext::Graphviz::LayoutType::Dot);
 
-        std::string binary_buffer = org::imm::serializeToText(
-            initial_context);
+        writeFile(
+            "/tmp/dir1_msgpack.bin",
+            org::imm::serializeToText(initial_context));
 
-        writeFile("/tmp/dir1_msgpack.bin", binary_buffer);
+        writeFile(
+            "/tmp/dir1_graph)msgpack.bin",
+            org::imm::serializeToText(graph.graph));
     }
 }

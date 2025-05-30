@@ -94,6 +94,7 @@ function(set_target_flags_impl)
 
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fPIC")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftemplate-backtrace-limit=0")
 
     if(${ORG_USE_SANITIZER})
       if(NOT ${ARG_FORCE_NO_ASAN})

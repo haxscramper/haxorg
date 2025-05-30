@@ -1016,9 +1016,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return dynamic_cast<T const*>(get());
     }
 
-    [[refl(R"({"unique-name": "atIdReflPathStep"})")]] ImmAdapter at(
-        ImmId       id,
-        ImmPathStep idx) const {
+    [[reflq]] ImmAdapter at(ImmId id, ImmPathStep idx) const {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
 

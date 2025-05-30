@@ -530,18 +530,17 @@ struct pack<immer::box<T>> {
     }
 };
 
-
-template <typename T>
-struct convert<immer::flex_vector<T>> {
+template <typename T, typename Container>
+struct convert_immer_iterable_sequence {
     msgpack::object const& operator()(
         msgpack::object const& o,
-        immer::flex_vector<T>& v) const {
+        Container&             v) const {
         __trace_call();
         if (o.type != msgpack::type::ARRAY) {
             throw msgpack::type_error();
         }
 
-        immer::flex_vector_transient<T> tmp = v.transient();
+        auto tmp = v.transient();
         for (auto p : convert_array_items(o)) {
             T tmp_value = hstd::SerdeDefaultProvider<T>::get();
             p->convert(tmp_value);
@@ -554,29 +553,13 @@ struct convert<immer::flex_vector<T>> {
     }
 };
 
-template <typename T>
-struct pack<immer::flex_vector<T>> {
-    template <typename Stream>
-    packer<Stream>& operator()(
-        msgpack::packer<Stream>&     o,
-        immer::flex_vector<T> const& v) const {
-        __trace_call();
-        uint32_t size = checked_get_container_size(v.size());
-        o.pack_array(size);
-        for (auto const& it : v) { o.pack(it); }
-        return o;
-    }
-};
-
 template <typename T, typename Container>
 struct convert_iterable_sequence {
     msgpack::object const& operator()(
         msgpack::object const& o,
         Container&             v) const {
         __trace_call();
-        if (o.type != msgpack::type::ARRAY) {
-            throw msgpack::type_error();
-        }
+        expect_array<Container>(o);
         v.reserve(o.via.array.size);
         for (auto p : convert_array_items(o)) {
             T tmp = hstd::SerdeDefaultProvider<T>::get();
@@ -588,17 +571,12 @@ struct convert_iterable_sequence {
     }
 };
 
-template <typename T>
-struct convert<hstd::Vec<T>>
-    : public convert_iterable_sequence<T, hstd::Vec<T>> {};
-
-
-template <typename T>
-struct pack<hstd::Vec<T>> {
+template <typename T, typename Container>
+struct pack_iterable_sequence {
     template <typename Stream>
     packer<Stream>& operator()(
         msgpack::packer<Stream>& o,
-        hstd::Vec<T> const&      v) const {
+        Container const&         v) const {
         __trace_call();
         uint32_t size = checked_get_container_size(v.size());
         o.pack_array(size);
@@ -607,23 +585,36 @@ struct pack<hstd::Vec<T>> {
     }
 };
 
+template <typename T>
+struct convert<immer::flex_vector<T>>
+    : convert_immer_iterable_sequence<T, immer::flex_vector<T>> {};
+
+template <typename T>
+struct pack<immer::flex_vector<T>>
+    : pack_iterable_sequence<T, immer::flex_vector<T>> {};
+
+template <typename T>
+struct convert<immer::vector<T>>
+    : convert_immer_iterable_sequence<T, immer::vector<T>> {};
+
+template <typename T>
+struct pack<immer::vector<T>>
+    : pack_iterable_sequence<T, immer::vector<T>> {};
+
+template <typename T>
+struct convert<hstd::Vec<T>>
+    : public convert_iterable_sequence<T, hstd::Vec<T>> {};
+
+template <typename T>
+struct pack<hstd::Vec<T>> : pack_iterable_sequence<T, hstd::Vec<T>> {};
+
 template <typename T, int Size>
 struct convert<hstd::SmallVec<T, Size>>
     : convert_iterable_sequence<T, hstd::SmallVec<T, Size>> {};
 
 template <typename T, int Size>
-struct pack<hstd::SmallVec<T, Size>> {
-    template <typename Stream>
-    packer<Stream>& operator()(
-        msgpack::packer<Stream>&       o,
-        hstd::SmallVec<T, Size> const& v) const {
-        __trace_call();
-        uint32_t size = checked_get_container_size(v.size());
-        o.pack_array(v.size());
-        for (auto const& item : v) { o.pack(item); }
-        return o;
-    }
-};
+struct pack<hstd::SmallVec<T, Size>>
+    : pack_iterable_sequence<T, hstd::SmallVec<T, Size>> {};
 
 
 template <typename K, typename V>
@@ -914,6 +905,67 @@ struct pack<T> {
     }
 };
 
+template <typename Tag>
+struct pack<hstd::ReflPathItem<Tag>> {
+    using RPI = hstd::ReflPathItem<Tag>;
+    template <typename Stream>
+    packer<Stream>& operator()(msgpack::packer<Stream>& o, RPI const& v)
+        const {
+        o.pack_array(2);
+        o.pack(v.kind);
+        switch (v.kind) {
+            case RPI::Kind::Index: o.pack(v.data.index); break;
+            case RPI::Kind::FieldName: o.pack(v.data.fieldName); break;
+            case RPI::Kind::AnyKey: o.pack(v.data.anyKey); break;
+            case RPI::Kind::Deref: o.pack(v.data.deref); break;
+        }
+        return o;
+    }
+};
+
+template <typename Tag>
+struct convert<hstd::ReflPathItem<Tag>> {
+    using RPI  = hstd::ReflPathItem<Tag>;
+    using Kind = RPI::Kind;
+    msgpack::object const& operator()(msgpack::object const& o, RPI& v)
+        const {
+        if (o.type != msgpack::type::ARRAY || o.via.array.size != 2) {
+            throw msgpack::type_error();
+        }
+
+        o.via.array.ptr[0].convert(v.kind);
+
+        switch (v.kind) {
+            case Kind::Index: {
+                typename RPI::Index index;
+                o.via.array.ptr[1].convert(index);
+                v = RPI{index};
+                break;
+            }
+            case Kind::FieldName: {
+                typename RPI::FieldName fieldName;
+                o.via.array.ptr[1].convert(fieldName);
+                v = RPI{fieldName};
+                break;
+            }
+            case Kind::AnyKey: {
+                typename RPI::AnyKey anyKey;
+                o.via.array.ptr[1].convert(anyKey);
+                v = RPI{anyKey};
+                break;
+            }
+            case Kind::Deref: {
+                typename RPI::Deref deref;
+                o.via.array.ptr[1].convert(deref);
+                v = RPI{deref};
+                break;
+            }
+        }
+
+        return o;
+    }
+};
+
 template <>
 struct convert<ImmAstStore> {
     msgpack::object const& operator()(
@@ -986,26 +1038,32 @@ struct pack<std::shared_ptr<ImmAstContext>> {
 } // namespace MSGPACK_DEFAULT_API_NS
 } // namespace msgpack
 
-std::string org::imm::serializeToText(
-    const std::shared_ptr<ImmAstContext>& store) {
+template <typename T>
+std::string msgpack_to_text(T const& value) {
     std::stringstream oss{};
-    msgpack::pack(oss, store);
+    msgpack::pack(oss, value);
     oss.seekg(0);
     std::string tmp{oss.str()};
     return tmp;
 }
 
-void org::imm::serializeFromText(
-    std::string const& binary,
-
-    std::shared_ptr<ImmAstContext>& store) {
+template <typename T>
+void msgpack_from_text(std::string const& binary, T& value) {
     msgpack::object_handle o = msgpack::unpack(
         binary.data(), binary.size());
     msgpack::object deserialized = o.get();
-    hstd::writeFile(
-        "/tmp/msgpack_dump.txt", msgpack_object_to_tree(deserialized));
-    msgpack::type::tuple<int, bool, std::string> dst;
-    deserialized.convert(store);
+    deserialized.convert(value);
+}
+
+std::string org::imm::serializeToText(
+    const std::shared_ptr<ImmAstContext>& store) {
+    return msgpack_to_text(store);
+}
+
+void org::imm::serializeFromText(
+    std::string const&             binary,
+    std::shared_ptr<ImmAstContext> store) {
+    msgpack_from_text(binary, store);
 }
 
 json org::imm::serializeFromTextToJson(const std::string& binary) {
@@ -1021,4 +1079,15 @@ std::string org::imm::serializeFromTextToTreeDump(
         binary.data(), binary.size());
     msgpack::object deserialized = o.get();
     return msgpack_object_to_tree(deserialized);
+}
+
+std::string org::imm::serializeToText(
+    const std::shared_ptr<org::graph::MapGraph>& store) {
+    return msgpack_to_text(store);
+}
+
+void org::imm::serializeFromText(
+    const std::string&                    binary,
+    std::shared_ptr<org::graph::MapGraph> store) {
+    msgpack_from_text(binary, store);
 }

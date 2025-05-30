@@ -1371,10 +1371,6 @@ ImmPathStep documentation.)RAW")
     .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
     .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
     .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at),
-         pybind11::arg("id"),
-         pybind11::arg("idx"))
-    .def("at",
          static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
          pybind11::arg("field"))
     .def("at",
@@ -1855,10 +1851,10 @@ and a segment kind.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::graph::MapGraph>(m, "graphMapGraph")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::graph::MapGraph {
-                        org::graph::MapGraph result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<org::graph::MapGraph, std::shared_ptr<org::graph::MapGraph>>(m, "graphMapGraph")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> std::shared_ptr<org::graph::MapGraph> {
+                        auto result = std::make_shared<org::graph::MapGraph>();
+                        org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
     .def_readwrite("nodeProps", &org::graph::MapGraph::nodeProps)
@@ -1959,7 +1955,7 @@ ingoing elements.)RAW")
     .def_readwrite("graph", &org::graph::MapGraphState::graph)
     .def_readwrite("ast", &org::graph::MapGraphState::ast)
     .def_static("FromAstContextStatic",
-                static_cast<org::graph::MapGraphState(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext),
+                static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext),
                 pybind11::arg("ast"))
     .def("registerNode",
          static_cast<void(org::graph::MapGraphState::*)(org::graph::MapNodeProp const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::registerNode),
@@ -9640,6 +9636,23 @@ ingoing elements.)RAW")
         pybind11::arg("groups"),
         pybind11::arg("first"),
         pybind11::arg("last"));
+  m.def("serializeToText",
+        static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText),
+        pybind11::arg("store"));
+  m.def("serializeFromText",
+        static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext>&)>(&org::imm::serializeFromText),
+        pybind11::arg("binary"),
+        pybind11::arg("store"));
+  m.def("serializeToText",
+        static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText),
+        pybind11::arg("store"));
+  m.def("serializeFromText",
+        static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext>&)>(&org::imm::serializeFromText),
+        pybind11::arg("binary"),
+        pybind11::arg("store"));
+  m.def("serializeFromTextToTreeDump",
+        static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump),
+        pybind11::arg("binary"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRec),
         pybind11::arg("node"),
@@ -9660,15 +9673,5 @@ ingoing elements.)RAW")
         static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&)>(&org::bind::python::evaluateCodeBlocks),
         pybind11::arg("node"),
         pybind11::arg("conf"));
-  m.def("serializeToText",
-        static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText),
-        pybind11::arg("store"));
-  m.def("serializeFromText",
-        static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext>&)>(&org::imm::serializeFromText),
-        pybind11::arg("binary"),
-        pybind11::arg("store"));
-  m.def("serializeFromTextToTreeDump",
-        static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump),
-        pybind11::arg("binary"));
 }
 /* clang-format on */

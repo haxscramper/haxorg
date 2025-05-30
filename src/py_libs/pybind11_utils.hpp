@@ -132,11 +132,12 @@ void bind_imm_vector_base(
             .def(pybind11::init<const VT&>())
             .def("__len__", [](VT const& it) -> int { return it.size(); })
             .def(py::init([](py::list list) -> VT {
-                VT result;
+                VT   result;
+                auto tmp = result.transient();
                 for (auto const& it : list) {
-                    result.push_back(it.cast<T>());
+                    tmp.push_back(it.cast<T>());
                 }
-                return result;
+                return tmp.persistent();
             }))
             //
             ;

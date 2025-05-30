@@ -1599,8 +1599,10 @@ export interface haxorg_wasm_module_auto {
   getAstTrackingMap(nodes: haxorg_wasm.Vec<Org>): AstTrackingMap;
   getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.Vec<AstTrackingGroup>;
   annotateSequence(groups: haxorg_wasm.Vec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.Vec<SequenceAnnotation>;
-  serializeToText(store: ImmAstContext): string;
-  serializeFromText(binary: string, store: ImmAstContext): void;
+  serializeAstContextToText(store: ImmAstContext): string;
+  serializeAstContextFromText(binary: string, store: ImmAstContext): void;
+  serializeAstContextToText(store: ImmAstContext): string;
+  serializeAstContextFromText(binary: string, store: ImmAstContext): void;
   serializeFromTextToTreeDump(binary: string): string;
 }
 type haxorg_wasm_module = haxorg_wasm_module_auto & haxorg_wasm.haxorg_wasm_manual;
@@ -2001,7 +2003,6 @@ export interface ImmAdapter {
   isSubnodeOf(other: ImmAdapter): boolean;
   getParent(): haxorg_wasm.Optional<ImmAdapter>;
   getSelfIndex(): number;
-  atIdReflPathStep(id: ImmId, idx: ImmPathStep): ImmAdapter;
   atField(field: ImmReflFieldId): ImmAdapter;
   atIndex(idx: number, withPath: boolean): ImmAdapter;
   atPath(path: haxorg_wasm.Vec<number>, withPath: boolean): ImmAdapter;

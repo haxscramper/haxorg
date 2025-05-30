@@ -1,12 +1,21 @@
 #pragma once
 #include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/sem/ImmOrgGraph.hpp>
 
 namespace org::imm {
-[[refl]] std::string serializeToText(
+[[refl(R"({"unique-name": "serializeAstContextToText"})")]] std::string serializeToText(
     std::shared_ptr<ImmAstContext> const& store);
-[[refl]] void serializeFromText(
-    std::string const&              binary,
-    std::shared_ptr<ImmAstContext>& store);
+[[refl(R"({"unique-name": "serializeAstContextFromText"})")]] void serializeFromText(
+    std::string const&             binary,
+    std::shared_ptr<ImmAstContext> store);
+
+[[refl(R"({"unique-name": "serializeAstContextToText"})")]] std::string serializeToText(
+    std::shared_ptr<org::graph::MapGraph> const& store);
+[[refl(R"({"unique-name": "serializeAstContextFromText"})")]] void serializeFromText(
+    std::string const&                    binary,
+    std::shared_ptr<org::graph::MapGraph> store);
+
+
 json                 serializeFromTextToJson(std::string const& binary);
 [[refl]] std::string serializeFromTextToTreeDump(
     std::string const& binary);
