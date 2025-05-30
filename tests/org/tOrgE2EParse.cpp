@@ -21,22 +21,31 @@ TEST(TestFiles, OrgCerealSerdeRoundtrip) {
         __CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org",
         // "/home/haxscramper/tmp/doc1.org",
         OrgParseParameters::shared());
+
+    writeFile(
+        "/tmp/cereal_value_dump.json", org::exportToJsonString(node));
+
     auto start_context = org::imm::ImmAstContext::init_start_context();
     start_context->addRoot(node);
 
     std::string binary_buffer = org::imm::serializeToText(start_context);
-    writeFile(
-        "/tmp/msgpack_first_dump.json",
-        org::imm::serializeFromTextToTreeDump(binary_buffer));
+    {
+        ColStream os;
+        start_context->store->format(os);
+        writeFile("/tmp/msgpack_first_dump.txt", os.toString(false));
+    }
 
-    writeFile("/tmp/msgpack_dump.bin", binary_buffer);
+    writeFile(
+        "/tmp/msgpack_first.json",
+        org::imm::serializeFromTextToJson(binary_buffer).dump(2));
     auto final_context = org::imm::ImmAstContext::init_start_context();
     org::imm::serializeFromText(binary_buffer, final_context);
 
-    writeFile(
-        "/tmp/msgpack_second_dump.json",
-        org::imm::serializeFromTextToTreeDump(
-            org::imm::serializeToText(final_context)));
+    {
+        ColStream os;
+        final_context->store->format(os);
+        writeFile("/tmp/msgpack_second_dump.txt", os.toString(false));
+    }
 
     Vec<compare_report> out;
 

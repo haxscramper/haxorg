@@ -43,9 +43,9 @@ json msgpack_to_json(msgpack::object const& obj) {
                 return std::string{o.via.str.ptr, o.via.str.size};
 
             case msgpack::type::BIN: {
-                std::vector<uint8_t> bin_data{
+                std::vector<unsigned char> bin_data{
                     o.via.bin.ptr, o.via.bin.ptr + o.via.bin.size};
-                return json{bin_data};
+                return json::binary(bin_data);
             }
 
             case msgpack::type::ARRAY: {
@@ -405,8 +405,6 @@ struct convert<cctz::civil_second> {
         convert_field(p, hour);
         convert_field(p, minute);
         convert_field(p, second);
-        // _dfmt(year, month, day, hour, minute, second);
-        // _dbg(msgpack_object_to_tree(o));
         v = cctz::civil_second{year, month, day, hour, minute, second};
         return o;
     }
@@ -765,6 +763,61 @@ struct pack<hstd::UnorderedMap<K, V>> {
 };
 
 
+template <>
+struct pack<json> {
+    template <typename Stream>
+    packer<Stream>& operator()(msgpack::packer<Stream>& o, json const& v)
+        const {
+        switch (v.type()) {
+            case json::value_t::null: o.pack_nil(); break;
+            case json::value_t::boolean: o.pack(v.get<bool>()); break;
+            case json::value_t::number_integer:
+                o.pack(v.get<int64_t>());
+                break;
+            case json::value_t::number_unsigned:
+                o.pack(v.get<uint64_t>());
+                break;
+            case json::value_t::number_float:
+                o.pack(v.get<double>());
+                break;
+            case json::value_t::string:
+                o.pack(v.get<std::string>());
+                break;
+            case json::value_t::array:
+                o.pack_array(v.size());
+                for (auto const& item : v) { o.pack(item); }
+                break;
+            case json::value_t::object:
+                o.pack_map(v.size());
+                for (auto const& [key, value] : v.items()) {
+                    o.pack(key);
+                    o.pack(value);
+                }
+                break;
+
+            case json::value_t::binary: {
+                auto const& bin = v.get_binary();
+                o.pack_bin(bin.size());
+                o.pack_bin_body(
+                    reinterpret_cast<const char*>(bin.data()), bin.size());
+                break;
+            }
+            case json::value_t::discarded: o.pack_nil(); break;
+        }
+
+        return o;
+    }
+};
+
+template <>
+struct convert<json> {
+    msgpack::object const& operator()(msgpack::object const& o, json& v)
+        const {
+        v = msgpack_to_json(o);
+        return o;
+    }
+};
+
 template <hstd::dod::IsIdType Id, typename T>
 struct convert<hstd::dod::Store<Id, T>> {
     msgpack::object const& operator()(
@@ -786,6 +839,33 @@ struct pack<hstd::dod::Store<Id, T>> {
         __trace_call();
         o.pack_map(1);
         pack_field(o, "content", v.content);
+        return o;
+    }
+};
+
+template <>
+struct pack<org::sem::OrgJson> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        org::sem::OrgJson const& v) const {
+        o.pack_map(1);
+        pack_field(o, "value", v.getValue());
+        return o;
+    }
+};
+
+template <>
+struct convert<org::sem::OrgJson> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        org::sem::OrgJson&     v) const {
+        __trace_call();
+        expect_map<org::sem::OrgJson>(o, 1);
+        msgpack::object_kv* p(o.via.map.ptr);
+        json                value;
+        convert_field(p, value);
+        v.value = value;
         return o;
     }
 };
@@ -812,6 +892,7 @@ struct convert<T> {
     }
 };
 
+
 template <hstd::DescribedRecord T>
 struct pack<T> {
     template <typename Stream>
@@ -823,10 +904,12 @@ struct pack<T> {
             v, [&](char const*, auto const& field) { ++size; });
 
         o.pack_map(size);
+
         hstd::for_each_field_value_with_bases(
             v, [&](char const* name, auto const& field) {
                 pack_field(o, name, field);
             });
+
         return o;
     }
 };

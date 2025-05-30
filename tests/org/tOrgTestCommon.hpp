@@ -191,7 +191,8 @@ struct reporting_comparator_key_value {
             out.push_back({
                 .context = context,
                 .message = fmt(
-                    "no '{}' in rhs on {}",
+                    "no key of type {} '{}' in lhs on {}",
+                    value_metadata<K>::typeName(),
                     maybe_format(lhs_only),
                     __LINE__),
             });
@@ -201,7 +202,8 @@ struct reporting_comparator_key_value {
             out.push_back({
                 .context = context,
                 .message = fmt(
-                    "no '{}' in rhs on {}",
+                    "no key of type {} '{}' in rhs on {}",
+                    value_metadata<K>::typeName(),
                     maybe_format(rhs_only),
                     __LINE__),
             });
