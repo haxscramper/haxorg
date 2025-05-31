@@ -33,7 +33,8 @@ UnorderedMap<ImmReflFieldId, Str> ImmReflFieldId::fieldNames;
 std::size_t std::hash<ImmReflFieldId>::operator()(
     ImmReflFieldId const& it) const noexcept {
     std::size_t result = 0;
-    hax_hash_combine(result, it.field);
+    hax_hash_combine(result, it.typeId);
+    hax_hash_combine(result, it.fieldOffset);
     return result;
 }
 

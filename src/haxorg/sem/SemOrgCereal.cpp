@@ -916,9 +916,7 @@ struct pack<ImmReflFieldId> {
     packer<Stream>& operator()(
         msgpack::packer<Stream>& o,
         ImmReflFieldId const&    v) const {
-        o.pack_bin(v.field.size());
-        o.pack_bin_body(
-            reinterpret_cast<const char*>(v.field.data()), v.field.size());
+        o.pack(v.getSerializableId());
         return o;
     }
 };
@@ -928,21 +926,9 @@ struct convert<ImmReflFieldId> {
     msgpack::object const& operator()(
         msgpack::object const& o,
         ImmReflFieldId&        v) const {
-        if (o.type != msgpack::type::BIN) {
-            throw htype_error::init(hstd::fmt(
-                "Unexpected value when converting refl field "
-                "ID, expected bin, found {}",
-                msgpack_object_to_tree(o)));
-        }
-
-        if (o.via.bin.size != v.field.size()) {
-            throw htype_error::init(hstd::fmt(
-                "Binary field size mismatch, expected {} got {}",
-                v.field.size(),
-                o.via.bin.size));
-        }
-
-        std::memcpy(v.field.data(), o.via.bin.ptr, o.via.bin.size);
+        std::uint64_t val;
+        o.convert(val);
+        v = ImmReflFieldId::fromSerializableId(val);
         return o;
     }
 };
@@ -983,11 +969,12 @@ std::any deserialize_any_key(msgpack::object const& o) {
     std::size_t current_index = 0;
     std::apply(
         [&]<typename... Args>(Args&&... types) {
-            ((current_index++ == type_index
-                  ? (result = std::any{o.via.array.ptr[1].as<Args>()},
-                     true)
-                  : false)
-             || ...);
+            (void)((current_index++ == type_index
+                        ? (result = std::any{o.via.array.ptr[1]
+                                                 .as<Args>()},
+                           true)
+                        : false)
+                   || ...);
         },
         AnyTypeTuple{});
 
@@ -1097,6 +1084,27 @@ struct pack<ImmAstStore> {
     }
 };
 
+template <typename T>
+struct in_place_convert_shared_ptr {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        std::shared_ptr<T>&    v) const {
+        if (o.is_nil()) {
+            v.reset();
+        } else {
+            if (v.get() == nullptr) { v = std::make_shared<T>(); }
+            msgpack::adaptor::convert<T>()(o, *v);
+        }
+        return o;
+    }
+};
+
+
+template <>
+struct convert<std::shared_ptr<org::graph::MapGraph>>
+    : in_place_convert_shared_ptr<org::graph::MapGraph> {};
+
+
 template <>
 struct convert<std::shared_ptr<ImmAstContext>> {
     msgpack::object const& operator()(
@@ -1110,6 +1118,7 @@ struct convert<std::shared_ptr<ImmAstContext>> {
         return o;
     }
 };
+
 
 template <>
 struct pack<std::shared_ptr<ImmAstContext>> {
@@ -1153,9 +1162,10 @@ std::string org::imm::serializeToText(
 }
 
 void org::imm::serializeFromText(
-    std::string const&             binary,
-    std::shared_ptr<ImmAstContext> store) {
-    msgpack_from_text(binary, store);
+    std::string const&                    binary,
+    const std::shared_ptr<ImmAstContext>& store) {
+    auto tmp = store;
+    msgpack_from_text(binary, tmp);
 }
 
 json org::imm::serializeFromTextToJson(const std::string& binary) {
@@ -1179,7 +1189,12 @@ std::string org::imm::serializeToText(
 }
 
 void org::imm::serializeFromText(
-    const std::string&                    binary,
-    std::shared_ptr<org::graph::MapGraph> store) {
-    msgpack_from_text(binary, store);
+    const std::string&                      binary,
+    const std::shared_ptr<graph::MapGraph>& store) {
+    auto tmp = store;
+    LOGIC_ASSERTION_CHECK(tmp.get() == store.get(), "");
+    msgpack_from_text(binary, tmp);
+    LOGIC_ASSERTION_CHECK(tmp.get() == store.get(), "");
+    _dfmt(store->nodeCount(), store->edgeCount());
+    _dfmt(tmp->nodeCount(), tmp->edgeCount());
 }

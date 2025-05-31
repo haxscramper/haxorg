@@ -32,26 +32,76 @@ struct ImmReflPathTag {
 using ImmReflPathItemBase = hstd::ReflPathItem<ImmReflPathTag>;
 using ImmReflPathBase     = hstd::ReflPath<ImmReflPathTag>;
 
+constexpr std::uint32_t fnv1a_hash(const char* str, std::size_t len) {
+    std::uint32_t hash = 2166136261u;
+    for (std::size_t i = 0; i < len; ++i) {
+        hash ^= static_cast<std::uint32_t>(str[i]);
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
+constexpr std::uint32_t compile_time_hash(const char* str) {
+    std::size_t len = 0;
+    while (str[len] != '\0') { ++len; }
+    return fnv1a_hash(str, len);
+}
+
+template <typename T>
+constexpr std::uint32_t getStableTypeId() {
+    return compile_time_hash(__PRETTY_FUNCTION__);
+}
+
+
 struct ImmReflFieldId {
-    struct R {
-        int f;
-    };
-
-    static const int member_ptr_size = sizeof(&R::f);
-    using member_ptr_store = hstd::Array<hstd::u8, member_ptr_size>;
-    member_ptr_store field;
-
     static hstd::UnorderedMap<ImmReflFieldId, hstd::Str> fieldNames;
 
     hstd::Str getName() const {
         return fieldNames.get(*this).value_or("<none>");
     }
 
+    using type_id     = std::uint32_t;
+    using offset_type = std::uint32_t;
+
+    type_id     typeId;
+    offset_type fieldOffset;
+
+    ImmReflFieldId() = default;
+
+    static ImmReflFieldId FromIdParts(
+        type_id     typeId,
+        offset_type fieldOffset) {
+        ImmReflFieldId res;
+        res.typeId      = typeId;
+        res.fieldOffset = fieldOffset;
+        return res;
+    }
+
     template <typename T, typename F>
     static ImmReflFieldId FromTypeField(F T::*fieldPtr) {
-        ImmReflFieldId result{};
-        std::memcpy(result.field.data(), &fieldPtr, member_ptr_size);
-        return result;
+        return ImmReflFieldId::FromIdParts(
+            getStableTypeId<T>(),
+            static_cast<offset_type>(reinterpret_cast<std::uintptr_t>(
+                &(static_cast<T*>(nullptr)->*fieldPtr))));
+    }
+
+    bool operator==(ImmReflFieldId const& other) const {
+        return typeId == other.typeId && fieldOffset == other.fieldOffset;
+    }
+
+    bool operator<(ImmReflFieldId const& other) const {
+        return typeId < other.typeId
+            || (typeId == other.typeId && fieldOffset < other.fieldOffset);
+    }
+
+    std::uint64_t getSerializableId() const {
+        return (static_cast<std::uint64_t>(typeId) << 32) | fieldOffset;
+    }
+
+    static ImmReflFieldId fromSerializableId(std::uint64_t id) {
+        return ImmReflFieldId::FromIdParts(
+            static_cast<type_id>(id >> 32),
+            static_cast<offset_type>(id & 0xFFFFFFFF));
     }
 
     template <typename T, typename F>
@@ -63,18 +113,6 @@ struct ImmReflFieldId {
             fieldNames.insert_or_assign(result, name);
         }
         return result;
-    }
-
-    bool operator==(ImmReflFieldId const& other) const {
-        return std::memcmp(
-                   other.field.data(), field.data(), member_ptr_size)
-            == 0;
-    }
-
-    bool operator<(ImmReflFieldId const& other) const {
-        return std::memcmp(
-                   other.field.data(), field.data(), member_ptr_size)
-             < 0;
     }
 };
 
@@ -90,19 +128,6 @@ struct std::formatter<org::imm::ImmReflFieldId>
         return fmt_ctx(p.getName(), ctx);
     }
 };
-
-template <>
-struct std::hash<org::imm::ImmReflFieldId::member_ptr_store> {
-    size_t operator()(const org::imm::ImmReflFieldId::member_ptr_store&
-                          arr) const noexcept {
-        size_t result = 0;
-        for (const auto& byte : arr) {
-            hstd::hax_hash_combine(result, byte);
-        }
-        return result;
-    }
-};
-
 
 template <>
 struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {

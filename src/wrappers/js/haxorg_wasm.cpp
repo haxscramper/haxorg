@@ -3850,9 +3850,9 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
 
 void subdivide_9(org::bind::js::type_registration_guard& g) {
   emscripten::function("serializeAstContextToText", static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText));
-  emscripten::function("serializeAstContextFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext>)>(&org::imm::serializeFromText));
+  emscripten::function("serializeAstContextFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeFromText));
   emscripten::function("serializeMapGraphToText", static_cast<std::string(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeToText));
-  emscripten::function("serializeMapGraphFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::graph::MapGraph>)>(&org::imm::serializeFromText));
+  emscripten::function("serializeMapGraphFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeFromText));
   emscripten::function("serializeFromTextToTreeDump", static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump));
   haxorg_wasm_manual_register();
 }

@@ -182,10 +182,12 @@ TEST(ManualFileRun, TestDir1) {
                 "/tmp/dir1_graph_msgpack.bin",
                 org::imm::serializeToText(graph->graph));
 
-            // auto graph_tmp = org::graph::MapGraphState::FromAstContext(
-            //     root.context);
-            // org::imm::serializeFromText(
-            //     readFile("/tmp/dir1_graph_msgpack.bin"), graph_tmp->graph);
+            _dfmt(graph->graph->nodeCount(), graph->graph->edgeCount());
+
+            auto graph_tmp = org::graph::MapGraphState::FromAstContext(
+                root.context);
+            org::imm::serializeFromText(
+                readFile("/tmp/dir1_graph_msgpack.bin"), graph_tmp->graph);
         }
 
         {
