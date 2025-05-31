@@ -443,6 +443,10 @@ struct [[refl(
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };
 
+[[refl]] std::shared_ptr<MapGraphState> initMapGraphState(
+    std::shared_ptr<org::imm::ImmAstContext> ast);
+
+
 struct MapLinkResolveResult {
     MapLink link;
     /// \brief Target node for link resolution. Nodes are uniquely

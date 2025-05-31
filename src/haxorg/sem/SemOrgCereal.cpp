@@ -2,11 +2,18 @@
 #include "msgpack.hpp"
 
 #include <hstd/system/reflection.hpp>
+#include <typeindex>
 
 namespace {
 int level = 0;
 }
 
+template <typename Tag>
+struct hstd::SerdeDefaultProvider<hstd::ReflPathItem<Tag>> {
+    static hstd::ReflPathItem<Tag> get() {
+        return hstd::ReflPathItem<Tag>::FromDeref();
+    }
+};
 
 // #define __trace_call()                                                    \
 //     std::cerr << fmt(                                                     \
@@ -536,10 +543,7 @@ struct convert_immer_iterable_sequence {
         msgpack::object const& o,
         Container&             v) const {
         __trace_call();
-        if (o.type != msgpack::type::ARRAY) {
-            throw msgpack::type_error();
-        }
-
+        expect_array<Container>(o);
         auto tmp = v.transient();
         for (auto p : convert_array_items(o)) {
             T tmp_value = hstd::SerdeDefaultProvider<T>::get();
@@ -905,6 +909,95 @@ struct pack<T> {
     }
 };
 
+
+template <>
+struct pack<ImmReflFieldId> {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        ImmReflFieldId const&    v) const {
+        o.pack_bin(v.field.size());
+        o.pack_bin_body(
+            reinterpret_cast<const char*>(v.field.data()), v.field.size());
+        return o;
+    }
+};
+
+template <>
+struct convert<ImmReflFieldId> {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        ImmReflFieldId&        v) const {
+        if (o.type != msgpack::type::BIN) {
+            throw htype_error::init(hstd::fmt(
+                "Unexpected value when converting refl field "
+                "ID, expected bin, found {}",
+                msgpack_object_to_tree(o)));
+        }
+
+        if (o.via.bin.size != v.field.size()) {
+            throw htype_error::init(hstd::fmt(
+                "Binary field size mismatch, expected {} got {}",
+                v.field.size(),
+                o.via.bin.size));
+        }
+
+        std::memcpy(v.field.data(), o.via.bin.ptr, o.via.bin.size);
+        return o;
+    }
+};
+
+template <typename Tag, typename Stream>
+void serialize_any_key(
+    msgpack::packer<Stream>& o,
+    std::any const&          anyKey) {
+    using AnyTypeTuple = typename hstd::ReflTypeTraits<Tag>::AnyTypeTuple;
+
+    bool        packed = false;
+    std::size_t index  = 0;
+    std::apply(
+        [&]<typename... Args>(Args&&... types) {
+            ((anyKey.type() == typeid(types)
+                  ? (o.pack_array(2),
+                     o.pack(index),
+                     o.pack(std::any_cast<Args>(anyKey)),
+                     packed = true)
+                  : (++index, bool())),
+             ...);
+        },
+        AnyTypeTuple{});
+
+    if (!packed) { throw std::runtime_error("Unknown type in std::any"); }
+}
+
+
+template <typename Tag>
+std::any deserialize_any_key(msgpack::object const& o) {
+    using AnyTypeTuple = typename hstd::ReflTypeTraits<Tag>::AnyTypeTuple;
+    expect_array<std::any>(o, 2);
+
+    std::size_t type_index;
+    o.via.array.ptr[0].convert(type_index);
+
+    std::any    result;
+    std::size_t current_index = 0;
+    std::apply(
+        [&]<typename... Args>(Args&&... types) {
+            ((current_index++ == type_index
+                  ? (result = std::any{o.via.array.ptr[1].as<Args>()},
+                     true)
+                  : false)
+             || ...);
+        },
+        AnyTypeTuple{});
+
+    if (!result.has_value()) {
+        throw std::runtime_error("Failed to deserialize std::any");
+    }
+
+    return result;
+}
+
 template <typename Tag>
 struct pack<hstd::ReflPathItem<Tag>> {
     using RPI = hstd::ReflPathItem<Tag>;
@@ -916,7 +1009,9 @@ struct pack<hstd::ReflPathItem<Tag>> {
         switch (v.kind) {
             case RPI::Kind::Index: o.pack(v.data.index); break;
             case RPI::Kind::FieldName: o.pack(v.data.fieldName); break;
-            case RPI::Kind::AnyKey: o.pack(v.data.anyKey); break;
+            case RPI::Kind::AnyKey:
+                serialize_any_key<Tag>(o, v.data.anyKey.key);
+                break;
             case RPI::Kind::Deref: o.pack(v.data.deref); break;
         }
         return o;
@@ -929,10 +1024,7 @@ struct convert<hstd::ReflPathItem<Tag>> {
     using Kind = RPI::Kind;
     msgpack::object const& operator()(msgpack::object const& o, RPI& v)
         const {
-        if (o.type != msgpack::type::ARRAY || o.via.array.size != 2) {
-            throw msgpack::type_error();
-        }
-
+        expect_array<hstd::ReflPathItem<Tag>>(o, 2);
         o.via.array.ptr[0].convert(v.kind);
 
         switch (v.kind) {
@@ -950,8 +1042,8 @@ struct convert<hstd::ReflPathItem<Tag>> {
             }
             case Kind::AnyKey: {
                 typename RPI::AnyKey anyKey;
-                o.via.array.ptr[1].convert(anyKey);
-                v = RPI{anyKey};
+                anyKey.key = deserialize_any_key<Tag>(o.via.array.ptr[1]);
+                v          = RPI{anyKey};
                 break;
             }
             case Kind::Deref: {

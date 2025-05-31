@@ -7,9 +7,10 @@ function dump_properties(obj) {
       prop => { console.log(`${prop}: ${typeof obj[prop]}`, obj[prop]); });
 }
 
-const haxorg_wasm = require("../../build/haxorg_release_emscripten/haxorg_wasm");
-const fs          = require("fs");
-const path        = require("path");
+const haxorg_wasm
+    = require("../../build/haxorg_release_emscripten/haxorg_wasm");
+const fs   = require("fs");
+const path = require("path");
 //
 /**
  * @typedef {import("../../src/wrappers/js/haxorg_wasm_types.d.ts").haxorg_wasm_module}
@@ -32,7 +33,7 @@ function is_regular_file(path) {
 }
 
 function is_symlink(path) {
-// console.log(`Checking if '${path}' is symlink`);
+  // console.log(`Checking if '${path}' is symlink`);
   return fs.lstatSync(path).isSymbolicLink();
 }
 
@@ -67,10 +68,13 @@ haxorg_wasm().then(
       if (false) {
         const recursive_dir  = "/home/haxscramper/tmp/org_test_dir";
         var   directory_opts = new org.OrgDirectoryParseParameters();
-        org.setOrgDirectoryIsDirectoryCallback(directory_opts, is_directory_impl);
-        org.setOrgDirectoryIsRegularFileCallback(directory_opts, is_regular_file);
+        org.setOrgDirectoryIsDirectoryCallback(directory_opts,
+                                               is_directory_impl);
+        org.setOrgDirectoryIsRegularFileCallback(directory_opts,
+                                                 is_regular_file);
         org.setOrgDirectoryIsSymlinkCallback(directory_opts, is_symlink);
-        org.setOrgDirectoryFileReaderCallback(directory_opts, read_file_content);
+        org.setOrgDirectoryFileReaderCallback(directory_opts,
+                                              read_file_content);
         org.setOrgDirectoryGetDirectoryEntriesCallback(directory_opts,
                                                        get_entry_list);
         org.setOrgDirectoryResolveSymlinkCallback(directory_opts,
@@ -80,7 +84,14 @@ haxorg_wasm().then(
         console.log("Recursive node done");
       }
 
-      var context = org.initImmutableAstContext();
-      const binary_context = fs.readFileSync("/tmp/dir1_msgpack.bin"); 
-      org.serializeFromText(binary_context, context);
+      var   context        = org.initImmutableAstContext();
+      const binary_context = fs.readFileSync("/tmp/dir1_msgpack.bin");
+      org.serializeAstContextFromText(binary_context, context);
+
+      var   graph        = org.initMapGraphState(context);
+      const binary_graph = fs.readFileSync("/tmp/dir1_graph_msgpack.bin");
+      org.serializeMapGraphFromText(binary_graph, graph.graph);
+
+      console.log(`Read mind map graph with ${graph.graph.nodeCount()} nodes, ${
+          graph.graph.edgeCount()} edges`);``
     });

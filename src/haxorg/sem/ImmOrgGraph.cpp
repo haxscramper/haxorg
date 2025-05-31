@@ -889,3 +889,8 @@ void org::graph::MapGraphState::addNodeRec(
 
     aux(node);
 }
+
+std::shared_ptr<MapGraphState> org::graph::initMapGraphState(
+    std::shared_ptr<imm::ImmAstContext> ast) {
+    return MapGraphState::FromAstContext(ast);
+}

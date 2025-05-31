@@ -243,6 +243,7 @@ struct ReflTag1 {
 
 template <>
 struct ReflTypeTraits<ReflTag1> {
+    using AnyTypeTuple     = std::tuple<Str, std::string>;
     using AnyFormatterType = AnyFormatter<Str, std::string>;
     using AnyHasherType    = AnyHasher<Str, std::string>;
     using AnyEqualType     = AnyEqual<Str, std::string>;

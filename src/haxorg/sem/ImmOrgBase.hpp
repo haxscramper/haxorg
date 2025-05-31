@@ -106,6 +106,7 @@ struct std::hash<org::imm::ImmReflFieldId::member_ptr_store> {
 
 template <>
 struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
+    using AnyTypeTuple     = std::tuple<Str>;
     using AnyFormatterType = AnyFormatter<Str>;
     using AnyHasherType    = AnyHasher<Str>;
     using AnyEqualType     = AnyEqual<Str>;

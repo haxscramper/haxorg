@@ -9,9 +9,9 @@ namespace org::imm {
     std::string const&             binary,
     std::shared_ptr<ImmAstContext> store);
 
-[[refl(R"({"unique-name": "serializeAstContextToText"})")]] std::string serializeToText(
+[[refl(R"({"unique-name": "serializeMapGraphToText"})")]] std::string serializeToText(
     std::shared_ptr<org::graph::MapGraph> const& store);
-[[refl(R"({"unique-name": "serializeAstContextFromText"})")]] void serializeFromText(
+[[refl(R"({"unique-name": "serializeMapGraphFromText"})")]] void serializeFromText(
     std::string const&                    binary,
     std::shared_ptr<org::graph::MapGraph> store);
 
