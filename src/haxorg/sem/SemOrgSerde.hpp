@@ -444,6 +444,25 @@ struct proto_serde<Proto, sem::SemId<T>> {
     }
 };
 
+
+template <>
+struct proto_serde<orgproto::org_parse::LineCol, org::parse::LineCol> {
+    static void write(
+        orgproto::org_parse::LineCol* out,
+        org::parse::LineCol const&    in) {
+        out->set_line(in.line);
+        out->set_column(in.column);
+        out->set_pos(in.pos);
+    }
+    static void read(
+        orgproto::org_parse::LineCol const&       out,
+        proto_write_accessor<org::parse::LineCol> in) {
+        in.get().pos    = out.pos();
+        in.get().line   = out.line();
+        in.get().column = out.column();
+    }
+};
+
 template <typename Proto>
 struct proto_serde<Proto, sem::Org> {
     static void write(Proto* out, sem::Org const& in) {
@@ -453,7 +472,7 @@ struct proto_serde<Proto, sem::Org> {
             static_cast<orgproto::OrgSemKind>(in.getKind()));
         if (in.loc) {
             proto_serde<orgproto::org_parse_LineCol, org::parse::LineCol>::
-                write(out->mutable_loc(), in.loc);
+                write(out->mutable_loc(), in.loc.value());
         }
     }
 
@@ -463,7 +482,9 @@ struct proto_serde<Proto, sem::Org> {
             hstd::Vec<sem::SemId<sem::Org>>>::
             read(out.subnodes(), in.for_field(&sem::Org::subnodes));
         if (out.has_loc()) {
-            proto_serde<orgproto::org_parse_LineCol, org::parse::LineCol>::
+            proto_serde<
+                hstd::Opt<orgproto::org_parse_LineCol>,
+                hstd::Opt<org::parse::LineCol>>::
                 read(out.loc(), in.for_field(&org::sem::Org::loc));
         }
     }
@@ -513,24 +534,6 @@ template <typename Proto>
 struct proto_serde<Proto, sem::Cmd> {
     static void write(Proto* out, sem::Cmd const& in);
     static void read(Proto const& out, proto_write_accessor<sem::Cmd> in);
-};
-
-template <>
-struct proto_serde<orgproto::org_parse::LineCol, org::parse::LineCol> {
-    static void write(
-        orgproto::org_parse::LineCol* out,
-        org::parse::LineCol const&    in) {
-        out->set_line(in.line);
-        out->set_column(in.column);
-        out->set_pos(in.pos);
-    }
-    static void read(
-        orgproto::org_parse::LineCol const&       out,
-        proto_write_accessor<org::parse::LineCol> in) {
-        in.get().pos    = out.pos();
-        in.get().line   = out.line();
-        in.get().column = out.column();
-    }
 };
 
 template <>
