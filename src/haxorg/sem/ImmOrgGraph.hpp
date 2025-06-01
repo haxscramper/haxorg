@@ -428,8 +428,9 @@ struct [[refl(
         std::shared_ptr<MapConfig> const& conf);
 
     [[refl]] void addNodeRec(
-        org::imm::ImmAdapter const&       node,
-        std::shared_ptr<MapConfig> const& conf);
+        std::shared_ptr<org::imm::ImmAstContext> const& ast,
+        org::imm::ImmAdapter const&                     node,
+        std::shared_ptr<MapConfig> const&               conf);
 
     [[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
         org::imm::ImmAdapterT<org::imm::ImmSubtree> node,

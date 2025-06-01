@@ -1987,7 +1987,8 @@ ingoing elements.)RAW")
          pybind11::arg("node"),
          pybind11::arg("conf"))
     .def("addNodeRec",
-         static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec),
+         static_cast<void(org::graph::MapGraphState::*)(std::shared_ptr<org::imm::ImmAstContext> const&, org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec),
+         pybind11::arg("ast"),
          pybind11::arg("node"),
          pybind11::arg("conf"))
     .def("getUnresolvedSubtreeLinks",

@@ -157,7 +157,7 @@ TEST(ManualFileRun, TestDir1) {
         // conf.setTraceFile("/tmp/TestDirMindMapTrace.log");
         auto graph = org::graph::MapGraphState::FromAstContext(
             root.context);
-        graph->addNodeRec(root.getRootAdapter(), conf);
+        graph->addNodeRec(root.context, root.getRootAdapter(), conf);
         auto gv = graph->graph->toGraphviz(
             root.context,
             org::graph::MapGraph::GvConfig{

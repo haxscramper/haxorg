@@ -553,9 +553,10 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
         if (auto par = node.getAdapter(s->ast)
                            .asOpt<imm::ImmParagraph>()) {
             for (auto const& group :
-                 getSubnodeGroups(node.getAdapter(s->ast))) {
+                 getSubnodeGroups(s->ast, node.getAdapter(s->ast))) {
                 GRAPH_MSG(fmt("Group {}", group));
                 if (group.isRadioTarget()) {
+                    GRAPH_MSG(fmt("Got radio target group"));
                     auto groupTarget = group.getRadioTarget().target;
                     if (groupTarget.is(OrgSemKind::Subtree)) {
                         for (auto const& subtree :
@@ -837,8 +838,9 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
 #endif
 
 void org::graph::MapGraphState::addNodeRec(
-    const ImmAdapter&                 node,
-    std::shared_ptr<MapConfig> const& conf) {
+    std::shared_ptr<org::imm::ImmAstContext> const& ast,
+    const ImmAdapter&                               node,
+    std::shared_ptr<MapConfig> const&               conf) {
     Func<void(ImmAdapter const&)> aux;
     aux = [&](ImmAdapter const& node) {
         conf->dbg.message(fmt("recursive add {}", node), "addNodeRec");
@@ -863,7 +865,7 @@ void org::graph::MapGraphState::addNodeRec(
                 if (org::graph::hasGraphAnnotations(par)) {
                     addNode(node, conf);
                 } else {
-                    auto group = imm::getSubnodeGroups(node, false);
+                    auto group = imm::getSubnodeGroups(ast, node, false);
                     if (rs::any_of(group, [](auto const& it) {
                             return it.isRadioTarget();
                         })) {

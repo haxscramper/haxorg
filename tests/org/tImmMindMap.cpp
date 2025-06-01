@@ -5,21 +5,26 @@
 
 
 struct ImmMapApi : ImmOrgApiTestBase {
-    org::graph::MapConfig::Ptr conf;
-    org::graph::MapGraphState  graph;
+    org::graph::MapConfig::Ptr     conf;
+    org::graph::MapGraphState::Ptr graph;
 
     ImmMapApi()
-        : graph{start}
-        , conf{org::graph::MapConfig::shared()} //
+        : conf{org::graph::MapConfig::shared()} //
     {}
 
-    void addNodeRec(CR<imm::ImmAdapter> node) {
-        graph.addNodeRec(node, conf);
+    void initGraph(std::shared_ptr<org::imm::ImmAstContext> const& ast) {
+        graph = org::graph::MapGraphState::FromAstContext(ast);
+    }
+
+    void addNodeRec(
+        std::shared_ptr<org::imm::ImmAstContext> const& ast,
+        CR<imm::ImmAdapter>                             node) {
+        graph->addNodeRec(ast, node, conf);
     }
 
     void writeGraphviz(CR<Str> name) {
         hstd::ext::Graphviz gvc;
-        auto                gv = graph.graph->toGraphviz(start);
+        auto                gv = graph->graph->toGraphviz(start);
         gvc.renderToFile(name, gv);
     }
 
@@ -269,10 +274,12 @@ also known as a human-readable alias
 
     auto init = getInitialVersion(text);
     auto root = init.getRootAdapter();
+    initGraph(init.context);
     writeTreeRepr(root, "repr.txt");
+    writeTreeRepr(org::parseString(text), getDebugFile("repr.yaml"));
     setGraphTrace(getDebugFile("graph_trace.log"));
     setTraceFile(getDebugFile("imm_trace.log"));
-    addNodeRec(root);
+    addNodeRec(init.context, root);
     writeGraphviz(getDebugFile("RadioTargetAliases.png"));
 
     imm::ImmAdapter t1         = root.at(1);
@@ -281,9 +288,9 @@ also known as a human-readable alias
     imm::ImmAdapter par_alias2 = t2.at(2);
     imm::ImmAdapter par_human  = t2.at(4);
 
-    EXPECT_TRUE(graph.graph->hasEdge(par_alias1.uniq(), t1.uniq()));
-    EXPECT_TRUE(graph.graph->hasEdge(par_alias2.uniq(), t1.uniq()));
-    EXPECT_TRUE(graph.graph->hasEdge(par_human.uniq(), t1.uniq()));
+    EXPECT_TRUE(graph->graph->hasEdge(par_alias1.uniq(), t1.uniq()));
+    EXPECT_TRUE(graph->graph->hasEdge(par_alias2.uniq(), t1.uniq()));
+    EXPECT_TRUE(graph->graph->hasEdge(par_human.uniq(), t1.uniq()));
 }
 
 Str getFullMindMapText() {
@@ -398,7 +405,7 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
 
     auto conf = org::graph::MapConfig ::shared();
     conf->dbg.setTraceFile(getDebugFile("conf"));
-    s1->addNodeRec(v2.getRootAdapter(), conf);
+    s1->addNodeRec(v2.context, v2.getRootAdapter(), conf);
 
     EXPECT_TRUE(s1->graph->hasEdge(node_p110.uniq(), node_s12.uniq()));
     EXPECT_TRUE(s1->graph->hasEdge(node_p110.uniq(), node_s10.uniq()));
@@ -499,10 +506,10 @@ DocBlock fromAst(imm::ImmAdapter const& id) {
 }
 
 void addAll(
-    org::graph::MapGraphState& state,
-    DocBlock const&            block,
-    org::graph::MapConfig::Ptr conf) {
-    for (auto const& it : block.items) { state.addNode(it.id, conf); }
+    org::graph::MapGraphState::Ptr const& state,
+    DocBlock const&                       block,
+    org::graph::MapConfig::Ptr            conf) {
+    for (auto const& it : block.items) { state->addNode(it.id, conf); }
 
     for (auto const& it : block.nested) { addAll(state, it, conf); }
 }
@@ -541,8 +548,8 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
     auto conf = org::graph::MapConfig ::shared();
     conf->dbg.setTraceFile(getDebugFile("graph"));
-    org::graph::MapGraphState state{v.context};
-    DocBlock                  doc = fromAst(root);
+    auto     state = org::graph::MapGraphState::FromAstContext(v.context);
+    DocBlock doc   = fromAst(root);
     addAll(state, doc, conf);
 
     imm::ImmAdapter comment   = root.at({1, 3});
@@ -550,14 +557,14 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
     EXPECT_EQ(comment->getKind(), OrgSemKind::BlockComment);
     EXPECT_EQ(par_above->getKind(), OrgSemKind::Paragraph);
 
-    state.graph->addEdge(
+    state->graph->addEdge(
         org::graph::MapEdge{
             .source = org::graph::MapNode{par_above.uniq()},
             .target = org::graph::MapNode{comment.uniq()}},
         org::graph::MapEdgeProp{});
 
     hstd::ext::Graphviz gvc;
-    auto                gv = state.graph->toGraphviz(v.context);
+    auto                gv = state->graph->toGraphviz(v.context);
     // gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
     gvc.writeFile(getDebugFile("map.dot"), gv);
     gvc.renderToFile(getDebugFile("map.png"), gv);
@@ -643,7 +650,7 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
         (imm::flatWords(Subtree_2.as<imm::ImmSubtree>().getTitle())),
         (Vec<Str>{"Subtree", "2"}));
 
-    auto& g = state.graph;
+    auto& g = state->graph;
 
     g->hasEdge(List_2, Paragraph_20);
     g->hasEdge(List_2, Subtree_1);
@@ -705,7 +712,7 @@ TEST_F(ImmMapApi, Doc1Graph) {
 
     auto                      conf = org::graph::MapConfig::shared();
     org::graph::MapGraphState state{v.context};
-    state.addNodeRec(root, conf);
+    state.addNodeRec(v.context, root, conf);
 
     hstd::ext::Graphviz            gvc;
     org::graph::MapGraph::GvConfig gvConf;
@@ -860,7 +867,7 @@ TEST(ImmMapGraphApi, BoostPropertyWriter) {
     imm::ImmAstVersion v2    = store->addRoot(n);
     imm::ImmAdapter    file  = v2.getRootAdapter();
     auto s1 = org::graph::MapGraphState::FromAstContext(v2.context);
-    s1->addNodeRec(file, conf);
+    s1->addNodeRec(v2.context, file, conf);
 
     std::stringstream os;
 
@@ -881,7 +888,7 @@ TEST(ImmMapGraphApi, BoostVisitors) {
     imm::ImmAstVersion v2    = store->addRoot(n);
     imm::ImmAdapter    file  = v2.getRootAdapter();
     auto s1 = org::graph::MapGraphState::FromAstContext(v2.context);
-    s1->addNodeRec(file, conf);
+    s1->addNodeRec(v2.context, file, conf);
 
     UnorderedMap<MapNode, int> forwardBfsExamineOrder;
     UnorderedMap<MapNode, int> undirectedBfsExamineOrder;

@@ -1158,8 +1158,9 @@ struct ImmSubnodeGroup {
 };
 
 hstd::Vec<ImmSubnodeGroup> getSubnodeGroups(
-    org::imm::ImmAdapter const& node,
-    bool                        withPath = true);
+    std::shared_ptr<org::imm::ImmAstContext> const& ctx,
+    org::imm::ImmAdapter const&                     node,
+    bool                                            withPath = true);
 
 /// \brief Common adapter specialization methods to inject in the final
 /// specializations.

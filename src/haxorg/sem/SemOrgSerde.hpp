@@ -451,6 +451,10 @@ struct proto_serde<Proto, sem::Org> {
             out->mutable_subnodes(), in.subnodes);
         out->set_statickind(
             static_cast<orgproto::OrgSemKind>(in.getKind()));
+        if (in.loc) {
+            proto_serde<orgproto::org_parse_LineCol, org::parse::LineCol>::
+                write(out->mutable_loc(), in.loc);
+        }
     }
 
     static void read(Proto const& out, proto_write_accessor<sem::Org> in) {
@@ -458,6 +462,10 @@ struct proto_serde<Proto, sem::Org> {
             gpb::RepeatedPtrField<orgproto::AnyNode>,
             hstd::Vec<sem::SemId<sem::Org>>>::
             read(out.subnodes(), in.for_field(&sem::Org::subnodes));
+        if (out.has_loc()) {
+            proto_serde<orgproto::org_parse_LineCol, org::parse::LineCol>::
+                read(out.loc(), in.for_field(&org::sem::Org::loc));
+        }
     }
 };
 

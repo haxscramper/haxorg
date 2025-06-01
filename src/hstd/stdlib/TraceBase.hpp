@@ -49,6 +49,11 @@ struct [[refl]] OperationsTracer {
 
     finally_std scopeLevel() const;
     finally_std scopeTrace(bool state);
+    finally_std scopeLevelMsg(
+        std::string const& value,
+        char const*        function = __builtin_FUNCTION(),
+        int                line     = __builtin_LINE(),
+        char const*        file     = __builtin_FILE()) const;
 
     OperationsTracer() {}
     OperationsTracer(fs::path const& info) { setTraceFile(info); }
@@ -61,6 +66,7 @@ struct [[refl]] OperationsTracer {
     ColStream getStream() const;
     void      endStream(ColStream& stream) const;
     void      message(OperationsMsg const& value) const;
+    void      stacktraceMessage() const;
 
     /// \brief Helper method for reflection
     [[refl]] void setTraceFileStr(

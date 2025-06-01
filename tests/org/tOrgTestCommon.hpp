@@ -323,7 +323,12 @@ struct reporting_comparator<V> {
         if (lhs.index() != rhs.index()) {
             out.push_back({
                 .context = context,
-                .message = fmt("on {}", __LINE__),
+                .message = fmt(
+                    "variant index differ {} != {} on {} for {}",
+                    lhs.index(),
+                    rhs.index(),
+                    __LINE__,
+                    value_metadata<V>::typeName()),
             });
         } else {
             std::visit(

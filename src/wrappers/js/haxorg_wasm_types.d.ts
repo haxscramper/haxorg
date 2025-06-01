@@ -2200,7 +2200,7 @@ export interface GraphMapGraphState {
   FromAstContext(ast: ImmAstContext): GraphMapGraphState;
   registerNode(node: GraphMapNodeProp, conf: GraphMapConfig): void;
   addNode(node: ImmAdapter, conf: GraphMapConfig): void;
-  addNodeRec(node: ImmAdapter, conf: GraphMapConfig): void;
+  addNodeRec(ast: ImmAstContext, node: ImmAdapter, conf: GraphMapConfig): void;
   getUnresolvedSubtreeLinks(node: ImmSubtreeAdapter, conf: GraphMapConfig): haxorg_wasm.Vec<GraphMapLink>;
   getUnresolvedLink(node: ImmLinkAdapter, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
   graph: GraphMapGraph
