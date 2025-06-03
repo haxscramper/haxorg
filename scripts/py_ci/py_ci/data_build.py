@@ -99,7 +99,7 @@ def get_external_deps_list(
         deps_name="msgpack-c",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("msgpack-cxx", ["msgpack/lib/cmake/msgpack-cxx"])
+            ("msgpack-cxx", ["msgpack/lib/cmake/msgpack-cxx"] + make_lib("msgpack/{}/cmake/msgpack-cxx"))
         ],
         configure_args=[
             opt("MSGPACK_USE_BOOST", False),
@@ -354,8 +354,10 @@ def get_deps_install_config(deps: List[ExternalDep], install_dir: Path) -> str:
     for item in deps:
         for dir in item.cmake_dirs:
             path = None
+            tried_paths = []
             for possible_install in dir[1]:
                 possible_path = install_dir.joinpath(possible_install)
+                tried_paths.append(possible_path)
                 if possible_path.exists():
                     assert possible_path != Path(
                         "/"
@@ -365,7 +367,7 @@ def get_deps_install_config(deps: List[ExternalDep], install_dir: Path) -> str:
 
             if not path:
                 raise ValueError(
-                    f"{dir[0]} is not insalled: could not find cmake installation dir in {install_dir}, tried {dir[1]} relative paths"
+                    f"{dir[0]} is not insalled: could not find cmake installation dir in {install_dir}, tried {tried_paths} relative paths"
                 )
 
             cmake_paths.append(f"set({dir[0]}_DIR \"{path}\")")
