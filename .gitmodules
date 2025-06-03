@@ -61,3 +61,6 @@
 [submodule "thirdparty/cctz"]
 	path = thirdparty/cctz
 	url = https://github.com/google/cctz.git
+[submodule "thirdparty/msgpack-c"]
+	path = thirdparty/msgpack-c
+	url = https://github.com/msgpack/msgpack-c.git

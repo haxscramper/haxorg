@@ -12,6 +12,7 @@ from py_scriptutils.algorithm import drop_none, iterate_object_tree
 PROTO_VALUE_NAME = "out"
 ORG_VALUE_NAME = "in"
 
+
 @beartype
 class ProtoBuilder():
 
@@ -542,6 +543,10 @@ class ProtoBuilder():
                     cpp.CaseStmtParams(
                         Expr=self.ast.Type(field_enum_value),
                         Body=[
+                            self.ast.Call(
+                                self.ast.Dot(var_dot_read, self.ast.string("get")),
+                                Stmt=True,
+                            ),
                             self.get_field_read_op(
                                 var_field,
                                 var_dot_read,
@@ -552,6 +557,23 @@ class ProtoBuilder():
                         Compound=False,
                         Autobreak=True,
                     ))
+
+            reader_switch.Cases.append(
+                cpp.CaseStmtParams(
+                    Expr=self.ast.Type(
+                        kind_type.asSpaceFor(cpp.QualType.ForName("KIND_NOT_SET"))),
+                    Body=[
+                        self.ast.Throw(
+                            self.ast.CallStatic(
+                                typ=cpp.QualType(name="::hstd::logic_assertion_error"),
+                                opc="init",
+                                Args=[
+                                    self.ast.StringLiteral(
+                                        "Invalid incoming data -- KIND_NOT_SET for parsing variant field"
+                                    ),
+                                ],
+                            ))
+                    ]))
 
             return (
                 self.ast.SwitchStmt(writer_switch),

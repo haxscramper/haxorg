@@ -2,12 +2,34 @@ function(set_target_flags_impl)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
 
   if(${ORG_EMCC_BUILD})
-    add_target_property(
-      ${ARG_TARGET}
-      LINK_FLAGS
-      "-s DEMANGLE_SUPPORT=1 -g3 -gsource-map -s WASM=1 -s STACK_SIZE=20MB -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORT_NAME='haxorg_wasm' -s USE_PTHREADS=0 -s ASSERTIONS=1 --bind -sNO_DISABLE_EXCEPTION_CATCHING"
-    )
-    # add_target_property(${ARG_TARGET} INCLUDE_DIRECTORIES "/usr/lib/emscripten/system/include/")
+    set(EMSCRIPTEN_FLAGS
+        "-s DEMANGLE_SUPPORT=1"
+        "-g4"
+        "-gsource-map"
+        "-s WASM=1"
+        "-s STACK_SIZE=200MB"
+        "-s ALLOW_MEMORY_GROWTH=1"
+        "-s MODULARIZE=1"
+        "-s ASSERTIONS=0"
+        "-s EXPORT_NAME='haxorg_wasm'"
+        "-s USE_PTHREADS=0"
+        "--bind"
+        "-sNO_DISABLE_EXCEPTION_CATCHING")
+
+    if(${ORG_USE_PERFETTO})
+      list(APPEND EMSCRIPTEN_FLAGS "-s INITIAL_HEAP=600MB")
+    endif()
+
+    list(APPEND EMSCRIPTEN_FLAGS "-s EXCEPTION_DEBUG=1")
+
+    if(ORG_USE_SANITIZERS)
+      list(APPEND EMSCRIPTEN_FLAGS "-fsanitize=undefined,address" "-sSAFE_HEAP")
+      list(APPEND EMSCRIPTEN_FLAGS "-s SAFE_HEAP_LOG=1")
+    endif()
+
+    string(JOIN " " EMSCRIPTEN_FLAGS_STR ${EMSCRIPTEN_FLAGS})
+
+    add_target_property(${ARG_TARGET} LINK_FLAGS "${EMSCRIPTEN_FLAGS_STR}")
   endif()
 
   if(NOT ${ORG_BUILD_IS_DEVELOP})
@@ -72,6 +94,7 @@ function(set_target_flags_impl)
 
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fPIC")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftemplate-backtrace-limit=0")
 
     if(${ORG_USE_SANITIZER})
       if(NOT ${ARG_FORCE_NO_ASAN})

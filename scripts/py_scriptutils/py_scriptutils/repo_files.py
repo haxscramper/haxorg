@@ -9,6 +9,7 @@ class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
     coverage: bool = Field(default=False)
     xray: bool = Field(default=False)
     asan: bool = Field(default=False)
+    perfetto: bool = Field(default=False)
 
 
 class HaxorgTasksConfig(BaseModel, extra="forbid"):

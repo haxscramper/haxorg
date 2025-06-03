@@ -131,6 +131,19 @@ void OperationsTracer::message(const OperationsMsg& value) const {
     }
 }
 
+void OperationsTracer::stacktraceMessage() const {
+#if !ORG_EMCC_BUILD
+    auto trace = cpptrace::generate_trace();
+    for (auto const& it : trace) {
+        message(
+            it.symbol,
+            fmt("{}", it.raw_address).c_str(),
+            it.line.value_or(-1),
+            it.filename.c_str());
+    }
+#endif
+}
+
 finally_std OperationsTracer::scopeLevel() const {
     ++(const_cast<OperationsTracer*>(this)->activeLevel);
     return finally_std{
@@ -142,6 +155,15 @@ finally_std OperationsTracer::scopeTrace(bool state) {
     TraceState        = state;
     return finally_std{
         [initialTrace, this]() { TraceState = initialTrace; }};
+}
+
+finally_std OperationsTracer::scopeLevelMsg(
+    const std::string& value,
+    const char*        function,
+    int                line,
+    const char*        file) const {
+    message(value, function, line, file);
+    return scopeLevel();
 }
 
 

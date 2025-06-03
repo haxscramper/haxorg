@@ -5,21 +5,26 @@
 
 
 struct ImmMapApi : ImmOrgApiTestBase {
-    org::graph::MapConfig::Ptr conf;
-    org::graph::MapGraphState  graph;
+    org::graph::MapConfig::Ptr     conf;
+    org::graph::MapGraphState::Ptr graph;
 
     ImmMapApi()
-        : graph{start}
-        , conf{org::graph::MapConfig::shared()} //
+        : conf{org::graph::MapConfig::shared()} //
     {}
 
-    void addNodeRec(CR<imm::ImmAdapter> node) {
-        graph.addNodeRec(node, conf);
+    void initGraph(std::shared_ptr<org::imm::ImmAstContext> const& ast) {
+        graph = org::graph::MapGraphState::FromAstContext(ast);
+    }
+
+    void addNodeRec(
+        std::shared_ptr<org::imm::ImmAstContext> const& ast,
+        CR<imm::ImmAdapter>                             node) {
+        graph->addNodeRec(ast, node, conf);
     }
 
     void writeGraphviz(CR<Str> name) {
         hstd::ext::Graphviz gvc;
-        auto                gv = graph.graph.toGraphviz(start);
+        auto                gv = graph->graph->toGraphviz(start);
         gvc.renderToFile(name, gv);
     }
 
@@ -35,14 +40,14 @@ TEST_F(ImmMapApi, AddNode) {
     auto store = imm::ImmAstContext::init_start_context();
     auto conf  = org::graph::MapConfig ::shared();
     conf->dbg.setTraceFile(getDebugFile("ImmMapApi_AddNode.txt"));
-    imm::ImmAstVersion        v1 = store->addRoot(n1);
-    org::graph::MapGraphState s1{v1.context};
-    EXPECT_EQ(s1.graph.nodeCount(), 0);
-    s1.addNode(v1.getRootAdapter(), conf);
-    EXPECT_EQ(s1.graph.nodeCount(), 1);
+    imm::ImmAstVersion v1 = store->addRoot(n1);
+    auto               s1 = org::graph::MapGraphState::shared(v1.context);
+    EXPECT_EQ(s1->graph->nodeCount(), 0);
+    s1->addNode(v1.getRootAdapter(), conf);
+    EXPECT_EQ(s1->graph->nodeCount(), 1);
 
     hstd::ext::Graphviz gvc;
-    auto                gv = s1.graph.toGraphviz(v1.context);
+    auto                gv = s1->graph->toGraphviz(v1.context);
     gvc.renderToFile(getDebugFile("MapS2.png"), gv);
 }
 
@@ -65,35 +70,35 @@ Paragraph [[id:subtree-id]]
     imm::ImmAstVersion v1   = store->addRoot(n1);
     auto               root = v1.getRootAdapter();
 
-    org::graph::MapGraphState s1{v1.context};
+    auto s1 = org::graph::MapGraphState::FromAstContext(v1.context);
 
-    EXPECT_EQ(s1.graph.nodeCount(), 0);
-    EXPECT_EQ(s1.graph.edgeCount(), 0);
-    EXPECT_EQ(s1.unresolved.size(), 0);
+    EXPECT_EQ(s1->graph->nodeCount(), 0);
+    EXPECT_EQ(s1->graph->edgeCount(), 0);
+    EXPECT_EQ(s1->unresolved.size(), 0);
 
     conf->dbg.message("add first node");
     {
         auto __scope = conf->dbg.scopeLevel();
         auto par     = root.at(1);
-        s1.addNode(par, conf);
+        s1->addNode(par, conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
-        EXPECT_EQ(s1.graph.nodeCount(), 1);
-        EXPECT_EQ(s1.graph.edgeCount(), 0);
-        ASSERT_EQ(s1.unresolved.size(), 1);
-        EXPECT_EQ(*s1.unresolved.begin(), par.uniq());
+        EXPECT_EQ(s1->graph->nodeCount(), 1);
+        EXPECT_EQ(s1->graph->edgeCount(), 0);
+        ASSERT_EQ(s1->unresolved.size(), 1);
+        EXPECT_EQ(*s1->unresolved.begin(), par.uniq());
     }
 
     conf->dbg.message("add second node");
     {
         auto __scope = conf->dbg.scopeLevel();
-        s1.addNode(root.at(3), conf);
-        EXPECT_EQ(s1.graph.nodeCount(), 2);
-        EXPECT_EQ(s1.graph.edgeCount(), 1);
-        EXPECT_EQ(s1.unresolved.size(), 0);
+        s1->addNode(root.at(3), conf);
+        EXPECT_EQ(s1->graph->nodeCount(), 2);
+        EXPECT_EQ(s1->graph->edgeCount(), 1);
+        EXPECT_EQ(s1->unresolved.size(), 0);
     }
 
     hstd::ext::Graphviz gvc;
-    auto                gv = s1.graph.toGraphviz(v1.context);
+    auto                gv = s1->graph->toGraphviz(v1.context);
     gvc.renderToFile(getDebugFile("AddNodeWithLinks.png"), gv);
 }
 
@@ -130,24 +135,24 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
     imm::ImmAstVersion v3 = v2.context->addRoot(n2);
 
 
-    org::graph::MapGraphState s1{v3.context};
+    auto s1 = org::graph::MapGraphState::shared(v3.context);
 
-    EXPECT_EQ(s1.graph.nodeCount(), 0);
-    EXPECT_EQ(s1.graph.edgeCount(), 0);
-    EXPECT_EQ(s1.unresolved.size(), 0);
+    EXPECT_EQ(s1->graph->nodeCount(), 0);
+    EXPECT_EQ(s1->graph->edgeCount(), 0);
+    EXPECT_EQ(s1->unresolved.size(), 0);
 
-    s1.addNode(v2.getRootAdapter().at(1), conf);
-    EXPECT_EQ(s1.graph.nodeCount(), 1);
-    EXPECT_EQ(s1.graph.edgeCount(), 0);
-    EXPECT_EQ(s1.unresolved.size(), 1);
+    s1->addNode(v2.getRootAdapter().at(1), conf);
+    EXPECT_EQ(s1->graph->nodeCount(), 1);
+    EXPECT_EQ(s1->graph->edgeCount(), 0);
+    EXPECT_EQ(s1->unresolved.size(), 1);
 
-    s1.addNode(v3.getRootAdapter().at(1), conf);
-    EXPECT_EQ(s1.graph.nodeCount(), 2);
-    EXPECT_EQ(s1.graph.edgeCount(), 2);
-    EXPECT_EQ(s1.unresolved.size(), 0);
+    s1->addNode(v3.getRootAdapter().at(1), conf);
+    EXPECT_EQ(s1->graph->nodeCount(), 2);
+    EXPECT_EQ(s1->graph->edgeCount(), 2);
+    EXPECT_EQ(s1->unresolved.size(), 0);
 
     hstd::ext::Graphviz gvc;
-    auto                gv = s1.graph.toGraphviz(v3.context);
+    auto                gv = s1->graph->toGraphviz(v3.context);
     gvc.renderToFile(getDebugFile("SubtreeBacklinks.png"), gv);
 }
 
@@ -167,34 +172,34 @@ radio user paragraph
     imm::ImmAstVersion v1   = store->addRoot(n1);
     auto               root = v1.getRootAdapter();
 
-    org::graph::MapGraphState s1{v1.context};
+    auto s1 = org::graph::MapGraphState::FromAstContext(v1.context);
 
-    EXPECT_EQ(s1.graph.nodeCount(), 0);
-    EXPECT_EQ(s1.graph.edgeCount(), 0);
-    EXPECT_EQ(s1.unresolved.size(), 0);
+    EXPECT_EQ(s1->graph->nodeCount(), 0);
+    EXPECT_EQ(s1->graph->edgeCount(), 0);
+    EXPECT_EQ(s1->unresolved.size(), 0);
 
     conf->dbg.message("add first node");
     {
         auto __scope = conf->dbg.scopeLevel();
         auto par     = root.at(1);
-        s1.addNode(par, conf);
+        s1->addNode(par, conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
-        EXPECT_EQ(s1.graph.nodeCount(), 1);
-        EXPECT_EQ(s1.graph.edgeCount(), 0);
-        ASSERT_EQ(s1.unresolved.size(), 0);
+        EXPECT_EQ(s1->graph->nodeCount(), 1);
+        EXPECT_EQ(s1->graph->edgeCount(), 0);
+        ASSERT_EQ(s1->unresolved.size(), 0);
     }
 
     conf->dbg.message("add second node");
     {
         auto __scope = conf->dbg.scopeLevel();
-        s1.addNode(root.at(3), conf);
-        EXPECT_EQ(s1.graph.nodeCount(), 2);
-        EXPECT_EQ(s1.graph.edgeCount(), 1);
-        EXPECT_EQ(s1.unresolved.size(), 0);
+        s1->addNode(root.at(3), conf);
+        EXPECT_EQ(s1->graph->nodeCount(), 2);
+        EXPECT_EQ(s1->graph->edgeCount(), 1);
+        EXPECT_EQ(s1->unresolved.size(), 0);
     }
 
     hstd::ext::Graphviz gvc;
-    auto                gv = s1.graph.toGraphviz(v1.context);
+    auto                gv = s1->graph->toGraphviz(v1.context);
     gvc.renderToFile(getDebugFile("RadioTargetsForward.png"), gv);
 }
 
@@ -214,38 +219,38 @@ radio user paragraph
     imm::ImmAstVersion v1   = store->addRoot(n1);
     auto               root = v1.getRootAdapter();
 
-    org::graph::MapGraphState s1{v1.context};
+    auto s1 = org::graph::MapGraphState::FromAstContext(v1.context);
 
-    EXPECT_EQ(s1.graph.nodeCount(), 0);
-    EXPECT_EQ(s1.graph.edgeCount(), 0);
-    EXPECT_EQ(s1.unresolved.size(), 0);
+    EXPECT_EQ(s1->graph->nodeCount(), 0);
+    EXPECT_EQ(s1->graph->edgeCount(), 0);
+    EXPECT_EQ(s1->unresolved.size(), 0);
 
     conf->dbg.message("add first node");
     {
         auto __scope = conf->dbg.scopeLevel();
         auto par     = root.at(1);
-        s1.addNode(par, conf);
+        s1->addNode(par, conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
-        EXPECT_EQ(s1.graph.nodeCount(), 1);
-        EXPECT_EQ(s1.graph.edgeCount(), 0);
+        EXPECT_EQ(s1->graph->nodeCount(), 1);
+        EXPECT_EQ(s1->graph->edgeCount(), 0);
         // radio link tracking is finalized by the time the immutable AST
         // context is constructed, even though the graph node with radio
         // target has not been added to the graph yet, the unresolve link
         // is registered.
-        ASSERT_EQ(s1.unresolved.size(), 1);
+        ASSERT_EQ(s1->unresolved.size(), 1);
     }
 
     conf->dbg.message("add second node");
     {
         auto __scope = conf->dbg.scopeLevel();
-        s1.addNode(root.at(3), conf);
-        EXPECT_EQ(s1.graph.nodeCount(), 2);
-        EXPECT_EQ(s1.graph.edgeCount(), 1);
-        EXPECT_EQ(s1.unresolved.size(), 0);
+        s1->addNode(root.at(3), conf);
+        EXPECT_EQ(s1->graph->nodeCount(), 2);
+        EXPECT_EQ(s1->graph->edgeCount(), 1);
+        EXPECT_EQ(s1->unresolved.size(), 0);
     }
 
     hstd::ext::Graphviz gvc;
-    auto                gv = s1.graph.toGraphviz(v1.context);
+    auto                gv = s1->graph->toGraphviz(v1.context);
     gvc.renderToFile(getDebugFile("RadioTargetsForward.png"), gv);
 }
 
@@ -269,10 +274,12 @@ also known as a human-readable alias
 
     auto init = getInitialVersion(text);
     auto root = init.getRootAdapter();
+    initGraph(init.context);
     writeTreeRepr(root, "repr.txt");
+    writeTreeRepr(org::parseString(text), getDebugFile("repr.yaml"));
     setGraphTrace(getDebugFile("graph_trace.log"));
     setTraceFile(getDebugFile("imm_trace.log"));
-    addNodeRec(root);
+    addNodeRec(init.context, root);
     writeGraphviz(getDebugFile("RadioTargetAliases.png"));
 
     imm::ImmAdapter t1         = root.at(1);
@@ -281,9 +288,9 @@ also known as a human-readable alias
     imm::ImmAdapter par_alias2 = t2.at(2);
     imm::ImmAdapter par_human  = t2.at(4);
 
-    EXPECT_TRUE(graph.graph.hasEdge(par_alias1.uniq(), t1.uniq()));
-    EXPECT_TRUE(graph.graph.hasEdge(par_alias2.uniq(), t1.uniq()));
-    EXPECT_TRUE(graph.graph.hasEdge(par_human.uniq(), t1.uniq()));
+    EXPECT_TRUE(graph->graph->hasEdge(par_alias1.uniq(), t1.uniq()));
+    EXPECT_TRUE(graph->graph->hasEdge(par_alias2.uniq(), t1.uniq()));
+    EXPECT_TRUE(graph->graph->hasEdge(par_human.uniq(), t1.uniq()));
 }
 
 Str getFullMindMapText() {
@@ -377,9 +384,9 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
 
     auto store = imm::ImmAstContext::init_start_context();
 
-    imm::ImmAstVersion        v2 = store->addRoot(n);
-    org::graph::MapGraphState s1{v2.context};
-    imm::ImmAdapter           file = v2.getRootAdapter();
+    imm::ImmAstVersion v2 = store->addRoot(n);
+    auto s1 = org::graph::MapGraphState::FromAstContext(v2.context);
+    imm::ImmAdapter file = v2.getRootAdapter();
 
     EXPECT_EQ(file.at(1)->getKind(), osk::Subtree);
     auto node_s10  = file.at(Vec{1, 0});
@@ -398,13 +405,13 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
 
     auto conf = org::graph::MapConfig ::shared();
     conf->dbg.setTraceFile(getDebugFile("conf"));
-    s1.addNodeRec(v2.getRootAdapter(), conf);
+    s1->addNodeRec(v2.context, v2.getRootAdapter(), conf);
 
-    EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s12.uniq()));
-    EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s10.uniq()));
+    EXPECT_TRUE(s1->graph->hasEdge(node_p110.uniq(), node_s12.uniq()));
+    EXPECT_TRUE(s1->graph->hasEdge(node_p110.uniq(), node_s10.uniq()));
 
     hstd::ext::Graphviz gvc;
-    auto                gv = s1.graph.toGraphviz(v2.context);
+    auto                gv = s1->graph->toGraphviz(v2.context);
     gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
     gvc.writeFile("/tmp/SubtreeFullMap.dot", gv);
     gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
@@ -499,10 +506,10 @@ DocBlock fromAst(imm::ImmAdapter const& id) {
 }
 
 void addAll(
-    org::graph::MapGraphState& state,
-    DocBlock const&            block,
-    org::graph::MapConfig::Ptr conf) {
-    for (auto const& it : block.items) { state.addNode(it.id, conf); }
+    org::graph::MapGraphState::Ptr const& state,
+    DocBlock const&                       block,
+    org::graph::MapConfig::Ptr            conf) {
+    for (auto const& it : block.items) { state->addNode(it.id, conf); }
 
     for (auto const& it : block.nested) { addAll(state, it, conf); }
 }
@@ -541,8 +548,8 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
     auto conf = org::graph::MapConfig ::shared();
     conf->dbg.setTraceFile(getDebugFile("graph"));
-    org::graph::MapGraphState state{v.context};
-    DocBlock                  doc = fromAst(root);
+    auto     state = org::graph::MapGraphState::FromAstContext(v.context);
+    DocBlock doc   = fromAst(root);
     addAll(state, doc, conf);
 
     imm::ImmAdapter comment   = root.at({1, 3});
@@ -550,14 +557,14 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
     EXPECT_EQ(comment->getKind(), OrgSemKind::BlockComment);
     EXPECT_EQ(par_above->getKind(), OrgSemKind::Paragraph);
 
-    state.graph.addEdge(
+    state->graph->addEdge(
         org::graph::MapEdge{
             .source = org::graph::MapNode{par_above.uniq()},
             .target = org::graph::MapNode{comment.uniq()}},
         org::graph::MapEdgeProp{});
 
     hstd::ext::Graphviz gvc;
-    auto                gv = state.graph.toGraphviz(v.context);
+    auto                gv = state->graph->toGraphviz(v.context);
     // gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
     gvc.writeFile(getDebugFile("map.dot"), gv);
     gvc.renderToFile(getDebugFile("map.png"), gv);
@@ -643,24 +650,24 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
         (imm::flatWords(Subtree_2.as<imm::ImmSubtree>().getTitle())),
         (Vec<Str>{"Subtree", "2"}));
 
-    auto& g = state.graph;
+    auto& g = state->graph;
 
-    g.hasEdge(List_2, Paragraph_20);
-    g.hasEdge(List_2, Subtree_1);
-    g.hasEdge(List_2, Subtree_2);
-    g.hasEdge(List_2, Paragraph_6);
-    g.hasEdge(Subtree_1, Subtree_2);
-    g.hasEdge(Subtree_1, Paragraph_6);
-    g.hasEdge(Paragraph_6, BlockComment_1);
-    g.hasEdge(Paragraph_9, Paragraph_10);
-    g.hasEdge(Paragraph_10, Paragraph_11);
-    g.hasEdge(Paragraph_11, Paragraph_12);
+    g->hasEdge(List_2, Paragraph_20);
+    g->hasEdge(List_2, Subtree_1);
+    g->hasEdge(List_2, Subtree_2);
+    g->hasEdge(List_2, Paragraph_6);
+    g->hasEdge(Subtree_1, Subtree_2);
+    g->hasEdge(Subtree_1, Paragraph_6);
+    g->hasEdge(Paragraph_6, BlockComment_1);
+    g->hasEdge(Paragraph_9, Paragraph_10);
+    g->hasEdge(Paragraph_10, Paragraph_11);
+    g->hasEdge(Paragraph_11, Paragraph_12);
 }
 
 TEST_F(ImmMapApi, Doc1Graph) {
     __perf_trace("imm", "run test");
     fs::path file = fs::path{std::getenv("HOME")}
-                  / std::string{"tmp/doc_graph.org"};
+                  / std::string{"tmp/doc_graph->org"};
 
     if (!fs::exists(file)) { return; }
     auto n = testParseString(readFile(file));
@@ -705,15 +712,15 @@ TEST_F(ImmMapApi, Doc1Graph) {
 
     auto                      conf = org::graph::MapConfig::shared();
     org::graph::MapGraphState state{v.context};
-    state.addNodeRec(root, conf);
+    state.addNodeRec(v.context, root, conf);
 
     hstd::ext::Graphviz            gvc;
     org::graph::MapGraph::GvConfig gvConf;
     gvConf.acceptNode = [&](org::graph::MapNode const& node) {
-        return 0 < state.graph.inDegree(node)
-            || 0 < state.graph.outDegree(node);
+        return 0 < state.graph->inDegree(node)
+            || 0 < state.graph->outDegree(node);
     };
-    auto gv = state.graph.toGraphviz(v.context, gvConf);
+    auto gv = state.graph->toGraphviz(v.context, gvConf);
     gvc.writeFile(getDebugFile("map.dot"), gv);
     gvc.renderToFile(
         getDebugFile("map.png"),
@@ -723,24 +730,24 @@ TEST_F(ImmMapApi, Doc1Graph) {
 }
 
 struct TestGraph {
-    org::graph::MapGraph     g;
-    Vec<org::graph::MapNode> nodes;
+    org::graph::MapGraph::Ptr g;
+    Vec<org::graph::MapNode>  nodes;
 };
 
 TestGraph create_test_graph() {
-    org::graph::MapGraph g{};
+    auto g = org::graph::MapGraph::shared();
 
     auto n0 = imm::ImmUniqId{imm::ImmId::FromValue(0)};
     auto n1 = imm::ImmUniqId{imm::ImmId::FromValue(1)};
     auto n2 = imm::ImmUniqId{imm::ImmId::FromValue(2)};
 
-    g.addNode(n0);
-    g.addNode(n1);
-    g.addNode(n2);
+    g->addNode(n0);
+    g->addNode(n1);
+    g->addNode(n2);
 
-    g.addEdge(org::graph::MapEdge{n0, n1});
-    g.addEdge(org::graph::MapEdge{n1, n2});
-    g.addEdge(org::graph::MapEdge{n2, n0});
+    g->addEdge(org::graph::MapEdge{n0, n1});
+    g->addEdge(org::graph::MapEdge{n1, n2});
+    g->addEdge(org::graph::MapEdge{n2, n0});
 
     return TestGraph{
         .g     = g,
@@ -751,19 +758,19 @@ TestGraph create_test_graph() {
 
 TEST(ImmMapGraphApi, VertexCount) {
     auto g            = create_test_graph();
-    auto num_vertices = boost::num_vertices(g.g);
+    auto num_vertices = boost::num_vertices(*g.g);
     EXPECT_EQ(num_vertices, 3);
 }
 
 TEST(ImmMapGraphApi, EdgeCount) {
     auto g         = create_test_graph();
-    auto num_edges = boost::num_edges(g.g);
+    auto num_edges = boost::num_edges(*g.g);
     EXPECT_EQ(num_edges, 3);
 }
 
 TEST(ImmMapGraphApi, Vertices) {
     auto g                = create_test_graph();
-    auto [v_begin, v_end] = boost::vertices(g.g);
+    auto [v_begin, v_end] = boost::vertices(*g.g);
     std::vector<org::graph::MapNode> vertices(v_begin, v_end);
     std::sort(vertices.begin(), vertices.end());
 
@@ -772,7 +779,7 @@ TEST(ImmMapGraphApi, Vertices) {
 
 TEST(ImmMapGraphApi, Edges) {
     auto g                = create_test_graph();
-    auto [e_begin, e_end] = boost::edges(g.g);
+    auto [e_begin, e_end] = boost::edges(*g.g);
     std::vector<org::graph::MapEdge> edges(e_begin, e_end);
 
     EXPECT_EQ(edges.size(), 3);
@@ -799,7 +806,7 @@ TEST(ImmMapGraphApi, Edges) {
 TEST(ImmMapGraphApi, AdjacentVertices) {
     auto g                    = create_test_graph();
     auto [adj_begin, adj_end] = boost::adjacent_vertices(
-        g.nodes.at(0), g.g);
+        g.nodes.at(0), *g.g);
 
     std::vector<org::graph::MapNode> adjacent_vertices(adj_begin, adj_end);
 
@@ -810,14 +817,14 @@ TEST(ImmMapGraphApi, AdjacentVertices) {
 
 TEST(ImmMapGraphApi, OutDegree) {
     auto g          = create_test_graph();
-    auto out_degree = boost::out_degree(g.nodes.at(0), g.g);
+    auto out_degree = boost::out_degree(g.nodes.at(0), *g.g);
     EXPECT_EQ(out_degree, 1);
 }
 
 TEST(ImmMapGraphApi, EdgeIterators) {
     auto g = create_test_graph();
     {
-        auto [oe_begin, oe_end] = boost::out_edges(g.nodes.at(0), g.g);
+        auto [oe_begin, oe_end] = boost::out_edges(g.nodes.at(0), *g.g);
         std::vector<org::graph::MapEdge> out_edges(oe_begin, oe_end);
 
         EXPECT_EQ(out_edges.size(), 1);
@@ -827,7 +834,7 @@ TEST(ImmMapGraphApi, EdgeIterators) {
     }
 
     {
-        auto [ie_begin, ie_end] = boost::in_edges(g.nodes.at(0), g.g);
+        auto [ie_begin, ie_end] = boost::in_edges(g.nodes.at(0), *g.g);
         std::vector<org::graph::MapEdge> in_edges(ie_begin, ie_end);
 
         EXPECT_EQ(in_edges.size(), 1);
@@ -839,14 +846,14 @@ TEST(ImmMapGraphApi, EdgeIterators) {
 
 TEST(ImmMapGraphApi, AdjacencyIteration) {
     auto g = create_test_graph();
-    EXPECT_EQ(g.g.adjNodes(g.nodes.at(0)).size(), 2);
+    EXPECT_EQ(g.g->adjNodes(g.nodes.at(0)).size(), 2);
 }
 
 TEST(ImmMapGraphApi, SourceAndTarget) {
     auto                g = create_test_graph();
     org::graph::MapEdge e{g.nodes.at(0), g.nodes.at(1)};
-    auto                src = boost::source(e, g.g);
-    auto                tgt = boost::target(e, g.g);
+    auto                src = boost::source(e, *g.g);
+    auto                tgt = boost::target(e, *g.g);
 
     EXPECT_EQ(src, g.nodes.at(0));
     EXPECT_EQ(tgt, g.nodes.at(1));
@@ -859,14 +866,14 @@ TEST(ImmMapGraphApi, BoostPropertyWriter) {
     auto               conf  = org::graph::MapConfig::shared();
     imm::ImmAstVersion v2    = store->addRoot(n);
     imm::ImmAdapter    file  = v2.getRootAdapter();
-    org::graph::MapGraphState s1{v2.context};
-    s1.addNodeRec(file, conf);
+    auto s1 = org::graph::MapGraphState::FromAstContext(v2.context);
+    s1->addNodeRec(v2.context, file, conf);
 
     std::stringstream os;
 
-    auto dp = org::graph::toGraphvizDynamicProperties(s1.graph);
+    auto dp = org::graph::toGraphvizDynamicProperties(*s1->graph);
 
-    write_graphviz_dp(os, s1.graph, dp);
+    write_graphviz_dp(os, *s1->graph, dp);
 
     writeFile("/tmp/BoostPropertyWriter.dot", os.str());
 }
@@ -880,15 +887,15 @@ TEST(ImmMapGraphApi, BoostVisitors) {
     auto               conf  = org::graph::MapConfig::shared();
     imm::ImmAstVersion v2    = store->addRoot(n);
     imm::ImmAdapter    file  = v2.getRootAdapter();
-    MapGraphState      s1{v2.context};
-    s1.addNodeRec(file, conf);
+    auto s1 = org::graph::MapGraphState::FromAstContext(v2.context);
+    s1->addNodeRec(v2.context, file, conf);
 
     UnorderedMap<MapNode, int> forwardBfsExamineOrder;
     UnorderedMap<MapNode, int> undirectedBfsExamineOrder;
     UnorderedMap<MapNode, int> forwardDfsDiscoverOrder;
 
     org::graph::bfs_visit(
-        s1.graph,
+        *s1->graph,
         MapNode{file.at({1, 1, 0}).uniq()},
         hstd::ext::boost_lambda_bfs_visitor<MapGraph>{}.set_examine_vertex(
             [&, index = 0](CR<MapNode> n, CR<MapGraph>) mutable {
@@ -897,7 +904,7 @@ TEST(ImmMapGraphApi, BoostVisitors) {
             }));
 
     org::graph::bfs_visit(
-        MapGraphUndirected{&s1.graph},
+        MapGraphUndirected{s1->graph},
         MapNode{file.at({1, 1, 0}).uniq()},
         hstd::ext::boost_lambda_bfs_visitor<MapGraphUndirected>{}
             .set_examine_vertex(
@@ -908,7 +915,7 @@ TEST(ImmMapGraphApi, BoostVisitors) {
                 }));
 
     org::graph::dfs_visit(
-        s1.graph,
+        *s1->graph,
         MapNode{file.at({1, 1, 0}).uniq()},
         hstd::ext::boost_lambda_dfs_visitor<MapGraph>{}
             .set_discover_vertex(
@@ -941,7 +948,7 @@ TEST(ImmMapGraphApi, BoostVisitors) {
         return res;
     };
 
-    auto gv = s1.graph.toGraphviz(v2.context, gvConf);
+    auto gv = s1->graph->toGraphviz(v2.context, gvConf);
     gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
     gvc.writeFile(getDebugFile("BoostVisitors.dot"), gv);
     gvc.renderToFile(getDebugFile("BoostVisitors.png"), gv);

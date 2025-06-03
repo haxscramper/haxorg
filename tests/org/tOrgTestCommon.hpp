@@ -37,6 +37,7 @@ GTEST_ADL_PRINT_TYPE(Vec<Str>);
 GTEST_ADL_PRINT_TYPE(Vec<Vec<Str>>);
 GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 
+#pragma clang diagnostic ignored "-Wreorder-init-list"
 #include <haxorg/test/org_parse_aux.hpp>
 #include <gtest/gtest.h>
 
@@ -120,21 +121,91 @@ std::string maybe_format(const T&) {
 }
 
 template <typename T>
-struct reporting_comparator {
+void equality_compare_impl(
+    CR<T>                       lhs,
+    CR<T>                       rhs,
+    Vec<compare_report>&        out,
+    Vec<compare_context> const& context) {
+    if (!(lhs == rhs)) {
+        out.push_back({
+            .context = context,
+            .message = std::format(
+                "{} != {} on {} for {}",
+                escape_literal(maybe_format(lhs)),
+                escape_literal(maybe_format(rhs)),
+                __LINE__,
+                demangle(typeid(T).name())),
+        });
+    }
+}
+
+#define EQUALITY_COMPARE_TRIVIAL(__type)                                  \
+    template <>                                                           \
+    struct reporting_comparator<__type> {                                 \
+        static void compare(                                              \
+            CR<__type>                  lhs,                              \
+            CR<__type>                  rhs,                              \
+            Vec<compare_report>&        out,                              \
+            Vec<compare_context> const& context) {                        \
+            equality_compare_impl<__type>(lhs, rhs, out, context);        \
+        }                                                                 \
+    };
+
+template <typename T>
+struct reporting_comparator {};
+
+EQUALITY_COMPARE_TRIVIAL(int);
+EQUALITY_COMPARE_TRIVIAL(bool);
+EQUALITY_COMPARE_TRIVIAL(hstd::Str);
+EQUALITY_COMPARE_TRIVIAL(std::string);
+EQUALITY_COMPARE_TRIVIAL(float);
+EQUALITY_COMPARE_TRIVIAL(u64);
+EQUALITY_COMPARE_TRIVIAL(cctz::civil_second);
+EQUALITY_COMPARE_TRIVIAL(cctz::time_zone);
+
+
+template <typename K, typename V, typename Container>
+struct reporting_comparator_key_value {
     static void compare(
-        CR<T>                       lhs,
-        CR<T>                       rhs,
+        CR<Container>               lhs,
+        CR<Container>               rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
-        if (!(lhs == rhs)) {
+        hstd::UnorderedSet<K> lhs_keys;
+        hstd::UnorderedSet<K> rhs_keys;
+        for (auto const& [key, value] : lhs) { lhs_keys.incl(key); }
+        for (auto const& [key, value] : rhs) { rhs_keys.incl(key); }
+        for (auto const& shared_key : (lhs_keys & rhs_keys)) {
+            reporting_comparator<V>::compare(
+                lhs.at(shared_key),
+                rhs.at(shared_key),
+                out,
+                context
+                    + Vec<compare_context>{{
+                        .field = maybe_format(shared_key),
+                        .type  = "UnorderedMap",
+                    }});
+        }
+
+        for (auto const& lhs_only : lhs_keys - rhs_keys) {
             out.push_back({
                 .context = context,
-                .message = std::format(
-                    "{} != {} on {} for {}",
-                    escape_literal(maybe_format(lhs)),
-                    escape_literal(maybe_format(rhs)),
-                    __LINE__,
-                    demangle(typeid(T).name())),
+                .message = fmt(
+                    "no key of type {} '{}' in lhs on {}",
+                    value_metadata<K>::typeName(),
+                    maybe_format(lhs_only),
+                    __LINE__),
+            });
+        }
+
+        for (auto const& rhs_only : rhs_keys - lhs_keys) {
+            out.push_back({
+                .context = context,
+                .message = fmt(
+                    "no key of type {} '{}' in rhs on {}",
+                    value_metadata<K>::typeName(),
+                    maybe_format(rhs_only),
+                    __LINE__),
             });
         }
     }
@@ -158,54 +229,51 @@ struct reporting_comparator<std::optional<T>> {
     }
 };
 
-template <typename K, typename V>
-struct reporting_comparator<UnorderedMap<K, V>> {
+template <IsEnum E>
+struct reporting_comparator<E> {
     static void compare(
-        CR<UnorderedMap<K, V>>      lhs,
-        CR<UnorderedMap<K, V>>      rhs,
+        CR<E>                       lhs,
+        CR<E>                       rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
-        if (lhs.size() != rhs.size()) {
-            out.push_back({
-                .context = context,
-                .message = fmt(
-                    "lhs.size() != rhs.size() ({} != {}) on {}",
-                    lhs.size(),
-                    rhs.size(),
-                    __LINE__),
-            });
-        } else {
-            for (auto const& it : lhs.keys()) {
-                if (rhs.contains(it)) {
-                    reporting_comparator<V>::compare(
-                        lhs.at(it),
-                        rhs.at(it),
-                        out,
-                        context
-                            + Vec<compare_context>{{
-                                .field = maybe_format(it),
-                                .type  = "UnorderedMap",
-                            }});
-                } else {
-                    out.push_back({
-                        .context = context,
-                        .message = fmt(
-                            "no '{}' in rhs on {}",
-                            maybe_format(it),
-                            __LINE__),
-                    });
-                }
-            }
-            for (int i = 0; i < lhs.size(); ++i) {}
-        }
+        equality_compare_impl<E>(lhs, rhs, out, context);
     }
 };
 
+
 template <typename T>
-struct reporting_comparator<Vec<T>> {
+struct reporting_comparator<immer::box<T>> {
     static void compare(
-        CR<Vec<T>>                  lhs,
-        CR<Vec<T>>                  rhs,
+        CR<immer::box<T>>           lhs,
+        CR<immer::box<T>>           rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        reporting_comparator<T>::compare(
+            lhs.get(), rhs.get(), out, context);
+    }
+};
+
+template <typename K, typename V>
+struct reporting_comparator<UnorderedMap<K, V>>
+    : reporting_comparator_key_value<K, V, UnorderedMap<K, V>> {};
+
+template <typename K, typename V>
+struct reporting_comparator<std::unordered_map<K, V>>
+    : reporting_comparator_key_value<K, V, std::unordered_map<K, V>> {};
+
+template <typename K, typename V>
+struct reporting_comparator<immer::map<K, V>>
+    : reporting_comparator_key_value<K, V, immer::map<K, V>> {};
+
+template <typename K, typename V>
+struct reporting_comparator<hstd::ext::ImmMap<K, V>>
+    : reporting_comparator_key_value<K, V, hstd::ext::ImmMap<K, V>> {};
+
+template <typename T, typename Container>
+struct reporting_comparator_indexed_sequence {
+    static void compare(
+        CR<Container>               lhs,
+        CR<Container>               rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.size() != rhs.size()) {
@@ -233,6 +301,18 @@ struct reporting_comparator<Vec<T>> {
     }
 };
 
+template <typename T>
+struct reporting_comparator<hstd::Vec<T>>
+    : reporting_comparator_indexed_sequence<T, hstd::Vec<T>> {};
+
+template <typename T>
+struct reporting_comparator<std::vector<T>>
+    : reporting_comparator_indexed_sequence<T, std::vector<T>> {};
+
+template <typename T>
+struct reporting_comparator<immer::flex_vector<T>>
+    : reporting_comparator_indexed_sequence<T, immer::flex_vector<T>> {};
+
 template <IsVariant V>
 struct reporting_comparator<V> {
     static void compare(
@@ -243,7 +323,12 @@ struct reporting_comparator<V> {
         if (lhs.index() != rhs.index()) {
             out.push_back({
                 .context = context,
-                .message = fmt("on {}", __LINE__),
+                .message = fmt(
+                    "variant index differ {} != {} on {} for {}",
+                    lhs.index(),
+                    rhs.index(),
+                    __LINE__,
+                    value_metadata<V>::typeName()),
             });
         } else {
             std::visit(
@@ -287,6 +372,24 @@ struct reporting_comparator<T> {
             });
     }
 };
+
+
+template <>
+struct reporting_comparator<org::imm::ImmAstStore> {
+    static void compare(
+        CR<org::imm::ImmAstStore>   lhs,
+        CR<org::imm::ImmAstStore>   rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+#define _kind(__Kind)                                                     \
+    reporting_comparator<                                                 \
+        org::imm::ImmAstKindStore<org::imm::Imm##__Kind>>::               \
+        compare(lhs.store##__Kind, rhs.store##__Kind, out, context);
+        EACH_SEM_ORG_KIND(_kind)
+#undef _kind
+    }
+};
+
 
 template <typename T>
 struct reporting_comparator<sem::SemId<T>> {

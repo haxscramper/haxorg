@@ -1,5 +1,7 @@
 #include "tOrgTestCommon.hpp"
 
+#include <haxorg/sem/SemOrgCereal.hpp>
+
 using namespace org::parse;
 using namespace org::test;
 
@@ -14,9 +16,50 @@ EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
         it->getKind());
 }
 
-TEST(TestFiles, AllNodeSerde) {
+TEST(TestFiles, OrgCerealSerdeRoundtrip) {
+    auto node = org::parseFile(
+        __CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org",
+        // "/home/haxscramper/tmp/doc1.org",
+        OrgParseParameters::shared());
+
+    writeFile(
+        "/tmp/cereal_value_dump.json", org::exportToJsonString(node));
+
+    auto start_context = org::imm::ImmAstContext::init_start_context();
+    start_context->addRoot(node);
+
+    std::string binary_buffer = org::imm::serializeToText(start_context);
+    {
+        ColStream os;
+        start_context->store->format(os);
+        writeFile("/tmp/msgpack_first_dump.txt", os.toString(false));
+    }
+
+    writeFile(
+        "/tmp/msgpack_first.json",
+        org::imm::serializeFromTextToJson(binary_buffer).dump(2));
+    auto final_context = org::imm::ImmAstContext::init_start_context();
+    org::imm::serializeFromText(binary_buffer, final_context);
+
+    {
+        ColStream os;
+        final_context->store->format(os);
+        writeFile("/tmp/msgpack_second_dump.txt", os.toString(false));
+    }
+
+    Vec<compare_report> out;
+
+    reporting_comparator<org::imm::ImmAstStore>::compare(
+        *start_context->store, *final_context->store, out, {});
+
+    show_compare_reports(out);
+}
+
+TEST(TestFiles, AllNodeSerdeRoundtrip) {
 #if ORG_DEPS_USE_PROTOBUF
-    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string file
+        = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
+    // std::string file = "/home/haxscramper/tmp/doc1.org";
     MockFull    p{false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);
@@ -58,11 +101,8 @@ TEST(TestFiles, AllNodeSerde) {
         writeFile("/tmp/proto_read.json", proto_read_json);
     }
 
-    json write_json = org::algo::ExporterJson{}.evalTop(write_node);
-    json read_json  = org::algo::ExporterJson{}.evalTop(read_node);
-
-    writeFile("/tmp/node_write.json", write_json.dump(2));
-    writeFile("/tmp/node_read.json", read_json.dump(2));
+    writeTreeRepr(write_node, "/tmp/node_write.yaml");
+    writeTreeRepr(read_node, "/tmp/node_read.yaml");
 
     Vec<compare_report> out;
 
@@ -75,7 +115,8 @@ TEST(TestFiles, AllNodeSerde) {
 
 TEST(TestFiles, AllNodeCoverage) {
     GTEST_SKIP();
-    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string file
+        = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     MockFull    p{false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);

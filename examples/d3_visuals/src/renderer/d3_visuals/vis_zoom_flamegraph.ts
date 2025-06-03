@@ -1,7 +1,9 @@
 import * as d3 from "d3";
 import {array, Schema, string, z} from "zod";
 
-import * as org from "../org_data.ts";
+import {ElectronAPI} from "../electron";
+import {org} from "../org_data.ts";
+import {initWasmModule, osk} from "../wasm_client";
 
 class RangeClose {
   constructor(public start: Date, public end: Date) {}
@@ -58,17 +60,15 @@ class OrgSubtreeEvent {
     return res;
   }
 
-  static async from_id(client: org.OrgClient,
-                       id: org.ImmUniqId): Promise<OrgSubtreeEvent> {
-    var               res = new OrgSubtreeEvent();
-    res.title             = await client.getCleanSubtreeTitle({id : id});
-    res.self_size         = 1;
+  static from_id(node: org.Org): OrgSubtreeEvent {
+    const tree: org.Subtree = window.module.cast_to_Subtree(node);
+    var   res               = new OrgSubtreeEvent();
+    res.title               = tree.getCleanTitle().toString();
+    res.self_size           = 1;
 
-    const subnodes: org.ImmUniqId[] = await client.getAllSubnodes({id : id});
-
-    for (var subnode of subnodes) {
-      if ((subnode as org.ImmUniqId).id.format.startsWith("Subtree")) {
-        res.nested.push(await this.from_id(client, subnode));
+    for (var subnode of tree.subnodes.toArray()) {
+      if (subnode.getKind() == osk().Subtree) {
+        res.nested.push(this.from_id(subnode));
       }
     }
 
@@ -171,6 +171,7 @@ export class ZoomFlamegraphVisualizationConfig {
   horizontal_brush_placement: boolean = true;
   event_domain_rect_padding: number   = 4;
   layer_domain_rect_padding: number   = 4;
+  path: string;
 
   get_zoom_area_offset_left(): number {
     if (this.horizontal_brush_placement) {
@@ -355,29 +356,30 @@ export class ZoomFlamegraphVisualization {
         this.state.event_domain.range().map(t.invertX, t));
   }
 
-  async get_gantt(client: org.OrgClient, root: org.ImmUniqId): Promise<Gantt> {
-    var res                            = new Gantt();
-    var root_subtrees: org.ImmUniqId[] = Array();
-    for (var subnode of await client.getAllSubnodes({id : root})) {
-      if ((subnode as org.ImmUniqId).id.format.startsWith("Subtree")) {
-        root_subtrees.push(subnode as org.ImmUniqId);
+  get_gantt(root: org.Org): Gantt {
+    var res                          = new Gantt();
+    var root_subtrees: org.Subtree[] = Array();
+    for (var subnode of root.subnodes.toArray()) {
+      if (subnode.getKind() == osk().Subtree) {
+        root_subtrees.push(window.module.cast_to_Subtree(subnode));
       }
     }
-    const root_subtrees_list = await Promise.all(root_subtrees.map(
-        async (id: org.ImmUniqId) => await OrgSubtreeEvent.from_id(client,
-                                                                   id)));
-    res.events               = Event.from_org_subtree(root_subtrees_list);
+    const root_subtrees_list
+        = root_subtrees.map((id: org.ImmUniqId) => OrgSubtreeEvent.from_id(id));
+    res.events = Event.from_org_subtree(root_subtrees_list);
     return res;
   }
 
   async render() {
-    const client = await org.openClient(
-        8089,
-        "/home/haxscramper/tmp/org_trivial.org",
-    );
-
-    this.gantt = await this.get_gantt(client, await client.getRoot({}));
-    this.update();
+    await initWasmModule();
+    const result = await window.electronAPI.readFile(this.conf.path);
+    if (result.success) {
+      const node = window.module.parseString(result.data!);
+      this.gantt = this.get_gantt(node);
+      this.update();
+    } else {
+      throw new Error(result.error);
+    }
   }
 
   rectTransform(d: ZoomDatum) {

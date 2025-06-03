@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "node-addon-api": "^7.0.0"
-  }
+  },
+  "name": "haxorg_wasm_types",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "types": "haxorg_wasm_types.d.ts"
 }

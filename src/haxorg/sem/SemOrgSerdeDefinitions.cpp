@@ -102,29 +102,41 @@ void org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode>::write(::o
 void org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode>::read(::orgproto::LispCode const& out, proto_write_accessor<org::sem::LispCode> in) {
   switch (out.data().kind_case()) {
     case ::orgproto::LispCode::Data::kCall:
+      in.for_field_variant<0>(&org::sem::LispCode::data).get();
       proto_serde<orgproto::LispCode::Call, org::sem::LispCode::Call>::read(out.data().call(), in.for_field_variant<0>(&org::sem::LispCode::data));
       break;
     case ::orgproto::LispCode::Data::kList:
+      in.for_field_variant<1>(&org::sem::LispCode::data).get();
       proto_serde<orgproto::LispCode::List, org::sem::LispCode::List>::read(out.data().list(), in.for_field_variant<1>(&org::sem::LispCode::data));
       break;
     case ::orgproto::LispCode::Data::kKeyvalue:
+      in.for_field_variant<2>(&org::sem::LispCode::data).get();
       proto_serde<orgproto::LispCode::KeyValue, org::sem::LispCode::KeyValue>::read(out.data().keyvalue(), in.for_field_variant<2>(&org::sem::LispCode::data));
       break;
     case ::orgproto::LispCode::Data::kNumber:
+      in.for_field_variant<3>(&org::sem::LispCode::data).get();
       proto_serde<orgproto::LispCode::Number, org::sem::LispCode::Number>::read(out.data().number(), in.for_field_variant<3>(&org::sem::LispCode::data));
       break;
     case ::orgproto::LispCode::Data::kText:
+      in.for_field_variant<4>(&org::sem::LispCode::data).get();
       proto_serde<orgproto::LispCode::Text, org::sem::LispCode::Text>::read(out.data().text(), in.for_field_variant<4>(&org::sem::LispCode::data));
       break;
     case ::orgproto::LispCode::Data::kIdent:
+      in.for_field_variant<5>(&org::sem::LispCode::data).get();
       proto_serde<orgproto::LispCode::Ident, org::sem::LispCode::Ident>::read(out.data().ident(), in.for_field_variant<5>(&org::sem::LispCode::data));
       break;
     case ::orgproto::LispCode::Data::kBoolean:
+      in.for_field_variant<6>(&org::sem::LispCode::data).get();
       proto_serde<orgproto::LispCode::Boolean, org::sem::LispCode::Boolean>::read(out.data().boolean(), in.for_field_variant<6>(&org::sem::LispCode::data));
       break;
     case ::orgproto::LispCode::Data::kReal:
+      in.for_field_variant<7>(&org::sem::LispCode::data).get();
       proto_serde<orgproto::LispCode::Real, org::sem::LispCode::Real>::read(out.data().real(), in.for_field_variant<7>(&org::sem::LispCode::data));
       break;
+    case ::orgproto::LispCode::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -158,11 +170,17 @@ void org::algo::proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position, org::sem
 void org::algo::proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position, org::sem::Tblfm::Expr::AxisRef::Position>::read(::orgproto::Tblfm::Expr::AxisRef::Position const& out, proto_write_accessor<org::sem::Tblfm::Expr::AxisRef::Position> in) {
   switch (out.data().kind_case()) {
     case ::orgproto::Tblfm::Expr::AxisRef::Position::Data::kIndex:
+      in.for_field_variant<0>(&org::sem::Tblfm::Expr::AxisRef::Position::data).get();
       proto_serde<orgproto::Tblfm::Expr::AxisRef::Position::Index, org::sem::Tblfm::Expr::AxisRef::Position::Index>::read(out.data().index(), in.for_field_variant<0>(&org::sem::Tblfm::Expr::AxisRef::Position::data));
       break;
     case ::orgproto::Tblfm::Expr::AxisRef::Position::Data::kName:
+      in.for_field_variant<1>(&org::sem::Tblfm::Expr::AxisRef::Position::data).get();
       proto_serde<orgproto::Tblfm::Expr::AxisRef::Position::Name, org::sem::Tblfm::Expr::AxisRef::Position::Name>::read(out.data().name(), in.for_field_variant<1>(&org::sem::Tblfm::Expr::AxisRef::Position::data));
       break;
+    case ::orgproto::Tblfm::Expr::AxisRef::Position::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -269,26 +287,37 @@ void org::algo::proto_serde<::orgproto::Tblfm::Expr, org::sem::Tblfm::Expr>::wri
 void org::algo::proto_serde<::orgproto::Tblfm::Expr, org::sem::Tblfm::Expr>::read(::orgproto::Tblfm::Expr const& out, proto_write_accessor<org::sem::Tblfm::Expr> in) {
   switch (out.data().kind_case()) {
     case ::orgproto::Tblfm::Expr::Data::kAxisref:
+      in.for_field_variant<0>(&org::sem::Tblfm::Expr::data).get();
       proto_serde<orgproto::Tblfm::Expr::AxisRef, org::sem::Tblfm::Expr::AxisRef>::read(out.data().axisref(), in.for_field_variant<0>(&org::sem::Tblfm::Expr::data));
       break;
     case ::orgproto::Tblfm::Expr::Data::kAxisname:
+      in.for_field_variant<1>(&org::sem::Tblfm::Expr::data).get();
       proto_serde<orgproto::Tblfm::Expr::AxisName, org::sem::Tblfm::Expr::AxisName>::read(out.data().axisname(), in.for_field_variant<1>(&org::sem::Tblfm::Expr::data));
       break;
     case ::orgproto::Tblfm::Expr::Data::kIntliteral:
+      in.for_field_variant<2>(&org::sem::Tblfm::Expr::data).get();
       proto_serde<orgproto::Tblfm::Expr::IntLiteral, org::sem::Tblfm::Expr::IntLiteral>::read(out.data().intliteral(), in.for_field_variant<2>(&org::sem::Tblfm::Expr::data));
       break;
     case ::orgproto::Tblfm::Expr::Data::kFloatliteral:
+      in.for_field_variant<3>(&org::sem::Tblfm::Expr::data).get();
       proto_serde<orgproto::Tblfm::Expr::FloatLiteral, org::sem::Tblfm::Expr::FloatLiteral>::read(out.data().floatliteral(), in.for_field_variant<3>(&org::sem::Tblfm::Expr::data));
       break;
     case ::orgproto::Tblfm::Expr::Data::kRangeref:
+      in.for_field_variant<4>(&org::sem::Tblfm::Expr::data).get();
       proto_serde<orgproto::Tblfm::Expr::RangeRef, org::sem::Tblfm::Expr::RangeRef>::read(out.data().rangeref(), in.for_field_variant<4>(&org::sem::Tblfm::Expr::data));
       break;
     case ::orgproto::Tblfm::Expr::Data::kCall:
+      in.for_field_variant<5>(&org::sem::Tblfm::Expr::data).get();
       proto_serde<orgproto::Tblfm::Expr::Call, org::sem::Tblfm::Expr::Call>::read(out.data().call(), in.for_field_variant<5>(&org::sem::Tblfm::Expr::data));
       break;
     case ::orgproto::Tblfm::Expr::Data::kElisp:
+      in.for_field_variant<6>(&org::sem::Tblfm::Expr::data).get();
       proto_serde<orgproto::Tblfm::Expr::Elisp, org::sem::Tblfm::Expr::Elisp>::read(out.data().elisp(), in.for_field_variant<6>(&org::sem::Tblfm::Expr::data));
       break;
+    case ::orgproto::Tblfm::Expr::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -385,14 +414,21 @@ void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::read(::
   in.for_field(&org::sem::AttrValue::isQuoted).get() = out.isquoted();
   switch (out.data().kind_case()) {
     case ::orgproto::AttrValue::DataVariant::kTextvalue:
+      in.for_field_variant<0>(&org::sem::AttrValue::data).get();
       proto_serde<orgproto::AttrValue::TextValue, org::sem::AttrValue::TextValue>::read(out.data().textvalue(), in.for_field_variant<0>(&org::sem::AttrValue::data));
       break;
     case ::orgproto::AttrValue::DataVariant::kFilereference:
+      in.for_field_variant<1>(&org::sem::AttrValue::data).get();
       proto_serde<orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference>::read(out.data().filereference(), in.for_field_variant<1>(&org::sem::AttrValue::data));
       break;
     case ::orgproto::AttrValue::DataVariant::kLispvalue:
+      in.for_field_variant<2>(&org::sem::AttrValue::data).get();
       proto_serde<orgproto::AttrValue::LispValue, org::sem::AttrValue::LispValue>::read(out.data().lispvalue(), in.for_field_variant<2>(&org::sem::AttrValue::data));
       break;
+    case ::orgproto::AttrValue::DataVariant::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -562,35 +598,49 @@ void org::algo::proto_serde<::orgproto::LinkTarget, org::sem::LinkTarget>::write
 void org::algo::proto_serde<::orgproto::LinkTarget, org::sem::LinkTarget>::read(::orgproto::LinkTarget const& out, proto_write_accessor<org::sem::LinkTarget> in) {
   switch (out.data().kind_case()) {
     case ::orgproto::LinkTarget::Data::kRaw:
+      in.for_field_variant<0>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::Raw, org::sem::LinkTarget::Raw>::read(out.data().raw(), in.for_field_variant<0>(&org::sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kId:
+      in.for_field_variant<1>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::Id, org::sem::LinkTarget::Id>::read(out.data().id(), in.for_field_variant<1>(&org::sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kCustomid:
+      in.for_field_variant<2>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::CustomId, org::sem::LinkTarget::CustomId>::read(out.data().customid(), in.for_field_variant<2>(&org::sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kSubtreetitle:
+      in.for_field_variant<3>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::SubtreeTitle, org::sem::LinkTarget::SubtreeTitle>::read(out.data().subtreetitle(), in.for_field_variant<3>(&org::sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kPerson:
+      in.for_field_variant<4>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::Person, org::sem::LinkTarget::Person>::read(out.data().person(), in.for_field_variant<4>(&org::sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kUserprotocol:
+      in.for_field_variant<5>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::UserProtocol, org::sem::LinkTarget::UserProtocol>::read(out.data().userprotocol(), in.for_field_variant<5>(&org::sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kInternal:
+      in.for_field_variant<6>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::Internal, org::sem::LinkTarget::Internal>::read(out.data().internal(), in.for_field_variant<6>(&org::sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kFootnote:
+      in.for_field_variant<7>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::Footnote, org::sem::LinkTarget::Footnote>::read(out.data().footnote(), in.for_field_variant<7>(&org::sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kFile:
+      in.for_field_variant<8>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::File, org::sem::LinkTarget::File>::read(out.data().file(), in.for_field_variant<8>(&org::sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kAttachment:
+      in.for_field_variant<9>(&org::sem::LinkTarget::data).get();
       proto_serde<orgproto::LinkTarget::Attachment, org::sem::LinkTarget::Attachment>::read(out.data().attachment(), in.for_field_variant<9>(&org::sem::LinkTarget::data));
       break;
+    case ::orgproto::LinkTarget::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -747,32 +797,45 @@ void org::algo::proto_serde<::orgproto::SubtreeLogHead, org::sem::SubtreeLogHead
 void org::algo::proto_serde<::orgproto::SubtreeLogHead, org::sem::SubtreeLogHead>::read(::orgproto::SubtreeLogHead const& out, proto_write_accessor<org::sem::SubtreeLogHead> in) {
   switch (out.log().kind_case()) {
     case ::orgproto::SubtreeLogHead::LogEntry::kPriority:
+      in.for_field_variant<0>(&org::sem::SubtreeLogHead::log).get();
       proto_serde<orgproto::SubtreeLogHead::Priority, org::sem::SubtreeLogHead::Priority>::read(out.log().priority(), in.for_field_variant<0>(&org::sem::SubtreeLogHead::log));
       break;
     case ::orgproto::SubtreeLogHead::LogEntry::kNote:
+      in.for_field_variant<1>(&org::sem::SubtreeLogHead::log).get();
       proto_serde<orgproto::SubtreeLogHead::Note, org::sem::SubtreeLogHead::Note>::read(out.log().note(), in.for_field_variant<1>(&org::sem::SubtreeLogHead::log));
       break;
     case ::orgproto::SubtreeLogHead::LogEntry::kRefile:
+      in.for_field_variant<2>(&org::sem::SubtreeLogHead::log).get();
       proto_serde<orgproto::SubtreeLogHead::Refile, org::sem::SubtreeLogHead::Refile>::read(out.log().refile(), in.for_field_variant<2>(&org::sem::SubtreeLogHead::log));
       break;
     case ::orgproto::SubtreeLogHead::LogEntry::kClock:
+      in.for_field_variant<3>(&org::sem::SubtreeLogHead::log).get();
       proto_serde<orgproto::SubtreeLogHead::Clock, org::sem::SubtreeLogHead::Clock>::read(out.log().clock(), in.for_field_variant<3>(&org::sem::SubtreeLogHead::log));
       break;
     case ::orgproto::SubtreeLogHead::LogEntry::kState:
+      in.for_field_variant<4>(&org::sem::SubtreeLogHead::log).get();
       proto_serde<orgproto::SubtreeLogHead::State, org::sem::SubtreeLogHead::State>::read(out.log().state(), in.for_field_variant<4>(&org::sem::SubtreeLogHead::log));
       break;
     case ::orgproto::SubtreeLogHead::LogEntry::kDeadline:
+      in.for_field_variant<5>(&org::sem::SubtreeLogHead::log).get();
       proto_serde<orgproto::SubtreeLogHead::Deadline, org::sem::SubtreeLogHead::Deadline>::read(out.log().deadline(), in.for_field_variant<5>(&org::sem::SubtreeLogHead::log));
       break;
     case ::orgproto::SubtreeLogHead::LogEntry::kSchedule:
+      in.for_field_variant<6>(&org::sem::SubtreeLogHead::log).get();
       proto_serde<orgproto::SubtreeLogHead::Schedule, org::sem::SubtreeLogHead::Schedule>::read(out.log().schedule(), in.for_field_variant<6>(&org::sem::SubtreeLogHead::log));
       break;
     case ::orgproto::SubtreeLogHead::LogEntry::kTag:
+      in.for_field_variant<7>(&org::sem::SubtreeLogHead::log).get();
       proto_serde<orgproto::SubtreeLogHead::Tag, org::sem::SubtreeLogHead::Tag>::read(out.log().tag(), in.for_field_variant<7>(&org::sem::SubtreeLogHead::log));
       break;
     case ::orgproto::SubtreeLogHead::LogEntry::kUnknown:
+      in.for_field_variant<8>(&org::sem::SubtreeLogHead::log).get();
       proto_serde<orgproto::SubtreeLogHead::Unknown, org::sem::SubtreeLogHead::Unknown>::read(out.log().unknown(), in.for_field_variant<8>(&org::sem::SubtreeLogHead::log));
       break;
+    case ::orgproto::SubtreeLogHead::LogEntry::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -908,11 +971,17 @@ void org::algo::proto_serde<::orgproto::ColumnView::Summary, org::sem::ColumnVie
 void org::algo::proto_serde<::orgproto::ColumnView::Summary, org::sem::ColumnView::Summary>::read(::orgproto::ColumnView::Summary const& out, proto_write_accessor<org::sem::ColumnView::Summary> in) {
   switch (out.data().kind_case()) {
     case ::orgproto::ColumnView::Summary::Data::kCheckboxaggregate:
+      in.for_field_variant<0>(&org::sem::ColumnView::Summary::data).get();
       proto_serde<orgproto::ColumnView::Summary::CheckboxAggregate, org::sem::ColumnView::Summary::CheckboxAggregate>::read(out.data().checkboxaggregate(), in.for_field_variant<0>(&org::sem::ColumnView::Summary::data));
       break;
     case ::orgproto::ColumnView::Summary::Data::kMathaggregate:
+      in.for_field_variant<1>(&org::sem::ColumnView::Summary::data).get();
       proto_serde<orgproto::ColumnView::Summary::MathAggregate, org::sem::ColumnView::Summary::MathAggregate>::read(out.data().mathaggregate(), in.for_field_variant<1>(&org::sem::ColumnView::Summary::data));
       break;
+    case ::orgproto::ColumnView::Summary::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -995,14 +1064,21 @@ void org::algo::proto_serde<::orgproto::BlockCodeLine::Part, org::sem::BlockCode
 void org::algo::proto_serde<::orgproto::BlockCodeLine::Part, org::sem::BlockCodeLine::Part>::read(::orgproto::BlockCodeLine::Part const& out, proto_write_accessor<org::sem::BlockCodeLine::Part> in) {
   switch (out.data().kind_case()) {
     case ::orgproto::BlockCodeLine::Part::Data::kRaw:
+      in.for_field_variant<0>(&org::sem::BlockCodeLine::Part::data).get();
       proto_serde<orgproto::BlockCodeLine::Part::Raw, org::sem::BlockCodeLine::Part::Raw>::read(out.data().raw(), in.for_field_variant<0>(&org::sem::BlockCodeLine::Part::data));
       break;
     case ::orgproto::BlockCodeLine::Part::Data::kCallout:
+      in.for_field_variant<1>(&org::sem::BlockCodeLine::Part::data).get();
       proto_serde<orgproto::BlockCodeLine::Part::Callout, org::sem::BlockCodeLine::Part::Callout>::read(out.data().callout(), in.for_field_variant<1>(&org::sem::BlockCodeLine::Part::data));
       break;
     case ::orgproto::BlockCodeLine::Part::Data::kTangle:
+      in.for_field_variant<2>(&org::sem::BlockCodeLine::Part::data).get();
       proto_serde<orgproto::BlockCodeLine::Part::Tangle, org::sem::BlockCodeLine::Part::Tangle>::read(out.data().tangle(), in.for_field_variant<2>(&org::sem::BlockCodeLine::Part::data));
       break;
+    case ::orgproto::BlockCodeLine::Part::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -1117,20 +1193,32 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
   in.for_field(&org::sem::DocumentExportConfig::brokenLinks).get() = static_cast<org::sem::DocumentExportConfig::BrokenLinks>(out.brokenlinks());
   switch (out.tocexport().kind_case()) {
     case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
+      in.for_field_variant<0>(&org::sem::DocumentExportConfig::tocExport).get();
       proto_serde<orgproto::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::DoExport>::read(out.tocexport().doexport(), in.for_field_variant<0>(&org::sem::DocumentExportConfig::tocExport));
       break;
     case ::orgproto::DocumentExportConfig::TocExport::kExportfixed:
+      in.for_field_variant<1>(&org::sem::DocumentExportConfig::tocExport).get();
       proto_serde<orgproto::DocumentExportConfig::ExportFixed, org::sem::DocumentExportConfig::ExportFixed>::read(out.tocexport().exportfixed(), in.for_field_variant<1>(&org::sem::DocumentExportConfig::tocExport));
       break;
+    case ::orgproto::DocumentExportConfig::TocExport::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
   in.for_field(&org::sem::DocumentExportConfig::tagExport).get() = static_cast<org::sem::DocumentExportConfig::TagExport>(out.tagexport());
   switch (out.data().kind_case()) {
     case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
+      in.for_field_variant<0>(&org::sem::DocumentExportConfig::data).get();
       proto_serde<orgproto::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::DoExport>::read(out.data().doexport(), in.for_field_variant<0>(&org::sem::DocumentExportConfig::data));
       break;
     case ::orgproto::DocumentExportConfig::TocExport::kExportfixed:
+      in.for_field_variant<1>(&org::sem::DocumentExportConfig::data).get();
       proto_serde<orgproto::DocumentExportConfig::ExportFixed, org::sem::DocumentExportConfig::ExportFixed>::read(out.data().exportfixed(), in.for_field_variant<1>(&org::sem::DocumentExportConfig::data));
       break;
+    case ::orgproto::DocumentExportConfig::TocExport::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -1466,83 +1554,113 @@ void org::algo::proto_serde<::orgproto::NamedProperty, org::sem::NamedProperty>:
 void org::algo::proto_serde<::orgproto::NamedProperty, org::sem::NamedProperty>::read(::orgproto::NamedProperty const& out, proto_write_accessor<org::sem::NamedProperty> in) {
   switch (out.data().kind_case()) {
     case ::orgproto::NamedProperty::Data::kNonblocking:
+      in.for_field_variant<0>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::Nonblocking, org::sem::NamedProperty::Nonblocking>::read(out.data().nonblocking(), in.for_field_variant<0>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kArchivetime:
+      in.for_field_variant<1>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ArchiveTime, org::sem::NamedProperty::ArchiveTime>::read(out.data().archivetime(), in.for_field_variant<1>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kArchivefile:
+      in.for_field_variant<2>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ArchiveFile, org::sem::NamedProperty::ArchiveFile>::read(out.data().archivefile(), in.for_field_variant<2>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kArchiveolpath:
+      in.for_field_variant<3>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ArchiveOlpath, org::sem::NamedProperty::ArchiveOlpath>::read(out.data().archiveolpath(), in.for_field_variant<3>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kArchivetarget:
+      in.for_field_variant<4>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ArchiveTarget, org::sem::NamedProperty::ArchiveTarget>::read(out.data().archivetarget(), in.for_field_variant<4>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kArchivecategory:
+      in.for_field_variant<5>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ArchiveCategory, org::sem::NamedProperty::ArchiveCategory>::read(out.data().archivecategory(), in.for_field_variant<5>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kArchivetodo:
+      in.for_field_variant<6>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ArchiveTodo, org::sem::NamedProperty::ArchiveTodo>::read(out.data().archivetodo(), in.for_field_variant<6>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kTrigger:
+      in.for_field_variant<7>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::Trigger, org::sem::NamedProperty::Trigger>::read(out.data().trigger(), in.for_field_variant<7>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportlatexclass:
+      in.for_field_variant<8>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ExportLatexClass, org::sem::NamedProperty::ExportLatexClass>::read(out.data().exportlatexclass(), in.for_field_variant<8>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCookiedata:
+      in.for_field_variant<9>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::CookieData, org::sem::NamedProperty::CookieData>::read(out.data().cookiedata(), in.for_field_variant<9>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportlatexclassoptions:
+      in.for_field_variant<10>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ExportLatexClassOptions, org::sem::NamedProperty::ExportLatexClassOptions>::read(out.data().exportlatexclassoptions(), in.for_field_variant<10>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportlatexheader:
+      in.for_field_variant<11>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ExportLatexHeader, org::sem::NamedProperty::ExportLatexHeader>::read(out.data().exportlatexheader(), in.for_field_variant<11>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportlatexcompiler:
+      in.for_field_variant<12>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ExportLatexCompiler, org::sem::NamedProperty::ExportLatexCompiler>::read(out.data().exportlatexcompiler(), in.for_field_variant<12>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kOrdered:
+      in.for_field_variant<13>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::Ordered, org::sem::NamedProperty::Ordered>::read(out.data().ordered(), in.for_field_variant<13>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kEffort:
+      in.for_field_variant<14>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::Effort, org::sem::NamedProperty::Effort>::read(out.data().effort(), in.for_field_variant<14>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kVisibility:
+      in.for_field_variant<15>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::Visibility, org::sem::NamedProperty::Visibility>::read(out.data().visibility(), in.for_field_variant<15>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportoptions:
+      in.for_field_variant<16>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::ExportOptions, org::sem::NamedProperty::ExportOptions>::read(out.data().exportoptions(), in.for_field_variant<16>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kBlocker:
+      in.for_field_variant<17>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::Blocker, org::sem::NamedProperty::Blocker>::read(out.data().blocker(), in.for_field_variant<17>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kUnnumbered:
+      in.for_field_variant<18>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::Unnumbered, org::sem::NamedProperty::Unnumbered>::read(out.data().unnumbered(), in.for_field_variant<18>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCreated:
+      in.for_field_variant<19>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::Created, org::sem::NamedProperty::Created>::read(out.data().created(), in.for_field_variant<19>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kRadioid:
+      in.for_field_variant<20>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::RadioId, org::sem::NamedProperty::RadioId>::read(out.data().radioid(), in.for_field_variant<20>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kHashtagdef:
+      in.for_field_variant<21>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::HashtagDef, org::sem::NamedProperty::HashtagDef>::read(out.data().hashtagdef(), in.for_field_variant<21>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCustomargs:
+      in.for_field_variant<22>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::CustomArgs, org::sem::NamedProperty::CustomArgs>::read(out.data().customargs(), in.for_field_variant<22>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCustomraw:
+      in.for_field_variant<23>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::CustomRaw, org::sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<23>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCustomsubtreejson:
+      in.for_field_variant<24>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeJson>::read(out.data().customsubtreejson(), in.for_field_variant<24>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCustomsubtreeflags:
+      in.for_field_variant<25>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::CustomSubtreeFlags, org::sem::NamedProperty::CustomSubtreeFlags>::read(out.data().customsubtreeflags(), in.for_field_variant<25>(&org::sem::NamedProperty::data));
       break;
+    case ::orgproto::NamedProperty::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -1842,11 +1960,17 @@ void org::algo::proto_serde<::orgproto::Time, org::sem::Time>::read(::orgproto::
   in.for_field(&org::sem::Time::isActive).get() = out.isactive();
   switch (out.time().kind_case()) {
     case ::orgproto::Time::TimeVariant::kStatic:
+      in.for_field_variant<0>(&org::sem::Time::time).get();
       proto_serde<orgproto::Time::Static, org::sem::Time::Static>::read(out.time().static_(), in.for_field_variant<0>(&org::sem::Time::time));
       break;
     case ::orgproto::Time::TimeVariant::kDynamic:
+      in.for_field_variant<1>(&org::sem::Time::time).get();
       proto_serde<orgproto::Time::Dynamic, org::sem::Time::Dynamic>::read(out.time().dynamic(), in.for_field_variant<1>(&org::sem::Time::time));
       break;
+    case ::orgproto::Time::TimeVariant::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -2709,14 +2833,21 @@ void org::algo::proto_serde<::orgproto::File, org::sem::File>::read(::orgproto::
   proto_serde<std::string, hstd::Str>::read(out.abspath(), in.for_field(&org::sem::File::absPath));
   switch (out.data().kind_case()) {
     case ::orgproto::File::Data::kDocument:
+      in.for_field_variant<0>(&org::sem::File::data).get();
       proto_serde<orgproto::File::Document, org::sem::File::Document>::read(out.data().document(), in.for_field_variant<0>(&org::sem::File::data));
       break;
     case ::orgproto::File::Data::kAttachment:
+      in.for_field_variant<1>(&org::sem::File::data).get();
       proto_serde<orgproto::File::Attachment, org::sem::File::Attachment>::read(out.data().attachment(), in.for_field_variant<1>(&org::sem::File::data));
       break;
     case ::orgproto::File::Data::kSource:
+      in.for_field_variant<2>(&org::sem::File::data).get();
       proto_serde<orgproto::File::Source, org::sem::File::Source>::read(out.data().source(), in.for_field_variant<2>(&org::sem::File::data));
       break;
+    case ::orgproto::File::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 
@@ -2853,20 +2984,29 @@ void org::algo::proto_serde<::orgproto::CmdInclude, org::sem::CmdInclude>::read(
   }
   switch (out.data().kind_case()) {
     case ::orgproto::CmdInclude::Data::kExample:
+      in.for_field_variant<0>(&org::sem::CmdInclude::data).get();
       proto_serde<orgproto::CmdInclude::Example, org::sem::CmdInclude::Example>::read(out.data().example(), in.for_field_variant<0>(&org::sem::CmdInclude::data));
       break;
     case ::orgproto::CmdInclude::Data::kExport:
+      in.for_field_variant<1>(&org::sem::CmdInclude::data).get();
       proto_serde<orgproto::CmdInclude::Export, org::sem::CmdInclude::Export>::read(out.data().export_(), in.for_field_variant<1>(&org::sem::CmdInclude::data));
       break;
     case ::orgproto::CmdInclude::Data::kCustom:
+      in.for_field_variant<2>(&org::sem::CmdInclude::data).get();
       proto_serde<orgproto::CmdInclude::Custom, org::sem::CmdInclude::Custom>::read(out.data().custom(), in.for_field_variant<2>(&org::sem::CmdInclude::data));
       break;
     case ::orgproto::CmdInclude::Data::kSrc:
+      in.for_field_variant<3>(&org::sem::CmdInclude::data).get();
       proto_serde<orgproto::CmdInclude::Src, org::sem::CmdInclude::Src>::read(out.data().src(), in.for_field_variant<3>(&org::sem::CmdInclude::data));
       break;
     case ::orgproto::CmdInclude::Data::kOrgdocument:
+      in.for_field_variant<4>(&org::sem::CmdInclude::data).get();
       proto_serde<orgproto::CmdInclude::OrgDocument, org::sem::CmdInclude::OrgDocument>::read(out.data().orgdocument(), in.for_field_variant<4>(&org::sem::CmdInclude::data));
       break;
+    case ::orgproto::CmdInclude::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
   }
 }
 

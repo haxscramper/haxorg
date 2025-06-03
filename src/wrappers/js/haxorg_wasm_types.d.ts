@@ -1,6 +1,6 @@
 /* clang-format off */
 import * as haxorg_wasm from "./haxorg_utility_types";
-export interface haxorg_wasm_module {
+export interface haxorg_wasm_module_auto {
   UserTimeBreakdown: UserTimeBreakdownConstructor;
   UserTime: UserTimeConstructor;
   ParseLineCol: ParseLineColConstructor;
@@ -1579,6 +1579,11 @@ export interface haxorg_wasm_module {
     TrackedHashtag: AstTrackingGroupKind,
   }
   format_AstTrackingGroupKind(value: AstTrackingGroupKind): string;
+  GraphMapLinkKind: {
+    Radio: GraphMapLinkKind,
+    Link: GraphMapLinkKind,
+  }
+  format_GraphMapLinkKind(value: GraphMapLinkKind): string;
   newSemTimeStatic(breakdown: UserTimeBreakdown, isActive: boolean): Time;
   parseFile(file: string, opts: OrgParseParameters): Org;
   parseString(text: string): Org;
@@ -1599,7 +1604,14 @@ export interface haxorg_wasm_module {
   getAstTrackingMap(nodes: haxorg_wasm.Vec<Org>): AstTrackingMap;
   getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.Vec<AstTrackingGroup>;
   annotateSequence(groups: haxorg_wasm.Vec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.Vec<SequenceAnnotation>;
+  initMapGraphState(ast: ImmAstContext): GraphMapGraphState;
+  serializeAstContextToText(store: ImmAstContext): string;
+  serializeAstContextFromText(binary: string, store: ImmAstContext): void;
+  serializeMapGraphToText(store: GraphMapGraph): string;
+  serializeMapGraphFromText(binary: string, store: GraphMapGraph): void;
+  serializeFromTextToTreeDump(binary: string): string;
 }
+type haxorg_wasm_module = haxorg_wasm_module_auto & haxorg_wasm.haxorg_wasm_manual;
 export interface UserTimeBreakdownConstructor { new(): UserTimeBreakdown; }
 export interface UserTimeBreakdown {
   year: haxorg_wasm.Optional<number>
@@ -1997,7 +2009,6 @@ export interface ImmAdapter {
   isSubnodeOf(other: ImmAdapter): boolean;
   getParent(): haxorg_wasm.Optional<ImmAdapter>;
   getSelfIndex(): number;
-  atIdReflPathStep(id: ImmId, idx: ImmPathStep): ImmAdapter;
   atField(field: ImmReflFieldId): ImmAdapter;
   atIndex(idx: number, withPath: boolean): ImmAdapter;
   atPath(path: haxorg_wasm.Vec<number>, withPath: boolean): ImmAdapter;
@@ -2117,16 +2128,28 @@ export interface SequenceAnnotation {
   annotations: haxorg_wasm.Vec<SequenceAnnotationTag>
 }
 export interface GraphMapLinkConstructor { new(): GraphMapLink; }
-export interface GraphMapLink {  }
+export interface GraphMapLink {
+  getRadio(): GraphMapLinkRadio;
+  getRadio(): GraphMapLinkRadio;
+  isRadio(): boolean;
+  getLink(): GraphMapLinkLink;
+  getLink(): GraphMapLinkLink;
+  isLink(): boolean;
+  getKind(): GraphMapLinkKind;
+}
 export interface GraphMapLinkLinkConstructor { new(): GraphMapLinkLink; }
-export interface GraphMapLinkLink {  }
+export interface GraphMapLinkLink {
+  link: ImmUniqId
+  description: haxorg_wasm.Vec<ImmUniqId>
+}
 export interface GraphMapLinkRadioConstructor { new(): GraphMapLinkRadio; }
-export interface GraphMapLinkRadio {  }
+export interface GraphMapLinkRadio { target: ImmUniqId }
 export interface GraphMapNodePropConstructor { new(): GraphMapNodeProp; }
 export interface GraphMapNodeProp {
-  getSubtreeId(): haxorg_wasm.Optional<string>;
-  getFootnoteName(): haxorg_wasm.Optional<string>;
-  id: ImmAdapter
+  getAdapter(context: ImmAstContext): ImmAdapter;
+  getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<string>;
+  getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<string>;
+  id: ImmUniqId
   unresolved: haxorg_wasm.Vec<GraphMapLink>
 }
 export interface GraphMapEdgePropConstructor { new(): GraphMapEdgeProp; }
@@ -2177,7 +2200,7 @@ export interface GraphMapGraphState {
   FromAstContext(ast: ImmAstContext): GraphMapGraphState;
   registerNode(node: GraphMapNodeProp, conf: GraphMapConfig): void;
   addNode(node: ImmAdapter, conf: GraphMapConfig): void;
-  addNodeRec(node: ImmAdapter, conf: GraphMapConfig): void;
+  addNodeRec(ast: ImmAstContext, node: ImmAdapter, conf: GraphMapConfig): void;
   getUnresolvedSubtreeLinks(node: ImmSubtreeAdapter, conf: GraphMapConfig): haxorg_wasm.Vec<GraphMapLink>;
   getUnresolvedLink(node: ImmLinkAdapter, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
   graph: GraphMapGraph
@@ -6055,5 +6078,9 @@ export enum AstTrackingGroupKind {
   RadioTarget,
   Single = 1,
   TrackedHashtag = 2,
+}
+export enum GraphMapLinkKind {
+  Radio,
+  Link = 1,
 }
 /* clang-format on */

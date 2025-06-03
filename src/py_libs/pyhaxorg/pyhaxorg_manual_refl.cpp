@@ -16,3 +16,4 @@
 
 #include <haxorg/exporters/Exporter.cpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg/sem/SemOrgCereal.hpp>

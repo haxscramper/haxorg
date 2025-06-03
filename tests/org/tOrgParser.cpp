@@ -1141,16 +1141,16 @@ TEST(OrgParseSem, CmdCallNode) {
 }
 
 TEST(OrgParseSem, DocumentFragments) {
-    OrgParseParameters opts;
-    opts.getFragments =
+    auto opts = OrgParseParameters::shared();
+    opts->getFragments =
         [](std::string const& text) -> Vec<OrgParseFragment> {
         return org::extractCommentBlocks(text, {"//#"});
     };
 
-    opts.semTracePath       = getDebugFile("sem_trace.log");
-    opts.parseTracePath     = getDebugFile("parse_trace.log");
-    opts.tokenTracePath     = getDebugFile("token_trace.log");
-    opts.baseTokenTracePath = getDebugFile("base_token_trace.log");
+    opts->semTracePath       = getDebugFile("sem_trace.log");
+    opts->parseTracePath     = getDebugFile("parse_trace.log");
+    opts->tokenTracePath     = getDebugFile("token_trace.log");
+    opts->baseTokenTracePath = getDebugFile("base_token_trace.log");
 
     auto node = org::parseStringOpts(
         R"(

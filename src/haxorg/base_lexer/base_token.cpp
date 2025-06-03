@@ -219,6 +219,9 @@ struct Cursor {
         return pos < text.size();
     }
 
+    int is_at_unicode(int offset = 0) {
+        return 0xF0 <= static_cast<unsigned char>(get(offset));
+    }
 
     bool nextUnicode() {
         if (text.size() <= pos) {
@@ -1560,10 +1563,33 @@ void switch_regular_char(Cursor& c) {
                     c.token0(otk::Tilda, &advance1);
 
                     int offset = 0;
-                    while (c.has_pos(offset + +1)   //
-                           && !c.is_at('~', offset) //
-                           && !(std::isalnum(c.get(offset + 1)))) {
-                        ++offset;
+                    while (c.has_pos(offset + +1)) {
+                        if (c.is_at('~', offset)
+                            && !(std::isalnum(c.get(offset + 1)))) {
+                            break;
+                        } else if (c.is_at('\n', offset)) {
+                            int newlineOffset = offset;
+                            int newlineCount  = 0;
+                            while (c.is_at('\n', newlineOffset)) {
+                                ++newlineCount;
+                                ++newlineOffset;
+                                while (c.is_at(' ', newlineOffset)) {
+                                    ++newlineOffset;
+                                }
+
+                                if (!c.is_at('\n', newlineOffset)) {
+                                    break;
+                                }
+                            }
+
+                            if (newlineCount == 1) {
+                                offset = newlineOffset;
+                            } else {
+                                break;
+                            }
+                        } else {
+                            ++offset;
+                        }
                     }
 
                     if (c.is_at('~', offset)) {
@@ -1684,8 +1710,14 @@ void switch_regular_char(Cursor& c) {
                     });
                 }
             } else {
-                c.token0(
-                    otk::AnyPunct, [](Cursor& c) { c.nextUnicode(); });
+                if (c.is_at_unicode()) {
+                    c.token0(otk::Word, [](Cursor& c) {
+                        while (c.is_at_unicode()) { c.nextUnicode(); }
+                    });
+                } else {
+                    c.token0(
+                        otk::AnyPunct, [](Cursor& c) { c.nextUnicode(); });
+                }
             }
         }
     }

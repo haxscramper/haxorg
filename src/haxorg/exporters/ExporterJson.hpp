@@ -45,6 +45,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     json eval(std::string const& value) { return json(value); }
     json eval(bool value) { return json(value); }
     json eval(int value) { return json(value); }
+    json eval(json value) { return value; }
 
     template <typename T>
     json eval(T const& arg);

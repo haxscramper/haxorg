@@ -40,14 +40,15 @@ TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
     LOGIC_ASSERTION_CHECK(fs::exists(file), "{}", file);
     auto store = imm::ImmAstContext::init_start_context();
     auto node  = org::parseDirectoryOpts(
-        file, org::OrgDirectoryParseParameters{});
+        file, org::OrgDirectoryParseParameters::shared());
     ASSERT_TRUE(node.has_value());
     auto version = store->addRoot(node.value());
     auto state   = org::graph::MapGraphState::FromAstContext(
         version.getContext());
 
     auto conf = org::graph::MapConfig::shared();
-    state.addNodeRec(version.getRootAdapter(), conf);
+    state->addNodeRec(
+        version.getContext(), version.getRootAdapter(), conf);
 }
 
 TEST_F(ImmOrgApi, ImmAstFieldIteration) {
@@ -144,7 +145,8 @@ Other paragraph mentions radiotarget
     EXPECT_EQ(radio.getKind(), OrgSemKind::RadioTarget);
     imm::ImmAdapter par2 = root.at(3);
     EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
-    Vec<imm::ImmSubnodeGroup> grouped = imm::getSubnodeGroups(par2);
+    Vec<imm::ImmSubnodeGroup> grouped = imm::getSubnodeGroups(
+        init.context, par2);
     EXPECT_EQ(grouped.size(), 7);
     EXPECT_TRUE(grouped.at(0).isSingle());
     EXPECT_TRUE(grouped.at(6).isRadioTarget());
@@ -173,7 +175,7 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
     imm::ImmAdapter par = t1.at(0);
     EXPECT_EQ2(par.getKind(), OrgSemKind::Paragraph);
 
-    auto group = imm::getSubnodeGroups(par);
+    auto group = imm::getSubnodeGroups(init.context, par);
 
     EXPECT_TRUE(group.at(2).isTrackedHashtag());
     EXPECT_TRUE(group.at(6).isTrackedHashtag());
@@ -245,17 +247,17 @@ also known as a human-readable alias
     EXPECT_EQ(par_alias2.getKind(), OrgSemKind::Paragraph);
     EXPECT_EQ(par_human.getKind(), OrgSemKind::Paragraph);
 
-    auto group_alias1 = imm::getSubnodeGroups(par_alias1);
+    auto group_alias1 = imm::getSubnodeGroups(init.context, par_alias1);
     EXPECT_EQ(group_alias1.size(), 7);
     EXPECT_TRUE(group_alias1.at(0).isRadioTarget());
     EXPECT_EQ(group_alias1.at(0).getRadioTarget().target, t1.id);
 
-    auto group_alias2 = imm::getSubnodeGroups(par_alias2);
+    auto group_alias2 = imm::getSubnodeGroups(init.context, par_alias2);
     EXPECT_EQ(group_alias2.size(), 7);
     EXPECT_TRUE(group_alias2.at(0).isRadioTarget());
     EXPECT_EQ(group_alias2.at(0).getRadioTarget().target, t1.id);
 
-    auto group_human = imm::getSubnodeGroups(par_human);
+    auto group_human = imm::getSubnodeGroups(init.context, par_human);
     EXPECT_EQ(group_human.size(), 9);
     EXPECT_TRUE(group_human.at(1_B).isRadioTarget());
     EXPECT_EQ(group_human.at(1_B).getRadioTarget().target, t1.id);

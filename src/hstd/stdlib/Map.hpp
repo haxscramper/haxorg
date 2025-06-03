@@ -146,9 +146,21 @@ template <typename K, typename V, typename Type>
 struct std_kv_tuple_iterator_hash {
     std::size_t operator()(Type const& it) const noexcept {
         std::size_t result = 0;
+
+        // sort key-value pairs to stabilize the hashing outcome -- if the
+        // unordered map has a different order of iteration it still should
+        // have the same final hash as long as the values in the map are
+        // the same.
+        std::vector<std::size_t> hash_pairs;
         for (auto const& [key, value] : it) {
-            hax_hash_combine(result, key);
-            hax_hash_combine(result, value);
+            std::size_t pair = 0;
+            hstd::hax_hash_combine(pair, key);
+            hstd::hax_hash_combine(pair, value);
+            hash_pairs.push_back(pair);
+        }
+        std::sort(hash_pairs.begin(), hash_pairs.end());
+        for (auto const& it : hash_pairs) {
+            hstd::hax_hash_combine(result, it);
         }
         return result;
     }

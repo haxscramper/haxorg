@@ -14,6 +14,8 @@ void StopTracing(
     std::unique_ptr<perfetto::TracingSession> tracing_session,
     std::filesystem::path const&              out_path);
 
+std::string StopTracing();
+
 #    define __perf_trace(c, n, ...)                                       \
         TRACE_EVENT(c, n __VA_OPT__(, ) __VA_ARGS__)
 #    define __perf_trace_begin(c, ...)                                    \

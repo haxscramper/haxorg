@@ -548,6 +548,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("ORG_USE_COVERAGE", conf.instrument.coverage))
     result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
+    result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
 
@@ -557,8 +558,10 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
+
     if conf.emscripten:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))
+        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", False))
         result.append(cmake_opt("ORG_EMCC_BUILD", True))
         # result.append(cmake_opt("CMAKE_SIZEOF_VOID_P", "4"))
         # result.append(cmake_opt("CMAKE_SYSTEM_PROCESSOR", "wasm32"))
@@ -569,6 +572,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     else:
         result.append(cmake_opt("ORG_EMCC_BUILD", False))
         result.append(cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")))
+        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", True))
 
     debug = False
     if debug:
@@ -1414,6 +1418,7 @@ def build_d3_example(ctx: Context):
 
 @org_task(pre=[build_d3_example])
 def run_d3_example(ctx: Context, sync: bool = False):
+    assert get_config(ctx).emscripten, "D3 example requires emscripten to be enabled"
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
 
@@ -1437,7 +1442,8 @@ def run_d3_example(ctx: Context, sync: bool = False):
         )
 
 @org_task(pre=[build_d3_example])
-def run_js_test_example(ctx: Context, sync: bool = False):
+def run_js_test_example(ctx: Context):
+    assert get_config(ctx).emscripten, "JS example requires emscripten to be enabled"
     js_example_dir = get_script_root().joinpath("examples/js_test")
 
     run_command(

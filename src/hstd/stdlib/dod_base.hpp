@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 
 /// \brief Data-oriented design primitives
@@ -212,9 +213,11 @@ check: {2:064b}
         return result;
     }
 
-  protected:
+  public:
     /// \brief Full value of the ID, including masked part
     IdType value;
+
+    BOOST_DESCRIBE_CLASS(Id, (), (value), (), ());
 };
 
 
@@ -222,8 +225,8 @@ check: {2:064b}
     struct __value;                                                       \
     using __name##BaseId = ::hstd::dod::                                  \
         Id<__type, __type, std::integral_constant<__type, __mask>>;       \
-    struct [[nodiscard]] __name : __name##BaseId {                        \
-                                                                          \
+    struct [[nodiscard]] __name : public __name##BaseId {                 \
+        BOOST_DESCRIBE_CLASS(__name, (__name##BaseId), (), (), ());       \
         using value_type = __value;                                       \
                                                                           \
         static auto Nil() -> __name { return FromValue(0); };             \
@@ -355,6 +358,7 @@ template <IsIdType Id, typename T>
 /// existing object from an ID.
 struct Store {
     Vec<T> content;
+    DESC_FIELDS(Store, (content));
     using ContentT = Vec<T>;
 
     Store() = default;
@@ -490,9 +494,11 @@ struct InternStore {
     InternStore() = default;
 
     /// \brief Reverse ID mapping store
-    std::unordered_map<Val, Id> id_map;
+    hstd::UnorderedMap<Val, Id> id_map;
     /// \brief Underlying store for values
     dod::Store<Id, Val> content;
+
+    DESC_FIELDS(InternStore, (id_map, content))
 
     /// Add value to the store - if the value is already contained can
     /// return previous ID
@@ -643,7 +649,13 @@ struct hash<Id> {
 }; // namespace std
 
 
-template <hstd::dod::IsIdType Id>
+namespace hstd::dod {
+template <typename T>
+concept IsDescribedDodIdType = hstd::dod::IsIdType<T>
+                            && hstd::DescribedRecord<T>;
+}
+
+template <hstd::dod::IsDescribedDodIdType Id>
 struct std::formatter<Id> : std::formatter<std::string> {
     using FmtType = Id;
     template <typename FormatContext>

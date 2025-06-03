@@ -74,7 +74,7 @@ def test_mind_map_from_directory():
     conf = org.graphMapConfig()
     root = version.getRootAdapter()
 
-    graph_state.addNodeRec(root, conf)
+    graph_state.addNodeRec(version.getContext(), root, conf)
 
     assert root.getKind() == org.OrgSemKind.Directory
     root_dir = org.ImmDirectoryAdapter(root)

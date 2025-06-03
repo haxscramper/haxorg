@@ -1,11 +1,11 @@
 import * as d3 from "d3";
 
-import * as org from "../org_data.ts";
+import {org} from "../org_data.ts";
 import {log} from "../org_logger.ts";
 import {dump_html} from "../utils.ts";
+import {initWasmModule, osk} from "../wasm_client";
 
 interface OrgTreeNode {
-  id: org.ImmUniqId;
   subtrees: OrgTreeNode[];
   visibility: string;
   tmp_children?: OrgHierarchyNode[];
@@ -31,6 +31,7 @@ export class CollapsibleTreeVisualizationConfig {
   x_offset: number                 = 0;
   y_offset?: number                = undefined;
   link_width: number               = 2;
+  path: string;
 };
 
 export class CollapsibleTreeVisualization {
@@ -49,23 +50,25 @@ export class CollapsibleTreeVisualization {
     this.update();
   }
 
-  async toTreeHierarchy(client: org.OrgClient,
-                        id: org.ImmUniqId): Promise<OrgTreeNode|null> {
-    if (id.id.format.startsWith("Subtree")
-        || id.id.format.startsWith("Document")) {
-      var result: OrgTreeNode = {
-        id : id,
+  toTreeHierarchy(node: org.Org): OrgTreeNode|null {
+    if (node.getKind() == osk().Subtree || node.getKind() == osk().Document) {
+      var   result: OrgTreeNode = {
         subtrees : Array(),
         visibility : "showall",
-        name : await client.getCleanSubtreeTitle({id : id}),
+        name : "",
         idx : 0,
       };
 
-      const size: number = await client.getSize({id : id});
+      if (node.is(osk().Subtree)) {
+        var x = window.module.cast_to_Subtree(node); 
+        result.name = x.getCleanTitle().toString();
+        x.delete();
+      } else if (node.is(osk().Document)) {
+        // result.name = window.module.cast_to_Document(node).getCleanTitle().toString(); 
+      }
 
-      for (var idx = 0; idx < size; ++idx) {
-        const subnode       = await client.getSubnodeAt({id : id, index : idx});
-        const sub_hierarchy = await this.toTreeHierarchy(client, subnode);
+      for (var sub of node.subnodes.toArray()) {
+        const sub_hierarchy = this.toTreeHierarchy(sub);
         if (sub_hierarchy) {
           result.subtrees.push(sub_hierarchy);
         }
@@ -78,22 +81,20 @@ export class CollapsibleTreeVisualization {
   }
 
   async render_tree_repr() {
-    const ws = new WebSocket("ws://localhost:8089");
-
-    // Wait for connection
-    await new Promise<void>(
-        resolve => ws.addEventListener("open", () => resolve()));
-
-    const client = org.createWebSocketClient(ws);
-    client.setExceptionHandler({handler : true});
-
-    await client.setRootFile({path : "/home/haxscramper/tmp/org_trivial.org"});
-
-    const root                   = await client.getRoot({});
-    const              hierarchy = await this.toTreeHierarchy(client, root);
-
-    if (hierarchy) {
-      this.onLoadAll(hierarchy);
+    await initWasmModule();
+    const result = await window.electronAPI.readFile(this.conf.path);
+    if (result.success) {
+      console.log("Rendering tree hierarchy");
+      const node      = window.module.parseString(result.data!);
+      const hierarchy = this.toTreeHierarchy(node);
+      console.log("Constructed tree hierarchy");
+      if (hierarchy) {
+        this.onLoadAll(hierarchy);
+      }
+      node.delete(); 
+    } else {
+      console.log("Failed to construct");
+      throw new Error(result.error);
     }
   }
 

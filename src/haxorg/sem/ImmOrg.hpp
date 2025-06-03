@@ -338,7 +338,13 @@ struct ImmAstTrackingMap {
 
     DESC_FIELDS(
         ImmAstTrackingMap,
-        (footnotes, subtrees, radioTargets, anchorTargets, parents));
+        (footnotes,
+         subtrees,
+         radioTargets,
+         anchorTargets,
+         parents,
+         hashtagDefinitions,
+         names));
 
     bool isParentTracked(ImmId const& item) const {
         return parents.contains(item);
@@ -407,6 +413,7 @@ template <org::imm::IsImmOrgValueType T>
 struct ImmAstKindStore {
     using NodeType = T;
     hstd::dod::InternStore<org::imm::ImmId, T> values;
+    DESC_FIELDS(ImmAstKindStore, (values));
 
     int size() const { return values.size(); }
 
@@ -616,8 +623,7 @@ struct
       "holder-type": "shared"
     }
   }
-})")]] ImmAstContext
-    : hstd::SharedPtrApi<ImmAstContext> {
+})")]] ImmAstContext : hstd::SharedPtrApi<ImmAstContext> {
     /// \brief Shared operation tracer for the debug operations.
     hstd::SPtr<hstd::OperationsTracer> debug;
     /// \brief Shared AST store, the underlying store data is shared
@@ -1010,9 +1016,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return dynamic_cast<T const*>(get());
     }
 
-    [[refl(R"({"unique-name": "atIdReflPathStep"})")]] ImmAdapter at(
-        ImmId       id,
-        ImmPathStep idx) const {
+    [[reflq]] ImmAdapter at(ImmId id, ImmPathStep idx) const {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
 
@@ -1154,8 +1158,9 @@ struct ImmSubnodeGroup {
 };
 
 hstd::Vec<ImmSubnodeGroup> getSubnodeGroups(
-    org::imm::ImmAdapter const& node,
-    bool                        withPath = true);
+    std::shared_ptr<org::imm::ImmAstContext> const& ctx,
+    org::imm::ImmAdapter const&                     node,
+    bool                                            withPath = true);
 
 /// \brief Common adapter specialization methods to inject in the final
 /// specializations.

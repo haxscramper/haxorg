@@ -18,6 +18,8 @@
 #include <boost/mp11/algorithm.hpp>
 #include <type_traits>
 
+#pragma clang diagnostic ignored "-Wreorder-init-list"
+
 using namespace hstd;
 using namespace org::imm;
 using namespace hstd::ext;
@@ -33,7 +35,8 @@ UnorderedMap<ImmReflFieldId, Str> ImmReflFieldId::fieldNames;
 std::size_t std::hash<ImmReflFieldId>::operator()(
     ImmReflFieldId const& it) const noexcept {
     std::size_t result = 0;
-    hax_hash_combine(result, it.field);
+    hax_hash_combine(result, it.typeId);
+    hax_hash_combine(result, it.fieldOffset);
     return result;
 }
 
@@ -1197,8 +1200,13 @@ RadioTargetSearchResult tryRadioTargetSearch(
                 ctx->debug->message(
                     fmt("Fully matched radio target "
                         "offset, subnode range {} is a "
-                        "radio target",
-                        range));
+                        "radio target linked with {}",
+                        range,
+                        targetId));
+                auto __scope = ctx->debug->scopeLevel();
+                for (auto const& it : result.target->nodes) {
+                    ctx->debug->message(fmt("- target {}", it));
+                }
                 result.nextGroupIdx = groupingIdx + sourceOffset;
                 // Successfully found radio target,
                 // resetting the grouping index and
@@ -1228,13 +1236,25 @@ RadioTargetSearchResult tryRadioTargetSearch(
 } // namespace
 
 Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
-    CR<ImmAdapter> node,
-    bool           withPath) {
-    ImmAstTrackingMap const& track = *node.ctx.lock()->currentTrack;
+    std::shared_ptr<ImmAstContext> const& ctx,
+    CR<ImmAdapter>                        node,
+    bool                                  withPath) {
+    ImmAstTrackingMap const& track = *ctx->currentTrack;
     Vec<ImmAdapter>          sub   = node.sub(withPath);
     Vec<ImmSubnodeGroup>     result;
 
-    auto ctx = node.ctx.lock();
+    ctx->debug->message(
+        fmt("Radio targets count {} using context {:#010x}",
+            track.radioTargets.size(),
+            reinterpret_cast<intptr_t>(ctx.get())));
+
+    ctx->debug->stacktraceMessage();
+    for (auto const& [key, value] : track.radioTargets) {
+        ctx->debug->message(_dfmt_expr(key, value));
+    }
+
+    ctx->debug->message(fmt("Get subnode groups for {}", node.uniq()));
+    auto __scope = ctx->debug->scopeLevel();
 
     for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {
         ImmAdapter const& it = sub.at(groupingIdx);
@@ -1242,7 +1262,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
             leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
             ctx->debug->message(fmt("Subnode {} is leaf", groupingIdx));
             Vec<ImmId> const* radioTargets = track.radioTargets.find(
-                leaf->text);
+                leaf->text.get());
             if (radioTargets == nullptr) {
                 ctx->debug->message(
                     fmt("No radio target starting with word '{}'",
@@ -1255,6 +1275,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
                 for (ImmId const& radioId : *radioTargets) {
                     ctx->debug->message(
                         fmt("Trying radio ID {}", radioId));
+                    auto __scope      = ctx->debug->scopeLevel();
                     auto radioAdapter = it.ctx.lock()->adaptUnrooted(
                         radioId);
 
@@ -1271,6 +1292,9 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
                         for (auto const& id : org::getSubtreeProperties<
                                  sem::NamedProperty::RadioId>(
                                  subtree.value())) {
+                            ctx->debug->message(fmt(
+                                "Searcing for radio target with words {}",
+                                id.words));
                             searchResult = tryRadioTargetSearch(
                                 id.words,
                                 sub,
@@ -1293,6 +1317,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
 
             radio_search_exit:
                 if (searchResult.target) {
+                    ctx->debug->message("Found radio ID target");
                     result.push_back(
                         ImmSubnodeGroup{searchResult.target.value()});
                     groupingIdx = searchResult.nextGroupIdx;
@@ -1330,6 +1355,14 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
         } else {
             result.push_back(
                 ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+        }
+    }
+
+
+    {
+        auto _s = ctx->debug->scopeLevelMsg("Final result grouping");
+        for (auto const& it : result) {
+            ctx->debug->message(fmt("Final {}", it));
         }
     }
 

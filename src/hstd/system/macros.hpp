@@ -24,6 +24,7 @@
     __VA_OPT__(EXPAND(__FOR_EACH_HELPER(macro, pass, __VA_ARGS__)))
 
 /// \internal Generate getter methods for SUB_VARIANTS
+
 #define __SUB_VARIANT_GETTER(fieldName, Type)                             \
     Type& get##Type() {                                                   \
         return ::hstd::                                                   \
@@ -38,6 +39,24 @@
     }                                                                     \
                                                                           \
     bool is##Type() const {                                               \
+        return std::holds_alternative<Type>(fieldName);                   \
+    }
+
+
+#define __SUB_VARIANT_GETTER_REFL(fieldName, Type)                        \
+    [[refl]] Type& get##Type() {                                          \
+        return ::hstd::                                                   \
+            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
+                fieldName);                                               \
+    }                                                                     \
+                                                                          \
+    [[refl]] Type const& get##Type() const {                              \
+        return ::hstd::                                                   \
+            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
+                fieldName);                                               \
+    }                                                                     \
+                                                                          \
+    [[refl]] bool is##Type() const {                                      \
         return std::holds_alternative<Type>(fieldName);                   \
     }
 
@@ -63,6 +82,14 @@
     };                                                                    \
     BOOST_DESCRIBE_ENUM(Name, __VA_ARGS__);
 
+#define __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                              \
+    EnumName, VariantName, fieldName, kindGetterName)                     \
+    using variant_enum_type = EnumName;                                   \
+    using variant_data_type = VariantName;                                \
+    EnumName sub_variant_get_kind() const { return kindGetterName(); }    \
+    VariantName const& sub_variant_get_data() const { return fieldName; } \
+    char const*        sub_variant_get_name() const { return #fieldName; }
+
 /// \brief Helper macro for better API when working with discriminant
 /// objects.
 ///
@@ -81,9 +108,37 @@
 /// This will generate `getKind()` and `static getKind(Data const&)`
 /// methods, define `Data` as `std::variant<Ordered, ...>` and implement
 /// `getOrdered()`, `getTrigger()` etc. for all provided types
+
+#define SUB_VARIANTS_REFL(                                                \
+    EnumName, VariantName, fieldName, kindGetterName, ...)                \
+    enum class [[refl]] EnumName : unsigned short int                     \
+    {                                                                     \
+        __VA_ARGS__                                                       \
+    };                                                                    \
+    BOOST_DESCRIBE_NESTED_ENUM(EnumName, __VA_ARGS__);                    \
+    using VariantName = std::variant<__VA_ARGS__>;                        \
+    FOR_EACH_CALL_WITH_PASS(                                              \
+        __SUB_VARIANT_GETTER_REFL, (fieldName), __VA_ARGS__)              \
+    static EnumName kindGetterName(VariantName const& __input) {          \
+        return std::visit(                                                \
+            ::hstd::overloaded{FOR_EACH_CALL_WITH_PASS(                   \
+                __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \
+            __input);                                                     \
+    }                                                                     \
+    [[refl]] EnumName kindGetterName() const {                            \
+        return kindGetterName(fieldName);                                 \
+    }                                                                     \
+    __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                                  \
+        EnumName, VariantName, fieldName, kindGetterName)
+
+
 #define SUB_VARIANTS(                                                     \
     EnumName, VariantName, fieldName, kindGetterName, ...)                \
-    DECL_DESCRIBED_ENUM(EnumName, __VA_ARGS__)                            \
+    enum class EnumName : unsigned short int                              \
+    {                                                                     \
+        __VA_ARGS__                                                       \
+    };                                                                    \
+    BOOST_DESCRIBE_NESTED_ENUM(EnumName, __VA_ARGS__);                    \
     using VariantName = std::variant<__VA_ARGS__>;                        \
     FOR_EACH_CALL_WITH_PASS(                                              \
         __SUB_VARIANT_GETTER, (fieldName), __VA_ARGS__)                   \
@@ -94,11 +149,8 @@
             __input);                                                     \
     }                                                                     \
     EnumName kindGetterName() const { return kindGetterName(fieldName); } \
-    using variant_enum_type = EnumName;                                   \
-    using variant_data_type = VariantName;                                \
-    EnumName sub_variant_get_kind() const { return kindGetterName(); }    \
-    VariantName const& sub_variant_get_data() const { return fieldName; } \
-    char const*        sub_variant_get_name() const { return #fieldName; }
+    __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                                  \
+        EnumName, VariantName, fieldName, kindGetterName)
 
 
 #define DESC_FIELDS(classname, arg)                                       \

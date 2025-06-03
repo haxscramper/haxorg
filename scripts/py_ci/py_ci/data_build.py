@@ -93,6 +93,20 @@ def get_external_deps_list(
     # dependenices should happen in exact order as specified, this is especially important
     # for the google packages (gtest, protobuf, absl), as they depend on each other being
     # present.
+    
+    dep(
+        build_name="msgpack",
+        deps_name="msgpack-c",
+        is_emcc_ready=True,
+        cmake_dirs=[
+            ("msgpack-cxx", ["msgpack/lib/cmake/msgpack-cxx"] + make_lib("msgpack/{}/cmake/msgpack-cxx"))
+        ],
+        configure_args=[
+            opt("MSGPACK_USE_BOOST", False),
+            opt("SGPACK_BUILD_TESTS", False),
+        ]
+    )
+
     dep(
         build_name="cpptrace",
         deps_name="cpptrace",
@@ -103,21 +117,6 @@ def get_external_deps_list(
         ],
     )
 
-    if False:
-        dep(
-            build_name="pcre2",
-            is_emcc_ready=True,
-            deps_name="pcre2",
-            cmake_dirs=[
-                ("pcre2", "pcre2/lib/cmake/pcre2"),
-            ],
-            install_prefixes=[
-                "pcre2/lib/cmake/pcre2",
-                "pcre2/lib64/cmake/pcre2",
-            ],
-        )
-
-    # dep(build_name="scintilla", deps_name="scintilla/")
     dep(
         build_name="describe",
         is_emcc_ready=True,
@@ -127,8 +126,7 @@ def get_external_deps_list(
         ],
     )
 
-    dep(
-        build_name="cctz",
+    dep(build_name="cctz",
         is_emcc_ready=True,
         deps_name="cctz",
         configure_args=[
@@ -140,8 +138,7 @@ def get_external_deps_list(
         ],
         cmake_dirs=[
             ("cctz", make_lib("cctz/{}/cmake/cctz")),
-        ]
-    )
+        ])
 
     dep(
         build_name="preprocessor",
@@ -165,6 +162,7 @@ def get_external_deps_list(
     dep(
         build_name="perfetto",
         deps_name="cmake_wrap/perfetto",
+        is_emcc_ready=True,
         configure_args=[
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],
@@ -261,7 +259,8 @@ def get_external_deps_list(
         deps_name="yaml-cpp",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("yaml-cpp", make_lib("yaml/{}/cmake/yaml-cpp") + ["yaml/share/cmake/yaml-cpp"]),
+            ("yaml-cpp",
+             make_lib("yaml/{}/cmake/yaml-cpp") + ["yaml/share/cmake/yaml-cpp"]),
         ],
         configure_args=[
             opt("YAML_CPP_BUILD_TESTS", False),
@@ -355,15 +354,21 @@ def get_deps_install_config(deps: List[ExternalDep], install_dir: Path) -> str:
     for item in deps:
         for dir in item.cmake_dirs:
             path = None
+            tried_paths = []
             for possible_install in dir[1]:
                 possible_path = install_dir.joinpath(possible_install)
+                tried_paths.append(possible_path)
                 if possible_path.exists():
-                    assert possible_path != Path("/"), f"install_dir = {install_dir}, possible_install = {possible_install}"
+                    assert possible_path != Path(
+                        "/"
+                    ), f"install_dir = {install_dir}, possible_install = {possible_install}"
                     path = possible_path
                     break
 
             if not path:
-                raise ValueError(f"{dir[0]} is not insalled: could not find cmake installation dir in {install_dir}, tried {dir[1]} relative paths")
+                raise ValueError(
+                    f"{dir[0]} is not insalled: could not find cmake installation dir in {install_dir}, tried {tried_paths} relative paths"
+                )
 
             cmake_paths.append(f"set({dir[0]}_DIR \"{path}\")")
 

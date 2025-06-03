@@ -1,10 +1,11 @@
 quiet: false
-debug: true
+debug: false
 emscripten: false
 instrument:
   coverage: false
   xray: false
   asan: true
+  perfetto: false
 
 tasks:
   skip_python_refl: false

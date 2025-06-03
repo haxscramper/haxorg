@@ -23,7 +23,17 @@ hstd::Vec<OrgParseFragment> extractCommentBlocks(
     const std::string&            text,
     const hstd::Vec<std::string>& commentPrefixes);
 
-struct [[refl]] OrgParseParameters {
+struct [[refl(
+    R"({
+  "backend": {
+    "python": {
+      "holder-type": "shared"
+    },
+    "wasm": {
+      "holder-type": "shared"
+    }
+  }
+})")]] OrgParseParameters : public hstd::SharedPtrApi<OrgParseParameters> {
     [[refl]] hstd::Opt<std::string> baseTokenTracePath = std::nullopt;
     [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
@@ -40,7 +50,18 @@ struct [[refl]] OrgParseParameters {
         ());
 };
 
-struct [[refl]] OrgDirectoryParseParameters {
+struct [[refl(
+    R"({
+  "backend": {
+    "python": {
+      "holder-type": "shared"
+    },
+    "wasm": {
+      "holder-type": "shared"
+    }
+  }
+})")]] OrgDirectoryParseParameters
+    : public hstd::SharedPtrApi<OrgDirectoryParseParameters> {
     hstd::Func<sem::SemId<sem::Org>(std::string const& fullPath)>
         getParsedNode;
 
@@ -48,28 +69,42 @@ struct [[refl]] OrgDirectoryParseParameters {
     hstd::Func<hstd::Opt<std::string>(std::string const& includePath)>
         findIncludeTarget;
 
+    std::function<bool(std::string const&)>        isDirectoryImpl;
+    std::function<bool(std::string const&)>        isSymlinkImpl;
+    std::function<bool(std::string const&)>        isRegularFileImpl;
+    std::function<std::string(std::string const&)> resolveSymlinkImpl;
+    std::function<std::vector<std::string>(std::string const&)>
+        getDirectoryEntriesImpl;
+
+    bool                     isDirectory(std::string const& path) const;
+    bool                     isSymlink(std::string const& path) const;
+    bool                     isRegularFile(std::string const& path) const;
+    std::string              resolveSymlink(std::string const& path) const;
+    std::vector<std::string> getDirectoryEntries(
+        std::string const& path) const;
+
     BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
 };
 
 [[refl]] sem::SemId<sem::Org> parseFile(
-    std::string               file,
-    OrgParseParameters const& opts);
+    std::string                                file,
+    std::shared_ptr<OrgParseParameters> const& opts);
 
 
 [[refl]] sem::SemId<sem::Org> parseString(std::string const text);
 [[refl]] sem::SemId<sem::Org> parseStringOpts(
-    std::string const         text,
-    OrgParseParameters const& opts);
+    std::string const                          text,
+    std::shared_ptr<OrgParseParameters> const& opts);
 
 [[refl]] hstd::Opt<sem::SemId<sem::Org>> parseDirectoryOpts(
-    std::string const&                 path,
-    OrgDirectoryParseParameters const& opts);
+    std::string const&                                  path,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts);
 
 [[refl]] sem::SemId<sem::File> parseFileWithIncludes(
-    std::string const&                 file,
-    OrgDirectoryParseParameters const& opts);
+    std::string const&                                  file,
+    std::shared_ptr<OrgDirectoryParseParameters> const& opts);
 
-[[refl]] std::shared_ptr<imm::ImmAstContext> initImmutableAstContext();
+[[refl]] std::shared_ptr<imm::ImmAstContext>   initImmutableAstContext();
 
 struct OrgCodeEvalParameters {
     hstd::Func<hstd::Vec<sem::OrgCodeEvalOutput>(

@@ -161,9 +161,10 @@ struct JsonSerde<json> {
 
 
 struct JsonFormatOptions {
-    int width       = 80;
-    int indent      = 2;
-    int startIndent = 0;
+    int  width            = 80;
+    int  indent           = 2;
+    int  startIndent      = 0;
+    bool stableFieldOrder = false;
 };
 
 std::string to_compact_json(

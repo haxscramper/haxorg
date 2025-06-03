@@ -9,6 +9,7 @@
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/sem/SemOrgCereal.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <utility>
 
@@ -54,6 +55,38 @@ struct emscripten::smart_ptr_trait<org::sem::SemId<T>> {
 
 namespace org::bind::js {
 
+template <typename T>
+struct holder_type_builder {};
+
+template <typename T>
+struct holder_type_builder<std::shared_ptr<T>> {
+    template <typename... Args>
+    static std::shared_ptr<T> init(Args&&... args) {
+        return std::make_shared<T>(std::forward(args)...);
+    }
+};
+
+template <typename T>
+struct holder_type_builder<std::unique_ptr<T>> {
+    template <typename... Args>
+    static std::unique_ptr<T> init(Args&&... args) {
+        return std::make_unique<T>(std::forward(args)...);
+    }
+};
+
+template <typename T>
+struct holder_type_builder<org::sem::SemId<T>> {
+    template <typename... Args>
+    static org::sem::SemId<T> init(Args&&... args) {
+        return org::sem::SemId<T>::New(std::forward(args)...);
+    }
+};
+
+template <typename T, typename... Args>
+T holder_type_constructor(Args&&... args) {
+    return holder_type_builder<T>::init(std::forward(args)...);
+}
+
 struct type_registration_guard {
     hstd::UnorderedSet<std::size_t> idx;
     template <typename T>
@@ -89,7 +122,41 @@ void immerflex_vector_bind(
     std::string const&       name) {}
 
 template <typename T>
-void hstdVec_bind(type_registration_guard& g, std::string const& name) {}
+void hstdVec_bind(type_registration_guard& g, std::string const& name) {
+    using VT = hstd::Vec<T>;
+    if (g.can_add<VT>()) {
+        emscripten::class_<VT>(name.c_str())
+            .function("size", &VT::size)
+            .function(
+                "push_back",
+                static_cast<void (VT::*)(T const&)>(&VT::push_back))
+            .function("pop_back", &VT::pop_back)
+            .function("clear", &VT::clear)
+            .function(
+                "empty", static_cast<bool (VT::*)() const>(&VT::empty))
+            .function("reserve", &VT::reserve)
+            .function(
+                "resize_with_value",
+                static_cast<void (VT::*)(size_t, T const&)>(&VT::resize))
+            .function(
+                "at", static_cast<T const& (VT::*)(int) const>(&VT::at))
+            .function(
+                "front", static_cast<T const& (VT::*)() const>(&VT::front))
+            .function(
+                "back", static_cast<T const& (VT::*)() const>(&VT::back))
+            .function(
+                "toArray",
+                +[](const hstd::Vec<T>& self) -> emscripten::val {
+                    emscripten::val result = emscripten::val::global(
+                                                 "Array")
+                                                 .new_();
+                    for (size_t i = 0; i < self.size(); ++i) {
+                        result.call<void>("push", self[i]);
+                    }
+                    return result;
+                });
+    }
+}
 
 template <typename T>
 void hstdIntSet_bind(type_registration_guard& g, std::string const& name) {

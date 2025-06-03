@@ -16,7 +16,14 @@ std::string hstd::to_compact_json(
     Func<int(json const&)> getSize;
     getSize = [&](json const& j) -> int {
         std::size_t hash = std::hash<json>{}(j);
-        if (!sizes.contains(hash)) { sizes[hash] = j.dump().size(); }
+        if (!sizes.contains(hash)) {
+            sizes[hash] = j.dump(
+                               2,
+                               ' ',
+                               false,
+                               json::error_handler_t::ignore)
+                              .size();
+        }
 
         return sizes.at(hash);
     };
@@ -29,7 +36,16 @@ std::string hstd::to_compact_json(
             return j.dump();
         } else {
             switch (j.type()) {
-                case json::value_t::string:
+                case json::value_t::string: {
+                    try {
+                        return j.dump();
+                    } catch (json::type_error& err) {
+                        return j.dump(
+                            2, ' ', false, json::error_handler_t::ignore);
+                    }
+
+                    break;
+                }
                 case json::value_t::boolean:
                 case json::value_t::number_float:
                 case json::value_t::number_integer:
@@ -68,8 +84,12 @@ std::string hstd::to_compact_json(
                         items.begin(),
                         items.end(),
                         [&](auto const& lhs, auto const& rhs) {
-                            return getSize(lhs.second)
-                                 < getSize(rhs.second);
+                            if (options.stableFieldOrder) {
+                                return lhs.first < rhs.first;
+                            } else {
+                                return getSize(lhs.second)
+                                     < getSize(rhs.second);
+                            }
                         });
 
                     for (auto const& [key, sub] : items) {

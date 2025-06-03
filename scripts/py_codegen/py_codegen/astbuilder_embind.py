@@ -319,39 +319,31 @@ class WasmMethod(WasmFunction):
 
         Args += self.Func.arguments
 
+        call_pass = self.build_call_pass(
+            ast,
+            FunctionQualName=ast.Scoped(Class, ast.string(self.Func.name)),
+            Class=None if self.Func.isStatic else Class,
+            IsConst=self.Func.isConst,
+            Args=Args,
+        )
+
         if self.Func.IsConstructor:
-            return ast.XCall(
-                ".constructor",
-                Params=[arg.type for arg in self.Func.arguments],
-                Line=True,
-            )
+            call_pass = ast.XCall("pybind11::init", args=[call_pass])
+
+        def_args = []
+        if not self.Func.IsConstructor:
+            def_args.append(ast.Literal(self.getWasmName()))
+
+        def_args.append(call_pass)
+
+        if self.Func.isPureVirtual:
+            def_args.append(ast.XCall("emscripten::pure_virtual"))
+
+        if self.Func.isStatic:
+            return ast.XCall(".class_function", def_args, Line=True)
 
         else:
-            call_pass = self.build_call_pass(
-                ast,
-                FunctionQualName=ast.Scoped(Class, ast.string(self.Func.name)),
-                Class=None if self.Func.isStatic else Class,
-                IsConst=self.Func.isConst,
-                Args=Args,
-            )
-
-            if self.Func.IsConstructor:
-                call_pass = ast.XCall("pybind11::init", args=[call_pass])
-
-            def_args = []
-            if not self.Func.IsConstructor:
-                def_args.append(ast.Literal(self.getWasmName()))
-
-            def_args.append(call_pass)
-
-            if self.Func.isPureVirtual:
-                def_args.append(ast.XCall("emscripten::pure_virtual"))
-
-            if self.Func.isStatic:
-                return ast.XCall(".class_function", def_args, Line=True)
-
-            else:
-                return ast.XCall(".function", def_args, Line=True)
+            return ast.XCall(".function", def_args, Line=True)
 
 
 @beartype
@@ -438,16 +430,52 @@ class WasmClass():
             else:
                 sub.append(WasmField(Field).build_bind(ast, self.getCxxName()))
 
+        has_constructor = False
         for Meth in self.Record.methods:
             # Skip explicit wrapping of default constructors
-            if Meth.IsConstructor and len(Meth.arguments) == 0:
-                continue
+            if Meth.IsConstructor:
+                if HolderType:
+                    sub.append(
+                        ast.XCall(
+                            ".constructor",
+                            args=[
+                                ast.Addr(
+                                    ast.Type(
+                                        QualType(
+                                            name="org::bind::js::holder_type_constructor",
+                                            Parameters=[
+                                                self.getCxxName(),
+                                            ] + [M.type for M in Meth.arguments])))
+                            ]))
+
+                    has_constructor = True
 
             elif Meth.name.startswith("sub_variant_get"):
                 continue
 
             else:
                 sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast))
+
+        if not has_constructor and not self.Record.IsAbstract:
+            # If the type has non-default holder type, `new` in JS will still create a raw pointer
+            # to the type, to fix this it necessary to provide own implementation for the constructor
+            if self.Record.reflectionParams.default_constructor:
+                if HolderType:
+                    sub.append(
+                        ast.XCall(
+                            ".constructor",
+                            args=[
+                                ast.Addr(
+                                    ast.Type(
+                                        QualType(
+                                            name="org::bind::js::holder_type_constructor",
+                                            Parameters=[
+                                                HolderType,
+                                            ])))
+                            ]))
+
+                else:
+                    sub.append(ast.XCall(".constructor", Params=[]))
 
         sub.append(b.text(";"))
 
@@ -535,9 +563,10 @@ class WasmModule():
         return ast.stack([
             ast.string("import * as haxorg_wasm from \"./haxorg_utility_types\";"),
             ast.block(
-                ast.string(f"export interface {self.name}_module"),
+                ast.string(f"export interface {self.name}_module_auto"),
                 iface,
             ),
+            ast.string(f"type {self.name}_module = {self.name}_module_auto & haxorg_wasm.{self.name}_manual; "),
             *body,
         ])
 
@@ -546,6 +575,43 @@ class WasmModule():
         Result = b.b.stack()
 
         Body = []
+        SubdivideBody = []
+        subivide_count = 0
+
+        def add_subdivide_body():
+            nonlocal SubdivideBody
+            nonlocal subivide_count
+            Body.append(
+                ast.XCall(
+                    f"subdivide_{subivide_count}",
+                    Stmt=True,
+                    args=[ast.string("g")],
+                ))
+            b.b.add_at(
+                Result,
+                ast.Function(
+                    FunctionParams(
+                        Name=f"subdivide_{subivide_count}",
+                        Args=[
+                            ParmVarParams(
+                                type=QualType(
+                                    name="org::bind::js::type_registration_guard",
+                                    RefKind=ReferenceKind.LValue,
+                                ),
+                                name="g",
+                            )
+                        ],
+                        Body=SubdivideBody,
+                    )))
+
+            subivide_count += 1
+            SubdivideBody = []
+
+        def add_binding_statement(stmt: BlockId):
+            SubdivideBody.append(stmt)
+
+            if 100 < len(SubdivideBody):
+                add_subdivide_body()
 
         for it in self.Header:
             b.b.add_at(Result, it.Id)
@@ -557,23 +623,26 @@ class WasmModule():
         for item in self.items:
             match item:
                 case WasmClass():
-                    Body.append(item.build_bind(ast=ast, base_map=base_map))
+                    add_binding_statement(item.build_bind(ast=ast, base_map=base_map))
 
                 case WasmFunction():
                     overload_counts[item.getWasmName()] += 1
-                    Body.append(item.build_bind(b=b))
+                    add_binding_statement(item.build_bind(b=b))
 
                 case WasmBindPass():
-                    Body.append(item.Id)
+                    add_binding_statement(item.Id)
 
                 case WasmEnum():
-                    Body.append(item.build_bind(b=b))
+                    add_binding_statement(item.build_bind(b=b))
 
                 case WasmTypedef():
                     pass
 
                 case _:
                     raise ValueError("Unexpected ")
+
+        if len(SubdivideBody) != 0:
+            add_subdivide_body()
 
         for key, value in overload_counts.items():
             if 1 < value:

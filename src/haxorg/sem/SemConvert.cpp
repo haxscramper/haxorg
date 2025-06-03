@@ -766,6 +766,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         if (name.has(1)) { prop.name = normalize(name.at(1)); }
         prop.value = json::parse(strip_space(get_text(one(a, N::Values))));
         result     = NamedProperty{prop};
+        _dbg(result);
     } else if (name.starts_with("propargs")) {
         handled();
         NamedProperty::CustomSubtreeFlags prop{};

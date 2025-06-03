@@ -343,12 +343,18 @@ nodes)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("getEmpty", static_cast<hstd::ext::GraphNodeConstraint::Empty const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getEmpty))
-    .def("getAlign", static_cast<hstd::ext::GraphNodeConstraint::Align const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getAlign))
+    .def("getEmpty", static_cast<hstd::ext::GraphNodeConstraint::Empty&(hstd::ext::GraphNodeConstraint::*)()>(&hstd::ext::GraphNodeConstraint::getEmpty))
+    .def("isEmpty", static_cast<bool(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::isEmpty))
+    .def("getAlign", static_cast<hstd::ext::GraphNodeConstraint::Align&(hstd::ext::GraphNodeConstraint::*)()>(&hstd::ext::GraphNodeConstraint::getAlign))
+    .def("isAlign", static_cast<bool(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::isAlign))
     .def("getFixedRelative", static_cast<hstd::ext::GraphNodeConstraint::FixedRelative&(hstd::ext::GraphNodeConstraint::*)()>(&hstd::ext::GraphNodeConstraint::getFixedRelative))
-    .def("getSeparate", static_cast<hstd::ext::GraphNodeConstraint::Separate const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getSeparate))
-    .def("getMultiSeparate", static_cast<hstd::ext::GraphNodeConstraint::MultiSeparate const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getMultiSeparate))
-    .def("getPageBoundary", static_cast<hstd::ext::GraphNodeConstraint::PageBoundary const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getPageBoundary))
+    .def("isFixedRelative", static_cast<bool(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::isFixedRelative))
+    .def("getSeparate", static_cast<hstd::ext::GraphNodeConstraint::Separate&(hstd::ext::GraphNodeConstraint::*)()>(&hstd::ext::GraphNodeConstraint::getSeparate))
+    .def("isSeparate", static_cast<bool(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::isSeparate))
+    .def("getMultiSeparate", static_cast<hstd::ext::GraphNodeConstraint::MultiSeparate&(hstd::ext::GraphNodeConstraint::*)()>(&hstd::ext::GraphNodeConstraint::getMultiSeparate))
+    .def("isMultiSeparate", static_cast<bool(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::isMultiSeparate))
+    .def("getPageBoundary", static_cast<hstd::ext::GraphNodeConstraint::PageBoundary&(hstd::ext::GraphNodeConstraint::*)()>(&hstd::ext::GraphNodeConstraint::getPageBoundary))
+    .def("isPageBoundary", static_cast<bool(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::isPageBoundary))
     .def("getKind", static_cast<hstd::ext::GraphNodeConstraint::Kind(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getKind))
     .def_static("InitEmptyStatic",
                 static_cast<hstd::ext::GraphNodeConstraint(*)(hstd::ext::GraphNodeConstraint::Empty const&)>(&hstd::ext::GraphNodeConstraint::InitEmpty),
