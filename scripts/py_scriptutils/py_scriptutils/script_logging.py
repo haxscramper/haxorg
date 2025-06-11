@@ -19,10 +19,16 @@ def to_debug_json(
     include_single_underscore_attrs: bool = False,
     include_double_underscore_attrs: bool = False,
     skip_cyclic_data: bool = True,
+    override_callback: callable = None,
 ):
     visited = set()
 
-    def aux(obj):
+    def aux(obj):   
+        if override_callback:
+            override_result = override_callback(obj)
+            if override_result:
+                return override_result
+
         if isinstance(obj, (int, float, str, bool, type(None))):
             return obj
 
@@ -57,6 +63,16 @@ def to_debug_json(
                 return (has_double and include_double_underscore_attrs) or (
                     not has_double and has_single and
                     include_single_underscore_attrs) or is_regular
+
+            try:
+                hasattr(obj, "__dict__")
+
+            except TypeError as e:
+                if "Unregistered" in str(e):
+                    return str(e)
+
+                else:
+                    raise e from None
 
             if hasattr(obj, "__dict__"):
                 result = {}

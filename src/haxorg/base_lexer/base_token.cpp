@@ -1344,6 +1344,12 @@ void switch_regular_char(Cursor& c) {
                 c.token_adv(otk::SubtreeCompletion, *span);
             } else if (
                 auto span = c.try_lexy_patt<
+                            dsl::lit_c<'['> + dsl::lit_c<'#'>
+                            + dsl::ascii::alpha_underscore
+                            + dsl::lit_c<']'>>()) {
+                c.token_adv(otk::SubtreePriority, *span);
+            } else if (
+                auto span = c.try_lexy_patt<
                             dsl::lit_c<'['>
                             + (dsl::lit_c<'x'>   //
                                | dsl::lit_c<'X'> //
