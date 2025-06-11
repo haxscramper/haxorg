@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (QApplication, QHeaderView, QLineEdit, QTreeView, QV
 from fuzzywuzzy import fuzz
 import rich_click as click
 import py_haxorg.pyhaxorg_wrap as org
-from py_haxorg.pyhaxorg_utils import evalDateTime
+from py_haxorg.pyhaxorg_utils import evalDateTime, getFlatTags
 from pathlib import Path
 from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
@@ -45,8 +45,29 @@ class TreeNode:
 
     def get_priority_order(self) -> int:
         priority = self.get_priority()
-        priority_order = {"X": 0, "S": 1, "A": 2, "B": 3, "C": 4, "D": 5, "E": 6, "F": 7}
-        return priority_order.get(priority, 999)
+        priority_order = {
+            "X": 0,
+            "S": 1,
+            "A": 2,
+            "B": 3,
+            "C": 4,
+            "D": 5,
+            "E": 6,
+            "F": 7,
+        }
+        return priority_order.get(priority, -1)
+
+    def get_tags(self) -> List[str]:
+        if isinstance(self.data, org.Subtree):
+            result = []
+            for tag in self.data.tags:
+                for flat in getFlatTags(tag):
+                    result.append("##".join(flat))
+
+            return result
+
+        else:
+            return []
 
     def get_age_seconds(self) -> int:
         if isinstance(self.data, org.Subtree):
@@ -64,8 +85,15 @@ class TreeNode:
         if seconds == 0:
             return ""
 
-        units = [("y", 365 * 24 * 3600), ("mo", 30 * 24 * 3600), ("w", 7 * 24 * 3600),
-                 ("d", 24 * 3600), ("h", 3600), ("m", 60), ("s", 1)]
+        units = [
+            ("y", 365 * 24 * 3600),
+            ("mo", 30 * 24 * 3600),
+            ("w", 7 * 24 * 3600),
+            ("d", 24 * 3600),
+            ("h", 3600),
+            ("m", 60),
+            ("s", 1),
+        ]
 
         parts = []
         for unit_name, unit_seconds in units:
@@ -148,6 +176,7 @@ COLUMN_PRIORITY_INDEX = 1
 COLUMN_TODO_INDEX = 2
 COLUMN_CREATION_DATE = 3
 COLUMN_TASK_AGE = 4
+COLUMN_TAGS = 5
 
 
 class OrgTreeModel(QAbstractItemModel):
@@ -172,55 +201,62 @@ class OrgTreeModel(QAbstractItemModel):
         collect_all_nodes(self.root_node)
 
     def _is_flat_mode(self) -> bool:
-        return self.sort_column in [
-            COLUMN_TODO_INDEX,
-            COLUMN_CREATION_DATE,
-            COLUMN_PRIORITY_INDEX,
-            COLUMN_TASK_AGE,
-        ]
+        return self.sort_column != COLUMN_TITLE
 
     def sort(self, column: int, order: Qt.SortOrder) -> None:
         self.beginResetModel()
         self.sort_column = column
         self.sort_order = order
 
+        is_ascending = order == Qt.SortOrder.AscendingOrder
+
         if self._is_flat_mode():
             key_func = None
             if column == COLUMN_PRIORITY_INDEX:
 
                 def key_func(node: TreeNode) -> int:
-                    priority = node.get_priority()
-                    if priority == "":
-                        return -1
-
-                    else:
-                        return node.get_priority_order()
-
-                self.flat_nodes.sort(key=key_func,
-                                     reverse=(order == Qt.SortOrder.DescendingOrder))
-
-            if column == COLUMN_TODO_INDEX:
-                key_func = lambda node: node.get_todo().lower()
-                self.flat_nodes.sort(key=key_func,
-                                     reverse=(order == Qt.SortOrder.DescendingOrder))
-            elif column == COLUMN_CREATION_DATE:
-                key_func = lambda node: (node.get_creation_date() == "",
-                                         node.get_creation_date())
-                self.flat_nodes.sort(key=key_func,
-                                     reverse=(order == Qt.SortOrder.DescendingOrder))
-
-            elif column == COLUMN_TASK_AGE:
-                def key_func_3(node: TreeNode) -> tuple:
-                    age = node.get_age_seconds()
-                    if age == 0:
-                        if order == Qt.SortOrder.AscendingOrder:
+                    priority_ord = node.get_priority_order()
+                    if priority_ord == -1:
+                        if is_ascending:
                             return 10E10
 
                         else:
                             return -1
 
                     else:
-                        if order == Qt.SortOrder.AscendingOrder:
+                        if is_ascending:
+                            return priority_ord
+
+                        else:
+                            return -priority_ord
+
+                self.flat_nodes.sort(key=key_func)
+
+            elif column == COLUMN_TAGS:
+                key_func = lambda node: node.get_tags()
+                self.flat_nodes.sort(key=key_func, reverse=not is_ascending)
+
+            elif column == COLUMN_TODO_INDEX:
+                key_func = lambda node: node.get_todo().lower()
+                self.flat_nodes.sort(key=key_func, reverse=not is_ascending)
+            elif column == COLUMN_CREATION_DATE:
+                key_func = lambda node: (node.get_creation_date() == "",
+                                         node.get_creation_date())
+                self.flat_nodes.sort(key=key_func, reverse=not is_ascending)
+
+            elif column == COLUMN_TASK_AGE:
+
+                def key_func_3(node: TreeNode) -> tuple:
+                    age = node.get_age_seconds()
+                    if age == 0:
+                        if is_ascending:
+                            return 10E10
+
+                        else:
+                            return -1
+
+                    else:
+                        if is_ascending:
                             return age
                         else:
                             return -age
@@ -282,7 +318,7 @@ class OrgTreeModel(QAbstractItemModel):
             return len(node.children)
 
     def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        return 5
+        return 6
 
     def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> Any:
         if not index.isValid():
@@ -302,8 +338,10 @@ class OrgTreeModel(QAbstractItemModel):
                 return node.get_creation_date()
             elif column == COLUMN_TASK_AGE:
                 return node.get_age_display()
+            elif column == COLUMN_TAGS:
+                return ", ".join(node.get_tags())
 
-        elif role == Qt.ItemDataRole.ForegroundRole and column == 1:
+        elif role == Qt.ItemDataRole.BackgroundRole and column == COLUMN_PRIORITY_INDEX:
             priority = node.get_priority()
             colors = {
                 "X": QColor(255, 0, 0),
@@ -317,7 +355,7 @@ class OrgTreeModel(QAbstractItemModel):
             }
             return colors.get(priority)
 
-        elif role == Qt.ItemDataRole.FontRole and column == 1:
+        elif role == Qt.ItemDataRole.FontRole and column == COLUMN_PRIORITY_INDEX:
             priority = node.get_priority()
             font = QFont()
             if priority == "A":
@@ -327,7 +365,7 @@ class OrgTreeModel(QAbstractItemModel):
                 font.setWeight(QFont.Weight.Light)
             return font if priority in ["A", "E", "F"] else None
 
-        elif role == Qt.ItemDataRole.BackgroundRole and column == 2:
+        elif role == Qt.ItemDataRole.BackgroundRole and column == COLUMN_TODO_INDEX:
             todo = node.get_todo().lower()
             if todo in ["done", "completed"]:
                 return QColor(144, 238, 144)
@@ -336,9 +374,9 @@ class OrgTreeModel(QAbstractItemModel):
             elif todo == "todo":
                 return QColor(255, 182, 193)
 
-        elif role == Qt.ItemDataRole.BackgroundRole and column == 3:
+        elif role == Qt.ItemDataRole.BackgroundRole and column == COLUMN_TASK_AGE:
             age_seconds = node.get_age_seconds()
-            if age_seconds == None:
+            if age_seconds == 0:
                 return None
             elif age_seconds <= 24 * 3600:  # <=1 day
                 return QColor(200, 255, 200)
@@ -356,7 +394,7 @@ class OrgTreeModel(QAbstractItemModel):
                    orientation: Qt.Orientation,
                    role: int = Qt.ItemDataRole.DisplayRole) -> Any:
         if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
-            headers = ["Title", "Priority", "Todo", "Creation Date", "Task age"]
+            headers = ["Title", "Priority", "Todo", "Creation Date", "Task age", "Tags"]
             if section < len(headers):
                 return headers[section]
         return None

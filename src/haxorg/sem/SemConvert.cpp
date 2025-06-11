@@ -842,7 +842,6 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         if (urgency.kind() != onk::Empty) {
             tree->priority = strip(
                 get_text(urgency), CharSet{'[', '#'}, CharSet{']'});
-            _dbg(tree->priority);
         }
     }
 
