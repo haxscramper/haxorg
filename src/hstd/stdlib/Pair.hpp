@@ -55,3 +55,11 @@ struct std::formatter<std::tuple<Args...>> : std::formatter<std::string> {
             t, ctx, std::index_sequence_for<Args...>{});
     }
 };
+
+
+namespace std {
+template <typename A, typename B>
+bool operator==(std::pair<A, B> const& lhs, std::pair<A, B> const& rhs) {
+    return lhs.first == rhs.first && lhs.second == rhs.second;
+}
+} // namespace std

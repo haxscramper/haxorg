@@ -8,6 +8,7 @@
 #include <expected>
 #include <boost/outcome.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Variant.hpp>
 
 BOOST_DESCRIBE_ENUM(
     git_delta_t,

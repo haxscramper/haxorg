@@ -1029,10 +1029,7 @@ ColText ImmAstTrackingMap::toString() const {
     CR<hshow_opts> opts = hshow_opts{};
 
     auto write_map = [&]<typename K, typename V>(ImmMap<K, V> const& map) {
-        auto keys = map | rv::transform([](auto const& pair) {
-                        return pair.first;
-                    })
-                  | rs::to<Vec>();
+        auto keys = map.keys();
         for (auto const& key : sorted(keys)) {
             os.indent(2);
             hshow_ctx(os, key, opts);

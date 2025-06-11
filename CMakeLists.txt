@@ -162,7 +162,7 @@ if(NOT ${ORG_EMCC_BUILD})
 endif()
 
 if(NOT ${ORG_EMCC_BUILD})
-  find_package(Boost REQUIRED COMPONENTS log)
+  find_package(Boost REQUIRED COMPONENTS log process)
 endif()
 
 if(${ORG_EMCC_BUILD})

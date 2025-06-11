@@ -54,6 +54,12 @@ struct ImmMap : immer::map<K, V> {
     }
 
     bool contains(K const& key) const { return find(key) != nullptr; }
+
+    Vec<K> keys() const {
+        Vec<K> result;
+        for (const auto& [key, value] : *this) { result.push_back(key); }
+        return result;
+    }
 };
 
 template <typename T>
