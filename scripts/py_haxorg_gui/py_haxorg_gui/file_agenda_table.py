@@ -8,6 +8,7 @@ from beartype.typing import Any, List, Optional, Iterator, Tuple
 import functools
 from fractions import Fraction
 from enum import Enum
+import math
 
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QMargins, QSortFilterProxyModel
 from PyQt6.QtGui import QStandardItemModel, QColor
@@ -58,6 +59,28 @@ class TreeNode:
 
         else:
             return ""
+
+    @functools.cache
+    def get_clocked_seconds(self) -> int:
+        result = 0
+
+        def aux(node: TreeNode):
+            nonlocal result
+            if isinstance(node.data, org.Subtree):
+                time: org.SubtreePeriod
+                for time in node.data.getTimePeriods(
+                        org.IntSetOfSubtreePeriodKind([org.SubtreePeriodKind.Clocked])):
+                    if time.to and time.from_:
+                        from_ = evalDateTime(time.from_)
+                        to = evalDateTime(time.to)
+                        result += (to - from_).seconds
+
+            for sub in node.children:
+                aux(sub)
+
+        aux(self)
+
+        return result
 
     @functools.cache
     def get_recursive_completion(self) -> Tuple[int, int]:
@@ -224,8 +247,21 @@ class TableColumns(Enum):
     PRIORITY_INDEX = 2
     TODO_INDEX = 3
     CREATION_DATE = 4
-    TASK_AGE = 5
-    TAGS = 6
+    CLOCKED = 5
+    TASK_AGE = 6
+    TAGS = 7
+
+    def getName(self) -> str:
+        return {
+            TableColumns.TITLE: "title",
+            TableColumns.COMPLETION: "[/]",
+            TableColumns.PRIORITY_INDEX: "[#]",
+            TableColumns.TODO_INDEX: "todo",
+            TableColumns.CREATION_DATE: "created",
+            TableColumns.CLOCKED: "clocked",
+            TableColumns.TAGS: "tags",
+            TableColumns.TASK_AGE: "age",
+        }[self]
 
 
 class OrgTreeModel(QAbstractItemModel):
@@ -331,6 +367,13 @@ class OrgTreeModel(QAbstractItemModel):
                 a, b = node.get_recursive_completion()
                 return f"{a}/{b}"
 
+            elif column == TableColumns.CLOCKED.value:
+                sec = node.get_clocked_seconds()
+                hours = math.floor(sec / (60 * 60))
+                minutes = math.floor((sec / 60) % 60)
+                return f"{hours}:{minutes}"
+
+
         elif role == Qt.ItemDataRole.BackgroundRole and column == TableColumns.PRIORITY_INDEX.value:
             priority = node.get_priority()
             colors = {
@@ -386,7 +429,7 @@ class OrgTreeModel(QAbstractItemModel):
         role: int = Qt.ItemDataRole.DisplayRole,
     ) -> Any:
         if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
-            headers = [h.name for h in TableColumns]
+            headers = [h.getName() for h in TableColumns]
             if section < len(headers):
                 return headers[section]
 
@@ -497,6 +540,10 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
                 return compare_with_empty_handling(left_node.get_todo(),
                                                    right_node.get_todo(), "")
 
+            elif column == TableColumns.CLOCKED.value:
+                return compare_with_empty_handling(left_node.get_clocked_seconds(),
+                                                   right_node.get_clocked_seconds(), 0)
+
             elif column == TableColumns.CREATION_DATE.value:
                 return compare_with_empty_handling(left_node.get_creation_date(),
                                                    right_node.get_creation_date(), "")
@@ -535,10 +582,8 @@ class AgendaWidget(QWidget):
         self.tree_view.model().modelReset.connect(self.on_model_reset)
 
         header = self.tree_view.header()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        for h in TableColumns:
+            header.setSectionResizeMode(h.value, QHeaderView.ResizeMode.ResizeToContents)
 
         configuration_layout = QFormLayout()
         configuration_layout.setContentsMargins(0, 0, 0, 0)
