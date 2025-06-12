@@ -4,8 +4,10 @@ import logging
 import sys
 from datetime import datetime
 from beartype import beartype
-from beartype.typing import Any, List, Optional, Iterator
+from beartype.typing import Any, List, Optional, Iterator, Tuple
 import functools
+from fractions import Fraction
+from enum import Enum
 
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QMargins, QSortFilterProxyModel
 from PyQt6.QtGui import QStandardItemModel, QColor
@@ -31,6 +33,8 @@ from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
 CAT = __name__
 
+COMPLETED_TASK_SET = set(["DONE", "FAILED", "COMPLETED", "CANCELED"])
+
 
 @beartype
 class TreeNode:
@@ -54,6 +58,29 @@ class TreeNode:
 
         else:
             return ""
+
+    @functools.cache
+    def get_recursive_completion(self) -> Tuple[int, int]:
+        nom = 0
+        denom = 0
+
+        def aux(node: TreeNode):
+            nonlocal nom
+            nonlocal denom
+            if node.get_todo() != "":
+                if node.get_todo() in COMPLETED_TASK_SET:
+                    nom += 1
+                    denom += 1
+
+                else:
+                    denom += 1
+
+            for sub in node.children:
+                aux(sub)
+
+        aux(self)
+
+        return (nom, denom)
 
     @functools.cache
     def get_priority_order(self) -> int:
@@ -159,7 +186,7 @@ class TreeNode:
             return 0
         except (AttributeError, TypeError):
             return 0
-            
+
     @functools.cache
     def get_creation_date(self) -> str:
         if isinstance(self.data, org.Subtree):
@@ -191,12 +218,14 @@ def build_node(node: org.Org, parent: Optional[TreeNode]) -> TreeNode:
     return result
 
 
-COLUMN_TITLE = 0
-COLUMN_PRIORITY_INDEX = 1
-COLUMN_TODO_INDEX = 2
-COLUMN_CREATION_DATE = 3
-COLUMN_TASK_AGE = 4
-COLUMN_TAGS = 5
+class TableColumns(Enum):
+    TITLE = 0
+    COMPLETION = 1
+    PRIORITY_INDEX = 2
+    TODO_INDEX = 3
+    CREATION_DATE = 4
+    TASK_AGE = 5
+    TAGS = 6
 
 
 class OrgTreeModel(QAbstractItemModel):
@@ -221,7 +250,7 @@ class OrgTreeModel(QAbstractItemModel):
         collect_all_nodes(node)
 
     def is_flat_sorting(self) -> bool:
-        return self.sort_column != COLUMN_TITLE
+        return self.sort_column != TableColumns.TITLE.value
 
     def index(self, row: int, column: int,
               parent: QModelIndex = QModelIndex()) -> QModelIndex:
@@ -276,7 +305,7 @@ class OrgTreeModel(QAbstractItemModel):
             return len(node.children)
 
     def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        return 6
+        return len(TableColumns)
 
     def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> Any:
         if not index.isValid():
@@ -286,20 +315,23 @@ class OrgTreeModel(QAbstractItemModel):
         column = index.column()
 
         if role == Qt.ItemDataRole.DisplayRole:
-            if column == COLUMN_TITLE:
+            if column == TableColumns.TITLE.value:
                 return node.get_title()
-            elif column == COLUMN_PRIORITY_INDEX:
+            elif column == TableColumns.PRIORITY_INDEX.value:
                 return node.get_priority()
-            elif column == COLUMN_TODO_INDEX:
+            elif column == TableColumns.TODO_INDEX.value:
                 return node.get_todo()
-            elif column == COLUMN_CREATION_DATE:
+            elif column == TableColumns.CREATION_DATE.value:
                 return node.get_creation_date()
-            elif column == COLUMN_TASK_AGE:
+            elif column == TableColumns.TASK_AGE.value:
                 return node.get_age_display()
-            elif column == COLUMN_TAGS:
+            elif column == TableColumns.TAGS.value:
                 return ", ".join(node.get_tags())
+            elif column == TableColumns.COMPLETION.value:
+                a, b = node.get_recursive_completion()
+                return f"{a}/{b}"
 
-        elif role == Qt.ItemDataRole.BackgroundRole and column == COLUMN_PRIORITY_INDEX:
+        elif role == Qt.ItemDataRole.BackgroundRole and column == TableColumns.PRIORITY_INDEX.value:
             priority = node.get_priority()
             colors = {
                 "X": QColor(255, 0, 0),
@@ -313,7 +345,7 @@ class OrgTreeModel(QAbstractItemModel):
             }
             return colors.get(priority)
 
-        elif role == Qt.ItemDataRole.FontRole and column == COLUMN_PRIORITY_INDEX:
+        elif role == Qt.ItemDataRole.FontRole and column == TableColumns.PRIORITY_INDEX.value:
             priority = node.get_priority()
             font = QFont()
             if priority == "A":
@@ -323,7 +355,7 @@ class OrgTreeModel(QAbstractItemModel):
                 font.setWeight(QFont.Weight.Light)
             return font if priority in ["A", "E", "F"] else None
 
-        elif role == Qt.ItemDataRole.BackgroundRole and column == COLUMN_TODO_INDEX:
+        elif role == Qt.ItemDataRole.BackgroundRole and column == TableColumns.TODO_INDEX.value:
             todo = node.get_todo().lower()
             if todo in ["done", "completed"]:
                 return QColor(144, 238, 144)
@@ -332,7 +364,7 @@ class OrgTreeModel(QAbstractItemModel):
             elif todo == "todo":
                 return QColor(255, 182, 193)
 
-        elif role == Qt.ItemDataRole.BackgroundRole and column == COLUMN_TASK_AGE:
+        elif role == Qt.ItemDataRole.BackgroundRole and column == TableColumns.TASK_AGE.value:
             age_seconds = node.get_age_seconds()
             if age_seconds == 0:
                 return None
@@ -347,14 +379,23 @@ class OrgTreeModel(QAbstractItemModel):
 
         return None
 
-    def headerData(self,
-                   section: int,
-                   orientation: Qt.Orientation,
-                   role: int = Qt.ItemDataRole.DisplayRole) -> Any:
+    def headerData(
+        self,
+        section: int,
+        orientation: Qt.Orientation,
+        role: int = Qt.ItemDataRole.DisplayRole,
+    ) -> Any:
         if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
-            headers = ["Title", "Priority", "Todo", "Creation Date", "Task age", "Tags"]
+            headers = [h.name for h in TableColumns]
             if section < len(headers):
                 return headers[section]
+
+        elif orientation == Qt.Orientation.Vertical and role == Qt.ItemDataRole.DisplayRole:
+            if self.is_flat_mode():
+                return str(section)
+            else:
+                return str(section)
+
         return None
 
 
@@ -364,7 +405,6 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
         super().__init__(parent)
         self.model = model
         self.setSortRole(Qt.ItemDataRole.DisplayRole)
-        self.completed_task_set = set(["DONE", "FAILED", "COMPLETED", "CANCELED"])
         self.hide_tasks_without_todo_on_flat = False
         self.hide_completed_tasks = False
         self.hide_nested = False
@@ -377,7 +417,7 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
         self.model.sort_order = order
 
         self.invalidate()
-        if column != COLUMN_TITLE:
+        if column != TableColumns.TITLE.value:
             super().sort(column, order)
 
         self.invalidateFilter()
@@ -385,7 +425,7 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
     def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
         if self.model.is_flat_sorting():
             node = self.model.flat_nodes[source_row]
-            if self.hide_completed_tasks and node.get_todo() in self.completed_task_set:
+            if self.hide_completed_tasks and node.get_todo() in COMPLETED_TASK_SET:
                 return False
 
             if self.hide_tasks_without_todo_on_flat and node.get_todo() == "":
@@ -408,9 +448,8 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
                 else:
                     return True
 
-            if self.hide_completed_tasks and node.get_todo(
-            ) in self.completed_task_set and (self.hide_nested or
-                                              len(node.children) == 0):
+            if self.hide_completed_tasks and node.get_todo() in COMPLETED_TASK_SET and (
+                    self.hide_nested or len(node.children) == 0):
                 return False
 
             if self.hide_tasks_without_todo_on_flat and node.get_todo() == "" and (
@@ -446,23 +485,23 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
                     return early
                 return left_value < right_value
 
-            if column == COLUMN_PRIORITY_INDEX:
+            if column == TableColumns.PRIORITY_INDEX.value:
                 return compare_with_empty_handling(left_node.get_priority_order(),
                                                    right_node.get_priority_order(), -1)
 
-            elif column == COLUMN_TAGS:
+            elif column == TableColumns.TAGS.value:
                 return compare_with_empty_handling(left_node.get_tags(),
                                                    right_node.get_tags(), 0)
 
-            elif column == COLUMN_TODO_INDEX:
+            elif column == TableColumns.TODO_INDEX.value:
                 return compare_with_empty_handling(left_node.get_todo(),
                                                    right_node.get_todo(), "")
 
-            elif column == COLUMN_CREATION_DATE:
+            elif column == TableColumns.CREATION_DATE.value:
                 return compare_with_empty_handling(left_node.get_creation_date(),
                                                    right_node.get_creation_date(), "")
 
-            elif column == COLUMN_TASK_AGE:
+            elif column == TableColumns.TASK_AGE.value:
                 return compare_with_empty_handling(left_node.get_age_seconds(),
                                                    right_node.get_age_seconds(), 0)
 
