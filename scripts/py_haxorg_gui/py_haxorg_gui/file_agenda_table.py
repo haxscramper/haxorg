@@ -6,11 +6,21 @@ from datetime import datetime
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Iterator
 
-from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal
+from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QMargins, QSortFilterProxyModel
 from PyQt6.QtGui import QStandardItemModel, QColor
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import (QApplication, QHeaderView, QLineEdit, QTreeView, QVBoxLayout,
-                             QWidget)
+
+from PyQt6.QtWidgets import (
+    QApplication,
+    QHeaderView,
+    QLineEdit,
+    QTreeView,
+    QVBoxLayout,
+    QWidget,
+    QCheckBox,
+    QFormLayout,
+)
+
 from fuzzywuzzy import fuzz
 import rich_click as click
 import py_haxorg.pyhaxorg_wrap as org
@@ -184,12 +194,12 @@ class OrgTreeModel(QAbstractItemModel):
     def __init__(self, root_node: TreeNode):
         super().__init__()
         self.root_node = root_node
-        self.sort_column = -1
+        self.sort_column = 0
         self.sort_order = Qt.SortOrder.AscendingOrder
         self.flat_nodes: List[TreeNode] = []
-        self._build_flat_list()
+        self.set_flat_list_from(self.root_node)
 
-    def _build_flat_list(self) -> None:
+    def set_flat_list_from(self, node: TreeNode) -> None:
         self.flat_nodes = []
 
         def collect_all_nodes(node: TreeNode) -> None:
@@ -198,79 +208,17 @@ class OrgTreeModel(QAbstractItemModel):
             for child in node.children:
                 collect_all_nodes(child)
 
-        collect_all_nodes(self.root_node)
+        collect_all_nodes(node)
 
-    def _is_flat_mode(self) -> bool:
+    def is_flat_sorting(self) -> bool:
         return self.sort_column != COLUMN_TITLE
-
-    def sort(self, column: int, order: Qt.SortOrder) -> None:
-        self.beginResetModel()
-        self.sort_column = column
-        self.sort_order = order
-
-        is_ascending = order == Qt.SortOrder.AscendingOrder
-
-        if self._is_flat_mode():
-            key_func = None
-            if column == COLUMN_PRIORITY_INDEX:
-
-                def key_func(node: TreeNode) -> int:
-                    priority_ord = node.get_priority_order()
-                    if priority_ord == -1:
-                        if is_ascending:
-                            return 10E10
-
-                        else:
-                            return -1
-
-                    else:
-                        if is_ascending:
-                            return priority_ord
-
-                        else:
-                            return -priority_ord
-
-                self.flat_nodes.sort(key=key_func)
-
-            elif column == COLUMN_TAGS:
-                key_func = lambda node: node.get_tags()
-                self.flat_nodes.sort(key=key_func, reverse=not is_ascending)
-
-            elif column == COLUMN_TODO_INDEX:
-                key_func = lambda node: node.get_todo().lower()
-                self.flat_nodes.sort(key=key_func, reverse=not is_ascending)
-            elif column == COLUMN_CREATION_DATE:
-                key_func = lambda node: (node.get_creation_date() == "",
-                                         node.get_creation_date())
-                self.flat_nodes.sort(key=key_func, reverse=not is_ascending)
-
-            elif column == COLUMN_TASK_AGE:
-
-                def key_func_3(node: TreeNode) -> tuple:
-                    age = node.get_age_seconds()
-                    if age == 0:
-                        if is_ascending:
-                            return 10E10
-
-                        else:
-                            return -1
-
-                    else:
-                        if is_ascending:
-                            return age
-                        else:
-                            return -age
-
-                self.flat_nodes.sort(key=key_func_3)
-
-        self.endResetModel()
 
     def index(self, row: int, column: int,
               parent: QModelIndex = QModelIndex()) -> QModelIndex:
         if not self.hasIndex(row, column, parent):
             return QModelIndex()
 
-        if self._is_flat_mode():
+        if self.is_flat_sorting():
             if not parent.isValid() and row < len(self.flat_nodes):
                 return self.createIndex(row, column, self.flat_nodes[row])
             return QModelIndex()
@@ -287,7 +235,7 @@ class OrgTreeModel(QAbstractItemModel):
         return QModelIndex()
 
     def parent(self, index: QModelIndex) -> QModelIndex:
-        if not index.isValid() or self._is_flat_mode():
+        if not index.isValid() or self.is_flat_sorting():
             return QModelIndex()
 
         node: TreeNode = index.internalPointer()
@@ -307,7 +255,7 @@ class OrgTreeModel(QAbstractItemModel):
         return QModelIndex()
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        if self._is_flat_mode():
+        if self.is_flat_sorting():
             if not parent.isValid():
                 return len(self.flat_nodes)
             return 0
@@ -400,6 +348,114 @@ class OrgTreeModel(QAbstractItemModel):
         return None
 
 
+class OrgTreeProxyModel(QSortFilterProxyModel):
+
+    def __init__(self, parent, model: OrgTreeModel):
+        super().__init__(parent)
+        self.model = model
+        self.setSortRole(Qt.ItemDataRole.DisplayRole)
+        self.completed_task_set = set(["DONE", "FAILED", "COMPLETED", "CANCELLED"])
+        self.hide_tasks_without_todo_on_flat = False
+        self.hide_completed_tasks = False
+
+        if model:
+            model.modelReset.connect(self.invalidateFilter)
+
+    def sort(self, column: int, order):
+        self.model.sort_column = column
+        self.model.sort_order = order
+        
+        self.invalidate()
+        if column != COLUMN_TITLE:
+            super().sort(column, order)
+        
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
+        if self.model.is_flat_sorting():
+            node = self.model.flat_nodes[source_row]
+            log(CAT).info(f"Filter accepts row completed tasks {self.hide_completed_tasks} {node.get_todo()} {node.get_todo() in self.completed_task_set}")
+            if self.hide_completed_tasks and node.get_todo() in self.completed_task_set:
+                log(CAT).info(f"Skipping")
+                return False
+
+            if self.hide_tasks_without_todo_on_flat and node.get_todo() == "":
+                return False
+
+            return True
+
+        else:
+
+            # Get the node at this row
+            if source_parent.isValid():
+                parent_node: TreeNode = source_parent.internalPointer()
+                if source_row < len(parent_node.children):
+                    node = parent_node.children[source_row]
+                else:
+                    return True
+            else:
+                if source_row < len(self.model.root_node.children):
+                    node = self.model.root_node.children[source_row]
+                else:
+                    return True
+
+            if self.hide_completed_tasks and node.get_todo() in self.completed_task_set:
+                return False
+
+            return True  # TODO Later this logic will have filters for tree repr as well
+
+    def lessThan(self, left: QModelIndex, right: QModelIndex) -> bool:
+        column = left.column()
+        is_ascending = self.model.sort_order == Qt.SortOrder.AscendingOrder
+        if self.model.is_flat_sorting():
+            left_node: TreeNode = left.internalPointer()
+            right_node: TreeNode = right.internalPointer()
+
+            if column == COLUMN_PRIORITY_INDEX:
+                return left_node.get_priority_order() < right_node.get_priority_order()
+
+            elif column == COLUMN_TAGS:
+                return left_node.get_tags() < right_node.get_tags()
+
+            elif column == COLUMN_TODO_INDEX:
+                if left_node.get_todo() == "":
+                    return is_ascending
+
+                elif right_node.get_todo() == "":
+                    return is_ascending
+
+                else:
+                    return left_node.get_todo().lower() < right_node.get_todo().lower()
+
+            elif column == COLUMN_CREATION_DATE:
+                return left_node.get_creation_date() < right_node.get_creation_date()
+
+            elif column == COLUMN_TASK_AGE:
+                left_age = left_node.get_age_seconds()
+                right_age = right_node.get_age_seconds()
+                
+                # Both have zero age - maintain stable order
+                if left_age == 0 and right_age == 0:
+                    return False
+                
+                # Left has zero age - put at bottom (return False for ascending, True for descending)
+                if left_age == 0:
+                    return False  # Left is "greater" so goes to bottom
+                
+                # Right has zero age - put at bottom (return True for ascending, False for descending)  
+                if right_age == 0:
+                    return True   # Right is "greater" so goes to bottom
+                
+                # Both have valid ages - normal comparison
+                return left_age < right_age
+
+            else:
+                return super().lessThan(left, right)
+
+        else:
+            return super().lessThan(left, right)
+
+
 class AgendaWidget(QWidget):
 
     def __init__(self, root_node: TreeNode):
@@ -407,11 +463,18 @@ class AgendaWidget(QWidget):
         self.model = OrgTreeModel(root_node)
         self.setup_ui()
 
+    def on_model_reset(self) -> None:
+        if not self.model.is_flat_sorting():
+            self.tree_view.expandAll()
+
+
     def setup_ui(self) -> None:
         layout = QVBoxLayout()
 
         self.tree_view = QTreeView()
-        self.tree_view.setModel(self.model)
+        self.sort_model = OrgTreeProxyModel(self, self.model)
+        self.sort_model.setSourceModel(self.model)
+        self.tree_view.setModel(self.sort_model)
         self.tree_view.setAlternatingRowColors(True)
         self.tree_view.setSortingEnabled(True)
         self.tree_view.model().modelReset.connect(self.on_model_reset)
@@ -422,7 +485,29 @@ class AgendaWidget(QWidget):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 
+        hide_tasks_without_todo_on_flat = QCheckBox()
+        hide_tasks_without_todo_on_flat.setText("Hide tasks without todo")
+        hide_tasks_without_todo_on_flat.toggled.connect(
+            self.on_hide_tasks_without_todo_on_flat_changed)
+        hide_tasks_without_todo_on_flat.setToolTip(
+            "If enabled, flat sorting operations (priority, todo, creation date, task age etc.) "
+            "will not show the rows that have no creation date.")
+
+        hide_completed_task = QCheckBox()
+        hide_completed_task.setText("Hide completed tasks")
+        hide_tasks_without_todo_on_flat.toggled.connect(self.on_hide_completed_tasks)
+
+        configuration_layout = QFormLayout()
+        configuration_layout.setContentsMargins(0, 0, 0, 0)
+        configuration_layout.addWidget(hide_tasks_without_todo_on_flat)
+        configuration_layout.addWidget(hide_completed_task)
+        configuration_widget = QWidget()
+        configuration_widget.setContentsMargins(0, 0, 0, 0)
+        configuration_widget.setLayout(configuration_layout)
+
+
         layout.addWidget(self.tree_view)
+        layout.addWidget(configuration_widget)
         self.setLayout(layout)
 
         self.setWindowTitle("Org Agenda")
@@ -430,9 +515,14 @@ class AgendaWidget(QWidget):
         self.resize(1400, 600)
         self.tree_view.expandAll()
 
-    def on_model_reset(self) -> None:
-        if not self.model._is_flat_mode():
-            self.tree_view.expandAll()
+    def on_hide_completed_tasks(self, state: int) -> None:
+        self.sort_model.hide_completed_tasks = state == Qt.CheckState.Checked.value
+        self.sort_model.invalidateFilter()
+
+    def on_hide_tasks_without_todo_on_flat_changed(self, state: int) -> None:
+        self.sort_model.hide_tasks_without_todo_on_flat = state == Qt.CheckState.Checked.value
+        self.sort_model.invalidateFilter()
+
 
 
 def show_agenda_table(node: org.Org) -> None:
