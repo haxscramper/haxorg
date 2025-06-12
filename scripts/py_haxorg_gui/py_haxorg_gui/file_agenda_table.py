@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Iterator
+import functools
 
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QMargins, QSortFilterProxyModel
 from PyQt6.QtGui import QStandardItemModel, QColor
@@ -46,6 +47,7 @@ class TreeNode:
 
         self.children: List["TreeNode"] = children
 
+    @functools.cache
     def get_priority(self) -> str:
         if isinstance(self.data, org.Subtree):
             return self.data.priority or ""
@@ -53,6 +55,7 @@ class TreeNode:
         else:
             return ""
 
+    @functools.cache
     def get_priority_order(self) -> int:
         priority = self.get_priority()
         priority_order = {
@@ -67,6 +70,7 @@ class TreeNode:
         }
         return priority_order.get(priority, -1)
 
+    @functools.cache
     def get_tags(self) -> List[str]:
         if isinstance(self.data, org.Subtree):
             result = []
@@ -79,6 +83,7 @@ class TreeNode:
         else:
             return []
 
+    @functools.cache
     def get_age_seconds(self) -> int:
         if isinstance(self.data, org.Subtree):
             created: List[org.SubtreePeriod] = self.data.getTimePeriods(
@@ -89,6 +94,7 @@ class TreeNode:
 
         return 0
 
+    @functools.cache
     def get_age_display(self) -> str:
         seconds = self.get_age_seconds()
 
@@ -129,6 +135,7 @@ class TreeNode:
     def __len__(self) -> int:
         return len(self.children)
 
+    @functools.cache
     def get_title(self) -> str:
         if isinstance(self.data, org.Subtree):
             return self.data.getCleanTitle()
@@ -136,6 +143,7 @@ class TreeNode:
         else:
             return ""
 
+    @functools.cache
     def get_todo(self) -> str:
         if isinstance(self.data, org.Subtree):
             return self.data.todo or ""
@@ -143,6 +151,7 @@ class TreeNode:
         else:
             return ""
 
+    @functools.cache
     def get_level(self) -> int:
         try:
             if hasattr(self.data, "getLevel"):
@@ -150,7 +159,8 @@ class TreeNode:
             return 0
         except (AttributeError, TypeError):
             return 0
-
+            
+    @functools.cache
     def get_creation_date(self) -> str:
         if isinstance(self.data, org.Subtree):
             created: List[org.SubtreePeriod] = self.data.getTimePeriods(
@@ -354,9 +364,10 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
         super().__init__(parent)
         self.model = model
         self.setSortRole(Qt.ItemDataRole.DisplayRole)
-        self.completed_task_set = set(["DONE", "FAILED", "COMPLETED", "CANCELLED"])
+        self.completed_task_set = set(["DONE", "FAILED", "COMPLETED", "CANCELED"])
         self.hide_tasks_without_todo_on_flat = False
         self.hide_completed_tasks = False
+        self.hide_nested = False
 
         if model:
             model.modelReset.connect(self.invalidateFilter)
@@ -364,19 +375,17 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
     def sort(self, column: int, order):
         self.model.sort_column = column
         self.model.sort_order = order
-        
+
         self.invalidate()
         if column != COLUMN_TITLE:
             super().sort(column, order)
-        
+
         self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
         if self.model.is_flat_sorting():
             node = self.model.flat_nodes[source_row]
-            log(CAT).info(f"Filter accepts row completed tasks {self.hide_completed_tasks} {node.get_todo()} {node.get_todo() in self.completed_task_set}")
             if self.hide_completed_tasks and node.get_todo() in self.completed_task_set:
-                log(CAT).info(f"Skipping")
                 return False
 
             if self.hide_tasks_without_todo_on_flat and node.get_todo() == "":
@@ -399,7 +408,13 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
                 else:
                     return True
 
-            if self.hide_completed_tasks and node.get_todo() in self.completed_task_set:
+            if self.hide_completed_tasks and node.get_todo(
+            ) in self.completed_task_set and (self.hide_nested or
+                                              len(node.children) == 0):
+                return False
+
+            if self.hide_tasks_without_todo_on_flat and node.get_todo() == "" and (
+                    self.hide_nested or len(node.children) == 0):
                 return False
 
             return True  # TODO Later this logic will have filters for tree repr as well
@@ -411,43 +426,45 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
             left_node: TreeNode = left.internalPointer()
             right_node: TreeNode = right.internalPointer()
 
+            def early_empty_result(left_empty: bool, right_empty: bool) -> Optional[bool]:
+                # Both have zero age - maintain stable order
+                if left_empty and right_empty:
+                    return False
+
+                # Left has zero age - put at bottom (return False for ascending, True for descending)
+                if left_empty:
+                    return not is_ascending  # Left is "greater" so goes to bottom
+
+                # Right has zero age - put at bottom (return True for ascending, False for descending)
+                if right_empty:
+                    return is_ascending  # Right is "greater" so goes to bottom
+
+            def compare_with_empty_handling(left_value, right_value, empty_value):
+                early = early_empty_result(left_value == empty_value,
+                                           right_value == empty_value)
+                if early is not None:
+                    return early
+                return left_value < right_value
+
             if column == COLUMN_PRIORITY_INDEX:
-                return left_node.get_priority_order() < right_node.get_priority_order()
+                return compare_with_empty_handling(left_node.get_priority_order(),
+                                                   right_node.get_priority_order(), -1)
 
             elif column == COLUMN_TAGS:
-                return left_node.get_tags() < right_node.get_tags()
+                return compare_with_empty_handling(left_node.get_tags(),
+                                                   right_node.get_tags(), 0)
 
             elif column == COLUMN_TODO_INDEX:
-                if left_node.get_todo() == "":
-                    return is_ascending
-
-                elif right_node.get_todo() == "":
-                    return is_ascending
-
-                else:
-                    return left_node.get_todo().lower() < right_node.get_todo().lower()
+                return compare_with_empty_handling(left_node.get_todo(),
+                                                   right_node.get_todo(), "")
 
             elif column == COLUMN_CREATION_DATE:
-                return left_node.get_creation_date() < right_node.get_creation_date()
+                return compare_with_empty_handling(left_node.get_creation_date(),
+                                                   right_node.get_creation_date(), "")
 
             elif column == COLUMN_TASK_AGE:
-                left_age = left_node.get_age_seconds()
-                right_age = right_node.get_age_seconds()
-                
-                # Both have zero age - maintain stable order
-                if left_age == 0 and right_age == 0:
-                    return False
-                
-                # Left has zero age - put at bottom (return False for ascending, True for descending)
-                if left_age == 0:
-                    return False  # Left is "greater" so goes to bottom
-                
-                # Right has zero age - put at bottom (return True for ascending, False for descending)  
-                if right_age == 0:
-                    return True   # Right is "greater" so goes to bottom
-                
-                # Both have valid ages - normal comparison
-                return left_age < right_age
+                return compare_with_empty_handling(left_node.get_age_seconds(),
+                                                   right_node.get_age_seconds(), 0)
 
             else:
                 return super().lessThan(left, right)
@@ -467,7 +484,6 @@ class AgendaWidget(QWidget):
         if not self.model.is_flat_sorting():
             self.tree_view.expandAll()
 
-
     def setup_ui(self) -> None:
         layout = QVBoxLayout()
 
@@ -485,6 +501,12 @@ class AgendaWidget(QWidget):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 
+        configuration_layout = QFormLayout()
+        configuration_layout.setContentsMargins(0, 0, 0, 0)
+        configuration_widget = QWidget()
+        configuration_widget.setContentsMargins(0, 0, 0, 0)
+        configuration_widget.setLayout(configuration_layout)
+
         hide_tasks_without_todo_on_flat = QCheckBox()
         hide_tasks_without_todo_on_flat.setText("Hide tasks without todo")
         hide_tasks_without_todo_on_flat.toggled.connect(
@@ -492,19 +514,17 @@ class AgendaWidget(QWidget):
         hide_tasks_without_todo_on_flat.setToolTip(
             "If enabled, flat sorting operations (priority, todo, creation date, task age etc.) "
             "will not show the rows that have no creation date.")
+        configuration_layout.addWidget(hide_tasks_without_todo_on_flat)
 
         hide_completed_task = QCheckBox()
         hide_completed_task.setText("Hide completed tasks")
-        hide_tasks_without_todo_on_flat.toggled.connect(self.on_hide_completed_tasks)
-
-        configuration_layout = QFormLayout()
-        configuration_layout.setContentsMargins(0, 0, 0, 0)
-        configuration_layout.addWidget(hide_tasks_without_todo_on_flat)
+        hide_completed_task.toggled.connect(self.on_hide_completed_tasks)
         configuration_layout.addWidget(hide_completed_task)
-        configuration_widget = QWidget()
-        configuration_widget.setContentsMargins(0, 0, 0, 0)
-        configuration_widget.setLayout(configuration_layout)
 
+        hide_nested = QCheckBox()
+        hide_nested.setText("Hide nested")
+        hide_nested.toggled.connect(self.on_hide_nested)
+        configuration_layout.addWidget(hide_nested)
 
         layout.addWidget(self.tree_view)
         layout.addWidget(configuration_widget)
@@ -515,14 +535,18 @@ class AgendaWidget(QWidget):
         self.resize(1400, 600)
         self.tree_view.expandAll()
 
-    def on_hide_completed_tasks(self, state: int) -> None:
-        self.sort_model.hide_completed_tasks = state == Qt.CheckState.Checked.value
-        self.sort_model.invalidateFilter()
+    def on_hide_completed_tasks(self, state: bool) -> None:
+        self.sort_model.hide_completed_tasks = state
+        self.sort_model.invalidate()
 
-    def on_hide_tasks_without_todo_on_flat_changed(self, state: int) -> None:
-        self.sort_model.hide_tasks_without_todo_on_flat = state == Qt.CheckState.Checked.value
-        self.sort_model.invalidateFilter()
+    def on_hide_tasks_without_todo_on_flat_changed(self, state: bool) -> None:
+        self.sort_model.hide_tasks_without_todo_on_flat = state
+        self.sort_model.invalidate()
 
+    def on_hide_nested(self, state: bool) -> None:
+        self.sort_model.hide_nested = state
+        self.sort_model.invalidate()
+        self.tree_view.expandAll()
 
 
 def show_agenda_table(node: org.Org) -> None:
