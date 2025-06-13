@@ -9,10 +9,11 @@ import functools
 from fractions import Fraction
 from enum import Enum
 import math
+import difflib
 
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QMargins, QSortFilterProxyModel
 from PyQt6.QtGui import QStandardItemModel, QColor
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QShortcut, QKeySequence
 
 from PyQt6.QtWidgets import (
     QApplication,
@@ -24,6 +25,9 @@ from PyQt6.QtWidgets import (
     QCheckBox,
     QFormLayout,
     QPushButton,
+    QListWidgetItem,
+    QDialog,
+    QListWidget,
 )
 
 from fuzzywuzzy import fuzz
@@ -288,7 +292,6 @@ class OrgTreeModel(QAbstractItemModel):
         self.focused = node
         self.set_flat_list_from(self.getRoot())
         self.endResetModel()
-        log(CAT).info("Set focused row done")
 
     def set_flat_list_from(self, node: TreeNode) -> None:
         self.flat_nodes = []
@@ -574,6 +577,258 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
             return super().lessThan(left, right)
 
 
+class CommandPaletteItem:
+
+    def __init__(self, title: str, full_path: str, model_index: QModelIndex):
+        self.title = title
+        self.full_path = full_path
+        self.model_index = model_index
+        self.score = 0.0
+
+
+class CommandPalette(QDialog):
+    item_selected = pyqtSignal(QModelIndex)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.items: List[CommandPaletteItem] = []
+        self.filtered_items: List[CommandPaletteItem] = []
+        self.setup_ui()
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Popup)
+
+    def setup_ui(self):
+        self.setWindowTitle("Go to Item")
+        self.setModal(True)
+        self.resize(600, 400)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        # Search input
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Type to search items...")
+        self.search_input.textChanged.connect(self.on_search_changed)
+        layout.addWidget(self.search_input)
+
+        # Results list
+        self.results_list = QListWidget()
+        self.results_list.itemActivated.connect(self.on_item_activated)
+        self.results_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.results_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        layout.addWidget(self.results_list)
+
+        # Set focus to search input
+        self.search_input.setFocus()
+
+    def position_over_parent(self):
+        if self.parent():
+            parent_rect = self.parent().geometry()
+            palette_width = int(parent_rect.width() * 0.6)
+            x = parent_rect.x() + (parent_rect.width() - palette_width) // 2
+            y = parent_rect.y() + 50  # 50px from top
+            self.setGeometry(x, y, palette_width, 400)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+
+        if key == Qt.Key.Key_Escape:
+            self.reject()
+        elif key == Qt.Key.Key_Return or key == Qt.Key.Key_Enter:
+            self.select_current_item()
+        elif key == Qt.Key.Key_Down:
+            self.move_selection(1)
+        elif key == Qt.Key.Key_Up:
+            self.move_selection(-1)
+        else:
+            # Pass other keys to search input
+            if not self.search_input.hasFocus():
+                self.search_input.setFocus()
+            super().keyPressEvent(event)
+
+    def move_selection(self, direction: int):
+        current_row = self.results_list.currentRow()
+        new_row = current_row + direction
+
+        if 0 <= new_row < self.results_list.count():
+            self.results_list.setCurrentRow(new_row)
+
+    def select_current_item(self):
+        current_item = self.results_list.currentItem()
+        if current_item:
+            self.on_item_activated(current_item)
+
+    def on_item_activated(self, item: QListWidgetItem):
+        item_data = item.data(Qt.ItemDataRole.UserRole)
+        if item_data:
+            self.item_selected.emit(item_data.model_index)
+            self.accept()
+
+    def populate_items(self, model, proxy_model=None):
+        """Extract all items from the tree model"""
+        self.items.clear()
+        self._extract_items_recursive(model, QModelIndex(), [], proxy_model)
+        self.filtered_items = self.items.copy()
+        self.update_results_list()
+
+    def _extract_items_recursive(self,
+                                 model,
+                                 parent_index: QModelIndex,
+                                 path: List[str],
+                                 proxy_model=None):
+        """Recursively extract all items from the model"""
+        row_count = model.rowCount(parent_index)
+
+        for row in range(row_count):
+            index = model.index(row, 0, parent_index)
+            if not index.isValid():
+                continue
+
+            # Get the title
+            title = model.data(index, Qt.ItemDataRole.DisplayRole) or ""
+            current_path = path + [title]
+            full_path = " > ".join(current_path)
+
+            # Map to proxy model index if needed
+            display_index = index
+            if proxy_model:
+                display_index = proxy_model.mapFromSource(index)
+
+            # Add item
+            item = CommandPaletteItem(title, full_path, display_index)
+            self.items.append(item)
+
+            # Recurse into children
+            self._extract_items_recursive(model, index, current_path, proxy_model)
+
+    def on_search_changed(self, text: str):
+        """Filter and sort items based on search text"""
+        if not text.strip():
+            self.filtered_items = self.items.copy()
+        else:
+            self.filtered_items = self._filter_and_score_items(text.lower())
+
+        self.update_results_list()
+
+    def _filter_and_score_items(self, search_text: str) -> List[CommandPaletteItem]:
+        """Filter items and calculate similarity scores"""
+        scored_items = []
+
+        for item in self.items:
+            score = self._calculate_score(item, search_text)
+            if score > 0:
+                item.score = score
+                scored_items.append(item)
+
+        # Sort by score (descending) and then by path length (ascending)
+        scored_items.sort(key=lambda x: (-x.score, len(x.full_path)))
+        return scored_items
+
+    def _calculate_score(self, item: CommandPaletteItem, search_text: str) -> float:
+        """Calculate similarity score for an item"""
+        title_lower = item.title.lower()
+        path_lower = item.full_path.lower()
+
+        # Exact match gets highest score
+        if search_text == title_lower:
+            return 100.0
+
+        # Title starts with search text
+        if title_lower.startswith(search_text):
+            return 90.0
+
+        # Title contains search text
+        if search_text in title_lower:
+            return 80.0
+
+        # Full path contains search text
+        if search_text in path_lower:
+            return 70.0
+
+        # Fuzzy matching using difflib
+        title_ratio = difflib.SequenceMatcher(None, search_text, title_lower).ratio()
+        path_ratio = difflib.SequenceMatcher(None, search_text, path_lower).ratio()
+
+        # Use the better of title or path ratio
+        fuzzy_score = max(title_ratio, path_ratio) * 60.0
+
+        # Only include items with decent fuzzy match
+        return fuzzy_score if fuzzy_score > 20.0 else 0.0
+
+    def update_results_list(self):
+        """Update the results list widget"""
+        self.results_list.clear()
+
+        for item in self.filtered_items:
+            list_item = QListWidgetItem()
+
+            # Set main text (full path)
+            list_item.setText(item.full_path)
+
+            # Store the item data
+            list_item.setData(Qt.ItemDataRole.UserRole, item)
+
+            # Highlight exact matches
+            if hasattr(self, 'search_input') and self.search_input.text().strip():
+                search_text = self.search_input.text().lower()
+                if search_text in item.title.lower():
+                    font = list_item.font()
+                    font.setBold(True)
+                    list_item.setFont(font)
+
+            self.results_list.addItem(list_item)
+
+        # Select first item if available
+        if self.results_list.count() > 0:
+            self.results_list.setCurrentRow(0)
+
+
+class TreeViewWithCommandPalette:
+
+    def __init__(self, tree_view, model, proxy_model=None):
+        self.tree_view = tree_view
+        self.model = model
+        self.proxy_model = proxy_model
+        self.command_palette = None
+
+        # Setup Ctrl+P shortcut
+        self.shortcut = QShortcut(QKeySequence("Ctrl+P"), tree_view)
+        self.shortcut.activated.connect(self.show_command_palette)
+
+    def show_command_palette(self):
+        """Show the command palette dialog"""
+        if self.command_palette is None:
+            self.command_palette = CommandPalette(self.tree_view)
+            self.command_palette.item_selected.connect(self.on_item_selected)
+
+        # Populate with current model data
+        source_model = self.proxy_model.sourceModel() if self.proxy_model else self.model
+        self.command_palette.populate_items(source_model, self.proxy_model)
+
+        # Show dialog
+        self.command_palette.position_over_parent()
+        self.command_palette.exec()
+        self.command_palette.raise_()
+        self.command_palette.activateWindow()
+
+
+    def on_item_selected(self, model_index: QModelIndex):
+        """Handle item selection from command palette"""
+        if model_index.isValid():
+            # Scroll to and select the item
+            self.tree_view.scrollTo(model_index)
+            self.tree_view.setCurrentIndex(model_index)
+
+            # Expand parent items if necessary
+            parent = model_index.parent()
+            while parent.isValid():
+                self.tree_view.expand(parent)
+                parent = parent.parent()
+
+            # Ensure the item is visible and selected
+            self.tree_view.scrollTo(model_index)
+            self.tree_view.setFocus()
+
+
 class AgendaWidget(QWidget):
 
     def __init__(self, root_node: TreeNode):
@@ -599,7 +854,6 @@ class AgendaWidget(QWidget):
         else:
             node = source_index.internalPointer()
 
-        log(CAT).info("Focusing on node")
         self.model.setFocused(node)
 
     def setup_ui(self) -> None:
@@ -612,6 +866,9 @@ class AgendaWidget(QWidget):
         self.tree_view.setAlternatingRowColors(True)
         self.tree_view.setSortingEnabled(True)
         self.tree_view.model().modelReset.connect(self.on_model_reset)
+
+        self.command_palette_handler = TreeViewWithCommandPalette(
+            self.tree_view, self.model, self.sort_model)
 
         self.tree_view.doubleClicked.connect(self.on_row_focused)
 
@@ -670,6 +927,7 @@ class AgendaWidget(QWidget):
         self.sort_model.hide_nested = state
         self.sort_model.invalidate()
         self.tree_view.expandAll()
+
 
 def show_agenda_table(node: org.Org) -> None:
     app = QApplication.instance()
