@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
     QWidget,
     QCheckBox,
     QFormLayout,
+    QPushButton,
 )
 
 from fuzzywuzzy import fuzz
@@ -268,17 +269,32 @@ class OrgTreeModel(QAbstractItemModel):
 
     def __init__(self, root_node: TreeNode):
         super().__init__()
+        self.focused = None
         self.root_node = root_node
         self.sort_column = 0
         self.sort_order = Qt.SortOrder.AscendingOrder
         self.flat_nodes: List[TreeNode] = []
         self.set_flat_list_from(self.root_node)
 
+    def getRoot(self) -> TreeNode:
+        if self.focused:
+            return self.focused
+
+        else:
+            return self.root_node
+
+    def setFocused(self, node: Optional[TreeNode]):
+        self.beginResetModel()
+        self.focused = node
+        self.set_flat_list_from(self.getRoot())
+        self.endResetModel()
+        log(CAT).info("Set focused row done")
+
     def set_flat_list_from(self, node: TreeNode) -> None:
         self.flat_nodes = []
 
         def collect_all_nodes(node: TreeNode) -> None:
-            if node != self.root_node:
+            if node != self.getRoot():
                 self.flat_nodes.append(node)
             for child in node.children:
                 collect_all_nodes(child)
@@ -299,8 +315,8 @@ class OrgTreeModel(QAbstractItemModel):
             return QModelIndex()
         else:
             if not parent.isValid():
-                if row < len(self.root_node.children):
-                    return self.createIndex(row, column, self.root_node.children[row])
+                if row < len(self.getRoot().children):
+                    return self.createIndex(row, column, self.getRoot().children[row])
             else:
                 parent_node = parent.internalPointer()
                 if row < len(parent_node.children):
@@ -316,7 +332,7 @@ class OrgTreeModel(QAbstractItemModel):
         node: TreeNode = index.internalPointer()
         parent_node = node.parent
 
-        if parent_node is None or parent_node == self.root_node:
+        if parent_node is None or parent_node == self.getRoot():
             return QModelIndex()
 
         grandparent = parent_node.parent
@@ -336,7 +352,7 @@ class OrgTreeModel(QAbstractItemModel):
             return 0
         else:
             if not parent.isValid():
-                return len(self.root_node.children)
+                return len(self.getRoot().children)
             node: TreeNode = parent.internalPointer()
             return len(node.children)
 
@@ -372,7 +388,6 @@ class OrgTreeModel(QAbstractItemModel):
                 hours = math.floor(sec / (60 * 60))
                 minutes = math.floor((sec / 60) % 60)
                 return f"{hours}:{minutes}"
-
 
         elif role == Qt.ItemDataRole.BackgroundRole and column == TableColumns.PRIORITY_INDEX.value:
             priority = node.get_priority()
@@ -486,8 +501,8 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
                 else:
                     return True
             else:
-                if source_row < len(self.model.root_node.children):
-                    node = self.model.root_node.children[source_row]
+                if source_row < len(self.model.getRoot().children):
+                    node = self.model.getRoot().children[source_row]
                 else:
                     return True
 
@@ -570,6 +585,23 @@ class AgendaWidget(QWidget):
         if not self.model.is_flat_sorting():
             self.tree_view.expandAll()
 
+    def on_focus_lifted(self) -> None:
+        self.model.setFocused(None)
+
+    def on_row_focused(self, index: QModelIndex) -> None:
+        if not index.isValid():
+            return
+
+        if index.model() == self.sort_model:
+            source_index = self.sort_model.mapToSource(index)
+            node = source_index.internalPointer()
+
+        else:
+            node = source_index.internalPointer()
+
+        log(CAT).info("Focusing on node")
+        self.model.setFocused(node)
+
     def setup_ui(self) -> None:
         layout = QVBoxLayout()
 
@@ -580,6 +612,8 @@ class AgendaWidget(QWidget):
         self.tree_view.setAlternatingRowColors(True)
         self.tree_view.setSortingEnabled(True)
         self.tree_view.model().modelReset.connect(self.on_model_reset)
+
+        self.tree_view.doubleClicked.connect(self.on_row_focused)
 
         header = self.tree_view.header()
         for h in TableColumns:
@@ -610,6 +644,11 @@ class AgendaWidget(QWidget):
         hide_nested.toggled.connect(self.on_hide_nested)
         configuration_layout.addWidget(hide_nested)
 
+        unfocus = QPushButton()
+        unfocus.setText("Unfocus")
+        unfocus.clicked.connect(self.on_focus_lifted)
+        configuration_layout.addWidget(unfocus)
+
         layout.addWidget(self.tree_view)
         layout.addWidget(configuration_widget)
         self.setLayout(layout)
@@ -631,7 +670,6 @@ class AgendaWidget(QWidget):
         self.sort_model.hide_nested = state
         self.sort_model.invalidate()
         self.tree_view.expandAll()
-
 
 def show_agenda_table(node: org.Org) -> None:
     app = QApplication.instance()
