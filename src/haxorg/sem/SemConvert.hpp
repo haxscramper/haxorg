@@ -261,11 +261,7 @@ struct OrgConverter : public hstd::OperationsTracer {
     }
 
     template <typename T>
-    SemId<T> SemLeaf(In adapter) {
-        auto res  = Sem<T>(adapter);
-        res->text = adapter.val().text;
-        return res;
-    }
+    SemId<T> SemLeaf(In adapter);
 
     SemId<ErrorItem> SemErrorItem(
         In               adapter,

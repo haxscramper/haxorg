@@ -22,6 +22,16 @@
 #include <lexy/action/trace.hpp>
 #include <stack>
 
+template <typename T>
+org::sem::SemId<T> org::sem::OrgConverter::SemLeaf(In adapter) {
+    auto res = Sem<T>(adapter);
+    LOGIC_ASSERTION_CHECK(
+        adapter.isTerminal(), "{}", adapter.treeRepr(false));
+    res->text = adapter.val().text;
+    return res;
+}
+
+
 struct convert_logic_error : hstd::CRTP_hexception<convert_logic_error> {};
 
 using namespace org::sem;
@@ -346,7 +356,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
     } else {
         Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
 
-        if (words.at(0) == "tag") {
+        if (words.has(0) && words.at(0) == "tag") {
             auto res = Log::Tag{};
             if (auto tag = node_after("tag", {osk::HashTag})) {
                 res.tag = tag->as<sem::HashTag>()->text;
@@ -367,7 +377,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
             log->head = Log{res};
 
-        } else if (words.at(0) == "state") {
+        } else if (words.has(0) && words.at(0) == "state") {
             auto __trace = trace(a, "state");
             auto states  = Log::State{};
             if (auto state = node_after("state", {osk::BigIdent})) {
@@ -392,7 +402,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
             log->head = Log{states};
 
-        } else if (words.at(0) == "refiled") {
+        } else if (words.has(0) && words.at(0) == "refiled") {
             auto             __trace = trace(a, "refiled");
             Vec<SemId<Time>> times   = filter_subnodes<Time>(par0, limit);
             Vec<SemId<Link>> link    = filter_subnodes<Link>(par0, limit);
@@ -413,7 +423,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             if (!link.empty()) { refile.from = link.at(0)->target; }
             log->head = Log{refile};
 
-        } else if (words.at(1) == "deadline") {
+        } else if (words.has(1) && words.at(1) == "deadline") {
             auto             __trace = trace(a, "deadline");
             Vec<SemId<Time>> times   = filter_subnodes<Time>(par0, limit);
             auto             dead    = Log::Deadline{};
@@ -421,7 +431,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             auto             from    = time_after("from");
             log->head                = Log{dead};
 
-        } else if (words.at(0) == "priority") {
+        } else if (words.has(0) && words.at(0) == "priority") {
             auto __trace = trace(a, "priority");
             print(fmt("words {}", words));
             Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
@@ -462,7 +472,8 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
             log->head = Log{priority};
 
-        } else if (words.at(0) == "note" && !times.empty()) {
+        } else if (
+            words.has(0) && words.at(0) == "note" && !times.empty()) {
             auto __trace = trace(a, "note");
             auto note    = Log::Note{};
 
@@ -892,6 +903,11 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Times, a);
         for (auto const& it : one(a, N::Times)) {
+            LOGIC_ASSERTION_CHECK(
+                (parse::OrgSet{onk::BigIdent, onk::Word}.contains(
+                    it.at(0).kind())),
+                "{}",
+                it.treeRepr(false));
             auto kind = convertWord(it.at(0)).value();
             auto time = convertTime(it.at(1)).value();
 
@@ -946,7 +962,8 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
                   }
                      .contains(a.kind());
 
-    LOGIC_ASSERTION_CHECK(cond, "convert subtree {}", a.kind());
+    LOGIC_ASSERTION_CHECK(
+        cond, "convert subtree {} at {}", a.kind(), a.treeRepr(false));
 
     auto time      = Sem<Time>(a);
     time->isActive = (a.kind() == onk::DynamicActiveTime)

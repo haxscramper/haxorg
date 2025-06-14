@@ -40,6 +40,13 @@ from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 CAT = __name__
 
 COMPLETED_TASK_SET = set(["DONE", "FAILED", "COMPLETED", "CANCELED"])
+AGENDA_NODE_TYPES = [
+    org.OrgSemKind.Subtree,
+    org.OrgSemKind.Document,
+    org.OrgSemKind.Directory,
+    org.OrgSemKind.File,
+    org.OrgSemKind.Symlink,
+]
 
 
 @beartype
@@ -49,7 +56,7 @@ class TreeNode:
                  data: org.Org,
                  parent: Optional["TreeNode"] = None,
                  children: List["TreeNode"] = []):
-        assert data.getKind() in [org.OrgSemKind.Subtree, org.OrgSemKind.Document]
+        assert data.getKind() in AGENDA_NODE_TYPES
         self.data = data
         self.parent = parent
         if not children:
@@ -178,7 +185,7 @@ class TreeNode:
         return "".join(parts) if parts else "0s"
 
     def push_back(self, other: "TreeNode"):
-        assert other.data.getKind() in [org.OrgSemKind.Subtree, org.OrgSemKind.Document]
+        assert other.data.getKind() in AGENDA_NODE_TYPES
         self.children.append(other)
 
     def __iter__(self) -> Iterator["TreeNode"]:
@@ -195,8 +202,14 @@ class TreeNode:
         if isinstance(self.data, org.Subtree):
             return self.data.getCleanTitle()
 
+        elif isinstance(self.data, org.File):
+            return self.data.relPath
+
+        elif isinstance(self.data, org.Directory):
+            return self.data.relPath
+
         else:
-            return ""
+            return str(self.data.getKind())
 
     @functools.cache
     def get_todo(self) -> str:
@@ -240,8 +253,11 @@ class TreeNode:
 def build_node(node: org.Org, parent: Optional[TreeNode]) -> TreeNode:
     result = TreeNode(data=node, parent=parent)
     for sub in node:
-        if sub.getKind() in [org.OrgSemKind.Subtree, org.OrgSemKind.Document]:
-            result.push_back(build_node(sub, result))
+        if sub.getKind() in AGENDA_NODE_TYPES:
+            added = build_node(sub, result)
+            completion = added.get_recursive_completion()
+            if completion[1] != 0:
+                result.push_back(added)
 
     return result
 
@@ -509,8 +525,10 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
                 else:
                     return True
 
+            completion = node.get_recursive_completion()
             if self.hide_completed_tasks and node.get_todo() in COMPLETED_TASK_SET and (
-                    self.hide_nested or len(node.children) == 0):
+                    self.hide_nested or len(node.children) == 0) or (completion[0]
+                                                                     == completion[1]):
                 return False
 
             if self.hide_tasks_without_todo_on_flat and node.get_todo() == "" and (
@@ -613,8 +631,10 @@ class CommandPalette(QDialog):
         # Results list
         self.results_list = QListWidget()
         self.results_list.itemActivated.connect(self.on_item_activated)
-        self.results_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.results_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.results_list.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.results_list.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         layout.addWidget(self.results_list)
 
         # Set focus to search input
@@ -810,7 +830,6 @@ class TreeViewWithCommandPalette:
         self.command_palette.raise_()
         self.command_palette.activateWindow()
 
-
     def on_item_selected(self, model_index: QModelIndex):
         """Handle item selection from command palette"""
         if model_index.isValid():
@@ -954,6 +973,7 @@ def show_agenda_table(node: org.Org) -> None:
     if app:
         app.exec()
 
+import traceback
 
 @click.command()
 @click.option("--infile",
@@ -961,7 +981,23 @@ def show_agenda_table(node: org.Org) -> None:
               required=True,
               help="Path to input .org file")
 def main(infile: Path) -> None:
-    node = org.parseFile(str(infile), org.OrgParseParameters())
+    dir_opts = org.OrgDirectoryParseParameters()
+    parse_opts = org.OrgParseParameters()
+    stack_file = open("/tmp/stack_dumps.txt", "w")
+    def parse_node_impl(path: str):
+        try:
+            return org.parseStringOpts(Path(path).read_text(), parse_opts)
+
+        except Exception as e:
+            print(f"Parsing {path}", file=stack_file)
+            traceback.print_exc(file=stack_file)
+            # log(CAT).info(f"Failed parsing {path}", exc_info=e, stack_info=True, )
+            return org.Empty()
+
+
+    org.setGetParsedNode(dir_opts, parse_node_impl)
+
+    node = org.parseDirectoryOpts(str(infile), dir_opts)
     log(CAT).info("File parsing done")
     show_agenda_table(node)
 

@@ -2419,10 +2419,18 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
         Id start = top + 1;
         Id id    = start;
 
+
         if (Opt<Slice<Id>> extentOpt = g.allSubnodesOf(top)) {
             Slice<Id> extent = extentOpt.value();
             LOGIC_ASSERTION_CHECK(g.nodes.contains(extent.first), "");
             LOGIC_ASSERTION_CHECK(g.nodes.contains(extent.last), "");
+
+            Opt<OrgToken> first_token;
+            for (auto const& id : extent) {
+                if (g.at(id).isTerminal()) {
+                    first_token = g.tokens->at(g.at(id).getToken());
+                }
+            }
 
             int     index = 0;
             Vec<Id> visited;
@@ -2438,14 +2446,16 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
                     "Step over the subnode of {} with extent {} "
                     "yielded id {} which is outsize of the group "
                     "range (index is {}, group size is {}), "
-                    "subnode index is {}, size overflow is {}",
+                    "subnode index is {}, size overflow is {}. First "
+                    "token is {}",
                     fmt_id(start),
                     extent,
                     id.getUnmasked(),
                     id.getIndex(),
                     g.size(),
                     index,
-                    id - g.nodes.back());
+                    id - g.nodes.back(),
+                    first_token);
 
 
                 id = id + 1;
@@ -2457,13 +2467,14 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
                 "range end Iteration over subnode ranges for {} did not "
                 "end at the {} -- combined subnode extent strides summed "
                 "up to {}. Total subnode count is {}, full extent is {} "
-                "visited subnodes {}",
+                "visited subnodes {}. First token is {}",
                 top.getUnmasked(),
                 (extent.last + 1).getUnmasked(),
                 id.getUnmasked(),
                 index,
                 extent,
-                visited | rv::transform(fmt_id) | rs::to<Vec>());
+                visited | rv::transform(fmt_id) | rs::to<Vec>(),
+                first_token);
         }
     };
 
