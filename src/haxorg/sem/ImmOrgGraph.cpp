@@ -491,6 +491,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
             case slk::File:
             case slk::Attachment:
+            case slk::Person:
             case slk::UserProtocol: {
                 break;
             }
@@ -846,11 +847,11 @@ void org::graph::MapGraphState::addNodeRec(
         conf->dbg.message(fmt("recursive add {}", node), "addNodeRec");
         auto __tmp = conf->dbg.scopeLevel();
         switch (node->getKind()) {
-            case OrgSemKind::CmdInclude:
             case OrgSemKind::File:
             case OrgSemKind::Directory:
             case OrgSemKind::Symlink:
             case OrgSemKind::Document:
+            case OrgSemKind::CmdInclude:
             case OrgSemKind::ListItem:
             case OrgSemKind::List: {
                 for (auto const& it : node) { aux(it); }

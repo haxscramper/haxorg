@@ -4,12 +4,13 @@ import logging
 import sys
 from datetime import datetime
 from beartype import beartype
-from beartype.typing import Any, List, Optional, Iterator, Tuple
+from beartype.typing import Any, List, Optional, Iterator, Tuple, Dict
 import functools
 from fractions import Fraction
 from enum import Enum
 import math
 import difflib
+import json
 
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QMargins, QSortFilterProxyModel
 from PyQt6.QtGui import QStandardItemModel, QColor
@@ -973,7 +974,33 @@ def show_agenda_table(node: org.Org) -> None:
     if app:
         app.exec()
 
+
 import traceback
+
+
+def check_org_files_changed(infile: Path) -> bool:
+    cache_file = Path("/tmp/file_agenda_cache.org_files_cache.json")
+
+    current_times: Dict[str, float] = {}
+    for org_file in infile.glob("*.org"):
+        current_times[str(org_file)] = org_file.stat().st_mtime
+
+    if not cache_file.exists():
+        with open(cache_file, "w") as f:
+            json.dump(current_times, f)
+        return True
+
+    with open(cache_file, "r") as f:
+        cached_times: Dict[str, float] = json.load(f)
+
+    changed = current_times != cached_times
+
+    if changed:
+        with open(cache_file, "w") as f:
+            json.dump(current_times, f)
+
+    return changed
+
 
 @click.command()
 @click.option("--infile",
@@ -984,6 +1011,10 @@ def main(infile: Path) -> None:
     dir_opts = org.OrgDirectoryParseParameters()
     parse_opts = org.OrgParseParameters()
     stack_file = open("/tmp/stack_dumps.txt", "w")
+
+
+    # if check_org_files_changed(infile):
+
     def parse_node_impl(path: str):
         try:
             return org.parseStringOpts(Path(path).read_text(), parse_opts)
@@ -994,10 +1025,33 @@ def main(infile: Path) -> None:
             # log(CAT).info(f"Failed parsing {path}", exc_info=e, stack_info=True, )
             return org.Empty()
 
-
     org.setGetParsedNode(dir_opts, parse_node_impl)
 
+
     node = org.parseDirectoryOpts(str(infile), dir_opts)
+    initial_version = org.initImmutableAstContext()
+    log(CAT).info("Adding immutable AST root")
+    version = initial_version.addRoot(node)
+
+    graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(
+        version.getContext())
+
+    conf = org.graphMapConfig()
+    root = version.getRootAdapter()
+
+    log(CAT).info("Recursively adding graph state node")
+    graph_state.addNodeRec(version.getContext(), root, conf)
+
+    log(CAT).info("Serialize graph state to binary")
+    immutable_graph_dump = org.serializeToText(graph_state)
+    log(CAT).info("Serialize context to binary")
+    immutable_ast_dump = org.serializeToText(version.getContext())
+
+    Path("/tmp/immutable_graph_dump.bin").write_text(immutable_graph_dump)
+    Path("/tmp/immutable_ast_dump.bin").write_text(immutable_ast_dump)
+    
+
+
     log(CAT).info("File parsing done")
     show_agenda_table(node)
 
