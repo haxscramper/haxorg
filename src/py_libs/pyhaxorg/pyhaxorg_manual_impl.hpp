@@ -93,10 +93,34 @@ struct [[refl(
       "python"
     ]
   },
-  "unique-name": "serializeAstContextToText"
+  "unique-name": "serializeAstContextFromText"
+})")]] void
+    serializeAstContextFromText(
+        py::bytes const&                           binary,
+        std::shared_ptr<imm::ImmAstContext> const& store);
+
+[[refl(R"({
+  "backend": {
+    "target-backends": [
+      "python"
+    ]
+  },
+  "unique-name": "serializeAstReplaceEpochToText"
 })")]] py::bytes
-    serializeMapGraphToText(
-        std::shared_ptr<org::graph::MapGraph> const& store);
+    serializeAstReplaceEpochToText(
+        std::shared_ptr<imm::ImmAstReplaceEpoch> const& store);
+
+[[refl(R"({
+  "backend": {
+    "target-backends": [
+      "python"
+    ]
+  },
+  "unique-name": "serializeAstReplaceEpochFromText"
+})")]] void
+    serializeAstReplaceEpochFromText(
+        py::bytes const&                                binary,
+        std::shared_ptr<imm::ImmAstReplaceEpoch> const& store);
 
 [[refl(R"({
   "backend": {
@@ -116,11 +140,11 @@ struct [[refl(
       "python"
     ]
   },
-  "unique-name": "serializeAstContextFromText"
-})")]] void
-    serializeAstContextFromText(
-        py::bytes const&                           binary,
-        std::shared_ptr<imm::ImmAstContext> const& store);
+  "unique-name": "serializeMapGraphToText"
+})")]] py::bytes
+    serializeMapGraphToText(
+        std::shared_ptr<org::graph::MapGraph> const& store);
+
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setGetParsedNode(
     OrgDirectoryParseParameters* params,

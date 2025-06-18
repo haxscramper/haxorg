@@ -360,14 +360,14 @@ ImmId recurseUpdateSubnodes(
     const ImmAstReplaceGroup&     replace,
     ImmAstEditContext&            ctx,
     UnorderedSet<ImmUniqId> const editParents,
-    ImmAstReplaceEpoch&           result);
+    ImmAstReplaceEpoch::Ptr       result);
 
 Pair<Vec<SubnodeAssignTarget>, Vec<ImmId>> getUpdatedSubnodes(
     ImmAdapter const&              updateTarget,
     ImmAstReplaceGroup const&      replace,
     ImmAstEditContext&             ctx,
     UnorderedSet<ImmUniqId> const& editParents,
-    ImmAstReplaceEpoch&            result) {
+    ImmAstReplaceEpoch::Ptr        result) {
     auto                     flatTargetPath = updateTarget.flatPath();
     Vec<SubnodeAssignTarget> updatedSubnodes;
     Vec<ImmId>               flatUpdatedSubnodes;
@@ -392,7 +392,7 @@ ImmId recurseUpdateSubnodes(
     ImmAstReplaceGroup const&     replace,
     ImmAstEditContext&            ctx,
     const UnorderedSet<ImmUniqId> editParents,
-    ImmAstReplaceEpoch&           result) {
+    ImmAstReplaceEpoch::Ptr       result) {
     __perf_trace("imm", "recurseUpdateSubnodes");
     auto __scope = ctx.debug()->scopeLevel();
     if (editParents.contains(node.uniq())) {
@@ -416,7 +416,7 @@ ImmId recurseUpdateSubnodes(
                     node,
                     updateTarget));
 
-            result.replaced.set(ImmAstReplace{
+            result->replaced.set(ImmAstReplace{
                 .original = node.uniq(),
                 .replaced = updateTarget.uniq(),
             });
@@ -433,7 +433,7 @@ ImmId recurseUpdateSubnodes(
 
             auto grouped = groupUpdatedSubnodes(updatedSubnodes);
             auto act     = setNewSubnodes(updateTarget, grouped, ctx);
-            result.replaced.set(act.value());
+            result->replaced.set(act.value());
             return act.value().replaced.id;
         }
     } else {
@@ -442,7 +442,7 @@ ImmId recurseUpdateSubnodes(
         // node.
         if (auto edit = replace.map.get(node.uniq()); edit) {
             AST_EDIT_MSG(fmt("Replace {} -> {}", node.uniq(), *edit));
-            result.replaced.incl({node.uniq(), *edit});
+            result->replaced.incl({node.uniq(), *edit});
             return edit->id;
         } else {
             AST_EDIT_MSG(fmt("No changes in {}", node), "aux");
@@ -451,7 +451,7 @@ ImmId recurseUpdateSubnodes(
     }
 }
 
-ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
+ImmAstReplaceEpoch::Ptr ImmAstStore::cascadeUpdate(
     ImmAdapter const&         root,
     ImmAstReplaceGroup const& replace,
     ImmAstEditContext&        ctx) {
@@ -460,11 +460,11 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     auto                    __scope     = ctx.debug()->scopeLevel();
     UnorderedSet<ImmUniqId> editParents = getEditParents(replace, ctx);
 
-    ImmAstReplaceEpoch result;
+    ImmAstReplaceEpoch::Ptr result = ImmAstReplaceEpoch::shared();
     AST_EDIT_MSG(fmt("Main root {}", root));
-    result.root = recurseUpdateSubnodes(
+    result->root = recurseUpdateSubnodes(
         root, replace, ctx, editParents, result);
-    AST_EDIT_MSG(fmt("Replace {}", result.replaced));
+    AST_EDIT_MSG(fmt("Replace {}", result->replaced));
     return result;
 }
 
@@ -627,8 +627,8 @@ ImmAstContext::Ptr ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
 
 
 ImmAstVersion ImmAstContext::finishEdit(
-    ImmAstEditContext&        ctx,
-    const ImmAstReplaceEpoch& epoch) {
+    ImmAstEditContext&      ctx,
+    ImmAstReplaceEpoch::Ptr epoch) {
     auto newContext = finishEdit(ctx);
     return ImmAstVersion{.context = newContext, .epoch = epoch};
 }
@@ -641,12 +641,11 @@ ImmId ImmAstContext::add(
 
 ImmAstVersion ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
     __perf_trace("imm", "addRoot");
-    auto edit = getEditContext();
-    auto root = add(data, edit);
-    return ImmAstVersion{
-        .epoch   = ImmAstReplaceEpoch{.root = root},
-        .context = edit.finish(),
-    };
+    auto edit   = getEditContext();
+    auto root   = add(data, edit);
+    auto epoch  = ImmAstReplaceEpoch::shared();
+    epoch->root = root;
+    return ImmAstVersion{.epoch = epoch, .context = edit.finish()};
 }
 
 ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {

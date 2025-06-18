@@ -473,7 +473,18 @@ struct ImmAstReplaceGroup {
     }
 };
 
-struct ImmAstReplaceEpoch {
+struct [[refl(
+    R"({
+  "default-constructor": false,
+  "backend": {
+    "python": {
+      "holder-type": "shared"
+    },
+    "wasm": {
+      "holder-type": "shared"
+    }
+  }
+})")]] ImmAstReplaceEpoch : hstd::SharedPtrApi<ImmAstReplaceEpoch> {
     ImmAstReplaceGroup replaced;
     ImmId              root;
 
@@ -543,7 +554,7 @@ struct ImmAstStore {
         Func               cb);
 
     /// \brief Generate new set of parent nodes for the node update.
-    ImmAstReplaceEpoch cascadeUpdate(
+    ImmAstReplaceEpoch::Ptr cascadeUpdate(
         const ImmAdapter& root,
         const ImmAstReplaceGroup&,
         ImmAstEditContext& ctx);
@@ -662,8 +673,8 @@ struct
     ImmAstContext::Ptr finishEdit(ImmAstEditContext& ctx);
 
     ImmAstVersion finishEdit(
-        ImmAstEditContext&        ctx,
-        ImmAstReplaceEpoch const& epoch);
+        ImmAstEditContext&      ctx,
+        ImmAstReplaceEpoch::Ptr epoch);
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
@@ -720,15 +731,19 @@ struct
 
 /// \brief Specific version of the document.
 struct [[refl]] ImmAstVersion {
-    ImmAstContext::Ptr context;
-    ImmAstReplaceEpoch epoch;
+    ImmAstContext::Ptr      context;
+    ImmAstReplaceEpoch::Ptr epoch;
     DESC_FIELDS(ImmAstVersion, (context, epoch));
 
-    [[refl]] ImmId      getRoot() const { return epoch.getRoot(); }
+    [[refl]] ImmId      getRoot() const { return epoch->getRoot(); }
     [[refl]] ImmAdapter getRootAdapter() const;
 
     [[refl]] std::shared_ptr<ImmAstContext> getContext() const {
         return context;
+    }
+
+    [[refl]] std::shared_ptr<ImmAstReplaceEpoch> getEpoch() const {
+        return epoch;
     }
 
     ImmAstVersion getEditVersion(hstd::Func<ImmAstReplaceGroup(
@@ -1546,6 +1561,10 @@ org::imm::ImmId immer_from_sem(
 template <>
 struct std::formatter<org::imm::ImmAstStore*>
     : hstd::std_format_ptr_as_hex<org::imm::ImmAstStore> {};
+
+template <>
+struct std::formatter<org::imm::ImmAstReplaceEpoch*>
+    : hstd::std_format_ptr_as_hex<org::imm::ImmAstReplaceEpoch> {};
 
 template <>
 struct std::formatter<org::imm::ImmAstContext*>

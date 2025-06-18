@@ -1012,6 +1012,9 @@ def main(infile: Path) -> None:
     parse_opts = org.OrgParseParameters()
     stack_file = open("/tmp/stack_dumps.txt", "w")
 
+    graph_path = Path("/tmp/immutable_graph_dump.bin")
+    context_path = Path("/tmp/immutable_ast_dump.bin")
+    epoch_path = Path("/tmp/immutable_epoch_dump.bin")
 
     # if check_org_files_changed(infile):
     def parse_node_impl(path: str):
@@ -1045,9 +1048,11 @@ def main(infile: Path) -> None:
     immutable_graph_dump = org.serializeMapGraphToText(graph_state.graph)
     log(CAT).info("Serialize context to binary")
     immutable_ast_dump = org.serializeAstContextToText(version.getContext())
+    epoch_dump = org.serializeAstReplaceEpochToText(version.getEpoch())
 
-    Path("/tmp/immutable_graph_dump.bin").write_bytes(immutable_graph_dump)
-    Path("/tmp/immutable_ast_dump.bin").write_bytes(immutable_ast_dump)
+    graph_path.write_bytes(immutable_graph_dump)
+    context_path.write_bytes(immutable_ast_dump)
+    epoch_path.write_bytes(epoch_dump)
 
     # else:
     #     immutable_graph_dump = Path("/tmp/immutable_graph_dump.bin").read_bytes()

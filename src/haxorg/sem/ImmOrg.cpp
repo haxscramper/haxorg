@@ -807,7 +807,7 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
     };
 
     for (auto const& [idx, epoch] : enumerate(history)) {
-        aux(epoch.epoch.getRoot(), idx);
+        aux(epoch.epoch->getRoot(), idx);
     }
 
     if (conf.withAuxNodes) {
@@ -819,7 +819,7 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
     if (conf.withEditHistory) {
         for (auto const& epoch : history) {
             for (auto const& act :
-                 epoch.epoch.replaced.allReplacements()) {
+                 epoch.epoch->replaced.allReplacements()) {
                 auto const& src = gvNodes.get(act.original->id);
                 auto const& dst = gvNodes.get(act.replaced.id);
                 if (src && dst) {
@@ -940,9 +940,9 @@ Vec<ImmId> imm::allSubnodes(
 
 ImmAdapter ImmAstVersion::getRootAdapter() const {
     return ImmAdapter{
-        epoch.getRoot(),
+        epoch->getRoot(),
         context,
-        ImmPath{epoch.getRoot()},
+        ImmPath{epoch->getRoot()},
     };
 }
 

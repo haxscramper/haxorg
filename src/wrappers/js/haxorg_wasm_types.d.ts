@@ -1607,6 +1607,8 @@ export interface haxorg_wasm_module_auto {
   initMapGraphState(ast: ImmAstContext): GraphMapGraphState;
   serializeAstContextToText(store: ImmAstContext): string;
   serializeAstContextFromText(binary: string, store: ImmAstContext): void;
+  serializAstEpochToText(store: StdShared_ptr<ImmAstReplaceEpoch>): string;
+  serializAstEpochFromText(binary: string, store: StdShared_ptr<ImmAstReplaceEpoch>): void;
   serializeMapGraphToText(store: GraphMapGraph): string;
   serializeMapGraphFromText(binary: string, store: GraphMapGraph): void;
   serializeFromTextToTreeDump(binary: string): string;
@@ -1994,6 +1996,7 @@ export interface ImmAstVersion {
   getRoot(): ImmId;
   getRootAdapter(): ImmAdapter;
   getContext(): ImmAstContext;
+  getEpoch(): StdShared_ptr<ImmAstReplaceEpoch>;
 }
 export interface ImmAdapterConstructor { new(): ImmAdapter; }
 export interface ImmAdapter {

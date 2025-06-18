@@ -255,15 +255,27 @@ pybind11::bytes org::bind::python::serializeAstContextToText(
     return py::bytes(org::imm::serializeToText(store));
 }
 
-pybind11::bytes org::bind::python::serializeMapGraphToText(
-    const std::shared_ptr<graph::MapGraph>& store) {
-    return py::bytes(org::imm::serializeToText(store));
-}
-
 void org::bind::python::serializeAstContextFromText(
     const pybind11::bytes&                     binary,
     const std::shared_ptr<imm::ImmAstContext>& store) {
     org::imm::serializeFromText(py::str(binary), store);
+}
+
+pybind11::bytes org::bind::python::serializeAstReplaceEpochToText(
+    const std::shared_ptr<imm::ImmAstReplaceEpoch>& store) {
+    return py::bytes(org::imm::serializeToText(store));
+}
+
+void org::bind::python::serializeAstReplaceEpochFromText(
+    const pybind11::bytes&                          binary,
+    const std::shared_ptr<imm::ImmAstReplaceEpoch>& store) {
+    org::imm::serializeFromText(py::str(binary), store);
+}
+
+
+pybind11::bytes org::bind::python::serializeMapGraphToText(
+    const std::shared_ptr<graph::MapGraph>& store) {
+    return py::bytes(org::imm::serializeToText(store));
 }
 
 void org::bind::python::serializeMapGraphFromText(

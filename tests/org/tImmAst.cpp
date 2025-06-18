@@ -287,7 +287,7 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
             ctx));
 
     auto        store2 = version2.context;
-    auto const& c = gen_view(version2.epoch.replaced.allReplacements())
+    auto const& c = gen_view(version2.epoch->replaced.allReplacements())
                   | rs::to<Vec>();
 
     auto const& doc1_id = ctx->adapt(c.at(0).original.value());

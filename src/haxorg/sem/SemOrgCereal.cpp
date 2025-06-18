@@ -1104,6 +1104,9 @@ template <>
 struct convert<std::shared_ptr<org::graph::MapGraph>>
     : in_place_convert_shared_ptr<org::graph::MapGraph> {};
 
+template <>
+struct convert<std::shared_ptr<org::imm::ImmAstReplaceEpoch>>
+    : in_place_convert_shared_ptr<org::imm::ImmAstReplaceEpoch> {};
 
 template <>
 struct convert<std::shared_ptr<ImmAstContext>> {
@@ -1164,6 +1167,18 @@ std::string org::imm::serializeToText(
 void org::imm::serializeFromText(
     std::string const&                    binary,
     const std::shared_ptr<ImmAstContext>& store) {
+    auto tmp = store;
+    msgpack_from_text(binary, tmp);
+}
+
+std::string org::imm::serializeToText(
+    const std::shared_ptr<ImmAstReplaceEpoch>& store) {
+    return msgpack_to_text(store);
+}
+
+void org::imm::serializeFromText(
+    std::string const&                         binary,
+    const std::shared_ptr<ImmAstReplaceEpoch>& store) {
     auto tmp = store;
     msgpack_from_text(binary, tmp);
 }
