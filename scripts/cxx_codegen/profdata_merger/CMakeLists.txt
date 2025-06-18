@@ -20,4 +20,8 @@ if(${ORG_USE_PERFETTO})
   target_link_libraries(profdata_merger PRIVATE Perfetto::perfetto)
 endif()
 
+if(${ORG_USE_TRACY})
+  target_link_libraries(profdata_merger PRIVATE Tracy::TracyClient)
+endif()
+
 target_include_directories(profdata_merger PUBLIC "${BASE}/src" "${BASE}/thirdparty/abseil-cpp")

@@ -5,6 +5,7 @@
 #include <immer/set_transient.hpp>
 #include <immer/vector_transient.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 
 using namespace org::graph;
 using namespace hstd;
@@ -850,7 +851,16 @@ void org::graph::MapGraphState::addNodeRec(
             case OrgSemKind::File:
             case OrgSemKind::Directory:
             case OrgSemKind::Symlink:
-            case OrgSemKind::Document:
+            case OrgSemKind::Document: {
+                __perf_trace(
+                    "mmpa",
+                    "Recursive add node",
+                    kind,
+                    fmt1(node.getKind()));
+
+                for (auto const& it : node) { aux(it); }
+                break;
+            }
             case OrgSemKind::CmdInclude:
             case OrgSemKind::ListItem:
             case OrgSemKind::List: {

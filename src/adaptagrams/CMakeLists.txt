@@ -49,4 +49,8 @@ if(NOT ${ORG_EMCC_BUILD})
   if(${ORG_USE_PERFETTO})
     target_link_libraries(py_adaptagrams PRIVATE Perfetto::perfetto)
   endif()
+
+  if(${ORG_USE_TRACY})
+    target_link_libraries(py_adaptagrams PUBLIC Tracy::TracyClient)
+  endif()
 endif()

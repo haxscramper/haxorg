@@ -1014,7 +1014,6 @@ def main(infile: Path) -> None:
 
 
     # if check_org_files_changed(infile):
-
     def parse_node_impl(path: str):
         try:
             return org.parseStringOpts(Path(path).read_text(), parse_opts)
@@ -1043,13 +1042,19 @@ def main(infile: Path) -> None:
     graph_state.addNodeRec(version.getContext(), root, conf)
 
     log(CAT).info("Serialize graph state to binary")
-    immutable_graph_dump = org.serializeToText(graph_state)
+    immutable_graph_dump = org.serializeMapGraphToText(graph_state.graph)
     log(CAT).info("Serialize context to binary")
-    immutable_ast_dump = org.serializeToText(version.getContext())
+    immutable_ast_dump = org.serializeAstContextToText(version.getContext())
 
-    Path("/tmp/immutable_graph_dump.bin").write_text(immutable_graph_dump)
-    Path("/tmp/immutable_ast_dump.bin").write_text(immutable_ast_dump)
-    
+    Path("/tmp/immutable_graph_dump.bin").write_bytes(immutable_graph_dump)
+    Path("/tmp/immutable_ast_dump.bin").write_bytes(immutable_ast_dump)
+
+    # else:
+    #     immutable_graph_dump = Path("/tmp/immutable_graph_dump.bin").read_bytes()
+    #     initial_version = org.initImmutableAstContext()
+    #     org.serializeAstContextFromText(immutable_graph_dump, initial_version)
+
+    #     node = initial_version.
 
 
     log(CAT).info("File parsing done")

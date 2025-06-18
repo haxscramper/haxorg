@@ -227,7 +227,6 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
 
 
 OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
-    __perf_trace("convert", "convertHashTag");
     auto __trace = trace(a);
     auto result  = Sem<HashTag>(a);
 
@@ -951,7 +950,6 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
 }
 
 OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
-    __perf_trace("convert", "convertTime");
     auto __trace = trace(a);
 
     bool cond = org::parse::OrgSet{
@@ -1132,7 +1130,6 @@ OrgConverter::ConvResult<Symbol> OrgConverter::convertSymbol(__args) {
 
 OrgConverter::ConvResult<Paragraph> OrgConverter::convertParagraph(
     __args) {
-    __perf_trace("convert", "convertParagraph");
     auto __trace = trace(a);
     auto par     = Sem<Paragraph>(a);
     for (const auto& item : a) { par->push_back(convert(item)); }
@@ -1716,7 +1713,6 @@ OrgConverter::ConvResult<Word> OrgConverter::convertWord(__args) {
 
 OrgConverter::ConvResult<Placeholder> OrgConverter::convertPlaceholder(
     __args) {
-    __perf_trace("convert", "convertPlaceholder");
     auto __trace = trace(a);
     return SemLeaf<Placeholder>(a);
 }
@@ -1765,58 +1761,49 @@ OrgConverter::ConvResult<Punctuation> OrgConverter::convertPunctuation(
 }
 
 OrgConverter::ConvResult<BigIdent> OrgConverter::convertBigIdent(__args) {
-    __perf_trace("convert", "convertBigIdent");
     auto __trace = trace(a);
     return SemLeaf<BigIdent>(a);
 }
 
 OrgConverter::ConvResult<MarkQuote> OrgConverter::convertMarkQuote(
     __args) {
-    __perf_trace("convert", "convertMarkQuote");
     auto __trace = trace(a);
     return convertAllSubnodes<MarkQuote>(a);
 }
 
 OrgConverter::ConvResult<Verbatim> OrgConverter::convertVerbatim(__args) {
-    __perf_trace("convert", "convertVerbatim");
     auto __trace = trace(a);
     return convertAllSubnodes<Verbatim>(a);
 }
 
 OrgConverter::ConvResult<Bold> OrgConverter::convertBold(__args) {
-    __perf_trace("convert", "convertBold");
     auto __trace = trace(a);
     return convertAllSubnodes<Bold>(a);
 }
 
 OrgConverter::ConvResult<Monospace> OrgConverter::convertMonospace(
     __args) {
-    __perf_trace("convert", "convertMonospace");
     auto __trace = trace(a);
     return convertAllSubnodes<Monospace>(a);
 }
 
 OrgConverter::ConvResult<Strike> OrgConverter::convertStrike(__args) {
-    __perf_trace("convert", "convertStrike");
     auto __trace = trace(a);
     return convertAllSubnodes<Strike>(a);
 }
 
 OrgConverter::ConvResult<Par> OrgConverter::convertPar(__args) {
-    __perf_trace("convert", "convertPar");
     auto __trace = trace(a);
     return convertAllSubnodes<Par>(a);
 }
 
 OrgConverter::ConvResult<Italic> OrgConverter::convertItalic(__args) {
-    __perf_trace("convert", "convertItalic");
     auto __trace = trace(a);
     return convertAllSubnodes<Italic>(a);
 }
 
 OrgConverter::ConvResult<Underline> OrgConverter::convertUnderline(
     __args) {
-    __perf_trace("convert", "convertUnderline");
     auto __trace = trace(a);
     return convertAllSubnodes<Underline>(a);
 }

@@ -401,12 +401,10 @@ Vec<ImmAdapter> ImmAdapter::sub(bool withPath) const {
 void ImmAstTrackingMapTransient::setAsParentOf(
     const ImmId& parent,
     const ImmId& target) {
-    __perf_trace("imm", "setAsParentOf");
     auto const* newParent = parents.find(target);
     if (newParent == nullptr) { parents.set(target, ImmParentIdVec{}); }
 
     if (!parents.at(target).contains(parent)) {
-        __perf_trace("imm", "update list of parents");
         parents.update(target, [&](ImmParentIdVec value) {
             value.push_back(parent);
             return value;
@@ -424,12 +422,10 @@ SemSet FastTrackNodes{
 void ImmAstTrackingMapTransient::removeAllSubnodesOf(
     const ImmAdapter& parent) {
     if (!isTrackingParent(parent)) { return; }
-    __perf_trace("imm", "removeAllSubnodesOf");
     for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
         auto subParents = parents.find(sub.id);
         if (isTrackingParent(sub) && subParents != nullptr) {
             if (subParents->contains(parent.id)) {
-                __perf_trace("imm", "update list of parents");
                 parents.update(sub.id, [&](ImmParentIdVec value) {
                     value.erase(value.begin() + value.indexOf(parent.id));
                     return value;
@@ -442,7 +438,6 @@ void ImmAstTrackingMapTransient::removeAllSubnodesOf(
 void ImmAstTrackingMapTransient::insertAllSubnodesOf(
     const ImmAdapter& parent) {
     if (!isTrackingParent(parent)) { return; }
-    __perf_trace("imm", "insertAllSubnodesOf");
     for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
         if (isTrackingParent(sub)) { setAsParentOf(parent.id, sub.id); }
     }
@@ -478,7 +473,6 @@ concept ProvidesImmApi //
    || std::is_same_v<API, typename imm_api_type<T>::api_type>;
 
 void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
-    __perf_trace("imm", "updateTracking");
 
     auto edit_radio_targets = [&](auto const& words, CR<ImmId> target) {
         auto&             rt    = transientTrack.radioTargets;
@@ -1240,17 +1234,19 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     Vec<ImmAdapter>          sub   = node.sub(withPath);
     Vec<ImmSubnodeGroup>     result;
 
-    ctx->debug->message(
-        fmt("Radio targets count {} using context {:#010x}",
-            track.radioTargets.size(),
-            reinterpret_cast<intptr_t>(ctx.get())));
+    if (ctx->debug->TraceState) {
+        ctx->debug->message(
+            fmt("Radio targets count {} using context {:#010x}",
+                track.radioTargets.size(),
+                reinterpret_cast<intptr_t>(ctx.get())));
 
-    ctx->debug->stacktraceMessage();
-    for (auto const& [key, value] : track.radioTargets) {
-        ctx->debug->message(_dfmt_expr(key, value));
+        ctx->debug->stacktraceMessage();
+        for (auto const& [key, value] : track.radioTargets) {
+            ctx->debug->message(_dfmt_expr(key, value));
+        }
+
+        ctx->debug->message(fmt("Get subnode groups for {}", node.uniq()));
     }
-
-    ctx->debug->message(fmt("Get subnode groups for {}", node.uniq()));
     auto __scope = ctx->debug->scopeLevel();
 
     for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {

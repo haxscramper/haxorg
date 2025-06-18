@@ -470,18 +470,39 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
 
 
 ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
-    __perf_trace("imm", "ImmAstStore::Add", "kind", fmt1(data->getKind()));
-    org::imm::ImmId result = org::imm::ImmId::Nil();
-    switch_node_kind(
-        org::imm::ImmId{data->getKind(), 0},
-        [&]<typename K>(org::imm::ImmIdT<K> id) {
-            result = getStore<K>()->add(data, ctx);
-        });
-    auto adapter = ctx->adapt(ImmUniqId{result});
-    ctx.transientTrack.removeAllSubnodesOf(adapter);
-    ctx.transientTrack.insertAllSubnodesOf(adapter);
-    ctx.updateTracking(result, true);
-    return result;
+    auto impl = [&]() {
+        org::imm::ImmId result = org::imm::ImmId::Nil();
+        switch_node_kind(
+            org::imm::ImmId{data->getKind(), 0},
+            [&]<typename K>(org::imm::ImmIdT<K> id) {
+                result = getStore<K>()->add(data, ctx);
+            });
+        auto adapter = ctx->adapt(ImmUniqId{result});
+        ctx.transientTrack.removeAllSubnodesOf(adapter);
+        ctx.transientTrack.insertAllSubnodesOf(adapter);
+        ctx.updateTracking(result, true);
+        return result;
+    };
+
+#if ORG_USE_PERFETTO || ORG_USE_TRACY
+    static SemSet AddTrackingKinds{
+        OrgSemKind::Subtree,
+        OrgSemKind::Document,
+        OrgSemKind::Symlink,
+        OrgSemKind::Directory,
+        OrgSemKind::File,
+    };
+
+    if (AddTrackingKinds.contains(data->getKind())) {
+        __perf_trace(
+            "imm", "ImmAstStore::Add", "kind", fmt1(data->getKind()));
+        return impl();
+    } else {
+        return impl();
+    }
+#else
+    return impl();
+#endif
 }
 
 sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {

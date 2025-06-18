@@ -9709,6 +9709,20 @@ ingoing elements.)RAW")
         static_cast<void(*)(org::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setShouldProcessPath),
         pybind11::arg("parameters"),
         pybind11::arg("callback"));
+  m.def("serializeAstContextToText",
+        static_cast<pybind11::bytes(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextToText),
+        pybind11::arg("store"));
+  m.def("serializeMapGraphToText",
+        static_cast<pybind11::bytes(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphToText),
+        pybind11::arg("store"));
+  m.def("serializeMapGraphFromText",
+        static_cast<void(*)(pybind11::bytes const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphFromText),
+        pybind11::arg("binary"),
+        pybind11::arg("store"));
+  m.def("serializeAstContextFromText",
+        static_cast<void(*)(pybind11::bytes const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextFromText),
+        pybind11::arg("binary"),
+        pybind11::arg("store"));
   m.def("setGetParsedNode",
         static_cast<void(*)(org::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setGetParsedNode),
         pybind11::arg("params"),

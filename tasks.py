@@ -33,7 +33,15 @@ import signal
 import psutil
 import subprocess
 from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count
-from py_ci.data_build import get_emscripten_cmake_flags, get_external_deps_list, get_deps_install_config
+from py_ci.data_build import (
+    get_emscripten_cmake_flags,
+    get_external_deps_list,
+    get_deps_install_config,
+    CmakeCLIConfig,
+    CmakeFlagConfig,
+    CmakeOptConfig,
+    ExternalDep,
+)
 from py_scriptutils.repo_files import (
     HaxorgConfig,
     get_haxorg_repo_root_config,
@@ -558,7 +566,6 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
-
     if conf.emscripten:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))
         result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", False))
@@ -889,6 +896,8 @@ def configure_cmake_haxorg(ctx: Context, force: bool = False):
                 ),
             ]
 
+            import shlex
+            Path("/tmp/cmake_configure_haxorg_flags.txt").write_text(shlex.join([str(s) for s in pass_flags]))
             run_command(ctx, "cmake", pass_flags)
 
 
@@ -917,13 +926,12 @@ def run_cmake_haxorg_clean(ctx: Context):
     os_utils.rmdir_quiet(get_deps_install_dir())
 
 
-@org_task(iterable=["build_whitelist", "ninja_flag"])
+@org_task(iterable=["build_whitelist"])
 def build_develop_deps(
     ctx: Context,
     rebuild: bool = False,
     force: bool = False,
     build_whitelist: List[str] = [],
-    ninja_flag: List[str] = [],
     configure: bool = True,
 ):
     "Install dependencies for cmake project development"
@@ -944,45 +952,58 @@ def build_develop_deps(
         stderr_debug=dep_debug_stderr,
     )
 
-    def dep(
-        build_name: str,
-        deps_name: str,
-        configure_args: List[str] = [],
-    ):
-        if 0 < len(build_whitelist) and build_name not in build_whitelist:
+    @beartype
+    def dep(item: ExternalDep):
+        if 0 < len(build_whitelist) and item.build_name not in build_whitelist:
             return
 
-        log(CAT).info(f"Running build name='{build_name}' deps='{deps_name}'")
+        configure_args = list(
+            itertools.chain(*[
+                it.get_cli()
+                for it in item.configure_args
+                if isinstance(it, CmakeOptConfig) or not it.isBuild
+            ]))
+
+        log(CAT).info(f"Running build name='{item.build_name}' deps='{item.deps_name}'")
         if configure:
             run_command(
                 ctx,
                 "cmake",
                 [
                     "-B",
-                    build_dir.joinpath(build_name),
+                    build_dir.joinpath(item.build_name),
                     "-S",
-                    deps_dir.joinpath(deps_name),
+                    deps_dir.joinpath(item.deps_name),
                     "-G",
                     "Ninja",
-                    cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(build_name)),
+                    cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(
+                        item.build_name)),
                     cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
-                    cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
+                    *([cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx))]
+                      if item.is_bundled_toolchain else []),
                     *configure_args,
                     *maybe_splice(force, "--fresh"),
                 ],
                 **debug_conf,
             )
 
+        build_args = list(
+            itertools.chain(*[
+                it.get_cli()
+                for it in item.configure_args
+                if isinstance(it, CmakeFlagConfig) and it.isBuild
+            ]))
+
         run_command(
             ctx,
             "cmake",
             [
                 "--build",
-                build_dir.joinpath(build_name),
+                build_dir.joinpath(item.build_name),
                 "--target",
                 "install",
                 *get_j_cap(),
-                *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
+                *(["--", *build_args] if 0 < len(build_args) else []),
             ],
             **debug_conf,
         )
@@ -1000,11 +1021,7 @@ def build_develop_deps(
             install_dir,
             is_emcc=get_config(ctx).emscripten,
     ):
-        dep(
-            build_name=item.build_name,
-            deps_name=item.deps_name,
-            configure_args=[cmake_opt(it.name, it.value) for it in item.configure_args],
-        )
+        dep(item)
 
     log(CAT).info(f"Finished develop dependencies installation, {debug_conf}")
     generate_develop_deps_install_paths(ctx)
@@ -1441,6 +1458,7 @@ def run_d3_example(ctx: Context, sync: bool = False):
             stdout_debug=get_log_dir().joinpath("electron_stdout.log"),
         )
 
+
 @org_task(pre=[build_d3_example])
 def run_js_test_example(ctx: Context):
     assert get_config(ctx).emscripten, "JS example requires emscripten to be enabled"
@@ -1452,6 +1470,7 @@ def run_js_test_example(ctx: Context):
         ["js_test.js"],
         cwd=js_example_dir,
     )
+
 
 def get_lldb_py_import() -> List[str]:
     return [

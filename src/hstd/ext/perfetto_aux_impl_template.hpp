@@ -21,7 +21,8 @@ std::unique_ptr<perfetto::TracingSession> StartTracing() {
     // recording. In this example we just need the "track_event" data
     // source, which corresponds to the TRACE_EVENT trace points.
     perfetto::TraceConfig cfg;
-    cfg.add_buffers()->set_size_kb(64 * 1024);
+    cfg.add_buffers()->set_size_kb(4 * 1000 * 1024);
+    cfg.mutable_incremental_state_config()->set_clear_period_ms(500);
     auto* ds_cfg = cfg.add_data_sources()->mutable_config();
     ds_cfg->set_name("track_event");
 

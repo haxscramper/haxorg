@@ -4,9 +4,7 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <fstream>
-#if ORG_USE_PERFETTO && !ORG_EMCC_BUILD
-#    include <haxorg/sem/perfetto_org.hpp>
-#endif
+#include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
@@ -350,6 +348,8 @@ Opt<sem::SemId<sem::File>> parseFileAux(
         "'{}' should be a regular text file",
         path);
 
+    __perf_trace("parsing", "Parse file", path, path.native());
+
     auto parsed = opts->getParsedNode
                     ? opts->getParsedNode(path)
                     : org::parseFile(
@@ -408,6 +408,8 @@ Opt<sem::SemId<Org>> parsePathAux(
         sem::SemId<Directory> dir = sem::SemId<Directory>::New();
         dir->relPath = fs::relative(path, activeRoot).native();
         dir->absPath = path.native();
+        __perf_trace(
+            "parsing", "Parse directory", dir, dir->absPath.toBase());
         for (const auto& entry : opts->getDirectoryEntries(path)) {
             auto nested = parsePathAux(entry, activeRoot, opts, state);
             if (nested) { dir->push_back(nested.value()); }

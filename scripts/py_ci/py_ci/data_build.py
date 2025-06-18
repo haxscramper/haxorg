@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 from pathlib import Path
 from py_ci.util_scripting import cmake_opt
+import shlex
 
 
 @dataclass
@@ -12,14 +13,44 @@ class CmakeOptConfig():
     def __str__(self) -> str:
         return cmake_opt(self.name, self.value)
 
+    def get_cli(self) -> List[str]:
+        return [str(self)]
+
+
+@dataclass
+class CmakeFlagConfig():
+    name: str
+    value: Optional[str] = None
+    isBuild: bool = False
+
+    def __str__(self) -> str:
+        assert self.name.startswith("-"), self.name
+        if self.value:
+            return f"{self.name} {shlex.quote(self.value)}"
+
+        else:
+            return f"{self.name}"
+
+    def get_cli(self) -> List[str]:
+        if self.value:
+            return [self.name, self.value]
+
+        else:
+            return [self.name]
+
+
+CmakeCLIConfig = CmakeOptConfig | CmakeFlagConfig
+
 
 @dataclass
 class ExternalDep():
     build_name: str
     deps_name: str
     cmake_dirs: List[tuple[str, List[str]]]
-    configure_args: List[CmakeOptConfig] = field(default_factory=list)
+    configure_args: List[CmakeCLIConfig] = field(default_factory=list)
     is_emcc_ready: bool = field(default=False)
+    is_binary: bool = field(default=False)
+    is_bundled_toolchain: bool = field(default=True)
 
     def get_install_prefix(self, install_dir: Path) -> str:
         dirs = []
@@ -32,7 +63,7 @@ class ExternalDep():
         return [str(it) for it in self.configure_args]
 
 
-def get_emscripten_cmake_flags() -> List[CmakeOptConfig]:
+def get_emscripten_cmake_flags() -> List[CmakeCLIConfig]:
     return [
         CmakeOptConfig(
             name="CMAKE_CXX_FLAGS",
@@ -58,18 +89,31 @@ def get_external_deps_list(
     def opt(name: str, value: any) -> CmakeOptConfig:
         return CmakeOptConfig(name=name, value=value)
 
+    def flag(name: str,
+             value: Optional[str] = None,
+             isBuild: bool = False) -> CmakeFlagConfig:
+        return CmakeFlagConfig(name=name, value=value, isBuild=isBuild)
+
+    def ninja_build() -> List[CmakeFlagConfig]:
+        return [
+            flag("-G", "Ninja"),
+            flag("-d", "explain", isBuild=True),
+        ]
+
     def dep(
             build_name: str,
             deps_name: str,
             cmake_dirs: List[tuple[str, str]],
             configure_args: List[str] = list(),
             is_emcc_ready: bool = False,
+            **kwargs,
     ):
         ext = ExternalDep(
             build_name=build_name,
             deps_name=deps_name,
             configure_args=configure_args,
             cmake_dirs=cmake_dirs,
+            **kwargs,
         )
 
         if is_emcc:
@@ -93,18 +137,44 @@ def get_external_deps_list(
     # dependenices should happen in exact order as specified, this is especially important
     # for the google packages (gtest, protobuf, absl), as they depend on each other being
     # present.
-    
+
+    dep(
+        build_name="Tracy",
+        deps_name="tracy",
+        is_emcc_ready=False,
+        cmake_dirs=[
+            ("Tracy", make_lib("Tracy/{}/cmake/Tracy")),
+        ],
+        configure_args=[
+            opt("BUILD_SHARED_LIBS", True),
+            opt("TRACY_STATIC", False),
+            # opt("CMAKE_CXX_FLAGS", "-fPIC"),
+        ])
+
+    dep(
+        build_name="tracy_profiler",
+        deps_name="tracy/profiler",
+        is_emcc_ready=False,
+        cmake_dirs=[],
+        configure_args=[
+            opt("LEGACY", True),
+        ],
+        is_bundled_toolchain=False,
+        is_binary=True,
+    )
+
     dep(
         build_name="msgpack",
         deps_name="msgpack-c",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("msgpack-cxx", ["msgpack/lib/cmake/msgpack-cxx"] + make_lib("msgpack/{}/cmake/msgpack-cxx"))
+            ("msgpack-cxx",
+             ["msgpack/lib/cmake/msgpack-cxx"] + make_lib("msgpack/{}/cmake/msgpack-cxx"))
         ],
         configure_args=[
             opt("MSGPACK_USE_BOOST", False),
             opt("SGPACK_BUILD_TESTS", False),
-        ]
+        ],
     )
 
     dep(
@@ -115,6 +185,7 @@ def get_external_deps_list(
             ("cpptrace", make_lib("cpptrace/{}/cmake/cpptrace")),
             ("libdwarf", make_lib("cpptrace/{}/cmake/libdwarf")),
         ],
+        configure_args=[],
     )
 
     dep(
@@ -209,6 +280,7 @@ def get_external_deps_list(
         configure_args=[
             opt("ABSL_CC_LIB_COPTS", "-fPIC"),
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+            *ninja_build(),
         ],
         cmake_dirs=[
             ("absl", make_lib("abseil/{}/cmake/absl")),
@@ -297,6 +369,7 @@ def get_external_deps_list(
         configure_args=[
             opt("CMAKE_PREFIX_PATH", absl.get_install_prefix(install_dir=install_dir)),
             opt("utf8_range_ENABLE_TESTS", False),
+            *ninja_build(),
         ],
         cmake_dirs=[
             ("utf8_range", make_lib("utf8_range/{}/cmake/utf8_range")),
@@ -322,6 +395,7 @@ def get_external_deps_list(
                 ])),
             opt("ABSL_CC_LIB_COPTS", "-fPIC"),
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+            *ninja_build(),
         ],
     )
 
@@ -352,6 +426,9 @@ def get_external_deps_list(
 def get_deps_install_config(deps: List[ExternalDep], install_dir: Path) -> str:
     cmake_paths = []
     for item in deps:
+        if item.is_binary:
+            continue
+
         for dir in item.cmake_dirs:
             path = None
             tried_paths = []
