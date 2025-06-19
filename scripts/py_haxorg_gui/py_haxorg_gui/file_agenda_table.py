@@ -978,29 +978,28 @@ def show_agenda_table(node: org.Org) -> None:
 import traceback
 
 
-def check_org_files_changed(infile: Path) -> bool:
-    cache_file = Path("/tmp/file_agenda_cache.org_files_cache.json")
-
+def get_org_file_times(infile: Path) -> Dict[str, float]:
     current_times: Dict[str, float] = {}
     for org_file in infile.glob("*.org"):
         current_times[str(org_file)] = org_file.stat().st_mtime
+    return current_times
+
+def check_org_files_changed(infile: Path, cache_file: Path) -> bool:
+    current_times = get_org_file_times(infile)
 
     if not cache_file.exists():
-        with open(cache_file, "w") as f:
-            json.dump(current_times, f)
         return True
 
     with open(cache_file, "r") as f:
         cached_times: Dict[str, float] = json.load(f)
 
-    changed = current_times != cached_times
+    return current_times != cached_times
 
-    if changed:
-        with open(cache_file, "w") as f:
-            json.dump(current_times, f)
-
-    return changed
-
+def write_org_file_cache(infile: Path, cache_file: Path) -> None:
+    current_times = get_org_file_times(infile)
+    
+    with open(cache_file, "w") as f:
+        json.dump(current_times, f)
 
 @click.command()
 @click.option("--infile",
@@ -1015,52 +1014,53 @@ def main(infile: Path) -> None:
     graph_path = Path("/tmp/immutable_graph_dump.bin")
     context_path = Path("/tmp/immutable_ast_dump.bin")
     epoch_path = Path("/tmp/immutable_epoch_dump.bin")
+    cache_file = Path("/tmp/file_agenda_cache.org_files_cache.json")
 
-    # if check_org_files_changed(infile):
-    def parse_node_impl(path: str):
-        try:
-            return org.parseStringOpts(Path(path).read_text(), parse_opts)
+    if check_org_files_changed(infile, cache_file):
+        def parse_node_impl(path: str):
+            try:
+                return org.parseStringOpts(Path(path).read_text(), parse_opts)
 
-        except Exception as e:
-            print(f"Parsing {path}", file=stack_file)
-            traceback.print_exc(file=stack_file)
-            # log(CAT).info(f"Failed parsing {path}", exc_info=e, stack_info=True, )
-            return org.Empty()
+            except Exception as e:
+                print(f"Parsing {path}", file=stack_file)
+                traceback.print_exc(file=stack_file)
+                # log(CAT).info(f"Failed parsing {path}", exc_info=e, stack_info=True, )
+                return org.Empty()
 
-    org.setGetParsedNode(dir_opts, parse_node_impl)
+        org.setGetParsedNode(dir_opts, parse_node_impl)
 
+        node = org.parseDirectoryOpts(str(infile), dir_opts)
+        initial_context = org.initImmutableAstContext()
+        log(CAT).info("Adding immutable AST root")
+        version = initial_context.addRoot(node)
 
-    node = org.parseDirectoryOpts(str(infile), dir_opts)
-    initial_version = org.initImmutableAstContext()
-    log(CAT).info("Adding immutable AST root")
-    version = initial_version.addRoot(node)
+        graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(
+            version.getContext())
 
-    graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(
-        version.getContext())
+        conf = org.graphMapConfig()
+        root = version.getRootAdapter()
 
-    conf = org.graphMapConfig()
-    root = version.getRootAdapter()
+        log(CAT).info("Recursively adding graph state node")
+        graph_state.addNodeRec(version.getContext(), root, conf)
 
-    log(CAT).info("Recursively adding graph state node")
-    graph_state.addNodeRec(version.getContext(), root, conf)
+        log(CAT).info("Serialize graph state to binary")
+        graph_path.write_bytes(org.serializeMapGraphToText(graph_state.graph))
+        log(CAT).info("Serialize context to binary")
+        context_path.write_bytes(org.serializeAstContextToText(version.getContext()))
+        epoch_path.write_bytes(org.serializeAstReplaceEpochToText(version.getEpoch()))
+        write_org_file_cache(infile, cache_file)
 
-    log(CAT).info("Serialize graph state to binary")
-    immutable_graph_dump = org.serializeMapGraphToText(graph_state.graph)
-    log(CAT).info("Serialize context to binary")
-    immutable_ast_dump = org.serializeAstContextToText(version.getContext())
-    epoch_dump = org.serializeAstReplaceEpochToText(version.getEpoch())
+    else:
+        initial_context: org.ImmAstContext = org.initImmutableAstContext()
+        org.serializeAstContextFromText(context_path.read_bytes(), initial_context)
+        version: org.ImmAstVersion = initial_context.getEmptyVersion()
+        org.serializeAstReplaceEpochFromText(epoch_path.read_bytes(), version.getEpoch())
+        node = initial_context.get(version.getRoot())
 
-    graph_path.write_bytes(immutable_graph_dump)
-    context_path.write_bytes(immutable_ast_dump)
-    epoch_path.write_bytes(epoch_dump)
+        graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(
+            version.getContext())
 
-    # else:
-    #     immutable_graph_dump = Path("/tmp/immutable_graph_dump.bin").read_bytes()
-    #     initial_version = org.initImmutableAstContext()
-    #     org.serializeAstContextFromText(immutable_graph_dump, initial_version)
-
-    #     node = initial_version.
-
+        org.serializeMapGraphFromText(graph_path.read_bytes(), graph_state.graph)
 
     log(CAT).info("File parsing done")
     show_agenda_table(node)

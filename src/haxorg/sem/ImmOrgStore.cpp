@@ -110,8 +110,8 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
         return std::nullopt;
     } else {
         return ImmAstReplace{
-            .replaced = replaced,
             .original = target.uniq(),
+            .replaced = replaced,
         };
     }
 }
@@ -645,7 +645,18 @@ ImmAstVersion ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
     auto root   = add(data, edit);
     auto epoch  = ImmAstReplaceEpoch::shared();
     epoch->root = root;
-    return ImmAstVersion{.epoch = epoch, .context = edit.finish()};
+    return ImmAstVersion{
+        .context = edit.finish(),
+        .epoch   = epoch,
+    };
+}
+
+ImmAstVersion ImmAstContext::getEmptyVersion() {
+    auto epoch = ImmAstReplaceEpoch::shared();
+    return ImmAstVersion{
+        .context = shared_from_this(),
+        .epoch   = epoch,
+    };
 }
 
 ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {

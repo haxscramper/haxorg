@@ -236,6 +236,10 @@ struct [[refl]] ImmPath {
 /// Unique ID solves this problem by tracking the origin node (root of the
 /// document), and the full path from the document root to the final target
 /// node `id`. The type is comparable and hash-able.
+///
+/// - Each ID refers to a single value that might be referenced many times
+///   in the document.
+/// - Each *unique* ID refers to a specific node in the document.
 struct [[refl]] ImmUniqId {
     ImmId   id;
     ImmPath path;
@@ -374,13 +378,13 @@ struct ImmAstTrackingMap {
     ImmAstTrackingMapTransient transient(ImmAstContext* oldCtx) {
         return {
             .oldCtx               = oldCtx,
-            .names                = names.transient(),
             .footnotes            = footnotes.transient(),
             .subtrees             = subtrees.transient(),
-            .radioTargets         = radioTargets.transient(),
             .anchorTargets        = anchorTargets.transient(),
+            .names                = names.transient(),
             .parents              = parents.transient(),
             .hashtagDefinitions   = hashtagDefinitions.transient(),
+            .radioTargets         = radioTargets.transient(),
             .isTrackingParentImpl = isTrackingParent,
         };
     }
@@ -659,6 +663,7 @@ struct
         return currentTrack->getPathsFor(it, this);
     }
 
+    /// \brief Get all adapters matching given id.
     hstd::Vec<ImmAdapter> getAdaptersFor(ImmId const& it) const;
     hstd::Vec<ImmAdapter> getParentPathsFor(ImmId const& id) const;
 
@@ -670,6 +675,7 @@ struct
 
     ImmAstEditContext getEditContext();
 
+    /// \brief Complete editing operations and return a new context.
     ImmAstContext::Ptr finishEdit(ImmAstEditContext& ctx);
 
     ImmAstVersion finishEdit(
@@ -680,34 +686,61 @@ struct
     /// with `index`
     ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
 
-    [[refl]] ImmAstVersion        addRoot(sem::SemId<sem::Org> data);
-    ImmAstVersion                 init(sem::SemId<sem::Org> root);
+    /// \brief Add new root node to the store, create a new AST version
+    /// with a new root, new epoch and new AST context tracking the updated
+    /// state of the tree.
+    [[refl]] ImmAstVersion addRoot(sem::SemId<sem::Org> data);
+    /// \brief Create empty AST version with no edits, no root, and linked
+    /// to the current context.
+    [[refl]] ImmAstVersion getEmptyVersion();
+    /// \brief `addRoot` alias.
+    ImmAstVersion init(sem::SemId<sem::Org> root);
+    /// \brief Convert immutable AST tree to the sem AST -- the sem AST is
+    /// created anew following the immutable ID structure.
+    ///
+    /// \note value interning does not matter in this case b/c there is
+    /// only one AST structure associated with the ID, the fact it might be
+    /// replicated several times is irrelevant.
     [[refl]] sem::SemId<sem::Org> get(org::imm::ImmId id);
 
+    /// \brief Get reference to immutable AST value associated with teh ID>
     template <typename T>
     T const& value(ImmId id) const {
         LOGIC_ASSERTION_CHECK(!id.isNil(), "cannot get value for nil ID");
         return *at_t<T>(id);
     }
 
+    /// \brief Get pointer to the immutable AST root value for ID. This is
+    /// a universal access method that can work with any AST kind. Use
+    /// `at_t` for specific type, or use dynamic casting for type
+    /// conversion.
     ImmOrg const* at(ImmId id) const;
 
+    /// \brief Typed accessor to the value associated with ID
     template <typename T>
     T const* at_t(ImmId id) const {
         return at(id)->template as<T>();
     }
 
+    /// \brief Typed accessor to the value associated with ID
     template <typename T>
     T const* at(ImmIdT<T> id) const {
         return at(id.toId())->template as<T>();
     }
 
 
+    /// \brief Traverse one path step down the tree structure.
     ImmId at(ImmId node, const ImmPathStep& item) const;
+    /// \brief Get tree ID targeted by the path, starting from the `item`
+    /// root value. Note: `ImmAstContext` itself does not track the current
+    /// root of whatever document you are working with, this function is
+    /// only useful if there is already a full path.
     ImmId at(ImmPath const& item) const;
 
+    /// \brief Dump AST context information for debugging
     void format(hstd::ColStream& os, std::string const& prefix = "") const;
 
+    /// \brief Create adapter from the full path to the target node.
     ImmAdapter adapt(ImmUniqId const& id) const;
     ImmAdapter adaptUnrooted(ImmId const& id) const;
 
@@ -729,7 +762,13 @@ struct
     {}
 };
 
-/// \brief Specific version of the document.
+/// \brief Specific version of the document, holds refernece to the epoch
+/// (replacements compared to the previous version), and context (handle to
+/// the main store plus all tracking information).
+///
+/// This is a main object for accessing the "current" document in the
+/// program, or switching out what the "current" is -- multiple AST
+/// versions can exist at the same time.
 struct [[refl]] ImmAstVersion {
     ImmAstContext::Ptr      context;
     ImmAstReplaceEpoch::Ptr epoch;
@@ -746,6 +785,8 @@ struct [[refl]] ImmAstVersion {
         return epoch;
     }
 
+    /// \brief Execute ast editing callback and return a new AST version
+    /// with all edits applied.
     ImmAstVersion getEditVersion(hstd::Func<ImmAstReplaceGroup(
                                      ImmAstContext::Ptr,
                                      ImmAstEditContext&)> cb);
@@ -753,9 +794,12 @@ struct [[refl]] ImmAstVersion {
 
 struct ImmAstGraphvizConf {
     SemSet skippedKinds;
-    bool   withEpochClusters = true;
-    bool   withAuxNodes      = false;
-    bool   withEditHistory   = false;
+    /// \brief Frame each AST editing epoch as its own cluster
+    bool withEpochClusters = true;
+    bool withAuxNodes      = false;
+    /// \brief Show relations between old and new nodes in different
+    /// epochs.
+    bool withEditHistory = false;
 
     hstd::UnorderedMap<hstd::Str, hstd::Vec<hstd::Str>> skippedFields = {
         {"DocumentOptions", {"exportConfig"}},
@@ -842,6 +886,11 @@ hstd::ext::Graphviz::Graph toGraphviz(
 template <typename T>
 struct ImmAdapterT;
 
+/// \brief Convenience class providing easier access to the tree data.
+///
+/// Each imm adapter targets a specific part of the AST, similar to the
+/// unique ID, and is intended to be used as a closereplacement
+/// for the sem AST node.
 struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     ImmId               id;
     ImmAstContext::WPtr ctx;
@@ -887,6 +936,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     [[refl]] int size() const {
         return ctx.lock()->at(id)->subnodes.size();
     }
+
     iterator      begin() const { return iterator(this); }
     iterator      end() const { return iterator(this, size()); }
     [[refl]] bool isNil() const { return id.isNil(); }

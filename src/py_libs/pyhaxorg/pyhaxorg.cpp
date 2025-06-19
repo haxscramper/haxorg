@@ -434,6 +434,16 @@ ImmPathStep documentation.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::imm::ImmAstReplaceEpoch, std::shared_ptr<org::imm::ImmAstReplaceEpoch>>(m, "ImmAstReplaceEpoch")
+    .def("__repr__", [](org::imm::ImmAstReplaceEpoch const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAstReplaceEpoch const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::imm::ImmNoneValueRead>(m, "ImmNoneValueRead")
     .def("__repr__", [](org::imm::ImmNoneValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -1303,10 +1313,17 @@ ImmPathStep documentation.)RAW")
   pybind11::class_<org::imm::ImmAstContext, std::shared_ptr<org::imm::ImmAstContext>>(m, "ImmAstContext")
     .def("addRoot",
          static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)(org::sem::SemId<org::sem::Org>)>(&org::imm::ImmAstContext::addRoot),
-         pybind11::arg("data"))
+         pybind11::arg("data"),
+         R"RAW(\brief Add new root node to the store, create a new AST version
+with a new root, new epoch and new AST context tracking the updated
+state of the tree.)RAW")
+    .def("getEmptyVersion", static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)()>(&org::imm::ImmAstContext::getEmptyVersion), R"RAW(\brief Create empty AST version with no edits, no root, and linked
+to the current context.)RAW")
     .def("get",
          static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId)>(&org::imm::ImmAstContext::get),
-         pybind11::arg("id"))
+         pybind11::arg("id"),
+         R"RAW(\brief Convert immutable AST tree to the sem AST -- the sem AST is
+created anew following the immutable ID structure.)RAW")
     .def("__repr__", [](org::imm::ImmAstContext const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
