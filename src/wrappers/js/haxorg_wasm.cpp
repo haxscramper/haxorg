@@ -201,6 +201,9 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmUniqId>("ImmUniqId")
     .constructor<>()
     ;
+  emscripten::class_<org::imm::ImmAstReplaceEpoch>("ImmAstReplaceEpoch")
+    .smart_ptr<std::shared_ptr<org::imm::ImmAstReplaceEpoch>>("ImmAstReplaceEpoch")
+    ;
   emscripten::class_<org::imm::ImmNoneValueRead>("ImmNoneValueRead")
     ;
   emscripten::class_<org::imm::ImmErrorItemValueRead>("ImmErrorItemValueRead")
@@ -478,17 +481,19 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAstContext>("ImmAstContext")
     .smart_ptr<std::shared_ptr<org::imm::ImmAstContext>>("ImmAstContext")
     .function("addRoot", static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)(org::sem::SemId<org::sem::Org>)>(&org::imm::ImmAstContext::addRoot))
+    .function("getEmptyVersion", static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)()>(&org::imm::ImmAstContext::getEmptyVersion))
     .function("get", static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId)>(&org::imm::ImmAstContext::get))
-    ;
-  emscripten::class_<org::imm::ImmAstVersion>("ImmAstVersion")
-    .function("getRoot", static_cast<org::imm::ImmId(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRoot))
-    .function("getRootAdapter", static_cast<org::imm::ImmAdapter(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRootAdapter))
-    .function("getContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getContext))
-    .constructor<>()
     ;
 }
 
 void subdivide_2(org::bind::js::type_registration_guard& g) {
+  emscripten::class_<org::imm::ImmAstVersion>("ImmAstVersion")
+    .function("getRoot", static_cast<org::imm::ImmId(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRoot))
+    .function("getRootAdapter", static_cast<org::imm::ImmAdapter(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRootAdapter))
+    .function("getContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getContext))
+    .function("getEpoch", static_cast<std::shared_ptr<org::imm::ImmAstReplaceEpoch>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getEpoch))
+    .constructor<>()
+    ;
   emscripten::class_<org::imm::ImmAdapter>("ImmAdapter")
     .function("size", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::size))
     .function("isNil", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isNil))
@@ -1219,14 +1224,14 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::sem::OrgCodeEvalOutput::*)(org::sem::OrgCodeEvalOutput const&) const>(&org::sem::OrgCodeEvalOutput::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::ColumnView>("ColumnView")
     .property("columns", &org::sem::ColumnView::columns)
     .function("__eq__", static_cast<bool(org::sem::ColumnView::*)(org::sem::ColumnView const&) const>(&org::sem::ColumnView::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::ColumnView::Summary>("ColumnViewSummary")
     .property("data", &org::sem::ColumnView::Summary::data)
     .function("__eq__", static_cast<bool(org::sem::ColumnView::Summary::*)(org::sem::ColumnView::Summary const&) const>(&org::sem::ColumnView::Summary::operator==))
@@ -1922,6 +1927,9 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("language", &org::sem::CmdInclude::Src::language)
     .constructor<>()
     ;
+}
+
+void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::CmdInclude::OrgDocument, emscripten::base<org::sem::CmdInclude::IncludeBase>>("CmdIncludeOrgDocument")
     .property("onlyContent", &org::sem::CmdInclude::OrgDocument::onlyContent)
     .property("subtreePath", &org::sem::CmdInclude::OrgDocument::subtreePath)
@@ -1929,9 +1937,6 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("customIdTarget", &org::sem::CmdInclude::OrgDocument::customIdTarget)
     .constructor<>()
     ;
-}
-
-void subdivide_4(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<org::sem::CmdInclude::Kind>("OrgSemCmdIncludeKind");
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmNone>, emscripten::base<org::imm::ImmId>>("ImmIdTNone")
     .constructor<>()
@@ -2272,6 +2277,9 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmMacro::*)(org::imm::ImmMacro const&) const>(&org::imm::ImmMacro::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmSymbol, emscripten::base<org::imm::ImmOrg>>("ImmSymbol")
     .property("name", &org::imm::ImmSymbol::name)
     .property("parameters", &org::imm::ImmSymbol::parameters)
@@ -2280,9 +2288,6 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmSymbol::*)(org::imm::ImmSymbol const&) const>(&org::imm::ImmSymbol::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmSymbol::Param>("ImmSymbolParam")
     .property("key", &org::imm::ImmSymbol::Param::key)
     .property("value", &org::imm::ImmSymbol::Param::value)
@@ -2770,11 +2775,11 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .function("setTargetid", static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmFileTargetValue::setTargetid))
     .function("setRegexp", static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmFileTargetValue::setRegexp))
     ;
-  emscripten::class_<org::imm::ImmTextSeparatorValue, emscripten::base<org::imm::ImmTextSeparatorValueRead>>("ImmTextSeparatorValue")
-    ;
 }
 
 void subdivide_6(org::bind::js::type_registration_guard& g) {
+  emscripten::class_<org::imm::ImmTextSeparatorValue, emscripten::base<org::imm::ImmTextSeparatorValueRead>>("ImmTextSeparatorValue")
+    ;
   emscripten::class_<org::imm::ImmDocumentGroupValue, emscripten::base<org::imm::ImmDocumentGroupValueRead>>("ImmDocumentGroupValue")
     ;
   emscripten::class_<org::imm::ImmFileValue, emscripten::base<org::imm::ImmFileValueRead>>("ImmFileValue")
@@ -3211,6 +3216,9 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::Cell::*)() const>(&org::sem::Cell::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::Cell>>)
     ;
+}
+
+void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::Row, emscripten::base<org::sem::Cmd>>("Row")
     .smart_ptr<org::sem::SemId<org::sem::Row>>("Row")
     .property("cells", &org::sem::Row::cells)
@@ -3218,9 +3226,6 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::Row::*)() const>(&org::sem::Row::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::Row>>)
     ;
-}
-
-void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmBlock, emscripten::base<org::imm::ImmCmd>>("ImmBlock")
     .function("__eq__", static_cast<bool(org::imm::ImmBlock::*)(org::imm::ImmBlock const&) const>(&org::imm::ImmBlock::operator==))
     ;
@@ -3576,12 +3581,12 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSpace>, emscripten::base<org::imm::ImmAdapterSpaceAPI>>("ImmSpaceAdapter")
     .function("getValue", static_cast<org::imm::ImmSpaceValueRead(org::imm::ImmAdapterT<org::imm::ImmSpace>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSpace>::getValue))
     ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmWord>, emscripten::base<org::imm::ImmAdapterWordAPI>>("ImmWordAdapter")
-    .function("getValue", static_cast<org::imm::ImmWordValueRead(org::imm::ImmAdapterT<org::imm::ImmWord>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmWord>::getValue))
-    ;
 }
 
 void subdivide_8(org::bind::js::type_registration_guard& g) {
+  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmWord>, emscripten::base<org::imm::ImmAdapterWordAPI>>("ImmWordAdapter")
+    .function("getValue", static_cast<org::imm::ImmWordValueRead(org::imm::ImmAdapterT<org::imm::ImmWord>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmWord>::getValue))
+    ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmAtMention>, emscripten::base<org::imm::ImmAdapterAtMentionAPI>>("ImmAtMentionAdapter")
     .function("getValue", static_cast<org::imm::ImmAtMentionValueRead(org::imm::ImmAdapterT<org::imm::ImmAtMention>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmAtMention>::getValue))
     ;
@@ -3845,12 +3850,14 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::function("getAstTrackingMap", static_cast<org::AstTrackingMap(*)(hstd::Vec<org::sem::SemId<org::sem::Org>> const&)>(&org::getAstTrackingMap));
   emscripten::function("getSubnodeGroups", static_cast<hstd::Vec<org::AstTrackingGroup>(*)(org::sem::SemId<org::sem::Org>, org::AstTrackingMap const&)>(&org::getSubnodeGroups));
   emscripten::function("annotateSequence", static_cast<hstd::Vec<hstd::SequenceAnnotation>(*)(hstd::Vec<hstd::SequenceSegmentGroup> const&, int, int)>(&hstd::annotateSequence));
-  emscripten::function("initMapGraphState", static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::initMapGraphState));
 }
 
 void subdivide_9(org::bind::js::type_registration_guard& g) {
+  emscripten::function("initMapGraphState", static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::initMapGraphState));
   emscripten::function("serializeAstContextToText", static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText));
   emscripten::function("serializeAstContextFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeFromText));
+  emscripten::function("serializAstEpochToText", static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeToText));
+  emscripten::function("serializAstEpochFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeFromText));
   emscripten::function("serializeMapGraphToText", static_cast<std::string(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeToText));
   emscripten::function("serializeMapGraphFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeFromText));
   emscripten::function("serializeFromTextToTreeDump", static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump));

@@ -51,6 +51,10 @@ if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
   target_link_libraries(haxorg PUBLIC Perfetto::perfetto)
 endif()
 
+if(${ORG_USE_TRACY} AND NOT ${ORG_EMCC_BUILD})
+  target_link_libraries(haxorg PUBLIC Tracy::TracyClient)
+endif()
+
 target_include_directories(haxorg PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                                          $<INSTALL_INTERFACE:include>)
 

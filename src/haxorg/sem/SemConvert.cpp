@@ -22,6 +22,16 @@
 #include <lexy/action/trace.hpp>
 #include <stack>
 
+template <typename T>
+org::sem::SemId<T> org::sem::OrgConverter::SemLeaf(In adapter) {
+    auto res = Sem<T>(adapter);
+    LOGIC_ASSERTION_CHECK(
+        adapter.isTerminal(), "{}", adapter.treeRepr(false));
+    res->text = adapter.val().text;
+    return res;
+}
+
+
 struct convert_logic_error : hstd::CRTP_hexception<convert_logic_error> {};
 
 using namespace org::sem;
@@ -217,7 +227,6 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
 
 
 OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
-    __perf_trace("convert", "convertHashTag");
     auto __trace = trace(a);
     auto result  = Sem<HashTag>(a);
 
@@ -346,7 +355,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
     } else {
         Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
 
-        if (words.at(0) == "tag") {
+        if (words.has(0) && words.at(0) == "tag") {
             auto res = Log::Tag{};
             if (auto tag = node_after("tag", {osk::HashTag})) {
                 res.tag = tag->as<sem::HashTag>()->text;
@@ -367,7 +376,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
             log->head = Log{res};
 
-        } else if (words.at(0) == "state") {
+        } else if (words.has(0) && words.at(0) == "state") {
             auto __trace = trace(a, "state");
             auto states  = Log::State{};
             if (auto state = node_after("state", {osk::BigIdent})) {
@@ -392,7 +401,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
             log->head = Log{states};
 
-        } else if (words.at(0) == "refiled") {
+        } else if (words.has(0) && words.at(0) == "refiled") {
             auto             __trace = trace(a, "refiled");
             Vec<SemId<Time>> times   = filter_subnodes<Time>(par0, limit);
             Vec<SemId<Link>> link    = filter_subnodes<Link>(par0, limit);
@@ -413,7 +422,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             if (!link.empty()) { refile.from = link.at(0)->target; }
             log->head = Log{refile};
 
-        } else if (words.at(1) == "deadline") {
+        } else if (words.has(1) && words.at(1) == "deadline") {
             auto             __trace = trace(a, "deadline");
             Vec<SemId<Time>> times   = filter_subnodes<Time>(par0, limit);
             auto             dead    = Log::Deadline{};
@@ -421,7 +430,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             auto             from    = time_after("from");
             log->head                = Log{dead};
 
-        } else if (words.at(0) == "priority") {
+        } else if (words.has(0) && words.at(0) == "priority") {
             auto __trace = trace(a, "priority");
             print(fmt("words {}", words));
             Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
@@ -462,7 +471,8 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
             log->head = Log{priority};
 
-        } else if (words.at(0) == "note" && !times.empty()) {
+        } else if (
+            words.has(0) && words.at(0) == "note" && !times.empty()) {
             auto __trace = trace(a, "note");
             auto note    = Log::Note{};
 
@@ -892,6 +902,11 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Times, a);
         for (auto const& it : one(a, N::Times)) {
+            LOGIC_ASSERTION_CHECK(
+                (parse::OrgSet{onk::BigIdent, onk::Word}.contains(
+                    it.at(0).kind())),
+                "{}",
+                it.treeRepr(false));
             auto kind = convertWord(it.at(0)).value();
             auto time = convertTime(it.at(1)).value();
 
@@ -935,7 +950,6 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
 }
 
 OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
-    __perf_trace("convert", "convertTime");
     auto __trace = trace(a);
 
     bool cond = org::parse::OrgSet{
@@ -946,7 +960,8 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
                   }
                      .contains(a.kind());
 
-    LOGIC_ASSERTION_CHECK(cond, "convert subtree {}", a.kind());
+    LOGIC_ASSERTION_CHECK(
+        cond, "convert subtree {} at {}", a.kind(), a.treeRepr(false));
 
     auto time      = Sem<Time>(a);
     time->isActive = (a.kind() == onk::DynamicActiveTime)
@@ -1115,7 +1130,6 @@ OrgConverter::ConvResult<Symbol> OrgConverter::convertSymbol(__args) {
 
 OrgConverter::ConvResult<Paragraph> OrgConverter::convertParagraph(
     __args) {
-    __perf_trace("convert", "convertParagraph");
     auto __trace = trace(a);
     auto par     = Sem<Paragraph>(a);
     for (const auto& item : a) { par->push_back(convert(item)); }
@@ -1699,7 +1713,6 @@ OrgConverter::ConvResult<Word> OrgConverter::convertWord(__args) {
 
 OrgConverter::ConvResult<Placeholder> OrgConverter::convertPlaceholder(
     __args) {
-    __perf_trace("convert", "convertPlaceholder");
     auto __trace = trace(a);
     return SemLeaf<Placeholder>(a);
 }
@@ -1748,58 +1761,49 @@ OrgConverter::ConvResult<Punctuation> OrgConverter::convertPunctuation(
 }
 
 OrgConverter::ConvResult<BigIdent> OrgConverter::convertBigIdent(__args) {
-    __perf_trace("convert", "convertBigIdent");
     auto __trace = trace(a);
     return SemLeaf<BigIdent>(a);
 }
 
 OrgConverter::ConvResult<MarkQuote> OrgConverter::convertMarkQuote(
     __args) {
-    __perf_trace("convert", "convertMarkQuote");
     auto __trace = trace(a);
     return convertAllSubnodes<MarkQuote>(a);
 }
 
 OrgConverter::ConvResult<Verbatim> OrgConverter::convertVerbatim(__args) {
-    __perf_trace("convert", "convertVerbatim");
     auto __trace = trace(a);
     return convertAllSubnodes<Verbatim>(a);
 }
 
 OrgConverter::ConvResult<Bold> OrgConverter::convertBold(__args) {
-    __perf_trace("convert", "convertBold");
     auto __trace = trace(a);
     return convertAllSubnodes<Bold>(a);
 }
 
 OrgConverter::ConvResult<Monospace> OrgConverter::convertMonospace(
     __args) {
-    __perf_trace("convert", "convertMonospace");
     auto __trace = trace(a);
     return convertAllSubnodes<Monospace>(a);
 }
 
 OrgConverter::ConvResult<Strike> OrgConverter::convertStrike(__args) {
-    __perf_trace("convert", "convertStrike");
     auto __trace = trace(a);
     return convertAllSubnodes<Strike>(a);
 }
 
 OrgConverter::ConvResult<Par> OrgConverter::convertPar(__args) {
-    __perf_trace("convert", "convertPar");
     auto __trace = trace(a);
     return convertAllSubnodes<Par>(a);
 }
 
 OrgConverter::ConvResult<Italic> OrgConverter::convertItalic(__args) {
-    __perf_trace("convert", "convertItalic");
     auto __trace = trace(a);
     return convertAllSubnodes<Italic>(a);
 }
 
 OrgConverter::ConvResult<Underline> OrgConverter::convertUnderline(
     __args) {
-    __perf_trace("convert", "convertUnderline");
     auto __trace = trace(a);
     return convertAllSubnodes<Underline>(a);
 }

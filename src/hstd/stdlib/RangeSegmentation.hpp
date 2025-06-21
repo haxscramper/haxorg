@@ -6,6 +6,9 @@
 #pragma once
 
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Pair.hpp>
+
+#pragma clang diagnostic ignored "-Wunknown-attributes"
 
 namespace hstd {
 

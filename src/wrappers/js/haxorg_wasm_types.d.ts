@@ -12,6 +12,7 @@ export interface haxorg_wasm_module_auto {
   ImmPathStep: ImmPathStepConstructor;
   ImmPath: ImmPathConstructor;
   ImmUniqId: ImmUniqIdConstructor;
+  ImmAstReplaceEpoch: ImmAstReplaceEpochConstructor;
   ImmNoneValueRead: ImmNoneValueReadConstructor;
   ImmErrorItemValueRead: ImmErrorItemValueReadConstructor;
   ImmErrorGroupValueRead: ImmErrorGroupValueReadConstructor;
@@ -1607,6 +1608,8 @@ export interface haxorg_wasm_module_auto {
   initMapGraphState(ast: ImmAstContext): GraphMapGraphState;
   serializeAstContextToText(store: ImmAstContext): string;
   serializeAstContextFromText(binary: string, store: ImmAstContext): void;
+  serializAstEpochToText(store: ImmAstReplaceEpoch): string;
+  serializAstEpochFromText(binary: string, store: ImmAstReplaceEpoch): void;
   serializeMapGraphToText(store: GraphMapGraph): string;
   serializeMapGraphFromText(binary: string, store: GraphMapGraph): void;
   serializeFromTextToTreeDump(binary: string): string;
@@ -1689,6 +1692,8 @@ export interface ImmPath {
 }
 export interface ImmUniqIdConstructor { new(): ImmUniqId; }
 export interface ImmUniqId {  }
+export interface ImmAstReplaceEpochConstructor { new(): ImmAstReplaceEpoch; }
+export interface ImmAstReplaceEpoch {  }
 export interface ImmNoneValueReadConstructor { new(): ImmNoneValueRead; }
 export interface ImmNoneValueRead {  }
 export interface ImmErrorItemValueReadConstructor { new(): ImmErrorItemValueRead; }
@@ -1987,6 +1992,7 @@ export interface ImmCmdIncludeValueRead {
 export interface ImmAstContextConstructor { new(): ImmAstContext; }
 export interface ImmAstContext {
   addRoot(data: Org): ImmAstVersion;
+  getEmptyVersion(): ImmAstVersion;
   get(id: ImmId): Org;
 }
 export interface ImmAstVersionConstructor { new(): ImmAstVersion; }
@@ -1994,6 +2000,7 @@ export interface ImmAstVersion {
   getRoot(): ImmId;
   getRootAdapter(): ImmAdapter;
   getContext(): ImmAstContext;
+  getEpoch(): ImmAstReplaceEpoch;
 }
 export interface ImmAdapterConstructor { new(): ImmAdapter; }
 export interface ImmAdapter {

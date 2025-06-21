@@ -1344,6 +1344,12 @@ void switch_regular_char(Cursor& c) {
                 c.token_adv(otk::SubtreeCompletion, *span);
             } else if (
                 auto span = c.try_lexy_patt<
+                            dsl::lit_c<'['> + dsl::lit_c<'#'>
+                            + dsl::ascii::alpha_underscore
+                            + dsl::lit_c<']'>>()) {
+                c.token_adv(otk::SubtreePriority, *span);
+            } else if (
+                auto span = c.try_lexy_patt<
                             dsl::lit_c<'['>
                             + (dsl::lit_c<'x'>   //
                                | dsl::lit_c<'X'> //
@@ -1702,6 +1708,17 @@ void switch_regular_char(Cursor& c) {
                                 + dsl::lit_c<'-'>
                                 + dsl::times<2>(dsl::digit<>)>()) {
                     c.token_adv(otk::Date, *span);
+                } else if (
+                    auto span = c.try_lexy_patt<
+                                dsl::integer<int> + dsl::opt(LEXY_LIT("_"))
+                                + dsl::while_one(dsl::ascii::alpha)>()) {
+                    c.token_adv(otk::Word, *span);
+                } else if (
+                    auto span = c.try_lexy_patt<
+                                dsl::integer<int>
+                                + dsl::while_one(
+                                    dsl::lit_c<'_'> >> dsl::digits<>)>()) {
+                    c.token_adv(otk::Word, *span);
                 } else {
                     c.token0(otk::Number, [](Cursor& c) {
                         while (c.is_at_all_of(0, is_digit_char)) {

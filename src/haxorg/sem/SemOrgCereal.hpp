@@ -9,6 +9,12 @@ namespace org::imm {
     std::string const&                    binary,
     std::shared_ptr<ImmAstContext> const& store);
 
+[[refl(R"({"unique-name": "serializAstEpochToText"})")]] std::string serializeToText(
+    std::shared_ptr<ImmAstReplaceEpoch> const& store);
+[[refl(R"({"unique-name": "serializAstEpochFromText"})")]] void serializeFromText(
+    std::string const&                         binary,
+    std::shared_ptr<ImmAstReplaceEpoch> const& store);
+
 [[refl(R"({"unique-name": "serializeMapGraphToText"})")]] std::string serializeToText(
     std::shared_ptr<org::graph::MapGraph> const& store);
 [[refl(R"({"unique-name": "serializeMapGraphFromText"})")]] void serializeFromText(

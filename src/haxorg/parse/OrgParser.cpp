@@ -313,7 +313,6 @@ OrgId OrgParser::parseLatex(OrgLexer& lex) {
 void OrgParser::textFold(OrgLexer& lex) {
     // Text fold method will consume all tokens in the lexer, folding into
     // series of tree nodes.
-    __perf_trace("parsing", "textFold");
     auto __trace = trace(lex);
 
     Func<void()> aux;
@@ -542,7 +541,6 @@ void OrgParser::textFold(OrgLexer& lex) {
 
 
 Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
-    __perf_trace("parsing", "parseText");
     auto        __trace   = trace(lex);
     OrgId       first     = back();
     std::string forMsg    = getLocMsg(lex);
@@ -705,7 +703,6 @@ OrgId OrgParser::parseSymbol(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseHashTag(OrgLexer& lex) {
-    __perf_trace("parsing", "parseHashTag");
     auto __trace = trace(lex);
 
     struct HashState {
@@ -776,7 +773,6 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
-    __perf_trace("parsing", "parseTimeStamp");
     auto __trace   = trace(lex);
     auto start_tok = lex.tok();
     expect(lex, OrgTokSet{otk::BraceBegin, otk::AngleBegin});
@@ -865,7 +861,6 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
-    __perf_trace("parsing", "parseTimeRange");
     auto            __trace  = trace(lex);
     bool            isActive = lex.at(otk::AngleBegin);
     const OrgTokSet times{
@@ -1789,7 +1784,6 @@ OrgId OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
 void tokenFormat(ColStream& os, OrgToken const& t) { os << t->text; }
 
 OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
-    __perf_trace("parsing", "parseSubtreeCompletion");
     auto __trace = trace(lex);
     space(lex);
     if (lex.at(otk::SubtreeCompletion)) {
@@ -1802,7 +1796,6 @@ OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeTodo(OrgLexer& lex) {
-    __perf_trace("parsing", "parseSubtreeTodo");
     auto __trace = trace(lex);
     space(lex);
     if (lex.at(otk::BigIdent)) {
@@ -1814,7 +1807,6 @@ OrgId OrgParser::parseSubtreeTodo(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeUrgency(OrgLexer& lex) {
-    __perf_trace("parsing", "parseSubtreeUrgency");
     auto __trace = trace(lex);
     space(lex);
     if (lex.at(otk::SubtreePriority)) {
@@ -1826,7 +1818,6 @@ OrgId OrgParser::parseSubtreeUrgency(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeTitle(OrgLexer& lex) {
-    __perf_trace("parsing", "parseSubtreeTitle");
     auto __trace = trace(lex);
     space(lex);
     SubLexer sub{lex};
@@ -1870,7 +1861,6 @@ OrgId OrgParser::parseSubtreeTitle(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeTags(OrgLexer& lex) {
-    __perf_trace("parsing", "parseSubtreeTags");
     auto __trace = trace(lex);
     if (lex.at(otk::Colon)) {
         start(onk::InlineStmtList);
@@ -1889,7 +1879,6 @@ OrgId OrgParser::parseSubtreeTags(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
-    __perf_trace("parsing", "parseSubtreeTimes");
     auto __trace = trace(lex);
     if ((lex.at(otk::LeadingSpace) && lex.at(otk::TreeTime, +1))
         || lex.at(otk::TreeTime)) {
@@ -2305,7 +2294,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
-    __perf_trace("parsing", "parseStmtListItem");
     auto __trace = trace(lex);
     switch (lex.kind()) {
         case otk::SubtreeStars: return subParse(Subtree, lex);
@@ -2419,10 +2407,18 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
         Id start = top + 1;
         Id id    = start;
 
+
         if (Opt<Slice<Id>> extentOpt = g.allSubnodesOf(top)) {
             Slice<Id> extent = extentOpt.value();
             LOGIC_ASSERTION_CHECK(g.nodes.contains(extent.first), "");
             LOGIC_ASSERTION_CHECK(g.nodes.contains(extent.last), "");
+
+            Opt<OrgToken> first_token;
+            for (auto const& id : extent) {
+                if (g.at(id).isTerminal()) {
+                    first_token = g.tokens->at(g.at(id).getToken());
+                }
+            }
 
             int     index = 0;
             Vec<Id> visited;
@@ -2438,14 +2434,16 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
                     "Step over the subnode of {} with extent {} "
                     "yielded id {} which is outsize of the group "
                     "range (index is {}, group size is {}), "
-                    "subnode index is {}, size overflow is {}",
+                    "subnode index is {}, size overflow is {}. First "
+                    "token is {}",
                     fmt_id(start),
                     extent,
                     id.getUnmasked(),
                     id.getIndex(),
                     g.size(),
                     index,
-                    id - g.nodes.back());
+                    id - g.nodes.back(),
+                    first_token);
 
 
                 id = id + 1;
@@ -2457,13 +2455,14 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
                 "range end Iteration over subnode ranges for {} did not "
                 "end at the {} -- combined subnode extent strides summed "
                 "up to {}. Total subnode count is {}, full extent is {} "
-                "visited subnodes {}",
+                "visited subnodes {}. First token is {}",
                 top.getUnmasked(),
                 (extent.last + 1).getUnmasked(),
                 id.getUnmasked(),
                 index,
                 extent,
-                visited | rv::transform(fmt_id) | rs::to<Vec>());
+                visited | rv::transform(fmt_id) | rs::to<Vec>(),
+                first_token);
         }
     };
 

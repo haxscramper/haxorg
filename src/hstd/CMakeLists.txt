@@ -25,6 +25,10 @@ if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
   target_link_libraries(hstd PUBLIC Perfetto::perfetto)
 endif()
 
+if(${ORG_USE_TRACY} AND NOT ${ORG_EMCC_BUILD})
+  target_link_libraries(hstd PUBLIC Tracy::TracyClient)
+endif()
+
 target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/immer>"
                                        "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
 

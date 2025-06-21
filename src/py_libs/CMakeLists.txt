@@ -44,6 +44,10 @@ if(${ORG_USE_PERFETTO})
   target_link_libraries(pyhaxorg PRIVATE Perfetto::perfetto)
 endif()
 
+if(${ORG_USE_TRACY})
+  target_link_libraries(pyhaxorg PUBLIC Tracy::TracyClient)
+endif()
+
 target_compile_options(pyhaxorg PRIVATE -shared-libasan)
 
 add_executable(pyhaxorg_test_main "${BASE}/src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"
@@ -63,7 +67,4 @@ if(${ORG_USE_SANITIZER})
   target_link_libraries(pyhaxorg_test_main PRIVATE ubsan)
 endif()
 
-if(${ORG_USE_PERFETTO})
-  target_link_libraries(pyhaxorg_test_main PRIVATE Perfetto::perfetto)
-endif()
 target_compile_options(pyhaxorg_test_main PRIVATE -shared-libasan)

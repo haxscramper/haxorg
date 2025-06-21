@@ -249,3 +249,42 @@ void org::bind::python::setGetParsedNode(
         return callback(fullPath).cast<sem::SemId<sem::Org>>();
     };
 }
+
+pybind11::bytes org::bind::python::serializeAstContextToText(
+    const std::shared_ptr<imm::ImmAstContext>& store) {
+    return py::bytes(org::imm::serializeToText(store));
+}
+
+std::string bytes_to_string(py::bytes const& bytes) {
+    std::string_view view{bytes};
+    return std::string{view.data(), view.size()};
+}
+
+void org::bind::python::serializeAstContextFromText(
+    const pybind11::bytes&                     binary,
+    const std::shared_ptr<imm::ImmAstContext>& store) {
+    org::imm::serializeFromText(bytes_to_string(binary), store);
+}
+
+pybind11::bytes org::bind::python::serializeAstReplaceEpochToText(
+    const std::shared_ptr<imm::ImmAstReplaceEpoch>& store) {
+    return py::bytes(org::imm::serializeToText(store));
+}
+
+void org::bind::python::serializeAstReplaceEpochFromText(
+    const pybind11::bytes&                          binary,
+    const std::shared_ptr<imm::ImmAstReplaceEpoch>& store) {
+    org::imm::serializeFromText(bytes_to_string(binary), store);
+}
+
+
+pybind11::bytes org::bind::python::serializeMapGraphToText(
+    const std::shared_ptr<graph::MapGraph>& store) {
+    return py::bytes(org::imm::serializeToText(store));
+}
+
+void org::bind::python::serializeMapGraphFromText(
+    const pybind11::bytes&                  binary,
+    const std::shared_ptr<graph::MapGraph>& store) {
+    org::imm::serializeFromText(bytes_to_string(binary), store);
+}

@@ -48,6 +48,7 @@ option(ORG_INSTRUMENT_TRACE "Generate instrumentation trace" OFF)
 option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 option(MAX_COMPILE_ERRORS "Max number of compilation errors before compiler stops")
 option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
+option(ORG_USE_TRACY "Enable performance profiling using tracy" OFF)
 option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
 option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
 option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
@@ -68,6 +69,13 @@ option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" ON)
 option(ORG_DEPS_USE_PYTHON_VERSION "" "3.13")
 option(ORG_BUILD_USE_NAPI_WRAPPER "" ON)
+
+if(${ORG_USE_TRACY} AND ${ORG_USE_PERFETTO})
+  message(
+    FATAL_ERROR
+      "Tracy and perfetto profiling are mutually exclusive. Enable either ORG_USE_TRACY or ORG_USE_PERFETTO but not both"
+  )
+endif()
 
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
 
@@ -122,6 +130,10 @@ if(NOT ${ORG_EMCC_BUILD})
   find_package(pybind11 CONFIG REQUIRED)
 endif()
 
+if(${ORG_USE_TRACY})
+  find_package(Tracy CONFIG REQUIRED)
+endif()
+
 find_package(range-v3 CONFIG REQUIRED)
 find_package(Immer CONFIG REQUIRED)
 find_package(Lager CONFIG REQUIRED)
@@ -162,7 +174,7 @@ if(NOT ${ORG_EMCC_BUILD})
 endif()
 
 if(NOT ${ORG_EMCC_BUILD})
-  find_package(Boost REQUIRED COMPONENTS log)
+  find_package(Boost REQUIRED COMPONENTS ALL)
 endif()
 
 if(${ORG_EMCC_BUILD})

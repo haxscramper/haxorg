@@ -129,6 +129,10 @@ function(set_target_flags_impl)
       add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_PERFETTO)
     endif()
 
+    if(${ORG_USE_TRACY})
+      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_TRACY)
+    endif()
+
     if(${ORG_USE_XRAY})
       add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_XRAY)
     endif()

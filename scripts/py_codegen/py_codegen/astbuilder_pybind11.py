@@ -104,6 +104,9 @@ def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
             case ["void"]:
                 name = "None"
 
+            case ["pybind11", "bytes"]:
+                name = "bytes"
+
             case ["pybind11", "function"] | [*_, "PyFunc"]:
                 name = "function"
 

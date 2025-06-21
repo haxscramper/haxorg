@@ -40,8 +40,12 @@ asteval = "^0.9.33"
 mypy = "^1.11.0"
 ansi2html = "^1.9.2"
 psutil = "^6.1.1"
+pyqt6 = "^6.9.1"
+fuzzywuzzy = "^0.18.0"
+python-levenshtein = "^0.27.1"
 
 [tool.poetry.group.local.dependencies]
+py_haxorg_gui = {path = "./scripts/py_haxorg_gui", develop = true}
 py_ci = {path = "./scripts/py_ci", develop = true}
 py_textlayout = {path = "./scripts/py_textlayout", develop=true}
 py_exporters = {path = "./scripts/py_exporters", develop=true}

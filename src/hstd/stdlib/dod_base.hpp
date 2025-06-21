@@ -99,8 +99,10 @@ struct [[nodiscard]] Id {
         }
     }
 
+
     /// \brief Get mask value
     inline MaskType getMask() const {
+#pragma clang diagnostic ignored "-Wshift-count-overflow"
         return (value & (~IdType(0) << mask_offset)) >> mask_offset;
     }
 

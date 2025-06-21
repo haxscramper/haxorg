@@ -434,6 +434,16 @@ ImmPathStep documentation.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::imm::ImmAstReplaceEpoch, std::shared_ptr<org::imm::ImmAstReplaceEpoch>>(m, "ImmAstReplaceEpoch")
+    .def("__repr__", [](org::imm::ImmAstReplaceEpoch const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAstReplaceEpoch const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::imm::ImmNoneValueRead>(m, "ImmNoneValueRead")
     .def("__repr__", [](org::imm::ImmNoneValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -1303,10 +1313,17 @@ ImmPathStep documentation.)RAW")
   pybind11::class_<org::imm::ImmAstContext, std::shared_ptr<org::imm::ImmAstContext>>(m, "ImmAstContext")
     .def("addRoot",
          static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)(org::sem::SemId<org::sem::Org>)>(&org::imm::ImmAstContext::addRoot),
-         pybind11::arg("data"))
+         pybind11::arg("data"),
+         R"RAW(\brief Add new root node to the store, create a new AST version
+with a new root, new epoch and new AST context tracking the updated
+state of the tree.)RAW")
+    .def("getEmptyVersion", static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)()>(&org::imm::ImmAstContext::getEmptyVersion), R"RAW(\brief Create empty AST version with no edits, no root, and linked
+to the current context.)RAW")
     .def("get",
          static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId)>(&org::imm::ImmAstContext::get),
-         pybind11::arg("id"))
+         pybind11::arg("id"),
+         R"RAW(\brief Convert immutable AST tree to the sem AST -- the sem AST is
+created anew following the immutable ID structure.)RAW")
     .def("__repr__", [](org::imm::ImmAstContext const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1325,6 +1342,7 @@ ImmPathStep documentation.)RAW")
     .def("getRoot", static_cast<org::imm::ImmId(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRoot))
     .def("getRootAdapter", static_cast<org::imm::ImmAdapter(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRootAdapter))
     .def("getContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getContext))
+    .def("getEpoch", static_cast<std::shared_ptr<org::imm::ImmAstReplaceEpoch>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getEpoch))
     .def("__repr__", [](org::imm::ImmAstVersion const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -9688,6 +9706,13 @@ ingoing elements.)RAW")
         pybind11::arg("binary"),
         pybind11::arg("store"));
   m.def("serializeToText",
+        static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeToText),
+        pybind11::arg("store"));
+  m.def("serializeFromText",
+        static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeFromText),
+        pybind11::arg("binary"),
+        pybind11::arg("store"));
+  m.def("serializeToText",
         static_cast<std::string(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeToText),
         pybind11::arg("store"));
   m.def("serializeFromText",
@@ -9709,6 +9734,27 @@ ingoing elements.)RAW")
         static_cast<void(*)(org::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setShouldProcessPath),
         pybind11::arg("parameters"),
         pybind11::arg("callback"));
+  m.def("serializeAstContextToText",
+        static_cast<pybind11::bytes(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextToText),
+        pybind11::arg("store"));
+  m.def("serializeAstContextFromText",
+        static_cast<void(*)(pybind11::bytes const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextFromText),
+        pybind11::arg("binary"),
+        pybind11::arg("store"));
+  m.def("serializeAstReplaceEpochToText",
+        static_cast<pybind11::bytes(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochToText),
+        pybind11::arg("store"));
+  m.def("serializeAstReplaceEpochFromText",
+        static_cast<void(*)(pybind11::bytes const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochFromText),
+        pybind11::arg("binary"),
+        pybind11::arg("store"));
+  m.def("serializeMapGraphFromText",
+        static_cast<void(*)(pybind11::bytes const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphFromText),
+        pybind11::arg("binary"),
+        pybind11::arg("store"));
+  m.def("serializeMapGraphToText",
+        static_cast<pybind11::bytes(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphToText),
+        pybind11::arg("store"));
   m.def("setGetParsedNode",
         static_cast<void(*)(org::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setGetParsedNode),
         pybind11::arg("params"),
