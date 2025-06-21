@@ -16,6 +16,10 @@ class CmakeOptConfig():
     def get_cli(self) -> List[str]:
         return [str(self)]
 
+    @property
+    def isBuild(self) -> bool:
+        return True
+
 
 @dataclass
 class CmakeFlagConfig():
@@ -60,7 +64,10 @@ class ExternalDep():
         return ";".join([str(install_dir.joinpath(it)) for it in dirs])
 
     def get_configure_args(self) -> List[str]:
-        return [str(it) for it in self.configure_args]
+        return [str(it) for it in self.configure_args if not it.isBuild]
+
+    def get_build_args(self) -> List[str]:
+        return [str(it) for it in self.configure_args if it.isBuild]
 
 
 def get_emscripten_cmake_flags() -> List[CmakeCLIConfig]:

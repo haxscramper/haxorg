@@ -64,3 +64,6 @@
 [submodule "thirdparty/msgpack-c"]
 	path = thirdparty/msgpack-c
 	url = https://github.com/msgpack/msgpack-c.git
+[submodule "thirdparty/tracy"]
+	path = thirdparty/tracy
+	url = https://github.com/wolfpld/tracy.git

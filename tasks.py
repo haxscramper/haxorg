@@ -2179,8 +2179,6 @@ def run_develop_ci(
             [
                 build_develop_deps,
                 invoke_opt("configure", deps_configure),
-                "--ninja-flag=-d",
-                "--ninja-flag=explain",
             ],
             env=env,
         )

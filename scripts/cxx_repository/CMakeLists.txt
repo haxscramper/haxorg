@@ -23,7 +23,6 @@ target_link_libraries(
          pthread
          dl
          pcre
-         Boost::process
          OpenSSL::SSL
          OpenSSL::Crypto
          absl::base
