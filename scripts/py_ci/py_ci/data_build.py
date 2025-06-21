@@ -18,7 +18,7 @@ class CmakeOptConfig():
 
     @property
     def isBuild(self) -> bool:
-        return True
+        return False
 
 
 @dataclass
