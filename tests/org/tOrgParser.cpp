@@ -367,13 +367,13 @@ TEST(OrgParseSem, SubtreeLogParsing) {
 )",
             getDebugFile("prolog"));
         EXPECT_TRUE(t->deadline.has_value());
-        auto d = t->deadline->getBreakdown();
+        auto d = t->deadline.value()->getStaticTime().getBreakdown();
         EXPECT_EQ(d.day, 15);
         EXPECT_EQ(d.year, 2019);
         EXPECT_EQ(d.month, 12);
 
         EXPECT_TRUE(t->closed.has_value());
-        auto c = t->closed->getBreakdown();
+        auto c = t->closed.value()->getStaticTime().getBreakdown();
         EXPECT_EQ(c.year, 2019);
         EXPECT_EQ(c.day, 07);
         EXPECT_EQ(c.month, 11);
@@ -486,7 +486,7 @@ TEST(OrgParseSem, SubtreeTimesParsing) {
     CLOSED: [2019-11-08 Thu 19:35]
 )");
         EXPECT_EQ(
-            t->closed.value().getBreakdown(),
+            t->closed.value()->getStaticTime().getBreakdown(),
             (UserTimeBreakdown{
                 .year   = 2019,
                 .month  = 11,
@@ -502,7 +502,7 @@ CLOSED: [2019-11-08 Thu 19:35]
 )",
             getDebugFile("closed_no_indent"));
         EXPECT_EQ(
-            t->closed.value().getBreakdown(),
+            t->closed.value()->getStaticTime().getBreakdown(),
             (UserTimeBreakdown{
                 .year   = 2019,
                 .month  = 11,
@@ -516,7 +516,7 @@ CLOSED: [2019-11-08 Thu 19:35]
     CLOSED: [2019-11-08 Thu 19:35] DEADLINE: [2019-11-07 Thu 19:35] SCHEDULED: [2019-11-02 Thu 19:35]
 )");
         EXPECT_EQ(
-            t->closed.value().getBreakdown(),
+            t->closed.value()->getStaticTime().getBreakdown(),
             (UserTimeBreakdown{
                 .year   = 2019,
                 .month  = 11,
@@ -526,7 +526,7 @@ CLOSED: [2019-11-08 Thu 19:35]
             }));
 
         EXPECT_EQ(
-            t->deadline.value().getBreakdown(),
+            t->deadline.value()->getStaticTime().getBreakdown(),
             (UserTimeBreakdown{
                 .year   = 2019,
                 .month  = 11,
@@ -536,7 +536,7 @@ CLOSED: [2019-11-08 Thu 19:35]
             }));
 
         EXPECT_EQ(
-            t->scheduled.value().getBreakdown(),
+            t->scheduled.value()->getStaticTime().getBreakdown(),
             (UserTimeBreakdown{
                 .year   = 2019,
                 .month  = 11,
@@ -555,7 +555,7 @@ SCHEDULED: [2019-11-14 Thu 19:35]
             getDebugFile("multiline_times"));
 
         EXPECT_EQ(
-            t->closed.value().getBreakdown(),
+            t->closed.value()->getStaticTime().getBreakdown(),
             (UserTimeBreakdown{
                 .year   = 2019,
                 .month  = 11,
@@ -565,7 +565,7 @@ SCHEDULED: [2019-11-14 Thu 19:35]
             }));
 
         EXPECT_EQ(
-            t->deadline.value().getBreakdown(),
+            t->deadline.value()->getStaticTime().getBreakdown(),
             (UserTimeBreakdown{
                 .year   = 2019,
                 .month  = 11,
@@ -575,7 +575,7 @@ SCHEDULED: [2019-11-14 Thu 19:35]
             }));
 
         EXPECT_EQ(
-            t->scheduled.value().getBreakdown(),
+            t->scheduled.value()->getStaticTime().getBreakdown(),
             (UserTimeBreakdown{
                 .year   = 2019,
                 .month  = 11,

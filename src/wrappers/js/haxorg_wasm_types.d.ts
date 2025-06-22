@@ -1877,9 +1877,9 @@ export interface ImmSubtreeValueRead {
   getTitle(): haxorg_wasm.ImmIdT<ImmParagraph>;
   getLogbook(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmSubtreeLog>>;
   getProperties(): haxorg_wasm.ImmerFlex_vector<NamedProperty>;
-  getClosed(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>;
-  getDeadline(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>;
-  getScheduled(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>;
+  getClosed(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>;
+  getDeadline(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>;
+  getScheduled(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>;
   getIscomment(): boolean;
   getIsarchived(): boolean;
   getPriority(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
@@ -3452,9 +3452,9 @@ export interface Subtree {
   title: Paragraph
   logbook: haxorg_wasm.Vec<SubtreeLog>
   properties: haxorg_wasm.Vec<NamedProperty>
-  closed: haxorg_wasm.Optional<UserTime>
-  deadline: haxorg_wasm.Optional<UserTime>
-  scheduled: haxorg_wasm.Optional<UserTime>
+  closed: haxorg_wasm.Optional<Time>
+  deadline: haxorg_wasm.Optional<Time>
+  scheduled: haxorg_wasm.Optional<Time>
   isComment: boolean
   isArchived: boolean
   priority: haxorg_wasm.Optional<string>
@@ -3975,9 +3975,9 @@ export interface ImmSubtree {
   title: haxorg_wasm.ImmIdT<ImmParagraph>
   logbook: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmSubtreeLog>>
   properties: haxorg_wasm.ImmVec<NamedProperty>
-  closed: haxorg_wasm.ImmBox<haxorg_wasm.Optional<UserTime>>
-  deadline: haxorg_wasm.ImmBox<haxorg_wasm.Optional<UserTime>>
-  scheduled: haxorg_wasm.ImmBox<haxorg_wasm.Optional<UserTime>>
+  closed: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>
+  deadline: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>
+  scheduled: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>
   isComment: boolean
   isArchived: boolean
   priority: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
@@ -4378,9 +4378,9 @@ export interface ImmSubtreeValue {
   setTitle(value: haxorg_wasm.ImmIdT<ImmParagraph>): void;
   setLogbook(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmSubtreeLog>>): void;
   setProperties(value: haxorg_wasm.ImmerFlex_vector<NamedProperty>): void;
-  setClosed(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>): void;
-  setDeadline(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>): void;
-  setScheduled(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<UserTime>>): void;
+  setClosed(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>): void;
+  setDeadline(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>): void;
+  setScheduled(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>): void;
   setIscomment(value: boolean): void;
   setIsarchived(value: boolean): void;
   setPriority(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;

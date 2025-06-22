@@ -26,7 +26,7 @@ PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::SubtreeCompletion>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::NamedProperty>)
-PYBIND11_MAKE_OPAQUE(immer::box<std::optional<hstd::UserTime>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<bool>>)
@@ -149,7 +149,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "ImmFlexVectorOfImmIdTOfImmHashTag", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "ImmFlexVectorOfImmIdTOfImmSubtreeLog", type_registry_guard);
   bind_immerflex_vector<org::sem::NamedProperty>(m, "ImmFlexVectorOfNamedProperty", type_registry_guard);
-  bind_immerbox<std::optional<hstd::UserTime>>(m, "ImmBoxOfStdOptionalOfUserTime", type_registry_guard);
+  bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmTime", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmFlexVectorOfImmIdTOfImmCell", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmFlexVectorOfImmIdTOfImmRow", type_registry_guard);
   bind_immerbox<std::optional<bool>>(m, "ImmBoxOfStdOptionalOfBool", type_registry_guard);
@@ -1032,9 +1032,9 @@ ImmPathStep documentation.)RAW")
     .def("getTitle", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTitle))
     .def("getLogbook", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getLogbook))
     .def("getProperties", static_cast<immer::flex_vector<org::sem::NamedProperty> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getProperties))
-    .def("getClosed", static_cast<immer::box<std::optional<hstd::UserTime>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getClosed))
-    .def("getDeadline", static_cast<immer::box<std::optional<hstd::UserTime>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getDeadline))
-    .def("getScheduled", static_cast<immer::box<std::optional<hstd::UserTime>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getScheduled))
+    .def("getClosed", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getClosed))
+    .def("getDeadline", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getDeadline))
+    .def("getScheduled", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getScheduled))
     .def("getIscomment", static_cast<bool const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getIscomment))
     .def("getIsarchived", static_cast<bool const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getIsarchived))
     .def("getPriority", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getPriority))
@@ -7176,13 +7176,13 @@ ingoing elements.)RAW")
          static_cast<void(org::imm::ImmSubtreeValue::*)(immer::flex_vector<org::sem::NamedProperty> const&)>(&org::imm::ImmSubtreeValue::setProperties),
          pybind11::arg("value"))
     .def("setClosed",
-         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::UserTime>> const&)>(&org::imm::ImmSubtreeValue::setClosed),
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&)>(&org::imm::ImmSubtreeValue::setClosed),
          pybind11::arg("value"))
     .def("setDeadline",
-         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::UserTime>> const&)>(&org::imm::ImmSubtreeValue::setDeadline),
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&)>(&org::imm::ImmSubtreeValue::setDeadline),
          pybind11::arg("value"))
     .def("setScheduled",
-         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::UserTime>> const&)>(&org::imm::ImmSubtreeValue::setScheduled),
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&)>(&org::imm::ImmSubtreeValue::setScheduled),
          pybind11::arg("value"))
     .def("setIscomment",
          static_cast<void(org::imm::ImmSubtreeValue::*)(bool const&)>(&org::imm::ImmSubtreeValue::setIscomment),

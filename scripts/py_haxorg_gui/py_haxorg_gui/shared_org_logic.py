@@ -20,12 +20,14 @@ AGENDA_NODE_TYPES = [
     org.OrgSemKind.Symlink,
 ]
 
+
 @beartype
 def get_org_file_times(infile: Path) -> Dict[str, float]:
     current_times: Dict[str, float] = {}
     for org_file in infile.glob("*.org"):
         current_times[str(org_file)] = org_file.stat().st_mtime
     return current_times
+
 
 @beartype
 def check_org_files_changed(infile: Path, cache_file: Path) -> bool:
@@ -38,6 +40,7 @@ def check_org_files_changed(infile: Path, cache_file: Path) -> bool:
         cached_times: Dict[str, float] = json.load(f)
 
     return current_times != cached_times
+
 
 @beartype
 def write_org_file_cache(infile: Path, cache_file: Path) -> None:
@@ -54,12 +57,15 @@ def load_cached_imm_node(
     context_path: Path,
     epoch_path: Path,
     cache_file: Path,
+    use_cache: bool = True,
 ) -> org.Org:
     dir_opts = org.OrgDirectoryParseParameters()
     parse_opts = org.OrgParseParameters()
     stack_file = open("/tmp/stack_dumps.txt", "w")
 
-    if check_org_files_changed(infile, cache_file):
+    if not use_cache or check_org_files_changed(
+            infile, cache_file
+    ) or not graph_path.exists() or not context_path.exists() or not epoch_path.exists():
 
         def parse_node_impl(path: str):
             try:
@@ -173,22 +179,33 @@ class OrgAgendaNode:
             return None
             # return self.data.du
 
+    def get_scheduled_repeat(self) -> Optional[org.TimeRepeat]:
+        if isinstance(self.data, org.Subtree
+                     ) and self.data.scheduled and self.data.scheduled.getStatic().repeat:
+            return None
+            # return self.data.scheduled.getStatic().repeat[0]
+
+    def get_deadline_repeat(self) -> Optional[org.TimeRepeat]:
+        if isinstance(self.data, org.Subtree):
+            return self.data.deadline and self.data.deadline.getStatic(
+            ).repeat and self.data.deadline.getStatic().repeat[0]
+
     def get_scheduled_time(self) -> Optional[datetime]:
         if isinstance(self.data, org.Subtree):
-            return self.data.scheduled and evalDateTime(self.data.scheduled)
+            return self.data.scheduled and evalDateTime(
+                self.data.scheduled.getStaticTime())
 
     def get_deadline_time(self) -> Optional[datetime]:
         if isinstance(self.data, org.Subtree):
-            return self.data.deadline and evalDateTime(self.data.deadline)
+            return self.data.deadline and evalDateTime(self.data.deadline.getStaticTime())
 
     def get_closed_time(self) -> Optional[datetime]:
         if isinstance(self.data, org.Subtree):
-            return self.data.closed and evalDateTime(self.data.closed)
+            return self.data.closed and evalDateTime(self.data.closed.getStaticTime())
 
     def get_created_time(self) -> Optional[datetime]:
         return None
 
-        
     @functools.cache
     def get_recursive_completion(self) -> Tuple[int, int]:
         nom = 0
