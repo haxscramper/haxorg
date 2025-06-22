@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 
-import logging
 import sys
 from datetime import datetime
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Iterator, Tuple, Dict
 import functools
-from fractions import Fraction
 from enum import Enum
 import math
 import difflib
 import json
+from py_haxorg_gui.shared_org_logic import load_cached_imm_node, build_genda_tree, OrgAgendaNode, COMPLETED_TASK_SET
 
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QMargins, QSortFilterProxyModel
 from PyQt6.QtGui import QStandardItemModel, QColor
@@ -31,236 +30,14 @@ from PyQt6.QtWidgets import (
     QListWidget,
 )
 
-from fuzzywuzzy import fuzz
 import rich_click as click
 import py_haxorg.pyhaxorg_wrap as org
-from py_haxorg.pyhaxorg_utils import evalDateTime, getFlatTags
 from pathlib import Path
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
+from py_scriptutils.script_logging import log
 
 CAT = __name__
 
-COMPLETED_TASK_SET = set(["DONE", "FAILED", "COMPLETED", "CANCELED"])
-AGENDA_NODE_TYPES = [
-    org.OrgSemKind.Subtree,
-    org.OrgSemKind.Document,
-    org.OrgSemKind.Directory,
-    org.OrgSemKind.File,
-    org.OrgSemKind.Symlink,
-]
 
-
-@beartype
-class TreeNode:
-
-    def __init__(self,
-                 data: org.Org,
-                 parent: Optional["TreeNode"] = None,
-                 children: List["TreeNode"] = []):
-        assert data.getKind() in AGENDA_NODE_TYPES
-        self.data = data
-        self.parent = parent
-        if not children:
-            children = list()
-
-        self.children: List["TreeNode"] = children
-
-    @functools.cache
-    def get_priority(self) -> str:
-        if isinstance(self.data, org.Subtree):
-            return self.data.priority or ""
-
-        else:
-            return ""
-
-    @functools.cache
-    def get_clocked_seconds(self) -> int:
-        result = 0
-
-        def aux(node: TreeNode):
-            nonlocal result
-            if isinstance(node.data, org.Subtree):
-                time: org.SubtreePeriod
-                for time in node.data.getTimePeriods(
-                        org.IntSetOfSubtreePeriodKind([org.SubtreePeriodKind.Clocked])):
-                    if time.to and time.from_:
-                        from_ = evalDateTime(time.from_)
-                        to = evalDateTime(time.to)
-                        result += (to - from_).seconds
-
-            for sub in node.children:
-                aux(sub)
-
-        aux(self)
-
-        return result
-
-    @functools.cache
-    def get_recursive_completion(self) -> Tuple[int, int]:
-        nom = 0
-        denom = 0
-
-        def aux(node: TreeNode):
-            nonlocal nom
-            nonlocal denom
-            if node.get_todo() != "":
-                if node.get_todo() in COMPLETED_TASK_SET:
-                    nom += 1
-                    denom += 1
-
-                else:
-                    denom += 1
-
-            for sub in node.children:
-                aux(sub)
-
-        aux(self)
-
-        return (nom, denom)
-
-    @functools.cache
-    def get_priority_order(self) -> int:
-        priority = self.get_priority()
-        priority_order = {
-            "X": 0,
-            "S": 1,
-            "A": 2,
-            "B": 3,
-            "C": 4,
-            "D": 5,
-            "E": 6,
-            "F": 7,
-        }
-        return priority_order.get(priority, -1)
-
-    @functools.cache
-    def get_tags(self) -> List[str]:
-        if isinstance(self.data, org.Subtree):
-            result = []
-            for tag in self.data.tags:
-                for flat in getFlatTags(tag):
-                    result.append("##".join(flat))
-
-            return result
-
-        else:
-            return []
-
-    @functools.cache
-    def get_age_seconds(self) -> int:
-        if isinstance(self.data, org.Subtree):
-            created: List[org.SubtreePeriod] = self.data.getTimePeriods(
-                org.IntSetOfSubtreePeriodKind([org.SubtreePeriodKind.Created]))
-            if created:
-                return int(
-                    (datetime.now() - evalDateTime(created[0].from_)).total_seconds())
-
-        return 0
-
-    @functools.cache
-    def get_age_display(self) -> str:
-        seconds = self.get_age_seconds()
-
-        if seconds == 0:
-            return ""
-
-        units = [
-            ("y", 365 * 24 * 3600),
-            ("mo", 30 * 24 * 3600),
-            ("w", 7 * 24 * 3600),
-            ("d", 24 * 3600),
-            ("h", 3600),
-            ("m", 60),
-            ("s", 1),
-        ]
-
-        parts = []
-        for unit_name, unit_seconds in units:
-            if seconds >= unit_seconds:
-                count = seconds // unit_seconds
-                parts.append(f"{count}{unit_name}")
-                seconds %= unit_seconds
-                if len(parts) == 2:
-                    break
-
-        return "".join(parts) if parts else "0s"
-
-    def push_back(self, other: "TreeNode"):
-        assert other.data.getKind() in AGENDA_NODE_TYPES
-        self.children.append(other)
-
-    def __iter__(self) -> Iterator["TreeNode"]:
-        return self.children.__iter__()
-
-    def __getitem__(self, idx: int) -> "TreeNode":
-        return self.children[idx]
-
-    def __len__(self) -> int:
-        return len(self.children)
-
-    @functools.cache
-    def get_title(self) -> str:
-        if isinstance(self.data, org.Subtree):
-            return self.data.getCleanTitle()
-
-        elif isinstance(self.data, org.File):
-            return self.data.relPath
-
-        elif isinstance(self.data, org.Directory):
-            return self.data.relPath
-
-        else:
-            return str(self.data.getKind())
-
-    @functools.cache
-    def get_todo(self) -> str:
-        if isinstance(self.data, org.Subtree):
-            return self.data.todo or ""
-
-        else:
-            return ""
-
-    @functools.cache
-    def get_level(self) -> int:
-        try:
-            if hasattr(self.data, "getLevel"):
-                return self.data.getLevel()
-            return 0
-        except (AttributeError, TypeError):
-            return 0
-
-    @functools.cache
-    def get_creation_date(self) -> str:
-        if isinstance(self.data, org.Subtree):
-            created: List[org.SubtreePeriod] = self.data.getTimePeriods(
-                org.IntSetOfSubtreePeriodKind([org.SubtreePeriodKind.Created]))
-            if created:
-                return evalDateTime(created[0].from_).strftime("%Y-%m-%d %H:%M")
-
-        return ""
-
-    def is_closed(self) -> bool:
-        try:
-            if hasattr(self.data, "isClosed"):
-                return self.data.isClosed()
-            return False
-        except (AttributeError, TypeError):
-            return False
-
-    def get_kind(self) -> org.OrgSemKind:
-        return self.data.getKind()
-
-
-def build_node(node: org.Org, parent: Optional[TreeNode]) -> TreeNode:
-    result = TreeNode(data=node, parent=parent)
-    for sub in node:
-        if sub.getKind() in AGENDA_NODE_TYPES:
-            added = build_node(sub, result)
-            completion = added.get_recursive_completion()
-            if completion[1] != 0:
-                result.push_back(added)
-
-    return result
 
 
 class TableColumns(Enum):
@@ -288,32 +65,32 @@ class TableColumns(Enum):
 
 class OrgTreeModel(QAbstractItemModel):
 
-    def __init__(self, root_node: TreeNode):
+    def __init__(self, root_node: OrgAgendaNode):
         super().__init__()
         self.focused = None
         self.root_node = root_node
         self.sort_column = 0
         self.sort_order = Qt.SortOrder.AscendingOrder
-        self.flat_nodes: List[TreeNode] = []
+        self.flat_nodes: List[OrgAgendaNode] = []
         self.set_flat_list_from(self.root_node)
 
-    def getRoot(self) -> TreeNode:
+    def getRoot(self) -> OrgAgendaNode:
         if self.focused:
             return self.focused
 
         else:
             return self.root_node
 
-    def setFocused(self, node: Optional[TreeNode]):
+    def setFocused(self, node: Optional[OrgAgendaNode]):
         self.beginResetModel()
         self.focused = node
         self.set_flat_list_from(self.getRoot())
         self.endResetModel()
 
-    def set_flat_list_from(self, node: TreeNode) -> None:
+    def set_flat_list_from(self, node: OrgAgendaNode) -> None:
         self.flat_nodes = []
 
-        def collect_all_nodes(node: TreeNode) -> None:
+        def collect_all_nodes(node: OrgAgendaNode) -> None:
             if node != self.getRoot():
                 self.flat_nodes.append(node)
             for child in node.children:
@@ -349,7 +126,7 @@ class OrgTreeModel(QAbstractItemModel):
         if not index.isValid() or self.is_flat_sorting():
             return QModelIndex()
 
-        node: TreeNode = index.internalPointer()
+        node: OrgAgendaNode = index.internalPointer()
         parent_node = node.parent
 
         if parent_node is None or parent_node == self.getRoot():
@@ -373,7 +150,7 @@ class OrgTreeModel(QAbstractItemModel):
         else:
             if not parent.isValid():
                 return len(self.getRoot().children)
-            node: TreeNode = parent.internalPointer()
+            node: OrgAgendaNode = parent.internalPointer()
             return len(node.children)
 
     def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
@@ -383,7 +160,7 @@ class OrgTreeModel(QAbstractItemModel):
         if not index.isValid():
             return None
 
-        node: TreeNode = index.internalPointer()
+        node: OrgAgendaNode = index.internalPointer()
         column = index.column()
 
         if role == Qt.ItemDataRole.DisplayRole:
@@ -515,7 +292,7 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
 
             # Get the node at this row
             if source_parent.isValid():
-                parent_node: TreeNode = source_parent.internalPointer()
+                parent_node: OrgAgendaNode = source_parent.internalPointer()
                 if source_row < len(parent_node.children):
                     node = parent_node.children[source_row]
                 else:
@@ -542,8 +319,8 @@ class OrgTreeProxyModel(QSortFilterProxyModel):
         column = left.column()
         is_ascending = self.model.sort_order == Qt.SortOrder.AscendingOrder
         if self.model.is_flat_sorting():
-            left_node: TreeNode = left.internalPointer()
-            right_node: TreeNode = right.internalPointer()
+            left_node: OrgAgendaNode = left.internalPointer()
+            right_node: OrgAgendaNode = right.internalPointer()
 
             def early_empty_result(left_empty: bool, right_empty: bool) -> Optional[bool]:
                 # Both have zero age - maintain stable order
@@ -851,7 +628,7 @@ class TreeViewWithCommandPalette:
 
 class AgendaWidget(QWidget):
 
-    def __init__(self, root_node: TreeNode):
+    def __init__(self, root_node: OrgAgendaNode):
         super().__init__()
         self.model = OrgTreeModel(root_node)
         self.setup_ui()
@@ -954,19 +731,19 @@ def show_agenda_table(node: org.Org) -> None:
     if app is None:
         app = QApplication(sys.argv)
 
-    root_tree_node = build_node(node, None)
+    root_tree_node = build_genda_tree(node, None)
 
-    def override_node(n: Any):
-        if isinstance(n, org.Org):
-            return str(n.getKind())
+    # def override_node(n: Any):
+    #     if isinstance(n, org.Org):
+    #         return str(n.getKind())
 
-    pprint_to_file(
-        to_debug_json(
-            root_tree_node,
-            override_callback=override_node,
-        ),
-        "/tmp/debug_tree.py",
-    )
+    # pprint_to_file(
+    #     to_debug_json(
+    #         root_tree_node,
+    #         override_callback=override_node,
+    #     ),
+    #     "/tmp/debug_tree.py",
+    # )
 
     widget = AgendaWidget(root_tree_node)
     widget.show()
@@ -975,93 +752,19 @@ def show_agenda_table(node: org.Org) -> None:
         app.exec()
 
 
-import traceback
-
-
-def get_org_file_times(infile: Path) -> Dict[str, float]:
-    current_times: Dict[str, float] = {}
-    for org_file in infile.glob("*.org"):
-        current_times[str(org_file)] = org_file.stat().st_mtime
-    return current_times
-
-def check_org_files_changed(infile: Path, cache_file: Path) -> bool:
-    current_times = get_org_file_times(infile)
-
-    if not cache_file.exists():
-        return True
-
-    with open(cache_file, "r") as f:
-        cached_times: Dict[str, float] = json.load(f)
-
-    return current_times != cached_times
-
-def write_org_file_cache(infile: Path, cache_file: Path) -> None:
-    current_times = get_org_file_times(infile)
-    
-    with open(cache_file, "w") as f:
-        json.dump(current_times, f)
-
 @click.command()
 @click.option("--infile",
               type=click.Path(exists=True, path_type=Path),
               required=True,
               help="Path to input .org file")
 def main(infile: Path) -> None:
-    dir_opts = org.OrgDirectoryParseParameters()
-    parse_opts = org.OrgParseParameters()
-    stack_file = open("/tmp/stack_dumps.txt", "w")
-
-    graph_path = Path("/tmp/immutable_graph_dump.bin")
-    context_path = Path("/tmp/immutable_ast_dump.bin")
-    epoch_path = Path("/tmp/immutable_epoch_dump.bin")
-    cache_file = Path("/tmp/file_agenda_cache.org_files_cache.json")
-
-    if check_org_files_changed(infile, cache_file):
-        def parse_node_impl(path: str):
-            try:
-                return org.parseStringOpts(Path(path).read_text(), parse_opts)
-
-            except Exception as e:
-                print(f"Parsing {path}", file=stack_file)
-                traceback.print_exc(file=stack_file)
-                # log(CAT).info(f"Failed parsing {path}", exc_info=e, stack_info=True, )
-                return org.Empty()
-
-        org.setGetParsedNode(dir_opts, parse_node_impl)
-
-        node = org.parseDirectoryOpts(str(infile), dir_opts)
-        initial_context = org.initImmutableAstContext()
-        log(CAT).info("Adding immutable AST root")
-        version = initial_context.addRoot(node)
-
-        graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(
-            version.getContext())
-
-        conf = org.graphMapConfig()
-        root = version.getRootAdapter()
-
-        log(CAT).info("Recursively adding graph state node")
-        graph_state.addNodeRec(version.getContext(), root, conf)
-
-        log(CAT).info("Serialize graph state to binary")
-        graph_path.write_bytes(org.serializeMapGraphToText(graph_state.graph))
-        log(CAT).info("Serialize context to binary")
-        context_path.write_bytes(org.serializeAstContextToText(version.getContext()))
-        epoch_path.write_bytes(org.serializeAstReplaceEpochToText(version.getEpoch()))
-        write_org_file_cache(infile, cache_file)
-
-    else:
-        initial_context: org.ImmAstContext = org.initImmutableAstContext()
-        org.serializeAstContextFromText(context_path.read_bytes(), initial_context)
-        version: org.ImmAstVersion = initial_context.getEmptyVersion()
-        org.serializeAstReplaceEpochFromText(epoch_path.read_bytes(), version.getEpoch())
-        node = initial_context.get(version.getRoot())
-
-        graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(
-            version.getContext())
-
-        org.serializeMapGraphFromText(graph_path.read_bytes(), graph_state.graph)
-
+    node = load_cached_imm_node(
+        infile=infile,
+        graph_path=Path("/tmp/immutable_graph_dump.bin"),
+        context_path=Path("/tmp/immutable_ast_dump.bin"),
+        epoch_path=Path("/tmp/immutable_epoch_dump.bin"),
+        cache_file=Path("/tmp/file_agenda_cache.org_files_cache.json"),
+    )
     log(CAT).info("File parsing done")
     show_agenda_table(node)
 

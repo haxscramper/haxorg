@@ -1,1 +1,20 @@
-1. *OpenGL Viewport Configuration*: When setting up the OpenGL viewport with ~glViewport()~, you need to convert floating-point coordinates to GLint parameters: ~glViewport(0, 0, static_cast<GLint>(windowWidth), static_cast<GLint>(windowHeight))~.
+
+
+* TODO some event
+  SCHEDULED: <2025-06-22 Sun>
+  :PROPERTIES:
+  :CREATED:  [2025-06-22 Sun 13:42:47 +04]
+  :END:
+
+* TODO Another event with schedule and deadline
+  DEADLINE: <2025-06-22 Sun 19:00:00 +04> SCHEDULED: <2025-06-22 Sun 15:00:00 +04>
+  :PROPERTIES:
+  :CREATED:  [2025-06-22 Sun 13:42:56 +04]
+  :END:
+
+* TODO Schedule and duration
+  SCHEDULED: <2025-06-22 Sun 19:30:00 +04>
+  :PROPERTIES:
+  :CREATED:  [2025-06-22 Sun 13:43:14 +04]
+  :EFFORT:   0:40
+  :END:
