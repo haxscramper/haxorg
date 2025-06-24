@@ -26,6 +26,11 @@ from PyQt6.QtWidgets import (
 CAT = __name__
 
 
+COLOR_GRID_LINE = QColor(200, 200, 200)
+COLOR_HEADERS = QColor(0, 0, 0)
+COLOR_SCHEDULED_EVENT_FILL = QColor(100, 150, 255, 100)
+COLOR_SCHEDULED_EVENT_FRAME = QColor(0, 100, 200)
+
 class CalendarEvent:
 
     def __init__(self,
@@ -246,13 +251,26 @@ class EventLayoutCalculator:
 
 class WeekView(QWidget):
 
+    def sizeHint(self):
+        return self.minimumSize()
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        if self.parent():
+            available_width = self.parent().width() - self.time_column_width - 20
+            self.day_width = max(100, available_width // 7)
+            self._update_size()
+
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
+        assert parent is not None
+        log(CAT).info(parent.objectName())
         super().__init__(parent)
         self.current_week_start = self._get_week_start(datetime.now())
         self.events: List[CalendarEvent] = []
         self.base_hour_height = 60
         self.hour_height = 60
-        self.day_width = 120
+        self.day_width = 160
         self.header_height = 60
         self.time_column_width = 80
         self.zoom_factor = 0.3
@@ -363,7 +381,7 @@ class WeekView(QWidget):
         self._draw_events(painter)
 
     def _draw_grid(self, painter: QPainter) -> None:
-        painter.setPen(QPen(QColor(200, 200, 200), 1))
+        painter.setPen(QPen(COLOR_GRID_LINE, 1))
 
         for hour in range(24):
             y = self.header_height + hour * self.hour_height
@@ -374,7 +392,7 @@ class WeekView(QWidget):
             painter.drawLine(x, 0, x, self.height())
 
     def _draw_headers(self, painter: QPainter) -> None:
-        painter.setPen(QPen(QColor(0, 0, 0), 1))
+        painter.setPen(QPen(COLOR_HEADERS, 1))
         painter.setFont(QFont("Arial", 10))
 
         for hour in range(24):
@@ -436,16 +454,16 @@ class WeekView(QWidget):
                 height = max(20, end_y - y)
 
                 if event.scheduled and event.deadline:
-                    painter.setBrush(QBrush(QColor(100, 150, 255, 100)))
-                    painter.setPen(QPen(QColor(0, 100, 200), 3))
+                    painter.setBrush(QBrush(COLOR_SCHEDULED_EVENT_FILL))
+                    painter.setPen(QPen(COLOR_SCHEDULED_EVENT_FRAME, 3))
                     painter.drawRect(x, y, width, height)
-                    painter.setPen(QPen(QColor(0, 100, 200), 3))
+                    painter.setPen(QPen(COLOR_SCHEDULED_EVENT_FRAME, 3))
                     painter.drawLine(x, y, x + width, y)
                     painter.drawLine(x, y + height, x + width, y + height)
                 else:
                     color_intensity = max(100, 255 - depth * 30)
                     painter.setBrush(QBrush(QColor(100, 150, color_intensity)))
-                    painter.setPen(QPen(QColor(0, 100, 200), 1))
+                    painter.setPen(QPen(COLOR_SCHEDULED_EVENT_FRAME, 1))
                     painter.drawRect(x, y, width, height)
         else:
             painter.setPen(QPen(QColor(200, 100, 100), 3))
@@ -520,20 +538,15 @@ class WeekView(QWidget):
             clock_height = min(30, int((end - start).total_seconds() // 60))
             painter.drawRect(clock_x, clock_y, 12, clock_height)
 
-    def sizeHint(self):
-        return self.minimumSize()
-
-    def resizeEvent(self, event) -> None:
-        super().resizeEvent(event)
-        if self.parent():
-            available_width = self.parent().width() - self.time_column_width - 20
-            self.day_width = max(100, available_width // 7)
-            self._update_size()
 
 
 class OrgCalendarView(QWidget):
+    def resizeEvent(self, event) -> None:
+        # log(CAT).info("Calendar view resize event")
+        super().resizeEvent(event)
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget) -> None:
+        assert parent is not None
         super().__init__(parent)
 
         layout = QVBoxLayout()
@@ -552,11 +565,10 @@ class OrgCalendarView(QWidget):
         nav_layout.addStretch()
         nav_layout.addWidget(self.week_label)
 
-        self.week_view = WeekView()
-
-        scroll_area = QScrollArea()
+        scroll_area = QScrollArea(self)
+        self.week_view = WeekView(scroll_area)
         scroll_area.setWidget(self.week_view)
-        scroll_area.setWidgetResizable(False)
+        scroll_area.setWidgetResizable(True)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
@@ -614,9 +626,9 @@ class OrgTabWidget(QWidget):
         super().__init__(parent)
         layout = QVBoxLayout()
 
-        tab_widget = QTabWidget()
-
-        calendar_view = OrgCalendarView()
+        tab_widget = QTabWidget(self)
+        assert tab_widget is not None
+        calendar_view = OrgCalendarView(tab_widget)
         calendar_view.set_agenda_data(node)
         gantt_view = OrgGanttView()
         feed_view = OrgFeedView()
@@ -637,7 +649,7 @@ def show_calendar(node: org.Org) -> None:
     root_tree_node = build_genda_tree(node, None)
     widget = OrgTabWidget(root_tree_node)
     widget.show()
-    widget.resize(1200, 800)
+    widget.resize(1600, 800)
     widget.setWindowTitle("Org calendar")
 
     if app:
