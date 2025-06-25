@@ -993,9 +993,9 @@
     __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), title, Title, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>), logbook, Logbook, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), closed, Closed, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), deadline, Deadline, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), scheduled, Scheduled, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), closed, Closed, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), deadline, Deadline, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), scheduled, Scheduled, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((bool), isComment, Iscomment, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((bool), isArchived, Isarchived, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), priority, Priority, (org::sem::Subtree), Subtree) \
@@ -1011,9 +1011,9 @@
     __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), title, Title, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>), logbook, Logbook, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), closed, Closed, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), deadline, Deadline, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((hstd::Opt<hstd::UserTime>), scheduled, Scheduled, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), closed, Closed, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), deadline, Deadline, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), scheduled, Scheduled, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((bool), isComment, Iscomment, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((bool), isArchived, Isarchived, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), priority, Priority, (org::sem::Subtree), Subtree) \
@@ -1661,9 +1661,9 @@
     __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmParagraph>), title, Title, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>), logbook, Logbook, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::UserTime>>), closed, Closed, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::UserTime>>), deadline, Deadline, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::UserTime>>), scheduled, Scheduled, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), closed, Closed, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), deadline, Deadline, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), scheduled, Scheduled, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((bool), isComment, Iscomment, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((bool), isArchived, Isarchived, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), priority, Priority, (org::imm::ImmSubtree), Subtree) \
@@ -1679,9 +1679,9 @@
     __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmParagraph>), title, Title, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>), logbook, Logbook, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::UserTime>>), closed, Closed, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::UserTime>>), deadline, Deadline, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::UserTime>>), scheduled, Scheduled, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), closed, Closed, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), deadline, Deadline, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), scheduled, Scheduled, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((bool), isComment, Iscomment, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((bool), isArchived, Isarchived, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), priority, Priority, (org::imm::ImmSubtree), Subtree) \

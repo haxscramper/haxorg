@@ -1160,10 +1160,10 @@ def get_sem_subtree():
                           GenTuDoc("Associated subtree log")),
                 vec_field(t_nest_shared(t("NamedProperty"), []), "properties",
                           GenTuDoc("Immediate properties")),
-                opt_field(t_user_time(), "closed",
+                opt_field(t_id("Time"), "closed",
                           GenTuDoc("When subtree was marked as closed")),
-                opt_field(t_user_time(), "deadline", GenTuDoc("When is the deadline")),
-                opt_field(t_user_time(), "scheduled",
+                opt_field(t_id("Time"), "deadline", GenTuDoc("When is the deadline")),
+                opt_field(t_id("Time"), "scheduled",
                           GenTuDoc("When the event is scheduled")),
                 bool_field("isComment",
                            GenTuDoc("Subtree is annotated with the COMMENT keyword")),
@@ -1273,8 +1273,7 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
             efield("Both", "Use both subtrees and todo keywords"),
         ),
         d_simple_enum(
-            t("ListFormattingMode"),
-            GenTuDoc(""),
+            t("ListFormattingMode"), GenTuDoc(""),
             efield("None", "Default, no custom formatting"),
             efield("Table1D1Col", "one column, each table item is an individual row"),
             efield("Table1D2Col",
@@ -1282,13 +1281,11 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
             efield(
                 "Table2DColFirst",
                 "for tables tables with arbitrary column count, treat the first level of items as "
-                "column names, treat all nested elements in these columns as row values"
-            ),
-            efield("Table2DRowFirst", 
+                "column names, treat all nested elements in these columns as row values"),
+            efield(
+                "Table2DRowFirst",
                 "for tables with arbitrary column count, each top-level list item is an individual "
-                "row, then each item in the nested list is a cell on this row."
-            )
-        ),
+                "row, then each item in the nested list is a cell on this row.")),
         d_simple_enum(
             t("InitialSubtreeVisibility"),
             GenTuDoc(""),

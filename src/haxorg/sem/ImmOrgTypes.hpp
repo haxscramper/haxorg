@@ -1092,11 +1092,11 @@ struct ImmSubtree : public org::imm::ImmOrg {
   /// \brief Immediate properties
   hstd::ext::ImmVec<org::sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
-  hstd::ext::ImmBox<hstd::Opt<hstd::UserTime>> closed = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> closed = std::nullopt;
   /// \brief When is the deadline
-  hstd::ext::ImmBox<hstd::Opt<hstd::UserTime>> deadline = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> deadline = std::nullopt;
   /// \brief When the event is scheduled
-  hstd::ext::ImmBox<hstd::Opt<hstd::UserTime>> scheduled = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> scheduled = std::nullopt;
   /// \brief Subtree is annotated with the COMMENT keyword
   bool isComment = false;
   /// \brief Subtree is tagged with `:ARCHIVE:` tag

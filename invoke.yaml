@@ -4,7 +4,7 @@ emscripten: false
 instrument:
   coverage: false
   xray: false
-  asan: true
+  asan: false
   perfetto: false
 
 tasks:

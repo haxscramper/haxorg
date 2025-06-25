@@ -1929,9 +1929,9 @@ message Subtree {
   Paragraph                                        title                            = 10;
   repeated SubtreeLog                              logbook                          = 11;
   repeated NamedProperty                           properties                       = 12;
-  optional hstd.UserTime                           closed                           = 13;
-  optional hstd.UserTime                           deadline                         = 14;
-  optional hstd.UserTime                           scheduled                        = 15;
+  optional Time                                    closed                           = 13;
+  optional Time                                    deadline                         = 14;
+  optional Time                                    scheduled                        = 15;
   bool                                             isComment                        = 16;
   bool                                             isArchived                       = 17;
   optional string                                  priority                         = 18;

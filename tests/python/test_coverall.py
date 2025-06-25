@@ -629,7 +629,7 @@ def get_subtree_property_spec() -> List[ClassPrediate]:
             PK.Blocker,
             PK.Nonblocking,
             PK.ExportLatexHeader,
-            PK.Ordered, 
+            PK.Ordered,
             PK.Visibility,
             PK.ExportOptions,
             PK.CustomArgs,
@@ -715,7 +715,7 @@ def get_block_spec(kind: org.OrgSemKind) -> List[ClassPrediate]:
 def get_subtree_spec() -> ClassAlternatives:
 
     def check_closed_value(it: org.UserTime):
-        if isinstance(it, org.UserTime) and it.getBreakdown().year < 1970:
+        if isinstance(it, org.Time) and it.getStaticTime().getBreakdown().year < 1970:
             return True
 
         else:
@@ -1038,6 +1038,10 @@ def test_total_representation():
 
     file = org_corpus_dir.joinpath("py_validated_all.org")
     node = org.parseFile(str(file), org.OrgParseParameters())
+    Path("/tmp/content.yaml").write_text(
+        org.exportToYamlString(node, org.OrgYamlExportOpts()))
+    Path("/tmp/content.txt").write_text(
+        org.exportToTreeString(node, org.OrgTreeExportOpts(withColor=False,)))
     spec = get_spec()
 
     Path("/tmp/spec.txt").write_text(render_rich(spec.treeRepr(), False))
@@ -1217,11 +1221,13 @@ def get_test_node_from_text(prefix: str = "", postfix: str = "") -> org.Org:
     node = org.parseString(prefix + file.read_text() + postfix)
     return node
 
+
 @beartype
 def get_test_node_from_file() -> org.Org:
     file = org_corpus_dir.joinpath("py_validated_all.org")
     opts = org.OrgDirectoryParseParameters()
     return org.parseFileWithIncludes(str(file), opts)
+
 
 def test_run_typst_exporter(cov):
     node = get_test_node_from_file()
@@ -1309,9 +1315,11 @@ def test_run_tex_exporter(cov=None):
 
         ExporterLatex().evalUnderline(org.Underline())
 
+
 def test_error_group_items():
     for field, value in org.ErrorGroup().__dict__.items():
         pass
+
 
 if __name__ == "__main__":
     test_run_tex_exporter()

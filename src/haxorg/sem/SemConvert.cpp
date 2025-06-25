@@ -918,11 +918,11 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
             }
 
             if (org_streq(kind->text, "closed")) {
-                tree->closed = time->getStaticTime();
+                tree->closed = time;
             } else if (org_streq(kind->text, "deadline")) {
-                tree->deadline = time->getStaticTime();
+                tree->deadline = time;
             } else if (org_streq(kind->text, "scheduled")) {
-                tree->scheduled = time->getStaticTime();
+                tree->scheduled = time;
             } else {
                 return SemError(
                     a,

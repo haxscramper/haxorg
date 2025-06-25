@@ -2422,13 +2422,13 @@ void org::algo::proto_serde<::orgproto::Subtree, org::sem::Subtree>::write(::org
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>>::write(out->mutable_logbook(), in.logbook);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, hstd::Vec<org::sem::NamedProperty>>::write(out->mutable_properties(), in.properties);
   if (in.closed) {
-    proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::write(out->mutable_closed(), *in.closed);
+    proto_serde<orgproto::Time, org::sem::SemId<org::sem::Time>>::write(out->mutable_closed(), *in.closed);
   }
   if (in.deadline) {
-    proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::write(out->mutable_deadline(), *in.deadline);
+    proto_serde<orgproto::Time, org::sem::SemId<org::sem::Time>>::write(out->mutable_deadline(), *in.deadline);
   }
   if (in.scheduled) {
-    proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::write(out->mutable_scheduled(), *in.scheduled);
+    proto_serde<orgproto::Time, org::sem::SemId<org::sem::Time>>::write(out->mutable_scheduled(), *in.scheduled);
   }
   out->set_iscomment(in.isComment);
   out->set_isarchived(in.isArchived);
@@ -2457,13 +2457,13 @@ void org::algo::proto_serde<::orgproto::Subtree, org::sem::Subtree>::read(::orgp
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>>::read(out.logbook(), in.for_field(&org::sem::Subtree::logbook));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, hstd::Vec<org::sem::NamedProperty>>::read(out.properties(), in.for_field(&org::sem::Subtree::properties));
   if (out.has_closed()) {
-    proto_serde<hstd::Opt<orgproto::hstd::UserTime>, hstd::Opt<hstd::UserTime>>::read(out.closed(), in.for_field(&org::sem::Subtree::closed));
+    proto_serde<hstd::Opt<orgproto::Time>, hstd::Opt<org::sem::SemId<org::sem::Time>>>::read(out.closed(), in.for_field(&org::sem::Subtree::closed));
   }
   if (out.has_deadline()) {
-    proto_serde<hstd::Opt<orgproto::hstd::UserTime>, hstd::Opt<hstd::UserTime>>::read(out.deadline(), in.for_field(&org::sem::Subtree::deadline));
+    proto_serde<hstd::Opt<orgproto::Time>, hstd::Opt<org::sem::SemId<org::sem::Time>>>::read(out.deadline(), in.for_field(&org::sem::Subtree::deadline));
   }
   if (out.has_scheduled()) {
-    proto_serde<hstd::Opt<orgproto::hstd::UserTime>, hstd::Opt<hstd::UserTime>>::read(out.scheduled(), in.for_field(&org::sem::Subtree::scheduled));
+    proto_serde<hstd::Opt<orgproto::Time>, hstd::Opt<org::sem::SemId<org::sem::Time>>>::read(out.scheduled(), in.for_field(&org::sem::Subtree::scheduled));
   }
   in.for_field(&org::sem::Subtree::isComment).get() = out.iscomment();
   in.for_field(&org::sem::Subtree::isArchived).get() = out.isarchived();

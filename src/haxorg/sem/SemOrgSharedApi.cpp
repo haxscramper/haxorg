@@ -328,9 +328,10 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
         && !isBoolFalse(h->deadline)) {
         SubtreePeriod period{};
         if constexpr (IsSemOrgInstance<Handle>) {
-            period.from = h->deadline.value();
+            period.from = h->deadline.value()->getStaticTime();
         } else {
-            period.from = h->deadline.get().value();
+            period.from = toHandle(h->deadline.get().value(), handle)
+                              .getStaticTime();
         }
 
         period.kind = SubtreePeriod::Kind::Deadline;
@@ -341,9 +342,10 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
         && !isBoolFalse(h->scheduled)) {
         SubtreePeriod period{};
         if constexpr (IsSemOrgInstance<Handle>) {
-            period.from = h->scheduled.value();
+            period.from = h->scheduled.value()->getStaticTime();
         } else {
-            period.from = h->scheduled.get().value();
+            period.from = toHandle(h->scheduled.get().value(), handle)
+                              .getStaticTime();
         }
 
         period.kind = SubtreePeriod::Kind::Scheduled;
@@ -354,9 +356,10 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
         && !isBoolFalse(h->closed)) {
         SubtreePeriod period{};
         if constexpr (IsSemOrgInstance<Handle>) {
-            period.from = h->closed.value();
+            period.from = h->closed.value()->getStaticTime();
         } else {
-            period.from = h->closed.get().value();
+            period.from = toHandle(h->closed.get().value(), handle)
+                              .getStaticTime();
         }
 
         period.kind = SubtreePeriod::Kind::Closed;
