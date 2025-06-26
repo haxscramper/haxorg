@@ -1,0 +1,238 @@
+#pragma once
+
+#include <haxorg/sem/SemOrg.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/sem/ImmOrgGraph.hpp>
+
+#include <unordered_set>
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <filesystem>
+#include <fstream>
+#include <chrono>
+#include <optional>
+#include <functional>
+#include <format>
+#include <algorithm>
+#include <nlohmann/json.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+
+namespace fs = std::filesystem;
+
+std::unordered_map<std::string, double> getOrgFileTimes(
+    const fs::path& infile);
+
+bool checkOrgFilesChanged(
+    const fs::path& infile,
+    const fs::path& cache_file) {
+    auto current_times = getOrgFileTimes(infile);
+
+    if (!fs::exists(cache_file)) { return true; }
+
+    std::ifstream f(cache_file);
+    json          cached_times;
+    f >> cached_times;
+
+    std::unordered_map<std::string, double> cached_map = cached_times;
+
+    return current_times != cached_map;
+}
+
+void writeOrgFileCache(
+    const fs::path& infile,
+    const fs::path& cache_file) {
+    auto current_times = getOrgFileTimes(infile);
+
+    std::ofstream f(cache_file);
+    json          j = current_times;
+    f << j;
+}
+
+org::sem::SemId<org::sem::Org> loadCachedImmNode(
+    const fs::path& infile,
+    const fs::path& graph_path,
+    const fs::path& context_path,
+    const fs::path& epoch_path,
+    const fs::path& cache_file,
+    bool            use_cache = true);
+
+class OrgAgendaNode : hstd::SharedPtrApi<OrgAgendaNode> {
+  public:
+    org::sem::SemId<org::sem::Org> data;
+    OrgAgendaNode*                 parent;
+    hstd::Vec<OrgAgendaNode*>      children;
+
+    OrgAgendaNode(
+        org::sem::SemId<org::sem::Org> data,
+        OrgAgendaNode*                 parent   = nullptr,
+        hstd::Vec<OrgAgendaNode*>      children = {});
+
+    std::string getPriority() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            return subtree->priority.value_or("");
+        } else {
+            return "";
+        }
+    }
+
+    hstd::Vec<hstd::Pair<hstd::UserTime, hstd::UserTime>> getClockPeriods(
+        bool recursive = false) const;
+
+    int getClockedSeconds(bool recursive = true) const {
+        int  result  = 0;
+        auto periods = getClockPeriods(recursive);
+
+        for (const auto& [from, to] : periods) {
+            result += to.time - from.time;
+        }
+
+        return result;
+    }
+
+    bool isEvent() const {
+        return getScheduledTime().has_value()
+            || getDeadlineTime().has_value();
+    }
+
+    hstd::Opt<std::chrono::seconds> getDuration() const {
+        return std::nullopt;
+    }
+
+    hstd::Opt<org::sem::Time::Repeat> getScheduledRepeat() const {
+        return std::nullopt;
+    }
+
+    hstd::Opt<org::sem::Time::Repeat> getDeadlineRepeat() const {
+        return std::nullopt;
+    }
+
+    hstd::Str getTitle() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            return subtree->getCleanTitle();
+        } else if (auto file = data.asOpt<org::sem::File>()) {
+            return file->relPath;
+        } else if (auto dir = data.asOpt<org::sem::Directory>()) {
+            return dir->relPath;
+        } else {
+            return fmt1(data->getKind());
+        }
+    }
+
+    hstd::Opt<hstd::UserTime> getScheduledTime() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            if (subtree->scheduled) {
+                return subtree->scheduled.value()->getStaticTime();
+            }
+        }
+        return std::nullopt;
+    }
+
+    hstd::Opt<hstd::UserTime> getDeadlineTime() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            if (subtree->deadline) {
+                return subtree->deadline.value()->getStaticTime();
+            }
+        }
+        return std::nullopt;
+    }
+
+    hstd::Opt<hstd::UserTime> getClosedTime() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            if (subtree->closed) {
+                return subtree->closed.value()->getStaticTime();
+            }
+        }
+        return std::nullopt;
+    }
+
+    hstd::Opt<hstd::UserTime> getCreatedTime() const {
+        return std::nullopt;
+    }
+
+    hstd::Str getTodo() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            return subtree->todo.value_or("");
+        } else {
+            return "";
+        }
+    }
+
+    hstd::Pair<int, int> getRecursiveCompletion() const {
+        int nom   = 0;
+        int denom = 0;
+
+        std::function<void(const OrgAgendaNode*)> aux =
+            [&](const OrgAgendaNode* node) {
+                auto todo = node->getTodo();
+                if (!todo.empty()) {
+                    if (COMPLETED_TASK_SET.find(todo)
+                        != COMPLETED_TASK_SET.end()) {
+                        nom++;
+                        denom++;
+                    } else {
+                        denom++;
+                    }
+                }
+
+                for (const auto& sub : node->children) { aux(sub); }
+            };
+
+        aux(this);
+        return {nom, denom};
+    }
+
+    int getPriorityOrder() const {
+        std::string priority = getPriority();
+        static const std::unordered_map<std::string, int>
+            priority_order = {
+                {"X", 0},
+                {"S", 1},
+                {"A", 2},
+                {"B", 3},
+                {"C", 4},
+                {"D", 5},
+                {"E", 6},
+                {"F", 7}};
+
+        auto it = priority_order.find(priority);
+        return it != priority_order.end() ? it->second : -1;
+    }
+
+    hstd::Vec<hstd::Str> getTags() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            hstd::Vec<hstd::Str> result;
+            for (const auto& tag : subtree->tags) {
+                auto flat_tags = tag->text.getFlatHashes();
+                for (const auto& flat : flat_tags) {
+                    hstd::Str joined;
+                    for (size_t i = 0; i < flat.tags.size(); ++i) {
+                        if (i > 0) { joined += "##"; }
+                        joined += flat.tags[i];
+                    }
+                    result.push_back(joined);
+                }
+            }
+            return result;
+        }
+        return {};
+    }
+
+    int getAgeSeconds() const;
+
+    hstd::Str getAgeDisplay() const;
+
+    void pushBack(OrgAgendaNode* other) {
+        auto kind = other->data->getKind();
+        auto it   = std::find(
+            AGENDA_NODE_TYPES.begin(), AGENDA_NODE_TYPES.end(), kind);
+        assert(it != AGENDA_NODE_TYPES.end());
+        children.push_back(other);
+    }
+
+    auto begin() { return children.begin(); }
+    auto end() { return children.end(); }
+    auto begin() const { return children.begin(); }
+    auto end() const { return children.end(); }
+};
