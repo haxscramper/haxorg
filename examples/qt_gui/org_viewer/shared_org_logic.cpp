@@ -80,30 +80,21 @@ org::sem::SemId<org::sem::Org> loadCachedImmNode(
     } else {
         auto initial_context = org::initImmutableAstContext();
 
-        std::ifstream        context_file(context_path, std::ios::binary);
-        std::vector<uint8_t> context_data(
-            (std::istreambuf_iterator<char>(context_file)),
-            std::istreambuf_iterator<char>());
+        std::string context_data = hstd::readFile(context_path);
         org::imm::serializeFromText(context_data, initial_context);
 
         auto version = initial_context->getEmptyVersion();
 
-        std::ifstream        epoch_file(epoch_path, std::ios::binary);
-        std::vector<uint8_t> epoch_data(
-            (std::istreambuf_iterator<char>(epoch_file)),
-            std::istreambuf_iterator<char>());
+        std::string epoch_data = hstd::readFile(epoch_path);
         org::imm::serializeFromText(epoch_data, version.getEpoch());
 
-        auto node = initial_context.get(version.getRoot());
+        auto node = initial_context->get(version.getRoot());
 
-        auto graph_state = org::graphMapGraphState::FromAstContextStatic(
+        auto graph_state = org::graph::MapGraphState::FromAstContext(
             version.getContext());
 
-        std::ifstream        graph_file(graph_path, std::ios::binary);
-        std::vector<uint8_t> graph_data(
-            (std::istreambuf_iterator<char>(graph_file)),
-            std::istreambuf_iterator<char>());
-        org::serializeMapGraphFromText(graph_data, graph_state.graph);
+        std::string graph_data = hstd::readFile(graph_path);
+        org::imm::serializeFromText(graph_data, graph_state->graph);
 
         return node;
     }
@@ -140,6 +131,12 @@ hstd::Str OrgAgendaNode::getAgeDisplay() const {
     return parts.empty() ? "0s" : result;
 }
 
+void OrgAgendaNode::pushBack(OrgAgendaNode* other) {
+    auto kind = other->data->getKind();
+    assert(AGENDA_NODE_TYPES.contains(kind));
+    children.push_back(other);
+}
+
 OrgAgendaNode::OrgAgendaNode(
     org::sem::SemId<org::sem::Org> data,
     OrgAgendaNode*                 parent,
@@ -174,6 +171,41 @@ hstd::Vec<hstd::Pair<hstd::UserTime, hstd::UserTime>> OrgAgendaNode::
 
     aux(this);
     return result;
+}
+
+hstd::Str OrgAgendaNode::getTitle() const {
+    if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+        return subtree->getCleanTitle();
+    } else if (auto file = data.asOpt<org::sem::File>()) {
+        return file->relPath;
+    } else if (auto dir = data.asOpt<org::sem::Directory>()) {
+        return dir->relPath;
+    } else {
+        return hstd::fmt1(data->getKind());
+    }
+}
+
+hstd::Pair<int, int> OrgAgendaNode::getRecursiveCompletion() const {
+    int nom   = 0;
+    int denom = 0;
+
+    std::function<void(const OrgAgendaNode*)> aux =
+        [&](const OrgAgendaNode* node) {
+            auto todo = node->getTodo();
+            if (!todo.empty()) {
+                if (COMPLETED_TASK_SET.contains(todo)) {
+                    nom++;
+                    denom++;
+                } else {
+                    denom++;
+                }
+            }
+
+            for (const auto& sub : node->children) { aux(sub); }
+        };
+
+    aux(this);
+    return {nom, denom};
 }
 
 int OrgAgendaNode::getAgeSeconds() const {
