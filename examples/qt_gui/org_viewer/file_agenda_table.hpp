@@ -20,7 +20,6 @@
 #include <QKeyEvent>
 
 #include <vector>
-#include <unordered_map>
 #include <string>
 
 #include "shared_org_logic.hpp"
@@ -106,7 +105,9 @@ class OrgTreeModel : public QAbstractItemModel {
   private:
     void collectAllNodes(OrgAgendaNode* node) {
         if (node != getRoot()) { flat_nodes.push_back(node); }
-        for (auto child : node->children) { collectAllNodes(child.get()); }
+        for (auto const& child : node->children) {
+            collectAllNodes(child.get());
+        }
     }
 
   public:
@@ -194,51 +195,23 @@ class CommandPalette : public QDialog {
     Q_OBJECT
 
   public:
-    explicit CommandPalette(QWidget* parent = nullptr) : QDialog{parent} {
+    explicit CommandPalette(QWidget* parent) : QDialog{parent} {
+        LOGIC_ASSERTION_CHECK(parent != nullptr, "");
         setupUi();
         setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
     }
 
-    void setupUi() {
-        setWindowTitle("Go to Item");
-        setModal(true);
-        resize(600, 400);
-
-        auto layout = new QVBoxLayout{this};
-        layout->setContentsMargins(10, 10, 10, 10);
-
-        search_input = new QLineEdit{};
-        search_input->setPlaceholderText("Type to search items...");
-        connect(
-            search_input,
-            &QLineEdit::textChanged,
-            this,
-            &CommandPalette::onSearchChanged);
-        layout->addWidget(search_input);
-
-        results_list = new QListWidget{};
-        connect(
-            results_list,
-            &QListWidget::itemActivated,
-            this,
-            &CommandPalette::onItemActivated);
-        results_list->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        results_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        layout->addWidget(results_list);
-
-        search_input->setFocus();
-    }
+    void setupUi();
 
     void positionOverParent() {
-        if (parentWidget()) {
-            auto parent_rect   = parentWidget()->geometry();
-            int  palette_width = static_cast<int>(
-                parent_rect.width() * 0.6);
-            int x = parent_rect.x()
-                  + (parent_rect.width() - palette_width) / 2;
-            int y = parent_rect.y() + 50;
-            setGeometry(x, y, palette_width, 400);
-        }
+        LOGIC_ASSERTION_CHECK(window() != nullptr, "");
+        auto parent_rect   = parentWidget()->window()->geometry();
+        int  palette_width = static_cast<int>(parent_rect.width() * 0.6);
+        int  x             = parent_rect.x()
+              + (parent_rect.width() - palette_width) / 2;
+        int y = parent_rect.y() + 50;
+        setGeometry(x, y, palette_width, 400);
+        _dfmt(x, y, palette_width);
     }
 
     void populateItems(

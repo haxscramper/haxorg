@@ -214,9 +214,11 @@ QVariant OrgTreeModel::data(const QModelIndex& index, int role) const {
                 return QString::fromStdString(node->getPriority());
             case TableColumns::TODO_INDEX:
                 return QString::fromStdString(node->getTodo());
-            case TableColumns::CREATION_DATE:
+            case TableColumns::CREATION_DATE: {
+                auto created = node->getCreatedTime();
                 return QString::fromStdString(
-                    fmt1(node->getCreatedTime()));
+                    created ? created->format() : "");
+            }
             case TableColumns::TASK_AGE:
                 return QString::fromStdString(node->getAgeDisplay());
             case TableColumns::TAGS: {
@@ -314,4 +316,34 @@ QVariant OrgTreeModel::headerData(
     }
 
     return QVariant{};
+}
+
+void CommandPalette::setupUi() {
+    setWindowTitle("Go to Item");
+    setModal(true);
+    resize(600, 400);
+
+    auto layout = new QVBoxLayout{this};
+    layout->setContentsMargins(10, 10, 10, 10);
+
+    search_input = new QLineEdit{};
+    search_input->setPlaceholderText("Type to search items...");
+    connect(
+        search_input,
+        &QLineEdit::textChanged,
+        this,
+        &CommandPalette::onSearchChanged);
+    layout->addWidget(search_input);
+
+    results_list = new QListWidget{};
+    connect(
+        results_list,
+        &QListWidget::itemActivated,
+        this,
+        &CommandPalette::onItemActivated);
+    results_list->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    results_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    layout->addWidget(results_list);
+
+    search_input->setFocus();
 }

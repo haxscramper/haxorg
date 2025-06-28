@@ -73,14 +73,34 @@ class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
     }
 
     hstd::Opt<std::chrono::seconds> getDuration() const {
+
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            for (auto const& prop : org::getSubtreeProperties<
+                     org::sem::NamedProperty::Effort>(subtree)) {
+                return std::chrono::seconds(
+                    (prop.hours * 60 + prop.minutes) * 60);
+            }
+        }
         return std::nullopt;
     }
 
     hstd::Opt<org::sem::Time::Repeat> getScheduledRepeat() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            if (subtree->scheduled) {
+                return subtree->scheduled.value()->getStatic().repeat.get(
+                    0);
+            }
+        }
         return std::nullopt;
     }
 
     hstd::Opt<org::sem::Time::Repeat> getDeadlineRepeat() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            if (subtree->deadline) {
+                return subtree->deadline.value()->getStatic().repeat.get(
+                    0);
+            }
+        }
         return std::nullopt;
     }
 
@@ -114,6 +134,12 @@ class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
     }
 
     hstd::Opt<hstd::UserTime> getCreatedTime() const {
+        if (auto subtree = data.asOpt<org::sem::Subtree>()) {
+            for (auto const& time : subtree->getTimePeriods(
+                     {org::sem::SubtreePeriod::Kind::Created})) {
+                return time.from;
+            }
+        }
         return std::nullopt;
     }
 
