@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CXX_STANDARD 23)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
 set(PROJ_ROOT "${CMAKE_SOURCE_DIR}")
 set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../..")
@@ -38,6 +38,7 @@ find_package(Perfetto CONFIG REQUIRED)
 find_package(lexy CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(cctz REQUIRED)
+find_package(msgpack-cxx CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS ALL)
 find_package(cpptrace CONFIG REQUIRED)
 find_package(BoostDescribe CONFIG REQUIRED)
@@ -48,7 +49,8 @@ file(GLOB PROJECT_SOURCES "${PROJ_ROOT}/*.?pp")
 
 qt_add_executable(org_viewer MANUAL_FINALIZATION ${PROJECT_SOURCES})
 
-target_link_libraries(org_viewer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets haxorg::haxorg haxorg::hstd)
+set_target_properties(org_viewer PROPERTIES AUTOMOC ON)
+target_link_libraries(org_viewer PRIVATE Qt6::Widgets haxorg::haxorg haxorg::hstd)
 
 set_target_properties(
   org_viewer

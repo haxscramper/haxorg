@@ -1,5 +1,7 @@
 #pragma once
 
+#define NDEBUG 0
+
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
@@ -8,7 +10,6 @@
 #include <unordered_map>
 #include <string>
 #include <filesystem>
-#include <fstream>
 #include <chrono>
 #include <optional>
 #include <nlohmann/json.hpp>
@@ -21,29 +22,9 @@ std::unordered_map<std::string, double> getOrgFileTimes(
 
 bool checkOrgFilesChanged(
     const fs::path& infile,
-    const fs::path& cache_file) {
-    auto current_times = getOrgFileTimes(infile);
+    const fs::path& cache_file);
 
-    if (!fs::exists(cache_file)) { return true; }
-
-    std::ifstream f(cache_file);
-    json          cached_times;
-    f >> cached_times;
-
-    std::unordered_map<std::string, double> cached_map = cached_times;
-
-    return current_times != cached_map;
-}
-
-void writeOrgFileCache(
-    const fs::path& infile,
-    const fs::path& cache_file) {
-    auto current_times = getOrgFileTimes(infile);
-
-    std::ofstream f(cache_file);
-    json          j = current_times;
-    f << j;
-}
+void writeOrgFileCache(const fs::path& infile, const fs::path& cache_file);
 
 org::sem::SemId<org::sem::Org> loadCachedImmNode(
     const fs::path& infile,
@@ -53,16 +34,16 @@ org::sem::SemId<org::sem::Org> loadCachedImmNode(
     const fs::path& cache_file,
     bool            use_cache = true);
 
-class OrgAgendaNode : hstd::SharedPtrApi<OrgAgendaNode> {
+class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
   public:
     org::sem::SemId<org::sem::Org> data;
-    OrgAgendaNode*                 parent;
-    hstd::Vec<OrgAgendaNode*>      children;
+    OrgAgendaNode::WPtr            parent;
+    hstd::Vec<OrgAgendaNode::Ptr>  children;
 
     OrgAgendaNode(
         org::sem::SemId<org::sem::Org> data,
-        OrgAgendaNode*                 parent   = nullptr,
-        hstd::Vec<OrgAgendaNode*>      children = {});
+        OrgAgendaNode::WPtr            parent   = OrgAgendaNode::WPtr{},
+        hstd::Vec<OrgAgendaNode::Ptr>  children = {});
 
     std::string getPriority() const {
         if (auto subtree = data.asOpt<org::sem::Subtree>()) {
@@ -186,10 +167,14 @@ class OrgAgendaNode : hstd::SharedPtrApi<OrgAgendaNode> {
 
     hstd::Str getAgeDisplay() const;
 
-    void pushBack(OrgAgendaNode* other);
+    void pushBack(OrgAgendaNode::Ptr other);
 
     auto begin() { return children.begin(); }
     auto end() { return children.end(); }
     auto begin() const { return children.begin(); }
     auto end() const { return children.end(); }
 };
+
+OrgAgendaNode::Ptr buildAgendaTree(
+    org::sem::SemId<org::sem::Org> const& node,
+    OrgAgendaNode::WPtr                   parent = OrgAgendaNode::WPtr{});

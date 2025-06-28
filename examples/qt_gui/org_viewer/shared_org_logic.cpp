@@ -34,11 +34,8 @@ org::sem::SemId<org::sem::Org> loadCachedImmNode(
         dir_opts->getParsedNode = [&](const std::string& path)
             -> org::sem::SemId<org::sem::Org> {
             try {
-                std::ifstream file(path);
-                std::string   content(
-                    (std::istreambuf_iterator<char>(file)),
-                    std::istreambuf_iterator<char>());
-                return org::parseStringOpts(content, parse_opts);
+                return org::parseStringOpts(
+                    hstd::readFile(path), parse_opts);
             } catch (const std::exception& e) {
                 return org::sem::SemId<org::sem::Empty>::New();
             }
@@ -55,24 +52,12 @@ org::sem::SemId<org::sem::Org> loadCachedImmNode(
 
         graph_state->addNodeRec(version.getContext(), root, conf);
 
-        std::ofstream graph_file(graph_path, std::ios::binary);
-        auto graph_data = org::imm::serializeToText(graph_state->graph);
-        graph_file.write(
-            reinterpret_cast<const char*>(graph_data.data()),
-            graph_data.size());
-
-        std::ofstream context_file(context_path, std::ios::binary);
-        auto          context_data = org::imm::serializeToText(
-            version.getContext());
-        context_file.write(
-            reinterpret_cast<const char*>(context_data.data()),
-            context_data.size());
-
-        std::ofstream epoch_file(epoch_path, std::ios::binary);
-        auto epoch_data = org::imm::serializeToText(version.getEpoch());
-        epoch_file.write(
-            reinterpret_cast<const char*>(epoch_data.data()),
-            epoch_data.size());
+        hstd::writeFile(
+            graph_path, org::imm::serializeToText(graph_state->graph));
+        hstd::writeFile(
+            context_path, org::imm::serializeToText(version.getContext()));
+        hstd::writeFile(
+            epoch_path, org::imm::serializeToText(version.getEpoch()));
 
         writeOrgFileCache(infile, cache_file);
 
@@ -131,7 +116,7 @@ hstd::Str OrgAgendaNode::getAgeDisplay() const {
     return parts.empty() ? "0s" : result;
 }
 
-void OrgAgendaNode::pushBack(OrgAgendaNode* other) {
+void OrgAgendaNode::pushBack(OrgAgendaNode::Ptr other) {
     auto kind = other->data->getKind();
     assert(AGENDA_NODE_TYPES.contains(kind));
     children.push_back(other);
@@ -139,21 +124,21 @@ void OrgAgendaNode::pushBack(OrgAgendaNode* other) {
 
 OrgAgendaNode::OrgAgendaNode(
     org::sem::SemId<org::sem::Org> data,
-    OrgAgendaNode*                 parent,
-    hstd::Vec<OrgAgendaNode*>      children)
+    OrgAgendaNode::WPtr            parent,
+    hstd::Vec<OrgAgendaNode::Ptr>  children)
     : data{data}, parent{parent}, children{children} {
-    auto kind = data->getKind();
-    auto it   = std::find(
-        AGENDA_NODE_TYPES.begin(), AGENDA_NODE_TYPES.end(), kind);
-    assert(it != AGENDA_NODE_TYPES.end());
+    LOGIC_ASSERTION_CHECK(
+        AGENDA_NODE_TYPES.contains(data->getKind()),
+        "{}",
+        data->getKind());
 }
 
 hstd::Vec<hstd::Pair<hstd::UserTime, hstd::UserTime>> OrgAgendaNode::
     getClockPeriods(bool recursive) const {
     hstd::Vec<hstd::Pair<hstd::UserTime, hstd::UserTime>> result;
 
-    std::function<void(const OrgAgendaNode*)> aux =
-        [&](const OrgAgendaNode* node) {
+    std::function<void(OrgAgendaNode::Ptr const&)> aux =
+        [&](OrgAgendaNode::Ptr const& node) {
             if (auto subtree = data.asOpt<org::sem::Subtree>()) {
                 auto periods = subtree->getTimePeriods(
                     {org::sem::SubtreePeriod::Kind::Clocked});
@@ -169,7 +154,7 @@ hstd::Vec<hstd::Pair<hstd::UserTime, hstd::UserTime>> OrgAgendaNode::
             }
         };
 
-    aux(this);
+    aux(mshared_from_this());
     return result;
 }
 
@@ -189,8 +174,8 @@ hstd::Pair<int, int> OrgAgendaNode::getRecursiveCompletion() const {
     int nom   = 0;
     int denom = 0;
 
-    std::function<void(const OrgAgendaNode*)> aux =
-        [&](const OrgAgendaNode* node) {
+    std::function<void(OrgAgendaNode::Ptr const&)> aux =
+        [&](OrgAgendaNode::Ptr const& node) {
             auto todo = node->getTodo();
             if (!todo.empty()) {
                 if (COMPLETED_TASK_SET.contains(todo)) {
@@ -204,7 +189,7 @@ hstd::Pair<int, int> OrgAgendaNode::getRecursiveCompletion() const {
             for (const auto& sub : node->children) { aux(sub); }
         };
 
-    aux(this);
+    aux(mshared_from_this());
     return {nom, denom};
 }
 
@@ -227,18 +212,71 @@ std::unordered_map<std::string, double> getOrgFileTimes(
     const fs::path& infile) {
     std::unordered_map<std::string, double> current_times;
 
-    for (const auto& entry : fs::directory_iterator(infile)) {
-        if (entry.path().extension() == ".org") {
-            auto ftime = fs::last_write_time(entry.path());
-            auto sctp  = std::chrono::time_point_cast<
-                 std::chrono::system_clock::duration>(
-                ftime - fs::file_time_type::clock::now()
-                + std::chrono::system_clock::now());
-            auto time_t = std::chrono::system_clock::to_time_t(sctp);
-            current_times[entry.path().string()] = static_cast<double>(
-                time_t);
+    auto insert_time = [&](fs::path const& path) {
+        auto ftime = fs::last_write_time(path);
+        auto sctp  = std::chrono::time_point_cast<
+             std::chrono::system_clock::duration>(
+            ftime - fs::file_time_type::clock::now()
+            + std::chrono::system_clock::now());
+        auto time_t = std::chrono::system_clock::to_time_t(sctp);
+        current_times[path.string()] = static_cast<double>(time_t);
+    };
+
+    if (fs::is_directory(infile)) {
+        for (const auto& entry : fs::directory_iterator(infile)) {
+            if (entry.path().extension() == ".org") {
+                insert_time(entry.path());
+            }
         }
+    } else if (fs::is_regular_file(infile)) {
+        insert_time(infile);
+    } else if (fs::is_symlink(infile)) {
+        fs::path target = fs::read_symlink(infile);
+        while (fs::is_symlink(target)) {
+            target = fs::read_symlink(target);
+        }
+        insert_time(target);
     }
 
     return current_times;
+}
+
+bool checkOrgFilesChanged(
+    const fs::path& infile,
+    const fs::path& cache_file) {
+    auto current_times = getOrgFileTimes(infile);
+
+    if (fs::exists(cache_file)) {
+        json cached_times = json::parse(hstd::readFile(cache_file));
+        std::unordered_map<std::string, double> cached_map;
+        hstd::from_json_eval(cached_times, cached_map);
+
+        return current_times != cached_map;
+    } else {
+        return true;
+    }
+}
+
+void writeOrgFileCache(
+    const fs::path& infile,
+    const fs::path& cache_file) {
+    auto current_times = getOrgFileTimes(infile);
+
+    hstd::writeFile(cache_file, hstd::to_json_eval(current_times).dump(2));
+}
+OrgAgendaNode::Ptr buildAgendaTree(
+    org::sem::SemId<org::sem::Org> const& node,
+    OrgAgendaNode::WPtr                   parent) {
+    auto result = OrgAgendaNode::shared(node, parent);
+
+    for (const auto& sub : node) {
+        auto kind = sub->getKind();
+        if (AGENDA_NODE_TYPES.contains(kind)) {
+            auto added              = buildAgendaTree(sub, result);
+            auto [completed, total] = added->getRecursiveCompletion();
+            if (total != 0) { result->pushBack(added); }
+        }
+    }
+
+    return result;
 }

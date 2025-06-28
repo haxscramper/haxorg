@@ -1,23 +1,27 @@
-#include <QtCore/QAbstractItemModel>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtGui/QColor>
-#include <QtGui/QFont>
-#include <QtWidgets/QWidget>
-#include <QtWidgets/QTreeView>
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QFormLayout>
-#include <QtWidgets/QCheckBox>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QHeaderView>
-#include <QtGui/QShortcut>
-#include <QtGui/QKeySequence>
-#include <QtCore/QModelIndex>
-#include <QtWidgets/QDialog>
+#pragma once
+
+#include <QAbstractItemModel>
+#include <QSortFilterProxyModel>
+#include <QColor>
+#include <QFont>
+#include <QWidget>
+#include <QTreeView>
+#include <QVBoxLayout>
+#include <QFormLayout>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QHeaderView>
+#include <QShortcut>
+#include <QKeySequence>
+#include <QModelIndex>
+#include <QDialog>
+#include <QListWidgetItem>
+#include <QLineEdit>
+#include <QKeyEvent>
 
 #include <vector>
 #include <unordered_map>
 #include <string>
-#include <optional>
 
 #include "shared_org_logic.hpp"
 
@@ -33,18 +37,6 @@ enum class TableColumns
     TAGS           = 7
 };
 
-std::string getColumnName(TableColumns column) {
-    static const std::unordered_map<TableColumns, std::string> names = {
-        {TableColumns::TITLE, "title"},
-        {TableColumns::COMPLETION, "[/]"},
-        {TableColumns::PRIORITY_INDEX, "[#]"},
-        {TableColumns::TODO_INDEX, "todo"},
-        {TableColumns::CREATION_DATE, "created"},
-        {TableColumns::CLOCKED, "clocked"},
-        {TableColumns::TAGS, "tags"},
-        {TableColumns::TASK_AGE, "age"}};
-    return names.at(column);
-}
 
 class OrgTreeModel : public QAbstractItemModel {
     Q_OBJECT
@@ -81,57 +73,9 @@ class OrgTreeModel : public QAbstractItemModel {
     QModelIndex index(
         int                row,
         int                column,
-        const QModelIndex& parent = QModelIndex()) const override {
-        if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
+        const QModelIndex& parent = QModelIndex()) const override;
 
-        if (isFlatSorting()) {
-            if (!parent.isValid() && row < flat_nodes.size()) {
-                return createIndex(row, column, flat_nodes[row]);
-            }
-            return QModelIndex{};
-        } else {
-            if (!parent.isValid()) {
-                if (row < getRoot()->children.size()) {
-                    return createIndex(
-                        row, column, getRoot()->children[row]);
-                }
-            } else {
-                auto parent_node = static_cast<OrgAgendaNode*>(
-                    parent.internalPointer());
-                if (row < parent_node->children.size()) {
-                    auto child_node = parent_node->children[row];
-                    return createIndex(row, column, child_node);
-                }
-            }
-        }
-
-        return QModelIndex{};
-    }
-
-    QModelIndex parent(const QModelIndex& index) const override {
-        if (!index.isValid() || isFlatSorting()) { return QModelIndex{}; }
-
-        auto node = static_cast<OrgAgendaNode*>(index.internalPointer());
-        auto parent_node = node->parent;
-
-        if (!parent_node || parent_node == getRoot()) {
-            return QModelIndex{};
-        }
-
-        auto grandparent = parent_node->parent;
-        if (grandparent) {
-            auto it = std::find(
-                grandparent->children.begin(),
-                grandparent->children.end(),
-                parent_node);
-            if (it != grandparent->children.end()) {
-                int row = std::distance(grandparent->children.begin(), it);
-                return createIndex(row, 0, parent_node);
-            }
-        }
-
-        return QModelIndex{};
-    }
+    QModelIndex parent(const QModelIndex& index) const override;
 
     int rowCount(
         const QModelIndex& parent = QModelIndex()) const override {
@@ -152,129 +96,17 @@ class OrgTreeModel : public QAbstractItemModel {
     }
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override {
-        if (!index.isValid()) { return QVariant{}; }
-
-        auto node   = static_cast<OrgAgendaNode*>(index.internalPointer());
-        int  column = index.column();
-
-        if (role == Qt::DisplayRole) {
-            switch (static_cast<TableColumns>(column)) {
-                case TableColumns::TITLE:
-                    return QString::fromStdString(node->getTitle());
-                case TableColumns::PRIORITY_INDEX:
-                    return QString::fromStdString(node->getPriority());
-                case TableColumns::TODO_INDEX:
-                    return QString::fromStdString(node->getTodo());
-                case TableColumns::CREATION_DATE:
-                    return QString::fromStdString(
-                        fmt1(node->getCreatedTime()));
-                case TableColumns::TASK_AGE:
-                    return QString::fromStdString(node->getAgeDisplay());
-                case TableColumns::TAGS: {
-                    auto        tags = node->getTags();
-                    std::string result;
-                    for (size_t i = 0; i < tags.size(); ++i) {
-                        if (i > 0) { result += ", "; }
-                        result += tags[i];
-                    }
-                    return QString::fromStdString(result);
-                }
-                case TableColumns::COMPLETION: {
-                    auto [a, b] = node->getRecursiveCompletion();
-                    return QString::fromStdString(
-                        std::format("{}/{}", a, b));
-                }
-                case TableColumns::CLOCKED: {
-                    int sec     = node->getClockedSeconds();
-                    int hours   = sec / (60 * 60);
-                    int minutes = (sec / 60) % 60;
-                    return QString::fromStdString(
-                        std::format("{}:{}", hours, minutes));
-                }
-            }
-        } else if (
-            role == Qt::BackgroundRole
-            && column == static_cast<int>(TableColumns::PRIORITY_INDEX)) {
-            std::string priority = node->getPriority();
-            static const std::unordered_map<std::string, QColor> colors = {
-                {"X", QColor{255, 0, 0}},
-                {"S", QColor{253, 95, 240}},
-                {"A", QColor{240, 223, 175}},
-                {"B", QColor{253, 151, 31}},
-                {"C", QColor{102, 217, 239}},
-                {"D", QColor{161, 239, 228}},
-                {"E", QColor{166, 226, 46}},
-                {"F", QColor{174, 129, 255}}};
-            auto it = colors.find(priority);
-            if (it != colors.end()) { return it->second; }
-        } else if (
-            role == Qt::FontRole
-            && column == static_cast<int>(TableColumns::PRIORITY_INDEX)) {
-            std::string priority = node->getPriority();
-            QFont       font;
-            if (priority == "A") {
-                font.setBold(true);
-                font.setUnderline(true);
-                return font;
-            } else if (priority == "E" || priority == "F") {
-                font.setWeight(QFont::Light);
-                return font;
-            }
-        } else if (
-            role == Qt::BackgroundRole
-            && column == static_cast<int>(TableColumns::TODO_INDEX)) {
-            std::string todo = node->getTodo();
-            std::transform(
-                todo.begin(), todo.end(), todo.begin(), ::tolower);
-            if (todo == "done" || todo == "completed") {
-                return QColor{144, 238, 144};
-            } else if (todo == "wip" || todo == "next") {
-                return QColor{255, 165, 0};
-            } else if (todo == "todo") {
-                return QColor{255, 182, 193};
-            }
-        } else if (
-            role == Qt::BackgroundRole
-            && column == static_cast<int>(TableColumns::TASK_AGE)) {
-            int age_seconds = node->getAgeSeconds();
-            if (age_seconds == 0) {
-                return QVariant{};
-            } else if (age_seconds <= 24 * 3600) {
-                return QColor{200, 255, 200};
-            } else if (age_seconds <= 7 * 24 * 3600) {
-                return QColor{255, 255, 200};
-            } else if (age_seconds <= 30 * 24 * 3600) {
-                return QColor{255, 220, 200};
-            } else {
-                return QColor{255, 200, 200};
-            }
-        }
-
-        return QVariant{};
-    }
+        const override;
 
     QVariant headerData(
         int             section,
         Qt::Orientation orientation,
-        int             role = Qt::DisplayRole) const override {
-        if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            if (section >= 0 && section < 8) {
-                return QString::fromStdString(
-                    getColumnName(static_cast<TableColumns>(section)));
-            }
-        } else if (
-            orientation == Qt::Vertical && role == Qt::DisplayRole) {
-            return QString::number(section);
-        }
-
-        return QVariant{};
-    }
+        int             role = Qt::DisplayRole) const override;
 
   private:
     void collectAllNodes(OrgAgendaNode* node) {
         if (node != getRoot()) { flat_nodes.push_back(node); }
-        for (auto child : node->children) { collectAllNodes(child); }
+        for (auto child : node->children) { collectAllNodes(child.get()); }
     }
 
   public:
@@ -319,52 +151,7 @@ class OrgTreeProxyModel : public QSortFilterProxyModel {
 
   protected:
     bool filterAcceptsRow(int source_row, const QModelIndex& source_parent)
-        const override {
-        if (model->isFlatSorting()) {
-            auto node = model->flat_nodes[source_row];
-            if (hide_completed_tasks && isCompletedTask(node->getTodo())) {
-                return false;
-            }
-
-            if (hide_tasks_without_todo_on_flat
-                && node->getTodo().empty()) {
-                return false;
-            }
-
-            return true;
-        } else {
-            OrgAgendaNode* node;
-            if (source_parent.isValid()) {
-                auto parent_node = static_cast<OrgAgendaNode*>(
-                    source_parent.internalPointer());
-                if (source_row < parent_node->children.size()) {
-                    node = parent_node->children[source_row];
-                } else {
-                    return true;
-                }
-            } else {
-                if (source_row < model->getRoot()->children.size()) {
-                    node = model->getRoot()->children[source_row];
-                } else {
-                    return true;
-                }
-            }
-
-            auto [completed, total] = node->getRecursiveCompletion();
-            if (hide_completed_tasks && isCompletedTask(node->getTodo())
-                    && (hide_nested || node->children.empty())
-                || (completed == total)) {
-                return false;
-            }
-
-            if (hide_tasks_without_todo_on_flat && node->getTodo().empty()
-                && (hide_nested || node->children.empty())) {
-                return false;
-            }
-
-            return true;
-        }
-    }
+        const override;
 
     bool lessThan(const QModelIndex& left, const QModelIndex& right)
         const override;
@@ -756,7 +543,8 @@ class AgendaWidget : public QWidget {
     Q_OBJECT
 
   public:
-    explicit AgendaWidget(OrgAgendaNode* root_node) : QWidget{} {
+    explicit AgendaWidget(OrgAgendaNode* root_node, QWidget* parent)
+        : QWidget{parent} {
         model = new OrgTreeModel{root_node};
         setupUi();
     }
@@ -891,5 +679,3 @@ class AgendaWidget : public QWidget {
     OrgTreeProxyModel*          sort_model;
     TreeViewWithCommandPalette* command_palette_handler;
 };
-
-#include "file_agenda_table.moc"
