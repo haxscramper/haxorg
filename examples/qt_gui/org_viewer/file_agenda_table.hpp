@@ -18,6 +18,7 @@
 #include <QListWidgetItem>
 #include <QLineEdit>
 #include <QKeyEvent>
+#include <hstd/stdlib/diffs.hpp>
 
 #include <vector>
 #include <string>
@@ -317,11 +318,34 @@ class CommandPalette : public QDialog {
         const std::string& search_text) {
         std::vector<CommandPaletteItem> scored_items;
 
+        hstd::FuzzyMatcher matcher;
+        std::string*       curr_item;
+        matcher.isEqual = [&](int const& i_pattern,
+                              int const& i_item) -> bool {
+            return search_text.at(i_pattern) == curr_item->at(i_item);
+        };
+
+        matcher.matchScore = matcher.getLinearScore(
+            hstd::FuzzyMatcher::LinearScoreConfig{
+                .isSeparator =
+                    [&curr_item](int idx) {
+                        char c = curr_item->at(idx);
+                        return c == '/' || c == '|';
+                    },
+            });
+
         for (auto& item : items) {
-            double score = calculateScore(item, search_text);
-            if (score > 0) {
-                item.score = score;
-                scored_items.push_back(item);
+            if (!search_text.empty() && !item.title.empty()) {
+                curr_item = &item.title;
+
+                int score = matcher.get_score(
+                    hstd::sliceSize(item.title),
+                    hstd::sliceSize(search_text));
+
+                if (0 < score) {
+                    item.score = score;
+                    scored_items.push_back(item);
+                }
             }
         }
 
@@ -334,72 +358,6 @@ class CommandPalette : public QDialog {
             });
 
         return scored_items;
-    }
-
-    double calculateScore(
-        const CommandPaletteItem& item,
-        const std::string&        search_text) {
-        std::string title_lower = item.title;
-        std::string path_lower  = item.full_path;
-        std::transform(
-            title_lower.begin(),
-            title_lower.end(),
-            title_lower.begin(),
-            ::tolower);
-        std::transform(
-            path_lower.begin(),
-            path_lower.end(),
-            path_lower.begin(),
-            ::tolower);
-
-        if (search_text == title_lower) { return 100.0; }
-
-        if (title_lower.starts_with(search_text)) { return 90.0; }
-
-        if (title_lower.find(search_text) != std::string::npos) {
-            return 80.0;
-        }
-
-        if (path_lower.find(search_text) != std::string::npos) {
-            return 70.0;
-        }
-
-        double title_ratio = calculateSimilarity(search_text, title_lower);
-        double path_ratio  = calculateSimilarity(search_text, path_lower);
-        double fuzzy_score = std::max(title_ratio, path_ratio) * 60.0;
-
-        return fuzzy_score > 20.0 ? fuzzy_score : 0.0;
-    }
-
-    double calculateSimilarity(
-        const std::string& a,
-        const std::string& b) {
-        if (a.empty() && b.empty()) { return 1.0; }
-        if (a.empty() || b.empty()) { return 0.0; }
-
-        std::vector<std::vector<int>> dp(
-            a.length() + 1, std::vector<int>(b.length() + 1));
-
-        for (size_t i = 0; i <= a.length(); ++i) { dp[i][0] = i; }
-        for (size_t j = 0; j <= b.length(); ++j) { dp[0][j] = j; }
-
-        for (size_t i = 1; i <= a.length(); ++i) {
-            for (size_t j = 1; j <= b.length(); ++j) {
-                if (a[i - 1] == b[j - 1]) {
-                    dp[i][j] = dp[i - 1][j - 1];
-                } else {
-                    dp[i][j] = 1
-                             + std::min(
-                                   {dp[i - 1][j],
-                                    dp[i][j - 1],
-                                    dp[i - 1][j - 1]});
-                }
-            }
-        }
-
-        int max_len = std::max(a.length(), b.length());
-        return 1.0
-             - static_cast<double>(dp[a.length()][b.length()]) / max_len;
     }
 
     void updateResultsList() {

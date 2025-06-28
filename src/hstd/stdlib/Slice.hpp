@@ -166,6 +166,11 @@ constexpr Slice<T> slice1(CR<T> first, CR<T> last) {
 }
 
 template <typename T>
+constexpr Slice<int> sliceSize(T const& value) {
+    return slice<int>(0, value.size() - 1);
+}
+
+template <typename T>
 constexpr Slice<T> sliceT()
     requires ImplementsLow<T> && ImplementsHigh<T>
 {

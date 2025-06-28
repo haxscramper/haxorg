@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/diffs.hpp>
+#include "hstd_tests_common.hpp"
 
 using namespace hstd;
 
@@ -193,16 +194,14 @@ class DiffTestFuzzy : public ::testing::Test {
     void SetUp() override {}
 
 
-    FuzzyMatcher initMatcher(bool trace = false) {
+    FuzzyMatcher initMatcher(
+        hstd::Opt<hstd::Str> debugFullPath = std::nullopt) {
         const ::testing::TestInfo* const test_info //
             = ::testing::UnitTest::GetInstance()->current_test_info();
         FuzzyMatcher matcher;
 
-        if (trace) {
-            matcher.setTraceFile(
-                fmt("/tmp/{}_{}.txt",
-                    test_info->test_suite_name(),
-                    test_info->name()));
+        if (debugFullPath) {
+            matcher.setTraceFile(debugFullPath.value().toBase());
         }
 
         return matcher;
@@ -225,8 +224,11 @@ class DiffTestFuzzy : public ::testing::Test {
         return matcher.matches;
     }
 
-    auto getMatches(const Str& lhs, const Str& rhs) -> Vec<int> {
-        FuzzyMatcher matcher = initMatcher();
+    auto getMatches(
+        const Str&           lhs,
+        const Str&           rhs,
+        hstd::Opt<hstd::Str> debugFullPath = std::nullopt) -> Vec<int> {
+        FuzzyMatcher matcher = initMatcher(debugFullPath);
 
         matcher.matchScore = matcher.getLinearScore(
             FuzzyMatcher::LinearScoreConfig{
@@ -293,5 +295,19 @@ TEST_F(DiffTestFuzzy, EdgeCases) {
     {
         auto m = getMatches("000000000", "");
         EXPECT_EQ(m.size(), 0);
+    }
+
+    for (auto const& [item, pattern] : Vec<Pair<Str, Str>>{
+             {"a", "Document"},
+             {"Document", "a"},
+         }) {
+        FuzzyMatcher m;
+
+        m.setTraceFile(getDebugFile(fmt("{}_{}", item, pattern)));
+
+        m.isEqual = [&](int const& i_pattern, int const& i_item) {
+            return item.at(i_item) == pattern.at(i_pattern);
+        };
+        m.get_score(sliceSize(item), sliceSize(pattern));
     }
 }

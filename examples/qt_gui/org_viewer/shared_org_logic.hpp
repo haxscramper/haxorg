@@ -1,6 +1,6 @@
 #pragma once
 
-#define NDEBUG 0
+// #define NDEBUG 0
 
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
