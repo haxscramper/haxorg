@@ -347,3 +347,84 @@ void CommandPalette::setupUi() {
 
     search_input->setFocus();
 }
+
+std::vector<CommandPaletteItem> CommandPalette::filterAndScoreItems(
+    const std::string& search_text) {
+    std::vector<CommandPaletteItem> scored_items;
+
+    hstd::FuzzyMatcher matcher;
+    std::string*       curr_item;
+    matcher.isEqual = [&](int const& i_pattern,
+                          int const& i_item) -> bool {
+        return std::tolower(search_text.at(i_pattern))
+            == std::tolower(curr_item->at(i_item));
+    };
+
+    matcher.matchScore = matcher.getLinearScore(
+        hstd::FuzzyMatcher::LinearScoreConfig{
+            .isSeparator =
+                [&curr_item](int idx) {
+                    char c = curr_item->at(idx);
+                    return c == '/' || c == '|';
+                },
+        });
+
+    for (auto& item : items) {
+        if (!search_text.empty() && !item.title.empty()) {
+            matcher.matches.clear();
+            curr_item = &item.title;
+
+            int score = matcher.get_score(
+                hstd::sliceSize(item.title), hstd::sliceSize(search_text));
+
+            if (0 < score) {
+                item.score = score;
+                scored_items.push_back(item);
+            }
+        }
+    }
+
+    std::sort(
+        scored_items.begin(),
+        scored_items.end(),
+        [](const auto& a, const auto& b) {
+            if (a.score != b.score) { return a.score > b.score; }
+            return a.full_path.length() < b.full_path.length();
+        });
+
+    return scored_items;
+}
+
+void CommandPalette::updateResultsList() {
+    results_list->clear();
+
+    for (const auto& item : filtered_items) {
+        auto list_item = new QListWidgetItem{};
+        list_item->setText(QString::fromStdString(item.full_path));
+        list_item->setData(
+            Qt::UserRole,
+            QVariant::fromValue(const_cast<CommandPaletteItem*>(&item)));
+
+        if (!search_input->text().trimmed().isEmpty()) {
+            std::string search_text = search_input->text()
+                                          .toLower()
+                                          .toStdString();
+            std::string title_lower = item.title;
+            std::transform(
+                title_lower.begin(),
+                title_lower.end(),
+                title_lower.begin(),
+                ::tolower);
+
+            if (title_lower.find(search_text) != std::string::npos) {
+                auto font = list_item->font();
+                font.setBold(true);
+                list_item->setFont(font);
+            }
+        }
+
+        results_list->addItem(list_item);
+    }
+
+    if (results_list->count() > 0) { results_list->setCurrentRow(0); }
+}
