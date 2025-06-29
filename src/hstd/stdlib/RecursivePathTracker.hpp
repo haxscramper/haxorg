@@ -21,11 +21,26 @@ class RecursivePathTracker {
     hstd::SPtr<Node> current;
     int              length;
 
+    // Helper method to traverse to a specific index
+    hstd::SPtr<Node> getNodeAt(int index) const {
+        if (index < 0 || index >= length) {
+            throw std::out_of_range("Index out of range");
+        }
+
+        // Calculate how many steps back from current we need to go
+        int steps_back = length - 1 - index;
+
+        auto node = current;
+        for (int i = 0; i < steps_back; ++i) { node = node->parent; }
+
+        return node;
+    }
+
   public:
     class iterator {
       private:
-        Vec<PathStep> cached_path;
-        int           index;
+        const RecursivePathTracker* tracker;
+        int                         index;
 
       public:
         using iterator_category = std::random_access_iterator_tag;
@@ -34,13 +49,19 @@ class RecursivePathTracker {
         using pointer           = const PathStep*;
         using reference         = const PathStep&;
 
-        iterator(const Vec<PathStep>& path, int idx)
-            : cached_path{path}, index{idx} {}
+        iterator(const RecursivePathTracker* t, int idx)
+            : tracker{t}, index{idx} {}
 
-        reference operator*() const { return cached_path[index]; }
-        pointer   operator->() const { return &cached_path[index]; }
+        reference operator*() const {
+            return tracker->getNodeAt(index)->value;
+        }
+
+        pointer operator->() const {
+            return &(tracker->getNodeAt(index)->value);
+        }
+
         reference operator[](difference_type n) const {
-            return cached_path[index + n];
+            return tracker->getNodeAt(index + n)->value;
         }
 
         iterator& operator++() {
@@ -71,10 +92,10 @@ class RecursivePathTracker {
             return *this;
         }
         iterator operator+(difference_type n) const {
-            return iterator{cached_path, index + n};
+            return iterator{tracker, index + n};
         }
         iterator operator-(difference_type n) const {
-            return iterator{cached_path, index - n};
+            return iterator{tracker, index - n};
         }
 
         difference_type operator-(const iterator& other) const {
@@ -133,7 +154,7 @@ class RecursivePathTracker {
     bool empty() const { return length == 0; }
 
     const PathStep& operator[](int index) const {
-        return toVector()[index];
+        return getNodeAt(index)->value;
     }
 
     const PathStep& back() const {
@@ -165,15 +186,9 @@ class RecursivePathTracker {
 
     operator hstd::Vec<PathStep>() const { return toVector(); }
 
-    iterator begin() const {
-        auto vec = toVector();
-        return iterator{vec, 0};
-    }
+    iterator begin() const { return iterator{this, 0}; }
 
-    iterator end() const {
-        auto vec = toVector();
-        return iterator{vec, vec.size()};
-    }
+    iterator end() const { return iterator{this, length}; }
 
     const_iterator cbegin() const { return begin(); }
     const_iterator cend() const { return end(); }

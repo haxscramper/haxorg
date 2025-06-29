@@ -43,6 +43,7 @@ psutil = "^6.1.1"
 pyqt6 = "^6.9.1"
 fuzzywuzzy = "^0.18.0"
 python-levenshtein = "^0.27.1"
+seaborn = "^0.13.2"
 
 [tool.poetry.group.local.dependencies]
 py_haxorg_gui = {path = "./scripts/py_haxorg_gui", develop = true}

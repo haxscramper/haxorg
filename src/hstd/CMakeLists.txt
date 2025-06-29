@@ -1,10 +1,7 @@
-add_library(hstd)
-set_common_files(hstd)
+haxorg_add_library(hstd)
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/stdlib/.*" SEARCH_BASE "${BASE}")
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/system/.*" SEARCH_BASE "${BASE}")
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/ext/.*" SEARCH_BASE "${BASE}")
-set_target_output(hstd)
-set_target_flags(hstd)
 
 find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
@@ -15,6 +12,10 @@ target_link_libraries(hstd PUBLIC yaml-cpp::yaml-cpp range-v3::range-v3
 if(NOT ${ORG_EMCC_BUILD})
   target_link_libraries(hstd PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY} Boost::log
                                     cpptrace::cpptrace)
+endif()
+
+if(${ORG_DEPS_USE_ADAPTAGRAMS})
+  target_link_libraries(hstd PUBLIC adaptagrams)
 endif()
 
 if(${ORG_DEPS_USE_PACKAGED_BOOST})
@@ -33,13 +34,14 @@ target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/imm
                                        "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
 
 if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
-  add_executable(tests_hstd)
-  set_common_files(tests_hstd)
-  set_target_output(tests_hstd)
-  set_target_flags(tests_hstd)
+  haxorg_add_executable(tests_hstd)
   glob_add_sources2(TARGET tests_hstd LS_REGEX "${BASE}/tests/hstd/.*" SEARCH_BASE "${BASE}")
   target_link_libraries(tests_hstd PUBLIC GTest::gtest hstd absl::flags absl::flags_parse)
-  if(${ORG_DEPS_USE_ADAPTAGRAMS})
-    target_link_libraries(tests_hstd PUBLIC adaptagrams)
-  endif()
+  add_test(NAME hstd_tests COMMAND tests_hstd)
+
+  haxorg_add_executable(benchmark_hstd)
+  glob_add_sources2(TARGET benchmark_hstd LS_REGEX "${BASE}/benchmark/hstd/.*" SEARCH_BASE
+                    "${BASE}")
+  target_link_libraries(benchmark_hstd PUBLIC benchmark::benchmark hstd)
+  add_test(NAME hstd_benchmark COMMAND benchmark_hstd)
 endif()
