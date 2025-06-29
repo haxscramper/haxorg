@@ -322,7 +322,8 @@ class CommandPalette : public QDialog {
         std::string*       curr_item;
         matcher.isEqual = [&](int const& i_pattern,
                               int const& i_item) -> bool {
-            return search_text.at(i_pattern) == curr_item->at(i_item);
+            return std::tolower(search_text.at(i_pattern))
+                == std::tolower(curr_item->at(i_item));
         };
 
         matcher.matchScore = matcher.getLinearScore(
@@ -336,6 +337,7 @@ class CommandPalette : public QDialog {
 
         for (auto& item : items) {
             if (!search_text.empty() && !item.title.empty()) {
+                matcher.matches.clear();
                 curr_item = &item.title;
 
                 int score = matcher.get_score(
@@ -417,13 +419,20 @@ class TreeViewWithCommandPalette : public QObject {
         , proxy_model{proxy_model}
         , command_palette{nullptr} {
 
-        shortcut = new QShortcut{QKeySequence{"Ctrl+P"}, tree_view};
         connect(
-            shortcut,
+            new QShortcut{QKeySequence{"Ctrl+P"}, tree_view},
             &QShortcut::activated,
             this,
             &TreeViewWithCommandPalette::showCommandPalette);
+
+        connect(
+            new QShortcut{QKeySequence{"Esc"}, tree_view},
+            &QShortcut::activated,
+            this,
+            &TreeViewWithCommandPalette::removeFocus);
     }
+
+    void removeFocus() { model->setFocused(nullptr); }
 
     void showCommandPalette() {
         if (!command_palette) {
@@ -467,7 +476,6 @@ class TreeViewWithCommandPalette : public QObject {
     OrgTreeModel*      model;
     OrgTreeProxyModel* proxy_model;
     CommandPalette*    command_palette;
-    QShortcut*         shortcut;
 };
 
 class AgendaWidget : public QWidget {
