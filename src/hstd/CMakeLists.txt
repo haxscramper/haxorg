@@ -42,6 +42,6 @@ if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
   haxorg_add_executable(benchmark_hstd)
   glob_add_sources2(TARGET benchmark_hstd LS_REGEX "${BASE}/benchmark/hstd/.*" SEARCH_BASE
                     "${BASE}")
-  target_link_libraries(benchmark_hstd PUBLIC benchmark::benchmark hstd)
+  target_link_libraries(benchmark_hstd PUBLIC benchmark::benchmark hstd immer)
   add_test(NAME hstd_benchmark COMMAND benchmark_hstd)
 endif()

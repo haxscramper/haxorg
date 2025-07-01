@@ -118,7 +118,6 @@ function(glob_add_sources)
   endif()
 
   target_sources("${ARG_TARGET}" PRIVATE "${SRC_FILES}")
-
 endfunction()
 
 function(glob_add_sources2)

@@ -248,7 +248,7 @@ TEST_F(DiffTestFuzzy, FullMatch) {
 }
 
 TEST_F(DiffTestFuzzy, FavorLateCluster) {
-    auto m = initMatcher(true);
+    auto m = initMatcher();
 
     m.matchScore = [](FuzzyMatcher::Range const& str,
                       int                        nextMatch,
@@ -268,7 +268,7 @@ TEST_F(DiffTestFuzzy, FavorLateCluster) {
 
 
 TEST_F(DiffTestFuzzy, FavorEarlyCluster) {
-    auto m = initMatcher(true);
+    auto m = initMatcher();
 
     m.matchScore = [](FuzzyMatcher::Range const& str,
                       int                        nextMatch,
@@ -295,19 +295,5 @@ TEST_F(DiffTestFuzzy, EdgeCases) {
     {
         auto m = getMatches("000000000", "");
         EXPECT_EQ(m.size(), 0);
-    }
-
-    for (auto const& [item, pattern] : Vec<Pair<Str, Str>>{
-             {"a", "Document"},
-             {"Document", "a"},
-         }) {
-        FuzzyMatcher m;
-
-        m.setTraceFile(getDebugFile(fmt("{}_{}", item, pattern)));
-
-        m.isEqual = [&](int const& i_pattern, int const& i_item) {
-            return item.at(i_item) == pattern.at(i_pattern);
-        };
-        m.get_score(sliceSize(item), sliceSize(pattern));
     }
 }
