@@ -577,7 +577,7 @@ struct FuzzyMatcher : OperationsTracer {
     using ScoreFunc = Func<
         int(Range const& str, int nextMatch, Vec<int> const& matches)>;
 
-    Func<bool(int lhsIdx, int rhsIdx)> isEqual;
+    Func<bool(int patternIdx, int itemIdx)> isEqual;
 
     ScoreFunc matchScore;
 

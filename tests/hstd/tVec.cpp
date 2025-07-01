@@ -88,7 +88,6 @@ TYPED_TEST(IntVecTypedTest, SpanViews) {
         const TypeParam v{0, 1, 2, 3, 4};
         std::span<int>  span = v.at(slice(1, 1));
         EXPECT_EQ(span[0], 1);
-        EXPECT_EQ(span[1], 2);
     }
     {
         TypeParam v{0, 0, 0, 0, 0};

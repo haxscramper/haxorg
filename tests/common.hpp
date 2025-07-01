@@ -26,19 +26,19 @@ extern TestParameters testParameters;
 // disaster with no way to debug or consistently provide implementation.
 #define GTEST_ADL_PRINT_TYPE(__type)                                      \
     namespace testing {                                                   \
-        inline std::string PrintToString(__type const& value) {           \
+    inline std::string PrintToString(__type const& value) {               \
+        return hstd::fmt1(value);                                         \
+    }                                                                     \
+                                                                          \
+    namespace internal {                                                  \
+    template <typename Other>                                             \
+    class FormatForComparison<__type, Other> {                            \
+      public:                                                             \
+        static ::std::string Format(const __type& value) {                \
             return hstd::fmt1(value);                                     \
         }                                                                 \
-                                                                          \
-        namespace internal {                                              \
-            template <typename Other>                                     \
-            class FormatForComparison<__type, Other> {                    \
-              public:                                                     \
-                static ::std::string Format(const __type& value) {        \
-                    return hstd::fmt1(value);                             \
-                }                                                         \
-            };                                                            \
-        }                                                                 \
+    };                                                                    \
+    }                                                                     \
     } // namespace testing
 
 

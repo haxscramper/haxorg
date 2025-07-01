@@ -146,6 +146,19 @@ def get_external_deps_list(
     # present.
 
     dep(
+        build_name="benchmark",
+        deps_name="benchmark",
+        is_emcc_ready=False,
+        cmake_dirs=[
+            ("benchmark", make_lib("benchmark/{}/cmake/benchmark"))
+        ], 
+        configure_args=[
+            opt("BENCHMARK_ENABLE_TESTING", False),
+            opt("BENCHMARK_ENABLE_GTEST_TESTS", False),
+        ],
+    )
+
+    dep(
         build_name="Tracy",
         deps_name="tracy",
         is_emcc_ready=False,

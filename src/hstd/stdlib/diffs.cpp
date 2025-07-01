@@ -1,5 +1,6 @@
 #include "diffs.hpp"
 #include <hstd/stdlib/Debug.hpp>
+#pragma clang diagnostic ignored "-Wreorder-init-list"
 
 using namespace hstd;
 
@@ -663,6 +664,7 @@ fuzzy_result fuzzy_match_recursive(
     bool first_match = true;
     while (pattern.isValid() && str.isValid()) {
         LG(fmt("str:{} pattern:{}", str, pattern));
+        LOGIC_ASSERTION_CHECK(m.isEqual, "Missing item equality compare function");
         // Found match
         if (m.isEqual(pattern.first, str.first)) {
             LG(fmt("pattern[{}] == str[{}]", pattern.first, str.first));
@@ -719,6 +721,7 @@ fuzzy_result fuzzy_match_recursive(
     bool matched  = !pattern.isValid();
     int  outScore = 0;
 
+    LOGIC_ASSERTION_CHECK(m.matchScore, "Match score callback implementation is missing");
     // Calculate score
     if (matched) { outScore = m.matchScore(str, nextMatch, matches); }
 
