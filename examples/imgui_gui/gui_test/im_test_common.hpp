@@ -26,7 +26,7 @@ inline std::string format_for_log(T const& t) {
 }
 
 inline std::string format_for_log(char const* str) {
-    return hstd::escape_literal(str);
+    return hstd::escape_literal(std::string{str});
 }
 
 inline std::string format_for_log(hstd::Str const& str) {

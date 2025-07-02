@@ -6,27 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CXX_STANDARD 23)
 
 set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
-set(DEPS_INSTALL "${REPO_ROOT}/build/deps_install")
+set(DEPS_INSTALL "${REPO_ROOT}/build/deps_bin/install")
 set(SCINT_DEPS "${REPO_ROOT}/thirdparty/scintilla/scintilla")
 set(LEXLL_DEPS "${REPO_ROOT}/thirdparty/scintilla/lexilla")
 
 option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
 
+include("${DEPS_INSTALL}/paths.cmake")
 list(INSERT CMAKE_PREFIX_PATH 0 "${REPO_ROOT}/build/install")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/protobuf/lib/cmake/protobuf")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/abseil/lib/cmake/absl")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/perfetto/lib/cmake/Perfetto")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/describe/lib/cmake/BoostDescribe")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/mp11/lib/cmake/boost_mp11-1.85.0")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/range-v3/lib/cmake/range-v3")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lager/lib/cmake/Lager")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/googletest/lib/cmake/GTest")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lexy/lib/cmake/lexy")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/cpptrace/lib/cmake/cpptrace")
-list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/cpptrace/lib/cmake/libdwarf")
 
 find_package(Immer CONFIG REQUIRED)
 find_package(Lager CONFIG REQUIRED)
@@ -40,14 +27,19 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Perfetto CONFIG REQUIRED)
 find_package(lexy CONFIG REQUIRED)
+find_package(cctz REQUIRED)
+find_package(BoostPreprocessor CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
-find_package(Boost REQUIRED COMPONENTS log)
+find_package(Boost REQUIRED COMPONENTS ALL)
 find_package(cpptrace CONFIG REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
+
+add_definitions(-DORG_DEPS_USE_ADAPTAGRAMS)
 
 set(PROJ_ROOT "${CMAKE_SOURCE_DIR}")
 
@@ -97,13 +89,12 @@ target_compile_options(qiucus_lib PUBLIC "-Wno-ambiguous-reversed-operator")
 
 target_link_directories(qiucus_lib PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
 target_include_directories(qiucus_lib PUBLIC "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include"
-                                             "${REPO_ROOT}/thirdparty/scintilla" "${PROJ_ROOT}")
+                                             "${PROJ_ROOT}")
 target_link_libraries(
   qiucus_lib
   PUBLIC imgui
          imgui_test_engine
          glfw
-         scintilla
          Boost::log
          OpenGL::GL
          absl::log

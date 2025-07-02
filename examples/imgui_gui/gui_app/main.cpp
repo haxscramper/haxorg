@@ -14,7 +14,6 @@
 #include <gui_lib/imgui_utils.hpp>
 #include <gui_lib/block_graph.hpp>
 #include <gui_lib/ascii_editor.hpp>
-#include <gui_lib/scintilla_editor_widget.hpp>
 #include <gui_lib/doc_editor.hpp>
 #include <gui_lib/dir_explorer.hpp>
 

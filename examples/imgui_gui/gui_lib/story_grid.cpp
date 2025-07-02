@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "gui_perfetto.hpp"
 #include <queue>
+#include <hstd/ext/logger.hpp>
 #include <sys/inotify.h>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
@@ -17,7 +18,6 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
-#include <gui_lib/scintilla_editor_widget.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 
@@ -223,11 +223,11 @@ Opt<json> story_grid_loop(
 
     auto font_path = get_fontconfig_path("Iosevka");
     if (font_path) {
-        LOG(INFO) << fmt("Using font file {}", *font_path);
+        HSLOG_INFO("story-grid", fmt("Using font file {}", *font_path));
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->AddFontFromFileTTF(font_path->c_str(), 16);
     } else {
-        LOG(ERROR) << "Could not load font path";
+        HSLOG_ERROR("story-grid", "Could not load font path");
     }
 
     while (!glfwWindowShouldClose(window)) {

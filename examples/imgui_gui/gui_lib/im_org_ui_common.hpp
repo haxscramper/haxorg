@@ -141,7 +141,7 @@ struct EditableOrgDocGroup {
 
         org::imm::ImmAdapter getNewRoot(
             org::imm::ImmAdapter const& oldRoot) {
-            auto mapped = ast->epoch.replaced.map.get(oldRoot.uniq());
+            auto mapped = ast->epoch->replaced.map.get(oldRoot.uniq());
             if (mapped) {
                 return ast->context->adapt(mapped.value());
             } else {
@@ -180,7 +180,7 @@ struct EditableOrgDocGroup {
 
     int addHistory(History const& h) { return history.push_back_idx(h); }
     hstd::Opt<int> extendHistory(org::imm::ImmAstVersion const& ast) {
-        if (ast.epoch.replaced.map.empty()) {
+        if (ast.epoch->replaced.map.empty()) {
             return std::nullopt;
         } else {
             return addHistory(getCurrentHistory().withNewVersion(ast));
