@@ -311,7 +311,9 @@ void Scene::im_draw(
                     .target = rune.origin,
                     .start  = pos,
                 };
-                LOG(INFO) << fmt("Clicked on shape {}", rune.origin);
+                HSLOG_INFO(
+                    "ascii-editor",
+                    fmt("Clicked on shape {}", rune.origin));
             }
         }
 
@@ -343,7 +345,9 @@ void Scene::im_draw(
                                           .from_bytes(text);
         for (ImWchar ch : utf32_string) {
             auto g = font->FindGlyph(ch);
-            if (g == nullptr) { LOG(INFO) << fmt("No glyph for {}", ch); }
+            if (g == nullptr) {
+                HSLOG_INFO("ascii-editor", fmt("No glyph for {}", ch));
+            }
         }
 
         draw->AddText(

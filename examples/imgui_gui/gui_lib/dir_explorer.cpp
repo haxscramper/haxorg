@@ -346,7 +346,7 @@ void dir_explorer_loop(GLFWwindow* window, CVec<Str> directories) {
     InotifyWatcher watch;
     watch.update(ctx, node);
 
-    LOG(INFO) << "Parsed root directory";
+    HSLOG_INFO("dir-explorer", "Parsed root directory");
 
     while (!glfwWindowShouldClose(window)) {
         frame_start();

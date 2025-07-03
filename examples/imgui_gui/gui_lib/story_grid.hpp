@@ -363,7 +363,7 @@ struct StoryGridGraph {
         /// \brief Graph storage for specific document nodes that are
         /// targeting other parts of the document. Map graph entries are
         /// nested under parent nodes.
-        org::graph::MapGraph graph;
+        org::graph::MapGraph::Ptr graph;
 
         /// \brief Mapping from map graph nodes to the actual parents that
         /// are going to be rendered in the story grid. This is done to

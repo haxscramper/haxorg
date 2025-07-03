@@ -95,7 +95,6 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
     auto cell_prefix = fmt("{}", id);
 
 
-
     if (edit == Mode::Multiline) {
         return std::nullopt;
     } else {
@@ -312,7 +311,7 @@ EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
     auto tmp = roots.transient();
     for (int i = 0; i < roots.size(); ++i) {
         auto const& root = roots.at(i);
-        if (auto root1 = updated.epoch.replaced.map.get(root)) {
+        if (auto root1 = updated.epoch->replaced.map.get(root)) {
             tmp.push_back(root1.value());
         } else {
             tmp.push_back(root);
