@@ -9,8 +9,12 @@ set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 set(DEPS_INSTALL "${REPO_ROOT}/build/deps_bin/install")
 
 option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
+option(ORG_USE_SYSTEM_DEPS "Find packages in the system instead of using thirdparty" OFF)
 
-include("${DEPS_INSTALL}/paths.cmake")
+if(NOT ${ORG_USE_SYSTEM_DEPS})
+  include("${DEPS_INSTALL}/paths.cmake")
+endif()
+
 list(INSERT CMAKE_PREFIX_PATH 0 "${REPO_ROOT}/build/install")
 
 find_package(Immer CONFIG REQUIRED)

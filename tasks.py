@@ -7,7 +7,7 @@ import os
 from invoke import task, Failure
 from invoke.context import Context
 from invoke.tasks import Task
-from beartype.typing import Optional, List, Union, Literal, Callable
+from beartype.typing import Optional, List, Union, Literal, Callable, Unpack, TypedDict
 from shutil import which, rmtree
 from py_scriptutils.files import FileOperation
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson, getGlobalTraceCollector
@@ -155,7 +155,7 @@ def matches_pattern(cookie: ProfdataCookie, pattern: HaxorgCoverageCookiePattern
 
 
 @beartype
-def get_real_build_basename(ctx: Context, component: Literal["haxorg", "utils"]) -> str:
+def get_real_build_basename(ctx: Context, component: str) -> str:
     """
     Get basename of the binary output directory for component
     """
@@ -170,7 +170,7 @@ def get_real_build_basename(ctx: Context, component: Literal["haxorg", "utils"])
 
 
 @beartype
-def get_component_build_dir(ctx: Context, component: Literal["haxorg", "utils"]) -> Path:
+def get_component_build_dir(ctx: Context, component: str) -> Path:
     result = get_build_root(get_real_build_basename(ctx, component))
     result.mkdir(parents=True, exist_ok=True)
     return result
@@ -269,6 +269,18 @@ def get_log_dir() -> Path:
 @beartype
 def get_cmd_debug_file(kind: str):
     return get_log_dir().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
+
+
+class RunCommandKwargs(TypedDict, total=False):
+    capture: bool
+    allow_fail: bool
+    env: dict[str, str]
+    cwd: Optional[Union[str, Path]]
+    stderr_debug: Optional[Path]
+    stdout_debug: Optional[Path]
+    append_stdout_debug: bool
+    append_stderr_debug: bool
+    run_mode: Literal["nohup", "bg", "fg"]
 
 
 @beartype
@@ -436,6 +448,58 @@ def run_self(
         allow_fail=allow_fail,
         env=env,
         cwd=cwd,
+    )
+
+
+@beartype
+def run_cmake(
+    ctx: Context,
+    args: List[str | Path],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    return run_command(ctx, "cmake", args, **kwargs)
+
+
+@beartype
+def run_cmake_configure_component(
+    ctx: Context,
+    component: str,
+    script_path: str,
+    args: List[str | Path] = [],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    return run_cmake(
+        ctx,
+        [
+            "-B",
+            get_component_build_dir(ctx, component),
+            "-S",
+            get_script_root(script_path),
+            cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
+            "-G",
+            "Ninja",
+        ] + args,
+        **kwargs,
+    )
+
+
+@beartype
+def run_cmake_build_component(
+    ctx: Context,
+    component: str,
+    targets: List[str] = ["all"],
+    args: List[str | Path] = [],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    return run_cmake(
+        ctx,
+        [
+            "--build",
+            get_component_build_dir(ctx, component),
+            "--target",
+            *targets,
+        ] + args,
+        **kwargs,
     )
 
 
@@ -851,6 +915,12 @@ def generate_python_protobuf_files(ctx: Context):
 
 
 @org_task()
+def validate_dependencies_install(ctx: Context):
+    install_dir = get_deps_install_dir().joinpath("paths.cmake")
+    assert install_dir.exists(), f"No dependency paths found at '{install_dir}'"
+
+
+@org_task()
 def generate_develop_deps_install_paths(ctx: Context):
     install_dir = get_deps_install_dir()
     ensure_existing_dir(install_dir)
@@ -898,7 +968,8 @@ def configure_cmake_haxorg(ctx: Context, force: bool = False):
             ]
 
             import shlex
-            Path("/tmp/cmake_configure_haxorg_flags.txt").write_text(shlex.join([str(s) for s in pass_flags]))
+            Path("/tmp/cmake_configure_haxorg_flags.txt").write_text(
+                shlex.join([str(s) for s in pass_flags]))
             run_command(ctx, "cmake", pass_flags)
 
 
@@ -1118,6 +1189,23 @@ def build_release_archive(ctx: Context, force: bool = False):
 
     # else:
     #     log(CAT).debug(op.explain("cpack code"))
+
+
+@org_task(pre=[validate_dependencies_install])
+def configure_example_imgui_gui(ctx: Context):
+    run_cmake_configure_component(
+        ctx,
+        "example_imgui_gui",
+        "examples/imgui_gui",
+    )
+
+
+@org_task(pre=[configure_example_imgui_gui])
+def build_example_imgui_gui(ctx: Context):
+    run_cmake_build_component(
+        ctx,
+        "example_imgui_gui",
+    )
 
 
 @org_task(pre=[build_release_archive])
