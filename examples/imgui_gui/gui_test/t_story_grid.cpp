@@ -46,10 +46,32 @@ struct StoryGridVars : public ImTestVarsBase {
     StoryGridVars()
         : start{org::imm::ImmAstContext::init_start_context()}
         , history{start}
-        , model{&history} {}
+        , model{&history} {
+        using Col          = TreeGridColumn;
+        conf.gridViewport  = ImGui::GetMainViewport()->Size;
+        conf.getDefaultDoc = []() -> TreeGridDocument {
+            TreeGridDocument doc;
+            doc.columns = {
+                Col{.name = "title", .width = 200},
+                Col{.name = "event", .width = 400},
+                Col{.name = "note", .width = 400},
+                Col{.name = "turning_point", .width = 300},
+                Col{.name = "value", .width = 200},
+                Col{
+                    .name  = "location",
+                    .width = 240,
+                    .edit  = EditableOrgText::Mode::SingleLine,
+                },
+                Col{.name = "pov", .width = 100},
+            };
+            return doc;
+        };
+    }
 
     void add_text(std::string const& text) {
-        root = model.history->addRoot(org::parseString(text));
+        root            = model.history->addRoot(org::parseString(text));
+        model.documents = model.history->migrate(model.documents).value();
+        model.addDocument(root);
         model.rebuild(conf);
     }
 

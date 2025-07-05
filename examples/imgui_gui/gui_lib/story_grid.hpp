@@ -1136,7 +1136,11 @@ struct StoryGridModel {
 
     /// \brief Update full document using latest history data.
     void rebuild(const StoryGridConfig& conf) {
-        STORY_GRID_MSG_SCOPE(ctx, "Update full document");
+        STORY_GRID_MSG_SCOPE(
+            ctx,
+            hstd::fmt(
+                "Update full document, history size {}",
+                history->history.size()));
         graph.cascadeSemanticUpdate(
             history->getAdapters(documents), ctx, conf);
     }
