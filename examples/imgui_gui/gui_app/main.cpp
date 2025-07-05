@@ -13,7 +13,6 @@
 #include <gui_lib/story_grid.hpp>
 #include <gui_lib/imgui_utils.hpp>
 #include <gui_lib/block_graph.hpp>
-#include <gui_lib/ascii_editor.hpp>
 #include <gui_lib/doc_editor.hpp>
 #include <gui_lib/dir_explorer.hpp>
 
@@ -29,7 +28,6 @@ struct Config {
         StoryGrid,
         Test,
         StoryGridAnnotated,
-        AsciiEditorTest,
         DirectoryExplorer,
         DocEditor);
 
@@ -492,10 +490,6 @@ int main(int argc, char** argv) {
             break;
         }
         case Config::Mode::Test: {
-            break;
-        }
-        case Config::Mode::AsciiEditorTest: {
-            run_ascii_editor_widget_test(window);
             break;
         }
     }

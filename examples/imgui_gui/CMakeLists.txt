@@ -7,8 +7,6 @@ set(CXX_STANDARD 23)
 
 set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 set(DEPS_INSTALL "${REPO_ROOT}/build/deps_bin/install")
-set(SCINT_DEPS "${REPO_ROOT}/thirdparty/scintilla/scintilla")
-set(LEXLL_DEPS "${REPO_ROOT}/thirdparty/scintilla/lexilla")
 
 option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
 
