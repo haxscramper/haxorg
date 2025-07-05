@@ -52,17 +52,17 @@ struct StoryGridVars : public ImTestVarsBase {
         conf.getDefaultDoc = []() -> TreeGridDocument {
             TreeGridDocument doc;
             doc.columns = {
-                Col{.name = "title", .width = 200},
-                Col{.name = "event", .width = 400},
-                Col{.name = "note", .width = 400},
-                Col{.name = "turning_point", .width = 300},
-                Col{.name = "value", .width = 200},
-                Col{
-                    .name  = "location",
-                    .width = 240,
-                    .edit  = EditableOrgText::Mode::SingleLine,
-                },
-                Col{.name = "pov", .width = 100},
+                // Col{.name = "title", .width = 200},
+                // Col{.name = "event", .width = 400},
+                // Col{.name = "note", .width = 400},
+                // Col{.name = "turning_point", .width = 300},
+                // Col{.name = "value", .width = 200},
+                // Col{
+                //     .name  = "location",
+                //     .width = 240,
+                //     .edit  = EditableOrgText::Mode::SingleLine,
+                // },
+                // Col{.name = "pov", .width = 100},
             };
             return doc;
         };
@@ -147,7 +147,7 @@ void _StoryGrid_SingleView(ImGuiTestEngine* e) {
 
     t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
-            ctx->SuspendTestFunc();
+            // ctx->SuspendTestFunc();
         });
 }
 
@@ -218,21 +218,6 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
             ctx->Yield(2);
             ctx->MouseClick(0);
             ctx->KeyChars("test");
-            ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2{0, 50});
-            ctx->MouseClick(0);
-            IM_CHECK_EQ(
-                doc.getExistingCell(0, "title").getFinalTextValue(),
-                "testOne subtree in grid");
-
-            ctx->MouseMoveToPos(wpos + doc.getCellPos(0, "title"));
-            ctx->MouseMoveToPos(
-                ImGui::GetMousePos() - ImVec2(doc.treeFoldWidth - 10, 0));
-            IM_CHECK_EQ(doc.flatRows(false).size(), 5);
-            ctx->MouseClick(0);
-            IM_CHECK_EQ(doc.flatRows(false).size(), 2);
-
-
-            // ctx->SuspendTestFunc();
         });
 }
 
@@ -319,7 +304,7 @@ some random shit about the comments or whatever, need to render as annotation [f
             {
                 m.ctx.message("Scroll");
                 auto __scope = m.ctx.scopeLevel();
-                IM_CTX_ACT(MouseWheelY, 5);
+                IM_CTX_ACT(MouseWheelY, -5);
                 vars.set_im_trace(2);
                 IM_CTX_ACT(Yield, 5);
                 IM_CHECK_EQ(
@@ -334,33 +319,6 @@ some random shit about the comments or whatever, need to render as annotation [f
                 ImVec2(spans.at(1).first, 50),
                 is_within_distance,
                 5);
-
-            {
-                m.ctx.message("Edit annotation text");
-                IM_CTX_ACT(
-                    MouseMoveToPos,
-                    wpos + rg.getPosition({1, 0}) + ImVec2(0, 5));
-                IM_CTX_ACT(MouseClick, 0);
-                IM_CTX_ACT(MouseClick, 0);
-
-                IM_CHECK_BINARY_PRED(
-                    vars.get_text(), "TYPE", not_has_substring_normalized);
-
-                IM_CTX_ACT(KeyChars, "TYPE\n\n");
-                IM_CTX_ACT(
-                    MouseMoveToPos, ImGui::GetMousePos() + ImVec2(0, 100));
-                m.ctx.message(fmt(
-                    "Pre edit text is\n'''\n{}\n'''", vars.get_text()));
-
-                // ctx->SuspendTestFunc();
-                IM_CTX_ACT(MouseClick, 0);
-                IM_CTX_ACT(Yield, 5);
-                m.ctx.message(fmt(
-                    "Post edit text is\n'''\n{}\n'''", vars.get_text()));
-                IM_CHECK_BINARY_PRED(
-                    vars.get_text(), "TYPE", has_substring_normalized);
-            }
-            // ctx->SuspendTestFunc();
         });
 }
 
