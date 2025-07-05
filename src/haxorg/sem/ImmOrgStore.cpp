@@ -975,8 +975,8 @@ template <IsImmOrgValueType T>
 ImmId ImmAstKindStore<T>::add(const T& value, ImmAstEditContext& ctx) {
     auto  mask   = ImmId::combineMask(T::staticKind);
     ImmId result = values.add(value, mask);
-    HSLOG_TRACE(_cat, fmt("Insert value to kind store, {}", value));
-    HSLOG_TRACE(_cat, fmt("Result ID {}", result));
+    // HSLOG_TRACE(_cat, fmt("Insert value to kind store, {}", value));
+    // HSLOG_TRACE(_cat, fmt("Result ID {}", result));
 
     LOGIC_ASSERTION_CHECK(
         result.getKind() == value.getKind(),

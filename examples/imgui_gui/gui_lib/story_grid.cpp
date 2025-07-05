@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "gui_perfetto.hpp"
 #include <queue>
+#include <hstd/ext/logger.hpp>
 #include <sys/inotify.h>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
@@ -17,7 +18,6 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
-#include <gui_lib/scintilla_editor_widget.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 
@@ -223,11 +223,11 @@ Opt<json> story_grid_loop(
 
     auto font_path = get_fontconfig_path("Iosevka");
     if (font_path) {
-        LOG(INFO) << fmt("Using font file {}", *font_path);
+        HSLOG_INFO("story-grid", fmt("Using font file {}", *font_path));
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->AddFontFromFileTTF(font_path->c_str(), 16);
     } else {
-        LOG(ERROR) << "Could not load font path";
+        HSLOG_ERROR("story-grid", "Could not load font path");
     }
 
     while (!glfwWindowShouldClose(window)) {
@@ -331,11 +331,7 @@ TreeGridCell build_editable_cell(
     org::imm::ImmAdapter  adapter,
     TreeGridColumn const& col,
     StoryGridContext&     ctx) {
-    TreeGridCell result{TreeGridCell::Value{}};
-    auto&        v = result.getValue();
-    v.value        = EditableOrgTextEntry::from_adapter(
-        adapter, col.width, col.edit);
-    return result;
+    return TreeGridCell::from_adapter(adapter, col.width, col.edit);
 }
 
 void StoryGridGraph::SemGraphStore::addFootnoteAnnotationNode(
@@ -363,10 +359,10 @@ void StoryGridGraph::SemGraphStore::addFootnoteAnnotationNode(
 
         for (auto const& targetPath :
              link->ctx.lock()->getPathsFor(target.value())) {
-            graph.addNode(targetPath);
+            graph->addNode(targetPath);
             addStoryNode(targetPath);
 
-            graph.addEdge(
+            graph->addEdge(
                 org::graph::MapEdge{
                     .source = origin,
                     .target = org::graph::MapNode{targetPath},
@@ -414,7 +410,7 @@ StoryGridGraph::FlatNodeStore::Ptr StoryGridGraph::FlatNodeStore::
 
     UnorderedSet<StoryNodeId> unique;
     for (org::graph::MapNode const& node :
-         boost::make_iterator_range(boost::vertices(semGraph.graph))) {
+         boost::make_iterator_range(boost::vertices(*semGraph.graph))) {
         Opt<StoryNodeId> id = prev->getStoryNodeId(node.id);
         LOGIC_ASSERTION_CHECK(
             id.has_value(),
@@ -661,7 +657,7 @@ void StoryGridGraph::FlatNodeStore::Store::focusLinkListTargetRows(
             if (node->isLinkList() && node->getLinkList().isSelected) {
                 for (auto const& item : node->getLinkList().items) {
                     for (auto const& target :
-                         semGraph.graph.adjList.at(item.node.uniq())) {
+                         semGraph.graph->adjList.at(item.node.uniq())) {
                         targets.incl(target.id);
                     }
                 }
@@ -744,7 +740,7 @@ void StoryGridGraph::BlockGraphStore::updateHiddenRowConnection(
                             + row->getHeight().value());
 
                     org::imm::ImmUniqId rowId = row->origin.uniq();
-                    auto adjacent = semGraph.graph.adjNodes(rowId);
+                    auto adjacent = semGraph.graph->adjNodes(rowId);
                     auto overlap  = rowRange.overlap(viewportRange);
 
                     if (!adjacent.empty()) {
@@ -890,12 +886,12 @@ StoryGridGraph::FlatNodeStore::Partition StoryGridGraph::FlatNodeStore::
             CTX_MSG(
                 fmt("Set [{}][{}] = {}", distance, idx, current.id.id));
 
-            for (MapNode const& adj : semGraph.graph.outNodes(current)) {
+            for (MapNode const& adj : semGraph.graph->outNodes(current)) {
                 add_edge(current, adj);
                 dfsPartition(adj, distance + 1);
             }
 
-            for (MapNode const& adj : semGraph.graph.inNodes(current)) {
+            for (MapNode const& adj : semGraph.graph->inNodes(current)) {
                 add_edge(adj, current);
                 dfsPartition(adj, distance + 1);
             }
@@ -924,9 +920,9 @@ Vec<org::graph::MapNode> StoryGridGraph::FlatNodeStore::getInitialNodes(
             auto const& g    = semGraph.graph;
             for (const TreeGridRow::Ptr& row : flat) {
                 auto tree = row->origin.uniq();
-                if (g.hasNode(tree)) {
-                    if (!g.adjList.at(tree).empty()
-                        || !g.inNodes(tree).empty()) {
+                if (g->hasNode(tree)) {
+                    if (!g->adjList.at(tree).empty()
+                        || !g->inNodes(tree).empty()) {
                         foundLinkedSubtree = true;
                         docNodes.push_back(tree);
                     }
@@ -1283,14 +1279,15 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     STORY_GRID_MSG_SCOPE(ctx, "Semantic graph init store");
     SemGraphStore res;
 
-    res.ctx = root.front().ctx.lock();
+    res.ctx   = root.front().ctx.lock();
+    res.graph = org::graph::MapGraph::shared();
     for (auto const& r : root) {
         STORY_GRID_MSG_SCOPE(ctx, fmt("Add root node {} {}", r.id, r));
         res.addDocNode(r, conf, ctx);
     }
 
     {
-        auto                gv = res.graph.toGraphviz(res.ctx);
+        auto                gv = res.graph->toGraphviz(res.ctx);
         hstd::ext::Graphviz gvc;
         gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
         gvc.renderToFile(
@@ -1313,10 +1310,10 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     {
         STORY_GRID_MSG_SCOPE(
             ctx, "Adjacency list with annotation parents");
-        for (auto const& r : sorted(res.graph.adjList.keys())) {
+        for (auto const& r : sorted(res.graph->adjList.keys())) {
             Vec<std::string> dbg //
                 = own_view(
-                      sorted(res.graph.adjNodes(org::graph::MapNode{r})))
+                      sorted(res.graph->adjNodes(org::graph::MapNode{r})))
                 | rv::transform(
                       [](org::graph::MapNode const& n) -> std::string {
                           return fmt1(n.id.id);
@@ -1413,7 +1410,7 @@ void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
 
     for (auto const& row : doc.flatRows(true)) {
         org::graph::MapNode subtreeNode{row->origin.uniq()};
-        graph.addNode(subtreeNode);
+        graph->addNode(subtreeNode);
     }
 
     for (auto const& row : doc.flatRows(true)) {
@@ -1425,8 +1422,8 @@ void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
              row->origin.subAs<org::imm::ImmBlockComment>()) {
             org::graph::MapNode subtreeNode{row->origin.uniq()};
             org::graph::MapNode commentNode{nested.uniq()};
-            graph.addNode(commentNode);
-            graph.addEdge(
+            graph->addNode(commentNode);
+            graph->addEdge(
                 org::graph::MapEdge{
                     .source = subtreeNode,
                     .target = commentNode,
@@ -1460,7 +1457,7 @@ void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
     org::graph::MapNode listNode{list.uniq()};
     addStoryNode(list.uniq());
     for (auto const& item : list.subAs<org::imm::ImmListItem>()) {
-        graph.addNode(item.uniq());
+        graph->addNode(item.uniq());
         for (auto const& link :
              item.getHeader()->subAs<org::imm::ImmLink>()) {
             if (link->target.isId()) {
@@ -1472,7 +1469,7 @@ void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
                         "List link {} -> {}", item.uniq(), targetPath));
 
                     setParent(item.uniq(), list.uniq());
-                    graph.addEdge(
+                    graph->addEdge(
                         org::graph::MapEdge{
                             .source = item.uniq(),
                             .target = org::graph::MapNode{targetPath},
@@ -1862,10 +1859,10 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
 
     SemGraphStore res;
     res.annotationParents = sem.annotationParents;
-    boost_color_property_map_bundle<MapGraph> colorMap{sem.graph};
+    boost_color_property_map_bundle<MapGraph> colorMap{*sem.graph};
 
-    auto get_graph_debug = [](MapGraph const& g) -> std::string {
-        return g.adjList //
+    auto get_graph_debug = [](MapGraph::Ptr const& g) -> std::string {
+        return g->adjList //
              | rv::transform(
                    [&](Pair<MapNode, AdjNodesList> const& adj)
                        -> std::string {
@@ -1900,8 +1897,8 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
         auto visit_node = [&](CR<MapNode> n) {
             CTX_MSG(fmt("Node {}", n.id.id));
             auto& g = res.graph;
-            if (!g.hasNode(n)) {
-                g.addNode(n);
+            if (!g->hasNode(n)) {
+                g->addNode(n);
 
                 org::imm::ImmUniqId parent = res.annotationParents.at(
                     n.id);
@@ -1916,7 +1913,7 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
                 fmt("Visiting {}->{}", e.source.id.id, e.target.id.id));
             auto& g = res.graph;
 
-            if (!g.hasEdge(e.source, e.target)) { g.addEdge(e); }
+            if (!g->hasEdge(e.source, e.target)) { g->addEdge(e); }
         };
 
         // TODO implement undirected and inverted mind map overlay to reuse
@@ -1930,7 +1927,7 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
             } else {
                 visited.incl(node);
                 visit_node(node);
-                for (auto const& out : sem.graph.inEdges(node)) {
+                for (auto const& out : sem.graph->inEdges(node)) {
                     visit_node(out.source);
                     visit_edge(out);
                     inverseBfs(out.source);
@@ -1942,7 +1939,7 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
             STORY_GRID_MSG_SCOPE(
                 ctx, fmt("Visiting initial node {}", n.id.id));
             boost::breadth_first_search(
-                sem.graph,
+                *sem.graph,
                 n,
                 boost::visitor( //
                     lambda_bfs_visitor<MapGraph>{}

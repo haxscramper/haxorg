@@ -410,7 +410,7 @@ struct ImmAstEditContext {
         int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE());
 
-    ImmAstContext* operator->() { return ctx.lock().get(); }
+    ImmAstContext* operator->() { return hstd::safe_wptr_lock(ctx).get(); }
 };
 
 template <org::imm::IsImmOrgValueType T>
@@ -934,7 +934,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     };
 
     [[refl]] int size() const {
-        return ctx.lock()->at(id)->subnodes.size();
+        return hstd::safe_wptr_lock(ctx)->at(id)->subnodes.size();
     }
 
     iterator      begin() const { return iterator(this); }
@@ -969,16 +969,22 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     }
 
     ImmAdapter(ImmPath const& path, ImmAstContext::WPtr ctx)
-        : id{ctx.lock()->at(path)}, ctx{ctx}, path{path} {}
+        : id{hstd::safe_wptr_lock(ctx)->at(path)}, ctx{ctx}, path{path} {}
 
     ImmAdapter(ImmUniqId id, ImmAstContext::WPtr ctx)
-        : id{id.id}, ctx{ctx}, path{id.path} {}
+        : id{id.id}, ctx{ctx}, path{id.path} {
+        hstd::safe_wptr_lock(ctx);
+    }
 
     ImmAdapter(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
-        : id{id}, ctx{ctx}, path{path} {}
+        : id{id}, ctx{ctx}, path{path} {
+        hstd::safe_wptr_lock(ctx);
+    }
 
     ImmAdapter(org::imm::ImmAdapter const& other)
-        : id{other.id}, ctx{other.ctx}, path{other.path} {}
+        : id{other.id}, ctx{other.ctx}, path{other.path} {
+        hstd::safe_wptr_lock(other.ctx);
+    }
 
     ImmAdapter() : id{ImmId::Nil()}, ctx{}, path{ImmId::Nil()} {}
 
@@ -1038,7 +1044,8 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
             return std::nullopt;
         } else {
             auto newPath = path.pop();
-            return ImmAdapter{ctx.lock()->at(newPath), ctx, newPath};
+            return ImmAdapter{
+                hstd::safe_wptr_lock(ctx)->at(newPath), ctx, newPath};
         }
     }
 
@@ -1073,7 +1080,16 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return this->id == id.id;
     }
 
-    ImmOrg const* get() const { return ctx.lock()->at(id); }
+    void assert_not_nil() const {
+        LOGIC_ASSERTION_CHECK(
+            !id.isNil(), "Expected non-nil ID for adapter");
+    }
+
+    ImmOrg const* get() const {
+        assert_not_nil();
+        return hstd::safe_wptr_lock(ctx)->at(id);
+    }
+
     ImmOrg const* operator->() const { return get(); }
 
     template <typename T>
@@ -1088,7 +1104,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     [[refl(R"({"unique-name": "atField"})")]] ImmAdapter at(
         ImmReflFieldId const& field) const {
         return at(
-            ctx.lock()->at(
+            hstd::safe_wptr_lock(ctx)->at(
                 id,
                 ImmPathStep{{org::imm::ImmReflPathItemBase::FromFieldName(
                     field)}}),
@@ -1163,7 +1179,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
 
     template <typename Func>
     void visitNodeValue(Func const& cb) const {
-        ::org::imm::switch_node_value(id, ctx.lock(), cb);
+        ::org::imm::switch_node_value(id, hstd::safe_wptr_lock(ctx), cb);
     }
 
     template <typename Func>
@@ -1236,7 +1252,9 @@ struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapter::ImmAdapter;
     using ImmAdapter::pass;
     using ImmAdapter::subAs;
-    T const* get() const { return ctx.lock()->template at_t<T>(id); }
+    T const* get() const {
+        return hstd::safe_wptr_lock(ctx)->template at_t<T>(id);
+    }
     T const* operator->() const { return get(); }
     T const& value() const { return ImmAdapter::value<T>(); }
 

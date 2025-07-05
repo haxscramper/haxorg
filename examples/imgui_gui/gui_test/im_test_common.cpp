@@ -8,12 +8,13 @@ void PrintAllWindows() {
     ImGuiContext& g = *GImGui;
     for (int i = 0; i < g.Windows.Size; i++) {
         ImGuiWindow* window = g.Windows[i];
-        LOG(INFO) << fmt(
-            "Window Name:\"{}\", ID:{} POS:{} SIZE:{}",
-            window->Name,
-            window->ID,
-            window->Pos,
-            window->Size);
+        HSLOG_INFO(
+            "im-test-common",
+            fmt("Window Name:\"{}\", ID:{} POS:{} SIZE:{}",
+                window->Name,
+                window->ID,
+                window->Pos,
+                window->Size));
     }
 }
 

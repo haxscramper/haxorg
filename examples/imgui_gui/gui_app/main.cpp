@@ -1,4 +1,4 @@
-#define NDEBUG 0
+// #define NDEBUG ORG_LIB_DEBUG_BUILD
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -13,8 +13,6 @@
 #include <gui_lib/story_grid.hpp>
 #include <gui_lib/imgui_utils.hpp>
 #include <gui_lib/block_graph.hpp>
-#include <gui_lib/ascii_editor.hpp>
-#include <gui_lib/scintilla_editor_widget.hpp>
 #include <gui_lib/doc_editor.hpp>
 #include <gui_lib/dir_explorer.hpp>
 
@@ -30,8 +28,6 @@ struct Config {
         StoryGrid,
         Test,
         StoryGridAnnotated,
-        ScintillaEditorTest,
-        AsciiEditorTest,
         DirectoryExplorer,
         DocEditor);
 
@@ -53,11 +49,11 @@ struct OutlineConfig {
 long GetTimeDelta(
     hstd::CR<hstd::UserTime> from,
     hstd::CR<hstd::UserTime> to) {
-    auto from_utc = absl::ToCivilSecond(
-        from.time, from.zone ? *from.zone : absl::TimeZone{});
-    auto to_utc = absl::ToCivilSecond(
-        to.time, to.zone ? *to.zone : absl::TimeZone{});
-    return to_utc - from_utc;
+    auto from_utc = cctz::convert(
+        from.time, from.zone ? *from.zone : cctz::utc_time_zone());
+    auto to_utc = cctz::convert(
+        to.time, to.zone ? *to.zone : cctz::utc_time_zone());
+    return (to_utc - from_utc).count();
 }
 
 std::string FormatTimeDelta(long delta_seconds) {
@@ -375,7 +371,8 @@ void outline_tree_loop(
 
 int main(int argc, char** argv) {
     auto conf_file = hstd::fs::path{argv[1]};
-    LOGIC_ASSERTION_CHECK(hstd::fs::is_regular_file(conf_file), "{}", conf_file);
+    LOGIC_ASSERTION_CHECK(
+        hstd::fs::is_regular_file(conf_file), "{}", conf_file);
     auto conf_text = hstd::readFile(conf_file);
     auto conf_json = json::parse(conf_text);
     auto conf      = hstd::from_json_eval<Config>(conf_json);
@@ -493,14 +490,6 @@ int main(int argc, char** argv) {
             break;
         }
         case Config::Mode::Test: {
-            break;
-        }
-        case Config::Mode::ScintillaEditorTest: {
-            run_scintilla_editor_widget_test(window);
-            break;
-        }
-        case Config::Mode::AsciiEditorTest: {
-            run_ascii_editor_widget_test(window);
             break;
         }
     }

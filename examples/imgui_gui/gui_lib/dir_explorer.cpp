@@ -1,5 +1,4 @@
 #include "dir_explorer.hpp"
-#include "gui_lib/im_org_ui_common.hpp"
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
@@ -9,7 +8,6 @@
 #include <sys/inotify.h>
 #include <unistd.h>
 #include <unordered_map>
-#include <vector>
 #include <filesystem>
 #include <stdexcept>
 
@@ -30,6 +28,7 @@ struct DirContext {
     fs::path                             root;
     UnorderedMap<Str, FileState>         fileStates;
     UnorderedMap<Str, SPtr<ContentNode>> cache;
+    Vec<org::imm::ImmAstContext::Ptr>    roots;
 
     bool hadChanges(fs::path const& path) {
         if (auto old_state = fileStates.get(path.native())) {
@@ -82,11 +81,13 @@ struct ContentNode : public SharedPtrApi<ContentNode> {
         }
     }
 
+    ContentNode(org::imm::ImmAdapter const& ad) : a{ad} { a.get(); }
+
     static ContentNode::Ptr from_node(
         DirContext&                 ctx,
         org::imm::ImmAdapter const& a) {
-        auto res = ContentNode::shared();
-        res->a   = a;
+        auto res = ContentNode::shared(a);
+        a.get();
         if (auto tree = a.asOpt<org::imm::ImmSubtree>()) {
             res->data = Subtree{
                 .title = tree->getCleanTitle(),
@@ -115,6 +116,7 @@ SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
         auto node = org::parseString(readFile(file));
         auto root = ctx->addRoot(node);
         auto res  = ContentNode::from_node(*this, root.getRootAdapter());
+        roots.push_back(root.context);
         cache.insert_or_assign(file.native(), res);
     }
 
@@ -346,7 +348,7 @@ void dir_explorer_loop(GLFWwindow* window, CVec<Str> directories) {
     InotifyWatcher watch;
     watch.update(ctx, node);
 
-    LOG(INFO) << "Parsed root directory";
+    HSLOG_INFO("dir-explorer", "Parsed root directory");
 
     while (!glfwWindowShouldClose(window)) {
         frame_start();
