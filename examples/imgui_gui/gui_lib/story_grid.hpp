@@ -4,7 +4,7 @@
 // of instantiations and overwrites the symbols with debug enabled, causing
 // constant assertion failures.
 #include "block_graph.hpp"
-#define NDEBUG 0
+// #define NDEBUG ORG_LIB_DEBUG_BUILD
 
 #include <GLFW/glfw3.h>
 #include <haxorg/sem/SemBaseApi.hpp>
@@ -40,6 +40,14 @@ struct TreeGridCell {
     DESC_FIELDS(TreeGridCell, (data));
 
     Data data;
+
+    static TreeGridCell from_adapter(
+        org::imm::ImmAdapter  adapter,
+        int                   width,
+        EditableOrgText::Mode edit) {
+        return TreeGridCell{TreeGridCell::Value{
+            EditableOrgTextEntry::from_adapter(adapter, width, edit)}};
+    }
 
     bool isEditing() const {
         return isValue() && getValue().value.isEditing();

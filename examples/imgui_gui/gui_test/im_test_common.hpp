@@ -197,6 +197,8 @@ inline float ImVec2Length(const ImVec2& vec) {
 struct PredicateResult {
     bool                 ok = false;
     hstd::Opt<hstd::Str> explanation;
+
+    operator bool() { return ok; }
 };
 
 

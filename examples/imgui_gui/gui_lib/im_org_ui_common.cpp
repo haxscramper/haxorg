@@ -96,6 +96,29 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
 
 
     if (edit == Mode::Multiline) {
+        auto frameless_vars = push_frameless_window_vars();
+        ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + size.x);
+        // NOTE: Using ID with runtime formatting here because
+        // there is more than one cell that might potentially be
+        // edited.
+        if (IM_FN_BEGIN(
+                BeginChild,
+                fmt("##{}_wrap", cell_prefix).c_str(),
+                size,
+                ImGuiChildFlags_None,
+                ImGuiWindowFlags_NoScrollbar)) {
+            IM_FN_PRINT("Child", fmt("size:{}", size));
+            ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
+            IM_FN_STMT(TextWrapped, "%s", value.c_str());
+            IM_FN_PRINT("Wrapped text", value);
+            ImGui::PopID();
+        }
+
+        IM_FN_END(EndChild);
+
+        ImGui::PopTextWrapPos();
+        ImGui::PopStyleVar(frameless_vars);
+
         return std::nullopt;
     } else {
         if (is_editing) {

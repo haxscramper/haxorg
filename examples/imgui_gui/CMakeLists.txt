@@ -41,6 +41,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
 
 add_definitions(-DORG_DEPS_USE_ADAPTAGRAMS)
+add_definitions(-DORG_LIB_DEBUG_BUILD=1)
 
 set(PROJ_ROOT "${CMAKE_SOURCE_DIR}")
 

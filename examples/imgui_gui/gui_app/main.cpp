@@ -1,4 +1,4 @@
-#define NDEBUG 0
+// #define NDEBUG ORG_LIB_DEBUG_BUILD
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"

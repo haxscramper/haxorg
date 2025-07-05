@@ -1,4 +1,4 @@
-#define NDEBUG 0
+// #define NDEBUG ORG_LIB_DEBUG_BUILD
 
 #include "im_test_common.hpp"
 #include <gui_lib/doc_editor.hpp>

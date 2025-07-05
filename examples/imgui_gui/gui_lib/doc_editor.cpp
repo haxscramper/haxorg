@@ -1,4 +1,4 @@
-#define NDEBUG 0
+// #define NDEBUG ORG_LIB_DEBUG_BUILD
 #include <haxorg/sem/ImmOrgGraph.hpp>
 
 #include "doc_editor.hpp"

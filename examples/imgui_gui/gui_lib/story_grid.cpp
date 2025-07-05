@@ -331,11 +331,7 @@ TreeGridCell build_editable_cell(
     org::imm::ImmAdapter  adapter,
     TreeGridColumn const& col,
     StoryGridContext&     ctx) {
-    TreeGridCell result{TreeGridCell::Value{}};
-    auto&        v = result.getValue();
-    v.value        = EditableOrgTextEntry::from_adapter(
-        adapter, col.width, col.edit);
-    return result;
+    return TreeGridCell::from_adapter(adapter, col.width, col.edit);
 }
 
 void StoryGridGraph::SemGraphStore::addFootnoteAnnotationNode(
@@ -1283,7 +1279,8 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     STORY_GRID_MSG_SCOPE(ctx, "Semantic graph init store");
     SemGraphStore res;
 
-    res.ctx = root.front().ctx.lock();
+    res.ctx   = root.front().ctx.lock();
+    res.graph = org::graph::MapGraph::shared();
     for (auto const& r : root) {
         STORY_GRID_MSG_SCOPE(ctx, fmt("Add root node {} {}", r.id, r));
         res.addDocNode(r, conf, ctx);

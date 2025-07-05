@@ -1,6 +1,6 @@
 #pragma once
 #include "gui_lib/imgui_utils.hpp"
-#define NDEBUG 0
+// #define NDEBUG ORG_LIB_DEBUG_BUILD
 
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/system/reflection.hpp>
