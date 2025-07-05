@@ -1207,6 +1207,22 @@ def build_example_imgui_gui(ctx: Context):
         "example_imgui_gui",
     )
 
+@org_task(pre=[validate_dependencies_install])
+def configure_example_qt_gui_org_viewer(ctx: Context):
+    run_cmake_configure_component(
+        ctx,
+        "example_qt_gui_org_viewer",
+        "examples/qt_gui/org_viewer",
+    )
+
+
+@org_task(pre=[configure_example_qt_gui_org_viewer])
+def build_example_qt_gui_org_viewer(ctx: Context):
+    run_cmake_build_component(
+        ctx,
+        "example_qt_gui_org_viewer",
+    )
+
 
 @org_task(pre=[build_release_archive])
 def build_release_deps(
@@ -1456,43 +1472,6 @@ def run_docker_release_test(
 @beartype
 def get_example_build(example_name: str) -> Path:
     return get_build_root().joinpath(f"example_build_{example_name}")
-
-
-@beartype
-def cmake_example_project(ctx: Context, example_name: str):
-    generate_develop_deps_install_paths(ctx)
-    example_build = get_example_build(example_name)
-    toolchain = get_script_root().joinpath("toolchain.cmake")
-    assert toolchain.exists()
-    run_command(ctx, "cmake", [
-        "-B",
-        example_build,
-        "-S",
-        get_script_root().joinpath(f"examples/{example_name}"),
-        "-G",
-        "Ninja",
-        cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")),
-        cmake_opt("CMAKE_C_COMPILER", get_llvm_root("bin/clang")),
-        cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()),
-    ])
-
-    run_command(ctx, "cmake", [
-        "--build",
-        example_build,
-        "--target",
-        "all",
-        *get_j_cap(),
-    ])
-
-
-@org_task(pre=[
-    # cmake_install_dev
-])
-def build_imgui_example(ctx: Context):
-    """
-    Build imgui example project. 
-    """
-    cmake_example_project(ctx, "imgui_gui")
 
 
 @beartype
