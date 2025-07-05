@@ -969,7 +969,7 @@ def configure_cmake_haxorg(ctx: Context, force: bool = False):
 
             import shlex
             Path("/tmp/cmake_configure_haxorg_flags.txt").write_text(
-                shlex.join([str(s) for s in pass_flags]))
+                shlex.join([str(s) for s in pass_flags[6:]]))
             run_command(ctx, "cmake", pass_flags)
 
 
@@ -1135,7 +1135,11 @@ def build_haxorg(
                     "--target",
                     *cond(0 < len(target), target, ["all"]),
                     *get_j_cap(),
-                    *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
+                    *([
+                        "--",
+                        "-d",
+                        "explain",
+                    ] if is_ci() else []),
                 ],
                 env={'NINJA_FORCE_COLOR': '1'},
             )
@@ -1207,6 +1211,7 @@ def build_example_imgui_gui(ctx: Context):
         "example_imgui_gui",
     )
 
+
 @org_task(pre=[validate_dependencies_install])
 def configure_example_qt_gui_org_viewer(ctx: Context):
     run_cmake_configure_component(
@@ -1222,6 +1227,16 @@ def build_example_qt_gui_org_viewer(ctx: Context):
         ctx,
         "example_qt_gui_org_viewer",
     )
+
+
+@org_task(pre=[build_example_qt_gui_org_viewer])
+def build_example_qt_gui(ctx: Context):
+    pass
+
+
+@org_task(pre=[build_example_qt_gui, build_example_imgui_gui])
+def build_all(ctx: Context):
+    pass
 
 
 @org_task(pre=[build_release_archive])
@@ -2257,9 +2272,7 @@ def run_develop_ci(
         run_self(
             ctx,
             [
-                build_haxorg,
-                "--ninja-flag=-d",
-                "--ninja-flag=explain",
+                build_all,
             ],
             env=env,
         )
