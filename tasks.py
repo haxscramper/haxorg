@@ -1236,8 +1236,8 @@ def build_example_qt_gui(ctx: Context):
     pass
 
 
-@org_task(pre=[build_haxorg, build_example_qt_gui, build_example_imgui_gui])
-def build_all(ctx: Context):
+@org_task(pre=[build_example_qt_gui, build_example_imgui_gui])
+def build_examples(ctx: Context):
     pass
 
 
@@ -1929,6 +1929,7 @@ def get_poetry_import_paths(ctx: Context) -> List[Path]:
         )[1].split("\n") if 0 < len(it.strip())
     ]
 
+
 @beartype
 def get_cxx_coverage_dir() -> Path:
     return get_build_root("coverage_artifacts")
@@ -2027,7 +2028,7 @@ def run_cxx_coverage_merge(
     )
 
 
-@org_task(pre=[build_all, symlink_build, generate_python_protobuf_files],
+@org_task(pre=[build_haxorg, symlink_build, generate_python_protobuf_files],
           iterable=["arg"])
 def run_py_tests(ctx: Context, arg: List[str] = []):
     """
@@ -2078,7 +2079,7 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
         exit(1)
 
 
-@org_task(pre=[build_all, generate_python_protobuf_files, symlink_build],
+@org_task(pre=[build_haxorg, generate_python_protobuf_files, symlink_build],
           iterable=["arg"])
 def run_py_script(ctx: Context, script: str, arg: List[str] = []):
     """
@@ -2262,7 +2263,6 @@ def run_develop_ci(
             env=env,
         )
 
-
     if install:
         log(CAT).info("Running install")
         run_self(
@@ -2273,13 +2273,7 @@ def run_develop_ci(
 
     if build:
         log(CAT).info("Running CI cmake")
-        run_self(
-            ctx,
-            [
-                build_all,
-            ],
-            env=env,
-        )
+        run_self(ctx, [build_haxorg], env=env)
 
     if reflection:
         log(CAT).info("Running CI reflection")
@@ -2302,18 +2296,14 @@ def run_develop_ci(
             env=env,
         )
 
+    if example:
+        log(CAT).info("Running CI cmake")
+        run_self(ctx, [build_examples], env=env)
+
     if coverage:
         log(CAT).info("Running CI coverage merge")
-        run_self(
-            ctx,
-            [run_cxx_coverage_merge],
-            env=env,
-        )
+        run_self(ctx, [run_cxx_coverage_merge], env=env)
 
     if docs:
         log(CAT).info("Running CI docs")
-        run_self(
-            ctx,
-            [build_custom_docs],
-            env=env,
-        )
+        run_self(ctx, [build_custom_docs], env=env)
