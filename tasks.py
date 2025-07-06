@@ -476,6 +476,7 @@ def run_cmake_configure_component(
             "-S",
             get_script_root(script_path),
             cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
+            cmake_opt("ORG_USE_COVERAGE", conf.instrument.coverage),
             "-G",
             "Ninja",
         ] + args,
@@ -776,6 +777,7 @@ def run_docker_develop_test(
                 "tests",
                 "benchmark",
                 "tasks.py",
+                "examples",
                 "docs",
                 "pyproject.toml",
                 "ignorelist.txt",
@@ -1234,7 +1236,7 @@ def build_example_qt_gui(ctx: Context):
     pass
 
 
-@org_task(pre=[build_example_qt_gui, build_example_imgui_gui])
+@org_task(pre=[build_haxorg, build_example_qt_gui, build_example_imgui_gui])
 def build_all(ctx: Context):
     pass
 
@@ -1927,13 +1929,6 @@ def get_poetry_import_paths(ctx: Context) -> List[Path]:
         )[1].split("\n") if 0 < len(it.strip())
     ]
 
-
-@org_task(pre=[build_haxorg])
-def build_all(ctx: Context):
-    """Build all binary artifacts"""
-    pass
-
-
 @beartype
 def get_cxx_coverage_dir() -> Path:
     return get_build_root("coverage_artifacts")
@@ -2267,6 +2262,15 @@ def run_develop_ci(
             env=env,
         )
 
+
+    if install:
+        log(CAT).info("Running install")
+        run_self(
+            ctx,
+            [install_haxorg_develop],
+            env=env,
+        )
+
     if build:
         log(CAT).info("Running CI cmake")
         run_self(
@@ -2311,13 +2315,5 @@ def run_develop_ci(
         run_self(
             ctx,
             [build_custom_docs],
-            env=env,
-        )
-
-    if install:
-        log(CAT).info("Running install")
-        run_self(
-            ctx,
-            [install_haxorg_develop],
             env=env,
         )
