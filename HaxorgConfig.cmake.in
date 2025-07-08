@@ -1,6 +1,3 @@
 @PACKAGE_INIT@
 
-set_and_check(HAXORG_CMAKE_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@/cmake/haxorg")
-set_and_check(HAXORG_LIB_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
-
-include("${HAXORG_CMAKE_DIR}/HaxorgTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/HaxorgTargets.cmake")
