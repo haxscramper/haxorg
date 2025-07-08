@@ -9,8 +9,12 @@ set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 set(DEPS_INSTALL "${REPO_ROOT}/build/deps_bin/install")
 
 option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
+option(ORG_USE_SYSTEM_DEPS "Find packages in the system instead of using thirdparty" OFF)
 
-include("${DEPS_INSTALL}/paths.cmake")
+if(NOT ${ORG_USE_SYSTEM_DEPS})
+  include("${DEPS_INSTALL}/paths.cmake")
+endif()
+
 list(INSERT CMAKE_PREFIX_PATH 0 "${REPO_ROOT}/build/install")
 
 find_package(Immer CONFIG REQUIRED)
@@ -74,24 +78,31 @@ target_include_directories(
 
 # main part of app setup
 
-file(GLOB QIUCUS_LIB_FILES "${PROJ_ROOT}/gui_lib/*.?pp")
-add_library(qiucus_lib ${QIUCUS_LIB_FILES})
+file(GLOB IMGUI_EXAMPLE_LIB_FILES "${PROJ_ROOT}/gui_lib/*.?pp")
+add_library(imgui_example_lib ${IMGUI_EXAMPLE_LIB_FILES})
 
-if(${ORG_USE_PERFETTO})
-  target_link_libraries(qiucus_lib PUBLIC Perfetto::perfetto)
+option(ORG_USE_COVERAGE "Enable test coverage" OFF)
+if(${ORG_USE_COVERAGE})
+  target_compile_options(imgui_example_lib PUBLIC -fprofile-instr-generate -fcoverage-mapping)
+  target_link_options(imgui_example_lib PUBLIC -lgcov --coverage -fprofile-instr-generate
+                      -fcoverage-mapping)
 endif()
 
 if(${ORG_USE_PERFETTO})
-  target_compile_definitions(qiucus_lib PUBLIC ORG_USE_PERFETTO)
+  target_link_libraries(imgui_example_lib PUBLIC Perfetto::perfetto)
 endif()
 
-target_compile_options(qiucus_lib PUBLIC "-Wno-ambiguous-reversed-operator")
+if(${ORG_USE_PERFETTO})
+  target_compile_definitions(imgui_example_lib PUBLIC ORG_USE_PERFETTO)
+endif()
 
-target_link_directories(qiucus_lib PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
-target_include_directories(qiucus_lib PUBLIC "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include"
-                                             "${PROJ_ROOT}")
+target_compile_options(imgui_example_lib PUBLIC "-Wno-ambiguous-reversed-operator")
+
+target_link_directories(imgui_example_lib PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
+target_include_directories(imgui_example_lib PUBLIC "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include"
+                                                    "${PROJ_ROOT}")
 target_link_libraries(
-  qiucus_lib
+  imgui_example_lib
   PUBLIC imgui
          imgui_test_engine
          glfw
@@ -111,14 +122,14 @@ target_link_libraries(
          cpptrace::cpptrace
          range-v3::range-v3)
 
-file(GLOB QIUCUS_APP_FILES "${PROJ_ROOT}/gui_app/*.?pp")
-add_executable(qiucus_app ${QIUCUS_APP_FILES})
-target_link_libraries(qiucus_app PUBLIC qiucus_lib)
+file(GLOB IMGUI_EXAMPLE_APP_FILES "${PROJ_ROOT}/gui_app/*.?pp")
+add_executable(IMGUI_EXAMPLE_APP ${IMGUI_EXAMPLE_APP_FILES})
+target_link_libraries(IMGUI_EXAMPLE_APP PUBLIC imgui_example_lib)
 
-file(GLOB QIUCUS_GUI_TEST_FILES "${PROJ_ROOT}/gui_test/*.?pp")
-add_executable(qiucus_gui_test ${QIUCUS_GUI_TEST_FILES})
-target_link_libraries(qiucus_gui_test PUBLIC qiucus_lib imgui_test_engine)
+file(GLOB IMGUI_EXAMPLE_GUI_TEST_FILES "${PROJ_ROOT}/gui_test/*.?pp")
+add_executable(IMGUI_EXAMPLE_GUI_TEST ${IMGUI_EXAMPLE_GUI_TEST_FILES})
+target_link_libraries(IMGUI_EXAMPLE_GUI_TEST PUBLIC imgui_example_lib imgui_test_engine)
 
-file(GLOB QIUCUS_LOGIC_TEST_FILES "${PROJ_ROOT}/logic_test/*.?pp")
-add_executable(qiucus_logic_test ${QIUCUS_LOGIC_TEST_FILES})
-target_link_libraries(qiucus_logic_test PUBLIC qiucus_lib)
+file(GLOB IMGUI_EXAMPLE_LOGIC_TEST_FILES "${PROJ_ROOT}/logic_test/*.?pp")
+add_executable(IMGUI_EXAMPLE_LOGIC_TEST ${IMGUI_EXAMPLE_LOGIC_TEST_FILES})
+target_link_libraries(IMGUI_EXAMPLE_LOGIC_TEST PUBLIC imgui_example_lib)

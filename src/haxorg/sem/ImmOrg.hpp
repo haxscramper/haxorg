@@ -983,7 +983,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
 
     ImmAdapter(org::imm::ImmAdapter const& other)
         : id{other.id}, ctx{other.ctx}, path{other.path} {
-        hstd::safe_wptr_lock(other.ctx);
+        if (!other.isNil()) { hstd::safe_wptr_lock(other.ctx); }
     }
 
     ImmAdapter() : id{ImmId::Nil()}, ctx{}, path{ImmId::Nil()} {}

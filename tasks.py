@@ -7,7 +7,7 @@ import os
 from invoke import task, Failure
 from invoke.context import Context
 from invoke.tasks import Task
-from beartype.typing import Optional, List, Union, Literal, Callable
+from beartype.typing import Optional, List, Union, Literal, Callable, Unpack, TypedDict
 from shutil import which, rmtree
 from py_scriptutils.files import FileOperation
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson, getGlobalTraceCollector
@@ -155,7 +155,7 @@ def matches_pattern(cookie: ProfdataCookie, pattern: HaxorgCoverageCookiePattern
 
 
 @beartype
-def get_real_build_basename(ctx: Context, component: Literal["haxorg", "utils"]) -> str:
+def get_real_build_basename(ctx: Context, component: str) -> str:
     """
     Get basename of the binary output directory for component
     """
@@ -170,7 +170,7 @@ def get_real_build_basename(ctx: Context, component: Literal["haxorg", "utils"])
 
 
 @beartype
-def get_component_build_dir(ctx: Context, component: Literal["haxorg", "utils"]) -> Path:
+def get_component_build_dir(ctx: Context, component: str) -> Path:
     result = get_build_root(get_real_build_basename(ctx, component))
     result.mkdir(parents=True, exist_ok=True)
     return result
@@ -269,6 +269,18 @@ def get_log_dir() -> Path:
 @beartype
 def get_cmd_debug_file(kind: str):
     return get_log_dir().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
+
+
+class RunCommandKwargs(TypedDict, total=False):
+    capture: bool
+    allow_fail: bool
+    env: dict[str, str]
+    cwd: Optional[Union[str, Path]]
+    stderr_debug: Optional[Path]
+    stdout_debug: Optional[Path]
+    append_stdout_debug: bool
+    append_stderr_debug: bool
+    run_mode: Literal["nohup", "bg", "fg"]
 
 
 @beartype
@@ -436,6 +448,59 @@ def run_self(
         allow_fail=allow_fail,
         env=env,
         cwd=cwd,
+    )
+
+
+@beartype
+def run_cmake(
+    ctx: Context,
+    args: List[str | Path],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    return run_command(ctx, "cmake", args, **kwargs)
+
+
+@beartype
+def run_cmake_configure_component(
+    ctx: Context,
+    component: str,
+    script_path: str,
+    args: List[str | Path] = [],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    return run_cmake(
+        ctx,
+        [
+            "-B",
+            get_component_build_dir(ctx, component),
+            "-S",
+            get_script_root(script_path),
+            cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
+            cmake_opt("ORG_USE_COVERAGE", conf.instrument.coverage),
+            "-G",
+            "Ninja",
+        ] + args,
+        **kwargs,
+    )
+
+
+@beartype
+def run_cmake_build_component(
+    ctx: Context,
+    component: str,
+    targets: List[str] = ["all"],
+    args: List[str | Path] = [],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    return run_cmake(
+        ctx,
+        [
+            "--build",
+            get_component_build_dir(ctx, component),
+            "--target",
+            *targets,
+        ] + args,
+        **kwargs,
     )
 
 
@@ -712,6 +777,7 @@ def run_docker_develop_test(
                 "tests",
                 "benchmark",
                 "tasks.py",
+                "examples",
                 "docs",
                 "pyproject.toml",
                 "ignorelist.txt",
@@ -851,6 +917,12 @@ def generate_python_protobuf_files(ctx: Context):
 
 
 @org_task()
+def validate_dependencies_install(ctx: Context):
+    install_dir = get_deps_install_dir().joinpath("paths.cmake")
+    assert install_dir.exists(), f"No dependency paths found at '{install_dir}'"
+
+
+@org_task()
 def generate_develop_deps_install_paths(ctx: Context):
     install_dir = get_deps_install_dir()
     ensure_existing_dir(install_dir)
@@ -898,7 +970,8 @@ def configure_cmake_haxorg(ctx: Context, force: bool = False):
             ]
 
             import shlex
-            Path("/tmp/cmake_configure_haxorg_flags.txt").write_text(shlex.join([str(s) for s in pass_flags]))
+            Path("/tmp/cmake_configure_haxorg_flags.txt").write_text(
+                shlex.join([str(s) for s in pass_flags[6:]]))
             run_command(ctx, "cmake", pass_flags)
 
 
@@ -1064,7 +1137,11 @@ def build_haxorg(
                     "--target",
                     *cond(0 < len(target), target, ["all"]),
                     *get_j_cap(),
-                    *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
+                    *([
+                        "--",
+                        "-d",
+                        "explain",
+                    ] if is_ci() else []),
                 ],
                 env={'NINJA_FORCE_COLOR': '1'},
             )
@@ -1118,6 +1195,50 @@ def build_release_archive(ctx: Context, force: bool = False):
 
     # else:
     #     log(CAT).debug(op.explain("cpack code"))
+
+
+@org_task(pre=[validate_dependencies_install])
+def configure_example_imgui_gui(ctx: Context):
+    run_cmake_configure_component(
+        ctx,
+        "example_imgui_gui",
+        "examples/imgui_gui",
+    )
+
+
+@org_task(pre=[configure_example_imgui_gui])
+def build_example_imgui_gui(ctx: Context):
+    run_cmake_build_component(
+        ctx,
+        "example_imgui_gui",
+    )
+
+
+@org_task(pre=[validate_dependencies_install])
+def configure_example_qt_gui_org_viewer(ctx: Context):
+    run_cmake_configure_component(
+        ctx,
+        "example_qt_gui_org_viewer",
+        "examples/qt_gui/org_viewer",
+    )
+
+
+@org_task(pre=[configure_example_qt_gui_org_viewer])
+def build_example_qt_gui_org_viewer(ctx: Context):
+    run_cmake_build_component(
+        ctx,
+        "example_qt_gui_org_viewer",
+    )
+
+
+@org_task(pre=[build_example_qt_gui_org_viewer])
+def build_example_qt_gui(ctx: Context):
+    pass
+
+
+@org_task(pre=[build_example_qt_gui, build_example_imgui_gui])
+def build_examples(ctx: Context):
+    pass
 
 
 @org_task(pre=[build_release_archive])
@@ -1368,43 +1489,6 @@ def run_docker_release_test(
 @beartype
 def get_example_build(example_name: str) -> Path:
     return get_build_root().joinpath(f"example_build_{example_name}")
-
-
-@beartype
-def cmake_example_project(ctx: Context, example_name: str):
-    generate_develop_deps_install_paths(ctx)
-    example_build = get_example_build(example_name)
-    toolchain = get_script_root().joinpath("toolchain.cmake")
-    assert toolchain.exists()
-    run_command(ctx, "cmake", [
-        "-B",
-        example_build,
-        "-S",
-        get_script_root().joinpath(f"examples/{example_name}"),
-        "-G",
-        "Ninja",
-        cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")),
-        cmake_opt("CMAKE_C_COMPILER", get_llvm_root("bin/clang")),
-        cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()),
-    ])
-
-    run_command(ctx, "cmake", [
-        "--build",
-        example_build,
-        "--target",
-        "all",
-        *get_j_cap(),
-    ])
-
-
-@org_task(pre=[
-    # cmake_install_dev
-])
-def build_imgui_example(ctx: Context):
-    """
-    Build imgui example project. 
-    """
-    cmake_example_project(ctx, "imgui_gui")
 
 
 @beartype
@@ -1846,12 +1930,6 @@ def get_poetry_import_paths(ctx: Context) -> List[Path]:
     ]
 
 
-@org_task(pre=[build_haxorg])
-def build_all(ctx: Context):
-    """Build all binary artifacts"""
-    pass
-
-
 @beartype
 def get_cxx_coverage_dir() -> Path:
     return get_build_root("coverage_artifacts")
@@ -1950,7 +2028,7 @@ def run_cxx_coverage_merge(
     )
 
 
-@org_task(pre=[build_all, symlink_build, generate_python_protobuf_files],
+@org_task(pre=[build_haxorg, symlink_build, generate_python_protobuf_files],
           iterable=["arg"])
 def run_py_tests(ctx: Context, arg: List[str] = []):
     """
@@ -2001,7 +2079,7 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
         exit(1)
 
 
-@org_task(pre=[build_all, generate_python_protobuf_files, symlink_build],
+@org_task(pre=[build_haxorg, generate_python_protobuf_files, symlink_build],
           iterable=["arg"])
 def run_py_script(ctx: Context, script: str, arg: List[str] = []):
     """
@@ -2185,17 +2263,17 @@ def run_develop_ci(
             env=env,
         )
 
-    if build:
-        log(CAT).info("Running CI cmake")
+    if install:
+        log(CAT).info("Running install")
         run_self(
             ctx,
-            [
-                build_haxorg,
-                "--ninja-flag=-d",
-                "--ninja-flag=explain",
-            ],
+            [install_haxorg_develop],
             env=env,
         )
+
+    if build:
+        log(CAT).info("Running CI cmake")
+        run_self(ctx, [build_haxorg], env=env)
 
     if reflection:
         log(CAT).info("Running CI reflection")
@@ -2218,26 +2296,14 @@ def run_develop_ci(
             env=env,
         )
 
+    if example:
+        log(CAT).info("Running CI cmake")
+        run_self(ctx, [build_examples], env=env)
+
     if coverage:
         log(CAT).info("Running CI coverage merge")
-        run_self(
-            ctx,
-            [run_cxx_coverage_merge],
-            env=env,
-        )
+        run_self(ctx, [run_cxx_coverage_merge], env=env)
 
     if docs:
         log(CAT).info("Running CI docs")
-        run_self(
-            ctx,
-            [build_custom_docs],
-            env=env,
-        )
-
-    if install:
-        log(CAT).info("Running install")
-        run_self(
-            ctx,
-            [install_haxorg_develop],
-            env=env,
-        )
+        run_self(ctx, [build_custom_docs], env=env)

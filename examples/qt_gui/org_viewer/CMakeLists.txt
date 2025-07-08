@@ -37,6 +37,7 @@ find_package(OpenGL REQUIRED)
 find_package(Perfetto CONFIG REQUIRED)
 find_package(lexy CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
+find_package(Adaptagrams CONFIG REQUIRED)
 find_package(cctz REQUIRED)
 find_package(msgpack-cxx CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS ALL)
@@ -48,6 +49,13 @@ find_package(Haxorg CONFIG REQUIRED)
 file(GLOB PROJECT_SOURCES "${PROJ_ROOT}/*.?pp")
 
 qt_add_executable(org_viewer MANUAL_FINALIZATION ${PROJECT_SOURCES})
+
+option(ORG_USE_COVERAGE "Enable test coverage" OFF)
+if(${ORG_USE_COVERAGE})
+  target_compile_options(org_viewer PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+  target_link_options(org_viewer PRIVATE -lgcov --coverage -fprofile-instr-generate
+                      -fcoverage-mapping)
+endif()
 
 set_target_properties(org_viewer PROPERTIES AUTOMOC ON)
 target_link_libraries(org_viewer PRIVATE Qt6::Widgets haxorg::haxorg haxorg::hstd)

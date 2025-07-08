@@ -48,6 +48,6 @@ RUN dnf install -y cairomm-devel
 RUN dnf install -y jq
 RUN dnf install -y gcc gcc-c++ autoconf automake libtool pkg-config
 RUN dnf install -y glfw glfw-devel dbus-devel
-RUN dnf install -y pcre-devel capstone-devel freetype-devel patch libgit2 libgit2-devel
+RUN dnf install -y pcre-devel capstone-devel freetype-devel patch libgit2 libgit2-devel stb-devel
 
 COPY invoke-ci.yaml invoke.yaml
