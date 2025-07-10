@@ -15,6 +15,14 @@ class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
 class HaxorgTasksConfig(BaseModel, extra="forbid"):
     skip_python_refl: bool = Field(default=False)
 
+    # invoke config fields
+    search_root: Optional[str] = None
+    dedupe: bool = True
+    collection_name: Optional[str] = None
+    ignore_unknown_help: bool = False
+    executor_class: Optional[str] = None
+    auto_dash_names: bool = True
+
 
 class HaxorgCoverageCookiePattern(BaseModel, extra="forbid"):
     binary_pattern: Optional[str] = None
@@ -39,10 +47,19 @@ class HaxorgConfig(BaseModel, extra="forbid"):
         description="Always execute task",
     )
 
+    forceall: bool = False
+    ci: bool = False
+
     python_version: Optional[str] = None
     aggregate_filters: Optional[HaxorgCoverageAggregateFilter] = None
     profdata_file_whitelist: List[str] = Field(default_factory=lambda: [".*"])
     profdata_file_blacklist: List[str] = Field(default_factory=lambda: ["base_lexer_gen.cpp", "thirdparty"])
+
+    # field for unparsing invoke config
+    sudo: dict = Field(default_factory=dict)
+    runners: dict = Field(default_factory=dict)
+    timeouts: dict = Field(default_factory=dict)
+    run: dict = Field(default_factory=dict)
 
 
 def get_haxorg_repo_root_path() -> Path:
@@ -51,19 +68,6 @@ def get_haxorg_repo_root_path() -> Path:
     assert result.is_dir(), result
     assert result.joinpath("tasks.py").exists(), result
     return result
-
-
-def get_haxorg_repo_root_config_path() -> Path:
-    return get_haxorg_repo_root_path().joinpath("invoke.yaml")
-
-
-def get_haxorg_repo_root_config() -> HaxorgConfig:
-    file = get_haxorg_repo_root_config_path()
-
-    with open(file, 'r') as f:
-        data = yaml.load(f, Loader=yaml.SafeLoader)
-
-    return HaxorgConfig(**data)
 
 
 def get_maybe_repo_rel_path(path: Path) -> Path:
