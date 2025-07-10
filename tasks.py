@@ -21,9 +21,10 @@ import json
 import sys
 import traceback
 import itertools
-from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config, get_haxorg_repo_root_config_path
+from py_scriptutils.repo_files import HaxorgConfig
 from py_repository.gen_coverage_cookies import ProfdataParams, ProfdataFullProfile, ProfdataCookie
 from py_scriptutils.algorithm import remove_ansi, maybe_splice, cond
+from py_scriptutils.toml_config_profiler import merge_dicts
 from py_scriptutils import os_utils
 import typing
 import inspect
@@ -32,7 +33,7 @@ import shutil
 import signal
 import psutil
 import subprocess
-from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count
+from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count, haxorg_env, parse_haxorg_env
 from py_ci.data_build import (
     get_emscripten_cmake_flags,
     get_external_deps_list,
@@ -44,7 +45,6 @@ from py_ci.data_build import (
 )
 from py_scriptutils.repo_files import (
     HaxorgConfig,
-    get_haxorg_repo_root_config,
     HaxorgCoverageCookiePattern,
     HaxorgCoverageAggregateFilter,
 )
@@ -197,32 +197,62 @@ def get_llvm_root(relative: Optional[str] = None) -> Path:
     return value
 
 
-conf = get_haxorg_repo_root_config()
+from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 
+CONFIG_CACHE: Optional[HaxorgConfig] = None
 
 def get_config(ctx: Context) -> HaxorgConfig:
-    return conf
+    global CONFIG_CACHE
+    if CONFIG_CACHE:
+        return CONFIG_CACHE
+
+    else:
+        res_dict = dict()
+
+        def aux(it):
+            match it:
+                case bool() | None | str() | type():
+                    return it
+
+                case list():
+                    return [aux(i) for i in it]
+
+                case _:
+                    out = dict()
+                    for key in it:
+                        out[key] = aux(it[key])
+
+                    return out
+
+        ctx_dict = aux(ctx.config)
+
+        env_dict = parse_haxorg_env()
+        log(CAT).info(f"Parsed haxorg env variables")
+        print(json.dumps(to_debug_json(env_dict), indent=2))
+        res_dict = merge_dicts([ctx_dict, env_dict])
+        log(CAT).info(f"Final parsed dictionary")
+        print(json.dumps(to_debug_json(res_dict), indent=2))
+
+        CONFIG_CACHE = HaxorgConfig(**res_dict)
+
+        return CONFIG_CACHE
 
 
 def is_instrumented_coverage(ctx: Context) -> bool:
-    return conf.instrument.coverage
+    return get_config(ctx).instrument.coverage
 
 
 def is_xray_coverage(ctx: Context) -> bool:
-    return conf.instrument.xray
+    return get_config(ctx).instrument.xray
 
 
 def is_forced(ctx: Context, name: str) -> bool:
-    return name in conf.force_task
+    return name in get_config(ctx).force_task or get_config(ctx).forceall
 
 
 @beartype
 def is_ci() -> bool:
     return bool(os.getenv("INVOKE_CI"))
-
-
-if is_ci():
-    log(CAT).info(f"Using config {get_haxorg_repo_root_config_path()}")
 
 
 @beartype
@@ -341,7 +371,8 @@ cmd:  {cmd}
         append_to_log(stdout_debug)
 
     log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
-                   (f" in [green]{cwd}[/green]" if cwd else ""))
+                   (f" in [green]{cwd}[/green]" if cwd else "") +
+                   (f" with [purple]{env}[/purple]" if env else ""))
 
     try:
         run = local[cmd]
@@ -476,7 +507,8 @@ def run_cmake_configure_component(
             "-S",
             get_script_root(script_path),
             cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
-            cmake_opt("ORG_USE_COVERAGE", conf.instrument.coverage),
+            cmake_opt("ORG_USE_COVERAGE",
+                      get_config(ctx).instrument.coverage),
             "-G",
             "Ninja",
         ] + args,
@@ -628,7 +660,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("SQLITECPP_RUN_CPPLINT", False))
 
     result.append(cmake_opt("ORG_FORCE_ADAPTAGRAMS_BUILD", False))
-    result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()))
+    result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
     if conf.emscripten:
@@ -827,18 +859,19 @@ def base_environment(ctx: Context):
 
 
 @beartype
-def get_deps_tmp_dir() -> Path:
-    return get_build_root().joinpath("deps_emcc" if conf.emscripten else "deps_bin")
+def get_deps_tmp_dir(ctx: Context) -> Path:
+    return get_build_root().joinpath(
+        "deps_emcc" if get_config(ctx).emscripten else "deps_bin")
 
 
 @beartype
-def get_deps_install_dir() -> Path:
-    return get_deps_tmp_dir().joinpath("install")
+def get_deps_install_dir(ctx: Context) -> Path:
+    return get_deps_tmp_dir(ctx).joinpath("install")
 
 
 @beartype
-def get_deps_build_dir() -> Path:
-    return get_deps_tmp_dir().joinpath("build")
+def get_deps_build_dir(ctx: Context) -> Path:
+    return get_deps_tmp_dir(ctx).joinpath("build")
 
 
 @org_task()
@@ -900,7 +933,7 @@ def generate_python_protobuf_files(ctx: Context):
 
             run_command(
                 ctx,
-                get_deps_install_dir().joinpath("protobuf/bin/protoc"),
+                get_deps_install_dir(ctx).joinpath("protobuf/bin/protoc"),
                 [
                     f"--plugin={protoc_plugin}",
                     "-I",
@@ -918,13 +951,13 @@ def generate_python_protobuf_files(ctx: Context):
 
 @org_task()
 def validate_dependencies_install(ctx: Context):
-    install_dir = get_deps_install_dir().joinpath("paths.cmake")
+    install_dir = get_deps_install_dir(ctx).joinpath("paths.cmake")
     assert install_dir.exists(), f"No dependency paths found at '{install_dir}'"
 
 
 @org_task()
 def generate_develop_deps_install_paths(ctx: Context):
-    install_dir = get_deps_install_dir()
+    install_dir = get_deps_install_dir(ctx)
     ensure_existing_dir(install_dir)
     install_dir.joinpath("paths.cmake").write_text(
         get_deps_install_config(
@@ -961,10 +994,13 @@ def configure_cmake_haxorg(ctx: Context, force: bool = False):
                 *get_cmake_defines(ctx),
                 cmake_opt("ORG_CPACK_PACKAGE_VERSION", HAXORG_VERSION),
                 cmake_opt("ORG_CPACK_PACKAGE_NAME", HAXORG_NAME),
-                cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()),
+                cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)),
                 *cond(
-                    conf.python_version,
-                    [cmake_opt("ORG_DEPS_USE_PYTHON_VERSION", conf.python_version)],
+                    get_config(ctx).python_version,
+                    [
+                        cmake_opt("ORG_DEPS_USE_PYTHON_VERSION",
+                                  get_config(ctx).python_version)
+                    ],
                     [],
                 ),
             ]
@@ -1010,9 +1046,9 @@ def build_develop_deps(
 ):
     "Install dependencies for cmake project development"
     conf = get_config(ctx)
-    build_dir = get_deps_build_dir()
+    build_dir = get_deps_build_dir(ctx)
     ensure_existing_dir(build_dir)
-    install_dir = get_deps_install_dir()
+    install_dir = get_deps_install_dir(ctx)
     ensure_existing_dir(install_dir)
     deps_dir = get_script_root().joinpath("thirdparty")
 
@@ -1103,14 +1139,9 @@ def build_develop_deps(
 
 
 @org_task(pre=[configure_cmake_haxorg], iterable=["target", "ninja_flag"])
-def build_haxorg(
-    ctx: Context,
-    target: List[str] = ["all"],
-    force: bool = False,
-    ninja_flag: List[str] = [],
-):
+def build_haxorg(ctx: Context, target: List[str] = ["all"], force: bool = False):
     """Compile main set of libraries and binaries for org-mode parser"""
-    log(CAT).info(f"Using dependency dir {get_deps_install_dir()}")
+    log(CAT).info(f"Using dependency dir {get_deps_install_dir(ctx)}")
     log(CAT).info(f"Building with\n{' '.join(get_cmake_defines(ctx))}")
     build_dir = get_component_build_dir(ctx, "haxorg")
     with FileOperation.InTmp(
@@ -1126,6 +1157,11 @@ def build_haxorg(
             stamp_path=get_task_stamp("build_haxorg"),
             stamp_content=str(get_cmake_defines(ctx) + target),
     ) as op:
+        pprint_to_file(
+            to_debug_json(get_config(ctx)),
+            "/tmp/config.py",
+            width=240,
+        )
         if force or is_forced(ctx, "build_haxorg") or op.should_run():
             log(CAT).info(op.explain("Main C++"))
             run_command(
@@ -1954,13 +1990,14 @@ HELP_coverage_file = {
 
 
 @beartype
-def get_cxx_profdata_params() -> ProfdataParams:
+def get_cxx_profdata_params(ctx: Context) -> ProfdataParams:
     coverage_dir = get_cxx_coverage_dir()
     stored_summary_collection = coverage_dir.joinpath("test-summary.json")
     summary_data: ProfdataFullProfile = ProfdataFullProfile.model_validate_json(
         stored_summary_collection.read_text())
     filtered_summary = ProfdataFullProfile(
-        runs=filter_cookies(summary_data.runs, conf.aggregate_filters))
+        runs=filter_cookies(summary_data.runs,
+                            get_config(ctx).aggregate_filters))
     filtered_summary_collection = coverage_dir.joinpath("test-summary-filtered.json")
     filtered_summary_collection.write_text(filtered_summary.model_dump_json(indent=2))
     return ProfdataParams(
@@ -1968,8 +2005,8 @@ def get_cxx_profdata_params() -> ProfdataParams:
         coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
         # perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
         debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
-        file_whitelist=conf.profdata_file_whitelist,
-        file_blacklist=conf.profdata_file_blacklist,
+        file_whitelist=get_config(ctx).profdata_file_whitelist,
+        file_blacklist=get_config(ctx).profdata_file_blacklist,
         run_group_batch_size=get_threading_count(),
     )
 
@@ -2240,8 +2277,7 @@ def cxx_target_coverage(
 @org_task()
 def run_develop_ci(
     ctx: Context,
-    deps_configure: bool = True,
-    deps_build: bool = True,
+    deps: bool = True,
     build: bool = True,
     test: bool = True,
     docs: bool = True,
@@ -2249,19 +2285,17 @@ def run_develop_ci(
     reflection: bool = True,
     install: bool = True,
     example: bool = True,
+    emscripten: bool = True,
 ):
     "Execute all CI tasks"
-    env = {"INVOKE_CI": "ON"}
-    if deps_configure or deps_build:
+    env = merge_dicts([
+        haxorg_env(["ci"], True),
+        haxorg_env(["forceall"], True),
+    ])
+
+    if deps:
         log(CAT).info("Running CI dependency installation")
-        run_self(
-            ctx,
-            [
-                build_develop_deps,
-                invoke_opt("configure", deps_configure),
-            ],
-            env=env,
-        )
+        run_self(ctx, [build_develop_deps], env=env)
 
     if install:
         log(CAT).info("Running install")
@@ -2307,3 +2341,15 @@ def run_develop_ci(
     if docs:
         log(CAT).info("Running CI docs")
         run_self(ctx, [build_custom_docs], env=env)
+
+    if emscripten:
+        if deps:
+            run_self(
+                ctx,
+                [build_develop_deps],
+                env=merge_dicts([env, haxorg_env(["emscripten"], True)]),
+            )
+
+        if build:
+            run_self(ctx, [build_haxorg],
+                     env=merge_dicts([env, haxorg_env(["emscripten"], True)]))
