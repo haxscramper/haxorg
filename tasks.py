@@ -2285,7 +2285,8 @@ def run_develop_ci(
     reflection: bool = True,
     install: bool = True,
     example: bool = True,
-    emscripten: bool = True,
+    emscripten_deps: bool = True,
+    emscripten_build: bool = True,
 ):
     "Execute all CI tasks"
     env = merge_dicts([
@@ -2342,14 +2343,13 @@ def run_develop_ci(
         log(CAT).info("Running CI docs")
         run_self(ctx, [build_custom_docs], env=env)
 
-    if emscripten:
-        if deps:
-            run_self(
-                ctx,
-                [build_develop_deps],
-                env=merge_dicts([env, haxorg_env(["emscripten"], True)]),
-            )
+    if emscripten_deps:
+        run_self(
+            ctx,
+            [build_develop_deps],
+            env=merge_dicts([env, haxorg_env(["emscripten"], True)]),
+        )
 
-        if build:
-            run_self(ctx, [build_haxorg],
-                     env=merge_dicts([env, haxorg_env(["emscripten"], True)]))
+    if emscripten_build:
+        run_self(ctx, [build_haxorg],
+                    env=merge_dicts([env, haxorg_env(["emscripten"], True)]))

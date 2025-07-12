@@ -14,7 +14,7 @@ if(NOT ${ORG_EMCC_BUILD})
                                     cpptrace::cpptrace)
 endif()
 
-if(${ORG_DEPS_USE_ADAPTAGRAMS})
+if(${ORG_DEPS_USE_ADAPTAGRAMS} AND NOT ${ORG_EMCC_BUILD})
   target_link_libraries(hstd PUBLIC adaptagrams)
 endif()
 

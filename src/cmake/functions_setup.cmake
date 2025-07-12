@@ -3,7 +3,6 @@ function(set_target_flags_impl)
 
   if(${ORG_EMCC_BUILD})
     set(EMSCRIPTEN_FLAGS
-        "-s DEMANGLE_SUPPORT=1"
         "-g4"
         "-gsource-map"
         "-s WASM=1"
