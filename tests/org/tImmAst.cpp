@@ -137,7 +137,7 @@ Other paragraph mentions radiotarget
 )");
 
     imm::ImmAdapter root = init.getRootAdapter();
-    writeTreeRepr(root, "repr.txt");
+    writeTreeRepr(root, getDebugFile("repr.txt"));
 
     imm::ImmAdapter par1 = root.at(1);
     EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
@@ -169,7 +169,7 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
         getDebugFile());
 
     imm::ImmAdapter root = init.getRootAdapter();
-    writeTreeRepr(root, "repr.txt");
+    writeTreeRepr(root, getDebugFile("repr.txt"));
     imm::ImmAdapter t1 = root.at(1);
     EXPECT_EQ(t1.getKind(), OrgSemKind::Subtree);
     imm::ImmAdapter par = t1.at(0);
@@ -220,7 +220,7 @@ also known as a human-readable alias
 )");
 
     imm::ImmAdapter root = init.getRootAdapter();
-    writeTreeRepr(root, "repr.txt");
+    writeTreeRepr(root, getDebugFile("repr.txt"));
     imm::ImmAdapter t1 = root.at(1);
     EXPECT_EQ(t1.getKind(), OrgSemKind::Subtree);
     imm::ImmAdapter t2 = root.at(2);
@@ -437,7 +437,7 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
 )");
 
     Vec<Row> rows1 = buildRows(v1.getRootAdapter());
-    writeTreeRepr(v1.getRootAdapter(), "v1.txt");
+    writeTreeRepr(v1.getRootAdapter(), getDebugFile("v1.txt"));
     {
         EXPECT_EQ(rows1.size(), 1);
         EXPECT_EQ(rows1.at(0).nested.size(), 1);
@@ -466,7 +466,7 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
             return result;
         });
 
-    writeTreeRepr(v2.getRootAdapter(), "v2.txt");
+    writeTreeRepr(v2.getRootAdapter(), getDebugFile("v2.txt"));
     writeGvHistory(
         {v1, v2},
         "graph.png",

@@ -94,7 +94,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
 TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     setTraceFile(getDebugFile("trace.txt"));
     imm::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
-    writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+    writeTreeRepr(v1.getRootAdapter(), getDebugFile("repr_v1.txt"));
 
     imm::ImmAstVersion v2 = v1.getEditVersion(
         [&](imm::ImmAstContext::Ptr ast,
@@ -109,7 +109,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     writeGvHistory({v1, v2}, "v1_v2");
 
     auto r = v2.getRootAdapter();
-    writeTreeRepr(r, "repr_v2.txt");
+    writeTreeRepr(r, getDebugFile("repr_v2.txt"));
     auto s201 = r.at(Vec{0, 0, 2});
     EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
     EXPECT_EQ(s201->as<imm::ImmSubtree>()->level, 3);
@@ -164,8 +164,8 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
     {
         auto r = v2.getRootAdapter();
 
-        writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
-        writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
+        writeTreeRepr(v1.getRootAdapter(), getDebugFile("repr_v1.txt"));
+        writeTreeRepr(v2.getRootAdapter(), getDebugFile("repr_v2.txt"));
         writeGvHistory({v1, v2}, "v1_v2");
 
         EXPECT_EQ(getDfsSubtreeLevels(r), (Vec<int>{1, 2, 3, 4, 2, 3}));
@@ -190,11 +190,11 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
     }
 
     imm::ImmAstVersion v3 = demotePath(v2, {0, 1});
-    writeTreeRepr(v3.getRootAdapter(), "repr_v3.txt");
+    writeTreeRepr(v3.getRootAdapter(), getDebugFile("repr_v3.txt"));
     imm::ImmAstVersion v4 = demotePath(v3, {0, 0, 1});
-    writeTreeRepr(v4.getRootAdapter(), "repr_v4.txt");
+    writeTreeRepr(v4.getRootAdapter(), getDebugFile("repr_v4.txt"));
     imm::ImmAstVersion v5 = demotePath(v4, {0, 0, 0, 1});
-    writeTreeRepr(v5.getRootAdapter(), "repr_v5.txt");
+    writeTreeRepr(v5.getRootAdapter(), getDebugFile("repr_v5.txt"));
     writeGvHistory(
         {v1, v2, v3, v4, v5},
         "v_final",
@@ -221,7 +221,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
 TEST_F(ImmOrgApiEdit, PhysicalDemote) {
     setTraceFile(getDebugFile("trace.txt"));
     imm::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
-    writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+    writeTreeRepr(v1.getRootAdapter(), getDebugFile("repr_v1.txt"));
 
     imm::ImmAstVersion v2 = v1.getEditVersion(
         [&](imm::ImmAstContext::Ptr ast,
@@ -232,7 +232,7 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
-    writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
+    writeTreeRepr(v2.getRootAdapter(), getDebugFile("repr_v2.txt"));
 
     EXPECT_EQ(
         getDfsSubtreeLevels(v1.getRootAdapter()),
@@ -246,7 +246,7 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
 TEST_F(ImmOrgApiEdit, ResetTitle) {
     setTraceFile(getDebugFile("trace.txt"));
     imm::ImmAstVersion v1 = getInitialVersion("* subtree");
-    writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+    writeTreeRepr(v1.getRootAdapter(), getDebugFile("repr_v1.txt"));
 
     imm::ImmAstVersion v2 = v1.getEditVersion(
         [&](imm::ImmAstContext::Ptr ast,
@@ -263,7 +263,7 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
-    writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
+    writeTreeRepr(v2.getRootAdapter(), getDebugFile("repr_v2.txt"));
 
     {
         auto tree = v1.getRootAdapter().at(0).as<imm::ImmSubtree>();

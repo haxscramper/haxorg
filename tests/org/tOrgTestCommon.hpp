@@ -42,14 +42,18 @@ GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 #include <gtest/gtest.h>
 
 
+
+void enable_full_trace_on_cli();
+bool is_full_trace_on_cli_enabled();
+
 void writeTreeRepr(
     imm::ImmAdapter               n,
-    Str const                     suffix,
+    const fs::path&               path,
     imm::ImmAdapter::TreeReprConf conf = imm::ImmAdapter::TreeReprConf{
         .withAuxFields = true,
     });
 
-void writeTreeRepr(sem::SemId<sem::Org> node, CR<Str> full);
+void writeTreeRepr(sem::SemId<sem::Org> node, const fs::path& full);
 
 
 GTEST_ADL_PRINT_TYPE(OrgSemKind);

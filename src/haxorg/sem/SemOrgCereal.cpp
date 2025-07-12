@@ -94,6 +94,24 @@ json msgpack_to_json(msgpack::object const& obj) {
     return convert(obj);
 }
 
+
+std::string format_msgpack_object_type(
+    msgpack::type::object_type const& t) {
+    switch (t) {
+        case msgpack::type::NIL: return "NIL";
+        case msgpack::type::BOOLEAN: return "BOOLEAN";
+        case msgpack::type::POSITIVE_INTEGER: return "POSITIVE_INTEGER";
+        case msgpack::type::NEGATIVE_INTEGER: return "NEGATIVE_INTEGER";
+        case msgpack::type::FLOAT32: return "FLOAT32";
+        case msgpack::type::FLOAT: return "FLOAT";
+        case msgpack::type::STR: return "STR";
+        case msgpack::type::BIN: return "BIN";
+        case msgpack::type::ARRAY: return "ARRAY";
+        case msgpack::type::MAP: return "MAP";
+        case msgpack::type::EXT: return "EXT";
+    }
+}
+
 std::string msgpack_object_to_tree(
     msgpack::object const& o,
     int                    depth = 0) {
@@ -238,7 +256,7 @@ void expect_map(
         throw htype_error::init(
             hstd::fmt(
                 "expected array, got {} in {}",
-                o.type,
+                format_msgpack_object_type(o.type),
                 hstd::value_metadata<T>::typeName()),
             line,
             function);

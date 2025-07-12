@@ -201,6 +201,7 @@ from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 
 CONFIG_CACHE: Optional[HaxorgConfig] = None
 
+
 def get_config(ctx: Context) -> HaxorgConfig:
     global CONFIG_CACHE
     if CONFIG_CACHE:
@@ -873,6 +874,20 @@ def get_deps_install_dir(ctx: Context) -> Path:
 def get_deps_build_dir(ctx: Context) -> Path:
     return get_deps_tmp_dir(ctx).joinpath("build")
 
+@beartype
+def create_symlink(link_path: Path, real_path: Path, is_dir: bool):
+    if link_path.exists():
+        assert link_path.is_symlink(), link_path
+        link_path.unlink()
+        log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+        assert not link_path.exists(), link_path
+
+    log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+
+    assert not link_path.exists(), link_path
+    assert real_path.exists(), real_path
+
+    link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
 @org_task()
 def symlink_build(ctx: Context):
@@ -880,23 +895,15 @@ def symlink_build(ctx: Context):
     Create proxy symbolic links around the build directory
     """
 
-    def link(link_path: Path, real_path: Path, is_dir: bool):
-        if link_path.exists():
-            assert link_path.is_symlink(), link_path
-            link_path.unlink()
-            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
-            assert not link_path.exists(), link_path
-
-        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
-
-        assert not link_path.exists(), link_path
-        assert real_path.exists(), real_path
-
-        link_path.symlink_to(target=real_path, target_is_directory=is_dir)
-
-    link(
+    create_symlink(
         real_path=get_component_build_dir(ctx, "haxorg"),
         link_path=get_build_root("haxorg"),
+        is_dir=True,
+    )
+
+    create_symlink(
+        real_path=get_component_build_dir(ctx, "haxorg"),
+        link_path=get_script_root("examples").joinpath("js_test/haxorg_wasm"),
         is_dir=True,
     )
 
@@ -1581,7 +1588,7 @@ def run_d3_example(ctx: Context, sync: bool = False):
         )
 
 
-@org_task(pre=[build_d3_example])
+@org_task(pre=[symlink_build])
 def run_js_test_example(ctx: Context):
     assert get_config(ctx).emscripten, "JS example requires emscripten to be enabled"
     js_example_dir = get_script_root().joinpath("examples/js_test")
@@ -2287,12 +2294,15 @@ def run_develop_ci(
     example: bool = True,
     emscripten_deps: bool = True,
     emscripten_build: bool = True,
+    emscripten_test: bool = True,
 ):
     "Execute all CI tasks"
     env = merge_dicts([
         haxorg_env(["ci"], True),
         haxorg_env(["forceall"], True),
     ])
+
+    emscripten_env = merge_dicts([env, haxorg_env(["emscripten"], True)])
 
     if deps:
         log(CAT).info("Running CI dependency installation")
@@ -2344,12 +2354,10 @@ def run_develop_ci(
         run_self(ctx, [build_custom_docs], env=env)
 
     if emscripten_deps:
-        run_self(
-            ctx,
-            [build_develop_deps],
-            env=merge_dicts([env, haxorg_env(["emscripten"], True)]),
-        )
+        run_self(ctx, [build_develop_deps], env=emscripten_env)
 
     if emscripten_build:
-        run_self(ctx, [build_haxorg],
-                    env=merge_dicts([env, haxorg_env(["emscripten"], True)]))
+        run_self(ctx, [build_haxorg], env=emscripten_env)
+
+    if emscripten_test:
+        run_self(ctx, [run_js_test_example], env=emscripten_env)

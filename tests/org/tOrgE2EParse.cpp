@@ -101,8 +101,8 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
         writeFile("/tmp/proto_read.json", proto_read_json);
     }
 
-    writeTreeRepr(write_node, "/tmp/node_write.yaml");
-    writeTreeRepr(read_node, "/tmp/node_read.yaml");
+    writeTreeRepr(write_node, getDebugFile("node_write.yaml"));
+    writeTreeRepr(read_node, getDebugFile("node_read.yaml"));
 
     Vec<compare_report> out;
 

@@ -275,7 +275,7 @@ also known as a human-readable alias
     auto init = getInitialVersion(text);
     auto root = init.getRootAdapter();
     initGraph(init.context);
-    writeTreeRepr(root, "repr.txt");
+    writeTreeRepr(root, getDebugFile("repr.txt"));
     writeTreeRepr(org::parseString(text), getDebugFile("repr.yaml"));
     setGraphTrace(getDebugFile("graph_trace.log"));
     setTraceFile(getDebugFile("imm_trace.log"));

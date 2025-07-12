@@ -7,10 +7,9 @@ function dump_properties(obj) {
       prop => { console.log(`${prop}: ${typeof obj[prop]}`, obj[prop]); });
 }
 
-const haxorg_wasm
-    = require("../../build/haxorg_release_emscripten/haxorg_wasm");
-const fs   = require("fs");
-const path = require("path");
+const haxorg_wasm = require("./haxorg_wasm/haxorg_wasm");
+const fs          = require("fs");
+const path        = require("path");
 //
 /**
  * @typedef {import("../../src/wrappers/js/haxorg_wasm_types.d.ts").haxorg_wasm_module}
@@ -65,33 +64,39 @@ haxorg_wasm().then(
 
       console.log(org.format_OrgSemKind(doc.title.value().getKind()));
 
-      if (false) {
-        const recursive_dir  = "/home/haxscramper/tmp/org_test_dir";
-        var   directory_opts = new org.OrgDirectoryParseParameters();
-        org.setOrgDirectoryIsDirectoryCallback(directory_opts,
-                                               is_directory_impl);
-        org.setOrgDirectoryIsRegularFileCallback(directory_opts,
-                                                 is_regular_file);
-        org.setOrgDirectoryIsSymlinkCallback(directory_opts, is_symlink);
-        org.setOrgDirectoryFileReaderCallback(directory_opts,
-                                              read_file_content);
-        org.setOrgDirectoryGetDirectoryEntriesCallback(directory_opts,
-                                                       get_entry_list);
-        org.setOrgDirectoryResolveSymlinkCallback(directory_opts,
-                                                  resolve_symllink);
-        const recursive_node
-            = org.parseDirectoryOpts(recursive_dir, directory_opts);
-        console.log("Recursive node done");
-      }
+      const recursive_dir  = path.resolve("../../tests/org/corpus");
+      var   directory_opts = new org.OrgDirectoryParseParameters();
+      org.setOrgDirectoryIsDirectoryCallback(directory_opts, is_directory_impl);
+      org.setOrgDirectoryIsRegularFileCallback(directory_opts, is_regular_file);
+      org.setOrgDirectoryIsSymlinkCallback(directory_opts, is_symlink);
+      org.setOrgDirectoryFileReaderCallback(directory_opts, read_file_content);
+      org.setOrgDirectoryGetDirectoryEntriesCallback(directory_opts,
+                                                     get_entry_list);
+      org.setOrgDirectoryResolveSymlinkCallback(directory_opts,
+                                                resolve_symllink);
+      const recursive_node
+          = org.parseDirectoryOpts(recursive_dir, directory_opts);
+      console.log("Recursive node done");
 
-      var   context        = org.initImmutableAstContext();
-      const binary_context = fs.readFileSync("/tmp/dir1_msgpack.bin");
-      org.serializeAstContextFromText(binary_context, context);
+      var original_context = org.initImmutableAstContext();
+      var original_state   = original_context.addRoot(recursive_node.value());
+      var graph_state = org.GraphMapGraphState.FromAstContext(original_context);
 
-      var   graph        = org.initMapGraphState(context);
-      const binary_graph = fs.readFileSync("/tmp/dir1_graph_msgpack.bin");
+      const msgpack_context_path = "/tmp/dir1_msgpack.bin";
+      const msgpack_graph_path   = "/tmp/dir1_graph_msgpack.bin";
+      const msgpack_epock_path   = "/tmp/dir1_msgpack_epoch.bin";
+
+      fs.writeFileSync(msgpack_context_path,
+                       org.serializeAstContextToText(original_context));
+
+      var   deserialized_context = org.initImmutableAstContext();
+      const binary_context       = fs.readFileSync(msgpack_context_path);
+      org.serializeAstContextFromText(binary_context, deserialized_context);
+
+      var   graph        = org.initMapGraphState(deserialized_context);
+      const binary_graph = fs.readFileSync(msgpack_graph_path);
       org.serializeMapGraphFromText(binary_graph, graph.graph);
 
-      console.log(`Read mind map graph with ${graph.graph.nodeCount()} nodes, ${
-          graph.graph.edgeCount()} edges`);``
+
+      
     });

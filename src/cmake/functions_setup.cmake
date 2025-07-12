@@ -9,7 +9,7 @@ function(set_target_flags_impl)
         "-s STACK_SIZE=200MB"
         "-s ALLOW_MEMORY_GROWTH=1"
         "-s MODULARIZE=1"
-        "-s ASSERTIONS=0"
+        "-s ASSERTIONS=1"
         "-s EXPORT_NAME='haxorg_wasm'"
         "-s USE_PTHREADS=0"
         "--bind"
