@@ -457,6 +457,22 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                 break;
             }
 
+            case slk::CustomId: {
+                auto text = link_adapter->target.getCustomId().text;
+                if (auto target = s->ast->currentTrack->customIds.get(
+                        text)) {
+                    GRAPH_MSG(
+                        fmt("Subtree custom ID {} on {} resolved to {}",
+                            text,
+                            source,
+                            *target));
+                    add_edge(*target);
+                } else {
+                    GRAPH_MSG(fmt("Not subtree with custom ID {}", text));
+                }
+                break;
+            }
+
             case slk::Footnote: {
                 CR<Str> text = link_adapter->target.getFootnote().target;
                 if (auto target = s->ast->currentTrack->footnotes.get(

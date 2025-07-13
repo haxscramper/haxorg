@@ -259,9 +259,9 @@ void Graphviz::Graph::eachSubgraph(Func<void(Graph)> cb) const {
 }
 
 void Graphviz::Graph::render(
-    const Str&   path,
-    LayoutType   layout,
-    RenderFormat format) {
+    const fs::path& path,
+    LayoutType      layout,
+    RenderFormat    format) {
     hstd::ext::Graphviz gvc;
     gvc.renderToFile(path, *this, format, layout);
 }
@@ -355,9 +355,9 @@ void Graphviz::freeLayout(Graph graph) const {
 }
 
 void Graphviz::writeFile(
-    const Str&   fileName,
-    CR<Graph>    graph,
-    RenderFormat format) const {
+    const fs::path& fileName,
+    CR<Graph>       graph,
+    RenderFormat    format) const {
     if (format == RenderFormat::DOT) {
         FILE* output_file = fopen(fileName.c_str(), "w");
         if (output_file == NULL) {
@@ -385,10 +385,10 @@ void Graphviz::writeFile(
 }
 
 void Graphviz::renderToFile(
-    const Str&   fileName,
-    CR<Graph>    graph,
-    RenderFormat format,
-    LayoutType   layout) const {
+    const fs::path& fileName,
+    CR<Graph>       graph,
+    RenderFormat    format,
+    LayoutType      layout) const {
     LOGIC_ASSERTION_CHECK(graph.get() != nullptr, "");
     LOGIC_ASSERTION_CHECK(gvc != nullptr, "");
     if (format == RenderFormat::DOT) {

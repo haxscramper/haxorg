@@ -22,15 +22,13 @@ struct ImmMapApi : ImmOrgApiTestBase {
         graph->addNodeRec(ast, node, conf);
     }
 
-    void writeGraphviz(CR<Str> name) {
+    void writeGraphviz(CR<fs::path> name) {
         hstd::ext::Graphviz gvc;
         auto                gv = graph->graph->toGraphviz(start);
         gvc.renderToFile(name, gv);
     }
 
-    void setGraphTrace(CR<Str> name) {
-        conf->dbg.setTraceFile(name.toBase());
-    }
+    void setGraphTrace(CR<fs::path> name) { conf->dbg.setTraceFile(name); }
 };
 
 

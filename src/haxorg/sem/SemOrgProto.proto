@@ -1275,6 +1275,10 @@ message NamedProperty {
     string                                         value                            = 2;
     string                                         debug                            = 1000;
   }
+  message CustomId {
+    string                                         value                            = 1;
+    string                                         debug                            = 1000;
+  }
   message CustomSubtreeJson {
     string                                         name                             = 1;
     OrgJson                                        value                            = 2;
@@ -1311,8 +1315,9 @@ message NamedProperty {
       NamedProperty.HashtagDef                     hashtagdef                       = 22;
       NamedProperty.CustomArgs                     customargs                       = 23;
       NamedProperty.CustomRaw                      customraw                        = 24;
-      NamedProperty.CustomSubtreeJson              customsubtreejson                = 25;
-      NamedProperty.CustomSubtreeFlags             customsubtreeflags               = 26;
+      NamedProperty.CustomId                       customid                         = 25;
+      NamedProperty.CustomSubtreeJson              customsubtreejson                = 26;
+      NamedProperty.CustomSubtreeFlags             customsubtreeflags               = 27;
     }
   }
   enum Kind {
@@ -1340,8 +1345,9 @@ message NamedProperty {
     Kind_HashtagDef_f                                                               = 21;
     Kind_CustomArgs_f                                                               = 22;
     Kind_CustomRaw_f                                                                = 23;
-    Kind_CustomSubtreeJson_f                                                        = 24;
-    Kind_CustomSubtreeFlags_f                                                       = 25;
+    Kind_CustomId_f                                                                 = 24;
+    Kind_CustomSubtreeJson_f                                                        = 25;
+    Kind_CustomSubtreeFlags_f                                                       = 26;
   }
   NamedProperty.Data                               data                             = 1;
   string                                           debug                            = 1000;

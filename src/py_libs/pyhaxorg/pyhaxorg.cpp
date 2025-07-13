@@ -4802,6 +4802,25 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::NamedProperty::CustomId>(m, "NamedPropertyCustomId")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::NamedProperty::CustomId {
+                        org::sem::NamedProperty::CustomId result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &org::sem::NamedProperty::CustomId::value, R"RAW(Property value)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::CustomId::*)(org::sem::NamedProperty::CustomId const&) const>(&org::sem::NamedProperty::CustomId::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::NamedProperty::CustomId const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::NamedProperty::CustomId const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::NamedProperty::CustomSubtreeJson>(m, "NamedPropertyCustomSubtreeJson")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::NamedProperty::CustomSubtreeJson {
                         org::sem::NamedProperty::CustomSubtreeJson result{};
@@ -4868,6 +4887,7 @@ ingoing elements.)RAW")
     .value("HashtagDef", org::sem::NamedProperty::Kind::HashtagDef)
     .value("CustomArgs", org::sem::NamedProperty::Kind::CustomArgs)
     .value("CustomRaw", org::sem::NamedProperty::Kind::CustomRaw)
+    .value("CustomId", org::sem::NamedProperty::Kind::CustomId)
     .value("CustomSubtreeJson", org::sem::NamedProperty::Kind::CustomSubtreeJson)
     .value("CustomSubtreeFlags", org::sem::NamedProperty::Kind::CustomSubtreeFlags)
     .def("__iter__", [](org::sem::NamedProperty::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::Kind> {
@@ -4950,6 +4970,8 @@ ingoing elements.)RAW")
     .def("getCustomArgs", static_cast<org::sem::NamedProperty::CustomArgs&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomArgs))
     .def("isCustomRaw", static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCustomRaw))
     .def("getCustomRaw", static_cast<org::sem::NamedProperty::CustomRaw&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomRaw))
+    .def("isCustomId", static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCustomId))
+    .def("getCustomId", static_cast<org::sem::NamedProperty::CustomId&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomId))
     .def("isCustomSubtreeJson", static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCustomSubtreeJson))
     .def("getCustomSubtreeJson", static_cast<org::sem::NamedProperty::CustomSubtreeJson&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getCustomSubtreeJson))
     .def("isCustomSubtreeFlags", static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isCustomSubtreeFlags))

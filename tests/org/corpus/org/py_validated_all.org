@@ -13,9 +13,9 @@
 * [2024-01-01] Date
 * [2023-02-12]--[2023-02-12] Time range :tag:tag##sub:
 
-Par [fn:target]
+Par [fn:target-test]
 
-[fn:target] definition
+[fn:target-test] definition
 
 -----------
 

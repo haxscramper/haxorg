@@ -198,7 +198,7 @@ class Graphviz {
             if (!attr) {
                 throw std::runtime_error(
                     "Failed to define attribute: " + attribute);
-            }   
+            }
 
             // Set the raw value using `agxset` and `agstrdup_html`
             agxset(
@@ -617,9 +617,9 @@ class Graphviz {
         int nodeCount() { return agnnodes(graph); }
 
         void render(
-            Str const&   path,
-            LayoutType   layout = LayoutType::Dot,
-            RenderFormat format = RenderFormat::PNG);
+            const fs::path& path,
+            LayoutType      layout = LayoutType::Dot,
+            RenderFormat    format = RenderFormat::PNG);
 
         /// Set default attriute value for edge
         void setDefaultEdgeAttr(Str const& key, Str const& value) {}
@@ -748,15 +748,15 @@ class Graphviz {
     void freeLayout(Graph graph) const;
 
     void writeFile(
-        Str const&   fileName,
-        CR<Graph>    graph,
-        RenderFormat format = RenderFormat::DOT) const;
+        const fs::path& fileName,
+        CR<Graph>       graph,
+        RenderFormat    format = RenderFormat::DOT) const;
 
     void renderToFile(
-        Str const&   fileName,
-        CR<Graph>    graph,
-        RenderFormat format = RenderFormat::PNG,
-        LayoutType   layout = LayoutType::Dot) const;
+        fs::path const& fileName,
+        CR<Graph>       graph,
+        RenderFormat    format = RenderFormat::PNG,
+        LayoutType      layout = LayoutType::Dot) const;
 
   private:
     SPtr<GVC_t> gvc;

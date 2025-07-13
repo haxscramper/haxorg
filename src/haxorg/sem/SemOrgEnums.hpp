@@ -83,6 +83,7 @@
     __IMPL(NamedProperty, HashtagDef, (HashtagDef)) \
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
     __IMPL(NamedProperty, CustomRaw, (CustomRaw)) \
+    __IMPL(NamedProperty, CustomId, (CustomId)) \
     __IMPL(NamedProperty, CustomSubtreeJson, (CustomSubtreeJson)) \
     __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
@@ -209,6 +210,7 @@
     __IMPL(NamedProperty::HashtagDef, (NamedProperty, HashtagDef)) \
     __IMPL(NamedProperty::CustomArgs, (NamedProperty, CustomArgs)) \
     __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw)) \
+    __IMPL(NamedProperty::CustomId, (NamedProperty, CustomId)) \
     __IMPL(NamedProperty::CustomSubtreeJson, (NamedProperty, CustomSubtreeJson)) \
     __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \

@@ -450,11 +450,11 @@ struct [[refl]] GraphLayoutIR {
         Graphviz        gvc;
         int             graphviz_size_scaling;
 
-        void writeSvg(CR<Str> path) const {
+        void writeSvg(CR<fs::path> path) const {
             gvc.writeFile(path, graph, Graphviz::RenderFormat::SVG);
         }
 
-        void writeXDot(CR<Str> path) const {
+        void writeXDot(CR<fs::path> path) const {
             gvc.writeFile(path, graph, Graphviz::RenderFormat::XDOT);
         }
 

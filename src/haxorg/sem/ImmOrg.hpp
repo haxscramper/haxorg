@@ -295,6 +295,7 @@ struct ImmAstTrackingMapTransient {
     RadioTargetMap::transient_type  radioTargets;
     ImmStrIdMap::transient_type     anchorTargets;
     ImmStrIdMap::transient_type     names;
+    ImmStrIdMap::transient_type     customIds;
     ImmHashTagIdMap::transient_type hashtagDefinitions;
     ImmParentMap::transient_type    parents;
     ImmPanentTrackFilter const&     isTrackingParentImpl;
@@ -319,7 +320,14 @@ struct ImmAstTrackingMapTransient {
     ImmAstTrackingMap persistent();
     DESC_FIELDS(
         ImmAstTrackingMapTransient,
-        (footnotes, subtrees, radioTargets, anchorTargets, parents));
+        (footnotes,
+         subtrees,
+         radioTargets,
+         anchorTargets,
+         parents,
+         names,
+         customIds,
+         hashtagDefinitions));
 };
 
 bool isTrackingParentDefault(ImmAdapter const&);
@@ -329,6 +337,7 @@ struct ImmAstTrackingMap {
     ImmStrIdMap     subtrees;
     ImmStrIdMap     anchorTargets;
     ImmStrIdMap     names;
+    ImmStrIdMap     customIds;
     ImmParentMap    parents;
     ImmHashTagIdMap hashtagDefinitions;
     /// \brief Map starting ID of the radio target text to the parent radio
@@ -346,6 +355,8 @@ struct ImmAstTrackingMap {
          subtrees,
          radioTargets,
          anchorTargets,
+         names,
+         customIds,
          parents,
          hashtagDefinitions,
          names));
@@ -382,6 +393,7 @@ struct ImmAstTrackingMap {
             .subtrees             = subtrees.transient(),
             .anchorTargets        = anchorTargets.transient(),
             .names                = names.transient(),
+            .customIds            = customIds.transient(),
             .parents              = parents.transient(),
             .hashtagDefinitions   = hashtagDefinitions.transient(),
             .radioTargets         = radioTargets.transient(),

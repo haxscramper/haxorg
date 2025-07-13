@@ -218,20 +218,19 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
     {
         __perf_trace("cli", "Serialize initial context to container");
         writeFile(
-            context_path.toBase(),
+            context_path,
             org::imm::serializeToText(initial_version.getContext()));
     }
 
     {
         __perf_trace("cli", "Serialize mind map to container");
-        writeFile(
-            graph_path.toBase(), org::imm::serializeToText(graph->graph));
+        writeFile(graph_path, org::imm::serializeToText(graph->graph));
     }
 
     {
         __perf_trace("cli", "Serialize current epoch to container");
         writeFile(
-            epoch_path.toBase(),
+            epoch_path,
             org::imm::serializeToText(initial_version.getEpoch()));
     }
 
@@ -240,21 +239,19 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
 
     {
         org::imm::serializeFromText(
-            readFile(context_path.toBase()),
-            deserialized_version.getContext());
+            readFile(context_path), deserialized_version.getContext());
     }
 
     {
         org::imm::serializeFromText(
-            readFile(epoch_path.toBase()),
-            deserialized_version.getEpoch());
+            readFile(epoch_path), deserialized_version.getEpoch());
     }
 
     {
         auto graph_tmp = org::graph::MapGraphState::FromAstContext(
             deserialized_context);
         org::imm::serializeFromText(
-            readFile(graph_path.toBase()), graph_tmp->graph);
+            readFile(graph_path), graph_tmp->graph);
 
         EXPECT_EQ(
             graph->graph->edgeCount(), graph_tmp->graph->edgeCount());
