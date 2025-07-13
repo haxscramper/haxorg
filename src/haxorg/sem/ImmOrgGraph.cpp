@@ -509,6 +509,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
             case slk::File:
             case slk::Attachment:
             case slk::Person:
+            case slk::SubtreeTitle:
             case slk::UserProtocol: {
                 break;
             }
@@ -666,19 +667,33 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
             result.resolved,
             result.node.unresolved));
 
-    for (auto const& r1 : result.resolved) {
-        int count = 0;
-        for (auto const& r2 : result.resolved) {
-            if (r1.target == r2.target && r1.source == r2.source) {
-                ++count;
+    if (false) {
+        for (auto const& r1 : result.resolved) {
+            int count = 0;
+            for (auto const& r2 : result.resolved) {
+                if (r1.target == r2.target && r1.source == r2.source) {
+                    ++count;
+                }
+            }
+
+            LOGIC_ASSERTION_CHECK(
+                count <= 1,
+                "Resolved link target contains duplicate edges: {}-{}",
+                r1.source,
+                r1.target);
+        }
+    } else {
+        hstd::Vec<MapLinkResolveResult>       unique_resolved;
+        std::set<std::pair<MapNode, MapNode>> seen;
+
+        for (const auto& r : result.resolved) {
+            auto pair = std::make_pair(r.target, r.source);
+            if (seen.find(pair) == seen.end()) {
+                seen.insert(pair);
+                unique_resolved.push_back(r);
             }
         }
-
-        LOGIC_ASSERTION_CHECK(
-            count <= 1,
-            "Resolved link target contains duplicate edges: {}-{}",
-            r1.source,
-            r1.target);
+        result.resolved = std::move(unique_resolved);
     }
 
     return result;

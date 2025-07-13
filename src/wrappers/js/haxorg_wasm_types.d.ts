@@ -1610,8 +1610,8 @@ export interface haxorg_wasm_module_auto {
   initMapGraphState(ast: ImmAstContext): GraphMapGraphState;
   serializeAstContextToText(store: ImmAstContext): string;
   serializeAstContextFromText(binary: string, store: ImmAstContext): void;
-  serializAstEpochToText(store: ImmAstReplaceEpoch): string;
-  serializAstEpochFromText(binary: string, store: ImmAstReplaceEpoch): void;
+  serializeAstEpochToText(store: ImmAstReplaceEpoch): string;
+  serializeAstEpochFromText(binary: string, store: ImmAstReplaceEpoch): void;
   serializeMapGraphToText(store: GraphMapGraph): string;
   serializeMapGraphFromText(binary: string, store: GraphMapGraph): void;
   serializeFromTextToTreeDump(binary: string): string;
@@ -2206,6 +2206,7 @@ export interface GraphMapConfigConstructor { new(): GraphMapConfig; }
 export interface GraphMapConfig { dbg: OperationsTracer }
 export interface GraphMapGraphStateConstructor { new(): GraphMapGraphState; }
 export interface GraphMapGraphState {
+  getGraph(): GraphMapGraph;
   FromAstContext(ast: ImmAstContext): GraphMapGraphState;
   registerNode(node: GraphMapNodeProp, conf: GraphMapConfig): void;
   addNode(node: ImmAdapter, conf: GraphMapConfig): void;

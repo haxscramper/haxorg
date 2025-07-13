@@ -165,9 +165,9 @@ NOTE: Annotated paragraph
 
 [2024-02-12] Timestamp paragraph
 
-paragraph [fn:1]
+paragraph [fn:1-note]
 
-[fn:1] footnote par
+[fn:1-note] footnote par
 
 [fn::inline footnote]
 
@@ -382,12 +382,12 @@ CLOSED: [1960-01-15 Thu]
 
 ** definition-target
   :properties:
-  :radio_id: alias1
-  :radio_id: alias2
+  :radio_id: alias122
+  :radio_id: alias233
   :radio_id: human readable
   :id: subtree-id
   :hashtag_def: #hashtag1
-  :hashtag_def: #nested##[alias1,alias2]
+  :hashtag_def: #nested##[alias122,alias2]
   :end:
 
 Regular paragraph [fn:note]
@@ -396,7 +396,7 @@ Regular paragraph [fn:note]
 
 ** definition-user
 
-using alias1, alias2, and human readable
+using alias122, alias2, and human readable
 
 
 Referencing [[id:subtree-id]]

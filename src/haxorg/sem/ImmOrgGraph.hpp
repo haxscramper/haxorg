@@ -410,6 +410,8 @@ struct [[refl(
     [[refl]] std::shared_ptr<MapGraph>                graph;
     [[refl]] std::shared_ptr<org::imm::ImmAstContext> ast;
 
+    [[refl]] std::shared_ptr<MapGraph> getGraph() const { return graph; }
+
     MapGraphState(org::imm::ImmAstContext::Ptr ast)
         : ast{ast}, graph{std::make_shared<MapGraph>()} {};
 

@@ -292,12 +292,12 @@ struct ImmAstTrackingMapTransient {
     ImmAstContext*                  oldCtx;
     ImmStrIdMap::transient_type     footnotes;
     ImmStrIdMap::transient_type     subtrees;
-    RadioTargetMap::transient_type  radioTargets;
     ImmStrIdMap::transient_type     anchorTargets;
     ImmStrIdMap::transient_type     names;
     ImmStrIdMap::transient_type     customIds;
-    ImmHashTagIdMap::transient_type hashtagDefinitions;
     ImmParentMap::transient_type    parents;
+    ImmHashTagIdMap::transient_type hashtagDefinitions;
+    RadioTargetMap::transient_type  radioTargets;
     ImmPanentTrackFilter const&     isTrackingParentImpl;
 
     void setAsParentOf(ImmId const& parent, ImmId const& target);

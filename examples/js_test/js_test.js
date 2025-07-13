@@ -84,19 +84,50 @@ haxorg_wasm().then(
 
       const msgpack_context_path = "/tmp/dir1_msgpack.bin";
       const msgpack_graph_path   = "/tmp/dir1_graph_msgpack.bin";
-      const msgpack_epock_path   = "/tmp/dir1_msgpack_epoch.bin";
+      const msgpack_epoch_path   = "/tmp/dir1_msgpack_epoch.bin";
 
-      fs.writeFileSync(msgpack_context_path,
-                       org.serializeAstContextToText(original_context));
+      {
+        console.log("Serialize initial context");
+        const binary = org.serializeAstContextToTextUint8(original_context);
+        fs.writeFileSync(msgpack_context_path, Buffer.from(binary));
+      }
 
-      var   deserialized_context = org.initImmutableAstContext();
-      const binary_context       = fs.readFileSync(msgpack_context_path);
-      org.serializeAstContextFromText(binary_context, deserialized_context);
+      {
+        console.log("Serialize mind map");
+        const binary = org.serializeMapGraphToTextUint8(graph_state.getGraph());
+        fs.writeFileSync(msgpack_graph_path, Buffer.from(binary));
+      }
 
-      var   graph        = org.initMapGraphState(deserialized_context);
-      const binary_graph = fs.readFileSync(msgpack_graph_path);
-      org.serializeMapGraphFromText(binary_graph, graph.graph);
+      {
+        console.log("Serialize current epoch");
+        const binary
+            = org.serializeAstEpochToTextUint8(original_state.getEpoch());
+        fs.writeFileSync(msgpack_epoch_path, Buffer.from(binary));
+      }
 
+      var deserialized_context = org.initImmutableAstContext();
+      var deserialized_version = deserialized_context.getEmptyVersion();
+      var deserialized_graph
+          = org.GraphMapGraphState.FromAstContext(original_context);
 
-      
+      {
+        console.log("Deserialize context");
+        const binary = fs.readFileSync(msgpack_context_path);
+        org.serializeAstContextFromTextUint8(new Uint8Array(binary),
+                                             deserialized_context);
+      }
+
+      {
+        console.log("Deserialize epoch");
+        const binary = fs.readFileSync(msgpack_epoch_path);
+        org.serializeAstEpochFromTextUint8(new Uint8Array(binary),
+                                           deserialized_version.getEpoch());
+      }
+
+      {
+        console.log("Deserialize graph");
+        const binary = fs.readFileSync(msgpack_graph_path);
+        org.serializeMapGraphFromTextUint8(new Uint8Array(binary),
+                                           deserialized_graph.getGraph());
+      }
     });

@@ -14,7 +14,7 @@ export type ImmBox<T> = ImmerBox<T>;
 export interface ImmIdT<T> {}
 
 export interface ImmerFlex_vector<T> {}
-export type      ImmVec<T> = ImmerFlex_vector<T>;
+export type ImmVec<T> = ImmerFlex_vector<T>;
 
 export interface UnorderedMap<K, V> {}
 
@@ -47,4 +47,11 @@ export interface haxorg_wasm_manual {
 
   setOrgDirectoryGetDirectoryEntriesCallback(
       config: any, callback: (path: string) => string[]): void;
+
+  serializeAstContextToTextUint8(store: any): Uint8Array;
+  serializeAstContextFromTextUint8(uint8_array: Uint8Array, store: any): void;
+  serializeAstEpochToTextUint8(store: any): Uint8Array;
+  serializeAstEpochFromTextUint8(uint8_array: Uint8Array, store: any): void;
+  serializeMapGraphToTextUint8(store: any): Uint8Array;
+  serializeMapGraphFromTextUint8(uint8_array: Uint8Array, store: any): void;
 }

@@ -1993,6 +1993,7 @@ ingoing elements.)RAW")
   pybind11::class_<org::graph::MapGraphState, std::shared_ptr<org::graph::MapGraphState>>(m, "graphMapGraphState")
     .def_readwrite("graph", &org::graph::MapGraphState::graph)
     .def_readwrite("ast", &org::graph::MapGraphState::ast)
+    .def("getGraph", static_cast<std::shared_ptr<org::graph::MapGraph>(org::graph::MapGraphState::*)() const>(&org::graph::MapGraphState::getGraph))
     .def_static("FromAstContextStatic",
                 static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext),
                 pybind11::arg("ast"))
