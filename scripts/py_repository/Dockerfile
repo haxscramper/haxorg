@@ -48,6 +48,27 @@ RUN dnf install -y cairomm-devel
 RUN dnf install -y jq
 RUN dnf install -y gcc gcc-c++ autoconf automake libtool pkg-config
 RUN dnf install -y glfw glfw-devel dbus-devel
-RUN dnf install -y pcre-devel capstone-devel freetype-devel patch libgit2 libgit2-devel stb-devel
+RUN dnf install -y pcre-devel capstone-devel freetype-devel patch libgit2 libgit2-devel stb-devel libatomic nodejs npm nodejs-npm
 
 COPY invoke-ci.yaml invoke.yaml
+
+ENV EMSDK=/opt/emsdk
+
+RUN git clone https://github.com/emscripten-core/emsdk.git $EMSDK && \
+    cd $EMSDK && \
+    ./emsdk install latest && \
+    ./emsdk activate latest
+
+RUN cd $EMSDK && \
+    chmod +x ./emsdk_env.sh \
+    ./emsdk_env.sh > /tmp/emsdk_env.txt && \
+    cat /tmp/emsdk_env.txt >> /etc/environment
+
+RUN echo 'source /opt/emsdk/emsdk_env.sh' >> /etc/bash.bashrc
+
+ENV EMSDK=/opt/emsdk
+ENV EMSCRIPTEN=/opt/emsdk/upstream/emscripten
+ENV HAXORG_ENV_EMSCRIPTEN_TOOLCHAIN=/opt/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+
+WORKDIR /haxorg
+SHELL ["/bin/bash", "-c", "source /opt/emsdk/emsdk_env.sh && exec bash"]

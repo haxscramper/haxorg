@@ -79,9 +79,9 @@ def get_emscripten_cmake_flags() -> List[CmakeCLIConfig]:
                 # "-sUSE_BOOST_HEADERS=1",
             ]),
         ),
-        CmakeOptConfig(name="HAVE_NEON", value=False),
-        CmakeOptConfig(name="HAVE_AVX", value=False),
-        CmakeOptConfig(name="HAVE_SSE", value=False),
+        # CmakeOptConfig(name="HAVE_NEON", value=False),
+        # CmakeOptConfig(name="HAVE_AVX", value=False),
+        # CmakeOptConfig(name="HAVE_SSE", value=False),
         CmakeOptConfig(name="CMAKE_CXX_FLAGS", value="-m32"),
         CmakeOptConfig(name="CMAKE_C_FLAGS", value="-m32"),
     ]
@@ -193,7 +193,7 @@ def get_external_deps_list(
         ],
         configure_args=[
             opt("MSGPACK_USE_BOOST", False),
-            opt("SGPACK_BUILD_TESTS", False),
+            opt("MSGPACK_BUILD_TESTS", False),
         ],
     )
 

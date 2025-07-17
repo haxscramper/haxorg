@@ -35,10 +35,16 @@ class HaxorgCoverageAggregateFilter(BaseModel, extra="forbid"):
     blacklist_patterns: List[HaxorgCoverageCookiePattern] = []
 
 
+class HaxorgEmscriptenConfig(BaseModel, extra="forbid"):
+    build: bool = False
+    toolchain: str = "/usr/lib/emscripten/cmake/Modules/Platform/Emscripten.cmake"
+
+
 class HaxorgConfig(BaseModel, extra="forbid"):
     quiet: bool = Field(default=False)
     debug: bool = Field(default=False)
-    emscripten: bool = Field(default=False)
+    emscripten: HaxorgEmscriptenConfig = Field(
+        default_factory=lambda: HaxorgEmscriptenConfig())
     instrument: HaxorgInstrumentConfig = Field(
         default_factory=lambda: HaxorgInstrumentConfig())
     tasks: HaxorgTasksConfig = Field(default_factory=lambda: HaxorgTasksConfig())
@@ -53,7 +59,8 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     python_version: Optional[str] = None
     aggregate_filters: Optional[HaxorgCoverageAggregateFilter] = None
     profdata_file_whitelist: List[str] = Field(default_factory=lambda: [".*"])
-    profdata_file_blacklist: List[str] = Field(default_factory=lambda: ["base_lexer_gen.cpp", "thirdparty"])
+    profdata_file_blacklist: List[str] = Field(
+        default_factory=lambda: ["base_lexer_gen.cpp", "thirdparty"])
 
     # field for unparsing invoke config
     sudo: dict = Field(default_factory=dict)

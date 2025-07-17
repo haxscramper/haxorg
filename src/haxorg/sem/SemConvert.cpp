@@ -605,7 +605,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else if (name == "id") {
         handled();
         tree->treeId = get_values_text();
-
+    } else if (name == "customid") {
+        handled();
+        Property::CustomId id;
+        id.value = get_values_text();
+        result   = Property{id};
     } else if (name == "radioid") {
         handled();
         Property::RadioId radio;

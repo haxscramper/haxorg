@@ -45,11 +45,13 @@ extern TestParameters testParameters;
 GTEST_ADL_PRINT_TYPE(hstd::Str);
 
 inline hstd::fs::path getDebugFile(const hstd::Str& suffix = "") {
-    auto dir      = hstd::fs::path{hstd::fmt(
-        "/tmp/haxorg_tests/{}",
-        ::testing::UnitTest::GetInstance()
-            ->current_test_info()
-            ->test_suite_name())};
+    auto dir = std::filesystem::temp_directory_path()
+             / hstd::fs::path{hstd::fmt(
+                 "haxorg_tests/{}",
+                 ::testing::UnitTest::GetInstance()
+                     ->current_test_info()
+                     ->test_suite_name())};
+
     auto testname = ::testing::UnitTest::GetInstance()
                         ->current_test_info()
                         ->name();

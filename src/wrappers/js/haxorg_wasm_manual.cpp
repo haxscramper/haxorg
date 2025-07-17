@@ -1,5 +1,7 @@
 #include "haxorg_wasm_manual.hpp"
 
+#include <hstd/stdlib/Debug.hpp>
+
 namespace {
 template <typename T>
 org::sem::SemId<T> cast_impl(
@@ -17,6 +19,26 @@ org::sem::SemId<T> cast_impl(
     }
     return result;
 }
+
+
+emscripten::val convert_to_uint8_array(const std::string& data) {
+    emscripten::val result = emscripten::val::global("Uint8Array")
+                                 .new_(data.size());
+    emscripten::val memory     = result["buffer"];
+    emscripten::val memoryView = emscripten::val::global("Uint8Array")
+                                     .new_(memory);
+    for (int i = 0; i < static_cast<int>(data.size()); ++i) {
+        memoryView.call<void>(
+            "set",
+            emscripten::val::array(
+                std::vector<emscripten::val>{
+                    emscripten::val(static_cast<uint8_t>(data[i])),
+                    emscripten::val(i)}));
+    }
+    return result;
+}
+
+
 } // namespace
 
 void haxorg_wasm_manual_register() {
@@ -140,11 +162,7 @@ void haxorg_wasm_manual_register() {
         "serializeAstContextToTextUint8",
         +[](std::shared_ptr<org::imm::ImmAstContext> const& store)
             -> emscripten::val {
-            std::string binary_data = org::imm::serializeToText(store);
-            return emscripten::val(
-                emscripten::typed_memory_view(
-                    binary_data.size(),
-                    reinterpret_cast<const uint8_t*>(binary_data.data())));
+            return convert_to_uint8_array(org::imm::serializeToText(store));
         });
 
     emscripten::function(
@@ -166,11 +184,7 @@ void haxorg_wasm_manual_register() {
         "serializeAstEpochToTextUint8",
         +[](std::shared_ptr<org::imm::ImmAstReplaceEpoch> const& store)
             -> emscripten::val {
-            std::string binary_data = org::imm::serializeToText(store);
-            return emscripten::val(
-                emscripten::typed_memory_view(
-                    binary_data.size(),
-                    reinterpret_cast<const uint8_t*>(binary_data.data())));
+            return convert_to_uint8_array(org::imm::serializeToText(store));
         });
 
     emscripten::function(
@@ -192,11 +206,7 @@ void haxorg_wasm_manual_register() {
         "serializeMapGraphToTextUint8",
         +[](std::shared_ptr<org::graph::MapGraph> const& store)
             -> emscripten::val {
-            std::string binary_data = org::imm::serializeToText(store);
-            return emscripten::val(
-                emscripten::typed_memory_view(
-                    binary_data.size(),
-                    reinterpret_cast<const uint8_t*>(binary_data.data())));
+            return convert_to_uint8_array(org::imm::serializeToText(store));
         });
 
     emscripten::function(

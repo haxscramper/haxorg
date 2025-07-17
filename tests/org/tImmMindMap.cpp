@@ -529,7 +529,7 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
     writeTreeRepr(
         root,
-        "imm_path.txt",
+        getDebugFile("imm_path.txt"),
         imm::ImmAdapter::TreeReprConf{
             .withAuxFields = true,
         });
@@ -537,7 +537,7 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
     writeTreeRepr(
         root,
-        "imm_tree.txt",
+        getDebugFile("imm_tree.txt"),
         imm::ImmAdapter::TreeReprConf{
             .withReflFields = true,
             .withAuxFields  = true,

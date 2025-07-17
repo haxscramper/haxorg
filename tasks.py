@@ -160,7 +160,7 @@ def get_real_build_basename(ctx: Context, component: str) -> str:
     Get basename of the binary output directory for component
     """
     result = component + "_" + ("debug" if get_config(ctx).debug else "release")
-    if get_config(ctx).emscripten:
+    if get_config(ctx).emscripten.build:
         result += "_emscripten"
 
     if get_config(ctx).instrument.coverage:
@@ -183,6 +183,14 @@ def get_build_root(relative: Optional[str] = None) -> Path:
         value = value.joinpath(relative)
 
     return value
+
+
+@beartype
+def get_build_tmpdir(ctx: Context, component: str) -> Path:
+    result = get_build_root().joinpath("tmp").joinpath(
+        get_real_build_basename(ctx, component))
+    ensure_existing_dir(result)
+    return result
 
 
 def get_task_stamp(name: str) -> Path:
@@ -640,8 +648,11 @@ def org_task(
 
 
 def get_toolchain_path(ctx: Context) -> Path:
-    if get_config(ctx).emscripten:
-        return Path("/usr/lib/emscripten/cmake/Modules/Platform/Emscripten.cmake")
+    if get_config(ctx).emscripten.build:
+        result = Path(get_config(ctx).emscripten.toolchain)
+        assert result.exists(), f"EMCC toolchain path does not exist {result}"
+        log(CAT).info(f"Using EMCC toolchain path {result}")
+        return result
 
     else:
         return get_script_root().joinpath("toolchain.cmake")
@@ -664,7 +675,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
-    if conf.emscripten:
+    if conf.emscripten.build:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))
         result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", False))
         result.append(cmake_opt("ORG_EMCC_BUILD", True))
@@ -784,11 +795,13 @@ def run_docker_develop_test(
     docs: bool = True,
     coverage: bool = True,
     reflection: bool = True,
-    deps_configure: bool = True,
-    deps_build: bool = True,
+    deps: bool = True,
     build_dir: str = "/tmp/haxorg_build_dir",
     example: bool = True,
     install: bool = True,
+    emscripten_deps: bool = True,
+    emscripten_build: bool = True,
+    emscripten_test: bool = True,
 ):
     """Run docker"""
 
@@ -835,10 +848,12 @@ def run_docker_develop_test(
                 invoke_opt("docs", docs),
                 invoke_opt("coverage", coverage),
                 invoke_opt("reflection", reflection),
-                invoke_opt("deps-configure", deps_configure),
-                invoke_opt("deps-build", deps_build),
+                invoke_opt("deps", deps),
                 invoke_opt("install", install),
                 invoke_opt("example", example),
+                invoke_opt("emscripten-deps", emscripten_deps),
+                invoke_opt("emscripten-build", emscripten_build),
+                invoke_opt("emscripten-test", emscripten_test),
             ]),
         ])
 
@@ -862,7 +877,7 @@ def base_environment(ctx: Context):
 @beartype
 def get_deps_tmp_dir(ctx: Context) -> Path:
     return get_build_root().joinpath(
-        "deps_emcc" if get_config(ctx).emscripten else "deps_bin")
+        "deps_emcc" if get_config(ctx).emscripten.build else "deps_bin")
 
 
 @beartype
@@ -873,6 +888,7 @@ def get_deps_install_dir(ctx: Context) -> Path:
 @beartype
 def get_deps_build_dir(ctx: Context) -> Path:
     return get_deps_tmp_dir(ctx).joinpath("build")
+
 
 @beartype
 def create_symlink(link_path: Path, real_path: Path, is_dir: bool):
@@ -889,6 +905,7 @@ def create_symlink(link_path: Path, real_path: Path, is_dir: bool):
 
     link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
+
 @org_task()
 def symlink_build(ctx: Context):
     """
@@ -898,12 +915,6 @@ def symlink_build(ctx: Context):
     create_symlink(
         real_path=get_component_build_dir(ctx, "haxorg"),
         link_path=get_build_root("haxorg"),
-        is_dir=True,
-    )
-
-    create_symlink(
-        real_path=get_component_build_dir(ctx, "haxorg"),
-        link_path=get_script_root("examples").joinpath("js_test/haxorg_wasm"),
         is_dir=True,
     )
 
@@ -970,7 +981,7 @@ def generate_develop_deps_install_paths(ctx: Context):
         get_deps_install_config(
             deps=get_external_deps_list(
                 install_dir=install_dir,
-                is_emcc=get_config(ctx).emscripten,
+                is_emcc=get_config(ctx).emscripten.build,
             ),
             install_dir=install_dir,
         ))
@@ -1136,7 +1147,7 @@ def build_develop_deps(
 
     for item in get_external_deps_list(
             install_dir,
-            is_emcc=get_config(ctx).emscripten,
+            is_emcc=get_config(ctx).emscripten.build,
     ):
         dep(item)
 
@@ -1564,7 +1575,8 @@ def build_d3_example(ctx: Context):
 
 @org_task(pre=[build_d3_example])
 def run_d3_example(ctx: Context, sync: bool = False):
-    assert get_config(ctx).emscripten, "D3 example requires emscripten to be enabled"
+    assert get_config(
+        ctx).emscripten.build, "D3 example requires emscripten to be enabled"
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
 
@@ -1590,7 +1602,8 @@ def run_d3_example(ctx: Context, sync: bool = False):
 
 @org_task(pre=[symlink_build])
 def run_js_test_example(ctx: Context):
-    assert get_config(ctx).emscripten, "JS example requires emscripten to be enabled"
+    assert get_config(
+        ctx).emscripten.build, "JS example requires emscripten to be enabled"
     js_example_dir = get_script_root().joinpath("examples/js_test")
 
     run_command(
@@ -1598,6 +1611,10 @@ def run_js_test_example(ctx: Context):
         "node",
         ["js_test.js"],
         cwd=js_example_dir,
+        env=dict(
+            NODE_PATH=str(get_component_build_dir(ctx, "haxorg")),
+            TMPDIR=str(get_build_tmpdir(ctx, "haxorg")),
+        ),
     )
 
 
@@ -2035,7 +2052,7 @@ def configure_cxx_merge(
             f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
         )
         profile_path.parent.mkdir(parents=True, exist_ok=True)
-        model = get_cxx_profdata_params()
+        model = get_cxx_profdata_params(ctx=ctx)
         if coverage_mapping_dump:
             Path(coverage_mapping_dump).mkdir(exist_ok=True)
             model.coverage_mapping_dump = coverage_mapping_dump
@@ -2302,7 +2319,11 @@ def run_develop_ci(
         haxorg_env(["forceall"], True),
     ])
 
-    emscripten_env = merge_dicts([env, haxorg_env(["emscripten"], True)])
+    emscripten_env = merge_dicts([
+        env,
+        haxorg_env(["emscripten", "build"], True),
+        haxorg_env(["instrument", "coverage"], False),
+    ])
 
     if deps:
         log(CAT).info("Running CI dependency installation")

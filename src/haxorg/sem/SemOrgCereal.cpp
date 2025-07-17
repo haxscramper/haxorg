@@ -2,7 +2,7 @@
 #include "msgpack.hpp"
 
 #include <hstd/system/reflection.hpp>
-#include <typeindex>
+#include <hstd/stdlib/Debug.hpp>
 
 namespace {
 int level = 0;
@@ -255,7 +255,7 @@ void expect_map(
     if (o.type != msgpack::type::MAP) {
         throw htype_error::init(
             hstd::fmt(
-                "expected array, got {} in {}",
+                "expected map, got {} in {}",
                 format_msgpack_object_type(o.type),
                 hstd::value_metadata<T>::typeName()),
             line,
@@ -285,7 +285,7 @@ void expect_array(
     if (o.type != msgpack::type::ARRAY) {
         throw htype_error::init(
             hstd::fmt(
-                "expected map, got {} in {}",
+                "expected array, got {} in {}",
                 o.type,
                 hstd::value_metadata<T>::typeName()),
             line,
@@ -1179,7 +1179,9 @@ void msgpack_from_text(std::string const& binary, T& value) {
 
 std::string org::imm::serializeToText(
     const std::shared_ptr<ImmAstContext>& store) {
-    return msgpack_to_text(store);
+    auto tmp = msgpack_to_text(store);
+    _dbg(tmp.size());
+    return tmp;
 }
 
 void org::imm::serializeFromText(
@@ -1191,7 +1193,9 @@ void org::imm::serializeFromText(
 
 std::string org::imm::serializeToText(
     const std::shared_ptr<ImmAstReplaceEpoch>& store) {
-    return msgpack_to_text(store);
+    auto tmp = msgpack_to_text(store);
+    _dbg(tmp.size());
+    return tmp;
 }
 
 void org::imm::serializeFromText(
@@ -1218,7 +1222,9 @@ std::string org::imm::serializeFromTextToTreeDump(
 
 std::string org::imm::serializeToText(
     const std::shared_ptr<org::graph::MapGraph>& store) {
-    return msgpack_to_text(store);
+    auto tmp = msgpack_to_text(store);
+    _dbg(tmp.size());
+    return tmp;
 }
 
 void org::imm::serializeFromText(
