@@ -451,6 +451,7 @@ ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
         .anchorTargets      = anchorTargets.persistent(),
         .parents            = parents.persistent(),
         .names              = names.persistent(),
+        .customIds          = customIds.persistent(),
         .isTrackingParent   = isTrackingParentImpl,
         .hashtagDefinitions = hashtagDefinitions.persistent(),
     };
@@ -572,6 +573,18 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                         transientTrack.subtrees.set(*id, node);
                     } else {
                         transientTrack.subtrees.erase(*id);
+                    }
+                }
+
+                for (auto const& id : org::getSubtreeProperties<
+                         sem::NamedProperty::CustomId>(subtree)) {
+                    if (ctx.lock()->debug->TraceState) {
+                        message(fmt("Subtree custom ID {}", id.value));
+                    }
+                    if (add) {
+                        transientTrack.customIds.set(id.value, node);
+                    } else {
+                        transientTrack.customIds.erase(id.value);
                     }
                 }
 

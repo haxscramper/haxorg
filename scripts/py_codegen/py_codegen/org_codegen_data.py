@@ -499,13 +499,22 @@ def get_subtree_property_types():
             ],
         ),
         org_struct(
+            t_nest_shared("CustomId", [t("NamedProperty")]),
+            GenTuDoc("Custom property with unparsed arguments"),
+            nested=[GenTuPass("CustomId() {}")],
+            methods=[eq_method(t_nest_shared("CustomId", [t("NamedProperty")]))],
+            fields=[
+                str_field("value", GenTuDoc("Property value")),
+            ],
+        ),
+        org_struct(
             t_nest_shared("CustomSubtreeJson", [t("NamedProperty")]),
             GenTuDoc("Free-form JSON"),
             methods=[eq_method(t_nest_shared("CustomSubtreeJson", [t("NamedProperty")]))],
             fields=[
                 org_field(t_str(), "name"),
                 org_field(t_nest_shared("OrgJson"), "value")
-            ]),
+            ],),
         org_struct(t_nest_shared("CustomSubtreeFlags", [t("NamedProperty")]),
                    GenTuDoc("Free-form flags"),
                    methods=[
@@ -515,7 +524,7 @@ def get_subtree_property_types():
                    fields=[
                        org_field(t_str(), "name"),
                        org_field(t_nest_shared("AttrGroup"), "value")
-                   ]),
+                   ],),
     ]
 
 

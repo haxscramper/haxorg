@@ -1,5 +1,7 @@
 #include "haxorg_wasm_manual.hpp"
 
+#include <hstd/stdlib/Debug.hpp>
+
 namespace {
 template <typename T>
 org::sem::SemId<T> cast_impl(
@@ -17,6 +19,26 @@ org::sem::SemId<T> cast_impl(
     }
     return result;
 }
+
+
+emscripten::val convert_to_uint8_array(const std::string& data) {
+    emscripten::val result = emscripten::val::global("Uint8Array")
+                                 .new_(data.size());
+    emscripten::val memory     = result["buffer"];
+    emscripten::val memoryView = emscripten::val::global("Uint8Array")
+                                     .new_(memory);
+    for (int i = 0; i < static_cast<int>(data.size()); ++i) {
+        memoryView.call<void>(
+            "set",
+            emscripten::val::array(
+                std::vector<emscripten::val>{
+                    emscripten::val(static_cast<uint8_t>(data[i])),
+                    emscripten::val(i)}));
+    }
+    return result;
+}
+
+
 } // namespace
 
 void haxorg_wasm_manual_register() {
@@ -135,4 +157,69 @@ void haxorg_wasm_manual_register() {
             "toString", +[](const hstd::Str& self) -> std::string {
                 return static_cast<const std::string&>(self);
             });
+
+    emscripten::function(
+        "serializeAstContextToTextUint8",
+        +[](std::shared_ptr<org::imm::ImmAstContext> const& store)
+            -> emscripten::val {
+            return convert_to_uint8_array(org::imm::serializeToText(store));
+        });
+
+    emscripten::function(
+        "serializeAstContextFromTextUint8",
+        +[](emscripten::val                                 uint8_array,
+            std::shared_ptr<org::imm::ImmAstContext> const& store)
+            -> void {
+            int         length = uint8_array["length"].as<int>();
+            std::string binary_data;
+            binary_data.reserve(length);
+            for (int i = 0; i < length; ++i) {
+                binary_data += static_cast<char>(
+                    uint8_array[i].as<uint8_t>());
+            }
+            org::imm::serializeFromText(binary_data, store);
+        });
+
+    emscripten::function(
+        "serializeAstEpochToTextUint8",
+        +[](std::shared_ptr<org::imm::ImmAstReplaceEpoch> const& store)
+            -> emscripten::val {
+            return convert_to_uint8_array(org::imm::serializeToText(store));
+        });
+
+    emscripten::function(
+        "serializeAstEpochFromTextUint8",
+        +[](emscripten::val uint8_array,
+            std::shared_ptr<org::imm::ImmAstReplaceEpoch> const& store)
+            -> void {
+            int         length = uint8_array["length"].as<int>();
+            std::string binary_data;
+            binary_data.reserve(length);
+            for (int i = 0; i < length; ++i) {
+                binary_data += static_cast<char>(
+                    uint8_array[i].as<uint8_t>());
+            }
+            org::imm::serializeFromText(binary_data, store);
+        });
+
+    emscripten::function(
+        "serializeMapGraphToTextUint8",
+        +[](std::shared_ptr<org::graph::MapGraph> const& store)
+            -> emscripten::val {
+            return convert_to_uint8_array(org::imm::serializeToText(store));
+        });
+
+    emscripten::function(
+        "serializeMapGraphFromTextUint8",
+        +[](emscripten::val                              uint8_array,
+            std::shared_ptr<org::graph::MapGraph> const& store) -> void {
+            int         length = uint8_array["length"].as<int>();
+            std::string binary_data;
+            binary_data.reserve(length);
+            for (int i = 0; i < length; ++i) {
+                binary_data += static_cast<char>(
+                    uint8_array[i].as<uint8_t>());
+            }
+            org::imm::serializeFromText(binary_data, store);
+        });
 }

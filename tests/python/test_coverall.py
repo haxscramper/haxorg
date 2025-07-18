@@ -18,6 +18,7 @@ from coverage import Coverage
 import pytest
 from contextlib import contextmanager
 from plumbum import local, CommandNotFound
+from tempfile import gettempdir
 
 CAT = __name__
 
@@ -1038,14 +1039,14 @@ def test_total_representation():
 
     file = org_corpus_dir.joinpath("py_validated_all.org")
     node = org.parseFile(str(file), org.OrgParseParameters())
-    Path("/tmp/content.yaml").write_text(
+    Path(gettempdir()).joinpath("content.yaml").write_text(
         org.exportToYamlString(node, org.OrgYamlExportOpts()))
-    Path("/tmp/content.txt").write_text(
+    Path(gettempdir()).joinpath("content.txt").write_text(
         org.exportToTreeString(node, org.OrgTreeExportOpts(withColor=False,)))
     spec = get_spec()
 
-    Path("/tmp/spec.txt").write_text(render_rich(spec.treeRepr(), False))
-    Path("/tmp/spec.ansi").write_text(render_rich(spec.treeRepr(), True))
+    Path(gettempdir()).joinpath("spec.txt").write_text(render_rich(spec.treeRepr(), False))
+    Path(gettempdir()).joinpath("spec.ansi").write_text(render_rich(spec.treeRepr(), True))
 
     coverage = spec.visit_all(node)
 
@@ -1199,8 +1200,8 @@ def test_total_representation():
 
         final.add(kind_tree)
 
-    Path("/tmp/report.txt").write_text(render_rich(final, False))
-    Path("/tmp/report.ansi").write_text(render_rich(final, True))
+    Path(gettempdir()).joinpath("report.txt").write_text(render_rich(final, False))
+    Path(gettempdir()).joinpath("report.ansi").write_text(render_rich(final, True))
 
     if 0 < len(missing_trigger):
         missing_trigger_repr = Tree(
@@ -1233,14 +1234,14 @@ def test_run_typst_exporter(cov):
     node = get_test_node_from_file()
     from py_exporters.export_typst import ExporterTypst, refresh_typst_export_package
 
-    # Path("/tmp/total_repr.txt").write_text(org.treeRepr(node, colored=False))
+    # Path("total_repr.txt").write_text(org.treeRepr(node, colored=False))
 
-    with verify_full_coverage(cov, ExporterTypst, "/tmp"):
+    with verify_full_coverage(cov, ExporterTypst, gettempdir()):
         exp = ExporterTypst()
-        exp.enableFileTrace("/tmp/typst_export_trace.log")
+        exp.enableFileTrace(str(Path(gettempdir()).joinpath("typst_export_trace.log")))
         res = exp.eval(node)
 
-        full_export = Path("/tmp/typst_export_file.typ")
+        full_export = Path(gettempdir()).joinpath("typst_export_file.typ")
         full_export.write_text(exp.t.toString(res))
 
         try:
@@ -1273,12 +1274,11 @@ def test_run_typst_exporter(cov):
 
             assert "edit-config parameter" in str(ex.value)
 
-
 def test_run_html_exporter(cov):
     node = get_test_node_from_file()
     from py_exporters.export_html import ExporterHtml
 
-    with verify_full_coverage(cov, ExporterHtml, "/tmp"):
+    with verify_full_coverage(cov, ExporterHtml, gettempdir()):
         exp = ExporterHtml()
         exp.eval(node)
 
@@ -1295,7 +1295,7 @@ def test_run_pandoc_exporter(cov):
     node = get_test_node_from_text()
     from py_exporters.export_pandoc import ExporterPandoc
 
-    with verify_full_coverage(cov, ExporterPandoc, "/tmp"):
+    with verify_full_coverage(cov, ExporterPandoc, gettempdir()):
         exp = ExporterPandoc()
         exp.eval(node)
 
@@ -1304,7 +1304,7 @@ def test_run_pandoc_exporter(cov):
 
 def test_run_tex_exporter(cov=None):
     from py_exporters.export_tex import ExporterLatex
-    with verify_full_coverage(cov, ExporterLatex, "/tmp"):
+    with verify_full_coverage(cov, ExporterLatex, gettempdir()):
         ExporterLatex().eval(get_test_node_from_text())
         exp2 = ExporterLatex()
         exp2.eval(

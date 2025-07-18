@@ -2,27 +2,31 @@
 #include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/test/corpusrunner.hpp>
 
+bool enableFullTraceOnCli = false;
+void enable_full_trace_on_cli() { enableFullTraceOnCli = true; }
+bool is_full_trace_on_cli_enabled() { return enableFullTraceOnCli; }
+
+
 void writeTreeRepr(
     imm::ImmAdapter               n,
-    const Str                     suffix,
+    fs::path const&               path,
     imm::ImmAdapter::TreeReprConf conf) {
-    writeFile(getDebugFile(suffix), n.treeRepr(conf).toString(false));
+    writeFile(path, n.treeRepr(conf).toString(false));
 }
 
 
-void writeTreeRepr(sem::SemId<sem::Org> node, CR<Str> full) {
-    if (full.ends_with("yaml")) {
+void writeTreeRepr(sem::SemId<sem::Org> node, fs::path const& full) {
+    if (full.native().ends_with("yaml")) {
         org::algo::ExporterYaml exp{};
         auto                    yaml_result = exp.eval(node);
-        writeFile(full.toBase(), fmt1(yaml_result));
-    } else if (full.ends_with("json")) {
+        writeFile(full, fmt1(yaml_result));
+    } else if (full.native().ends_with("json")) {
         org::algo::ExporterJson exp{};
         auto                    json_result = exp.eval(node);
-        writeFile(full.toBase(), json_result.dump(2));
+        writeFile(full, json_result.dump(2));
     } else {
         writeFile(
-            full.toBase(),
-            org::algo::ExporterTree::treeRepr(node).toString(false));
+            full, org::algo::ExporterTree::treeRepr(node).toString(false));
     }
 }
 
@@ -127,6 +131,6 @@ void show_compare_reports(const Vec<compare_report>& out) {
         auto path = getDebugFile("changes.txt");
         ADD_FAILURE() << "Found differences in value wrote report to "
                       << path;
-        writeFile(path.toBase(), buffer);
+        writeFile(path, buffer);
     }
 }

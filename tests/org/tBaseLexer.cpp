@@ -12,6 +12,8 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/SemOrgCereal.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include "../common.hpp"
+#include "tOrgTestCommon.hpp"
 
 using namespace hstd;
 using namespace org::test;
@@ -125,82 +127,159 @@ TEST(ManualFileRun, TestMain1) {
 }
 
 
+void test_dir_parsing(fs::path const& dir, bool trace) {
+    LOGIC_ASSERTION_CHECK(fs::exists(dir), "{}", fs::absolute(dir));
+
+    auto opts = org::OrgDirectoryParseParameters::shared();
+
+    opts->getParsedNode = [&](std::string const& path) {
+        fs::path relative = fs::relative(path, dir);
+        auto     params   = org::OrgParseParameters::shared();
+        if (trace) {
+            params->parseTracePath = getDebugFile(
+                (relative / "parse_trace.log").native());
+            params->baseTokenTracePath = getDebugFile(
+                (relative / "base_token_trace.log").native());
+            params->tokenTracePath = getDebugFile(
+                (relative / "token_trace_path.log").native());
+            params->semTracePath = getDebugFile(
+                (relative / "sem_trace_path.log").native());
+        }
+        auto node = org::parseFile(path, params);
+
+        if (trace) {
+            writeTreeRepr(
+                node, getDebugFile((relative / "node.yaml").native()));
+
+            writeTreeRepr(
+                node, getDebugFile((relative / "node.txt").native()));
+        }
+
+        return node;
+    };
+
+    opts->shouldProcessPath = [](std::string const& path) -> bool {
+        if (path.contains(".git") || path.contains(".trunk")) {
+            return false;
+        } else {
+            return true;
+        }
+    };
+
+    LOG(INFO) << "Parse directory content";
+    auto parse = org::parseDirectoryOpts(dir, opts);
+
+    if (trace) {
+        writeTreeRepr(parse.value(), getDebugFile("parse_sem.yaml"));
+    }
+
+    auto initial_context = imm::ImmAstContext::init_start_context();
+    auto initial_version = initial_context->addRoot(parse.value());
+
+    if (trace) {
+        writeTreeRepr(
+            initial_version.getRootAdapter(),
+            getDebugFile("parse_imm.txt"));
+    }
+
+    LOG(INFO) << "Write tracking debug";
+    if (trace) {
+        writeFile(
+            getDebugFile("graph_tracking.txt"),
+            initial_version.getContext()
+                ->currentTrack->toString()
+                .toString(false));
+    }
+
+    LOG(INFO) << "Generating mind map";
+    auto conf = org::graph::MapConfig::shared();
+    if (trace) { conf->dbg.setTraceFile(getDebugFile("graph_trace.log")); }
+
+    auto graph = org::graph::MapGraphState::FromAstContext(
+        initial_version.getContext());
+    graph->addNodeRec(
+        initial_version.getContext(),
+        initial_version.getRootAdapter(),
+        conf);
+    auto gv = graph->graph->toGraphviz(
+        initial_version.getContext(),
+        org::graph::MapGraph::GvConfig{
+            .acceptNode = [&](org::graph::MapNode const& node) -> bool {
+                // return true;
+                return 0 < graph->graph->inDegree(node)
+                    || 0 < graph->graph->outDegree(node);
+            },
+        });
+
+    auto const context_path = getDebugFile("context.bin");
+    auto const graph_path   = getDebugFile("graph.bin");
+    auto const epoch_path   = getDebugFile("epoch.bin");
+
+    {
+        __perf_trace("cli", "Serialize initial context to container");
+        writeFile(
+            context_path,
+            org::imm::serializeToText(initial_version.getContext()));
+    }
+
+    {
+        __perf_trace("cli", "Serialize mind map to container");
+        writeFile(graph_path, org::imm::serializeToText(graph->graph));
+    }
+
+    {
+        __perf_trace("cli", "Serialize current epoch to container");
+        writeFile(
+            epoch_path,
+            org::imm::serializeToText(initial_version.getEpoch()));
+    }
+
+    auto deserialized_context = imm::ImmAstContext::init_start_context();
+    auto deserialized_version = deserialized_context->getEmptyVersion();
+
+    {
+        org::imm::serializeFromText(
+            readFile(context_path), deserialized_version.getContext());
+    }
+
+    {
+        org::imm::serializeFromText(
+            readFile(epoch_path), deserialized_version.getEpoch());
+    }
+
+    {
+        auto graph_tmp = org::graph::MapGraphState::FromAstContext(
+            deserialized_context);
+        org::imm::serializeFromText(
+            readFile(graph_path), graph_tmp->graph);
+
+        EXPECT_EQ(
+            graph->graph->edgeCount(), graph_tmp->graph->edgeCount());
+        EXPECT_EQ(
+            graph->graph->nodeCount(), graph_tmp->graph->nodeCount());
+    }
+
+    if (trace) {
+        __perf_trace("cli", "Export mind map as graphviz");
+        hstd::ext::Graphviz gvc;
+        gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
+        gvc.writeFile(getDebugFile("mind_map.dot"), gv);
+        gvc.renderToFile(
+            getDebugFile("mind_map.png"),
+            gv,
+            hstd::ext::Graphviz::RenderFormat::PNG,
+            hstd::ext::Graphviz::LayoutType::Dot);
+    }
+}
+
+TEST(ManualFileRun, TestDirCorpus) {
+    test_dir_parsing(__CURRENT_FILE_DIR__ / "corpus", true);
+}
+
+
 TEST(ManualFileRun, TestDir1) {
     fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
     if (fs::exists(dir)) {
-        auto opts = org::OrgDirectoryParseParameters::shared();
-
-        opts->getParsedNode = [&](std::string const& path) {
-            return org::parseFile(path, org::OrgParseParameters::shared());
-        };
-
-        opts->shouldProcessPath = [](std::string const& path) -> bool {
-            if (path.contains(".git") || path.contains(".trunk")) {
-                return false;
-            } else {
-                return true;
-            }
-        };
-
-        LOG(INFO) << "Parse directory content";
-        auto parse           = org::parseDirectoryOpts(dir, opts);
-        auto initial_context = imm::ImmAstContext::init_start_context();
-        auto root            = initial_context->addRoot(parse.value());
-
-        LOG(INFO) << "Write tracking debug";
-        writeFile(
-            "/tmp/TestDirTracking.txt",
-            root.context->currentTrack->toString().toString(false));
-
-        LOG(INFO) << "Generating mind map";
-        auto conf = org::graph::MapConfig::shared();
-        // conf.setTraceFile("/tmp/TestDirMindMapTrace.log");
-        auto graph = org::graph::MapGraphState::FromAstContext(
-            root.context);
-        graph->addNodeRec(root.context, root.getRootAdapter(), conf);
-        auto gv = graph->graph->toGraphviz(
-            root.context,
-            org::graph::MapGraph::GvConfig{
-                .acceptNode =
-                    [&](org::graph::MapNode const& node) -> bool {
-                    // return true;
-                    return 0 < graph->graph->inDegree(node)
-                        || 0 < graph->graph->outDegree(node);
-                },
-            });
-
-        {
-            __perf_trace("cli", "Serialize initial context to container");
-            writeFile(
-                "/tmp/dir1_msgpack.bin",
-                org::imm::serializeToText(initial_context));
-        }
-
-        {
-            __perf_trace("cli", "Serialize mind map to container");
-            writeFile(
-                "/tmp/dir1_graph_msgpack.bin",
-                org::imm::serializeToText(graph->graph));
-
-            _dfmt(graph->graph->nodeCount(), graph->graph->edgeCount());
-
-            auto graph_tmp = org::graph::MapGraphState::FromAstContext(
-                root.context);
-            org::imm::serializeFromText(
-                readFile("/tmp/dir1_graph_msgpack.bin"), graph_tmp->graph);
-        }
-
-        {
-            __perf_trace("cli", "Export mind map as graphviz");
-            hstd::ext::Graphviz gvc;
-            gv.setRankDirection(
-                hstd::ext::Graphviz::Graph::RankDirection::LR);
-            gvc.writeFile("/tmp/TestDir.dot", gv);
-            gvc.renderToFile(
-                "/tmp/TestDir.png",
-                gv,
-                hstd::ext::Graphviz::RenderFormat::PNG,
-                hstd::ext::Graphviz::LayoutType::Dot);
-        }
+        test_dir_parsing(dir, is_full_trace_on_cli_enabled());
     }
 }

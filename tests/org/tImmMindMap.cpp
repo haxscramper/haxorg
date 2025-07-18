@@ -22,15 +22,13 @@ struct ImmMapApi : ImmOrgApiTestBase {
         graph->addNodeRec(ast, node, conf);
     }
 
-    void writeGraphviz(CR<Str> name) {
+    void writeGraphviz(CR<fs::path> name) {
         hstd::ext::Graphviz gvc;
         auto                gv = graph->graph->toGraphviz(start);
         gvc.renderToFile(name, gv);
     }
 
-    void setGraphTrace(CR<Str> name) {
-        conf->dbg.setTraceFile(name.toBase());
-    }
+    void setGraphTrace(CR<fs::path> name) { conf->dbg.setTraceFile(name); }
 };
 
 
@@ -275,7 +273,7 @@ also known as a human-readable alias
     auto init = getInitialVersion(text);
     auto root = init.getRootAdapter();
     initGraph(init.context);
-    writeTreeRepr(root, "repr.txt");
+    writeTreeRepr(root, getDebugFile("repr.txt"));
     writeTreeRepr(org::parseString(text), getDebugFile("repr.yaml"));
     setGraphTrace(getDebugFile("graph_trace.log"));
     setTraceFile(getDebugFile("imm_trace.log"));
@@ -531,7 +529,7 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
     writeTreeRepr(
         root,
-        "imm_path.txt",
+        getDebugFile("imm_path.txt"),
         imm::ImmAdapter::TreeReprConf{
             .withAuxFields = true,
         });
@@ -539,7 +537,7 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
     writeTreeRepr(
         root,
-        "imm_tree.txt",
+        getDebugFile("imm_tree.txt"),
         imm::ImmAdapter::TreeReprConf{
             .withReflFields = true,
             .withAuxFields  = true,

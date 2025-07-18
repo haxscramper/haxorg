@@ -15,15 +15,13 @@
 #include "../testprofiler.hpp"
 
 #include <haxorg/sem/perfetto_org.hpp>
+#include "tOrgTestCommon.hpp"
 
 using namespace hstd;
 using namespace org::test;
 
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
-
-bool enableFullTraceOnCli = false;
-void enable_full_trace_on_cli() { enableFullTraceOnCli = true; }
 
 
 Vec<TestParams> generateTestRuns() {
@@ -205,7 +203,9 @@ TEST(ParseFileAux, GenerateYamlSchema) {
 
 TEST_P(TestOrgParseCorpus, CorpusAll) {
     TestParams params = GetParam();
-    if (enableFullTraceOnCli) { params.spec.debug.traceAll = true; }
+    if (is_full_trace_on_cli_enabled()) {
+        params.spec.debug.traceAll = true;
+    }
     TestResult result = gtest_run_spec(params);
     switch (result.getKind()) {
         case TestResult::Kind::Fail: {

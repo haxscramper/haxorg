@@ -2,7 +2,7 @@
 #include "msgpack.hpp"
 
 #include <hstd/system/reflection.hpp>
-#include <typeindex>
+#include <hstd/stdlib/Debug.hpp>
 
 namespace {
 int level = 0;
@@ -92,6 +92,24 @@ json msgpack_to_json(msgpack::object const& obj) {
     };
 
     return convert(obj);
+}
+
+
+std::string format_msgpack_object_type(
+    msgpack::type::object_type const& t) {
+    switch (t) {
+        case msgpack::type::NIL: return "NIL";
+        case msgpack::type::BOOLEAN: return "BOOLEAN";
+        case msgpack::type::POSITIVE_INTEGER: return "POSITIVE_INTEGER";
+        case msgpack::type::NEGATIVE_INTEGER: return "NEGATIVE_INTEGER";
+        case msgpack::type::FLOAT32: return "FLOAT32";
+        case msgpack::type::FLOAT: return "FLOAT";
+        case msgpack::type::STR: return "STR";
+        case msgpack::type::BIN: return "BIN";
+        case msgpack::type::ARRAY: return "ARRAY";
+        case msgpack::type::MAP: return "MAP";
+        case msgpack::type::EXT: return "EXT";
+    }
 }
 
 std::string msgpack_object_to_tree(
@@ -237,8 +255,8 @@ void expect_map(
     if (o.type != msgpack::type::MAP) {
         throw htype_error::init(
             hstd::fmt(
-                "expected array, got {} in {}",
-                o.type,
+                "expected map, got {} in {}",
+                format_msgpack_object_type(o.type),
                 hstd::value_metadata<T>::typeName()),
             line,
             function);
@@ -267,7 +285,7 @@ void expect_array(
     if (o.type != msgpack::type::ARRAY) {
         throw htype_error::init(
             hstd::fmt(
-                "expected map, got {} in {}",
+                "expected array, got {} in {}",
                 o.type,
                 hstd::value_metadata<T>::typeName()),
             line,
@@ -1161,7 +1179,9 @@ void msgpack_from_text(std::string const& binary, T& value) {
 
 std::string org::imm::serializeToText(
     const std::shared_ptr<ImmAstContext>& store) {
-    return msgpack_to_text(store);
+    auto tmp = msgpack_to_text(store);
+    _dbg(tmp.size());
+    return tmp;
 }
 
 void org::imm::serializeFromText(
@@ -1173,7 +1193,9 @@ void org::imm::serializeFromText(
 
 std::string org::imm::serializeToText(
     const std::shared_ptr<ImmAstReplaceEpoch>& store) {
-    return msgpack_to_text(store);
+    auto tmp = msgpack_to_text(store);
+    _dbg(tmp.size());
+    return tmp;
 }
 
 void org::imm::serializeFromText(
@@ -1200,7 +1222,9 @@ std::string org::imm::serializeFromTextToTreeDump(
 
 std::string org::imm::serializeToText(
     const std::shared_ptr<org::graph::MapGraph>& store) {
-    return msgpack_to_text(store);
+    auto tmp = msgpack_to_text(store);
+    _dbg(tmp.size());
+    return tmp;
 }
 
 void org::imm::serializeFromText(

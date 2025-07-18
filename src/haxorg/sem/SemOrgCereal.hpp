@@ -9,9 +9,9 @@ namespace org::imm {
     std::string const&                    binary,
     std::shared_ptr<ImmAstContext> const& store);
 
-[[refl(R"({"unique-name": "serializAstEpochToText"})")]] std::string serializeToText(
+[[refl(R"({"unique-name": "serializeAstEpochToText"})")]] std::string serializeToText(
     std::shared_ptr<ImmAstReplaceEpoch> const& store);
-[[refl(R"({"unique-name": "serializAstEpochFromText"})")]] void serializeFromText(
+[[refl(R"({"unique-name": "serializeAstEpochFromText"})")]] void serializeFromText(
     std::string const&                         binary,
     std::shared_ptr<ImmAstReplaceEpoch> const& store);
 

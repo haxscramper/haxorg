@@ -1318,6 +1318,12 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                                 prop.getExportLatexHeader().header)));
                     break;
                 }
+                case P::Kind::CustomId: {
+                    add(head,
+                        str(fmt(
+                            ":custom_id: {}", prop.getCustomId().value)));
+                    break;
+                }
                 case P::Kind::ExportLatexClass: {
                     add(head,
                         str(

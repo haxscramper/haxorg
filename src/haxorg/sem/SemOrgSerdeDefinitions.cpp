@@ -1448,6 +1448,14 @@ void org::algo::proto_serde<::orgproto::NamedProperty::CustomRaw, org::sem::Name
   proto_serde<std::string, hstd::Str>::read(out.value(), in.for_field(&org::sem::NamedProperty::CustomRaw::value));
 }
 
+void org::algo::proto_serde<::orgproto::NamedProperty::CustomId, org::sem::NamedProperty::CustomId>::write(::orgproto::NamedProperty::CustomId* out, org::sem::NamedProperty::CustomId const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_value(), in.value);
+}
+
+void org::algo::proto_serde<::orgproto::NamedProperty::CustomId, org::sem::NamedProperty::CustomId>::read(::orgproto::NamedProperty::CustomId const& out, proto_write_accessor<org::sem::NamedProperty::CustomId> in) {
+  proto_serde<std::string, hstd::Str>::read(out.value(), in.for_field(&org::sem::NamedProperty::CustomId::value));
+}
+
 void org::algo::proto_serde<::orgproto::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeJson>::write(::orgproto::NamedProperty::CustomSubtreeJson* out, org::sem::NamedProperty::CustomSubtreeJson const& in) {
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   proto_serde<orgproto::OrgJson, org::sem::OrgJson>::write(out->mutable_value(), in.value);
@@ -1543,10 +1551,13 @@ void org::algo::proto_serde<::orgproto::NamedProperty, org::sem::NamedProperty>:
       proto_serde<orgproto::NamedProperty::CustomRaw, org::sem::NamedProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<23>(in.data));
       break;
     case 24:
-      proto_serde<orgproto::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeJson>::write(out->mutable_data()->mutable_customsubtreejson(), std::get<24>(in.data));
+      proto_serde<orgproto::NamedProperty::CustomId, org::sem::NamedProperty::CustomId>::write(out->mutable_data()->mutable_customid(), std::get<24>(in.data));
       break;
     case 25:
-      proto_serde<orgproto::NamedProperty::CustomSubtreeFlags, org::sem::NamedProperty::CustomSubtreeFlags>::write(out->mutable_data()->mutable_customsubtreeflags(), std::get<25>(in.data));
+      proto_serde<orgproto::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeJson>::write(out->mutable_data()->mutable_customsubtreejson(), std::get<25>(in.data));
+      break;
+    case 26:
+      proto_serde<orgproto::NamedProperty::CustomSubtreeFlags, org::sem::NamedProperty::CustomSubtreeFlags>::write(out->mutable_data()->mutable_customsubtreeflags(), std::get<26>(in.data));
       break;
   }
 }
@@ -1649,13 +1660,17 @@ void org::algo::proto_serde<::orgproto::NamedProperty, org::sem::NamedProperty>:
       in.for_field_variant<23>(&org::sem::NamedProperty::data).get();
       proto_serde<orgproto::NamedProperty::CustomRaw, org::sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<23>(&org::sem::NamedProperty::data));
       break;
-    case ::orgproto::NamedProperty::Data::kCustomsubtreejson:
+    case ::orgproto::NamedProperty::Data::kCustomid:
       in.for_field_variant<24>(&org::sem::NamedProperty::data).get();
-      proto_serde<orgproto::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeJson>::read(out.data().customsubtreejson(), in.for_field_variant<24>(&org::sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::CustomId, org::sem::NamedProperty::CustomId>::read(out.data().customid(), in.for_field_variant<24>(&org::sem::NamedProperty::data));
+      break;
+    case ::orgproto::NamedProperty::Data::kCustomsubtreejson:
+      in.for_field_variant<25>(&org::sem::NamedProperty::data).get();
+      proto_serde<orgproto::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeJson>::read(out.data().customsubtreejson(), in.for_field_variant<25>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCustomsubtreeflags:
-      in.for_field_variant<25>(&org::sem::NamedProperty::data).get();
-      proto_serde<orgproto::NamedProperty::CustomSubtreeFlags, org::sem::NamedProperty::CustomSubtreeFlags>::read(out.data().customsubtreeflags(), in.for_field_variant<25>(&org::sem::NamedProperty::data));
+      in.for_field_variant<26>(&org::sem::NamedProperty::data).get();
+      proto_serde<orgproto::NamedProperty::CustomSubtreeFlags, org::sem::NamedProperty::CustomSubtreeFlags>::read(out.data().customsubtreeflags(), in.for_field_variant<26>(&org::sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::KIND_NOT_SET: {
       throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");

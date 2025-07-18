@@ -469,6 +469,9 @@ void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomRaw const& object) 
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomId const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomSubtreeJson const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, value);

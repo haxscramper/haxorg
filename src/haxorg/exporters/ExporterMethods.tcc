@@ -107,6 +107,7 @@ void visit(R& res, sem::NamedProperty::RadioId const& object);
 void visit(R& res, sem::NamedProperty::HashtagDef const& object);
 void visit(R& res, sem::NamedProperty::CustomArgs const& object);
 void visit(R& res, sem::NamedProperty::CustomRaw const& object);
+void visit(R& res, sem::NamedProperty::CustomId const& object);
 void visit(R& res, sem::NamedProperty::CustomSubtreeJson const& object);
 void visit(R& res, sem::NamedProperty::CustomSubtreeFlags const& object);
 void visitNone(R& res, In<sem::None> object);

@@ -404,6 +404,7 @@ export interface haxorg_wasm_module_auto {
   NamedPropertyHashtagDef: NamedPropertyHashtagDefConstructor;
   NamedPropertyCustomArgs: NamedPropertyCustomArgsConstructor;
   NamedPropertyCustomRaw: NamedPropertyCustomRawConstructor;
+  NamedPropertyCustomId: NamedPropertyCustomIdConstructor;
   NamedPropertyCustomSubtreeJson: NamedPropertyCustomSubtreeJsonConstructor;
   NamedPropertyCustomSubtreeFlags: NamedPropertyCustomSubtreeFlagsConstructor;
   NamedPropertyKind: {
@@ -431,6 +432,7 @@ export interface haxorg_wasm_module_auto {
     HashtagDef: NamedPropertyKind,
     CustomArgs: NamedPropertyKind,
     CustomRaw: NamedPropertyKind,
+    CustomId: NamedPropertyKind,
     CustomSubtreeJson: NamedPropertyKind,
     CustomSubtreeFlags: NamedPropertyKind,
   }
@@ -1608,8 +1610,8 @@ export interface haxorg_wasm_module_auto {
   initMapGraphState(ast: ImmAstContext): GraphMapGraphState;
   serializeAstContextToText(store: ImmAstContext): string;
   serializeAstContextFromText(binary: string, store: ImmAstContext): void;
-  serializAstEpochToText(store: ImmAstReplaceEpoch): string;
-  serializAstEpochFromText(binary: string, store: ImmAstReplaceEpoch): void;
+  serializeAstEpochToText(store: ImmAstReplaceEpoch): string;
+  serializeAstEpochFromText(binary: string, store: ImmAstReplaceEpoch): void;
   serializeMapGraphToText(store: GraphMapGraph): string;
   serializeMapGraphFromText(binary: string, store: GraphMapGraph): void;
   serializeFromTextToTreeDump(binary: string): string;
@@ -2204,6 +2206,7 @@ export interface GraphMapConfigConstructor { new(): GraphMapConfig; }
 export interface GraphMapConfig { dbg: OperationsTracer }
 export interface GraphMapGraphStateConstructor { new(): GraphMapGraphState; }
 export interface GraphMapGraphState {
+  getGraph(): GraphMapGraph;
   FromAstContext(ast: ImmAstContext): GraphMapGraphState;
   registerNode(node: GraphMapNodeProp, conf: GraphMapConfig): void;
   addNode(node: ImmAdapter, conf: GraphMapConfig): void;
@@ -3114,6 +3117,9 @@ export interface NamedProperty {
   isCustomRaw(): boolean;
   getCustomRawConst(): NamedPropertyCustomRaw;
   getCustomRawMut(): NamedPropertyCustomRaw;
+  isCustomId(): boolean;
+  getCustomIdConst(): NamedPropertyCustomId;
+  getCustomIdMut(): NamedPropertyCustomId;
   isCustomSubtreeJson(): boolean;
   getCustomSubtreeJsonConst(): NamedPropertyCustomSubtreeJson;
   getCustomSubtreeJsonMut(): NamedPropertyCustomSubtreeJson;
@@ -3254,6 +3260,11 @@ export interface NamedPropertyCustomRaw {
   name: string
   value: string
 }
+export interface NamedPropertyCustomIdConstructor { new(): NamedPropertyCustomId; }
+export interface NamedPropertyCustomId {
+  __eq__(other: NamedPropertyCustomId): boolean;
+  value: string
+}
 export interface NamedPropertyCustomSubtreeJsonConstructor { new(): NamedPropertyCustomSubtreeJson; }
 export interface NamedPropertyCustomSubtreeJson {
   __eq__(other: NamedPropertyCustomSubtreeJson): boolean;
@@ -3266,7 +3277,7 @@ export interface NamedPropertyCustomSubtreeFlags {
   name: string
   value: AttrGroup
 }
-export type NamedPropertyData = haxorg_wasm.StdVariant<NamedPropertyNonblocking, NamedPropertyArchiveTime, NamedPropertyArchiveFile, NamedPropertyArchiveOlpath, NamedPropertyArchiveTarget, NamedPropertyArchiveCategory, NamedPropertyArchiveTodo, NamedPropertyTrigger, NamedPropertyExportLatexClass, NamedPropertyCookieData, NamedPropertyExportLatexClassOptions, NamedPropertyExportLatexHeader, NamedPropertyExportLatexCompiler, NamedPropertyOrdered, NamedPropertyEffort, NamedPropertyVisibility, NamedPropertyExportOptions, NamedPropertyBlocker, NamedPropertyUnnumbered, NamedPropertyCreated, NamedPropertyRadioId, NamedPropertyHashtagDef, NamedPropertyCustomArgs, NamedPropertyCustomRaw, NamedPropertyCustomSubtreeJson, NamedPropertyCustomSubtreeFlags>;
+export type NamedPropertyData = haxorg_wasm.StdVariant<NamedPropertyNonblocking, NamedPropertyArchiveTime, NamedPropertyArchiveFile, NamedPropertyArchiveOlpath, NamedPropertyArchiveTarget, NamedPropertyArchiveCategory, NamedPropertyArchiveTodo, NamedPropertyTrigger, NamedPropertyExportLatexClass, NamedPropertyCookieData, NamedPropertyExportLatexClassOptions, NamedPropertyExportLatexHeader, NamedPropertyExportLatexCompiler, NamedPropertyOrdered, NamedPropertyEffort, NamedPropertyVisibility, NamedPropertyExportOptions, NamedPropertyBlocker, NamedPropertyUnnumbered, NamedPropertyCreated, NamedPropertyRadioId, NamedPropertyHashtagDef, NamedPropertyCustomArgs, NamedPropertyCustomRaw, NamedPropertyCustomId, NamedPropertyCustomSubtreeJson, NamedPropertyCustomSubtreeFlags>;
 export enum NamedPropertyKind {
   Nonblocking,
   ArchiveTime,
@@ -3292,6 +3303,7 @@ export enum NamedPropertyKind {
   HashtagDef,
   CustomArgs,
   CustomRaw,
+  CustomId,
   CustomSubtreeJson,
   CustomSubtreeFlags,
 }
