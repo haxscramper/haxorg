@@ -2222,7 +2222,7 @@ def build_custom_docs(
         *get_list_cli_pass("coverage_file_blacklist", coverage_file_blacklist),
     ]
 
-    prof_params = get_cxx_profdata_params()
+    prof_params = get_cxx_profdata_params(ctx)
     if Path(prof_params.coverage_db).exists():
         args.append(f"--cxx_coverage_path={prof_params.coverage_db}")
         log(CAT).info(f"Using coveage database from {prof_params.coverage_db}")
@@ -2318,6 +2318,12 @@ def run_develop_ci(
         haxorg_env(["ci"], True),
         haxorg_env(["forceall"], True),
     ])
+
+    if coverage:
+        env = merge_dicts([
+            env,
+            haxorg_env(["instrument", "coverage"], True),
+        ])
 
     emscripten_env = merge_dicts([
         env,
