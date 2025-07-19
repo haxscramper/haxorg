@@ -383,18 +383,18 @@ def get_external_deps_list(
         configure_args=[opt("PYBIND11_TEST", False)],
     )
 
-    utf8 = dep(
-        build_name="utf8_range",
-        deps_name="protobuf/third_party/utf8_range",
-        configure_args=[
-            opt("CMAKE_PREFIX_PATH", absl.get_install_prefix(install_dir=install_dir)),
-            opt("utf8_range_ENABLE_TESTS", False),
-            *ninja_build(),
-        ],
-        cmake_dirs=[
-            ("utf8_range", make_lib("utf8_range/{}/cmake/utf8_range")),
-        ],
-    )
+    # utf8 = dep(
+    #     build_name="utf8_range",
+    #     deps_name="protobuf/third_party/utf8_range",
+    #     configure_args=[
+    #         opt("CMAKE_PREFIX_PATH", absl.get_install_prefix(install_dir=install_dir)),
+    #         opt("utf8_range_ENABLE_TESTS", False),
+    #         *ninja_build(),
+    #     ],
+    #     cmake_dirs=[
+    #         ("utf8_range", make_lib("utf8_range/{}/cmake/utf8_range")),
+    #     ],
+    # )
 
     dep(
         build_name="protobuf",
@@ -411,7 +411,7 @@ def get_external_deps_list(
             opt(
                 "CMAKE_PREFIX_PATH", ";".join([
                     absl.get_install_prefix(install_dir=install_dir),
-                    utf8.get_install_prefix(install_dir=install_dir),
+                    # utf8.get_install_prefix(install_dir=install_dir),
                 ])),
             opt("ABSL_CC_LIB_COPTS", "-fPIC"),
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
