@@ -55,6 +55,7 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
     forceall: bool = False
     ci: bool = False
+    dryrun: bool = False
 
     python_version: Optional[str] = None
     aggregate_filters: Optional[HaxorgCoverageAggregateFilter] = None

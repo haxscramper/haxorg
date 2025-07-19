@@ -1458,8 +1458,8 @@ bool SaveProtobufToJsonFile(
     // Configure JSON options
     google::protobuf::util::JsonPrintOptions options;
     options.add_whitespace = pretty_print; // For formatted/pretty JSON
-    options.always_print_primitive_fields = true; // Include fields with
-                                                  // default values
+    // Include fields with default values
+    options.always_print_fields_with_no_presence = true;
     options.preserve_proto_field_names = true; // Use original field names
                                                // (not camelCase)
 
