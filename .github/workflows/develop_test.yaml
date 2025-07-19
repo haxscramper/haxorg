@@ -5,12 +5,14 @@ on:
   pull_request:
   workflow_dispatch:
 
-concurrency:
-  group: develop-test-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+
 
 jobs:
   docker-develop-test:
+    concurrency:
+      group: develop-test-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
     runs-on: ubuntu-latest
     
     steps:
