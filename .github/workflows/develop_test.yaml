@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: develop-test-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
       id: docker-cache
       with:
         path: /tmp/docker-image-develop
-        key: docker-develop-${{ hashFiles('scripts/py_repository/develop.dockerfile') }}
+        key: docker-develop-${{ hashFiles('scripts/py_repository/Dockerfile') }}
         
     - name: Load cached Docker image
       if: steps.docker-cache.outputs.cache-hit == 'true'
@@ -36,7 +36,7 @@ jobs:
     - name: Build Docker image
       if: steps.docker-cache.outputs.cache-hit != 'true'
       run: |
-        docker build -t docker-haxorg -f scripts/py_repository/develop.dockerfile .
+        docker build -t docker-haxorg -f scripts/py_repository/Dockerfile .
         mkdir -p /tmp/docker-image-develop
         docker save docker-haxorg -o /tmp/docker-image-develop/image.tar
         
