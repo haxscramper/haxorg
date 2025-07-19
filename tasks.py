@@ -339,6 +339,7 @@ def run_command(
 ) -> tuple[int, str, str]:
     stderr_debug = stderr_debug or get_cmd_debug_file("stderr")
     stdout_debug = stdout_debug or get_cmd_debug_file("stdout")
+    conf = get_config(ctx)
     if isinstance(cmd, Path):
         assert cmd.exists(), cmd
         cmd = str(cmd.resolve())
@@ -380,11 +381,17 @@ cmd:  {cmd}
         append_to_log(stdout_debug)
 
     import shlex
+    print("command args")
     print(shlex.join(args))
+
+
 
     log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
                    (f" in [green]{cwd}[/green]" if cwd else "") +
                    (f" with [purple]{env}[/purple]" if env else ""))
+
+    if conf.dryrun:
+        return (0, "", "")
 
     try:
         run = local[cmd]
