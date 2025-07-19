@@ -51,7 +51,6 @@ jobs:
           --mount type=bind,src=/tmp/haxorg_cpack_build_dir_1,dst=/haxorg_wip \
           --memory=32G \
           --rm \
-          --user 1000:1000 \
           -e PYTHONPATH=/haxorg/scripts/py_ci \
           docker-haxorg-cpack \
           python -m py_ci.test_cpack_build
