@@ -2,10 +2,7 @@ name: Docker Develop Test
 
 on:
   push:
-  pull_request:
   workflow_dispatch:
-
-
 
 jobs:
   docker-develop-test:
@@ -14,7 +11,7 @@ jobs:
       cancel-in-progress: true
 
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
