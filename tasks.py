@@ -379,6 +379,9 @@ cmd:  {cmd}
     if append_stdout_debug:
         append_to_log(stdout_debug)
 
+    import shlex
+    print(shlex.join(args))
+
     log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
                    (f" in [green]{cwd}[/green]" if cwd else "") +
                    (f" with [purple]{env}[/purple]" if env else ""))
