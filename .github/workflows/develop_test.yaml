@@ -11,17 +11,13 @@ jobs:
       cancel-in-progress: true
 
     runs-on: ubuntu-latest
+    container: ubuntu:22.04
 
     steps:
-    - name: Remove unnecessary files
+    - name: Install minimal dependencies
       run: |
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-        sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /opt/hostedtoolcache/CodeQL
-        sudo docker system prune -af
-        df -h
+        apt-get update
+        apt-get install -y git docker.io
 
     - name: Checkout repository
       uses: actions/checkout@v4
