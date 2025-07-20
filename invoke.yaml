@@ -1,6 +1,5 @@
 quiet: false
 debug: true
-dryrun: true
 instrument:
   coverage: false
   xray: false

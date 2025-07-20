@@ -9,6 +9,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/ContainerAPI.hpp>
 
 namespace hstd {
 
@@ -141,6 +142,65 @@ struct value_metadata<hstd::UnorderedMap<K, V>> {
              + std::string{">"};
     }
 };
+
+template <typename K, typename V, typename Container>
+class SequentialKvPairContainerAdapter
+    : public SequentialContainerAdapterBase<
+          SequentialContainerAdapter<Container>,
+          Container,
+          std::pair<K, V>> {
+  public:
+    using container_type  = Container;
+    using item_value_type = std::pair<K, V>;
+    using base_type       = SequentialContainerAdapterBase<
+              SequentialContainerAdapter<Container>,
+              container_type,
+              item_value_type>;
+
+    container_type const* container;
+
+    SequentialKvPairContainerAdapter(const container_type* container)
+        : container{container} {}
+
+    auto begin_impl() const { return container->begin(); }
+    auto end_impl() const { return container->end(); }
+
+    void add_impl(const item_value_type& value) {
+        const_cast<container_type*>(container)->insert(value);
+    }
+
+    int size_impl() const { return static_cast<int>(container->size()); }
+
+    void begin_insert_impl() {}
+    void end_insert_impl() {}
+    void clear_impl() { const_cast<container_type*>(container)->clear(); }
+};
+
+template <typename K, typename V>
+struct SequentialContainerAdapter<std::unordered_map<K, V>>
+    : hstd::SequentialKvPairContainerAdapter<
+          K,
+          V,
+          std::unordered_map<K, V>> {};
+
+template <typename K, typename V>
+struct SequentialContainerAdapter<std::map<K, V>>
+    : hstd::SequentialKvPairContainerAdapter<K, V, std::map<K, V>> {};
+
+
+template <typename K, typename V>
+struct SequentialContainerAdapter<hstd::UnorderedMap<K, V>>
+    : hstd::SequentialKvPairContainerAdapter<
+          K,
+          V,
+          hstd::UnorderedMap<K, V>> {};
+
+template <typename K, typename V, typename _Compare>
+struct SequentialContainerAdapter<hstd::SortedMap<K, V, _Compare>>
+    : hstd::SequentialKvPairContainerAdapter<
+          K,
+          V,
+          hstd::SortedMap<K, V, _Compare>> {};
 
 template <typename K, typename V, typename Type>
 struct std_kv_tuple_iterator_hash {
