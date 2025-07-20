@@ -280,6 +280,42 @@ struct AssociativeContainerAdapter<ext::ImmMap<K, V>>
     AssociativeContainerAdapter(const container_type* container)
         : SequentialContainerAdapter<ext::ImmMap<K, V>>{container} {}
 
+    bool contains_impl(pair_key_type const& key) const {
+        return this->container->find(key) != nullptr;
+    }
+
+    void insert_or_assign_impl(
+        pair_key_type const&   key,
+        pair_value_type const& value) {
+        if (this->transient) {
+            this->transient->set(key, value);
+        } else {
+            *const_cast<container_type*>(this->container) = //
+                const_cast<container_type*>(this->container)
+                    ->set(key, value);
+        }
+    }
+};
+
+template <typename K, typename V>
+struct AssociativeContainerAdapter<immer::map<K, V>>
+    : public AssociativeContainerAdapterBase<
+          AssociativeContainerAdapter<immer::map<K, V>>,
+          immer::map<K, V>,
+          K,
+          V>
+    , public SequentialContainerAdapter<immer::map<K, V>> {
+    using pair_key_type   = K;
+    using pair_value_type = V;
+    using container_type  = immer::map<K, V>;
+
+    AssociativeContainerAdapter(const container_type* container)
+        : SequentialContainerAdapter<immer::map<K, V>>{container} {}
+
+    bool contains_impl(pair_key_type const& key) const {
+        return this->container->find(key) != nullptr;
+    }
+
     void insert_or_assign_impl(
         pair_key_type const&   key,
         pair_value_type const& value) {

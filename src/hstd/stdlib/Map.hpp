@@ -176,6 +176,7 @@ class SequentialKvPairContainerAdapter
     void clear_impl() { const_cast<container_type*>(container)->clear(); }
 };
 
+
 template <typename K, typename V>
 struct SequentialContainerAdapter<std::unordered_map<K, V>>
     : hstd::SequentialKvPairContainerAdapter<
@@ -201,6 +202,72 @@ struct SequentialContainerAdapter<hstd::SortedMap<K, V, _Compare>>
           K,
           V,
           hstd::SortedMap<K, V, _Compare>> {};
+
+
+template <typename K, typename V, typename Container>
+struct AssociativeKvPairContainerAdapter
+    : public AssociativeContainerAdapterBase<
+          AssociativeContainerAdapter<Container>,
+          Container,
+          K,
+          V>
+    , public SequentialContainerAdapter<Container> {
+    using pair_key_type   = K;
+    using pair_value_type = V;
+    using container_type  = Container;
+
+    AssociativeKvPairContainerAdapter(const container_type* container)
+        : SequentialContainerAdapter<Container>{container} {}
+
+    void insert_or_assign_impl(
+        pair_key_type const&   key,
+        pair_value_type const& value) {
+        const_cast<container_type*>(this->container)
+            ->insert_or_assign(key, value);
+    }
+
+    bool contains_impl(K const& key) const {
+        return this->container->contains(key);
+    }
+};
+
+template <typename K, typename V>
+struct AssociativeContainerAdapter<std::unordered_map<K, V>>
+    : hstd::AssociativeKvPairContainerAdapter<
+          K,
+          V,
+          std::unordered_map<K, V>> {
+    using pair_key_type   = K;
+    using pair_value_type = V;
+};
+
+template <typename K, typename V>
+struct AssociativeContainerAdapter<std::map<K, V>>
+    : hstd::AssociativeKvPairContainerAdapter<K, V, std::map<K, V>> {
+    using pair_key_type   = K;
+    using pair_value_type = V;
+};
+
+
+template <typename K, typename V>
+struct AssociativeContainerAdapter<hstd::UnorderedMap<K, V>>
+    : hstd::AssociativeKvPairContainerAdapter<
+          K,
+          V,
+          hstd::UnorderedMap<K, V>> {
+    using pair_key_type   = K;
+    using pair_value_type = V;
+};
+
+template <typename K, typename V, typename _Compare>
+struct AssociativeContainerAdapter<hstd::SortedMap<K, V, _Compare>>
+    : hstd::AssociativeKvPairContainerAdapter<
+          K,
+          V,
+          hstd::SortedMap<K, V, _Compare>> {
+    using pair_key_type   = K;
+    using pair_value_type = V;
+};
 
 template <typename K, typename V, typename Type>
 struct std_kv_tuple_iterator_hash {

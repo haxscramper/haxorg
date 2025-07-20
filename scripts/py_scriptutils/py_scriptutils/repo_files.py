@@ -53,9 +53,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
         description="Always execute task",
     )
 
-    forceall: bool = False
-    ci: bool = False
-    dryrun: bool = False
+    forceall: bool = Field(default=False)
+    ci: bool = Field(default=False)
+    dryrun: bool = Field(default=False)
 
     python_version: Optional[str] = None
     aggregate_filters: Optional[HaxorgCoverageAggregateFilter] = None

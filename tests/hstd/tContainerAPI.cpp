@@ -6,7 +6,7 @@
 
 using namespace hstd;
 
-template <typename T>
+template <HasSequentialContainerAdapter T>
 SequentialContainerAdapter<T> to_seq_adapter(T const* p) {
     return SequentialContainerAdapter<T>(p);
 }
@@ -22,86 +22,83 @@ void sequential_api_user(
     a.end_insert();
 }
 
-TEST(ContainerAdapterAPI, SequentialContainerAPI) {
-    {
-        Vec<int> v;
-        auto     a = to_seq_adapter(&v);
+template <typename T>
+class SequentialContainerAdapterTest : public ::testing::Test {
+  public:
+    using ContainerType = T;
+};
+
+using SequentialContainerTypes = ::testing::Types<
+    Vec<int>,
+    immer::vector<int>,
+    immer::flex_vector<int>,
+    immer::map<int, int>,
+    ext::ImmMap<int, int>,
+    std::map<int, int>,
+    std::unordered_map<int, int>,
+    hstd::SortedMap<int, int>,
+    hstd::UnorderedMap<int, int>>;
+
+TYPED_TEST_SUITE(SequentialContainerAdapterTest, SequentialContainerTypes);
+
+TYPED_TEST(SequentialContainerAdapterTest, SequentialContainerAPI) {
+    using Container = typename TestFixture::ContainerType;
+    Container v;
+    auto      a = to_seq_adapter(&v);
+
+    if constexpr (
+        std::is_same_v<Container, Vec<int>>
+        || std::is_same_v<Container, immer::vector<int>>
+        || std::is_same_v<Container, immer::flex_vector<int>>) {
         sequential_api_user(a, {1, 2});
-        EXPECT_EQ(a.size(), 2);
-    }
-    {
-        immer::vector<int> v;
-        auto               a = to_seq_adapter(&v);
-        sequential_api_user(a, {1, 2});
-        EXPECT_EQ(a.size(), 2);
-    }
-    {
-        immer::flex_vector<int> v;
-        auto                    a = to_seq_adapter(&v);
-        sequential_api_user(a, {1, 2});
-        EXPECT_EQ(a.size(), 2);
-    }
-    {
-        immer::map<int, int> v;
-        auto                 a = to_seq_adapter(&v);
+    } else {
         sequential_api_user(a, {{1, 2}, {2, 3}});
-        EXPECT_EQ(a.size(), 2);
-    }
-    {
-        ext::ImmMap<int, int> v;
-        auto                  a = to_seq_adapter(&v);
-        sequential_api_user(a, {{1, 2}, {2, 3}});
-        EXPECT_EQ(a.size(), 2);
-    }
-    {
-        std::map<int, int> v;
-        auto               a = to_seq_adapter(&v);
-        sequential_api_user(a, {{1, 2}, {2, 3}});
-        EXPECT_EQ(a.size(), 2);
-    }
-    {
-        std::unordered_map<int, int> v;
-        auto                         a = to_seq_adapter(&v);
-        sequential_api_user(a, {{1, 2}, {2, 3}});
-        EXPECT_EQ(a.size(), 2);
     }
 
-    {
-        hstd::SortedMap<int, int> v;
-        auto                      a = to_seq_adapter(&v);
-        sequential_api_user(a, {{1, 2}, {2, 3}});
-        EXPECT_EQ(a.size(), 2);
-    }
-    {
-        hstd::UnorderedMap<int, int> v;
-        auto                         a = to_seq_adapter(&v);
-        sequential_api_user(a, {{1, 2}, {2, 3}});
-        EXPECT_EQ(a.size(), 2);
-    }
+    EXPECT_EQ(a.size(), 2);
 }
 
-
-template <typename T>
+template <HasAssociativeContainerAdapter T>
 void assoc_api_user(
     SequentialContainerAdapter<T>      a,
     Vec<typename T::value_type> const& items) {
     sequential_api_user(a, items);
 }
 
-template <typename T>
+template <HasAssociativeContainerAdapter T>
 AssociativeContainerAdapter<T> to_assoc_adapter(T const* p) {
     return AssociativeContainerAdapter<T>(p);
 }
-TEST(ContainerAdapterAPI, AssociativeContainerAPI) {
-    {
-        ext::ImmMap<int, int> v;
-        auto                  a = to_assoc_adapter(&v);
-        assoc_api_user(a, {{1, 2}, {2, 3}});
-        EXPECT_EQ(a.size(), 2);
 
-        a.begin_insert();
-        a.insert_or_assign(123, 3);
-        a.end_insert();
-        EXPECT_EQ(a.size(), 3);
-    }
+template <typename T>
+class AssociativeContainerAdapterTest : public ::testing::Test {
+  public:
+    using ContainerType = T;
+};
+
+using AssociativeContainerTypes = ::testing::Types<
+    ext::ImmMap<int, int>,
+    immer::map<int, int>,
+    std::map<int, int>,
+    std::unordered_map<int, int>,
+    hstd::SortedMap<int, int>,
+    hstd::UnorderedMap<int, int>>;
+
+TYPED_TEST_SUITE(
+    AssociativeContainerAdapterTest,
+    AssociativeContainerTypes);
+
+TYPED_TEST(AssociativeContainerAdapterTest, AssociativeContainerAPI) {
+    using Container = typename TestFixture::ContainerType;
+    Container v;
+    auto      a = to_assoc_adapter(&v);
+
+    assoc_api_user(a, {{1, 2}, {2, 3}});
+    EXPECT_EQ(a.size(), 2);
+
+    a.begin_insert();
+    a.insert_or_assign(123, 3);
+    a.end_insert();
+    EXPECT_EQ(a.size(), 3);
+    EXPECT_TRUE(a.contains(123));
 }

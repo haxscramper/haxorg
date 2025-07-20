@@ -1,4 +1,6 @@
 #pragma once
+
+#include <hstd/system/aux_templates.hpp>
 #include <hstd/system/aux_utils.hpp>
 
 namespace hstd {
@@ -26,12 +28,12 @@ template <
 struct AssociativeContainerAdapterBase : CRTP_this_method<Derived> {
     using CRTP_this_method<Derived>::_this;
 
-    auto insert_or_assign(KeyType const& key, ValueType const& value) {
+    void insert_or_assign(KeyType const& key, ValueType const& value) {
         _this()->insert_or_assign_impl(key, value);
     }
 
     bool contains(KeyType const& key) const {
-        _this()->contains_impl(key);
+        return _this()->contains_impl(key);
     }
 };
 
@@ -44,12 +46,13 @@ class AssociativeContainerAdapter {};
 
 template <typename T>
 concept HasSequentialContainerAdapter = requires {
-    typename SequentialContainerAdapter<T>;
-    requires std::is_base_of_v<
-        SequentialContainerAdapterBase<
-            SequentialContainerAdapter<T>,
-            typename SequentialContainerAdapter<T>::container_type,
-            typename SequentialContainerAdapter<T>::item_value_type>,
-        SequentialContainerAdapter<T>>;
+    typename SequentialContainerAdapter<T>::item_value_type;
+};
+
+template <typename T>
+concept HasAssociativeContainerAdapter = requires {
+    typename AssociativeContainerAdapter<T>::item_value_type;
+    typename AssociativeContainerAdapter<T>::pair_key_type;
+    typename AssociativeContainerAdapter<T>::pair_value_type;
 };
 } // namespace hstd
