@@ -101,4 +101,9 @@ TYPED_TEST(AssociativeContainerAdapterTest, AssociativeContainerAPI) {
     a.end_insert();
     EXPECT_EQ(a.size(), 3);
     EXPECT_TRUE(a.contains(123));
+
+    EXPECT_EQ(a.keys().size(), 3);
+    EXPECT_EQ(a.at(123), 3);
+    EXPECT_EQ(a.at(1), 2);
+    EXPECT_EQ(a.at(2), 3);
 }

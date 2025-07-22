@@ -216,6 +216,12 @@ struct AssociativeKvPairContainerAdapter
     using pair_value_type = V;
     using container_type  = Container;
 
+    using assoc_base = AssociativeContainerAdapterBase<
+        AssociativeContainerAdapter<Container>,
+        Container,
+        K,
+        V>;
+
     AssociativeKvPairContainerAdapter(const container_type* container)
         : SequentialContainerAdapter<Container>{container} {}
 
@@ -228,6 +234,10 @@ struct AssociativeKvPairContainerAdapter
 
     bool contains_impl(K const& key) const {
         return this->container->contains(key);
+    }
+
+    V const& at_impl(K const& key) const {
+        return this->container->at(key);
     }
 };
 

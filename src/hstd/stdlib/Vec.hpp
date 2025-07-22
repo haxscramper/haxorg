@@ -8,7 +8,6 @@
 #    include <boost/container/small_vector.hpp>
 #endif
 #include <hstd/system/exceptions.hpp>
-#include <hstd/stdlib/ContainerAPI.hpp>
 
 
 #include <vector>
@@ -598,33 +597,6 @@ struct value_metadata<Vec<T>> {
     }
 };
 
-template <typename T>
-class SequentialContainerAdapter<hstd::Vec<T>>
-    : public SequentialContainerAdapterBase<
-          SequentialContainerAdapter<hstd::Vec<T>>,
-          hstd::Vec<T>,
-          T> {
-  public:
-    using container_type  = hstd::Vec<T>;
-    using item_value_type = T;
-
-    container_type const* container;
-
-    SequentialContainerAdapter(const container_type* container) {}
-
-    auto begin_impl() const { return container->begin(); }
-    auto end_impl() const { return container->end(); }
-
-    void add_impl(const item_value_type& value) {
-        const_cast<container_type*>(container)->push_back(value);
-    }
-
-    int size_impl() const { return static_cast<int>(container->size()); }
-
-    void begin_insert_impl() {}
-    void end_insert_impl() {}
-    void clear_impl() { const_cast<container_type*>(container)->clear(); }
-};
 
 
 } // namespace hstd
