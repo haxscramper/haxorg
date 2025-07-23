@@ -11,15 +11,30 @@ SequentialContainerAdapter<T> to_seq_adapter(T const* p) {
     return SequentialContainerAdapter<T>(p);
 }
 
-template <HasSequentialContainerAdapter T>
+template <HasSequentialContainerAdapter T, typename It>
 void sequential_api_user(
-    SequentialContainerAdapter<T>      a,
-    Vec<typename T::value_type> const& items) {
+    SequentialContainerAdapter<T> a,
+    Vec<It> const&                items) {
     a.clear();
-    for (auto it = a.begin(); it != a.end(); ++it) {}
+    int count = 0;
+
+    for (auto it = a.begin(); it != a.end(); ++it) {
+        It tmp = *it;
+        ++count;
+    }
+
+    ASSERT_EQ(count, 0);
+
     a.begin_insert();
     for (auto const& it : items) { a.add(it); }
     a.end_insert();
+
+    for (auto it = a.begin(); it != a.end(); ++it) {
+        It tmp = *it;
+        ++count;
+    }
+
+    ASSERT_EQ(count, items.size());
 }
 
 template <typename T>
@@ -43,19 +58,28 @@ TYPED_TEST_SUITE(SequentialContainerAdapterTest, SequentialContainerTypes);
 
 TYPED_TEST(SequentialContainerAdapterTest, SequentialContainerAPI) {
     using Container = typename TestFixture::ContainerType;
-    Container v;
-    auto      a = to_seq_adapter(&v);
 
-    if constexpr (
-        std::is_same_v<Container, Vec<int>>
-        || std::is_same_v<Container, immer::vector<int>>
-        || std::is_same_v<Container, immer::flex_vector<int>>) {
-        sequential_api_user(a, {1, 2});
-    } else {
-        sequential_api_user(a, {{1, 2}, {2, 3}});
+
+    for (int count : Vec<int>{0, 2, 4, 8, 64, 512, 2048}) {
+        Container v;
+        auto      a = to_seq_adapter(&v);
+        if constexpr (
+            std::is_same_v<Container, Vec<int>>
+            || std::is_same_v<Container, immer::vector<int>>
+            || std::is_same_v<Container, immer::flex_vector<int>>) {
+            Vec<int> seq_items;
+            for (int i = 0; i < count; ++i) { seq_items.push_back(i); }
+            sequential_api_user(a, seq_items);
+        } else {
+            Vec<std::pair<int, int>> seq_items;
+            for (int i = 0; i < count; ++i) {
+                seq_items.push_back({i, i + 1});
+            }
+            sequential_api_user(a, seq_items);
+        }
+
+        EXPECT_EQ(a.size(), count);
     }
-
-    EXPECT_EQ(a.size(), 2);
 }
 
 template <HasAssociativeContainerAdapter T>

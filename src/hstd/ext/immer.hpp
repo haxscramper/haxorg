@@ -87,11 +87,13 @@ struct SequentialImmerContainerAdapterBase
               Container,
               ValueType>;
 
-    container_type const*                                    container;
+    container_type const* container = nullptr;
     std::shared_ptr<typename container_type::transient_type> transient;
 
     SequentialImmerContainerAdapterBase(const container_type* container)
-        : container{container} {}
+        : container{container} {
+        hstd::logic_assertion_check_not_nil(container);
+    }
 
     auto begin_impl() const { return container->begin(); }
     auto end_impl() const { return container->end(); }
@@ -99,15 +101,15 @@ struct SequentialImmerContainerAdapterBase
     int size_impl() const { return static_cast<int>(container->size()); }
 
     void begin_insert_impl() {
-        transient = std::make_unique<
+        transient = std::make_shared<
             typename container_type::transient_type>(
             const_cast<container_type*>(container)->transient());
     }
 
     void end_insert_impl() {
         if (transient) {
-            *const_cast<container_type*>(container) = transient
-                                                          ->persistent();
+            *const_cast<container_type*>(container) = //
+                transient->persistent();
             transient.reset();
         }
     }

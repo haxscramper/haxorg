@@ -16,6 +16,7 @@ struct SequentialContainerAdapterBase : CRTP_this_method<Derived> {
     auto end() const { return _this()->end_impl(); }
     int  size() const { return _this()->size_impl(); }
     void add(const value_type& value) { _this()->add_impl(value); }
+    void add(value_type&& value) { _this()->add_impl(value); }
     void begin_insert() { _this()->begin_insert_impl(); }
     void end_insert() { _this()->end_insert_impl(); }
     void clear() { _this()->clear_impl(); }
@@ -85,9 +86,39 @@ class SequentialContainerAdapter<hstd::Vec<T>>
     using container_type  = hstd::Vec<T>;
     using item_value_type = T;
 
-    container_type const* container;
+    container_type const* container = nullptr;
 
-    SequentialContainerAdapter(const container_type* container) {}
+    SequentialContainerAdapter(const container_type* container)
+        : container{container} {}
+
+    auto begin_impl() const { return container->begin(); }
+    auto end_impl() const { return container->end(); }
+
+    void add_impl(const item_value_type& value) {
+        const_cast<container_type*>(container)->push_back(value);
+    }
+
+    int size_impl() const { return static_cast<int>(container->size()); }
+
+    void begin_insert_impl() {}
+    void end_insert_impl() {}
+    void clear_impl() { const_cast<container_type*>(container)->clear(); }
+};
+
+template <typename T, int Size>
+class SequentialContainerAdapter<hstd::SmallVec<T, Size>>
+    : public SequentialContainerAdapterBase<
+          SequentialContainerAdapter<hstd::SmallVec<T, Size>>,
+          hstd::SmallVec<T, Size>,
+          T> {
+  public:
+    using container_type  = hstd::SmallVec<T, Size>;
+    using item_value_type = T;
+
+    container_type const* container = nullptr;
+
+    SequentialContainerAdapter(const container_type* container)
+        : container{container} {}
 
     auto begin_impl() const { return container->begin(); }
     auto end_impl() const { return container->end(); }

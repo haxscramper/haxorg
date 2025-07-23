@@ -3,6 +3,7 @@
 
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/ContainerAPI.hpp>
 
 namespace {
 int level = 0;
@@ -556,42 +557,27 @@ struct pack<immer::box<T>> {
 };
 
 template <typename T, typename Container>
-struct convert_immer_iterable_sequence {
+struct convert_sequential_container {
     msgpack::object const& operator()(
         msgpack::object const& o,
         Container&             v) const {
         __trace_call();
         expect_array<Container>(o);
-        auto tmp = v.transient();
+        hstd::SequentialContainerAdapter<Container> a{&v};
+        a.begin_insert();
+
         for (auto p : convert_array_items(o)) {
             T tmp_value = hstd::SerdeDefaultProvider<T>::get();
             p->convert(tmp_value);
-            tmp.push_back(tmp_value);
+            a.add(tmp_value);
         }
 
-        v = tmp.persistent();
+        a.end_insert();
 
         return o;
     }
 };
 
-template <typename T, typename Container>
-struct convert_iterable_sequence {
-    msgpack::object const& operator()(
-        msgpack::object const& o,
-        Container&             v) const {
-        __trace_call();
-        expect_array<Container>(o);
-        v.reserve(o.via.array.size);
-        for (auto p : convert_array_items(o)) {
-            T tmp = hstd::SerdeDefaultProvider<T>::get();
-            p->convert(tmp);
-            v.push_back(tmp);
-        }
-
-        return o;
-    }
-};
 
 template <typename T, typename Container>
 struct pack_iterable_sequence {
@@ -600,16 +586,17 @@ struct pack_iterable_sequence {
         msgpack::packer<Stream>& o,
         Container const&         v) const {
         __trace_call();
-        uint32_t size = checked_get_container_size(v.size());
+        hstd::SequentialContainerAdapter<Container> a{&v};
+        uint32_t size = checked_get_container_size(a.size());
         o.pack_array(size);
-        for (auto const& it : v) { o.pack(it); }
+        for (auto it = a.begin(); it != a.end(); ++it) { o.pack(*it); }
         return o;
     }
 };
 
 template <typename T>
 struct convert<immer::flex_vector<T>>
-    : convert_immer_iterable_sequence<T, immer::flex_vector<T>> {};
+    : convert_sequential_container<T, immer::flex_vector<T>> {};
 
 template <typename T>
 struct pack<immer::flex_vector<T>>
@@ -617,7 +604,7 @@ struct pack<immer::flex_vector<T>>
 
 template <typename T>
 struct convert<immer::vector<T>>
-    : convert_immer_iterable_sequence<T, immer::vector<T>> {};
+    : convert_sequential_container<T, immer::vector<T>> {};
 
 template <typename T>
 struct pack<immer::vector<T>>
@@ -625,14 +612,14 @@ struct pack<immer::vector<T>>
 
 template <typename T>
 struct convert<hstd::Vec<T>>
-    : public convert_iterable_sequence<T, hstd::Vec<T>> {};
+    : public convert_sequential_container<T, hstd::Vec<T>> {};
 
 template <typename T>
 struct pack<hstd::Vec<T>> : pack_iterable_sequence<T, hstd::Vec<T>> {};
 
 template <typename T, int Size>
 struct convert<hstd::SmallVec<T, Size>>
-    : convert_iterable_sequence<T, hstd::SmallVec<T, Size>> {};
+    : convert_sequential_container<T, hstd::SmallVec<T, Size>> {};
 
 template <typename T, int Size>
 struct pack<hstd::SmallVec<T, Size>>
