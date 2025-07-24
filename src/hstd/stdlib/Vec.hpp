@@ -597,6 +597,8 @@ struct value_metadata<Vec<T>> {
     }
 };
 
+
+
 } // namespace hstd
 
 /// \brief Vector formatting operator

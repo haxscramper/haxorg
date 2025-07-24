@@ -3,6 +3,7 @@
 
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/ContainerAPI.hpp>
 
 namespace {
 int level = 0;
@@ -556,42 +557,27 @@ struct pack<immer::box<T>> {
 };
 
 template <typename T, typename Container>
-struct convert_immer_iterable_sequence {
+struct convert_sequential_container {
     msgpack::object const& operator()(
         msgpack::object const& o,
         Container&             v) const {
         __trace_call();
         expect_array<Container>(o);
-        auto tmp = v.transient();
+        hstd::SequentialContainerAdapter<Container> a{&v};
+        a.begin_insert();
+
         for (auto p : convert_array_items(o)) {
             T tmp_value = hstd::SerdeDefaultProvider<T>::get();
             p->convert(tmp_value);
-            tmp.push_back(tmp_value);
+            a.add(tmp_value);
         }
 
-        v = tmp.persistent();
+        a.end_insert();
 
         return o;
     }
 };
 
-template <typename T, typename Container>
-struct convert_iterable_sequence {
-    msgpack::object const& operator()(
-        msgpack::object const& o,
-        Container&             v) const {
-        __trace_call();
-        expect_array<Container>(o);
-        v.reserve(o.via.array.size);
-        for (auto p : convert_array_items(o)) {
-            T tmp = hstd::SerdeDefaultProvider<T>::get();
-            p->convert(tmp);
-            v.push_back(tmp);
-        }
-
-        return o;
-    }
-};
 
 template <typename T, typename Container>
 struct pack_iterable_sequence {
@@ -600,16 +586,17 @@ struct pack_iterable_sequence {
         msgpack::packer<Stream>& o,
         Container const&         v) const {
         __trace_call();
-        uint32_t size = checked_get_container_size(v.size());
+        hstd::SequentialContainerAdapter<Container> a{&v};
+        uint32_t size = checked_get_container_size(a.size());
         o.pack_array(size);
-        for (auto const& it : v) { o.pack(it); }
+        for (auto it = a.begin(); it != a.end(); ++it) { o.pack(*it); }
         return o;
     }
 };
 
 template <typename T>
 struct convert<immer::flex_vector<T>>
-    : convert_immer_iterable_sequence<T, immer::flex_vector<T>> {};
+    : convert_sequential_container<T, immer::flex_vector<T>> {};
 
 template <typename T>
 struct pack<immer::flex_vector<T>>
@@ -617,7 +604,7 @@ struct pack<immer::flex_vector<T>>
 
 template <typename T>
 struct convert<immer::vector<T>>
-    : convert_immer_iterable_sequence<T, immer::vector<T>> {};
+    : convert_sequential_container<T, immer::vector<T>> {};
 
 template <typename T>
 struct pack<immer::vector<T>>
@@ -625,43 +612,81 @@ struct pack<immer::vector<T>>
 
 template <typename T>
 struct convert<hstd::Vec<T>>
-    : public convert_iterable_sequence<T, hstd::Vec<T>> {};
+    : public convert_sequential_container<T, hstd::Vec<T>> {};
 
 template <typename T>
 struct pack<hstd::Vec<T>> : pack_iterable_sequence<T, hstd::Vec<T>> {};
 
 template <typename T, int Size>
 struct convert<hstd::SmallVec<T, Size>>
-    : convert_iterable_sequence<T, hstd::SmallVec<T, Size>> {};
+    : convert_sequential_container<T, hstd::SmallVec<T, Size>> {};
 
 template <typename T, int Size>
 struct pack<hstd::SmallVec<T, Size>>
     : pack_iterable_sequence<T, hstd::SmallVec<T, Size>> {};
 
 
-template <typename K, typename V>
-struct convert<immer::map<K, V>> {
+template <typename K, typename V, typename Container>
+struct convert_associative_container {
     msgpack::object const& operator()(
         msgpack::object const& o,
-        immer::map<K, V>&      v) const {
+        Container&             v) const {
         __trace_call();
-        expect_array<immer::map<K, V>>(o);
-        auto tmp = v.transient();
+        expect_array<Container>(o);
+        hstd::AssociativeContainerAdapter<Container> a{&v};
+
+        a.begin_insert();
+        a.clear();
+        a.reserve(o.via.array.size);
+
         for (uint32_t i = 0; i < o.via.array.size; ++i) {
             msgpack::object const& pair_obj = o.via.array.ptr[i];
-            expect_array<std::pair<K, V>>(pair_obj);
+            expect_array<Container>(pair_obj, 2);
+
             K key   = hstd::SerdeDefaultProvider<K>::get();
             V value = hstd::SerdeDefaultProvider<V>::get();
             pair_obj.via.array.ptr[0].convert(key);
             pair_obj.via.array.ptr[1].convert(value);
-            tmp.set(key, value);
+            a.insert_or_assign(std::move(key), std::move(value));
+        }
+        a.end_insert();
+        return o;
+    }
+};
+
+template <typename K, typename V, typename Container>
+struct pack_associative_container {
+    template <typename Stream>
+    packer<Stream>& operator()(
+        msgpack::packer<Stream>& o,
+        Container const&         v) const {
+        __trace_call();
+        o.pack_array(v.size());
+        hstd::AssociativeContainerAdapter<Container> a{&v};
+        if constexpr (requires(const K& a, const K& b) {
+                          { a < b } -> std::convertible_to<bool>;
+                      }) {
+            for (auto const& key : hstd::sorted(a.keys())) {
+                o.pack_array(2);
+                o.pack(key);
+                o.pack(a.at(key));
+            }
+        } else {
+            for (auto it = a.begin(); it != a.end(); ++it) {
+                o.pack_array(2);
+                o.pack(a.get_pair_key(*it));
+                o.pack(a.get_pair_value(*it));
+            }
         }
 
-        v = tmp.persistent();
 
         return o;
     }
 };
+
+template <typename K, typename V>
+struct convert<immer::map<K, V>>
+    : convert_associative_container<K, V, immer::map<K, V>> {};
 
 template <typename K, typename V>
 struct pack<immer::map<K, V>> {
@@ -698,82 +723,20 @@ struct pack<immer::map<K, V>> {
 
 
 template <typename K, typename V>
-struct convert<hstd::ext::ImmMap<K, V>> {
-    msgpack::object const& operator()(
-        msgpack::object const&   o,
-        hstd::ext::ImmMap<K, V>& v) const {
-        __trace_call();
-        o.convert<immer::map<K, V>>(v);
-        return o;
-    }
-};
+struct convert<hstd::ext::ImmMap<K, V>>
+    : convert_associative_container<K, V, hstd::ext::ImmMap<K, V>> {};
 
 template <typename K, typename V>
-struct pack<hstd::ext::ImmMap<K, V>> {
-    template <typename Stream>
-    packer<Stream>& operator()(
-        msgpack::packer<Stream>&       o,
-        hstd::ext::ImmMap<K, V> const& v) const {
-        __trace_call();
-        o.pack<immer::map<K, V>>(v);
-        return o;
-    }
-};
-
+struct pack<hstd::ext::ImmMap<K, V>>
+    : pack_associative_container<K, V, hstd::ext::ImmMap<K, V>> {};
 
 template <typename K, typename V>
-struct convert<hstd::UnorderedMap<K, V>> {
-    msgpack::object const& operator()(
-        msgpack::object const&    o,
-        hstd::UnorderedMap<K, V>& v) const {
-        __trace_call();
-        expect_array<hstd::UnorderedMap<K, V>>(o);
-
-        v.clear();
-        v.reserve(o.via.array.size);
-
-        for (uint32_t i = 0; i < o.via.array.size; ++i) {
-            msgpack::object const& pair_obj = o.via.array.ptr[i];
-            expect_array<hstd::UnorderedMap<K, V>>(pair_obj, 2);
-
-            K key   = hstd::SerdeDefaultProvider<K>::get();
-            V value = hstd::SerdeDefaultProvider<V>::get();
-            pair_obj.via.array.ptr[0].convert(key);
-            pair_obj.via.array.ptr[1].convert(value);
-            v.emplace(std::move(key), std::move(value));
-        }
-        return o;
-    }
-};
+struct convert<hstd::UnorderedMap<K, V>>
+    : convert_associative_container<K, V, hstd::UnorderedMap<K, V>> {};
 
 template <typename K, typename V>
-struct pack<hstd::UnorderedMap<K, V>> {
-    template <typename Stream>
-    packer<Stream>& operator()(
-        msgpack::packer<Stream>&        o,
-        hstd::UnorderedMap<K, V> const& v) const {
-        __trace_call();
-        o.pack_array(v.size());
-        if constexpr (requires(const K& a, const K& b) {
-                          { a < b } -> std::convertible_to<bool>;
-                      }) {
-            for (auto const& key : hstd::sorted(v.keys())) {
-                o.pack_array(2);
-                o.pack(key);
-                o.pack(v.at(key));
-            }
-        } else {
-            for (auto const& item : v) {
-                o.pack_array(2);
-                o.pack(item.first);
-                o.pack(item.second);
-            }
-        }
-
-
-        return o;
-    }
-};
+struct pack<hstd::UnorderedMap<K, V>>
+    : pack_associative_container<K, V, hstd::UnorderedMap<K, V>> {};
 
 
 template <>

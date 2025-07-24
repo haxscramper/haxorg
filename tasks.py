@@ -391,6 +391,7 @@ cmd:  {cmd}
                    (f" with [purple]{env}[/purple]" if env else ""))
 
     if conf.dryrun:
+        log(CAT).warning("Dry run, early exit")
         return (0, "", "")
 
     try:

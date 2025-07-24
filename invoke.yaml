@@ -1,6 +1,6 @@
 quiet: false
 debug: true
-dryrun: true
+forceall: true
 instrument:
   coverage: false
   xray: false
