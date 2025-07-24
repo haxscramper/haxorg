@@ -174,6 +174,9 @@ class SequentialKvPairContainerAdapter
     void begin_insert_impl() {}
     void end_insert_impl() {}
     void clear_impl() { const_cast<container_type*>(container)->clear(); }
+    void reserve_impl(int size) {
+        const_cast<container_type*>(container)->reserve(size);
+    }
 };
 
 

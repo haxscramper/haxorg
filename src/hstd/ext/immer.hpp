@@ -90,6 +90,8 @@ struct SequentialImmerContainerAdapterBase
     container_type const* container = nullptr;
     std::shared_ptr<typename container_type::transient_type> transient;
 
+    void reserve_impl(int size) {}
+
     SequentialImmerContainerAdapterBase(const container_type* container)
         : container{container} {
         hstd::logic_assertion_check_not_nil(container);

@@ -20,6 +20,7 @@ struct SequentialContainerAdapterBase : CRTP_this_method<Derived> {
     void begin_insert() { _this()->begin_insert_impl(); }
     void end_insert() { _this()->end_insert_impl(); }
     void clear() { _this()->clear_impl(); }
+    void reserve(int size) { _this()->reserve_impl(size); }
 };
 
 template <
@@ -45,6 +46,11 @@ struct AssociativeContainerAdapterBase : CRTP_this_method<Derived> {
     KeyType const& get_pair_key(
         std::pair<KeyType, ValueType> const& pair) const {
         return pair.first;
+    }
+
+    ValueType const& get_pair_value(
+        std::pair<KeyType, ValueType> const& pair) const {
+        return pair.second;
     }
 
     Vec<KeyType> keys() const {
