@@ -36,7 +36,7 @@ target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/imm
 if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
   haxorg_add_executable(tests_hstd)
   glob_add_sources2(TARGET tests_hstd LS_REGEX "${BASE}/tests/hstd/.*" SEARCH_BASE "${BASE}")
-  target_link_libraries(tests_hstd PUBLIC GTest::gtest hstd absl::flags absl::flags_parse)
+  target_link_libraries(tests_hstd PUBLIC GTest::gtest hstd absl::flags absl::flags_parse immer)
   add_test(NAME hstd_tests COMMAND tests_hstd)
 
   haxorg_add_executable(benchmark_hstd)
