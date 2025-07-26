@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Optional, Union, Dict, Any
 import py_ci.data_build as data_build
 from py_ci.util_scripting import run_cmd, logger, get_j_cap
+import argparse
 
 WORKDIR: Path = Path("/haxorg_wip")
 SRC_DIR: Path = Path("/haxorg")
@@ -65,6 +66,7 @@ def install_dep(dep: data_build.ExternalDep) -> None:
 
     logger.info(f"Successfully installed dependency: {dep.build_name}")
 
+
 def install_all_deps() -> List[str]:
 
     cmake_config: List[str] = []
@@ -78,7 +80,9 @@ def install_all_deps() -> List[str]:
             install_dir=DEPS_INSTALL,
             is_emcc=False,
     ):
-        if dep.build_name in ["lexy", "cctz", "immer", "lager", "cpptrace", "yaml", "msgpack"]:
+        if dep.build_name in [
+                "lexy", "cctz", "immer", "lager", "cpptrace", "yaml", "msgpack"
+        ]:
             deps_list.append(dep)
 
         elif BUILD_TESTS and dep.build_name in ["googletest", "abseil", "benchmark"]:
@@ -139,12 +143,11 @@ def update_cpack_archive(cmake_config: List[str]):
     run_cmd(["unzip", target_zip, "-d", str(UNPACK_PARENT,)])
 
 
-def build_cpack_archive(cmake_config: List[str]):
+def build_cpack_archive(cmake_config: List[str], unpack_build_dir: Path):
     logger.info(f"Listing contents of {UNPACK_DIR}")
     run_cmd(["ls", UNPACK_DIR])
 
     logger.info("Configuring build from source package")
-    unpack_build_dir: Path = UNPACK_DIR / "build"
     run_cmd([
         "cmake",
         "-B",
@@ -167,22 +170,88 @@ def build_cpack_archive(cmake_config: List[str]):
     ])
 
     logger.info("Build process completed successfully")
-    run_cmd([
-        unpack_build_dir.joinpath("tests_hstd"),
-    ])
 
-    run_cmd([
-        unpack_build_dir.joinpath("tests_org"),
-    ])
+
+def test_cpack_archive(
+    unpack_build_dir: Path,
+    test_cxx: bool,
+    test_python: bool,
+):
+    if test_python:
+        os.chdir(SRC_DIR)
+        run_cmd([
+            "poetry",
+            "env",
+            "use",
+            "python3",
+        ])
+
+        run_cmd([
+            "poetry",
+            "install",
+            "--no-root",
+            "--without",
+            "local",
+            "--no-interaction",
+            "--no-ansi",
+        ])
+
+    elif test_cxx:
+        run_cmd([unpack_build_dir.joinpath("tests_hstd")])
+        run_cmd([unpack_build_dir.joinpath("tests_org")])
 
 
 def main():
-    prepare_env()
-    cmake_config = install_all_deps()
-    if not ASSUME_CPACK_PRESENT:
-        update_cpack_archive(cmake_config=cmake_config)
+    parser = argparse.ArgumentParser(
+        description="Script with boolean flags and choice arguments")
 
-    build_cpack_archive(cmake_config=cmake_config)
+    # Boolean flags
+    parser.add_argument("--deps",
+                        default=True,
+                        action="store_true",
+                        help="Dependencies flag")
+
+    parser.add_argument('--no-deps',
+                        dest='deps',
+                        action='store_false',
+                        help='Disable deps')
+    parser.add_argument("--build", default=True, action="store_true", help="Build flag")
+    parser.add_argument('--no-build',
+                        dest='build',
+                        action='store_false',
+                        help='Disable build')
+
+    # Choice argument
+    parser.add_argument(
+        "--test",
+        choices=["none", "cxx", "python"],
+        default="none",
+        help="Test type: none, cxx, or python",
+    )
+
+    args = parser.parse_args()
+
+    prepare_env()
+
+    if args.deps:
+        cmake_config = install_all_deps()
+
+    unpack_build_dir: Path = UNPACK_DIR / "build"
+
+    if args.build:
+        if not ASSUME_CPACK_PRESENT:
+            update_cpack_archive(cmake_config=cmake_config)
+
+        build_cpack_archive(
+            cmake_config=cmake_config,
+            unpack_build_dir=unpack_build_dir,
+        )
+
+    test_cpack_archive(
+        unpack_build_dir=unpack_build_dir,
+        test_cxx="cxx" == args.test,
+        test_python="python" == args.test,
+    )
 
 
 if __name__ == "__main__":

@@ -54,7 +54,7 @@ def run_cmd(
     """Run a subprocess command with logging."""
     cmd_str = " ".join(str(arg) for arg in cmd)
     filename, lineno = get_caller_info()
-    logger.info(f"Executing: {cmd_str} from {filename}:{lineno}")
+    logger.info(f"Executing: {cmd_str} from {filename}:{lineno} in {os.getcwd()}")
     try:
         subprocess.run(cmd, check=True, env=env)
 

@@ -16,4 +16,5 @@ RUN dnf -y install \
   boost-log \
   graphviz-devel \
   python-devel
-RUN dnf -y install unzip
+RUN dnf -y install unzip poetry
+
