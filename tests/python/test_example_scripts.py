@@ -1,4 +1,10 @@
-from py_cli.scratch_scripts import story_grid
+import pytest
+import os
+if os.getenv("HAXORG_REDUCED_RELEASE_TEST"):
+    story_grid = pytest.importorskip("story_grid")
+else:
+    from py_cli.scratch_scripts import story_grid
+
 from py_cli.scratch_scripts import activity_analysis
 from py_cli.scratch_scripts import subtree_clocking
 from py_cli.scratch_scripts import node_clouds
@@ -15,7 +21,6 @@ from py_scriptutils.pandas_utils import dataframe_to_rich_table
 from py_scriptutils.rich_utils import render_rich
 import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.pyhaxorg_utils import NodeIdProvider
-import pytest
 from flask import Flask
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 import json
@@ -30,7 +35,7 @@ def check_cli(result: Result):
 
     assert result.exit_code == 0, result.output
 
-
+@pytest.mark.test_release
 def test_story_grid():
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:

@@ -197,6 +197,8 @@ def test_cpack_archive(
             "POETRY_HTTP_CACHE_DIR": os.path.join(cache_dir, "http"),
             "POETRY_VIRTUALENVS_IN_PROJECT": "true",
             "HAXORG_PYHAXORG_SO_PATH": BUILD_DIR.joinpath("pyhaxorg.so"),
+            "HAXORG_PYTEXTLAYOUT_SO_PATH": BUILD_DIR.joinpath("py_textlayout_cpp.so"),
+            "HAXORG_REDUCED_RELEASE_TEST": "1",
         })
 
         run_cmd(
@@ -298,6 +300,8 @@ def test_cpack_archive(
                 "-s",
                 "--tb=short",
                 "--disable-warnings",
+                "-m",
+                "not test_release",
             ],
             env=env,
         )

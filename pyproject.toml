@@ -84,6 +84,7 @@ markers = [
     "test_gtest_tag(tag): Additional metadata tagging for the google test annotations",
     "test_gtest: C++ google test wrapped as pytest-runnable",
     "test_qtest: Qtest wrapped as pytest-runnable",
+    "test_release: Reduced test suite done from the packaged release",
 ]
 
 [tool.ruff]
