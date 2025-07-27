@@ -786,7 +786,7 @@ def build_docker_develop_image(ctx: Context):
 
 @beartype
 def docker_path(path: str) -> Path:
-    return Path("/haxorg").joinpath(path)
+    return Path("/haxorg/src").joinpath(path)
 
 
 @beartype
@@ -1492,14 +1492,25 @@ def run_docker_release_test(
             )
             source_prefix = clone_dir
 
-        @beartype
-        def pass_mnt(path: str) -> Path:
-            if source_prefix:
-                assert source_prefix.is_absolute(), source_prefix
-                return source_prefix.joinpath(path)
+        else:
+            source_prefix = clone_dir
 
+        @beartype
+        def pass_mnt(path: Optional[str] = None) -> Path:
+            if path is None:
+                if source_prefix:
+                    return source_prefix
+
+                else:
+                    return get_script_root()
+                    
             else:
-                return get_script_root(path)
+                if source_prefix:
+                    assert source_prefix.is_absolute(), source_prefix
+                    return source_prefix.joinpath(path)
+
+                else:
+                    return get_script_root(path)
 
         run_command(
             ctx,
@@ -1510,27 +1521,14 @@ def run_docker_release_test(
                     src=get_script_root("thirdparty"),
                     dst=docker_path("thirdparty"),
                 ),
-                *itertools.chain(*(docker_mnt(
-                    src=pass_mnt(it),
-                    dst=docker_path(it),
-                ) for it in [
-                    "src",
-                    "scripts",
-                    "CMakeLists.txt",
-                    "HaxorgConfig.cmake.in",
-                    "tests",
-                    "benchmark",
-                    "pyproject.toml",
-                    "poetry.lock",
-                    "poetry.toml",
-                ])),
                 *(["-it"] if interactive else []),
                 "--memory=32G",
                 "--rm",
                 *docker_user(),
-                *docker_mnt(build_dir, Path("/haxorg_wip")),
+                *docker_mnt(pass_mnt(), Path("/haxorg/src")),
+                *docker_mnt(build_dir, Path("/haxorg/wip")),
                 "-e",
-                "PYTHONPATH=/haxorg/scripts/py_ci",
+                "PYTHONPATH=/haxorg/src/scripts/py_ci",
                 CPACK_TEST_IMAGE,
                 *(["bash"] if interactive else [
                     # "ls",

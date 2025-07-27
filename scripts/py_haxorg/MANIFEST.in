@@ -1,0 +1,7 @@
+## @file   MANIFEST.in
+## @brief  Manifest file to ensure shared libraries are included in source distributions
+
+include py_haxorg/*.so
+recursive-include py_haxorg *.so
+include README.org
+include build.py

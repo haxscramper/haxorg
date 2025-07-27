@@ -10,8 +10,8 @@ import py_ci.data_build as data_build
 from py_ci.util_scripting import run_cmd, logger, get_j_cap
 import argparse
 
-WORKDIR: Path = Path("/haxorg_wip")
-SRC_DIR: Path = Path("/haxorg")
+WORKDIR: Path = Path("/haxorg/wip")
+SRC_DIR: Path = Path("/haxorg/src")
 BUILD_TESTS: bool = True
 DEPS_BUILD: Path = WORKDIR / "deps_build"
 DEPS_SRC: Path = SRC_DIR / "thirdparty"
@@ -19,6 +19,8 @@ DEPS_INSTALL: Path = WORKDIR / "deps_install"
 ASSUME_CPACK_PRESENT = False
 UNPACK_PARENT = WORKDIR / "target.d"
 UNPACK_DIR: Path = UNPACK_PARENT / "haxorg-1.0.0-Source"
+BUILD_DIR: Path = UNPACK_DIR / "build"
+PY_HAXORG_DIR: Path = SRC_DIR.joinpath("scripts/py_haxorg")
 
 
 def prepare_env():
@@ -29,7 +31,10 @@ def prepare_env():
     os.chdir(WORKDIR)
 
     logger.info(f"Listing contents of source directory {SRC_DIR}")
-    run_cmd(["ls", SRC_DIR])
+    run_cmd(["realpath", SRC_DIR])
+    run_cmd(["ls", "-al", SRC_DIR])
+    run_cmd(["realpath", WORKDIR])
+    run_cmd(["ls", "-al", WORKDIR])
 
 
 def install_dep(dep: data_build.ExternalDep) -> None:
@@ -179,22 +184,123 @@ def test_cpack_archive(
 ):
     if test_python:
         os.chdir(SRC_DIR)
-        run_cmd([
-            "poetry",
-            "env",
-            "use",
-            "python3",
-        ])
+        env = os.environ.copy()
+        cache_dir = os.path.join(WORKDIR, ".poetry_cache")
+        os.makedirs(cache_dir, exist_ok=True)
+        assert BUILD_DIR.joinpath("pyhaxorg.so").exists()
+        env.update({
+            "POETRY_CACHE_DIR": cache_dir,
+            "POETRY_VIRTUALENVS_PATH": os.path.join(WORKDIR, ".poetry_venvs"),
+            "POETRY_CONFIG_DIR": os.path.join(WORKDIR, ".poetry_config"),
+            "POETRY_DATA_DIR": os.path.join(WORKDIR, ".poetry_data"),
+            "POETRY_REPOSITORIES_CACHE_DIR": os.path.join(cache_dir, "repositories"),
+            "POETRY_HTTP_CACHE_DIR": os.path.join(cache_dir, "http"),
+            "POETRY_VIRTUALENVS_IN_PROJECT": "true",
+            "HAXORG_PYHAXORG_SO_PATH": BUILD_DIR.joinpath("pyhaxorg.so"),
+        })
 
-        run_cmd([
-            "poetry",
-            "install",
-            "--no-root",
-            "--without",
-            "local",
-            "--no-interaction",
-            "--no-ansi",
-        ])
+        run_cmd(
+            [
+                "poetry",
+                "--version",
+            ],
+            env=env,
+        )
+
+        run_cmd(
+            [
+                "poetry",
+                "env",
+                "use",
+                "python3",
+            ],
+            env=env,
+        )
+
+        run_cmd(
+            [
+                "poetry",
+                "install",
+                "--no-root",
+                "--no-interaction",
+                "--no-ansi",
+                "--without",
+                "haxorg",
+            ],
+            env=env,
+            check=False,
+        )
+
+        def find_whl() -> List[Path]:
+            result = []
+            for wheel_file in PY_HAXORG_DIR.joinpath("dist").glob("*.whl"):
+                result.append(wheel_file)
+
+            return result
+
+        if PY_HAXORG_DIR.joinpath("build").exists():
+            shutil.rmtree(PY_HAXORG_DIR.joinpath("build"))
+
+        if PY_HAXORG_DIR.joinpath("dist").exists():
+            shutil.rmtree(PY_HAXORG_DIR.joinpath("dist"))
+
+        assert SRC_DIR.joinpath("scripts/py_haxorg").exists()
+
+        run_cmd(
+            [
+                "poetry",
+                "run",
+                "python",
+                "-m",
+                "build",
+                "--wheel",
+                "--outdir",
+                PY_HAXORG_DIR.joinpath("dist"),
+                SRC_DIR.joinpath("scripts/py_haxorg"),
+            ],
+            env=env,
+            cwd=SRC_DIR,
+        )
+
+        run_cmd(["ls", "-alR", "build"], cwd=PY_HAXORG_DIR)
+        run_cmd(["ls", "-alR", "dist"], cwd=PY_HAXORG_DIR)
+
+        assert len(find_whl()) == 1, str(find_whl())
+
+        new_whl = find_whl()[0]
+        assert new_whl is not None
+
+        run_cmd(
+            [
+                "poetry",
+                "remove",
+                "py_haxorg",
+            ],
+            env=env,
+        )
+
+        run_cmd(
+            [
+                "poetry",
+                "add",
+                str(new_whl),
+            ],
+            env=env,
+        )
+
+        run_cmd(
+            [
+                "poetry",
+                "run",
+                "pytest",
+                "-vv",
+                "-ra",
+                "-s",
+                "--tb=short",
+                "--disable-warnings",
+            ],
+            env=env,
+        )
 
     elif test_cxx:
         run_cmd([unpack_build_dir.joinpath("tests_hstd")])
