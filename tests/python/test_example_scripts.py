@@ -1,9 +1,6 @@
 import pytest
 import os
-if os.getenv("HAXORG_REDUCED_RELEASE_TEST"):
-    story_grid = pytest.importorskip("story_grid")
-else:
-    from py_cli.scratch_scripts import story_grid
+from beartype.typing import TYPE_CHECKING
 
 from py_cli.scratch_scripts import activity_analysis
 from py_cli.scratch_scripts import subtree_clocking
@@ -37,6 +34,7 @@ def check_cli(result: Result):
 
 @pytest.mark.test_release
 def test_story_grid():
+    from py_cli.scratch_scripts import story_grid
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)

@@ -144,8 +144,7 @@ def run_forensics(
     with_debugger: bool = False,
     verbose_consistency_checks: bool = False,
 ) -> tuple[int, str, str]:
-    tool_path = str(get_haxorg_repo_root_path().joinpath(
-        "build/haxorg/code_forensics"))
+    tool_path = str(get_haxorg_repo_root_path().joinpath("build/haxorg/code_forensics"))
 
     params = merge_dicts([{
         "out": {
@@ -163,7 +162,8 @@ def run_forensics(
 
     if with_debugger:
         run_parameters = [tool_path, *get_lldb_params(), "--", json.dumps(params)]
-        code, stdout, stderr = local["lldb"].with_env(LD_PRELOAD="").run(tuple(run_parameters))
+        code, stdout, stderr = local["lldb"].with_env(LD_PRELOAD="").run(
+            tuple(run_parameters))
         print(run_parameters)
         if code != 0:
             log().warning(f"{tool_path} run failed")
@@ -224,7 +224,7 @@ class GitTestRepository:
                  traceback: Optional[TracebackType]) -> Optional[bool]:
         if isinstance(self.dir, TemporaryDirectory):
             self.dir.__exit__(exc_type, exc_value, traceback)
-            
+
         if exc_type is not None:
             return False
 
@@ -249,6 +249,7 @@ def print_connection_tables(
             print_df_rich(df, title=table_name, file=file)
 
 
+@pytest.mark.test_release
 def test_can_run_dir():
     with GitTestRepository({"a": "fixed_line\ninit_commit_content"},
                            fixed_dir="/tmp/fixed_git_dir_1",
@@ -315,6 +316,7 @@ def test_can_run_dir():
             commit3["section_commit_message"].to_list()) == ["third", "third", "third"]
 
 
+@pytest.mark.test_release
 def test_file_move():
     with GitTestRepository({"original_path": "content"}) as repo:
         git_move_files(repo.git_dir(), "original_path", "new_path")
@@ -322,6 +324,7 @@ def test_file_move():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
+@pytest.mark.test_release
 def test_file_move_and_edit():
     with GitTestRepository({"original_path": "\n".join(["original"] * 100)}) as repo:
         git_move_files(repo.git_dir(), "original_path", "new_path")
@@ -331,6 +334,7 @@ def test_file_move_and_edit():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
+@pytest.mark.test_release
 def test_file_delete():
     with GitTestRepository({"base": "content"}) as repo:
         git_remove_files(repo.git_dir(), "base")
@@ -338,6 +342,7 @@ def test_file_delete():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
+@pytest.mark.test_release
 def test_file_delete_and_recreate():
     with GitTestRepository({"base": "content"}) as repo:
         git_remove_files(repo.git_dir(), "base")
@@ -349,6 +354,7 @@ def test_file_delete_and_recreate():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
+@pytest.mark.test_release
 def test_fast_forward_merge():
     with GitTestRepository({"base": "content"}) as repo:
         git_write_files(repo.git_dir(), {"file-1": "content-1"})
@@ -364,6 +370,7 @@ def test_fast_forward_merge():
 
 
 HAXORG_OUT_DB = "/tmp/test_haxorg_forensics.sqlite"
+
 
 @pytest.mark.skip()
 def test_haxorg_forensics():
@@ -696,6 +703,7 @@ def run_repo_operations_test(
         # print_connection_tables(engine=engine)
 
 
+@pytest.mark.test_release
 def test_repo_operations_example_1():
     # yapf:disable
     run_repo_operations_test([
@@ -713,6 +721,7 @@ def test_repo_operations_example_1():
     # yapf:enable
 
 
+@pytest.mark.test_release
 def test_repo_operations_example_2():
     # yapf:disable
     run_repo_operations_test(
@@ -738,6 +747,7 @@ def test_repo_operations_example_2():
     # yapf:enable
 
 
+@pytest.mark.test_release
 def test_repo_operations_example_3():
     run_repo_operations_test([
         GitOperation(GitOperationKind.CREATE_FILE,
@@ -761,6 +771,7 @@ def test_repo_operations_example_3():
                              fixed_dir="/tmp/test_repo_operations_example_3")
 
 
+@pytest.mark.test_release
 def test_repo_operations_example_4():
     file_1 = "manual_impl.cpp"
     file_2 = "manual_wrap.hpp"
@@ -803,6 +814,7 @@ def test_repo_operations_example_4():
         fixed_dir="/tmp/test_repo_operations_example_4")
 
 
+@pytest.mark.test_release
 @given(multiple_files_strategy())
 @settings(
     max_examples=20,

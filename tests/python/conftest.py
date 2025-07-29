@@ -22,7 +22,7 @@ from beartype.typing import List
 from asteval import Interpreter
 import logging
 import ast
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.repo_files import get_haxorg_build_path
 import warnings
 from py_scriptutils.script_logging import log
 import functools
@@ -128,12 +128,12 @@ def pytest_collect_file(parent: Module, path: str):
 
     if test.name.startswith("test_integrate_cxx"):
         if test.name.endswith("_cxx_org.py"):
-            binary_path = "build/haxorg/tests_org"
+            binary_path = "haxorg/tests_org"
 
         else:
-            binary_path = "build/haxorg/tests_hstd"
+            binary_path = "haxorg/tests_hstd"
 
-        binary_path = get_haxorg_repo_root_path().joinpath(binary_path)
+        binary_path = get_haxorg_build_path().joinpath(binary_path)
 
         assert binary_path.exists(), f"{binary_path} {test.name}"
 

@@ -77,6 +77,14 @@ def get_haxorg_repo_root_path() -> Path:
     assert result.joinpath("tasks.py").exists(), result
     return result
 
+def get_haxorg_build_path() -> Path:
+    build_root = "HAXORG_REPO_HAXORG_ROOT_BUILD_PATH"
+    if os.getenv(build_root): 
+        return Path(os.getenv(build_root))
+
+    else:
+        return get_haxorg_repo_root_path().joinpath("build")
+
 
 def get_maybe_repo_rel_path(path: Path) -> Path:
     if path.is_relative_to(path):

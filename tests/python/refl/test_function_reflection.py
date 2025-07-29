@@ -1,13 +1,14 @@
 from py_scriptutils import configure_asan
 from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
-from refl_test_driver import (
-    run_provider,
-    STABLE_FILE_NAME,
-    GenTuStruct,
-    get_enum,
-    get_function,
-    get_struct,
-)
+
+import os
+from beartype.typing import TYPE_CHECKING
+if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
+    from py_scriptutils.test_utils import HasAnyAttr 
+    refl_test_driver = HasAnyAttr()
+else: 
+    import refl_test_driver
+
 import pytest
 from py_codegen.gen_tu_cpp import ReferenceKind, GenTypeMap
 import py_codegen.astbuilder_pybind11 as py11
@@ -15,15 +16,17 @@ import py_codegen.astbuilder_py as py
 import py_codegen.astbuilder_cpp as cpp
 
 
+@pytest.mark.test_release
 def test_function_extract_0_args():
-    func = get_function("int get_something();")
+    func = refl_test_driver.get_function("int get_something();")
     assert func.name == "get_something"
     assert len(func.arguments) == 0
     assert func.result.name == "int"
 
 
+@pytest.mark.test_release
 def test_function_extract_args():
-    func = get_function("int do_something(int first, char second);")
+    func = refl_test_driver.get_function("int do_something(int first, char second);")
     assert func.name == "do_something"
     assert len(func.arguments) == 2
     assert func.result.name == "int"
@@ -33,16 +36,18 @@ def test_function_extract_args():
     assert func.arguments[1].name == "second"
 
 
+@pytest.mark.test_release
 def test_function_const_ref():
-    func = get_function("void enable_file_trace(int const&);")
+    func = refl_test_driver.get_function("void enable_file_trace(int const&);")
     assert func.name == "enable_file_trace"
     t = func.arguments[0].type
     assert t.name == "int"
     assert t.isConst
     assert t.RefKind == ReferenceKind.LValue
 
+@pytest.mark.test_release
 def test_method_const_ref():
-    struct = get_struct("struct S { void enable_file_trace(int const&); };")
+    struct = refl_test_driver.get_struct("struct S { void enable_file_trace(int const&); };")
     assert len(struct.methods) == 1
     func = struct.methods[0]
     assert func.name == "enable_file_trace"

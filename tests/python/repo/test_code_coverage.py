@@ -178,6 +178,7 @@ class ProfileRunParams():
         self.run_profmerge()
 
 
+@pytest.mark.test_release
 def test_base_run():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
@@ -199,6 +200,7 @@ int main() {
         assert_frame(frame, [dict(Mangled="main", Demangled="main")])
 
 
+@pytest.mark.test_release
 def test_coverage_regions_multiple_contexts():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
@@ -262,6 +264,7 @@ def test_coverage_regions_multiple_contexts():
         )
 
 
+@pytest.mark.test_release
 def test_region_types():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
@@ -277,6 +280,7 @@ def test_region_types():
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
 
+@pytest.mark.test_release
 def test_region_types():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
@@ -292,6 +296,7 @@ def test_region_types():
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
 
+@pytest.mark.test_release
 def test_file_coverage_filter():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
@@ -358,6 +363,7 @@ def add_cov_segment_text(df: pd.DataFrame, lines: List[str], for_test: bool = Tr
     df["Text"] = df.apply(get_row, axis=1)
 
 
+@pytest.mark.test_release
 def test_file_segmentation_1():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
@@ -377,6 +383,7 @@ def test_file_segmentation_1():
         ])
 
 
+@pytest.mark.test_release
 def test_file_segmentation_2():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
@@ -435,6 +442,7 @@ def test_file_segmentation_2():
         ])
 
 
+@pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_coverage_annotation_single_run():
     with TemporaryDirectory() as tmp:
@@ -589,6 +597,7 @@ def test_coverage_annotation_single_run():
         assert recombine == file_text
 
 
+@pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_coverage_annotation_multiple_run_single_segment():
     with TemporaryDirectory() as tmp:
@@ -637,6 +646,7 @@ js_path = get_haxorg_repo_root_path().joinpath(
     "scripts/py_repository/py_repository/gen_documentation.js")
 
 
+@pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_coverage_annotation_multiple_run_multiple_segment():
     with TemporaryDirectory() as tmp:
@@ -786,7 +796,7 @@ def run_common(
                 file.model_dump_json(indent=2))
             pass_path(path_genhtml).with_suffix(".txt").write_text(file.get_debug())
 
-
+@pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_template_coverage_annotations():
     with TemporaryDirectory() as tmp:
@@ -804,6 +814,7 @@ def test_template_coverage_annotations():
         run_common(cmd, dir)
 
 
+@pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_macro_coverage1():
     with TemporaryDirectory() as tmp:
@@ -821,6 +832,7 @@ def test_macro_coverage1():
         run_common(cmd, dir)
 
 
+@pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_exporter_tcc_coverage():
     with TemporaryDirectory() as tmp:

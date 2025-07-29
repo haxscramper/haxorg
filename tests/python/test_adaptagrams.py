@@ -1,4 +1,12 @@
-import py_wrappers.py_adaptagrams_wrap as wrap
+import os
+from beartype.typing import TYPE_CHECKING
+if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
+    from py_scriptutils.test_utils import HasAnyAttr
+    wrap = HasAnyAttr()
+else: 
+    import py_wrappers.py_adaptagrams_wrap as wrap
+
+import pytest
 
 from pprint import pprint, pformat
 from py_scriptutils.script_logging import to_debug_json, pprint_to_file
@@ -6,7 +14,6 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from beartype import beartype
 from beartype.typing import List, Optional, Tuple, Dict, Any
-import pytest
 
 
 def make_disconnected_graph(count: int, mult: int) -> wrap.GraphLayout:
@@ -94,6 +101,7 @@ class ConvTest():
         # self.conv.doColaSvgWrite("/tmp/result.svg")
 
 
+@pytest.mark.test_release
 def test_ir_align_two():
     ir = wrap.GraphLayoutIR()
     ir.edges.append(wrap.GraphEdge(source=0, target=1))
@@ -129,6 +137,7 @@ def test_ir_align_two():
     assert len(conv.lines) == 3
 
 
+@pytest.mark.test_release
 def test_py_util_align_two():
     ir = wrap.GraphLayout()
     ir.edge(0, 1)
@@ -146,6 +155,7 @@ def test_py_util_align_two():
     assert conv.fixed[0].left == conv.fixed[1].left
 
 
+@pytest.mark.test_release
 def test_py_util_align_many():
     ir = wrap.GraphLayout()
     ir.edge(0, 1)
@@ -184,6 +194,7 @@ def test_py_util_align_many():
     assert len(set([rect(5).left, rect(6).left])) == 1
 
 
+@pytest.mark.test_release
 def test_align_axis_separation():
     ir = wrap.GraphLayout()
     mult = 5
@@ -226,6 +237,7 @@ def test_align_axis_separation():
     assert int(t.rect_center(4).x) == int(t.rect_center(3).x)
 
 
+@pytest.mark.test_release
 def test_align_axis_separate_2():
     mult = 5
     ir = make_chain_graph(6, mult)
@@ -250,7 +262,7 @@ def test_align_axis_separate_2():
 
     t = ConvTest(ir)
 
-
+@pytest.mark.test_release
 def test_align_axis_multi_separate_equal_sizes():
     mult = 5
     ir = make_disconnected_graph(9, mult)
@@ -300,7 +312,7 @@ def test_align_axis_multi_separate_equal_sizes():
     t = ConvTest(ir)
     t.debug()
 
-
+@pytest.mark.test_release
 def test_align_axis_multi_separate_different_sizes():
     mult = 5
     ir = wrap.GraphLayout()
@@ -356,7 +368,7 @@ def test_align_axis_multi_separate_different_sizes():
     t = ConvTest(ir)
     t.debug()
 
-
+@pytest.mark.test_release
 def test_node_pin_connections():
     mult = 5
     ir = wrap.GraphLayout()
@@ -409,6 +421,7 @@ class Cell():
     rect_idx: int = -1
 
 
+@pytest.mark.test_release
 def test_tree_sheet_constraint():
     mult = 5
     ir = wrap.GraphLayout()
@@ -575,6 +588,7 @@ def test_tree_sheet_constraint():
     assert int(path_0_1.points[1].y) == int(path_0_1.points[2].y)
 
 
+@pytest.mark.test_release
 def test_page_boundary():
     mult = 5
     ir = wrap.GraphLayout()
