@@ -1529,6 +1529,8 @@ def run_docker_release_test(
                 *docker_mnt(build_dir, Path("/haxorg/wip")),
                 "-e",
                 "PYTHONPATH=/haxorg/src/scripts/py_ci",
+                "-e",
+                f"HAXORG_THIRD_PARTY_DIR_PATH={docker_path("thirdparty")}",
                 CPACK_TEST_IMAGE,
                 *(["bash"] if interactive else [
                     # "ls",

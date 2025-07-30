@@ -14,7 +14,12 @@ WORKDIR: Path = Path("/haxorg/wip")
 SRC_DIR: Path = Path("/haxorg/src")
 BUILD_TESTS: bool = True
 DEPS_BUILD: Path = WORKDIR / "deps_build"
-DEPS_SRC: Path = SRC_DIR / "thirdparty"
+
+if os.getenv("HAXORG_THIRD_PARTY_DIR_PATH"):
+    DEPS_SRC: Path = Path(os.getenv("HAXORG_THIRD_PARTY_DIR_PATH"))
+else:
+    DEPS_SRC: Path = SRC_DIR / "thirdparty"
+    
 DEPS_INSTALL: Path = WORKDIR / "deps_install"
 ASSUME_CPACK_PRESENT = False
 UNPACK_PARENT = WORKDIR / "target.d"
@@ -31,9 +36,7 @@ def prepare_env():
     os.chdir(WORKDIR)
 
     logger.info(f"Listing contents of source directory {SRC_DIR}")
-    run_cmd(["realpath", SRC_DIR])
     run_cmd(["ls", "-al", SRC_DIR])
-    run_cmd(["realpath", WORKDIR])
     run_cmd(["ls", "-al", WORKDIR])
 
 

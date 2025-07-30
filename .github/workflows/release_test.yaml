@@ -45,14 +45,10 @@ jobs:
     - name: Run tests in Docker
       run: |
         docker run \
-          --mount type=bind,src=${{ github.workspace }}/thirdparty,dst=/haxorg/thirdparty \
-          --mount type=bind,src=${{ github.workspace }}/src,dst=/haxorg/src \
-          --mount type=bind,src=${{ github.workspace }}/scripts,dst=/haxorg/scripts \
-          --mount type=bind,src=${{ github.workspace }}/CMakeLists.txt,dst=/haxorg/CMakeLists.txt \
-          --mount type=bind,src=${{ github.workspace }}/HaxorgConfig.cmake.in,dst=/haxorg/HaxorgConfig.cmake.in \
+          --mount type=bind,src=${{ github.workspace }},dst=/haxorg/src \
           --mount type=bind,src=${{ github.workspace }}/tests,dst=/haxorg/tests \
           --mount type=bind,src=${{ github.workspace }}/benchmark,dst=/haxorg/benchmark \
-          --mount type=bind,src=/tmp/haxorg_cpack_build_dir_1,dst=/haxorg_wip \
+          --mount type=bind,src=/tmp/haxorg_cpack_build_dir_1,dst=/haxorg/dst \
           --memory=32G \
           --rm \
           -e PYTHONPATH=/haxorg/scripts/py_ci \
