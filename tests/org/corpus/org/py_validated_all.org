@@ -199,6 +199,8 @@ paragraph [fn:1-note]
 #+include: include1.org
 #+INCLUDE: "~/.emacs" ":custom-name"
 #+INCLUDE: "~/.emacs" custom-name
+#+INCLUDE: "~/.emacs" example
+#+INCLUDE: "~/.emacs" export
 #+INCLUDE: "~/.emacs" src emacs-lisp
 #+INCLUDE: "./paper.org::#theory" :only-contents t
 #+INCLUDE: "~/my-book/chapter2.org" :minlevel 1
