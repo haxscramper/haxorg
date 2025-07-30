@@ -1,4 +1,4 @@
-from typing import Union, List, Generator, Tuple, Dict, Any
+from typing import Union, List, Generator, Tuple, Dict, Any, Optional
 import json
 from pathlib import Path
 import logging
@@ -50,13 +50,28 @@ def get_caller_info() -> Tuple[str, int]:
 def run_cmd(
     cmd: List[str],
     env: Dict[str, str] | None = None,
+    cwd: Optional[str] = None,
+    check: bool = True,
 ) -> None:
     """Run a subprocess command with logging."""
     cmd_str = " ".join(str(arg) for arg in cmd)
     filename, lineno = get_caller_info()
-    logger.info(f"Executing: {cmd_str} from {filename}:{lineno}")
+    logger.info("~" * 120)
+    logger.info(f"Executing: {cmd_str} from {filename}:{lineno} in {cwd or os.getcwd()}")
     try:
-        subprocess.run(cmd, check=True, env=env)
+        process = subprocess.run(
+            [str(s) for s in cmd],
+            env=env,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        logger.info(f"stdout:\n{process.stdout}")
+        logger.info(f"stderr:\n{process.stderr}")
+
+        if check:
+            assert process.returncode == 0
 
     except Exception as e:
         e.add_note(f"Failed to execute from {filename}:{lineno}")

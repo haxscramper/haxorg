@@ -1,4 +1,8 @@
 FROM fedora:latest 
+
+RUN dnf install -y python3 python3-devel python3-pip curl wget git
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local python3 -
+
 WORKDIR /haxorg
 RUN dnf -y install cmake ninja clang
 RUN dnf -y install \
@@ -17,3 +21,4 @@ RUN dnf -y install \
   graphviz-devel \
   python-devel
 RUN dnf -y install unzip
+

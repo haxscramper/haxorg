@@ -2,12 +2,24 @@ from py_scriptutils import configure_asan
 import logging
 from tempfile import TemporaryDirectory
 
-from py_codegen.tu_collector import run_wrap_for_config, TuOptions
+import os
+from beartype.typing import TYPE_CHECKING
+if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
+    from py_scriptutils.test_utils import HasAnyAttr 
+    tu_collector = HasAnyAttr()
+else: 
+    import py_codegen.tu_collector as tu_collector
+
+if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
+    from py_scriptutils.test_utils import HasAnyAttr 
+    refl_test_driver = HasAnyAttr()
+else: 
+    import refl_test_driver
+
 from py_scriptutils.toml_config_profiler import interpolate_dictionary
 from py_scriptutils.files import get_haxorg_repo_root_path
 from pathlib import Path
 from py_scriptutils.tracer import TraceCollector
-from refl_test_driver import compile_nim_code
 from py_scriptutils.script_logging import log
 import pytest
 
@@ -46,7 +58,7 @@ def test_libgit2_conv():
         if dep.joinpath("build").joinpath(comp).exists():
             dep.joinpath("build").joinpath(comp).unlink()
 
-        conf = TuOptions(**interpolate_dictionary(
+        conf = tu_collector.TuOptions(**interpolate_dictionary(
             start,
             dict(
                 config_dir=str(root.joinpath("thirdparty/libgit2")),
@@ -54,7 +66,7 @@ def test_libgit2_conv():
             )))
 
     trace = TraceCollector()
-    run_wrap_for_config(conf, trace)
+    tu_collector.run_wrap_for_config(conf, trace)
     trace.export_to_json(code_dir.joinpath("trace.json"))
 
     relative = [
@@ -67,4 +79,4 @@ def test_libgit2_conv():
     assert "git2/refspec.nim" in relative
     assert "git2/revert.nim" in relative
 
-    compile_nim_code(code_dir, {"main.nim": importall})
+    refl_test_driver.compile_nim_code(code_dir, {"main.nim": importall})

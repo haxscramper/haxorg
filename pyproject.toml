@@ -28,7 +28,6 @@ invoke = "^2.2.0"
 more-itertools = "^10.1.0"
 sqlalchemy = "^2.0.24"
 hypothesis = "^6.92.2"
-setuptools = "^76.0.0"
 matplotlib = "^3.8.2"
 compdb = "^0.2.0"
 pytest-cov = "^4.1.0"
@@ -44,19 +43,23 @@ pyqt6 = "^6.9.1"
 fuzzywuzzy = "^0.18.0"
 python-levenshtein = "^0.27.1"
 seaborn = "^0.13.2"
+setuptools = "^80.9.0"
+build = "^1.2.2.post1"
 
 [tool.poetry.group.local.dependencies]
 py_haxorg_gui = {path = "./scripts/py_haxorg_gui", develop = true}
 py_ci = {path = "./scripts/py_ci", develop = true}
 py_textlayout = {path = "./scripts/py_textlayout", develop=true}
 py_exporters = {path = "./scripts/py_exporters", develop=true}
-py_haxorg = {path = "./scripts/py_haxorg", develop=true}
 py_scriptutils = {path = "./scripts/py_scriptutils", develop=true}
 py_codegen = {path = "./scripts/py_codegen", develop=true}
 py_cli = {path = "./scripts/py_cli", develop=true}
 py_repository = {path = "./scripts/py_repository", develop=true}
 py_wrappers = {path = "./scripts/py_wrappers", develop=true}
 cxx_repository = {path = "./scripts/cxx_repository", develop=true}
+
+[tool.poetry.group.haxorg.dependencies]
+py_haxorg = {path = "./scripts/py_haxorg", develop=true}
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"
@@ -81,6 +84,7 @@ markers = [
     "test_gtest_tag(tag): Additional metadata tagging for the google test annotations",
     "test_gtest: C++ google test wrapped as pytest-runnable",
     "test_qtest: Qtest wrapped as pytest-runnable",
+    "test_release: Reduced test suite done from the packaged release",
 ]
 
 [tool.ruff]

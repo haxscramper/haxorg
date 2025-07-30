@@ -8,16 +8,24 @@ from pathlib import Path
 from typing import List, Optional, Union, Dict, Any
 import py_ci.data_build as data_build
 from py_ci.util_scripting import run_cmd, logger, get_j_cap
+import argparse
 
-WORKDIR: Path = Path("/haxorg_wip")
-SRC_DIR: Path = Path("/haxorg")
+WORKDIR: Path = Path("/haxorg/wip")
+SRC_DIR: Path = Path("/haxorg/src")
 BUILD_TESTS: bool = True
 DEPS_BUILD: Path = WORKDIR / "deps_build"
-DEPS_SRC: Path = SRC_DIR / "thirdparty"
+
+if os.getenv("HAXORG_THIRD_PARTY_DIR_PATH"):
+    DEPS_SRC: Path = Path(os.getenv("HAXORG_THIRD_PARTY_DIR_PATH"))
+else:
+    DEPS_SRC: Path = SRC_DIR / "thirdparty"
+    
 DEPS_INSTALL: Path = WORKDIR / "deps_install"
 ASSUME_CPACK_PRESENT = False
 UNPACK_PARENT = WORKDIR / "target.d"
 UNPACK_DIR: Path = UNPACK_PARENT / "haxorg-1.0.0-Source"
+BUILD_DIR: Path = UNPACK_DIR / "build"
+PY_HAXORG_DIR: Path = SRC_DIR.joinpath("scripts/py_haxorg")
 
 
 def prepare_env():
@@ -28,7 +36,8 @@ def prepare_env():
     os.chdir(WORKDIR)
 
     logger.info(f"Listing contents of source directory {SRC_DIR}")
-    run_cmd(["ls", SRC_DIR])
+    run_cmd(["ls", "-al", SRC_DIR])
+    run_cmd(["ls", "-al", WORKDIR])
 
 
 def install_dep(dep: data_build.ExternalDep) -> None:
@@ -65,6 +74,7 @@ def install_dep(dep: data_build.ExternalDep) -> None:
 
     logger.info(f"Successfully installed dependency: {dep.build_name}")
 
+
 def install_all_deps() -> List[str]:
 
     cmake_config: List[str] = []
@@ -78,7 +88,9 @@ def install_all_deps() -> List[str]:
             install_dir=DEPS_INSTALL,
             is_emcc=False,
     ):
-        if dep.build_name in ["lexy", "cctz", "immer", "lager", "cpptrace", "yaml", "msgpack"]:
+        if dep.build_name in [
+                "lexy", "cctz", "immer", "lager", "cpptrace", "yaml", "msgpack"
+        ]:
             deps_list.append(dep)
 
         elif BUILD_TESTS and dep.build_name in ["googletest", "abseil", "benchmark"]:
@@ -139,12 +151,11 @@ def update_cpack_archive(cmake_config: List[str]):
     run_cmd(["unzip", target_zip, "-d", str(UNPACK_PARENT,)])
 
 
-def build_cpack_archive(cmake_config: List[str]):
+def build_cpack_archive(cmake_config: List[str], unpack_build_dir: Path):
     logger.info(f"Listing contents of {UNPACK_DIR}")
     run_cmd(["ls", UNPACK_DIR])
 
     logger.info("Configuring build from source package")
-    unpack_build_dir: Path = UNPACK_DIR / "build"
     run_cmd([
         "cmake",
         "-B",
@@ -167,22 +178,194 @@ def build_cpack_archive(cmake_config: List[str]):
     ])
 
     logger.info("Build process completed successfully")
-    run_cmd([
-        unpack_build_dir.joinpath("tests_hstd"),
-    ])
 
-    run_cmd([
-        unpack_build_dir.joinpath("tests_org"),
-    ])
+
+def test_cpack_archive(
+    unpack_build_dir: Path,
+    test_cxx: bool,
+    test_python: bool,
+):
+    if test_python:
+        os.chdir(SRC_DIR)
+        env = os.environ.copy()
+        cache_dir = os.path.join(WORKDIR, ".poetry_cache")
+        os.makedirs(cache_dir, exist_ok=True)
+        assert BUILD_DIR.joinpath("pyhaxorg.so").exists()
+        env.update({
+            "POETRY_CACHE_DIR": cache_dir,
+            "POETRY_VIRTUALENVS_PATH": os.path.join(WORKDIR, ".poetry_venvs"),
+            "POETRY_CONFIG_DIR": os.path.join(WORKDIR, ".poetry_config"),
+            "POETRY_DATA_DIR": os.path.join(WORKDIR, ".poetry_data"),
+            "POETRY_REPOSITORIES_CACHE_DIR": os.path.join(cache_dir, "repositories"),
+            "POETRY_HTTP_CACHE_DIR": os.path.join(cache_dir, "http"),
+            "POETRY_VIRTUALENVS_IN_PROJECT": "true",
+            "HAXORG_PYHAXORG_SO_PATH": BUILD_DIR.joinpath("pyhaxorg.so"),
+            "HAXORG_PYTEXTLAYOUT_SO_PATH": BUILD_DIR.joinpath("py_textlayout_cpp.so"),
+            "HAXORG_REDUCED_RELEASE_TEST": "1",
+            "HAXORG_REPO_HAXORG_ROOT_BUILD_PATH": str(BUILD_DIR),
+        })
+
+        run_cmd(
+            [
+                "poetry",
+                "--version",
+            ],
+            env=env,
+        )
+
+        run_cmd(
+            [
+                "poetry",
+                "env",
+                "use",
+                "python3",
+            ],
+            env=env,
+        )
+
+        run_cmd(
+            [
+                "poetry",
+                "install",
+                "--no-root",
+                "--no-interaction",
+                "--no-ansi",
+                "--without",
+                "haxorg",
+            ],
+            env=env,
+            check=False,
+        )
+
+        def find_whl() -> List[Path]:
+            result = []
+            for wheel_file in PY_HAXORG_DIR.joinpath("dist").glob("*.whl"):
+                result.append(wheel_file)
+
+            return result
+
+        if PY_HAXORG_DIR.joinpath("build").exists():
+            shutil.rmtree(PY_HAXORG_DIR.joinpath("build"))
+
+        if PY_HAXORG_DIR.joinpath("dist").exists():
+            shutil.rmtree(PY_HAXORG_DIR.joinpath("dist"))
+
+        assert SRC_DIR.joinpath("scripts/py_haxorg").exists()
+
+        run_cmd(
+            [
+                "poetry",
+                "run",
+                "python",
+                "-m",
+                "build",
+                "--wheel",
+                "--outdir",
+                PY_HAXORG_DIR.joinpath("dist"),
+                SRC_DIR.joinpath("scripts/py_haxorg"),
+            ],
+            env=env,
+            cwd=SRC_DIR,
+        )
+
+        run_cmd(["ls", "-alR", "build"], cwd=PY_HAXORG_DIR)
+        run_cmd(["ls", "-alR", "dist"], cwd=PY_HAXORG_DIR)
+
+        assert len(find_whl()) == 1, str(find_whl())
+
+        new_whl = find_whl()[0]
+        assert new_whl is not None
+
+        run_cmd(
+            [
+                "poetry",
+                "remove",
+                "py_haxorg",
+            ],
+            env=env,
+        )
+
+        run_cmd(
+            [
+                "poetry",
+                "add",
+                str(new_whl),
+            ],
+            env=env,
+        )
+
+        run_cmd(
+            [
+                "poetry",
+                "run",
+                "pytest",
+                "-vv",
+                "-ra",
+                "-s",
+                "--tb=short",
+                "--disable-warnings",
+                "-m",
+                "not test_release",
+            ],
+            env=env,
+        )
+
+    elif test_cxx:
+        run_cmd([unpack_build_dir.joinpath("tests_hstd")])
+        run_cmd([unpack_build_dir.joinpath("tests_org")])
 
 
 def main():
-    prepare_env()
-    cmake_config = install_all_deps()
-    if not ASSUME_CPACK_PRESENT:
-        update_cpack_archive(cmake_config=cmake_config)
+    parser = argparse.ArgumentParser(
+        description="Script with boolean flags and choice arguments")
 
-    build_cpack_archive(cmake_config=cmake_config)
+    # Boolean flags
+    parser.add_argument("--deps",
+                        default=True,
+                        action="store_true",
+                        help="Dependencies flag")
+
+    parser.add_argument('--no-deps',
+                        dest='deps',
+                        action='store_false',
+                        help='Disable deps')
+    parser.add_argument("--build", default=True, action="store_true", help="Build flag")
+    parser.add_argument('--no-build',
+                        dest='build',
+                        action='store_false',
+                        help='Disable build')
+
+    # Choice argument
+    parser.add_argument(
+        "--test",
+        choices=["none", "cxx", "python"],
+        default="none",
+        help="Test type: none, cxx, or python",
+    )
+
+    args = parser.parse_args()
+
+    prepare_env()
+
+    if args.deps:
+        cmake_config = install_all_deps()
+
+    unpack_build_dir: Path = UNPACK_DIR / "build"
+
+    if args.build:
+        if not ASSUME_CPACK_PRESENT:
+            update_cpack_archive(cmake_config=cmake_config)
+
+        build_cpack_archive(
+            cmake_config=cmake_config,
+            unpack_build_dir=unpack_build_dir,
+        )
+
+    test_cpack_archive(
+        unpack_build_dir=unpack_build_dir,
+        test_cxx="cxx" == args.test,
+        test_python="python" == args.test,
+    )
 
 
 if __name__ == "__main__":

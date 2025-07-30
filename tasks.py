@@ -33,6 +33,7 @@ import shutil
 import signal
 import psutil
 import subprocess
+import tempfile
 from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count, haxorg_env, parse_haxorg_env
 from py_ci.data_build import (
     get_emscripten_cmake_flags,
@@ -191,6 +192,11 @@ def get_build_tmpdir(ctx: Context, component: str) -> Path:
         get_real_build_basename(ctx, component))
     ensure_existing_dir(result)
     return result
+
+
+@beartype
+def get_tmpdir(*name: str) -> str:
+    return str(Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name))
 
 
 def get_task_stamp(name: str) -> Path:
@@ -383,8 +389,6 @@ cmd:  {cmd}
     import shlex
     print("command args")
     print(shlex.join(args))
-
-
 
     log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
                    (f" in [green]{cwd}[/green]" if cwd else "") +
@@ -782,7 +786,7 @@ def build_docker_develop_image(ctx: Context):
 
 @beartype
 def docker_path(path: str) -> Path:
-    return Path("/haxorg").joinpath(path)
+    return Path("/haxorg/src").joinpath(path)
 
 
 @beartype
@@ -807,7 +811,7 @@ def run_docker_develop_test(
     coverage: bool = True,
     reflection: bool = True,
     deps: bool = True,
-    build_dir: str = "/tmp/haxorg_build_dir",
+    build_dir: str = get_tmpdir("docker_develop", "build"),
     example: bool = True,
     install: bool = True,
     emscripten_deps: bool = True,
@@ -837,6 +841,7 @@ def run_docker_develop_test(
                 "examples",
                 "docs",
                 "pyproject.toml",
+                "poetry.lock",
                 "ignorelist.txt",
                 ".git",
                 "thirdparty",
@@ -1417,9 +1422,13 @@ def clone_repo_with_uncommitted_changes(
 @org_task(pre=[])
 def run_docker_release_test(
     ctx: Context,
-    build_dir: Optional[str] = None,
-    clone_dir: Optional[str] = None,
+    build_dir: str = get_tmpdir("docker_release", "build"),
+    clone_dir: str = get_tmpdir("docker_release", "clone"),
     clone_code: Literal["none", "comitted", "all"] = "all",
+    deps: bool = True,
+    test: str = "python",
+    build: bool = True,
+    interactive: bool = False,
 ):
     CPACK_TEST_IMAGE = "docker-haxorg-cpack"
 
@@ -1483,14 +1492,25 @@ def run_docker_release_test(
             )
             source_prefix = clone_dir
 
-        @beartype
-        def pass_mnt(path: str) -> Path:
-            if source_prefix:
-                assert source_prefix.is_absolute(), source_prefix
-                return source_prefix.joinpath(path)
+        else:
+            source_prefix = clone_dir
 
+        @beartype
+        def pass_mnt(path: Optional[str] = None) -> Path:
+            if path is None:
+                if source_prefix:
+                    return source_prefix
+
+                else:
+                    return get_script_root()
+                    
             else:
-                return get_script_root(path)
+                if source_prefix:
+                    assert source_prefix.is_absolute(), source_prefix
+                    return source_prefix.joinpath(path)
+
+                else:
+                    return get_script_root(path)
 
         run_command(
             ctx,
@@ -1501,30 +1521,28 @@ def run_docker_release_test(
                     src=get_script_root("thirdparty"),
                     dst=docker_path("thirdparty"),
                 ),
-                *itertools.chain(*(docker_mnt(
-                    src=pass_mnt(it),
-                    dst=docker_path(it),
-                ) for it in [
-                    "src",
-                    "scripts",
-                    "CMakeLists.txt",
-                    "HaxorgConfig.cmake.in",
-                    "tests",
-                    "benchmark",
-                ])),
+                *(["-it"] if interactive else []),
                 "--memory=32G",
                 "--rm",
                 *docker_user(),
-                *docker_mnt(build_dir or Path("/tmp"), Path("/haxorg_wip")),
+                *docker_mnt(pass_mnt(), Path("/haxorg/src")),
+                *docker_mnt(build_dir, Path("/haxorg/wip")),
                 "-e",
-                "PYTHONPATH=/haxorg/scripts/py_ci",
+                "PYTHONPATH=/haxorg/src/scripts/py_ci",
+                "-e",
+                f"HAXORG_THIRD_PARTY_DIR_PATH={docker_path("thirdparty")}",
                 CPACK_TEST_IMAGE,
-                # "ls",
-                # "-a",
-                # "/haxorg_wip",
-                "python",
-                "-m",
-                "py_ci.test_cpack_build",
+                *(["bash"] if interactive else [
+                    # "ls",
+                    # "-a",
+                    # "/haxorg_wip",
+                    "python",
+                    "-m",
+                    "py_ci.test_cpack_build",
+                    invoke_opt("build", build),
+                    invoke_opt("deps", deps),
+                    f"--test={test}",
+                ])
             ],
             **debug_conf,
         )
@@ -2210,10 +2228,10 @@ def get_list_cli_pass(list_name: str, args: Iterable[str]) -> List[str]:
     },
 )
 def build_custom_docs(
-    ctx: Context,
-    coverage_file_whitelist: List[str] = [".*"],
-    coverage_file_blacklist: List[str] = [],
-    out_dir: str = "/tmp/docs_out",
+        ctx: Context,
+        coverage_file_whitelist: List[str] = [".*"],
+        coverage_file_blacklist: List[str] = [],
+        out_dir: str = get_tmpdir("docs_out"),
 ):
     """Build documentation for the project using custom script"""
     out_dir = Path(out_dir)
