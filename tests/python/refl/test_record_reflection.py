@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from pprint import pprint
 from more_itertools import first_true
 import pytest
+from tempfile import gettempdir
 # import py_scriptutils.script_logging
 
 import os
@@ -61,7 +62,6 @@ def test_anon_structure_fields():
 def test_field_with_std_import():
     with TemporaryDirectory() as dir:
         code_dir = Path(dir)
-        code_dir = Path("/tmp/test_field_with_std_import")
         tu = refl_test_driver.run_provider(
             "#include <vector>\nstruct Content { std::vector<int> items; };",
             code_dir).wraps[0].tu
@@ -84,8 +84,10 @@ def test_field_with_std_import():
 
 @pytest.mark.test_release
 def test_anon_struct_for_field():
-    struct = refl_test_driver.get_struct("struct Main { struct { int nested; } field; };",
-                                         code_dir_override=Path("/tmp/code_dir_override"))
+    struct = refl_test_driver.get_struct(
+        "struct Main { struct { int nested; } field; };",
+        code_dir_override=Path(gettempdir()) / "code_dir_override",
+    )
     assert struct.name.name == "Main"
     assert len(struct.nested) == 0
     assert len(struct.fields) == 1
@@ -118,7 +120,8 @@ def test_anon_struct_for_field_2():
 def test_namespace_extraction_for_nested_struct():
     struct = refl_test_driver.get_struct(
         "struct Main { struct Nested {}; Nested field; };",
-        code_dir_override=Path("/tmp/test_namespace_extraction_for_nested_struct"))
+        code_dir_override=Path(gettempdir()) /
+        "test_namespace_extraction_for_nested_struct")
     field = struct.fields[0]
     assert len(field.type.Spaces) == 1
     assert field.type.Spaces[0].name == "Main"
@@ -208,8 +211,7 @@ echo "method field", value.run_method()
 @pytest.mark.test_release
 def test_type_cross_dependency():
     with TemporaryDirectory() as dir:
-        # code_dir = Path(dir)
-        code_dir = Path("/tmp/test_type_cross_dependency")
+        code_dir = Path(dir)
         value = refl_test_driver.run_provider(
             {
                 "a.hpp": "struct B; struct A { B* field; };",

@@ -33,12 +33,8 @@ from plumbum import local, CommandNotFound
 from py_codegen.refl_wrapper_graph import TuWrap
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import interpolate_dictionary, get_haxorg_repo_root_path
-from pprint import pprint
 import py_codegen.wrapper_gen_nim as gen_nim
 from dataclasses import dataclass
-
-STABLE_FILE_NAME = "/tmp/cpp_stable.cpp"
-
 
 @beartype
 class PathComponentKind(enum.Enum):

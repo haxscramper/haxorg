@@ -34,6 +34,7 @@ from py_scriptutils.script_logging import log
 from collections import OrderedDict
 
 from cxx_repository import burndown
+from py_scriptutils.os_utils import gettempdir, json_path_serializer
 
 
 @beartype
@@ -173,18 +174,18 @@ def run_forensics(
         return code, stdout, stderr
 
     else:
-        return local[tool_path].with_env(LD_PRELOAD="").run((json.dumps(params)))
+        return local[tool_path].with_env(LD_PRELOAD="").run((json.dumps(params, default=json_path_serializer)))
 
 
 @beartype
 @dataclass
 class GitTestRepository:
     start_files: Dict[str, str]
-    db: Optional[str] = ""
+    db: Optional[Path] = ""
     dir: Optional[TemporaryDirectory | Path] = None
     init_message: str = "init"
-    fixed_dir: Optional[str] = None
-    fixed_db: Optional[str] = None
+    fixed_dir: Optional[Path] = None
+    fixed_db: Optional[Path] = None
 
     def cmd(self):
         return get_git(self.git_dir())
@@ -193,11 +194,11 @@ class GitTestRepository:
         return self.dir if isinstance(self.dir, Path) else Path(self.dir.name)
 
     def get_engine(self) -> Engine:
-        return create_engine("sqlite:///" + self.db)
+        return create_engine("sqlite:///" + str(self.db))
 
     def __enter__(self):
         if self.fixed_dir:
-            self.dir = Path(self.fixed_dir)
+            self.dir = self.fixed_dir
             if self.dir.exists():
                 shutil.rmtree(self.dir)
 
@@ -215,7 +216,7 @@ class GitTestRepository:
             self.db = self.fixed_db
 
         else:
-            self.db = mktemp(suffix=".sqlite")
+            self.db = Path(mktemp(suffix=".sqlite"))
 
         return self
 
@@ -252,8 +253,8 @@ def print_connection_tables(
 @pytest.mark.test_release
 def test_can_run_dir():
     with GitTestRepository({"a": "fixed_line\ninit_commit_content"},
-                           fixed_dir="/tmp/fixed_git_dir_1",
-                           fixed_db="/tmp/result.sqlite") as repo:
+                           fixed_dir=gettempdir("fixed_git_dir_1"),
+                           fixed_db=gettempdir("result.sqlite")) as repo:
 
         git_write_files(repo.git_dir(), {"a": "fixed_line\nline_1_edit1\nline_2_edit1"})
         git_commit(repo.git_dir(), "second")
@@ -266,11 +267,11 @@ def test_can_run_dir():
             {
                 "out": {
                     "db_path": str(repo.db),
-                    "text_dump": "/tmp/test_run.txt",
-                    # "graphviz": "/tmp/graph.dot",
-                    # "perfetto": "/tmp/code_forensics.pftrace"
+                    "text_dump": gettempdir("test_run.txt"),
+                    # "graphviz": gettempdir("graph.dot"),
+                    # "perfetto": gettempdir("code_forensics.pftrace"),
                 },
-                "log_file": "/tmp/test_can_run_dir.log"
+                "log_file": gettempdir("test_can_run_dir.log"),
             })
 
         assert Path(repo.db).exists(), repo.db
@@ -369,7 +370,7 @@ def test_fast_forward_merge():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
-HAXORG_OUT_DB = "/tmp/test_haxorg_forensics.sqlite"
+HAXORG_OUT_DB = gettempdir("test_haxorg_forensics.sqlite")
 
 
 @pytest.mark.skip()
@@ -378,8 +379,8 @@ def test_haxorg_forensics():
         get_haxorg_repo_root_path(), {
             "out": {
                 "db_path": HAXORG_OUT_DB,
-                "log_file": "/tmp/test_haxorg_forensics.log",
-                "perfetto": "/tmp/test_haxorg_forensics.pftrace",
+                "log_file": gettempdir("test_haxorg_forensics.log"),
+                "perfetto": gettempdir("test_haxorg_forensics.pftrace"),
             },
         })
 
@@ -686,7 +687,7 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
 def run_repo_operations_test(
         operations: List[GitOperation],
         with_debugger: bool = False,
-        fixed_dir: Optional[str] = None,
+        fixed_dir: Optional[Path] = None,
         params: Dict[str, Any] = dict(),
 ):
     with GitTestRepository({"init": "init"}, fixed_dir=fixed_dir) as repo:
@@ -717,7 +718,7 @@ def test_repo_operations_example_1():
         GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='00001'),
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='00002', branch_to_merge='00001'),
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='00002')
-    ], fixed_dir="/tmp/test_repo_operations_example_1")
+    ], fixed_dir=gettempdir("test_repo_operations_example_1"))
     # yapf:enable
 
 
@@ -768,7 +769,7 @@ def test_repo_operations_example_3():
                      ]),
         GitOperation(operation=GitOperationKind.REPO_COMMIT),
     ],
-                             fixed_dir="/tmp/test_repo_operations_example_3")
+                             fixed_dir=gettempdir("test_repo_operations_example_3"))
 
 
 @pytest.mark.test_release
@@ -808,10 +809,10 @@ def test_repo_operations_example_4():
                 "verbose_consistency_checks": True
             },
             "out": {
-                "log_file": "/tmp/test_repo_operations_example_4.log"
+                "log_file": gettempdir("test_repo_operations_example_4.log")
             }
         },
-        fixed_dir="/tmp/test_repo_operations_example_4")
+        fixed_dir=gettempdir("test_repo_operations_example_4"))
 
 
 @pytest.mark.test_release
