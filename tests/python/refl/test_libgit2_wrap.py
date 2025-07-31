@@ -22,6 +22,7 @@ from pathlib import Path
 from py_scriptutils.tracer import TraceCollector
 from py_scriptutils.script_logging import log
 import pytest
+from tempfile import gettempdir
 
 log("refl.nim").setLevel(logging.DEBUG)
 
@@ -30,7 +31,7 @@ log("refl.nim").setLevel(logging.DEBUG)
 def test_libgit2_conv():
     with TemporaryDirectory() as dir:
         code_dir = Path(dir)
-        code_dir = Path("/tmp/libgit_wrap_test_dir")
+        code_dir = Path(gettempdir()) / "libgit_wrap_test_dir"
         root = get_haxorg_repo_root_path()
         start = dict(
             input=["{config_dir}/include"],

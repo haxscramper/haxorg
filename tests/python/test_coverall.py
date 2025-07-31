@@ -854,24 +854,58 @@ def get_spec() -> OrgSpecification:
 
     res.alternatives[osk.Time] = get_time_spec()
 
-    Link_alternatives: List[ClassPrediate] = []
-    for kind in org.LinkTargetKind(0):
+    @beartype
+    def get_all_alternatives_for_class(subkind, is_expected_kind,
+                                       class_name) -> List[ClassPrediate]:
+        result: List[ClassPrediate] = []
+        for kind in subkind:
 
-        def impl(kind: org.LinkTargetKind, target: org.LinkTarget):
-            if target.getKind() == kind:
-                return ValueCheckResult(is_ok=True)
+            def impl(kind, target):
+                if is_expected_kind(kind, target):
+                    return NodeCheckResult(is_ok=True)
 
-            else:
-                return ValueCheckResult(is_ok=False, on_fail=Tree(f"Expected {kind}"))
+                else:
+                    return NodeCheckResult(is_ok=False, on_fail=Tree(f"Expected {kind}"))
 
-        Link_alternatives.append(
-            clsField1Check(
-                f"link_with_{kind}_target",
-                "target",
-                [(f"{kind}", functools.partial(impl, kind))],
-            ))
+            result.append(
+                nodeCls(
+                    f"{class_name}_with_subkind_{kind}",
+                    functools.partial(impl, kind),
+                ))
 
-    res.alternatives[osk.Link] = altCls(*Link_alternatives)
+        return result
+
+    def get_all_alternatives_for_field(subkind, is_expected_kind, field_name):
+        result: List[ClassPrediate] = []
+        for kind in subkind:
+
+            def impl(kind, target):
+                if is_expected_kind(kind, target):
+                    return ValueCheckResult(is_ok=True)
+
+                else:
+                    return ValueCheckResult(is_ok=False, on_fail=Tree(f"Expected {kind}"))
+
+            result.append(
+                clsField1Check(
+                    f"{field_name}_with_subkind_{kind}",
+                    field_name,
+                    [(f"{kind}", functools.partial(impl, kind))],
+                ))
+
+        return result
+
+    res.alternatives[osk.CmdInclude] = altCls(*get_all_alternatives_for_class(
+        org.CmdIncludeKind(0),
+        lambda kind, target: target.getIncludeKind() == kind,
+        "cmd_include",
+    ))
+
+    res.alternatives[osk.Link] = altCls(*get_all_alternatives_for_field(
+        org.LinkTargetKind(0),
+        lambda kind, target: target.getKind() == kind,
+        "target",
+    ))
 
     res.alternatives[osk.SubtreeLog] = altCls(*get_subtree_logbook_head_spec(),)
 
@@ -1045,8 +1079,10 @@ def test_total_representation():
         org.exportToTreeString(node, org.OrgTreeExportOpts(withColor=False,)))
     spec = get_spec()
 
-    Path(gettempdir()).joinpath("spec.txt").write_text(render_rich(spec.treeRepr(), False))
-    Path(gettempdir()).joinpath("spec.ansi").write_text(render_rich(spec.treeRepr(), True))
+    Path(gettempdir()).joinpath("spec.txt").write_text(render_rich(
+        spec.treeRepr(), False))
+    Path(gettempdir()).joinpath("spec.ansi").write_text(render_rich(
+        spec.treeRepr(), True))
 
     coverage = spec.visit_all(node)
 
@@ -1273,6 +1309,7 @@ def test_run_typst_exporter(cov):
             """))
 
             assert "edit-config parameter" in str(ex.value)
+
 
 def test_run_html_exporter(cov):
     node = get_test_node_from_file()

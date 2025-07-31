@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from py_scriptutils.os_utils import gettempdir
 import re
 import pandas as pd
 import py_repository.gen_coverage_cxx as cov
@@ -367,7 +368,6 @@ def add_cov_segment_text(df: pd.DataFrame, lines: List[str], for_test: bool = Tr
 def test_file_segmentation_1():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        dir = Path("/tmp/test_file_segmentation_1")
         code = corpus_base.joinpath("test_file_segmentation_1.cpp").read_text()
         cmd = ProfileRunParams(dir=dir, main="main.cpp", files={"main.cpp": code})
         cmd.run()
@@ -387,7 +387,6 @@ def test_file_segmentation_1():
 def test_file_segmentation_2():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        dir = Path("/tmp/test_base_run_coverage")
         code = corpus_base.joinpath("test_file_segmentation_2.cpp").read_text()
         cmd = ProfileRunParams(dir=dir, main="main.cpp", files={"main.cpp": code})
 
@@ -664,24 +663,24 @@ def test_coverage_annotation_multiple_run_multiple_segment():
             },
         )
 
-        cmd.show_merger_run = Path("/tmp/show_merger_run.txt")
+        cmd.show_merger_run = gettempdir() / "show_merger_run.txt"
 
         cmd.run()
 
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
-        Path(
-            "/tmp/test_coverage_annotation_multiple_run_multiple_segment.txt").write_text(
-                format_db_all(session, style=False))
+        db_debug_path = Path(
+            gettempdir()) / "test_coverage_annotation_multiple_run_multiple_segment.txt"
+        db_debug_path.write_text(format_db_all(session, style=False))
 
         file = cov.get_annotated_files_for_session(
             session=session,
             root_path=dir,
             abs_path=dir.joinpath("main.cpp"),
-            debug_format_segments=Path("/tmp/annotated_segments.txt"),
+            debug_format_segments=gettempdir() / "annotated_segments.txt",
         )
 
-        pprint_to_file(file, "/tmp/annotated.py", width=200)
+        pprint_to_file(file, gettempdir() / "annotated.py", width=200)
 
         ranges = list()
         position = 0
@@ -704,7 +703,7 @@ def test_coverage_annotation_multiple_run_multiple_segment():
 
             ranges.append(line_info)
 
-        pprint_to_file(ranges, "/tmp/char_ranges.py")
+        pprint_to_file(ranges, gettempdir() / "char_ranges.py")
 
         recombine = ""
         for line in file.Lines:
@@ -713,13 +712,15 @@ def test_coverage_annotation_multiple_run_multiple_segment():
 
         assert recombine == code
 
-        Path("/tmp/test_coverage_annotation_multiple_run_multiple_segment.html"
-            ).write_text(
-                cov.get_file_annotation_document(
-                    session=session,
-                    root_path=dir,
-                    abs_path=dir.joinpath("main.cpp"),
-                ).render())
+        debug_path = Path(
+            gettempdir()) / "test_coverage_annotation_multiple_run_multiple_segment.html"
+
+        debug_path.write_text(
+            cov.get_file_annotation_document(
+                session=session,
+                root_path=dir,
+                abs_path=dir.joinpath("main.cpp"),
+            ).render())
 
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
         main_cov = cov.get_coverage_of(session, cmd.get_code("main.cpp"))
@@ -728,7 +729,8 @@ def test_coverage_annotation_multiple_run_multiple_segment():
         df = pd.read_sql(main_cov, session.get_bind())
         add_cov_segment_text(df, lines, for_test=False)
 
-        Path("/tmp/coverage_segments.txt").write_text(
+        debug_path = gettempdir() / "coverage_segments.txt"
+        debug_path.write_text(
             render_rich(
                 dataframe_to_rich_table(
                     df,
@@ -796,12 +798,12 @@ def run_common(
                 file.model_dump_json(indent=2))
             pass_path(path_genhtml).with_suffix(".txt").write_text(file.get_debug())
 
+
 @pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_template_coverage_annotations():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        # dir = Path("/tmp/test_template_coverage_annotations")
         code = corpus_base.joinpath("test_template_coverage1.hpp").read_text()
 
         cmd = ProfileRunParams(
@@ -819,7 +821,6 @@ def test_template_coverage_annotations():
 def test_macro_coverage1():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        # dir = Path("/tmp/test_macro_coverage")
         code = corpus_base.joinpath("test_macro_coverage.hpp").read_text()
 
         cmd = ProfileRunParams(
@@ -837,8 +838,6 @@ def test_macro_coverage1():
 def test_exporter_tcc_coverage():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        dir = Path("/tmp/test_exporter_tcc_coverage")
-
         cmd = ProfileRunParams(dir=dir,
                                main="main.cpp",
                                files={
