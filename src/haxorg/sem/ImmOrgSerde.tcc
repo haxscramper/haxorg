@@ -1107,7 +1107,6 @@ struct ImmSemSerde<org::sem::Subtree, org::imm::ImmSubtree> {
     org::imm::ImmSubtree result = hstd::SerdeDefaultProvider<org::imm::ImmSubtree>::get();
     assign_immer_field(result.level, value.level, ctx);
     assign_immer_field(result.treeId, value.treeId, ctx);
-    assign_immer_field(result.todo, value.todo, ctx);
     assign_immer_field(result.completion, value.completion, ctx);
     assign_immer_field(result.description, value.description, ctx);
     assign_immer_field(result.tags, value.tags, ctx);
@@ -1128,7 +1127,6 @@ struct ImmSemSerde<org::sem::Subtree, org::imm::ImmSubtree> {
     org::sem::Subtree result = hstd::SerdeDefaultProvider<org::sem::Subtree>::get();
     assign_sem_field(result.level, value.level, ctx);
     assign_sem_field(result.treeId, value.treeId, ctx);
-    assign_sem_field(result.todo, value.todo, ctx);
     assign_sem_field(result.completion, value.completion, ctx);
     assign_sem_field(result.description, value.description, ctx);
     assign_sem_field(result.tags, value.tags, ctx);

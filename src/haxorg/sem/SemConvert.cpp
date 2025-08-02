@@ -881,16 +881,6 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     }
 
     {
-        auto __field = field(N::Todo, a);
-        auto todo    = one(a, N::Todo);
-        if (todo.getKind() != onk::Empty) { tree->todo = get_text(todo); }
-        if (tree->todo && tree->todo.value() == "COMMENT") {
-            tree->todo.reset();
-            tree->isComment = true;
-        }
-    }
-
-    {
         auto __field = field(N::Tags, a);
         for (const auto& hash : one(a, N::Tags)) {
             auto tag = convertHashTag(hash).value();

@@ -514,17 +514,19 @@ def get_subtree_property_types():
             fields=[
                 org_field(t_str(), "name"),
                 org_field(t_nest_shared("OrgJson"), "value")
-            ],),
-        org_struct(t_nest_shared("CustomSubtreeFlags", [t("NamedProperty")]),
-                   GenTuDoc("Free-form flags"),
-                   methods=[
-                       eq_method(t_nest_shared("CustomSubtreeFlags",
-                                               [t("NamedProperty")]))
-                   ],
-                   fields=[
-                       org_field(t_str(), "name"),
-                       org_field(t_nest_shared("AttrGroup"), "value")
-                   ],),
+            ],
+        ),
+        org_struct(
+            t_nest_shared("CustomSubtreeFlags", [t("NamedProperty")]),
+            GenTuDoc("Free-form flags"),
+            methods=[
+                eq_method(t_nest_shared("CustomSubtreeFlags", [t("NamedProperty")]))
+            ],
+            fields=[
+                org_field(t_str(), "name"),
+                org_field(t_nest_shared("AttrGroup"), "value")
+            ],
+        ),
     ]
 
 
@@ -1030,7 +1032,10 @@ def get_sem_text():
                         org_struct(
                             t_nest("Dynamic", [t_org("Time")]),
                             GenTuDoc(""),
-                            fields=[GenTuField(t_nest_shared("LispCode"), "expr", GenTuDoc(""))],
+                            fields=[
+                                GenTuField(t_nest_shared("LispCode"), "expr",
+                                           GenTuDoc(""))
+                            ],
                             methods=[
                                 default_constructor_method("Dynamic"),
                             ],
@@ -1166,7 +1171,6 @@ def get_sem_subtree():
             fields=[
                 GenTuField(t_int(), "level", GenTuDoc("Subtree level"), value="0"),
                 opt_field(t_str(), "treeId", GenTuDoc(":ID: property")),
-                opt_field(t_str(), "todo", GenTuDoc("Todo state of the tree")),
                 opt_field(t_nest_shared("SubtreeCompletion"), "completion",
                           GenTuDoc("Task completion state")),
                 opt_field(t_id("Paragraph"), "description", GenTuDoc("")),
@@ -1264,6 +1268,12 @@ def get_sem_subtree():
                     GenTuDoc(
                         "Get subtree title as a flat string, without markup nodes, but with all left strings"
                     ),
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_str()),
+                    "getTodoKeyword",
+                    GenTuDoc(""),
                     isConst=True,
                 ),
             ],
@@ -3690,7 +3700,6 @@ def get_enums():
                 efield("Lang"),
                 efield("Prefix"),
                 efield("Text"),
-                efield("Todo"),
                 efield("Importance"),
                 efield("Title"),
                 efield("Completion"),

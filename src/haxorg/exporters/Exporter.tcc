@@ -1046,7 +1046,6 @@ void Exporter<V, R>::visitSubtree(R& res, In<sem::Subtree> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, level);
   __org_field(res, object, treeId);
-  __org_field(res, object, todo);
   __org_field(res, object, completion);
   __org_field(res, object, description);
   __org_field(res, object, tags);

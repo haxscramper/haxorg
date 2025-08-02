@@ -449,7 +449,6 @@ class ImmSubtreeValueRead:
     def __init__(self) -> None: ...
     def getLevel(self) -> int: ...
     def getTreeid(self) -> ImmBox[Optional[str]]: ...
-    def getTodo(self) -> ImmBox[Optional[str]]: ...
     def getCompletion(self) -> ImmBox[Optional[SubtreeCompletion]]: ...
     def getDescription(self) -> ImmBox[Optional[ImmIdTParagraph]]: ...
     def getTags(self) -> ImmFlexVector[ImmIdTHashTag]: ...
@@ -2379,7 +2378,7 @@ class SubtreeLog(Org):
     desc: Optional[StmtList]
 
 class Subtree(Org):
-    def __init__(self, level: int, treeId: Optional[str], todo: Optional[str], completion: Optional[SubtreeCompletion], description: Optional[Paragraph], tags: List[HashTag], title: Paragraph, logbook: List[SubtreeLog], properties: List[NamedProperty], closed: Optional[Time], deadline: Optional[Time], scheduled: Optional[Time], isComment: bool, isArchived: bool, priority: Optional[str]) -> None: ...
+    def __init__(self, level: int, treeId: Optional[str], completion: Optional[SubtreeCompletion], description: Optional[Paragraph], tags: List[HashTag], title: Paragraph, logbook: List[SubtreeLog], properties: List[NamedProperty], closed: Optional[Time], deadline: Optional[Time], scheduled: Optional[Time], isComment: bool, isArchived: bool, priority: Optional[str]) -> None: ...
     def getTimePeriods(self, kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
     def getProperties(self, kind: str, subkind: Optional[str]) -> List[NamedProperty]: ...
     def getProperty(self, kind: str, subkind: Optional[str]) -> Optional[NamedProperty]: ...
@@ -2387,11 +2386,11 @@ class Subtree(Org):
     def setProperty(self, value: NamedProperty) -> None: ...
     def setPropertyStrValue(self, value: str, kind: str, subkind: Optional[str]) -> None: ...
     def getCleanTitle(self) -> str: ...
+    def getTodoKeyword(self) -> Optional[str]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     level: int
     treeId: Optional[str]
-    todo: Optional[str]
     completion: Optional[SubtreeCompletion]
     description: Optional[Paragraph]
     tags: List[HashTag]
@@ -3344,7 +3343,6 @@ class ImmSubtreeValue(ImmSubtreeValueRead):
     def __init__(self) -> None: ...
     def setLevel(self, value: int) -> None: ...
     def setTreeid(self, value: ImmBox[Optional[str]]) -> None: ...
-    def setTodo(self, value: ImmBox[Optional[str]]) -> None: ...
     def setCompletion(self, value: ImmBox[Optional[SubtreeCompletion]]) -> None: ...
     def setDescription(self, value: ImmBox[Optional[ImmIdTParagraph]]) -> None: ...
     def setTags(self, value: ImmFlexVector[ImmIdTHashTag]) -> None: ...
@@ -4532,39 +4530,38 @@ class OrgSpecName(Enum):
     Lang = 24
     Prefix = 25
     Text = 26
-    Todo = 27
-    Importance = 28
-    Title = 29
-    Completion = 30
-    Head = 31
-    Subnodes = 32
-    Properties = 33
-    Logbook = 34
-    Description = 35
-    Logs = 36
-    Newstate = 37
-    Oldstate = 38
-    Time = 39
-    From = 40
-    EndArgs = 41
-    Flags = 42
-    Value = 43
-    Assoc = 44
-    Main = 45
-    Hash = 46
-    Bullet = 47
-    Counter = 48
-    Checkbox = 49
-    Header = 50
-    To = 51
-    Diff = 52
-    Property = 53
-    Subname = 54
-    Values = 55
-    Cells = 56
-    Rows = 57
-    Lines = 58
-    Chunks = 59
+    Importance = 27
+    Title = 28
+    Completion = 29
+    Head = 30
+    Subnodes = 31
+    Properties = 32
+    Logbook = 33
+    Description = 34
+    Logs = 35
+    Newstate = 36
+    Oldstate = 37
+    Time = 38
+    From = 39
+    EndArgs = 40
+    Flags = 41
+    Value = 42
+    Assoc = 43
+    Main = 44
+    Hash = 45
+    Bullet = 46
+    Counter = 47
+    Checkbox = 48
+    Header = 49
+    To = 50
+    Diff = 51
+    Property = 52
+    Subname = 53
+    Values = 54
+    Cells = 55
+    Rows = 56
+    Lines = 57
+    Chunks = 58
 
 class OrgNodeKind(Enum):
     _None = 1

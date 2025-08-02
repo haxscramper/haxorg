@@ -109,44 +109,39 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     "Starting prefix of the subtree"),
                 fieldN(
                     1,
-                    N::Todo,
-                    {onk::BigIdent, onk::Empty},
-                    "Optional TODO state of the subtree"),
-                fieldN(
-                    2,
                     N::Importance,
                     {onk::SubtreeImportance, onk::Empty},
                     "Optional urgency marker for the subtree"),
                 field1(
-                    3,
+                    2,
                     N::Title,
                     onk::Paragraph,
                     "Paragraph of text -- title of the subtree"),
                 fieldN(
-                    4,
+                    3,
                     N::Completion,
                     {onk::SubtreeCompletion, onk::Empty},
                     "Cumulative or direct completion of the "
                     "nested "
                     "tree elements"),
                 fieldN(
-                    5,
+                    4,
                     N::Tags,
                     {onk::InlineStmtList, onk::Empty},
                     "Trailing list of hashtags"),
                 field1(
-                    6,
+                    5,
                     N::Times,
                     onk::StmtList,
                     "Scheduled, closed, and/or deadline times for "
                     "the subtree"),
                 field1(
-                    7,
+                    6,
                     N::Drawer,
                     onk::Drawer,
                     "Logbook, properties, description"),
                 field1(
-                    8,
+                    7,
                     N::Body,
                     onk::StmtList,
                     "Statement list of the nested nodes"),

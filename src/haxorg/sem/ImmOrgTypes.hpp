@@ -1060,7 +1060,6 @@ struct ImmSubtree : public org::imm::ImmOrg {
                        (staticKind,
                         level,
                         treeId,
-                        todo,
                         completion,
                         description,
                         tags,
@@ -1078,8 +1077,6 @@ struct ImmSubtree : public org::imm::ImmOrg {
   int level = 0;
   /// \brief :ID: property
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> treeId = std::nullopt;
-  /// \brief Todo state of the tree
-  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> todo = std::nullopt;
   /// \brief Task completion state
   hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>> completion = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> description = std::nullopt;

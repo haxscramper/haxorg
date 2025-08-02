@@ -2421,9 +2421,6 @@ void org::algo::proto_serde<::orgproto::Subtree, org::sem::Subtree>::write(::org
   if (in.treeId) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_treeid(), *in.treeId);
   }
-  if (in.todo) {
-    proto_serde<std::string, hstd::Str>::write(out->mutable_todo(), *in.todo);
-  }
   if (in.completion) {
     proto_serde<orgproto::SubtreeCompletion, org::sem::SubtreeCompletion>::write(out->mutable_completion(), *in.completion);
   }
@@ -2457,9 +2454,6 @@ void org::algo::proto_serde<::orgproto::Subtree, org::sem::Subtree>::read(::orgp
   in.for_field(&org::sem::Subtree::level).get() = out.level();
   if (out.has_treeid()) {
     proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.treeid(), in.for_field(&org::sem::Subtree::treeId));
-  }
-  if (out.has_todo()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.todo(), in.for_field(&org::sem::Subtree::todo));
   }
   if (out.has_completion()) {
     proto_serde<hstd::Opt<orgproto::SubtreeCompletion>, hstd::Opt<org::sem::SubtreeCompletion>>::read(out.completion(), in.for_field(&org::sem::Subtree::completion));
