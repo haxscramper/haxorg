@@ -1762,6 +1762,7 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("setProperty", static_cast<void(org::sem::Subtree::*)(org::sem::NamedProperty const&)>(&org::sem::Subtree::setProperty))
     .function("setPropertyStrValue", static_cast<void(org::sem::Subtree::*)(hstd::Str const&, hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree::setPropertyStrValue))
     .function("getCleanTitle", static_cast<hstd::Str(org::sem::Subtree::*)() const>(&org::sem::Subtree::getCleanTitle))
+    .function("getTodoKeyword", static_cast<hstd::Opt<hstd::Str>(org::sem::Subtree::*)() const>(&org::sem::Subtree::getTodoKeyword))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::Subtree>>)
     ;
   emscripten::class_<org::sem::ColonExample, emscripten::base<org::sem::Org>>("ColonExample")

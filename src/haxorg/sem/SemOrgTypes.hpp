@@ -2722,6 +2722,7 @@ struct Subtree : public org::sem::Org {
   void setPropertyStrValue(hstd::Str const& value, hstd::Str const& kind, hstd::Opt<hstd::Str> const& subkind = std::nullopt);
   /// \brief Get subtree title as a flat string, without markup nodes, but with all left strings
   hstd::Str getCleanTitle() const;
+  hstd::Opt<hstd::Str> getTodoKeyword() const;
 };
 
 /// \brief Table cell

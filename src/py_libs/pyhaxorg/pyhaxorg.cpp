@@ -5422,6 +5422,7 @@ ingoing elements.)RAW")
          pybind11::arg_v("subkind", std::nullopt),
          R"RAW(Assign a raw string literal to a property.)RAW")
     .def("getCleanTitle", static_cast<hstd::Str(org::sem::Subtree::*)() const>(&org::sem::Subtree::getCleanTitle), R"RAW(Get subtree title as a flat string, without markup nodes, but with all left strings)RAW")
+    .def("getTodoKeyword", static_cast<hstd::Opt<hstd::Str>(org::sem::Subtree::*)() const>(&org::sem::Subtree::getTodoKeyword))
     .def("__repr__", [](org::sem::Subtree const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })

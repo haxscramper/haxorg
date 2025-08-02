@@ -765,6 +765,246 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
         EXPECT_EQ(c.done, 33);
         EXPECT_EQ(c.isPercent, true);
     }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* TODO Task name)");
+        EXPECT_EQ(t->getTodoKeyword().value(), "TODO");
+        EXPECT_FALSE(t->isComment);
+        EXPECT_FALSE(t->isArchived);
+        EXPECT_EQ(t->getCleanTitle(), "TODO Task name"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* DONE Completed task)");
+        EXPECT_EQ(t->getTodoKeyword().value(), "DONE");
+        EXPECT_EQ(t->getCleanTitle(), "DONE Completed task"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* IEEE Completed task)");
+        EXPECT_EQ(t->getTodoKeyword().value(), "IEEE"_ss);
+        EXPECT_EQ(t->getCleanTitle(), "IEEE Completed task"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* COMMENT This is a comment)");
+        EXPECT_TRUE(t->isComment);
+        EXPECT_FALSE(t->getTodoKeyword().has_value());
+        EXPECT_EQ(t->getCleanTitle(), "This is a comment");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* [#A] High priority task)");
+        EXPECT_EQ(t->priority.value(), "A");
+        EXPECT_EQ(t->getCleanTitle(), "High priority task");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* [#B] Medium priority task)");
+        EXPECT_EQ(t->priority.value(), "B");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* [#C] Low priority task)");
+        EXPECT_EQ(t->priority.value(), "C");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* TODO [#A] Important task [2/5])",
+            getDebugFile("sutbree/a"));
+        EXPECT_EQ(t->getTodoKeyword().value(), "TODO");
+        EXPECT_EQ(t->priority.value(), "A");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 2);
+        EXPECT_EQ(c.full, 5);
+        EXPECT_FALSE(c.isPercent);
+        EXPECT_EQ(t->getCleanTitle(), "Important task");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* DONE [#B] Finished work [100%])");
+        EXPECT_EQ(t->getTodoKeyword().value(), "DONE");
+        EXPECT_EQ(t->priority.value(), "B");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 100);
+        EXPECT_EQ(c.full, 100);
+        EXPECT_TRUE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Task with *bold* and /italic/ text)");
+        EXPECT_EQ(t->getCleanTitle(), "Task with bold and italic text");
+        EXPECT_FALSE(t->getTodoKeyword().has_value());
+        EXPECT_FALSE(t->priority.has_value());
+        EXPECT_FALSE(t->completion.has_value());
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Simple title)");
+        EXPECT_EQ(t->getCleanTitle(), "Simple title");
+        EXPECT_FALSE(t->getTodoKeyword().has_value());
+        EXPECT_FALSE(t->priority.has_value());
+        EXPECT_FALSE(t->completion.has_value());
+        EXPECT_FALSE(t->isComment);
+        EXPECT_FALSE(t->isArchived);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title [0/0])");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 0);
+        EXPECT_EQ(c.full, 0);
+        EXPECT_FALSE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title [0%])");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 0);
+        EXPECT_EQ(c.full, 100);
+        EXPECT_TRUE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title [100%])");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 100);
+        EXPECT_EQ(c.full, 100);
+        EXPECT_TRUE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title [10/10])");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 10);
+        EXPECT_EQ(c.full, 10);
+        EXPECT_FALSE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* COMMENT TODO This should be comment)");
+        EXPECT_TRUE(t->isComment);
+        EXPECT_TRUE(t->getTodoKeyword().has_value());
+        EXPECT_EQ(t->getTodoKeyword().value(), "TODO");
+        EXPECT_EQ(t->getCleanTitle(), "TODO This should be comment");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title :tag1:tag2:)");
+        EXPECT_EQ(t->tags.size(), 2);
+        EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "tag2"_ss);
+        EXPECT_EQ(t->getCleanTitle(), "Title"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title :ARCHIVE:)");
+        EXPECT_TRUE(t->isArchived);
+        EXPECT_EQ(t->tags.size(), 0);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Title :work:urgent:ARCHIVE:)");
+        EXPECT_TRUE(t->isArchived);
+        EXPECT_EQ(t->tags.size(), 2);
+        EXPECT_EQ(t->tags.at(0)->text.head, "work"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "urgent"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* TODO [#A] Important task [2/5] :work:urgent:)");
+        EXPECT_EQ(t->todo.value(), "TODO");
+        EXPECT_EQ(t->priority.value(), "A");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 2);
+        EXPECT_EQ(c.full, 5);
+        EXPECT_EQ(t->tags.size(), 2);
+        EXPECT_EQ(t->tags.at(0)->text.head, "work"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "urgent"_ss);
+        EXPECT_EQ(t->getCleanTitle(), "Important task");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* COMMENT Task with tags :comment:test:)");
+        EXPECT_TRUE(t->isComment);
+        EXPECT_EQ(t->tags.size(), 2);
+        EXPECT_EQ(t->tags.at(0)->text.head, "comment"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "test"_ss);
+        EXPECT_EQ(t->getCleanTitle(), "Task with tags");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* DONE [#B] Finished work [100%] :project:ARCHIVE:)");
+        EXPECT_EQ(t->todo.value(), "DONE"_ss);
+        EXPECT_EQ(t->priority.value(), "B"_ss);
+        EXPECT_TRUE(t->isArchived);
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 100);
+        EXPECT_TRUE(c.isPercent);
+        EXPECT_EQ(t->tags.size(), 1);
+        EXPECT_EQ(t->tags.at(0)->text.head, "project"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title :single:)");
+        EXPECT_EQ(t->tags.size(), 1);
+        EXPECT_EQ(t->tags.at(0)->text.head, "single"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Title with *markup* :tag1:tag2:tag3:)");
+        EXPECT_EQ(t->getCleanTitle(), "Title with markup");
+        EXPECT_EQ(t->tags.size(), 3);
+        EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "tag2"_ss);
+        EXPECT_EQ(t->tags.at(2)->text.head, "tag3"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Title with *markup* :tag1:nested##tag:tag3##complex##[nested,tag]:)");
+        EXPECT_EQ(t->getCleanTitle(), "Title with markup");
+        EXPECT_EQ(t->tags.size(), 3);
+        EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "nested"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.subtags.at(0).head, "tag"_ss);
+
+        EXPECT_EQ(t->tags.at(2)->text.head, "tag3"_ss);
+        EXPECT_EQ(t->tags.at(2)->text.subtags.at(0).head, "complex"_ss);
+        EXPECT_EQ(
+            t->tags.at(2)->text.subtags.at(0).subtags.at(0).head,
+            "nested"_ss);
+        EXPECT_EQ(
+            t->tags.at(2)->text.subtags.at(0).subtags.at(1).head,
+            "tag"_ss);
+    }
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Title with *:tag_feint:* :tag1:nested##tag:tag3##complex##[nested,tag]:)");
+        EXPECT_EQ(t->getCleanTitle(), "Title with :tag_feint:");
+        EXPECT_EQ(t->tags.size(), 3);
+        EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "nested"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.subtags.at(0).head, "tag"_ss);
+
+        EXPECT_EQ(t->tags.at(2)->text.head, "tag3"_ss);
+        EXPECT_EQ(t->tags.at(2)->text.subtags.at(0).head, "complex"_ss);
+        EXPECT_EQ(
+            t->tags.at(2)->text.subtags.at(0).subtags.at(0).head,
+            "nested"_ss);
+        EXPECT_EQ(
+            t->tags.at(2)->text.subtags.at(0).subtags.at(1).head,
+            "tag"_ss);
+    }
 }
 
 TEST(OrgParseSem, TextParsing) {

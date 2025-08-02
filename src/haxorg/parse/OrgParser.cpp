@@ -1847,7 +1847,8 @@ OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
 OrgId OrgParser::parseSubtreeTodo(OrgLexer& lex) {
     auto __trace = trace(lex);
     space(lex);
-    if (lex.at(otk::BigIdent)) {
+    if (lex.at(
+            Vec{otk::BigIdent, otk::Whitespace, otk::SubtreePriority})) {
         return token(onk::BigIdent, pop(lex, otk::BigIdent));
     } else {
         return empty();

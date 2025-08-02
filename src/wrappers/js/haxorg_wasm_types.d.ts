@@ -3459,6 +3459,7 @@ export interface Subtree {
   setProperty(value: NamedProperty): void;
   setPropertyStrValue(value: string, kind: string, subkind: haxorg_wasm.Optional<string>): void;
   getCleanTitle(): string;
+  getTodoKeyword(): haxorg_wasm.Optional<string>;
   level: number
   treeId: haxorg_wasm.Optional<string>
   todo: haxorg_wasm.Optional<string>

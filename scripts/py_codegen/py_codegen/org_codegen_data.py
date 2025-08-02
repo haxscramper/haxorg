@@ -1266,6 +1266,12 @@ def get_sem_subtree():
                     ),
                     isConst=True,
                 ),
+                GenTuFunction(
+                    t_opt(t_str()),
+                    "getTodoKeyword",
+                    GenTuDoc(""),
+                    isConst=True,
+                ),
             ],
         )
     ]
