@@ -460,13 +460,13 @@ void OrgParser::textFold(OrgLexer& lex) {
 
                 case otk::ActiveDynamicTimeContent:
                 case otk::InactiveDynamicTimeContent: {
-                    subParse(TimeStamp, lex);
+                    subParse(TimeRange, lex);
                     break;
                 }
 
                 case otk::AngleBegin: {
                     if (lex.at(otk::Date, +1)) {
-                        subParse(TimeStamp, lex);
+                        subParse(TimeRange, lex);
                     } else {
                         subParse(Placeholder, lex);
                     }
@@ -901,8 +901,7 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
-    auto            __trace  = trace(lex);
-    bool            isActive = lex.at(otk::AngleBegin);
+    auto            __trace = trace(lex);
     const OrgTokSet times{
         otk::BraceBegin,
         otk::BraceEnd,
@@ -925,11 +924,19 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
     tmp.pos          = lex.pos;
     bool isTimeRange = false;
     while (!tmp.finished() && tmp.at(times)) {
-        if (tmp.at(Vec{
-                isActive ? otk::AngleEnd : otk::BraceEnd,
-                otk::DoubleDash,
-                isActive ? otk::AngleBegin : otk::BraceBegin,
-            })) {
+        message(printLexerToString(tmp));
+        if (tmp.at(otk::AngleEnd) && tmp.at(otk::DoubleDash, +1)
+            && tmp.at(
+                OrgTokSet{otk::AngleBegin, otk::ActiveDynamicTimeContent},
+                +2)) {
+            isTimeRange = true;
+            break;
+        } else if (
+            tmp.at(otk::BraceEnd) && tmp.at(otk::DoubleDash, +1)
+            && tmp.at(
+                OrgTokSet{
+                    otk::BraceBegin, otk::InactiveDynamicTimeContent},
+                +2)) {
             isTimeRange = true;
             break;
         } else {
@@ -938,6 +945,7 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
     }
 
     if (isTimeRange) {
+        message("correct time range found");
         start(onk::TimeRange);
         subParse(TimeStamp, lex);
         skip(lex, otk::DoubleDash);

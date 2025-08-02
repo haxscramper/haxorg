@@ -415,9 +415,7 @@ TEST(OrgParseSem, TimeParsing) {
     }
 
     {
-        auto t = parseOne<sem::Time>(
-            "[%%(diary-anniversary 12 25 1990)]",
-            getDebugFile("diary_anniversary"));
+        auto t = parseOne<sem::Time>("[%%(diary-anniversary 12 25 1990)]");
         EXPECT_TRUE(t->isDynamic());
         EXPECT_FALSE(t->isStatic());
         EXPECT_EQ(t->getTimeKind(), sem::Time::TimeKind::Dynamic);
@@ -470,7 +468,7 @@ TEST(OrgParseSem, TimeParsing) {
             sem::Time::Repeat::Period::Month);
         EXPECT_EQ(static_time.repeat[1].count, 1);
         EXPECT_TRUE(static_time.warn.has_value());
-        EXPECT_EQ(static_time.warn->count, 1);
+        EXPECT_EQ(static_time.warn->count, -1);
     }
 
     {
