@@ -892,6 +892,7 @@ __same_type(sem::SubtreeCompletion);
 __same_type(sem::HashTagText);
 __same_type(sem::SubtreeLogHead);
 __same_type(sem::SubtreePath);
+__same_type(sem::LispCode);
 __same_type(org::parse::LineCol);
 __same_type(org::sem::OrgCodeEvalOutput);
 

@@ -1386,7 +1386,8 @@ export interface haxorg_wasm_module_auto {
     DoubleHash: OrgTokenKind,
     DoubleQuote: OrgTokenKind,
     DoubleSlash: OrgTokenKind,
-    DynamicTimeContent: OrgTokenKind,
+    ActiveDynamicTimeContent: OrgTokenKind,
+    InactiveDynamicTimeContent: OrgTokenKind,
     EndOfFile: OrgTokenKind,
     Equals: OrgTokenKind,
     Escaped: OrgTokenKind,
@@ -1631,6 +1632,8 @@ export interface UserTimeConstructor { new(): UserTime; }
 export interface UserTime {
   getBreakdown(): UserTimeBreakdown;
   format(): string;
+  getTimeDeltaSeconds(other: UserTime): Int64_t;
+  toUnixTimestamp(): Int64_t;
 }
 export interface ParseLineColConstructor { new(): ParseLineCol; }
 export interface ParseLineCol {
@@ -3398,7 +3401,7 @@ export interface TimeStatic {
 export interface TimeDynamicConstructor { new(): TimeDynamic; }
 export interface TimeDynamic {
   Dynamic(): void;
-  expr: string
+  expr: LispCode
 }
 export type TimeTimeVariant = haxorg_wasm.StdVariant<TimeStatic, TimeDynamic>;
 export enum TimeTimeKind {
@@ -3408,6 +3411,7 @@ export enum TimeTimeKind {
 export interface TimeRangeConstructor { new(): TimeRange; }
 export interface TimeRange {
   getKind(): OrgSemKind;
+  getClockedTimeSeconds(): haxorg_wasm.Optional<Int64_t>;
   from: Time
   to: Time
 }
@@ -3919,7 +3923,7 @@ export interface ImmTimeDynamicConstructor { new(): ImmTimeDynamic; }
 export interface ImmTimeDynamic {
   Dynamic(): void;
   __eq__(other: ImmTimeDynamic): boolean;
-  expr: haxorg_wasm.ImmBox<string>
+  expr: LispCode
 }
 export type ImmTimeTimeVariant = haxorg_wasm.StdVariant<ImmTimeStatic, ImmTimeDynamic>;
 export enum ImmTimeTimeKind {
@@ -5906,7 +5910,8 @@ export enum OrgTokenKind {
   DoubleHash,
   DoubleQuote,
   DoubleSlash,
-  DynamicTimeContent,
+  ActiveDynamicTimeContent,
+  InactiveDynamicTimeContent,
   EndOfFile,
   Equals,
   Escaped,

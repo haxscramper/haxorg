@@ -34,6 +34,8 @@ class UserTime:
     def __init__(self) -> None: ...
     def getBreakdown(self) -> UserTimeBreakdown: ...
     def format(self) -> str: ...
+    def getTimeDeltaSeconds(self, other: UserTime) -> int64_t: ...
+    def toUnixTimestamp(self) -> int64_t: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -2289,11 +2291,11 @@ class TimeStatic:
     time: UserTime
 
 class TimeDynamic:
-    def __init__(self, expr: str) -> None: ...
+    def __init__(self, expr: LispCode) -> None: ...
     def __init__(self): ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    expr: str
+    expr: LispCode
 
 TimeTimeVariant = Union[TimeStatic, TimeDynamic]
 class TimeTimeKind(Enum):
@@ -2326,6 +2328,7 @@ class Time(Org):
 
 class TimeRange(Org):
     def __init__(self, from_: Time, to: Time) -> None: ...
+    def getClockedTimeSeconds(self) -> Optional[int64_t]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     from_: Time
@@ -2911,12 +2914,12 @@ class ImmTimeStatic:
     time: UserTime
 
 class ImmTimeDynamic:
-    def __init__(self, expr: ImmBox[str]) -> None: ...
+    def __init__(self, expr: LispCode) -> None: ...
     def __init__(self): ...
     def __eq__(self, other: ImmTimeDynamic) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    expr: ImmBox[str]
+    expr: LispCode
 
 ImmTimeTimeVariant = Union[ImmTimeStatic, ImmTimeDynamic]
 class ImmTimeTimeKind(Enum):
@@ -4814,107 +4817,108 @@ class OrgTokenKind(Enum):
     DoubleHash = 123
     DoubleQuote = 124
     DoubleSlash = 125
-    DynamicTimeContent = 126
-    EndOfFile = 127
-    Equals = 128
-    Escaped = 129
-    Exclamation = 130
-    FootnoteInlineBegin = 131
-    FootnoteLinked = 132
-    ForwardSlash = 133
-    HashIdent = 134
-    HashTagBegin = 135
-    Indent = 136
-    InlineExportBackend = 137
-    InlineExportContent = 138
-    ItalicBegin = 139
-    ItalicEnd = 140
-    ItalicUnknown = 141
-    LatexInlineRaw = 142
-    LatexParBegin = 143
-    LatexParEnd = 144
-    LeadingMinus = 145
-    LeadingNumber = 146
-    LeadingPipe = 147
-    LeadingPlus = 148
-    LeadingSpace = 149
-    LineCommand = 150
-    LinkBegin = 151
-    LinkDescriptionBegin = 152
-    LinkDescriptionEnd = 153
-    LinkEnd = 154
-    LinkFull = 155
-    LinkProtocol = 156
-    LinkProtocolAttachment = 157
-    LinkProtocolCustomId = 158
-    LinkProtocolFile = 159
-    LinkProtocolHttp = 160
-    LinkProtocolId = 161
-    LinkProtocolInternal = 162
-    LinkProtocolTitle = 163
-    LinkSplit = 164
-    LinkTarget = 165
-    LinkTargetBegin = 166
-    LinkTargetEnd = 167
-    LinkTargetFile = 168
-    ListBegin = 169
-    ListEnd = 170
-    ListItemBegin = 171
-    ListItemEnd = 172
-    LongNewline = 173
-    MediumNewline = 174
-    Minus = 175
-    MiscUnicode = 176
-    MonospaceBegin = 177
-    MonospaceEnd = 178
-    MonospaceUnknown = 179
-    Newline = 180
-    Number = 181
-    ParBegin = 182
-    ParEnd = 183
-    Percent = 184
-    Pipe = 185
-    Placeholder = 186
-    Plus = 187
-    Punctuation = 188
-    RawText = 189
-    SameIndent = 190
-    Semicolon = 191
-    SingleQuote = 192
-    SrcContent = 193
-    StmtListBegin = 194
-    StmtListEnd = 195
-    StrikeBegin = 196
-    StrikeEnd = 197
-    StrikeUnknown = 198
-    SubtreeCompletion = 199
-    SubtreePriority = 200
-    SubtreeStars = 201
-    Symbol = 202
-    TableSeparator = 203
-    TextSeparator = 204
-    TextSrcBegin = 205
-    Tilda = 206
-    Time = 207
-    TimeArrow = 208
-    TimeRepeaterDuration = 209
-    TimeRepeaterSpec = 210
-    TimeWarnPeriod = 211
-    TrailingPipe = 212
-    TreeClock = 213
-    TreeTime = 214
-    TripleAngleBegin = 215
-    TripleAngleEnd = 216
-    Underline = 217
-    UnderlineBegin = 218
-    UnderlineEnd = 219
-    UnderlineUnknown = 220
-    Unknown = 221
-    VerbatimBegin = 222
-    VerbatimEnd = 223
-    VerbatimUnknown = 224
-    Whitespace = 225
-    Word = 226
+    ActiveDynamicTimeContent = 126
+    InactiveDynamicTimeContent = 127
+    EndOfFile = 128
+    Equals = 129
+    Escaped = 130
+    Exclamation = 131
+    FootnoteInlineBegin = 132
+    FootnoteLinked = 133
+    ForwardSlash = 134
+    HashIdent = 135
+    HashTagBegin = 136
+    Indent = 137
+    InlineExportBackend = 138
+    InlineExportContent = 139
+    ItalicBegin = 140
+    ItalicEnd = 141
+    ItalicUnknown = 142
+    LatexInlineRaw = 143
+    LatexParBegin = 144
+    LatexParEnd = 145
+    LeadingMinus = 146
+    LeadingNumber = 147
+    LeadingPipe = 148
+    LeadingPlus = 149
+    LeadingSpace = 150
+    LineCommand = 151
+    LinkBegin = 152
+    LinkDescriptionBegin = 153
+    LinkDescriptionEnd = 154
+    LinkEnd = 155
+    LinkFull = 156
+    LinkProtocol = 157
+    LinkProtocolAttachment = 158
+    LinkProtocolCustomId = 159
+    LinkProtocolFile = 160
+    LinkProtocolHttp = 161
+    LinkProtocolId = 162
+    LinkProtocolInternal = 163
+    LinkProtocolTitle = 164
+    LinkSplit = 165
+    LinkTarget = 166
+    LinkTargetBegin = 167
+    LinkTargetEnd = 168
+    LinkTargetFile = 169
+    ListBegin = 170
+    ListEnd = 171
+    ListItemBegin = 172
+    ListItemEnd = 173
+    LongNewline = 174
+    MediumNewline = 175
+    Minus = 176
+    MiscUnicode = 177
+    MonospaceBegin = 178
+    MonospaceEnd = 179
+    MonospaceUnknown = 180
+    Newline = 181
+    Number = 182
+    ParBegin = 183
+    ParEnd = 184
+    Percent = 185
+    Pipe = 186
+    Placeholder = 187
+    Plus = 188
+    Punctuation = 189
+    RawText = 190
+    SameIndent = 191
+    Semicolon = 192
+    SingleQuote = 193
+    SrcContent = 194
+    StmtListBegin = 195
+    StmtListEnd = 196
+    StrikeBegin = 197
+    StrikeEnd = 198
+    StrikeUnknown = 199
+    SubtreeCompletion = 200
+    SubtreePriority = 201
+    SubtreeStars = 202
+    Symbol = 203
+    TableSeparator = 204
+    TextSeparator = 205
+    TextSrcBegin = 206
+    Tilda = 207
+    Time = 208
+    TimeArrow = 209
+    TimeRepeaterDuration = 210
+    TimeRepeaterSpec = 211
+    TimeWarnPeriod = 212
+    TrailingPipe = 213
+    TreeClock = 214
+    TreeTime = 215
+    TripleAngleBegin = 216
+    TripleAngleEnd = 217
+    Underline = 218
+    UnderlineBegin = 219
+    UnderlineEnd = 220
+    UnderlineUnknown = 221
+    Unknown = 222
+    VerbatimBegin = 223
+    VerbatimEnd = 224
+    VerbatimUnknown = 225
+    Whitespace = 226
+    Word = 227
 
 class OrgJsonKind(Enum):
     Null = 1

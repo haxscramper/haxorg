@@ -1229,3 +1229,12 @@ hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterDirectoryAPI::
 
     return std::nullopt;
 }
+
+hstd::Opt<int64_t> org::sem::TimeRange::getClockedTimeSeconds() const {
+    if (!to.isNil() && to->isStatic() && from->isStatic()) {
+        return to->getStaticTime().getTimeDeltaSeconds(
+            from->getStaticTime());
+    } else {
+        return std::nullopt;
+    }
+}

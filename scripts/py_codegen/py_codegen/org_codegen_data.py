@@ -1030,7 +1030,7 @@ def get_sem_text():
                         org_struct(
                             t_nest("Dynamic", [t_org("Time")]),
                             GenTuDoc(""),
-                            fields=[GenTuField(t_str(), "expr", GenTuDoc(""))],
+                            fields=[GenTuField(t_nest_shared("LispCode"), "expr", GenTuDoc(""))],
                             methods=[
                                 default_constructor_method("Dynamic"),
                             ],
@@ -1050,6 +1050,13 @@ def get_sem_text():
             fields=[
                 id_field("Time", "from", GenTuDoc("Starting time")),
                 id_field("Time", "to", GenTuDoc("Finishing time")),
+            ],
+            methods=[
+                GenTuFunction(
+                    t_opt(t("int64_t")),
+                    "getClockedTimeSeconds",
+                    isConst=True,
+                ),
             ],
         ),
         d_org(
@@ -3485,7 +3492,8 @@ def get_org_token_kind():
         efield("DoubleHash", ""),
         efield("DoubleQuote", ""),
         efield("DoubleSlash", ""),
-        efield("DynamicTimeContent", ""),
+        efield("ActiveDynamicTimeContent", ""),
+        efield("InactiveDynamicTimeContent", ""),
         efield("EndOfFile", ""),
         efield("Equals", ""),
         efield("Escaped", ""),

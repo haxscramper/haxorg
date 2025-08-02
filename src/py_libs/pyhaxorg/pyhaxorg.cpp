@@ -234,6 +234,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
                         }))
     .def("getBreakdown", static_cast<hstd::UserTimeBreakdown(hstd::UserTime::*)() const>(&hstd::UserTime::getBreakdown))
     .def("format", static_cast<std::string(hstd::UserTime::*)() const>(&hstd::UserTime::format))
+    .def("getTimeDeltaSeconds",
+         static_cast<int64_t(hstd::UserTime::*)(hstd::UserTime const&) const>(&hstd::UserTime::getTimeDeltaSeconds),
+         pybind11::arg("other"))
+    .def("toUnixTimestamp", static_cast<int64_t(hstd::UserTime::*)() const>(&hstd::UserTime::toUnixTimestamp))
     .def("__repr__", [](hstd::UserTime const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5255,6 +5259,7 @@ ingoing elements.)RAW")
                         }))
     .def_readwrite("from_", &org::sem::TimeRange::from, R"RAW(Starting time)RAW")
     .def_readwrite("to", &org::sem::TimeRange::to, R"RAW(Finishing time)RAW")
+    .def("getClockedTimeSeconds", static_cast<hstd::Opt<int64_t>(org::sem::TimeRange::*)() const>(&org::sem::TimeRange::getClockedTimeSeconds))
     .def("__repr__", [](org::sem::TimeRange const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -9348,7 +9353,8 @@ ingoing elements.)RAW")
     .value("DoubleHash", OrgTokenKind::DoubleHash)
     .value("DoubleQuote", OrgTokenKind::DoubleQuote)
     .value("DoubleSlash", OrgTokenKind::DoubleSlash)
-    .value("DynamicTimeContent", OrgTokenKind::DynamicTimeContent)
+    .value("ActiveDynamicTimeContent", OrgTokenKind::ActiveDynamicTimeContent)
+    .value("InactiveDynamicTimeContent", OrgTokenKind::InactiveDynamicTimeContent)
     .value("EndOfFile", OrgTokenKind::EndOfFile)
     .value("Equals", OrgTokenKind::Equals)
     .value("Escaped", OrgTokenKind::Escaped)

@@ -970,7 +970,7 @@ auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
         }
 
     } else {
-        add(result, str(id->getDynamic().expr));
+        add(result, toString(id->getDynamic().expr, ctx));
     }
     add(result, str(id->isActive ? ">" : "]"));
 

@@ -1950,11 +1950,11 @@ void org::algo::proto_serde<::orgproto::Time::Static, org::sem::Time::Static>::r
 }
 
 void org::algo::proto_serde<::orgproto::Time::Dynamic, org::sem::Time::Dynamic>::write(::orgproto::Time::Dynamic* out, org::sem::Time::Dynamic const& in) {
-  proto_serde<std::string, hstd::Str>::write(out->mutable_expr(), in.expr);
+  proto_serde<orgproto::LispCode, org::sem::LispCode>::write(out->mutable_expr(), in.expr);
 }
 
 void org::algo::proto_serde<::orgproto::Time::Dynamic, org::sem::Time::Dynamic>::read(::orgproto::Time::Dynamic const& out, proto_write_accessor<org::sem::Time::Dynamic> in) {
-  proto_serde<std::string, hstd::Str>::read(out.expr(), in.for_field(&org::sem::Time::Dynamic::expr));
+  proto_serde<orgproto::LispCode, org::sem::LispCode>::read(out.expr(), in.for_field(&org::sem::Time::Dynamic::expr));
 }
 
 void org::algo::proto_serde<::orgproto::Time, org::sem::Time>::write(::orgproto::Time* out, org::sem::Time const& in) {

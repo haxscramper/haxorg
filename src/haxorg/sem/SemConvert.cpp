@@ -973,7 +973,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
     if (a.kind() == onk::DynamicInactiveTime
         || a.kind() == onk::DynamicActiveTime) {
         Time::Dynamic d{};
-        d.expr     = get_text(a);
+        d.expr     = convertLisp(one(a, N::Body));
         time->time = d;
     } else if (
         a.kind() == onk::StaticActiveTime

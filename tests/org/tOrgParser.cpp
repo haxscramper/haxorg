@@ -322,6 +322,172 @@ TEST(OrgParseSem, HashtagParse) {
     }
 }
 
+TEST(OrgParseSem, TimeParsing) {
+    {
+        auto t = parseOne<sem::Time>("[2025-12-02]");
+        EXPECT_EQ(t->getYear(), 2025);
+        EXPECT_EQ(t->getMonth(), 12);
+        EXPECT_EQ(t->getDay(), 2);
+        EXPECT_TRUE(t->isStatic());
+        EXPECT_FALSE(t->isDynamic());
+        EXPECT_FALSE(t->isActive);
+        EXPECT_EQ(t->getTimeKind(), sem::Time::TimeKind::Static);
+    }
+
+    {
+        auto t = parseOne<sem::Time>("<2025-12-02>");
+        EXPECT_TRUE(t->isActive);
+        EXPECT_TRUE(t->isStatic());
+    }
+
+    {
+        auto t = parseOne<sem::Time>("[2025-12-02 Mon 14:30]");
+        EXPECT_EQ(t->getHour(), 14);
+        EXPECT_EQ(t->getMinute(), 30);
+        EXPECT_EQ(t->getSecond(), std::nullopt);
+        auto breakdown = t->getStatic().time.getBreakdown();
+        EXPECT_EQ(breakdown.year, 2025);
+        EXPECT_EQ(breakdown.month, 12);
+        EXPECT_EQ(breakdown.day, 2);
+        EXPECT_EQ(breakdown.hour, 14);
+        EXPECT_EQ(breakdown.minute, 30);
+    }
+
+    {
+        auto t = parseOne<sem::Time>("[2025-12-02 +1w]");
+        EXPECT_TRUE(t->isStatic());
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(static_time.repeat.size(), 1);
+        EXPECT_EQ(
+            static_time.repeat[0].mode, sem::Time::Repeat::Mode::Exact);
+        EXPECT_EQ(
+            static_time.repeat[0].period, sem::Time::Repeat::Period::Week);
+        EXPECT_EQ(static_time.repeat[0].count, 1);
+    }
+
+    {
+        auto  t           = parseOne<sem::Time>("[2025-12-02 ++1d]");
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(
+            static_time.repeat[0].mode,
+            sem::Time::Repeat::Mode::FirstMatch);
+        EXPECT_EQ(
+            static_time.repeat[0].period, sem::Time::Repeat::Period::Day);
+    }
+
+    {
+        auto  t           = parseOne<sem::Time>("[2025-12-02 .+1m]");
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(
+            static_time.repeat[0].mode, sem::Time::Repeat::Mode::SameDay);
+        EXPECT_EQ(
+            static_time.repeat[0].period,
+            sem::Time::Repeat::Period::Month);
+    }
+
+    {
+        auto  t           = parseOne<sem::Time>("[2025-12-02 +1y -3d]");
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(static_time.repeat.size(), 1);
+        EXPECT_TRUE(static_time.warn.has_value());
+        EXPECT_EQ(
+            static_time.warn->period, sem::Time::Repeat::Period::Day);
+        EXPECT_EQ(static_time.warn->count, -3);
+    }
+
+    {
+        auto t = parseOne<sem::Time>(
+            "<%%(diary-anniversary 12 25 1990)>",
+            getDebugFile("diary_anniversary"));
+        EXPECT_TRUE(t->isDynamic());
+        EXPECT_FALSE(t->isStatic());
+        EXPECT_EQ(t->getTimeKind(), sem::Time::TimeKind::Dynamic);
+        EXPECT_TRUE(t->isActive);
+        auto& dynamic_time = t->getDynamic();
+        EXPECT_EQ(dynamic_time.expr.getCall().name, "diary-anniversary");
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(0).getNumber().value, 12);
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(1).getNumber().value, 25);
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(2).getNumber().value,
+            1990);
+    }
+
+    {
+        auto t = parseOne<sem::Time>(
+            "[%%(diary-anniversary 12 25 1990)]",
+            getDebugFile("diary_anniversary"));
+        EXPECT_TRUE(t->isDynamic());
+        EXPECT_FALSE(t->isStatic());
+        EXPECT_EQ(t->getTimeKind(), sem::Time::TimeKind::Dynamic);
+        EXPECT_FALSE(t->isActive);
+        auto& dynamic_time = t->getDynamic();
+        EXPECT_EQ(dynamic_time.expr.getCall().name, "diary-anniversary");
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(0).getNumber().value, 12);
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(1).getNumber().value, 25);
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(2).getNumber().value,
+            1990);
+    }
+
+    {
+        auto tr = parseOne<sem::TimeRange>("[2025-12-02]--[2025-12-03]");
+        EXPECT_EQ(tr->getClockedTimeSeconds().value(), 24 * 60 * 60);
+        EXPECT_TRUE(tr->from->isStatic());
+        EXPECT_TRUE(tr->to->isStatic());
+        EXPECT_EQ(tr->from->getDay(), 2);
+        EXPECT_EQ(tr->to->getDay(), 3);
+    }
+
+    {
+        auto tr = parseOne<sem::TimeRange>(
+            "[2025-12-02 10:00]--[2025-12-02 15:30]");
+        EXPECT_EQ(tr->getClockedTimeSeconds().value(), 5.5 * 60 * 60);
+    }
+
+    {
+        auto tr = parseOne<sem::TimeRange>(
+            "<2025-12-02>--<%%(diary-anniversary 12 25 1990)>");
+        EXPECT_TRUE(tr->from->isStatic());
+        EXPECT_TRUE(tr->to->isDynamic());
+        EXPECT_TRUE(tr->from->isActive);
+        EXPECT_TRUE(tr->to->isActive);
+        EXPECT_FALSE(tr->getClockedTimeSeconds().has_value());
+    }
+
+    {
+        auto  t = parseOne<sem::Time>("[2025-12-02 +2w +1m -1d]");
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(static_time.repeat.size(), 2);
+        EXPECT_EQ(
+            static_time.repeat[0].period, sem::Time::Repeat::Period::Week);
+        EXPECT_EQ(static_time.repeat[0].count, 2);
+        EXPECT_EQ(
+            static_time.repeat[1].period,
+            sem::Time::Repeat::Period::Month);
+        EXPECT_EQ(static_time.repeat[1].count, 1);
+        EXPECT_TRUE(static_time.warn.has_value());
+        EXPECT_EQ(static_time.warn->count, 1);
+    }
+
+    {
+        auto t = parseOne<sem::Time>("[2025-12-02 14:30:45]");
+        EXPECT_EQ(t->getSecond(), 45);
+        auto user_time = t->getStaticTime();
+        EXPECT_EQ(user_time.align, UserTime::Alignment::Second);
+    }
+
+    {
+        auto t         = parseOne<sem::Time>("[2025-12-02]");
+        auto user_time = t->getStaticTime();
+        EXPECT_EQ(user_time.align, UserTime::Alignment::Day);
+        EXPECT_FALSE(user_time.zone.has_value());
+    }
+}
+
 TEST(OrgParseSem, SubtreeLogParsing) {
     {
         auto s = parseOne<sem::Subtree>(

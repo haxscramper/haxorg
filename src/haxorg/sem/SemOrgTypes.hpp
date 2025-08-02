@@ -2092,7 +2092,7 @@ struct Time : public org::sem::Org {
 
   struct Dynamic {
     BOOST_DESCRIBE_CLASS(Dynamic, (), (), (), (expr))
-    hstd::Str expr;
+    org::sem::LispCode expr;
     Dynamic() {  }
   };
 
@@ -2141,13 +2141,16 @@ struct TimeRange : public org::sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, from, to))
+                       (staticKind,
+                        from,
+                        to))
   static OrgSemKind const staticKind;
   /// \brief Starting time
   org::sem::SemId<org::sem::Time> from = sem::SemId<sem::Time>::Nil();
   /// \brief Finishing time
   org::sem::SemId<org::sem::Time> to = sem::SemId<sem::Time>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::TimeRange; }
+  hstd::Opt<int64_t> getClockedTimeSeconds() const;
 };
 
 /// \brief Inline macro invocation

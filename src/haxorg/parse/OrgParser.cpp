@@ -458,6 +458,12 @@ void OrgParser::textFold(OrgLexer& lex) {
                     break;
                 }
 
+                case otk::ActiveDynamicTimeContent:
+                case otk::InactiveDynamicTimeContent: {
+                    subParse(TimeStamp, lex);
+                    break;
+                }
+
                 case otk::AngleBegin: {
                     if (lex.at(otk::Date, +1)) {
                         subParse(TimeStamp, lex);
@@ -775,16 +781,50 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
 OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
     auto __trace   = trace(lex);
     auto start_tok = lex.tok();
-    expect(lex, OrgTokSet{otk::BraceBegin, otk::AngleBegin});
-    bool active = lex.at(otk::AngleBegin);
-    if (lex.at(otk::DynamicTimeContent)) {
+    expect(
+        lex,
+        OrgTokSet{
+            otk::BraceBegin,
+            otk::AngleBegin,
+            otk::InactiveDynamicTimeContent,
+            otk::ActiveDynamicTimeContent,
+        });
+
+    bool active = lex.at(OrgTokSet{
+        otk::AngleBegin,
+        otk::ActiveDynamicTimeContent,
+    });
+
+    if (lex.at(OrgTokSet{
+            otk::InactiveDynamicTimeContent,
+            otk::ActiveDynamicTimeContent})) {
         if (active) {
             start(onk::DynamicActiveTime);
+            skip(lex, otk::ActiveDynamicTimeContent);
         } else {
             start(onk::DynamicInactiveTime);
+            skip(lex, otk::InactiveDynamicTimeContent);
         }
 
-        token(onk::RawText, pop(lex, otk::DynamicTimeContent));
+        std::function<void()> aux;
+        aux = [&]() {
+            if (lex.at(otk::ParBegin)) {
+                start(onk::InlineStmtList);
+                skip(lex, otk::ParBegin);
+                space(lex);
+                while (lex.can_search(otk::ParEnd)) {
+                    subParse(AttrLisp, lex);
+                    space(lex);
+                }
+                skip(lex, otk::ParEnd);
+                end();
+            } else {
+                token(onk::RawText, pop(lex, lex.kind()));
+            }
+        };
+
+
+        aux();
 
         end();
     } else {
@@ -868,7 +908,8 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
         otk::BraceEnd,
         otk::AngleBegin,
         otk::AngleEnd,
-        otk::DynamicTimeContent,
+        otk::InactiveDynamicTimeContent,
+        otk::ActiveDynamicTimeContent,
         otk::Date,
         otk::Word,
         otk::Time,

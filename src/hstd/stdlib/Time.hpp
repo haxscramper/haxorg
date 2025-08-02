@@ -52,6 +52,9 @@ struct [[refl]] UserTime {
     std::string                format(Format kind) const;
 
     bool operator==(UserTime const& it) const;
+
+    [[refl]] int64_t getTimeDeltaSeconds(UserTime const& other) const;
+    [[refl]] int64_t toUnixTimestamp() const;
 };
 
 

@@ -440,7 +440,7 @@ struct ImmTime : public org::imm::ImmOrg {
                          (),
                          (),
                          (expr))
-    hstd::ext::ImmBox<hstd::Str> expr;
+    org::sem::LispCode expr;
     Dynamic() {  }
     bool operator==(org::imm::ImmTime::Dynamic const& other) const;
   };
