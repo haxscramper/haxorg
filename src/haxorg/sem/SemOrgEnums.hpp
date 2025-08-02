@@ -988,6 +988,7 @@
 #define EACH_SEM_ORG_Subtree_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((int), level, Level, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), treeId, Treeid, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), todo, Todo, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SubtreeCompletion>), completion, Completion, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), description, Description, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::HashTag>>), tags, Tags, (org::sem::Subtree), Subtree) \
@@ -1005,6 +1006,7 @@
     __IMPL_BASE((org::sem::Org)) \
     __IMPL_FIELD((int), level, Level, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), treeId, Treeid, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), todo, Todo, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SubtreeCompletion>), completion, Completion, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), description, Description, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::HashTag>>), tags, Tags, (org::sem::Subtree), Subtree) \
@@ -1654,6 +1656,7 @@
 #define EACH_IMM_ORG_ImmSubtree_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((int), level, Level, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), treeId, Treeid, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), todo, Todo, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>>), completion, Completion, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>), description, Description, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>), tags, Tags, (org::imm::ImmSubtree), Subtree) \
@@ -1671,6 +1674,7 @@
     __IMPL_BASE((org::imm::ImmOrg)) \
     __IMPL_FIELD((int), level, Level, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), treeId, Treeid, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), todo, Todo, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>>), completion, Completion, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>), description, Description, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>), tags, Tags, (org::imm::ImmSubtree), Subtree) \
@@ -1971,7 +1975,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(BlockCodeExports)
   BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, Code)
   BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, Results)
 BOOST_DESCRIBE_ENUM_END(BlockCodeExports)
-enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Warn, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
+enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Warn, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
 BOOST_DESCRIBE_ENUM_BEGIN(OrgSpecName)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Unnamed)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Result)
@@ -1999,6 +2003,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgSpecName)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Lang)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Prefix)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Text)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Todo)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Importance)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Title)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Completion)

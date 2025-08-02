@@ -1238,11 +1238,3 @@ hstd::Opt<int64_t> org::sem::TimeRange::getClockedTimeSeconds() const {
         return std::nullopt;
     }
 }
-
-hstd::Opt<hstd::Str> org::sem::Subtree::getTodoKeyword() const {
-    if (title->hasAdmonition()) {
-        return title->getAdmonitions().at(0);
-    } else {
-        return std::nullopt;
-    }
-}

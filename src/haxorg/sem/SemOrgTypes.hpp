@@ -2666,6 +2666,7 @@ struct Subtree : public org::sem::Org {
                        (staticKind,
                         level,
                         treeId,
+                        todo,
                         completion,
                         description,
                         tags,
@@ -2683,6 +2684,8 @@ struct Subtree : public org::sem::Org {
   int level = 0;
   /// \brief :ID: property
   hstd::Opt<hstd::Str> treeId = std::nullopt;
+  /// \brief Todo state of the tree
+  hstd::Opt<hstd::Str> todo = std::nullopt;
   /// \brief Task completion state
   hstd::Opt<org::sem::SubtreeCompletion> completion = std::nullopt;
   hstd::Opt<org::sem::SemId<org::sem::Paragraph>> description = std::nullopt;
@@ -2719,7 +2722,6 @@ struct Subtree : public org::sem::Org {
   void setPropertyStrValue(hstd::Str const& value, hstd::Str const& kind, hstd::Opt<hstd::Str> const& subkind = std::nullopt);
   /// \brief Get subtree title as a flat string, without markup nodes, but with all left strings
   hstd::Str getCleanTitle() const;
-  hstd::Opt<hstd::Str> getTodoKeyword() const;
 };
 
 /// \brief Table cell

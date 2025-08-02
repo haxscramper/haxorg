@@ -1099,6 +1099,7 @@ export interface haxorg_wasm_module_auto {
     Lang: OrgSpecName,
     Prefix: OrgSpecName,
     Text: OrgSpecName,
+    Todo: OrgSpecName,
     Importance: OrgSpecName,
     Title: OrgSpecName,
     Completion: OrgSpecName,
@@ -1874,6 +1875,7 @@ export interface ImmSubtreeValueReadConstructor { new(): ImmSubtreeValueRead; }
 export interface ImmSubtreeValueRead {
   getLevel(): number;
   getTreeid(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
+  getTodo(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
   getCompletion(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<SubtreeCompletion>>;
   getDescription(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>;
   getTags(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmHashTag>>;
@@ -3457,9 +3459,9 @@ export interface Subtree {
   setProperty(value: NamedProperty): void;
   setPropertyStrValue(value: string, kind: string, subkind: haxorg_wasm.Optional<string>): void;
   getCleanTitle(): string;
-  getTodoKeyword(): haxorg_wasm.Optional<string>;
   level: number
   treeId: haxorg_wasm.Optional<string>
+  todo: haxorg_wasm.Optional<string>
   completion: haxorg_wasm.Optional<SubtreeCompletion>
   description: haxorg_wasm.Optional<Paragraph>
   tags: haxorg_wasm.Vec<HashTag>
@@ -3982,6 +3984,7 @@ export interface ImmSubtree {
   __eq__(other: ImmSubtree): boolean;
   level: number
   treeId: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
+  todo: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
   completion: haxorg_wasm.ImmBox<haxorg_wasm.Optional<SubtreeCompletion>>
   description: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
   tags: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmHashTag>>
@@ -4384,6 +4387,7 @@ export interface ImmSubtreeValueConstructor { new(): ImmSubtreeValue; }
 export interface ImmSubtreeValue {
   setLevel(value: number): void;
   setTreeid(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
+  setTodo(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
   setCompletion(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<SubtreeCompletion>>): void;
   setDescription(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>): void;
   setTags(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmHashTag>>): void;
@@ -5621,6 +5625,7 @@ export enum OrgSpecName {
   Lang,
   Prefix,
   Text,
+  Todo,
   Importance,
   Title,
   Completion,

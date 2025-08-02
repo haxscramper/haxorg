@@ -1195,6 +1195,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
         Vec<Res> lead;
         Vec<Res> tags;
 
+        if (id->todo) { lead.push_back(str(id->todo.value())); }
         if (id->isComment) { lead.push_back(str("COMMENT")); }
         if (id->priority) {
             lead.push_back(str(fmt("[#{}]", id->priority.value())));

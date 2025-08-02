@@ -1029,6 +1029,7 @@ ImmPathStep documentation.)RAW")
   pybind11::class_<org::imm::ImmSubtreeValueRead>(m, "ImmSubtreeValueRead")
     .def("getLevel", static_cast<int const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getLevel))
     .def("getTreeid", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTreeid))
+    .def("getTodo", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTodo))
     .def("getCompletion", static_cast<immer::box<std::optional<org::sem::SubtreeCompletion>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getCompletion))
     .def("getDescription", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getDescription))
     .def("getTags", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTags))
@@ -5381,6 +5382,7 @@ ingoing elements.)RAW")
                         }))
     .def_readwrite("level", &org::sem::Subtree::level, R"RAW(Subtree level)RAW")
     .def_readwrite("treeId", &org::sem::Subtree::treeId, R"RAW(:ID: property)RAW")
+    .def_readwrite("todo", &org::sem::Subtree::todo, R"RAW(Todo state of the tree)RAW")
     .def_readwrite("completion", &org::sem::Subtree::completion, R"RAW(Task completion state)RAW")
     .def_readwrite("description", &org::sem::Subtree::description)
     .def_readwrite("tags", &org::sem::Subtree::tags, R"RAW(Trailing tags)RAW")
@@ -5420,7 +5422,6 @@ ingoing elements.)RAW")
          pybind11::arg_v("subkind", std::nullopt),
          R"RAW(Assign a raw string literal to a property.)RAW")
     .def("getCleanTitle", static_cast<hstd::Str(org::sem::Subtree::*)() const>(&org::sem::Subtree::getCleanTitle), R"RAW(Get subtree title as a flat string, without markup nodes, but with all left strings)RAW")
-    .def("getTodoKeyword", static_cast<hstd::Opt<hstd::Str>(org::sem::Subtree::*)() const>(&org::sem::Subtree::getTodoKeyword))
     .def("__repr__", [](org::sem::Subtree const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -7180,6 +7181,9 @@ ingoing elements.)RAW")
          pybind11::arg("value"))
     .def("setTreeid",
          static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmSubtreeValue::setTreeid),
+         pybind11::arg("value"))
+    .def("setTodo",
+         static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmSubtreeValue::setTodo),
          pybind11::arg("value"))
     .def("setCompletion",
          static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::sem::SubtreeCompletion>> const&)>(&org::imm::ImmSubtreeValue::setCompletion),
@@ -9017,6 +9021,7 @@ ingoing elements.)RAW")
     .value("Lang", OrgSpecName::Lang)
     .value("Prefix", OrgSpecName::Prefix)
     .value("Text", OrgSpecName::Text)
+    .value("Todo", OrgSpecName::Todo)
     .value("Importance", OrgSpecName::Importance)
     .value("Title", OrgSpecName::Title)
     .value("Completion", OrgSpecName::Completion)
