@@ -1994,7 +1994,8 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
     space(lex);                                       //
     subParse(SubtreeTitle, lex);                      // 3
     subParse(SubtreeCompletion, lex);                 // 4
-    subParse(SubtreeTags, lex);                       // 5
+    space(lex);
+    subParse(SubtreeTags, lex); // 5
 
     if (lex.at(otk::Newline)) { newline(lex); }
     subParse(SubtreeTimes, lex); // 6

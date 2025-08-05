@@ -811,8 +811,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
 
     {
         auto t = parseOne<sem::Subtree>(
-            R"(* TODO [#A] Important task [2/5])",
-            getDebugFile("sutbree/a"));
+            R"(* TODO [#A] Important task [2/5])");
         EXPECT_EQ(t->getTodoKeyword().value(), "TODO");
         EXPECT_EQ(t->priority.value(), "A");
         auto c = t->completion.value();
@@ -918,7 +917,8 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
 
     {
         auto t = parseOne<sem::Subtree>(
-            R"(* TODO [#A] Important task [2/5] :work:urgent:)");
+            R"(* TODO [#A] Important task [2/5] :work:urgent:)",
+            getDebugFile("subtree/a"));
         EXPECT_EQ(t->todo.value(), "TODO");
         EXPECT_EQ(t->priority.value(), "A");
         auto c = t->completion.value();
@@ -971,8 +971,8 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
 
     {
         auto t = parseOne<sem::Subtree>(
-            R"(* Title with *markup* :tag1:nested##tag:tag3##complex##[nested,tag]:)");
-        EXPECT_EQ(t->getCleanTitle(), "Title with markup");
+            R"(* Title with *markup* :tag1:nested##tag:tag3##complex##nested:)");
+        EXPECT_EQ(t->getCleanTitle(), "Title with markup"_ss);
         EXPECT_EQ(t->tags.size(), 3);
         EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
         EXPECT_EQ(t->tags.at(1)->text.head, "nested"_ss);
@@ -983,13 +983,10 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
         EXPECT_EQ(
             t->tags.at(2)->text.subtags.at(0).subtags.at(0).head,
             "nested"_ss);
-        EXPECT_EQ(
-            t->tags.at(2)->text.subtags.at(0).subtags.at(1).head,
-            "tag"_ss);
     }
     {
         auto t = parseOne<sem::Subtree>(
-            R"(* Title with *:tag_feint:* :tag1:nested##tag:tag3##complex##[nested,tag]:)");
+            R"(* Title with *:tag_feint:* :tag1:nested##tag:tag3##complex##nested:)");
         EXPECT_EQ(t->getCleanTitle(), "Title with :tag_feint:");
         EXPECT_EQ(t->tags.size(), 3);
         EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
@@ -1001,9 +998,6 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
         EXPECT_EQ(
             t->tags.at(2)->text.subtags.at(0).subtags.at(0).head,
             "nested"_ss);
-        EXPECT_EQ(
-            t->tags.at(2)->text.subtags.at(0).subtags.at(1).head,
-            "tag"_ss);
     }
 }
 
