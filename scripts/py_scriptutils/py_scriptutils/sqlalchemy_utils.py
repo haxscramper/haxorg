@@ -74,6 +74,7 @@ class NumericEnum(TypeDecorator):
     def process_result_value(self, value, dialect):
         return self._enumtype(value)
 
+
 @beartype
 def format_rich_table(
     engine: Engine,
@@ -104,10 +105,23 @@ def format_rich_table(
     )
 
     for column in columns_to_fetch:
-        rich_table.add_column(str(column.name))
+        rich_table.add_column(str(column.name),
+                              no_wrap=True,
+                              overflow="ignore",
+                              width=None,
+                              min_width=None,
+                              max_width=None)
 
     for row in result:
-        rich_table.add_row(*[str(it) for it in row])
+
+        def get_cell(it):
+            text = str(it)
+            if text.strip() == str(it):
+                return text
+            else:
+                return f"\"{text}\""
+
+        rich_table.add_row(*[get_cell(it) for it in row])
 
     return rich_table
 
@@ -170,6 +184,7 @@ def format_db_all(
     console = Console(
         no_color=not style,
         force_terminal=style,
+        width=999999999,
     )
     with console.capture() as capture:
         tables = get_table_names(engine, excluded_tables)

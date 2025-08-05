@@ -2153,6 +2153,7 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
             "-vv",
             "-ra",
             "-s",
+            "--log-cli-level=DEBUG",
             "--tb=short",
             "--cov=scripts",
             "--cov-report=html",
