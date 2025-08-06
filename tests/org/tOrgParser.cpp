@@ -1488,6 +1488,203 @@ TEST(OrgParseSem, CodeBlockVariables) {
     }
 }
 
+TEST(OrgParseSem, CodeBlockBody) {
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+print("hello world")
+#+END_SRC)");
+        EXPECT_EQ2(c->lang.value(), "python");
+        EXPECT_EQ2(c->lines.size(), 1);
+        EXPECT_EQ2(c->lines[0].parts.size(), 1);
+        EXPECT_TRUE(c->lines[0].parts[0].isRaw());
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC cpp :exports code
+int main() { return 0; }
+#+END_SRC)");
+        EXPECT_EQ2(c->exports, BlockCodeExports::Code);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :exports results
+print("test")
+#+END_SRC)");
+        EXPECT_EQ2(c->exports, BlockCodeExports::Results);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :exports both
+print("test")
+#+END_SRC)");
+        EXPECT_EQ2(c->exports, BlockCodeExports::Both);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :exports none
+print("test")
+#+END_SRC)");
+        EXPECT_EQ2(c->exports, BlockCodeExports::None);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python :cache yes
+print("test")
+#+END_SRC)");
+        EXPECT_TRUE(c->cache);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python :eval no
+print("test")
+#+END_SRC)");
+        EXPECT_FALSE(c->eval);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python :noweb yes
+print("test")
+#+END_SRC)");
+        EXPECT_TRUE(c->noweb);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :tangle file.py
+print("test")
+#+END_SRC)");
+        EXPECT_TRUE(c->tangle);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC
+line1
+line2
+line3
+#+END_SRC)");
+        EXPECT_EQ2(c->lines.size(), 3);
+        EXPECT_FALSE(c->lang.has_value());
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :var x=10 :var y=20
+print(x + y)
+#+END_SRC)");
+        EXPECT_EQ2(c->getVariable("x")->getString(), "10");
+        EXPECT_EQ2(c->getVariable("y")->getString(), "20");
+        EXPECT_FALSE(c->getVariable("z").has_value());
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC
+#+END_SRC)");
+        EXPECT_EQ2(c->lines.size(), 0);
+        EXPECT_EQ2(c->result.size(), 0);
+    }
+}
+
+TEST(OrgParseSem, CodeBlockResults) {
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+print("hello")
+#+END_SRC
+
+#+RESULTS:
+: hello)");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::ColonExample);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+import matplotlib.pyplot as plt
+plt.plot([1,2,3])
+plt.savefig('plot.png')
+#+END_SRC
+
+#+RESULTS:
+[[file:plot.png]])");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::Link);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+data = [[1, 2], [3, 4]]
+print(data)
+#+END_SRC
+
+#+RESULTS:
+| 1 | 2 |
+| 3 | 4 |)");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::Table);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+print("line1")
+print("line2")
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+line1
+line2
+#+end_example)");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::BlockExample);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+def hello():
+    return "world"
+#+END_SRC
+
+#+RESULTS:
+#+begin_src python
+def hello():
+    return "world"
+#+end_src)");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::BlockCode);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+print("no results")
+#+END_SRC)");
+        EXPECT_EQ2(c->result.size(), 0);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+print("first")
+#+END_SRC
+
+#+RESULTS:
+: first
+
+#+BEGIN_SRC python
+print("second")
+#+END_SRC
+
+#+RESULTS:
+: second)");
+        EXPECT_EQ2(c->result.size(), 1);
+    }
+}
+
 TEST(OrgParseSem, CmdCallNode) {
     auto get = [&](std::string const& s,
                    Opt<std::string>   debug = std::nullopt) {

@@ -1635,7 +1635,12 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
         space(lex);
         parseCommandArguments(lex);
         newline(lex);
-        parseStmtListItem(lex);
+        if (lex.at(otk::ColonExampleLine)
+            || lex.at(Vec{otk::CmdPrefix, otk::CmdExampleBegin})) {
+            parseStmtListItem(lex);
+        } else {
+            empty();
+        }
         end();
     } else {
         empty();
@@ -2532,8 +2537,10 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
         // NOTE: 'back' returns the last node, not one-past-last
         OrgNode node = g.at(id);
         if (node.kind == onk::Subtree) {
-            parser->print(
-                "Found subtree on the lower level " + id.format());
+            if (parser->TraceState) {
+                parser->print(
+                    "Found subtree on the lower level " + id.format());
+            }
             OrgId const tree = id;
             if (g.size(tree) == 0 && parser->TraceState) {
                 parser->message(g.treeRepr(tree));
@@ -2557,13 +2564,15 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
                 g.at(stmt).extend(stmt_extend);
                 g.at(tree).extend(tree_extend);
 
-                parser->print(
-                    fmt("Found nested subtree tree={} stmt={} "
-                        "tree-extend={} stmt-extend={}",
-                        tree.format(),
-                        stmt.format(),
-                        tree_extend,
-                        stmt_extend));
+                if (parser->TraceState) {
+                    parser->print(
+                        fmt("Found nested subtree tree={} stmt={} "
+                            "tree-extend={} stmt-extend={}",
+                            tree.format(),
+                            stmt.format(),
+                            tree_extend,
+                            stmt_extend));
+                }
 
                 auto treeSlice = g.allSubnodesOf(tree).value();
                 auto stmtSlice = g.allSubnodesOf(tree).value();
@@ -2589,9 +2598,11 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
 
 
             } else {
-                parser->print(
-                    "Found subtree on the same level or above "
-                    + id.format());
+                if (parser->TraceState) {
+                    parser->print(
+                        "Found subtree on the same level or above "
+                        + id.format());
+                }
                 // Found subtree on the same level or above
                 break;
             }
