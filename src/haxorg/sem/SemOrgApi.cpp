@@ -344,3 +344,11 @@ Opt<int> AttrValue::getInt() const {
         return getString().toInt();
     } catch (std::invalid_argument const& e) { return std::nullopt; }
 }
+
+hstd::Opt<org::sem::OrgCodeEvalInput::Var> org::sem::OrgCodeEvalInput::
+    getVariable(hstd::Str const& name) const {
+    for (auto const& var : argList) {
+        if (var.name == name) { return var; }
+    }
+    return std::nullopt;
+}

@@ -1635,8 +1635,7 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
         space(lex);
         parseCommandArguments(lex);
         newline(lex);
-        if (lex.at(otk::ColonExampleLine)
-            || lex.at(Vec{otk::CmdPrefix, otk::CmdExampleBegin})) {
+        if (!lex.at(otk::SubtreeStars)) {
             parseStmtListItem(lex);
         } else {
             empty();

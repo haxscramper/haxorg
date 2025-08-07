@@ -2257,6 +2257,12 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             t_nest_shared("OrgCodeEvalInput"),
             methods=[
                 eq_method(t_nest_shared("OrgCodeEvalInput")),
+                org_function(
+                    t_opt(t_nest_shared("Var", [t("OrgCodeEvalInput")])),
+                    "getVariable",
+                    arguments=[GenTuIdent(t_cr(t_str()), "name")],
+                    isConst=True,
+                ),
             ],
             fields=[
                 org_field(t_nest_shared("AttrGroup"), "blockAttrs"),

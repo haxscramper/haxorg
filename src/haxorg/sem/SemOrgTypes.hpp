@@ -973,6 +973,7 @@ struct OrgCodeEvalInput {
   hstd::Str language = "";
   hstd::Vec<org::sem::OrgCodeEvalInput::Var> argList = {};
   bool operator==(org::sem::OrgCodeEvalInput const& other) const;
+  hstd::Opt<org::sem::OrgCodeEvalInput::Var> getVariable(hstd::Str const& name) const;
 };
 
 /// \brief Single command/subprocess executed to evaluate org babel code entry

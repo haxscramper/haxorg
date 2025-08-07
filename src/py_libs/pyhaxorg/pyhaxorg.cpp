@@ -3736,6 +3736,9 @@ ingoing elements.)RAW")
     .def("__eq__",
          static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==),
          pybind11::arg("other"))
+    .def("getVariable",
+         static_cast<hstd::Opt<org::sem::OrgCodeEvalInput::Var>(org::sem::OrgCodeEvalInput::*)(hstd::Str const&) const>(&org::sem::OrgCodeEvalInput::getVariable),
+         pybind11::arg("name"))
     .def("__repr__", [](org::sem::OrgCodeEvalInput const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })

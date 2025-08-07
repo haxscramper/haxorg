@@ -1488,6 +1488,177 @@ TEST(OrgParseSem, CodeBlockVariables) {
     }
 }
 
+TEST(OrgParseSem, CodeBlockEval) {
+    auto get = [](std::string const&         code,
+                  hstd::Opt<fs::path> const& path = std::nullopt)
+        -> sem::OrgCodeEvalInput {
+        org::OrgCodeEvalParameters conf;
+        Vec<sem::OrgCodeEvalInput> buf;
+        auto doc = path ? testParseString(code, path->native())
+                        : testParseString(code);
+
+        conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
+            -> Vec<sem::OrgCodeEvalOutput> {
+            buf.push_back(in);
+            return {sem::OrgCodeEvalOutput{.stdoutText = ""}};
+        };
+        if (path) { conf.debug->setTraceFile(path.value()); }
+        auto ev = org::evaluateCodeBlocks(doc, conf);
+        return buf.at(0);
+    };
+    {
+        auto i = get(R"(#+begin_src python
+content
+#+end_src)");
+        EXPECT_EQ(i.language, "python"_ss);
+    }
+    {
+        auto i = get(R"(#+begin_src python :results table
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultType, org::sem::OrgCodeEvalInput::ResultType::Table);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results list
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultType, org::sem::OrgCodeEvalInput::ResultType::List);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results scalar
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultType, org::sem::OrgCodeEvalInput::ResultType::Scalar);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results file
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultType,
+            org::sem::OrgCodeEvalInput::ResultType::SaveFile);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results raw
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultFormat, org::sem::OrgCodeEvalInput::ResultFormat::Raw);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results code
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultFormat,
+            org::sem::OrgCodeEvalInput::ResultFormat::Code);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results drawer
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultFormat,
+            org::sem::OrgCodeEvalInput::ResultFormat::Drawer);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results html
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultFormat,
+            org::sem::OrgCodeEvalInput::ResultFormat::ExportType);
+        EXPECT_EQ2(i.exportType.value(), "html");
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results replace
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Replace);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results silent
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Silent);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results append
+content
+#+end_src)");
+        EXPECT_EQ2(i.language, "python"_ss);
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Append);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results prepend
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Prepend);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :var x=10 :var name="test"
+content
+#+end_src)");
+        EXPECT_EQ2(i.argList.size(), 2);
+        EXPECT_EQ2(i.getVariable("x").value().value.getString(), "10"_ss);
+        EXPECT_EQ2(
+            i.getVariable("name").value().value.getString(), "test"_ss);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python
+print("hello")
+x = 42
+#+end_src)");
+        EXPECT_EQ2(i.tangledCode, "print(\"hello\")\nx = 42");
+    }
+
+    {
+        auto i = get(R"(#+begin_src
+no language
+#+end_src)");
+        EXPECT_EQ2(i.language, "");
+        EXPECT_EQ2(
+            i.resultType, org::sem::OrgCodeEvalInput::ResultType::Scalar);
+        EXPECT_EQ2(
+            i.resultFormat,
+            org::sem::OrgCodeEvalInput::ResultFormat::None);
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Replace);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :tangle file.py :noweb yes
+content
+#+end_src)");
+        EXPECT_EQ(i.blockAttrs.positional.items.size(), 0);
+    }
+}
+
 TEST(OrgParseSem, CodeBlockBody) {
     {
         auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
@@ -1571,14 +1742,16 @@ print("hello")
     }
 
     {
-        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python
 import matplotlib.pyplot as plt
 plt.plot([1,2,3])
 plt.savefig('plot.png')
 #+END_SRC
 
 #+RESULTS:
-[[file:plot.png]])");
+[[file:plot.png]])",
+            getDebugFile("code/a"));
         EXPECT_EQ2(c->result.size(), 1);
         auto result = c->result[0].get();
         EXPECT_EQ2(result->node->getKind(), OrgSemKind::Link);

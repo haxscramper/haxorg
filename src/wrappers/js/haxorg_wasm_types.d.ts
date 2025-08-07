@@ -2776,6 +2776,7 @@ export interface AttrGroup {
 export interface OrgCodeEvalInputConstructor { new(): OrgCodeEvalInput; }
 export interface OrgCodeEvalInput {
   __eq__(other: OrgCodeEvalInput): boolean;
+  getVariable(name: string): haxorg_wasm.Optional<OrgCodeEvalInputVar>;
   blockAttrs: AttrGroup
   tangledCode: string
   exportType: haxorg_wasm.Optional<string>
