@@ -94,7 +94,7 @@ void Exporter<V, R>::visit(R& res, sem::Tblfm::Assign const& object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, org::sem::AttrValue::DataVariant const& object) { visitVariants(res, sem::AttrValue::getDataKind(object), object); }
+void Exporter<V, R>::visit(R& res, org::sem::AttrValue::DataVariant const& object) { visitVariants(res, sem::AttrValue::getKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
@@ -1017,14 +1017,8 @@ template <typename V, typename R>
 void Exporter<V, R>::visitBlockCode(R& res, In<sem::BlockCode> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, lang);
-  __org_field(res, object, exports);
   __org_field(res, object, result);
   __org_field(res, object, lines);
-  __org_field(res, object, cache);
-  __org_field(res, object, eval);
-  __org_field(res, object, noweb);
-  __org_field(res, object, hlines);
-  __org_field(res, object, tangle);
   __org_field(res, object, switches);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);

@@ -367,9 +367,6 @@ struct Tblfm {
 };
 
 struct AttrValue {
-  /// \brief Best-guess type of the attribute
-  enum class Kind : short int { String, Boolean, Integer, Float, FileReference, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, String, Boolean, Integer, Float, FileReference)
   struct DimensionSpan {
     BOOST_DESCRIBE_CLASS(DimensionSpan,
                          (),
@@ -417,9 +414,9 @@ struct AttrValue {
   };
 
   using DataVariant = std::variant<org::sem::AttrValue::TextValue, org::sem::AttrValue::FileReference, org::sem::AttrValue::LispValue>;
-  enum class DataKind : short int { TextValue, FileReference, LispValue, };
-  BOOST_DESCRIBE_NESTED_ENUM(DataKind, TextValue, FileReference, LispValue)
-  using variant_enum_type = org::sem::AttrValue::DataKind;
+  enum class Kind : short int { TextValue, FileReference, LispValue, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, TextValue, FileReference, LispValue)
+  using variant_enum_type = org::sem::AttrValue::Kind;
   using variant_data_type = org::sem::AttrValue::DataVariant;
   BOOST_DESCRIBE_CLASS(AttrValue,
                        (),
@@ -439,25 +436,23 @@ struct AttrValue {
   hstd::Opt<bool> getBool() const;
   hstd::Opt<int> getInt() const;
   hstd::Str getString() const;
-  hstd::Str getFile() const;
-  hstd::Str getReference() const;
   hstd::Opt<double> getDouble() const;
   bool operator==(org::sem::AttrValue const& other) const;
   AttrValue() {  }
-  bool isTextValue() const { return getDataKind() == DataKind::TextValue; }
+  bool isTextValue() const { return getKind() == Kind::TextValue; }
   org::sem::AttrValue::TextValue const& getTextValue() const { return hstd::variant_get<0>(data); }
   org::sem::AttrValue::TextValue& getTextValue() { return hstd::variant_get<0>(data); }
-  bool isFileReference() const { return getDataKind() == DataKind::FileReference; }
+  bool isFileReference() const { return getKind() == Kind::FileReference; }
   org::sem::AttrValue::FileReference const& getFileReference() const { return hstd::variant_get<1>(data); }
   org::sem::AttrValue::FileReference& getFileReference() { return hstd::variant_get<1>(data); }
-  bool isLispValue() const { return getDataKind() == DataKind::LispValue; }
+  bool isLispValue() const { return getKind() == Kind::LispValue; }
   org::sem::AttrValue::LispValue const& getLispValue() const { return hstd::variant_get<2>(data); }
   org::sem::AttrValue::LispValue& getLispValue() { return hstd::variant_get<2>(data); }
-  static org::sem::AttrValue::DataKind getDataKind(org::sem::AttrValue::DataVariant const& __input) { return static_cast<org::sem::AttrValue::DataKind>(__input.index()); }
-  org::sem::AttrValue::DataKind getDataKind() const { return getDataKind(data); }
+  static org::sem::AttrValue::Kind getKind(org::sem::AttrValue::DataVariant const& __input) { return static_cast<org::sem::AttrValue::Kind>(__input.index()); }
+  org::sem::AttrValue::Kind getKind() const { return getKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
   org::sem::AttrValue::DataVariant const& sub_variant_get_data() const { return data; }
-  org::sem::AttrValue::DataKind sub_variant_get_kind() const { return getDataKind(); }
+  org::sem::AttrValue::Kind sub_variant_get_kind() const { return getKind(); }
 };
 
 struct HashTagFlat {
@@ -1783,6 +1778,12 @@ struct Stmt : public org::sem::Org {
   virtual hstd::Vec<org::sem::AttrValue> getAttrs(hstd::Opt<hstd::Str> const& kind = std::nullopt) const;
   /// \brief Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities
   virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(hstd::Str const& kind) const;
+  hstd::Opt<hstd::Str> getFirstAttrString(hstd::Str const& kind) const;
+  hstd::Opt<int> getFirstAttrInt(hstd::Str const& kind) const;
+  hstd::Opt<bool> getFirstAttrBool(hstd::Str const& kind) const;
+  hstd::Opt<double> getFirstAttrDouble(hstd::Str const& kind) const;
+  hstd::Opt<org::sem::AttrValue::LispValue> getFirstAttrLisp(hstd::Str const& kind) const;
+  hstd::Opt<org::sem::AttrValue::Kind> getFirstAttrKind(hstd::Str const& kind) const;
 };
 
 /// \brief Base class for all inline elements
@@ -2602,34 +2603,16 @@ struct BlockCode : public org::sem::Block {
                        (),
                        (staticKind,
                         lang,
-                        exports,
                         result,
                         lines,
-                        cache,
-                        eval,
-                        noweb,
-                        hlines,
-                        tangle,
                         switches))
   static OrgSemKind const staticKind;
   /// \brief Code block language name
   hstd::Opt<hstd::Str> lang = std::nullopt;
-  /// \brief What to export
-  BlockCodeExports exports = BlockCodeExports::Both;
   /// \brief Code evaluation results
   hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>> result = {};
   /// \brief Collected code lines
   hstd::Vec<org::sem::BlockCodeLine> lines = {};
-  /// \brief Do cache values?
-  bool cache = false;
-  /// \brief Eval on export?
-  bool eval = false;
-  /// \brief Web-tangle code on export/run
-  bool noweb = false;
-  /// \brief ?
-  bool hlines = false;
-  /// \brief ?
-  bool tangle = false;
   /// \brief Dash-based switches for code block execution
   org::sem::AttrGroup switches;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }

@@ -1248,3 +1248,58 @@ hstd::Opt<hstd::Str> org::sem::Subtree::getTodoKeyword() const {
         return std::nullopt;
     }
 }
+
+
+hstd::Opt<hstd::Str> org::sem::Stmt::getFirstAttrString(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getString();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<bool> org::sem::Stmt::getFirstAttrBool(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getBool();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<int> org::sem::Stmt::getFirstAttrInt(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getInt();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<sem::AttrValue::LispValue> org::sem::Stmt::getFirstAttrLisp(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getLispValue();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<double> org::sem::Stmt::getFirstAttrDouble(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getDouble();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<sem::AttrValue::Kind> org::sem::Stmt::getFirstAttrKind(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getKind();
+    } else {
+        return std::nullopt;
+    }
+}

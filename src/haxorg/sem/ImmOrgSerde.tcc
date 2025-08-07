@@ -1046,14 +1046,8 @@ struct ImmSemSerde<org::sem::BlockCode, org::imm::ImmBlockCode> {
   static org::imm::ImmBlockCode to_immer(org::sem::BlockCode const& value, ImmAstEditContext& ctx) {
     org::imm::ImmBlockCode result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCode>::get();
     assign_immer_field(result.lang, value.lang, ctx);
-    assign_immer_field(result.exports, value.exports, ctx);
     assign_immer_field(result.result, value.result, ctx);
     assign_immer_field(result.lines, value.lines, ctx);
-    assign_immer_field(result.cache, value.cache, ctx);
-    assign_immer_field(result.eval, value.eval, ctx);
-    assign_immer_field(result.noweb, value.noweb, ctx);
-    assign_immer_field(result.hlines, value.hlines, ctx);
-    assign_immer_field(result.tangle, value.tangle, ctx);
     assign_immer_field(result.switches, value.switches, ctx);
     assign_immer_field(result.attrs, value.attrs, ctx);
     assign_immer_field(result.attached, value.attached, ctx);
@@ -1064,14 +1058,8 @@ struct ImmSemSerde<org::sem::BlockCode, org::imm::ImmBlockCode> {
   static org::sem::BlockCode from_immer(org::imm::ImmBlockCode const& value, ImmAstContext const& ctx) {
     org::sem::BlockCode result = hstd::SerdeDefaultProvider<org::sem::BlockCode>::get();
     assign_sem_field(result.lang, value.lang, ctx);
-    assign_sem_field(result.exports, value.exports, ctx);
     assign_sem_field(result.result, value.result, ctx);
     assign_sem_field(result.lines, value.lines, ctx);
-    assign_sem_field(result.cache, value.cache, ctx);
-    assign_sem_field(result.eval, value.eval, ctx);
-    assign_sem_field(result.noweb, value.noweb, ctx);
-    assign_sem_field(result.hlines, value.hlines, ctx);
-    assign_sem_field(result.tangle, value.tangle, ctx);
     assign_sem_field(result.switches, value.switches, ctx);
     assign_sem_field(result.attrs, value.attrs, ctx);
     assign_sem_field(result.attached, value.attached, ctx);

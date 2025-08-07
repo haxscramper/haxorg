@@ -1498,57 +1498,27 @@ print("hello world")
         EXPECT_EQ2(c->lines[0].parts.size(), 1);
         EXPECT_TRUE(c->lines[0].parts[0].isRaw());
     }
-
     {
-        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC cpp :exports code
-int main() { return 0; }
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :cache yes
+print("test")
 #+END_SRC)");
-        EXPECT_EQ2(c->exports, BlockCodeExports::Code);
+        EXPECT_TRUE(c->getFirstAttrBool("cache").value());
     }
 
     {
         auto c = parseOne<sem::BlockCode>(
-            R"(#+BEGIN_SRC python :exports results
+            R"(#+BEGIN_SRC python :eval no
 print("test")
 #+END_SRC)");
-        EXPECT_EQ2(c->exports, BlockCodeExports::Results);
-    }
-
-    {
-        auto c = parseOne<sem::BlockCode>(
-            R"(#+BEGIN_SRC python :exports both
-print("test")
-#+END_SRC)");
-        EXPECT_EQ2(c->exports, BlockCodeExports::Both);
-    }
-
-    {
-        auto c = parseOne<sem::BlockCode>(
-            R"(#+BEGIN_SRC python :exports none
-print("test")
-#+END_SRC)");
-        EXPECT_EQ2(c->exports, BlockCodeExports::None);
-    }
-
-    {
-        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python :cache yes
-print("test")
-#+END_SRC)");
-        EXPECT_TRUE(c->cache);
-    }
-
-    {
-        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python :eval no
-print("test")
-#+END_SRC)");
-        EXPECT_FALSE(c->eval);
+        EXPECT_FALSE(c->getFirstAttrBool("eval").value());
     }
 
     {
         auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python :noweb yes
 print("test")
 #+END_SRC)");
-        EXPECT_TRUE(c->noweb);
+        EXPECT_TRUE(c->getFirstAttrBool("noweb"));
     }
 
     {
@@ -1556,7 +1526,7 @@ print("test")
             R"(#+BEGIN_SRC python :tangle file.py
 print("test")
 #+END_SRC)");
-        EXPECT_TRUE(c->tangle);
+        EXPECT_EQ(c->getFirstAttrString("tangle"), "file.py"_ss);
     }
 
     {

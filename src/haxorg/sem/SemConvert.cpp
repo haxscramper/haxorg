@@ -2451,35 +2451,6 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     }
 
     {
-        if (auto noweb = result->getVariable("noweb");
-            noweb && noweb->getBool()) {
-            result->noweb = true;
-        }
-
-        if (auto cache = result->getVariable("cache");
-            cache && cache->getBool()) {
-            result->cache = true;
-        }
-
-        if (auto eval = result->getVariable("eval");
-            eval && eval->getBool()) {
-            result->eval = true;
-        }
-
-        if (auto exports = result->getVariable("exports"); exports) {
-            if (normalize(exports->getString()) == "both") {
-                result->exports = BlockCodeExports::Both;
-            } else if (normalize(exports->getString()) == "none") {
-                result->exports = BlockCodeExports::None;
-            } else if (normalize(exports->getString()) == "code") {
-                result->exports = BlockCodeExports::Code;
-            } else if (normalize(exports->getString()) == "results") {
-                result->exports = BlockCodeExports::Results;
-            }
-        }
-    }
-
-    {
         auto __field = field(N::Result, a);
         if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
             auto body = one(res, N::Body);

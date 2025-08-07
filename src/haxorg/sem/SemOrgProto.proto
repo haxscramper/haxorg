@@ -34,17 +34,6 @@ enum InitialSubtreeVisibility {
   InitialSubtreeVisibility_ShowEverything_f                                         = 7;
 }
 
-enum BlockCodeResults {
-  BlockCodeResults_Replace_f                                                        = 0;
-}
-
-enum BlockCodeExports {
-  BlockCodeExports_None_f                                                           = 0;
-  BlockCodeExports_Both_f                                                           = 1;
-  BlockCodeExports_Code_f                                                           = 2;
-  BlockCodeExports_Results_f                                                        = 3;
-}
-
 enum OrgSpecName {
   OrgSpecName_Unnamed_f                                                             = 0;
   OrgSpecName_Result_f                                                              = 1;
@@ -717,13 +706,6 @@ message Tblfm {
 }
 
 message AttrValue {
-  enum Kind {
-    Kind_String_f                                                                   = 0;
-    Kind_Boolean_f                                                                  = 1;
-    Kind_Integer_f                                                                  = 2;
-    Kind_Float_f                                                                    = 3;
-    Kind_FileReference_f                                                            = 4;
-  }
   message DimensionSpan {
     int32                                          first                            = 1;
     optional int32                                 last                             = 2;
@@ -749,10 +731,10 @@ message AttrValue {
       AttrValue.LispValue                          lispvalue                        = 3;
     }
   }
-  enum DataKind {
-    DataKind_TextValue_f                                                            = 0;
-    DataKind_FileReference_f                                                        = 1;
-    DataKind_LispValue_f                                                            = 2;
+  enum Kind {
+    Kind_TextValue_f                                                                = 0;
+    Kind_FileReference_f                                                            = 1;
+    Kind_LispValue_f                                                                = 2;
   }
   optional string                                  name                             = 1;
   optional string                                  varname                          = 2;
@@ -1902,15 +1884,9 @@ message BlockCode {
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   optional string                                  lang                             = 6;
-  BlockCodeExports                                 exports                          = 7;
-  repeated BlockCodeEvalResult                     result                           = 8;
-  repeated BlockCodeLine                           lines                            = 9;
-  bool                                             cache                            = 10;
-  bool                                             eval                             = 11;
-  bool                                             noweb                            = 12;
-  bool                                             hlines                           = 13;
-  bool                                             tangle                           = 14;
-  AttrGroup                                        switches                         = 15;
+  repeated BlockCodeEvalResult                     result                           = 7;
+  repeated BlockCodeLine                           lines                            = 8;
+  AttrGroup                                        switches                         = 9;
   string                                           debug                            = 1000;
 }
 

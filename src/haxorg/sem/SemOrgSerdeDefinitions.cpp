@@ -2370,14 +2370,8 @@ void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::write(:
   if (in.lang) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_lang(), *in.lang);
   }
-  out->set_exports(static_cast<orgproto::BlockCodeExports>(in.exports));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::write(out->mutable_result(), in.result);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine>, hstd::Vec<org::sem::BlockCodeLine>>::write(out->mutable_lines(), in.lines);
-  out->set_cache(in.cache);
-  out->set_eval(in.eval);
-  out->set_noweb(in.noweb);
-  out->set_hlines(in.hlines);
-  out->set_tangle(in.tangle);
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_switches(), in.switches);
 }
 
@@ -2388,14 +2382,8 @@ void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::read(::
   if (out.has_lang()) {
     proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.lang(), in.for_field(&org::sem::BlockCode::lang));
   }
-  in.for_field(&org::sem::BlockCode::exports).get() = static_cast<BlockCodeExports>(out.exports());
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::read(out.result(), in.for_field(&org::sem::BlockCode::result));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine>, hstd::Vec<org::sem::BlockCodeLine>>::read(out.lines(), in.for_field(&org::sem::BlockCode::lines));
-  in.for_field(&org::sem::BlockCode::cache).get() = out.cache();
-  in.for_field(&org::sem::BlockCode::eval).get() = out.eval();
-  in.for_field(&org::sem::BlockCode::noweb).get() = out.noweb();
-  in.for_field(&org::sem::BlockCode::hlines).get() = out.hlines();
-  in.for_field(&org::sem::BlockCode::tangle).get() = out.tangle();
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.switches(), in.for_field(&org::sem::BlockCode::switches));
 }
 

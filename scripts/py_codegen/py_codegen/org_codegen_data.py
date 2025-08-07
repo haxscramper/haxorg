@@ -514,17 +514,19 @@ def get_subtree_property_types():
             fields=[
                 org_field(t_str(), "name"),
                 org_field(t_nest_shared("OrgJson"), "value")
-            ],),
-        org_struct(t_nest_shared("CustomSubtreeFlags", [t("NamedProperty")]),
-                   GenTuDoc("Free-form flags"),
-                   methods=[
-                       eq_method(t_nest_shared("CustomSubtreeFlags",
-                                               [t("NamedProperty")]))
-                   ],
-                   fields=[
-                       org_field(t_str(), "name"),
-                       org_field(t_nest_shared("AttrGroup"), "value")
-                   ],),
+            ],
+        ),
+        org_struct(
+            t_nest_shared("CustomSubtreeFlags", [t("NamedProperty")]),
+            GenTuDoc("Free-form flags"),
+            methods=[
+                eq_method(t_nest_shared("CustomSubtreeFlags", [t("NamedProperty")]))
+            ],
+            fields=[
+                org_field(t_str(), "name"),
+                org_field(t_nest_shared("AttrGroup"), "value")
+            ],
+        ),
     ]
 
 
@@ -618,6 +620,42 @@ def get_sem_bases():
                     arguments=[arg_ident(t_cr(t_str()), "kind")],
                     isConst=True,
                     isVirtual=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_str()),
+                    "getFirstAttrString",
+                    arguments=[arg_ident(t_cr(t_str()), "kind")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_int()),
+                    "getFirstAttrInt",
+                    arguments=[arg_ident(t_cr(t_str()), "kind")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_bool()),
+                    "getFirstAttrBool",
+                    arguments=[arg_ident(t_cr(t_str()), "kind")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(QualType(name="double")),
+                    "getFirstAttrDouble",
+                    arguments=[arg_ident(t_cr(t_str()), "kind")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("LispValue", [t("AttrValue")])),
+                    "getFirstAttrLisp",
+                    arguments=[arg_ident(t_cr(t_str()), "kind")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("Kind", [t("AttrValue")])),
+                    "getFirstAttrKind",
+                    arguments=[arg_ident(t_cr(t_str()), "kind")],
+                    isConst=True,
                 ),
             ],
             nested=[
@@ -875,22 +913,10 @@ def get_sem_block():
                     "Code block language name",
                     value="std::nullopt",
                 ),
-                org_field(t("BlockCodeExports"),
-                          "exports",
-                          "What to export",
-                          value="BlockCodeExports::Both"),
                 vec_field(t_id("BlockCodeEvalResult"), "result",
                           "Code evaluation results"),
                 vec_field(t_nest_shared("BlockCodeLine",), "lines",
                           "Collected code lines"),
-                org_field(t_bool(), "cache", "Do cache values?", value="false"),
-                org_field(t_bool(), "eval", "Eval on export?", value="false"),
-                org_field(t_bool(),
-                          "noweb",
-                          "Web-tangle code on export/run",
-                          value="false"),
-                org_field(t_bool(), "hlines", "?", value="false"),
-                org_field(t_bool(), "tangle", "?", value="false"),
                 org_field(
                     t_nest_shared("AttrGroup"),
                     "switches",
@@ -1030,7 +1056,10 @@ def get_sem_text():
                         org_struct(
                             t_nest("Dynamic", [t_org("Time")]),
                             GenTuDoc(""),
-                            fields=[GenTuField(t_nest_shared("LispCode"), "expr", GenTuDoc(""))],
+                            fields=[
+                                GenTuField(t_nest_shared("LispCode"), "expr",
+                                           GenTuDoc(""))
+                            ],
                             methods=[
                                 default_constructor_method("Dynamic"),
                             ],
@@ -1319,25 +1348,6 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
             "Show4Levels",
             "Show5Levels",
             "ShowEverything",
-        ),
-        GenTuEnum(
-            t("BlockCodeResults"),
-            GenTuDoc("What to do with newly evaluated result"),
-            [
-                GenTuEnumField("Replace",
-                               GenTuDoc("Remove old result, replace with new value"))
-            ],
-        ),
-        GenTuEnum(
-            t("BlockCodeExports"),
-            GenTuDoc("What part of the code block should be visible in export"),
-            [
-                GenTuEnumField("None",
-                               GenTuDoc("Hide both original code and run result")),
-                GenTuEnumField("Both", GenTuDoc("Show output and code")),
-                GenTuEnumField("Code", GenTuDoc("Show only code")),
-                GenTuEnumField("Results", GenTuDoc("Show only evaluation results")),
-            ],
         ),
     ]
 
@@ -1670,15 +1680,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
         org_struct(
             t_nest_shared("AttrValue"),
             nested=[
-                d_simple_enum(
-                    t_nest_shared("Kind", [t("AttrValue")]),
-                    org_doc("Best-guess type of the attribute"),
-                    efield("String"),
-                    efield("Boolean"),
-                    efield("Integer"),
-                    efield("Float"),
-                    efield("FileReference"),
-                ),
                 org_struct(t_nest_shared("DimensionSpan", [t("AttrValue")]),
                            fields=[
                                int_field("first"),
@@ -1724,8 +1725,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             ],
                         ),
                     ],
-                    kindGetter="getDataKind",
-                    enumName=t_nest_shared("DataKind", [t("AttrValue")]),
+                    kindGetter="getKind",
+                    enumName=t_nest_shared("Kind", [t("AttrValue")]),
                     variantField="data",
                     variantName=t_nest_shared("DataVariant", [t("AttrValue")]),
                 )
@@ -1742,8 +1743,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 org_function(t_opt(t_bool()), "getBool", isConst=True),
                 org_function(t_opt(t_int()), "getInt", isConst=True),
                 org_function(t_str(), "getString", isConst=True),
-                org_function(t_str(), "getFile", isConst=True),
-                org_function(t_str(), "getReference", isConst=True),
                 org_function(t_opt(QualType(name="double")), "getDouble", isConst=True),
                 eq_method(t_nest_shared("AttrValue")),
                 default_constructor_method("AttrValue")
