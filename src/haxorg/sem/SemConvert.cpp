@@ -2455,6 +2455,10 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
         if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
             auto body = one(res, N::Body);
             auto conv = convert(body);
+            if (conv->is(osk::Paragraph) && conv.size() == 1
+                && conv->at(0)->is(osk::Link)) {
+                conv = conv.at(0);
+            }
             print(fmt("Parsed result body as {}", conv->getKind()));
             auto result_block  = Sem<sem::BlockCodeEvalResult>(res);
             result_block->node = conv;

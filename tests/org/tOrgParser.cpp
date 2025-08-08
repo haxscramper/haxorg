@@ -1750,8 +1750,7 @@ plt.savefig('plot.png')
 #+END_SRC
 
 #+RESULTS:
-[[file:plot.png]])",
-            getDebugFile("code/a"));
+[[file:plot.png]])");
         EXPECT_EQ2(c->result.size(), 1);
         auto result = c->result[0].get();
         EXPECT_EQ2(result->node->getKind(), OrgSemKind::Link);
@@ -1811,7 +1810,8 @@ print("no results")
     }
 
     {
-        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+        auto doc = parseOne<sem::Document>(
+            R"(#+BEGIN_SRC python
 print("first")
 #+END_SRC
 
@@ -1824,7 +1824,10 @@ print("second")
 
 #+RESULTS:
 : second)");
-        EXPECT_EQ2(c->result.size(), 1);
+        auto c0 = doc.at(0).as<sem::BlockCode>();
+        auto c1 = doc.at(2).as<sem::BlockCode>();
+        EXPECT_EQ(c0->result.size(), 1);
+        EXPECT_EQ(c1->result.size(), 1);
     }
 }
 
