@@ -234,6 +234,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
                         }))
     .def("getBreakdown", static_cast<hstd::UserTimeBreakdown(hstd::UserTime::*)() const>(&hstd::UserTime::getBreakdown))
     .def("format", static_cast<std::string(hstd::UserTime::*)() const>(&hstd::UserTime::format))
+    .def("getTimeDeltaSeconds",
+         static_cast<int64_t(hstd::UserTime::*)(hstd::UserTime const&) const>(&hstd::UserTime::getTimeDeltaSeconds),
+         pybind11::arg("other"))
+    .def("toUnixTimestamp", static_cast<int64_t(hstd::UserTime::*)() const>(&hstd::UserTime::toUnixTimestamp))
     .def("__repr__", [](hstd::UserTime const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -992,14 +996,8 @@ ImmPathStep documentation.)RAW")
     ;
   pybind11::class_<org::imm::ImmBlockCodeValueRead>(m, "ImmBlockCodeValueRead")
     .def("getLang", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getLang))
-    .def("getExports", static_cast<BlockCodeExports const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getExports))
     .def("getResult", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getResult))
     .def("getLines", static_cast<immer::flex_vector<org::sem::BlockCodeLine> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getLines))
-    .def("getCache", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getCache))
-    .def("getEval", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getEval))
-    .def("getNoweb", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getNoweb))
-    .def("getHlines", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getHlines))
-    .def("getTangle", static_cast<bool const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getTangle))
     .def("getSwitches", static_cast<org::sem::AttrGroup const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getSwitches))
     .def("__repr__", [](org::imm::ImmBlockCodeValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -2741,28 +2739,6 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<org::sem::AttrValue::Kind>(m, "AttrValueKind", type_registry_guard);
-  pybind11::enum_<org::sem::AttrValue::Kind>(m, "AttrValueKind")
-    .value("String", org::sem::AttrValue::Kind::String)
-    .value("Boolean", org::sem::AttrValue::Kind::Boolean)
-    .value("Integer", org::sem::AttrValue::Kind::Integer)
-    .value("Float", org::sem::AttrValue::Kind::Float)
-    .value("FileReference", org::sem::AttrValue::Kind::FileReference)
-    .def("__iter__", [](org::sem::AttrValue::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind> {
-                     return org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind>();
-                     })
-    .def("__eq__",
-         [](org::sem::AttrValue::Kind const& _self, org::sem::AttrValue::Kind lhs, org::sem::AttrValue::Kind rhs) -> bool {
-         return lhs == rhs;
-         },
-         pybind11::arg("lhs"),
-         pybind11::arg("rhs"))
-    .def("__hash__",
-         [](org::sem::AttrValue::Kind const& _self, org::sem::AttrValue::Kind it) -> int {
-         return static_cast<int>(it);
-         },
-         pybind11::arg("it"))
-    ;
   pybind11::class_<org::sem::AttrValue::DimensionSpan>(m, "AttrValueDimensionSpan")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AttrValue::DimensionSpan {
                         org::sem::AttrValue::DimensionSpan result{};
@@ -2841,22 +2817,22 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<org::sem::AttrValue::DataKind>(m, "AttrValueDataKind", type_registry_guard);
-  pybind11::enum_<org::sem::AttrValue::DataKind>(m, "AttrValueDataKind")
-    .value("TextValue", org::sem::AttrValue::DataKind::TextValue)
-    .value("FileReference", org::sem::AttrValue::DataKind::FileReference)
-    .value("LispValue", org::sem::AttrValue::DataKind::LispValue)
-    .def("__iter__", [](org::sem::AttrValue::DataKind const& _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind> {
-                     return org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind>();
+  bind_enum_iterator<org::sem::AttrValue::Kind>(m, "AttrValueKind", type_registry_guard);
+  pybind11::enum_<org::sem::AttrValue::Kind>(m, "AttrValueKind")
+    .value("TextValue", org::sem::AttrValue::Kind::TextValue)
+    .value("FileReference", org::sem::AttrValue::Kind::FileReference)
+    .value("LispValue", org::sem::AttrValue::Kind::LispValue)
+    .def("__iter__", [](org::sem::AttrValue::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind> {
+                     return org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::AttrValue::DataKind const& _self, org::sem::AttrValue::DataKind lhs, org::sem::AttrValue::DataKind rhs) -> bool {
+         [](org::sem::AttrValue::Kind const& _self, org::sem::AttrValue::Kind lhs, org::sem::AttrValue::Kind rhs) -> bool {
          return lhs == rhs;
          },
          pybind11::arg("lhs"),
          pybind11::arg("rhs"))
     .def("__hash__",
-         [](org::sem::AttrValue::DataKind const& _self, org::sem::AttrValue::DataKind it) -> int {
+         [](org::sem::AttrValue::Kind const& _self, org::sem::AttrValue::Kind it) -> int {
          return static_cast<int>(it);
          },
          pybind11::arg("it"))
@@ -2875,8 +2851,6 @@ ingoing elements.)RAW")
     .def("getBool", static_cast<hstd::Opt<bool>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getBool))
     .def("getInt", static_cast<hstd::Opt<int>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getInt))
     .def("getString", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getString))
-    .def("getFile", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getFile))
-    .def("getReference", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getReference))
     .def("getDouble", static_cast<hstd::Opt<double>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDouble))
     .def("__eq__",
          static_cast<bool(org::sem::AttrValue::*)(org::sem::AttrValue const&) const>(&org::sem::AttrValue::operator==),
@@ -2887,13 +2861,13 @@ ingoing elements.)RAW")
     .def("getFileReference", static_cast<org::sem::AttrValue::FileReference&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getFileReference))
     .def("isLispValue", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isLispValue))
     .def("getLispValue", static_cast<org::sem::AttrValue::LispValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getLispValue))
-    .def_static("getDataKindStatic",
-                static_cast<org::sem::AttrValue::DataKind(*)(org::sem::AttrValue::DataVariant const&)>(&org::sem::AttrValue::getDataKind),
+    .def_static("getKindStatic",
+                static_cast<org::sem::AttrValue::Kind(*)(org::sem::AttrValue::DataVariant const&)>(&org::sem::AttrValue::getKind),
                 pybind11::arg("__input"))
-    .def("getDataKind", static_cast<org::sem::AttrValue::DataKind(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDataKind))
+    .def("getKind", static_cast<org::sem::AttrValue::Kind(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getKind))
     .def("sub_variant_get_name", static_cast<char const*(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::sub_variant_get_name))
     .def("sub_variant_get_data", static_cast<org::sem::AttrValue::DataVariant const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::sub_variant_get_data))
-    .def("sub_variant_get_kind", static_cast<org::sem::AttrValue::DataKind(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::sub_variant_get_kind))
+    .def("sub_variant_get_kind", static_cast<org::sem::AttrValue::Kind(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::sub_variant_get_kind))
     .def("__repr__", [](org::sem::AttrValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3762,6 +3736,9 @@ ingoing elements.)RAW")
     .def("__eq__",
          static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==),
          pybind11::arg("other"))
+    .def("getVariable",
+         static_cast<hstd::Opt<org::sem::OrgCodeEvalInput::Var>(org::sem::OrgCodeEvalInput::*)(hstd::Str const&) const>(&org::sem::OrgCodeEvalInput::getVariable),
+         pybind11::arg("name"))
     .def("__repr__", [](org::sem::OrgCodeEvalInput const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5060,6 +5037,24 @@ ingoing elements.)RAW")
          static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
+    .def("getFirstAttrString",
+         static_cast<hstd::Opt<hstd::Str>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrString),
+         pybind11::arg("kind"))
+    .def("getFirstAttrInt",
+         static_cast<hstd::Opt<int>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrInt),
+         pybind11::arg("kind"))
+    .def("getFirstAttrBool",
+         static_cast<hstd::Opt<bool>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrBool),
+         pybind11::arg("kind"))
+    .def("getFirstAttrDouble",
+         static_cast<hstd::Opt<double>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrDouble),
+         pybind11::arg("kind"))
+    .def("getFirstAttrLisp",
+         static_cast<hstd::Opt<org::sem::AttrValue::LispValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrLisp),
+         pybind11::arg("kind"))
+    .def("getFirstAttrKind",
+         static_cast<hstd::Opt<org::sem::AttrValue::Kind>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrKind),
+         pybind11::arg("kind"))
     ;
   pybind11::class_<org::sem::Inline, org::sem::SemId<org::sem::Inline>, org::sem::Org>(m, "Inline")
     ;
@@ -5255,6 +5250,7 @@ ingoing elements.)RAW")
                         }))
     .def_readwrite("from_", &org::sem::TimeRange::from, R"RAW(Starting time)RAW")
     .def_readwrite("to", &org::sem::TimeRange::to, R"RAW(Finishing time)RAW")
+    .def("getClockedTimeSeconds", static_cast<hstd::Opt<int64_t>(org::sem::TimeRange::*)() const>(&org::sem::TimeRange::getClockedTimeSeconds))
     .def("__repr__", [](org::sem::TimeRange const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5417,6 +5413,7 @@ ingoing elements.)RAW")
          pybind11::arg_v("subkind", std::nullopt),
          R"RAW(Assign a raw string literal to a property.)RAW")
     .def("getCleanTitle", static_cast<hstd::Str(org::sem::Subtree::*)() const>(&org::sem::Subtree::getCleanTitle), R"RAW(Get subtree title as a flat string, without markup nodes, but with all left strings)RAW")
+    .def("getTodoKeyword", static_cast<hstd::Opt<hstd::Str>(org::sem::Subtree::*)() const>(&org::sem::Subtree::getTodoKeyword))
     .def("__repr__", [](org::sem::Subtree const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -7118,29 +7115,11 @@ ingoing elements.)RAW")
     .def("setLang",
          static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmBlockCodeValue::setLang),
          pybind11::arg("value"))
-    .def("setExports",
-         static_cast<void(org::imm::ImmBlockCodeValue::*)(BlockCodeExports const&)>(&org::imm::ImmBlockCodeValue::setExports),
-         pybind11::arg("value"))
     .def("setResult",
          static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&)>(&org::imm::ImmBlockCodeValue::setResult),
          pybind11::arg("value"))
     .def("setLines",
          static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::flex_vector<org::sem::BlockCodeLine> const&)>(&org::imm::ImmBlockCodeValue::setLines),
-         pybind11::arg("value"))
-    .def("setCache",
-         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setCache),
-         pybind11::arg("value"))
-    .def("setEval",
-         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setEval),
-         pybind11::arg("value"))
-    .def("setNoweb",
-         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setNoweb),
-         pybind11::arg("value"))
-    .def("setHlines",
-         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setHlines),
-         pybind11::arg("value"))
-    .def("setTangle",
-         static_cast<void(org::imm::ImmBlockCodeValue::*)(bool const&)>(&org::imm::ImmBlockCodeValue::setTangle),
          pybind11::arg("value"))
     .def("setSwitches",
          static_cast<void(org::imm::ImmBlockCodeValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmBlockCodeValue::setSwitches),
@@ -8477,14 +8456,8 @@ ingoing elements.)RAW")
                         return result;
                         }))
     .def_readwrite("lang", &org::sem::BlockCode::lang, R"RAW(Code block language name)RAW")
-    .def_readwrite("exports", &org::sem::BlockCode::exports, R"RAW(What to export)RAW")
     .def_readwrite("result", &org::sem::BlockCode::result, R"RAW(Code evaluation results)RAW")
     .def_readwrite("lines", &org::sem::BlockCode::lines, R"RAW(Collected code lines)RAW")
-    .def_readwrite("cache", &org::sem::BlockCode::cache, R"RAW(Do cache values?)RAW")
-    .def_readwrite("eval", &org::sem::BlockCode::eval, R"RAW(Eval on export?)RAW")
-    .def_readwrite("noweb", &org::sem::BlockCode::noweb, R"RAW(Web-tangle code on export/run)RAW")
-    .def_readwrite("hlines", &org::sem::BlockCode::hlines, R"RAW(?)RAW")
-    .def_readwrite("tangle", &org::sem::BlockCode::tangle, R"RAW(?)RAW")
     .def_readwrite("switches", &org::sem::BlockCode::switches, R"RAW(Dash-based switches for code block execution)RAW")
     .def("getVariable",
          static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getVariable),
@@ -8949,45 +8922,6 @@ ingoing elements.)RAW")
          },
          pybind11::arg("it"))
     ;
-  bind_enum_iterator<BlockCodeResults>(m, "BlockCodeResults", type_registry_guard);
-  pybind11::enum_<BlockCodeResults>(m, "BlockCodeResults")
-    .value("Replace", BlockCodeResults::Replace, R"RAW(Remove old result, replace with new value)RAW")
-    .def("__iter__", [](BlockCodeResults const& _self) -> org::bind::python::PyEnumIterator<BlockCodeResults> {
-                     return org::bind::python::PyEnumIterator<BlockCodeResults>();
-                     })
-    .def("__eq__",
-         [](BlockCodeResults const& _self, BlockCodeResults lhs, BlockCodeResults rhs) -> bool {
-         return lhs == rhs;
-         },
-         pybind11::arg("lhs"),
-         pybind11::arg("rhs"))
-    .def("__hash__",
-         [](BlockCodeResults const& _self, BlockCodeResults it) -> int {
-         return static_cast<int>(it);
-         },
-         pybind11::arg("it"))
-    ;
-  bind_enum_iterator<BlockCodeExports>(m, "BlockCodeExports", type_registry_guard);
-  pybind11::enum_<BlockCodeExports>(m, "BlockCodeExports")
-    .value("None", BlockCodeExports::None, R"RAW(Hide both original code and run result)RAW")
-    .value("Both", BlockCodeExports::Both, R"RAW(Show output and code)RAW")
-    .value("Code", BlockCodeExports::Code, R"RAW(Show only code)RAW")
-    .value("Results", BlockCodeExports::Results, R"RAW(Show only evaluation results)RAW")
-    .def("__iter__", [](BlockCodeExports const& _self) -> org::bind::python::PyEnumIterator<BlockCodeExports> {
-                     return org::bind::python::PyEnumIterator<BlockCodeExports>();
-                     })
-    .def("__eq__",
-         [](BlockCodeExports const& _self, BlockCodeExports lhs, BlockCodeExports rhs) -> bool {
-         return lhs == rhs;
-         },
-         pybind11::arg("lhs"),
-         pybind11::arg("rhs"))
-    .def("__hash__",
-         [](BlockCodeExports const& _self, BlockCodeExports it) -> int {
-         return static_cast<int>(it);
-         },
-         pybind11::arg("it"))
-    ;
   bind_enum_iterator<OrgSpecName>(m, "OrgSpecName", type_registry_guard);
   pybind11::enum_<OrgSpecName>(m, "OrgSpecName")
     .value("Unnamed", OrgSpecName::Unnamed)
@@ -9348,7 +9282,8 @@ ingoing elements.)RAW")
     .value("DoubleHash", OrgTokenKind::DoubleHash)
     .value("DoubleQuote", OrgTokenKind::DoubleQuote)
     .value("DoubleSlash", OrgTokenKind::DoubleSlash)
-    .value("DynamicTimeContent", OrgTokenKind::DynamicTimeContent)
+    .value("ActiveDynamicTimeContent", OrgTokenKind::ActiveDynamicTimeContent)
+    .value("InactiveDynamicTimeContent", OrgTokenKind::InactiveDynamicTimeContent)
     .value("EndOfFile", OrgTokenKind::EndOfFile)
     .value("Equals", OrgTokenKind::Equals)
     .value("Escaped", OrgTokenKind::Escaped)

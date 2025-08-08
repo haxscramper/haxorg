@@ -92,7 +92,6 @@
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
     __IMPL(AttrValue, Kind, (Kind)) \
-    __IMPL(AttrValue, DataKind, (DataKind)) \
     __IMPL(TodoKeyword, Transition, (Transition)) \
     __IMPL(LinkTarget, Kind, (Kind)) \
     __IMPL(SubtreeLogHead, Priority::Action, (Priority, Action)) \
@@ -953,27 +952,15 @@
 
 #define EACH_SEM_ORG_BlockCode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), lang, Lang, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((BlockCodeExports), exports, Exports, (org::sem::BlockCode), BlockCode) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result, (org::sem::BlockCode), BlockCode) \
     __IMPL_FIELD((hstd::Vec<org::sem::BlockCodeLine>), lines, Lines, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), cache, Cache, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), eval, Eval, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), noweb, Noweb, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), hlines, Hlines, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), tangle, Tangle, (org::sem::BlockCode), BlockCode) \
     __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::sem::BlockCode), BlockCode) \
 
 #define EACH_SEM_ORG_BlockCode_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Block)) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), lang, Lang, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((BlockCodeExports), exports, Exports, (org::sem::BlockCode), BlockCode) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result, (org::sem::BlockCode), BlockCode) \
     __IMPL_FIELD((hstd::Vec<org::sem::BlockCodeLine>), lines, Lines, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), cache, Cache, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), eval, Eval, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), noweb, Noweb, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), hlines, Hlines, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((bool), tangle, Tangle, (org::sem::BlockCode), BlockCode) \
     __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::sem::BlockCode), BlockCode) \
 
 #define EACH_SEM_ORG_SubtreeLog_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -1621,27 +1608,15 @@
 
 #define EACH_IMM_ORG_ImmBlockCode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), lang, Lang, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((BlockCodeExports), exports, Exports, (org::imm::ImmBlockCode), BlockCode) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>), result, Result, (org::imm::ImmBlockCode), BlockCode) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::BlockCodeLine>), lines, Lines, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), cache, Cache, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), eval, Eval, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), noweb, Noweb, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), hlines, Hlines, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), tangle, Tangle, (org::imm::ImmBlockCode), BlockCode) \
     __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::imm::ImmBlockCode), BlockCode) \
 
 #define EACH_IMM_ORG_ImmBlockCode_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmBlock)) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), lang, Lang, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((BlockCodeExports), exports, Exports, (org::imm::ImmBlockCode), BlockCode) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>), result, Result, (org::imm::ImmBlockCode), BlockCode) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::BlockCodeLine>), lines, Lines, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), cache, Cache, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), eval, Eval, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), noweb, Noweb, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), hlines, Hlines, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((bool), tangle, Tangle, (org::imm::ImmBlockCode), BlockCode) \
     __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::imm::ImmBlockCode), BlockCode) \
 
 #define EACH_IMM_ORG_ImmSubtreeLog_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -1950,31 +1925,6 @@ BOOST_DESCRIBE_ENUM_BEGIN(InitialSubtreeVisibility)
   BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Show5Levels)
   BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, ShowEverything)
 BOOST_DESCRIBE_ENUM_END(InitialSubtreeVisibility)
-/// \brief What to do with newly evaluated result
-enum class BlockCodeResults : short int {
-  /// \brief Remove old result, replace with new value
-  Replace,
-};
-BOOST_DESCRIBE_ENUM_BEGIN(BlockCodeResults)
-  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeResults, Replace)
-BOOST_DESCRIBE_ENUM_END(BlockCodeResults)
-/// \brief What part of the code block should be visible in export
-enum class BlockCodeExports : short int {
-  /// \brief Hide both original code and run result
-  None,
-  /// \brief Show output and code
-  Both,
-  /// \brief Show only code
-  Code,
-  /// \brief Show only evaluation results
-  Results,
-};
-BOOST_DESCRIBE_ENUM_BEGIN(BlockCodeExports)
-  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, None)
-  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, Both)
-  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, Code)
-  BOOST_DESCRIBE_ENUM_ENTRY(BlockCodeExports, Results)
-BOOST_DESCRIBE_ENUM_END(BlockCodeExports)
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Warn, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
 BOOST_DESCRIBE_ENUM_BEGIN(OrgSpecName)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Unnamed)
@@ -2387,7 +2337,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeCompletion)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeImportance)
 BOOST_DESCRIBE_ENUM_END(OrgNodeKind)
-enum class OrgTokenKind : short int { Ampersand, AngleBegin, AngleEnd, AnyPunct, Asterisk, At, Backtick, BigIdent, BoldBegin, BoldEnd, BoldUnknown, BraceBegin, BraceEnd, Checkbox, Circumflex, CmdAdmonitionEnd, CmdAttr, CmdAuthor, CmdBindRaw, CmdCall, CmdCaption, CmdCategoryRaw, CmdCell, CmdCellBegin, CmdCellEnd, CmdCenterBegin, CmdCenterEnd, CmdColonIdent, CmdColumns, CmdCommentBegin, CmdCommentEnd, CmdConstants, CmdContentBegin, CmdContentEnd, CmdCreator, CmdCustomRaw, CmdDateRaw, CmdDescription, CmdDrawersRaw, CmdDynamicBegin, CmdDynamicBlockBegin, CmdDynamicBlockEnd, CmdDynamicEnd, CmdEmailRaw, CmdExampleBegin, CmdExampleEnd, CmdExampleLine, CmdExcludeTagsRaw, CmdExportBegin, CmdExportEnd, CmdExportLine, CmdFiletags, CmdFlag, CmdHeader, CmdHtmlHeadRaw, CmdInclude, CmdLanguage, CmdLatexClass, CmdLatexClassOptions, CmdLatexCompiler, CmdLatexHeader, CmdLatexHeaderExtraRaw, CmdLinkRaw, CmdMacroRaw, CmdName, CmdOptions, CmdPrefix, CmdPrioritiesRaw, CmdPropertyArgs, CmdPropertyRaw, CmdPropertyText, CmdQuoteBegin, CmdQuoteEnd, CmdRawArg, CmdResults, CmdRow, CmdRowBegin, CmdRowEnd, CmdSelectTagsRaw, CmdSeqTodoRaw, CmdKeywordsRaw, CmdSetupfileRaw, CmdSrcBegin, CmdSrcEnd, CmdStartup, CmdTableBegin, CmdTableEnd, CmdTagsRaw, CmdTblfm, CmdTitle, CmdVerseBegin, CmdVerseEnd, Colon, ColonArgumentsProperty, ColonEnd, ColonExampleLine, ColonLiteralProperty, ColonLogbook, ColonProperties, ColonPropertyText, Comma, Comment, CriticAddBegin, CriticAddEnd, CriticCommentBegin, CriticCommentEnd, CriticDeleteBegin, CriticDeleteEnd, CriticHighlightBegin, CriticHighlightEnd, CriticReplaceBegin, CriticReplaceEnd, CriticReplaceMiddle, CurlyBegin, CurlyEnd, Date, Dedent, Dollar, DoubleAngleBegin, DoubleAngleEnd, DoubleColon, DoubleDash, DoubleHash, DoubleQuote, DoubleSlash, DynamicTimeContent, EndOfFile, Equals, Escaped, Exclamation, FootnoteInlineBegin, FootnoteLinked, ForwardSlash, HashIdent, HashTagBegin, Indent, InlineExportBackend, InlineExportContent, ItalicBegin, ItalicEnd, ItalicUnknown, LatexInlineRaw, LatexParBegin, LatexParEnd, LeadingMinus, LeadingNumber, LeadingPipe, LeadingPlus, LeadingSpace, LineCommand, LinkBegin, LinkDescriptionBegin, LinkDescriptionEnd, LinkEnd, LinkFull, LinkProtocol, LinkProtocolAttachment, LinkProtocolCustomId, LinkProtocolFile, LinkProtocolHttp, LinkProtocolId, LinkProtocolInternal, LinkProtocolTitle, LinkSplit, LinkTarget, LinkTargetBegin, LinkTargetEnd, LinkTargetFile, ListBegin, ListEnd, ListItemBegin, ListItemEnd, LongNewline, MediumNewline, Minus, MiscUnicode, MonospaceBegin, MonospaceEnd, MonospaceUnknown, Newline, Number, ParBegin, ParEnd, Percent, Pipe, Placeholder, Plus, Punctuation, RawText, SameIndent, Semicolon, SingleQuote, SrcContent, StmtListBegin, StmtListEnd, StrikeBegin, StrikeEnd, StrikeUnknown, SubtreeCompletion, SubtreePriority, SubtreeStars, Symbol, TableSeparator, TextSeparator, TextSrcBegin, Tilda, Time, TimeArrow, TimeRepeaterDuration, TimeRepeaterSpec, TimeWarnPeriod, TrailingPipe, TreeClock, TreeTime, TripleAngleBegin, TripleAngleEnd, Underline, UnderlineBegin, UnderlineEnd, UnderlineUnknown, Unknown, VerbatimBegin, VerbatimEnd, VerbatimUnknown, Whitespace, Word, };
+enum class OrgTokenKind : short int { Ampersand, AngleBegin, AngleEnd, AnyPunct, Asterisk, At, Backtick, BigIdent, BoldBegin, BoldEnd, BoldUnknown, BraceBegin, BraceEnd, Checkbox, Circumflex, CmdAdmonitionEnd, CmdAttr, CmdAuthor, CmdBindRaw, CmdCall, CmdCaption, CmdCategoryRaw, CmdCell, CmdCellBegin, CmdCellEnd, CmdCenterBegin, CmdCenterEnd, CmdColonIdent, CmdColumns, CmdCommentBegin, CmdCommentEnd, CmdConstants, CmdContentBegin, CmdContentEnd, CmdCreator, CmdCustomRaw, CmdDateRaw, CmdDescription, CmdDrawersRaw, CmdDynamicBegin, CmdDynamicBlockBegin, CmdDynamicBlockEnd, CmdDynamicEnd, CmdEmailRaw, CmdExampleBegin, CmdExampleEnd, CmdExampleLine, CmdExcludeTagsRaw, CmdExportBegin, CmdExportEnd, CmdExportLine, CmdFiletags, CmdFlag, CmdHeader, CmdHtmlHeadRaw, CmdInclude, CmdLanguage, CmdLatexClass, CmdLatexClassOptions, CmdLatexCompiler, CmdLatexHeader, CmdLatexHeaderExtraRaw, CmdLinkRaw, CmdMacroRaw, CmdName, CmdOptions, CmdPrefix, CmdPrioritiesRaw, CmdPropertyArgs, CmdPropertyRaw, CmdPropertyText, CmdQuoteBegin, CmdQuoteEnd, CmdRawArg, CmdResults, CmdRow, CmdRowBegin, CmdRowEnd, CmdSelectTagsRaw, CmdSeqTodoRaw, CmdKeywordsRaw, CmdSetupfileRaw, CmdSrcBegin, CmdSrcEnd, CmdStartup, CmdTableBegin, CmdTableEnd, CmdTagsRaw, CmdTblfm, CmdTitle, CmdVerseBegin, CmdVerseEnd, Colon, ColonArgumentsProperty, ColonEnd, ColonExampleLine, ColonLiteralProperty, ColonLogbook, ColonProperties, ColonPropertyText, Comma, Comment, CriticAddBegin, CriticAddEnd, CriticCommentBegin, CriticCommentEnd, CriticDeleteBegin, CriticDeleteEnd, CriticHighlightBegin, CriticHighlightEnd, CriticReplaceBegin, CriticReplaceEnd, CriticReplaceMiddle, CurlyBegin, CurlyEnd, Date, Dedent, Dollar, DoubleAngleBegin, DoubleAngleEnd, DoubleColon, DoubleDash, DoubleHash, DoubleQuote, DoubleSlash, ActiveDynamicTimeContent, InactiveDynamicTimeContent, EndOfFile, Equals, Escaped, Exclamation, FootnoteInlineBegin, FootnoteLinked, ForwardSlash, HashIdent, HashTagBegin, Indent, InlineExportBackend, InlineExportContent, ItalicBegin, ItalicEnd, ItalicUnknown, LatexInlineRaw, LatexParBegin, LatexParEnd, LeadingMinus, LeadingNumber, LeadingPipe, LeadingPlus, LeadingSpace, LineCommand, LinkBegin, LinkDescriptionBegin, LinkDescriptionEnd, LinkEnd, LinkFull, LinkProtocol, LinkProtocolAttachment, LinkProtocolCustomId, LinkProtocolFile, LinkProtocolHttp, LinkProtocolId, LinkProtocolInternal, LinkProtocolTitle, LinkSplit, LinkTarget, LinkTargetBegin, LinkTargetEnd, LinkTargetFile, ListBegin, ListEnd, ListItemBegin, ListItemEnd, LongNewline, MediumNewline, Minus, MiscUnicode, MonospaceBegin, MonospaceEnd, MonospaceUnknown, Newline, Number, ParBegin, ParEnd, Percent, Pipe, Placeholder, Plus, Punctuation, RawText, SameIndent, Semicolon, SingleQuote, SrcContent, StmtListBegin, StmtListEnd, StrikeBegin, StrikeEnd, StrikeUnknown, SubtreeCompletion, SubtreePriority, SubtreeStars, Symbol, TableSeparator, TextSeparator, TextSrcBegin, Tilda, Time, TimeArrow, TimeRepeaterDuration, TimeRepeaterSpec, TimeWarnPeriod, TrailingPipe, TreeClock, TreeTime, TripleAngleBegin, TripleAngleEnd, Underline, UnderlineBegin, UnderlineEnd, UnderlineUnknown, Unknown, VerbatimBegin, VerbatimEnd, VerbatimUnknown, Whitespace, Word, };
 BOOST_DESCRIBE_ENUM_BEGIN(OrgTokenKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, Ampersand)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, AngleBegin)
@@ -2514,7 +2464,8 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgTokenKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, DoubleHash)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, DoubleQuote)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, DoubleSlash)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, DynamicTimeContent)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, ActiveDynamicTimeContent)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, InactiveDynamicTimeContent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, EndOfFile)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, Equals)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, Escaped)

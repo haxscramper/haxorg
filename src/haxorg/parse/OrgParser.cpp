@@ -458,9 +458,15 @@ void OrgParser::textFold(OrgLexer& lex) {
                     break;
                 }
 
+                case otk::ActiveDynamicTimeContent:
+                case otk::InactiveDynamicTimeContent: {
+                    subParse(TimeRange, lex);
+                    break;
+                }
+
                 case otk::AngleBegin: {
                     if (lex.at(otk::Date, +1)) {
-                        subParse(TimeStamp, lex);
+                        subParse(TimeRange, lex);
                     } else {
                         subParse(Placeholder, lex);
                     }
@@ -775,16 +781,50 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
 OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
     auto __trace   = trace(lex);
     auto start_tok = lex.tok();
-    expect(lex, OrgTokSet{otk::BraceBegin, otk::AngleBegin});
-    bool active = lex.at(otk::AngleBegin);
-    if (lex.at(otk::DynamicTimeContent)) {
+    expect(
+        lex,
+        OrgTokSet{
+            otk::BraceBegin,
+            otk::AngleBegin,
+            otk::InactiveDynamicTimeContent,
+            otk::ActiveDynamicTimeContent,
+        });
+
+    bool active = lex.at(OrgTokSet{
+        otk::AngleBegin,
+        otk::ActiveDynamicTimeContent,
+    });
+
+    if (lex.at(OrgTokSet{
+            otk::InactiveDynamicTimeContent,
+            otk::ActiveDynamicTimeContent})) {
         if (active) {
             start(onk::DynamicActiveTime);
+            skip(lex, otk::ActiveDynamicTimeContent);
         } else {
             start(onk::DynamicInactiveTime);
+            skip(lex, otk::InactiveDynamicTimeContent);
         }
 
-        token(onk::RawText, pop(lex, otk::DynamicTimeContent));
+        std::function<void()> aux;
+        aux = [&]() {
+            if (lex.at(otk::ParBegin)) {
+                start(onk::InlineStmtList);
+                skip(lex, otk::ParBegin);
+                space(lex);
+                while (lex.can_search(otk::ParEnd)) {
+                    subParse(AttrLisp, lex);
+                    space(lex);
+                }
+                skip(lex, otk::ParEnd);
+                end();
+            } else {
+                token(onk::RawText, pop(lex, lex.kind()));
+            }
+        };
+
+
+        aux();
 
         end();
     } else {
@@ -861,14 +901,14 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
-    auto            __trace  = trace(lex);
-    bool            isActive = lex.at(otk::AngleBegin);
+    auto            __trace = trace(lex);
     const OrgTokSet times{
         otk::BraceBegin,
         otk::BraceEnd,
         otk::AngleBegin,
         otk::AngleEnd,
-        otk::DynamicTimeContent,
+        otk::InactiveDynamicTimeContent,
+        otk::ActiveDynamicTimeContent,
         otk::Date,
         otk::Word,
         otk::Time,
@@ -884,11 +924,19 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
     tmp.pos          = lex.pos;
     bool isTimeRange = false;
     while (!tmp.finished() && tmp.at(times)) {
-        if (tmp.at(Vec{
-                isActive ? otk::AngleEnd : otk::BraceEnd,
-                otk::DoubleDash,
-                isActive ? otk::AngleBegin : otk::BraceBegin,
-            })) {
+        message(printLexerToString(tmp));
+        if (tmp.at(otk::AngleEnd) && tmp.at(otk::DoubleDash, +1)
+            && tmp.at(
+                OrgTokSet{otk::AngleBegin, otk::ActiveDynamicTimeContent},
+                +2)) {
+            isTimeRange = true;
+            break;
+        } else if (
+            tmp.at(otk::BraceEnd) && tmp.at(otk::DoubleDash, +1)
+            && tmp.at(
+                OrgTokSet{
+                    otk::BraceBegin, otk::InactiveDynamicTimeContent},
+                +2)) {
             isTimeRange = true;
             break;
         } else {
@@ -897,6 +945,7 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
     }
 
     if (isTimeRange) {
+        message("correct time range found");
         start(onk::TimeRange);
         subParse(TimeStamp, lex);
         skip(lex, otk::DoubleDash);
@@ -1586,7 +1635,11 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
         space(lex);
         parseCommandArguments(lex);
         newline(lex);
-        parseStmtListItem(lex);
+        if (!lex.at(otk::SubtreeStars)) {
+            parseStmtListItem(lex);
+        } else {
+            empty();
+        }
         end();
     } else {
         empty();
@@ -1798,7 +1851,8 @@ OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
 OrgId OrgParser::parseSubtreeTodo(OrgLexer& lex) {
     auto __trace = trace(lex);
     space(lex);
-    if (lex.at(otk::BigIdent)) {
+    if (lex.at(
+            Vec{otk::BigIdent, otk::Whitespace, otk::SubtreePriority})) {
         return token(onk::BigIdent, pop(lex, otk::BigIdent));
     } else {
         return empty();
@@ -1944,7 +1998,8 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
     space(lex);                                       //
     subParse(SubtreeTitle, lex);                      // 3
     subParse(SubtreeCompletion, lex);                 // 4
-    subParse(SubtreeTags, lex);                       // 5
+    space(lex);
+    subParse(SubtreeTags, lex); // 5
 
     if (lex.at(otk::Newline)) { newline(lex); }
     subParse(SubtreeTimes, lex); // 6
@@ -2481,8 +2536,10 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
         // NOTE: 'back' returns the last node, not one-past-last
         OrgNode node = g.at(id);
         if (node.kind == onk::Subtree) {
-            parser->print(
-                "Found subtree on the lower level " + id.format());
+            if (parser->TraceState) {
+                parser->print(
+                    "Found subtree on the lower level " + id.format());
+            }
             OrgId const tree = id;
             if (g.size(tree) == 0 && parser->TraceState) {
                 parser->message(g.treeRepr(tree));
@@ -2506,13 +2563,15 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
                 g.at(stmt).extend(stmt_extend);
                 g.at(tree).extend(tree_extend);
 
-                parser->print(
-                    fmt("Found nested subtree tree={} stmt={} "
-                        "tree-extend={} stmt-extend={}",
-                        tree.format(),
-                        stmt.format(),
-                        tree_extend,
-                        stmt_extend));
+                if (parser->TraceState) {
+                    parser->print(
+                        fmt("Found nested subtree tree={} stmt={} "
+                            "tree-extend={} stmt-extend={}",
+                            tree.format(),
+                            stmt.format(),
+                            tree_extend,
+                            stmt_extend));
+                }
 
                 auto treeSlice = g.allSubnodesOf(tree).value();
                 auto stmtSlice = g.allSubnodesOf(tree).value();
@@ -2538,9 +2597,11 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
 
 
             } else {
-                parser->print(
-                    "Found subtree on the same level or above "
-                    + id.format());
+                if (parser->TraceState) {
+                    parser->print(
+                        "Found subtree on the same level or above "
+                        + id.format());
+                }
                 // Found subtree on the same level or above
                 break;
             }

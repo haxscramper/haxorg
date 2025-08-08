@@ -313,7 +313,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                         created=getCreationTime(node),
                         scheduled=getSubtreeTime(node, org.SubtreePeriodKind.Scheduled),
                         level=node.level,
-                        plaintext_title=ExporterUltraplain.getStr(node.title),
+                        plaintext_title=node.getCleanTitle(),
                         location=get_location(node),
                         wordcount=count,
                     ))

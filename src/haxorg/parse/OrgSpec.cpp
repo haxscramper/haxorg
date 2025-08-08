@@ -94,6 +94,12 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{onk::StaticActiveTime, timeSpecPattern},
         SpecPair{onk::StaticInactiveTime, timeSpecPattern},
         SpecPair{
+            onk::DynamicActiveTime,
+            OrgPattern({fieldN(0, N::Body, {onk::InlineStmtList})})},
+        SpecPair{
+            onk::DynamicInactiveTime,
+            OrgPattern({fieldN(0, N::Body, {onk::InlineStmtList})})},
+        SpecPair{
             onk::Subtree,
             OrgPattern({
                 field1(

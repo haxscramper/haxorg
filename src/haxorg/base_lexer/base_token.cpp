@@ -1342,6 +1342,9 @@ void switch_regular_char(Cursor& c) {
                             + dsl::lit_c<'/'> + dsl::digits<>
                             + dsl::lit_c<']'>>()) {
                 c.token_adv(otk::SubtreeCompletion, *span);
+            } else if (c.is_at_all_of(0, '[', '%', '%')) {
+                c.token1(
+                    otk::InactiveDynamicTimeContent, &advance_count, 3);
             } else if (
                 auto span = c.try_lexy_patt<
                             dsl::lit_c<'['> + dsl::lit_c<'#'>
@@ -1492,7 +1495,14 @@ void switch_regular_char(Cursor& c) {
             } else if (c.is_at_all_of(0, '<', '<')) {
                 c.token1(otk::DoubleAngleBegin, &advance_count, 2);
             } else if (c.is_at_all_of(0, '<', '%', '%')) {
-                c.token1(otk::DynamicTimeContent, &advance_count, 3);
+                c.token1(otk::ActiveDynamicTimeContent, &advance_count, 3);
+            } else if (
+                auto span = c.try_lexy_patt<
+                            dsl::lit_c<'<'>
+                            + dsl::times<4>(dsl::digit<>) + dsl::lit_c<'-'>
+                            + dsl::times<2>(dsl::digit<>) + dsl::lit_c<'-'>
+                            + dsl::times<2>(dsl::digit<>)>()) {
+                c.token_adv(otk::AngleBegin, 1);
             } else if (
                 auto span = c.try_lexy_patt<
                             dsl::lit_c<'<'> + dsl::p<org_ident>

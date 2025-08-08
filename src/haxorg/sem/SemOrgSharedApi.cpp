@@ -1229,3 +1229,77 @@ hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterDirectoryAPI::
 
     return std::nullopt;
 }
+
+hstd::Opt<int64_t> org::sem::TimeRange::getClockedTimeSeconds() const {
+    if (!to.isNil() && to->isStatic() && from->isStatic()) {
+        return to->getStaticTime().getTimeDeltaSeconds(
+            from->getStaticTime());
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<hstd::Str> org::sem::Subtree::getTodoKeyword() const {
+    if (todo) {
+        return todo;
+    } else if (title->hasAdmonition()) {
+        return title->getAdmonitions().at(0);
+    } else {
+        return std::nullopt;
+    }
+}
+
+
+hstd::Opt<hstd::Str> org::sem::Stmt::getFirstAttrString(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getString();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<bool> org::sem::Stmt::getFirstAttrBool(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getBool();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<int> org::sem::Stmt::getFirstAttrInt(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getInt();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<sem::AttrValue::LispValue> org::sem::Stmt::getFirstAttrLisp(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getLispValue();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<double> org::sem::Stmt::getFirstAttrDouble(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getDouble();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<sem::AttrValue::Kind> org::sem::Stmt::getFirstAttrKind(
+    hstd::Str const& key) const {
+    if (auto it = getFirstAttr(key); it.has_value()) {
+        return it.value().getKind();
+    } else {
+        return std::nullopt;
+    }
+}

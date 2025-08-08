@@ -553,28 +553,6 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
         if (isInline) { add(head, str("]")); }
     }
 
-    if (id->exports != BlockCodeExports::Both) { // 'both' is the default
-        add(head, str(":exports "));
-        switch (id->exports) {
-            case BlockCodeExports::Both: {
-                add(head, str("both"));
-                break;
-            }
-            case BlockCodeExports::Code: {
-                add(head, str("code"));
-                break;
-            }
-            case BlockCodeExports::Results: {
-                add(head, str("results"));
-                break;
-            }
-            case BlockCodeExports::None: {
-                add(head, str("results"));
-                break;
-            }
-        }
-    }
-
     add(result, head);
     if (isInline) { add(result, str("{")); }
     for (auto const& it : id->lines) {
@@ -970,7 +948,8 @@ auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
         }
 
     } else {
-        add(result, str(id->getDynamic().expr));
+        add(result, str("%%"));
+        add(result, toString(id->getDynamic().expr, ctx));
     }
     add(result, str(id->isActive ? ">" : "]"));
 

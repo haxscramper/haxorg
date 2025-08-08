@@ -185,24 +185,16 @@ export interface haxorg_wasm_module_auto {
   }
   format_TblfmAssignFlag(value: TblfmAssignFlag): string;
   AttrValue: AttrValueConstructor;
-  AttrValueKind: {
-    String: AttrValueKind,
-    Boolean: AttrValueKind,
-    Integer: AttrValueKind,
-    Float: AttrValueKind,
-    FileReference: AttrValueKind,
-  }
-  format_AttrValueKind(value: AttrValueKind): string;
   AttrValueDimensionSpan: AttrValueDimensionSpanConstructor;
   AttrValueTextValue: AttrValueTextValueConstructor;
   AttrValueFileReference: AttrValueFileReferenceConstructor;
   AttrValueLispValue: AttrValueLispValueConstructor;
-  AttrValueDataKind: {
-    TextValue: AttrValueDataKind,
-    FileReference: AttrValueDataKind,
-    LispValue: AttrValueDataKind,
+  AttrValueKind: {
+    TextValue: AttrValueKind,
+    FileReference: AttrValueKind,
+    LispValue: AttrValueKind,
   }
-  format_AttrValueDataKind(value: AttrValueDataKind): string;
+  format_AttrValueKind(value: AttrValueKind): string;
   HashTagFlat: HashTagFlatConstructor;
   TodoKeyword: TodoKeywordConstructor;
   TodoKeywordTransition: {
@@ -1063,15 +1055,6 @@ export interface haxorg_wasm_module_auto {
     ShowEverything: InitialSubtreeVisibility,
   }
   format_InitialSubtreeVisibility(value: InitialSubtreeVisibility): string;
-  BlockCodeResults: { Replace: BlockCodeResults, }
-  format_BlockCodeResults(value: BlockCodeResults): string;
-  BlockCodeExports: {
-    None: BlockCodeExports,
-    Both: BlockCodeExports,
-    Code: BlockCodeExports,
-    Results: BlockCodeExports,
-  }
-  format_BlockCodeExports(value: BlockCodeExports): string;
   OrgSpecName: {
     Unnamed: OrgSpecName,
     Result: OrgSpecName,
@@ -1386,7 +1369,8 @@ export interface haxorg_wasm_module_auto {
     DoubleHash: OrgTokenKind,
     DoubleQuote: OrgTokenKind,
     DoubleSlash: OrgTokenKind,
-    DynamicTimeContent: OrgTokenKind,
+    ActiveDynamicTimeContent: OrgTokenKind,
+    InactiveDynamicTimeContent: OrgTokenKind,
     EndOfFile: OrgTokenKind,
     Equals: OrgTokenKind,
     Escaped: OrgTokenKind,
@@ -1631,6 +1615,8 @@ export interface UserTimeConstructor { new(): UserTime; }
 export interface UserTime {
   getBreakdown(): UserTimeBreakdown;
   format(): string;
+  getTimeDeltaSeconds(other: UserTime): Int64_t;
+  toUnixTimestamp(): Int64_t;
 }
 export interface ParseLineColConstructor { new(): ParseLineCol; }
 export interface ParseLineCol {
@@ -1853,14 +1839,8 @@ export interface ImmBlockCodeEvalResultValueRead {
 export interface ImmBlockCodeValueReadConstructor { new(): ImmBlockCodeValueRead; }
 export interface ImmBlockCodeValueRead {
   getLang(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
-  getExports(): BlockCodeExports;
   getResult(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>;
   getLines(): haxorg_wasm.ImmerFlex_vector<BlockCodeLine>;
-  getCache(): boolean;
-  getEval(): boolean;
-  getNoweb(): boolean;
-  getHlines(): boolean;
-  getTangle(): boolean;
   getSwitches(): AttrGroup;
 }
 export interface ImmSubtreeLogValueReadConstructor { new(): ImmSubtreeLogValueRead; }
@@ -2456,8 +2436,6 @@ export interface AttrValue {
   getBool(): haxorg_wasm.Optional<boolean>;
   getInt(): haxorg_wasm.Optional<number>;
   getString(): string;
-  getFile(): string;
-  getReference(): string;
   getDouble(): haxorg_wasm.Optional<number>;
   __eq__(other: AttrValue): boolean;
   AttrValue(): void;
@@ -2470,23 +2448,16 @@ export interface AttrValue {
   isLispValue(): boolean;
   getLispValueConst(): AttrValueLispValue;
   getLispValueMut(): AttrValueLispValue;
-  getDataKindStatic(__input: AttrValueDataVariant): AttrValueDataKind;
-  getDataKind(): AttrValueDataKind;
+  getKindStatic(__input: AttrValueDataVariant): AttrValueKind;
+  getKind(): AttrValueKind;
   sub_variant_get_name(): string;
   sub_variant_get_data(): AttrValueDataVariant;
-  sub_variant_get_kind(): AttrValueDataKind;
+  sub_variant_get_kind(): AttrValueKind;
   name: haxorg_wasm.Optional<string>
   varname: haxorg_wasm.Optional<string>
   span: haxorg_wasm.Vec<AttrValueDimensionSpan>
   isQuoted: boolean
   data: AttrValueDataVariant
-}
-export enum AttrValueKind {
-  String,
-  Boolean,
-  Integer,
-  Float,
-  FileReference,
 }
 export interface AttrValueDimensionSpanConstructor { new(): AttrValueDimensionSpan; }
 export interface AttrValueDimensionSpan {
@@ -2515,7 +2486,7 @@ export interface AttrValueLispValue {
   code: LispCode
 }
 export type AttrValueDataVariant = haxorg_wasm.StdVariant<AttrValueTextValue, AttrValueFileReference, AttrValueLispValue>;
-export enum AttrValueDataKind {
+export enum AttrValueKind {
   TextValue,
   FileReference,
   LispValue,
@@ -2805,6 +2776,7 @@ export interface AttrGroup {
 export interface OrgCodeEvalInputConstructor { new(): OrgCodeEvalInput; }
 export interface OrgCodeEvalInput {
   __eq__(other: OrgCodeEvalInput): boolean;
+  getVariable(name: string): haxorg_wasm.Optional<OrgCodeEvalInputVar>;
   blockAttrs: AttrGroup
   tangledCode: string
   exportType: haxorg_wasm.Optional<string>
@@ -3330,6 +3302,12 @@ export interface Stmt {
   getName(): haxorg_wasm.Vec<string>;
   getAttrs(kind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<AttrValue>;
   getFirstAttr(kind: string): haxorg_wasm.Optional<AttrValue>;
+  getFirstAttrString(kind: string): haxorg_wasm.Optional<string>;
+  getFirstAttrInt(kind: string): haxorg_wasm.Optional<number>;
+  getFirstAttrBool(kind: string): haxorg_wasm.Optional<boolean>;
+  getFirstAttrDouble(kind: string): haxorg_wasm.Optional<number>;
+  getFirstAttrLisp(kind: string): haxorg_wasm.Optional<AttrValueLispValue>;
+  getFirstAttrKind(kind: string): haxorg_wasm.Optional<AttrValueKind>;
   attached: haxorg_wasm.Vec<Org>
 }
 export interface InlineConstructor { new(): Inline; }
@@ -3398,7 +3376,7 @@ export interface TimeStatic {
 export interface TimeDynamicConstructor { new(): TimeDynamic; }
 export interface TimeDynamic {
   Dynamic(): void;
-  expr: string
+  expr: LispCode
 }
 export type TimeTimeVariant = haxorg_wasm.StdVariant<TimeStatic, TimeDynamic>;
 export enum TimeTimeKind {
@@ -3408,6 +3386,7 @@ export enum TimeTimeKind {
 export interface TimeRangeConstructor { new(): TimeRange; }
 export interface TimeRange {
   getKind(): OrgSemKind;
+  getClockedTimeSeconds(): haxorg_wasm.Optional<Int64_t>;
   from: Time
   to: Time
 }
@@ -3455,6 +3434,7 @@ export interface Subtree {
   setProperty(value: NamedProperty): void;
   setPropertyStrValue(value: string, kind: string, subkind: haxorg_wasm.Optional<string>): void;
   getCleanTitle(): string;
+  getTodoKeyword(): haxorg_wasm.Optional<string>;
   level: number
   treeId: haxorg_wasm.Optional<string>
   todo: haxorg_wasm.Optional<string>
@@ -3919,7 +3899,7 @@ export interface ImmTimeDynamicConstructor { new(): ImmTimeDynamic; }
 export interface ImmTimeDynamic {
   Dynamic(): void;
   __eq__(other: ImmTimeDynamic): boolean;
-  expr: haxorg_wasm.ImmBox<string>
+  expr: LispCode
 }
 export type ImmTimeTimeVariant = haxorg_wasm.StdVariant<ImmTimeStatic, ImmTimeDynamic>;
 export enum ImmTimeTimeKind {
@@ -4364,14 +4344,8 @@ export interface ImmBlockCodeEvalResultValue {
 export interface ImmBlockCodeValueConstructor { new(): ImmBlockCodeValue; }
 export interface ImmBlockCodeValue {
   setLang(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
-  setExports(value: BlockCodeExports): void;
   setResult(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>): void;
   setLines(value: haxorg_wasm.ImmerFlex_vector<BlockCodeLine>): void;
-  setCache(value: boolean): void;
-  setEval(value: boolean): void;
-  setNoweb(value: boolean): void;
-  setHlines(value: boolean): void;
-  setTangle(value: boolean): void;
   setSwitches(value: AttrGroup): void;
 }
 export interface ImmSubtreeLogValueConstructor { new(): ImmSubtreeLogValue; }
@@ -5104,14 +5078,8 @@ export interface BlockCode {
   getKind(): OrgSemKind;
   getVariable(varname: string): haxorg_wasm.Optional<AttrValue>;
   lang: haxorg_wasm.Optional<string>
-  exports: BlockCodeExports
   result: haxorg_wasm.Vec<BlockCodeEvalResult>
   lines: haxorg_wasm.Vec<BlockCodeLine>
-  cache: boolean
-  eval: boolean
-  noweb: boolean
-  hlines: boolean
-  tangle: boolean
   switches: AttrGroup
 }
 export interface TableConstructor { new(): Table; }
@@ -5172,14 +5140,8 @@ export interface ImmBlockCode {
   getKind(): OrgSemKind;
   __eq__(other: ImmBlockCode): boolean;
   lang: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
-  exports: BlockCodeExports
   result: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>
   lines: haxorg_wasm.ImmVec<BlockCodeLine>
-  cache: boolean
-  eval: boolean
-  noweb: boolean
-  hlines: boolean
-  tangle: boolean
   switches: AttrGroup
 }
 export interface ImmTableConstructor { new(): ImmTable; }
@@ -5587,13 +5549,6 @@ export enum InitialSubtreeVisibility {
   Show5Levels,
   ShowEverything,
 }
-export enum BlockCodeResults { Replace, }
-export enum BlockCodeExports {
-  None,
-  Both,
-  Code,
-  Results,
-}
 export enum OrgSpecName {
   Unnamed,
   Result,
@@ -5906,7 +5861,8 @@ export enum OrgTokenKind {
   DoubleHash,
   DoubleQuote,
   DoubleSlash,
-  DynamicTimeContent,
+  ActiveDynamicTimeContent,
+  InactiveDynamicTimeContent,
   EndOfFile,
   Equals,
   Escaped,

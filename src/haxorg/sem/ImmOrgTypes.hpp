@@ -440,7 +440,7 @@ struct ImmTime : public org::imm::ImmOrg {
                          (),
                          (),
                          (expr))
-    hstd::ext::ImmBox<hstd::Str> expr;
+    org::sem::LispCode expr;
     Dynamic() {  }
     bool operator==(org::imm::ImmTime::Dynamic const& other) const;
   };
@@ -996,34 +996,16 @@ struct ImmBlockCode : public org::imm::ImmBlock {
                        (),
                        (staticKind,
                         lang,
-                        exports,
                         result,
                         lines,
-                        cache,
-                        eval,
-                        noweb,
-                        hlines,
-                        tangle,
                         switches))
   static OrgSemKind const staticKind;
   /// \brief Code block language name
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> lang = std::nullopt;
-  /// \brief What to export
-  BlockCodeExports exports = BlockCodeExports::Both;
   /// \brief Code evaluation results
   hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> result = {};
   /// \brief Collected code lines
   hstd::ext::ImmVec<org::sem::BlockCodeLine> lines = {};
-  /// \brief Do cache values?
-  bool cache = false;
-  /// \brief Eval on export?
-  bool eval = false;
-  /// \brief Web-tangle code on export/run
-  bool noweb = false;
-  /// \brief ?
-  bool hlines = false;
-  /// \brief ?
-  bool tangle = false;
   /// \brief Dash-based switches for code block execution
   org::sem::AttrGroup switches;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }

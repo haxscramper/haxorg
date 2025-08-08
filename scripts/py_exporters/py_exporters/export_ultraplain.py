@@ -24,6 +24,9 @@ class ExporterUltraplain(ExporterBase):
     def visitRawText(self, res: str, node: org.RawText):
         self.result += node.text
 
+    def visitBigIdent(self, res: str, node: org.BigIdent):
+        self.result += node.text
+
     @staticmethod
     def getStr(node: org.Org) -> str:
         exp = ExporterUltraplain()

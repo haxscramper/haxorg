@@ -9,6 +9,4 @@
 
 
 
-
-
 /* clang-format on */

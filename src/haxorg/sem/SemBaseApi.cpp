@@ -1381,7 +1381,9 @@ struct EvalContext {
     sem::OrgCodeEvalInput convertInput(CallParams const& res) {
         EVAL_SCOPE();
         sem::OrgCodeEvalInput input;
-        input.language = res.block->lang.get().value();
+        if (res.block->lang->has_value()) {
+            input.language = res.block->lang.get().value();
+        }
 
         using I = sem::OrgCodeEvalInput;
 

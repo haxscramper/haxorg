@@ -32,6 +32,7 @@ def check_cli(result: Result):
 
     assert result.exit_code == 0, result.output
 
+
 @pytest.mark.test_release
 def test_story_grid():
     from py_cli.scratch_scripts import story_grid
@@ -132,6 +133,7 @@ def test_subtree_clocking():
 
         df = pd.read_csv(csv_file)
         assert df["tags"][0] == "tag##sub1,tag2"
+
 
 def test_codex_tracking():
     runner = CliRunner()
@@ -249,13 +251,18 @@ def test_base_activity_analysis():
             )
 
         def get_subtree(title: str) -> export_sqlite.Subtree:
+            log(CAT).info("get first subtree")
+            def pred(it: export_sqlite.Subtree):
+                log(CAT).info(f"'{it.plaintext_title}'")
+                return it.plaintext_title == title
+
             return first_true(
                 iterable=get_t(export_sqlite.Subtree),
-                pred=lambda it: it.plaintext_title == title,
+                pred=pred,
                 default=None,
             )
 
-        subtree1 = get_subtree("Report aggregated cxx code coverage")
+        subtree1 = get_subtree("TODO Report aggregated cxx code coverage")
         assert subtree1, dbg
 
         assert (

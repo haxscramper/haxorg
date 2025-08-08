@@ -322,6 +322,170 @@ TEST(OrgParseSem, HashtagParse) {
     }
 }
 
+TEST(OrgParseSem, TimeParsing) {
+    {
+        auto t = parseOne<sem::Time>("[2025-12-02]");
+        EXPECT_EQ(t->getYear(), 2025);
+        EXPECT_EQ(t->getMonth(), 12);
+        EXPECT_EQ(t->getDay(), 2);
+        EXPECT_TRUE(t->isStatic());
+        EXPECT_FALSE(t->isDynamic());
+        EXPECT_FALSE(t->isActive);
+        EXPECT_EQ(t->getTimeKind(), sem::Time::TimeKind::Static);
+    }
+
+    {
+        auto t = parseOne<sem::Time>("<2025-12-02>");
+        EXPECT_TRUE(t->isActive);
+        EXPECT_TRUE(t->isStatic());
+    }
+
+    {
+        auto t = parseOne<sem::Time>("[2025-12-02 Mon 14:30]");
+        EXPECT_EQ(t->getHour(), 14);
+        EXPECT_EQ(t->getMinute(), 30);
+        EXPECT_EQ(t->getSecond(), std::nullopt);
+        auto breakdown = t->getStatic().time.getBreakdown();
+        EXPECT_EQ(breakdown.year, 2025);
+        EXPECT_EQ(breakdown.month, 12);
+        EXPECT_EQ(breakdown.day, 2);
+        EXPECT_EQ(breakdown.hour, 14);
+        EXPECT_EQ(breakdown.minute, 30);
+    }
+
+    {
+        auto t = parseOne<sem::Time>("[2025-12-02 +1w]");
+        EXPECT_TRUE(t->isStatic());
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(static_time.repeat.size(), 1);
+        EXPECT_EQ(
+            static_time.repeat[0].mode, sem::Time::Repeat::Mode::Exact);
+        EXPECT_EQ(
+            static_time.repeat[0].period, sem::Time::Repeat::Period::Week);
+        EXPECT_EQ(static_time.repeat[0].count, 1);
+    }
+
+    {
+        auto  t           = parseOne<sem::Time>("[2025-12-02 ++1d]");
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(
+            static_time.repeat[0].mode,
+            sem::Time::Repeat::Mode::FirstMatch);
+        EXPECT_EQ(
+            static_time.repeat[0].period, sem::Time::Repeat::Period::Day);
+    }
+
+    {
+        auto  t           = parseOne<sem::Time>("[2025-12-02 .+1m]");
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(
+            static_time.repeat[0].mode, sem::Time::Repeat::Mode::SameDay);
+        EXPECT_EQ(
+            static_time.repeat[0].period,
+            sem::Time::Repeat::Period::Month);
+    }
+
+    {
+        auto  t           = parseOne<sem::Time>("[2025-12-02 +1y -3d]");
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(static_time.repeat.size(), 1);
+        EXPECT_TRUE(static_time.warn.has_value());
+        EXPECT_EQ(
+            static_time.warn->period, sem::Time::Repeat::Period::Day);
+        EXPECT_EQ(static_time.warn->count, -3);
+    }
+
+    {
+        auto t = parseOne<sem::Time>(
+            "<%%(diary-anniversary 12 25 1990)>",
+            getDebugFile("diary_anniversary"));
+        EXPECT_TRUE(t->isDynamic());
+        EXPECT_FALSE(t->isStatic());
+        EXPECT_EQ(t->getTimeKind(), sem::Time::TimeKind::Dynamic);
+        EXPECT_TRUE(t->isActive);
+        auto& dynamic_time = t->getDynamic();
+        EXPECT_EQ(dynamic_time.expr.getCall().name, "diary-anniversary");
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(0).getNumber().value, 12);
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(1).getNumber().value, 25);
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(2).getNumber().value,
+            1990);
+    }
+
+    {
+        auto t = parseOne<sem::Time>("[%%(diary-anniversary 12 25 1990)]");
+        EXPECT_TRUE(t->isDynamic());
+        EXPECT_FALSE(t->isStatic());
+        EXPECT_EQ(t->getTimeKind(), sem::Time::TimeKind::Dynamic);
+        EXPECT_FALSE(t->isActive);
+        auto& dynamic_time = t->getDynamic();
+        EXPECT_EQ(dynamic_time.expr.getCall().name, "diary-anniversary");
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(0).getNumber().value, 12);
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(1).getNumber().value, 25);
+        EXPECT_EQ(
+            dynamic_time.expr.getCall().args.at(2).getNumber().value,
+            1990);
+    }
+
+    {
+        auto tr = parseOne<sem::TimeRange>("[2025-12-02]--[2025-12-03]");
+        EXPECT_EQ(tr->getClockedTimeSeconds().value(), 24 * 60 * 60);
+        EXPECT_TRUE(tr->from->isStatic());
+        EXPECT_TRUE(tr->to->isStatic());
+        EXPECT_EQ(tr->from->getDay(), 2);
+        EXPECT_EQ(tr->to->getDay(), 3);
+    }
+
+    {
+        auto tr = parseOne<sem::TimeRange>(
+            "[2025-12-02 10:00]--[2025-12-02 15:30]");
+        EXPECT_EQ(tr->getClockedTimeSeconds().value(), 5.5 * 60 * 60);
+    }
+
+    {
+        auto tr = parseOne<sem::TimeRange>(
+            "<2025-12-02>--<%%(diary-anniversary 12 25 1990)>");
+        EXPECT_TRUE(tr->from->isStatic());
+        EXPECT_TRUE(tr->to->isDynamic());
+        EXPECT_TRUE(tr->from->isActive);
+        EXPECT_TRUE(tr->to->isActive);
+        EXPECT_FALSE(tr->getClockedTimeSeconds().has_value());
+    }
+
+    {
+        auto  t = parseOne<sem::Time>("[2025-12-02 +2w +1m -1d]");
+        auto& static_time = t->getStatic();
+        EXPECT_EQ(static_time.repeat.size(), 2);
+        EXPECT_EQ(
+            static_time.repeat[0].period, sem::Time::Repeat::Period::Week);
+        EXPECT_EQ(static_time.repeat[0].count, 2);
+        EXPECT_EQ(
+            static_time.repeat[1].period,
+            sem::Time::Repeat::Period::Month);
+        EXPECT_EQ(static_time.repeat[1].count, 1);
+        EXPECT_TRUE(static_time.warn.has_value());
+        EXPECT_EQ(static_time.warn->count, -1);
+    }
+
+    {
+        auto t = parseOne<sem::Time>("[2025-12-02 14:30:45]");
+        EXPECT_EQ(t->getSecond(), 45);
+        auto user_time = t->getStaticTime();
+        EXPECT_EQ(user_time.align, UserTime::Alignment::Second);
+    }
+
+    {
+        auto t         = parseOne<sem::Time>("[2025-12-02]");
+        auto user_time = t->getStaticTime();
+        EXPECT_EQ(user_time.align, UserTime::Alignment::Day);
+        EXPECT_FALSE(user_time.zone.has_value());
+    }
+}
+
 TEST(OrgParseSem, SubtreeLogParsing) {
     {
         auto s = parseOne<sem::Subtree>(
@@ -600,6 +764,240 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
         EXPECT_EQ(c.full, 100);
         EXPECT_EQ(c.done, 33);
         EXPECT_EQ(c.isPercent, true);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* TODO Task name)");
+        EXPECT_EQ(t->getTodoKeyword().value(), "TODO");
+        EXPECT_FALSE(t->isComment);
+        EXPECT_FALSE(t->isArchived);
+        EXPECT_EQ(t->getCleanTitle(), "TODO Task name"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* DONE Completed task)");
+        EXPECT_EQ(t->getTodoKeyword().value(), "DONE");
+        EXPECT_EQ(t->getCleanTitle(), "DONE Completed task"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* IEEE Completed task)");
+        EXPECT_EQ(t->getTodoKeyword().value(), "IEEE"_ss);
+        EXPECT_EQ(t->getCleanTitle(), "IEEE Completed task"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* COMMENT This is a comment)");
+        EXPECT_TRUE(t->isComment);
+        EXPECT_FALSE(t->getTodoKeyword().has_value());
+        EXPECT_EQ(t->getCleanTitle(), "This is a comment");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* [#A] High priority task)");
+        EXPECT_EQ(t->priority.value(), "A");
+        EXPECT_EQ(t->getCleanTitle(), "High priority task");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* [#B] Medium priority task)");
+        EXPECT_EQ(t->priority.value(), "B");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* [#C] Low priority task)");
+        EXPECT_EQ(t->priority.value(), "C");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* TODO [#A] Important task [2/5])");
+        EXPECT_EQ(t->getTodoKeyword().value(), "TODO");
+        EXPECT_EQ(t->priority.value(), "A");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 2);
+        EXPECT_EQ(c.full, 5);
+        EXPECT_FALSE(c.isPercent);
+        EXPECT_EQ(t->getCleanTitle(), "Important task");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* DONE [#B] Finished work [100%])");
+        EXPECT_EQ(t->getTodoKeyword().value(), "DONE");
+        EXPECT_EQ(t->priority.value(), "B");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 100);
+        EXPECT_EQ(c.full, 100);
+        EXPECT_TRUE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Task with *bold* and /italic/ text)");
+        EXPECT_EQ(t->getCleanTitle(), "Task with bold and italic text");
+        EXPECT_FALSE(t->getTodoKeyword().has_value());
+        EXPECT_FALSE(t->priority.has_value());
+        EXPECT_FALSE(t->completion.has_value());
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Simple title)");
+        EXPECT_EQ(t->getCleanTitle(), "Simple title");
+        EXPECT_FALSE(t->getTodoKeyword().has_value());
+        EXPECT_FALSE(t->priority.has_value());
+        EXPECT_FALSE(t->completion.has_value());
+        EXPECT_FALSE(t->isComment);
+        EXPECT_FALSE(t->isArchived);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title [0/0])");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 0);
+        EXPECT_EQ(c.full, 0);
+        EXPECT_FALSE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title [0%])");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 0);
+        EXPECT_EQ(c.full, 100);
+        EXPECT_TRUE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title [100%])");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 100);
+        EXPECT_EQ(c.full, 100);
+        EXPECT_TRUE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title [10/10])");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 10);
+        EXPECT_EQ(c.full, 10);
+        EXPECT_FALSE(c.isPercent);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* COMMENT TODO This should be comment)");
+        EXPECT_TRUE(t->isComment);
+        EXPECT_TRUE(t->getTodoKeyword().has_value());
+        EXPECT_EQ(t->getTodoKeyword().value(), "TODO");
+        EXPECT_EQ(t->getCleanTitle(), "TODO This should be comment");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title :tag1:tag2:)");
+        EXPECT_EQ(t->tags.size(), 2);
+        EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "tag2"_ss);
+        EXPECT_EQ(t->getCleanTitle(), "Title"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title :ARCHIVE:)");
+        EXPECT_TRUE(t->isArchived);
+        EXPECT_EQ(t->tags.size(), 0);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Title :work:urgent:ARCHIVE:)");
+        EXPECT_TRUE(t->isArchived);
+        EXPECT_EQ(t->tags.size(), 2);
+        EXPECT_EQ(t->tags.at(0)->text.head, "work"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "urgent"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* TODO [#A] Important task [2/5] :work:urgent:)",
+            getDebugFile("subtree/a"));
+        EXPECT_EQ(t->todo.value(), "TODO");
+        EXPECT_EQ(t->priority.value(), "A");
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 2);
+        EXPECT_EQ(c.full, 5);
+        EXPECT_EQ(t->tags.size(), 2);
+        EXPECT_EQ(t->tags.at(0)->text.head, "work"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "urgent"_ss);
+        EXPECT_EQ(t->getCleanTitle(), "Important task");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* COMMENT Task with tags :comment:test:)");
+        EXPECT_TRUE(t->isComment);
+        EXPECT_EQ(t->tags.size(), 2);
+        EXPECT_EQ(t->tags.at(0)->text.head, "comment"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "test"_ss);
+        EXPECT_EQ(t->getCleanTitle(), "Task with tags");
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* DONE [#B] Finished work [100%] :project:ARCHIVE:)");
+        EXPECT_EQ(t->todo.value(), "DONE"_ss);
+        EXPECT_EQ(t->priority.value(), "B"_ss);
+        EXPECT_TRUE(t->isArchived);
+        auto c = t->completion.value();
+        EXPECT_EQ(c.done, 100);
+        EXPECT_TRUE(c.isPercent);
+        EXPECT_EQ(t->tags.size(), 1);
+        EXPECT_EQ(t->tags.at(0)->text.head, "project"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Title :single:)");
+        EXPECT_EQ(t->tags.size(), 1);
+        EXPECT_EQ(t->tags.at(0)->text.head, "single"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Title with *markup* :tag1:tag2:tag3:)");
+        EXPECT_EQ(t->getCleanTitle(), "Title with markup");
+        EXPECT_EQ(t->tags.size(), 3);
+        EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "tag2"_ss);
+        EXPECT_EQ(t->tags.at(2)->text.head, "tag3"_ss);
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Title with *markup* :tag1:nested##tag:tag3##complex##nested:)");
+        EXPECT_EQ(t->getCleanTitle(), "Title with markup"_ss);
+        EXPECT_EQ(t->tags.size(), 3);
+        EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "nested"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.subtags.at(0).head, "tag"_ss);
+
+        EXPECT_EQ(t->tags.at(2)->text.head, "tag3"_ss);
+        EXPECT_EQ(t->tags.at(2)->text.subtags.at(0).head, "complex"_ss);
+        EXPECT_EQ(
+            t->tags.at(2)->text.subtags.at(0).subtags.at(0).head,
+            "nested"_ss);
+    }
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Title with *:tag_feint:* :tag1:nested##tag:tag3##complex##nested:)");
+        EXPECT_EQ(t->getCleanTitle(), "Title with :tag_feint:");
+        EXPECT_EQ(t->tags.size(), 3);
+        EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.head, "nested"_ss);
+        EXPECT_EQ(t->tags.at(1)->text.subtags.at(0).head, "tag"_ss);
+
+        EXPECT_EQ(t->tags.at(2)->text.head, "tag3"_ss);
+        EXPECT_EQ(t->tags.at(2)->text.subtags.at(0).head, "complex"_ss);
+        EXPECT_EQ(
+            t->tags.at(2)->text.subtags.at(0).subtags.at(0).head,
+            "nested"_ss);
     }
 }
 
@@ -1087,6 +1485,349 @@ TEST(OrgParseSem, CodeBlockVariables) {
         EXPECT_EQ(var->varname, "NAME");
         EXPECT_EQ(var->getFileReference().file, "FILE");
         EXPECT_EQ(var->getFileReference().reference, "REFERENCE");
+    }
+}
+
+TEST(OrgParseSem, CodeBlockEval) {
+    auto get = [](std::string const&         code,
+                  hstd::Opt<fs::path> const& path = std::nullopt)
+        -> sem::OrgCodeEvalInput {
+        org::OrgCodeEvalParameters conf;
+        Vec<sem::OrgCodeEvalInput> buf;
+        auto doc = path ? testParseString(code, path->native())
+                        : testParseString(code);
+
+        conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
+            -> Vec<sem::OrgCodeEvalOutput> {
+            buf.push_back(in);
+            return {sem::OrgCodeEvalOutput{.stdoutText = ""}};
+        };
+        if (path) { conf.debug->setTraceFile(path.value()); }
+        auto ev = org::evaluateCodeBlocks(doc, conf);
+        return buf.at(0);
+    };
+    {
+        auto i = get(R"(#+begin_src python
+content
+#+end_src)");
+        EXPECT_EQ(i.language, "python"_ss);
+    }
+    {
+        auto i = get(R"(#+begin_src python :results table
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultType, org::sem::OrgCodeEvalInput::ResultType::Table);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results list
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultType, org::sem::OrgCodeEvalInput::ResultType::List);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results scalar
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultType, org::sem::OrgCodeEvalInput::ResultType::Scalar);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results file
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultType,
+            org::sem::OrgCodeEvalInput::ResultType::SaveFile);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results raw
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultFormat, org::sem::OrgCodeEvalInput::ResultFormat::Raw);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results code
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultFormat,
+            org::sem::OrgCodeEvalInput::ResultFormat::Code);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results drawer
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultFormat,
+            org::sem::OrgCodeEvalInput::ResultFormat::Drawer);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results html
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultFormat,
+            org::sem::OrgCodeEvalInput::ResultFormat::ExportType);
+        EXPECT_EQ2(i.exportType.value(), "html");
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results replace
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Replace);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results silent
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Silent);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results append
+content
+#+end_src)");
+        EXPECT_EQ2(i.language, "python"_ss);
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Append);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :results prepend
+content
+#+end_src)");
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Prepend);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :var x=10 :var name="test"
+content
+#+end_src)");
+        EXPECT_EQ2(i.argList.size(), 2);
+        EXPECT_EQ2(i.getVariable("x").value().value.getString(), "10"_ss);
+        EXPECT_EQ2(
+            i.getVariable("name").value().value.getString(), "test"_ss);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python
+print("hello")
+x = 42
+#+end_src)");
+        EXPECT_EQ2(i.tangledCode, "print(\"hello\")\nx = 42");
+    }
+
+    {
+        auto i = get(R"(#+begin_src
+no language
+#+end_src)");
+        EXPECT_EQ2(i.language, "");
+        EXPECT_EQ2(
+            i.resultType, org::sem::OrgCodeEvalInput::ResultType::Scalar);
+        EXPECT_EQ2(
+            i.resultFormat,
+            org::sem::OrgCodeEvalInput::ResultFormat::None);
+        EXPECT_EQ2(
+            i.resultHandling,
+            org::sem::OrgCodeEvalInput::ResultHandling::Replace);
+    }
+
+    {
+        auto i = get(R"(#+begin_src python :tangle file.py :noweb yes
+content
+#+end_src)");
+        EXPECT_EQ(i.blockAttrs.positional.items.size(), 0);
+    }
+}
+
+TEST(OrgParseSem, CodeBlockBody) {
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+print("hello world")
+#+END_SRC)");
+        EXPECT_EQ2(c->lang.value(), "python");
+        EXPECT_EQ2(c->lines.size(), 1);
+        EXPECT_EQ2(c->lines[0].parts.size(), 1);
+        EXPECT_TRUE(c->lines[0].parts[0].isRaw());
+    }
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :cache yes
+print("test")
+#+END_SRC)");
+        EXPECT_TRUE(c->getFirstAttrBool("cache").value());
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :eval no
+print("test")
+#+END_SRC)");
+        EXPECT_FALSE(c->getFirstAttrBool("eval").value());
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python :noweb yes
+print("test")
+#+END_SRC)");
+        EXPECT_TRUE(c->getFirstAttrBool("noweb"));
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :tangle file.py
+print("test")
+#+END_SRC)");
+        EXPECT_EQ(c->getFirstAttrString("tangle"), "file.py"_ss);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC
+line1
+line2
+line3
+#+END_SRC)");
+        EXPECT_EQ2(c->lines.size(), 3);
+        EXPECT_FALSE(c->lang.has_value());
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python :var x=10 :var y=20
+print(x + y)
+#+END_SRC)");
+        EXPECT_EQ2(c->getVariable("x")->getString(), "10");
+        EXPECT_EQ2(c->getVariable("y")->getString(), "20");
+        EXPECT_FALSE(c->getVariable("z").has_value());
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC
+#+END_SRC)");
+        EXPECT_EQ2(c->lines.size(), 0);
+        EXPECT_EQ2(c->result.size(), 0);
+    }
+}
+
+TEST(OrgParseSem, CodeBlockResults) {
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+print("hello")
+#+END_SRC
+
+#+RESULTS:
+: hello)");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::ColonExample);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(
+            R"(#+BEGIN_SRC python
+import matplotlib.pyplot as plt
+plt.plot([1,2,3])
+plt.savefig('plot.png')
+#+END_SRC
+
+#+RESULTS:
+[[file:plot.png]])");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::Link);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+data = [[1, 2], [3, 4]]
+print(data)
+#+END_SRC
+
+#+RESULTS:
+| 1 | 2 |
+| 3 | 4 |)");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::Table);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+print("line1")
+print("line2")
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+line1
+line2
+#+end_example)");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::BlockExample);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+def hello():
+    return "world"
+#+END_SRC
+
+#+RESULTS:
+#+begin_src python
+def hello():
+    return "world"
+#+end_src)");
+        EXPECT_EQ2(c->result.size(), 1);
+        auto result = c->result[0].get();
+        EXPECT_EQ2(result->node->getKind(), OrgSemKind::BlockCode);
+    }
+
+    {
+        auto c = parseOne<sem::BlockCode>(R"(#+BEGIN_SRC python
+print("no results")
+#+END_SRC)");
+        EXPECT_EQ2(c->result.size(), 0);
+    }
+
+    {
+        auto doc = parseOne<sem::Document>(
+            R"(#+BEGIN_SRC python
+print("first")
+#+END_SRC
+
+#+RESULTS:
+: first
+
+#+BEGIN_SRC python
+print("second")
+#+END_SRC
+
+#+RESULTS:
+: second)");
+        auto c0 = doc.at(0).as<sem::BlockCode>();
+        auto c1 = doc.at(2).as<sem::BlockCode>();
+        EXPECT_EQ(c0->result.size(), 1);
+        EXPECT_EQ(c1->result.size(), 1);
     }
 }
 

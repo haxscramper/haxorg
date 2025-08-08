@@ -87,6 +87,39 @@ bool UserTime::operator==(const UserTime& it) const {
     return result;
 }
 
+int64_t UserTime::getTimeDeltaSeconds(const UserTime& other) const {
+    auto this_zone  = zone.value_or(cctz::utc_time_zone());
+    auto other_zone = other.zone.value_or(cctz::utc_time_zone());
+
+    auto this_absolute  = cctz::convert(time, this_zone);
+    auto other_absolute = cctz::convert(other.time, other_zone);
+
+    return std::chrono::duration_cast<std::chrono::seconds>(
+               this_absolute - other_absolute)
+        .count();
+}
+
+int64_t UserTime::toUnixTimestamp() const {
+    auto time_zone     = zone.value_or(cctz::utc_time_zone());
+    auto absolute_time = cctz::convert(time, time_zone);
+
+    auto unix_epoch           = std::chrono::system_clock::from_time_t(0);
+    auto duration_since_epoch = absolute_time - unix_epoch;
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+                       duration_since_epoch)
+                       .count();
+
+    constexpr int64_t unix_min = -2147483648LL;
+    constexpr int64_t unix_max = 2147483647LL;
+
+    if (seconds < unix_min || unix_max < seconds) {
+        throw std::out_of_range(std::format(
+            "Time {} is outside unix timestamp range", seconds));
+    }
+
+    return seconds;
+}
+
 std::size_t std::hash<UserTime>::operator()(
     const UserTime& it) const noexcept {
     std::size_t result = 0;

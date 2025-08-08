@@ -130,6 +130,14 @@ struct OrgParser : public hstd::OperationsTracer {
 
     bool at(OrgLexer const& lex, OrgParser::OrgExpectable const& item);
 
+    std::string printLexerToString(OrgLexer& lex) const {
+        return lex.printToString(
+            [](hstd::ColStream& os, OrgToken const& t) {
+                os << os.yellow() << escape_for_write(t.value.text)
+                   << os.end() << hstd::fmt1(t.value);
+            });
+    }
+
     OrgId token(
         OrgNode const& node,
         int            line     = __builtin_LINE(),
