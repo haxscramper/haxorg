@@ -785,11 +785,6 @@ def build_docker_develop_image(ctx: Context):
 
 
 @beartype
-def docker_path(path: str) -> Path:
-    return Path("/haxorg/src").joinpath(path)
-
-
-@beartype
 def docker_mnt(src: Path, dst: Path) -> List[str]:
     assert src.exists(), f"'{src}'"
     log(CAT).debug(f"Mounting docker '{src}' to '{dst}'")
@@ -823,6 +818,10 @@ def run_docker_develop_test(
     HAXORG_BUILD_TMP = Path(build_dir)
     if not HAXORG_BUILD_TMP.exists():
         HAXORG_BUILD_TMP.mkdir(parents=True)
+
+    @beartype
+    def docker_path(path: str) -> Path:
+        return Path("/haxorg").joinpath(path)
 
     run_command(
         ctx,
@@ -1444,6 +1443,10 @@ def run_docker_release_test(
         stdout_debug=dep_debug_stdout,
         stderr_debug=dep_debug_stderr,
     )
+
+    @beartype
+    def docker_path(path: str) -> Path:
+        return Path("/haxorg/src").joinpath(path)
 
     run_command(
         ctx,

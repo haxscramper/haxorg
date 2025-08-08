@@ -6,6 +6,7 @@
 from setuptools import setup, find_packages
 import sys
 from pathlib import Path
+import os
 
 # Import and run the build script
 sys.path.insert(0, str(Path(__file__).parent))
@@ -38,9 +39,10 @@ setup_kwargs = {
     'zip_safe': False,  # Important for shared libraries
 }
 
-# Run custom build script before setup
-print("Running custom build script...")
-build(setup_kwargs)
-print("Custom build script completed.")
+if not os.getenv("HAXORG_SKIP_PY_HAXORG_BUILD"):
+    # Run custom build script before setup
+    print("Running custom build script...")
+    build(setup_kwargs)
+    print("Custom build script completed.")
 
 setup(**setup_kwargs)

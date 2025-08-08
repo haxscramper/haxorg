@@ -9,7 +9,7 @@ WORKDIR /haxorg
 COPY pyproject.toml .
 COPY poetry.lock .
 RUN poetry env use python3
-RUN poetry install --no-root --without local --no-interaction --no-ansi
+RUN poetry install --no-root --without local --without haxorg --no-interaction --no-ansi
 
 WORKDIR /docker_toolchain
 
