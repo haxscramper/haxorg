@@ -15,26 +15,32 @@ struct DebugPainter {
     QString                 context;
     hstd::finally_std       on_close;
     static thread_local int depth;
+    bool                    TraceState = false;
 
     DebugPainter(
         QPainter*      p,
+        bool           TraceState,
         const QString& ctx      = "",
         int            line     = __builtin_LINE(),
         char const*    function = __builtin_FUNCTION(),
         char const*    file     = __builtin_FILE())
         : painter{p}
         , context{ctx}
-        , on_close{[]() { --DebugPainter::depth; }} {
-        auto debug = qDebug().noquote();
-        debug << prefix();
+        , on_close{[]() { --DebugPainter::depth; }}
+        , TraceState{TraceState} //
+    {
+        if (TraceState) {
+            auto debug = qDebug().noquote();
+            debug << prefix();
 
-        if (context.isEmpty()) {
-            debug << QString("paint at %1:%2").arg(function).arg(line);
-        } else {
-            debug << QString("start '%1' at %2:%3")
-                         .arg(context)
-                         .arg(function)
-                         .arg(line);
+            if (context.isEmpty()) {
+                debug << QString("paint at %1:%2").arg(function).arg(line);
+            } else {
+                debug << QString("start '%1' at %2:%3")
+                             .arg(context)
+                             .arg(function)
+                             .arg(line);
+            }
         }
 
         ++depth;
@@ -144,7 +150,10 @@ struct DebugPainter {
         __VA_ARGS__)
 
 #define DEBUG_PAINTER_IMPL(method, line, function, file, ...)             \
-    DEBUG_PAINTER_ARGUMENTS(method, line, function, file, __VA_ARGS__);   \
+    if (this->TraceState) {                                               \
+        DEBUG_PAINTER_ARGUMENTS(                                          \
+            method, line, function, file, __VA_ARGS__);                   \
+    }                                                                     \
     painter->method(__VA_ARGS__);
 
 
