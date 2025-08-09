@@ -8,6 +8,7 @@
 #include <QPicture>
 #include <QStaticText>
 
+#define CALL_LOC() __LINE__, __func__, __FILE__
 
 struct DebugPainter {
     QPainter*               painter;
@@ -24,11 +25,18 @@ struct DebugPainter {
         : painter{p}
         , context{ctx}
         , on_close{[]() { --DebugPainter::depth; }} {
-        qDebug().noquote() << prefix()
-                           << QString("start '%1' at %2:%3")
-                                  .arg(context)
-                                  .arg(function)
-                                  .arg(line);
+        auto debug = qDebug().noquote();
+        debug << prefix();
+
+        if (context.isEmpty()) {
+            debug << QString("paint at %1:%2").arg(function).arg(line);
+        } else {
+            debug << QString("start '%1' at %2:%3")
+                         .arg(context)
+                         .arg(function)
+                         .arg(line);
+        }
+
         ++depth;
     }
 
@@ -115,7 +123,7 @@ struct DebugPainter {
         const QString& arg_names,
         Args&&... args) {
         QDebug debug = qDebug().noquote();
-        debug << prefix() << QString{"[%1] %2:"}.arg(context, method);
+        debug << prefix() << QString{"%1:"}.arg(method);
 
         QStringList names = arg_names.split(',');
         int         i     = 0;

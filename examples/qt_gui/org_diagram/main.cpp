@@ -78,17 +78,13 @@ struct VisualDiagramNode
     }
 
     void paint(
-        QPainter*                       painter,
+        QPainter*                       _painter,
         const QStyleOptionGraphicsItem* option,
         QWidget*                        widget) override {
-        paintNode(painter);
-
-        if (isSelected()) {
-            painter->setPen(QPen{Qt::red, 3});
-            painter->drawRect(bounds);
-        }
-
-        paintText(painter);
+        auto painter = std::make_shared<DebugPainter>(
+            _painter, "EdgeNode::paint");
+        paintNode(_painter);
+        paintText(_painter);
     }
 
     virtual void   paintNode(QPainter* painter) = 0;
@@ -278,7 +274,8 @@ struct EdgeNode : public VisualDiagramNode {
     }
 
     void paintNode(QPainter* _painter) override {
-        auto painter = std::make_unique<DebugPainter>(_painter);
+        auto painter = std::make_unique<DebugPainter>(
+            _painter, "", CALL_LOC());
         if (!sourceNode || !targetNode) { return; }
 
         QPointF source = getSourcePoint();
@@ -319,7 +316,8 @@ struct EdgeNode : public VisualDiagramNode {
         QPainter*      _painter,
         const QPointF& source,
         const QPointF& target) {
-        auto    painter = std::make_unique<DebugPainter>(_painter);
+        auto painter = std::make_unique<DebugPainter>(
+            _painter, "", CALL_LOC());
         QPointF mid{target.x(), source.y()};
         painter->drawLine(source, mid);
         painter->drawLine(mid, target);
@@ -329,7 +327,8 @@ struct EdgeNode : public VisualDiagramNode {
         QPainter*      _painter,
         const QPointF& source,
         const QPointF& target) {
-        auto painter = std::make_unique<DebugPainter>(_painter);
+        auto painter = std::make_unique<DebugPainter>(
+            _painter, "", CALL_LOC());
         if (controlPoints.empty()) {
             painter->drawLine(source, target);
             return;
@@ -347,7 +346,8 @@ struct EdgeNode : public VisualDiagramNode {
         QPainter*      _painter,
         const QPointF& source,
         const QPointF& target) {
-        auto         painter = std::make_unique<DebugPainter>(_painter);
+        auto painter = std::make_unique<DebugPainter>(
+            _painter, "", CALL_LOC());
         QPainterPath path{source};
 
         if (controlPoints.size() >= 2) {
@@ -374,7 +374,8 @@ struct EdgeNode : public VisualDiagramNode {
     }
 
     void paintArrowHead(QPainter* _painter, const QPointF& target) {
-        auto    painter = std::make_unique<DebugPainter>(_painter);
+        auto painter = std::make_unique<DebugPainter>(
+            _painter, "", CALL_LOC());
         QPointF direction{};
 
         if (!controlPoints.empty()) {
@@ -400,7 +401,8 @@ struct EdgeNode : public VisualDiagramNode {
     }
 
     void paintControlPoints(QPainter* _painter) {
-        auto painter = std::make_unique<DebugPainter>(_painter);
+        auto painter = std::make_unique<DebugPainter>(
+            _painter, "", CALL_LOC());
         if (!isSelected()) { return; }
 
         painter->setPen(QPen{Qt::red, 1});
