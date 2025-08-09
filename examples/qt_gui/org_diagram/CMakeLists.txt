@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(
-  org_viewer
+  org_diagram
   VERSION 0.1
   LANGUAGES CXX)
 
@@ -20,20 +20,20 @@ include("../org_example_config.cmake")
 
 file(GLOB PROJECT_SOURCES "${PROJ_ROOT}/*.?pp")
 
-qt_add_executable(org_viewer MANUAL_FINALIZATION ${PROJECT_SOURCES})
+qt_add_executable(org_diagram MANUAL_FINALIZATION ${PROJECT_SOURCES})
 
 option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 if(${ORG_USE_COVERAGE})
-  target_compile_options(org_viewer PRIVATE -fprofile-instr-generate -fcoverage-mapping)
-  target_link_options(org_viewer PRIVATE -lgcov --coverage -fprofile-instr-generate
+  target_compile_options(org_diagram PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+  target_link_options(org_diagram PRIVATE -lgcov --coverage -fprofile-instr-generate
                       -fcoverage-mapping)
 endif()
 
-set_target_properties(org_viewer PROPERTIES AUTOMOC ON)
-target_link_libraries(org_viewer PRIVATE Qt6::Widgets haxorg::haxorg haxorg::hstd)
+set_target_properties(org_diagram PROPERTIES AUTOMOC ON)
+target_link_libraries(org_diagram PRIVATE Qt6::Widgets haxorg::haxorg haxorg::hstd)
 
 set_target_properties(
-  org_viewer
+  org_diagram
   PROPERTIES ${BUNDLE_ID_OPTION} MACOSX_BUNDLE_BUNDLE_VERSION
              ${PROJECT_VERSION} MACOSX_BUNDLE_SHORT_VERSION_STRING
              ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR} MACOSX_BUNDLE
@@ -42,9 +42,9 @@ set_target_properties(
 
 include(GNUInstallDirs)
 install(
-  TARGETS org_viewer
+  TARGETS org_diagram
   BUNDLE DESTINATION .
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-qt_finalize_executable(org_viewer)
+qt_finalize_executable(org_diagram)
