@@ -23,6 +23,8 @@
 #include <vector>
 #include <QLineEdit>
 #include <QColorDialog>
+#include <QSlider>
+#include <QWheelEvent>
 
 
 #include "DiagramNode.hpp"
@@ -121,6 +123,96 @@ struct DiagramTreeModel : public QAbstractItemModel {
         endResetModel();
     }
 };
+
+class DiagramView : public QGraphicsView {
+    Q_OBJECT
+
+  public:
+    DiagramView(QWidget* parent = nullptr) : QGraphicsView{parent} {
+        setDragMode(QGraphicsView::RubberBandDrag);
+        setRenderHint(QPainter::Antialiasing);
+        setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+        setResizeAnchor(QGraphicsView::AnchorUnderMouse);
+        setInteractive(true);
+    }
+
+  signals:
+    void zoomChanged(int zoomPercent);
+
+  public:
+    void wheelEvent(QWheelEvent* event) override {
+        const int degrees = event->angleDelta().y() / 8;
+        const int steps   = degrees / 15;
+
+        const qreal scaleFactor = 1.15;
+        qreal       factor      = qPow(scaleFactor, steps);
+
+        QTransform currentTransform = transform();
+        qreal      currentScale     = currentTransform.m11();
+        qreal      newScale         = currentScale * factor;
+
+        const qreal minScale = 0.1;
+        const qreal maxScale = 5.0;
+
+        if (newScale < minScale) {
+            factor = minScale / currentScale;
+        } else if (newScale > maxScale) {
+            factor = maxScale / currentScale;
+        }
+
+        scale(factor, factor);
+
+        QTransform newTransform = transform();
+        int  zoomPercent = static_cast<int>(newTransform.m11() * 100);
+        emit zoomChanged(zoomPercent);
+    }
+
+  protected:
+    void mousePressEvent(QMouseEvent* event) override {
+        if (event->button() == Qt::LeftButton
+            && event->modifiers() & Qt::ControlModifier) {
+            isPanning    = true;
+            lastPanPoint = event->position().toPoint();
+            setCursor(Qt::ClosedHandCursor);
+            event->accept();
+        } else {
+            QGraphicsView::mousePressEvent(event);
+        }
+    }
+
+    void mouseMoveEvent(QMouseEvent* event) override {
+        if (isPanning) {
+            // Calculate the difference in screen coordinates
+            QPoint delta = event->position().toPoint() - lastPanPoint;
+
+            // Update scrollbars directly (note the sign reversal)
+            horizontalScrollBar()->setValue(
+                horizontalScrollBar()->value() - delta.x());
+            verticalScrollBar()->setValue(
+                verticalScrollBar()->value() - delta.y());
+
+            lastPanPoint = event->position().toPoint();
+            event->accept();
+        } else {
+            QGraphicsView::mouseMoveEvent(event);
+        }
+    }
+
+    void mouseReleaseEvent(QMouseEvent* event) override {
+        if (event->button() == Qt::LeftButton && isPanning) {
+            isPanning = false;
+            setCursor(Qt::ArrowCursor);
+            event->accept();
+        } else {
+            QGraphicsView::mouseReleaseEvent(event);
+        }
+    }
+
+  private:
+    bool   isPanning{false};
+    QPoint lastPanPoint{};
+};
+
 
 struct DiagramScene : public QGraphicsScene {
     Q_OBJECT
@@ -515,7 +607,7 @@ struct MainWindow : public QMainWindow {
 
   public:
     DiagramScene*     scene{};
-    QGraphicsView*    view{};
+    DiagramView*      view{};
     QSpinBox*         gridSnapBox{};
     QPushButton*      addRectButton{};
     QPushButton*      addLayerButton{};
@@ -529,6 +621,10 @@ struct MainWindow : public QMainWindow {
     QPushButton*      createGroupButton{};
     QCheckBox*        showGridCheck{};
     QPushButton*      gridColorButton{};
+    QSlider*          zoomSlider{};
+    QLabel*           zoomLabel{};
+    QPushButton*      zoomFitButton{};
+
 
     MainWindow(QWidget* parent = nullptr) : QMainWindow{parent} {
         setupUI();
@@ -537,9 +633,8 @@ struct MainWindow : public QMainWindow {
 
     void setupUI() {
         scene = new DiagramScene{this};
-        view  = new QGraphicsView{scene};
-        view->setRenderHint(QPainter::Antialiasing);
-        view->setDragMode(QGraphicsView::RubberBandDrag);
+        view  = new DiagramView{};
+        view->setScene(scene);
 
         treeModel = new DiagramTreeModel{scene->rootNode, this};
         scene->setTreeModel(treeModel);
@@ -583,6 +678,25 @@ struct MainWindow : public QMainWindow {
         leftLayout->addWidget(gridSnapBox);
         leftLayout->addWidget(showGridCheck);
         leftLayout->addWidget(gridColorButton);
+        leftLayout->addWidget(new QLabel{"Zoom:"});
+
+        zoomSlider = new QSlider{Qt::Horizontal};
+        zoomSlider->setMinimum(10);
+        zoomSlider->setMaximum(500);
+        zoomSlider->setValue(100);
+        zoomSlider->setTickPosition(QSlider::TicksBelow);
+        zoomSlider->setTickInterval(50);
+        leftLayout->addWidget(zoomSlider);
+
+        zoomLabel = new QLabel{"100%"};
+        zoomLabel->setAlignment(Qt::AlignCenter);
+        leftLayout->addWidget(zoomLabel);
+
+        auto zoomButtonLayout = new QHBoxLayout{};
+        zoomFitButton         = new QPushButton{"Fit"};
+
+        zoomButtonLayout->addWidget(zoomFitButton);
+        leftLayout->addLayout(zoomButtonLayout);
         leftLayout->addWidget(addRectButton);
         leftLayout->addWidget(addLayerButton);
         leftLayout->addWidget(addImageButton);
@@ -663,9 +777,62 @@ struct MainWindow : public QMainWindow {
                     QString{"background-color: %1"}.arg(newColor.name()));
             }
         });
+
+        connect(
+            zoomSlider,
+            &QSlider::valueChanged,
+            this,
+            &MainWindow::setZoom);
+        connect(
+            zoomFitButton,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::zoomFit);
+
+        connect(
+            view,
+            &DiagramView::zoomChanged,
+            this,
+            &MainWindow::updateZoomSlider);
     }
 
   private slots:
+    void setZoom(int value) {
+        qreal scale = value / 100.0;
+        view->setTransform(QTransform::fromScale(scale, scale));
+        zoomLabel->setText(QString{"%1%"}.arg(value));
+    }
+
+    void updateZoomSlider(int zoomPercent) {
+        zoomPercent = qBound(
+            zoomSlider->minimum(), zoomPercent, zoomSlider->maximum());
+
+        zoomSlider->blockSignals(true);
+        zoomSlider->setValue(zoomPercent);
+        zoomSlider->blockSignals(false);
+        zoomLabel->setText(QString{"%1%"}.arg(zoomPercent));
+    }
+
+
+    void zoomFit() {
+        QRectF itemsBounds = scene->itemsBoundingRect();
+        if (!itemsBounds.isEmpty()) {
+            view->fitInView(itemsBounds, Qt::KeepAspectRatio);
+
+            // Update slider to reflect actual zoom level
+            QTransform transform   = view->transform();
+            qreal      scale       = transform.m11(); // Get scale factor
+            int        zoomPercent = static_cast<int>(scale * 100);
+            zoomPercent            = qBound(
+                zoomSlider->minimum(), zoomPercent, zoomSlider->maximum());
+
+            zoomSlider->blockSignals(true);
+            zoomSlider->setValue(zoomPercent);
+            zoomSlider->blockSignals(false);
+            zoomLabel->setText(QString{"%1%"}.arg(zoomPercent));
+        }
+    }
+
     void onNodeSelected(DiagramNodeVisual* node) {
         // Clear existing properties
         while (propertiesLayout->count() > 1) {
@@ -681,6 +848,29 @@ struct MainWindow : public QMainWindow {
         } else {
             propertiesLayout->addStretch();
         }
+    }
+
+  protected:
+    bool eventFilter(QObject* obj, QEvent* event) override {
+        if (obj == view && event->type() == QEvent::Wheel) {
+            QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
+            if (wheelEvent->modifiers()) {
+                const int degrees = wheelEvent->angleDelta().y() / 8;
+                const int steps   = degrees / 15;
+
+                int currentValue = zoomSlider->value();
+                int newValue     = currentValue + (steps * 10);
+                newValue         = qBound(
+                    zoomSlider->minimum(),
+                    newValue,
+                    zoomSlider->maximum());
+                zoomSlider->setValue(newValue);
+
+                return true;
+            }
+        }
+
+        return QMainWindow::eventFilter(obj, event);
     }
 };
 
