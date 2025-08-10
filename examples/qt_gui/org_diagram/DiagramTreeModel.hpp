@@ -1,0 +1,146 @@
+#pragma once
+
+#include <QAbstractItemModel>
+#include "DiagramNode.hpp"
+#include "DiagramNodeVisual.hpp"
+
+
+struct DiagramTreeModel : public QAbstractItemModel {
+    Q_OBJECT
+
+  public:
+    DiagramNode* rootNode{};
+
+    DiagramTreeModel(DiagramNode* root, QObject* parent = nullptr)
+        : QAbstractItemModel{parent}, rootNode{root} {}
+
+    QModelIndex index(
+        int                row,
+        int                column,
+        const QModelIndex& parent = QModelIndex{}) const override {
+        if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
+
+        DiagramNode* parentNode{};
+        if (!parent.isValid()) {
+            parentNode = rootNode;
+        } else {
+            parentNode = static_cast<DiagramNode*>(
+                parent.internalPointer());
+        }
+
+        if (row < static_cast<int>(parentNode->children.size())) {
+            return createIndex(row, column, parentNode->children.at(row));
+        }
+
+        return QModelIndex{};
+    }
+
+    QModelIndex parent(const QModelIndex& index) const override {
+        if (!index.isValid()) { return QModelIndex{}; }
+
+        DiagramNode* childNode = static_cast<DiagramNode*>(
+            index.internalPointer());
+        DiagramNode* parentNode = childNode->parent;
+
+        if (parentNode == rootNode) { return QModelIndex{}; }
+
+        DiagramNode* grandParent = parentNode->parent;
+        if (!grandParent) { return QModelIndex{}; }
+
+        for (int i = 0; i < static_cast<int>(grandParent->children.size());
+             ++i) {
+            if (grandParent->children.at(i) == parentNode) {
+                return createIndex(i, 0, parentNode);
+            }
+        }
+
+        return QModelIndex{};
+    }
+
+    int rowCount(
+        const QModelIndex& parent = QModelIndex{}) const override {
+        DiagramNode* parentNode{};
+        if (!parent.isValid()) {
+            parentNode = rootNode;
+        } else {
+            parentNode = static_cast<DiagramNode*>(
+                parent.internalPointer());
+        }
+
+        return static_cast<int>(parentNode->children.size());
+    }
+
+    int columnCount(
+        const QModelIndex& parent = QModelIndex{}) const override {
+        return 1;
+    }
+
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override {
+        if (!index.isValid()) { return QVariant{}; }
+
+        if (role == Qt::DisplayRole) {
+            DiagramNode* node = static_cast<DiagramNode*>(
+                index.internalPointer());
+            return node->name;
+        }
+
+        return QVariant{};
+    }
+
+    void refresh() {
+        beginResetModel();
+        endResetModel();
+    }
+
+  public slots:
+    void selectNodes(const QList<DiagramNodeVisual*>& visualNodes) {
+        emit layoutAboutToBeChanged();
+
+        // Convert visual nodes to model indexes
+        QList<QModelIndex> indexes;
+        for (DiagramNodeVisual* visualNode : visualNodes) {
+            QModelIndex index = getIndexForNode(visualNode);
+            if (index.isValid()) { indexes.append(index); }
+        }
+
+        emit layoutChanged();
+        emit nodesSelected(indexes);
+    }
+
+  signals:
+    void nodesSelected(const QList<QModelIndex>& indexes);
+
+  private:
+    QModelIndex getIndexForNode(DiagramNode* targetNode) const {
+        return findNodeIndex(QModelIndex{}, targetNode);
+    }
+
+    QModelIndex findNodeIndex(
+        const QModelIndex& parent,
+        DiagramNode*       targetNode) const {
+        DiagramNode* parentNode = parent.isValid()
+                                    ? static_cast<DiagramNode*>(
+                                          parent.internalPointer())
+                                    : rootNode;
+        qDebug();
+
+        if (!parentNode) { return QModelIndex{}; }
+
+        // Check direct children
+        for (int i = 0; i < parentNode->children.size(); ++i) {
+            if (parentNode->children[i] == targetNode) {
+                return index(i, 0, parent);
+            }
+        }
+
+        // Search recursively in children
+        for (int i = 0; i < parentNode->children.size(); ++i) {
+            QModelIndex childIndex = index(i, 0, parent);
+            QModelIndex found      = findNodeIndex(childIndex, targetNode);
+            if (found.isValid()) { return found; }
+        }
+
+        return QModelIndex{};
+    }
+};

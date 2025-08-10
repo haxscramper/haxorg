@@ -20,610 +20,147 @@
 #include <QSplitter>
 #include <QAbstractItemModel>
 #include <QTreeView>
-#include <vector>
 #include <QLineEdit>
 #include <QColorDialog>
 #include <QSlider>
 #include <QWheelEvent>
+#include <hstd/stdlib/Debug.hpp>
 
 
 #include "DiagramNode.hpp"
 #include "DiagramNodeVisual.hpp"
-#include "DiagramNodeEdge.hpp"
-#include "DiagramNodeImage.hpp"
-#include "DiagramNodeRectangle.hpp"
-#include "DiagramNodeGroup.hpp"
+#include "DiagramView.hpp"
+#include "DiagramTreeModel.hpp"
+#include "DiagramScene.hpp"
 
-
-struct DiagramTreeModel : public QAbstractItemModel {
+class DiagramSelectionManager : public QObject {
     Q_OBJECT
 
   public:
-    DiagramNode* rootNode{};
+    DiagramSelectionManager(
+        DiagramView*      view,
+        QTreeView*        treeView,
+        DiagramTreeModel* model,
+        QObject*          parent = nullptr)
+        : QObject{parent}
+        , diagramView{view}
+        , treeView{treeView}
+        , treeModel{model} {
 
-    DiagramTreeModel(DiagramNode* root, QObject* parent = nullptr)
-        : QAbstractItemModel{parent}, rootNode{root} {}
+        hstd::logic_assertion_check_not_nil(view);
+        hstd::logic_assertion_check_not_nil(treeView);
+        hstd::logic_assertion_check_not_nil(model);
 
-    QModelIndex index(
-        int                row,
-        int                column,
-        const QModelIndex& parent = QModelIndex{}) const override {
-        if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
-
-        DiagramNode* parentNode{};
-        if (!parent.isValid()) {
-            parentNode = rootNode;
-        } else {
-            parentNode = static_cast<DiagramNode*>(
-                parent.internalPointer());
-        }
-
-        if (row < static_cast<int>(parentNode->children.size())) {
-            return createIndex(row, column, parentNode->children.at(row));
-        }
-
-        return QModelIndex{};
+        setupConnections();
     }
 
-    QModelIndex parent(const QModelIndex& index) const override {
-        if (!index.isValid()) { return QModelIndex{}; }
+  private slots:
+    void onSceneSelectionChanged(
+        const QList<DiagramNodeVisual*>& selectedNodes) {
+        qDebug() << "Scene selection changed";
+        if (updatingSelection) { return; }
+        updatingSelection = true;
 
-        DiagramNode* childNode = static_cast<DiagramNode*>(
-            index.internalPointer());
-        DiagramNode* parentNode = childNode->parent;
+        // Update tree selection
+        treeModel->selectNodes(selectedNodes);
 
-        if (parentNode == rootNode) { return QModelIndex{}; }
+        updatingSelection = false;
+    }
 
-        DiagramNode* grandParent = parentNode->parent;
-        if (!grandParent) { return QModelIndex{}; }
+    void onTreeSelectionChanged(
+        const QItemSelection& selected,
+        const QItemSelection& deselected) {
+        Q_UNUSED(deselected)
+        if (updatingSelection) { return; }
+        updatingSelection = true;
 
-        for (int i = 0; i < static_cast<int>(grandParent->children.size());
-             ++i) {
-            if (grandParent->children.at(i) == parentNode) {
-                return createIndex(i, 0, parentNode);
+        // Get selected nodes from tree
+        QList<DiagramNodeVisual*> visualNodes;
+        QModelIndexList           selectedIndexes = selected.indexes();
+
+        for (const QModelIndex& index : selectedIndexes) {
+            if (index.isValid()) {
+                DiagramNode* node = static_cast<DiagramNode*>(
+                    index.internalPointer());
+                DiagramNodeVisual* visualNode = dynamic_cast<
+                    DiagramNodeVisual*>(node);
+                if (visualNode) { visualNodes.append(visualNode); }
             }
         }
 
-        return QModelIndex{};
+        // Update scene selection
+        diagramView->selectNodes(visualNodes);
+
+        updatingSelection = false;
     }
 
-    int rowCount(
-        const QModelIndex& parent = QModelIndex{}) const override {
-        DiagramNode* parentNode{};
-        if (!parent.isValid()) {
-            parentNode = rootNode;
-        } else {
-            parentNode = static_cast<DiagramNode*>(
-                parent.internalPointer());
-        }
+    void onTreeNodesSelected(const QList<QModelIndex>& indexes) {
+        if (updatingSelection) { return; }
 
-        return static_cast<int>(parentNode->children.size());
-    }
-
-    int columnCount(
-        const QModelIndex& parent = QModelIndex{}) const override {
-        return 1;
-    }
-
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override {
-        if (!index.isValid()) { return QVariant{}; }
-
-        if (role == Qt::DisplayRole) {
-            DiagramNode* node = static_cast<DiagramNode*>(
-                index.internalPointer());
-            return node->name;
-        }
-
-        return QVariant{};
-    }
-
-    void refresh() {
-        beginResetModel();
-        endResetModel();
-    }
-};
-
-class DiagramView : public QGraphicsView {
-    Q_OBJECT
-
-  public:
-    DiagramView(QWidget* parent = nullptr) : QGraphicsView{parent} {
-        setDragMode(QGraphicsView::RubberBandDrag);
-        setRenderHint(QPainter::Antialiasing);
-        setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-        setResizeAnchor(QGraphicsView::AnchorUnderMouse);
-        setInteractive(true);
-    }
-
-  signals:
-    void zoomChanged(int zoomPercent);
-
-  public:
-    void wheelEvent(QWheelEvent* event) override {
-        const int degrees = event->angleDelta().y() / 8;
-        const int steps   = degrees / 15;
-
-        const qreal scaleFactor = 1.15;
-        qreal       factor      = qPow(scaleFactor, steps);
-
-        QTransform currentTransform = transform();
-        qreal      currentScale     = currentTransform.m11();
-        qreal      newScale         = currentScale * factor;
-
-        const qreal minScale = 0.1;
-        const qreal maxScale = 5.0;
-
-        if (newScale < minScale) {
-            factor = minScale / currentScale;
-        } else if (newScale > maxScale) {
-            factor = maxScale / currentScale;
-        }
-
-        scale(factor, factor);
-
-        QTransform newTransform = transform();
-        int  zoomPercent = static_cast<int>(newTransform.m11() * 100);
-        emit zoomChanged(zoomPercent);
-    }
-
-  protected:
-    void mousePressEvent(QMouseEvent* event) override {
-        if (event->button() == Qt::LeftButton
-            && event->modifiers() & Qt::ControlModifier) {
-            isPanning    = true;
-            lastPanPoint = event->position().toPoint();
-            setCursor(Qt::ClosedHandCursor);
-            event->accept();
-        } else {
-            QGraphicsView::mousePressEvent(event);
-        }
-    }
-
-    void mouseMoveEvent(QMouseEvent* event) override {
-        if (isPanning) {
-            // Calculate the difference in screen coordinates
-            QPoint delta = event->position().toPoint() - lastPanPoint;
-
-            // Update scrollbars directly (note the sign reversal)
-            horizontalScrollBar()->setValue(
-                horizontalScrollBar()->value() - delta.x());
-            verticalScrollBar()->setValue(
-                verticalScrollBar()->value() - delta.y());
-
-            lastPanPoint = event->position().toPoint();
-            event->accept();
-        } else {
-            QGraphicsView::mouseMoveEvent(event);
-        }
-    }
-
-    void mouseReleaseEvent(QMouseEvent* event) override {
-        if (event->button() == Qt::LeftButton && isPanning) {
-            isPanning = false;
-            setCursor(Qt::ArrowCursor);
-            event->accept();
-        } else {
-            QGraphicsView::mouseReleaseEvent(event);
+        // Update tree view selection
+        QItemSelectionModel* selectionModel = treeView->selectionModel();
+        if (selectionModel) {
+            selectionModel->clear();
+            for (const QModelIndex& index : indexes) {
+                selectionModel->select(index, QItemSelectionModel::Select);
+            }
         }
     }
 
   private:
-    bool   isPanning{false};
-    QPoint lastPanPoint{};
+    void setupConnections() {
+        // Scene to tree
+        connect(
+            diagramView,
+            &DiagramView::sceneSelectionChanged,
+            this,
+            &DiagramSelectionManager::onSceneSelectionChanged);
+
+        // Tree to scene
+        connect(
+            treeView->selectionModel(),
+            &QItemSelectionModel::selectionChanged,
+            this,
+            &DiagramSelectionManager::onTreeSelectionChanged);
+
+        // Model selection updates
+        connect(
+            treeModel,
+            &DiagramTreeModel::nodesSelected,
+            this,
+            &DiagramSelectionManager::onTreeNodesSelected);
+    }
+
+  private:
+    DiagramView*      diagramView;
+    QTreeView*        treeView;
+    DiagramTreeModel* treeModel;
+    bool updatingSelection{false}; // Prevent infinite recursion
 };
 
-
-struct DiagramScene : public QGraphicsScene {
-    Q_OBJECT
-
-  public:
-    int                             gridSnap{10};
-    DiagramNode*                    rootNode{};
-    DiagramNodeVisual*              selectedNode{nullptr};
-    DiagramNodeVisual*              arrowSource{nullptr};
-    DiagramTreeModel*               treeModel{nullptr};
-    std::vector<DiagramNodeVisual*> selectedNodes{};
-    bool                            showGrid{true};
-    QColor                          gridColor{Qt::lightGray};
-
-    DiagramScene(QObject* parent = nullptr) : QGraphicsScene{parent} {
-        rootNode = new DiagramNodeCanvas{"Canvas"};
-        setupExampleDiagram();
-    }
-
-    void drawBackground(QPainter* painter, const QRectF& rect) override {
-        QGraphicsScene::drawBackground(painter, rect);
-
-        if (!showGrid) { return; }
-
-        painter->setPen(QPen{gridColor, 1});
-
-        // Calculate grid bounds
-        int left = static_cast<int>(rect.left())
-                 - (static_cast<int>(rect.left()) % gridSnap);
-        int top = static_cast<int>(rect.top())
-                - (static_cast<int>(rect.top()) % gridSnap);
-        int right  = static_cast<int>(rect.right());
-        int bottom = static_cast<int>(rect.bottom());
-
-        // Draw vertical lines
-        for (int x = left; x <= right; x += gridSnap) {
-            painter->drawLine(
-                x,
-                static_cast<int>(rect.top()),
-                x,
-                static_cast<int>(rect.bottom()));
-        }
-
-        // Draw horizontal lines
-        for (int y = top; y <= bottom; y += gridSnap) {
-            painter->drawLine(
-                static_cast<int>(rect.left()),
-                y,
-                static_cast<int>(rect.right()),
-                y);
-        }
-    }
-
-
-    void setupExampleDiagram() {
-        auto layer1 = new DiagramNodeLayer{"Layer 1"};
-
-        auto node1 = new DiagramNodeRectangle{"Node 1"};
-        node1->setPos(100, 100);
-        node1->color = Qt::cyan;
-        addItem(node1);
-
-        auto node2 = new DiagramNodeRectangle{"Node 2"};
-        node2->setPos(250, 150);
-        node2->color = Qt::yellow;
-        addItem(node2);
-
-        layer1->addChild(node1);
-        layer1->addChild(node2);
-        rootNode->addChild(layer1);
-
-        addEdge(node1, node2);
-
-        updateTreeView();
-    }
-
-
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override {
-        QGraphicsItem*     item = itemAt(event->scenePos(), QTransform{});
-        DiagramNodeVisual* clickedNode = dynamic_cast<DiagramNodeVisual*>(
-            item);
-
-        if (event->modifiers() & Qt::ControlModifier) {
-            // Multi-selection mode
-            if (clickedNode
-                && std::find(
-                       selectedNodes.begin(),
-                       selectedNodes.end(),
-                       clickedNode)
-                       == selectedNodes.end()) {
-                selectedNodes.push_back(clickedNode);
-                clickedNode->setSelected(true);
-            }
-        } else {
-            // Single selection mode
-            for (auto node : selectedNodes) { node->setSelected(false); }
-            selectedNodes.clear();
-
-            if (clickedNode) {
-                selectedNodes.push_back(clickedNode);
-                clickedNode->setSelected(true);
-            }
-
-            selectedNode = clickedNode;
-            emit nodeSelected(selectedNode);
-        }
-
-        if (event->button() == Qt::RightButton && selectedNode) {
-            auto visualNode = dynamic_cast<DiagramNodeVisual*>(
-                selectedNode);
-            if (visualNode
-                && !dynamic_cast<DiagramNodeEdge*>(visualNode)) {
-                if (arrowSource == nullptr) {
-                    arrowSource = visualNode;
-                } else {
-                    if (arrowSource != visualNode) {
-                        auto edge = new DiagramNodeEdge(
-                            arrowSource, visualNode);
-                        addItem(edge);
-
-                        auto layer = findFirstLayer();
-                        if (layer) {
-                            layer->addChild(edge);
-                        } else {
-                            rootNode->addChild(edge);
-                        }
-                        updateTreeView();
-                    }
-                    arrowSource = nullptr;
-                }
-            }
-        } else {
-            QGraphicsScene::mousePressEvent(event);
-        }
-    }
-
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override {
-        if (selectedNode && (event->buttons() & Qt::LeftButton)) {
-            DiagramNodeImage* imageNode = dynamic_cast<DiagramNodeImage*>(
-                selectedNode);
-            if (!imageNode || !imageNode->isResizing) {
-                QPointF newPos = event->scenePos()
-                               - selectedNode->dragOffset;
-                selectedNode->setPosition(newPos, gridSnap);
-                return;
-            }
-        }
-        QGraphicsScene::mouseMoveEvent(event);
-    }
-    void setTreeModel(DiagramTreeModel* model) {
-        treeModel = model;
-        updateTreeView();
-    }
-
-    void updateTreeView() {
-        if (treeModel) { treeModel->refresh(); }
-    }
-
-    DiagramNodeLayer* findFirstLayer() {
-        for (const auto& child : rootNode->children) {
-            if (auto it = dynamic_cast<DiagramNodeLayer*>(child);
-                it != nullptr) {
-                return it;
-            }
-        }
-        return nullptr;
-    }
-
-  public slots:
-    void setShowGrid(bool show) {
-        showGrid = show;
-        invalidate(); // Force redraw
-    }
-
-    void setGridColor(const QColor& color) {
-        gridColor = color;
-        invalidate(); // Force redraw
-    }
-
-    void setGridSnap(int snap) { gridSnap = snap; }
-
-    void addEdge(
-        DiagramNodeVisual* sourceNode,
-        DiagramNodeVisual* targetNode) {
-        auto edge = new DiagramNodeEdge{sourceNode, targetNode};
-        addItem(edge);
-
-        auto layer = findFirstLayer();
-        if (layer) {
-            layer->addChild(edge);
-        } else {
-            rootNode->addChild(edge);
-        }
-    }
-
-    void createEdgeFromSelection() {
-        if (selectedNodes.size() != 2) {
-            QMessageBox::warning(
-                nullptr,
-                "Error",
-                "Please select exactly 2 nodes to create an edge.");
-            return;
-        }
-
-        DiagramNodeVisual* sourceNode = selectedNodes.at(0);
-        DiagramNodeVisual* targetNode = selectedNodes.at(1);
-
-        if (dynamic_cast<DiagramNodeEdge*>(sourceNode)
-            || dynamic_cast<DiagramNodeEdge*>(targetNode)) {
-            QMessageBox::warning(
-                nullptr,
-                "Error",
-                "Cannot create edge from or to another edge.");
-            return;
-        }
-
-        addEdge(sourceNode, targetNode);
-
-        // Clear selection
-        for (auto node : selectedNodes) { node->setSelected(false); }
-        selectedNodes.clear();
-        updateTreeView();
-    }
-
-
-    void addRectangle() {
-        auto node = new DiagramNodeRectangle{"Rectangle"};
-        node->setPos(200, 200);
-        node->color = Qt::green;
-        addItem(node);
-
-        auto layer = findFirstLayer();
-        if (layer) {
-            layer->addChild(node);
-        } else {
-            rootNode->addChild(node);
-        }
-        updateTreeView();
-    }
-
-    void addLayer() {
-        auto layer = new DiagramNodeLayer{"New Layer"};
-        rootNode->addChild(layer);
-        updateTreeView();
-    }
-
-    void addImage() {
-        QString fileName = QFileDialog::getOpenFileName(
-            nullptr,
-            "Open Image",
-            "",
-            "Images (*.png *.jpg *.jpeg *.bmp)");
-        if (!fileName.isEmpty()) {
-            auto node = new DiagramNodeImage{"Image"};
-            node->setImage(
-                QPixmap{fileName}.scaled(100, 100, Qt::KeepAspectRatio));
-            node->setPos(150, 300);
-            addItem(node);
-
-            auto layer = findFirstLayer();
-            if (layer) {
-                layer->addChild(node);
-            } else {
-                rootNode->addChild(node);
-            }
-            updateTreeView();
-        }
-    }
-
-    DiagramNodeGroup* findGroupContaining(DiagramNodeVisual* node) {
-        for (auto item : items()) {
-            if (auto group = dynamic_cast<DiagramNodeGroup*>(item)) {
-                if (std::find(
-                        group->groupedNodes.begin(),
-                        group->groupedNodes.end(),
-                        node)
-                    != group->groupedNodes.end()) {
-                    return group;
-                }
-            }
-        }
-        return nullptr;
-    }
-
-    std::vector<DiagramNodeVisual*> findCommonParentNodes(
-        const std::vector<DiagramNodeVisual*>& nodes) {
-        std::vector<DiagramNodeVisual*> result;
-        std::set<DiagramNodeVisual*>    processed;
-
-        for (auto node : nodes) {
-            if (dynamic_cast<DiagramNodeEdge*>(node)) {
-                continue; // Skip edges
-            }
-            if (processed.count(node)) { continue; }
-
-            auto group = findGroupContaining(node);
-            if (group) {
-                // Check if all nodes in this group are in the selection
-                bool allNodesSelected = true;
-                for (auto groupNode : group->groupedNodes) {
-                    if (std::find(nodes.begin(), nodes.end(), groupNode)
-                        == nodes.end()) {
-                        allNodesSelected = false;
-                        break;
-                    }
-                }
-
-                if (allNodesSelected) {
-                    result.push_back(group);
-                    for (auto groupNode : group->groupedNodes) {
-                        processed.insert(groupNode);
-                    }
-                } else {
-                    result.push_back(node);
-                    processed.insert(node);
-                }
-            } else {
-                result.push_back(node);
-                processed.insert(node);
-            }
-        }
-
-        return result;
-    }
-
-  public slots:
-    void createGroupFromSelection() {
-        // Filter out edges and get only visual nodes
-        std::vector<DiagramNodeVisual*> visualNodes;
-        for (auto node : selectedNodes) {
-            if (!dynamic_cast<DiagramNodeEdge*>(node)) {
-                visualNodes.push_back(node);
-            }
-        }
-
-        if (visualNodes.size() < 2) {
-            QMessageBox::warning(
-                nullptr,
-                "Error",
-                "Please select at least 2 non-edge nodes to create a "
-                "group.");
-            return;
-        }
-
-        // Find common parent nodes
-        auto nodesToGroup = findCommonParentNodes(visualNodes);
-
-        if (nodesToGroup.empty()) {
-            QMessageBox::warning(
-                nullptr, "Error", "No valid nodes to group.");
-            return;
-        }
-
-        // Remove nodes from their current groups if any
-        for (auto node : nodesToGroup) {
-            auto currentGroup = findGroupContaining(node);
-            if (currentGroup) { currentGroup->removeFromGroup(node); }
-        }
-
-        // Create new group
-        auto group = new DiagramNodeGroup{"Group"};
-        addItem(group);
-
-        // Add nodes to the group
-        for (auto node : nodesToGroup) { group->addToGroup(node); }
-
-        group->updateBoundsToFitNodes();
-
-        // Add to scene hierarchy
-        auto layer = findFirstLayer();
-        if (layer) {
-            // Convert to shared_ptr if using shared_ptr management
-            layer->addChild(group);
-        } else {
-            rootNode->addChild(group);
-        }
-
-        // Clear selection
-        for (auto node : selectedNodes) { node->setSelected(false); }
-        selectedNodes.clear();
-
-        updateTreeView();
-    }
-
-
-  signals:
-    void nodeSelected(DiagramNodeVisual* node);
-};
 
 struct MainWindow : public QMainWindow {
     Q_OBJECT
 
   public:
-    DiagramScene*     scene{};
-    DiagramView*      view{};
-    QSpinBox*         gridSnapBox{};
-    QPushButton*      addRectButton{};
-    QPushButton*      addLayerButton{};
-    QPushButton*      addImageButton{};
-    QLabel*           statusLabel{};
-    QTreeView*        treeView{};
-    DiagramTreeModel* treeModel{};
-    QWidget*          propertiesPanel{};
-    QVBoxLayout*      propertiesLayout{};
-    QPushButton*      createEdgeButton{};
-    QPushButton*      createGroupButton{};
-    QCheckBox*        showGridCheck{};
-    QPushButton*      gridColorButton{};
-    QSlider*          zoomSlider{};
-    QLabel*           zoomLabel{};
-    QPushButton*      zoomFitButton{};
+    DiagramScene*            scene{};
+    DiagramView*             view{};
+    QSpinBox*                gridSnapBox{};
+    QPushButton*             addRectButton{};
+    QPushButton*             addLayerButton{};
+    QPushButton*             addImageButton{};
+    QTreeView*               treeView{};
+    DiagramTreeModel*        treeModel{};
+    QWidget*                 propertiesPanel{};
+    QVBoxLayout*             propertiesLayout{};
+    QPushButton*             createEdgeButton{};
+    QPushButton*             createGroupButton{};
+    QCheckBox*               showGridCheck{};
+    QPushButton*             gridColorButton{};
+    QSlider*                 zoomSlider{};
+    QLabel*                  zoomLabel{};
+    QPushButton*             zoomFitButton{};
+    DiagramSelectionManager* selectionManager{};
 
 
     MainWindow(QWidget* parent = nullptr) : QMainWindow{parent} {
@@ -638,6 +175,7 @@ struct MainWindow : public QMainWindow {
 
         treeModel = new DiagramTreeModel{scene->rootNode, this};
         scene->setTreeModel(treeModel);
+
 
         auto centralWidget = new QWidget{};
         auto mainLayout    = new QHBoxLayout{centralWidget};
@@ -664,11 +202,6 @@ struct MainWindow : public QMainWindow {
         addImageButton    = new QPushButton{"Add Image"};
         createEdgeButton  = new QPushButton{"Create Edge"};
         createGroupButton = new QPushButton{"Create Group"};
-
-        statusLabel = new QLabel{
-            "Right-click to create edges. Ctrl+click for multi-selection. "
-            "Use Create Edge button for selected nodes."};
-        statusLabel->setWordWrap(true);
 
         treeView = new QTreeView{};
         treeView->setModel(treeModel);
@@ -702,7 +235,6 @@ struct MainWindow : public QMainWindow {
         leftLayout->addWidget(addImageButton);
         leftLayout->addWidget(createEdgeButton);
         leftLayout->addWidget(createGroupButton);
-        leftLayout->addWidget(statusLabel);
         leftLayout->addWidget(new QLabel{"Scene Tree:"});
         leftLayout->addWidget(treeView);
 
@@ -726,6 +258,9 @@ struct MainWindow : public QMainWindow {
         resize(1200, 700);
 
         treeView->expandAll();
+
+        selectionManager = new DiagramSelectionManager(
+            view, treeView, treeModel, this);
     }
 
     void connectSignals() {
@@ -874,7 +409,40 @@ struct MainWindow : public QMainWindow {
     }
 };
 
+void customMessageHandler(
+    QtMsgType                 type,
+    const QMessageLogContext& context,
+    const QString&            msg_in) {
+    QByteArray  localMsg = msg_in.toLocal8Bit();
+    std::string lvl;
+
+    switch (type) {
+        case QtDebugMsg: lvl = "DEBUG"; break;
+        case QtInfoMsg: lvl = "INFO"; break;
+        case QtWarningMsg: lvl = "WARN"; break;
+        case QtCriticalMsg: lvl = "CRIT"; break;
+        case QtFatalMsg: lvl = "FATAL";
+    }
+
+    std::string loc = hstd::fmt(
+        "[{}:{}] {} ({}, {}:{})",
+        lvl,
+        context.category,
+        localMsg.constData(),
+        context.function ? context.function : "?",
+        context.file ? context.file : "?",
+        context.line);
+
+    if (type == QtFatalMsg || type == QtCriticalMsg) {
+        std::cerr << loc << std::endl;
+        if (type == QtFatalMsg) { abort(); }
+    } else {
+        std::cout << loc << std::endl;
+    }
+}
+
 int main(int argc, char* argv[]) {
+    qInstallMessageHandler(customMessageHandler);
     QApplication app{argc, argv};
     QLoggingCategory::setFilterRules("qt.qpa.painting.debug=true");
 
