@@ -22,8 +22,6 @@ struct DiagramNodeVisual
 
     virtual QWidget* createPropertiesWidget(QWidget* parent) = 0;
 
-    bool isVisual() const override { return true; }
-
     QRectF boundingRect() const override {
         QRectF rect = bounds;
         rect        = rect.united(getAdditionalBounds());

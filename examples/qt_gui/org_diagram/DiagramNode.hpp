@@ -16,20 +16,14 @@ struct DiagramNode {
         child->parent = this;
         children.push_back(child);
     }
-
-    virtual bool isVisual() const { return false; }
-    virtual bool isCanvas() const { return false; }
-    virtual bool isLayer() const { return false; }
 };
 
 struct DiagramNodeCanvas : public DiagramNode {
     DiagramNodeCanvas(const QString& nodeName = "Canvas")
         : DiagramNode{nodeName} {}
-    bool isCanvas() const override { return true; }
 };
 
 struct DiagramNodeLayer : public DiagramNode {
     DiagramNodeLayer(const QString& nodeName = "Layer")
         : DiagramNode{nodeName} {}
-    bool isLayer() const override { return true; }
 };

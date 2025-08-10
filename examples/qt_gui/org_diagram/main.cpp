@@ -23,7 +23,6 @@
 #include <vector>
 #include <QLineEdit>
 #include <QColorDialog>
-#include "DebugPainter.hpp"
 
 
 #include "DiagramNode.hpp"
@@ -31,6 +30,7 @@
 #include "DiagramNodeEdge.hpp"
 #include "DiagramNodeImage.hpp"
 #include "DiagramNodeRectangle.hpp"
+#include "DiagramNodeGroup.hpp"
 
 
 struct DiagramTreeModel : public QAbstractItemModel {
@@ -132,11 +132,48 @@ struct DiagramScene : public QGraphicsScene {
     DiagramNodeVisual*              arrowSource{nullptr};
     DiagramTreeModel*               treeModel{nullptr};
     std::vector<DiagramNodeVisual*> selectedNodes{};
+    bool                            showGrid{true};
+    QColor                          gridColor{Qt::lightGray};
 
     DiagramScene(QObject* parent = nullptr) : QGraphicsScene{parent} {
         rootNode = new DiagramNodeCanvas{"Canvas"};
         setupExampleDiagram();
     }
+
+    void drawBackground(QPainter* painter, const QRectF& rect) override {
+        QGraphicsScene::drawBackground(painter, rect);
+
+        if (!showGrid) { return; }
+
+        painter->setPen(QPen{gridColor, 1});
+
+        // Calculate grid bounds
+        int left = static_cast<int>(rect.left())
+                 - (static_cast<int>(rect.left()) % gridSnap);
+        int top = static_cast<int>(rect.top())
+                - (static_cast<int>(rect.top()) % gridSnap);
+        int right  = static_cast<int>(rect.right());
+        int bottom = static_cast<int>(rect.bottom());
+
+        // Draw vertical lines
+        for (int x = left; x <= right; x += gridSnap) {
+            painter->drawLine(
+                x,
+                static_cast<int>(rect.top()),
+                x,
+                static_cast<int>(rect.bottom()));
+        }
+
+        // Draw horizontal lines
+        for (int y = top; y <= bottom; y += gridSnap) {
+            painter->drawLine(
+                static_cast<int>(rect.left()),
+                y,
+                static_cast<int>(rect.right()),
+                y);
+        }
+    }
+
 
     void setupExampleDiagram() {
         auto layer1 = new DiagramNodeLayer{"Layer 1"};
@@ -244,14 +281,25 @@ struct DiagramScene : public QGraphicsScene {
 
     DiagramNodeLayer* findFirstLayer() {
         for (const auto& child : rootNode->children) {
-            if (child->isLayer()) {
-                return dynamic_cast<DiagramNodeLayer*>(child);
+            if (auto it = dynamic_cast<DiagramNodeLayer*>(child);
+                it != nullptr) {
+                return it;
             }
         }
         return nullptr;
     }
 
   public slots:
+    void setShowGrid(bool show) {
+        showGrid = show;
+        invalidate(); // Force redraw
+    }
+
+    void setGridColor(const QColor& color) {
+        gridColor = color;
+        invalidate(); // Force redraw
+    }
+
     void setGridSnap(int snap) { gridSnap = snap; }
 
     void addEdge(
@@ -342,6 +390,122 @@ struct DiagramScene : public QGraphicsScene {
         }
     }
 
+    DiagramNodeGroup* findGroupContaining(DiagramNodeVisual* node) {
+        for (auto item : items()) {
+            if (auto group = dynamic_cast<DiagramNodeGroup*>(item)) {
+                if (std::find(
+                        group->groupedNodes.begin(),
+                        group->groupedNodes.end(),
+                        node)
+                    != group->groupedNodes.end()) {
+                    return group;
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    std::vector<DiagramNodeVisual*> findCommonParentNodes(
+        const std::vector<DiagramNodeVisual*>& nodes) {
+        std::vector<DiagramNodeVisual*> result;
+        std::set<DiagramNodeVisual*>    processed;
+
+        for (auto node : nodes) {
+            if (dynamic_cast<DiagramNodeEdge*>(node)) {
+                continue; // Skip edges
+            }
+            if (processed.count(node)) { continue; }
+
+            auto group = findGroupContaining(node);
+            if (group) {
+                // Check if all nodes in this group are in the selection
+                bool allNodesSelected = true;
+                for (auto groupNode : group->groupedNodes) {
+                    if (std::find(nodes.begin(), nodes.end(), groupNode)
+                        == nodes.end()) {
+                        allNodesSelected = false;
+                        break;
+                    }
+                }
+
+                if (allNodesSelected) {
+                    result.push_back(group);
+                    for (auto groupNode : group->groupedNodes) {
+                        processed.insert(groupNode);
+                    }
+                } else {
+                    result.push_back(node);
+                    processed.insert(node);
+                }
+            } else {
+                result.push_back(node);
+                processed.insert(node);
+            }
+        }
+
+        return result;
+    }
+
+  public slots:
+    void createGroupFromSelection() {
+        // Filter out edges and get only visual nodes
+        std::vector<DiagramNodeVisual*> visualNodes;
+        for (auto node : selectedNodes) {
+            if (!dynamic_cast<DiagramNodeEdge*>(node)) {
+                visualNodes.push_back(node);
+            }
+        }
+
+        if (visualNodes.size() < 2) {
+            QMessageBox::warning(
+                nullptr,
+                "Error",
+                "Please select at least 2 non-edge nodes to create a "
+                "group.");
+            return;
+        }
+
+        // Find common parent nodes
+        auto nodesToGroup = findCommonParentNodes(visualNodes);
+
+        if (nodesToGroup.empty()) {
+            QMessageBox::warning(
+                nullptr, "Error", "No valid nodes to group.");
+            return;
+        }
+
+        // Remove nodes from their current groups if any
+        for (auto node : nodesToGroup) {
+            auto currentGroup = findGroupContaining(node);
+            if (currentGroup) { currentGroup->removeFromGroup(node); }
+        }
+
+        // Create new group
+        auto group = new DiagramNodeGroup{"Group"};
+        addItem(group);
+
+        // Add nodes to the group
+        for (auto node : nodesToGroup) { group->addToGroup(node); }
+
+        group->updateBoundsToFitNodes();
+
+        // Add to scene hierarchy
+        auto layer = findFirstLayer();
+        if (layer) {
+            // Convert to shared_ptr if using shared_ptr management
+            layer->addChild(group);
+        } else {
+            rootNode->addChild(group);
+        }
+
+        // Clear selection
+        for (auto node : selectedNodes) { node->setSelected(false); }
+        selectedNodes.clear();
+
+        updateTreeView();
+    }
+
+
   signals:
     void nodeSelected(DiagramNodeVisual* node);
 };
@@ -362,6 +526,9 @@ struct MainWindow : public QMainWindow {
     QWidget*          propertiesPanel{};
     QVBoxLayout*      propertiesLayout{};
     QPushButton*      createEdgeButton{};
+    QPushButton*      createGroupButton{};
+    QCheckBox*        showGridCheck{};
+    QPushButton*      gridColorButton{};
 
     MainWindow(QWidget* parent = nullptr) : QMainWindow{parent} {
         setupUI();
@@ -390,10 +557,18 @@ struct MainWindow : public QMainWindow {
         gridSnapBox->setMaximum(50);
         gridSnapBox->setValue(10);
 
-        addRectButton    = new QPushButton{"Add Rectangle"};
-        addLayerButton   = new QPushButton{"Add Layer"};
-        addImageButton   = new QPushButton{"Add Image"};
-        createEdgeButton = new QPushButton{"Create Edge"};
+        showGridCheck = new QCheckBox{"Show Grid"};
+        showGridCheck->setChecked(true);
+
+        gridColorButton = new QPushButton{"Grid Color"};
+        gridColorButton->setStyleSheet("background-color: lightgray");
+
+
+        addRectButton     = new QPushButton{"Add Rectangle"};
+        addLayerButton    = new QPushButton{"Add Layer"};
+        addImageButton    = new QPushButton{"Add Image"};
+        createEdgeButton  = new QPushButton{"Create Edge"};
+        createGroupButton = new QPushButton{"Create Group"};
 
         statusLabel = new QLabel{
             "Right-click to create edges. Ctrl+click for multi-selection. "
@@ -406,10 +581,13 @@ struct MainWindow : public QMainWindow {
 
         leftLayout->addWidget(gridLabel);
         leftLayout->addWidget(gridSnapBox);
+        leftLayout->addWidget(showGridCheck);
+        leftLayout->addWidget(gridColorButton);
         leftLayout->addWidget(addRectButton);
         leftLayout->addWidget(addLayerButton);
         leftLayout->addWidget(addImageButton);
         leftLayout->addWidget(createEdgeButton);
+        leftLayout->addWidget(createGroupButton);
         leftLayout->addWidget(statusLabel);
         leftLayout->addWidget(new QLabel{"Scene Tree:"});
         leftLayout->addWidget(treeView);
@@ -467,6 +645,24 @@ struct MainWindow : public QMainWindow {
             &QPushButton::clicked,
             scene,
             &DiagramScene::createEdgeFromSelection);
+        connect(
+            createGroupButton,
+            &QPushButton::clicked,
+            scene,
+            &DiagramScene::createGroupFromSelection);
+        connect(
+            showGridCheck,
+            &QCheckBox::toggled,
+            scene,
+            &DiagramScene::setShowGrid);
+        connect(gridColorButton, &QPushButton::clicked, scene, [this]() {
+            QColor newColor = QColorDialog::getColor(scene->gridColor);
+            if (newColor.isValid()) {
+                scene->setGridColor(newColor);
+                gridColorButton->setStyleSheet(
+                    QString{"background-color: %1"}.arg(newColor.name()));
+            }
+        });
     }
 
   private slots:
