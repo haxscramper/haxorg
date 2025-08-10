@@ -1,3 +1,11 @@
+#include "common.hpp"
+
+#include "DiagramNode.hpp"
+#include "DiagramNodeVisual.hpp"
+#include "DiagramView.hpp"
+#include "DiagramTreeModel.hpp"
+#include "DiagramScene.hpp"
+
 #include <QtWidgets>
 #include <QApplication>
 #include <QMainWindow>
@@ -26,12 +34,8 @@
 #include <QWheelEvent>
 #include <hstd/stdlib/Debug.hpp>
 
-
-#include "DiagramNode.hpp"
-#include "DiagramNodeVisual.hpp"
-#include "DiagramView.hpp"
-#include "DiagramTreeModel.hpp"
-#include "DiagramScene.hpp"
+#pragma clang diagnostic ignored "-Wmacro-redefined"
+#define _cat "main"
 
 class DiagramSelectionManager : public QObject {
     Q_OBJECT
@@ -57,7 +61,7 @@ class DiagramSelectionManager : public QObject {
   private slots:
     void onSceneSelectionChanged(
         const QList<DiagramNodeVisual*>& selectedNodes) {
-        qDebug() << "Scene selection changed";
+        HSLOG_DEBUG(_cat, "Scene selection changed");
         if (updatingSelection) { return; }
         updatingSelection = true;
 
@@ -95,7 +99,13 @@ class DiagramSelectionManager : public QObject {
     }
 
     void onTreeNodesSelected(const QList<QModelIndex>& indexes) {
-        if (updatingSelection) { return; }
+        HSLOG_DEPTH_SCOPE_ANON();
+        HSLOG_INFO(
+            _cat,
+            "On tree nodes selected, updating selection: ",
+            updatingSelection);
+
+        // if (updatingSelection) { return; }
 
         // Update tree view selection
         QItemSelectionModel* selectionModel = treeView->selectionModel();
@@ -442,6 +452,10 @@ void customMessageHandler(
 }
 
 int main(int argc, char* argv[]) {
+    hstd::log::push_sink(
+        hstd::log::init_file_sink("/tmp/org_diagram.log"));
+
+
     qInstallMessageHandler(customMessageHandler);
     QApplication app{argc, argv};
     QLoggingCategory::setFilterRules("qt.qpa.painting.debug=true");

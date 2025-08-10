@@ -4,6 +4,9 @@
 #include <QWheelEvent>
 #include <QScrollBar>
 #include "DiagramNodeVisual.hpp"
+#include "common.hpp"
+
+#define _cat "app.view"
 
 class DiagramView : public QGraphicsView {
     Q_OBJECT
@@ -119,15 +122,17 @@ class DiagramView : public QGraphicsView {
   private:
     void emitSelectionChanged() {
         if (!scene()) { return; }
-        qDebug() << "Emit selection changed";
-
         QList<DiagramNodeVisual*> selectedNodes;
         QList<QGraphicsItem*>     selectedItems = scene()->selectedItems();
 
         for (QGraphicsItem* item : selectedItems) {
             DiagramNodeVisual* nodeVisual = dynamic_cast<
                 DiagramNodeVisual*>(item);
-            if (nodeVisual) { selectedNodes.append(nodeVisual); }
+            if (nodeVisual) {
+                HSLOG_DEBUG(
+                    _cat, "Selected node ", nodeVisual->name.toStdString());
+                selectedNodes.append(nodeVisual);
+            }
         }
 
         emit sceneSelectionChanged(selectedNodes);

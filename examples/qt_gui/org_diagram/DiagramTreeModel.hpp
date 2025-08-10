@@ -4,6 +4,11 @@
 #include "DiagramNode.hpp"
 #include "DiagramNodeVisual.hpp"
 
+#include "common.hpp"
+
+#pragma clang diagnostic ignored "-Wmacro-redefined"
+#define _cat "model.tree"
+
 
 struct DiagramTreeModel : public QAbstractItemModel {
     Q_OBJECT
@@ -95,6 +100,8 @@ struct DiagramTreeModel : public QAbstractItemModel {
 
   public slots:
     void selectNodes(const QList<DiagramNodeVisual*>& visualNodes) {
+        HSLOG_DEBUG(_cat, "Select nodes slot triggered");
+        HSLOG_DEPTH_SCOPE_ANON();
         emit layoutAboutToBeChanged();
 
         // Convert visual nodes to model indexes
@@ -123,13 +130,14 @@ struct DiagramTreeModel : public QAbstractItemModel {
                                     ? static_cast<DiagramNode*>(
                                           parent.internalPointer())
                                     : rootNode;
-        qDebug();
+        HSLOG_INFO(_cat, "find node index");
 
         if (!parentNode) { return QModelIndex{}; }
 
         // Check direct children
         for (int i = 0; i < parentNode->children.size(); ++i) {
             if (parentNode->children[i] == targetNode) {
+                HSLOG_DEBUG(_cat, "found target node");
                 return index(i, 0, parent);
             }
         }
@@ -138,8 +146,16 @@ struct DiagramTreeModel : public QAbstractItemModel {
         for (int i = 0; i < parentNode->children.size(); ++i) {
             QModelIndex childIndex = index(i, 0, parent);
             QModelIndex found      = findNodeIndex(childIndex, targetNode);
-            if (found.isValid()) { return found; }
+            if (found.isValid()) {
+                HSLOG_DEBUG(_cat, "found target node");
+                return found;
+            }
         }
+
+        HSLOG_WARNING(
+            _cat,
+            "Could not find index for target node ",
+            targetNode->name.toStdString());
 
         return QModelIndex{};
     }
