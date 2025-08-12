@@ -3,10 +3,9 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <mutex>
-#include <atomic>
 #include <unordered_map>
 #include <stack>
+#include <hstd/ext/graphviz.hpp>
 
 namespace hstd::log {
 
@@ -177,7 +176,7 @@ struct scope_tracker {
 };
 
 #define HSLOG_GRAPH_TRACK_FUNCTION(__tracker, functionName)               \
-    function_tracker _func_tracker{__tracker, #functionName};
+    function_tracker _func_tracker{__tracker, functionName};
 
 #define HSLOG_GRAPH_TRACK_SCOPE(__tracker, scopeName)                     \
     scope_tracker _scope_tracker{__tracker, scopeName};
@@ -267,7 +266,7 @@ struct graphviz_processor : public log_graph_processor {
         char const*        function,
         char const*        file) override;
 
-    void write_graphviz(std::string const& filename);
+    hstd::ext::Graphviz::Graph get_graphviz();
 
   private:
     std::stack<std::string>                    call_stack{};

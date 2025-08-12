@@ -3,6 +3,7 @@
 #include <graphviz/gvc.h>
 #include <graphviz/cgraph.h>
 #include <hstd/system/Formatter.hpp>
+#include <hstd/ext/graphviz.hpp>
 
 
 using namespace hstd::log;
@@ -221,37 +222,30 @@ void graphviz_processor::track_named_jump(
     pending_jump = description;
 }
 
-void graphviz_processor::write_graphviz(const std::string& filename) {
-    Agraph_t* graph = agopen(
-        const_cast<char*>("callgraph"), Agdirected, nullptr);
+hstd::ext::Graphviz::Graph graphviz_processor::get_graphviz() {
+    using namespace hstd::ext;
+    Graphviz::Graph                                  graph{"g"_ss};
+    std::unordered_map<std::string, Graphviz::Node>  graph_nodes{};
+    std::unordered_map<std::string, Graphviz::Graph> clusters{};
 
-    std::unordered_map<std::string, Agnode_t*> graph_nodes{};
-    std::unordered_map<std::string, Agraph_t*> clusters{};
+    graph.defaultNode.setShape(Graphviz::Node::Shape::rect);
 
     for (auto const& [name, info] : nodes) {
         if (info.is_cluster) {
-            std::string cluster_name = std::format("cluster_{}", name);
-            Agraph_t*   cluster      = agsubg(
-                graph, const_cast<char*>(cluster_name.c_str()), 1);
-            agsafeset(
-                cluster,
-                const_cast<char*>("label"),
-                const_cast<char*>(name.c_str()),
-                const_cast<char*>(""));
+            std::string     cluster_name = std::format("cluster_{}", name);
+            Graphviz::Graph cluster      = graph.newSubgraph(cluster_name);
+            cluster.setLabel(name);
             clusters.insert_or_assign(name, cluster);
 
-            Agnode_t* node = agnode(
-                cluster, const_cast<char*>(name.c_str()), 1);
+            Graphviz::Node node = cluster.node(name);
             graph_nodes.insert_or_assign(name, node);
 
             for (auto const& child : info.children) {
-                Agnode_t* child_node = agnode(
-                    cluster, const_cast<char*>(child.c_str()), 1);
+                Graphviz::Node child_node = cluster.node(child);
                 graph_nodes.insert_or_assign(child, child_node);
             }
         } else if (graph_nodes.find(name) == graph_nodes.end()) {
-            Agnode_t* node = agnode(
-                graph, const_cast<char*>(name.c_str()), 1);
+            Graphviz::Node node = graph.node(name);
             graph_nodes.insert_or_assign(name, node);
         }
     }
@@ -261,10 +255,10 @@ void graphviz_processor::write_graphviz(const std::string& filename) {
         std::string from = edge_key.substr(0, pos);
         std::string to   = edge_key.substr(pos + 4);
 
-        Agnode_t* from_node = graph_nodes.at(from);
-        Agnode_t* to_node   = graph_nodes.at(to);
+        Graphviz::Node from_node = graph_nodes.at(from);
+        Graphviz::Node to_node   = graph_nodes.at(to);
 
-        Agedge_t* edge = agedge(graph, from_node, to_node, nullptr, 1);
+        Graphviz::Edge edge = graph.edge(from_node, to_node);
 
         std::string label{};
         if (!call.jump_description.empty() && call.count > 1) {
@@ -276,19 +270,10 @@ void graphviz_processor::write_graphviz(const std::string& filename) {
             label = std::format("({})", call.count);
         }
 
-        if (!label.empty()) {
-            agsafeset(
-                edge,
-                const_cast<char*>("label"),
-                const_cast<char*>(label.c_str()),
-                const_cast<char*>(""));
-        }
+        if (!label.empty()) { edge.setLabel(label); }
     }
 
-    FILE* file = fopen(filename.c_str(), "w");
-    agwrite(graph, file);
-    fclose(file);
-    agclose(graph);
+    return graph;
 }
 
 std::string graphviz_processor::get_parent() {

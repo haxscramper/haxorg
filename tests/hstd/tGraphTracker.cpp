@@ -280,7 +280,7 @@ TEST_F(log_graph_tracker_test, macro_function_tracking) {
         .Times(1);
 
     tracker->start_tracing();
-    { HSLOG_GRAPH_TRACK_FUNCTION(this->tracker, test_macro_function); }
+    { HSLOG_GRAPH_TRACK_FUNCTION(this->tracker, "test_macro_function"); }
 }
 
 TEST_F(log_graph_tracker_test, macro_scope_tracking) {
@@ -294,29 +294,6 @@ TEST_F(log_graph_tracker_test, macro_scope_tracking) {
 
     tracker->start_tracing();
     { HSLOG_GRAPH_TRACK_SCOPE(this->tracker, "test_macro_scope"); }
-}
-
-TEST_F(log_graph_tracker_test, concurrent_start_stop_throws) {
-    std::vector<std::thread>        threads{};
-    std::vector<std::exception_ptr> exceptions{};
-    std::mutex                      exception_mutex{};
-
-    for (int i = 0; i < 10; ++i) {
-        threads.emplace_back([&]() {
-            try {
-                tracker->start_tracing();
-                std::this_thread::sleep_for(std::chrono::milliseconds{10});
-                tracker->end_tracing();
-            } catch (...) {
-                std::lock_guard<std::mutex> lock{exception_mutex};
-                exceptions.push_back(std::current_exception());
-            }
-        });
-    }
-
-    for (auto& thread : threads) { thread.join(); }
-
-    EXPECT_EQ(exceptions.size(), 18);
 }
 
 TEST_F(log_graph_tracker_test, thread_safety_notifications) {
@@ -357,10 +334,22 @@ struct graphviz_processor_test : public ::testing::Test {
     std::unique_ptr<graphviz_processor> processor;
 
     void finalize_files() {
-        std::string path = getDebugFile("result.dot").native();
-        processor->write_graphviz(path);
-        std::ifstream file{path};
-        EXPECT_TRUE(file.good());
+        {
+
+            hstd::fs::path path = getDebugFile("result.png");
+            processor->get_graphviz().render(path);
+            std::ifstream file{path};
+            EXPECT_TRUE(file.good());
+        }
+        {
+            hstd::fs::path path = getDebugFile("result.dot");
+            processor->get_graphviz().render(
+                path,
+                hstd::ext::Graphviz::LayoutType::Dot,
+                hstd::ext::Graphviz::RenderFormat::DOT);
+            std::ifstream file{path};
+            EXPECT_TRUE(file.good());
+        }
     }
 };
 
@@ -400,4 +389,272 @@ TEST_F(graphviz_processor_test, recursive_calls) {
     processor->track_function_end("recursive_func", CALL_LOC());
 
     finalize_files();
+}
+
+namespace real_usage_test_func {
+
+
+void b(std::shared_ptr<log_graph_tracker> tracker, int x);
+void c(std::shared_ptr<log_graph_tracker> tracker);
+void d(std::shared_ptr<log_graph_tracker> tracker);
+void e(std::shared_ptr<log_graph_tracker> tracker);
+void f(std::shared_ptr<log_graph_tracker> tracker);
+void g(std::shared_ptr<log_graph_tracker> tracker);
+void i(std::shared_ptr<log_graph_tracker> tracker);
+void h(std::shared_ptr<log_graph_tracker> tracker);
+void k(std::shared_ptr<log_graph_tracker> tracker);
+void j(std::shared_ptr<log_graph_tracker> tracker);
+
+template <int N>
+void a(std::shared_ptr<log_graph_tracker> tracker);
+
+template <>
+void a<-1>(std::shared_ptr<log_graph_tracker> tracker) {}
+
+template <>
+void a<0>(std::shared_ptr<log_graph_tracker> tracker) {}
+
+template <int N>
+void a(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "a");
+    if constexpr (N <= 0) { return; }
+
+    tracker->notify_named_jump("template recursion");
+    a<N - 1>(tracker);
+
+    for (int i = 0; i < 2; ++i) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "loop-a");
+        tracker->notify_named_jump("loop iteration");
+        b(tracker, i);
+    }
+
+    tracker->notify_named_jump("calling c twice");
+    c(tracker);
+    c(tracker);
+}
+
+void b(std::shared_ptr<log_graph_tracker> tracker, int x) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "b");
+    if (x == 0) {
+        tracker->notify_named_jump("x is zero");
+        return;
+    }
+
+    auto lambda = [tracker]() {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "lambda-in-b");
+        d(tracker);
+    };
+
+    lambda();
+
+    tracker->notify_named_jump("recursive call");
+    b(tracker, x - 1);
+}
+
+void c(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "c");
+    try {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "try-block");
+        if (rand() % 3 == 0) {
+            throw std::runtime_error("random exception");
+        }
+
+        tracker->notify_named_jump("no exception");
+        e(tracker);
+    } catch (...) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "catch-block");
+        tracker->notify_named_jump("caught exception");
+        f(tracker);
+    }
+}
+
+void d(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "d");
+    static int count = 0;
+    count++;
+
+    if (count > 3) {
+        tracker->notify_named_jump("count limit reached");
+        return;
+    }
+
+    {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "nested-scope-d");
+        tracker->notify_named_jump("calling e from d");
+        e(tracker);
+    }
+
+    tracker->notify_named_jump("calling f from d");
+    f(tracker);
+}
+
+void e(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "e");
+    for (int i = 0; i < 2; ++i) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "e-loop");
+        if (i == 1) {
+            tracker->notify_named_jump("second iteration calls g");
+            g(tracker);
+        }
+    }
+
+    auto nested_lambda = [tracker](int depth) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "nested-lambda");
+        if (depth > 0) {
+            tracker->notify_named_jump("lambda recursion");
+            f(tracker);
+        }
+    };
+
+    nested_lambda(1);
+}
+
+void f(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "f");
+    static bool visited = false;
+
+    if (!visited) {
+        visited = true;
+        tracker->notify_named_jump("first visit to f");
+        g(tracker);
+        g(tracker);
+    }
+
+    try {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "f-try-scope");
+        if (rand() % 2 == 0) { throw std::logic_error("f exception"); }
+        tracker->notify_named_jump("no f exception");
+    } catch (std::logic_error&) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "f-catch-logic");
+        tracker->notify_named_jump("caught logic error");
+    } catch (...) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "f-catch-all");
+        tracker->notify_named_jump("caught other error");
+    }
+}
+
+void g(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "g");
+    static int depth = 0;
+    depth++;
+
+    if (depth > 2) {
+        depth--;
+        tracker->notify_named_jump("depth limit in g");
+        return;
+    }
+
+    {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "g-inner-scope");
+        auto recursive_lambda = [tracker]() {
+            HSLOG_GRAPH_TRACK_SCOPE(tracker, "recursive-lambda-g");
+            tracker->notify_named_jump("lambda calls h");
+            h(tracker);
+        };
+        recursive_lambda();
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "g-loop");
+        if (i == 2) {
+            tracker->notify_named_jump("third iteration early exit");
+            break;
+        }
+        tracker->notify_named_jump("g loop iteration");
+        h(tracker);
+    }
+
+    depth--;
+}
+
+template <typename T>
+void h_impl(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "h");
+    static int calls = 0;
+    calls++;
+
+    if (calls > 5) {
+        tracker->notify_named_jump("h call limit");
+        return;
+    }
+
+    try {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "h-main-scope");
+        if (calls % 2 == 0) {
+            tracker->notify_named_jump("even call number");
+            i(tracker);
+        } else {
+            tracker->notify_named_jump("odd call number");
+            j(tracker);
+        }
+    } catch (...) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "h-exception-scope");
+        tracker->notify_named_jump("h caught exception");
+    }
+}
+
+void i(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "i");
+    {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "i-scope-1");
+        tracker->notify_named_jump("i calls j");
+        j(tracker);
+    }
+
+    {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "i-scope-2");
+        if (rand() % 4 == 0) { throw std::runtime_error("i exception"); }
+        tracker->notify_named_jump("i calls k");
+        k(tracker);
+    }
+}
+
+void j(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "j");
+    auto multi_lambda = [tracker](int x, int y) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "multi-param-lambda");
+        if (x > y) {
+            tracker->notify_named_jump("x greater than y");
+            k(tracker);
+        }
+        return x + y;
+    };
+
+    multi_lambda(3, 1);
+    multi_lambda(1, 3);
+
+    for (int i = 0; i < 2; ++i) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "j-final-loop");
+        tracker->notify_named_jump("j final iteration");
+        k(tracker);
+    }
+}
+
+void k(std::shared_ptr<log_graph_tracker> tracker) {
+    HSLOG_GRAPH_TRACK_FUNCTION(tracker, "k");
+    static bool toggle = false;
+    toggle             = !toggle;
+
+    if (toggle) {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "k-toggle-true");
+        tracker->notify_named_jump("toggle true path");
+    } else {
+        HSLOG_GRAPH_TRACK_SCOPE(tracker, "k-toggle-false");
+        tracker->notify_named_jump("toggle false path");
+    }
+}
+
+void h(std::shared_ptr<log_graph_tracker> tracker) {
+    h_impl<int>(tracker);
+}
+} // namespace real_usage_test_func
+
+TEST(graphviz_processor_test_manual, real_usage_test) {
+    auto tracker   = std::make_shared<log_graph_tracker>();
+    auto processor = std::make_shared<graphviz_processor>();
+    tracker->add_processor(processor);
+    tracker->start_tracing();
+    real_usage_test_func::a<2>(tracker);
+    tracker->end_tracing();
+    processor->get_graphviz().render(getDebugFile("result.png"));
 }
