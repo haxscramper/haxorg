@@ -12,7 +12,6 @@ void log_graph_tracker::add_processor(
     int                                  line,
     const char*                          function,
     const char*                          file) {
-    std::lock_guard<std::mutex> lock{mutex};
     processors.push_back(processor);
 }
 
@@ -20,22 +19,24 @@ void log_graph_tracker::start_tracing(
     int         line,
     const char* function,
     const char* file) {
-    std::lock_guard<std::mutex> lock{mutex};
-    if (tracing.exchange(true)) {
+    if (TraceState) {
         throw std::runtime_error("Tracing already started");
     }
-    for (auto& processor : processors) { processor->track_started(); }
+    TraceState = true;
+    for (auto& processor : processors) {
+        processor->track_started(line, function, file);
+    }
 }
 
 void log_graph_tracker::end_tracing(
     int         line,
     const char* function,
     const char* file) {
-    std::lock_guard<std::mutex> lock{mutex};
-    if (!tracing.exchange(false)) {
-        throw std::runtime_error("Tracing not started");
+    if (!TraceState) { throw std::runtime_error("Tracing not started"); }
+    TraceState = false;
+    for (auto& processor : processors) {
+        processor->track_ended(line, function, file);
     }
-    for (auto& processor : processors) { processor->track_ended(); }
     processors.clear();
 }
 
@@ -44,10 +45,10 @@ void log_graph_tracker::notify_function_start(
     int                line,
     const char*        function,
     const char*        file) {
-    if (!tracing.load()) { return; }
-    std::lock_guard<std::mutex> lock{mutex};
+    if (!TraceState) { return; }
     for (auto& processor : processors) {
-        processor->track_function_start(function_name);
+        processor->track_function_start(
+            function_name, line, function, file);
     }
 }
 
@@ -56,10 +57,9 @@ void log_graph_tracker::notify_function_end(
     int                line,
     const char*        function,
     const char*        file) {
-    if (!tracing.load()) { return; }
-    std::lock_guard<std::mutex> lock{mutex};
+    if (!TraceState) { return; }
     for (auto& processor : processors) {
-        processor->track_function_end(function_name);
+        processor->track_function_end(function_name, line, function, file);
     }
 }
 
@@ -69,10 +69,10 @@ void log_graph_tracker::notify_signal_emit(
     int                             line,
     const char*                     function,
     const char*                     file) {
-    if (!tracing.load()) { return; }
-    std::lock_guard<std::mutex> lock{mutex};
+    if (!TraceState) { return; }
     for (auto& processor : processors) {
-        processor->track_signal_emit(signal_name, args);
+        processor->track_signal_emit(
+            signal_name, args, line, function, file);
     }
 }
 
@@ -82,10 +82,10 @@ void log_graph_tracker::notify_slot_trigger(
     int                             line,
     const char*                     function,
     const char*                     file) {
-    if (!tracing.load()) { return; }
-    std::lock_guard<std::mutex> lock{mutex};
+    if (!TraceState) { return; }
     for (auto& processor : processors) {
-        processor->track_slot_trigger(slot_name, args);
+        processor->track_slot_trigger(
+            slot_name, args, line, function, file);
     }
 }
 
@@ -94,10 +94,9 @@ void log_graph_tracker::notify_scope_enter(
     int                line,
     const char*        function,
     const char*        file) {
-    if (!tracing.load()) { return; }
-    std::lock_guard<std::mutex> lock{mutex};
+    if (!TraceState) { return; }
     for (auto& processor : processors) {
-        processor->track_scope_enter(scope_name);
+        processor->track_scope_enter(scope_name, line, function, file);
     }
 }
 
@@ -106,10 +105,9 @@ void log_graph_tracker::notify_scope_exit(
     int                line,
     const char*        function,
     const char*        file) {
-    if (!tracing.load()) { return; }
-    std::lock_guard<std::mutex> lock{mutex};
+    if (!TraceState) { return; }
     for (auto& processor : processors) {
-        processor->track_scope_exit(scope_name);
+        processor->track_scope_exit(scope_name, line, function, file);
     }
 }
 
@@ -119,10 +117,9 @@ void log_graph_tracker::notify_named_text(
     int                line,
     const char*        function,
     const char*        file) {
-    if (!tracing.load()) { return; }
-    std::lock_guard<std::mutex> lock{mutex};
+    if (!TraceState) { return; }
     for (auto& processor : processors) {
-        processor->track_named_text(key, value);
+        processor->track_named_text(key, value, line, function, file);
     }
 }
 
@@ -131,15 +128,17 @@ void log_graph_tracker::notify_named_jump(
     int                line,
     const char*        function,
     const char*        file) {
-    if (!tracing.load()) { return; }
-    std::lock_guard<std::mutex> lock{mutex};
+    if (!TraceState) { return; }
     for (auto& processor : processors) {
-        processor->track_named_jump(description);
+        processor->track_named_jump(description, line, function, file);
     }
 }
 
 void graphviz_processor::track_function_start(
-    const std::string& function_name) {
+    const std::string& function_name,
+    int                line,
+    const char*        function,
+    const char*        file) {
     call_stack.push(function_name);
     if (call_stack.size() >= 2) {
         std::string parent = get_parent();
@@ -154,13 +153,19 @@ void graphviz_processor::track_function_start(
 }
 
 void graphviz_processor::track_function_end(
-    const std::string& function_name) {
+    const std::string& function_name,
+    int                line,
+    const char*        function,
+    const char*        file) {
     if (!call_stack.empty()) { call_stack.pop(); }
 }
 
 void graphviz_processor::track_signal_emit(
     const std::string&              signal_name,
-    const std::vector<std::string>& args) {
+    const std::vector<std::string>& args,
+    int                             line,
+    const char*                     function,
+    const char*                     file) {
     std::string full_name = std::format("signal_{}", signal_name);
     if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
     nodes.insert_or_assign(full_name, node_info{full_name, false, {}});
@@ -168,13 +173,20 @@ void graphviz_processor::track_signal_emit(
 
 void graphviz_processor::track_slot_trigger(
     const std::string&              slot_name,
-    const std::vector<std::string>& args) {
+    const std::vector<std::string>& args,
+    int                             line,
+    const char*                     function,
+    const char*                     file) {
     std::string full_name = std::format("slot_{}", slot_name);
     call_stack.push(full_name);
     nodes.insert_or_assign(full_name, node_info{full_name, false, {}});
 }
 
-void graphviz_processor::track_scope_enter(const std::string& scope_name) {
+void graphviz_processor::track_scope_enter(
+    const std::string& scope_name,
+    int                line,
+    const char*        function,
+    const char*        file) {
     call_stack.push(scope_name);
     if (call_stack.size() >= 2) {
         std::string parent = get_parent();
@@ -183,18 +195,29 @@ void graphviz_processor::track_scope_enter(const std::string& scope_name) {
     nodes.insert_or_assign(scope_name, node_info{scope_name, false, {}});
 }
 
-void graphviz_processor::track_scope_exit(const std::string& scope_name) {
+void graphviz_processor::track_scope_exit(
+    const std::string& scope_name,
+    int                line,
+    const char*        function,
+    const char*        file) {
     if (!call_stack.empty()) { call_stack.pop(); }
 }
 
-void graphviz_processor::track_started() {
+void graphviz_processor::track_started(
+    int         line,
+    const char* function,
+    const char* file) {
     nodes.clear();
     edges.clear();
     while (!call_stack.empty()) { call_stack.pop(); }
     pending_jump.clear();
 }
 
-void graphviz_processor::track_named_jump(const std::string& description) {
+void graphviz_processor::track_named_jump(
+    const std::string& description,
+    int                line,
+    const char*        function,
+    const char*        file) {
     pending_jump = description;
 }
 
