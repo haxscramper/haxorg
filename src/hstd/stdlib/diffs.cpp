@@ -100,28 +100,32 @@ Vec<SeqEdit> hstd::myersDiff(
 
     using sek = SeqEditKind;
 
+    if (lhsSize == 0 && rhsSize == 0) { return Vec<SeqEdit>{}; }
+
     Vec<Pair<int, Vec<SeqEdit>>> front(lhsSize + rhsSize + 3);
 
-    front.at(1).first = 0;
+    front.at(1 + lhsSize + rhsSize).first = 0;
 
     for (int fullIdx = 0; fullIdx <= lhsSize + rhsSize; fullIdx++) {
         for (int backIdx = -fullIdx; backIdx <= fullIdx; backIdx += 2) {
+            int frontIndex = backIdx + lhsSize + rhsSize;
+
             bool goDown
                 = (backIdx == -fullIdx
                    || (backIdx != fullIdx
-                       && front[backIdx - 1].first
-                              < front[backIdx + 1].first));
+                       && front.at(frontIndex - 1).first
+                              < front.at(frontIndex + 1).first));
 
             int          lhsIdx = 0;
             int          rhsIdx = 0;
             Vec<SeqEdit> history{};
 
             if (goDown) {
-                lhsIdx  = front.at(backIdx + 1).first;
-                history = front.at(backIdx + 1).second;
+                lhsIdx  = front.at(frontIndex + 1).first;
+                history = front.at(frontIndex + 1).second;
             } else {
-                lhsIdx  = front.at(backIdx - 1).first + 1;
-                history = front.at(backIdx - 1).second;
+                lhsIdx  = front.at(frontIndex - 1).first + 1;
+                history = front.at(frontIndex - 1).second;
             }
 
             rhsIdx = lhsIdx - backIdx;
@@ -143,15 +147,14 @@ Vec<SeqEdit> hstd::myersDiff(
             if (lhsSize <= lhsIdx && rhsSize <= rhsIdx) {
                 return history;
             } else {
-                front.at(backIdx).first  = lhsIdx;
-                front.at(backIdx).second = history;
+                front.at(frontIndex).first  = lhsIdx;
+                front.at(frontIndex).second = history;
             }
         }
     }
 
-    return Vec<SeqEdit>();
+    return Vec<SeqEdit>{};
 }
-
 
 LevenshteinDistanceResult hstd::levenshteinDistance(
     int                  lhsMax,
@@ -664,7 +667,8 @@ fuzzy_result fuzzy_match_recursive(
     bool first_match = true;
     while (pattern.isValid() && str.isValid()) {
         LG(fmt("str:{} pattern:{}", str, pattern));
-        LOGIC_ASSERTION_CHECK(m.isEqual, "Missing item equality compare function");
+        LOGIC_ASSERTION_CHECK(
+            m.isEqual, "Missing item equality compare function");
         // Found match
         if (m.isEqual(pattern.first, str.first)) {
             LG(fmt("pattern[{}] == str[{}]", pattern.first, str.first));
@@ -721,7 +725,8 @@ fuzzy_result fuzzy_match_recursive(
     bool matched  = !pattern.isValid();
     int  outScore = 0;
 
-    LOGIC_ASSERTION_CHECK(m.matchScore, "Match score callback implementation is missing");
+    LOGIC_ASSERTION_CHECK(
+        m.matchScore, "Match score callback implementation is missing");
     // Calculate score
     if (matched) { outScore = m.matchScore(str, nextMatch, matches); }
 

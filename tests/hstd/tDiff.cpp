@@ -163,16 +163,50 @@ TEST_F(DiffTest, AlllDifferentShiftedDiff) {
 TEST_F(DiffTest, EmptySequences) {
     Vec<int> lhsSeq;
     Vec<int> rhsSeq;
-    auto     result = myersDiff<int>(
-        lhsSeq, rhsSeq, [](const int&, const int&) { return true; });
+    auto     result = myersDiffEqCmp<int>(lhsSeq, rhsSeq);
     ASSERT_TRUE(result.empty());
+}
+
+TEST_F(DiffTest, SequenceOfOne) {
+    {
+        Vec<int> lhsSeq{1};
+        Vec<int> rhsSeq{1};
+        auto     result = myersDiffEqCmp<int>(lhsSeq, rhsSeq);
+        ASSERT_EQ(result.size(), 1);
+        EXPECT_EQ2(result[0].kind, SeqEditKind::Keep);
+    }
+    {
+        Vec<int> lhsSeq{1};
+        Vec<int> rhsSeq{2};
+        auto     result = myersDiffEqCmp<int>(lhsSeq, rhsSeq);
+        ASSERT_EQ(result.size(), 2);
+        EXPECT_EQ2(result[0].kind, SeqEditKind::Delete);
+        EXPECT_EQ2(result[1].kind, SeqEditKind::Insert);
+    }
+    {
+        Vec<int> lhsSeq{};
+        Vec<int> rhsSeq{2};
+        auto     result = myersDiffEqCmp<int>(lhsSeq, rhsSeq);
+        ASSERT_EQ(result.size(), 1);
+        EXPECT_EQ2(result[0].kind, SeqEditKind::Insert);
+        EXPECT_EQ2(result[0].sourcePos, -1);
+        EXPECT_EQ2(result[0].targetPos, 0);
+    }
+    {
+        Vec<int> lhsSeq{1};
+        Vec<int> rhsSeq{};
+        auto     result = myersDiffEqCmp<int>(lhsSeq, rhsSeq);
+        ASSERT_EQ(result.size(), 1);
+        EXPECT_EQ2(result[0].kind, SeqEditKind::Delete);
+        EXPECT_EQ2(result[0].sourcePos, 0);
+        EXPECT_EQ2(result[0].targetPos, -1);
+    }
 }
 
 TEST_F(DiffTest, IdenticalSequences) {
     Vec<int> lhsSeq = {1, 2, 3};
     Vec<int> rhsSeq = {1, 2, 3};
-    auto     result = myersDiff<int>(
-        lhsSeq, rhsSeq, [](const int& a, const int& b) { return a == b; });
+    auto     result = myersDiffEqCmp<int>(lhsSeq, rhsSeq);
     ASSERT_EQ(result.size(), 3);
     EXPECT_EQ(result[0].kind, SeqEditKind::Keep);
     EXPECT_EQ(result[1].kind, SeqEditKind::Keep);
@@ -182,8 +216,7 @@ TEST_F(DiffTest, IdenticalSequences) {
 TEST_F(DiffTest, Insertion) {
     Vec<int> lhsSeq = {1, 2, 3};
     Vec<int> rhsSeq = {1, 2, 3, 4};
-    auto     result = myersDiff<int>(
-        lhsSeq, rhsSeq, [](const int& a, const int& b) { return a == b; });
+    auto     result = myersDiffEqCmp<int>(lhsSeq, rhsSeq);
     ASSERT_EQ(result.size(), 4);
     EXPECT_EQ(result[3].kind, SeqEditKind::Insert);
     EXPECT_EQ(result[3].targetPos, 3);
