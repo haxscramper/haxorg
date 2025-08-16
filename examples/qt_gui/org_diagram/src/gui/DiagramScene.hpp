@@ -1,12 +1,12 @@
 #pragma once
 
 #include <QGraphicsScene>
-#include "DiagramNodeVisual.hpp"
-#include "DiagramTreeModel.hpp"
-#include "DiagramNodeRectangle.hpp"
-#include "DiagramNodeEdge.hpp"
-#include "DiagramNodeImage.hpp"
-#include "DiagramNodeGroup.hpp"
+#include <src/gui/DiagramNodeVisual.hpp>
+#include <src/gui/DiagramTreeModel.hpp>
+#include <src/gui/DiagramNodeRectangle.hpp>
+#include <src/gui/DiagramNodeEdge.hpp>
+#include <src/gui/DiagramNodeImage.hpp>
+#include <src/gui/DiagramNodeGroup.hpp>
 #include <QMessageBox>
 
 struct DiagramScene : public QGraphicsScene {

@@ -1,5 +1,5 @@
 #include "DiagramView.hpp"
-#include "common.hpp"
+#include <src/utils/common.hpp>
 
 void DiagramView::wheelEvent(QWheelEvent* event) {
     const int degrees = event->angleDelta().y() / 8;

@@ -9,10 +9,9 @@
 #include <QVBoxLayout>
 #include <QCheckBox>
 
-#include "DiagramScene.hpp"
-#include "DiagramView.hpp"
-#include "DiagramTreeModel.hpp"
-
+#include <src/gui/DiagramScene.hpp>
+#include <src/gui/DiagramView.hpp>
+#include <src/gui/DiagramTreeModel.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
 class DiagramSelectionManager : public QObject {

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <QAbstractItemModel>
-#include "DiagramNode.hpp"
-#include "DiagramNodeVisual.hpp"
+#include <src/gui/DiagramNode.hpp>
+#include <src/gui/DiagramNodeVisual.hpp>
 
-#include "common.hpp"
+#include <src/utils/common.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "model.tree"

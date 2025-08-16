@@ -42,8 +42,8 @@ target_include_directories(
   PUBLIC $<BUILD_INTERFACE:${PROJ_ROOT}> $<INSTALL_INTERFACE:include>
   PRIVATE ${PROJ_ROOT}/lib/src)
 
-target_link_libraries(org_diagram_lib PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets haxorg::haxorg
-                                             haxorg::hstd)
+target_link_libraries(org_diagram_lib PUBLIC Qt6::Core Qt6::Gui Qt6::Test Qt6::Widgets
+                                             haxorg::haxorg haxorg::hstd)
 
 if(${ORG_USE_COVERAGE})
   target_compile_options(org_diagram_lib PRIVATE ${COVERAGE_COMPILE_FLAGS})
@@ -110,4 +110,5 @@ function(add_qt_test TEST_FILE_PATH TEST_CLASS)
   qt_finalize_executable(${TEST_CLASS})
 endfunction()
 
-add_qt_test("imm_history_manager.cpp" "ImmHistoryManager")
+add_qt_test("tImmHistoryManager.cpp" "ImmHistoryManager")
+add_qt_test("tDebugTarget.cpp" "DebugTarget")
