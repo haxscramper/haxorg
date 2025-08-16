@@ -300,7 +300,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
     Opt<ImmPath> const& rootPath,
     bool                withPath) const {
     Vec<ImmAdapter>           result;
-    auto                      root = *this;
+    auto const&               root = *this;
     ReflRecursiveVisitContext visitCtx;
 
     auto add_id = [&](ImmReflPathBase const& parent, ImmId const& id) {

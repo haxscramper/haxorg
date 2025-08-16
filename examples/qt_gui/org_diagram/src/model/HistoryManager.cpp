@@ -46,19 +46,28 @@ hstd::Vec<HistoryManager::AstEdit> HistoryManager::getDifference(
     int rhsVer) const {
     hstd::Vec<AstEdit> result;
     std::function<void(
-        org::imm::ImmAdapter const&, org::imm::ImmAdapter const&)>
+        org::imm::ImmAdapter const&,
+        org::imm::ImmAdapter const&,
+        hstd::Opt<org::imm::ImmUniqId> const&,
+        hstd::Opt<org::imm::ImmUniqId> const&)>
         aux;
 
-    aux = [&](org::imm::ImmAdapter const& lhs,
-              org::imm::ImmAdapter const& rhs) {
+    aux = [&](org::imm::ImmAdapter const&           lhs,
+              org::imm::ImmAdapter const&           rhs,
+              hstd::Opt<org::imm::ImmUniqId> const& lhsParent,
+              hstd::Opt<org::imm::ImmUniqId> const& rhsParent) {
         if (lhs.id == rhs.id) {
             return;
         } else {
             // Sub-fields are not considered for the AST diff for the
             // diagram structure -- the node fields are considered a part
             // of the diagram node, so they are not used for recursion.
-            result.push_back(
-                AstEdit{AstEdit::Changed{lhs.uniq(), rhs.uniq()}});
+            result.push_back(AstEdit{
+                .data      = AstEdit::Changed{lhs.uniq(), rhs.uniq()},
+                .lhsParent = lhsParent,
+                .rhsParent = rhsParent,
+            });
+
             _dfmt("Changed", lhs, rhs);
             if (lhs.size() != 0 || rhs.size() != 0) {
 
@@ -75,21 +84,35 @@ hstd::Vec<HistoryManager::AstEdit> HistoryManager::getDifference(
 
                 auto pairs = extractDeleteInsertPairs(diff);
 
-                for (auto const& [lhs, rhs] : pairs.matched) {
-                    aux(lhsSubnodes.at(lhs.sourcePos),
-                        rhsSubnodes.at(rhs.targetPos));
+                for (auto const& [lhsEdit, rhsEdit] : pairs.matched) {
+                    aux(lhsSubnodes.at(lhsEdit.sourcePos),
+                        rhsSubnodes.at(rhsEdit.targetPos),
+                        lhs.uniq(),
+                        rhs.uniq());
                 }
 
                 for (auto const& it : pairs.remaining) {
                     if (it.kind == hstd::SeqEditKind::Delete) {
-                        result.push_back(AstEdit{AstEdit::Deleted{
-                            lhsSubnodes.at(it.sourcePos).uniq()}});
+                        result.push_back(AstEdit{
+                            .data      = AstEdit::Deleted{lhsSubnodes
+                                                         .at(it.sourcePos)
+                                                         .uniq()},
+                            .lhsParent = lhsParent,
+                            .rhsParent = rhsParent,
+                        });
                     } else if (it.kind == hstd::SeqEditKind::Insert) {
-                        result.push_back(AstEdit{AstEdit::Added{
-                            rhsSubnodes.at(it.targetPos).uniq()}});
+                        result.push_back(AstEdit{
+                            .data      = AstEdit::Added{rhsSubnodes
+                                                       .at(it.targetPos)
+                                                       .uniq()},
+                            .lhsParent = lhsParent,
+                            .rhsParent = rhsParent,
+                        });
                     } else if (it.kind == hstd::SeqEditKind::Replace) {
                         aux(lhsSubnodes.at(it.sourcePos),
-                            rhsSubnodes.at(it.targetPos));
+                            rhsSubnodes.at(it.targetPos),
+                            lhs.uniq(),
+                            rhs.uniq());
                     } else if (it.kind == hstd::SeqEditKind::Keep) {
                         // pass
                     } else {
@@ -100,7 +123,7 @@ hstd::Vec<HistoryManager::AstEdit> HistoryManager::getDifference(
         }
     };
 
-    aux(getRoot(lhsVer), getRoot(rhsVer));
+    aux(getRoot(lhsVer), getRoot(rhsVer), std::nullopt, std::nullopt);
 
     return result;
 }
