@@ -112,7 +112,7 @@ struct DiagramScene : public QGraphicsScene {
             }
 
             selectedNode = clickedNode;
-            emit nodeSelected(selectedNode);
+            HSLOG_TRACKED_EMIT(get_tracker(), nodeSelected, selectedNode);
         }
 
         if (event->button() == Qt::RightButton && selectedNode) {

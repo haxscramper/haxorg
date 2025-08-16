@@ -292,10 +292,8 @@ struct log_builder {
     ~log_builder();
 };
 
-class log_scoped_depth_attr {
+struct log_scoped_depth_attr {
     int depth;
-
-  public:
     static log_scoped_depth_attr& instance() {
         static log_scoped_depth_attr st;
         return st;
