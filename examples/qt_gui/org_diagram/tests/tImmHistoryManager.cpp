@@ -24,8 +24,15 @@ class ImmHistoryManager : public QObject {
 
         auto diff = manager.getDifference(0, 1);
         for (auto const& it : diff) { HSLOG_TRACE(_cat, hstd::fmt1(it)); }
-
+        _dbg("????");
         QCOMPARE_EQ2(diff.size(), 4);
+        _dbg("????");
+        auto sorted = HistoryManager::topologicalSort(diff, true);
+        QCOMPARE_EQ2(sorted.size(), 4);
+        _dbg("????");
+        for (auto const& it : sorted) {
+            HSLOG_TRACE(_cat, "sorted", hstd::fmt1(it));
+        }
     }
 };
 

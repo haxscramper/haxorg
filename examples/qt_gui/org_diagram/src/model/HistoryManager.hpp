@@ -20,114 +20,17 @@ struct HistoryManager {
             DESC_FIELDS(Changed, (prev, next));
         };
 
-        enum class Kind : unsigned short int
-        {
-            Deleted,
-            Added,
-            Changed
-        };
-        static_assert(
-            std ::is_enum<Kind>::value,
-            "BOOST_DESCRIBE_NESTED_ENUM should only be used with enums");
-        __attribute__((unused)) friend inline auto boost_enum_descriptor_fn(
-            Kind**) {
-            return boost ::describe ::detail ::enum_descriptor_fn_impl(
-                0,
-                [] {
-                    struct _boost_desc {
-                        static constexpr auto value() noexcept {
-                            return Kind ::Deleted;
-                        }
-                        static constexpr auto name() noexcept {
-                            return "Deleted";
-                        }
-                    };
-                    return _boost_desc();
-                }(),
-                [] {
-                    struct _boost_desc {
-                        static constexpr auto value() noexcept {
-                            return Kind ::Added;
-                        }
-                        static constexpr auto name() noexcept {
-                            return "Added";
-                        }
-                    };
-                    return _boost_desc();
-                }(),
-                [] {
-                    struct _boost_desc {
-                        static constexpr auto value() noexcept {
-                            return Kind ::Changed;
-                        }
-                        static constexpr auto name() noexcept {
-                            return "Changed";
-                        }
-                    };
-                    return _boost_desc();
-                }());
-        };
-        using Data = std ::variant<Deleted, Added, Changed>;
-        Deleted& getDeleted() {
-            return ::hstd ::get_sub_variant<
-                Deleted,
-                std ::remove_cvref_t<decltype(*this)>>(data);
-        }
-        Deleted const& getDeleted() const {
-            return ::hstd ::get_sub_variant<
-                Deleted,
-                std ::remove_cvref_t<decltype(*this)>>(data);
-        }
-        bool isDeleted() const {
-            return std ::holds_alternative<Deleted>(data);
-        }
-        Added& getAdded() {
-            return ::hstd ::get_sub_variant<
-                Added,
-                std ::remove_cvref_t<decltype(*this)>>(data);
-        }
-        Added const& getAdded() const {
-            return ::hstd ::get_sub_variant<
-                Added,
-                std ::remove_cvref_t<decltype(*this)>>(data);
-        }
-        bool isAdded() const {
-            return std ::holds_alternative<Added>(data);
-        }
-        Changed& getChanged() {
-            return ::hstd ::get_sub_variant<
-                Changed,
-                std ::remove_cvref_t<decltype(*this)>>(data);
-        }
-        Changed const& getChanged() const {
-            return ::hstd ::get_sub_variant<
-                Changed,
-                std ::remove_cvref_t<decltype(*this)>>(data);
-        }
-        bool isChanged() const {
-            return std ::holds_alternative<Changed>(data);
-        }
-        static Kind getKind(Data const& __input) {
-            return std ::visit(
-                ::hstd ::overloaded{
-                    [](Deleted const&) -> Kind { return Kind ::Deleted; },
-                    [](Added const&) -> Kind { return Kind ::Added; },
-                    [](Changed const&) -> Kind { return Kind ::Changed; },
-                },
-                __input);
-        }
-        Kind getKind() const { return getKind(data); }
-        using variant_enum_type = Kind;
-        using variant_data_type = Data;
-        Kind        sub_variant_get_kind() const { return getKind(); }
-        Data const& sub_variant_get_data() const { return data; }
-        char const* sub_variant_get_name() const { return "data"; };
+        SUB_VARIANTS(Kind, Data, data, getKind, Deleted, Added, Changed);
         Data data;
         /// \brief Parent node for the edit operations.
         hstd::Opt<org::imm::ImmUniqId> lhsParent;
         hstd::Opt<org::imm::ImmUniqId> rhsParent;
         DESC_FIELDS(AstEdit, (data, lhsParent, rhsParent));
     };
+
+    static std::vector<AstEdit> topologicalSort(
+        const std::vector<AstEdit>& edits,
+        bool                        useLhsParent);
 
     HistoryManager();
 

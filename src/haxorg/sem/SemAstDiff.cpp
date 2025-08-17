@@ -4,7 +4,7 @@ using namespace org::algo;
 using namespace hstd::ext;
 using namespace hstd;
 
-int OrgNodeStore::getSubnodeCount(const Id& id) {
+int SemNodeStore::getSubnodeCount(const Id& id) {
     auto n = get(id);
     switch (n->getKind()) {
         case OrgSemKind::Table: {
@@ -19,7 +19,7 @@ int OrgNodeStore::getSubnodeCount(const Id& id) {
     }
 }
 
-hstd::ext::diff::NodeStore::Id OrgNodeStore::getSubnodeAt(
+hstd::ext::diff::NodeStore::Id SemNodeStore::getSubnodeAt(
     const Id& node,
     int       index) {
     auto n = get(node);
@@ -39,7 +39,7 @@ hstd::ext::diff::NodeStore::Id OrgNodeStore::getSubnodeAt(
     }
 }
 
-Func<hstd::ColText(CR<diff::NodeStore::Id>)> OrgNodeStore::getToStr() {
+Func<hstd::ColText(CR<diff::NodeStore::Id>)> SemNodeStore::getToStr() {
     return [](CR<diff::NodeStore::Id> arg) -> ColText {
         auto      org = arg.ToPtr<sem::Org>();
         ColStream res;
@@ -52,7 +52,7 @@ Func<hstd::ColText(CR<diff::NodeStore::Id>)> OrgNodeStore::getToStr() {
     };
 }
 
-ColText OrgNodeDiff::formatDiff() {
+ColText SemNodeDiff::formatDiff() {
     ColStream os;
     printMapping(
         os,
@@ -64,7 +64,7 @@ ColText OrgNodeDiff::formatDiff() {
     return os;
 }
 
-void OrgNodeDiff::setDiffTrees(
+void SemNodeDiff::setDiffTrees(
     const sem::SemId<sem::Org>&    src,
     const sem::SemId<sem::Org>&    dst,
     const diff::ComparisonOptions& Options) {
@@ -72,37 +72,40 @@ void OrgNodeDiff::setDiffTrees(
     this->dst = dst;
     srcSyntax = std::make_shared<diff::SyntaxTree>(Options);
     dstSyntax = std::make_shared<diff::SyntaxTree>(Options);
-    srcStore  = std::make_shared<OrgNodeStore>(src.asOrg());
-    dstStore  = std::make_shared<OrgNodeStore>(dst.asOrg());
+    srcStore  = std::make_shared<SemNodeStore>(src.asOrg());
+    dstStore  = std::make_shared<SemNodeStore>(dst.asOrg());
     srcSyntax->FromNode(srcStore.get());
     dstSyntax->FromNode(dstStore.get());
     diff = std::make_shared<diff::ASTDiff>(
         *srcSyntax, *dstSyntax, Options);
 }
 
-diff::ComparisonOptions OrgNodeDiff::getOptions() {
-    SemSet LeafKinds{
-        OrgSemKind::Word,
-        OrgSemKind::BigIdent,
-        OrgSemKind::Punctuation,
-        OrgSemKind::Escaped,
-        OrgSemKind::Newline,
-        OrgSemKind::Empty,
-    };
+namespace {
+SemSet LeafKinds{
+    OrgSemKind::Word,
+    OrgSemKind::BigIdent,
+    OrgSemKind::Punctuation,
+    OrgSemKind::Escaped,
+    OrgSemKind::Newline,
+    OrgSemKind::Empty,
+};
+}
+
+diff::ComparisonOptions SemNodeDiff::getOptions() {
+
 
     return diff::ComparisonOptions{
         .getUpdateCost  = [](diff::Node const& Src,
                             diff::Node const& Dst) -> double { return 1; },
-        .areValuesEqual = [LeafKinds](
-                              diff::Node const& Src,
-                              diff::Node const& Dst) -> bool {
+        .areValuesEqual = [](diff::Node const& Src,
+                             diff::Node const& Dst) -> bool {
             auto S = Src.ASTNode.ToPtr<sem::Org>();
             auto D = Dst.ASTNode.ToPtr<sem::Org>();
             if (LeafKinds.contains(S->getKind())
                 && LeafKinds.contains(D->getKind())) {
-                return Src.getStore<OrgNodeStore>()->getNodeValue(
+                return Src.getStore<SemNodeStore>()->getNodeValue(
                            Src.ASTNode)
-                    == Dst.getStore<OrgNodeStore>()->getNodeValue(
+                    == Dst.getStore<SemNodeStore>()->getNodeValue(
                         Dst.ASTNode);
             } else if (
                 S->is(OrgSemKind::BlockCode)
@@ -115,9 +118,8 @@ diff::ComparisonOptions OrgNodeDiff::getOptions() {
                 return true;
             }
         },
-        .isMatchingAllowed = [LeafKinds](
-                                 diff::Node const& Src,
-                                 diff::Node const& Dst) -> bool {
+        .isMatchingAllowed = [](diff::Node const& Src,
+                                diff::Node const& Dst) -> bool {
             auto SrcKind = static_cast<OrgSemKind>(
                 Src.getNodeKind().value);
             auto DstKind = static_cast<OrgSemKind>(
@@ -130,4 +132,107 @@ diff::ComparisonOptions OrgNodeDiff::getOptions() {
             }
         },
     };
+}
+
+void ImmNodeDiff::setDiffTrees(
+    const imm::ImmAdapter&                    src,
+    const imm::ImmAdapter&                    dst,
+    const hstd::ext::diff::ComparisonOptions& Options) {
+    this->src = src;
+    this->dst = dst;
+    srcSyntax = std::make_shared<diff::SyntaxTree>(Options);
+    dstSyntax = std::make_shared<diff::SyntaxTree>(Options);
+    srcStore  = std::make_shared<ImmNodeStore>(src, this->DirectSubnodes);
+    dstStore  = std::make_shared<ImmNodeStore>(dst, this->DirectSubnodes);
+    srcSyntax->FromNode(srcStore.get());
+    dstSyntax->FromNode(dstStore.get());
+    diff = std::make_shared<diff::ASTDiff>(
+        *srcSyntax, *dstSyntax, Options);
+}
+
+hstd::Func<ColText(const ImmNodeStore::NodeStore::Id&)> ImmNodeDiff::
+    getFormatTreeValue(const hstd::SPtr<ImmNodeStore>& store) {
+    return
+        [store](ImmNodeStore::NodeStore::Id const& id) -> hstd::ColText {
+            ColStream os;
+            os << hstd::fmt1(store->get(id));
+            return os;
+        };
+}
+
+void ImmNodeDiff::printDstChange(
+    hstd::ColStream&                   OS,
+    const hstd::ext::diff::ASTDiff&    Diff,
+    const hstd::ext::diff::SyntaxTree& SrcTree,
+    const hstd::ext::diff::SyntaxTree& DstTree,
+    hstd::ext::diff::NodeIdx           Dst) {
+    hstd::ext::diff::printMapping(
+        OS,
+        Diff,
+        SrcTree,
+        DstTree,
+        getFormatTreeValue(srcStore),
+        getFormatTreeValue(dstStore));
+}
+
+void ImmNodeDiff::printMapping(
+    hstd::ColStream&                   os,
+    const hstd::ext::diff::ASTDiff&    Diff,
+    const hstd::ext::diff::SyntaxTree& SrcTree,
+    const hstd::ext::diff::SyntaxTree& DstTree) {
+    hstd::ext::diff::printMapping(
+        os,
+        Diff,
+        SrcTree,
+        DstTree,
+        getFormatTreeValue(srcStore),
+        getFormatTreeValue(dstStore));
+}
+
+ColText ImmNodeDiff::printMapping() {
+    ColStream os;
+    printMapping(os, *diff, *srcSyntax, *dstSyntax);
+    return os.getBuffer();
+}
+
+diff::ComparisonOptions ImmNodeDiff::getOptions() {
+    return diff::ComparisonOptions{
+        .getUpdateCost = [](diff::Node const& Src,
+                            diff::Node const& Dst) -> double { return 1; },
+        .areValuesEqual =
+            [this](diff::Node const& Src, diff::Node const& Dst) -> bool {
+            return srcStore->getUniq(Src.ASTNode).id
+                == dstStore->getUniq(Dst.ASTNode).id;
+        },
+        .isMatchingAllowed =
+            [this](diff::Node const& Src, diff::Node const& Dst) -> bool {
+            auto SrcKind = static_cast<OrgSemKind>(
+                Src.getNodeKind().value);
+            auto DstKind = static_cast<OrgSemKind>(
+                Dst.getNodeKind().value);
+            if (SrcKind == DstKind) {
+                return true;
+            } else {
+                return LeafKinds.contains(SrcKind)
+                    && LeafKinds.contains(DstKind);
+            }
+        },
+    };
+}
+
+int ImmNodeStore::getSubnodeCount(const Id& id) {
+    if (DirectSubnodes) {
+        return get(id).sub(false).size();
+    } else {
+        return get(id).getAllSubnodes(get(id).path, false).size();
+    }
+}
+
+diff::NodeStore::Id ImmNodeStore::getSubnodeAt(const Id& node, int index) {
+    if (DirectSubnodes) {
+        return getStoreId(get(node).sub().at(index).uniq());
+    } else {
+        return getStoreId(
+            get(node).getAllSubnodes(get(node).path).at(index).uniq());
+    }
 }

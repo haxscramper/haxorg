@@ -63,9 +63,8 @@ bool haxorg_qCompareOp(
     do {                                                                  \
         if (!haxorg_qCompareOp<QTest::ComparisonOperation::opId>(         \
                 lhs, rhs, #lhs, #rhs, __FILE__, __LINE__)) {              \
-            return;                                                       \
+            QTEST_FAIL_ACTION;                                            \
         }                                                                 \
-        QTEST_FAIL_ACTION;                                                \
     } while (false)
 
 #define QCOMPARE_EQ2(computed, baseline)                                  \

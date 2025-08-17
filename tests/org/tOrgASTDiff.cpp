@@ -1,3 +1,4 @@
+#include "haxorg/sem/SemBaseApi.hpp"
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/ext/astdiff.hpp>
 #include <gtest/gtest.h>
@@ -6,6 +7,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/test/org_parse_aux.hpp>
 #include <haxorg/sem/SemAstDiff.hpp>
+#include "../common.hpp"
 
 using namespace hstd::ext::diff;
 using namespace hstd;
@@ -14,7 +16,7 @@ using namespace hstd::ext;
 using namespace org;
 
 
-struct OrgDiffBuilder : org::algo::OrgNodeDiff {
+struct SemDiffBuilder : org::algo::SemNodeDiff {
     org::test::MockFull srcParse;
     org::test::MockFull dstParse;
 
@@ -38,8 +40,8 @@ struct OrgDiffBuilder : org::algo::OrgNodeDiff {
     }
 };
 
-TEST(OrgAstDiff, OrgOneWord) {
-    OrgDiffBuilder builder{};
+TEST(OrgSemAstDiff, OrgOneWord) {
+    SemDiffBuilder builder{};
     auto           Src = builder.setSrc("word");
     auto           Dst = builder.setDst("word");
     builder.setDiffTrees(Src, Dst, builder.getOptions());
@@ -48,8 +50,8 @@ TEST(OrgAstDiff, OrgOneWord) {
 }
 
 
-TEST(OrgAstDiff, OrgChangedWord) {
-    OrgDiffBuilder builder{};
+TEST(OrgSemAstDiff, OrgChangedWord) {
+    SemDiffBuilder builder{};
     auto           Src = builder.setSrc("word1");
     auto           Dst = builder.setDst("word2");
     builder.setDiffTrees(Src, Dst, builder.getOptions());
@@ -63,8 +65,8 @@ TEST(OrgAstDiff, OrgChangedWord) {
     EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
 }
 
-TEST(OrgAstDiff, OrgChangeNestedWord) {
-    OrgDiffBuilder builder{};
+TEST(OrgSemAstDiff, OrgChangeNestedWord) {
+    SemDiffBuilder builder{};
     auto           Src = builder.setSrc("*word1*");
     auto           Dst = builder.setDst("*word2*");
     builder.setDiffTrees(Src, Dst, builder.getOptions());
@@ -82,8 +84,8 @@ TEST(OrgAstDiff, OrgChangeNestedWord) {
     EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
 }
 
-TEST(OrgAstDiff, OrgChangeDeeplyNestedWord) {
-    OrgDiffBuilder builder{};
+TEST(OrgSemAstDiff, OrgChangeDeeplyNestedWord) {
+    SemDiffBuilder builder{};
 
     auto Src = builder.setSrc(R"(
 * Subtree1
@@ -121,4 +123,29 @@ word2
 
     EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
     EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
+}
+
+struct ImmDiffBuilder : org::algo::ImmNodeDiff {
+    org::imm::ImmAstContext::Ptr context;
+    ImmDiffBuilder(std::string const& Src, std::string const& Dst) {
+        auto SemSrc = org::parseString(Src);
+        auto SemDst = org::parseString(Dst);
+        auto ImmSrc = context->addRoot(SemSrc);
+        auto ImmDst = context->addRoot(SemDst);
+        setDiffTrees(
+            ImmSrc.getRootAdapter(),
+            ImmDst.getRootAdapter(),
+            getOptions());
+    }
+
+    void debug() {
+        std::string buffer;
+        buffer += printMapping().toString(false);
+        writeFile(getDebugFile("diff_builder.txt"), buffer);
+    }
+};
+
+TEST(OrgImmAstDiff, ImmAstDiffSimple) {
+    ImmDiffBuilder builder{"word", "word two"};
+    builder.debug();
 }

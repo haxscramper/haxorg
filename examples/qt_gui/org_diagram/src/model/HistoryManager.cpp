@@ -4,6 +4,11 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
+#include <queue>
+
 using namespace hstd;
 
 struct SeqEditPairs {
@@ -143,4 +148,111 @@ void HistoryManager::addHistory(const org::imm::ImmAstVersion& version) {
 void HistoryManager::setDocument(const std::string& document) {
     auto version = context->addRoot(org::parseString(document));
     addHistory(version);
+}
+
+
+std::vector<HistoryManager::AstEdit> HistoryManager::topologicalSort(
+    const std::vector<AstEdit>& edits,
+    bool                        useLhsParent) {
+    std::unordered_map<org::imm::ImmUniqId, std::vector<int>> children;
+    std::unordered_map<org::imm::ImmUniqId, int>              parentCount;
+    std::unordered_set<org::imm::ImmUniqId>                   allNodes;
+
+    for (int i = 0; i < edits.size(); ++i) {
+        const auto& edit = edits.at(i);
+
+        org::imm::ImmUniqId nodeId;
+        if (edit.isDeleted()) {
+            nodeId = edit.getDeleted().id;
+        } else if (edit.isAdded()) {
+            nodeId = edit.getAdded().id;
+        } else if (edit.isChanged()) {
+            nodeId = useLhsParent ? edit.getChanged().prev
+                                  : edit.getChanged().next;
+        }
+
+        allNodes.insert(nodeId);
+
+        hstd::Opt<org::imm::ImmUniqId> parent = useLhsParent
+                                                  ? edit.lhsParent
+                                                  : edit.rhsParent;
+
+        if (parent.has_value()) {
+            allNodes.insert(parent.value());
+            children[parent.value()].push_back(i);
+            parentCount[nodeId] = parentCount[nodeId] + 1;
+        }
+    }
+
+    for (const auto& node : allNodes) {
+        if (parentCount.find(node) == parentCount.end()) {
+            parentCount.insert_or_assign(node, 0);
+        }
+    }
+
+    std::queue<int> queue;
+    for (int i = 0; i < edits.size(); ++i) {
+        const auto& edit = edits.at(i);
+
+        org::imm::ImmUniqId nodeId;
+        if (edit.isDeleted()) {
+            nodeId = edit.getDeleted().id;
+        } else if (edit.isAdded()) {
+            nodeId = edit.getAdded().id;
+        } else if (edit.isChanged()) {
+            nodeId = useLhsParent ? edit.getChanged().prev
+                                  : edit.getChanged().next;
+        }
+
+        if (parentCount.at(nodeId) == 0) { queue.push(i); }
+    }
+
+    std::vector<AstEdit>    result;
+    std::unordered_set<int> processed;
+
+    while (!queue.empty()) {
+        int editIndex = queue.front();
+        queue.pop();
+
+        if (processed.find(editIndex) != processed.end()) { continue; }
+
+        processed.insert(editIndex);
+        result.push_back(edits.at(editIndex));
+
+        const auto&         edit = edits.at(editIndex);
+        org::imm::ImmUniqId nodeId;
+        if (edit.isDeleted()) {
+            nodeId = edit.getDeleted().id;
+        } else if (edit.isAdded()) {
+            nodeId = edit.getAdded().id;
+        } else if (edit.isChanged()) {
+            nodeId = useLhsParent ? edit.getChanged().prev
+                                  : edit.getChanged().next;
+        }
+
+        if (children.find(nodeId) != children.end()) {
+            for (int childEditIndex : children.at(nodeId)) {
+                const auto& childEdit = edits.at(childEditIndex);
+
+                org::imm::ImmUniqId childNodeId;
+                if (childEdit.isDeleted()) {
+                    childNodeId = childEdit.getDeleted().id;
+                } else if (childEdit.isAdded()) {
+                    childNodeId = childEdit.getAdded().id;
+                } else if (childEdit.isChanged()) {
+                    childNodeId = useLhsParent
+                                    ? childEdit.getChanged().prev
+                                    : childEdit.getChanged().next;
+                }
+
+                parentCount.insert_or_assign(
+                    childNodeId, parentCount.at(childNodeId) - 1);
+                if (parentCount.at(childNodeId) == 0) {
+                    queue.push(childEditIndex);
+                }
+            }
+        }
+    }
+
+    return result;
 }
