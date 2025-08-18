@@ -1734,11 +1734,21 @@ struct std::hash<org::imm::ImmReflPathItemBase> {
         org::imm::ImmReflPathItemBase const& it) const noexcept {
         hstd::AnyHasher<hstd::Str> hasher;
         std::size_t                result = 0;
-        if (it.isAnyKey()) {
-            hstd::hax_hash_combine(result, hasher(it.getAnyKey().key));
-        } else {
-            hstd::hax_hash_combine(result, it);
+        hstd::hax_hash_combine(result, it.getKind());
+        using K = org::imm::ImmReflPathItemBase::Kind;
+        switch (it.getKind()) {
+            case K::Index:
+                hstd::hax_hash_combine(result, it.getIndex().index);
+                break;
+            case K::FieldName:
+                hstd::hax_hash_combine(result, it.getFieldName().name);
+                break;
+            case K::AnyKey:
+                hstd::hax_hash_combine(result, hasher(it.getAnyKey().key));
+                break;
+            case K::Deref: break;
         }
+
         return result;
     }
 };

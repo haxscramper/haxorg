@@ -102,20 +102,10 @@ struct ImmNodeStore : hstd::ext::diff::NodeStore {
 
     hstd::ext::Unordered1to1Bimap<org::imm::ImmUniqId, NodeStore::Id> map;
 
-    ImmNodeStore(org::imm::ImmAdapter const& root, bool DirectSubnodes)
-        : root{root}, DirectSubnodes{DirectSubnodes} {
-        std::function<void(org::imm::ImmAdapter const&)> aux;
-        hstd::i64                                        idCounter = 0;
-        if (DirectSubnodes) {
-            aux = [&](org::imm::ImmAdapter const& it) {
-                map.add_unique(
-                    it.uniq(), NodeStore::Id::FromNumber(++idCounter));
-                for (auto const& sub : it.sub()) { aux(sub); }
-            };
-        } else {
-            logic_todo_impl();
-        }
-    }
+    ImmNodeStore(
+        org::imm::ImmAdapter const&  root,
+        bool                         DirectSubnodes,
+        org::imm::ImmAstContext::Ptr context);
 
     NodeStore::Id getStoreId(org::imm::ImmUniqId const& id) {
         return map.at_right(id);
@@ -126,13 +116,13 @@ struct ImmNodeStore : hstd::ext::diff::NodeStore {
     }
 
     org::imm::ImmAdapter get(Id const& id) const {
+        hstd::logic_assertion_check_not_nil(context);
         return context->adapt(map.at_left(id));
     }
 
     org::imm::ImmUniqId getUniq(Id const& id) const {
         return map.at_left(id);
     }
-
 
     virtual int getSubnodeCount(const Id& id) override;
 
@@ -153,6 +143,41 @@ struct ImmNodeDiff {
     /// stored in the fields.
     bool DirectSubnodes = true;
 
+    struct AstEdit {
+        struct Delete {
+            org::imm::ImmUniqId id;
+            DESC_FIELDS(Delete, (id));
+        };
+
+        struct Keep {
+            org::imm::ImmUniqId id;
+            DESC_FIELDS(Keep, (id));
+        };
+
+        struct Insert {
+            org::imm::ImmUniqId id;
+            DESC_FIELDS(Insert, (id));
+        };
+
+        struct Replace {
+            org::imm::ImmUniqId src;
+            org::imm::ImmUniqId dst;
+            DESC_FIELDS(Replace, (src, dst));
+        };
+
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            Delete,
+            Keep,
+            Insert,
+            Replace);
+        Data data;
+        DESC_FIELDS(AstEdit, (data));
+    };
+
     hstd::SPtr<hstd::ext::diff::SyntaxTree> srcSyntax;
     hstd::SPtr<hstd::ext::diff::SyntaxTree> dstSyntax;
     hstd::SPtr<hstd::ext::diff::ASTDiff>    diff;
@@ -161,10 +186,13 @@ struct ImmNodeDiff {
     hstd::SPtr<ImmNodeStore>                srcStore;
     hstd::SPtr<ImmNodeStore>                dstStore;
 
+    hstd::Vec<AstEdit> getEdits(bool WithKeeps);
+
     void setDiffTrees(
         imm::ImmAdapter const&                    src,
         imm::ImmAdapter const&                    dst,
-        hstd::ext::diff::ComparisonOptions const& Options);
+        hstd::ext::diff::ComparisonOptions const& Options,
+        org::imm::ImmAstContext::Ptr              context);
 
     hstd::ext::diff::ComparisonOptions getOptions();
 

@@ -134,16 +134,66 @@ diff::ComparisonOptions SemNodeDiff::getOptions() {
     };
 }
 
+hstd::Vec<ImmNodeDiff::AstEdit> ImmNodeDiff::getEdits(bool WithKeeps) {
+    using hstd::ext::diff::NodeIdx;
+    using hstd::ext::diff::NodeStore;
+    hstd::Vec<AstEdit> result;
+    for (NodeIdx Dst : *dstSyntax) {
+        NodeStore::Id DstId = dstSyntax->getStoreId(Dst);
+        NodeIdx       Src   = diff->getMapped(*srcSyntax, Dst);
+        if (Src.isValid()) {
+            NodeStore::Id       SrcId    = srcSyntax->getStoreId(Src);
+            org::imm::ImmUniqId ImmDstId = dstStore->getUniq(DstId);
+            org::imm::ImmUniqId ImmSrcId = srcStore->getUniq(SrcId);
+            if (ImmDstId.id == ImmSrcId.id) {
+                if (WithKeeps) {
+                    result.push_back(AstEdit{
+                        .data = AstEdit::Keep{.id = ImmDstId},
+                    });
+                }
+            } else {
+                if (WithKeeps) {
+                    result.push_back(AstEdit{
+                        .data = AstEdit::
+                            Replace{.src = ImmSrcId, .dst = ImmDstId},
+                    });
+                }
+            }
+        } else {
+            org::imm::ImmUniqId ImmDstId = dstStore->getUniq(DstId);
+            result.push_back(AstEdit{
+                .data = AstEdit::Insert{.id = ImmDstId},
+            });
+        }
+    }
+
+    for (NodeIdx Src : *srcSyntax) {
+        NodeStore::Id SrcId = dstSyntax->getStoreId(Src);
+        NodeIdx       Dst   = diff->getMapped(*dstSyntax, Src);
+        if (!Dst.isValid()) {
+            org::imm::ImmUniqId ImmSrcId = srcStore->getUniq(SrcId);
+            result.push_back(AstEdit{
+                .data = AstEdit::Insert{.id = ImmSrcId},
+            });
+        }
+    }
+
+    return result;
+}
+
 void ImmNodeDiff::setDiffTrees(
     const imm::ImmAdapter&                    src,
     const imm::ImmAdapter&                    dst,
-    const hstd::ext::diff::ComparisonOptions& Options) {
+    const hstd::ext::diff::ComparisonOptions& Options,
+    org::imm::ImmAstContext::Ptr              context) {
     this->src = src;
     this->dst = dst;
     srcSyntax = std::make_shared<diff::SyntaxTree>(Options);
     dstSyntax = std::make_shared<diff::SyntaxTree>(Options);
-    srcStore  = std::make_shared<ImmNodeStore>(src, this->DirectSubnodes);
-    dstStore  = std::make_shared<ImmNodeStore>(dst, this->DirectSubnodes);
+    srcStore  = std::make_shared<ImmNodeStore>(
+        src, this->DirectSubnodes, context);
+    dstStore = std::make_shared<ImmNodeStore>(
+        dst, this->DirectSubnodes, context);
     srcSyntax->FromNode(srcStore.get());
     dstSyntax->FromNode(dstStore.get());
     diff = std::make_shared<diff::ASTDiff>(
@@ -218,6 +268,26 @@ diff::ComparisonOptions ImmNodeDiff::getOptions() {
             }
         },
     };
+}
+
+ImmNodeStore::ImmNodeStore(
+    const imm::ImmAdapter&       root,
+    bool                         DirectSubnodes,
+    org::imm::ImmAstContext::Ptr context)
+    : root{root}, DirectSubnodes{DirectSubnodes}, context{context} {
+    std::function<void(org::imm::ImmAdapter const&)> aux;
+    hstd::i64                                        idCounter = 0;
+    if (DirectSubnodes) {
+        aux = [&](org::imm::ImmAdapter const& it) {
+            map.add_unique(
+                it.uniq(), NodeStore::Id::FromNumber(++idCounter));
+            for (auto const& sub : it.sub()) { aux(sub); }
+        };
+    } else {
+        logic_todo_impl();
+    }
+
+    aux(root);
 }
 
 int ImmNodeStore::getSubnodeCount(const Id& id) {

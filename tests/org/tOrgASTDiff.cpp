@@ -128,6 +128,7 @@ word2
 struct ImmDiffBuilder : org::algo::ImmNodeDiff {
     org::imm::ImmAstContext::Ptr context;
     ImmDiffBuilder(std::string const& Src, std::string const& Dst) {
+        context     = org::imm::ImmAstContext::init_start_context();
         auto SemSrc = org::parseString(Src);
         auto SemDst = org::parseString(Dst);
         auto ImmSrc = context->addRoot(SemSrc);
@@ -135,12 +136,18 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
         setDiffTrees(
             ImmSrc.getRootAdapter(),
             ImmDst.getRootAdapter(),
-            getOptions());
+            getOptions(),
+            context);
     }
 
     void debug() {
         std::string buffer;
-        buffer += printMapping().toString(false);
+        buffer += printMapping().toString(false) + "\n";
+
+        for (auto const& edit : getEdits(true)) {
+            buffer += hstd::fmt1(edit) + "\n";
+        }
+
         writeFile(getDebugFile("diff_builder.txt"), buffer);
     }
 };
