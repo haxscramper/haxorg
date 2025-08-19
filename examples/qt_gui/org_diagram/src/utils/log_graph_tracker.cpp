@@ -2,6 +2,7 @@
 
 #include <graphviz/gvc.h>
 #include <graphviz/cgraph.h>
+#include <hstd/ext/logger.hpp>
 #include <hstd/system/Formatter.hpp>
 #include <hstd/ext/graphviz.hpp>
 
@@ -133,6 +134,38 @@ void log_graph_tracker::notify_named_jump(
     for (auto& processor : processors) {
         processor->track_named_jump(description, line, function, file);
     }
+}
+
+hstd::finally_std log_graph_tracker::track_slot(
+    const std::string&              description,
+    const std::vector<std::string>& args,
+    int                             line,
+    const char*                     function,
+    const char*                     file) {
+    notify_slot_trigger(description, args, line, function, file);
+    return track_function(description, line, function, file);
+}
+
+hstd::finally_std log_graph_tracker::track_scope(
+    const std::string& description,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    notify_scope_enter(description, line, function, file);
+    return hstd::finally_std{[this, description, line, function, file]() {
+        this->notify_scope_exit(description, line, function, file);
+    }};
+}
+
+hstd::finally_std log_graph_tracker::track_function(
+    const std::string& description,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    notify_function_start(description, line, function, file);
+    return hstd::finally_std{[this, description, line, function, file]() {
+        this->notify_function_end(description, line, function, file);
+    }};
 }
 
 void graphviz_processor::track_function_start(
@@ -301,4 +334,121 @@ void graphviz_processor::add_edge(
         edges.insert_or_assign(edge_key, call_info{pending_jump, 1});
     }
     pending_jump.clear();
+}
+
+void logger_processor::track_function_start(
+    const std::string& function_name,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("function enter::'{}'", function_name)
+        .end();
+    ++log_scoped_depth_attr::instance().depth;
+}
+
+void logger_processor::track_function_end(
+    const std::string& function_name,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    --log_scoped_depth_attr::instance().depth;
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("function end::'{}'", function_name)
+        .end();
+}
+
+void logger_processor::track_signal_emit(
+    const std::string&              signal_name,
+    const std::vector<std::string>& args,
+    int                             line,
+    const char*                     function,
+    const char*                     file) {
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("signal emit::'{}({})'", signal_name, args)
+        .end();
+}
+
+void logger_processor::track_slot_trigger(
+    const std::string&              slot_name,
+    const std::vector<std::string>& args,
+    int                             line,
+    const char*                     function,
+    const char*                     file) {
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("slot trigger::'{}'", slot_name)
+        .end();
+}
+
+void logger_processor::track_scope_enter(
+    const std::string& scope_name,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("scope enter::'{}'", scope_name)
+        .end();
+    ++log_scoped_depth_attr::instance().depth;
+}
+
+void logger_processor::track_scope_exit(
+    const std::string& scope_name,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    --log_scoped_depth_attr::instance().depth;
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("scope exit::'{}'", scope_name)
+        .end();
+}
+
+void logger_processor::track_started(
+    int         line,
+    const char* function,
+    const char* file) {
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("track started")
+        .end();
+    ++log_scoped_depth_attr::instance().depth;
+}
+
+void logger_processor::track_ended(
+    int         line,
+    const char* function,
+    const char* file) {
+    --log_scoped_depth_attr::instance().depth;
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("track ended")
+        .end();
+}
+
+void logger_processor::track_named_text(
+    const std::string& key,
+    const std::string& value,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("track named text::'{}' = '{}'", key, value)
+        .end();
+}
+
+void logger_processor::track_named_jump(
+    const std::string& description,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message("named jump::'{}'", description)
+        .end();
 }

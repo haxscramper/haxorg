@@ -10,6 +10,7 @@
 #    define HSLOG_FATAL(__cat, ...)
 #    define HSLOG_SINK_SCOPE()
 #    define HSLOG_NOSINK_SCOPE()
+#    define HSLOG_TRACE_STACKTRACE(__cat, __severity)
 
 #else
 #    include <boost/log/attributes/mutable_constant.hpp>
@@ -154,6 +155,9 @@ struct log_record {
     log_record& metadata(hstd::Str const& field, json const& value);
     log_record& maybe_space();
 
+    /// \brief Use stacktace information as a log record message
+    log_record& fmt_stacktrace();
+
     log_record& set_callsite(
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
@@ -292,10 +296,8 @@ struct log_builder {
     ~log_builder();
 };
 
-class log_scoped_depth_attr {
-    int depth;
-
-  public:
+struct log_scoped_depth_attr {
+    int                           depth;
     static log_scoped_depth_attr& instance() {
         static log_scoped_depth_attr st;
         return st;
@@ -426,6 +428,13 @@ constexpr ::hstd::log::severity_level  l_fatal   = ::hstd::log::severity_level::
             .category(__cat)                                              \
             .function(__FUNCTION__)                                       \
             .severity(::hstd::log::severity_level::__severity)
+
+#    define HSLOG_TRACE_STACKTRACE(__cat, __severity)                     \
+        if (::hstd::log::is_log_accepted(                                 \
+                __cat, ::hstd::log::severity_level::__severity)) {        \
+            HSLOG_INIT(__cat, __severity).fmt_stacktrace().end();         \
+        }
+
 
 #    define HSLOG_TRACE(__cat, ...)                                       \
         __ORG_LOG_IMPL(__cat, trace, __VA_ARGS__)

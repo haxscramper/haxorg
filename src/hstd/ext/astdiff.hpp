@@ -98,14 +98,19 @@ struct NodeStore {
             return reinterpret_cast<T const*>(
                 static_cast<std::intptr_t>(id));
         }
+
+        static Id FromNumber(i64 id) { return Id{.id = id}; }
+        i64       ToNumber() const { return id; }
+
+        bool operator==(NodeStore::Id const& other) const {
+            return id == other.id;
+        }
     };
 
-    virtual int getSubnodeCount(Id const& id)           = 0;
-    virtual Id  getSubnodeAt(Id const& node, int index) = 0;
-    virtual Id  getRoot()                               = 0;
-
-
-    virtual ASTNodeKind getNodeKind(Id const& node) const = 0;
+    virtual int         getSubnodeCount(Id const& id)           = 0;
+    virtual Id          getSubnodeAt(Id const& node, int index) = 0;
+    virtual Id          getRoot()                               = 0;
+    virtual ASTNodeKind getNodeKind(Id const& node) const       = 0;
     virtual bool isMatchingAllowed(Id const& src, Id const& dst) const {
         return getNodeKind(src) == getNodeKind(dst);
     }
@@ -927,3 +932,13 @@ void printMapping(
 template <>
 struct std::formatter<hstd::ext::diff::ASTDiff*>
     : hstd::std_format_ptr_as_hex<hstd::ext::diff::ASTDiff> {};
+
+template <>
+struct std::hash<hstd::ext::diff::NodeStore::Id> {
+    std::size_t operator()(
+        hstd::ext::diff::NodeStore::Id const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.id);
+        return result;
+    }
+};

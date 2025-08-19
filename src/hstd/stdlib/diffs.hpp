@@ -32,10 +32,21 @@ enum class SeqEditKind : u8
     Transpose ///< Transpose two elements
 };
 
+BOOST_DESCRIBE_ENUM(
+    SeqEditKind,
+    None,
+    Keep,
+    Insert,
+    Replace,
+    Delete,
+    Transpose);
+
 struct SeqEdit {
     SeqEditKind kind;      /// Sequence edit operation kind
     int         sourcePos; /// Position in the original sequence
     int         targetPos; /// Position in the target sequence
+
+    DESC_FIELDS(SeqEdit, (kind, sourcePos, targetPos));
 
     SeqEdit(SeqEditKind kind, int sourcePos = -1, int targetPos = -1)
         : kind(kind), sourcePos(sourcePos), targetPos(targetPos) {}
@@ -201,9 +212,8 @@ Vec<SeqEdit> myersDiff(
     int                          bSize,
     Func<bool(int lhs, int rhs)> itemCmp);
 
-
 template <typename T>
-Vec<SeqEdit> myersDiff(
+Vec<SeqEdit> myersDiffCbCmp(
     const Vec<T>&                    lhsSeq,
     const Vec<T>&                    rhsSeq,
     Func<bool(const T& x, const T&)> itemCmp) {
@@ -212,6 +222,16 @@ Vec<SeqEdit> myersDiff(
         rhsSeq.size(),
         [&lhsSeq, &rhsSeq, &itemCmp](int lhs, int rhs) -> bool {
             return itemCmp(lhsSeq[lhs], rhsSeq[rhs]);
+        });
+}
+
+template <typename T>
+Vec<SeqEdit> myersDiffEqCmp(const Vec<T>& lhsSeq, const Vec<T>& rhsSeq) {
+    return myersDiff(
+        lhsSeq.size(),
+        rhsSeq.size(),
+        [&lhsSeq, &rhsSeq](int lhs, int rhs) -> bool {
+            return lhsSeq[lhs] == rhsSeq[rhs];
         });
 }
 
@@ -649,7 +669,7 @@ ColText formatDiffed(
     Func<Str(const T&)> strConv =
         [](const T& a) { return std::format("{}", a); }) {
 
-    auto          diff = myersDiff(oldSeq, newSeq, eqCmp);
+    auto          diff = myersDiffCbCmp(oldSeq, newSeq, eqCmp);
     ShiftedDiff   shifted{diff};
     FormattedDiff formatted{shifted, conf};
     return ColText{};

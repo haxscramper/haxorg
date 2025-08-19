@@ -7,7 +7,49 @@
 #include <stack>
 #include <hstd/ext/graphviz.hpp>
 
+#if HAXORG_LOGGER_SUPPORT_QT
+#    include <QDebug>
+#    include <QBuffer>
+#endif
+
 namespace hstd::log {
+
+template <typename T, typename Other = std::monostate>
+struct log_value_formatter {
+    static std::string format(T const& value) {
+        return hstd::value_metadata<T>::typeName() + " not formattable";
+    }
+};
+
+template <hstd::StdFormattable T>
+struct log_value_formatter<T> {
+    static std::string format(T const& value) { return hstd::fmt1(value); }
+};
+
+#if HAXORG_LOGGER_SUPPORT_QT
+template <typename T>
+concept QDebugFormattable = requires(QDebug debug, const T& value) {
+    debug << value;
+};
+
+template <QDebugFormattable T>
+std::string formatToString(const T& value) {
+    QBuffer buffer{};
+    buffer.open(QIODevice::WriteOnly);
+    QDebug debug{&buffer};
+    debug.nospace().noquote() << value;
+    buffer.close();
+    return buffer.data().toStdString();
+}
+
+template <QDebugFormattable T>
+struct log_value_formatter<T> {
+    static std::string format(T const& value) {
+        return formatToString(value);
+    }
+};
+
+#endif
 
 struct log_graph_processor {
     virtual ~log_graph_processor() = default;
@@ -134,52 +176,61 @@ struct log_graph_tracker {
         char const*        function = __builtin_FUNCTION(),
         char const*        file     = __builtin_FILE());
 
+    template <typename T, typename... Args>
+    void format_args_aux(
+        std::vector<std::string>& res,
+        T const&                  value,
+        Args&&... args) {
+        res.push_back(hstd::log::log_value_formatter<T>::format(value));
+        format_args_aux(res, std::forward<Args>(args)...);
+    }
+
+    void format_args_aux(std::vector<std::string>& res) {}
+
+    template <typename... Args>
+    std::vector<std::string> format_args(Args&&... args) {
+        std::vector<std::string> res;
+        format_args_aux(res, std::forward<Args>(args)...);
+        return res;
+    }
+
+#define HSLOG_TRACKED_EMIT(__tracker, method, ...)                        \
+    __tracker->notify_signal_emit(                                        \
+        #method, __tracker->format_args(__VA_ARGS__));                    \
+    emit method(__VA_ARGS__);
+
+#define HSLOG_TRACKED_SLOT(__tracker, method, ...)                        \
+    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_slot(      \
+        method, __tracker->format_args(__VA_ARGS__));
+
+#define HSLOG_TRACKED_FUNCTION(__tracker, method)                         \
+    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_function(  \
+        method);
+
+    hstd::finally_std track_slot(
+        std::string const&              description,
+        std::vector<std::string> const& args,
+        int                             line     = __builtin_LINE(),
+        char const*                     function = __builtin_FUNCTION(),
+        char const*                     file     = __builtin_FILE());
+
+    hstd::finally_std track_function(
+        std::string const& description,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE());
+
+    hstd::finally_std track_scope(
+        std::string const& description,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE());
+
   private:
     bool TraceState = false;
 
     std::vector<std::shared_ptr<log_graph_processor>> processors{};
 };
-
-struct function_tracker {
-    function_tracker(
-        std::shared_ptr<log_graph_tracker> tracker,
-        std::string const&                 name)
-        : function_name{name}
-        , tracker{tracker} //
-    {
-        tracker->notify_function_start(function_name);
-    }
-
-    ~function_tracker() { tracker->notify_function_end(function_name); }
-
-  private:
-    std::string function_name;
-
-    std::shared_ptr<log_graph_tracker> tracker = nullptr;
-};
-
-struct scope_tracker {
-    scope_tracker(
-        std::shared_ptr<log_graph_tracker> tracker,
-        std::string const&                 name)
-        : scope_name{name}
-        , tracker{tracker} //
-    {
-        tracker->notify_scope_enter(scope_name);
-    }
-
-    ~scope_tracker() { tracker->notify_scope_exit(scope_name); }
-
-  private:
-    std::string                        scope_name;
-    std::shared_ptr<log_graph_tracker> tracker = nullptr;
-};
-
-#define HSLOG_GRAPH_TRACK_FUNCTION(__tracker, functionName)               \
-    function_tracker _func_tracker{__tracker, functionName};
-
-#define HSLOG_GRAPH_TRACK_SCOPE(__tracker, scopeName)                     \
-    scope_tracker _scope_tracker{__tracker, scopeName};
 
 #define HSLOG_GRAPH_TRACK_SIGNAL(signalName, ...)                         \
     do {                                                                  \
@@ -277,5 +328,64 @@ struct graphviz_processor : public log_graph_processor {
     std::string get_parent();
 
     void add_edge(std::string const& from, std::string const& to);
+};
+
+struct logger_processor : public log_graph_processor {
+    void track_function_start(
+        std::string const& function_name,
+        int                line,
+        char const*        function,
+        char const*        file) override;
+
+    void track_function_end(
+        std::string const& function_name,
+        int                line,
+        char const*        function,
+        char const*        file) override;
+
+    void track_signal_emit(
+        std::string const&              signal_name,
+        std::vector<std::string> const& args,
+        int                             line,
+        char const*                     function,
+        char const*                     file) override;
+
+    void track_slot_trigger(
+        std::string const&              slot_name,
+        std::vector<std::string> const& args,
+        int                             line,
+        char const*                     function,
+        char const*                     file) override;
+
+    void track_scope_enter(
+        std::string const& scope_name,
+        int                line,
+        char const*        function,
+        char const*        file) override;
+
+    void track_scope_exit(
+        std::string const& scope_name,
+        int                line,
+        char const*        function,
+        char const*        file) override;
+
+    void track_started(int line, char const* function, char const* file)
+        override;
+
+    void track_ended(int line, char const* function, char const* file)
+        override;
+
+    void track_named_text(
+        std::string const& key,
+        std::string const& value,
+        int                line,
+        char const*        function,
+        char const*        file) override;
+
+    void track_named_jump(
+        std::string const& description,
+        int                line,
+        char const*        function,
+        char const*        file) override;
 };
 } // namespace hstd::log
