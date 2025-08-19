@@ -92,11 +92,20 @@ SemSet LeafKinds{
 }
 
 diff::ComparisonOptions SemNodeDiff::getOptions() {
-
-
     return diff::ComparisonOptions{
-        .getUpdateCost  = [](diff::Node const& Src,
-                            diff::Node const& Dst) -> double { return 1; },
+        .isMatchingAllowed = [](diff::Node const& Src,
+                                diff::Node const& Dst) -> bool {
+            auto SrcKind = static_cast<OrgSemKind>(
+                Src.getNodeKind().value);
+            auto DstKind = static_cast<OrgSemKind>(
+                Dst.getNodeKind().value);
+            if (SrcKind == DstKind) {
+                return true;
+            } else {
+                return LeafKinds.contains(SrcKind)
+                    && LeafKinds.contains(DstKind);
+            }
+        },
         .areValuesEqual = [](diff::Node const& Src,
                              diff::Node const& Dst) -> bool {
             auto S = Src.ASTNode.ToPtr<sem::Org>();
@@ -118,19 +127,9 @@ diff::ComparisonOptions SemNodeDiff::getOptions() {
                 return true;
             }
         },
-        .isMatchingAllowed = [](diff::Node const& Src,
-                                diff::Node const& Dst) -> bool {
-            auto SrcKind = static_cast<OrgSemKind>(
-                Src.getNodeKind().value);
-            auto DstKind = static_cast<OrgSemKind>(
-                Dst.getNodeKind().value);
-            if (SrcKind == DstKind) {
-                return true;
-            } else {
-                return LeafKinds.contains(SrcKind)
-                    && LeafKinds.contains(DstKind);
-            }
-        },
+
+        .getUpdateCost = [](diff::Node const& Src,
+                            diff::Node const& Dst) -> double { return 1; },
     };
 }
 
@@ -152,12 +151,10 @@ hstd::Vec<ImmNodeDiff::AstEdit> ImmNodeDiff::getEdits(bool WithKeeps) {
                     });
                 }
             } else {
-                if (WithKeeps) {
-                    result.push_back(AstEdit{
-                        .data = AstEdit::
-                            Replace{.src = ImmSrcId, .dst = ImmDstId},
-                    });
-                }
+                result.push_back(AstEdit{
+                    .data = AstEdit::
+                        Replace{.src = ImmSrcId, .dst = ImmDstId},
+                });
             }
         } else {
             org::imm::ImmUniqId ImmDstId = dstStore->getUniq(DstId);
@@ -168,12 +165,12 @@ hstd::Vec<ImmNodeDiff::AstEdit> ImmNodeDiff::getEdits(bool WithKeeps) {
     }
 
     for (NodeIdx Src : *srcSyntax) {
-        NodeStore::Id SrcId = dstSyntax->getStoreId(Src);
+        NodeStore::Id SrcId = srcSyntax->getStoreId(Src);
         NodeIdx       Dst   = diff->getMapped(*dstSyntax, Src);
         if (!Dst.isValid()) {
             org::imm::ImmUniqId ImmSrcId = srcStore->getUniq(SrcId);
             result.push_back(AstEdit{
-                .data = AstEdit::Insert{.id = ImmSrcId},
+                .data = AstEdit::Delete{.id = ImmSrcId},
             });
         }
     }
@@ -247,26 +244,21 @@ ColText ImmNodeDiff::printMapping() {
 
 diff::ComparisonOptions ImmNodeDiff::getOptions() {
     return diff::ComparisonOptions{
-        .getUpdateCost = [](diff::Node const& Src,
-                            diff::Node const& Dst) -> double { return 1; },
-        .areValuesEqual =
-            [this](diff::Node const& Src, diff::Node const& Dst) -> bool {
-            return srcStore->getUniq(Src.ASTNode).id
-                == dstStore->getUniq(Dst.ASTNode).id;
-        },
         .isMatchingAllowed =
             [this](diff::Node const& Src, diff::Node const& Dst) -> bool {
             auto SrcKind = static_cast<OrgSemKind>(
                 Src.getNodeKind().value);
             auto DstKind = static_cast<OrgSemKind>(
                 Dst.getNodeKind().value);
-            if (SrcKind == DstKind) {
-                return true;
-            } else {
-                return LeafKinds.contains(SrcKind)
-                    && LeafKinds.contains(DstKind);
-            }
+            return true;
         },
+        .areValuesEqual =
+            [this](diff::Node const& Src, diff::Node const& Dst) -> bool {
+            return srcStore->getUniq(Src.ASTNode).id
+                == dstStore->getUniq(Dst.ASTNode).id;
+        },
+        .getUpdateCost = [](diff::Node const& Src,
+                            diff::Node const& Dst) -> double { return 1; },
     };
 }
 

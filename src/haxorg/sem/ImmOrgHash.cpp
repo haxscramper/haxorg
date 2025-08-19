@@ -1,4 +1,5 @@
 #include "ImmOrgHash.hpp"
+#include <hstd/ext/logger.hpp>
 
 using namespace hstd;
 
@@ -8,19 +9,33 @@ const std::string loc_field = std::string{"loc"};
 template <typename T>
 std::size_t imm_hash_build(T const& value) {
     std::size_t result = 0;
+    HSLOG_INFO("ast.imm", hstd::value_metadata<T>::typeName());
+    HSLOG_DEPTH_SCOPE_ANON();
+    // HSLOG_TRACE_STACKTRACE("ast.imm", trace);
     for_each_field_with_bases<T>([&](auto const& field) {
         using FieldType = DESC_FIELD_TYPE(field);
         if (std::is_same_v<Opt<org::parse::LineCol>, FieldType>
             && field.name == loc_field) {
             // pass
         } else {
-            hstd::hax_hash_combine(
-                result,
-                std::hash<
-                    std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
-                    value.*field.pointer));
+            auto hash_value = std::hash<
+                std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
+                value.*field.pointer);
+            auto tmp_result = result;
+            hstd::hax_hash_combine(result, hash_value);
+            HSLOG_INFO(
+                "ast.imm",
+                hstd::fmt(
+                    "{} {} hash 0x{:X} + 0x{:X} => 0x{:X}",
+                    field.name,
+                    value.*field.pointer,
+                    hash_value,
+                    tmp_result,
+                    result));
         }
     });
+
+    HSLOG_INFO("ast.imm", hstd::fmt("END-HASH 0x{:X}", result));
     return result;
 }
 

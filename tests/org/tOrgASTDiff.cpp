@@ -8,6 +8,8 @@
 #include <haxorg/test/org_parse_aux.hpp>
 #include <haxorg/sem/SemAstDiff.hpp>
 #include "../common.hpp"
+#include "tOrgTestCommon.hpp"
+#include <hstd/ext/logger.hpp>
 
 using namespace hstd::ext::diff;
 using namespace hstd;
@@ -128,15 +130,27 @@ word2
 struct ImmDiffBuilder : org::algo::ImmNodeDiff {
     org::imm::ImmAstContext::Ptr    context;
     hstd::Vec<ImmNodeDiff::AstEdit> edits;
+    org::sem::SemId<org::sem::Org>  SemSrc;
+    org::sem::SemId<org::sem::Org>  SemDst;
+    org::imm::ImmAstVersion         ImmSrc;
+    org::imm::ImmAstVersion         ImmDst;
     ImmDiffBuilder(
         std::string const& Src,
         std::string const& Dst,
         bool               WithKeep) {
-        context     = org::imm::ImmAstContext::init_start_context();
-        auto SemSrc = org::parseString(Src);
-        auto SemDst = org::parseString(Dst);
-        auto ImmSrc = context->addRoot(SemSrc);
-        auto ImmDst = context->addRoot(SemDst);
+        context = org::imm::ImmAstContext::init_start_context();
+        SemSrc  = org::parseString(Src);
+        SemDst  = org::parseString(Dst);
+        {
+            HSLOG_INFO("test.imm", "Add SRC root");
+            HSLOG_DEPTH_SCOPE_ANON();
+            ImmSrc = context->addRoot(SemSrc);
+        }
+        {
+            HSLOG_INFO("test.imm", "Add DST root");
+            HSLOG_DEPTH_SCOPE_ANON();
+            ImmDst = context->addRoot(SemDst);
+        }
         setDiffTrees(
             ImmSrc.getRootAdapter(),
             ImmDst.getRootAdapter(),
@@ -198,10 +212,30 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
         }
 
         writeFile(getDebugFile("diff_builder.txt"), buffer);
+
+        writeTreeRepr(SemSrc, getDebugFile("SemSrc.yaml"));
+        writeTreeRepr(SemDst, getDebugFile("SemDst.yaml"));
+        imm::ImmAdapter::TreeReprConf conf;
+        conf.withAuxFields  = true;
+        conf.withReflFields = true;
+        writeTreeRepr(
+            ImmSrc.getRootAdapter(), getDebugFile("ImmSrc.txt"), conf);
+        writeTreeRepr(
+            ImmDst.getRootAdapter(), getDebugFile("ImmDst.txt"), conf);
     }
 };
 
-TEST(OrgImmAstDiff, ImmAstDiffSimple) {
+class OrgImmAstDiff : public ::testing::Test {
+  protected:
+    void SetUp() override {
+        hstd::log::push_sink(hstd::log::init_file_sink(
+            getDebugFile("test_log.log").native()));
+    }
+
+    virtual void TearDown() override { hstd::log::clear_sink_backends(); }
+};
+
+TEST_F(OrgImmAstDiff, SimpleInsertWords) {
     ImmDiffBuilder builder{"word", "word two", true};
     builder.debug();
 
@@ -216,4 +250,66 @@ TEST(OrgImmAstDiff, ImmAstDiffSimple) {
         builder.getInsertNode<org::imm::ImmSpace>(3)->text.get(), " "_ss);
     EXPECT_EQ2(
         builder.getInsertNode<org::imm::ImmWord>(4)->text.get(), "two"_ss);
+}
+
+
+TEST_F(OrgImmAstDiff, SimpleDeleteWords) {
+    ImmDiffBuilder builder{"word two", "word", true};
+    builder.debug();
+
+    EXPECT_EQ(builder.edits.size(), 5);
+    EXPECT_EQ2(
+        builder.getReplace(0).src.id.getKind(), OrgSemKind::Document);
+    EXPECT_EQ2(
+        builder.getReplace(1).src.id.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(
+        builder.getKeepNode<org::imm::ImmWord>(2)->text.get(), "word"_ss);
+    EXPECT_EQ2(
+        builder.getDeleteNode<org::imm::ImmSpace>(3)->text.get(), " "_ss);
+    EXPECT_EQ2(
+        builder.getDeleteNode<org::imm::ImmWord>(4)->text.get(), "two"_ss);
+}
+
+TEST_F(OrgImmAstDiff, UpdateSubtreeProperty) {
+    ImmDiffBuilder builder{
+        R"(
+* subtree
+  :properties:
+  :id: first-id
+  :end:
+)",
+        R"(
+* subtree
+  :properties:
+  :id: second-id
+  :end:
+)",
+        false};
+    builder.debug();
+
+    EXPECT_EQ(builder.edits.size(), 2);
+    EXPECT_EQ2(
+        builder.getReplace(0).src.id.getKind(), OrgSemKind::Document);
+    EXPECT_EQ2(
+        builder.getReplace(1).src.id.getKind(), OrgSemKind::Subtree);
+}
+
+TEST_F(OrgImmAstDiff, ChangeNodeKind) {
+    ImmDiffBuilder builder{R"(/italic/)", R"(*italic*)", true};
+    builder.debug();
+    EXPECT_EQ(builder.edits.size(), 4);
+    EXPECT_EQ2(
+        builder.getReplace(0).src.id.getKind(), OrgSemKind::Document);
+    EXPECT_EQ2(
+        builder.getReplace(0).dst.id.getKind(), OrgSemKind::Document);
+    EXPECT_EQ2(
+        builder.getReplace(1).src.id.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(
+        builder.getReplace(1).dst.id.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(builder.getReplace(2).src.id.getKind(), OrgSemKind::Italic);
+    EXPECT_EQ2(builder.getReplace(2).dst.id.getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(builder.getKeep(3).id.id.getKind(), OrgSemKind::Word);
+    EXPECT_EQ2(
+        builder.getKeepNode<org::imm::ImmWord>(3)->text.get(),
+        "italic"_ss);
 }
