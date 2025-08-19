@@ -128,7 +128,6 @@ word2
 }
 
 struct ImmDiffBuilder : org::algo::ImmNodeDiff {
-    org::imm::ImmAstContext::Ptr    context;
     hstd::Vec<ImmNodeDiff::AstEdit> edits;
     org::sem::SemId<org::sem::Org>  SemSrc;
     org::sem::SemId<org::sem::Org>  SemDst;
@@ -137,10 +136,13 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
     ImmDiffBuilder(
         std::string const& Src,
         std::string const& Dst,
-        bool               WithKeep) {
-        context = org::imm::ImmAstContext::init_start_context();
-        SemSrc  = org::parseString(Src);
-        SemDst  = org::parseString(Dst);
+        bool               WithKeep,
+        bool               DirectSubnodes = true)
+        : org::algo::ImmNodeDiff{
+              org::imm::ImmAstContext::init_start_context(),
+              DirectSubnodes} {
+        SemSrc = org::parseString(Src);
+        SemDst = org::parseString(Dst);
         {
             HSLOG_INFO("test.imm", "Add SRC root");
             HSLOG_DEPTH_SCOPE_ANON();
@@ -154,8 +156,7 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
         setDiffTrees(
             ImmSrc.getRootAdapter(),
             ImmDst.getRootAdapter(),
-            getOptions(),
-            context);
+            getOptions());
 
         edits = getEdits(WithKeep);
     }
@@ -312,4 +313,18 @@ TEST_F(OrgImmAstDiff, ChangeNodeKind) {
     EXPECT_EQ2(
         builder.getKeepNode<org::imm::ImmWord>(3)->text.get(),
         "italic"_ss);
+}
+
+TEST_F(OrgImmAstDiff, ListItemMove) {
+    ImmDiffBuilder builder{
+        R"(
+- item 1
+- item 2
+)",
+        R"(
+- item 2
+- item 1
+)",
+        false};
+    builder.debug();
 }

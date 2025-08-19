@@ -141,12 +141,26 @@ struct ImmNodeStore : hstd::ext::diff::NodeStore {
 struct ImmNodeDiff {
     /// \brief Only compare direct subtrees of the node -- exclude nodes
     /// stored in the fields.
-    bool DirectSubnodes = true;
+    bool                         DirectSubnodes = true;
+    org::imm::ImmAstContext::Ptr context;
+    ImmNodeDiff(org::imm::ImmAstContext::Ptr context, bool DirectSubnodes)
+        : context{context}, DirectSubnodes{DirectSubnodes} {}
 
     struct AstEdit {
         struct Delete {
             org::imm::ImmUniqId id;
             DESC_FIELDS(Delete, (id));
+        };
+
+        struct Move {
+            org::imm::ImmUniqId srcParent;
+            int                 srcIndex;
+            org::imm::ImmUniqId dstParent;
+            int                 dstIndex;
+            int                 count;
+            DESC_FIELDS(
+                Move,
+                (srcParent, srcIndex, dstParent, dstIndex, count));
         };
 
         struct Keep {
@@ -173,7 +187,9 @@ struct ImmNodeDiff {
             Delete,
             Keep,
             Insert,
-            Replace);
+            Replace,
+            Move);
+
         Data data;
         DESC_FIELDS(AstEdit, (data));
     };
@@ -186,13 +202,13 @@ struct ImmNodeDiff {
     hstd::SPtr<ImmNodeStore>                srcStore;
     hstd::SPtr<ImmNodeStore>                dstStore;
 
+
     hstd::Vec<AstEdit> getEdits(bool WithKeeps);
 
     void setDiffTrees(
         imm::ImmAdapter const&                    src,
         imm::ImmAdapter const&                    dst,
-        hstd::ext::diff::ComparisonOptions const& Options,
-        org::imm::ImmAstContext::Ptr              context);
+        hstd::ext::diff::ComparisonOptions const& Options);
 
     hstd::ext::diff::ComparisonOptions getOptions();
 
