@@ -126,8 +126,12 @@ word2
 }
 
 struct ImmDiffBuilder : org::algo::ImmNodeDiff {
-    org::imm::ImmAstContext::Ptr context;
-    ImmDiffBuilder(std::string const& Src, std::string const& Dst) {
+    org::imm::ImmAstContext::Ptr    context;
+    hstd::Vec<ImmNodeDiff::AstEdit> edits;
+    ImmDiffBuilder(
+        std::string const& Src,
+        std::string const& Dst,
+        bool               WithKeep) {
         context     = org::imm::ImmAstContext::init_start_context();
         auto SemSrc = org::parseString(Src);
         auto SemDst = org::parseString(Dst);
@@ -138,13 +142,58 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
             ImmDst.getRootAdapter(),
             getOptions(),
             context);
+
+        edits = getEdits(WithKeep);
+    }
+
+    using ImmNodeDiff::AstEdit;
+
+    AstEdit::Replace const& getReplace(int idx) const {
+        return edits.at(idx).getReplace();
+    }
+
+    AstEdit::Keep const& getKeep(int idx) const {
+        return edits.at(idx).getKeep();
+    }
+
+    AstEdit::Insert const& getInsert(int idx) const {
+        return edits.at(idx).getInsert();
+    }
+
+    AstEdit::Delete const& getDelete(int idx) const {
+        return edits.at(idx).getDelete();
+    }
+
+    template <typename T>
+    org::imm::ImmAdapterT<T> getReplaceSrcNode(int idx) const {
+        return context->adapt(getReplace(idx).src).as<T>();
+    }
+
+    template <typename T>
+    org::imm::ImmAdapterT<T> getReplaceDstNode(int idx) const {
+        return context->adapt(getReplace(idx).dst).as<T>();
+    }
+
+    template <typename T>
+    org::imm::ImmAdapterT<T> getKeepNode(int idx) const {
+        return context->adapt(getKeep(idx).id).as<T>();
+    }
+
+    template <typename T>
+    org::imm::ImmAdapterT<T> getInsertNode(int idx) const {
+        return context->adapt(getInsert(idx).id).as<T>();
+    }
+
+    template <typename T>
+    org::imm::ImmAdapterT<T> getDeleteNode(int idx) const {
+        return context->adapt(getDelete(idx).id).as<T>();
     }
 
     void debug() {
         std::string buffer;
         buffer += printMapping().toString(false) + "\n";
 
-        for (auto const& edit : getEdits(true)) {
+        for (auto const& edit : edits) {
             buffer += hstd::fmt1(edit) + "\n";
         }
 
@@ -153,6 +202,18 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
 };
 
 TEST(OrgImmAstDiff, ImmAstDiffSimple) {
-    ImmDiffBuilder builder{"word", "word two"};
+    ImmDiffBuilder builder{"word", "word two", true};
     builder.debug();
+
+    EXPECT_EQ(builder.edits.size(), 5);
+    EXPECT_EQ2(
+        builder.getReplace(0).src.id.getKind(), OrgSemKind::Document);
+    EXPECT_EQ2(
+        builder.getReplace(1).src.id.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(
+        builder.getKeepNode<org::imm::ImmWord>(2)->text.get(), "word"_ss);
+    EXPECT_EQ2(
+        builder.getInsertNode<org::imm::ImmSpace>(3)->text.get(), " "_ss);
+    EXPECT_EQ2(
+        builder.getInsertNode<org::imm::ImmWord>(4)->text.get(), "two"_ss);
 }
