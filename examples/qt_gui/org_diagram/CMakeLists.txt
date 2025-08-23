@@ -37,6 +37,8 @@ set_target_properties(
              AUTOUIC ON
              AUTORCC ON)
 
+target_compile_definitions(org_diagram_lib PUBLIC HAXORG_LOGGER_SUPPORT_QT=1)
+
 target_include_directories(
   org_diagram_lib
   PUBLIC $<BUILD_INTERFACE:${PROJ_ROOT}> $<INSTALL_INTERFACE:include>

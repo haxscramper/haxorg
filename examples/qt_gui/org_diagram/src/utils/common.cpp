@@ -76,3 +76,30 @@ hstd::fs::path getDebugFile(QObject* testClass, const hstd::Str& suffix) {
 
     return dir;
 }
+
+hstd::finally_std trackTestExecution(
+    QObject*         testClas,
+    const hstd::Str& suffix,
+    int              line,
+    const char*      function,
+    const char*      file) {
+
+    auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([testClas]() {
+        return ::hstd::log::init_file_sink(
+            getDebugFile(testClas, "execution_trace.log").native());
+    });
+
+    get_tracker()->start_tracing(line, function, file);
+    return hstd::finally_std{
+        [testClas,
+         suffix,
+         line,
+         function,
+         file,
+         scoped = std::make_shared<decltype(__log_scoped)>(
+             std::move(__log_scoped))]() {
+            get_tracker()->end_tracing(line, function, file);
+            get_tracker_graph().render(
+                getDebugFile(testClas, "execution_graph.png"));
+        }};
+}

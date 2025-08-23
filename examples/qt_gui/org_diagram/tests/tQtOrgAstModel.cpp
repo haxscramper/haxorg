@@ -2,6 +2,7 @@
 #include <QSignalSpy>
 #include <memory>
 #include <src/model/QtOrgAstModel.hpp>
+#include <src/utils/common.hpp>
 
 class QtOrgAstModelTest : public QObject {
     Q_OBJECT
@@ -161,6 +162,7 @@ class QtOrgAstModelTest : public QObject {
     }
 
     void testModelAddNodeToParent() {
+        auto            __scope = trackTestExecution(this);
         auto            root = std::make_shared<OrgDiagramNode>(getId(1));
         OrgDiagramModel model{root};
         auto newNode = std::make_shared<OrgDiagramNode>(getId(2));
@@ -276,5 +278,5 @@ class QtOrgAstModelTest : public QObject {
     }
 };
 
-QTEST_MAIN(QtOrgAstModelTest)
+HAXORG_QT_TEST_MAIN(QtOrgAstModelTest)
 #include "tQtOrgAstModel.moc"

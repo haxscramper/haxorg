@@ -5,13 +5,32 @@
 #include <QDebug>
 #include <QObject>
 #include <QTest>
+#include <QObject>
+#include <QMetaObject>
+#include <QDebug>
 
 std::shared_ptr<hstd::log::log_graph_tracker> get_tracker();
 hstd::ext::Graphviz::Graph                    get_tracker_graph();
 
+#define TRACKED_SLOT(...) HSLOG_TRACKED_SLOT(get_tracker(), __VA_ARGS__)
+#define TRACKED_EMIT(...) HSLOG_TRACKED_SLOT(get_tracker(), __VA_ARGS__)
+#define TRACKED_FUNCTION(...)                                             \
+    HSLOG_TRACKED_FUNCTION(get_tracker(), __VA_ARGS__)
+#define TRACKED_CONNECT(...)                                              \
+    HSLOG_TRACKED_CONNECT(get_tracker(), __VA_ARGS__)
+#define TRACKED_OBJECT(...)                                               \
+    HSLOG_TRACKED_OBJECT(get_tracker(), __VA_ARGS__)
+
 hstd::fs::path getDebugFile(
     QObject*         testClass,
     const hstd::Str& suffix = "");
+
+hstd::finally_std trackTestExecution(
+    QObject*         testClas,
+    hstd::Str const& suffix   = "",
+    int              line     = __builtin_LINE(),
+    char const*      function = __builtin_FUNCTION(),
+    char const*      file     = __builtin_FILE());
 
 void customMessageHandler(
     QtMsgType                 type,

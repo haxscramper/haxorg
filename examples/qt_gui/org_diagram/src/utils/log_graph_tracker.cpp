@@ -66,6 +66,7 @@ void log_graph_tracker::notify_function_end(
 }
 
 void log_graph_tracker::notify_signal_emit(
+    const QObject*                  _this,
     const std::string&              signal_name,
     const std::vector<std::string>& args,
     int                             line,
@@ -74,11 +75,12 @@ void log_graph_tracker::notify_signal_emit(
     if (!TraceState) { return; }
     for (auto& processor : processors) {
         processor->track_signal_emit(
-            signal_name, args, line, function, file);
+            _this, signal_name, args, line, function, file);
     }
 }
 
 void log_graph_tracker::notify_slot_trigger(
+    const QObject*                  _this,
     const std::string&              slot_name,
     const std::vector<std::string>& args,
     int                             line,
@@ -87,7 +89,7 @@ void log_graph_tracker::notify_slot_trigger(
     if (!TraceState) { return; }
     for (auto& processor : processors) {
         processor->track_slot_trigger(
-            slot_name, args, line, function, file);
+            _this, slot_name, args, line, function, file);
     }
 }
 
@@ -137,14 +139,30 @@ void log_graph_tracker::notify_named_jump(
 }
 
 hstd::finally_std log_graph_tracker::track_slot(
+    QObject const*                  _this,
     const std::string&              description,
     const std::vector<std::string>& args,
     int                             line,
     const char*                     function,
     const char*                     file) {
-    notify_slot_trigger(description, args, line, function, file);
+    notify_slot_trigger(_this, description, args, line, function, file);
     return track_function(description, line, function, file);
 }
+
+void log_graph_tracker::track_qobject(
+    const QObject* _this,
+    int            line,
+    const char*    function,
+    const char*    file) {}
+
+void log_graph_tracker::track_connect(
+    const QObject*     emitter,
+    const std::string& signal,
+    const QObject*     receiver,
+    const std::string& slot,
+    int                line,
+    const char*        function,
+    const char*        file) {}
 
 hstd::finally_std log_graph_tracker::track_scope(
     const std::string& description,
@@ -195,6 +213,7 @@ void graphviz_processor::track_function_end(
 }
 
 void graphviz_processor::track_signal_emit(
+    QObject const*                  _this,
     const std::string&              signal_name,
     const std::vector<std::string>& args,
     int                             line,
@@ -206,6 +225,7 @@ void graphviz_processor::track_signal_emit(
 }
 
 void graphviz_processor::track_slot_trigger(
+    QObject const*                  _this,
     const std::string&              slot_name,
     const std::vector<std::string>& args,
     int                             line,
@@ -361,6 +381,7 @@ void logger_processor::track_function_end(
 }
 
 void logger_processor::track_signal_emit(
+    const QObject*                  _this,
     const std::string&              signal_name,
     const std::vector<std::string>& args,
     int                             line,
@@ -373,6 +394,7 @@ void logger_processor::track_signal_emit(
 }
 
 void logger_processor::track_slot_trigger(
+    const QObject*                  _this,
     const std::string&              slot_name,
     const std::vector<std::string>& args,
     int                             line,
@@ -381,6 +403,51 @@ void logger_processor::track_slot_trigger(
     log_record{}
         .set_callsite(line, function, file)
         .fmt_message("slot trigger::'{}'", slot_name)
+        .end();
+}
+
+void logger_processor::track_qobject(
+    const QObject* _this,
+    int            line,
+    const char*    function,
+    const char*    file) {
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message(
+            "created {} at 0x{:X}",
+            _this->objectName().toStdString(),
+            reinterpret_cast<std::ptrdiff_t>(_this));
+
+    QObject::connect(
+        _this,
+        &QObject::destroyed,
+        _this,
+        [_this, line, function, file]() {
+            log_record{}
+                .set_callsite(line, function, file)
+                .fmt_message(
+                    "destroyed {} at 0x{:X}",
+                    _this->objectName().toStdString(),
+                    reinterpret_cast<std::ptrdiff_t>(_this));
+        });
+}
+
+void logger_processor::track_connect(
+    const QObject*     emitter,
+    const std::string& signal,
+    const QObject*     receiver,
+    const std::string& slot,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    log_record{}
+        .set_callsite(line, function, file)
+        .fmt_message(
+            "connect 0x{:X}::{} -> 0x{:X}::{}",
+            reinterpret_cast<std::ptrdiff_t>(emitter),
+            signal,
+            reinterpret_cast<std::ptrdiff_t>(receiver),
+            slot)
         .end();
 }
 

@@ -6,6 +6,8 @@
 #include <vector>
 #include <unordered_map>
 #include <haxorg/sem/ImmOrg.hpp>
+#include <src/utils/log_graph_tracker.hpp>
+#include <src/utils/common.hpp>
 
 struct OrgDiagramNode
     : public QObject
@@ -19,22 +21,9 @@ struct OrgDiagramNode
 
     OrgDiagramNode(org::imm::ImmUniqId const& id) : id{id} {}
 
-    void addSubnode(std::shared_ptr<OrgDiagramNode> node) {
-        node->parent = shared_from_this();
-        subnodes.push_back(node);
-        emit subnodeAdded(static_cast<int>(subnodes.size()) - 1);
-    }
-
-    void removeSubnode(int index) {
-        if (index >= 0 && index < static_cast<int>(subnodes.size())) {
-            subnodes.at(index)->parent.reset();
-            emit subnodeAboutToBeRemoved(index);
-            subnodes.erase(subnodes.begin() + index);
-            emit subnodeRemoved();
-        }
-    }
-
-    void updateData() { emit dataChanged(); }
+    void addSubnode(std::shared_ptr<OrgDiagramNode> node);
+    void removeSubnode(int index);
+    void updateData();
 
   signals:
     void subnodeAdded(int index);
@@ -62,56 +51,9 @@ struct OrgDiagramModel : public QAbstractItemModel {
     QModelIndex index(
         int                row,
         int                column,
-        const QModelIndex& parent = QModelIndex{}) const override {
-        if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
+        const QModelIndex& parent = QModelIndex{}) const override;
 
-        OrgDiagramNode* parentNode{};
-        if (!parent.isValid()) {
-            parentNode = rootNode.get();
-        } else {
-            parentNode = static_cast<OrgDiagramNode*>(
-                parent.internalPointer());
-        }
-
-        if (row < static_cast<int>(parentNode->subnodes.size())) {
-            QModelIndex newIndex = createIndex(
-                row, column, parentNode->subnodes.at(row).get());
-            nodeMap.insert_or_assign(
-                parentNode->subnodes.at(row)->id, newIndex);
-            return newIndex;
-        }
-        return QModelIndex{};
-    }
-
-    QModelIndex parent(const QModelIndex& index) const override {
-        if (!index.isValid()) { return QModelIndex{}; }
-
-        OrgDiagramNode* childNode = static_cast<OrgDiagramNode*>(
-            index.internalPointer());
-        auto parentPtr = childNode->parent.lock();
-
-        if (!parentPtr || parentPtr == rootNode) { return QModelIndex{}; }
-
-        auto grandParentPtr = parentPtr->parent.lock();
-        if (!grandParentPtr) { return QModelIndex{}; }
-
-        auto it = std::find_if(
-            grandParentPtr->subnodes.begin(),
-            grandParentPtr->subnodes.end(),
-            [&parentPtr](const std::shared_ptr<OrgDiagramNode>& node) {
-                return node->id == parentPtr->id;
-            });
-
-        if (it != grandParentPtr->subnodes.end()) {
-            int row = static_cast<int>(
-                std::distance(grandParentPtr->subnodes.begin(), it));
-            QModelIndex parentIndex = createIndex(row, 0, parentPtr.get());
-            nodeMap.insert_or_assign(parentPtr->id, parentIndex);
-            return parentIndex;
-        }
-
-        return QModelIndex{};
-    }
+    QModelIndex parent(const QModelIndex& index) const override;
 
     int rowCount(
         const QModelIndex& parent = QModelIndex{}) const override {
@@ -149,81 +91,16 @@ struct OrgDiagramModel : public QAbstractItemModel {
     bool insertRows(
         int                row,
         int                count,
-        const QModelIndex& parent = QModelIndex{}) override {
-        OrgDiagramNode* parentNode{};
-        if (!parent.isValid()) {
-            parentNode = rootNode.get();
-        } else {
-            parentNode = static_cast<OrgDiagramNode*>(
-                parent.internalPointer());
-        }
-
-        beginInsertRows(parent, row, row + count - 1);
-
-        for (int i = 0; i < count; ++i) {
-            auto newNode = std::make_shared<OrgDiagramNode>(
-                org::imm::ImmUniqId{org::imm::ImmId::Nil()});
-            connectNode(newNode);
-            newNode->parent = parentNode->shared_from_this();
-            parentNode->subnodes.insert(
-                parentNode->subnodes.begin() + row + i, newNode);
-        }
-
-        invalidateNodeMapAfterIndex(parent, row);
-        endInsertRows();
-        return true;
-    }
+        const QModelIndex& parent = QModelIndex{}) override;
 
     bool removeRows(
         int                row,
         int                count,
-        const QModelIndex& parent = QModelIndex{}) override {
-        OrgDiagramNode* parentNode{};
-        if (!parent.isValid()) {
-            parentNode = rootNode.get();
-        } else {
-            parentNode = static_cast<OrgDiagramNode*>(
-                parent.internalPointer());
-        }
-
-        if (row < 0
-            || row + count
-                   > static_cast<int>(parentNode->subnodes.size())) {
-            return false;
-        }
-
-        beginRemoveRows(parent, row, row + count - 1);
-
-        for (int i = 0; i < count; ++i) {
-            auto nodeToRemove = parentNode->subnodes.at(row);
-            removeFromNodeMap(nodeToRemove);
-            disconnectNode(nodeToRemove);
-            nodeToRemove->parent.reset();
-            parentNode->subnodes.erase(parentNode->subnodes.begin() + row);
-        }
-
-        invalidateNodeMapAfterIndex(parent, row);
-        endRemoveRows();
-        return true;
-    }
+        const QModelIndex& parent = QModelIndex{}) override;
 
     void addNodeToParent(
         std::shared_ptr<OrgDiagramNode> node,
-        const QModelIndex&              parentIndex) {
-        OrgDiagramNode* parentNode{};
-        if (!parentIndex.isValid()) {
-            parentNode = rootNode.get();
-        } else {
-            parentNode = static_cast<OrgDiagramNode*>(
-                parentIndex.internalPointer());
-        }
-
-        int row = static_cast<int>(parentNode->subnodes.size());
-        beginInsertRows(parentIndex, row, row);
-        connectNode(node);
-        parentNode->addSubnode(node);
-        endInsertRows();
-    }
+        const QModelIndex&              parentIndex);
 
     QModelIndex getIndexForId(const org::imm::ImmUniqId& id) const {
         auto it = nodeMap.find(id);
@@ -240,8 +117,10 @@ struct OrgDiagramModel : public QAbstractItemModel {
         return foundIndex;
     }
 
+
   private slots:
     void onSubnodeAdded(int index) {
+        TRACKED_SLOT(onSubnodeAdded, index);
         OrgDiagramNode* senderNode = qobject_cast<OrgDiagramNode*>(
             sender());
         QModelIndex parentIndex = getIndexForNode(senderNode);
@@ -252,6 +131,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
     }
 
     void onSubnodeAboutToBeRemoved(int index) {
+        TRACKED_SLOT(onSubnodeAboutToBeRemoved, index);
         OrgDiagramNode* senderNode = qobject_cast<OrgDiagramNode*>(
             sender());
         QModelIndex parentIndex  = getIndexForNode(senderNode);
@@ -261,16 +141,12 @@ struct OrgDiagramModel : public QAbstractItemModel {
         beginRemoveRows(parentIndex, index, index);
     }
 
-    void onSubnodeRemoved() { endRemoveRows(); }
-
-    void onDataChanged() {
-        OrgDiagramNode* senderNode = qobject_cast<OrgDiagramNode*>(
-            sender());
-        QModelIndex nodeIndex = getIndexForNode(senderNode);
-        if (nodeIndex.isValid()) {
-            emit dataChanged(nodeIndex, nodeIndex);
-        }
+    void onSubnodeRemoved() {
+        TRACKED_SLOT(onSubnodeRemoved);
+        endRemoveRows();
     }
+
+    void onDataChanged();
 
   private:
     void buildNodeMap() const {
@@ -278,18 +154,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
         buildNodeMapRecursive(QModelIndex{});
     }
 
-    void buildNodeMapRecursive(const QModelIndex& parent) const {
-        int rows = rowCount(parent);
-        for (int i = 0; i < rows; ++i) {
-            QModelIndex childIndex = index(i, 0, parent);
-            if (childIndex.isValid()) {
-                OrgDiagramNode* node = static_cast<OrgDiagramNode*>(
-                    childIndex.internalPointer());
-                nodeMap.insert_or_assign(node->id, childIndex);
-                buildNodeMapRecursive(childIndex);
-            }
-        }
-    }
+    void buildNodeMapRecursive(const QModelIndex& parent) const;
 
     void removeFromNodeMap(std::shared_ptr<OrgDiagramNode> node) {
         nodeMap.erase(node->id);
@@ -300,61 +165,13 @@ struct OrgDiagramModel : public QAbstractItemModel {
 
     void invalidateNodeMapAfterIndex(
         const QModelIndex& parent,
-        int                startRow) {
-        OrgDiagramNode* parentNode{};
-        if (!parent.isValid()) {
-            parentNode = rootNode.get();
-        } else {
-            parentNode = static_cast<OrgDiagramNode*>(
-                parent.internalPointer());
-        }
-
-        for (int i = startRow;
-             i < static_cast<int>(parentNode->subnodes.size());
-             ++i) {
-            removeFromNodeMap(parentNode->subnodes.at(i));
-        }
-    }
+        int                startRow);
 
     QModelIndex findIndexForId(
         const org::imm::ImmUniqId& id,
-        const QModelIndex&         parent) const {
-        int rows = rowCount(parent);
-        for (int i = 0; i < rows; ++i) {
-            QModelIndex childIndex = index(i, 0, parent);
-            if (childIndex.isValid()) {
-                OrgDiagramNode* node = static_cast<OrgDiagramNode*>(
-                    childIndex.internalPointer());
-                if (node->id == id) { return childIndex; }
-                QModelIndex foundIndex = findIndexForId(id, childIndex);
-                if (foundIndex.isValid()) { return foundIndex; }
-            }
-        }
-        return QModelIndex{};
-    }
+        const QModelIndex&         parent) const;
 
-    void connectNode(std::shared_ptr<OrgDiagramNode> node) {
-        connect(
-            node.get(),
-            &OrgDiagramNode::subnodeAdded,
-            this,
-            &OrgDiagramModel::onSubnodeAdded);
-        connect(
-            node.get(),
-            &OrgDiagramNode::subnodeAboutToBeRemoved,
-            this,
-            &OrgDiagramModel::onSubnodeAboutToBeRemoved);
-        connect(
-            node.get(),
-            &OrgDiagramNode::subnodeRemoved,
-            this,
-            &OrgDiagramModel::onSubnodeRemoved);
-        connect(
-            node.get(),
-            &OrgDiagramNode::dataChanged,
-            this,
-            &OrgDiagramModel::onDataChanged);
-    }
+    void connectNode(std::shared_ptr<OrgDiagramNode> node);
 
     void disconnectNode(std::shared_ptr<OrgDiagramNode> node) {
         disconnect(node.get(), nullptr, this, nullptr);

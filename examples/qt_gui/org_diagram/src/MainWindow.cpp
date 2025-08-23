@@ -22,8 +22,7 @@ DiagramSelectionManager::DiagramSelectionManager(
 
 void DiagramSelectionManager::onSceneSelectionChanged(
     const QList<DiagramNodeVisual*>& selectedNodes) {
-    HSLOG_TRACKED_SLOT(
-        get_tracker(), "onSceneSelectionChanged", selectedNodes);
+    TRACKED_SLOT("onSceneSelectionChanged", selectedNodes);
     if (updatingSelection) { return; }
     updatingSelection = true;
 
@@ -36,8 +35,7 @@ void DiagramSelectionManager::onSceneSelectionChanged(
 void DiagramSelectionManager::onTreeSelectionChanged(
     const QItemSelection& selected,
     const QItemSelection& deselected) {
-    HSLOG_TRACKED_SLOT(
-        get_tracker(), "onTreeSelectionChanged", selected, deselected);
+    TRACKED_SLOT("onTreeSelectionChanged", selected, deselected);
     Q_UNUSED(deselected)
     if (updatingSelection) { return; }
     updatingSelection = true;
@@ -64,7 +62,7 @@ void DiagramSelectionManager::onTreeSelectionChanged(
 
 void DiagramSelectionManager::onTreeNodesSelected(
     const QList<QModelIndex>& indexes) {
-    HSLOG_TRACKED_SLOT(get_tracker(), "onTreeNodesSelected", indexes);
+    TRACKED_SLOT("onTreeNodesSelected", indexes);
 
     // if (updatingSelection) { return; }
 
@@ -265,7 +263,7 @@ void MainWindow::connectSignals() {
 }
 
 void MainWindow::setZoom(int value) {
-    HSLOG_TRACKED_SLOT(get_tracker(), "setZoom", value);
+    TRACKED_SLOT("setZoom", value);
     auto  __scope = get_tracker()->track_function("MainWindow::setZoom");
     qreal scale   = value / 100.0;
     view->setTransform(QTransform::fromScale(scale, scale));
@@ -273,7 +271,7 @@ void MainWindow::setZoom(int value) {
 }
 
 void MainWindow::updateZoomSlider(int zoomPercent) {
-    HSLOG_TRACKED_SLOT(get_tracker(), "updateZoomSlider", zoomPercent);
+    TRACKED_SLOT("updateZoomSlider", zoomPercent);
     zoomPercent = qBound(
         zoomSlider->minimum(), zoomPercent, zoomSlider->maximum());
 
@@ -284,7 +282,7 @@ void MainWindow::updateZoomSlider(int zoomPercent) {
 }
 
 void MainWindow::zoomFit() {
-    HSLOG_TRACKED_SLOT(get_tracker(), "zoomFit");
+    TRACKED_SLOT("zoomFit");
     QRectF itemsBounds = scene->itemsBoundingRect();
     if (!itemsBounds.isEmpty()) {
         view->fitInView(itemsBounds, Qt::KeepAspectRatio);
@@ -304,7 +302,7 @@ void MainWindow::zoomFit() {
 }
 
 void MainWindow::onNodeSelected(DiagramNodeVisual* node) {
-    HSLOG_TRACKED_SLOT(get_tracker(), "onNodeSelected", node);
+    TRACKED_SLOT("onNodeSelected", node);
     // Clear existing properties
     while (propertiesLayout->count() > 1) {
         QLayoutItem* item = propertiesLayout->takeAt(1);
