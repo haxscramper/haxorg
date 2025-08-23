@@ -70,9 +70,9 @@ struct TestDiffBuilder {
 
     static ComparisonOptions getOptions() {
         return ComparisonOptions{
-            .getUpdateCost = [](diff::Node const& Src,
-                                diff::Node const& Dst) -> double {
-                return 1;
+            .isMatchingAllowed = [](diff::Node const& Src,
+                                    diff::Node const& Dst) -> bool {
+                return Src.getNodeKind() == Dst.getNodeKind();
             },
             .areValuesEqual = [](diff::Node const& Src,
                                  diff::Node const& Dst) -> bool {
@@ -81,9 +81,9 @@ struct TestDiffBuilder {
                     == Dst.getStore<TestNodeStore>()->getNodeValue(
                         Dst.ASTNode);
             },
-            .isMatchingAllowed = [](diff::Node const& Src,
-                                    diff::Node const& Dst) -> bool {
-                return Src.getNodeKind() == Dst.getNodeKind();
+            .getUpdateCost = [](diff::Node const& Src,
+                                diff::Node const& Dst) -> double {
+                return 1;
             },
         };
     }

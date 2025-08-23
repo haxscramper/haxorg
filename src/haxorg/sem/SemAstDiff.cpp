@@ -151,89 +151,10 @@ hstd::Vec<ImmNodeDiff::AstEdit> ImmNodeDiff::getEdits(bool WithKeeps) {
                     });
                 }
             } else {
-                hstd::Vec<org::imm::ImmUniqId> srcNodes;
-                hstd::Vec<org::imm::ImmUniqId> dstNodes;
-                org::imm::ImmAdapter srcAdapter = context->adapt(ImmSrcId);
-                org::imm::ImmAdapter dstAdapter = context->adapt(ImmDstId);
-
-                auto get_id =
-                    [](hstd::Vec<org::imm::ImmAdapter> const& list) {
-                        return list
-                             | rv::transform(
-                                   [](org::imm::ImmAdapter const& a) {
-                                       return a.uniq();
-                                   })
-                             | rs::to<Vec>();
-                    };
-
-                if (DirectSubnodes) {
-                    srcNodes = get_id(srcAdapter.sub(false));
-                    dstNodes = get_id(dstAdapter.sub(false));
-                } else {
-                    srcNodes = get_id(
-                        srcAdapter.getAllSubnodes(srcAdapter.path, false));
-                    dstNodes = get_id(
-                        dstAdapter.getAllSubnodes(dstAdapter.path, false));
-                }
-
-                if (!srcNodes.empty() && !dstNodes.empty()
-                    && hstd::sorted(srcNodes) == hstd::sorted(dstNodes)) {
-                    std::vector<org::imm::ImmUniqId> working{srcNodes};
-
-                    int dstIndex = 0;
-                    while (dstIndex < static_cast<int>(dstNodes.size())) {
-                        const auto& targetItem = dstNodes.at(dstIndex);
-
-                        auto srcIt = std::find(
-                            working.begin() + dstIndex,
-                            working.end(),
-                            targetItem);
-                        if (srcIt == working.end()) {
-                            ++dstIndex;
-                            continue;
-                        }
-
-                        int srcIndex = static_cast<int>(
-                            std::distance(working.begin(), srcIt));
-
-                        if (srcIndex == dstIndex) {
-                            ++dstIndex;
-                            continue;
-                        }
-
-                        int count = 1;
-                        while (dstIndex + count
-                                   < static_cast<int>(dstNodes.size())
-                               && srcIndex + count
-                                      < static_cast<int>(working.size())
-                               && dstNodes.at(dstIndex + count)
-                                      == working.at(srcIndex + count)) {
-                            ++count;
-                        }
-
-                        result.push_back(AstEdit{AstEdit::Move{
-                            .srcParent = ImmSrcId,
-                            .srcIndex  = srcIndex,
-                            .dstParent = ImmDstId,
-                            .dstIndex  = dstIndex,
-                            .count     = count,
-                        }});
-
-                        for (int i = 0; i < count; ++i) {
-                            auto item = working.at(srcIndex);
-                            working.erase(working.begin() + srcIndex);
-                            working.insert(
-                                working.begin() + dstIndex + i, item);
-                        }
-
-                        dstIndex += count;
-                    }
-                } else {
-                    result.push_back(AstEdit{
-                        .data = AstEdit::
-                            Replace{.src = ImmSrcId, .dst = ImmDstId},
-                    });
-                }
+                result.push_back(AstEdit{
+                    .data = AstEdit::
+                        Replace{.src = ImmSrcId, .dst = ImmDstId},
+                });
             }
         } else {
             org::imm::ImmUniqId ImmDstId = dstStore->getUniq(DstId);

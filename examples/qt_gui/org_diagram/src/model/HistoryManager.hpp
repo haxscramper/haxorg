@@ -28,10 +28,6 @@ struct HistoryManager {
         DESC_FIELDS(AstEdit, (data, lhsParent, rhsParent));
     };
 
-    static std::vector<AstEdit> topologicalSort(
-        const std::vector<AstEdit>& edits,
-        bool                        useLhsParent);
-
     HistoryManager();
 
     org::imm::ImmAstContext::Ptr       context;

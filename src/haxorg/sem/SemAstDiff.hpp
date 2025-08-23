@@ -152,17 +152,6 @@ struct ImmNodeDiff {
             DESC_FIELDS(Delete, (id));
         };
 
-        struct Move {
-            org::imm::ImmUniqId srcParent;
-            int                 srcIndex;
-            org::imm::ImmUniqId dstParent;
-            int                 dstIndex;
-            int                 count;
-            DESC_FIELDS(
-                Move,
-                (srcParent, srcIndex, dstParent, dstIndex, count));
-        };
-
         struct Keep {
             org::imm::ImmUniqId id;
             DESC_FIELDS(Keep, (id));
@@ -187,8 +176,7 @@ struct ImmNodeDiff {
             Delete,
             Keep,
             Insert,
-            Replace,
-            Move);
+            Replace);
 
         Data data;
         DESC_FIELDS(AstEdit, (data));

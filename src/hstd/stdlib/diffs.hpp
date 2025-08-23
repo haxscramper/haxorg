@@ -52,6 +52,13 @@ struct SeqEdit {
         : kind(kind), sourcePos(sourcePos), targetPos(targetPos) {}
 };
 
+struct SeqMove {
+    int srcIndex;
+    int dstIndex;
+    int count;
+    DESC_FIELDS(SeqMove, (srcIndex, dstIndex, count));
+};
+
 
 template <>
 struct value_domain<SeqEditKind>
@@ -205,7 +212,6 @@ Vec<BacktrackRes> longestCommonSubsequence(
             return itemCmp(lhsIt, rhsIt) ? 1.0 : 0.0;
         });
 }
-
 
 Vec<SeqEdit> myersDiff(
     int                          aSize,
