@@ -6,8 +6,22 @@
 #include <hstd/system/Formatter.hpp>
 #include <hstd/ext/graphviz.hpp>
 
+#if HAXORG_LOGGER_SUPPORT_QT
+#    include <QMetaObject>
+#    include <QMetaMethod>
+#endif
+
 
 using namespace hstd::log;
+
+
+std::string descObject(const QObject* obj) {
+    return hstd::fmt(
+        "'{}' at 0x{:X}",
+        obj->objectName().isEmpty() ? obj->metaObject()->className()
+                                    : obj->objectName().toStdString(),
+        reinterpret_cast<std::ptrdiff_t>(obj));
+}
 
 void log_graph_tracker::add_processor(
     std::shared_ptr<log_graph_processor> processor,
@@ -149,20 +163,31 @@ hstd::finally_std log_graph_tracker::track_slot(
     return track_function(description, line, function, file);
 }
 
-void log_graph_tracker::track_qobject(
+void log_graph_tracker::notify_qobject(
     const QObject* _this,
     int            line,
     const char*    function,
-    const char*    file) {}
+    const char*    file) {
+    if (!TraceState) { return; }
+    for (auto& processor : processors) {
+        processor->track_qobject(_this, line, function, file);
+    }
+}
 
-void log_graph_tracker::track_connect(
+void log_graph_tracker::notify_connect(
     const QObject*     emitter,
     const std::string& signal,
     const QObject*     receiver,
     const std::string& slot,
     int                line,
     const char*        function,
-    const char*        file) {}
+    const char*        file) {
+    if (!TraceState) { return; }
+    for (auto& processor : processors) {
+        processor->track_connect(
+            emitter, signal, receiver, slot, line, function, file);
+    }
+}
 
 hstd::finally_std log_graph_tracker::track_scope(
     const std::string& description,
@@ -389,7 +414,11 @@ void logger_processor::track_signal_emit(
     const char*                     file) {
     log_record{}
         .set_callsite(line, function, file)
-        .fmt_message("signal emit::'{}({})'", signal_name, args)
+        .fmt_message(
+            "signal emit::{} -> '{}({})'",
+            descObject(_this),
+            signal_name,
+            args)
         .end();
 }
 
@@ -402,7 +431,8 @@ void logger_processor::track_slot_trigger(
     const char*                     file) {
     log_record{}
         .set_callsite(line, function, file)
-        .fmt_message("slot trigger::'{}'", slot_name)
+        .fmt_message(
+            "slot trigger::{} -> '{}'", descObject(_this), slot_name)
         .end();
 }
 
@@ -413,10 +443,8 @@ void logger_processor::track_qobject(
     const char*    file) {
     log_record{}
         .set_callsite(line, function, file)
-        .fmt_message(
-            "created {} at 0x{:X}",
-            _this->objectName().toStdString(),
-            reinterpret_cast<std::ptrdiff_t>(_this));
+        .fmt_message("created {}", descObject(_this))
+        .end();
 
     QObject::connect(
         _this,
@@ -425,10 +453,8 @@ void logger_processor::track_qobject(
         [_this, line, function, file]() {
             log_record{}
                 .set_callsite(line, function, file)
-                .fmt_message(
-                    "destroyed {} at 0x{:X}",
-                    _this->objectName().toStdString(),
-                    reinterpret_cast<std::ptrdiff_t>(_this));
+                .fmt_message("destroyed {}", descObject(_this))
+                .end();
         });
 }
 
@@ -519,3 +545,75 @@ void logger_processor::track_named_jump(
         .fmt_message("named jump::'{}'", description)
         .end();
 }
+
+#if HAXORG_LOGGER_SUPPORT_QT
+
+
+void SignalDebugger::connectToAllSignals() {
+    if (!targetObject) { return; }
+
+    const QMetaObject* metaObject = targetObject->metaObject();
+
+    for (int i = 0; i < metaObject->methodCount(); ++i) {
+        QMetaMethod method = metaObject->method(i);
+        if (method.methodType() == QMetaMethod::Signal) {
+            connectToSignal(method);
+        }
+    }
+}
+
+void SignalDebugger::connectToSignal(const QMetaMethod& signal) {
+    QString    signalSignature     = signal.methodSignature();
+    QByteArray normalizedSignature = QMetaObject::normalizedSignature(
+        signalSignature.toLocal8Bit());
+
+    QMetaObject::Connection conn = QObject::connect(
+        targetObject,
+        ("2" + normalizedSignature).constData(),
+        this,
+        SLOT(onSignalTriggered()),
+        Qt::DirectConnection);
+
+    connections.push_back(conn);
+}
+
+void SignalDebugger::disconnectAll() {
+    for (auto& conn : connections) { QObject::disconnect(conn); }
+    connections.clear();
+}
+
+void SignalDebugger::onSignalTriggered() {
+    QObject* senderObj = sender();
+    if (!senderObj) { return; }
+
+    const QMetaObject* senderMeta  = senderObj->metaObject();
+    int                signalIndex = senderSignalIndex();
+
+    if (signalIndex >= 0) {
+        QMetaMethod signal = senderMeta->method(signalIndex);
+
+        tracker->notify_signal_emit(
+            senderObj,
+            signal.name().toStdString(),
+            formatParameterInfo(signal));
+    }
+}
+
+std::vector<std::string> SignalDebugger::formatParameterInfo(
+    const QMetaMethod& method) {
+    QList<QByteArray> paramNames = method.parameterNames();
+    QList<QByteArray> paramTypes = method.parameterTypes();
+
+    if (paramNames.size() != paramTypes.size()) { return {}; }
+    std::vector<std::string> debug{};
+    for (int i = 0; i < paramNames.size(); ++i) {
+        debug.push_back(hstd::fmt(
+            "{}={}",
+            paramTypes.at(i).toStdString(),
+            paramNames.at(i).toStdString()));
+    }
+
+    return debug;
+}
+
+#endif

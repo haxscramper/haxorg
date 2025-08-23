@@ -4,6 +4,7 @@
 #include <src/model/QtOrgAstModel.hpp>
 #include <src/utils/common.hpp>
 
+
 class QtOrgAstModelTest : public QObject {
     Q_OBJECT
 
@@ -162,14 +163,19 @@ class QtOrgAstModelTest : public QObject {
     }
 
     void testModelAddNodeToParent() {
-        auto            __scope = trackTestExecution(this);
-        auto            root = std::make_shared<OrgDiagramNode>(getId(1));
+        auto __scope = trackTestExecution(this);
+        auto root    = std::make_shared<OrgDiagramNode>(getId(1));
+        TRACKED_OBJECT(root);
         OrgDiagramModel model{root};
         auto newNode = std::make_shared<OrgDiagramNode>(getId(2));
+        TRACKED_OBJECT(newNode);
 
+        hstd::log::SignalDebugger debugger{get_tracker(), &model};
         QSignalSpy spy{&model, &QAbstractItemModel::rowsInserted};
 
+        QCOMPARE(model.rowCount(), 0);
         model.addNodeToParent(newNode, QModelIndex{});
+
 
         QCOMPARE(model.rowCount(), 1);
         QCOMPARE(root->subnodes.size(), 1);

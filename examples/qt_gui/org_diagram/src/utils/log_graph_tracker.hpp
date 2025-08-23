@@ -238,7 +238,7 @@ struct log_graph_tracker {
         char const*                     function = __builtin_FUNCTION(),
         char const*                     file     = __builtin_FILE());
 
-    void track_qobject(
+    void notify_qobject(
         QObject const* _this,
         int            line     = __builtin_LINE(),
         char const*    function = __builtin_FUNCTION(),
@@ -255,17 +255,16 @@ struct log_graph_tracker {
         return p.get();
     }
 
-    template <typename Q>
     auto track_qobject_pass(
-        auto        _this,
+        auto const& _this,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
         char const* file     = __builtin_FILE()) {
-        track_qobject(get_ptr(_this), line, function, file);
+        notify_qobject(get_ptr(_this), line, function, file);
         return _this;
     }
 
-    void track_connect(
+    void notify_connect(
         QObject const*     emitter,
         std::string const& signal,
         QObject const*     receiver,
@@ -285,7 +284,7 @@ struct log_graph_tracker {
 
 #    define HSLOG_TRACKED_CONNECT(                                        \
         _tracker, _sender, _signal, _receiver, _slot)                     \
-        _tracker->track_connect(_sender, #_signal, _receiver, #_slot);    \
+        _tracker->notify_connect(_sender, #_signal, _receiver, #_slot);   \
         QObject::connect(_sender, _signal, _receiver, _slot);
 
 #    define HSLOG_TRACKED_OBJECT(_tracker, _object)                       \
@@ -311,6 +310,49 @@ struct log_graph_tracker {
 
     std::vector<std::shared_ptr<log_graph_processor>> processors{};
 };
+
+
+#if HAXORG_LOGGER_SUPPORT_QT
+struct SignalDebugger : public QObject {
+    Q_OBJECT
+
+  private:
+    QObject*                                      targetObject;
+    std::vector<QMetaObject::Connection>          connections;
+    std::shared_ptr<hstd::log::log_graph_tracker> tracker;
+
+  public:
+    explicit SignalDebugger(
+        std::shared_ptr<hstd::log::log_graph_tracker> tracker,
+        QObject*                                      sender,
+        QObject*                                      parent = nullptr)
+        : QObject{parent}, targetObject{sender}, tracker{tracker} {
+        connectToAllSignals();
+    }
+
+    ~SignalDebugger() { disconnectAll(); }
+
+  private:
+    void                     connectToAllSignals();
+    void                     connectToSignal(const QMetaMethod& signal);
+    void                     disconnectAll();
+    std::vector<std::string> formatParameterInfo(
+        const QMetaMethod& method);
+
+  private slots:
+    void onSignalTriggered();
+
+  public:
+    void setEnabled(bool enabled) {
+        if (enabled) {
+            connectToAllSignals();
+        } else {
+            disconnectAll();
+        }
+    }
+};
+
+#endif
 
 struct call_info {
     std::string jump_description{};
@@ -398,6 +440,7 @@ struct graphviz_processor : public log_graph_processor {
         int                line,
         const char*        function,
         const char*        file) override {}
+
 #endif
 
     hstd::ext::Graphviz::Graph get_graphviz();

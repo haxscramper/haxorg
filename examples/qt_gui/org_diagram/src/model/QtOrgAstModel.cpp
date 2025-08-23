@@ -96,6 +96,7 @@ bool OrgDiagramModel::removeRows(
 void OrgDiagramModel::addNodeToParent(
     std::shared_ptr<OrgDiagramNode> node,
     const QModelIndex&              parentIndex) {
+    TRACKED_FUNCTION(addNodeToParent);
     OrgDiagramNode* parentNode{};
     if (!parentIndex.isValid()) {
         parentNode = rootNode.get();
@@ -105,10 +106,8 @@ void OrgDiagramModel::addNodeToParent(
     }
 
     int row = static_cast<int>(parentNode->subnodes.size());
-    beginInsertRows(parentIndex, row, row);
     connectNode(node);
     parentNode->addSubnode(node);
-    endInsertRows();
 }
 
 void OrgDiagramModel::onDataChanged() {
