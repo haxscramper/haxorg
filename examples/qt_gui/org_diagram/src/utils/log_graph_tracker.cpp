@@ -53,7 +53,6 @@ void log_graph_tracker::end_tracing(
     for (auto& processor : processors) {
         processor->track_ended(line, function, file);
     }
-    processors.clear();
 }
 
 void log_graph_tracker::notify_function_start(
@@ -244,9 +243,14 @@ void graphviz_processor::track_signal_emit(
     int                             line,
     const char*                     function,
     const char*                     file) {
-    std::string full_name = std::format("signal_{}", signal_name);
+    std::string full_name = std::format("{}", signal_name);
     if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
-    nodes.insert_or_assign(full_name, node_info{full_name, false, {}});
+    nodes.insert_or_assign(
+        full_name,
+        node_info{
+            .name      = full_name,
+            .is_signal = true,
+        });
 }
 
 void graphviz_processor::track_slot_trigger(
@@ -256,9 +260,14 @@ void graphviz_processor::track_slot_trigger(
     int                             line,
     const char*                     function,
     const char*                     file) {
-    std::string full_name = std::format("slot_{}", slot_name);
+    std::string full_name = std::format("{}", slot_name);
     call_stack.push(full_name);
-    nodes.insert_or_assign(full_name, node_info{full_name, false, {}});
+    nodes.insert_or_assign(
+        full_name,
+        node_info{
+            .name    = full_name,
+            .is_slot = true,
+        });
 }
 
 void graphviz_processor::track_scope_enter(
@@ -271,7 +280,12 @@ void graphviz_processor::track_scope_enter(
         std::string parent = get_parent();
         add_edge(parent, scope_name);
     }
-    nodes.insert_or_assign(scope_name, node_info{scope_name, false, {}});
+    nodes.insert_or_assign(
+        scope_name,
+        node_info{
+            .name     = scope_name,
+            .is_scope = true,
+        });
 }
 
 void graphviz_processor::track_scope_exit(

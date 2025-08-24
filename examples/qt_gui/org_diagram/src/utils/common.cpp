@@ -90,6 +90,7 @@ hstd::finally_std trackTestExecution(
     });
 
     get_tracker()->start_tracing(line, function, file);
+    HSLOG_INFO("org.test", "track test execution");
     return hstd::finally_std{
         [testClas,
          suffix,

@@ -34,7 +34,7 @@ concept QDebugFormattable = requires(QDebug debug, const T& value) {
 };
 
 template <QDebugFormattable T>
-std::string formatToString(const T& value) {
+std::string formatQtToString(const T& value) {
     QBuffer buffer{};
     buffer.open(QIODevice::WriteOnly);
     QDebug debug{&buffer};
@@ -50,7 +50,7 @@ concept OnlyQDebugFormattable = QDebugFormattable<T>
 template <OnlyQDebugFormattable T>
 struct log_value_formatter<T> {
     static std::string format(T const& value) {
-        return formatToString(value);
+        return formatQtToString(value);
     }
 };
 
@@ -283,8 +283,12 @@ struct log_graph_tracker {
         char const*                     file     = __builtin_FILE());
 
 #    define HSLOG_TRACKED_CONNECT(                                        \
-        _tracker, _sender, _signal, _receiver, _slot)                     \
-        _tracker->notify_connect(_sender, #_signal, _receiver, #_slot);   \
+        _tracker, _sender, _signal, _receiver, _slot, ...)                \
+        _tracker->notify_connect(                                         \
+            _sender,                                                      \
+            #_signal,                                                     \
+            _receiver,                                                    \
+            #_slot __VA_OPT__(, ) __VA_ARGS__);                           \
         QObject::connect(_sender, _signal, _receiver, _slot);
 
 #    define HSLOG_TRACKED_OBJECT(_tracker, _object)                       \
@@ -354,18 +358,22 @@ struct SignalDebugger : public QObject {
 
 #endif
 
-struct call_info {
-    std::string jump_description{};
-    int         count{1};
-};
-
-struct node_info {
-    std::string              name{};
-    bool                     is_cluster{false};
-    std::vector<std::string> children{};
-};
 
 struct graphviz_processor : public log_graph_processor {
+    struct call_info {
+        std::string jump_description{};
+        int         count{1};
+    };
+
+    struct node_info {
+        std::string              name{};
+        bool                     is_cluster{false};
+        std::vector<std::string> children{};
+        bool                     is_slot{false};
+        bool                     is_signal{false};
+        bool                     is_scope{false};
+    };
+
     void track_function_start(
         std::string const& function_name,
         int                line,

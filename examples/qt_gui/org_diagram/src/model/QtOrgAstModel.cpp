@@ -105,17 +105,23 @@ void OrgDiagramModel::addNodeToParent(
             parentIndex.internalPointer());
     }
 
-    int row = static_cast<int>(parentNode->subnodes.size());
     connectNode(node);
     parentNode->addSubnode(node);
 }
 
 void OrgDiagramModel::onDataChanged() {
-    qDebug() << "on data changed";
+    TRACKED_SLOT(onDataChanged);
     OrgDiagramNode* senderNode = qobject_cast<OrgDiagramNode*>(sender());
     QModelIndex     nodeIndex  = getIndexForNode(senderNode);
-    qDebug() << nodeIndex;
-    if (nodeIndex.isValid()) { emit dataChanged(nodeIndex, nodeIndex); }
+    if (nodeIndex.isValid()) {
+        TRACKED_EMIT(dataChanged, nodeIndex, nodeIndex);
+    } else {
+        HSLOG_WARNING(
+            "gui",
+            "Invalid sender node",
+            hstd::log::formatQtToString(nodeIndex),
+            senderNode->formatToString());
+    }
 }
 
 void OrgDiagramModel::buildNodeMapRecursive(
@@ -168,28 +174,44 @@ QModelIndex OrgDiagramModel::findIndexForId(
 }
 
 void OrgDiagramModel::connectNode(std::shared_ptr<OrgDiagramNode> node) {
+    TRACKED_FUNCTION(connectNode);
     TRACKED_CONNECT(
         node.get(),
         &OrgDiagramNode::subnodeAdded,
         this,
-        &OrgDiagramModel::onSubnodeAdded);
+        &OrgDiagramModel::onSubnodeAdded,
+        Qt::AutoConnection | Qt::UniqueConnection);
     TRACKED_CONNECT(
         node.get(),
         &OrgDiagramNode::subnodeAboutToBeRemoved,
         this,
-        &OrgDiagramModel::onSubnodeAboutToBeRemoved);
+        &OrgDiagramModel::onSubnodeAboutToBeRemoved,
+        Qt::AutoConnection | Qt::UniqueConnection);
     TRACKED_CONNECT(
         node.get(),
         &OrgDiagramNode::subnodeRemoved,
         this,
-        &OrgDiagramModel::onSubnodeRemoved);
+        &OrgDiagramModel::onSubnodeRemoved,
+        Qt::AutoConnection | Qt::UniqueConnection);
     TRACKED_CONNECT(
         node.get(),
         &OrgDiagramNode::dataChanged,
         this,
-        &OrgDiagramModel::onDataChanged);
+        &OrgDiagramModel::onDataChanged,
+        Qt::AutoConnection | Qt::UniqueConnection);
+
+    for (auto const& it : node->subnodes) { connectNode(it); }
 }
 
+
+OrgDiagramModel::OrgDiagramModel(
+    std::shared_ptr<OrgDiagramNode> root,
+    QObject*                        parent)
+    : QAbstractItemModel{parent}, rootNode{root} {
+    TRACKED_FUNCTION(OrgDiagramModel);
+    buildNodeMap();
+    connectNode(rootNode);
+}
 
 QModelIndex OrgDiagramModel::index(
     int                row,
@@ -235,5 +257,4 @@ void OrgDiagramNode::removeSubnode(int index) {
 
 void OrgDiagramNode::updateData() {
     HSLOG_TRACKED_EMIT(get_tracker(), dataChanged);
-    emit dataChanged();
 }

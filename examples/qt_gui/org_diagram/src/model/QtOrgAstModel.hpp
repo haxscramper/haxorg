@@ -19,6 +19,8 @@ struct OrgDiagramNode
     std::vector<std::shared_ptr<OrgDiagramNode>> subnodes;
     std::weak_ptr<OrgDiagramNode>                parent;
 
+    std::string formatToString() const { return hstd::fmt("id:{}", id); }
+
     OrgDiagramNode(org::imm::ImmUniqId const& id) : id{id} {}
 
     void addSubnode(std::shared_ptr<OrgDiagramNode> node);
@@ -42,11 +44,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
   public:
     explicit OrgDiagramModel(
         std::shared_ptr<OrgDiagramNode> root,
-        QObject*                        parent = nullptr)
-        : QAbstractItemModel{parent}, rootNode{root} {
-        buildNodeMap();
-        connectNode(rootNode);
-    }
+        QObject*                        parent = nullptr);
 
     QModelIndex index(
         int                row,

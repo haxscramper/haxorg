@@ -70,7 +70,8 @@ class QtOrgAstModelTest : public QObject {
     }
 
     void testOrgDiagramNodeUpdateData() {
-        auto       node = std::make_shared<OrgDiagramNode>(getId(1));
+        auto       __scope = trackTestExecution(this);
+        auto       node    = std::make_shared<OrgDiagramNode>(getId(1));
         QSignalSpy spy{node.get(), &OrgDiagramNode::dataChanged};
 
         node->updateData();
@@ -209,14 +210,19 @@ class QtOrgAstModelTest : public QObject {
     }
 
     void testDataChangedSync() {
-        auto            root = createTestTree();
+        auto            __scope = trackTestExecution(this);
+        auto            root    = createTestTree();
         OrgDiagramModel model{root};
 
-        QSignalSpy spy{&model, &QAbstractItemModel::dataChanged};
+        QSignalSpy spyModelDataChanged{
+            &model, &QAbstractItemModel::dataChanged};
+        QSignalSpy spyNodeDataChanged{
+            root->subnodes.at(0).get(), &OrgDiagramNode::dataChanged};
 
         root->subnodes.at(0)->updateData();
 
-        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spyNodeDataChanged.count(), 1);
+        QCOMPARE(spyModelDataChanged.count(), 1);
     }
 
     void testRemoveInvalidIndex() {
@@ -261,7 +267,8 @@ class QtOrgAstModelTest : public QObject {
     }
 
     void testMultipleDataChanges() {
-        auto            root = createTestTree();
+        auto            __scope = trackTestExecution(this);
+        auto            root    = createTestTree();
         OrgDiagramModel model{root};
 
         QSignalSpy spy{&model, &QAbstractItemModel::dataChanged};
@@ -274,7 +281,8 @@ class QtOrgAstModelTest : public QObject {
     }
 
     void testInvalidColumnAccess() {
-        auto            root = createTestTree();
+        auto            __scope = trackTestExecution(this);
+        auto            root    = createTestTree();
         OrgDiagramModel model{root};
 
         QModelIndex invalidIndex = model.index(0, 1);
