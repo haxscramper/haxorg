@@ -89,17 +89,18 @@ hstd::finally_std trackTestExecution(
             getDebugFile(testClas, "execution_trace.log").native());
     });
 
-    get_tracker()->start_tracing(line, function, file);
+    auto loc = ::hstd::log::log_graph_processor::tracked_info{
+        ::hstd::log::log_graph_processor::callsite(line, function, file)};
+
+    get_tracker()->start_tracing(loc);
     HSLOG_INFO("org.test", "track test execution");
     return hstd::finally_std{
         [testClas,
          suffix,
-         line,
-         function,
-         file,
+         loc,
          scoped = std::make_shared<decltype(__log_scoped)>(
              std::move(__log_scoped))]() {
-            get_tracker()->end_tracing(line, function, file);
+            get_tracker()->end_tracing(loc);
             get_tracker_graph().render(
                 getDebugFile(testClas, "execution_graph.png"));
         }};

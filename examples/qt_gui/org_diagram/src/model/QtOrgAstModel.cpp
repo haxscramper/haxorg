@@ -180,25 +180,25 @@ void OrgDiagramModel::connectNode(std::shared_ptr<OrgDiagramNode> node) {
         &OrgDiagramNode::subnodeAdded,
         this,
         &OrgDiagramModel::onSubnodeAdded,
-        Qt::AutoConnection | Qt::UniqueConnection);
+        Qt::UniqueConnection);
     TRACKED_CONNECT(
         node.get(),
         &OrgDiagramNode::subnodeAboutToBeRemoved,
         this,
         &OrgDiagramModel::onSubnodeAboutToBeRemoved,
-        Qt::AutoConnection | Qt::UniqueConnection);
+        Qt::UniqueConnection);
     TRACKED_CONNECT(
         node.get(),
         &OrgDiagramNode::subnodeRemoved,
         this,
         &OrgDiagramModel::onSubnodeRemoved,
-        Qt::AutoConnection | Qt::UniqueConnection);
+        Qt::UniqueConnection);
     TRACKED_CONNECT(
         node.get(),
         &OrgDiagramNode::dataChanged,
         this,
         &OrgDiagramModel::onDataChanged,
-        Qt::AutoConnection | Qt::UniqueConnection);
+        Qt::UniqueConnection);
 
     for (auto const& it : node->subnodes) { connectNode(it); }
 }

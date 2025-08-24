@@ -58,80 +58,155 @@ struct log_value_formatter<T> {
 
 struct log_graph_processor {
     virtual ~log_graph_processor() = default;
-    virtual void track_function_start(
-        std::string const& function_name,
-        int                line,
-        char const*        function,
-        char const*        file)
-        = 0;
-    virtual void track_function_end(
-        std::string const& function_name,
-        int                line,
-        char const*        function,
-        char const*        file)
-        = 0;
 
-    virtual void track_signal_emit(
-        QObject const*                  _this,
-        std::string const&              signal_name,
-        std::vector<std::string> const& args,
-        int                             line,
-        char const*                     function,
-        char const*                     file)
-        = 0;
-    virtual void track_slot_trigger(
-        QObject const*                  _this,
-        std::string const&              slot_name,
-        std::vector<std::string> const& args,
-        int                             line,
-        char const*                     function,
-        char const*                     file)
-        = 0;
+    struct callsite {
+        int         line;
+        char const* function;
+        char const* file;
 
-    virtual void track_scope_enter(
-        std::string const& scope_name,
-        int                line,
-        char const*        function,
-        char const*        file)
-        = 0;
-    virtual void track_scope_exit(
-        std::string const& scope_name,
-        int                line,
-        char const*        function,
-        char const*        file)
-        = 0;
-    virtual void track_started(int line, char const* function, char const* file) = 0;
-    virtual void track_ended(int line, char const* function, char const* file) = 0;
-    virtual void track_named_text(
-        std::string const& key,
-        std::string const& value,
-        int                line,
-        char const*        function,
-        char const*        file)
-        = 0;
-    virtual void track_named_jump(
-        std::string const& description,
-        int                line,
-        char const*        function,
-        char const*        file)
-        = 0;
+        static callsite this_callsite(
+            int         line     = __builtin_LINE(),
+            char const* function = __builtin_FUNCTION(),
+            char const* file     = __builtin_FILE()) {
+            return callsite{line, function, file};
+        }
 
-    virtual void track_qobject(
-        QObject const* _this,
-        int            line,
-        char const*    function,
-        char const*    file)
-        = 0;
+        DESC_FIELDS(callsite, (line, function, file));
+        callsite(int line, char const* function, char const* file)
+            : line{line}, function{function}, file{file} {}
+    };
 
-    virtual void track_connect(
-        QObject const*     emitter,
-        std::string const& signal,
-        QObject const*     receiver,
-        std::string const& slot,
-        int                line,
-        char const*        function,
-        char const*        file)
-        = 0;
+    struct tracked_info {
+        callsite loc;
+        DESC_FIELDS(tracked_info, (loc));
+        tracked_info(callsite const& loc) : loc{loc} {}
+    };
+
+    struct function_info : public tracked_info {
+        std::string name;
+        BOOST_DESCRIBE_STRUCT(function_info, (tracked_info), (name));
+        function_info(std::string const& name, callsite const& loc)
+            : tracked_info{loc}, name{name} {}
+    };
+
+    struct signal_emit_info : public tracked_info {
+        std::string              name;
+        QObject const*           sender;
+        std::vector<std::string> args;
+        BOOST_DESCRIBE_STRUCT(
+            signal_emit_info,
+            (tracked_info),
+            (name, sender, args));
+
+        signal_emit_info(
+            QObject const*                  sender,
+            std::string const&              name,
+            std::vector<std::string> const& args,
+            callsite const&                 loc)
+            : tracked_info{loc}, name{name}, args{args}, sender{sender} {}
+    };
+
+
+    struct slot_trigger_info : public tracked_info {
+        std::string              name;
+        QObject const*           sender;
+        QObject const*           receiver;
+        std::vector<std::string> args;
+        BOOST_DESCRIBE_STRUCT(
+            slot_trigger_info,
+            (tracked_info),
+            (name, sender, receiver, args));
+
+        slot_trigger_info(
+            QObject const*                  sender,
+            QObject const*                  receiver,
+            std::string const&              name,
+            std::vector<std::string> const& args,
+            callsite const&                 loc)
+            : tracked_info{loc}
+            , name{name}
+            , args{args}
+            , sender{sender}
+            , receiver{receiver} {}
+    };
+
+
+    struct scope_info : public tracked_info {
+        std::string name;
+        BOOST_DESCRIBE_STRUCT(scope_info, (tracked_info), (name));
+        scope_info(std::string const& name, callsite const& loc)
+            : tracked_info{loc}, name{name} {}
+    };
+
+    struct named_text_info : public tracked_info {
+        std::string key;
+        std::string value;
+        BOOST_DESCRIBE_STRUCT(
+            named_text_info,
+            (tracked_info),
+            (key, value));
+
+        named_text_info(
+            std::string const& key,
+            std::string const& value,
+            callsite const&    loc)
+            : tracked_info{loc}, key{key}, value{value} {}
+    };
+
+
+    struct named_jump_info : public tracked_info {
+        std::string description;
+        BOOST_DESCRIBE_STRUCT(
+            named_jump_info,
+            (tracked_info),
+            (description));
+        named_jump_info(std::string const& name, callsite const& loc)
+            : tracked_info{loc}, description{name} {}
+    };
+
+
+    struct qobject_info : public tracked_info {
+        QObject const* object;
+        BOOST_DESCRIBE_STRUCT(qobject_info, (tracked_info), (object));
+        qobject_info(QObject const* name, callsite const& loc)
+            : tracked_info{loc}, object{name} {}
+    };
+
+
+    struct connect_info : public tracked_info {
+        QObject const* sender;
+        std::string    signal;
+        QObject const* receiver;
+        std::string    slot;
+        BOOST_DESCRIBE_STRUCT(
+            connect_info,
+            (tracked_info),
+            (sender, signal, receiver, slot));
+        connect_info(
+            QObject const*     name,
+            std::string const& signal,
+            QObject const*     receiver,
+            std::string const& slot,
+            callsite const&    loc)
+            : tracked_info{loc}
+            , sender{name}
+            , signal{signal}
+            , receiver{receiver}
+            , slot{slot} {}
+    };
+
+    virtual void track_function_start(function_info const& info)   = 0;
+    virtual void track_function_end(function_info const& info)     = 0;
+    virtual void track_signal_emit(signal_emit_info const& info)   = 0;
+    virtual void track_slot_trigger(slot_trigger_info const& info) = 0;
+    virtual void track_scope_enter(scope_info const& info)         = 0;
+    virtual void track_scope_exit(scope_info const& info)          = 0;
+    virtual void track_started(tracked_info const& info)           = 0;
+    virtual void track_ended(tracked_info const& info)             = 0;
+    virtual void track_named_text(named_text_info const& info)     = 0;
+    virtual void track_named_jump(named_jump_info const& info)     = 0;
+    virtual void track_qobject(qobject_info const& info)           = 0;
+    virtual void track_connect(connect_info const& info)           = 0;
 };
 
 struct log_graph_tracker {
@@ -144,50 +219,37 @@ struct log_graph_tracker {
     void start_tracing(
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
-        char const* file     = __builtin_FILE());
+        char const* file     = __builtin_FILE()) {
+        start_tracing(log_graph_processor::tracked_info(
+            log_graph_processor::callsite(line, function, file)));
+    }
 
     void end_tracing(
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
-        char const* file     = __builtin_FILE());
+        char const* file     = __builtin_FILE()) {
+        end_tracing(log_graph_processor::tracked_info(
+            log_graph_processor::callsite(line, function, file)));
+    }
+
+    void start_tracing(log_graph_processor::tracked_info const& info);
+    void end_tracing(log_graph_processor::tracked_info const& info);
 
     void notify_function_start(
-        std::string const& function_name,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
+        log_graph_processor::function_info const& info);
 
     void notify_function_end(
-        std::string const& function_name,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
+        log_graph_processor::function_info const& info);
 
+    void notify_scope_enter(log_graph_processor::scope_info const& info);
 
-    void notify_scope_enter(
-        std::string const& scope_name,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
-
-    void notify_scope_exit(
-        std::string const& scope_name,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
+    void notify_scope_exit(log_graph_processor::scope_info const& info);
 
     void notify_named_text(
-        std::string const& key,
-        std::string const& value,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
+        log_graph_processor::named_text_info const& info);
 
     void notify_named_jump(
-        std::string const& description,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
+        log_graph_processor::named_jump_info const& info);
 
     template <typename T, typename... Args>
     void format_args_aux(
@@ -207,42 +269,16 @@ struct log_graph_tracker {
         return res;
     }
 
-#define HSLOG_TRACKED_EMIT(__tracker, method, ...)                        \
-    __tracker->notify_signal_emit(                                        \
-        this, #method, __tracker->format_args(__VA_ARGS__));              \
-    emit method(__VA_ARGS__);
-
-#define HSLOG_TRACKED_SLOT(__tracker, method, ...)                        \
-    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_slot(      \
-        this, #method, __tracker->format_args(__VA_ARGS__));
-
-#define HSLOG_TRACKED_FUNCTION(__tracker, method)                         \
-    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_function(  \
-        #method);
 
 #if HAXORG_LOGGER_SUPPORT_QT
 
     void notify_signal_emit(
-        QObject const*                  _this,
-        std::string const&              signal_name,
-        std::vector<std::string> const& args,
-        int                             line     = __builtin_LINE(),
-        char const*                     function = __builtin_FUNCTION(),
-        char const*                     file     = __builtin_FILE());
+        log_graph_processor::signal_emit_info const& info);
 
     void notify_slot_trigger(
-        QObject const*                  _this,
-        std::string const&              slot_name,
-        std::vector<std::string> const& args,
-        int                             line     = __builtin_LINE(),
-        char const*                     function = __builtin_FUNCTION(),
-        char const*                     file     = __builtin_FILE());
+        log_graph_processor::slot_trigger_info const& info);
 
-    void notify_qobject(
-        QObject const* _this,
-        int            line     = __builtin_LINE(),
-        char const*    function = __builtin_FUNCTION(),
-        char const*    file     = __builtin_FILE());
+    void notify_qobject(log_graph_processor::qobject_info const& info);
 
 
     template <typename T>
@@ -256,64 +292,86 @@ struct log_graph_tracker {
     }
 
     auto track_qobject_pass(
-        auto const& _this,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION(),
-        char const* file     = __builtin_FILE()) {
-        notify_qobject(get_ptr(_this), line, function, file);
+        auto const&                          _this,
+        log_graph_processor::callsite const& loc) {
+        notify_qobject(
+            log_graph_processor::qobject_info(get_ptr(_this), loc));
         return _this;
     }
 
-    void notify_connect(
-        QObject const*     emitter,
-        std::string const& signal,
-        QObject const*     receiver,
-        std::string const& slot,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
+    void notify_connect(log_graph_processor::connect_info const& info);
 
 
     hstd::finally_std track_slot(
-        const QObject*                  _this,
-        std::string const&              description,
-        std::vector<std::string> const& args,
-        int                             line     = __builtin_LINE(),
-        char const*                     function = __builtin_FUNCTION(),
-        char const*                     file     = __builtin_FILE());
-
-#    define HSLOG_TRACKED_CONNECT(                                        \
-        _tracker, _sender, _signal, _receiver, _slot, ...)                \
-        _tracker->notify_connect(                                         \
-            _sender,                                                      \
-            #_signal,                                                     \
-            _receiver,                                                    \
-            #_slot __VA_OPT__(, ) __VA_ARGS__);                           \
-        QObject::connect(_sender, _signal, _receiver, _slot);
-
-#    define HSLOG_TRACKED_OBJECT(_tracker, _object)                       \
-        _tracker->track_qobject_pass(_object);
+        log_graph_processor::slot_trigger_info const& info);
 
 #endif
 
 
     hstd::finally_std track_function(
-        std::string const& description,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
+        log_graph_processor::function_info const& info);
 
     hstd::finally_std track_scope(
-        std::string const& description,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
+        log_graph_processor::scope_info const& info);
 
-  private:
     bool TraceState = false;
 
+  private:
     std::vector<std::shared_ptr<log_graph_processor>> processors{};
 };
+
+
+#define HSLOG_TRACKED_EMIT(__tracker, method, ...)                        \
+    __tracker->notify_signal_emit(                                        \
+        ::hstd::log::log_graph_processor::signal_emit_info(               \
+            this,                                                         \
+            #method,                                                      \
+            __tracker->format_args(__VA_ARGS__),                          \
+            ::hstd::log::log_graph_processor::callsite::                  \
+                this_callsite()));                                        \
+    emit method(__VA_ARGS__);
+
+#define HSLOG_TRACKED_SLOT(__tracker, method, ...)                        \
+    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_slot(      \
+        ::hstd::log::log_graph_processor::slot_trigger_info(              \
+            this,                                                         \
+            sender(),                                                     \
+            #method,                                                      \
+            __tracker->format_args(__VA_ARGS__),                          \
+            ::hstd::log::log_graph_processor::callsite::                  \
+                this_callsite()));
+
+#define HSLOG_TRACKED_FUNCTION(__tracker, method)                         \
+    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_function(  \
+        ::hstd::log::log_graph_processor::function_info(                  \
+            #method,                                                      \
+            ::hstd::log::log_graph_processor::callsite::                  \
+                this_callsite()));
+
+#if HAXORG_LOGGER_SUPPORT_QT
+
+#    define HSLOG_TRACKED_CONNECT(                                        \
+        _tracker, _sender, _signal, _receiver, _slot, ...)                \
+        _tracker->notify_connect(                                         \
+            ::hstd::log::log_graph_processor::connect_info(               \
+                _sender,                                                  \
+                #_signal,                                                 \
+                _receiver,                                                \
+                #_slot,                                                   \
+                ::hstd::log::log_graph_processor::callsite::              \
+                    this_callsite()));                                    \
+        QObject::connect(                                                 \
+            _sender,                                                      \
+            _signal,                                                      \
+            _receiver,                                                    \
+            _slot __VA_OPT__(, ) __VA_ARGS__);
+
+#    define HSLOG_TRACKED_OBJECT(_tracker, _object)                       \
+        _tracker->track_qobject_pass(                                     \
+            _object,                                                      \
+            ::hstd::log::log_graph_processor::callsite::this_callsite());
+
+#endif
 
 
 #if HAXORG_LOGGER_SUPPORT_QT
@@ -374,81 +432,20 @@ struct graphviz_processor : public log_graph_processor {
         bool                     is_scope{false};
     };
 
-    void track_function_start(
-        std::string const& function_name,
-        int                line,
-        char const*        function,
-        char const*        file) override;
-
-    void track_function_end(
-        std::string const& function_name,
-        int                line,
-        char const*        function,
-        char const*        file) override;
-
-    void track_scope_enter(
-        std::string const& scope_name,
-        int                line,
-        char const*        function,
-        char const*        file) override;
-
-    void track_scope_exit(
-        std::string const& scope_name,
-        int                line,
-        char const*        function,
-        char const*        file) override;
-
-    void track_started(int line, char const* function, char const* file)
-        override;
-
-    void track_ended(int line, char const* function, char const* file)
-        override {}
-
-    void track_named_text(
-        std::string const& key,
-        std::string const& value,
-        int                line,
-        char const*        function,
-        char const*        file) override {}
-
-    void track_named_jump(
-        std::string const& description,
-        int                line,
-        char const*        function,
-        char const*        file) override;
+    void track_function_start(function_info const& info) override;
+    void track_function_end(function_info const& info) override;
+    void track_scope_enter(scope_info const& info) override;
+    void track_scope_exit(scope_info const& info) override;
+    void track_started(tracked_info const& info) override;
+    void track_ended(tracked_info const& info) override {}
+    void track_named_text(named_text_info const& info) override {}
+    void track_named_jump(named_jump_info const& info) override;
 
 #if HAXORG_LOGGER_SUPPORT_QT
-    void track_signal_emit(
-        const QObject*                  _this,
-        std::string const&              signal_name,
-        std::vector<std::string> const& args,
-        int                             line,
-        char const*                     function,
-        char const*                     file) override;
-
-    void track_slot_trigger(
-        const QObject*                  _this,
-        std::string const&              slot_name,
-        std::vector<std::string> const& args,
-        int                             line,
-        char const*                     function,
-        char const*                     file) override;
-
-    void track_qobject(
-        const QObject* _this,
-        int            line,
-        const char*    function,
-        const char*    file) override {}
-
-    void track_connect(
-        const QObject*     emitter,
-        const std::string& signal,
-        const QObject*     receiver,
-        const std::string& slot,
-        int                line,
-        const char*        function,
-        const char*        file) override {}
-
+    void track_signal_emit(signal_emit_info const& info) override;
+    void track_slot_trigger(slot_trigger_info const& info) override;
+    void track_qobject(qobject_info const& info) override {}
+    void track_connect(connect_info const& info) override {}
 #endif
 
     hstd::ext::Graphviz::Graph get_graphviz();
@@ -465,81 +462,20 @@ struct graphviz_processor : public log_graph_processor {
 };
 
 struct logger_processor : public log_graph_processor {
-    void track_function_start(
-        std::string const& function_name,
-        int                line,
-        char const*        function,
-        char const*        file) override;
-
-    void track_function_end(
-        std::string const& function_name,
-        int                line,
-        char const*        function,
-        char const*        file) override;
-
-
-    void track_scope_enter(
-        std::string const& scope_name,
-        int                line,
-        char const*        function,
-        char const*        file) override;
-
-    void track_scope_exit(
-        std::string const& scope_name,
-        int                line,
-        char const*        function,
-        char const*        file) override;
-
-    void track_started(int line, char const* function, char const* file)
-        override;
-
-    void track_ended(int line, char const* function, char const* file)
-        override;
-
-    void track_named_text(
-        std::string const& key,
-        std::string const& value,
-        int                line,
-        char const*        function,
-        char const*        file) override;
-
-    void track_named_jump(
-        std::string const& description,
-        int                line,
-        char const*        function,
-        char const*        file) override;
+    void track_function_start(function_info const& info) override;
+    void track_function_end(function_info const& info) override;
+    void track_scope_enter(scope_info const& info) override;
+    void track_scope_exit(scope_info const& info) override;
+    void track_started(tracked_info const& info) override;
+    void track_ended(tracked_info const& info) override;
+    void track_named_text(named_text_info const& info) override;
+    void track_named_jump(named_jump_info const& info) override;
 
 #if HAXORG_LOGGER_SUPPORT_QT
-    void track_signal_emit(
-        QObject const*                  _this,
-        std::string const&              signal_name,
-        std::vector<std::string> const& args,
-        int                             line,
-        char const*                     function,
-        char const*                     file) override;
-
-    void track_slot_trigger(
-        QObject const*                  _this,
-        std::string const&              slot_name,
-        std::vector<std::string> const& args,
-        int                             line,
-        char const*                     function,
-        char const*                     file) override;
-
-    void track_qobject(
-        const QObject* _this,
-        int            line,
-        const char*    function,
-        const char*    file) override;
-
-    void track_connect(
-        const QObject*     emitter,
-        const std::string& signal,
-        const QObject*     receiver,
-        const std::string& slot,
-        int                line,
-        const char*        function,
-        const char*        file) override;
+    void track_signal_emit(signal_emit_info const& info) override;
+    void track_slot_trigger(slot_trigger_info const& info) override;
+    void track_qobject(qobject_info const& info) override;
+    void track_connect(connect_info const& info) override;
 #endif
 };
 } // namespace hstd::log

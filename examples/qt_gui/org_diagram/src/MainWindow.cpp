@@ -264,8 +264,7 @@ void MainWindow::connectSignals() {
 
 void MainWindow::setZoom(int value) {
     TRACKED_SLOT("setZoom", value);
-    auto  __scope = get_tracker()->track_function("MainWindow::setZoom");
-    qreal scale   = value / 100.0;
+    qreal scale = value / 100.0;
     view->setTransform(QTransform::fromScale(scale, scale));
     zoomLabel->setText(QString{"%1%"}.arg(value));
 }
