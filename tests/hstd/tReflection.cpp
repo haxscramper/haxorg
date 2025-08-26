@@ -277,18 +277,18 @@ struct FieldIndexing_Private {
     int f1;
 
   public:
-    int f2;
-
+    int  f2;
     int  getF1() { return f1; }
     void setF1(int value) { f1 = value; }
 
+
   public:
-    BOOST_DESCRIBE_CLASS(FieldIndexing_Private, (), (f1, f2), (), ());
+    BOOST_DESCRIBE_CLASS(FieldIndexing_Private, (), (f2), (), (f1));
 };
 
 TEST(Reflection, FieldIndexing) {
     auto own_tuple_size = []<typename T>(T const& t) {
-        return std::tuple_size_v<decltype(class_to_ptr_tuple(t))>;
+        return std::tuple_size_v<decltype(class_to_total_ptr_tuple(t))>;
     };
 
     {
@@ -360,6 +360,17 @@ TEST(Reflection, FieldIndexing) {
             hstd::get_field_ptr_by_own_index(t, 3), std::out_of_range);
         EXPECT_THROW(
             hstd::get_field_ptr_by_total_index(t, 3), std::out_of_range);
+
+        static_assert(
+            std::is_same_v<decltype(&T::field1), decltype(&T::field1)>);
+
+        EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::field1), 0);
+        EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::field2), 1);
+        EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::field3), 2);
+
+        EXPECT_EQ(hstd::get_total_field_index_by_ptr(&T::field1), 0);
+        EXPECT_EQ(hstd::get_total_field_index_by_ptr(&T::field2), 1);
+        EXPECT_EQ(hstd::get_total_field_index_by_ptr(&T::field3), 2);
     }
 
     {
@@ -421,6 +432,19 @@ TEST(Reflection, FieldIndexing) {
             hstd::get_field_ptr_by_own_index(t, -1), std::out_of_range);
         EXPECT_THROW(
             hstd::get_field_ptr_by_total_index(t, -1), std::out_of_range);
+
+
+        EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::baseField1), 0);
+        EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::baseField2), 1);
+        EXPECT_EQ(hstd::get_total_field_index_by_ptr(&T::baseField1), 0);
+        EXPECT_EQ(hstd::get_total_field_index_by_ptr(&T::baseField2), 1);
+
+        EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::derivedField1), 0);
+        EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::derivedField2), 1);
+        EXPECT_EQ(
+            hstd::get_total_field_index_by_ptr(&T::derivedField1), 2);
+        EXPECT_EQ(
+            hstd::get_total_field_index_by_ptr(&T::derivedField2), 3);
     }
 
     {
@@ -431,10 +455,10 @@ TEST(Reflection, FieldIndexing) {
         EXPECT_EQ(hstd::get_own_field_count<T>(), 2);
         EXPECT_EQ(hstd::get_total_field_count<T>(), 2);
         EXPECT_EQ(own_tuple_size(t), 2);
-        auto tuple = class_to_ptr_tuple(t);
-        EXPECT_EQ(*std::get<0>(tuple), 2000);
-        EXPECT_EQ(*std::get<1>(tuple), 1233);
-        *const_cast<int*>(std::get<0>(tuple)) = 123333;
+        auto tuple = class_to_total_ptr_tuple(t);
+        EXPECT_EQ(*std::get<0>(tuple), 1233);
+        EXPECT_EQ(*std::get<1>(tuple), 2000);
+        *const_cast<int*>(std::get<1>(tuple)) = 123333;
         EXPECT_EQ(t.getF1(), 123333);
     }
 }

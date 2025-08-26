@@ -342,7 +342,7 @@ struct __DescFieldTypeHelper<FieldType StructType::*const> {
 
 
 template <class T, template <class...> class L, class... D>
-auto class_to_ptr_tuple_impl(T const& t, L<D...>) {
+auto class_to_total_ptr_tuple_impl(T const& t, L<D...>) {
     return std::make_tuple(std::addressof(t.*D::pointer)...);
 }
 
@@ -350,17 +350,18 @@ template <
     DescribedRecord T,
     class Dm = boost::describe::describe_members<
         T,
-        boost::describe::mod_public | boost::describe::mod_inherited>,
+        ::boost::describe::mod_any_access
+            | boost::describe::mod_inherited>,
     class En = std::enable_if_t<!std::is_union<T>::value>>
-auto class_to_ptr_tuple(T const& t) {
-    return class_to_ptr_tuple_impl(t, Dm());
+auto class_to_total_ptr_tuple(T const& t) {
+    return class_to_total_ptr_tuple_impl(t, Dm());
 }
 
 template <typename T>
 int get_total_field_count() {
     if (boost::describe::has_describe_members<T>::value) {
         using own_members = boost::describe::
-            describe_members<T, boost::describe::mod_public>;
+            describe_members<T, ::boost::describe::mod_any_access>;
         int own_count = boost::mp11::mp_size<own_members>::value;
 
         if (boost::describe::has_describe_bases<T>::value) {
@@ -389,7 +390,7 @@ int get_total_field_count() {
 template <DescribedRecord T>
 constexpr int get_own_field_count() {
     using own_members = boost::describe::
-        describe_members<T, boost::describe::mod_public>;
+        describe_members<T, ::boost::describe::mod_any_access>;
     return boost::mp11::mp_size<own_members>::value;
 }
 
@@ -399,7 +400,8 @@ void* get_field_ptr_by_total_index(T& object, int index) {
     if constexpr (boost::describe::has_describe_members<T>::value) {
         using all_members = boost::describe::describe_members<
             T,
-            boost::describe::mod_public | boost::describe::mod_inherited>;
+            ::boost::describe::mod_any_access
+                | boost::describe::mod_inherited>;
         constexpr int total_count = boost::mp11::mp_size<
             all_members>::value;
 
@@ -461,11 +463,93 @@ template <DescribedRecord T>
 struct struct_field_types {
     using L = boost::describe::describe_members<
         T,
-        boost::describe::mod_public | boost::describe::mod_inherited>;
+        ::boost::describe::mod_any_access
+            | boost::describe::mod_inherited>;
     using list = typename boost::mp11::
         mp_rename<L, class_to_field_type_list_impl>::result;
 };
 
+template <typename T1, typename F1, typename T2, typename F2>
+constexpr bool compare_field_pointers_eq(F1 T1::*ptr1, F2 T2::*ptr2) {
+    if constexpr (std::is_same_v<T1, T2> && std::is_same_v<F1, F2>) {
+        return ptr1 == ptr2;
+    } else {
+        return false;
+    }
+}
+
+
+template <typename T, typename F>
+int get_own_field_index_by_ptr(F T::*fieldPtr) {
+    if constexpr (boost::describe::has_describe_members<T>::value) {
+        using own_members = boost::describe::
+            describe_members<T, ::boost::describe::mod_any_access>;
+        constexpr int own_count = boost::mp11::mp_size<own_members>::value;
+
+        if constexpr (own_count == 0) {
+            throw std::out_of_range{"No fields in object"};
+        } else {
+            int result = -1;
+            boost::mp11::mp_for_each<boost::mp11::mp_iota_c<own_count>>(
+                [&](auto I) {
+                    if (result == -1) {
+                        using member_desc = boost::mp11::
+                            mp_at_c<own_members, I>;
+                        if (compare_field_pointers_eq(
+                                member_desc::pointer, fieldPtr)) {
+                            result = I;
+                        }
+                    }
+                });
+
+            if (result == -1) {
+                throw std::out_of_range{
+                    "Field pointer not found in object"};
+            }
+            return result;
+        }
+    } else {
+        throw std::out_of_range{"Type has no described members"};
+    }
+}
+
+// Replace the existing get_total_field_index_by_ptr function with:
+template <typename T, typename F>
+int get_total_field_index_by_ptr(F T::*fieldPtr) {
+    if constexpr (boost::describe::has_describe_members<T>::value) {
+        using all_members = boost::describe::describe_members<
+            T,
+            ::boost::describe::mod_any_access
+                | boost::describe::mod_inherited>;
+        constexpr int total_count = boost::mp11::mp_size<
+            all_members>::value;
+
+        if constexpr (total_count == 0) {
+            throw std::out_of_range{"No fields in object"};
+        } else {
+            int result = -1;
+            boost::mp11::mp_for_each<boost::mp11::mp_iota_c<total_count>>(
+                [&](auto I) {
+                    if (result == -1) {
+                        using member_desc = boost::mp11::
+                            mp_at_c<all_members, I>;
+                        if (compare_field_pointers_eq(
+                                member_desc::pointer, fieldPtr)) {
+                            result = I;
+                        }
+                    }
+                });
+
+            if (result == -1) {
+                throw std::out_of_range{
+                    "Field pointer not found in object"};
+            }
+            return result;
+        }
+    } else {
+        throw std::out_of_range{"Type has no described members"};
+    }
+}
 
 } // namespace hstd
 
