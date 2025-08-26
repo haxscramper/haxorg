@@ -12,6 +12,7 @@
 #include <hstd/stdlib/Map.hpp>
 #include <any>
 #include <hstd/stdlib/algorithms.hpp>
+#include <boost/preprocessor.hpp>
 
 template <>
 struct std::formatter<std::any> : std::formatter<std::string> {
@@ -953,6 +954,131 @@ void reflVisitPath(
             });
     }
 }
+
+
+// Runtime registry for field information
+class TypeFieldNameRegistry {
+  public:
+    struct TypeInfo {
+        std::vector<std::string> field_names;
+        std::size_t              field_count;
+    };
+
+  private:
+    static std::unordered_map<std::type_index, TypeInfo>& get_registry() {
+        static std::unordered_map<std::type_index, TypeInfo> registry;
+        return registry;
+    }
+
+  public:
+    template <typename T>
+    static void register_type() {
+        std::type_index type_id  = std::type_index(typeid(T));
+        auto&           registry = get_registry();
+
+        if (registry.find(type_id) != registry.end()) { return; }
+
+        TypeInfo info;
+        collect_field_names<T>(info.field_names);
+        info.field_count = info.field_names.size();
+
+        registry[type_id] = std::move(info);
+    }
+
+    static std::string get_field_name(
+        std::type_index type_id,
+        std::size_t     field_index) {
+        auto& registry = get_registry();
+        auto  it       = registry.find(type_id);
+        if (it == registry.end()) {
+            throw std::runtime_error(
+                "Type not registered: " + std::string{type_id.name()});
+        }
+
+        if (field_index >= it->second.field_count) {
+            throw std::out_of_range(
+                "Field index out of range, type "
+                + std::string{type_id.name()} + " has only "
+                + std::to_string(it->second.field_count) + " fields.");
+        }
+
+        return it->second.field_names[field_index];
+    }
+
+    static std::size_t get_field_count(std::type_index type_id) {
+        auto& registry = get_registry();
+        auto  it       = registry.find(type_id);
+        if (it == registry.end()) {
+            throw std::runtime_error(
+                "Type not registered: " + std::string{type_id.name()});
+        }
+
+        return it->second.field_count;
+    }
+
+  private:
+    template <typename T>
+    static void collect_field_names(std::vector<std::string>& names) {
+        // First collect base class fields
+        if constexpr (boost::describe::has_describe_bases<T>::value) {
+            using bases = boost::describe::
+                describe_bases<T, boost::describe::mod_any_access>;
+            boost::mp11::mp_for_each<bases>([&](auto base_desc) {
+                using base_type = typename decltype(base_desc)::type;
+                collect_field_names<base_type>(names);
+            });
+        }
+
+        // Then collect own fields
+        if constexpr (boost::describe::has_describe_members<T>::value) {
+            using own_members = boost::describe::
+                describe_members<T, boost::describe::mod_public>;
+            boost::mp11::mp_for_each<own_members>([&](auto member_desc) {
+                names.emplace_back(member_desc.name);
+            });
+        }
+    }
+};
+
+// Auto-registration helper
+template <typename T>
+struct AutoRegisterType {
+    AutoRegisterType() { TypeFieldNameRegistry::register_type<T>(); }
+};
+
+// clang-format off
+#define HSTD_REGISTER_TYPE_FIELD_NAMES(T)                                 \
+    namespace {                                                           \
+    static ::hstd::AutoRegisterType<T> BOOST_PP_CAT(auto_register, __COUNTER__); \
+    }
+
+// clang-format on
+
+// Convenience functions
+template <typename T>
+std::string get_registered_field_name(std::size_t field_index) {
+    TypeFieldNameRegistry::register_type<T>(); // Ensure registered
+    return TypeFieldNameRegistry::get_field_name(
+        std::type_index(typeid(T)), field_index);
+}
+
+inline std::string get_registered_field_name(
+    std::type_index type_id,
+    std::size_t     field_index) {
+    return TypeFieldNameRegistry::get_field_name(type_id, field_index);
+}
+
+template <typename T>
+std::size_t get_registered_field_count() {
+    TypeFieldNameRegistry::register_type<T>(); // Ensure registered
+    return TypeFieldNameRegistry::get_field_count(
+        std::type_index(typeid(T)));
+}
+
+inline std::size_t get_registered_field_count(std::type_index type_id) {
+    return TypeFieldNameRegistry::get_field_count(type_id);
+}
+
 
 } // namespace hstd
 

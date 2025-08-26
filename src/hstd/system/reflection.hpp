@@ -10,6 +10,7 @@
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/system/basic_templates.hpp>
+#include <typeindex>
 #include <vector>
 #include <format>
 #include <type_traits>
@@ -550,7 +551,6 @@ int get_total_field_index_by_ptr(F T::*fieldPtr) {
         throw std::out_of_range{"Type has no described members"};
     }
 }
-
 } // namespace hstd
 
 template <hstd::SerializableEnum T>

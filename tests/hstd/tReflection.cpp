@@ -6,6 +6,7 @@
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include "hstd_tests_common.hpp"
 
 
 using namespace hstd;
@@ -286,6 +287,7 @@ struct FieldIndexing_Private {
     BOOST_DESCRIBE_CLASS(FieldIndexing_Private, (), (f2), (), (f1));
 };
 
+
 TEST(Reflection, FieldIndexing) {
     auto own_tuple_size = []<typename T>(T const& t) {
         return std::tuple_size_v<decltype(class_to_total_ptr_tuple(t))>;
@@ -460,6 +462,114 @@ TEST(Reflection, FieldIndexing) {
         EXPECT_EQ(*std::get<1>(tuple), 2000);
         *const_cast<int*>(std::get<1>(tuple)) = 123333;
         EXPECT_EQ(t.getF1(), 123333);
+    }
+}
+
+// Insert this test after the existing FieldIndexing test:
+
+HSTD_REGISTER_TYPE_FIELD_NAMES(FieldIndexing_0items);
+HSTD_REGISTER_TYPE_FIELD_NAMES(FieldIndexing_3items);
+HSTD_REGISTER_TYPE_FIELD_NAMES(FieldIndexing_Base);
+HSTD_REGISTER_TYPE_FIELD_NAMES(FieldIndexing_Derived);
+
+TEST(Reflection, GlobalFieldNamingRegistry) {
+    // Register types
+
+    // Test 0 items type
+    {
+        using T            = FieldIndexing_0items;
+        std::type_index id = std::type_index(typeid(T));
+        EXPECT_EQ(hstd::get_registered_field_count<T>(), 0);
+        EXPECT_EQ(hstd::get_registered_field_count(id), 0);
+        EXPECT_THROW(
+            hstd::get_registered_field_name<T>(0), std::out_of_range);
+        EXPECT_THROW(
+            hstd::get_registered_field_name(id, 0), std::out_of_range);
+    }
+
+    // Test 3 items type
+    {
+        using T            = FieldIndexing_3items;
+        std::type_index id = std::type_index(typeid(T));
+        EXPECT_EQ(hstd::get_registered_field_count<T>(), 3);
+        EXPECT_EQ(hstd::get_registered_field_count(id), 3);
+
+        EXPECT_EQ(hstd::get_registered_field_name<T>(0), "field1");
+        EXPECT_EQ(hstd::get_registered_field_name<T>(1), "field2");
+        EXPECT_EQ(hstd::get_registered_field_name<T>(2), "field3");
+
+        EXPECT_EQ(hstd::get_registered_field_name(id, 0), "field1");
+        EXPECT_EQ(hstd::get_registered_field_name(id, 1), "field2");
+        EXPECT_EQ(hstd::get_registered_field_name(id, 2), "field3");
+
+        EXPECT_THROW(
+            hstd::get_registered_field_name<T>(3), std::out_of_range);
+        EXPECT_THROW(
+            hstd::get_registered_field_name(id, 3), std::out_of_range);
+    }
+
+    // Test base type
+    {
+        using T            = FieldIndexing_Base;
+        std::type_index id = std::type_index(typeid(T));
+        EXPECT_EQ(hstd::get_registered_field_count<T>(), 2);
+        EXPECT_EQ(hstd::get_registered_field_count(id), 2);
+
+        EXPECT_EQ(hstd::get_registered_field_name<T>(0), "baseField1");
+        EXPECT_EQ(hstd::get_registered_field_name<T>(1), "baseField2");
+
+        EXPECT_EQ(hstd::get_registered_field_name(id, 0), "baseField1");
+        EXPECT_EQ(hstd::get_registered_field_name(id, 1), "baseField2");
+    }
+
+    // Test derived type (should include base fields)
+    {
+        using T            = FieldIndexing_Derived;
+        std::type_index id = std::type_index(typeid(T));
+        EXPECT_EQ(hstd::get_registered_field_count<T>(), 4);
+        EXPECT_EQ(hstd::get_registered_field_count(id), 4);
+
+        // Base fields should come first
+        EXPECT_EQ(hstd::get_registered_field_name<T>(0), "baseField1");
+        EXPECT_EQ(hstd::get_registered_field_name<T>(1), "baseField2");
+        // Then derived fields
+        EXPECT_EQ(hstd::get_registered_field_name<T>(2), "derivedField1");
+        EXPECT_EQ(hstd::get_registered_field_name<T>(3), "derivedField2");
+
+        // Test with type_index
+        EXPECT_EQ(hstd::get_registered_field_name(id, 0), "baseField1");
+        EXPECT_EQ(hstd::get_registered_field_name(id, 1), "baseField2");
+        EXPECT_EQ(hstd::get_registered_field_name(id, 2), "derivedField1");
+        EXPECT_EQ(hstd::get_registered_field_name(id, 3), "derivedField2");
+
+        EXPECT_THROW(
+            hstd::get_registered_field_name<T>(4), std::out_of_range);
+        EXPECT_THROW(
+            hstd::get_registered_field_name(id, 4), std::out_of_range);
+    }
+
+    // Test unregistered type throws
+    {
+        struct UnregisteredType {
+            int field;
+        };
+        EXPECT_THROW(
+            hstd::get_registered_field_count(
+                std::type_index(typeid(UnregisteredType))),
+            std::runtime_error);
+        EXPECT_THROW(
+            hstd::get_registered_field_name(
+                std::type_index(typeid(UnregisteredType)), 0),
+            std::runtime_error);
+    }
+
+    {
+        std::type_index id = std::type_index(
+            typeid(reflection_test::reflection_named));
+
+        EXPECT_EQ(hstd::get_registered_field_count(id), 2);
+        EXPECT_EQ(hstd::get_registered_field_name(id, 0), "f1");
+        EXPECT_EQ(hstd::get_registered_field_name(id, 1), "f2");
     }
 }
 

@@ -81,8 +81,7 @@ struct ImmReflFieldId {
     static ImmReflFieldId FromTypeField(F T::*fieldPtr) {
         return ImmReflFieldId::FromIdParts(
             getStableTypeId<T>(),
-            static_cast<offset_type>(reinterpret_cast<std::uintptr_t>(
-                &(static_cast<T*>(nullptr)->*fieldPtr))));
+            hstd::get_total_field_index_by_ptr(fieldPtr));
     }
 
     bool operator==(ImmReflFieldId const& other) const {
