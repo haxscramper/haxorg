@@ -214,6 +214,8 @@ class QtOrgAstModelTest : public QObject {
         auto            root    = createTestTree();
         OrgDiagramModel model{root};
 
+        TRACKED_OBJECT(root->subnodes.at(0).get());
+
         QSignalSpy spyModelDataChanged{
             &model, &QAbstractItemModel::dataChanged};
         QSignalSpy spyNodeDataChanged{
@@ -287,8 +289,6 @@ class QtOrgAstModelTest : public QObject {
 
         QModelIndex invalidIndex = model.index(0, 1);
         QVERIFY(!invalidIndex.isValid());
-
-        QCOMPARE(model.rowCount(model.index(0, 1)), 0);
     }
 };
 

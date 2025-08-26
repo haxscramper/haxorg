@@ -53,20 +53,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
 
     QModelIndex parent(const QModelIndex& index) const override;
 
-    int rowCount(
-        const QModelIndex& parent = QModelIndex{}) const override {
-        if (parent.column() > 0) { return 0; }
-
-        OrgDiagramNode* parentNode{};
-        if (!parent.isValid()) {
-            parentNode = rootNode.get();
-        } else {
-            parentNode = static_cast<OrgDiagramNode*>(
-                parent.internalPointer());
-        }
-
-        return static_cast<int>(parentNode->subnodes.size());
-    }
+    int rowCount(const QModelIndex& parent = QModelIndex{}) const override;
 
     int columnCount(
         const QModelIndex& parent = QModelIndex{}) const override {

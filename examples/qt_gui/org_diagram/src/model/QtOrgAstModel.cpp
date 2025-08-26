@@ -33,6 +33,20 @@ QModelIndex OrgDiagramModel::parent(const QModelIndex& index) const {
     return QModelIndex{};
 }
 
+int OrgDiagramModel::rowCount(const QModelIndex& parent) const {
+    if (0 < parent.column()) { return 0; }
+
+    OrgDiagramNode* parentNode{};
+    if (parent.isValid()) {
+        parentNode = static_cast<OrgDiagramNode*>(
+            parent.internalPointer());
+    } else {
+        parentNode = rootNode.get();
+    }
+
+    return static_cast<int>(parentNode->subnodes.size());
+}
+
 bool OrgDiagramModel::insertRows(
     int                row,
     int                count,

@@ -13,7 +13,7 @@ std::shared_ptr<hstd::log::log_graph_tracker> get_tracker();
 hstd::ext::Graphviz::Graph                    get_tracker_graph();
 
 #define TRACKED_SLOT(...) HSLOG_TRACKED_SLOT(get_tracker(), __VA_ARGS__)
-#define TRACKED_EMIT(...) HSLOG_TRACKED_SLOT(get_tracker(), __VA_ARGS__)
+#define TRACKED_EMIT(...) HSLOG_TRACKED_EMIT(get_tracker(), __VA_ARGS__)
 #define TRACKED_FUNCTION(...)                                             \
     HSLOG_TRACKED_FUNCTION(get_tracker(), __VA_ARGS__)
 #define TRACKED_CONNECT(...)                                              \

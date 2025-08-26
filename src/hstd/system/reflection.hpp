@@ -340,6 +340,133 @@ struct __DescFieldTypeHelper<FieldType StructType::*const> {
     using Type = std::remove_cvref_t<FieldType>;
 };
 
+
+template <class T, template <class...> class L, class... D>
+auto class_to_ptr_tuple_impl(T const& t, L<D...>) {
+    return std::make_tuple(std::addressof(t.*D::pointer)...);
+}
+
+template <
+    DescribedRecord T,
+    class Dm = boost::describe::describe_members<
+        T,
+        boost::describe::mod_public | boost::describe::mod_inherited>,
+    class En = std::enable_if_t<!std::is_union<T>::value>>
+auto class_to_ptr_tuple(T const& t) {
+    return class_to_ptr_tuple_impl(t, Dm());
+}
+
+template <typename T>
+int get_total_field_count() {
+    if (boost::describe::has_describe_members<T>::value) {
+        using own_members = boost::describe::
+            describe_members<T, boost::describe::mod_public>;
+        int own_count = boost::mp11::mp_size<own_members>::value;
+
+        if (boost::describe::has_describe_bases<T>::value) {
+            using bases = boost::describe::
+                describe_bases<T, boost::describe::mod_any_access>;
+            int base_count = boost::mp11::mp_size<bases>::value;
+
+            if (base_count > 0) {
+                int total = own_count;
+                boost::mp11::mp_for_each<bases>([&](auto base_desc) {
+                    using base_type = typename decltype(base_desc)::type;
+                    total += get_total_field_count<base_type>();
+                });
+                return total;
+            } else {
+                return own_count;
+            }
+        } else {
+            return own_count;
+        }
+    } else {
+        return 0;
+    }
+}
+
+template <DescribedRecord T>
+constexpr int get_own_field_count() {
+    using own_members = boost::describe::
+        describe_members<T, boost::describe::mod_public>;
+    return boost::mp11::mp_size<own_members>::value;
+}
+
+
+template <typename T>
+void* get_field_ptr_by_total_index(T& object, int index) {
+    if constexpr (boost::describe::has_describe_members<T>::value) {
+        using all_members = boost::describe::describe_members<
+            T,
+            boost::describe::mod_public | boost::describe::mod_inherited>;
+        constexpr int total_count = boost::mp11::mp_size<
+            all_members>::value;
+
+        if (index < 0 || index >= total_count) {
+            throw std::out_of_range{"Field index out of range"};
+        }
+
+        if constexpr (total_count == 0) {
+            throw std::out_of_range{"Field index out of range"};
+        } else {
+            void* result = nullptr;
+            boost::mp11::mp_with_index<total_count>(index, [&](auto I) {
+                using member_desc = boost::mp11::mp_at_c<all_members, I>;
+                result            = static_cast<void*>(
+                    &(object.*member_desc::pointer));
+            });
+            return result;
+        }
+    } else {
+        throw std::out_of_range{"Type has no described members"};
+    }
+}
+
+
+template <typename T>
+void* get_field_ptr_by_own_index(T& object, int index) {
+    if constexpr (boost::describe::has_describe_members<T>::value) {
+        using own_members = boost::describe::
+            describe_members<T, boost::describe::mod_public>;
+        constexpr int own_count = boost::mp11::mp_size<own_members>::value;
+
+        if (index < 0 || index >= own_count) {
+            throw std::out_of_range{"Field index out of range"};
+        }
+
+        if constexpr (own_count == 0) {
+            throw std::out_of_range{"Field index out of range"};
+        } else {
+            void* result = nullptr;
+            boost::mp11::mp_with_index<own_count>(index, [&](auto I) {
+                using member_desc = boost::mp11::mp_at_c<own_members, I>;
+                result            = static_cast<void*>(
+                    &(object.*member_desc::pointer));
+            });
+            return result;
+        }
+    } else {
+        throw std::out_of_range{"Type has no described members"};
+    }
+}
+
+template <class... D>
+struct class_to_field_type_list_impl {
+    using result = boost::mp11::mp_list<
+        typename std::remove_reference_t<decltype(*D::pointer)>...>;
+};
+
+template <DescribedRecord T>
+struct struct_field_types {
+    using L = boost::describe::describe_members<
+        T,
+        boost::describe::mod_public | boost::describe::mod_inherited>;
+    using list = typename boost::mp11::
+        mp_rename<L, class_to_field_type_list_impl>::result;
+};
+
+
 } // namespace hstd
 
 template <hstd::SerializableEnum T>
