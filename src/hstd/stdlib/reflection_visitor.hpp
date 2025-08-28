@@ -960,6 +960,7 @@ void reflVisitPath(
 class TypeFieldNameRegistry {
   public:
     struct TypeInfo {
+        std::string              type_name;
         std::vector<std::string> field_names;
         std::size_t              field_count;
     };
@@ -979,6 +980,7 @@ class TypeFieldNameRegistry {
         if (registry.find(type_id) != registry.end()) { return; }
 
         TypeInfo info;
+        info.type_name = hstd::demangle(type_id.name());
         collect_field_names<T>(info.field_names);
         info.field_count = info.field_names.size();
 
@@ -987,34 +989,9 @@ class TypeFieldNameRegistry {
 
     static std::string get_field_name(
         std::type_index type_id,
-        std::size_t     field_index) {
-        auto& registry = get_registry();
-        auto  it       = registry.find(type_id);
-        if (it == registry.end()) {
-            throw std::runtime_error(
-                "Type not registered: " + std::string{type_id.name()});
-        }
+        std::size_t     field_index);
 
-        if (field_index >= it->second.field_count) {
-            throw std::out_of_range(
-                "Field index out of range, type "
-                + std::string{type_id.name()} + " has only "
-                + std::to_string(it->second.field_count) + " fields.");
-        }
-
-        return it->second.field_names[field_index];
-    }
-
-    static std::size_t get_field_count(std::type_index type_id) {
-        auto& registry = get_registry();
-        auto  it       = registry.find(type_id);
-        if (it == registry.end()) {
-            throw std::runtime_error(
-                "Type not registered: " + std::string{type_id.name()});
-        }
-
-        return it->second.field_count;
-    }
+    static std::size_t get_field_count(std::type_index type_id);
 
   private:
     template <typename T>
@@ -1032,7 +1009,7 @@ class TypeFieldNameRegistry {
         // Then collect own fields
         if constexpr (boost::describe::has_describe_members<T>::value) {
             using own_members = boost::describe::
-                describe_members<T, boost::describe::mod_public>;
+                describe_members<T, boost::describe::mod_any_access>;
             boost::mp11::mp_for_each<own_members>([&](auto member_desc) {
                 names.emplace_back(member_desc.name);
             });

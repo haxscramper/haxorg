@@ -29,14 +29,12 @@ const u64 ImmId::NodeIdxOffset  = 0;
 const u64 ImmId::NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
 const u64 ImmId::NodeKindOffset = 40;
 
-const org::imm::ParentPathMap     EmptyParentPathMap;
-UnorderedMap<ImmReflFieldId, Str> ImmReflFieldId::fieldNames;
+const org::imm::ParentPathMap EmptyParentPathMap;
 
 std::size_t std::hash<ImmReflFieldId>::operator()(
     ImmReflFieldId const& it) const noexcept {
     std::size_t result = 0;
-    hax_hash_combine(result, it.typeId);
-    hax_hash_combine(result, it.fieldOffset);
+    hax_hash_combine(result, it.index);
     return result;
 }
 
@@ -118,6 +116,14 @@ void ImmId::assertValid() const {
 EACH_SEM_ORG_KIND(_define_static)
 #undef _define_static
 
+HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmOrg)
+
+#define _register_type(__Kind)                                            \
+    HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::Imm##__Kind)                 \
+    HSTD_REGISTER_TYPE_FIELD_NAMES(org::sem::__Kind)
+
+EACH_SEM_ORG_KIND(_register_type)
+#undef _register_type
 
 using namespace org;
 
