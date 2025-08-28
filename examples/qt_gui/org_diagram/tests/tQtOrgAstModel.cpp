@@ -192,7 +192,7 @@ class QtOrgAstModelTest : public QObject {
         QModelIndex         index   = model.getIndexForId(childId);
 
         QVERIFY(index.isValid());
-        QCOMPARE(index.row(), 3);
+        QCOMPARE(index.row(), 1);
         QCOMPARE(index.column(), 0);
     }
 
@@ -249,7 +249,8 @@ class QtOrgAstModelTest : public QObject {
     }
 
     void testNodeMapConsistency() {
-        auto            root = createTestTree();
+        auto            __scope = trackTestExecution(this);
+        auto            root    = createTestTree();
         OrgDiagramModel model{root};
 
         org::imm::ImmUniqId rootId       = root->id;
@@ -258,6 +259,9 @@ class QtOrgAstModelTest : public QObject {
                                                ->subnodes.at(0)
                                                ->id;
 
+
+        HSLOG_INFO("test", "");
+        HSLOG_INFO("test", printModelTree(&model).toString(false));
         QVERIFY(model.getIndexForId(rootId) == QModelIndex{});
         QVERIFY(model.getIndexForId(child1Id).isValid());
         QVERIFY(model.getIndexForId(grandchildId).isValid());

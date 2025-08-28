@@ -25,6 +25,13 @@ hstd::fs::path getDebugFile(
     QObject*         testClass,
     const hstd::Str& suffix = "");
 
+template <typename T>
+std::string qdebug_to_str(T const& index) {
+    QString output;
+    QDebug(&output).noquote().nospace() << index;
+    return output.toStdString();
+}
+
 hstd::finally_std trackTestExecution(
     QObject*         testClas,
     hstd::Str const& suffix   = "",
@@ -36,6 +43,14 @@ void customMessageHandler(
     QtMsgType                 type,
     const QMessageLogContext& context,
     const QString&            msg_in);
+
+hstd::ColText printModelTree(
+    const QAbstractItemModel* model,
+    const QModelIndex&        parent = QModelIndex{},
+    hstd::Opt<hstd::Func<hstd::ColText(QModelIndex const&)>> toString = std::
+        nullopt,
+    bool           ignoreExceptions = false,
+    hstd::Opt<int> maxDepth         = std::nullopt);
 
 #define HAXORG_QT_TEST_MAIN(Test_Class)                                   \
     int main(int argc, char* argv[]) {                                    \

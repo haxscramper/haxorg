@@ -16,8 +16,6 @@ struct DiagramNode {
         child->parent = this;
         children.push_back(child);
     }
-
-    int columnCount() const;
 };
 
 struct DiagramNodeCanvas : public DiagramNode {

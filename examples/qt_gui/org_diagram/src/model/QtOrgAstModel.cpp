@@ -46,6 +46,18 @@ int OrgDiagramModel::rowCount(const QModelIndex& parent) const {
     return getNode(parent)->subnodes.size();
 }
 
+QVariant OrgDiagramModel::data(const QModelIndex& index, int role) const {
+    if (!index.isValid()) { return QVariant{}; }
+
+    if (role == Qt::DisplayRole) {
+        OrgDiagramNode* node = static_cast<OrgDiagramNode*>(
+            index.internalPointer());
+        return std::format("Node {}", node->id.id.format()).c_str();
+    }
+
+    return QVariant{};
+}
+
 bool OrgDiagramModel::insertRows(
     int                row,
     int                count,
@@ -120,6 +132,20 @@ void OrgDiagramModel::addNodeToParent(
 
     connectNode(node);
     parentNode->addSubnode(node);
+}
+
+QModelIndex OrgDiagramModel::getIndexForId(
+    const org::imm::ImmUniqId& id) const {
+    auto it = nodeMap.find(id);
+    if (it != nodeMap.end() && it->second.isValid()) {
+        OrgDiagramNode* node = static_cast<OrgDiagramNode*>(
+            it->second.internalPointer());
+        if (node && node->id == id) { return it->second; }
+    }
+
+    QModelIndex foundIndex = findIndexForId(id, QModelIndex{});
+    if (foundIndex.isValid()) { nodeMap.insert_or_assign(id, foundIndex); }
+    return foundIndex;
 }
 
 void OrgDiagramModel::onDataChanged() {
@@ -276,3 +302,23 @@ void OrgDiagramNode::updateData() {
 }
 
 OrgDiagramNode::OrgDiagramNode(org::imm::ImmUniqId const& id) : id{id} {}
+
+void OrgDiagramModel::onSubnodeAdded(int index) {
+    TRACKED_SLOT(onSubnodeAdded, index);
+    OrgDiagramNode* senderNode  = qobject_cast<OrgDiagramNode*>(sender());
+    QModelIndex     parentIndex = getIndexForNode(senderNode);
+    beginInsertRows(parentIndex, index, index);
+    connectNode(senderNode->subnodes.at(index));
+    invalidateNodeMapAfterIndex(parentIndex, index);
+    endInsertRows();
+}
+
+void OrgDiagramModel::onSubnodeAboutToBeRemoved(int index) {
+    TRACKED_SLOT(onSubnodeAboutToBeRemoved, index);
+    OrgDiagramNode* senderNode   = qobject_cast<OrgDiagramNode*>(sender());
+    QModelIndex     parentIndex  = getIndexForNode(senderNode);
+    auto            nodeToRemove = senderNode->subnodes.at(index);
+    removeFromNodeMap(nodeToRemove);
+    disconnectNode(nodeToRemove);
+    beginRemoveRows(parentIndex, index, index);
+}
