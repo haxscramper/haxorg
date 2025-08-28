@@ -29,6 +29,7 @@
 #    include <boost/thread/shared_mutex.hpp>
 #    include <boost/thread/locks.hpp>
 #    include <fstream>
+#    include <cpptrace.hpp>
 
 using namespace hstd;
 
@@ -402,6 +403,12 @@ log_record& log_record::maybe_space() {
     if (!data.message.empty() && data.message.back() != ' ') {
         data.message += " ";
     }
+    return *this;
+}
+
+log_record& log_record::fmt_stacktrace() {
+    auto trace = cpptrace::generate_trace();
+    message(trace.to_string(false));
     return *this;
 }
 

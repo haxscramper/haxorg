@@ -189,8 +189,6 @@ TEST(SimpleNodeConversion, LCSCompile) {
 TEST(SimpleNodeConversion, MyersDiffCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};
-    auto res = myersDiff<int>(first, second, [](CR<int> lhs, CR<int> rhs) {
-        return lhs == rhs;
-    });
+    auto     res = myersDiffEqCmp<int>(first, second);
     // You may want to add test conditions to check the results.
 }

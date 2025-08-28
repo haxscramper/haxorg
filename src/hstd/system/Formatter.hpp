@@ -34,6 +34,17 @@ std::string fmt1(T const& t) {
     return std::format("{}", t);
 }
 
+template <hstd::StdFormattable T>
+std::string fmt1_maybe(T const& t) {
+    return std::format("{}", t);
+}
+
+template <typename T>
+std::string fmt1_maybe(T const& t) {
+    return std::format(
+        "[not formattable {}]", hstd::value_metadata<T>::typeName());
+}
+
 
 template <typename T, typename FormatContext>
 FormatContext::iterator fmt_ctx(T const& t, FormatContext& ctx) {

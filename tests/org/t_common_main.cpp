@@ -6,6 +6,10 @@
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <hstd/ext/logger.hpp>
 
+#include <hstd/stdlib/reflection_visitor.hpp>
+
+
+
 FILE* trace_out;
 
 const char* __asan_default_options() {
