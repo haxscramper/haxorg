@@ -62,17 +62,17 @@ struct DiagramTreeModel : public QAbstractItemModel {
         return QModelIndex{};
     }
 
+    DiagramNode* getNode(QModelIndex const& node) const {
+        if (node.isValid()) {
+            return static_cast<DiagramNode*>(node.internalPointer());
+        } else {
+            return rootNode;
+        }
+    }
+
     int rowCount(
         const QModelIndex& parent = QModelIndex{}) const override {
-        DiagramNode* parentNode{};
-        if (!parent.isValid()) {
-            parentNode = rootNode;
-        } else {
-            parentNode = static_cast<DiagramNode*>(
-                parent.internalPointer());
-        }
-
-        return static_cast<int>(parentNode->children.size());
+        return static_cast<int>(getNode(parent)->children.size());
     }
 
     int columnCount(

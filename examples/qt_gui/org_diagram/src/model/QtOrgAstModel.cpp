@@ -33,18 +33,17 @@ QModelIndex OrgDiagramModel::parent(const QModelIndex& index) const {
     return QModelIndex{};
 }
 
-int OrgDiagramModel::rowCount(const QModelIndex& parent) const {
-    if (0 < parent.column()) { return 0; }
-
+OrgDiagramNode* OrgDiagramModel::getNode(const QModelIndex& index) const {
     OrgDiagramNode* parentNode{};
-    if (parent.isValid()) {
-        parentNode = static_cast<OrgDiagramNode*>(
-            parent.internalPointer());
+    if (index.isValid()) {
+        return static_cast<OrgDiagramNode*>(index.internalPointer());
     } else {
-        parentNode = rootNode.get();
+        return rootNode.get();
     }
+}
 
-    return static_cast<int>(parentNode->subnodes.size());
+int OrgDiagramModel::rowCount(const QModelIndex& parent) const {
+    return getNode(parent)->subnodes.size();
 }
 
 bool OrgDiagramModel::insertRows(
@@ -233,14 +232,7 @@ QModelIndex OrgDiagramModel::index(
     const QModelIndex& parent) const {
     if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
 
-    OrgDiagramNode* parentNode{};
-    if (!parent.isValid()) {
-        parentNode = rootNode.get();
-    } else {
-        parentNode = static_cast<OrgDiagramNode*>(
-            parent.internalPointer());
-    }
-
+    OrgDiagramNode* parentNode = getNode(parent);
     if (row < static_cast<int>(parentNode->subnodes.size())) {
         QModelIndex newIndex = createIndex(
             row, column, parentNode->subnodes.at(row).get());
@@ -250,6 +242,16 @@ QModelIndex OrgDiagramModel::index(
     }
     return QModelIndex{};
 }
+
+int OrgDiagramNode::getColumnCount() const {
+    int result{};
+    org::imm::switch_node_kind(
+        id.id, [&result]<typename T>(org::imm::ImmIdT<T> const& typed) {
+            result = hstd::get_total_field_count<T>();
+        });
+    return result;
+}
+
 
 void OrgDiagramNode::addSubnode(std::shared_ptr<OrgDiagramNode> node) {
     node->parent = shared_from_this();
@@ -272,3 +274,5 @@ void OrgDiagramNode::removeSubnode(int index) {
 void OrgDiagramNode::updateData() {
     HSLOG_TRACKED_EMIT(get_tracker(), dataChanged);
 }
+
+OrgDiagramNode::OrgDiagramNode(org::imm::ImmUniqId const& id) : id{id} {}

@@ -15,15 +15,17 @@ struct OrgDiagramNode
     Q_OBJECT
 
   public:
-    org::imm::ImmUniqId                          id;
-    std::vector<std::shared_ptr<OrgDiagramNode>> subnodes;
-    std::weak_ptr<OrgDiagramNode>                parent;
+    org::imm::ImmUniqId                   id;
+    hstd::Vec<hstd::SPtr<OrgDiagramNode>> subnodes;
+    std::weak_ptr<OrgDiagramNode>         parent;
 
     std::string formatToString() const { return hstd::fmt("id:{}", id); }
 
-    OrgDiagramNode(org::imm::ImmUniqId const& id) : id{id} {}
+    OrgDiagramNode(org::imm::ImmUniqId const& id);
 
-    void addSubnode(std::shared_ptr<OrgDiagramNode> node);
+    int getColumnCount() const;
+
+    void addSubnode(hstd::SPtr<OrgDiagramNode> node);
     void removeSubnode(int index);
     void updateData();
 
@@ -38,7 +40,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
     Q_OBJECT
 
   private:
-    std::shared_ptr<OrgDiagramNode>                              rootNode;
+    hstd::SPtr<OrgDiagramNode>                                   rootNode;
     mutable std::unordered_map<org::imm::ImmUniqId, QModelIndex> nodeMap;
 
   public:
@@ -53,11 +55,13 @@ struct OrgDiagramModel : public QAbstractItemModel {
 
     QModelIndex parent(const QModelIndex& index) const override;
 
+    OrgDiagramNode* getNode(QModelIndex const& index) const;
+
     int rowCount(const QModelIndex& parent = QModelIndex{}) const override;
 
     int columnCount(
         const QModelIndex& parent = QModelIndex{}) const override {
-        return 1;
+        return getNode(parent)->getColumnCount();
     }
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)

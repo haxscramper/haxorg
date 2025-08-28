@@ -23,7 +23,7 @@ class QtOrgAstModelTest : public QObject {
     }
 
     org::imm::ImmUniqId getId(int i) const {
-        return org::imm::ImmUniqId{org::imm::ImmId::FromValue(i)};
+        return org::imm::ImmUniqId{org::imm::ImmId(OrgSemKind::Space, 0)};
     }
 
   private slots:
@@ -84,7 +84,7 @@ class QtOrgAstModelTest : public QObject {
         OrgDiagramModel model{root};
 
         QCOMPARE(model.rowCount(), 2);
-        QCOMPARE(model.columnCount(), 1);
+        QCOMPARE(model.columnCount(), 3);
     }
 
     void testModelIndex() {
@@ -192,7 +192,7 @@ class QtOrgAstModelTest : public QObject {
         QModelIndex         index   = model.getIndexForId(childId);
 
         QVERIFY(index.isValid());
-        QCOMPARE(index.row(), 0);
+        QCOMPARE(index.row(), 3);
         QCOMPARE(index.column(), 0);
     }
 
