@@ -5,8 +5,13 @@
 #include <src/utils/common.hpp>
 
 
-class QtOrgAstModelTest : public QObject {
+class QtOrgAstModelTest_Standalone : public QObject {
     Q_OBJECT
+
+  public:
+    org::imm::ImmAstContext::Ptr context;
+    QtOrgAstModelTest_Standalone()
+        : context{org::imm::ImmAstContext::init_start_context()} {}
 
   private:
     std::shared_ptr<OrgDiagramNode> createTestTree() {
@@ -22,8 +27,9 @@ class QtOrgAstModelTest : public QObject {
         return root;
     }
 
-    org::imm::ImmUniqId getId(int i) const {
-        return org::imm::ImmUniqId{org::imm::ImmId(OrgSemKind::Space, i)};
+    org::imm::ImmAdapter getId(int i) const {
+        return context->adapt(
+            org::imm::ImmUniqId{org::imm::ImmId(OrgSemKind::Space, i)});
     }
 
   private slots:
@@ -188,8 +194,8 @@ class QtOrgAstModelTest : public QObject {
         auto            root = createTestTree();
         OrgDiagramModel model{root};
 
-        org::imm::ImmUniqId childId = root->subnodes.at(0)->id;
-        QModelIndex         index   = model.getIndexForId(childId);
+        auto        childId = root->subnodes.at(0)->id;
+        QModelIndex index   = model.getIndexForId(childId.uniq());
 
         QVERIFY(index.isValid());
         QCOMPARE(index.row(), 0);
@@ -253,11 +259,9 @@ class QtOrgAstModelTest : public QObject {
         auto            root    = createTestTree();
         OrgDiagramModel model{root};
 
-        org::imm::ImmUniqId rootId       = root->id;
-        org::imm::ImmUniqId child1Id     = root->subnodes.at(0)->id;
-        org::imm::ImmUniqId grandchildId = root->subnodes.at(0)
-                                               ->subnodes.at(0)
-                                               ->id;
+        auto rootId       = root->id;
+        auto child1Id     = root->subnodes.at(0)->id;
+        auto grandchildId = root->subnodes.at(0)->subnodes.at(0)->id;
 
 
         HSLOG_INFO(
@@ -266,14 +270,14 @@ class QtOrgAstModelTest : public QObject {
             "test",
             "model diagram tree\n",
             model.format().toString(false));
-        QVERIFY(model.getIndexForId(rootId) == QModelIndex{});
-        QVERIFY(model.getIndexForId(child1Id).isValid());
-        QVERIFY(model.getIndexForId(grandchildId).isValid());
+        QVERIFY(model.getIndexForId(rootId.uniq()) == QModelIndex{});
+        QVERIFY(model.getIndexForId(child1Id.uniq()).isValid());
+        QVERIFY(model.getIndexForId(grandchildId.uniq()).isValid());
 
         model.removeRows(0, 1);
 
-        QVERIFY(!model.getIndexForId(child1Id).isValid());
-        QVERIFY(!model.getIndexForId(grandchildId).isValid());
+        QVERIFY(!model.getIndexForId(child1Id.uniq()).isValid());
+        QVERIFY(!model.getIndexForId(grandchildId.uniq()).isValid());
     }
 
     void testMultipleDataChanges() {
@@ -300,5 +304,5 @@ class QtOrgAstModelTest : public QObject {
     }
 };
 
-HAXORG_QT_TEST_MAIN(QtOrgAstModelTest)
-#include "tQtOrgAstModel.moc"
+HAXORG_QT_TEST_MAIN(QtOrgAstModelTest_Standalone)
+#include "tQtOrgAstModelTest_Standalone.moc"

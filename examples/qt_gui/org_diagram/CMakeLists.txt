@@ -114,4 +114,5 @@ endfunction()
 
 add_qt_test("tImmHistoryManager.cpp" "ImmHistoryManager")
 add_qt_test("tDebugTarget.cpp" "DebugTarget")
-add_qt_test("tQtOrgAstModel.cpp" "QtOrgAstModelTest")
+add_qt_test("tQtOrgAstModelTest_Standalone.cpp" "QtOrgAstModelTest_StandaloneTest")
+add_qt_test("tOrgDiagramNodeTest.cpp" "OrgDiagramNodeTest")

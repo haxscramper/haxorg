@@ -26,7 +26,7 @@ QModelIndex OrgDiagramModel::parent(const QModelIndex& index) const {
         int row = static_cast<int>(
             std::distance(grandParentPtr->subnodes.begin(), it));
         QModelIndex parentIndex = createIndex(row, 0, parentPtr.get());
-        nodeMap.insert_or_assign(parentPtr->id, parentIndex);
+        nodeMap.insert_or_assign(parentPtr->uniq(), parentIndex);
         return parentIndex;
     }
 
@@ -74,7 +74,8 @@ bool OrgDiagramModel::insertRows(
 
     for (int i = 0; i < count; ++i) {
         auto newNode = std::make_shared<OrgDiagramNode>(
-            org::imm::ImmUniqId{org::imm::ImmId::Nil()});
+            hstd::safe_wptr_lock(parentNode->id.ctx)
+                ->adapt(org::imm::ImmUniqId{org::imm::ImmId::Nil()}));
         connectNode(newNode);
         newNode->parent = parentNode->shared_from_this();
         parentNode->subnodes.insert(
@@ -140,7 +141,7 @@ QModelIndex OrgDiagramModel::getIndexForId(
     if (it != nodeMap.end() && it->second.isValid()) {
         OrgDiagramNode* node = static_cast<OrgDiagramNode*>(
             it->second.internalPointer());
-        if (node && node->id == id) { return it->second; }
+        if (node && node->uniq() == id) { return it->second; }
     }
 
     QModelIndex foundIndex = findIndexForId(id, QModelIndex{});
@@ -171,7 +172,7 @@ void OrgDiagramModel::buildNodeMapRecursive(
         if (childIndex.isValid()) {
             OrgDiagramNode* node = static_cast<OrgDiagramNode*>(
                 childIndex.internalPointer());
-            nodeMap.insert_or_assign(node->id, childIndex);
+            nodeMap.insert_or_assign(node->uniq(), childIndex);
             buildNodeMapRecursive(childIndex);
         }
     }
@@ -204,7 +205,7 @@ QModelIndex OrgDiagramModel::findIndexForId(
         if (childIndex.isValid()) {
             OrgDiagramNode* node = static_cast<OrgDiagramNode*>(
                 childIndex.internalPointer());
-            if (node->id == id) { return childIndex; }
+            if (node->uniq() == id) { return childIndex; }
             QModelIndex foundIndex = findIndexForId(id, childIndex);
             if (foundIndex.isValid()) { return foundIndex; }
         }
@@ -277,55 +278,12 @@ QModelIndex OrgDiagramModel::index(
         QModelIndex newIndex = createIndex(
             row, column, parentNode->subnodes.at(row).get());
         nodeMap.insert_or_assign(
-            parentNode->subnodes.at(row)->id, newIndex);
+            parentNode->subnodes.at(row)->uniq(), newIndex);
         return newIndex;
     }
     return QModelIndex{};
 }
 
-int OrgDiagramNode::getColumnCount() const { return 1; }
-
-
-void OrgDiagramNode::addSubnode(std::shared_ptr<OrgDiagramNode> node) {
-    node->parent = shared_from_this();
-    subnodes.push_back(node);
-    HSLOG_TRACKED_EMIT(
-        get_tracker(),
-        subnodeAdded,
-        static_cast<int>(subnodes.size()) - 1);
-}
-
-void OrgDiagramNode::removeSubnode(int index) {
-    if (index >= 0 && index < static_cast<int>(subnodes.size())) {
-        subnodes.at(index)->parent.reset();
-        HSLOG_TRACKED_EMIT(get_tracker(), subnodeAboutToBeRemoved, index);
-        subnodes.erase(subnodes.begin() + index);
-        HSLOG_TRACKED_EMIT(get_tracker(), subnodeRemoved);
-    }
-}
-
-void OrgDiagramNode::updateData() {
-    HSLOG_TRACKED_EMIT(get_tracker(), dataChanged);
-}
-
-hstd::ColText OrgDiagramNode::format() const {
-    hstd::ColStream                                                os;
-    hstd::Func<void(hstd::SPtr<OrgDiagramNode const> const&, int)> aux;
-
-    aux = [&](hstd::SPtr<OrgDiagramNode const> const& node, int level) {
-        os.indent(level * 2);
-        os << hstd::fmt1(node->id);
-        os << "\n";
-
-        for (auto const& sub : node->subnodes) { aux(sub, level + 1); }
-    };
-
-    aux(shared_from_this(), 0);
-
-    return os;
-}
-
-OrgDiagramNode::OrgDiagramNode(org::imm::ImmUniqId const& id) : id{id} {}
 
 void OrgDiagramModel::onSubnodeAdded(int index) {
     TRACKED_SLOT(onSubnodeAdded, index);

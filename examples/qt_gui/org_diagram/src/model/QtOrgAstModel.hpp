@@ -3,40 +3,12 @@
 #include <QAbstractItemModel>
 #include <QObject>
 #include <memory>
-#include <vector>
 #include <unordered_map>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <src/utils/log_graph_tracker.hpp>
 #include <src/utils/common.hpp>
+#include <src/model/nodes/OrgDiagramNode.hpp>
 
-struct OrgDiagramNode
-    : public QObject
-    , public std::enable_shared_from_this<OrgDiagramNode> {
-    Q_OBJECT
-
-  public:
-    org::imm::ImmUniqId                   id;
-    hstd::Vec<hstd::SPtr<OrgDiagramNode>> subnodes;
-    std::weak_ptr<OrgDiagramNode>         parent;
-
-    std::string formatToString() const { return hstd::fmt("id:{}", id); }
-
-    OrgDiagramNode(org::imm::ImmUniqId const& id);
-
-    int getColumnCount() const;
-
-    void addSubnode(hstd::SPtr<OrgDiagramNode> node);
-    void removeSubnode(int index);
-    void updateData();
-
-    hstd::ColText format() const;
-
-  signals:
-    void subnodeAdded(int index);
-    void subnodeAboutToBeRemoved(int index);
-    void subnodeRemoved();
-    void dataChanged();
-};
 
 struct OrgDiagramModel : public QAbstractItemModel {
     Q_OBJECT
@@ -109,7 +81,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
     void buildNodeMapRecursive(const QModelIndex& parent) const;
 
     void removeFromNodeMap(std::shared_ptr<OrgDiagramNode> node) {
-        nodeMap.erase(node->id);
+        nodeMap.erase(node->id.uniq());
         for (auto& subnode : node->subnodes) {
             removeFromNodeMap(subnode);
         }
@@ -133,6 +105,6 @@ struct OrgDiagramModel : public QAbstractItemModel {
     QModelIndex getIndexForNode(OrgDiagramNode* node) const {
         if (node == rootNode.get()) { return QModelIndex{}; }
 
-        return getIndexForId(node->id);
+        return getIndexForId(node->id.uniq());
     }
 };
