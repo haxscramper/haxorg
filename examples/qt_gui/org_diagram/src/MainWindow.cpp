@@ -21,7 +21,7 @@ DiagramSelectionManager::DiagramSelectionManager(
 }
 
 void DiagramSelectionManager::onSceneSelectionChanged(
-    const QList<DiagramNodeVisual*>& selectedNodes) {
+    const QList<DiagramSceneItemVisual*>& selectedNodes) {
     TRACKED_SLOT("onSceneSelectionChanged", selectedNodes);
     if (updatingSelection) { return; }
     updatingSelection = true;
@@ -41,15 +41,15 @@ void DiagramSelectionManager::onTreeSelectionChanged(
     updatingSelection = true;
 
     // Get selected nodes from tree
-    QList<DiagramNodeVisual*> visualNodes;
+    QList<DiagramSceneItemVisual*> visualNodes;
     QModelIndexList           selectedIndexes = selected.indexes();
 
     for (const QModelIndex& index : selectedIndexes) {
         if (index.isValid()) {
-            DiagramNode* node = static_cast<DiagramNode*>(
+            DiagramSceneItem* node = static_cast<DiagramSceneItem*>(
                 index.internalPointer());
-            DiagramNodeVisual* visualNode = dynamic_cast<
-                DiagramNodeVisual*>(node);
+            DiagramSceneItemVisual* visualNode = dynamic_cast<
+                DiagramSceneItemVisual*>(node);
             if (visualNode) { visualNodes.append(visualNode); }
         }
     }
@@ -300,7 +300,7 @@ void MainWindow::zoomFit() {
     }
 }
 
-void MainWindow::onNodeSelected(DiagramNodeVisual* node) {
+void MainWindow::onNodeSelected(DiagramSceneItemVisual* node) {
     TRACKED_SLOT("onNodeSelected", node);
     // Clear existing properties
     while (propertiesLayout->count() > 1) {

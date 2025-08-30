@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DiagramNodeVisual.hpp"
+#include "DiagramSceneItemVisual.hpp"
 #include <QPixmap>
 #include <QPointF>
 #include <QWidget>
@@ -12,13 +12,13 @@
 #include <QFileDialog>
 
 
-struct DiagramNodeImage : public DiagramNodeVisual {
+struct DiagramSceneItemImage : public DiagramSceneItemVisual {
     QPixmap image{};
     bool    isResizing{false};
     QPointF lastMousePos{};
 
-    DiagramNodeImage(const QString& nodeName = "Image")
-        : DiagramNodeVisual{nodeName} {
+    DiagramSceneItemImage(const QString& nodeName = "Image")
+        : DiagramSceneItemVisual{nodeName} {
         bounds = QRectF{0, 0, 100, 100};
     }
 

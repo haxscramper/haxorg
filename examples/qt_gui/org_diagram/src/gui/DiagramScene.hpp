@@ -1,26 +1,26 @@
 #pragma once
 
 #include <QGraphicsScene>
-#include <src/gui/DiagramNodeVisual.hpp>
+#include <src/gui/items/DiagramSceneItemVisual.hpp>
 #include <src/gui/DiagramTreeModel.hpp>
-#include <src/gui/DiagramNodeRectangle.hpp>
-#include <src/gui/DiagramNodeEdge.hpp>
-#include <src/gui/DiagramNodeImage.hpp>
-#include <src/gui/DiagramNodeGroup.hpp>
+#include <src/gui/items/DiagramSceneItemRectangle.hpp>
+#include <src/gui/items/DiagramSceneItemEdge.hpp>
+#include <src/gui/items/DiagramSceneItemImage.hpp>
+#include <src/gui/items/DiagramSceneItemGroup.hpp>
 #include <QMessageBox>
 
 struct DiagramScene : public QGraphicsScene {
     Q_OBJECT
 
   public:
-    int                             gridSnap{10};
-    DiagramNode*                    rootNode{};
-    DiagramNodeVisual*              selectedNode{nullptr};
-    DiagramNodeVisual*              arrowSource{nullptr};
-    DiagramTreeModel*               treeModel{nullptr};
-    std::vector<DiagramNodeVisual*> selectedNodes{};
-    bool                            showGrid{true};
-    QColor                          gridColor{Qt::lightGray};
+    int                                  gridSnap{10};
+    DiagramSceneItem*                    rootNode{};
+    DiagramSceneItemVisual*              selectedNode{nullptr};
+    DiagramSceneItemVisual*              arrowSource{nullptr};
+    DiagramTreeModel*                    treeModel{nullptr};
+    std::vector<DiagramSceneItemVisual*> selectedNodes{};
+    bool                                 showGrid{true};
+    QColor                               gridColor{Qt::lightGray};
 
     DiagramScene(QObject* parent = nullptr) : QGraphicsScene{parent} {
         rootNode = new DiagramNodeCanvas{"Canvas"};
@@ -65,12 +65,12 @@ struct DiagramScene : public QGraphicsScene {
     void setupExampleDiagram() {
         auto layer1 = new DiagramNodeLayer{"Layer 1"};
 
-        auto node1 = new DiagramNodeRectangle{"Node 1"};
+        auto node1 = new DiagramSceneItemRectangle{"Node 1"};
         node1->setPos(100, 100);
         node1->color = Qt::cyan;
         addItem(node1);
 
-        auto node2 = new DiagramNodeRectangle{"Node 2"};
+        auto node2 = new DiagramSceneItemRectangle{"Node 2"};
         node2->setPos(250, 150);
         node2->color = Qt::yellow;
         addItem(node2);
@@ -86,9 +86,9 @@ struct DiagramScene : public QGraphicsScene {
 
 
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override {
-        QGraphicsItem*     item = itemAt(event->scenePos(), QTransform{});
-        DiagramNodeVisual* clickedNode = dynamic_cast<DiagramNodeVisual*>(
-            item);
+        QGraphicsItem* item = itemAt(event->scenePos(), QTransform{});
+        DiagramSceneItemVisual* clickedNode = dynamic_cast<
+            DiagramSceneItemVisual*>(item);
 
         if (event->modifiers() & Qt::ControlModifier) {
             // Multi-selection mode
@@ -116,15 +116,15 @@ struct DiagramScene : public QGraphicsScene {
         }
 
         if (event->button() == Qt::RightButton && selectedNode) {
-            auto visualNode = dynamic_cast<DiagramNodeVisual*>(
+            auto visualNode = dynamic_cast<DiagramSceneItemVisual*>(
                 selectedNode);
             if (visualNode
-                && !dynamic_cast<DiagramNodeEdge*>(visualNode)) {
+                && !dynamic_cast<DiagramSceneItemEdge*>(visualNode)) {
                 if (arrowSource == nullptr) {
                     arrowSource = visualNode;
                 } else {
                     if (arrowSource != visualNode) {
-                        auto edge = new DiagramNodeEdge(
+                        auto edge = new DiagramSceneItemEdge(
                             arrowSource, visualNode);
                         addItem(edge);
 
@@ -146,8 +146,8 @@ struct DiagramScene : public QGraphicsScene {
 
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override {
         if (selectedNode && (event->buttons() & Qt::LeftButton)) {
-            DiagramNodeImage* imageNode = dynamic_cast<DiagramNodeImage*>(
-                selectedNode);
+            DiagramSceneItemImage* imageNode = dynamic_cast<
+                DiagramSceneItemImage*>(selectedNode);
             if (!imageNode || !imageNode->isResizing) {
                 QPointF newPos = event->scenePos()
                                - selectedNode->dragOffset;
@@ -190,9 +190,9 @@ struct DiagramScene : public QGraphicsScene {
     void setGridSnap(int snap) { gridSnap = snap; }
 
     void addEdge(
-        DiagramNodeVisual* sourceNode,
-        DiagramNodeVisual* targetNode) {
-        auto edge = new DiagramNodeEdge{sourceNode, targetNode};
+        DiagramSceneItemVisual* sourceNode,
+        DiagramSceneItemVisual* targetNode) {
+        auto edge = new DiagramSceneItemEdge{sourceNode, targetNode};
         addItem(edge);
 
         auto layer = findFirstLayer();
@@ -212,11 +212,11 @@ struct DiagramScene : public QGraphicsScene {
             return;
         }
 
-        DiagramNodeVisual* sourceNode = selectedNodes.at(0);
-        DiagramNodeVisual* targetNode = selectedNodes.at(1);
+        DiagramSceneItemVisual* sourceNode = selectedNodes.at(0);
+        DiagramSceneItemVisual* targetNode = selectedNodes.at(1);
 
-        if (dynamic_cast<DiagramNodeEdge*>(sourceNode)
-            || dynamic_cast<DiagramNodeEdge*>(targetNode)) {
+        if (dynamic_cast<DiagramSceneItemEdge*>(sourceNode)
+            || dynamic_cast<DiagramSceneItemEdge*>(targetNode)) {
             QMessageBox::warning(
                 nullptr,
                 "Error",
@@ -234,7 +234,7 @@ struct DiagramScene : public QGraphicsScene {
 
 
     void addRectangle() {
-        auto node = new DiagramNodeRectangle{"Rectangle"};
+        auto node = new DiagramSceneItemRectangle{"Rectangle"};
         node->setPos(200, 200);
         node->color = Qt::green;
         addItem(node);
@@ -261,7 +261,7 @@ struct DiagramScene : public QGraphicsScene {
             "",
             "Images (*.png *.jpg *.jpeg *.bmp)");
         if (!fileName.isEmpty()) {
-            auto node = new DiagramNodeImage{"Image"};
+            auto node = new DiagramSceneItemImage{"Image"};
             node->setImage(
                 QPixmap{fileName}.scaled(100, 100, Qt::KeepAspectRatio));
             node->setPos(150, 300);
@@ -277,9 +277,10 @@ struct DiagramScene : public QGraphicsScene {
         }
     }
 
-    DiagramNodeGroup* findGroupContaining(DiagramNodeVisual* node) {
+    DiagramSceneItemGroup* findGroupContaining(
+        DiagramSceneItemVisual* node) {
         for (auto item : items()) {
-            if (auto group = dynamic_cast<DiagramNodeGroup*>(item)) {
+            if (auto group = dynamic_cast<DiagramSceneItemGroup*>(item)) {
                 if (std::find(
                         group->groupedNodes.begin(),
                         group->groupedNodes.end(),
@@ -292,13 +293,13 @@ struct DiagramScene : public QGraphicsScene {
         return nullptr;
     }
 
-    std::vector<DiagramNodeVisual*> findCommonParentNodes(
-        const std::vector<DiagramNodeVisual*>& nodes) {
-        std::vector<DiagramNodeVisual*> result;
-        std::set<DiagramNodeVisual*>    processed;
+    std::vector<DiagramSceneItemVisual*> findCommonParentNodes(
+        const std::vector<DiagramSceneItemVisual*>& nodes) {
+        std::vector<DiagramSceneItemVisual*> result;
+        std::set<DiagramSceneItemVisual*>    processed;
 
         for (auto node : nodes) {
-            if (dynamic_cast<DiagramNodeEdge*>(node)) {
+            if (dynamic_cast<DiagramSceneItemEdge*>(node)) {
                 continue; // Skip edges
             }
             if (processed.count(node)) { continue; }
@@ -336,9 +337,9 @@ struct DiagramScene : public QGraphicsScene {
   public slots:
     void createGroupFromSelection() {
         // Filter out edges and get only visual nodes
-        std::vector<DiagramNodeVisual*> visualNodes;
+        std::vector<DiagramSceneItemVisual*> visualNodes;
         for (auto node : selectedNodes) {
-            if (!dynamic_cast<DiagramNodeEdge*>(node)) {
+            if (!dynamic_cast<DiagramSceneItemEdge*>(node)) {
                 visualNodes.push_back(node);
             }
         }
@@ -368,7 +369,7 @@ struct DiagramScene : public QGraphicsScene {
         }
 
         // Create new group
-        auto group = new DiagramNodeGroup{"Group"};
+        auto group = new DiagramSceneItemGroup{"Group"};
         addItem(group);
 
         // Add nodes to the group
@@ -394,5 +395,5 @@ struct DiagramScene : public QGraphicsScene {
 
 
   signals:
-    void nodeSelected(DiagramNodeVisual* node);
+    void nodeSelected(DiagramSceneItemVisual* node);
 };

@@ -1,7 +1,7 @@
 #include <src/utils/common.hpp>
 
-#include <src/gui/DiagramNode.hpp>
-#include <src/gui/DiagramNodeVisual.hpp>
+#include <src/gui/items/DiagramSceneItem.hpp>
+#include <src/gui/items/DiagramSceneItemVisual.hpp>
 #include <src/gui/DiagramView.hpp>
 #include <src/gui/DiagramTreeModel.hpp>
 #include <src/gui/DiagramScene.hpp>

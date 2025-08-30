@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QAbstractItemModel>
-#include <src/gui/DiagramNode.hpp>
-#include <src/gui/DiagramNodeVisual.hpp>
+#include <src/gui/items/DiagramSceneItem.hpp>
+#include <src/gui/items/DiagramSceneItemVisual.hpp>
 
 #include <src/utils/common.hpp>
 
@@ -14,9 +14,9 @@ struct DiagramTreeModel : public QAbstractItemModel {
     Q_OBJECT
 
   public:
-    DiagramNode* rootNode{};
+    DiagramSceneItem* rootNode{};
 
-    DiagramTreeModel(DiagramNode* root, QObject* parent = nullptr)
+    DiagramTreeModel(DiagramSceneItem* root, QObject* parent = nullptr)
         : QAbstractItemModel{parent}, rootNode{root} {}
 
     QModelIndex index(
@@ -25,11 +25,11 @@ struct DiagramTreeModel : public QAbstractItemModel {
         const QModelIndex& parent = QModelIndex{}) const override {
         if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
 
-        DiagramNode* parentNode{};
+        DiagramSceneItem* parentNode{};
         if (!parent.isValid()) {
             parentNode = rootNode;
         } else {
-            parentNode = static_cast<DiagramNode*>(
+            parentNode = static_cast<DiagramSceneItem*>(
                 parent.internalPointer());
         }
 
@@ -43,13 +43,13 @@ struct DiagramTreeModel : public QAbstractItemModel {
     QModelIndex parent(const QModelIndex& index) const override {
         if (!index.isValid()) { return QModelIndex{}; }
 
-        DiagramNode* childNode = static_cast<DiagramNode*>(
+        DiagramSceneItem* childNode = static_cast<DiagramSceneItem*>(
             index.internalPointer());
-        DiagramNode* parentNode = childNode->parent;
+        DiagramSceneItem* parentNode = childNode->parent;
 
         if (parentNode == rootNode) { return QModelIndex{}; }
 
-        DiagramNode* grandParent = parentNode->parent;
+        DiagramSceneItem* grandParent = parentNode->parent;
         if (!grandParent) { return QModelIndex{}; }
 
         for (int i = 0; i < static_cast<int>(grandParent->children.size());
@@ -62,9 +62,9 @@ struct DiagramTreeModel : public QAbstractItemModel {
         return QModelIndex{};
     }
 
-    DiagramNode* getNode(QModelIndex const& node) const {
+    DiagramSceneItem* getNode(QModelIndex const& node) const {
         if (node.isValid()) {
-            return static_cast<DiagramNode*>(node.internalPointer());
+            return static_cast<DiagramSceneItem*>(node.internalPointer());
         } else {
             return rootNode;
         }
@@ -85,7 +85,7 @@ struct DiagramTreeModel : public QAbstractItemModel {
         if (!index.isValid()) { return QVariant{}; }
 
         if (role == Qt::DisplayRole) {
-            DiagramNode* node = static_cast<DiagramNode*>(
+            DiagramSceneItem* node = static_cast<DiagramSceneItem*>(
                 index.internalPointer());
             return node->name;
         }
@@ -99,13 +99,13 @@ struct DiagramTreeModel : public QAbstractItemModel {
     }
 
   public slots:
-    void selectNodes(const QList<DiagramNodeVisual*>& visualNodes) {
+    void selectNodes(const QList<DiagramSceneItemVisual*>& visualNodes) {
         HSLOG_TRACKED_SLOT(get_tracker(), "selectNodes", visualNodes);
         emit layoutAboutToBeChanged();
 
         // Convert visual nodes to model indexes
         QList<QModelIndex> indexes;
-        for (DiagramNodeVisual* visualNode : visualNodes) {
+        for (DiagramSceneItemVisual* visualNode : visualNodes) {
             QModelIndex index = getIndexForNode(visualNode);
             if (index.isValid()) { indexes.append(index); }
         }
@@ -118,17 +118,17 @@ struct DiagramTreeModel : public QAbstractItemModel {
     void nodesSelected(const QList<QModelIndex>& indexes);
 
   private:
-    QModelIndex getIndexForNode(DiagramNode* targetNode) const {
+    QModelIndex getIndexForNode(DiagramSceneItem* targetNode) const {
         return findNodeIndex(QModelIndex{}, targetNode);
     }
 
     QModelIndex findNodeIndex(
         const QModelIndex& parent,
-        DiagramNode*       targetNode) const {
-        DiagramNode* parentNode = parent.isValid()
-                                    ? static_cast<DiagramNode*>(
-                                          parent.internalPointer())
-                                    : rootNode;
+        DiagramSceneItem*  targetNode) const {
+        DiagramSceneItem* parentNode = parent.isValid()
+                                         ? static_cast<DiagramSceneItem*>(
+                                               parent.internalPointer())
+                                         : rootNode;
         if (!parentNode) { return QModelIndex{}; }
 
         // Check direct children

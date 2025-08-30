@@ -26,7 +26,7 @@ class DiagramSelectionManager : public QObject {
 
   private slots:
     void onSceneSelectionChanged(
-        const QList<DiagramNodeVisual*>& selectedNodes);
+        const QList<DiagramSceneItemVisual*>& selectedNodes);
 
     void onTreeSelectionChanged(
         const QItemSelection& selected,
@@ -82,7 +82,7 @@ struct MainWindow : public QMainWindow {
     void setZoom(int value);
     void updateZoomSlider(int zoomPercent);
     void zoomFit();
-    void onNodeSelected(DiagramNodeVisual* node);
+    void onNodeSelected(DiagramSceneItemVisual* node);
 
   protected:
     bool eventFilter(QObject* obj, QEvent* event) override;

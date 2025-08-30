@@ -1,6 +1,5 @@
 #pragma once
 
-#include <src/gui/DiagramNodeVisual.hpp>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QSpinBox>
@@ -8,12 +7,14 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QColorDialog>
+#include <QPainter>
+#include <src/gui/items/DiagramSceneItemVisual.hpp>
 
-struct DiagramNodeRectangle : public DiagramNodeVisual {
+struct DiagramSceneItemRectangle : public DiagramSceneItemVisual {
     QColor color{Qt::blue};
 
-    DiagramNodeRectangle(const QString& nodeName = "Rectangle")
-        : DiagramNodeVisual{nodeName} {
+    DiagramSceneItemRectangle(const QString& nodeName = "Rectangle")
+        : DiagramSceneItemVisual{nodeName} {
         bounds = QRectF{0, 0, 100, 60};
     }
 

@@ -7,19 +7,19 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <src/utils/log_graph_tracker.hpp>
 #include <src/utils/common.hpp>
-#include <src/model/nodes/OrgDiagramNode.hpp>
+#include <src/model/nodes/DiagramTreeNode.hpp>
 
 
 struct OrgDiagramModel : public QAbstractItemModel {
     Q_OBJECT
 
   private:
-    hstd::SPtr<OrgDiagramNode>                                   rootNode;
+    hstd::SPtr<DiagramTreeNode>                                   rootNode;
     mutable std::unordered_map<org::imm::ImmUniqId, QModelIndex> nodeMap;
 
   public:
     explicit OrgDiagramModel(
-        std::shared_ptr<OrgDiagramNode> root,
+        std::shared_ptr<DiagramTreeNode> root,
         QObject*                        parent = nullptr);
 
     hstd::ColText format();
@@ -31,7 +31,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
 
     QModelIndex parent(const QModelIndex& index) const override;
 
-    OrgDiagramNode* getNode(QModelIndex const& index) const;
+    DiagramTreeNode* getNode(QModelIndex const& index) const;
 
     int rowCount(const QModelIndex& parent = QModelIndex{}) const override;
 
@@ -54,7 +54,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
         const QModelIndex& parent = QModelIndex{}) override;
 
     void addNodeToParent(
-        std::shared_ptr<OrgDiagramNode> node,
+        std::shared_ptr<DiagramTreeNode> node,
         const QModelIndex&              parentIndex);
 
     QModelIndex getIndexForId(const org::imm::ImmUniqId& id) const;
@@ -80,7 +80,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
 
     void buildNodeMapRecursive(const QModelIndex& parent) const;
 
-    void removeFromNodeMap(std::shared_ptr<OrgDiagramNode> node) {
+    void removeFromNodeMap(std::shared_ptr<DiagramTreeNode> node) {
         nodeMap.erase(node->id.uniq());
         for (auto& subnode : node->subnodes) {
             removeFromNodeMap(subnode);
@@ -95,14 +95,14 @@ struct OrgDiagramModel : public QAbstractItemModel {
         const org::imm::ImmUniqId& id,
         const QModelIndex&         parent) const;
 
-    void connectNode(std::shared_ptr<OrgDiagramNode> node);
+    void connectNode(std::shared_ptr<DiagramTreeNode> node);
 
-    void disconnectNode(std::shared_ptr<OrgDiagramNode> node) {
+    void disconnectNode(std::shared_ptr<DiagramTreeNode> node) {
         disconnect(node.get(), nullptr, this, nullptr);
         for (auto& subnode : node->subnodes) { disconnectNode(subnode); }
     }
 
-    QModelIndex getIndexForNode(OrgDiagramNode* node) const {
+    QModelIndex getIndexForNode(DiagramTreeNode* node) const {
         if (node == rootNode.get()) { return QModelIndex{}; }
 
         return getIndexForId(node->id.uniq());

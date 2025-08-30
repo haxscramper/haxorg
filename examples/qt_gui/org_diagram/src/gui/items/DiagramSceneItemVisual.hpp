@@ -1,20 +1,20 @@
 #pragma once
 
-#include "DiagramNode.hpp"
+#include "DiagramSceneItem.hpp"
 #include <QGraphicsScene>
 #include <QRectF>
 #include <QGraphicsRectItem>
-#include "DebugPainter.hpp"
+#include <src/gui/DebugPainter.hpp>
 #include <QGraphicsSceneMouseEvent>
 
-struct DiagramNodeVisual
-    : public DiagramNode
+struct DiagramSceneItemVisual
+    : public DiagramSceneItem
     , public QGraphicsItem {
     QRectF  bounds{0, 0, 100, 50};
     QPointF dragOffset{};
 
-    DiagramNodeVisual(const QString& nodeName = "Node")
-        : DiagramNode{nodeName} {
+    DiagramSceneItemVisual(const QString& nodeName = "Node")
+        : DiagramSceneItem{nodeName} {
         setFlag(QGraphicsItem::ItemIsMovable);
         setFlag(QGraphicsItem::ItemIsSelectable);
         setFlag(QGraphicsItem::ItemSendsGeometryChanges);
