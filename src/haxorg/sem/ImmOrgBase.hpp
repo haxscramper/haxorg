@@ -64,7 +64,7 @@ struct ImmReflFieldId {
     }
 
     bool operator==(ImmReflFieldId const& other) const {
-        return typeId == other.typeId && index == other.index;
+        return index == other.index;
     }
 
     bool operator<(ImmReflFieldId const& other) const {

@@ -377,6 +377,8 @@ CLOSED: [1960-01-15 Thu]
   :CUSTOM_ID: custom-id
   :prop_json:NaME: {"key": "value"}
   :prop_args:NAMe: :key value
+  :HAXORG_DIAGRAM_NODE: :something value
+  :HAXORG_DIAGRAM_POS: {"x": 12, "y": 2}
   :end:
 
 

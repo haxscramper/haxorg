@@ -1008,14 +1008,31 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return ImmUniqId{.id = id, .path = path};
     }
 
+    /// \brief Configure how immutable tree adapter is printed in tree form
     struct [[refl]] TreeReprConf {
-        [[refl]] int  maxDepth       = 40;
-        [[refl]] bool withAuxFields  = false;
+        /// \brief Do not print nodes that are more than N levels deep from
+        /// the root
+        [[refl]] int maxDepth = 40;
+        /// \brief Include auxiliary subnodes in the tree repr -- `.title`
+        /// field and other locations outside of standard `.subnodes`
+        [[refl]] bool withAuxFields = false;
+        /// \brief Format full immutable node value as a part of tree repr
         [[refl]] bool withReflFields = false;
+        /// \brief Profide extra pretty-printed information for a given
+        /// field subset.
+        [[refl]] hstd::UnorderedSet<hstd::Pair<OrgSemKind, ImmReflFieldId>>
+            withFieldSubset;
+
+        template <typename F, typename T>
+        TreeReprConf& with_field(F T::*fieldPtr) {
+            withFieldSubset.incl(
+                {T::staticKind, ImmReflFieldId::FromTypeField(fieldPtr)});
+            return *this;
+        }
 
         DESC_FIELDS(
             TreeReprConf,
-            (maxDepth, withAuxFields, withReflFields));
+            (maxDepth, withAuxFields, withReflFields, withFieldSubset));
 
         static TreeReprConf getDefault() { return TreeReprConf{}; }
     };
