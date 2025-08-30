@@ -252,6 +252,20 @@ OrgDiagramModel::OrgDiagramModel(
     connectNode(rootNode);
 }
 
+hstd::ColText OrgDiagramModel::format() {
+    return ::printModelTree(
+        this,
+        QModelIndex{},
+        [this](QModelIndex const& index) -> hstd::ColText {
+            hstd::ColStream os;
+            if (index.isValid()) {
+                auto node = getNode(index);
+                os << hstd::fmt1(node->id);
+            }
+            return os;
+        });
+}
+
 QModelIndex OrgDiagramModel::index(
     int                row,
     int                column,
@@ -269,14 +283,7 @@ QModelIndex OrgDiagramModel::index(
     return QModelIndex{};
 }
 
-int OrgDiagramNode::getColumnCount() const {
-    int result{};
-    org::imm::switch_node_kind(
-        id.id, [&result]<typename T>(org::imm::ImmIdT<T> const& typed) {
-            result = hstd::get_total_field_count<T>();
-        });
-    return result;
-}
+int OrgDiagramNode::getColumnCount() const { return 1; }
 
 
 void OrgDiagramNode::addSubnode(std::shared_ptr<OrgDiagramNode> node) {
@@ -299,6 +306,23 @@ void OrgDiagramNode::removeSubnode(int index) {
 
 void OrgDiagramNode::updateData() {
     HSLOG_TRACKED_EMIT(get_tracker(), dataChanged);
+}
+
+hstd::ColText OrgDiagramNode::format() const {
+    hstd::ColStream                                                os;
+    hstd::Func<void(hstd::SPtr<OrgDiagramNode const> const&, int)> aux;
+
+    aux = [&](hstd::SPtr<OrgDiagramNode const> const& node, int level) {
+        os.indent(level * 2);
+        os << hstd::fmt1(node->id);
+        os << "\n";
+
+        for (auto const& sub : node->subnodes) { aux(sub, level + 1); }
+    };
+
+    aux(shared_from_this(), 0);
+
+    return os;
 }
 
 OrgDiagramNode::OrgDiagramNode(org::imm::ImmUniqId const& id) : id{id} {}

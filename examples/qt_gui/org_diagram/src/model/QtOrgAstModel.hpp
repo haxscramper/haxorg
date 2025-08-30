@@ -29,6 +29,8 @@ struct OrgDiagramNode
     void removeSubnode(int index);
     void updateData();
 
+    hstd::ColText format() const;
+
   signals:
     void subnodeAdded(int index);
     void subnodeAboutToBeRemoved(int index);
@@ -47,6 +49,8 @@ struct OrgDiagramModel : public QAbstractItemModel {
     explicit OrgDiagramModel(
         std::shared_ptr<OrgDiagramNode> root,
         QObject*                        parent = nullptr);
+
+    hstd::ColText format();
 
     QModelIndex index(
         int                row,

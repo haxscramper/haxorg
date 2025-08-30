@@ -23,7 +23,7 @@ class QtOrgAstModelTest : public QObject {
     }
 
     org::imm::ImmUniqId getId(int i) const {
-        return org::imm::ImmUniqId{org::imm::ImmId(OrgSemKind::Space, 0)};
+        return org::imm::ImmUniqId{org::imm::ImmId(OrgSemKind::Space, i)};
     }
 
   private slots:
@@ -84,7 +84,7 @@ class QtOrgAstModelTest : public QObject {
         OrgDiagramModel model{root};
 
         QCOMPARE(model.rowCount(), 2);
-        QCOMPARE(model.columnCount(), 3);
+        QCOMPARE(model.columnCount(), 1);
     }
 
     void testModelIndex() {
@@ -192,7 +192,7 @@ class QtOrgAstModelTest : public QObject {
         QModelIndex         index   = model.getIndexForId(childId);
 
         QVERIFY(index.isValid());
-        QCOMPARE(index.row(), 1);
+        QCOMPARE(index.row(), 0);
         QCOMPARE(index.column(), 0);
     }
 
@@ -260,8 +260,12 @@ class QtOrgAstModelTest : public QObject {
                                                ->id;
 
 
-        HSLOG_INFO("test", "");
-        HSLOG_INFO("test", printModelTree(&model).toString(false));
+        HSLOG_INFO(
+            "test", "root diagram tree\n", root->format().toString(false));
+        HSLOG_INFO(
+            "test",
+            "model diagram tree\n",
+            model.format().toString(false));
         QVERIFY(model.getIndexForId(rootId) == QModelIndex{});
         QVERIFY(model.getIndexForId(child1Id).isValid());
         QVERIFY(model.getIndexForId(grandchildId).isValid());
