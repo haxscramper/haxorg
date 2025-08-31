@@ -407,3 +407,15 @@ outcome::result<const org::sem::AttrGroup*, std::string> getFlagProperty(
     BOOST_OUTCOME_TRY_SUB_VARIANT(json_data, property, CustomSubtreeFlags);
     return &json_data.value;
 }
+
+bool hasJsonProperty(
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
+    const std::string&                                 kind) {
+    return node.getProperty("propjson", kind).has_value();
+}
+
+bool hasArgsProperty(
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
+    const std::string&                                 kind) {
+    return node.getProperty("propargs", kind).has_value();
+}

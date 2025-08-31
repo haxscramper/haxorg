@@ -228,7 +228,7 @@ struct TreeReprFieldPrint<hstd::ext::ImmVec<org::sem::NamedProperty>> {
             os << os.green()
                << hstd::left_aligned(
                       hstd::fmt(":{}: ", it.getName()), prop_width + 3)
-               << os.end();
+               << hstd::fmt1(it.getKind()) << os.end();
 
             std::visit(
                 [&](auto const& prop) { os << hstd::fmt1(prop); },
@@ -483,10 +483,11 @@ Vec<ImmPathStep> ImmAdapter::getRelativeSubnodePaths(
 Vec<ImmAdapter> ImmAdapter::getParentChain(bool withSelf) const {
     Vec<ImmAdapter> result;
     for (auto const& span : path.pathSpans()) {
-        result.push_back(ImmAdapter{
-            ImmPath{path.root, span},
-            ctx,
-        });
+        result.push_back(
+            ImmAdapter{
+                ImmPath{path.root, span},
+                ctx,
+            });
     }
     result.push_back(ImmAdapter{ImmPath{path.root}, ctx});
     return result;
@@ -1440,8 +1441,9 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
                         ImmSubnodeGroup{searchResult.target.value()});
                     groupingIdx = searchResult.nextGroupIdx;
                 } else {
-                    result.push_back(ImmSubnodeGroup{
-                        ImmSubnodeGroup::Single{.node = it}});
+                    result.push_back(
+                        ImmSubnodeGroup{
+                            ImmSubnodeGroup::Single{.node = it}});
                 }
             }
         } else if (auto tag = it.asOpt<ImmHashTag>()) {

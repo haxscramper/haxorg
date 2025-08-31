@@ -270,6 +270,18 @@ bool NamedProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
         return normalize(getCustomRaw().name) == normalize(kind);
     } else if (getKind() == Property::Kind::CustomArgs) {
         return normalize(getCustomArgs().name) == normalize(kind);
+    } else if (
+        getKind() == Property::Kind::CustomSubtreeJson
+        && normalize(kind) == normalize("propjson")) {
+        return !subkind.has_value()
+            || normalize(getCustomSubtreeJson().name)
+                   == normalize(subkind.value());
+    } else if (
+        getKind() == Property::Kind::CustomArgs
+        && normalize(kind) == normalize("propargs")) {
+        return !subkind.has_value()
+            || normalize(getCustomArgs().name)
+                   == normalize(subkind.value());
     } else if (normalize(fmt1(getKind())) == normalize(kind)) {
         return true;
     } else if (

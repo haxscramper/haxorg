@@ -156,8 +156,8 @@ outcome::result<T, std::string> getStructuredProperty(
     std::string const&                                 kind) {
     BOOST_OUTCOME_TRY_OPTIONAL(
         property,
-        node.getProperty(kind),
-        hstd::fmt("Property '{}' not found", kind));
+        node.getProperty("customsubtreejson", kind),
+        hstd::fmt("Property :prop_json:{}: not found", kind));
 
     BOOST_OUTCOME_TRY_SUB_VARIANT(json_data, property, CustomSubtreeJson);
     return hstd::from_json_eval<T>(json_data.value.getRef());
@@ -169,5 +169,13 @@ outcome::result<org::sem::AttrGroup const*, std::string> getFlagProperty(
     std::string const&                                 kind);
 
 bool hasProperty(
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
+    std::string const&                                 kind);
+
+bool hasJsonProperty(
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
+    std::string const&                                 kind);
+
+bool hasArgsProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
     std::string const&                                 kind);
