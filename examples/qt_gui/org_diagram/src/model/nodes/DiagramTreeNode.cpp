@@ -38,6 +38,9 @@ void DiagramTreeNode::insertSubnode(
     HSLOG_TRACKED_EMIT(get_tracker(), subnodeAdded, index);
 }
 
+void DiagramTreeNode::apply(
+    const hstd::Vec<HistoryManager::AstEdit>& edit) {}
+
 hstd::ColText DiagramTreeNode::format() const {
     hstd::ColStream                                                 os;
     hstd::Func<void(hstd::SPtr<DiagramTreeNode const> const&, int)> aux;
@@ -80,3 +83,16 @@ DiagramTreeNode::Ptr DiagramTreeNode::FromDocument(
 }
 
 #include "DiagramTreeNode.moc"
+
+void DiagramTreeNode::Context::incl(
+    const hstd::SPtr<DiagramTreeNode>& node) {
+    LOGIC_ASSERTION_CHECK(
+        !trackingTreeId.contains(node->uniq()),
+        "Id {} is already tracked in the diagram tree context",
+        node->uniq());
+    trackingTreeId.insert_or_assign(node->uniq(), node->weak_from_this());
+}
+
+void DiagramTreeNode::Context::excl(const org::imm::ImmUniqId& id) {
+    trackingTreeId.erase(id);
+}

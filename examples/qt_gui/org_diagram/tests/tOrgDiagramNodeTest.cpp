@@ -3,6 +3,9 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <src/model/QtOrgAstModel.hpp>
 #include <src/utils/common.hpp>
+#include <src/model/nodes/DiagramTreeNodeLayer.hpp>
+#include <src/model/nodes/DiagramTreeNodeCanvas.hpp>
+#include <src/model/nodes/DiagramTreeNodeItem.hpp>
 
 
 class OrgDiagramNodeTest : public QObject {
@@ -48,8 +51,33 @@ class OrgDiagramNodeTest : public QObject {
         conf.with_field(&org::imm::ImmSubtree::properties);
         HSLOG_INFO(
             "test", v1.getRootAdapter().treeRepr(conf).toString(false));
-        auto tree = DiagramTreeNode::FromDocument(
+        auto canvas = DiagramTreeNode::FromDocument(
             v1.getRootAdapter().as<org::imm::ImmDocument>());
+        QVERIFY(canvas->as<DiagramTreeNodeCanvas>() != nullptr);
+        QCOMPARE_EQ2(canvas->uniq().id.getKind(), OrgSemKind::Document);
+        auto layer = canvas->subnodes.at(0);
+        QCOMPARE_EQ2(layer->uniq().id.getKind(), OrgSemKind::Subtree);
+        QCOMPARE_EQ2(
+            layer->id.as<org::imm::ImmSubtree>().getCleanTitle(),
+            "diagram layer"_ss);
+        auto item1 = layer->subnodes.at(0);
+        QCOMPARE_EQ2(
+            item1->id.as<org::imm::ImmSubtree>().getCleanTitle(),
+            "layer item 1"_ss);
+        auto item2 = layer->subnodes.at(1);
+        QCOMPARE_EQ2(
+            item2->id.as<org::imm::ImmSubtree>().getCleanTitle(),
+            "layer item 2"_ss);
+
+        auto item1_node = item1->as<DiagramTreeNodeItem>();
+        QVERIFY(item1_node != nullptr);
+        auto item2_node = item2->as<DiagramTreeNodeItem>();
+        QVERIFY(item2_node != nullptr);
+
+        QCOMPARE_EQ2(item1_node->getPos().x, 12);
+        QCOMPARE_EQ2(item1_node->getPos().y, 30);
+        QCOMPARE_EQ(item2_node->getPos().x, 12);
+        QCOMPARE_EQ(item2_node->getPos().y, 90);
     }
 };
 

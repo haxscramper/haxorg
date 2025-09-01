@@ -53,30 +53,30 @@ hstd::Vec<HistoryManager::AstEdit> HistoryManager::getDifference(
 
     // temporary placeholder -- registers a complete AST change between to
     // AST trees.
-    result.push_back(AstEdit{AstEdit::Deleted{
+    result.push_back(AstEdit{AstEdit::Delete{
         .id = getRoot(lhsVer).uniq(),
     }});
 
-    result.push_back(AstEdit{AstEdit::Added{
+    result.push_back(AstEdit{AstEdit::Insert{
         .id = getRoot(rhsVer).uniq(),
     }});
 
     return result;
 }
 
-HistoryManager::HistoryManager() {
-    context = org::imm::ImmAstContext::init_start_context();
-}
+HistoryManager::HistoryManager(org::imm::ImmAstContext::Ptr context)
+    : context{context} {}
 
-void HistoryManager::addHistory(const org::imm::ImmAstVersion& version) {
+int HistoryManager::addHistory(const org::imm::ImmAstVersion& version) {
     if (active != history.high()) {
         history.erase(history.begin() + active, history.end());
     }
 
     active = history.push_back_idx(version);
+    return active;
 }
 
-void HistoryManager::setDocument(const std::string& document) {
+int HistoryManager::addDocument(const std::string& document) {
     auto version = context->addRoot(org::parseString(document));
-    addHistory(version);
+    return addHistory(version);
 }

@@ -112,7 +112,7 @@ function(add_qt_test TEST_FILE_PATH TEST_CLASS)
   qt_finalize_executable(${TEST_CLASS})
 endfunction()
 
-add_qt_test("tImmHistoryManager.cpp" "ImmHistoryManager")
+add_qt_test("tHistoryManagerTest.cpp" "HistoryManagerTest")
 add_qt_test("tDebugTarget.cpp" "DebugTarget")
 add_qt_test("tQtOrgAstModelTest_Standalone.cpp" "QtOrgAstModelTest_StandaloneTest")
 add_qt_test("tOrgDiagramNodeTest.cpp" "OrgDiagramNodeTest")
