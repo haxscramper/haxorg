@@ -179,3 +179,4 @@ bool hasJsonProperty(
 bool hasArgsProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
     std::string const&                                 kind);
+

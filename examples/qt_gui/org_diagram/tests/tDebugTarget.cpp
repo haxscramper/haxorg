@@ -2,14 +2,28 @@
 #include <QTest>
 #include <src/model/HistoryManager.hpp>
 #include <src/utils/common.hpp>
+#include <src/utils/test_utils.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "test.history"
 
+using namespace test;
 
 class DebugTarget : public QObject {
   public:
-    void run_thing() {}
+    void run_thing() {
+        auto     __scope = trackTestExecution(this);
+        ScopeV12 scope;
+        scope.manager.addDocument("word");
+        scope.manager.addDocument("word second");
+        auto treeV1 = DiagramTreeNode::FromDocument(
+            scope.tree_context, scope.getRootV1());
+        auto treeV2 = DiagramTreeNode::FromDocument(
+            scope.tree_context, scope.getRootV2());
+
+        applyEdits(
+            treeV1, scope.manager.getDifference(0, 1), scope.context);
+    }
 };
 
 int main() {

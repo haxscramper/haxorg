@@ -26,13 +26,15 @@ class OrgDiagramNodeTest : public QObject {
   private slots:
     void testTreeConstruction() {
         Scope s;
-        auto  v1   = s.getAdapter("* document level");
-        auto  tree = DiagramTreeNode::FromDocument(
-            v1.getRootAdapter().as<org::imm::ImmDocument>());
+        auto  v1           = s.getAdapter("* document level");
+        auto  tree_context = DiagramTreeNode::Context::shared();
+        auto  tree         = DiagramTreeNode::FromDocument(
+            tree_context, v1.getRootAdapter().as<org::imm::ImmDocument>());
     }
 
     void testTreeEditRemove() {
-        auto  __scope = trackTestExecution(this);
+        auto  __scope      = trackTestExecution(this);
+        auto  tree_context = DiagramTreeNode::Context::shared();
         Scope s;
         auto  v1   = s.getAdapter(R"(
 * diagram layer
@@ -52,7 +54,7 @@ class OrgDiagramNodeTest : public QObject {
         HSLOG_INFO(
             "test", v1.getRootAdapter().treeRepr(conf).toString(false));
         auto canvas = DiagramTreeNode::FromDocument(
-            v1.getRootAdapter().as<org::imm::ImmDocument>());
+            tree_context, v1.getRootAdapter().as<org::imm::ImmDocument>());
         QVERIFY(canvas->as<DiagramTreeNodeCanvas>() != nullptr);
         QCOMPARE_EQ2(canvas->uniq().id.getKind(), OrgSemKind::Document);
         auto layer = canvas->subnodes.at(0);

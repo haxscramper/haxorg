@@ -5,6 +5,8 @@
 
 #include <src/utils/common.hpp>
 
+#pragma clang diagnostic ignored "-Wmacro-redefined"
+#define _cat "model.tree"
 
 int DiagramTreeNode::getColumnCount() const { return 1; }
 
@@ -38,9 +40,6 @@ void DiagramTreeNode::insertSubnode(
     HSLOG_TRACKED_EMIT(get_tracker(), subnodeAdded, index);
 }
 
-void DiagramTreeNode::apply(
-    const hstd::Vec<HistoryManager::AstEdit>& edit) {}
-
 hstd::ColText DiagramTreeNode::format() const {
     hstd::ColStream                                                 os;
     hstd::Func<void(hstd::SPtr<DiagramTreeNode const> const&, int)> aux;
@@ -59,21 +58,25 @@ hstd::ColText DiagramTreeNode::format() const {
 }
 
 
-DiagramTreeNode::DiagramTreeNode(const org::imm::ImmAdapter& id)
-    : id{id} {}
+DiagramTreeNode::DiagramTreeNode(
+    const hstd::SPtr<Context>&  context,
+    const org::imm::ImmAdapter& id)
+    : id{id}, context{context->weak_from_this()} {}
 
 DiagramTreeNode::Ptr DiagramTreeNode::FromDocument(
+    hstd::SPtr<Context> const&                          context,
     org::imm::ImmAdapterT<org::imm::ImmDocument> const& root) {
     HSLOG_DEPTH_SCOPE_ANON();
-    auto canvas = std::make_shared<DiagramTreeNodeCanvas>(root);
+    auto canvas = std::make_shared<DiagramTreeNodeCanvas>(context, root);
     HSLOG_INFO(_cat, hstd::fmt("Creating canvas from {}", root.uniq()));
 
     for (auto const& layerNode : root.subAs<org::imm::ImmSubtree>()) {
-        auto layer = std::make_shared<DiagramTreeNodeLayer>(layerNode);
+        auto layer = std::make_shared<DiagramTreeNodeLayer>(
+            context, layerNode);
         for (auto const& subtreeNode :
              layerNode.subAs<org::imm::ImmSubtree>()) {
-            layer->addSubnode(
-                DiagramTreeNodeItem::FromSubtreeItem(subtreeNode));
+            layer->addSubnode(DiagramTreeNodeItem::FromSubtreeItem(
+                context, subtreeNode));
         }
 
         canvas->addSubnode(layer);
@@ -95,4 +98,127 @@ void DiagramTreeNode::Context::incl(
 
 void DiagramTreeNode::Context::excl(const org::imm::ImmUniqId& id) {
     trackingTreeId.erase(id);
+}
+
+
+void applyEdits(
+    std::shared_ptr<DiagramTreeNode>            root,
+    std::vector<HistoryManager::AstEdit> const& edits,
+    std::shared_ptr<org::imm::ImmAstContext>    context) {
+    HSLOG_DEPTH_SCOPE_ANON();
+
+    using AstEdit      = HistoryManager::AstEdit;
+    auto  tree_context = root->getContext();
+    auto& nodeMap      = tree_context->trackingTreeId;
+
+    for (auto const& key : hstd::sorted(nodeMap.keys())) {
+        HSLOG_TRACE(
+            _cat,
+            hstd::fmt(
+                "key:{} node:0x{:X}",
+                key,
+                reinterpret_cast<std::ptrdiff_t>(
+                    hstd::safe_wptr_lock(nodeMap.at(key)).get())));
+    }
+
+    std::vector<AstEdit> sortedEdits = edits;
+    std::sort(
+        sortedEdits.begin(),
+        sortedEdits.end(),
+        [&](AstEdit const& a, AstEdit const& b) {
+            auto getDepth = [&](org::imm::ImmUniqId const& id) -> int {
+                int  depth   = 0;
+                auto adapter = context->adapt(id);
+                while (adapter.getParent()) {
+                    ++depth;
+                    adapter = adapter.getParent().value();
+                }
+                return depth;
+            };
+
+            int depthA = a.isReplace() ? getDepth(a.getReplace().src)
+                       : a.isDelete()  ? getDepth(a.getDelete().id)
+                                       : getDepth(a.getInsert().id);
+            int depthB = b.isReplace() ? getDepth(b.getReplace().src)
+                       : b.isDelete()  ? getDepth(b.getDelete().id)
+                                       : getDepth(b.getInsert().id);
+
+            return depthA < depthB;
+        });
+
+    for (auto const& edit : sortedEdits) {
+        HSLOG_INFO(_cat, hstd::fmt("edit {}", edit));
+        if (edit.isDelete()) {
+            auto id = edit.getDelete().id;
+            if (nodeMap.contains(id)) {
+                auto node = hstd::safe_wptr_lock(nodeMap.at(id));
+                for (auto& [parentId, parentNode] : nodeMap) {
+                    auto& subs = hstd::safe_wptr_lock(parentNode)
+                                     ->subnodes;
+                    auto it = std::find(subs.begin(), subs.end(), node);
+                    if (it != subs.end()) {
+                        subs.erase(it);
+                        break;
+                    }
+                }
+                nodeMap.erase(id);
+            } else {
+                HSLOG_WARNING(
+                    _cat,
+                    "source node map does not contain delete operation");
+            }
+        } else if (edit.isInsert()) {
+            auto id      = edit.getInsert().id;
+            auto adapter = context->adapt(id);
+            if (adapter.getParent()) {
+                auto parentId = adapter.getParent().value().uniq();
+                if (nodeMap.contains(parentId)) {
+                    auto newNode = std::make_shared<DiagramTreeNode>(
+                        tree_context, adapter);
+                    hstd::safe_wptr_lock(nodeMap.at(parentId))
+                        ->subnodes.push_back(newNode);
+                    nodeMap.insert_or_assign(id, newNode);
+                }
+            }
+        } else if (edit.isReplace()) {
+            auto src = edit.getReplace().src;
+            auto dst = edit.getReplace().dst;
+            if (nodeMap.contains(src)) {
+                auto oldNode    = hstd::safe_wptr_lock(nodeMap.at(src));
+                auto newAdapter = context->adapt(dst);
+                auto newNode    = std::make_shared<DiagramTreeNode>(
+                    tree_context, newAdapter);
+                newNode->subnodes = oldNode->subnodes;
+
+                for (auto& [parentId, parentNode] : nodeMap) {
+                    auto& subs = hstd::safe_wptr_lock(parentNode)
+                                     ->subnodes;
+                    auto it = std::find(subs.begin(), subs.end(), oldNode);
+                    if (it != subs.end()) {
+                        *it = newNode;
+                        break;
+                    }
+                }
+
+                nodeMap.erase(src);
+                nodeMap.insert_or_assign(dst, newNode);
+
+                if (oldNode == root) { root = newNode; }
+            } else {
+                HSLOG_WARNING(
+                    _cat,
+                    "node map does not contain ID for the replace source");
+            }
+        }
+    }
+
+    for (auto const& key : hstd::sorted(nodeMap.keys())) {
+        HSLOG_TRACE(
+            _cat,
+            hstd::fmt(
+                "key:{} node:0x{:X}",
+                key,
+                reinterpret_cast<std::ptrdiff_t>(
+                    hstd::safe_wptr_lock(nodeMap.at(key)).get())));
+    }
 }

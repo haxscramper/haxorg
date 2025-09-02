@@ -3,7 +3,9 @@
 #include <memory>
 #include <src/model/QtOrgAstModel.hpp>
 #include <src/utils/common.hpp>
+#include <src/utils/test_utils.hpp>
 
+using namespace test;
 
 class QtOrgAstModelTest_Standalone : public QObject {
     Q_OBJECT
@@ -14,11 +16,16 @@ class QtOrgAstModelTest_Standalone : public QObject {
         : context{org::imm::ImmAstContext::init_start_context()} {}
 
   private:
-    std::shared_ptr<DiagramTreeNode> createTestTree() {
-        auto root        = std::make_shared<DiagramTreeNode>(getId(1));
-        auto child1      = std::make_shared<DiagramTreeNode>(getId(2));
-        auto child2      = std::make_shared<DiagramTreeNode>(getId(3));
-        auto grandchild1 = std::make_shared<DiagramTreeNode>(getId(4));
+    std::shared_ptr<DiagramTreeNode> createTestTree(
+        ScopeDiagramTree& scope) {
+        auto root = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(1));
+        auto child1 = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(2));
+        auto child2 = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(3));
+        auto grandchild1 = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(4));
 
         root->addSubnode(child1);
         root->addSubnode(child2);
@@ -34,15 +41,20 @@ class QtOrgAstModelTest_Standalone : public QObject {
 
   private slots:
     void testOrgDiagramNodeCreation() {
-        auto node = std::make_shared<DiagramTreeNode>(getId(1));
+        ScopeDiagramTree scope;
+        auto             node = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(1));
         QVERIFY(!node->id.id.isNil());
         QVERIFY(node->subnodes.empty());
         QVERIFY(node->parent.expired());
     }
 
     void testOrgDiagramNodeAddSubnode() {
-        auto parent = std::make_shared<DiagramTreeNode>(getId(1));
-        auto child  = std::make_shared<DiagramTreeNode>(getId(2));
+        ScopeDiagramTree scope;
+        auto             parent = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(1));
+        auto child = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(2));
 
         QSignalSpy spy{parent.get(), &DiagramTreeNode::subnodeAdded};
 
@@ -56,8 +68,11 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testOrgDiagramNodeRemoveSubnode() {
-        auto parent = std::make_shared<DiagramTreeNode>(getId(1));
-        auto child  = std::make_shared<DiagramTreeNode>(getId(2));
+        ScopeDiagramTree scope;
+        auto             parent = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(1));
+        auto child = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(2));
 
         parent->addSubnode(child);
 
@@ -76,8 +91,10 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testOrgDiagramNodeUpdateData() {
-        auto       __scope = trackTestExecution(this);
-        auto       node    = std::make_shared<DiagramTreeNode>(getId(1));
+        auto             __scope = trackTestExecution(this);
+        ScopeDiagramTree scope;
+        auto             node = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(1));
         QSignalSpy spy{node.get(), &DiagramTreeNode::dataChanged};
 
         node->updateData();
@@ -86,16 +103,18 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testModelCreation() {
-        auto            root = createTestTree();
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         QCOMPARE(model.rowCount(), 2);
         QCOMPARE(model.columnCount(), 1);
     }
 
     void testModelIndex() {
-        auto            root = createTestTree();
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         QModelIndex child1Index = model.index(0, 0);
         QModelIndex child2Index = model.index(1, 0);
@@ -107,8 +126,9 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testModelParent() {
-        auto            root = createTestTree();
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         QModelIndex child1Index      = model.index(0, 0);
         QModelIndex grandchild1Index = model.index(0, 0, child1Index);
@@ -119,8 +139,9 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testModelRowCount() {
-        auto            root = createTestTree();
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         QModelIndex child1Index = model.index(0, 0);
         QModelIndex child2Index = model.index(1, 0);
@@ -131,8 +152,9 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testModelData() {
-        auto            root = createTestTree();
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         QModelIndex child1Index = model.index(0, 0);
         QVariant    data        = model.data(child1Index, Qt::DisplayRole);
@@ -142,8 +164,10 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testModelInsertRows() {
-        auto            root = std::make_shared<DiagramTreeNode>(getId(1));
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(1));
+        OrgDiagramModel model{root, scope.tree_context};
 
         QSignalSpy spy{&model, &QAbstractItemModel::rowsInserted};
 
@@ -156,8 +180,9 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testModelRemoveRows() {
-        auto            root = createTestTree();
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         QSignalSpy spy{&model, &QAbstractItemModel::rowsRemoved};
 
@@ -170,11 +195,14 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testModelAddNodeToParent() {
-        auto __scope = trackTestExecution(this);
-        auto root    = std::make_shared<DiagramTreeNode>(getId(1));
+        auto             __scope = trackTestExecution(this);
+        ScopeDiagramTree scope;
+        auto             root = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(1));
         TRACKED_OBJECT(root);
-        OrgDiagramModel model{root};
-        auto newNode = std::make_shared<DiagramTreeNode>(getId(2));
+        OrgDiagramModel model{root, scope.tree_context};
+        auto            newNode = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(2));
         TRACKED_OBJECT(newNode);
 
         hstd::log::SignalDebugger debugger{get_tracker(), &model};
@@ -191,8 +219,9 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testModelGetIndexForId() {
-        auto            root = createTestTree();
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         auto        childId = root->subnodes.at(0)->id;
         QModelIndex index   = model.getIndexForId(childId.uniq());
@@ -203,12 +232,15 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testBidirectionalSync() {
-        auto            root = std::make_shared<DiagramTreeNode>(getId(1));
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(1));
+        OrgDiagramModel model{root, scope.tree_context};
 
         QSignalSpy modelSpy{&model, &QAbstractItemModel::rowsInserted};
 
-        auto newNode = std::make_shared<DiagramTreeNode>(getId(2));
+        auto newNode = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(2));
         root->addSubnode(newNode);
 
         QCOMPARE(model.rowCount(), 1);
@@ -216,9 +248,10 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testDataChangedSync() {
-        auto            __scope = trackTestExecution(this);
-        auto            root    = createTestTree();
-        OrgDiagramModel model{root};
+        auto             __scope = trackTestExecution(this);
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         TRACKED_OBJECT(root->subnodes.at(0).get());
 
@@ -234,8 +267,10 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testRemoveInvalidIndex() {
-        auto            root = std::make_shared<DiagramTreeNode>(getId(2));
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = std::make_shared<DiagramTreeNode>(
+            scope.tree_context, getId(2));
+        OrgDiagramModel model{root, scope.tree_context};
 
         bool result = model.removeRows(0, 1);
 
@@ -243,8 +278,9 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testInsertAtSpecificPosition() {
-        auto            root = createTestTree();
-        OrgDiagramModel model{root};
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         QModelIndex child1Index = model.index(0, 0);
         bool        result      = model.insertRows(0, 1, child1Index);
@@ -255,9 +291,10 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testNodeMapConsistency() {
-        auto            __scope = trackTestExecution(this);
-        auto            root    = createTestTree();
-        OrgDiagramModel model{root};
+        auto             __scope = trackTestExecution(this);
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         auto rootId       = root->id;
         auto child1Id     = root->subnodes.at(0)->id;
@@ -281,9 +318,10 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testMultipleDataChanges() {
-        auto            __scope = trackTestExecution(this);
-        auto            root    = createTestTree();
-        OrgDiagramModel model{root};
+        auto             __scope = trackTestExecution(this);
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         QSignalSpy spy{&model, &QAbstractItemModel::dataChanged};
 
@@ -295,9 +333,10 @@ class QtOrgAstModelTest_Standalone : public QObject {
     }
 
     void testInvalidColumnAccess() {
-        auto            __scope = trackTestExecution(this);
-        auto            root    = createTestTree();
-        OrgDiagramModel model{root};
+        auto             __scope = trackTestExecution(this);
+        ScopeDiagramTree scope;
+        auto             root = createTestTree(scope);
+        OrgDiagramModel  model{root, scope.tree_context};
 
         QModelIndex invalidIndex = model.index(0, 1);
         QVERIFY(!invalidIndex.isValid());

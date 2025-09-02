@@ -74,6 +74,7 @@ bool OrgDiagramModel::insertRows(
 
     for (int i = 0; i < count; ++i) {
         auto newNode = std::make_shared<DiagramTreeNode>(
+            diagramTreeContext,
             hstd::safe_wptr_lock(parentNode->id.ctx)
                 ->adapt(org::imm::ImmUniqId{org::imm::ImmId::Nil()}));
         connectNode(newNode);
@@ -121,7 +122,7 @@ bool OrgDiagramModel::removeRows(
 
 void OrgDiagramModel::addNodeToParent(
     std::shared_ptr<DiagramTreeNode> node,
-    const QModelIndex&              parentIndex) {
+    const QModelIndex&               parentIndex) {
     TRACKED_FUNCTION(addNodeToParent);
     DiagramTreeNode* parentNode{};
     if (!parentIndex.isValid()) {
@@ -152,7 +153,7 @@ QModelIndex OrgDiagramModel::getIndexForId(
 void OrgDiagramModel::onDataChanged() {
     TRACKED_SLOT(onDataChanged);
     DiagramTreeNode* senderNode = qobject_cast<DiagramTreeNode*>(sender());
-    QModelIndex     nodeIndex  = getIndexForNode(senderNode);
+    QModelIndex      nodeIndex  = getIndexForNode(senderNode);
     if (nodeIndex.isValid()) {
         TRACKED_EMIT(dataChanged, nodeIndex, nodeIndex);
     } else {
@@ -245,9 +246,12 @@ void OrgDiagramModel::connectNode(std::shared_ptr<DiagramTreeNode> node) {
 
 
 OrgDiagramModel::OrgDiagramModel(
-    std::shared_ptr<DiagramTreeNode> root,
-    QObject*                        parent)
-    : QAbstractItemModel{parent}, rootNode{root} {
+    std::shared_ptr<DiagramTreeNode>            root,
+    const hstd::SPtr<DiagramTreeNode::Context>& context,
+    QObject*                                    parent)
+    : QAbstractItemModel{parent}
+    , rootNode{root}
+    , diagramTreeContext{context} {
     TRACKED_FUNCTION(OrgDiagramModel);
     buildNodeMap();
     connectNode(rootNode);
@@ -287,8 +291,8 @@ QModelIndex OrgDiagramModel::index(
 
 void OrgDiagramModel::onSubnodeAdded(int index) {
     TRACKED_SLOT(onSubnodeAdded, index);
-    DiagramTreeNode* senderNode  = qobject_cast<DiagramTreeNode*>(sender());
-    QModelIndex     parentIndex = getIndexForNode(senderNode);
+    DiagramTreeNode* senderNode = qobject_cast<DiagramTreeNode*>(sender());
+    QModelIndex      parentIndex = getIndexForNode(senderNode);
     beginInsertRows(parentIndex, index, index);
     connectNode(senderNode->subnodes.at(index));
     invalidateNodeMapAfterIndex(parentIndex, index);
@@ -297,9 +301,9 @@ void OrgDiagramModel::onSubnodeAdded(int index) {
 
 void OrgDiagramModel::onSubnodeAboutToBeRemoved(int index) {
     TRACKED_SLOT(onSubnodeAboutToBeRemoved, index);
-    DiagramTreeNode* senderNode   = qobject_cast<DiagramTreeNode*>(sender());
-    QModelIndex     parentIndex  = getIndexForNode(senderNode);
-    auto            nodeToRemove = senderNode->subnodes.at(index);
+    DiagramTreeNode* senderNode = qobject_cast<DiagramTreeNode*>(sender());
+    QModelIndex      parentIndex  = getIndexForNode(senderNode);
+    auto             nodeToRemove = senderNode->subnodes.at(index);
     removeFromNodeMap(nodeToRemove);
     disconnectNode(nodeToRemove);
     beginRemoveRows(parentIndex, index, index);

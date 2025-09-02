@@ -2,6 +2,7 @@
 
 
 hstd::SPtr<DiagramTreeNodeItem> DiagramTreeNodeItem::FromSubtreeItem(
+    hstd::SPtr<Context> const&                         context,
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
     auto position = getStructuredProperty<DiagramTreeNodeItem::Pos>(
         subtree, PropertyNames::diagramPosition);
@@ -20,13 +21,28 @@ hstd::SPtr<DiagramTreeNodeItem> DiagramTreeNodeItem::FromSubtreeItem(
             hasArgsProperty(subtree, PropertyNames::isDiagramNode)));
     }
 
-    auto item = std::make_shared<DiagramTreeNodeItem>(subtree);
+    return std::make_shared<DiagramTreeNodeItem>(context, subtree);
+}
+
+hstd::SPtr<DiagramTreeNodeItem> DiagramTreeNodeItem::FromSubtreeItemRec(
+    const hstd::SPtr<Context>&                         context,
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
+
+    auto result = FromSubtreeItem(context, subtree);
 
     for (auto const& sub : subtree.subAs<org::imm::ImmSubtree>()) {
-        if (hasArgsProperty(sub, PropertyNames::isDiagramNode)) {
-            item->addSubnode(FromSubtreeItem(sub));
+        if (isSubtreeItem(sub)) {
+            result->addSubnode(FromSubtreeItem(context, sub));
         }
     }
 
-    return item;
+    return result;
+}
+
+bool DiagramTreeNodeItem::isSubtreeItem(
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
+    return getStructuredProperty<DiagramTreeNodeItem::Pos>(
+               subtree, PropertyNames::diagramPosition)
+               .has_value()
+        && hasArgsProperty(subtree, PropertyNames::isDiagramNode);
 }

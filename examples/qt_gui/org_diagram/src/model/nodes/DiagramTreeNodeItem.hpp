@@ -31,5 +31,13 @@ struct DiagramTreeNodeItem : public DiagramTreeNode {
 
 
     static hstd::SPtr<DiagramTreeNodeItem> FromSubtreeItem(
+        const hstd::SPtr<Context>&                         context,
+        org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree);
+
+    static hstd::SPtr<DiagramTreeNodeItem> FromSubtreeItemRec(
+        const hstd::SPtr<Context>&                         context,
+        org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree);
+
+    static bool isSubtreeItem(
         org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree);
 };

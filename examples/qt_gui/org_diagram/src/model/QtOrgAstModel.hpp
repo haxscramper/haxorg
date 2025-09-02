@@ -14,15 +14,18 @@ struct OrgDiagramModel : public QAbstractItemModel {
     Q_OBJECT
 
   private:
-    hstd::SPtr<DiagramTreeNode>                                   rootNode;
+    hstd::SPtr<DiagramTreeNode>                                  rootNode;
     mutable std::unordered_map<org::imm::ImmUniqId, QModelIndex> nodeMap;
 
   public:
     explicit OrgDiagramModel(
-        std::shared_ptr<DiagramTreeNode> root,
-        QObject*                        parent = nullptr);
+        std::shared_ptr<DiagramTreeNode>            root,
+        hstd::SPtr<DiagramTreeNode::Context> const& context,
+        QObject*                                    parent = nullptr);
 
     hstd::ColText format();
+
+    hstd::SPtr<DiagramTreeNode::Context> const& diagramTreeContext;
 
     QModelIndex index(
         int                row,
@@ -55,7 +58,7 @@ struct OrgDiagramModel : public QAbstractItemModel {
 
     void addNodeToParent(
         std::shared_ptr<DiagramTreeNode> node,
-        const QModelIndex&              parentIndex);
+        const QModelIndex&               parentIndex);
 
     QModelIndex getIndexForId(const org::imm::ImmUniqId& id) const;
 

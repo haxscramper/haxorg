@@ -13,7 +13,7 @@ struct DiagramTreeNode
     Q_OBJECT
 
   public:
-    struct Context : hstd::SharedPtrApi<DiagramTreeNode> {
+    struct Context : hstd::SharedPtrApi<Context> {
         hstd::
             UnorderedMap<org::imm::ImmUniqId, hstd::WPtr<DiagramTreeNode>>
                 trackingTreeId;
@@ -40,7 +40,9 @@ struct DiagramTreeNode
 
     std::string formatToString() const { return hstd::fmt("id:{}", id); }
 
-    DiagramTreeNode(org::imm::ImmAdapter const& id);
+    DiagramTreeNode(
+        hstd::SPtr<Context> const&  context,
+        org::imm::ImmAdapter const& id);
 
     org::imm::ImmUniqId uniq() const { return id.uniq(); }
 
@@ -51,11 +53,11 @@ struct DiagramTreeNode
     void updateData();
     void insertSubnode(hstd::SPtr<DiagramTreeNode> const& node, int index);
 
-    void apply(hstd::Vec<HistoryManager::AstEdit> const& edit);
 
     hstd::ColText format() const;
 
     static DiagramTreeNode::Ptr FromDocument(
+        const hstd::SPtr<Context>&                          context,
         org::imm::ImmAdapterT<org::imm::ImmDocument> const& root);
 
     template <typename T>
@@ -69,3 +71,9 @@ struct DiagramTreeNode
     void subnodeRemoved();
     void dataChanged();
 };
+
+
+void applyEdits(
+    std::shared_ptr<DiagramTreeNode>            root,
+    std::vector<HistoryManager::AstEdit> const& edits,
+    std::shared_ptr<org::imm::ImmAstContext>    context);
