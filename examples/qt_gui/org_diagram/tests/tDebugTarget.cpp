@@ -12,13 +12,12 @@ using namespace test;
 class DebugTarget : public QObject {
   public:
     void run_thing() {
-        auto     __scope = trackTestExecution(this);
-        ScopeV12 scope;
-        scope.manager.addDocument("word");
-        scope.manager.addDocument("word second");
-        auto treeV1 = FromDocument(scope.tree_context, scope.getRootV1());
-        auto treeV2 = FromDocument(scope.tree_context, scope.getRootV2());
-        auto edits  = getEdits(treeV1, treeV2, DiaEditConf{});
+        auto             __scope = trackTestExecution(this);
+        ScopeDiagramTree scope;
+        auto             v1   = scope.getAdapter("* document level");
+        auto             tree = FromDocument(
+            scope.tree_context,
+            v1.getRootAdapter().as<org::imm::ImmDocument>());
     }
 };
 

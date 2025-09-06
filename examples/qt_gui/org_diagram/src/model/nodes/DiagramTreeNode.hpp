@@ -417,9 +417,11 @@ struct DiaContext : hstd::SharedPtrApi<DiaContext> {
     DiaNode const* at(DiaId const& id) const { return store->at(id); }
     DiaNode const* at(DiaUniqId const& id) const { return at(id.id); }
 
+    DiaContext() { store = std::make_shared<DiaNodeStore>(); }
 
     template <typename T>
     DiaId add(T const& t) {
+        hstd::logic_assertion_check_not_nil(store);
         return store->add(t);
     }
 
