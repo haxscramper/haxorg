@@ -38,6 +38,7 @@ set_target_properties(
              AUTORCC ON)
 
 target_compile_definitions(org_diagram_lib PUBLIC HAXORG_LOGGER_SUPPORT_QT=1)
+target_compile_options(org_diagram_lib PUBLIC "-ftemplate-backtrace-limit=0")
 
 target_include_directories(
   org_diagram_lib

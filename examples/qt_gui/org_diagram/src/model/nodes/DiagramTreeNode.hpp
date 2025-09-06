@@ -8,6 +8,8 @@
 
 #define _cat "model.diagram"
 
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 DECL_DESCRIBED_ENUM_STANDALONE(DiaNodeKind, Layer, Canvas, Group, Item);
 
 #define EACH_DIAGRAM_KIND(__impl)                                         \
@@ -128,13 +130,276 @@ struct DiaIdT : public DiaId {
     static DiaIdT<T> Nil() { return DiaIdT<T>(DiaId::Nil()); }
 };
 
+struct DiaReflFieldId;
 
-using DiaUniqId = DiaId;
+struct DiaReflPathTag {
+    using field_name_type = DiaReflFieldId;
+};
+
+using DiaReflPathItemBase = hstd::ReflPathItem<DiaReflPathTag>;
+using DiaReflPathBase     = hstd::ReflPath<DiaReflPathTag>;
+
+template <typename T, typename Tag>
+struct hstd::ReflVisitor<immer::vector<T>, Tag>
+    : ReflVisitorIndexed<T, immer::vector<T>, Tag> {};
+
+struct DiaReflFieldId {
+    hstd::Str getName() const {
+        if (typeId.has_value()) {
+            return hstd::get_registered_field_name(typeId.value(), index);
+        } else {
+            return hstd::fmt("field_{}", index);
+        }
+    }
+
+    using offset_type = std::uint32_t;
+
+    std::optional<std::type_index> typeId;
+    offset_type                    index;
+
+    DiaReflFieldId() = default;
+
+    static DiaReflFieldId FromIdParts(
+        std::optional<std::type_index> typeId,
+        offset_type                    index) {
+        DiaReflFieldId res{};
+        res.typeId = typeId;
+        res.index  = index;
+        return res;
+    }
+
+    template <typename T, typename F>
+    static DiaReflFieldId FromTypeField(F T::*fieldPtr) {
+        return DiaReflFieldId::FromIdParts(
+            typeid(T), hstd::get_total_field_index_by_ptr(fieldPtr));
+    }
+
+    bool operator==(DiaReflFieldId const& other) const {
+        return index == other.index;
+    }
+
+    bool operator<(DiaReflFieldId const& other) const {
+        return index < other.index;
+    }
+
+    std::uint64_t getSerializableId() const { return index; }
+
+    static DiaReflFieldId fromSerializableId(std::uint64_t id) {
+        return DiaReflFieldId::FromIdParts(
+            std::nullopt, static_cast<offset_type>(id & 0xFFFFFFFF));
+    }
+};
+
+template <>
+struct std::formatter<DiaReflFieldId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const DiaReflFieldId& p, FormatContext& ctx) const {
+        return fmt_ctx(p.getName(), ctx);
+    }
+};
+
+template <>
+struct hstd::ReflTypeTraits<DiaReflPathTag> {
+    using AnyTypeTuple     = std::tuple<Str>;
+    using AnyFormatterType = AnyFormatter<Str>;
+    using AnyHasherType    = AnyHasher<Str>;
+    using AnyEqualType     = AnyEqual<Str>;
+
+    using ReflPathStoreType = immer::vector<ReflPathItem<DiaReflPathTag>>;
+
+    template <typename T>
+    static DiaReflPathTag::field_name_type InitFieldName(
+        T const&    value,
+        auto const& field) {
+        return DiaReflFieldId::FromTypeField<T>(field.pointer);
+    }
+
+    static ReflPath<DiaReflPathTag> AddPathItem(
+        ReflPath<DiaReflPathTag>     res,
+        ReflPathItem<DiaReflPathTag> item) {
+        return ReflPath<DiaReflPathTag>{res.path.push_back(item)};
+    }
+};
+
+
+struct [[refl]] DiaPathStep {
+    DiaReflPathBase path;
+    DESC_FIELDS(DiaPathStep, (path));
+    bool operator==(DiaPathStep const& other) const {
+        return path == other.path;
+    }
+
+    static DiaPathStep FieldIdx(DiaReflFieldId const& field, int idx) {
+        return DiaPathStep{DiaReflPathBase{{
+            DiaReflPathItemBase::FromFieldName(field),
+            DiaReflPathItemBase::FromIndex(idx),
+        }}};
+    }
+
+    static DiaPathStep Field(DiaReflFieldId const& field) {
+        return DiaPathStep{DiaReflPathBase{{
+            DiaReflPathItemBase::FromFieldName(field),
+        }}};
+    }
+
+    static DiaPathStep FieldDeref(DiaReflFieldId const& field) {
+        return DiaPathStep{DiaReflPathBase{{
+            DiaReflPathItemBase::FromFieldName(field),
+            DiaReflPathItemBase::FromDeref(),
+        }}};
+    }
+
+    bool operator<(DiaPathStep const& other) const {
+        return path.lessThan(
+            other.path, hstd::ReflPathComparator<DiaReflPathTag>{});
+    }
+};
+
+struct DiaPath {
+    using Store = immer::flex_vector<DiaPathStep>;
+    DiaId root;
+    Store path;
+
+    DESC_FIELDS(DiaPath, (root, path));
+
+    bool empty() const { return path.empty(); }
+
+    DiaPath() : root{DiaId::Nil()} {}
+    DiaPath(DiaId root) : root{root} {};
+    DiaPath(DiaId root, DiaReflPathBase const& step0)
+        : root{root}, path{DiaPathStep{step0}} {}
+    DiaPath(DiaId root, DiaPathStep const& step0)
+        : root{root}, path{{step0}} {}
+    DiaPath(DiaId root, Store const& path) : root{root}, path{path} {}
+    DiaPath(DiaId root, hstd::Span<DiaPathStep> const& span)
+        : root{root}, path{span.begin(), span.end()} {}
+
+
+    hstd::generator<immer::flex_vector<DiaPathStep>> pathSpans(
+        bool leafStart = true) const {
+        if (leafStart) {
+            for (int i = path.size() - 1; 0 <= i; --i) {
+                co_yield path.take(i);
+            }
+        } else {
+            for (int i = 0; i < path.size(); ++i) {
+                co_yield path.take(i);
+            }
+        }
+    }
+
+    DiaPath pop() const {
+        return DiaPath{root, path.erase(path.size() - 1)};
+    }
+
+    DiaPath add(DiaPathStep const& it) const {
+        return DiaPath{root, path.push_back(it)};
+    }
+
+    bool operator==(DiaPath const& other) const {
+        return root == other.root && path.operator==(other.path);
+    }
+
+    bool operator<(DiaPath const& other) const {
+        return root < other.root
+            && hstd::itemwise_less_than(
+                   path, other.path, std::less<DiaPathStep>{});
+    }
+};
+
+struct [[refl]] DiaUniqId {
+    DiaId   id;
+    DiaPath path;
+    DESC_FIELDS(DiaUniqId, (id, path));
+
+    DiaUniqId update(DiaId id) const {
+        auto res = *this;
+        res.id   = id;
+        return res;
+    }
+
+    bool operator==(DiaUniqId const& it) const {
+        return id == it.id && path == it.path;
+    }
+
+    bool operator<(DiaUniqId const& it) const {
+        return id < it.id && path < it.path;
+    }
+};
+
+template <>
+struct std::hash<DiaReflFieldId> {
+    std::size_t operator()(DiaReflFieldId const& step) const noexcept {
+        hstd::AnyHasher<hstd::Str> hasher;
+        std::size_t                result = 0;
+        hstd::hax_hash_combine(result, step.index);
+        return result;
+    }
+};
+
+template <>
+struct std::hash<DiaPathStep> {
+    std::size_t operator()(DiaPathStep const& step) const noexcept {
+        hstd::AnyHasher<hstd::Str> hasher;
+        std::size_t                result = 0;
+        for (int i = 0; i < step.path.path.size(); ++i) {
+            DiaReflPathItemBase const& it = step.path.path.at(i);
+            hstd::hax_hash_combine(result, i);
+            hstd::hax_hash_combine(result, it);
+        }
+        return result;
+    }
+};
+
+template <>
+struct std::hash<DiaPath> {
+    std::size_t operator()(DiaPath const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.root);
+        hstd::hax_hash_combine(result, it.path);
+        return result;
+    }
+};
+
+
+template <>
+struct std::hash<DiaUniqId> {
+    std::size_t operator()(DiaUniqId const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.id);
+        hstd::hax_hash_combine(result, it.path);
+        return result;
+    }
+};
 
 struct DiaNode {
     virtual DiaNodeKind      getKind() const = 0;
     hstd::ext::ImmVec<DiaId> subnodes;
     org::imm::ImmAdapter     id;
+
+    template <typename T>
+    T const* dyn_cast() const {
+        return dynamic_cast<T const*>(this);
+    }
+
+    template <typename T>
+    T const* as() const {
+        auto res = dyn_cast<T>();
+        if (res == nullptr) {
+            if constexpr (std::is_abstract_v<T>) {
+                throw std::logic_error(hstd::fmt(
+                    "Cannot cast node of kind {}", this->getKind()));
+            } else {
+                throw std::logic_error(hstd::fmt(
+                    "Cannot cast node of kind {} to kind {}",
+                    this->getKind(),
+                    T::staticKind));
+            }
+        }
+        return res;
+    }
+
+
     DESC_FIELDS(DiaNode, (subnodes, id));
 };
 
@@ -178,6 +443,7 @@ struct DiaNodeItem : DiaNode {
 
 
     DiaNodeKind getKind() const override { return staticKind; }
+    BOOST_DESCRIBE_CLASS(DiaNodeItem, (DiaNode), (), (), ());
 };
 
 template <typename Func>
@@ -213,9 +479,8 @@ std::size_t dia_hash_build(T const& value) {
     std::size_t result = 0;
     hstd::for_each_field_with_bases<T>([&](auto const& field) {
         using FieldType = DESC_FIELD_TYPE(field);
-        if (std::is_same_v<org::imm::ImmAdapter, FieldType>
-            && field.name == "id") {
-            hstd::hax_hash_combine(value.*field.pointer.uniq());
+        if constexpr (std::is_same_v<org::imm::ImmAdapter, FieldType>) {
+            hstd::hax_hash_combine(result, (value.*field.pointer).uniq());
         } else {
             auto hash_value = std::hash<
                 std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
@@ -333,25 +598,104 @@ struct DiaNodeStore {
 };
 
 
-struct DiaContext {
+struct DiaContext : hstd::SharedPtrApi<DiaContext> {
     std::shared_ptr<DiaNodeStore> store;
 
     DESC_FIELDS(DiaContext, (store));
 
     DiaNode const* at(DiaId const& id) const { return store->at(id); }
+    DiaNode const* at(DiaUniqId const& id) const { return at(id.id); }
 
     template <typename T>
     DiaId add(T const& t) {
         return store->add(t);
     }
+
+    template <typename T>
+    T const& value(DiaId id) const {
+        LOGIC_ASSERTION_CHECK(!id.isNil(), "cannot get value for nil ID");
+        return *at_t<T>(id);
+    }
+
+    template <typename T>
+    T const* at_t(DiaId id) const {
+        return at(id)->template as<T>();
+    }
+
+
+    DiaId at(DiaId node, const DiaPathStep& item) const {
+        node.assertValid();
+        if (item.path.isSingle() && item.path.first().isIndex()) {
+            return value<DiaNode>(node).subnodes.at(
+                item.path.first().getIndex().index);
+        } else {
+            hstd::Opt<DiaId> result;
+            switch_dia_ptr(at(node), [&]<typename T>(T const* ptr) {
+                hstd::logic_assertion_check_not_nil(ptr);
+                reflVisitPath<T>(
+                    *ptr,
+                    item.path,
+                    hstd::overloaded{
+                        [&](DiaId const& id) { result = id; },
+                        [&]<typename K>(DiaIdT<K> const& id) {
+                            result = id.toId();
+                        },
+                        [&](auto const& other) {
+                            LOGIC_ASSERTION_CHECK(
+                                false,
+                                "Path {} does not point to a field "
+                                "with ID, resolved to {}",
+                                hstd::fmt1_maybe(item),
+                                hstd::fmt1_maybe(other));
+                        },
+                    });
+            });
+            return result.value();
+        }
+    }
+
+    DiaId at(const DiaPath& item) const {
+        auto result = item.root;
+        for (auto const& step : item.path) { result = at(result, step); }
+        return result;
+    }
 };
 
 struct DiaAdapter {
     DiaUniqId                   id;
-    std::shared_ptr<DiaContext> context;
+    std::shared_ptr<DiaContext> ctx;
 
-    int size() const { return context->at(id)->subnodes.size(); }
-    DiaNode const* get() const { return context->at(id); }
+    int            size() const { return ctx->at(id)->subnodes.size(); }
+    DiaNode const* get() const { return ctx->at(id); }
+
+    DiaAdapter at(DiaId const& at_id, DiaPathStep const& step) const {
+        return DiaAdapter{DiaUniqId{at_id, id.path.add(step)}, ctx};
+    }
+
+    DiaAdapter(DiaPath const& path, DiaContext::Ptr ctx)
+        : id{ctx->at(path)}, ctx{ctx} {}
+
+    DiaAdapter(DiaUniqId id, DiaContext::Ptr ctx) : id{id}, ctx{ctx} {}
+
+    DiaAdapter(DiaId id, DiaContext::Ptr ctx, DiaPath const& path)
+        : id{id}, ctx{ctx} {}
+
+    DiaAdapter(DiaAdapter const& other) : id{other.id}, ctx{other.ctx} {}
+
+    DiaAdapter() : id{DiaId::Nil()}, ctx{} {}
+
+    DiaAdapter at(int idx, bool withPath) const {
+        if (withPath) {
+            return at(
+                ctx->at(id)->subnodes.at(idx),
+                DiaPathStep::FieldIdx(
+                    DiaReflFieldId::FromTypeField<DiaNode>(
+                        &DiaNode::subnodes),
+                    idx));
+        } else {
+            return DiaAdapter{ctx->at(id)->subnodes.at(idx), ctx, {}};
+        }
+    }
 };
 
 DiaId FromDocument(

@@ -24,15 +24,41 @@ struct OrgDiagramModel : public QAbstractItemModel {
     hstd::ColText format();
 
     struct IndexData {
-        DiaUniqId const& adapter;
+        DiaUniqId const& uniq;
     };
 
-    hstd::UnorderedMap<DiaUniqId, std::shared_ptr<IndexData>> adapters;
+    mutable hstd::UnorderedMap<DiaUniqId, std::shared_ptr<IndexData>>
+        adapters;
 
-    QModelIndex indexForData(int row, int column, DiaAdapter const& id) {
+    mutable hstd::UnorderedMap<DiaUniqId, QPersistentModelIndex> indexMap;
+
+    hstd::UnorderedMap<DiaUniqId, DiaUniqId> parentMap;
+
+    hstd::Opt<DiaUniqId> getParentId(DiaUniqId const& id) const {
+        return parentMap.get(id);
+    }
+
+    hstd::Opt<QPersistentModelIndex> getParentIndex(
+        DiaUniqId const& id) const {
+        if (auto parent = getParentId(id); parent.has_value()) {
+            return getNodeIndex(parent.value());
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    hstd::Opt<QPersistentModelIndex> getNodeIndex(
+        DiaUniqId const& id) const {
+        return indexMap.get(id);
+    }
+
+    QModelIndex indexForData(int row, int column, DiaAdapter const& id)
+        const {
         adapters.insert_or_assign(
             id.id, std::make_shared<IndexData>(id.id));
-        return createIndex(row, column, adapters.at(id.id).get());
+        auto index = createIndex(row, column, adapters.at(id.id).get());
+        indexMap.insert_or_assign(id.id, index);
+        return index;
     }
 
     std::shared_ptr<IndexData> getData(DiaUniqId const& id) const {

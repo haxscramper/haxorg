@@ -4,39 +4,20 @@
 #include "QtOrgAstModel.moc"
 
 QModelIndex OrgDiagramModel::parent(const QModelIndex& index) const {
-    if (!index.isValid()) { return QModelIndex{}; }
-
-    DiagramTreeNode* childNode = static_cast<DiagramTreeNode*>(
-        index.internalPointer());
-    auto parentPtr = childNode->parent.lock();
-
-    if (!parentPtr || parentPtr == rootNode) { return QModelIndex{}; }
-
-    auto grandParentPtr = parentPtr->parent.lock();
-    if (!grandParentPtr) { return QModelIndex{}; }
-
-    auto it = std::find_if(
-        grandParentPtr->subnodes.begin(),
-        grandParentPtr->subnodes.end(),
-        [&parentPtr](const std::shared_ptr<DiagramTreeNode>& node) {
-            return node->id == parentPtr->id;
-        });
-
-    if (it != grandParentPtr->subnodes.end()) {
-        int row = static_cast<int>(
-            std::distance(grandParentPtr->subnodes.begin(), it));
-        QModelIndex parentIndex = createIndex(row, 0, parentPtr.get());
-        nodeMap.insert_or_assign(parentPtr->uniq(), parentIndex);
-        return parentIndex;
+    if (index.isValid()) {
+        DiaAdapter node = getNode(index);
+        return getParentIndex(node.id).value_or(QModelIndex{});
+    } else {
+        return QModelIndex{};
     }
-
-    return QModelIndex{};
 }
 
 DiaAdapter OrgDiagramModel::getNode(const QModelIndex& index) const {
     DiaAdapter parentNode{};
     if (index.isValid()) {
-        return static_cast<ModelData>(index.internalPointer());
+        return DiaAdapter{
+            static_cast<IndexData*>(index.internalPointer())->uniq,
+            rootNode.ctx};
     } else {
         return rootNode;
     }
@@ -51,7 +32,7 @@ QVariant OrgDiagramModel::data(const QModelIndex& index, int role) const {
 
     if (role == Qt::DisplayRole) {
         DiaAdapter node = getNode(index);
-        return std::format("Node {}", node.id.format()).c_str();
+        return std::format("Node {}", node.id.id.format()).c_str();
     }
 
     return QVariant{};
@@ -86,10 +67,8 @@ QModelIndex OrgDiagramModel::index(
 
     DiaAdapter parentNode = getNode(parent);
     if (row < static_cast<int>(parentNode.get()->subnodes.size())) {
-        QModelIndex newIndex = indexForData(row, column);
-        nodeMap.insert_or_assign(
-            parentNode->subnodes.at(row)->uniq(), newIndex);
-        return newIndex;
+        return indexForData(row, column, parentNode.at(row, true));
+    } else {
+        return QModelIndex{};
     }
-    return QModelIndex{};
 }
