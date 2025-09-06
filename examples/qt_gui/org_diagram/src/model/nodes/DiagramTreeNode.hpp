@@ -26,6 +26,14 @@ struct DiagramTreeNode
 
         void incl(hstd::SPtr<DiagramTreeNode> const& node);
         void excl(org::imm::ImmUniqId const& id);
+
+        template <typename T, typename... Args>
+        std::shared_ptr<T> New(Args&&... args) {
+            auto result = std::make_shared<T>(
+                shared_from_this(), std::forward<Args>(args)...);
+            this->incl(result);
+            return result;
+        }
     };
 
 

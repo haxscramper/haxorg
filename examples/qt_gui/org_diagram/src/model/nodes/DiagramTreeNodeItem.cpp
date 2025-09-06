@@ -21,7 +21,7 @@ hstd::SPtr<DiagramTreeNodeItem> DiagramTreeNodeItem::FromSubtreeItem(
             hasArgsProperty(subtree, PropertyNames::isDiagramNode)));
     }
 
-    return std::make_shared<DiagramTreeNodeItem>(context, subtree);
+    return context->New<DiagramTreeNodeItem>(subtree);
 }
 
 hstd::SPtr<DiagramTreeNodeItem> DiagramTreeNodeItem::FromSubtreeItemRec(
@@ -32,7 +32,7 @@ hstd::SPtr<DiagramTreeNodeItem> DiagramTreeNodeItem::FromSubtreeItemRec(
 
     for (auto const& sub : subtree.subAs<org::imm::ImmSubtree>()) {
         if (isSubtreeItem(sub)) {
-            result->addSubnode(FromSubtreeItem(context, sub));
+            result->addSubnode(FromSubtreeItemRec(context, sub));
         }
     }
 

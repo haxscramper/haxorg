@@ -73,8 +73,7 @@ bool OrgDiagramModel::insertRows(
     beginInsertRows(parent, row, row + count - 1);
 
     for (int i = 0; i < count; ++i) {
-        auto newNode = std::make_shared<DiagramTreeNode>(
-            diagramTreeContext,
+        auto newNode = diagramTreeContext->New<DiagramTreeNode>(
             hstd::safe_wptr_lock(parentNode->id.ctx)
                 ->adapt(org::imm::ImmUniqId{org::imm::ImmId::Nil()}));
         connectNode(newNode);

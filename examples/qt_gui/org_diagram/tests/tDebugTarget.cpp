@@ -18,11 +18,14 @@ class DebugTarget : public QObject {
         scope.manager.addDocument("word second");
         auto treeV1 = DiagramTreeNode::FromDocument(
             scope.tree_context, scope.getRootV1());
-        auto treeV2 = DiagramTreeNode::FromDocument(
-            scope.tree_context, scope.getRootV2());
 
         applyEdits(
             treeV1, scope.manager.getDifference(0, 1), scope.context);
+
+        auto treeV2 = DiagramTreeNode::FromDocument(
+            scope.tree_context, scope.getRootV2());
+
+        QCOMPARE_EQ2(treeV1->id.uniq(), treeV2->id.uniq());
     }
 };
 

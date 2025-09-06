@@ -67,15 +67,14 @@ DiagramTreeNode::Ptr DiagramTreeNode::FromDocument(
     hstd::SPtr<Context> const&                          context,
     org::imm::ImmAdapterT<org::imm::ImmDocument> const& root) {
     HSLOG_DEPTH_SCOPE_ANON();
-    auto canvas = std::make_shared<DiagramTreeNodeCanvas>(context, root);
+    auto canvas = context->New<DiagramTreeNodeCanvas>(root);
     HSLOG_INFO(_cat, hstd::fmt("Creating canvas from {}", root.uniq()));
 
     for (auto const& layerNode : root.subAs<org::imm::ImmSubtree>()) {
-        auto layer = std::make_shared<DiagramTreeNodeLayer>(
-            context, layerNode);
+        auto layer = context->New<DiagramTreeNodeLayer>(layerNode);
         for (auto const& subtreeNode :
              layerNode.subAs<org::imm::ImmSubtree>()) {
-            layer->addSubnode(DiagramTreeNodeItem::FromSubtreeItem(
+            layer->addSubnode(DiagramTreeNodeItem::FromSubtreeItemRec(
                 context, subtreeNode));
         }
 
@@ -105,20 +104,25 @@ void applyEdits(
     std::shared_ptr<DiagramTreeNode>            root,
     std::vector<HistoryManager::AstEdit> const& edits,
     std::shared_ptr<org::imm::ImmAstContext>    context) {
+    HSLOG_INFO(_cat, "Apply edits to the diagram tree");
     HSLOG_DEPTH_SCOPE_ANON();
 
     using AstEdit      = HistoryManager::AstEdit;
     auto  tree_context = root->getContext();
     auto& nodeMap      = tree_context->trackingTreeId;
 
-    for (auto const& key : hstd::sorted(nodeMap.keys())) {
-        HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "key:{} node:0x{:X}",
-                key,
-                reinterpret_cast<std::ptrdiff_t>(
-                    hstd::safe_wptr_lock(nodeMap.at(key)).get())));
+    HSLOG_INFO(_cat, "node map before edits");
+    {
+        HSLOG_DEPTH_SCOPE_ANON();
+        for (auto const& key : hstd::sorted(nodeMap.keys())) {
+            HSLOG_TRACE(
+                _cat,
+                hstd::fmt(
+                    "key:{} node:0x{:X}",
+                    key,
+                    reinterpret_cast<std::ptrdiff_t>(
+                        hstd::safe_wptr_lock(nodeMap.at(key)).get())));
+        }
     }
 
     std::vector<AstEdit> sortedEdits = edits;
@@ -164,8 +168,7 @@ void applyEdits(
                 nodeMap.erase(id);
             } else {
                 HSLOG_WARNING(
-                    _cat,
-                    "source node map does not contain delete operation");
+                    _cat, hstd::fmt("node map does not have ID {}", id));
             }
         } else if (edit.isInsert()) {
             auto id      = edit.getInsert().id;
@@ -173,8 +176,8 @@ void applyEdits(
             if (adapter.getParent()) {
                 auto parentId = adapter.getParent().value().uniq();
                 if (nodeMap.contains(parentId)) {
-                    auto newNode = std::make_shared<DiagramTreeNode>(
-                        tree_context, adapter);
+                    auto newNode = tree_context->New<DiagramTreeNode>(
+                        adapter);
                     hstd::safe_wptr_lock(nodeMap.at(parentId))
                         ->subnodes.push_back(newNode);
                     nodeMap.insert_or_assign(id, newNode);
@@ -186,8 +189,8 @@ void applyEdits(
             if (nodeMap.contains(src)) {
                 auto oldNode    = hstd::safe_wptr_lock(nodeMap.at(src));
                 auto newAdapter = context->adapt(dst);
-                auto newNode    = std::make_shared<DiagramTreeNode>(
-                    tree_context, newAdapter);
+                auto newNode    = tree_context->New<DiagramTreeNode>(
+                    newAdapter);
                 newNode->subnodes = oldNode->subnodes;
 
                 for (auto& [parentId, parentNode] : nodeMap) {
@@ -212,13 +215,17 @@ void applyEdits(
         }
     }
 
-    for (auto const& key : hstd::sorted(nodeMap.keys())) {
-        HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "key:{} node:0x{:X}",
-                key,
-                reinterpret_cast<std::ptrdiff_t>(
-                    hstd::safe_wptr_lock(nodeMap.at(key)).get())));
+    HSLOG_INFO(_cat, "node map after edits");
+    {
+        HSLOG_DEPTH_SCOPE_ANON();
+        for (auto const& key : hstd::sorted(nodeMap.keys())) {
+            HSLOG_TRACE(
+                _cat,
+                hstd::fmt(
+                    "key:{} node:0x{:X}",
+                    key,
+                    reinterpret_cast<std::ptrdiff_t>(
+                        hstd::safe_wptr_lock(nodeMap.at(key)).get())));
+        }
     }
 }
