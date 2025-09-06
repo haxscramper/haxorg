@@ -33,228 +33,36 @@ QModelIndex OrgDiagramModel::parent(const QModelIndex& index) const {
     return QModelIndex{};
 }
 
-DiagramTreeNode* OrgDiagramModel::getNode(const QModelIndex& index) const {
-    DiagramTreeNode* parentNode{};
+DiaAdapter OrgDiagramModel::getNode(const QModelIndex& index) const {
+    DiaAdapter parentNode{};
     if (index.isValid()) {
-        return static_cast<DiagramTreeNode*>(index.internalPointer());
+        return static_cast<ModelData>(index.internalPointer());
     } else {
-        return rootNode.get();
+        return rootNode;
     }
 }
 
 int OrgDiagramModel::rowCount(const QModelIndex& parent) const {
-    return getNode(parent)->subnodes.size();
+    return getNode(parent).size();
 }
 
 QVariant OrgDiagramModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid()) { return QVariant{}; }
 
     if (role == Qt::DisplayRole) {
-        DiagramTreeNode* node = static_cast<DiagramTreeNode*>(
-            index.internalPointer());
-        return std::format("Node {}", node->id.id.format()).c_str();
+        DiaAdapter node = getNode(index);
+        return std::format("Node {}", node.id.format()).c_str();
     }
 
     return QVariant{};
 }
 
-bool OrgDiagramModel::insertRows(
-    int                row,
-    int                count,
-    const QModelIndex& parent) {
-    DiagramTreeNode* parentNode{};
-    if (!parent.isValid()) {
-        parentNode = rootNode.get();
-    } else {
-        parentNode = static_cast<DiagramTreeNode*>(
-            parent.internalPointer());
-    }
-
-    beginInsertRows(parent, row, row + count - 1);
-
-    for (int i = 0; i < count; ++i) {
-        auto newNode = diagramTreeContext->New<DiagramTreeNode>(
-            hstd::safe_wptr_lock(parentNode->id.ctx)
-                ->adapt(org::imm::ImmUniqId{org::imm::ImmId::Nil()}));
-        connectNode(newNode);
-        newNode->parent = parentNode->shared_from_this();
-        parentNode->subnodes.insert(
-            parentNode->subnodes.begin() + row + i, newNode);
-    }
-
-    invalidateNodeMapAfterIndex(parent, row);
-    endInsertRows();
-    return true;
-}
-
-bool OrgDiagramModel::removeRows(
-    int                row,
-    int                count,
-    const QModelIndex& parent) {
-    DiagramTreeNode* parentNode{};
-    if (!parent.isValid()) {
-        parentNode = rootNode.get();
-    } else {
-        parentNode = static_cast<DiagramTreeNode*>(
-            parent.internalPointer());
-    }
-
-    if (row < 0
-        || row + count > static_cast<int>(parentNode->subnodes.size())) {
-        return false;
-    }
-
-    beginRemoveRows(parent, row, row + count - 1);
-
-    for (int i = 0; i < count; ++i) {
-        auto nodeToRemove = parentNode->subnodes.at(row);
-        removeFromNodeMap(nodeToRemove);
-        disconnectNode(nodeToRemove);
-        nodeToRemove->parent.reset();
-        parentNode->subnodes.erase(parentNode->subnodes.begin() + row);
-    }
-
-    invalidateNodeMapAfterIndex(parent, row);
-    endRemoveRows();
-    return true;
-}
-
-void OrgDiagramModel::addNodeToParent(
-    std::shared_ptr<DiagramTreeNode> node,
-    const QModelIndex&               parentIndex) {
-    TRACKED_FUNCTION(addNodeToParent);
-    DiagramTreeNode* parentNode{};
-    if (!parentIndex.isValid()) {
-        parentNode = rootNode.get();
-    } else {
-        parentNode = static_cast<DiagramTreeNode*>(
-            parentIndex.internalPointer());
-    }
-
-    connectNode(node);
-    parentNode->addSubnode(node);
-}
-
-QModelIndex OrgDiagramModel::getIndexForId(
-    const org::imm::ImmUniqId& id) const {
-    auto it = nodeMap.find(id);
-    if (it != nodeMap.end() && it->second.isValid()) {
-        DiagramTreeNode* node = static_cast<DiagramTreeNode*>(
-            it->second.internalPointer());
-        if (node && node->uniq() == id) { return it->second; }
-    }
-
-    QModelIndex foundIndex = findIndexForId(id, QModelIndex{});
-    if (foundIndex.isValid()) { nodeMap.insert_or_assign(id, foundIndex); }
-    return foundIndex;
-}
-
-void OrgDiagramModel::onDataChanged() {
-    TRACKED_SLOT(onDataChanged);
-    DiagramTreeNode* senderNode = qobject_cast<DiagramTreeNode*>(sender());
-    QModelIndex      nodeIndex  = getIndexForNode(senderNode);
-    if (nodeIndex.isValid()) {
-        TRACKED_EMIT(dataChanged, nodeIndex, nodeIndex);
-    } else {
-        HSLOG_WARNING(
-            "gui",
-            "Invalid sender node",
-            hstd::log::formatQtToString(nodeIndex),
-            senderNode->formatToString());
-    }
-}
-
-void OrgDiagramModel::buildNodeMapRecursive(
-    const QModelIndex& parent) const {
-    int rows = rowCount(parent);
-    for (int i = 0; i < rows; ++i) {
-        QModelIndex childIndex = index(i, 0, parent);
-        if (childIndex.isValid()) {
-            DiagramTreeNode* node = static_cast<DiagramTreeNode*>(
-                childIndex.internalPointer());
-            nodeMap.insert_or_assign(node->uniq(), childIndex);
-            buildNodeMapRecursive(childIndex);
-        }
-    }
-}
-
-void OrgDiagramModel::invalidateNodeMapAfterIndex(
-    const QModelIndex& parent,
-    int                startRow) {
-    DiagramTreeNode* parentNode{};
-    if (!parent.isValid()) {
-        parentNode = rootNode.get();
-    } else {
-        parentNode = static_cast<DiagramTreeNode*>(
-            parent.internalPointer());
-    }
-
-    for (int i = startRow;
-         i < static_cast<int>(parentNode->subnodes.size());
-         ++i) {
-        removeFromNodeMap(parentNode->subnodes.at(i));
-    }
-}
-
-QModelIndex OrgDiagramModel::findIndexForId(
-    const org::imm::ImmUniqId& id,
-    const QModelIndex&         parent) const {
-    int rows = rowCount(parent);
-    for (int i = 0; i < rows; ++i) {
-        QModelIndex childIndex = index(i, 0, parent);
-        if (childIndex.isValid()) {
-            DiagramTreeNode* node = static_cast<DiagramTreeNode*>(
-                childIndex.internalPointer());
-            if (node->uniq() == id) { return childIndex; }
-            QModelIndex foundIndex = findIndexForId(id, childIndex);
-            if (foundIndex.isValid()) { return foundIndex; }
-        }
-    }
-    return QModelIndex{};
-}
-
-void OrgDiagramModel::connectNode(std::shared_ptr<DiagramTreeNode> node) {
-    TRACKED_FUNCTION(connectNode);
-    TRACKED_CONNECT(
-        node.get(),
-        &DiagramTreeNode::subnodeAdded,
-        this,
-        &OrgDiagramModel::onSubnodeAdded,
-        Qt::UniqueConnection);
-    TRACKED_CONNECT(
-        node.get(),
-        &DiagramTreeNode::subnodeAboutToBeRemoved,
-        this,
-        &OrgDiagramModel::onSubnodeAboutToBeRemoved,
-        Qt::UniqueConnection);
-    TRACKED_CONNECT(
-        node.get(),
-        &DiagramTreeNode::subnodeRemoved,
-        this,
-        &OrgDiagramModel::onSubnodeRemoved,
-        Qt::UniqueConnection);
-    TRACKED_CONNECT(
-        node.get(),
-        &DiagramTreeNode::dataChanged,
-        this,
-        &OrgDiagramModel::onDataChanged,
-        Qt::UniqueConnection);
-
-    for (auto const& it : node->subnodes) { connectNode(it); }
-}
-
-
-OrgDiagramModel::OrgDiagramModel(
-    std::shared_ptr<DiagramTreeNode>            root,
-    const hstd::SPtr<DiagramTreeNode::Context>& context,
-    QObject*                                    parent)
-    : QAbstractItemModel{parent}
-    , rootNode{root}
-    , diagramTreeContext{context} {
+OrgDiagramModel::OrgDiagramModel(const DiaAdapter& root, QObject* parent)
+    : QAbstractItemModel{parent}, rootNode{root} {
     TRACKED_FUNCTION(OrgDiagramModel);
-    buildNodeMap();
-    connectNode(rootNode);
 }
+
+void OrgDiagramModel::setRoot(const DiaAdapter& root) {}
 
 hstd::ColText OrgDiagramModel::format() {
     return ::printModelTree(
@@ -264,7 +72,7 @@ hstd::ColText OrgDiagramModel::format() {
             hstd::ColStream os;
             if (index.isValid()) {
                 auto node = getNode(index);
-                os << hstd::fmt1(node->id);
+                os << hstd::fmt1(node.id);
             }
             return os;
         });
@@ -276,34 +84,12 @@ QModelIndex OrgDiagramModel::index(
     const QModelIndex& parent) const {
     if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
 
-    DiagramTreeNode* parentNode = getNode(parent);
-    if (row < static_cast<int>(parentNode->subnodes.size())) {
-        QModelIndex newIndex = createIndex(
-            row, column, parentNode->subnodes.at(row).get());
+    DiaAdapter parentNode = getNode(parent);
+    if (row < static_cast<int>(parentNode.get()->subnodes.size())) {
+        QModelIndex newIndex = indexForData(row, column);
         nodeMap.insert_or_assign(
             parentNode->subnodes.at(row)->uniq(), newIndex);
         return newIndex;
     }
     return QModelIndex{};
-}
-
-
-void OrgDiagramModel::onSubnodeAdded(int index) {
-    TRACKED_SLOT(onSubnodeAdded, index);
-    DiagramTreeNode* senderNode = qobject_cast<DiagramTreeNode*>(sender());
-    QModelIndex      parentIndex = getIndexForNode(senderNode);
-    beginInsertRows(parentIndex, index, index);
-    connectNode(senderNode->subnodes.at(index));
-    invalidateNodeMapAfterIndex(parentIndex, index);
-    endInsertRows();
-}
-
-void OrgDiagramModel::onSubnodeAboutToBeRemoved(int index) {
-    TRACKED_SLOT(onSubnodeAboutToBeRemoved, index);
-    DiagramTreeNode* senderNode = qobject_cast<DiagramTreeNode*>(sender());
-    QModelIndex      parentIndex  = getIndexForNode(senderNode);
-    auto             nodeToRemove = senderNode->subnodes.at(index);
-    removeFromNodeMap(nodeToRemove);
-    disconnectNode(nodeToRemove);
-    beginRemoveRows(parentIndex, index, index);
 }
