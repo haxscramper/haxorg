@@ -16,16 +16,9 @@ class DebugTarget : public QObject {
         ScopeV12 scope;
         scope.manager.addDocument("word");
         scope.manager.addDocument("word second");
-        auto treeV1 = DiagramTreeNode::FromDocument(
-            scope.tree_context, scope.getRootV1());
-
-        applyEdits(
-            treeV1, scope.manager.getDifference(0, 1), scope.context);
-
-        auto treeV2 = DiagramTreeNode::FromDocument(
-            scope.tree_context, scope.getRootV2());
-
-        QCOMPARE_EQ2(treeV1->id.uniq(), treeV2->id.uniq());
+        auto treeV1 = FromDocument(scope.tree_context, scope.getRootV1());
+        auto treeV2 = FromDocument(scope.tree_context, scope.getRootV2());
+        auto edits  = getEdits(treeV1, treeV2, DiaEditConf{});
     }
 };
 

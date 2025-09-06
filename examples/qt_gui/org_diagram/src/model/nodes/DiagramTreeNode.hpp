@@ -49,10 +49,11 @@ struct [[refl]] DiaId : DiaIdBase {
     using IdType   = hstd::u64;
     using NodeIdxT = hstd::u32;
 
-    static const hstd::u64 NodeIdxMask;
-    static const hstd::u64 NodeIdxOffset;
-    static const hstd::u64 NodeKindMask;
-    static const hstd::u64 NodeKindOffset;
+
+    inline static const hstd::u64 NodeIdxMask = 0x000000FFFFFFFFFF; // >>0*0=0,
+    inline static const hstd::u64 NodeIdxOffset = 0;
+    inline static const hstd::u64 NodeKindMask = 0x000FFF0000000000; // >>10*4=40
+    inline static const hstd::u64 NodeKindOffset = 40;
 
     // clang-format off
     static NodeIdxT   getNodeIdx(IdType id)    { return NodeIdxT((id & NodeIdxMask) >> NodeIdxOffset); }
@@ -204,7 +205,7 @@ struct DiaNodeLayer : DiaNode {
     bool operator==(DiaNodeLayer const& other) const {
         return DiaNode::operator==(other);
     }
-    static const DiaNodeKind staticKind = DiaNodeKind::Layer;
+    inline static const DiaNodeKind staticKind = DiaNodeKind::Layer;
     DiaNodeKind getKind() const override { return staticKind; }
     BOOST_DESCRIBE_CLASS(DiaNodeLayer, (DiaNode), (), (), ());
 };
@@ -213,7 +214,7 @@ struct DiaNodeCanvas : DiaNode {
     bool operator==(DiaNodeCanvas const& other) const {
         return DiaNode::operator==(other);
     }
-    static const DiaNodeKind staticKind = DiaNodeKind::Canvas;
+    inline static const DiaNodeKind staticKind = DiaNodeKind::Canvas;
     DiaNodeKind getKind() const override { return staticKind; }
     BOOST_DESCRIBE_CLASS(DiaNodeCanvas, (DiaNode), (), (), ());
 };
@@ -222,7 +223,7 @@ struct DiaNodeGroup : DiaNode {
     bool operator==(DiaNodeGroup const& other) const {
         return DiaNode::operator==(other);
     }
-    static const DiaNodeKind staticKind = DiaNodeKind::Group;
+    inline static const DiaNodeKind staticKind = DiaNodeKind::Group;
     DiaNodeKind getKind() const override { return staticKind; }
     BOOST_DESCRIBE_CLASS(DiaNodeGroup, (DiaNode), (), (), ());
 };
@@ -232,7 +233,7 @@ struct DiaNodeItem : DiaNode {
         return DiaNode::operator==(other);
     }
 
-    static const DiaNodeKind staticKind = DiaNodeKind::Item;
+    inline static const DiaNodeKind staticKind = DiaNodeKind::Item;
 
     struct Pos {
         int x;
@@ -416,6 +417,7 @@ struct DiaContext : hstd::SharedPtrApi<DiaContext> {
     DiaNode const* at(DiaId const& id) const { return store->at(id); }
     DiaNode const* at(DiaUniqId const& id) const { return at(id.id); }
 
+
     template <typename T>
     DiaId add(T const& t) {
         return store->add(t);
@@ -478,10 +480,36 @@ struct DiaAdapter {
     int            size() const { return ctx->at(id)->subnodes.size(); }
     DiaNode const* get() const { return ctx->at(id); }
 
+    template <typename T>
+    T const* as() const {
+        return get()->dyn_cast<T>();
+    }
+
     DiaAdapter at(DiaId const& at_id, org::imm::ImmPathStep const& step)
         const {
         return DiaAdapter{DiaUniqId{at_id, id.path.add(step)}, ctx};
     }
+
+    static DiaAdapter Root(DiaId const& id, DiaContext::Ptr const& ctx) {
+        return DiaAdapter{DiaUniqId{id}, ctx};
+    }
+
+    struct TreeReprConf {
+        DESC_FIELDS(TreeReprConf, ());
+    };
+
+    hstd::Vec<DiaAdapter> sub(bool withPath) const {
+        hstd::Vec<DiaAdapter> result;
+        for (int i = 0; i < size(); ++i) {
+            result.push_back(at(i, withPath));
+        }
+        return result;
+    }
+
+    hstd::ColText format(TreeReprConf const& conf) const;
+    hstd::ColText format() const { return format(TreeReprConf{}); }
+
+    DiaNodeKind getKind() const { return get()->getKind(); }
 
     DiaAdapter(org::imm::ImmPath const& path, DiaContext::Ptr ctx)
         : id{ctx->at(path)}, ctx{ctx} {}
@@ -512,6 +540,36 @@ struct DiaAdapter {
     }
 };
 
-DiaId FromDocument(
+DiaAdapter FromDocument(
     hstd::SPtr<DiaContext> const&                       context,
     org::imm::ImmAdapterT<org::imm::ImmDocument> const& root);
+
+struct DiaEdit {
+    struct Delete {
+        int       row;
+        DiaUniqId id;
+        DiaUniqId parent;
+        DESC_FIELDS(Delete, (row, id, parent));
+    };
+
+    struct Insert {
+        int       row;
+        DiaUniqId id;
+        DiaUniqId parent;
+        DESC_FIELDS(Insert, (row, id, parent));
+    };
+
+    struct Update {};
+
+    SUB_VARIANTS(Kind, Data, data, getKind, Delete, Insert, Update);
+    Data data;
+};
+
+struct DiaEditConf {
+    DESC_FIELDS(DiaEditConf, ());
+};
+
+std::vector<DiaEdit> getEdits(
+    DiaAdapter const&  src,
+    DiaAdapter const&  dst,
+    DiaEditConf const& confi);

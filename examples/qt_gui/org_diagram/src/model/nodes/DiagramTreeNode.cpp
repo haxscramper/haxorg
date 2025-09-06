@@ -4,6 +4,14 @@
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "model.tree"
 
+#define _kind(__Kind)                                                     \
+    template <>                                                           \
+    DiaNodeKindStore<DiaNode##__Kind> const* DiaNodeStore::getStoreImpl() \
+        const {                                                           \
+        return &store##__Kind;                                            \
+    }
+EACH_DIAGRAM_KIND(_kind)
+#undef _kind
 
 DiaNodeItem FromSubtreeItem(
     hstd::SPtr<DiaContext> const&                      context,
@@ -58,7 +66,7 @@ DiaId FromSubtreeItemRec(
 }
 
 
-DiaId FromDocument(
+DiaAdapter FromDocument(
     hstd::SPtr<DiaContext> const&                       context,
     const org::imm::ImmAdapterT<org::imm::ImmDocument>& root) {
     HSLOG_DEPTH_SCOPE_ANON();
@@ -80,5 +88,27 @@ DiaId FromDocument(
     }
 
     canvas.subnodes = canvas_tmp.persistent();
-    return context->add(canvas);
+    return DiaAdapter::Root(context->add(canvas), context);
+}
+
+std::vector<DiaEdit> getEdits(
+    const DiaAdapter&  src,
+    const DiaAdapter&  dst,
+    const DiaEditConf& confi) {
+    return {};
+}
+
+hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
+    hstd::ColStream                          os;
+    hstd::Func<void(DiaAdapter const&, int)> aux;
+
+    aux = [&](DiaAdapter const& node, int level) {
+        os.indent(level * 2);
+        os << hstd::fmt1(node.get()->getKind());
+        os << "\n";
+        for (auto const& sub : node.sub(true)) { aux(sub, level + 1); }
+    };
+
+    aux(*this, 0);
+    return os;
 }
