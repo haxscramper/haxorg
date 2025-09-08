@@ -92,10 +92,110 @@ DiaAdapter FromDocument(
 }
 
 std::vector<DiaEdit> getEdits(
-    const DiaAdapter&  src,
-    const DiaAdapter&  dst,
+    const DiaAdapter&  srcRoot,
+    const DiaAdapter&  dstRoot,
     const DiaEditConf& confi) {
-    return {};
+    std::vector<DiaEdit> results;
+
+    std::function<void(const DiaAdapter&, const DiaAdapter&)> diffNodes =
+        [&](const DiaAdapter& srcNode, const DiaAdapter& dstNode) {
+            if (srcNode.getKind() != dstNode.getKind()) { return; }
+
+            auto srcChildren = srcNode.sub(true);
+            auto dstChildren = dstNode.sub(true);
+
+            std::unordered_map<DiaId, std::vector<int>> srcChildrenByDiaId;
+            std::unordered_map<DiaId, std::vector<int>> dstChildrenByDiaId;
+
+            for (int i = 0; i < srcChildren.size(); ++i) {
+                srcChildrenByDiaId[srcChildren.at(i).id.id].push_back(i);
+            }
+
+            for (int i = 0; i < dstChildren.size(); ++i) {
+                dstChildrenByDiaId[dstChildren.at(i).id.id].push_back(i);
+            }
+
+            std::unordered_set<DiaUniqId> processedSrc;
+            std::unordered_set<DiaUniqId> processedDst;
+
+            for (int dstIndex = 0; dstIndex < dstChildren.size();
+                 ++dstIndex) {
+                const auto& dstChild = dstChildren.at(dstIndex);
+
+                if (processedDst.contains(dstChild.id)) { continue; }
+
+                auto srcIndicesIt = srcChildrenByDiaId.find(
+                    dstChild.id.id);
+                if (srcIndicesIt == srcChildrenByDiaId.end()) {
+                    results.emplace_back(DiaEdit::Insert{
+                        .dstNode = dstChild, .dstIndex = dstIndex});
+                    processedDst.insert(dstChild.id);
+                    continue;
+                }
+
+                std::optional<int> matchingSrcIndex;
+                for (int srcIndex : srcIndicesIt->second) {
+                    const auto& srcChild = srcChildren.at(srcIndex);
+                    if (!processedSrc.contains(srcChild.id)
+                        && srcChild.getKind() == dstChild.getKind()) {
+                        if (srcChild.id == dstChild.id) {
+                            matchingSrcIndex = srcIndex;
+                            break;
+                        }
+                        if (!matchingSrcIndex.has_value()) {
+                            matchingSrcIndex = srcIndex;
+                        }
+                    }
+                }
+
+                if (matchingSrcIndex.has_value()) {
+                    const auto& srcChild = srcChildren.at(
+                        matchingSrcIndex.value());
+
+                    if (srcChild.id == dstChild.id) {
+                        if (matchingSrcIndex.value() != dstIndex) {
+                            results.emplace_back(DiaEdit::Move{
+                                .srcNode  = srcChild,
+                                .dstNode  = dstChild,
+                                .srcIndex = matchingSrcIndex.value(),
+                                .dstIndex = dstIndex});
+                        }
+                        diffNodes(srcChild, dstChild);
+                    } else {
+                        results.emplace_back(DiaEdit::Update{
+                            .srcNode  = srcChild,
+                            .dstNode  = dstChild,
+                            .srcIndex = matchingSrcIndex.value(),
+                            .dstIndex = dstIndex});
+                        diffNodes(srcChild, dstChild);
+                    }
+
+                    processedSrc.insert(srcChild.id);
+                    processedDst.insert(dstChild.id);
+                }
+            }
+
+            for (int srcIndex = 0; srcIndex < srcChildren.size();
+                 ++srcIndex) {
+                const auto& srcChild = srcChildren.at(srcIndex);
+                if (!processedSrc.contains(srcChild.id)) {
+                    results.emplace_back(DiaEdit::Delete{
+                        .srcNode = srcChild, .srcIndex = srcIndex});
+                }
+            }
+        };
+
+    if (srcRoot.getKind() != dstRoot.getKind()) {
+        results.emplace_back(DiaEdit::Update{
+            .srcNode  = srcRoot,
+            .dstNode  = dstRoot,
+            .srcIndex = 0,
+            .dstIndex = 0});
+    } else {
+        diffNodes(srcRoot, dstRoot);
+    }
+
+    return results;
 }
 
 hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {

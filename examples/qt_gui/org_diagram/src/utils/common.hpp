@@ -11,6 +11,30 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <boost/outcome.hpp>
 
+template <typename T>
+hstd::log::log_record log_collection(
+    char const*               cat,
+    hstd::log::severity_level severity,
+    std::vector<T> const&     items,
+    int                       line     = __builtin_LINE(),
+    char const*               function = __builtin_FUNCTION(),
+    char const*               file     = __builtin_FILE()) {
+    auto res = ::hstd::log::log_record{}
+                   .file(file)
+                   .line(line)
+                   .category(cat)
+                   .function(function)
+                   .severity(severity);
+    res.fmt_message(
+        "std::vector<{}> with {} items:",
+        hstd::value_metadata<T>::typeName(),
+        items.size());
+    for (int i = 0; i < items.size(); ++i) {
+        res.fmt_message("\n[{}]: {}", i, hstd::fmt1(items.at(i)));
+    }
+    return res;
+}
+
 std::shared_ptr<hstd::log::log_graph_tracker> get_tracker();
 hstd::ext::Graphviz::Graph                    get_tracker_graph();
 
@@ -179,4 +203,3 @@ bool hasJsonProperty(
 bool hasArgsProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
     std::string const&                                 kind);
-

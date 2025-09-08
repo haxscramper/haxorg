@@ -19,6 +19,19 @@ struct ScopeV12 {
     org::imm::ImmAdapter getRootV2() const { return manager.getRoot(1); }
 };
 
+struct ScopeV12DiagramDiff : ScopeV12 {
+    DiaAdapter           srcAdapter;
+    DiaAdapter           dstAdapter;
+    std::vector<DiaEdit> edits;
+    ScopeV12DiagramDiff(std::string const& src, std::string const& dst) {
+        manager.addDocument(src);
+        manager.addDocument(dst);
+        srcAdapter = FromDocument(tree_context, getRootV1());
+        dstAdapter = FromDocument(tree_context, getRootV2());
+        edits      = getEdits(srcAdapter, dstAdapter, DiaEditConf{});
+    }
+};
+
 struct ScopeDiagramTree {
     org::imm::ImmAstContext::Ptr context;
     hstd::SPtr<DiaContext>       tree_context;
@@ -33,5 +46,6 @@ struct ScopeDiagramTree {
         , tree_context{DiaContext::shared()} //
     {}
 };
+
 
 } // namespace test

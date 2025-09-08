@@ -542,29 +542,51 @@ struct DiaAdapter {
     }
 };
 
+template <>
+struct std::formatter<DiaAdapter> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const DiaAdapter& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(p.id, ctx);
+    }
+};
+
 DiaAdapter FromDocument(
     hstd::SPtr<DiaContext> const&                       context,
     org::imm::ImmAdapterT<org::imm::ImmDocument> const& root);
 
 struct DiaEdit {
-    struct Delete {
-        int       row;
-        DiaUniqId id;
-        DiaUniqId parent;
-        DESC_FIELDS(Delete, (row, id, parent));
-    };
-
     struct Insert {
-        int       row;
-        DiaUniqId id;
-        DiaUniqId parent;
-        DESC_FIELDS(Insert, (row, id, parent));
+        DiaAdapter dstNode;
+        int        dstIndex;
+        DESC_FIELDS(Insert, (dstNode, dstIndex));
     };
 
-    struct Update {};
+    struct Delete {
+        DiaAdapter srcNode;
+        int        srcIndex;
+        DESC_FIELDS(Delete, (srcNode, srcIndex));
+    };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Delete, Insert, Update);
+    struct Move {
+        DiaAdapter srcNode;
+        DiaAdapter dstNode;
+        int        srcIndex;
+        int        dstIndex;
+        DESC_FIELDS(Move, (srcNode, dstNode, srcIndex, dstIndex));
+    };
+
+    struct Update {
+        DiaAdapter srcNode;
+        DiaAdapter dstNode;
+        int        srcIndex;
+        int        dstIndex;
+        DESC_FIELDS(Update, (srcNode, dstNode, srcIndex, dstIndex));
+    };
+
+
+    SUB_VARIANTS(Kind, Data, data, getKind, Delete, Insert, Update, Move);
     Data data;
+    DESC_FIELDS(DiaEdit, (data));
 };
 
 struct DiaEditConf {
@@ -572,6 +594,6 @@ struct DiaEditConf {
 };
 
 std::vector<DiaEdit> getEdits(
-    DiaAdapter const&  src,
-    DiaAdapter const&  dst,
+    DiaAdapter const&  srcRoot,
+    DiaAdapter const&  dstRoot,
     DiaEditConf const& confi);
