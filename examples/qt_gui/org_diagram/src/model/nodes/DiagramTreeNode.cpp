@@ -98,39 +98,9 @@ DiaAdapter FromDocument(
     return DiaAdapter::Root(context->add(canvas), context);
 }
 
-struct NodeIdentity {
-    DiaId diaId;
-    int   position;
-
-    bool operator==(const NodeIdentity& other) const {
-        return diaId == other.diaId && position == other.position;
-    }
-};
-
-template <>
-struct std::hash<NodeIdentity> {
-    std::size_t operator()(NodeIdentity const& it) const noexcept {
-        std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.diaId);
-        hstd::hax_hash_combine(result, it.position);
-        return result;
-    }
-};
-
-
 namespace {
-using ProcessedNodes = hstd::UnorderedSet<NodeIdentity>;
+using ProcessedNodes = hstd::UnorderedSet<DiaUniqId>;
 using NodesByDiaId   = hstd::UnorderedMap<DiaId, std::vector<int>>;
-
-struct MatchCandidate {
-    int  srcIndex;
-    bool isExactMatch;
-    bool isMove;
-};
-
-NodeIdentity makeNodeIdentity(const DiaAdapter& node, int position) {
-    return NodeIdentity{.diaId = node.id.id, .position = position};
-}
 
 NodesByDiaId buildNodeIndex(const std::vector<DiaAdapter>& subnodes) {
     NodesByDiaId nodesByDiaId;
@@ -146,10 +116,36 @@ int countUnprocessedNodes(
     const ProcessedNodes&          processed) {
     int count = 0;
     for (int idx : indices) {
-        NodeIdentity identity = makeNodeIdentity(subnodes.at(idx), idx);
-        if (!processed.contains(identity)) { count++; }
+        if (!processed.contains(subnodes.at(idx).id)) { count++; }
     }
     return count;
+}
+
+std::optional<int> findMatchingByDiaId(
+    const DiaAdapter&              dstSubnode,
+    const NodesByDiaId&            srcSubnodesByDiaId,
+    const std::vector<DiaAdapter>& srcSubnodes,
+    const ProcessedNodes&          processedSrc) {
+
+    auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.id.id);
+    if (srcIndicesIt == srcSubnodesByDiaId.end()) { return std::nullopt; }
+
+    std::optional<int> matchingSrcIndex;
+    for (int srcIndex : srcIndicesIt->second) {
+        const auto& srcSubnode = srcSubnodes.at(srcIndex);
+        if (!processedSrc.contains(srcSubnode.id)
+            && srcSubnode.getKind() == dstSubnode.getKind()) {
+            if (srcSubnode.id == dstSubnode.id) {
+                matchingSrcIndex = srcIndex;
+                break;
+            }
+            if (!matchingSrcIndex.has_value()) {
+                matchingSrcIndex = srcIndex;
+            }
+        }
+    }
+
+    return matchingSrcIndex;
 }
 
 std::optional<int> findMatchingByKind(
@@ -158,9 +154,8 @@ std::optional<int> findMatchingByKind(
     const ProcessedNodes&          processedSrc) {
 
     for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
-        const auto&  srcSubnode  = srcSubnodes.at(srcIndex);
-        NodeIdentity srcIdentity = makeNodeIdentity(srcSubnode, srcIndex);
-        if (!processedSrc.contains(srcIdentity)
+        const auto& srcSubnode = srcSubnodes.at(srcIndex);
+        if (!processedSrc.contains(srcSubnode.id)
             && srcSubnode.getKind() == dstSubnode.getKind()) {
             return srcIndex;
         }
@@ -170,7 +165,6 @@ std::optional<int> findMatchingByKind(
 
 bool shouldPreferInsert(
     const DiaAdapter&              dstSubnode,
-    int                            dstIndex,
     const NodesByDiaId&            dstSubnodesByDiaId,
     const std::vector<DiaAdapter>& dstSubnodes,
     const ProcessedNodes&          processedDst,
@@ -179,14 +173,26 @@ bool shouldPreferInsert(
     auto dstIndicesIt = dstSubnodesByDiaId.find(dstSubnode.id.id);
     if (dstIndicesIt == dstSubnodesByDiaId.end()) { return false; }
 
-    int unprocessedDstCount = 0;
-    for (int idx : dstIndicesIt->second) {
-        NodeIdentity identity = makeNodeIdentity(dstSubnodes.at(idx), idx);
-        if (!processedDst.contains(identity)) { unprocessedDstCount++; }
-    }
+    int unprocessedDstCount = countUnprocessedNodes(
+        dstIndicesIt->second, dstSubnodes, processedDst);
 
     return unprocessedDstCount > unprocessedSrcCount;
 }
+
+void processMatchedSubnodes(
+    const DiaAdapter&     srcSubnode,
+    const DiaAdapter&     dstSubnode,
+    int                   srcIndex,
+    int                   dstIndex,
+    std::vector<DiaEdit>& results,
+    ProcessedNodes&       processedSrc,
+    ProcessedNodes&       processedDst);
+
+struct MatchCandidate {
+    int  srcIndex;
+    bool isExactMatch;
+    bool isMove;
+};
 
 std::optional<MatchCandidate> findBestMatch(
     const DiaAdapter&              dstSubnode,
@@ -201,6 +207,7 @@ std::optional<MatchCandidate> findBestMatch(
             "Finding best match for dstSubnode:{} at dstIndex:{}",
             dstSubnode,
             dstIndex));
+    HSLOG_DEPTH_SCOPE_ANON();
 
     auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.id.id);
     if (srcIndicesIt == srcSubnodesByDiaId.end()) {
@@ -217,14 +224,14 @@ std::optional<MatchCandidate> findBestMatch(
     std::optional<MatchCandidate> moveCandidate;
 
     for (int srcIndex : srcIndicesIt->second) {
-        const auto&  srcSubnode  = srcSubnodes.at(srcIndex);
-        NodeIdentity srcIdentity = makeNodeIdentity(srcSubnode, srcIndex);
-
-        if (processedSrc.contains(srcIdentity)
+        const auto& srcSubnode = srcSubnodes.at(srcIndex);
+        if (processedSrc.contains(srcSubnode.id)
             || srcSubnode.getKind() != dstSubnode.getKind()) {
             continue;
         }
 
+        // Compare DiaId (content) instead of DiaUniqId (content +
+        // position)
         bool isExact = srcSubnode.id.id == dstSubnode.id.id;
         bool isMove  = srcIndex != dstIndex;
 
@@ -294,19 +301,15 @@ std::optional<MatchCandidate> findBestMatch(
     return std::nullopt;
 }
 
-void processMatchedSubnodes(
-    const DiaAdapter&     srcSubnode,
-    const DiaAdapter&     dstSubnode,
-    int                   srcIndex,
-    int                   dstIndex,
-    std::vector<DiaEdit>& results,
-    ProcessedNodes&       processedSrc,
-    ProcessedNodes&       processedDst);
-
 void diffSubnodes(
     const DiaAdapter&     srcNode,
     const DiaAdapter&     dstNode,
     std::vector<DiaEdit>& results) {
+
+    if (srcNode.get()->subnodes.empty()
+        && dstNode.get()->subnodes.empty()) {
+        return;
+    }
 
     HSLOG_TRACE(_cat, hstd::fmt("aux on src:{} dst:{}", srcNode, dstNode));
     HSLOG_DEPTH_SCOPE_ANON();
@@ -331,10 +334,11 @@ void diffSubnodes(
     ProcessedNodes processedDst;
 
     for (int dstIndex = 0; dstIndex < dstSubnodes.size(); ++dstIndex) {
-        const auto&  dstSubnode  = dstSubnodes.at(dstIndex);
-        NodeIdentity dstIdentity = makeNodeIdentity(dstSubnode, dstIndex);
+        HSLOG_TRACE(_cat, hstd::fmt("dst index {}", dstIndex));
+        HSLOG_DEPTH_SCOPE_ANON();
+        const auto& dstSubnode = dstSubnodes.at(dstIndex);
 
-        if (processedDst.contains(dstIdentity)) {
+        if (processedDst.contains(dstSubnode.id)) {
             HSLOG_TRACE(
                 _cat,
                 hstd::fmt(
@@ -358,7 +362,6 @@ void diffSubnodes(
 
                 if (shouldPreferInsert(
                         dstSubnode,
-                        dstIndex,
                         dstSubnodesByDiaId,
                         dstSubnodes,
                         processedDst,
@@ -381,7 +384,7 @@ void diffSubnodes(
                     dstSubnode));
             results.emplace_back(DiaEdit::Insert{
                 .dstNode = dstSubnode, .dstIndex = dstIndex});
-            processedDst.insert(dstIdentity);
+            processedDst.insert(dstSubnode.id);
             continue;
         }
 
@@ -407,9 +410,8 @@ void diffSubnodes(
     }
 
     for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
-        const auto&  srcSubnode  = srcSubnodes.at(srcIndex);
-        NodeIdentity srcIdentity = makeNodeIdentity(srcSubnode, srcIndex);
-        if (!processedSrc.contains(srcIdentity)) {
+        const auto& srcSubnode = srcSubnodes.at(srcIndex);
+        if (!processedSrc.contains(srcSubnode.id)) {
             HSLOG_TRACE(
                 _cat,
                 hstd::fmt(
@@ -431,6 +433,7 @@ void processMatchedSubnodes(
     ProcessedNodes&       processedSrc,
     ProcessedNodes&       processedDst) {
 
+    // Compare DiaId (content) instead of DiaUniqId (content + position)
     if (srcSubnode.id.id == dstSubnode.id.id) {
         if (srcIndex != dstIndex) {
             HSLOG_TRACE(
@@ -473,10 +476,8 @@ void processMatchedSubnodes(
         diffSubnodes(srcSubnode, dstSubnode, results);
     }
 
-    NodeIdentity srcIdentity = makeNodeIdentity(srcSubnode, srcIndex);
-    NodeIdentity dstIdentity = makeNodeIdentity(dstSubnode, dstIndex);
-    processedSrc.insert(srcIdentity);
-    processedDst.insert(dstIdentity);
+    processedSrc.insert(srcSubnode.id);
+    processedDst.insert(dstSubnode.id);
 }
 } // namespace
 
