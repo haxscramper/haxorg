@@ -188,10 +188,128 @@ void processMatchedSubnodes(
     ProcessedNodes&       processedSrc,
     ProcessedNodes&       processedDst);
 
+struct MatchCandidate {
+    int  srcIndex;
+    bool isExactMatch;
+    bool isMove;
+};
+
+std::optional<MatchCandidate> findBestMatch(
+    const DiaAdapter&              dstSubnode,
+    int                            dstIndex,
+    const NodesByDiaId&            srcSubnodesByDiaId,
+    const std::vector<DiaAdapter>& srcSubnodes,
+    const ProcessedNodes&          processedSrc) {
+
+    HSLOG_TRACE(
+        _cat,
+        hstd::fmt(
+            "Finding best match for dstSubnode:{} at dstIndex:{}",
+            dstSubnode,
+            dstIndex));
+    HSLOG_DEPTH_SCOPE_ANON();
+
+    auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.id.id);
+    if (srcIndicesIt == srcSubnodesByDiaId.end()) {
+        HSLOG_TRACE(
+            _cat,
+            hstd::fmt("No DiaId match found for {}", dstSubnode.id.id));
+        return findMatchingByKind(dstSubnode, srcSubnodes, processedSrc)
+            .transform(
+                [](int idx) { return MatchCandidate{idx, false, false}; });
+    }
+
+    std::optional<MatchCandidate> exactMatch;
+    std::optional<MatchCandidate> diaIdMatch;
+    std::optional<MatchCandidate> moveCandidate;
+
+    for (int srcIndex : srcIndicesIt->second) {
+        const auto& srcSubnode = srcSubnodes.at(srcIndex);
+        if (processedSrc.contains(srcSubnode.id)
+            || srcSubnode.getKind() != dstSubnode.getKind()) {
+            continue;
+        }
+
+        // Compare DiaId (content) instead of DiaUniqId (content +
+        // position)
+        bool isExact = srcSubnode.id.id == dstSubnode.id.id;
+        bool isMove  = srcIndex != dstIndex;
+
+        HSLOG_TRACE(
+            _cat,
+            hstd::fmt(
+                "Evaluating srcIndex:{} isExact:{} isMove:{} "
+                "srcSubnode:{}",
+                srcIndex,
+                isExact,
+                isMove,
+                srcSubnode));
+
+        if (isExact) {
+            if (isMove) {
+                if (!moveCandidate.has_value()
+                    || !moveCandidate->isExactMatch) {
+                    moveCandidate = MatchCandidate{srcIndex, true, true};
+                    HSLOG_TRACE(
+                        _cat,
+                        hstd::fmt(
+                            "Found exact move candidate at srcIndex:{}",
+                            srcIndex));
+                }
+            } else {
+                exactMatch = MatchCandidate{srcIndex, true, false};
+                HSLOG_TRACE(
+                    _cat,
+                    hstd::fmt(
+                        "Found exact match at srcIndex:{}", srcIndex));
+            }
+        } else if (!exactMatch.has_value() && !diaIdMatch.has_value()) {
+            diaIdMatch = MatchCandidate{srcIndex, false, isMove};
+            HSLOG_TRACE(
+                _cat,
+                hstd::fmt("Found DiaId match at srcIndex:{}", srcIndex));
+        }
+    }
+
+    if (moveCandidate.has_value() && moveCandidate->isExactMatch) {
+        HSLOG_TRACE(_cat, hstd::fmt("Selecting exact move candidate"));
+        return moveCandidate;
+    }
+
+    if (exactMatch.has_value()) {
+        HSLOG_TRACE(_cat, hstd::fmt("Selecting exact match"));
+        return exactMatch;
+    }
+
+    if (diaIdMatch.has_value()) {
+        HSLOG_TRACE(_cat, hstd::fmt("Selecting DiaId match"));
+        return diaIdMatch;
+    }
+
+    auto kindMatch = findMatchingByKind(
+        dstSubnode, srcSubnodes, processedSrc);
+    if (kindMatch.has_value()) {
+        HSLOG_TRACE(
+            _cat,
+            hstd::fmt(
+                "Selecting kind match at srcIndex:{}", kindMatch.value()));
+        return MatchCandidate{
+            kindMatch.value(), false, kindMatch.value() != dstIndex};
+    }
+
+    HSLOG_TRACE(_cat, hstd::fmt("No match found"));
+    return std::nullopt;
+}
+
 void diffSubnodes(
     const DiaAdapter&     srcNode,
     const DiaAdapter&     dstNode,
     std::vector<DiaEdit>& results) {
+
+    if (srcNode.get()->subnodes.empty()
+        && dstNode.get()->subnodes.empty()) {
+        return;
+    }
 
     HSLOG_TRACE(_cat, hstd::fmt("aux on src:{} dst:{}", srcNode, dstNode));
     HSLOG_DEPTH_SCOPE_ANON();
@@ -216,34 +334,48 @@ void diffSubnodes(
     ProcessedNodes processedDst;
 
     for (int dstIndex = 0; dstIndex < dstSubnodes.size(); ++dstIndex) {
+        HSLOG_TRACE(_cat, hstd::fmt("dst index {}", dstIndex));
+        HSLOG_DEPTH_SCOPE_ANON();
         const auto& dstSubnode = dstSubnodes.at(dstIndex);
 
-        if (processedDst.contains(dstSubnode.id)) { continue; }
+        if (processedDst.contains(dstSubnode.id)) {
+            HSLOG_TRACE(
+                _cat,
+                hstd::fmt(
+                    "Skipping already processed dstSubnode at index:{}",
+                    dstIndex));
+            continue;
+        }
 
-        auto matchingSrcIndex = findMatchingByDiaId(
-            dstSubnode, srcSubnodesByDiaId, srcSubnodes, processedSrc);
+        auto matchCandidate = findBestMatch(
+            dstSubnode,
+            dstIndex,
+            srcSubnodesByDiaId,
+            srcSubnodes,
+            processedSrc);
 
-        if (matchingSrcIndex.has_value()) {
+        if (matchCandidate.has_value()) {
             auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.id.id);
-            int  unprocessedSrcCount = countUnprocessedNodes(
-                srcIndicesIt->second, srcSubnodes, processedSrc);
+            if (srcIndicesIt != srcSubnodesByDiaId.end()) {
+                int unprocessedSrcCount = countUnprocessedNodes(
+                    srcIndicesIt->second, srcSubnodes, processedSrc);
 
-            if (shouldPreferInsert(
-                    dstSubnode,
-                    dstSubnodesByDiaId,
-                    dstSubnodes,
-                    processedDst,
-                    unprocessedSrcCount)) {
-                matchingSrcIndex.reset();
+                if (shouldPreferInsert(
+                        dstSubnode,
+                        dstSubnodesByDiaId,
+                        dstSubnodes,
+                        processedDst,
+                        unprocessedSrcCount)) {
+                    HSLOG_TRACE(
+                        _cat,
+                        hstd::fmt("Preferring insert over match due to "
+                                  "duplicate handling"));
+                    matchCandidate.reset();
+                }
             }
         }
 
-        if (!matchingSrcIndex.has_value()) {
-            matchingSrcIndex = findMatchingByKind(
-                dstSubnode, srcSubnodes, processedSrc);
-        }
-
-        if (!matchingSrcIndex.has_value()) {
+        if (!matchCandidate.has_value()) {
             HSLOG_TRACE(
                 _cat,
                 hstd::fmt(
@@ -256,11 +388,21 @@ void diffSubnodes(
             continue;
         }
 
-        const auto& srcSubnode = srcSubnodes.at(matchingSrcIndex.value());
+        const auto& srcSubnode = srcSubnodes.at(matchCandidate->srcIndex);
+        HSLOG_TRACE(
+            _cat,
+            hstd::fmt(
+                "Processing match: srcIndex:{} -> dstIndex:{} isExact:{} "
+                "isMove:{}",
+                matchCandidate->srcIndex,
+                dstIndex,
+                matchCandidate->isExactMatch,
+                matchCandidate->isMove));
+
         processMatchedSubnodes(
             srcSubnode,
             dstSubnode,
-            matchingSrcIndex.value(),
+            matchCandidate->srcIndex,
             dstIndex,
             results,
             processedSrc,
@@ -291,7 +433,8 @@ void processMatchedSubnodes(
     ProcessedNodes&       processedSrc,
     ProcessedNodes&       processedDst) {
 
-    if (srcSubnode.id == dstSubnode.id) {
+    // Compare DiaId (content) instead of DiaUniqId (content + position)
+    if (srcSubnode.id.id == dstSubnode.id.id) {
         if (srcIndex != dstIndex) {
             HSLOG_TRACE(
                 _cat,
@@ -306,6 +449,13 @@ void processMatchedSubnodes(
                 .dstNode  = dstSubnode,
                 .srcIndex = srcIndex,
                 .dstIndex = dstIndex});
+        } else {
+            HSLOG_TRACE(
+                _cat,
+                hstd::fmt(
+                    "Nodes identical at same position, no edit needed for "
+                    "srcIndex:{}",
+                    srcIndex));
         }
         diffSubnodes(srcSubnode, dstSubnode, results);
     } else {

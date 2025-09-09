@@ -43,6 +43,39 @@ struct DiaPropertyNames {
     inline static const std::string isDiagramNode = "HAXORG_DIAGRAM_NODE";
 };
 
+template <>
+struct std::formatter<org::imm::ImmReflPathItemBase::Index>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(
+        const org::imm::ImmReflPathItemBase::Index& p,
+        FormatContext&                              ctx) const {
+        return hstd::fmt_ctx(hstd::fmt("[{}]", p.index), ctx);
+    }
+};
+
+template <>
+struct std::formatter<org::imm::ImmReflPathItemBase::FieldName>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(
+        const org::imm::ImmReflPathItemBase::FieldName& p,
+        FormatContext&                                  ctx) const {
+        return hstd::fmt_ctx(hstd::fmt(".{}", p.name.getName()), ctx);
+    }
+};
+
+template <>
+struct std::formatter<org::imm::ImmReflPathItemBase::Deref>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(
+        const org::imm::ImmReflPathItemBase::Deref& p,
+        FormatContext&                              ctx) const {
+        return hstd::fmt_ctx(hstd::fmt("*"), ctx);
+    }
+};
+
 
 struct [[refl]] DiaId : DiaIdBase {
     BOOST_DESCRIBE_CLASS(DiaId, (DiaIdBase), (), (), ());
@@ -547,8 +580,8 @@ template <>
 struct std::formatter<DiaAdapter> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const DiaAdapter& p, FormatContext& ctx) const {
-        hstd::fmt_ctx(p.getKind(), ctx);
-        return hstd::fmt_ctx(p.id, ctx);
+        return hstd::fmt_ctx(
+            hstd::fmt("{}({} {})", p.getKind(), p.id.id, p.id.path), ctx);
     }
 };
 

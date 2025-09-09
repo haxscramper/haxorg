@@ -153,6 +153,51 @@ class HistoryManagerTest : public QObject {
             "test", hstd::log::severity_level::trace, scope.edits)
             .end();
     }
+
+    void testSubnodeMove() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            R"(
+* layer
+** item 1
+    :properties:
+    :prop_json:haxorg_diagram_position: {"x": 12, "y": 90}
+    :prop_args:haxorg_diagram_node: :some-value t
+    :end:
+** item 2
+    :properties:
+    :prop_json:haxorg_diagram_position: {"x": 44, "y": 900}
+    :prop_args:haxorg_diagram_node: :some-value nil
+    :end:
+)",
+            R"(
+* layer
+** item 2
+    :properties:
+    :prop_json:haxorg_diagram_position: {"x": 44, "y": 900}
+    :prop_args:haxorg_diagram_node: :some-value nil
+    :end:
+** item 1
+    :properties:
+    :prop_json:haxorg_diagram_position: {"x": 12, "y": 90}
+    :prop_args:haxorg_diagram_node: :some-value t
+    :end:
+)"};
+
+        HSLOG_INFO(
+            "test",
+            "srcAdapter:\n",
+            scope.srcAdapter.format().toString(false));
+
+        HSLOG_INFO(
+            "test",
+            "dstAdapter:\n",
+            scope.dstAdapter.format().toString(false));
+
+        log_collection(
+            "test", hstd::log::severity_level::trace, scope.edits)
+            .end();
+    }
 };
 
 HAXORG_QT_TEST_MAIN(HistoryManagerTest)
