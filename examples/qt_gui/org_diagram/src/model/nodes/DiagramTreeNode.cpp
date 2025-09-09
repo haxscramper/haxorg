@@ -117,6 +117,8 @@ struct std::hash<NodeIdentity> {
     }
 };
 
+
+namespace {
 using ProcessedNodes = hstd::UnorderedSet<NodeIdentity>;
 using NodesByDiaId   = hstd::UnorderedMap<DiaId, std::vector<int>>;
 
@@ -126,23 +128,7 @@ struct MatchCandidate {
     bool isMove;
 };
 
-namespace {
-int getPositionByDiaId(
-    const DiaAdapter&              node,
-    const std::vector<DiaAdapter>& subnodes,
-    int                            nodeIndex) {
-    int position = 0;
-    for (int i = 0; i < nodeIndex; ++i) {
-        if (subnodes.at(i).id.id == node.id.id) { position++; }
-    }
-    return position;
-}
-
-NodeIdentity makeNodeIdentity(
-    const DiaAdapter&              node,
-    const std::vector<DiaAdapter>& subnodes,
-    int                            nodeIndex) {
-    int position = getPositionByDiaId(node, subnodes, nodeIndex);
+NodeIdentity makeNodeIdentity(const DiaAdapter& node, int position) {
     return NodeIdentity{.diaId = node.id.id, .position = position};
 }
 
@@ -160,8 +146,7 @@ int countUnprocessedNodes(
     const ProcessedNodes&          processed) {
     int count = 0;
     for (int idx : indices) {
-        NodeIdentity identity = makeNodeIdentity(
-            subnodes.at(idx), subnodes, idx);
+        NodeIdentity identity = makeNodeIdentity(subnodes.at(idx), idx);
         if (!processed.contains(identity)) { count++; }
     }
     return count;
@@ -174,8 +159,7 @@ std::optional<int> findMatchingByKind(
 
     for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
         const auto&  srcSubnode  = srcSubnodes.at(srcIndex);
-        NodeIdentity srcIdentity = makeNodeIdentity(
-            srcSubnode, srcSubnodes, srcIndex);
+        NodeIdentity srcIdentity = makeNodeIdentity(srcSubnode, srcIndex);
         if (!processedSrc.contains(srcIdentity)
             && srcSubnode.getKind() == dstSubnode.getKind()) {
             return srcIndex;
@@ -197,8 +181,7 @@ bool shouldPreferInsert(
 
     int unprocessedDstCount = 0;
     for (int idx : dstIndicesIt->second) {
-        NodeIdentity identity = makeNodeIdentity(
-            dstSubnodes.at(idx), dstSubnodes, idx);
+        NodeIdentity identity = makeNodeIdentity(dstSubnodes.at(idx), idx);
         if (!processedDst.contains(identity)) { unprocessedDstCount++; }
     }
 
@@ -208,22 +191,16 @@ bool shouldPreferInsert(
 std::optional<MatchCandidate> findBestMatch(
     const DiaAdapter&              dstSubnode,
     int                            dstIndex,
-    const std::vector<DiaAdapter>& dstSubnodes,
     const NodesByDiaId&            srcSubnodesByDiaId,
     const std::vector<DiaAdapter>& srcSubnodes,
     const ProcessedNodes&          processedSrc) {
 
-    int dstPosition = getPositionByDiaId(
-        dstSubnode, dstSubnodes, dstIndex);
     HSLOG_TRACE(
         _cat,
         hstd::fmt(
-            "Finding best match for dstSubnode:{} at dstIndex:{} "
-            "(position {} among DiaId {})",
+            "Finding best match for dstSubnode:{} at dstIndex:{}",
             dstSubnode,
-            dstIndex,
-            dstPosition,
-            dstSubnode.id.id));
+            dstIndex));
 
     auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.id.id);
     if (srcIndicesIt == srcSubnodesByDiaId.end()) {
@@ -241,28 +218,22 @@ std::optional<MatchCandidate> findBestMatch(
 
     for (int srcIndex : srcIndicesIt->second) {
         const auto&  srcSubnode  = srcSubnodes.at(srcIndex);
-        NodeIdentity srcIdentity = makeNodeIdentity(
-            srcSubnode, srcSubnodes, srcIndex);
+        NodeIdentity srcIdentity = makeNodeIdentity(srcSubnode, srcIndex);
 
         if (processedSrc.contains(srcIdentity)
             || srcSubnode.getKind() != dstSubnode.getKind()) {
             continue;
         }
 
-        int srcPosition = getPositionByDiaId(
-            srcSubnode, srcSubnodes, srcIndex);
-        bool isExact = srcSubnode.id.id == dstSubnode.id.id
-                    && srcPosition == dstPosition;
-        bool isMove = srcIndex != dstIndex;
+        bool isExact = srcSubnode.id.id == dstSubnode.id.id;
+        bool isMove  = srcIndex != dstIndex;
 
         HSLOG_TRACE(
             _cat,
             hstd::fmt(
-                "Evaluating srcIndex:{} (position {} among DiaId {}) "
-                "isExact:{} isMove:{} srcSubnode:{}",
+                "Evaluating srcIndex:{} isExact:{} isMove:{} "
+                "srcSubnode:{}",
                 srcIndex,
-                srcPosition,
-                srcSubnode.id.id,
                 isExact,
                 isMove,
                 srcSubnode));
@@ -324,15 +295,13 @@ std::optional<MatchCandidate> findBestMatch(
 }
 
 void processMatchedSubnodes(
-    const DiaAdapter&              srcSubnode,
-    const DiaAdapter&              dstSubnode,
-    int                            srcIndex,
-    int                            dstIndex,
-    const std::vector<DiaAdapter>& srcSubnodes,
-    const std::vector<DiaAdapter>& dstSubnodes,
-    std::vector<DiaEdit>&          results,
-    ProcessedNodes&                processedSrc,
-    ProcessedNodes&                processedDst);
+    const DiaAdapter&     srcSubnode,
+    const DiaAdapter&     dstSubnode,
+    int                   srcIndex,
+    int                   dstIndex,
+    std::vector<DiaEdit>& results,
+    ProcessedNodes&       processedSrc,
+    ProcessedNodes&       processedDst);
 
 void diffSubnodes(
     const DiaAdapter&     srcNode,
@@ -363,8 +332,7 @@ void diffSubnodes(
 
     for (int dstIndex = 0; dstIndex < dstSubnodes.size(); ++dstIndex) {
         const auto&  dstSubnode  = dstSubnodes.at(dstIndex);
-        NodeIdentity dstIdentity = makeNodeIdentity(
-            dstSubnode, dstSubnodes, dstIndex);
+        NodeIdentity dstIdentity = makeNodeIdentity(dstSubnode, dstIndex);
 
         if (processedDst.contains(dstIdentity)) {
             HSLOG_TRACE(
@@ -378,7 +346,6 @@ void diffSubnodes(
         auto matchCandidate = findBestMatch(
             dstSubnode,
             dstIndex,
-            dstSubnodes,
             srcSubnodesByDiaId,
             srcSubnodes,
             processedSrc);
@@ -434,8 +401,6 @@ void diffSubnodes(
             dstSubnode,
             matchCandidate->srcIndex,
             dstIndex,
-            srcSubnodes,
-            dstSubnodes,
             results,
             processedSrc,
             processedDst);
@@ -443,8 +408,7 @@ void diffSubnodes(
 
     for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
         const auto&  srcSubnode  = srcSubnodes.at(srcIndex);
-        NodeIdentity srcIdentity = makeNodeIdentity(
-            srcSubnode, srcSubnodes, srcIndex);
+        NodeIdentity srcIdentity = makeNodeIdentity(srcSubnode, srcIndex);
         if (!processedSrc.contains(srcIdentity)) {
             HSLOG_TRACE(
                 _cat,
@@ -459,34 +423,24 @@ void diffSubnodes(
 }
 
 void processMatchedSubnodes(
-    const DiaAdapter&              srcSubnode,
-    const DiaAdapter&              dstSubnode,
-    int                            srcIndex,
-    int                            dstIndex,
-    const std::vector<DiaAdapter>& srcSubnodes,
-    const std::vector<DiaAdapter>& dstSubnodes,
-    std::vector<DiaEdit>&          results,
-    ProcessedNodes&                processedSrc,
-    ProcessedNodes&                processedDst) {
+    const DiaAdapter&     srcSubnode,
+    const DiaAdapter&     dstSubnode,
+    int                   srcIndex,
+    int                   dstIndex,
+    std::vector<DiaEdit>& results,
+    ProcessedNodes&       processedSrc,
+    ProcessedNodes&       processedDst) {
 
-    int srcPosition = getPositionByDiaId(
-        srcSubnode, srcSubnodes, srcIndex);
-    int dstPosition = getPositionByDiaId(
-        dstSubnode, dstSubnodes, dstIndex);
-
-    if (srcSubnode.id.id == dstSubnode.id.id
-        && srcPosition == dstPosition) {
+    if (srcSubnode.id.id == dstSubnode.id.id) {
         if (srcIndex != dstIndex) {
             HSLOG_TRACE(
                 _cat,
                 hstd::fmt(
                     "Creating Move edit from srcIndex:{} to dstIndex:{} "
-                    "for node:{} (position {} among DiaId {})",
+                    "for node:{}",
                     srcIndex,
                     dstIndex,
-                    srcSubnode,
-                    srcPosition,
-                    srcSubnode.id.id));
+                    srcSubnode));
             results.emplace_back(DiaEdit::Move{
                 .srcNode  = srcSubnode,
                 .dstNode  = dstSubnode,
@@ -497,22 +451,18 @@ void processMatchedSubnodes(
                 _cat,
                 hstd::fmt(
                     "Nodes identical at same position, no edit needed for "
-                    "srcIndex:{} (position {} among DiaId {})",
-                    srcIndex,
-                    srcPosition,
-                    srcSubnode.id.id));
+                    "srcIndex:{}",
+                    srcIndex));
         }
         diffSubnodes(srcSubnode, dstSubnode, results);
     } else {
         HSLOG_TRACE(
             _cat,
             hstd::fmt(
-                "Creating Update edit from srcIndex:{} (pos {}) to "
-                "dstIndex:{} (pos {}) srcSubnode:{} dstSubnode:{}",
+                "Creating Update edit from srcIndex:{} to dstIndex:{} "
+                "srcSubnode:{} dstSubnode:{}",
                 srcIndex,
-                srcPosition,
                 dstIndex,
-                dstPosition,
                 srcSubnode,
                 dstSubnode));
         results.emplace_back(DiaEdit::Update{
@@ -523,10 +473,8 @@ void processMatchedSubnodes(
         diffSubnodes(srcSubnode, dstSubnode, results);
     }
 
-    NodeIdentity srcIdentity = makeNodeIdentity(
-        srcSubnode, srcSubnodes, srcIndex);
-    NodeIdentity dstIdentity = makeNodeIdentity(
-        dstSubnode, dstSubnodes, dstIndex);
+    NodeIdentity srcIdentity = makeNodeIdentity(srcSubnode, srcIndex);
+    NodeIdentity dstIdentity = makeNodeIdentity(dstSubnode, dstIndex);
     processedSrc.insert(srcIdentity);
     processedDst.insert(dstIdentity);
 }
