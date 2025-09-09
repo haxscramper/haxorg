@@ -172,7 +172,7 @@ struct DiaNode {
     org::imm::ImmAdapter     id;
 
     bool operator==(DiaNode const& other) const {
-        return subnodes == other.subnodes && id.uniq() == other.id.uniq();
+        return id.id == other.id.id;
     }
 
     template <typename T>
@@ -288,6 +288,7 @@ void switch_dia_id(DiaId node, Func const& cb) {
 template <typename T>
 std::size_t dia_hash_build(T const& value) {
     std::size_t result = 0;
+    hstd::hax_hash_combine(result, value.id.id);
     hstd::for_each_field_with_bases<T>([&](auto const& field) {
         using FieldType = DESC_FIELD_TYPE(field);
         if constexpr (std::is_same_v<org::imm::ImmAdapter, FieldType>) {
@@ -546,6 +547,7 @@ template <>
 struct std::formatter<DiaAdapter> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const DiaAdapter& p, FormatContext& ctx) const {
+        hstd::fmt_ctx(p.getKind(), ctx);
         return hstd::fmt_ctx(p.id, ctx);
     }
 };

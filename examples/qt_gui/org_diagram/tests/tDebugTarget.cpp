@@ -12,12 +12,28 @@ using namespace test;
 class DebugTarget : public QObject {
   public:
     void run_thing() {
-        auto             __scope = trackTestExecution(this);
-        ScopeDiagramTree scope;
-        auto             v1   = scope.getAdapter("* document level");
-        auto             tree = FromDocument(
-            scope.tree_context,
-            v1.getRootAdapter().as<org::imm::ImmDocument>());
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+                                  R"(
+* layer
+** item 1
+    :properties:
+    :prop_json:haxorg_diagram_position: {"x": 12, "y": 90}
+    :prop_args:haxorg_diagram_node: :some-value t
+    :end:
+)",
+                                  R"(
+* layer
+** item 1
+    :properties:
+    :prop_json:haxorg_diagram_position: {"x": 142, "y": 900}
+    :prop_args:haxorg_diagram_node: :some-value t
+    :end:
+)"};
+        QCOMPARE_EQ(scope.edits.size(), 2);
+        log_collection(
+            "test", hstd::log::severity_level::trace, scope.edits)
+            .end();
     }
 };
 
