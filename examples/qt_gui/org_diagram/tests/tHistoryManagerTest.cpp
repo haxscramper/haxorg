@@ -152,6 +152,7 @@ class HistoryManagerTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )"};
+        visualizeTestDiff(this, scope);
     }
 
     void testSubnodeMove() {
@@ -183,6 +184,7 @@ class HistoryManagerTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )"};
+        visualizeTestDiff(this, scope);
     }
 
 
@@ -201,6 +203,7 @@ class HistoryManagerTest : public QObject {
                     + hstd::Vec{ditem("item 2"), ditem("item 1")}
                     + simpleSuffix5_level2),
         };
+        visualizeTestDiff(this, scope);
     }
 
     void testSubnodeUpdateInPlace() {
@@ -216,6 +219,7 @@ class HistoryManagerTest : public QObject {
                 simplePrefix5_level2 + hstd::Vec{ditem("item 1", {10, 20})}
                     + simpleSuffix5_level2),
         };
+        visualizeTestDiff(this, scope);
     }
 
     void testSubnodeUpdateDeepNode() {
@@ -238,6 +242,7 @@ class HistoryManagerTest : public QObject {
                     ditem(5, "item 4"),
                     ditem(6, "item 5", {10, 20})}),
         };
+        visualizeTestDiff(this, scope);
     }
 
     void testSubnodeSwapDeepNode() {
@@ -260,6 +265,7 @@ class HistoryManagerTest : public QObject {
                     ditem(5, "item 4"),
                     ditem(6, "item 5", {10, 20})}),
         };
+        visualizeTestDiff(this, scope);
     }
 
     void testWideTreeMultipleEdits() {
@@ -282,6 +288,7 @@ class HistoryManagerTest : public QObject {
                     ditem("item B", {40, 10}),
                     ditem("item F", {60, 10})}),
         };
+        visualizeTestDiff(this, scope);
     }
 
     void testSwapFollowedByInsert_TwoItems() {
@@ -298,6 +305,7 @@ class HistoryManagerTest : public QObject {
                     ditem("item A", {10, 10}),
                     ditem("item C", {30, 10})}),
         };
+        visualizeTestDiff(this, scope);
     }
 
     void testSwapFollowedByInsert_WithPrefix() {
@@ -319,6 +327,7 @@ class HistoryManagerTest : public QObject {
                     ditem("item A", {10, 10}),
                     ditem("item C", {30, 10})}),
         };
+        visualizeTestDiff(this, scope);
     }
 
     void testSwapFollowedByInsert_WithPrefixAndSuffix() {
@@ -344,6 +353,7 @@ class HistoryManagerTest : public QObject {
                     ditem("item Z", {50, 10}),
                     ditem("item W", {60, 10})}),
         };
+        visualizeTestDiff(this, scope);
     }
 
     void testWideNodeAllLeavesChanged() {
@@ -374,6 +384,7 @@ class HistoryManagerTest : public QObject {
                     ditem(3, "leaf G", {75, 15}),
                     ditem(3, "leaf H", {85, 15})}),
         };
+        visualizeTestDiff(this, scope);
     }
 
     void testWideNodeSubnodesChanged() {
@@ -412,6 +423,8 @@ class HistoryManagerTest : public QObject {
                     ditem(4, "c2", {32, 12}),
                     ditem(4, "c3", {33, 13})}),
         };
+
+        visualizeTestDiff(this, scope);
     }
 };
 

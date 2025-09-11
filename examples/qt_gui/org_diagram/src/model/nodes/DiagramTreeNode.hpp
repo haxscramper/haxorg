@@ -5,6 +5,7 @@
 #include <QObject>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <src/model/HistoryManager.hpp>
+#include <hstd/ext/graphviz.hpp>
 
 #define _cat "model.diagram"
 
@@ -527,7 +528,8 @@ struct DiaAdapter {
     }
 
     static DiaAdapter Root(DiaId const& id, DiaContext::Ptr const& ctx) {
-        return DiaAdapter{DiaUniqId{id}, ctx};
+        return DiaAdapter{
+            DiaUniqId{id, org::imm::ImmPath{ctx->at(id)->id.id}}, ctx};
     }
 
     struct TreeReprConf {
@@ -618,6 +620,35 @@ struct DiaEdit {
         DESC_FIELDS(Update, (srcNode, dstNode, srcIndex, dstIndex));
     };
 
+    bool hasSrc() const { return isDelete() || isMove() || isUpdate(); }
+    bool hasDst() const { return isInsert() || isMove() || isUpdate(); }
+
+    DiaAdapter getDstAffected() const {
+        if (isInsert()) {
+            return getInsert().dstNode;
+        } else if (isMove()) {
+            return getMove().dstNode;
+        } else if (isUpdate()) {
+            return getUpdate().dstNode;
+        } else {
+            throw hstd::logic_assertion_error::init(
+                "delete node has no source counterpart");
+        }
+    }
+
+    DiaAdapter getSrcAffected() const {
+        if (isDelete()) {
+            return getDelete().srcNode;
+        } else if (isMove()) {
+            return getMove().srcNode;
+        } else if (isUpdate()) {
+            return getUpdate().srcNode;
+        } else {
+            throw hstd::logic_assertion_error::init(
+                "insert node has no source counterpart");
+        }
+    }
+
 
     SUB_VARIANTS(Kind, Data, data, getKind, Delete, Insert, Update, Move);
     Data data;
@@ -632,3 +663,10 @@ std::vector<DiaEdit> getEdits(
     DiaAdapter const&  srcRoot,
     DiaAdapter const&  dstRoot,
     DiaEditConf const& confi);
+
+struct DiaEditMappingGraphvizConf {};
+
+hstd::ext::Graphviz::Graph getEditMappingGraphviz(
+    DiaAdapter const&           src,
+    DiaAdapter const&           dst,
+    std::vector<DiaEdit> const& edits);

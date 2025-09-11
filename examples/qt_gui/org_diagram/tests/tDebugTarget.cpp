@@ -14,26 +14,38 @@ class DebugTarget : public QObject {
     void run_thing() {
         auto                __scope = trackTestExecution(this);
         ScopeV12DiagramDiff scope{
-                                  R"(
+            R"(
 * layer
 ** item 1
     :properties:
     :prop_json:haxorg_diagram_position: {"x": 12, "y": 90}
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
+** item 2
+    :properties:
+    :prop_json:haxorg_diagram_position: {"x": 44, "y": 900}
+    :prop_args:haxorg_diagram_node: :some-value nil
+    :end:
 )",
-                                  R"(
+            R"(
 * layer
 ** item 1
     :properties:
-    :prop_json:haxorg_diagram_position: {"x": 142, "y": 900}
+    :prop_json:haxorg_diagram_position: {"x": 12, "y": 90}
+    :prop_args:haxorg_diagram_node: :some-value t
+    :end:
+** item 2
+    :properties:
+    :prop_json:haxorg_diagram_position: {"x": 44, "y": 900}
+    :prop_args:haxorg_diagram_node: :some-value nil
+    :end:
+** item 1
+    :properties:
+    :prop_json:haxorg_diagram_position: {"x": 12, "y": 90}
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )"};
-        QCOMPARE_EQ(scope.edits.size(), 2);
-        log_collection(
-            "test", hstd::log::severity_level::trace, scope.edits)
-            .end();
+        visualizeTestDiff(this, scope);
     }
 };
 

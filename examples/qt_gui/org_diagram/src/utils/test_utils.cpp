@@ -1,5 +1,6 @@
 #include "test_utils.hpp"
 #include <hstd/stdlib/Ranges.hpp>
+#include "common.hpp"
 
 std::string test::makeItemText(const DiaNodeItemParams& conf) {
     return hstd::fmt(
@@ -30,4 +31,16 @@ std::string test::makeLayerText(
                     return makeItemText(it);
                 })
             | hstd::rv_intersperse_newline_join);
+}
+
+void test::visualizeTestDiff(
+    QObject*                   obj,
+    const ScopeV12DiagramDiff& scope) {
+    auto gv = getEditMappingGraphviz(
+        scope.srcAdapter, scope.dstAdapter, scope.edits);
+    gv.render(getDebugFile(obj, "edits.png"));
+    gv.render(
+        getDebugFile(obj, "edits.dot"),
+        hstd::ext::Graphviz::LayoutType::Dot,
+        hstd::ext::Graphviz::RenderFormat::DOT);
 }

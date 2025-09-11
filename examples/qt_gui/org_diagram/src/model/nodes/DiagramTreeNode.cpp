@@ -532,3 +532,58 @@ hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
     aux(*this, 0);
     return os;
 }
+
+hstd::ext::Graphviz::Graph getEditMappingGraphviz(
+    const DiaAdapter&           src,
+    const DiaAdapter&           dst,
+    const std::vector<DiaEdit>& edits) {
+    using namespace hstd::ext;
+    using G = Graphviz;
+
+    auto g = G::Graph{"g"_ss};
+    g.defaultNode.setShape(G::Node::Shape::rectangle);
+
+    hstd::UnorderedMap<DiaUniqId, G::Node>                       gvNodes;
+    hstd::UnorderedMap<std::pair<DiaUniqId, DiaUniqId>, G::Edge> gvEdges;
+
+    hstd::Func<G::Node(G::Graph&, DiaAdapter const& it)> aux;
+    aux = [&](G::Graph& gvCluster, DiaAdapter const& it) -> G::Node {
+        G::Node res = gvCluster.node(hstd::fmt1(it.id));
+        gvNodes.insert_or_assign(it.id, res);
+
+        for (auto const& sub : it.sub(true)) {
+            auto gvSub = aux(gvCluster, sub);
+            auto edge  = gvCluster.edge(res, gvSub);
+        }
+
+        return res;
+    };
+
+
+    auto g1 = g.newSubgraph("g1");
+    aux(g1, src);
+    auto g2 = g.newSubgraph("g2");
+    aux(g2, dst);
+
+    for (auto const& edit : edits) {
+        if (edit.isDelete()) {
+            gvNodes.at(edit.getSrcAffected().id).setColor("red");
+        } else if (edit.isInsert()) {
+            gvNodes.at(edit.getDstAffected().id).setColor("green");
+        } else if (edit.isUpdate()) {
+            auto gvSrc    = gvNodes.at(edit.getSrcAffected().id);
+            auto gvDst    = gvNodes.at(edit.getDstAffected().id);
+            auto gvUpdate = g.edge(gvSrc, gvDst);
+            gvSrc.setColor("purple");
+            gvSrc.setColor("purple");
+        } else {
+            auto gvSrc  = gvNodes.at(edit.getSrcAffected().id);
+            auto gvDst  = gvNodes.at(edit.getDstAffected().id);
+            auto gvMove = g.edge(gvSrc, gvDst);
+            gvSrc.setColor("cyan");
+            gvSrc.setColor("cyan");
+        }
+    }
+
+    return g;
+}

@@ -88,4 +88,6 @@ inline DiaNodeItemParams ditem(
         .level = level, .itemName = itemName, .pos = pos};
 }
 
+void visualizeTestDiff(QObject* obj, ScopeV12DiagramDiff const& scope);
+
 } // namespace test
