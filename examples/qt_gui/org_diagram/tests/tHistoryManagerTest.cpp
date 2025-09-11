@@ -14,6 +14,23 @@ class HistoryManagerTest : public QObject {
     Q_OBJECT
 
 
+    hstd::Vec<DiaNodeItemParams> simplePrefix5_level2 = hstd::Vec{
+        ditem("prefix 1"),
+        ditem("prefix 2"),
+        ditem("prefix 3"),
+        ditem("prefix 4"),
+        ditem("prefix 5"),
+    };
+
+    hstd::Vec<DiaNodeItemParams> simpleSuffix5_level2 = hstd::Vec{
+        ditem("suffix 1"),
+        ditem("suffix 2"),
+        ditem("suffix 3"),
+        ditem("suffix 4"),
+        ditem("suffix 5"),
+    };
+
+
   private slots:
     void testFromRegularText() {
         HistoryManager manager{
@@ -99,9 +116,6 @@ class HistoryManagerTest : public QObject {
     :end:
 )"};
         QCOMPARE_EQ(scope.edits.size(), 2);
-        log_collection(
-            "test", hstd::log::severity_level::trace, scope.edits)
-            .end();
     }
 
     void testInsertDuplicateSubnode() {
@@ -138,20 +152,6 @@ class HistoryManagerTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )"};
-
-        HSLOG_INFO(
-            "test",
-            "srcAdapter:\n",
-            scope.srcAdapter.format().toString(false));
-
-        HSLOG_INFO(
-            "test",
-            "dstAdapter:\n",
-            scope.dstAdapter.format().toString(false));
-
-        log_collection(
-            "test", hstd::log::severity_level::trace, scope.edits)
-            .end();
     }
 
     void testSubnodeMove() {
@@ -183,20 +183,235 @@ class HistoryManagerTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )"};
+    }
 
-        HSLOG_INFO(
-            "test",
-            "srcAdapter:\n",
-            scope.srcAdapter.format().toString(false));
 
-        HSLOG_INFO(
-            "test",
-            "dstAdapter:\n",
-            scope.dstAdapter.format().toString(false));
+    void testSubnodeMoveWithManyAdjacent() {
+        auto __scope = trackTestExecution(this);
 
-        log_collection(
-            "test", hstd::log::severity_level::trace, scope.edits)
-            .end();
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                simplePrefix5_level2
+                    + hstd::Vec{ditem("item 1"), ditem("item 2")}
+                    + simpleSuffix5_level2),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                simplePrefix5_level2
+                    + hstd::Vec{ditem("item 2"), ditem("item 1")}
+                    + simpleSuffix5_level2),
+        };
+    }
+
+    void testSubnodeUpdateInPlace() {
+        auto __scope = trackTestExecution(this);
+
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                simplePrefix5_level2 + hstd::Vec{ditem("item 1", {10, 10})}
+                    + simpleSuffix5_level2),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                simplePrefix5_level2 + hstd::Vec{ditem("item 1", {10, 20})}
+                    + simpleSuffix5_level2),
+        };
+    }
+
+    void testSubnodeUpdateDeepNode() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                    ditem(3, "item 2"),
+                    ditem(4, "item 3"),
+                    ditem(5, "item 4"),
+                    ditem(6, "item 5", {10, 10})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                    ditem(3, "item 2"),
+                    ditem(4, "item 3"),
+                    ditem(5, "item 4"),
+                    ditem(6, "item 5", {10, 20})}),
+        };
+    }
+
+    void testSubnodeSwapDeepNode() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                    ditem(3, "item 2"),
+                    ditem(4, "item 3"),
+                    ditem(5, "item 4"),
+                    ditem(6, "item 5", {10, 10})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                    ditem(3, "item 2"),
+                    ditem(4, "item 3"),
+                    ditem(5, "item 4"),
+                    ditem(6, "item 5", {10, 20})}),
+        };
+    }
+
+    void testWideTreeMultipleEdits() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("item A", {10, 10}),
+                    ditem("item B", {20, 10}),
+                    ditem("item C", {30, 10}),
+                    ditem("item D", {40, 10}),
+                    ditem("item E", {50, 10})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("item A", {15, 15}),
+                    ditem("item D", {20, 10}),
+                    ditem("item C", {30, 10}),
+                    ditem("item B", {40, 10}),
+                    ditem("item F", {60, 10})}),
+        };
+    }
+
+    void testSwapFollowedByInsert_TwoItems() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("item A", {10, 10}), ditem("item B", {20, 10})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("item B", {20, 10}),
+                    ditem("item A", {10, 10}),
+                    ditem("item C", {30, 10})}),
+        };
+    }
+
+    void testSwapFollowedByInsert_WithPrefix() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("item X", {5, 10}),
+                    ditem("item Y", {7, 10}),
+                    ditem("item A", {10, 10}),
+                    ditem("item B", {20, 10})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("item X", {5, 10}),
+                    ditem("item Y", {7, 10}),
+                    ditem("item B", {20, 10}),
+                    ditem("item A", {10, 10}),
+                    ditem("item C", {30, 10})}),
+        };
+    }
+
+    void testSwapFollowedByInsert_WithPrefixAndSuffix() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("item X", {5, 10}),
+                    ditem("item Y", {7, 10}),
+                    ditem("item A", {10, 10}),
+                    ditem("item B", {20, 10}),
+                    ditem("item Z", {50, 10}),
+                    ditem("item W", {60, 10})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("item X", {5, 10}),
+                    ditem("item Y", {7, 10}),
+                    ditem("item B", {20, 10}),
+                    ditem("item A", {10, 10}),
+                    ditem("item C", {30, 10}),
+                    ditem("item Z", {50, 10}),
+                    ditem("item W", {60, 10})}),
+        };
+    }
+
+    void testWideNodeAllLeavesChanged() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "leaf A", {10, 10}),
+                    ditem(3, "leaf B", {20, 10}),
+                    ditem(3, "leaf C", {30, 10}),
+                    ditem(3, "leaf D", {40, 10}),
+                    ditem(3, "leaf E", {50, 10}),
+                    ditem(3, "leaf F", {60, 10}),
+                    ditem(3, "leaf G", {70, 10}),
+                    ditem(3, "leaf H", {80, 10})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "leaf A", {15, 15}),
+                    ditem(3, "leaf B", {25, 15}),
+                    ditem(3, "leaf C", {35, 15}),
+                    ditem(3, "leaf D", {45, 15}),
+                    ditem(3, "leaf E", {55, 15}),
+                    ditem(3, "leaf F", {65, 15}),
+                    ditem(3, "leaf G", {75, 15}),
+                    ditem(3, "leaf H", {85, 15})}),
+        };
+    }
+
+    void testWideNodeSubnodesChanged() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "a", {10, 10}),
+                    ditem(4, "a1", {11, 11}),
+                    ditem(4, "a2", {12, 12}),
+                    ditem(4, "a3", {13, 13}),
+                    ditem(3, "b", {20, 10}),
+                    ditem(4, "b1", {21, 11}),
+                    ditem(4, "b2", {22, 12}),
+                    ditem(4, "b3", {23, 13}),
+                    ditem(3, "c", {30, 10}),
+                    ditem(4, "c1", {31, 11}),
+                    ditem(4, "c2", {32, 12}),
+                    ditem(4, "c3", {33, 13})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "a-dash", {15, 15}),
+                    ditem(4, "a1", {11, 11}),
+                    ditem(4, "a2", {12, 12}),
+                    ditem(4, "a3", {13, 13}),
+                    ditem(3, "b-dash", {25, 15}),
+                    ditem(4, "b1", {21, 11}),
+                    ditem(4, "b2", {22, 12}),
+                    ditem(4, "b3", {23, 13}),
+                    ditem(3, "c-dash", {35, 15}),
+                    ditem(4, "c1", {31, 11}),
+                    ditem(4, "c2", {32, 12}),
+                    ditem(4, "c3", {33, 13})}),
+        };
     }
 };
 
