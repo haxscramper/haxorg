@@ -125,8 +125,10 @@ hstd::finally_std trackTestExecution(
          scoped = std::make_shared<decltype(__log_scoped)>(
              std::move(__log_scoped))]() {
             get_tracker()->end_tracing(loc);
-            get_tracker_graph().render(
-                getDebugFile(testClas, "execution_graph.png"));
+            if (get_tracker_graph().nodeCount() != 0) {
+                get_tracker_graph().render(
+                    getDebugFile(testClas, "execution_graph.png"));
+            }
         }};
 }
 

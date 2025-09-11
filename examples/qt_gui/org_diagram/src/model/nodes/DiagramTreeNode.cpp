@@ -1,5 +1,6 @@
 #include "DiagramTreeNode.hpp"
 #include <src/utils/common.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "model.tree"
@@ -549,12 +550,21 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
 
     hstd::Func<G::Node(G::Graph&, DiaAdapter const& it)> aux;
     aux = [&](G::Graph& gvCluster, DiaAdapter const& it) -> G::Node {
-        G::Node res = gvCluster.node(hstd::fmt1(it.id));
+        std::string label;
+        if (it.getKind() == DiaNodeKind::Item) {
+            auto item = it.get()->dyn_cast<DiaNodeItem>();
+            label += item->getSubtree().getCleanTitle();
+            label += "\n";
+        }
+        label += hstd::fmt1(it.id);
+        G::Node res = gvCluster.node(label);
         gvNodes.insert_or_assign(it.id, res);
-
-        for (auto const& sub : it.sub(true)) {
+        auto tmp = it.sub(true);
+        std::reverse(tmp.begin(), tmp.end());
+        for (auto const& sub : tmp) {
             auto gvSub = aux(gvCluster, sub);
             auto edge  = gvCluster.edge(res, gvSub);
+            edge.setStyle("invis");
         }
 
         return res;
