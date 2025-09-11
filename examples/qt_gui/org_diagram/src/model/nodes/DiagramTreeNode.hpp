@@ -579,6 +579,14 @@ struct DiaAdapter {
 };
 
 template <>
+struct std::formatter<DiaUniqId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const DiaUniqId& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(hstd::fmt("{}{}", p.id, p.path), ctx);
+    }
+};
+
+template <>
 struct std::formatter<DiaAdapter> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const DiaAdapter& p, FormatContext& ctx) const {

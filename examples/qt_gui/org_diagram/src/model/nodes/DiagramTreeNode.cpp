@@ -542,6 +542,7 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
 
     auto g = G::Graph{"g"_ss};
     g.defaultNode.setShape(G::Node::Shape::rectangle);
+    g.setRankDirection(G::Graph::RankDirection::LR);
 
     hstd::UnorderedMap<DiaUniqId, G::Node>                       gvNodes;
     hstd::UnorderedMap<std::pair<DiaUniqId, DiaUniqId>, G::Edge> gvEdges;
@@ -575,13 +576,15 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
             auto gvDst    = gvNodes.at(edit.getDstAffected().id);
             auto gvUpdate = g.edge(gvSrc, gvDst);
             gvSrc.setColor("purple");
-            gvSrc.setColor("purple");
+            gvDst.setColor("purple");
+            gvUpdate.setConstraint(false);
         } else {
             auto gvSrc  = gvNodes.at(edit.getSrcAffected().id);
             auto gvDst  = gvNodes.at(edit.getDstAffected().id);
             auto gvMove = g.edge(gvSrc, gvDst);
             gvSrc.setColor("cyan");
-            gvSrc.setColor("cyan");
+            gvDst.setColor("cyan");
+            gvMove.setConstraint(false);
         }
     }
 
