@@ -28,7 +28,7 @@ void DiagramView::wheelEvent(QWheelEvent* event) {
     HSLOG_TRACKED_EMIT(get_tracker(), zoomChanged, zoomPercent);
 }
 
-void DiagramView::selectNodes(const QList<DiagramSceneItemVisual*>& nodes) {
+void DiagramView::selectNodes(const QList<DiaSceneItemVisual*>& nodes) {
 
     if (!scene()) { return; }
 
@@ -39,7 +39,7 @@ void DiagramView::selectNodes(const QList<DiagramSceneItemVisual*>& nodes) {
     scene()->clearSelection();
 
     // Select the specified nodes
-    for (DiagramSceneItemVisual* node : nodes) {
+    for (DiaSceneItemVisual* node : nodes) {
         if (node) { node->setSelected(true); }
     }
 
@@ -89,11 +89,11 @@ void DiagramView::mouseReleaseEvent(QMouseEvent* event) {
 
 void DiagramView::emitSelectionChanged() {
     if (!scene()) { return; }
-    QList<DiagramSceneItemVisual*> selectedNodes;
+    QList<DiaSceneItemVisual*> selectedNodes;
     QList<QGraphicsItem*>     selectedItems = scene()->selectedItems();
 
     for (QGraphicsItem* item : selectedItems) {
-        DiagramSceneItemVisual* nodeVisual = dynamic_cast<DiagramSceneItemVisual*>(
+        DiaSceneItemVisual* nodeVisual = dynamic_cast<DiaSceneItemVisual*>(
             item);
         if (nodeVisual) { selectedNodes.append(nodeVisual); }
     }

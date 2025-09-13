@@ -7,21 +7,21 @@
 #include <QPushButton>
 #include <QColorDialog>
 
-#include "DiagramSceneItemVisual.hpp"
+#include "DiaSceneItemVisual.hpp"
 
-struct DiagramSceneItemGroup : public DiagramSceneItemVisual {
-    QColor                          groupColor{Qt::lightGray};
-    std::vector<DiagramSceneItemVisual*> groupedNodes{};
+struct DiaSceneItemGroup : public DiaSceneItemVisual {
+    QColor                           groupColor{Qt::lightGray};
+    std::vector<DiaSceneItemVisual*> groupedNodes{};
 
-    DiagramSceneItemGroup(const QString& nodeName = "Group")
-        : DiagramSceneItemVisual{nodeName} {
+    DiaSceneItemGroup(const QString& nodeName = "Group")
+        : DiaSceneItemVisual{nodeName} {
         bounds = QRectF{0, 0, 200, 150};
         setFlag(QGraphicsItem::ItemIsMovable);
         setFlag(QGraphicsItem::ItemIsSelectable);
         setZValue(-1);
     }
 
-    void addToGroup(DiagramSceneItemVisual* node) {
+    void addToGroup(DiaSceneItemVisual* node) {
         if (node
             && std::find(groupedNodes.begin(), groupedNodes.end(), node)
                    == groupedNodes.end()) {
@@ -30,7 +30,7 @@ struct DiagramSceneItemGroup : public DiagramSceneItemVisual {
         }
     }
 
-    void removeFromGroup(DiagramSceneItemVisual* node) {
+    void removeFromGroup(DiaSceneItemVisual* node) {
         auto it = std::find(
             groupedNodes.begin(), groupedNodes.end(), node);
         if (it != groupedNodes.end()) {
@@ -128,7 +128,7 @@ struct DiagramSceneItemGroup : public DiagramSceneItemVisual {
             }
             lastPos = pos();
         }
-        return DiagramSceneItemVisual::itemChange(change, value);
+        return DiaSceneItemVisual::itemChange(change, value);
     }
 
   private:

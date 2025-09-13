@@ -9,24 +9,29 @@
 #include <QVBoxLayout>
 #include <QCheckBox>
 
-#include <src/gui/DiagramScene.hpp>
+#include <src/gui/DiaScene.hpp>
 #include <src/gui/DiagramView.hpp>
-#include <src/gui/DiagramTreeModel.hpp>
+#include <src/gui/DiaSceneItemsModel.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
-class DiagramSelectionManager : public QObject {
+struct StartupArgc {
+    std::string documentPath;
+    DESC_FIELDS(StartupArgc, (documentPath));
+};
+
+class DiaSelectionManager : public QObject {
     Q_OBJECT
 
   public:
-    DiagramSelectionManager(
-        DiagramView*      view,
-        QTreeView*        treeView,
-        DiagramTreeModel* model,
-        QObject*          parent = nullptr);
+    DiaSelectionManager(
+        DiagramView*        view,
+        QTreeView*          treeView,
+        DiaSceneItemsModel* model,
+        QObject*            parent = nullptr);
 
   private slots:
     void onSceneSelectionChanged(
-        const QList<DiagramSceneItemVisual*>& selectedNodes);
+        const QList<DiaSceneItemVisual*>& selectedNodes);
 
     void onTreeSelectionChanged(
         const QItemSelection& selected,
@@ -38,9 +43,9 @@ class DiagramSelectionManager : public QObject {
     void setupConnections();
 
   private:
-    DiagramView*      diagramView;
-    QTreeView*        treeView;
-    DiagramTreeModel* treeModel;
+    DiagramView*        diagramView;
+    QTreeView*          treeView;
+    DiaSceneItemsModel* treeModel;
     bool updatingSelection{false}; // Prevent infinite recursion
 };
 
@@ -49,40 +54,47 @@ struct MainWindow : public QMainWindow {
     Q_OBJECT
 
   public:
-    DiagramScene*            scene{};
-    DiagramView*             view{};
-    QSpinBox*                gridSnapBox{};
-    QPushButton*             addRectButton{};
-    QPushButton*             addLayerButton{};
-    QPushButton*             addImageButton{};
-    QTreeView*               treeView{};
-    DiagramTreeModel*        treeModel{};
-    QWidget*                 propertiesPanel{};
-    QVBoxLayout*             propertiesLayout{};
-    QPushButton*             createEdgeButton{};
-    QPushButton*             createGroupButton{};
-    QCheckBox*               showGridCheck{};
-    QPushButton*             gridColorButton{};
-    QSlider*                 zoomSlider{};
-    QLabel*                  zoomLabel{};
-    QPushButton*             zoomFitButton{};
-    DiagramSelectionManager* selectionManager{};
+    StartupArgc                  conf;
+    DiaScene*                    scene{};
+    DiagramView*                 view{};
+    QSpinBox*                    gridSnapBox{};
+    QTreeView*                   treeView{};
+    DiaSceneItemsModel*          treeModel{};
+    QWidget*                     propertiesPanel{};
+    QVBoxLayout*                 propertiesLayout{};
+    QPushButton*                 createEdgeButton{};
+    QPushButton*                 createGroupButton{};
+    QCheckBox*                   showGridCheck{};
+    QPushButton*                 gridColorButton{};
+    QSlider*                     zoomSlider{};
+    QLabel*                      zoomLabel{};
+    QPushButton*                 zoomFitButton{};
+    DiaSelectionManager*         selectionManager{};
+    org::imm::ImmAstContext::Ptr context;
+    HistoryManager               history_manager;
+    hstd::SPtr<DiaContext>       tree_context;
 
 
-    MainWindow(QWidget* parent = nullptr) : QMainWindow{parent} {
+    MainWindow(StartupArgc const& conf)
+        : QMainWindow{nullptr}
+        , conf{conf}
+        , context{org::imm::ImmAstContext::init_start_context()}
+        , history_manager{context}
+        , tree_context{DiaContext::shared()} {
         setupUI();
         connectSignals();
+        loadFile();
     }
 
     void setupUI();
-
     void connectSignals();
+    void loadFile();
 
   private slots:
     void setZoom(int value);
     void updateZoomSlider(int zoomPercent);
     void zoomFit();
-    void onNodeSelected(DiagramSceneItemVisual* node);
+    void onNodeSelected(DiaSceneItemVisual* node);
 
   protected:
     bool eventFilter(QObject* obj, QEvent* event) override;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "DiagramSceneItem.hpp"
-#include "DiagramSceneItemVisual.hpp"
+#include "DiaSceneItem.hpp"
+#include "DiaSceneItemVisual.hpp"
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QPushButton>
@@ -10,7 +10,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-struct DiagramSceneItemEdge : public DiagramSceneItemVisual {
+struct DiaSceneItemEdge : public DiaSceneItemVisual {
     enum EdgeType
     {
         Orthogonal,
@@ -18,20 +18,20 @@ struct DiagramSceneItemEdge : public DiagramSceneItemVisual {
         Bezier
     };
 
-    DiagramSceneItemVisual* sourceNode{nullptr};
-    DiagramSceneItemVisual* targetNode{nullptr};
-    QPointF                 sourceOffset{0, 0};
-    QPointF                 targetOffset{0, 0};
-    std::vector<QPointF>    controlPoints{};
-    EdgeType                edgeType{Orthogonal};
-    QPen                    edgePen{Qt::black, 2};
-    QPainterPath            edgePath{};
+    DiaSceneItemVisual*  sourceNode{nullptr};
+    DiaSceneItemVisual*  targetNode{nullptr};
+    QPointF              sourceOffset{0, 0};
+    QPointF              targetOffset{0, 0};
+    std::vector<QPointF> controlPoints{};
+    EdgeType             edgeType{Orthogonal};
+    QPen                 edgePen{Qt::black, 2};
+    QPainterPath         edgePath{};
 
-    DiagramSceneItemEdge(
-        DiagramSceneItemVisual* source,
-        DiagramSceneItemVisual* target,
-        const QString&          nodeName = "Edge")
-        : DiagramSceneItemVisual{nodeName}
+    DiaSceneItemEdge(
+        DiaSceneItemVisual* source,
+        DiaSceneItemVisual* target,
+        const QString&      nodeName = "Edge")
+        : DiaSceneItemVisual{nodeName}
         , sourceNode{source}
         , targetNode{target} {
         setFlag(QGraphicsItem::ItemIsMovable, false);

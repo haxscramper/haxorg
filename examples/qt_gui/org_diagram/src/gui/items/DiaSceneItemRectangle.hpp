@@ -8,13 +8,13 @@
 #include <QLineEdit>
 #include <QColorDialog>
 #include <QPainter>
-#include <src/gui/items/DiagramSceneItemVisual.hpp>
+#include <src/gui/items/DiaSceneItemVisual.hpp>
 
-struct DiagramSceneItemRectangle : public DiagramSceneItemVisual {
+struct DiaSceneItemRectangle : public DiaSceneItemVisual {
     QColor color{Qt::blue};
 
-    DiagramSceneItemRectangle(const QString& nodeName = "Rectangle")
-        : DiagramSceneItemVisual{nodeName} {
+    DiaSceneItemRectangle(const QString& nodeName = "Rectangle")
+        : DiaSceneItemVisual{nodeName} {
         bounds = QRectF{0, 0, 100, 60};
     }
 

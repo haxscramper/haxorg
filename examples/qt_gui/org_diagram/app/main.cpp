@@ -1,10 +1,10 @@
 #include <src/utils/common.hpp>
 
-#include <src/gui/items/DiagramSceneItem.hpp>
-#include <src/gui/items/DiagramSceneItemVisual.hpp>
+#include <src/gui/items/DiaSceneItem.hpp>
+#include <src/gui/items/DiaSceneItemVisual.hpp>
 #include <src/gui/DiagramView.hpp>
-#include <src/gui/DiagramTreeModel.hpp>
-#include <src/gui/DiagramScene.hpp>
+#include <src/gui/DiaSceneItemsModel.hpp>
+#include <src/gui/DiaScene.hpp>
 #include <src/MainWindow.hpp>
 
 #include <QtWidgets>
@@ -39,19 +39,19 @@
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "main"
 
-
 int main(int argc, char* argv[]) {
     hstd::log::push_sink(
         hstd::log::init_file_sink("/tmp/org_diagram.log"));
 
     get_tracker()->start_tracing();
 
+    auto conf = hstd::from_json_eval<StartupArgc>(json::parse(argv[1]));
 
     qInstallMessageHandler(customMessageHandler);
     QApplication app{argc, argv};
     QLoggingCategory::setFilterRules("qt.qpa.painting.debug=true");
 
-    MainWindow window{};
+    MainWindow window{conf};
     window.show();
 
     int result = app.exec();

@@ -3,7 +3,7 @@
 #include <QGraphicsView>
 #include <QWheelEvent>
 #include <QScrollBar>
-#include <src/gui/items/DiagramSceneItemVisual.hpp>
+#include <src/gui/items/DiaSceneItemVisual.hpp>
 
 #define _cat "app.view"
 
@@ -24,13 +24,13 @@ class DiagramView : public QGraphicsView {
   signals:
     void zoomChanged(int zoomPercent);
     void sceneSelectionChanged(
-        const QList<DiagramSceneItemVisual*>& selectedNodes);
+        const QList<DiaSceneItemVisual*>& selectedNodes);
 
   public:
     void wheelEvent(QWheelEvent* event) override;
 
   public slots:
-    void selectNodes(const QList<DiagramSceneItemVisual*>& nodes);
+    void selectNodes(const QList<DiaSceneItemVisual*>& nodes);
 
   private slots:
     void onSceneSelectionChanged() { emitSelectionChanged(); }

@@ -1,12 +1,12 @@
-#include "DiagramSceneItemVisual.hpp"
-#include "DiagramSceneItemEdge.hpp"
+#include "DiaSceneItemVisual.hpp"
+#include "DiaSceneItemEdge.hpp"
 
-void DiagramSceneItemVisual::updateConnectedEdges() {
+void DiaSceneItemVisual::updateConnectedEdges() {
     auto scene = this->scene();
     if (!scene) { return; }
 
     for (auto item : scene->items()) {
-        if (auto edge = dynamic_cast<DiagramSceneItemEdge*>(item)) {
+        if (auto edge = dynamic_cast<DiaSceneItemEdge*>(item)) {
             if (edge->sourceNode == this || edge->targetNode == this) {
                 edge->updateBounds();
             }

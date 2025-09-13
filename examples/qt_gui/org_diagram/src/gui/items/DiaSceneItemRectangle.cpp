@@ -1,6 +1,6 @@
-#include "DiagramSceneItemRectangle.hpp"
+#include "DiaSceneItemRectangle.hpp"
 
-QWidget* DiagramSceneItemRectangle::createPropertiesWidget(QWidget* parent) {
+QWidget* DiaSceneItemRectangle::createPropertiesWidget(QWidget* parent) {
     auto widget = new QWidget{parent};
     auto layout = new QVBoxLayout{widget};
 

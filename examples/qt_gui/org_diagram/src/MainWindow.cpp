@@ -3,11 +3,11 @@
 #include <QSplitter>
 #include <qstatusbar.h>
 
-DiagramSelectionManager::DiagramSelectionManager(
-    DiagramView*      view,
-    QTreeView*        treeView,
-    DiagramTreeModel* model,
-    QObject*          parent)
+DiaSelectionManager::DiaSelectionManager(
+    DiagramView*        view,
+    QTreeView*          treeView,
+    DiaSceneItemsModel* model,
+    QObject*            parent)
     : QObject{parent}
     , diagramView{view}
     , treeView{treeView}
@@ -20,8 +20,8 @@ DiagramSelectionManager::DiagramSelectionManager(
     setupConnections();
 }
 
-void DiagramSelectionManager::onSceneSelectionChanged(
-    const QList<DiagramSceneItemVisual*>& selectedNodes) {
+void DiaSelectionManager::onSceneSelectionChanged(
+    const QList<DiaSceneItemVisual*>& selectedNodes) {
     TRACKED_SLOT("onSceneSelectionChanged", selectedNodes);
     if (updatingSelection) { return; }
     updatingSelection = true;
@@ -32,7 +32,7 @@ void DiagramSelectionManager::onSceneSelectionChanged(
     updatingSelection = false;
 }
 
-void DiagramSelectionManager::onTreeSelectionChanged(
+void DiaSelectionManager::onTreeSelectionChanged(
     const QItemSelection& selected,
     const QItemSelection& deselected) {
     TRACKED_SLOT("onTreeSelectionChanged", selected, deselected);
@@ -41,15 +41,15 @@ void DiagramSelectionManager::onTreeSelectionChanged(
     updatingSelection = true;
 
     // Get selected nodes from tree
-    QList<DiagramSceneItemVisual*> visualNodes;
-    QModelIndexList           selectedIndexes = selected.indexes();
+    QList<DiaSceneItemVisual*> visualNodes;
+    QModelIndexList            selectedIndexes = selected.indexes();
 
     for (const QModelIndex& index : selectedIndexes) {
         if (index.isValid()) {
-            DiagramSceneItem* node = static_cast<DiagramSceneItem*>(
+            DiaSceneItem* node = static_cast<DiaSceneItem*>(
                 index.internalPointer());
-            DiagramSceneItemVisual* visualNode = dynamic_cast<
-                DiagramSceneItemVisual*>(node);
+            DiaSceneItemVisual* visualNode = dynamic_cast<
+                DiaSceneItemVisual*>(node);
             if (visualNode) { visualNodes.append(visualNode); }
         }
     }
@@ -60,7 +60,7 @@ void DiagramSelectionManager::onTreeSelectionChanged(
     updatingSelection = false;
 }
 
-void DiagramSelectionManager::onTreeNodesSelected(
+void DiaSelectionManager::onTreeNodesSelected(
     const QList<QModelIndex>& indexes) {
     TRACKED_SLOT("onTreeNodesSelected", indexes);
 
@@ -76,37 +76,34 @@ void DiagramSelectionManager::onTreeNodesSelected(
     }
 }
 
-void DiagramSelectionManager::setupConnections() {
+void DiaSelectionManager::setupConnections() {
     // Scene to tree
     connect(
         diagramView,
         &DiagramView::sceneSelectionChanged,
         this,
-        &DiagramSelectionManager::onSceneSelectionChanged);
+        &DiaSelectionManager::onSceneSelectionChanged);
 
     // Tree to scene
     connect(
         treeView->selectionModel(),
         &QItemSelectionModel::selectionChanged,
         this,
-        &DiagramSelectionManager::onTreeSelectionChanged);
+        &DiaSelectionManager::onTreeSelectionChanged);
 
     // Model selection updates
     connect(
         treeModel,
-        &DiagramTreeModel::nodesSelected,
+        &DiaSceneItemsModel::nodesSelected,
         this,
-        &DiagramSelectionManager::onTreeNodesSelected);
+        &DiaSelectionManager::onTreeNodesSelected);
 }
 
 void MainWindow::setupUI() {
-    scene = new DiagramScene{this};
-    view  = new DiagramView{};
+    treeModel = new DiaSceneItemsModel{this};
+    scene     = new DiaScene{treeModel, this};
+    view      = new DiagramView{};
     view->setScene(scene);
-
-    treeModel = new DiagramTreeModel{scene->rootNode, this};
-    scene->setTreeModel(treeModel);
-
 
     auto centralWidget = new QWidget{};
     auto mainLayout    = new QHBoxLayout{centralWidget};
@@ -128,9 +125,6 @@ void MainWindow::setupUI() {
     gridColorButton->setStyleSheet("background-color: lightgray");
 
 
-    addRectButton     = new QPushButton{"Add Rectangle"};
-    addLayerButton    = new QPushButton{"Add Layer"};
-    addImageButton    = new QPushButton{"Add Image"};
     createEdgeButton  = new QPushButton{"Create Edge"};
     createGroupButton = new QPushButton{"Create Group"};
 
@@ -161,9 +155,6 @@ void MainWindow::setupUI() {
 
     zoomButtonLayout->addWidget(zoomFitButton);
     leftLayout->addLayout(zoomButtonLayout);
-    leftLayout->addWidget(addRectButton);
-    leftLayout->addWidget(addLayerButton);
-    leftLayout->addWidget(addImageButton);
     leftLayout->addWidget(createEdgeButton);
     leftLayout->addWidget(createGroupButton);
     leftLayout->addWidget(new QLabel{"Scene Tree:"});
@@ -190,7 +181,7 @@ void MainWindow::setupUI() {
 
     treeView->expandAll();
 
-    selectionManager = new DiagramSelectionManager(
+    selectionManager = new DiaSelectionManager(
         view, treeView, treeModel, this);
 
     QPushButton* dumpDiagram = new QPushButton("DEBUG TRACKER", this);
@@ -205,42 +196,16 @@ void MainWindow::connectSignals() {
         gridSnapBox,
         QOverload<int>::of(&QSpinBox::valueChanged),
         scene,
-        &DiagramScene::setGridSnap);
+        &DiaScene::setGridSnap);
     connect(
-        addRectButton,
-        &QPushButton::clicked,
-        scene,
-        &DiagramScene::addRectangle);
-    connect(
-        addLayerButton,
-        &QPushButton::clicked,
-        scene,
-        &DiagramScene::addLayer);
-    connect(
-        addImageButton,
-        &QPushButton::clicked,
-        scene,
-        &DiagramScene::addImage);
-    connect(
-        scene,
-        &DiagramScene::nodeSelected,
-        this,
-        &MainWindow::onNodeSelected);
-    connect(
-        createEdgeButton,
-        &QPushButton::clicked,
-        scene,
-        &DiagramScene::createEdgeFromSelection);
+        scene, &DiaScene::nodeSelected, this, &MainWindow::onNodeSelected);
     connect(
         createGroupButton,
         &QPushButton::clicked,
         scene,
-        &DiagramScene::createGroupFromSelection);
+        &DiaScene::createGroupFromSelection);
     connect(
-        showGridCheck,
-        &QCheckBox::toggled,
-        scene,
-        &DiagramScene::setShowGrid);
+        showGridCheck, &QCheckBox::toggled, scene, &DiaScene::setShowGrid);
     connect(gridColorButton, &QPushButton::clicked, scene, [this]() {
         QColor newColor = QColorDialog::getColor(scene->gridColor);
         if (newColor.isValid()) {
@@ -300,7 +265,7 @@ void MainWindow::zoomFit() {
     }
 }
 
-void MainWindow::onNodeSelected(DiagramSceneItemVisual* node) {
+void MainWindow::onNodeSelected(DiaSceneItemVisual* node) {
     TRACKED_SLOT("onNodeSelected", node);
     // Clear existing properties
     while (propertiesLayout->count() > 1) {
@@ -336,4 +301,27 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
     }
 
     return QMainWindow::eventFilter(obj, event);
+}
+
+
+void MainWindow::loadFile() {
+    TRACKED_FUNCTION("loadFile");
+    HSLOG_INFO(_cat, "Loading document from ", conf.documentPath);
+    {
+        HSLOG_INFO(_cat, "Add document to history manager");
+        HSLOG_DEPTH_SCOPE_ANON();
+        history_manager.addDocument(hstd::readFile(conf.documentPath));
+    }
+    DiaAdapter adapter;
+    {
+        HSLOG_INFO(_cat, "Convert document to dia adapter");
+        HSLOG_DEPTH_SCOPE_ANON();
+        adapter = FromDocument(
+            tree_context, history_manager.getActiveRoot());
+    }
+    {
+        HSLOG_INFO(_cat, "Set root adapter to scene");
+        HSLOG_DEPTH_SCOPE_ANON();
+        scene->setRootAdapter(adapter);
+    }
 }
