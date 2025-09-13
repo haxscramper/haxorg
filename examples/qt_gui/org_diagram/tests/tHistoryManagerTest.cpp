@@ -426,6 +426,214 @@ class HistoryManagerTest : public QObject {
 
         visualizeTestDiff(this, scope);
     }
+
+    void testMultiWideTreeLeafMoves_UniqueLeaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf A1", {11, 11}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "leaf A3", {13, 13}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf B1", {21, 11}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf C1", {31, 11}),
+                    ditem(4, "leaf C2", {32, 12}),
+                    ditem(4, "leaf C3", {33, 13})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf A1", {11, 11}),
+                    ditem(4, "leaf B1", {21, 11}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "leaf C1", {31, 11}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf A3", {13, 13}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(4, "leaf C2", {32, 12})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
+
+    void testMultiWideTreeLeafMoves_DuplicateLeaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "common leaf", {11, 11}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "shared item", {13, 13}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "common leaf", {21, 11}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "shared item", {31, 11}),
+                    ditem(4, "leaf C2", {32, 12})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "shared item", {13, 13}),
+                    ditem(4, "common leaf", {21, 11}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "common leaf", {11, 11}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(4, "shared item", {31, 11})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
+
+    void testMultiWideTreeLeafDeleteInsert_UniqueLeaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf A1", {11, 11}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "leaf A3", {13, 13}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf B1", {21, 11}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf C1", {31, 11})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf A1", {11, 11}),
+                    ditem(4, "new leaf A4", {14, 14}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(4, "new leaf B3", {23, 13}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "new leaf C2", {32, 12}),
+                    ditem(4, "new leaf C3", {33, 13})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
+
+    void testMultiWideTreeLeafDeleteInsert_DuplicateLeaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "common leaf", {11, 11}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "shared item", {13, 13}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "common leaf", {21, 11}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "shared item", {31, 11})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "common leaf", {11, 11}),
+                    ditem(4, "new shared", {14, 14}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(4, "new shared", {23, 13}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "common leaf", {32, 12}),
+                    ditem(4, "shared item", {31, 11})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
+
+    void testMultiWideTreeComplexEdits_UniqueLeaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf A1", {11, 11}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "leaf A3", {13, 13}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf B1", {21, 11}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(4, "leaf B3", {23, 13}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf C1", {31, 11}),
+                    ditem(4, "leaf C2", {32, 12})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf B1", {21, 11}),
+                    ditem(4, "new leaf A4", {14, 14}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "leaf C1", {31, 11}),
+                    ditem(4, "new leaf B4", {24, 14}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf A3", {13, 13}),
+                    ditem(4, "new leaf C3", {33, 13})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
+
+    void testMultiWideTreeComplexEdits_DuplicateLeaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "common leaf", {11, 11}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "shared item", {13, 13}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "common leaf", {21, 11}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(4, "shared item", {23, 13}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf C1", {31, 11}),
+                    ditem(4, "common leaf", {32, 12})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(4, "new common", {14, 14}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "shared item", {13, 13}),
+                    ditem(4, "common leaf", {32, 12}),
+                    ditem(4, "new common", {24, 14}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "common leaf", {11, 11})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
 };
 
 HAXORG_QT_TEST_MAIN(HistoryManagerTest)

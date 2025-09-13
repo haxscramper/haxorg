@@ -21,15 +21,16 @@ HSTD_REGISTER_TYPE_FIELD_NAMES(DiaNodeCanvas);
 HSTD_REGISTER_TYPE_FIELD_NAMES(DiaNodeGroup);
 HSTD_REGISTER_TYPE_FIELD_NAMES(DiaNodeItem);
 
-DiaNodeItem FromSubtreeItem(
-    hstd::SPtr<DiaContext> const&                      context,
+hstd::described_predicate_result isSubtreeItem(
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
     auto position = getStructuredProperty<DiaNodeItem::Pos>(
         subtree, DiaPropertyNames::diagramPosition);
 
-    if (!position.has_value()
-        || hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)) {
-        throw hstd::logic_assertion_error::init(hstd::fmt(
+    if (position.has_value()
+        && hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)) {
+        return true;
+    } else {
+        return hstd::described_predicate_error::init(hstd::fmt(
             "{} (title: {}) does not meet the criteria: top-level subtree "
             "for subtree item must have :prop_json:{} and :prop_args:{} "
             "properties. has position:{} has diagram node:{}",
@@ -40,24 +41,25 @@ DiaNodeItem FromSubtreeItem(
             position.has_value() ? "true" : position.error(),
             hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)));
     }
+}
+
+DiaNodeItem FromSubtreeItem(
+    hstd::SPtr<DiaContext> const&                      context,
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
+    LOGIC_ASSERTION_CHECK_DESCRIBED(isSubtreeItem(subtree));
 
     DiaNodeItem item;
     item.id = subtree;
     return item;
 }
 
-bool isSubtreeItem(
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
-    return getStructuredProperty<DiaNodeItem::Pos>(
-               subtree, DiaPropertyNames::diagramPosition)
-               .has_value()
-        && hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode);
-}
-
 
 DiaId FromSubtreeItemRec(
     hstd::SPtr<DiaContext> const&                      context,
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
+    HSLOG_INFO(_cat, hstd::fmt("Subtree item {}", subtree.uniq()));
+    HSLOG_DEPTH_SCOPE_ANON();
+    LOGIC_ASSERTION_CHECK_DESCRIBED(isSubtreeItem(subtree));
 
     auto result = FromSubtreeItem(context, subtree);
 
@@ -77,10 +79,10 @@ DiaId FromSubtreeItemRec(
 DiaAdapter FromDocument(
     hstd::SPtr<DiaContext> const&                       context,
     const org::imm::ImmAdapterT<org::imm::ImmDocument>& root) {
+    HSLOG_INFO(_cat, hstd::fmt("Creating canvas from {}", root.uniq()));
     HSLOG_DEPTH_SCOPE_ANON();
     auto canvas = DiaNodeCanvas{};
     canvas.id   = root;
-    HSLOG_INFO(_cat, hstd::fmt("Creating canvas from {}", root.uniq()));
 
     auto canvas_tmp = canvas.subnodes.transient();
     for (auto const& layerNode : root.subAs<org::imm::ImmSubtree>()) {
@@ -557,7 +559,9 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
             label += "\n";
         }
         label += hstd::fmt1(it.id);
-        G::Node res = gvCluster.node(label);
+        G::Node res = gvCluster.node(
+            hstd::fmt("0x{:X}", std::hash<std::string>{}(label)));
+        res.setLabel(label);
         gvNodes.insert_or_assign(it.id, res);
         auto tmp = it.sub(true);
         std::reverse(tmp.begin(), tmp.end());
@@ -588,6 +592,8 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
             gvSrc.setColor("purple");
             gvDst.setColor("purple");
             gvUpdate.setConstraint(false);
+            gvUpdate.setAttr("headport", "e"_ss);
+            gvUpdate.setAttr("tailport", "e"_ss);
         } else {
             auto gvSrc  = gvNodes.at(edit.getSrcAffected().id);
             auto gvDst  = gvNodes.at(edit.getDstAffected().id);
@@ -595,6 +601,8 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
             gvSrc.setColor("cyan");
             gvDst.setColor("cyan");
             gvMove.setConstraint(false);
+            gvMove.setAttr("headport", "e"_ss);
+            gvMove.setAttr("tailport", "e"_ss);
         }
     }
 

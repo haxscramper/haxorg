@@ -297,6 +297,40 @@ TEST(OrgParseSem, SubtreeProperties) {
                 p->getCustomSubtreeJson().value.getRef().dump(),
                 "[2,3,4]"_ss);
         }
+        {
+            auto p = t->getProperty("prop_args");
+            EXPECT_TRUE(p.has_value());
+        }
+        {
+            auto p = t->getProperty("propargs");
+            EXPECT_TRUE(p.has_value());
+        }
+        {
+            auto p = t->getProperty("PROP_ARGS");
+            EXPECT_TRUE(p.has_value());
+        }
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* tree
+:properties:
+:prop_args:name_other:
+:end:
+)");
+        for (auto const& kind : hstd::Vec<hstd::Str>{
+                 "prop_args", "propargs", "PROP_ARGS", "PROPARGS"}) {
+            auto p = t->getProperty(kind);
+            EXPECT_TRUE(p.has_value());
+
+            for (auto const& subkind : hstd::Vec<hstd::Str>{
+                     "nameother",
+                     "NAME_OTHER",
+                     "NAMEOTHER",
+                     "name_other"}) {
+                auto p = t->getProperty(kind, subkind);
+                EXPECT_TRUE(p.has_value());
+            }
+        }
     }
 }
 

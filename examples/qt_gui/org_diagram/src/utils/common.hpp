@@ -187,6 +187,37 @@ outcome::result<T, std::string> getStructuredProperty(
     return hstd::from_json_eval<T>(json_data.value.getRef());
 }
 
+namespace hstd {
+
+struct described_predicate_error {
+    int         line;
+    char const* function;
+    char const* file;
+    std::string text;
+
+    ::hstd::logic_assertion_error as_exception(char const* expr) {
+        return ::hstd::logic_assertion_error::init(
+            ::hstd::fmt("{}: {}", expr, text), line, function, file);
+    }
+
+    static described_predicate_error init(
+        std::string const& message,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) {
+        return described_predicate_error{line, function, file, message};
+    }
+};
+
+using described_predicate_result = outcome::
+    result<bool, described_predicate_error>;
+
+#define LOGIC_ASSERTION_CHECK_DESCRIBED(expr)                             \
+    if (::hstd::described_predicate_result tmp = expr; !(tmp)) {          \
+        throw tmp.error().as_exception(#expr);                            \
+    }
+
+} // namespace hstd
 
 outcome::result<org::sem::AttrGroup const*, std::string> getFlagProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,

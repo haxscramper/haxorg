@@ -23,25 +23,7 @@ struct ScopeV12DiagramDiff : ScopeV12 {
     DiaAdapter           srcAdapter;
     DiaAdapter           dstAdapter;
     std::vector<DiaEdit> edits;
-    ScopeV12DiagramDiff(std::string const& src, std::string const& dst) {
-        HSLOG_INFO("test", "src:\n", src);
-        HSLOG_INFO("test", "dst:\n", dst);
-
-        manager.addDocument(src);
-        manager.addDocument(dst);
-        srcAdapter = FromDocument(tree_context, getRootV1());
-        dstAdapter = FromDocument(tree_context, getRootV2());
-        edits      = getEdits(srcAdapter, dstAdapter, DiaEditConf{});
-
-        HSLOG_INFO(
-            "test", "srcAdapter:\n", srcAdapter.format().toString(false));
-
-        HSLOG_INFO(
-            "test", "dstAdapter:\n", dstAdapter.format().toString(false));
-
-        log_collection("test", hstd::log::severity_level::trace, edits)
-            .end();
-    }
+    ScopeV12DiagramDiff(std::string const& src, std::string const& dst);
 };
 
 struct ScopeDiagramTree {

@@ -266,26 +266,27 @@ Opt<Str> NamedProperty::getSubKind() const {
 
 bool NamedProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     const {
-    if (getKind() == Property::Kind::CustomRaw) {
+    auto pk = getKind();
+    if (pk == Property::Kind::CustomRaw) {
         return normalize(getCustomRaw().name) == normalize(kind);
-    } else if (getKind() == Property::Kind::CustomArgs) {
+    } else if (pk == Property::Kind::CustomArgs) {
         return normalize(getCustomArgs().name) == normalize(kind);
     } else if (
-        getKind() == Property::Kind::CustomSubtreeJson
+        pk == Property::Kind::CustomSubtreeJson
         && normalize(kind) == normalize("propjson")) {
         return !subkind.has_value()
             || normalize(getCustomSubtreeJson().name)
                    == normalize(subkind.value());
     } else if (
-        getKind() == Property::Kind::CustomArgs
+        pk == Property::Kind::CustomSubtreeFlags
         && normalize(kind) == normalize("propargs")) {
         return !subkind.has_value()
-            || normalize(getCustomArgs().name)
+            || normalize(getCustomSubtreeFlags().name)
                    == normalize(subkind.value());
-    } else if (normalize(fmt1(getKind())) == normalize(kind)) {
+    } else if (normalize(fmt1(pk)) == normalize(kind)) {
         return true;
     } else if (
-        getKind() == Property::Kind::ExportOptions && subkind
+        pk == Property::Kind::ExportOptions && subkind
         && normalize(getExportOptions().backend) == normalize(*subkind)) {
         return true;
     } else {
