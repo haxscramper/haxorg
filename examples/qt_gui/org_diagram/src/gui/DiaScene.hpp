@@ -74,7 +74,8 @@ struct DiaScene : public QGraphicsScene {
     void setGridSnap(int snap) { gridSnap = snap; }
 
     DiaSceneItem* setRootAdapter(DiaAdapter const& a) {
-        rootNode = addAdapterRec(a);
+        rootNode            = addAdapterRec(a);
+        treeModel->rootNode = rootNode;
         return rootNode;
     }
 

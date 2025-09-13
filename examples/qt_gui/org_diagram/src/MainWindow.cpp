@@ -323,5 +323,7 @@ void MainWindow::loadFile() {
         HSLOG_INFO(_cat, "Set root adapter to scene");
         HSLOG_DEPTH_SCOPE_ANON();
         scene->setRootAdapter(adapter);
+        hstd::logic_assertion_check_not_nil(scene->rootNode);
+        hstd::logic_assertion_check_not_nil(scene->treeModel->rootNode);
     }
 }

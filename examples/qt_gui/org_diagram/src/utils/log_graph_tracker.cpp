@@ -18,8 +18,10 @@ using namespace hstd::log;
 std::string descObject(const QObject* obj) {
     return hstd::fmt(
         "'{}' at 0x{:X}",
-        obj->objectName().isEmpty() ? obj->metaObject()->className()
-                                    : obj->objectName().toStdString(),
+        obj ? (obj->objectName().isEmpty()
+                   ? obj->metaObject()->className()
+                   : obj->objectName().toStdString())
+            : "<nullptr>",
         reinterpret_cast<std::ptrdiff_t>(obj));
 }
 
