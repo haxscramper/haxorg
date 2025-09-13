@@ -304,13 +304,14 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 }
 
 
-void MainWindow::loadFile() {
+void MainWindow::loadFile(const QString& path) {
     TRACKED_FUNCTION("loadFile");
-    HSLOG_INFO(_cat, "Loading document from ", conf.documentPath);
+    auto p = path.toStdString();
+    HSLOG_INFO(_cat, "Loading document from ", p);
     {
         HSLOG_INFO(_cat, "Add document to history manager");
         HSLOG_DEPTH_SCOPE_ANON();
-        history_manager.addDocument(hstd::readFile(conf.documentPath));
+        history_manager.addDocument(hstd::readFile(p));
     }
     DiaAdapter adapter;
     {

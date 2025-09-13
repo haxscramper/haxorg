@@ -35,6 +35,7 @@
 #include <QWheelEvent>
 #include <hstd/stdlib/Debug.hpp>
 #include <src/utils/common.hpp>
+#include <src/utils/file_watcher.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "main"
@@ -47,12 +48,33 @@ int main(int argc, char* argv[]) {
 
     auto conf = hstd::from_json_eval<StartupArgc>(json::parse(argv[1]));
 
+    FileWatcherThread* watcherThread = new FileWatcherThread{};
+
+
     qInstallMessageHandler(customMessageHandler);
     QApplication app{argc, argv};
     QLoggingCategory::setFilterRules("qt.qpa.painting.debug=true");
 
-    MainWindow window{conf};
-    window.show();
+    auto window = std::make_shared<MainWindow>(conf);
+
+    QObject::connect(
+        watcherThread,
+        &FileWatcherThread::fileChanged,
+        [window](FileChangeEvent const& event) {
+            HSLOG_TRACE(
+                _cat,
+                hstd::fmt(
+                    "File changed:{} type: {}",
+                    event.path.toStdString(),
+                    event.type));
+            window->loadFile(event.path);
+        });
+
+    watcherThread->start();
+    watcherThread->addWatchPath(QString::fromStdString(conf.documentPath));
+
+
+    window->show();
 
     int result = app.exec();
     get_tracker()->end_tracing();

@@ -83,12 +83,12 @@ struct MainWindow : public QMainWindow {
         , tree_context{DiaContext::shared()} {
         setupUI();
         connectSignals();
-        loadFile();
+        loadFile(QString::fromStdString(conf.documentPath));
     }
 
     void setupUI();
     void connectSignals();
-    void loadFile();
+    void loadFile(QString const& path);
 
   private slots:
     void setZoom(int value);
