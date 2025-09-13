@@ -634,6 +634,206 @@ class HistoryManagerTest : public QObject {
         };
         visualizeTestDiff(this, scope);
     }
+
+    void testDeleteLevel3NodeWithLeaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem(3, "subgroup A2", {14, 14}),
+                    ditem(4, "leaf A2-1", {15, 15}),
+                    ditem(4, "leaf A2-2", {16, 16}),
+                    ditem("group B", {20, 10}),
+                    ditem(3, "subgroup B1", {21, 11}),
+                    ditem(4, "leaf B1-1", {22, 12})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem("group B", {20, 10}),
+                    ditem(3, "subgroup B1", {21, 11}),
+                    ditem(4, "leaf B1-1", {22, 12})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
+
+    void testDeleteLevel2NodeWithSubtree() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem(3, "subgroup A2", {14, 14}),
+                    ditem(4, "leaf A2-1", {15, 15}),
+                    ditem("group B", {20, 10}),
+                    ditem(3, "subgroup B1", {21, 11}),
+                    ditem(4, "leaf B1-1", {22, 12}),
+                    ditem(4, "leaf B1-2", {23, 13}),
+                    ditem(3, "subgroup B2", {24, 14}),
+                    ditem(4, "leaf B2-1", {25, 15}),
+                    ditem("group C", {30, 10})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem(3, "subgroup A2", {14, 14}),
+                    ditem(4, "leaf A2-1", {15, 15}),
+                    ditem("group C", {30, 10})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
+
+    void testInsertLevel3NodeWithLeaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem("group B", {20, 10}),
+                    ditem(3, "subgroup B1", {21, 11}),
+                    ditem(4, "leaf B1-1", {22, 12})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem(3, "subgroup A2", {14, 14}),
+                    ditem(4, "leaf A2-1", {15, 15}),
+                    ditem(4, "leaf A2-2", {16, 16}),
+                    ditem("group B", {20, 10}),
+                    ditem(3, "subgroup B1", {21, 11}),
+                    ditem(4, "leaf B1-1", {22, 12})}),
+        };
+
+        visualizeTestDiff(this, scope);
+    }
+
+    void testInsertLevel2NodeWithSubtree() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem(3, "subgroup A2", {14, 14}),
+                    ditem(4, "leaf A2-1", {15, 15}),
+                    ditem("group C", {30, 10})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem(3, "subgroup A2", {14, 14}),
+                    ditem(4, "leaf A2-1", {15, 15}),
+                    ditem("group B", {20, 10}),
+                    ditem(3, "subgroup B1", {21, 11}),
+                    ditem(4, "leaf B1-1", {22, 12}),
+                    ditem(4, "leaf B1-2", {23, 13}),
+                    ditem(3, "subgroup B2", {24, 14}),
+                    ditem(4, "leaf B2-1", {25, 15}),
+                    ditem("group C", {30, 10})}),
+        };
+
+        visualizeTestDiff(this, scope);
+    }
+
+    void testSwapLevel2ItemsWithLevel3Leaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "leaf A1", {11, 11}),
+                    ditem(3, "leaf A2", {12, 12}),
+                    ditem(3, "leaf A3", {13, 13}),
+                    ditem("group B", {20, 10}),
+                    ditem(3, "leaf B1", {21, 11}),
+                    ditem(3, "leaf B2", {22, 12}),
+                    ditem("group C", {30, 10}),
+                    ditem(3, "leaf C1", {31, 11})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group B", {20, 10}),
+                    ditem(3, "leaf B1", {21, 11}),
+                    ditem(3, "leaf B2", {22, 12}),
+                    ditem("group A", {10, 10}),
+                    ditem(3, "leaf A1", {11, 11}),
+                    ditem(3, "leaf A2", {12, 12}),
+                    ditem(3, "leaf A3", {13, 13}),
+                    ditem("group C", {30, 10}),
+                    ditem(3, "leaf C1", {31, 11})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
+
+    void testSwapLevel2ItemsWithNestedSubtrees() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem(3, "subgroup A2", {14, 14}),
+                    ditem(4, "leaf A2-1", {15, 15}),
+                    ditem("group B", {20, 10}),
+                    ditem(3, "subgroup B1", {21, 11}),
+                    ditem(4, "leaf B1-1", {22, 12}),
+                    ditem(3, "subgroup B2", {24, 14}),
+                    ditem(4, "leaf B2-1", {25, 15}),
+                    ditem(4, "leaf B2-2", {26, 16}),
+                    ditem("group C", {30, 10}),
+                    ditem(3, "leaf C1", {31, 11})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("group B", {20, 10}),
+                    ditem(3, "subgroup B1", {21, 11}),
+                    ditem(4, "leaf B1-1", {22, 12}),
+                    ditem(3, "subgroup B2", {24, 14}),
+                    ditem(4, "leaf B2-1", {25, 15}),
+                    ditem(4, "leaf B2-2", {26, 16}),
+                    ditem("group A", {10, 10}),
+                    ditem(3, "subgroup A1", {11, 11}),
+                    ditem(4, "leaf A1-1", {12, 12}),
+                    ditem(4, "leaf A1-2", {13, 13}),
+                    ditem(3, "subgroup A2", {14, 14}),
+                    ditem(4, "leaf A2-1", {15, 15}),
+                    ditem("group C", {30, 10}),
+                    ditem(3, "leaf C1", {31, 11})}),
+        };
+        visualizeTestDiff(this, scope);
+    }
 };
 
 HAXORG_QT_TEST_MAIN(HistoryManagerTest)

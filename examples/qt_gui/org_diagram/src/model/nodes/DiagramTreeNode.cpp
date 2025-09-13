@@ -568,7 +568,8 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
         for (auto const& sub : tmp) {
             auto gvSub = aux(gvCluster, sub);
             auto edge  = gvCluster.edge(res, gvSub);
-            edge.setStyle("invis");
+            edge.setStyle("dashed");
+            edge.setColor("gray");
         }
 
         return res;
