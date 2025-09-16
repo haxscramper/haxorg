@@ -18,7 +18,7 @@ struct DiaScene : public QGraphicsScene {
     DiaSceneItem*                    rootNode{};
     DiaSceneItemVisual*              selectedNode{nullptr};
     DiaSceneItemVisual*              arrowSource{nullptr};
-    DiaSceneItemModel*              treeModel{nullptr};
+    DiaSceneItemModel*               treeModel{nullptr};
     std::vector<DiaSceneItemVisual*> selectedNodes{};
     bool                             showGrid{true};
     QColor                           gridColor{Qt::lightGray};
@@ -51,7 +51,7 @@ struct DiaScene : public QGraphicsScene {
     }
 
     DiaSceneItemLayer* findFirstLayer() {
-        for (const auto& child : rootNode->children) {
+        for (const auto& child : rootNode->subnodes) {
             if (auto it = dynamic_cast<DiaSceneItemLayer*>(child);
                 it != nullptr) {
                 return it;
@@ -74,19 +74,10 @@ struct DiaScene : public QGraphicsScene {
     void setGridSnap(int snap) { gridSnap = snap; }
 
     DiaSceneItem* getItemForId(DiaUniqId const& id) {
-        auto result = diaItemMap.get(id);
-        LOGIC_ASSERTION_CHECK(
-            result.has_value(),
-            "No diagram scene item associated with ID {}",
-            id);
-        return result.value();
+        return rootNode->getItemAtPath(id.getSelfPathFromRoot());
     }
 
-    DiaSceneItem* setRootAdapter(DiaAdapter const& a) {
-        rootNode            = addAdapterRec(a);
-        treeModel->rootNode = rootNode;
-        return rootNode;
-    }
+    DiaSceneItem* setRootAdapter(DiaAdapter const& a);
 
     /// \brief Swap the existing scene item structure with the new one
     /// based on the provided edits.

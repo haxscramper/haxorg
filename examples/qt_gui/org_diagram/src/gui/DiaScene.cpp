@@ -89,6 +89,13 @@ void DiaScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     }
 }
 
+DiaSceneItem* DiaScene::setRootAdapter(const DiaAdapter& a) {
+    TRACKED_FUNCTION("setRootAdapter");
+    rootNode            = addAdapterRec(a);
+    treeModel->rootNode = rootNode;
+    return rootNode;
+}
+
 DiaSceneItem* DiaScene::resetRootAdapter(
     const DiaAdapter&           a,
     const std::vector<DiaEdit>& edits) {

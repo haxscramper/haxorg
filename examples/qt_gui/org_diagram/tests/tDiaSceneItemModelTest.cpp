@@ -11,17 +11,17 @@ class DiaSceneItemModelTest : public QObject {
     Q_OBJECT
 
   private:
-    struct ScopeV12QtModel : ScopeV12DiagramDiff {
+    struct ScopeV12ItemModel : ScopeV12DiagramDiff {
         DiaSceneItemModel model;
         DiaScene          scene;
-        ScopeV12QtModel(std::string const& src, std::string const& dst)
+        ScopeV12ItemModel(std::string const& src, std::string const& dst)
             : ScopeV12DiagramDiff{src, dst}, scene{&model} {}
     };
 
   private slots:
     void testTrivialSwitch() {
         auto            __scope = trackTestExecution(this);
-        ScopeV12QtModel scope{
+        ScopeV12ItemModel scope{
             makeLayerText(
                 DiaNodeLayerParams{}, hstd::Vec{ditem(2, "item 1")}),
             makeLayerText(
@@ -32,6 +32,33 @@ class DiaSceneItemModelTest : public QObject {
 
         hstd::log::SignalDebugger signalCatcher{
             get_tracker(), &scope.model};
+
+        scope.scene.setRootAdapter(scope.srcAdapter);
+        scope.scene.resetRootAdapter(scope.dstAdapter, scope.edits);
+    }
+
+    void testItemDelete() {
+        auto            __scope = trackTestExecution(this);
+
+        ScopeV12ItemModel scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                    ditem(2, "item 2"),
+                }),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                }),
+        };
+
+        visualizeTestDiff(this, scope);
+        HSLOG_INFO(_cat, printModelTree(&scope.model).toString(false));
+
+        hstd::log::SignalDebugger signalCatcher{
+                                                get_tracker(), &scope.model};
 
         scope.scene.setRootAdapter(scope.srcAdapter);
         scope.scene.resetRootAdapter(scope.dstAdapter, scope.edits);

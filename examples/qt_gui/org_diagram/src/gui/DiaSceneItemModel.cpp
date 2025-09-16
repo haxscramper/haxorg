@@ -14,8 +14,8 @@ QModelIndex DiaSceneItemModel::index(
         parentNode = static_cast<DiaSceneItem*>(parent.internalPointer());
     }
 
-    if (row < static_cast<int>(parentNode->children.size())) {
-        return createIndex(row, column, parentNode->children.at(row));
+    if (row < static_cast<int>(parentNode->subnodes.size())) {
+        return createIndex(row, column, parentNode->subnodes.at(row));
     }
 
     return QModelIndex{};
@@ -32,9 +32,9 @@ QModelIndex DiaSceneItemModel::parent(const QModelIndex& index) const {
     DiaSceneItem* grandParent = parentNode->parent;
     if (!grandParent) { return QModelIndex{}; }
 
-    for (int i = 0; i < static_cast<int>(grandParent->children.size());
+    for (int i = 0; i < static_cast<int>(grandParent->subnodes.size());
          ++i) {
-        if (grandParent->children.at(i) == parentNode) {
+        if (grandParent->subnodes.at(i) == parentNode) {
             return createIndex(i, 0, parentNode);
         }
     }
@@ -65,14 +65,14 @@ QModelIndex DiaSceneItemModel::findNodeIndex(
     if (!parentNode) { return QModelIndex{}; }
 
     // Check direct children
-    for (int i = 0; i < parentNode->children.size(); ++i) {
-        if (parentNode->children[i] == targetNode) {
+    for (int i = 0; i < parentNode->subnodes.size(); ++i) {
+        if (parentNode->subnodes[i] == targetNode) {
             return index(i, 0, parent);
         }
     }
 
     // Search recursively in children
-    for (int i = 0; i < parentNode->children.size(); ++i) {
+    for (int i = 0; i < parentNode->subnodes.size(); ++i) {
         QModelIndex childIndex = index(i, 0, parent);
         QModelIndex found      = findNodeIndex(childIndex, targetNode);
         if (found.isValid()) { return found; }
@@ -96,6 +96,13 @@ void DiaSceneItemModel::beginEditApply(const DiaEdit& edit) {
             LOGIC_ASSERTION_CHECK(
                 parent.has_value(),
                 "Rows cannot be removed from non-existent parent");
+            HSLOG_INFO(
+                _cat,
+                hstd::fmt(
+                    "About to remove item {} from {}",
+                    qdebug_to_str(parent),
+                    edit.getDelete().srcIndex));
+
             beginRemoveRows(
                 parent.value(),
                 edit.getDelete().srcIndex,
