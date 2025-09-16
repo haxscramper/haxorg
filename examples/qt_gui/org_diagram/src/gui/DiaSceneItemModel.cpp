@@ -1,6 +1,6 @@
-#include "DiaSceneItemsModel.hpp"
+#include "DiaSceneItemModel.hpp"
 
-QModelIndex DiaSceneItemsModel::index(
+QModelIndex DiaSceneItemModel::index(
     int                row,
     int                column,
     const QModelIndex& parent) const {
@@ -20,7 +20,7 @@ QModelIndex DiaSceneItemsModel::index(
 
     return QModelIndex{};
 }
-QModelIndex DiaSceneItemsModel::parent(const QModelIndex& index) const {
+QModelIndex DiaSceneItemModel::parent(const QModelIndex& index) const {
     if (!index.isValid()) { return QModelIndex{}; }
 
     DiaSceneItem* childNode = static_cast<DiaSceneItem*>(
@@ -41,7 +41,7 @@ QModelIndex DiaSceneItemsModel::parent(const QModelIndex& index) const {
 
     return QModelIndex{};
 }
-QVariant DiaSceneItemsModel::data(const QModelIndex& index, int role)
+QVariant DiaSceneItemModel::data(const QModelIndex& index, int role)
     const {
     hstd::logic_assertion_check_not_nil(rootNode);
     if (!index.isValid()) { return QVariant{}; }
@@ -54,7 +54,7 @@ QVariant DiaSceneItemsModel::data(const QModelIndex& index, int role)
 
     return QVariant{};
 }
-QModelIndex DiaSceneItemsModel::findNodeIndex(
+QModelIndex DiaSceneItemModel::findNodeIndex(
     const QModelIndex& parent,
     DiaSceneItem*      targetNode) const {
     hstd::logic_assertion_check_not_nil(rootNode);
@@ -84,4 +84,31 @@ QModelIndex DiaSceneItemsModel::findNodeIndex(
         targetNode->name.toStdString());
 
     return QModelIndex{};
+}
+
+
+void DiaSceneItemModel::beginEditApply(const DiaEdit& edit) {
+    TRACKED_FUNCTION("beginEditApply");
+    switch (edit.getKind()) {
+        case DiaEdit::Kind::Delete: {
+            auto parent = indexAtPath(
+                edit.getSrc().getParentPathFromRoot());
+            LOGIC_ASSERTION_CHECK(
+                parent.has_value(),
+                "Rows cannot be removed from non-existent parent");
+            beginRemoveRows(
+                parent.value(),
+                edit.getDelete().srcIndex,
+                edit.getDelete().srcIndex);
+        }
+    }
+}
+
+void DiaSceneItemModel::endEditApply(const DiaEdit& edit) {
+    TRACKED_FUNCTION("endEditApply");
+    switch (edit.getKind()) {
+        case DiaEdit::Kind::Delete: {
+            endRemoveRows();
+        }
+    }
 }

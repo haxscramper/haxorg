@@ -115,5 +115,6 @@ endfunction()
 
 add_qt_test("tHistoryManagerTest.cpp" "HistoryManagerTest")
 add_qt_test("tDebugTarget.cpp" "DebugTarget")
-add_qt_test("tQtOrgAstModelTest_Standalone.cpp" "QtOrgAstModelTest_StandaloneTest")
-add_qt_test("tOrgDiagramNodeTest.cpp" "OrgDiagramNodeTest")
+add_qt_test("tDiaNodeTreeModel_Standalone.cpp" "DiaNodeTreeModel_StandaloneTest")
+add_qt_test("tDiaNodeTest.cpp" "DiaNodeTest")
+add_qt_test("tDiaSceneItemModelTest.cpp" "DiaSceneItemModelTest")

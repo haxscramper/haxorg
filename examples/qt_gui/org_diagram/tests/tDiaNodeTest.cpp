@@ -1,14 +1,14 @@
 #include <QtTest/QtTest>
 #include <QSignalSpy>
 #include <haxorg/sem/SemBaseApi.hpp>
-#include <src/model/QtOrgAstModel.hpp>
+#include <src/model/DiaNodeTreeModel.hpp>
 #include <src/utils/common.hpp>
 #include <src/utils/test_utils.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
 
 using namespace test;
 
-class OrgDiagramNodeTest : public QObject {
+class DiaNodeTest : public QObject {
     Q_OBJECT
 
   private slots:
@@ -71,5 +71,5 @@ class OrgDiagramNodeTest : public QObject {
     }
 };
 
-HAXORG_QT_TEST_MAIN(OrgDiagramNodeTest)
-#include "tOrgDiagramNodeTest.moc"
+HAXORG_QT_TEST_MAIN(DiaNodeTest)
+#include "tDiaNodeTest.moc"

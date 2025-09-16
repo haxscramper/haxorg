@@ -583,12 +583,12 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
 
     for (auto const& edit : edits) {
         if (edit.isDelete()) {
-            gvNodes.at(edit.getSrcAffected().id).setColor("red");
+            gvNodes.at(edit.getSrc().id).setColor("red");
         } else if (edit.isInsert()) {
-            gvNodes.at(edit.getDstAffected().id).setColor("green");
+            gvNodes.at(edit.getDst().id).setColor("green");
         } else if (edit.isUpdate()) {
-            auto gvSrc    = gvNodes.at(edit.getSrcAffected().id);
-            auto gvDst    = gvNodes.at(edit.getDstAffected().id);
+            auto gvSrc    = gvNodes.at(edit.getSrc().id);
+            auto gvDst    = gvNodes.at(edit.getDst().id);
             auto gvUpdate = g.edge(gvSrc, gvDst);
             gvSrc.setColor("purple");
             gvDst.setColor("purple");
@@ -596,8 +596,8 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
             gvUpdate.setAttr("headport", "e"_ss);
             gvUpdate.setAttr("tailport", "e"_ss);
         } else {
-            auto gvSrc  = gvNodes.at(edit.getSrcAffected().id);
-            auto gvDst  = gvNodes.at(edit.getDstAffected().id);
+            auto gvSrc  = gvNodes.at(edit.getSrc().id);
+            auto gvDst  = gvNodes.at(edit.getDst().id);
             auto gvMove = g.edge(gvSrc, gvDst);
             gvSrc.setColor("cyan");
             gvDst.setColor("cyan");
@@ -608,4 +608,20 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
     }
 
     return g;
+}
+
+hstd::Vec<int> asIndexPath(const org::imm::ImmPath& path) {
+    hstd::Vec<int> result;
+    for (auto const& it : path.path) {
+        LOGIC_ASSERTION_CHECK(it.path.at(0).isFieldName(), "");
+        LOGIC_ASSERTION_CHECK(
+            it.path.at(0).getFieldName().name
+                == org::imm::ImmReflFieldId::FromTypeField(
+                    &DiaNode::subnodes),
+            "");
+
+        LOGIC_ASSERTION_CHECK(it.path.at(1).isIndex(), "");
+        result.push_back(it.path.at(1).getIndex().index);
+    }
+    return result;
 }

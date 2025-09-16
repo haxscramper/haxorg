@@ -6,7 +6,7 @@
 DiaSelectionManager::DiaSelectionManager(
     DiagramView*        view,
     QTreeView*          treeView,
-    DiaSceneItemsModel* model,
+    DiaSceneItemModel* model,
     QObject*            parent)
     : QObject{parent}
     , diagramView{view}
@@ -94,13 +94,13 @@ void DiaSelectionManager::setupConnections() {
     // Model selection updates
     connect(
         treeModel,
-        &DiaSceneItemsModel::nodesSelected,
+        &DiaSceneItemModel::nodesSelected,
         this,
         &DiaSelectionManager::onTreeNodesSelected);
 }
 
 void MainWindow::setupUI() {
-    treeModel = new DiaSceneItemsModel{this};
+    treeModel = new DiaSceneItemModel{this};
     scene     = new DiaScene{treeModel, this};
     view      = new DiagramView{};
     view->setScene(scene);

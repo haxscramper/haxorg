@@ -11,7 +11,7 @@
 
 #include <src/gui/DiaScene.hpp>
 #include <src/gui/DiagramView.hpp>
-#include <src/gui/DiaSceneItemsModel.hpp>
+#include <src/gui/DiaSceneItemModel.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
 struct StartupArgc {
@@ -26,7 +26,7 @@ class DiaSelectionManager : public QObject {
     DiaSelectionManager(
         DiagramView*        view,
         QTreeView*          treeView,
-        DiaSceneItemsModel* model,
+        DiaSceneItemModel* model,
         QObject*            parent = nullptr);
 
   private slots:
@@ -45,7 +45,7 @@ class DiaSelectionManager : public QObject {
   private:
     DiagramView*        diagramView;
     QTreeView*          treeView;
-    DiaSceneItemsModel* treeModel;
+    DiaSceneItemModel* treeModel;
     bool updatingSelection{false}; // Prevent infinite recursion
 };
 
@@ -59,7 +59,7 @@ struct MainWindow : public QMainWindow {
     DiagramView*                 view{};
     QSpinBox*                    gridSnapBox{};
     QTreeView*                   treeView{};
-    DiaSceneItemsModel*          treeModel{};
+    DiaSceneItemModel*          treeModel{};
     QWidget*                     propertiesPanel{};
     QVBoxLayout*                 propertiesLayout{};
     QPushButton*                 createEdgeButton{};

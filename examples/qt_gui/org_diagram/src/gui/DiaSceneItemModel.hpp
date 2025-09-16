@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/model/nodes/DiagramTreeNode.hpp"
 #include <QAbstractItemModel>
 #include <src/gui/items/DiaSceneItem.hpp>
 #include <src/gui/items/DiaSceneItemVisual.hpp>
@@ -10,7 +11,7 @@
 #define _cat "model.tree"
 
 
-struct DiaSceneItemsModel : public QAbstractItemModel {
+struct DiaSceneItemModel : public QAbstractItemModel {
     Q_OBJECT
 
   public:
@@ -18,8 +19,21 @@ struct DiaSceneItemsModel : public QAbstractItemModel {
 
     bool hasScene() const { return rootNode != nullptr; }
 
-    DiaSceneItemsModel(QObject* parent = nullptr)
+    DiaSceneItemModel(QObject* parent = nullptr)
         : QAbstractItemModel{parent} {}
+
+
+    hstd::Opt<QModelIndex> indexAtPath(hstd::Vec<int> const& path) const {
+        QModelIndex result;
+        for (auto const& i : path) {
+            if (i < rowCount(result)) {
+                result = index(i, 0, result);
+            } else {
+                return std::nullopt;
+            }
+        }
+        return result;
+    }
 
     QModelIndex index(
         int                row,
@@ -57,6 +71,10 @@ struct DiaSceneItemsModel : public QAbstractItemModel {
         beginResetModel();
         endResetModel();
     }
+
+
+    void beginEditApply(DiaEdit const& edit);
+    void endEditApply(DiaEdit const& edit);
 
   public slots:
     void selectNodes(const QList<DiaSceneItemVisual*>& visualNodes) {

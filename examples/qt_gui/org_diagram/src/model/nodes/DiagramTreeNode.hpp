@@ -170,10 +170,21 @@ struct DiaIdT : public DiaId {
     static DiaIdT<T> Nil() { return DiaIdT<T>(DiaId::Nil()); }
 };
 
+
+hstd::Vec<int> asIndexPath(org::imm::ImmPath const& path);
+
 struct [[refl]] DiaUniqId {
     DiaId             id;
     org::imm::ImmPath path;
     DESC_FIELDS(DiaUniqId, (id, path));
+
+    hstd::Vec<int> getParentPathFromRoot() const {
+        return asIndexPath(path.pop());
+    }
+
+    hstd::Vec<int> getSelfPathFromRoot() const {
+        return asIndexPath(path);
+    }
 
     DiaUniqId update(DiaId id) const {
         auto res = *this;
@@ -522,6 +533,14 @@ struct DiaAdapter {
         return get()->dyn_cast<T>();
     }
 
+    hstd::Vec<int> getParentPathFromRoot() const {
+        return id.getParentPathFromRoot();
+    }
+
+    hstd::Vec<int> getSelfPathFromRoot() const {
+        return id.getSelfPathFromRoot();
+    }
+
     DiaAdapter at(DiaId const& at_id, org::imm::ImmPathStep const& step)
         const {
         return DiaAdapter{DiaUniqId{at_id, id.path.add(step)}, ctx};
@@ -631,7 +650,7 @@ struct DiaEdit {
     bool hasSrc() const { return isDelete() || isMove() || isUpdate(); }
     bool hasDst() const { return isInsert() || isMove() || isUpdate(); }
 
-    DiaAdapter getDstAffected() const {
+    DiaAdapter getDst() const {
         if (isInsert()) {
             return getInsert().dstNode;
         } else if (isMove()) {
@@ -644,7 +663,7 @@ struct DiaEdit {
         }
     }
 
-    DiaAdapter getSrcAffected() const {
+    DiaAdapter getSrc() const {
         if (isDelete()) {
             return getDelete().srcNode;
         } else if (isMove()) {
@@ -656,6 +675,9 @@ struct DiaEdit {
                 "insert node has no source counterpart");
         }
     }
+
+    DiaUniqId getSrcUniq() const { return getSrc().id; }
+    DiaUniqId getDstUniq() const { return getDst().id; }
 
 
     SUB_VARIANTS(Kind, Data, data, getKind, Delete, Insert, Update, Move);

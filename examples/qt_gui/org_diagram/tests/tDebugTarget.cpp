@@ -1,4 +1,4 @@
-#include "src/model/QtOrgAstModel.hpp"
+#include <src/model/DiaNodeTreeModel.hpp>
 #include <QTest>
 #include <src/model/HistoryManager.hpp>
 #include <src/utils/common.hpp>

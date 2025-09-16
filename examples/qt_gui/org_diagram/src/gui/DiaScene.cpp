@@ -89,6 +89,36 @@ void DiaScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     }
 }
 
+DiaSceneItem* DiaScene::resetRootAdapter(
+    const DiaAdapter&           a,
+    const std::vector<DiaEdit>& edits) {
+    TRACKED_FUNCTION("resetRootAdapter");
+    if (edits.empty()) { return rootNode; }
+    DiaSceneItem* rootUpdate;
+    for (auto const& edit : edits) {
+        treeModel->beginEditApply(edit);
+        switch (edit.getKind()) {
+            case DiaEdit::Kind::Delete: {
+                auto item = getItemForId(edit.getSrc().id);
+                if (auto scene_item = dynamic_cast<QGraphicsItem*>(item);
+                    scene_item) {
+                    removeItem(scene_item);
+                }
+                break;
+            }
+        }
+        treeModel->endEditApply(edit);
+    }
+
+    LOGIC_ASSERTION_CHECK(
+        rootUpdate != nullptr,
+        "Non-empty set of edits is guaranteed to change the root node to "
+        "a new structure, but the root update has not happened.");
+    rootNode = rootUpdate;
+
+    return rootUpdate;
+}
+
 DiaSceneItem* DiaScene::addAdapterNonRec(const DiaAdapter& a) {
     switch (a.getKind()) {
         case DiaNodeKind::Group:
@@ -111,4 +141,118 @@ DiaSceneItem* DiaScene::addAdapterNonRec(const DiaAdapter& a) {
             return layer;
         }
     }
+}
+
+DiaSceneItemGroup* DiaScene::findGroupContaining(
+    DiaSceneItemVisual* node) {
+    for (auto item : items()) {
+        if (auto group = dynamic_cast<DiaSceneItemGroup*>(item)) {
+            if (std::find(
+                    group->groupedNodes.begin(),
+                    group->groupedNodes.end(),
+                    node)
+                != group->groupedNodes.end()) {
+                return group;
+            }
+        }
+    }
+    return nullptr;
+}
+
+std::vector<DiaSceneItemVisual*> DiaScene::findCommonParentNodes(
+    const std::vector<DiaSceneItemVisual*>& nodes) {
+    std::vector<DiaSceneItemVisual*> result;
+    std::set<DiaSceneItemVisual*>    processed;
+
+    for (auto node : nodes) {
+        if (dynamic_cast<DiaSceneItemEdge*>(node)) {
+            continue; // Skip edges
+        }
+        if (processed.count(node)) { continue; }
+
+        auto group = findGroupContaining(node);
+        if (group) {
+            // Check if all nodes in this group are in the selection
+            bool allNodesSelected = true;
+            for (auto groupNode : group->groupedNodes) {
+                if (std::find(nodes.begin(), nodes.end(), groupNode)
+                    == nodes.end()) {
+                    allNodesSelected = false;
+                    break;
+                }
+            }
+
+            if (allNodesSelected) {
+                result.push_back(group);
+                for (auto groupNode : group->groupedNodes) {
+                    processed.insert(groupNode);
+                }
+            } else {
+                result.push_back(node);
+                processed.insert(node);
+            }
+        } else {
+            result.push_back(node);
+            processed.insert(node);
+        }
+    }
+
+    return result;
+}
+
+void DiaScene::createGroupFromSelection() {
+    // Filter out edges and get only visual nodes
+    std::vector<DiaSceneItemVisual*> visualNodes;
+    for (auto node : selectedNodes) {
+        if (!dynamic_cast<DiaSceneItemEdge*>(node)) {
+            visualNodes.push_back(node);
+        }
+    }
+
+    if (visualNodes.size() < 2) {
+        QMessageBox::warning(
+            nullptr,
+            "Error",
+            "Please select at least 2 non-edge nodes to create a "
+            "group.");
+        return;
+    }
+
+    // Find common parent nodes
+    auto nodesToGroup = findCommonParentNodes(visualNodes);
+
+    if (nodesToGroup.empty()) {
+        QMessageBox::warning(nullptr, "Error", "No valid nodes to group.");
+        return;
+    }
+
+    // Remove nodes from their current groups if any
+    for (auto node : nodesToGroup) {
+        auto currentGroup = findGroupContaining(node);
+        if (currentGroup) { currentGroup->removeFromGroup(node); }
+    }
+
+    // Create new group
+    auto group = new DiaSceneItemGroup{"Group"};
+    addItem(group);
+
+    // Add nodes to the group
+    for (auto node : nodesToGroup) { group->addToGroup(node); }
+
+    group->updateBoundsToFitNodes();
+
+    // Add to scene hierarchy
+    auto layer = findFirstLayer();
+    if (layer) {
+        // Convert to shared_ptr if using shared_ptr management
+        layer->addChild(group);
+    } else {
+        rootNode->addChild(group);
+    }
+
+    // Clear selection
+    for (auto node : selectedNodes) { node->setSelected(false); }
+    selectedNodes.clear();
+
+    updateTreeView();
 }

@@ -8,18 +8,20 @@
 #include <src/model/nodes/DiagramTreeNode.hpp>
 
 
-struct OrgDiagramModel : public QAbstractItemModel {
+struct DiaNodeTreeModel : public QAbstractItemModel {
     Q_OBJECT
 
   private:
     DiaAdapter rootNode;
 
   public:
-    explicit OrgDiagramModel(
+    explicit DiaNodeTreeModel(
         DiaAdapter const& root,
         QObject*          parent = nullptr);
 
-    void setRoot(DiaAdapter const& root);
+    void setNewRoot(
+        DiaAdapter const&           root,
+        const std::vector<DiaEdit>& edits);
 
     hstd::ColText format();
 

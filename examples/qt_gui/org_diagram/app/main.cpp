@@ -3,7 +3,7 @@
 #include <src/gui/items/DiaSceneItem.hpp>
 #include <src/gui/items/DiaSceneItemVisual.hpp>
 #include <src/gui/DiagramView.hpp>
-#include <src/gui/DiaSceneItemsModel.hpp>
+#include <src/gui/DiaSceneItemModel.hpp>
 #include <src/gui/DiaScene.hpp>
 #include <src/MainWindow.hpp>
 
@@ -36,6 +36,7 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <src/utils/common.hpp>
 #include <src/utils/file_watcher.hpp>
+#include <QFileSystemWatcher>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "main"
@@ -47,8 +48,7 @@ int main(int argc, char* argv[]) {
     get_tracker()->start_tracing();
 
     auto conf = hstd::from_json_eval<StartupArgc>(json::parse(argv[1]));
-
-    FileWatcherThread* watcherThread = new FileWatcherThread{};
+    QFileSystemWatcher watcher;
 
 
     qInstallMessageHandler(customMessageHandler);
@@ -58,20 +58,15 @@ int main(int argc, char* argv[]) {
     auto window = std::make_shared<MainWindow>(conf);
 
     QObject::connect(
-        watcherThread,
-        &FileWatcherThread::fileChanged,
-        [window](FileChangeEvent const& event) {
+        &watcher,
+        &QFileSystemWatcher::fileChanged,
+        [&](QString const& event) {
             HSLOG_TRACE(
-                _cat,
-                hstd::fmt(
-                    "File changed:{} type: {}",
-                    event.path.toStdString(),
-                    event.type));
-            window->loadFile(event.path);
+                _cat, hstd::fmt("File changed:{}", event.toStdString()));
+            window->loadFile(event);
         });
 
-    watcherThread->start();
-    watcherThread->addWatchPath(QString::fromStdString(conf.documentPath));
+    watcher.addPath(QString::fromStdString(conf.documentPath));
 
 
     window->show();

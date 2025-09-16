@@ -1,9 +1,9 @@
-#include "QtOrgAstModel.hpp"
+#include "DiaNodeTreeModel.hpp"
 
 
-#include "QtOrgAstModel.moc"
+#include "DiaNodeTreeModel.moc"
 
-QModelIndex OrgDiagramModel::parent(const QModelIndex& index) const {
+QModelIndex DiaNodeTreeModel::parent(const QModelIndex& index) const {
     if (index.isValid()) {
         DiaAdapter node = getNode(index);
         return getParentIndex(node.id).value_or(QModelIndex{});
@@ -12,7 +12,7 @@ QModelIndex OrgDiagramModel::parent(const QModelIndex& index) const {
     }
 }
 
-DiaAdapter OrgDiagramModel::getNode(const QModelIndex& index) const {
+DiaAdapter DiaNodeTreeModel::getNode(const QModelIndex& index) const {
     DiaAdapter parentNode{};
     if (index.isValid()) {
         return DiaAdapter{
@@ -23,11 +23,11 @@ DiaAdapter OrgDiagramModel::getNode(const QModelIndex& index) const {
     }
 }
 
-int OrgDiagramModel::rowCount(const QModelIndex& parent) const {
+int DiaNodeTreeModel::rowCount(const QModelIndex& parent) const {
     return getNode(parent).size();
 }
 
-QVariant OrgDiagramModel::data(const QModelIndex& index, int role) const {
+QVariant DiaNodeTreeModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid()) { return QVariant{}; }
 
     if (role == Qt::DisplayRole) {
@@ -38,14 +38,16 @@ QVariant OrgDiagramModel::data(const QModelIndex& index, int role) const {
     return QVariant{};
 }
 
-OrgDiagramModel::OrgDiagramModel(const DiaAdapter& root, QObject* parent)
+DiaNodeTreeModel::DiaNodeTreeModel(const DiaAdapter& root, QObject* parent)
     : QAbstractItemModel{parent}, rootNode{root} {
     TRACKED_FUNCTION(OrgDiagramModel);
 }
 
-void OrgDiagramModel::setRoot(const DiaAdapter& root) {}
+void DiaNodeTreeModel::setNewRoot(
+    const DiaAdapter&           root,
+    const std::vector<DiaEdit>& edits) {}
 
-hstd::ColText OrgDiagramModel::format() {
+hstd::ColText DiaNodeTreeModel::format() {
     return ::printModelTree(
         this,
         QModelIndex{},
@@ -59,7 +61,8 @@ hstd::ColText OrgDiagramModel::format() {
         });
 }
 
-QModelIndex OrgDiagramModel::index(
+
+QModelIndex DiaNodeTreeModel::index(
     int                row,
     int                column,
     const QModelIndex& parent) const {

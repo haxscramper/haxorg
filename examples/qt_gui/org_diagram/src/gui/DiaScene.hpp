@@ -3,7 +3,7 @@
 #include <src/model/nodes/DiagramTreeNode.hpp>
 #include <QGraphicsScene>
 #include <src/gui/items/DiaSceneItemVisual.hpp>
-#include <src/gui/DiaSceneItemsModel.hpp>
+#include <src/gui/DiaSceneItemModel.hpp>
 #include <src/gui/items/DiaSceneItemRectangle.hpp>
 #include <src/gui/items/DiaSceneItemEdge.hpp>
 #include <src/gui/items/DiaSceneItemImage.hpp>
@@ -18,14 +18,14 @@ struct DiaScene : public QGraphicsScene {
     DiaSceneItem*                    rootNode{};
     DiaSceneItemVisual*              selectedNode{nullptr};
     DiaSceneItemVisual*              arrowSource{nullptr};
-    DiaSceneItemsModel*              treeModel{nullptr};
+    DiaSceneItemModel*              treeModel{nullptr};
     std::vector<DiaSceneItemVisual*> selectedNodes{};
     bool                             showGrid{true};
     QColor                           gridColor{Qt::lightGray};
 
     hstd::UnorderedMap<DiaUniqId, DiaSceneItem*> diaItemMap;
 
-    DiaScene(DiaSceneItemsModel* treeModel, QObject* parent = nullptr)
+    DiaScene(DiaSceneItemModel* treeModel, QObject* parent = nullptr)
         : QGraphicsScene{parent}, treeModel{treeModel} {}
 
     void drawBackground(QPainter* painter, const QRectF& rect) override;
@@ -73,13 +73,33 @@ struct DiaScene : public QGraphicsScene {
 
     void setGridSnap(int snap) { gridSnap = snap; }
 
+    DiaSceneItem* getItemForId(DiaUniqId const& id) {
+        auto result = diaItemMap.get(id);
+        LOGIC_ASSERTION_CHECK(
+            result.has_value(),
+            "No diagram scene item associated with ID {}",
+            id);
+        return result.value();
+    }
+
     DiaSceneItem* setRootAdapter(DiaAdapter const& a) {
         rootNode            = addAdapterRec(a);
         treeModel->rootNode = rootNode;
         return rootNode;
     }
 
+    /// \brief Swap the existing scene item structure with the new one
+    /// based on the provided edits.
+    DiaSceneItem* resetRootAdapter(
+        DiaAdapter const&           a,
+        std::vector<DiaEdit> const& edits);
+
+    /// \brief Create a new scene item based on the adapter data and add it
+    /// to the scene.
     DiaSceneItem* addAdapterNonRec(DiaAdapter const& a);
+
+    /// \brief Create a new scene item, recursively, with all the nested
+    /// items.
     DiaSceneItem* addAdapterRec(DiaAdapter const& a) {
         hstd::Func<DiaSceneItem*(DiaAdapter const&)> aux;
         aux = [&](DiaAdapter const& it) -> DiaSceneItem* {
@@ -170,120 +190,13 @@ struct DiaScene : public QGraphicsScene {
         }
     }
 
-    DiaSceneItemGroup* findGroupContaining(DiaSceneItemVisual* node) {
-        for (auto item : items()) {
-            if (auto group = dynamic_cast<DiaSceneItemGroup*>(item)) {
-                if (std::find(
-                        group->groupedNodes.begin(),
-                        group->groupedNodes.end(),
-                        node)
-                    != group->groupedNodes.end()) {
-                    return group;
-                }
-            }
-        }
-        return nullptr;
-    }
+    DiaSceneItemGroup* findGroupContaining(DiaSceneItemVisual* node);
 
     std::vector<DiaSceneItemVisual*> findCommonParentNodes(
-        const std::vector<DiaSceneItemVisual*>& nodes) {
-        std::vector<DiaSceneItemVisual*> result;
-        std::set<DiaSceneItemVisual*>    processed;
-
-        for (auto node : nodes) {
-            if (dynamic_cast<DiaSceneItemEdge*>(node)) {
-                continue; // Skip edges
-            }
-            if (processed.count(node)) { continue; }
-
-            auto group = findGroupContaining(node);
-            if (group) {
-                // Check if all nodes in this group are in the selection
-                bool allNodesSelected = true;
-                for (auto groupNode : group->groupedNodes) {
-                    if (std::find(nodes.begin(), nodes.end(), groupNode)
-                        == nodes.end()) {
-                        allNodesSelected = false;
-                        break;
-                    }
-                }
-
-                if (allNodesSelected) {
-                    result.push_back(group);
-                    for (auto groupNode : group->groupedNodes) {
-                        processed.insert(groupNode);
-                    }
-                } else {
-                    result.push_back(node);
-                    processed.insert(node);
-                }
-            } else {
-                result.push_back(node);
-                processed.insert(node);
-            }
-        }
-
-        return result;
-    }
+        const std::vector<DiaSceneItemVisual*>& nodes);
 
   public slots:
-    void createGroupFromSelection() {
-        // Filter out edges and get only visual nodes
-        std::vector<DiaSceneItemVisual*> visualNodes;
-        for (auto node : selectedNodes) {
-            if (!dynamic_cast<DiaSceneItemEdge*>(node)) {
-                visualNodes.push_back(node);
-            }
-        }
-
-        if (visualNodes.size() < 2) {
-            QMessageBox::warning(
-                nullptr,
-                "Error",
-                "Please select at least 2 non-edge nodes to create a "
-                "group.");
-            return;
-        }
-
-        // Find common parent nodes
-        auto nodesToGroup = findCommonParentNodes(visualNodes);
-
-        if (nodesToGroup.empty()) {
-            QMessageBox::warning(
-                nullptr, "Error", "No valid nodes to group.");
-            return;
-        }
-
-        // Remove nodes from their current groups if any
-        for (auto node : nodesToGroup) {
-            auto currentGroup = findGroupContaining(node);
-            if (currentGroup) { currentGroup->removeFromGroup(node); }
-        }
-
-        // Create new group
-        auto group = new DiaSceneItemGroup{"Group"};
-        addItem(group);
-
-        // Add nodes to the group
-        for (auto node : nodesToGroup) { group->addToGroup(node); }
-
-        group->updateBoundsToFitNodes();
-
-        // Add to scene hierarchy
-        auto layer = findFirstLayer();
-        if (layer) {
-            // Convert to shared_ptr if using shared_ptr management
-            layer->addChild(group);
-        } else {
-            rootNode->addChild(group);
-        }
-
-        // Clear selection
-        for (auto node : selectedNodes) { node->setSelected(false); }
-        selectedNodes.clear();
-
-        updateTreeView();
-    }
+    void createGroupFromSelection();
 
 
   signals:
