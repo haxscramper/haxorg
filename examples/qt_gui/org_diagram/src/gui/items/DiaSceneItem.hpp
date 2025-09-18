@@ -12,9 +12,18 @@ struct DiaSceneItem {
     QString                    name{};
     bool                       TraceState = false;
 
+    virtual hstd::Vec<hstd::ColText> formatSelf() const {
+        return {hstd::ColText{"DiaSceneItem " + name.toStdString()}};
+    }
+
     org::imm::ImmPathStep getRelativeToParent() const {
         return staleAdapter.id.path.path.back();
     }
+
+    struct TreeReprConf {};
+
+    hstd::ColText treeRepr() const { return treeRepr(TreeReprConf{}); }
+    hstd::ColText treeRepr(TreeReprConf const& conf) const;
 
     hstd::Vec<int> getParentPathFromRoot() const {
         if (parent == nullptr) {
@@ -57,9 +66,17 @@ struct DiaSceneItem {
 struct DiaSceneItemCanvas : public DiaSceneItem {
     DiaSceneItemCanvas(const QString& nodeName = "Canvas")
         : DiaSceneItem{nodeName} {}
+
+    hstd::Vec<hstd::ColText> formatSelf() const override {
+        return {hstd::ColText{"DiaSceneItemCanvas " + name.toStdString()}};
+    }
 };
 
 struct DiaSceneItemLayer : public DiaSceneItem {
     DiaSceneItemLayer(const QString& nodeName = "Layer")
         : DiaSceneItem{nodeName} {}
+
+    hstd::Vec<hstd::ColText> formatSelf() const override {
+        return {hstd::ColText{"DiaSceneItemLayer " + name.toStdString()}};
+    }
 };

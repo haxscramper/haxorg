@@ -11,6 +11,8 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <boost/outcome.hpp>
 
+
+
 template <typename T>
 hstd::log::log_record log_collection(
     char const*               cat,

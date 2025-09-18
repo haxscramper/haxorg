@@ -13,6 +13,10 @@ struct DiaSceneItemVisual
     QRectF  bounds{0, 0, 100, 50};
     QPointF dragOffset{};
 
+    hstd::Vec<hstd::ColText> formatSelf() const override {
+        return {hstd::ColText{"DiaSceneItemVisual " + name.toStdString()}};
+    }
+
     DiaSceneItemVisual(const QString& nodeName = "Node")
         : DiaSceneItem{nodeName} {
         setFlag(QGraphicsItem::ItemIsMovable);

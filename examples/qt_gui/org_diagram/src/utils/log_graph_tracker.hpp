@@ -13,6 +13,29 @@
 #    include <QBuffer>
 #endif
 
+namespace hstd {
+std::string descObjectPtr(QObject* obj);
+template <typename T>
+    requires std::is_class_v<T>
+std::string descObjectPtr(T* obj) {
+    return hstd::fmt(
+        "{} 0x{:X}",
+        hstd::demangle(typeid(obj).name()),
+        reinterpret_cast<uintptr_t>(obj));
+}
+
+template <typename T>
+    requires std::is_class_v<T>
+std::string descObjectPtr(T const* obj) {
+    return descObjectPtr(const_cast<T*>(obj));
+}
+
+template <typename T>
+std::string descObjectPtr(T* obj) {
+    return hstd::fmt("0x{:X}", reinterpret_cast<uintptr_t>(obj));
+}
+} // namespace hstd
+
 namespace hstd::log {
 
 template <typename T, typename Other = std::monostate>

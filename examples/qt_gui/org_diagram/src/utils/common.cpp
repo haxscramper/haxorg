@@ -421,3 +421,4 @@ bool hasArgsProperty(
     const std::string&                                 kind) {
     return node.getProperty("propargs", kind).has_value();
 }
+

@@ -25,6 +25,8 @@ struct DiaScene : public QGraphicsScene {
 
     hstd::UnorderedMap<DiaUniqId, DiaSceneItem*> diaItemMap;
 
+    void logSceneRoot();
+
     DiaScene(DiaSceneItemModel* treeModel, QObject* parent = nullptr)
         : QGraphicsScene{parent}, treeModel{treeModel} {}
 

@@ -17,7 +17,11 @@ struct ScopeV12 {
 
     org::imm::ImmAdapter getRootV1() const { return manager.getRoot(0); }
     org::imm::ImmAdapter getRootV2() const { return manager.getRoot(1); }
+
+
 };
+
+
 
 struct ScopeV12DiagramDiff : ScopeV12 {
     DiaAdapter           srcAdapter;

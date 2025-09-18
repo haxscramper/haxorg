@@ -1,6 +1,7 @@
 #include "test_utils.hpp"
 #include <hstd/stdlib/Ranges.hpp>
 #include "common.hpp"
+#include <haxorg/sem/ImmOrg.hpp>
 
 std::string test::makeItemText(const DiaNodeItemParams& conf) {
     return hstd::fmt(

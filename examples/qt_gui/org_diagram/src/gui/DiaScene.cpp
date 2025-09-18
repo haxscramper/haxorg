@@ -1,5 +1,13 @@
 #include "DiaScene.hpp"
 
+void DiaScene::logSceneRoot() {
+    if (rootNode == nullptr) {
+        HSLOG_TRACE(_cat, "<nullptr>");
+    } else {
+        HSLOG_TRACE(_cat, rootNode->treeRepr().toString(false));
+    }
+}
+
 void DiaScene::drawBackground(QPainter* painter, const QRectF& rect) {
     QGraphicsScene::drawBackground(painter, rect);
 
@@ -106,12 +114,35 @@ DiaSceneItem* DiaScene::resetRootAdapter(
         treeModel->beginEditApply(edit);
         switch (edit.getKind()) {
             case DiaEdit::Kind::Delete: {
-                auto item = getItemForId(edit.getSrc().id);
+                auto        item   = getItemForId(edit.getSrc().id);
+                auto const& del    = edit.getDelete();
+                int         src    = del.srcIndex;
+                auto        parent = item->parent;
+
+                LOGIC_ASSERTION_CHECK(
+                    item->parent->subnodes.at(src) == item,
+                    "Delete of item at index {} should have removed the "
+                    "scene item {}, but the parent {} has item "
+                    "{} at this index",
+                    src,
+                    hstd::descObjectPtr(item),
+                    hstd::descObjectPtr(parent),
+                    hstd::descObjectPtr(parent->subnodes.at(src)));
+
+                parent->subnodes.erase(parent->subnodes.begin() + src);
+
                 if (auto scene_item = dynamic_cast<QGraphicsItem*>(item);
                     scene_item) {
                     removeItem(scene_item);
                 }
                 break;
+            }
+            case DiaEdit::Kind::Insert: {
+                auto item = getItemForId(edit.getSrc().id);
+                break;
+            }
+            default: {
+                logic_todo_impl();
             }
         }
         treeModel->endEditApply(edit);

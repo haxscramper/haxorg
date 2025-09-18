@@ -96,17 +96,35 @@ void DiaSceneItemModel::beginEditApply(const DiaEdit& edit) {
             LOGIC_ASSERTION_CHECK(
                 parent.has_value(),
                 "Rows cannot be removed from non-existent parent");
+            int idx = edit.getDelete().srcIndex;
             HSLOG_INFO(
                 _cat,
                 hstd::fmt(
                     "About to remove item {} from {}",
-                    qdebug_to_str(parent),
-                    edit.getDelete().srcIndex));
+                    idx,
+                    qdebug_to_str(parent)));
 
-            beginRemoveRows(
-                parent.value(),
-                edit.getDelete().srcIndex,
-                edit.getDelete().srcIndex);
+            beginRemoveRows(parent.value(), idx, idx);
+            break;
+        }
+        case DiaEdit::Kind::Insert: {
+            auto parent = indexAtPath(
+                edit.getDst().getParentPathFromRoot());
+            LOGIC_ASSERTION_CHECK(
+                parent.has_value(),
+                "Rows cannot be inserted from non-existent parent");
+            int idx = edit.getInsert().dstIndex;
+            HSLOG_INFO(
+                _cat,
+                hstd::fmt(
+                    "About to insert item {} under {}",
+                    idx,
+                    qdebug_to_str(parent)));
+            beginInsertRows(parent.value(), idx, idx);
+            break;
+        }
+        default: {
+            logic_todo_impl();
         }
     }
 }
@@ -116,6 +134,16 @@ void DiaSceneItemModel::endEditApply(const DiaEdit& edit) {
     switch (edit.getKind()) {
         case DiaEdit::Kind::Delete: {
             endRemoveRows();
+            break;
+        }
+
+        case DiaEdit::Kind::Insert: {
+            endInsertRows();
+            break;
+        }
+
+        default: {
+            logic_todo_impl();
         }
     }
 }

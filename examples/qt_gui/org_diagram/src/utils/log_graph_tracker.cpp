@@ -12,10 +12,7 @@
 #endif
 
 
-using namespace hstd::log;
-
-
-std::string descObject(const QObject* obj) {
+std::string hstd::descObjectPtr(QObject* obj) {
     return hstd::fmt(
         "'{}' at 0x{:X}",
         obj ? (obj->objectName().isEmpty()
@@ -24,6 +21,10 @@ std::string descObject(const QObject* obj) {
             : "<nullptr>",
         reinterpret_cast<std::ptrdiff_t>(obj));
 }
+
+
+using namespace hstd::log;
+
 
 void log_graph_tracker::add_processor(
     std::shared_ptr<log_graph_processor> processor,
@@ -319,7 +320,7 @@ void logger_processor::track_signal_emit(const signal_emit_info& info) {
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message(
             "signal emit::{} -> '{}({})'",
-            descObject(info.sender),
+            descObjectPtr(info.sender),
             info.name,
             info.args)
         .end();
@@ -330,7 +331,7 @@ void logger_processor::track_slot_trigger(const slot_trigger_info& info) {
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message(
             "slot trigger::{} -> '{}'",
-            descObject(info.receiver),
+            descObjectPtr(info.receiver),
             info.name)
         .end();
 }
@@ -339,7 +340,7 @@ void logger_processor::track_qobject(
     log_graph_processor::qobject_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
-        .fmt_message("created {}", descObject(info.object))
+        .fmt_message("created {}", descObjectPtr(info.object))
         .end();
 
     QObject::connect(
@@ -347,7 +348,7 @@ void logger_processor::track_qobject(
             log_record{}
                 .set_callsite(
                     info.loc.line, info.loc.function, info.loc.file)
-                .fmt_message("destroyed {}", descObject(info.object))
+                .fmt_message("destroyed {}", descObjectPtr(info.object))
                 .end();
         });
 }
