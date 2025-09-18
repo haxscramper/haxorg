@@ -50,16 +50,10 @@ void DiaScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     if (event->modifiers() & Qt::ControlModifier) {
         // Multi-selection mode
         if (clickedNode
-            && std::find_if(
-                   selectedNodes.begin(),
-                   selectedNodes.end(),
-                   [&](DiaSceneItem::WPtr const& ptr) {
-                       return ptr.lock().get() == clickedNode;
-                   })
+            && std::find(
+                   selectedNodes.begin(), selectedNodes.end(), clickedNode)
                    == selectedNodes.end()) {
-            selectedNodes.push_back(
-                clickedNode->dyn_cast<DiaSceneItemVisual>()
-                    ->weak_from_this());
+            selectedNodes.push_back(clickedNode);
             clickedNode->setSelected(true);
         }
     } else {
@@ -164,7 +158,7 @@ DiaSceneItem::Ptr DiaScene::resetRootAdapter(
     return rootUpdate;
 }
 
-DiaSceneItem* DiaScene::addAdapterNonRec(const DiaAdapter& a) {
+DiaSceneItem::UPtr DiaScene::addAdapterNonRec(const DiaAdapter& a) {
     switch (a.getKind()) {
         case DiaNodeKind::Group:
         case DiaNodeKind::Item: {

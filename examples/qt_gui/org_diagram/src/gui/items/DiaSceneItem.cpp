@@ -1,4 +1,5 @@
 #include "DiaSceneItem.hpp"
+#include <src/gui/DiaScene.hpp>
 
 hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
     hstd::ColStream                               os;
@@ -43,4 +44,12 @@ org::imm::ImmPath DiaSceneItem::getActivePath() const {
             root->staleAdapter.get()->id.id,
             result_transient.persistent()};
     }
+}
+
+void SelfRemDiaScene::operator()(DiaSceneItem* item) {
+    item->scene()->removeItem(item);
+    HSLOG_TRACE(
+        _cat,
+        hstd::fmt("Deleting scene item {}", hstd::descObjectPtr(item)));
+    delete item;
 }

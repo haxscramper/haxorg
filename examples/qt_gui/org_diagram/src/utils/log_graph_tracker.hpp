@@ -46,13 +46,13 @@ std::string descObjectPtr(std::shared_ptr<T const> const& ptr) {
     return descObjectPtr(ptr.get());
 }
 
-template <typename T>
-std::string descObjectPtr(std::unique_ptr<T> const& ptr) {
+template <typename T, typename Deleter = std::default_delete<T>>
+std::string descObjectPtr(std::unique_ptr<T, Deleter> const& ptr) {
     return descObjectPtr(ptr.get());
 }
 
-template <typename T>
-std::string descObjectPtr(std::unique_ptr<T const> const& ptr) {
+template <typename T, typename Deleter = std::default_delete<T>>
+std::string descObjectPtr(std::unique_ptr<T const, Deleter> const& ptr) {
     return descObjectPtr(ptr.get());
 }
 } // namespace hstd

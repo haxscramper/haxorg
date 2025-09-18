@@ -7,13 +7,18 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <QGraphicsItem>
 
-struct DiaSceneItem
-    : public QGraphicsItem
-    , public hstd::SharedPtrApi<DiaSceneItem> {
-    std::vector<DiaSceneItem::Ptr> subnodes{};
-    DiaSceneItem*                  parent{nullptr};
-    QString                        name{};
-    bool                           TraceState = false;
+struct DiaSceneItem;
+
+struct SelfRemDiaScene {
+    void operator()(DiaSceneItem* item);
+};
+
+struct DiaSceneItem : public QGraphicsItem {
+    using UPtr = std::unique_ptr<DiaSceneItem, SelfRemDiaScene>;
+    std::vector<UPtr> subnodes{};
+    DiaSceneItem*     parent{nullptr};
+    QString           name{};
+    bool              TraceState = false;
 
     QRectF boundingRect() const override { return QRectF{}; }
     void   paint(
@@ -57,25 +62,33 @@ struct DiaSceneItem
 
     DiaAdapter staleAdapter;
 
-    DiaSceneItem::Ptr getItemAtPath(hstd::Vec<int> const& path) const {
-        DiaSceneItem::Ptr res = mshared_from_this();
-        for (auto const& it : path) { res = res->subnodes.at(it); }
+    DiaSceneItem* at(int pos) { return subnodes.at(pos).get(); }
+
+    DiaSceneItem* getItemAtPath(hstd::Vec<int> const& path) const {
+        DiaSceneItem* res = const_cast<DiaSceneItem*>(this);
+        for (auto const& it : path) { res = res->at(it); }
         return res;
     }
 
     DiaSceneItem(const QString& nodeName = "Node") : name{nodeName} {}
     virtual ~DiaSceneItem() = default;
 
-    void addChild(DiaSceneItem::Ptr child) {
+    template <typename T>
+    void addChild(std::unique_ptr<T, SelfRemDiaScene>&& sub) {
+        sub->parent = this;
+        subnodes.emplace_back(
+            hstd::dynamic_pointer_cast<DiaSceneItem>(std::move(sub)));
+    }
+
+    void addChild(DiaSceneItem::UPtr&& child) {
         child->parent = this;
-        subnodes.push_back(child);
+        subnodes.emplace_back(std::move(child));
     }
 };
 
 struct DiaSceneItemCanvas
     : public DiaSceneItem
-    , public hstd::
-          SharedPtrApiDerived<DiaSceneItemCanvas, DiaSceneItem> {
+    , public hstd::SharedPtrApiDerived<DiaSceneItemCanvas, DiaSceneItem> {
     DiaSceneItemCanvas(const QString& nodeName = "Canvas")
         : DiaSceneItem{nodeName} {}
 
