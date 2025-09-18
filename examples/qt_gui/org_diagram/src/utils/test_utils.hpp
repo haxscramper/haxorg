@@ -3,6 +3,8 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <src/model/HistoryManager.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
+#include <src/model/DiaNodeTreeModel.hpp>
+#include <src/gui/DiaScene.hpp>
 
 namespace test {
 struct ScopeV12 {
@@ -17,10 +19,7 @@ struct ScopeV12 {
 
     org::imm::ImmAdapter getRootV1() const { return manager.getRoot(0); }
     org::imm::ImmAdapter getRootV2() const { return manager.getRoot(1); }
-
-
 };
-
 
 
 struct ScopeV12DiagramDiff : ScopeV12 {
@@ -53,6 +52,37 @@ struct DiaNodeItemParams {
 
 struct DiaNodeLayerParams {
     std::string layerName = "layer N";
+};
+
+struct ScopeV12ItemModel : ScopeV12DiagramDiff {
+    DiaSceneItemModel model;
+    DiaScene          scene;
+    ScopeV12ItemModel(std::string const& src, std::string const& dst)
+        : ScopeV12DiagramDiff{src, dst}, scene{&model} {}
+
+    void logModel() {
+        HSLOG_INFO(_cat, printModelTree(&model).toString(false));
+    }
+};
+
+struct ScopeV12UpdateTest : ScopeV12ItemModel {
+    hstd::log::SignalDebugger signalCatcher;
+    ScopeV12UpdateTest(std::string const& src, std::string const& dst)
+        : ScopeV12ItemModel{src, dst}
+        , signalCatcher{get_tracker(), &model} {}
+
+    void setV1() {
+        HSLOG_TRACE(_cat, "Scene root before setting the adapter");
+        scene.logSceneRoot();
+        scene.setRootAdapter(srcAdapter);
+        HSLOG_TRACE(_cat, "Scene root after setting the adapter");
+        scene.logSceneRoot();
+    }
+    void setV2() {
+        scene.resetRootAdapter(dstAdapter, edits);
+        HSLOG_TRACE(_cat, "Scene root after updating the adapter");
+        scene.logSceneRoot();
+    }
 };
 
 std::string makeItemText(DiaNodeItemParams const& conf);

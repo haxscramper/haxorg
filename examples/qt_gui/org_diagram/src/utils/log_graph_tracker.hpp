@@ -34,6 +34,27 @@ template <typename T>
 std::string descObjectPtr(T* obj) {
     return hstd::fmt("0x{:X}", reinterpret_cast<uintptr_t>(obj));
 }
+
+
+template <typename T>
+std::string descObjectPtr(std::shared_ptr<T> const& ptr) {
+    return descObjectPtr(ptr.get());
+}
+
+template <typename T>
+std::string descObjectPtr(std::shared_ptr<T const> const& ptr) {
+    return descObjectPtr(ptr.get());
+}
+
+template <typename T>
+std::string descObjectPtr(std::unique_ptr<T> const& ptr) {
+    return descObjectPtr(ptr.get());
+}
+
+template <typename T>
+std::string descObjectPtr(std::unique_ptr<T const> const& ptr) {
+    return descObjectPtr(ptr.get());
+}
 } // namespace hstd
 
 namespace hstd::log {

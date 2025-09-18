@@ -9,7 +9,10 @@
 
 struct DiaSceneItemVisual
     : public DiaSceneItem
-    , public QGraphicsItem {
+    , public hstd::SharedPtrApiDerived<DiaSceneItemVisual, DiaSceneItem> {
+    HSTD_SHARED_PTR_API_USING_DERIVED(DiaSceneItemVisual, DiaSceneItem);
+
+
     QRectF  bounds{0, 0, 100, 50};
     QPointF dragOffset{};
 

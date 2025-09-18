@@ -3,6 +3,7 @@
 #include <src/model/HistoryManager.hpp>
 #include <src/utils/common.hpp>
 #include <src/utils/test_utils.hpp>
+#include <QTimer>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "test.history"
@@ -10,46 +11,35 @@
 using namespace test;
 
 class DebugTarget : public QObject {
-  public:
+  public slots:
     void run_thing() {
-        auto                __scope = trackTestExecution(this);
-        ScopeV12DiagramDiff scope{
-            R"(
-* layer
-** item 1
-    :properties:
-    :prop_json:haxorg_diagram_position: {"x": 12, "y": 90}
-    :prop_args:haxorg_diagram_node: :some-value t
-    :end:
-** item 2
-    :properties:
-    :prop_json:haxorg_diagram_position: {"x": 44, "y": 900}
-    :prop_args:haxorg_diagram_node: :some-value nil
-    :end:
-)",
-            R"(
-* layer
-** item 1
-    :properties:
-    :prop_json:haxorg_diagram_position: {"x": 12, "y": 90}
-    :prop_args:haxorg_diagram_node: :some-value t
-    :end:
-** item 2
-    :properties:
-    :prop_json:haxorg_diagram_position: {"x": 44, "y": 900}
-    :prop_args:haxorg_diagram_node: :some-value nil
-    :end:
-** item 1
-    :properties:
-    :prop_json:haxorg_diagram_position: {"x": 12, "y": 90}
-    :prop_args:haxorg_diagram_node: :some-value t
-    :end:
-)"};
+        auto __scope = trackTestExecution(this);
+
+        ScopeV12UpdateTest scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                    ditem(2, "item 2"),
+                }),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                }),
+        };
+
         visualizeTestDiff(this, scope);
+        scope.setV1();
+        scope.setV2();
+
+        QApplication::quit();
     }
 };
 
-int main() {
-    DebugTarget dt;
-    dt.run_thing();
+int main(int argc, char** argv) {
+    QApplication app(argc, argv);
+    DebugTarget  dt;
+    QTimer::singleShot(0, &dt, &DebugTarget::run_thing);
+    return app.exec();
 }

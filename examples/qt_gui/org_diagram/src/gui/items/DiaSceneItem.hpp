@@ -5,12 +5,21 @@
 #include <vector>
 #include <QString>
 #include <haxorg/sem/ImmOrg.hpp>
+#include <QGraphicsItem>
 
-struct DiaSceneItem {
-    std::vector<DiaSceneItem*> subnodes{};
-    DiaSceneItem*              parent{nullptr};
-    QString                    name{};
-    bool                       TraceState = false;
+struct DiaSceneItem
+    : public QGraphicsItem
+    , public hstd::SharedPtrApi<DiaSceneItem> {
+    std::vector<DiaSceneItem::Ptr> subnodes{};
+    DiaSceneItem*                  parent{nullptr};
+    QString                        name{};
+    bool                           TraceState = false;
+
+    QRectF boundingRect() const override { return QRectF{}; }
+    void   paint(
+          QPainter*                       _painter,
+          const QStyleOptionGraphicsItem* option,
+          QWidget*                        widget) override {}
 
     virtual hstd::Vec<hstd::ColText> formatSelf() const {
         return {hstd::ColText{"DiaSceneItem " + name.toStdString()}};
@@ -48,8 +57,8 @@ struct DiaSceneItem {
 
     DiaAdapter staleAdapter;
 
-    DiaSceneItem* getItemAtPath(hstd::Vec<int> const& path) const {
-        DiaSceneItem* res = const_cast<DiaSceneItem*>(this);
+    DiaSceneItem::Ptr getItemAtPath(hstd::Vec<int> const& path) const {
+        DiaSceneItem::Ptr res = mshared_from_this();
         for (auto const& it : path) { res = res->subnodes.at(it); }
         return res;
     }
@@ -57,13 +66,16 @@ struct DiaSceneItem {
     DiaSceneItem(const QString& nodeName = "Node") : name{nodeName} {}
     virtual ~DiaSceneItem() = default;
 
-    void addChild(DiaSceneItem* child) {
+    void addChild(DiaSceneItem::Ptr child) {
         child->parent = this;
         subnodes.push_back(child);
     }
 };
 
-struct DiaSceneItemCanvas : public DiaSceneItem {
+struct DiaSceneItemCanvas
+    : public DiaSceneItem
+    , public hstd::
+          SharedPtrApiDerived<DiaSceneItemCanvas, DiaSceneItem> {
     DiaSceneItemCanvas(const QString& nodeName = "Canvas")
         : DiaSceneItem{nodeName} {}
 

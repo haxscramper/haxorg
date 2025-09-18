@@ -10,38 +10,6 @@ using namespace test;
 class DiaSceneItemModelTest : public QObject {
     Q_OBJECT
 
-  private:
-    struct ScopeV12ItemModel : ScopeV12DiagramDiff {
-        DiaSceneItemModel model;
-        DiaScene          scene;
-        ScopeV12ItemModel(std::string const& src, std::string const& dst)
-            : ScopeV12DiagramDiff{src, dst}, scene{&model} {}
-
-        void logModel() {
-            HSLOG_INFO(_cat, printModelTree(&model).toString(false));
-        }
-    };
-
-    struct ScopeV12UpdateTest : ScopeV12ItemModel {
-        hstd::log::SignalDebugger signalCatcher;
-        ScopeV12UpdateTest(std::string const& src, std::string const& dst)
-            : ScopeV12ItemModel{src, dst}
-            , signalCatcher{get_tracker(), &model} {}
-
-        void setV1() {
-            HSLOG_TRACE(_cat, "Scene root before setting the adapter");
-            scene.logSceneRoot();
-            scene.setRootAdapter(srcAdapter);
-            HSLOG_TRACE(_cat, "Scene root after setting the adapter");
-            scene.logSceneRoot();
-        }
-        void setV2() {
-            scene.resetRootAdapter(dstAdapter, edits);
-            HSLOG_TRACE(_cat, "Scene root after updating the adapter");
-            scene.logSceneRoot();
-        }
-    };
-
   private slots:
     void testTrivialSwitch() {
         auto              __scope = trackTestExecution(this);

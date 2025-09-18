@@ -123,6 +123,9 @@ void DiaSceneItemModel::beginEditApply(const DiaEdit& edit) {
             beginInsertRows(parent.value(), idx, idx);
             break;
         }
+        case DiaEdit::Kind::Update: {
+            break;
+        }
         default: {
             logic_todo_impl();
         }
@@ -139,6 +142,18 @@ void DiaSceneItemModel::endEditApply(const DiaEdit& edit) {
 
         case DiaEdit::Kind::Insert: {
             endInsertRows();
+            break;
+        }
+
+        case DiaEdit::Kind::Update: {
+            auto item = indexAtPath(edit.getDst().getSelfPathFromRoot());
+            LOGIC_ASSERTION_CHECK(
+                item.has_value(),
+                "No index associated from the DST item {} at path {}",
+                edit.getDst().id,
+                edit.getDst().getSelfPathFromRoot());
+
+            dataChanged(item.value(), item.value());
             break;
         }
 

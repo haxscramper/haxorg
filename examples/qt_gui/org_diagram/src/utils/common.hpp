@@ -10,7 +10,71 @@
 #include <QDebug>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <boost/outcome.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
 
+namespace hstd {
+
+template <typename T>
+struct WPtr_safe : std::weak_ptr<T> {
+    std::shared_ptr<T> lock() const { return hstd::safe_wptr_lock(this); }
+};
+
+template <typename Derived, typename Base>
+struct SharedPtrApiDerived {
+    // Re-introduce shared() with correct return type
+    template <typename... Args>
+    static std::shared_ptr<Derived> shared(Args&&... args) {
+        return std::make_shared<Derived>(std::forward<Args>(args)...);
+    }
+
+    // Re-introduce clone_this() with correct return type
+    std::shared_ptr<Derived> clone_this() {
+        return std::make_shared<Derived>(
+            static_cast<const Derived&>(*this));
+    }
+
+    // Type aliases for the derived class
+    using Ptr  = std::shared_ptr<Derived>;
+    using WPtr = WPtr_safe<Derived>;
+
+    // Re-introduce shared_from_this with correct return type
+    std::shared_ptr<Derived> mshared_from_this() const {
+        auto base_ptr = static_cast<const Base*>(this)
+                            ->mshared_from_this();
+        return std::static_pointer_cast<Derived>(base_ptr);
+    }
+
+    WPtr_safe<Derived> weak_from_this() const {
+        return WPtr{mweak_from_this()};
+    }
+
+    // Re-introduce weak_from_this with correct return type
+    WPtr_safe<Derived> mweak_from_this() const {
+        auto base_weak = static_cast<const Base*>(this)->mweak_from_this();
+        return std::static_pointer_cast<Derived>(base_weak.lock());
+    }
+
+    std::shared_ptr<Base> dyn_cast_base() const {
+        return dyn_cast<Base>();
+    }
+
+    template <typename T>
+    std::shared_ptr<T> dyn_cast() const {
+        return std::dynamic_pointer_cast<T>(
+            static_cast<Derived const*>(this)->mshared_from_this());
+    }
+
+    template <typename T>
+    bool isinstance() const {
+        return std::dynamic_pointer_cast<T>(
+            static_cast<Derived const*>(this));
+    }
+};
+
+#define HSTD_SHARED_PTR_API_USING_DERIVED(__Derived, __Base)              \
+    using ::hstd::SharedPtrApiDerived<__Derived, __Base>::WPtr;
+
+} // namespace hstd
 
 
 template <typename T>

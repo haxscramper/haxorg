@@ -50,10 +50,16 @@ void DiaScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     if (event->modifiers() & Qt::ControlModifier) {
         // Multi-selection mode
         if (clickedNode
-            && std::find(
-                   selectedNodes.begin(), selectedNodes.end(), clickedNode)
+            && std::find_if(
+                   selectedNodes.begin(),
+                   selectedNodes.end(),
+                   [&](DiaSceneItem::WPtr const& ptr) {
+                       return ptr.lock().get() == clickedNode;
+                   })
                    == selectedNodes.end()) {
-            selectedNodes.push_back(clickedNode);
+            selectedNodes.push_back(
+                clickedNode->dyn_cast<DiaSceneItemVisual>()
+                    ->weak_from_this());
             clickedNode->setSelected(true);
         }
     } else {
@@ -97,27 +103,27 @@ void DiaScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     }
 }
 
-DiaSceneItem* DiaScene::setRootAdapter(const DiaAdapter& a) {
+DiaSceneItem::Ptr DiaScene::setRootAdapter(const DiaAdapter& a) {
     TRACKED_FUNCTION("setRootAdapter");
     rootNode            = addAdapterRec(a);
     treeModel->rootNode = rootNode;
     return rootNode;
 }
 
-DiaSceneItem* DiaScene::resetRootAdapter(
+DiaSceneItem::Ptr DiaScene::resetRootAdapter(
     const DiaAdapter&           a,
     const std::vector<DiaEdit>& edits) {
     TRACKED_FUNCTION("resetRootAdapter");
     if (edits.empty()) { return rootNode; }
-    DiaSceneItem* rootUpdate;
+    DiaSceneItem* rootUpdate = nullptr;
     for (auto const& edit : edits) {
         treeModel->beginEditApply(edit);
         switch (edit.getKind()) {
             case DiaEdit::Kind::Delete: {
-                auto        item   = getItemForId(edit.getSrc().id);
-                auto const& del    = edit.getDelete();
-                int         src    = del.srcIndex;
-                auto        parent = item->parent;
+                DiaSceneItem::Ptr item   = getItemForId(edit.getSrc().id);
+                auto const&       del    = edit.getDelete();
+                int               src    = del.srcIndex;
+                auto              parent = item->parent;
 
                 LOGIC_ASSERTION_CHECK(
                     item->parent->subnodes.at(src) == item,
@@ -130,15 +136,16 @@ DiaSceneItem* DiaScene::resetRootAdapter(
                     hstd::descObjectPtr(parent->subnodes.at(src)));
 
                 parent->subnodes.erase(parent->subnodes.begin() + src);
-
-                if (auto scene_item = dynamic_cast<QGraphicsItem*>(item);
-                    scene_item) {
-                    removeItem(scene_item);
-                }
+                deleteSceneItem(item);
                 break;
             }
             case DiaEdit::Kind::Insert: {
-                auto item = getItemForId(edit.getSrc().id);
+                DiaSceneItem::Ptr item = getItemForId(edit.getSrc().id);
+                break;
+            }
+            case DiaEdit::Kind::Update: {
+                DiaSceneItem::Ptr item = getItemForId(edit.getSrc().id);
+                auto              oldSubnodes = item->subnodes;
                 break;
             }
             default: {
@@ -162,20 +169,19 @@ DiaSceneItem* DiaScene::addAdapterNonRec(const DiaAdapter& a) {
         case DiaNodeKind::Group:
         case DiaNodeKind::Item: {
             auto it   = a.as<DiaNodeItem>();
-            auto node = new DiaSceneItemRectangle{
-                QString::fromStdString(it->getSubtree().getCleanTitle())};
+            auto node = addNewItem<DiaSceneItemRectangle>(
+                QString::fromStdString(it->getSubtree().getCleanTitle()));
             auto pos = it->getPos();
             node->setPos(pos.x, pos.y);
             node->color = Qt::green;
-            addItem(node);
             return node;
         }
         case DiaNodeKind::Canvas: {
-            auto canvas = new DiaSceneItemCanvas{};
+            auto canvas = addNewItem<DiaSceneItemCanvas>();
             return canvas;
         }
         case DiaNodeKind::Layer: {
-            auto layer = new DiaSceneItemLayer{};
+            auto layer = addNewItem<DiaSceneItemLayer>();
             return layer;
         }
     }

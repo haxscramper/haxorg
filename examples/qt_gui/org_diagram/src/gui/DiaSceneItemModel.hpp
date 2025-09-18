@@ -15,9 +15,9 @@ struct DiaSceneItemModel : public QAbstractItemModel {
     Q_OBJECT
 
   public:
-    DiaSceneItem* rootNode{};
+    hstd::WPtr<DiaSceneItem> rootNode{};
 
-    bool hasScene() const { return rootNode != nullptr; }
+    bool hasScene() const { return !rootNode.expired(); }
 
     DiaSceneItemModel(QObject* parent = nullptr)
         : QAbstractItemModel{parent} {}
@@ -42,9 +42,11 @@ struct DiaSceneItemModel : public QAbstractItemModel {
 
     QModelIndex parent(const QModelIndex& index) const override;
 
-    DiaSceneItem* getNode(QModelIndex const& node) const {
+    hstd::WPtr<DiaSceneItem> getNode(QModelIndex const& node) const {
         if (node.isValid()) {
-            return static_cast<DiaSceneItem*>(node.internalPointer());
+            return static_cast<DiaSceneItem*>(node.internalPointer())
+                ->mshared_from_this()
+                ->weak_from_this();
         } else {
             return rootNode;
         }
@@ -53,7 +55,8 @@ struct DiaSceneItemModel : public QAbstractItemModel {
     int rowCount(
         const QModelIndex& parent = QModelIndex{}) const override {
         if (hasScene()) {
-            return static_cast<int>(getNode(parent)->subnodes.size());
+            return static_cast<int>(
+                hstd::safe_wptr_lock(getNode(parent))->subnodes.size());
         } else {
             return 0;
         }

@@ -14,16 +14,37 @@ struct DiaScene : public QGraphicsScene {
     Q_OBJECT
 
   public:
-    int                              gridSnap{10};
-    DiaSceneItem*                    rootNode{};
-    DiaSceneItemVisual*              selectedNode{nullptr};
-    DiaSceneItemVisual*              arrowSource{nullptr};
-    DiaSceneItemModel*               treeModel{nullptr};
-    std::vector<DiaSceneItemVisual*> selectedNodes{};
-    bool                             showGrid{true};
-    QColor                           gridColor{Qt::lightGray};
+    int                                   gridSnap{10};
+    DiaSceneItem::Ptr                     rootNode{};
+    hstd::WPtr<DiaSceneItemVisual>        selectedNode{};
+    hstd::WPtr<DiaSceneItemVisual>        arrowSource{};
+    DiaSceneItemModel*                    treeModel{nullptr};
+    std::vector<DiaSceneItemVisual::WPtr> selectedNodes{};
+    bool                                  showGrid{true};
+    QColor                                gridColor{Qt::lightGray};
 
     hstd::UnorderedMap<DiaUniqId, DiaSceneItem*> diaItemMap;
+
+    template <typename T, typename... Args>
+    std::shared_ptr<T> addNewItem(Args&&... args) {
+        std::shared_ptr<T> result = std::shared_ptr<T>(
+            new T{std::forward<Args>(args)...}, [this](T* deleter) {
+                this->removeItem(deleter);
+                HSLOG_TRACE(
+                    _cat,
+                    hstd::fmt(
+                        "Deleting scene item {}",
+                        hstd::descObjectPtr(deleter)));
+                delete deleter;
+            });
+        addItem(result.get());
+
+        HSLOG_TRACE(
+            _cat,
+            hstd::fmt(
+                "Create scene item {}", hstd::descObjectPtr(result)));
+        return result;
+    }
 
     void logSceneRoot();
 
@@ -35,13 +56,15 @@ struct DiaScene : public QGraphicsScene {
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override {
-        if (selectedNode && (event->buttons() & Qt::LeftButton)) {
-            DiaSceneItemImage* imageNode = dynamic_cast<
-                DiaSceneItemImage*>(selectedNode);
+        if (!selectedNode.expired()
+            && (event->buttons() & Qt::LeftButton)) {
+            auto sel = hstd::safe_wptr_lock(selectedNode);
+            hstd::SPtr<DiaSceneItemImage>
+                imageNode = std::dynamic_pointer_cast<DiaSceneItemImage>(
+                    sel);
             if (!imageNode || !imageNode->isResizing) {
-                QPointF newPos = event->scenePos()
-                               - selectedNode->dragOffset;
-                selectedNode->setPosition(newPos, gridSnap);
+                QPointF newPos = event->scenePos() - sel->dragOffset;
+                sel->setPosition(newPos, gridSnap);
                 return;
             }
         }
@@ -52,9 +75,10 @@ struct DiaScene : public QGraphicsScene {
         if (treeModel) { treeModel->refresh(); }
     }
 
-    DiaSceneItemLayer* findFirstLayer() {
+    std::shared_ptr<DiaSceneItemLayer> findFirstLayer() {
         for (const auto& child : rootNode->subnodes) {
-            if (auto it = dynamic_cast<DiaSceneItemLayer*>(child);
+            if (auto it = std::dynamic_pointer_cast<DiaSceneItemLayer>(
+                    child);
                 it != nullptr) {
                 return it;
             }
@@ -75,27 +99,27 @@ struct DiaScene : public QGraphicsScene {
 
     void setGridSnap(int snap) { gridSnap = snap; }
 
-    DiaSceneItem* getItemForId(DiaUniqId const& id) {
+    DiaSceneItem::Ptr getItemForId(DiaUniqId const& id) {
         return rootNode->getItemAtPath(id.getSelfPathFromRoot());
     }
 
-    DiaSceneItem* setRootAdapter(DiaAdapter const& a);
+    DiaSceneItem::Ptr setRootAdapter(DiaAdapter const& a);
 
     /// \brief Swap the existing scene item structure with the new one
     /// based on the provided edits.
-    DiaSceneItem* resetRootAdapter(
+    DiaSceneItem::Ptr resetRootAdapter(
         DiaAdapter const&           a,
         std::vector<DiaEdit> const& edits);
 
     /// \brief Create a new scene item based on the adapter data and add it
     /// to the scene.
-    DiaSceneItem* addAdapterNonRec(DiaAdapter const& a);
+    DiaSceneItem::Ptr addAdapterNonRec(DiaAdapter const& a);
 
     /// \brief Create a new scene item, recursively, with all the nested
     /// items.
-    DiaSceneItem* addAdapterRec(DiaAdapter const& a) {
-        hstd::Func<DiaSceneItem*(DiaAdapter const&)> aux;
-        aux = [&](DiaAdapter const& it) -> DiaSceneItem* {
+    DiaSceneItem::Ptr addAdapterRec(DiaAdapter const& a) {
+        hstd::Func<DiaSceneItem::Ptr(DiaAdapter const&)> aux;
+        aux = [&](DiaAdapter const& it) -> DiaSceneItem::Ptr {
             auto root = addAdapterNonRec(it);
             for (auto const& sub : it.sub(true)) {
                 root->addChild(aux(sub));
@@ -112,10 +136,9 @@ struct DiaScene : public QGraphicsScene {
     void removeAdapterRec(DiaAdapter const& a) {}
 
     void addEdge(
-        DiaSceneItemVisual* sourceNode,
-        DiaSceneItemVisual* targetNode) {
-        auto edge = new DiaSceneItemEdge{sourceNode, targetNode};
-        addItem(edge);
+        DiaSceneItemVisual::WPtr sourceNode,
+        DiaSceneItemVisual::WPtr targetNode) {
+        auto edge = addNewItem<DiaSceneItemEdge>(sourceNode, targetNode);
 
         auto layer = findFirstLayer();
         if (layer) {
@@ -134,11 +157,11 @@ struct DiaScene : public QGraphicsScene {
             return;
         }
 
-        DiaSceneItemVisual* sourceNode = selectedNodes.at(0);
-        DiaSceneItemVisual* targetNode = selectedNodes.at(1);
+        DiaSceneItemVisual::WPtr sourceNode = selectedNodes.at(0);
+        DiaSceneItemVisual::WPtr targetNode = selectedNodes.at(1);
 
-        if (dynamic_cast<DiaSceneItemEdge*>(sourceNode)
-            || dynamic_cast<DiaSceneItemEdge*>(targetNode)) {
+        if (sourceNode.lock()->isinstance<DiaSceneItemEdge>()
+            || targetNode.lock()->isinstance<DiaSceneItemEdge>()) {
             QMessageBox::warning(
                 nullptr,
                 "Error",
@@ -149,13 +172,15 @@ struct DiaScene : public QGraphicsScene {
         addEdge(sourceNode, targetNode);
 
         // Clear selection
-        for (auto node : selectedNodes) { node->setSelected(false); }
+        for (auto node : selectedNodes) {
+            node.lock()->setSelected(false);
+        }
         selectedNodes.clear();
         updateTreeView();
     }
 
     void addLayer() {
-        auto layer = new DiaSceneItemLayer{"New Layer"};
+        auto layer = addNewItem<DiaSceneItemLayer>("New Layer");
         rootNode->addChild(layer);
         updateTreeView();
     }
@@ -167,11 +192,10 @@ struct DiaScene : public QGraphicsScene {
             "",
             "Images (*.png *.jpg *.jpeg *.bmp)");
         if (!fileName.isEmpty()) {
-            auto node = new DiaSceneItemImage{"Image"};
+            auto node = addNewItem<DiaSceneItemImage>("Image");
             node->setImage(
                 QPixmap{fileName}.scaled(100, 100, Qt::KeepAspectRatio));
             node->setPos(150, 300);
-            addItem(node);
 
             auto layer = findFirstLayer();
             if (layer) {
