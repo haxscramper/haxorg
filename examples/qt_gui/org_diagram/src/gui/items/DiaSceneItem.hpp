@@ -34,6 +34,11 @@ struct DiaSceneItem : public QGraphicsItem {
         return staleAdapter.id.path.path.back();
     }
 
+    template <typename T>
+    bool isinstance() const {
+        return dynamic_cast<T const*>(this) != nullptr;
+    }
+
     struct TreeReprConf {};
 
     hstd::ColText treeRepr() const { return treeRepr(TreeReprConf{}); }
@@ -63,6 +68,7 @@ struct DiaSceneItem : public QGraphicsItem {
     DiaAdapter staleAdapter;
 
     DiaSceneItem* at(int pos) { return subnodes.at(pos).get(); }
+    int           size() const { return subnodes.size(); }
 
     DiaSceneItem* getItemAtPath(hstd::Vec<int> const& path) const {
         DiaSceneItem* res = const_cast<DiaSceneItem*>(this);
@@ -74,13 +80,13 @@ struct DiaSceneItem : public QGraphicsItem {
     virtual ~DiaSceneItem() = default;
 
     template <typename T>
-    void addChild(std::unique_ptr<T, SelfRemDiaScene>&& sub) {
+    void add(std::unique_ptr<T, SelfRemDiaScene>&& sub) {
         sub->parent = this;
         subnodes.emplace_back(
             hstd::dynamic_pointer_cast<DiaSceneItem>(std::move(sub)));
     }
 
-    void addChild(DiaSceneItem::UPtr&& child) {
+    void add(DiaSceneItem::UPtr&& child) {
         child->parent = this;
         subnodes.emplace_back(std::move(child));
     }

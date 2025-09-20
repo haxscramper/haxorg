@@ -25,12 +25,12 @@ constexpr auto dynamic_pointer_cast(std::unique_ptr<U, D>&& r) noexcept
         "don't work with array of polymorphic objects");
     if (auto p = dynamic_cast<std::unique_ptr<T, D>::pointer>(r.get())) {
         r.release();
-        return unique_ptr<T, D>(p, std::forward<D>(r.get_deleter()));
+        return std::unique_ptr<T, D>(p, std::forward<D>(r.get_deleter()));
     } else if constexpr (
         !std::is_pointer_v<D> && std::is_default_constructible_v<D>) {
         return {};
     } else if constexpr (std::is_copy_constructible_v<D>) {
-        return unique_ptr<T, D>(nullptr, r.get_deleter());
+        return std::unique_ptr<T, D>(nullptr, r.get_deleter());
     } else {
         static_assert(false, "unable to create an empty unique_ptr");
     }

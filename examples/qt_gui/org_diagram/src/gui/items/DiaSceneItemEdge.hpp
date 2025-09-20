@@ -18,19 +18,19 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
         Bezier
     };
 
-    DiaSceneItemVisual::WPtr sourceNode{};
-    DiaSceneItemVisual::WPtr targetNode{};
-    QPointF                  sourceOffset{0, 0};
-    QPointF                  targetOffset{0, 0};
-    std::vector<QPointF>     controlPoints{};
-    EdgeType                 edgeType{Orthogonal};
-    QPen                     edgePen{Qt::black, 2};
-    QPainterPath             edgePath{};
+    DiaSceneItemVisual*  sourceNode{};
+    DiaSceneItemVisual*  targetNode{};
+    QPointF              sourceOffset{0, 0};
+    QPointF              targetOffset{0, 0};
+    std::vector<QPointF> controlPoints{};
+    EdgeType             edgeType{Orthogonal};
+    QPen                 edgePen{Qt::black, 2};
+    QPainterPath         edgePath{};
 
     DiaSceneItemEdge(
-        DiaSceneItemVisual::WPtr source,
-        DiaSceneItemVisual::WPtr target,
-        const QString&           nodeName = "Edge")
+        DiaSceneItemVisual* source,
+        DiaSceneItemVisual* target,
+        const QString&      nodeName = "Edge")
         : DiaSceneItemVisual{nodeName}
         , sourceNode{source}
         , targetNode{target} {
@@ -39,26 +39,26 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
     }
 
     QPointF getSourcePoint() const {
-        if (sourceNode.expired()) {
+        if (sourceNode == nullptr) {
             return QPointF{};
         } else {
-            return sourceNode.lock()->pos()
-                 + sourceNode.lock()->bounds.center() + sourceOffset;
+            return sourceNode->pos() + sourceNode->bounds.center()
+                 + sourceOffset;
         }
     }
 
     QPointF getTargetPoint() const {
-        if (targetNode.expired()) {
+        if (targetNode == nullptr) {
             return QPointF{};
         } else {
-            return targetNode.lock()->pos()
-                 + targetNode.lock()->bounds.center() + targetOffset;
+            return targetNode->pos() + targetNode->bounds.center()
+                 + targetOffset;
         }
     }
 
     QPainterPath shape() const override {
         QPainterPath path;
-        if (sourceNode.expired() || targetNode.expired()) { return path; }
+        if (!sourceNode || !targetNode) { return path; }
 
         QPointF source = getSourcePoint();
         QPointF target = getTargetPoint();
@@ -122,7 +122,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
     }
 
     void updateBounds() {
-        if (sourceNode.expired() || targetNode.expired()) { return; }
+        if (!sourceNode || !targetNode) { return; }
 
         QPointF source = getSourcePoint();
         QPointF target = getTargetPoint();
@@ -138,9 +138,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
     }
 
     QRectF boundingRect() const override {
-        if (sourceNode.expired() || targetNode.expired()) {
-            return QRectF{};
-        }
+        if (!sourceNode || !targetNode) { return QRectF{}; }
 
         QPointF source = getSourcePoint();
         QPointF target = getTargetPoint();
@@ -156,7 +154,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
     void paintNode(QPainter* _painter) override {
         auto painter = std::make_unique<DebugPainter>(
             _painter, TraceState, "", CALL_LOC());
-        if (sourceNode.expired() || targetNode.expired()) { return; }
+        if (!sourceNode || !targetNode) { return; }
 
         QPointF source = getSourcePoint();
         QPointF target = getTargetPoint();
@@ -260,7 +258,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
 
         if (!controlPoints.empty()) {
             direction = target - controlPoints.back();
-        } else if (!sourceNode.expired()) {
+        } else if (sourceNode) {
             direction = target - getSourcePoint();
         }
 

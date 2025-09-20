@@ -26,10 +26,9 @@ struct DiaScene : public QGraphicsScene {
     hstd::UnorderedMap<DiaUniqId, DiaSceneItem*> diaItemMap;
 
     template <typename T, typename... Args>
-    std::unique_ptr<T, DiaSceneItem::DiaSceneDeleter> addNewItem(
-        Args&&... args) {
-        std::unique_ptr<T, DiaSceneItem::DiaSceneDeleter>
-            result = std::unique_ptr<T, DiaSceneItem::DiaSceneDeleter>(
+    std::unique_ptr<T, SelfRemDiaScene> addNewItem(Args&&... args) {
+        std::unique_ptr<T, SelfRemDiaScene>
+            result = std::unique_ptr<T, SelfRemDiaScene>(
                 new T{std::forward<Args>(args)...});
         addItem(result.get());
 
@@ -111,9 +110,7 @@ struct DiaScene : public QGraphicsScene {
         hstd::Func<DiaSceneItem::UPtr(DiaAdapter const&)> aux;
         aux = [&](DiaAdapter const& it) -> DiaSceneItem::UPtr {
             auto root = addAdapterNonRec(it);
-            for (auto const& sub : it.sub(true)) {
-                root->addChild(aux(sub));
-            }
+            for (auto const& sub : it.sub(true)) { root->add(aux(sub)); }
             return root;
         };
 
@@ -126,15 +123,15 @@ struct DiaScene : public QGraphicsScene {
     void removeAdapterRec(DiaAdapter const& a) {}
 
     void addEdge(
-        DiaSceneItemVisual::WPtr sourceNode,
-        DiaSceneItemVisual::WPtr targetNode) {
+        DiaSceneItemVisual* sourceNode,
+        DiaSceneItemVisual* targetNode) {
         auto edge = addNewItem<DiaSceneItemEdge>(sourceNode, targetNode);
 
         auto layer = findFirstLayer();
         if (layer) {
-            layer->addChild(edge);
+            layer->add(std::move(edge));
         } else {
-            rootNode->addChild(edge);
+            rootNode->add(std::move(edge));
         }
     }
 
@@ -147,11 +144,11 @@ struct DiaScene : public QGraphicsScene {
             return;
         }
 
-        DiaSceneItemVisual::WPtr sourceNode = selectedNodes.at(0);
-        DiaSceneItemVisual::WPtr targetNode = selectedNodes.at(1);
+        DiaSceneItemVisual* sourceNode = selectedNodes.at(0);
+        DiaSceneItemVisual* targetNode = selectedNodes.at(1);
 
-        if (sourceNode.lock()->isinstance<DiaSceneItemEdge>()
-            || targetNode.lock()->isinstance<DiaSceneItemEdge>()) {
+        if (sourceNode->isinstance<DiaSceneItemEdge>()
+            || targetNode->isinstance<DiaSceneItemEdge>()) {
             QMessageBox::warning(
                 nullptr,
                 "Error",
@@ -162,16 +159,14 @@ struct DiaScene : public QGraphicsScene {
         addEdge(sourceNode, targetNode);
 
         // Clear selection
-        for (auto node : selectedNodes) {
-            node.lock()->setSelected(false);
-        }
+        for (auto node : selectedNodes) { node->setSelected(false); }
         selectedNodes.clear();
         updateTreeView();
     }
 
     void addLayer() {
         auto layer = addNewItem<DiaSceneItemLayer>("New Layer");
-        rootNode->addChild(layer);
+        rootNode->add(std::move(layer));
         updateTreeView();
     }
 
@@ -189,9 +184,9 @@ struct DiaScene : public QGraphicsScene {
 
             auto layer = findFirstLayer();
             if (layer) {
-                layer->addChild(node);
+                layer->add(std::move(node));
             } else {
-                rootNode->addChild(node);
+                rootNode->add(std::move(node));
             }
             updateTreeView();
         }

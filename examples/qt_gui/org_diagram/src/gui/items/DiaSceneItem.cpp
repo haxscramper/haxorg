@@ -15,7 +15,9 @@ hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
                 os << os.indent(level * 2) << line.value() << "\n";
             }
         }
-        for (auto const& sub : item->subnodes) { aux(sub, level + 1); }
+        for (auto const& sub : item->subnodes) {
+            aux(sub.get(), level + 1);
+        }
     };
 
     aux(this, 0);

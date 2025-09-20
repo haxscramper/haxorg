@@ -7,12 +7,7 @@
 #include <src/gui/DebugPainter.hpp>
 #include <QGraphicsSceneMouseEvent>
 
-struct DiaSceneItemVisual
-    : public DiaSceneItem
-    , public hstd::SharedPtrApiDerived<DiaSceneItemVisual, DiaSceneItem> {
-    HSTD_SHARED_PTR_API_USING_DERIVED(DiaSceneItemVisual, DiaSceneItem);
-
-
+struct DiaSceneItemVisual : public DiaSceneItem {
     QRectF  bounds{0, 0, 100, 50};
     QPointF dragOffset{};
 

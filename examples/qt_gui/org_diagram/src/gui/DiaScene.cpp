@@ -77,15 +77,14 @@ void DiaScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
                 arrowSource = visualNode;
             } else {
                 if (arrowSource != visualNode) {
-                    auto edge = new DiaSceneItemEdge(
+                    auto edge = addNewItem<DiaSceneItemEdge>(
                         arrowSource, visualNode);
-                    addItem(edge);
 
                     auto layer = findFirstLayer();
                     if (layer) {
-                        layer->addChild(edge);
+                        layer->add(std::move(edge));
                     } else {
-                        rootNode->addChild(edge);
+                        rootNode->add(std::move(edge));
                     }
                     updateTreeView();
                 }
@@ -97,30 +96,30 @@ void DiaScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     }
 }
 
-DiaSceneItem::Ptr DiaScene::setRootAdapter(const DiaAdapter& a) {
+DiaSceneItem* DiaScene::setRootAdapter(const DiaAdapter& a) {
     TRACKED_FUNCTION("setRootAdapter");
     rootNode            = addAdapterRec(a);
-    treeModel->rootNode = rootNode;
-    return rootNode;
+    treeModel->rootNode = rootNode.get();
+    return rootNode.get();
 }
 
-DiaSceneItem::Ptr DiaScene::resetRootAdapter(
+DiaSceneItem* DiaScene::resetRootAdapter(
     const DiaAdapter&           a,
     const std::vector<DiaEdit>& edits) {
     TRACKED_FUNCTION("resetRootAdapter");
-    if (edits.empty()) { return rootNode; }
-    DiaSceneItem* rootUpdate = nullptr;
+    if (edits.empty()) { return rootNode.get(); }
+    DiaSceneItem::UPtr rootUpdate = nullptr;
     for (auto const& edit : edits) {
         treeModel->beginEditApply(edit);
         switch (edit.getKind()) {
             case DiaEdit::Kind::Delete: {
-                DiaSceneItem::Ptr item   = getItemForId(edit.getSrc().id);
-                auto const&       del    = edit.getDelete();
-                int               src    = del.srcIndex;
-                auto              parent = item->parent;
+                DiaSceneItem* item   = getItemForId(edit.getSrc().id);
+                auto const&   del    = edit.getDelete();
+                int           src    = del.srcIndex;
+                auto          parent = item->parent;
 
                 LOGIC_ASSERTION_CHECK(
-                    item->parent->subnodes.at(src) == item,
+                    item->parent->at(src) == item,
                     "Delete of item at index {} should have removed the "
                     "scene item {}, but the parent {} has item "
                     "{} at this index",
@@ -130,16 +129,15 @@ DiaSceneItem::Ptr DiaScene::resetRootAdapter(
                     hstd::descObjectPtr(parent->subnodes.at(src)));
 
                 parent->subnodes.erase(parent->subnodes.begin() + src);
-                deleteSceneItem(item);
                 break;
             }
             case DiaEdit::Kind::Insert: {
-                DiaSceneItem::Ptr item = getItemForId(edit.getSrc().id);
+                DiaSceneItem* item = getItemForId(edit.getSrc().id);
                 break;
             }
             case DiaEdit::Kind::Update: {
-                DiaSceneItem::Ptr item = getItemForId(edit.getSrc().id);
-                auto              oldSubnodes = item->subnodes;
+                DiaSceneItem* item        = getItemForId(edit.getSrc().id);
+                auto          oldSubnodes = std::move(item->subnodes);
                 break;
             }
             default: {
@@ -153,9 +151,9 @@ DiaSceneItem::Ptr DiaScene::resetRootAdapter(
         rootUpdate != nullptr,
         "Non-empty set of edits is guaranteed to change the root node to "
         "a new structure, but the root update has not happened.");
-    rootNode = rootUpdate;
+    rootNode = std::move(rootUpdate);
 
-    return rootUpdate;
+    return rootNode.get();
 }
 
 DiaSceneItem::UPtr DiaScene::addAdapterNonRec(const DiaAdapter& a) {
@@ -271,8 +269,7 @@ void DiaScene::createGroupFromSelection() {
     }
 
     // Create new group
-    auto group = new DiaSceneItemGroup{"Group"};
-    addItem(group);
+    auto group = addNewItem<DiaSceneItemGroup>("Group");
 
     // Add nodes to the group
     for (auto node : nodesToGroup) { group->addToGroup(node); }
@@ -283,9 +280,9 @@ void DiaScene::createGroupFromSelection() {
     auto layer = findFirstLayer();
     if (layer) {
         // Convert to shared_ptr if using shared_ptr management
-        layer->addChild(group);
+        layer->add(std::move(group));
     } else {
-        rootNode->addChild(group);
+        rootNode->add(std::move(group));
     }
 
     // Clear selection

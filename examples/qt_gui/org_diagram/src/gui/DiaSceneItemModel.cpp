@@ -15,7 +15,7 @@ QModelIndex DiaSceneItemModel::index(
     }
 
     if (row < static_cast<int>(parentNode->subnodes.size())) {
-        return createIndex(row, column, parentNode->subnodes.at(row));
+        return createIndex(row, column, parentNode->at(row));
     }
 
     return QModelIndex{};
@@ -32,9 +32,8 @@ QModelIndex DiaSceneItemModel::parent(const QModelIndex& index) const {
     DiaSceneItem* grandParent = parentNode->parent;
     if (!grandParent) { return QModelIndex{}; }
 
-    for (int i = 0; i < static_cast<int>(grandParent->subnodes.size());
-         ++i) {
-        if (grandParent->subnodes.at(i) == parentNode) {
+    for (int i = 0; i < grandParent->size(); ++i) {
+        if (grandParent->at(i) == parentNode) {
             return createIndex(i, 0, parentNode);
         }
     }
@@ -66,7 +65,7 @@ QModelIndex DiaSceneItemModel::findNodeIndex(
 
     // Check direct children
     for (int i = 0; i < parentNode->subnodes.size(); ++i) {
-        if (parentNode->subnodes[i] == targetNode) {
+        if (parentNode->at(i) == targetNode) {
             return index(i, 0, parent);
         }
     }

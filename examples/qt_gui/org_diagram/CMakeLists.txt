@@ -40,6 +40,9 @@ set_target_properties(
 target_compile_definitions(org_diagram_lib PUBLIC HAXORG_LOGGER_SUPPORT_QT=1)
 target_compile_options(org_diagram_lib PUBLIC "-ftemplate-backtrace-limit=0")
 target_compile_options(org_diagram_lib PUBLIC "-Werror=implicit-fallthrough")
+target_compile_options(org_diagram_lib PUBLIC "-fsanitize=undefined,address")
+target_compile_options(org_diagram_lib PUBLIC "-shared-libasan")
+target_link_options(org_diagram_lib PUBLIC "-fsanitize=undefined,address")
 
 target_include_directories(
   org_diagram_lib
