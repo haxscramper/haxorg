@@ -160,6 +160,14 @@ struct [[refl]] DiaId : DiaIdBase {
     }
 };
 
+namespace hstd {
+template <>
+struct value_metadata<DiaId> {
+    static bool        isNil(DiaId const& id) { return id.isNil(); }
+    static std::string typeName() { return "DiaId"; }
+};
+} // namespace hstd
+
 template <typename T>
 struct DiaIdT : public DiaId {
     BOOST_DESCRIBE_CLASS(DiaIdT, (DiaId), (), (), ());
@@ -528,6 +536,11 @@ struct DiaAdapter {
     int            size() const { return ctx->at(id)->subnodes.size(); }
     DiaNode const* get() const { return ctx->at(id); }
 
+    DiaId getDiaId() const {
+        hstd::logic_assertion_check_not_nil(id.id);
+        return id.id;
+    }
+
     template <typename T>
     T const* as() const {
         return get()->dyn_cast<T>();
@@ -543,10 +556,12 @@ struct DiaAdapter {
 
     DiaAdapter at(DiaId const& at_id, org::imm::ImmPathStep const& step)
         const {
+        hstd::logic_assertion_check_not_nil(at_id);
         return DiaAdapter{DiaUniqId{at_id, id.path.add(step)}, ctx};
     }
 
     static DiaAdapter Root(DiaId const& id, DiaContext::Ptr const& ctx) {
+        hstd::logic_assertion_check_not_nil(id);
         return DiaAdapter{
             DiaUniqId{id, org::imm::ImmPath{ctx->at(id)->id.id}}, ctx};
     }

@@ -90,8 +90,7 @@ void DiaSceneItemModel::beginEditApply(const DiaEdit& edit) {
     TRACKED_FUNCTION("beginEditApply");
     switch (edit.getKind()) {
         case DiaEdit::Kind::Delete: {
-            auto parent = indexAtPath(
-                edit.getSrc().getParentPathFromRoot());
+            auto parent = getIdParentIndex(edit.getSrc());
             LOGIC_ASSERTION_CHECK(
                 parent.has_value(),
                 "Rows cannot be removed from non-existent parent");
@@ -106,9 +105,36 @@ void DiaSceneItemModel::beginEditApply(const DiaEdit& edit) {
             beginRemoveRows(parent.value(), idx, idx);
             break;
         }
+
+        case DiaEdit::Kind::Move: {
+            auto parent = getIdParentIndex(edit.getSrc());
+            LOGIC_ASSERTION_CHECK(
+                parent.has_value(),
+                "Cannot move rows from under non-existent parent");
+            LOGIC_ASSERTION_CHECK(
+                parent == getIdParentIndex(edit.getDst()),
+                "Dia edit moves should happen under the same parent");
+
+            int src = edit.getMove().srcIndex;
+            int dst = edit.getMove().dstIndex;
+
+            if (src < dst) { dst += 1; }
+
+            bool isValid = beginMoveRows(
+                parent.value(), src, src, parent.value(), dst);
+
+            LOGIC_ASSERTION_CHECK(
+                isValid,
+                "Move src={} dst={} under parent={} is not valid.",
+                src,
+                dst,
+                edit.getSrc().getParentPathFromRoot());
+
+            break;
+        }
+
         case DiaEdit::Kind::Insert: {
-            auto parent = indexAtPath(
-                edit.getDst().getParentPathFromRoot());
+            auto parent = getIdParentIndex(edit.getDst());
             LOGIC_ASSERTION_CHECK(
                 parent.has_value(),
                 "Rows cannot be inserted from non-existent parent");
@@ -122,9 +148,11 @@ void DiaSceneItemModel::beginEditApply(const DiaEdit& edit) {
             beginInsertRows(parent.value(), idx, idx);
             break;
         }
+
         case DiaEdit::Kind::Update: {
             break;
         }
+
         default: {
             logic_todo_impl();
         }
@@ -141,6 +169,11 @@ void DiaSceneItemModel::endEditApply(const DiaEdit& edit) {
 
         case DiaEdit::Kind::Insert: {
             endInsertRows();
+            break;
+        }
+
+        case DiaEdit::Kind::Move: {
+            endMoveRows();
             break;
         }
 

@@ -22,6 +22,9 @@ struct DiaSceneItemModel : public QAbstractItemModel {
     DiaSceneItemModel(QObject* parent = nullptr)
         : QAbstractItemModel{parent} {}
 
+    hstd::Opt<QModelIndex> getIdParentIndex(DiaAdapter const& id) const {
+        return indexAtPath(id.getParentPathFromRoot());
+    }
 
     hstd::Opt<QModelIndex> indexAtPath(hstd::Vec<int> const& path) const {
         QModelIndex result;

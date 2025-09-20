@@ -20,12 +20,13 @@ class DebugTarget : public QObject {
                 DiaNodeLayerParams{},
                 hstd::Vec{
                     ditem(2, "item 1"),
+                    ditem(2, "item 2"),
                 }),
             makeLayerText(
                 DiaNodeLayerParams{},
                 hstd::Vec{
-                    ditem(2, "item 1"),
                     ditem(2, "item 2"),
+                    ditem(2, "item 1"),
                 }),
         };
 

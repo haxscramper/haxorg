@@ -68,6 +68,11 @@ struct DiaSceneItem : public QGraphicsItem {
 
     DiaAdapter staleAdapter;
 
+    DiaId getDiaId() const {
+        hstd::logic_assertion_check_not_nil(staleAdapter.id.id);
+        return staleAdapter.id.id;
+    }
+
     DiaSceneItem* at(int pos) { return subnodes.at(pos).get(); }
     int           size() const { return subnodes.size(); }
 
@@ -111,6 +116,33 @@ struct DiaSceneItem : public QGraphicsItem {
 
     std::vector<UPtr>        moveSubnodes() { return std::move(subnodes); }
     std::vector<UPtr> const& getSubnodes() const { return subnodes; }
+
+    void moveSubnode(int srcIndex, int dstIndex) {
+        if (srcIndex < 0 || subnodes.size() <= srcIndex || dstIndex < 0
+            || subnodes.size() <= dstIndex) {
+            throw hstd::RangeError::init(std::format(
+                "Index out of bounds: src={}, dst={}, size={}",
+                srcIndex,
+                dstIndex,
+                subnodes.size()));
+        }
+
+        if (srcIndex == dstIndex) { return; }
+
+        auto temp = std::move(subnodes.at(srcIndex));
+
+        if (srcIndex < dstIndex) {
+            for (int i = srcIndex; i < dstIndex; ++i) {
+                subnodes.at(i) = std::move(subnodes.at(i + 1));
+            }
+        } else {
+            for (int i = srcIndex; i > dstIndex; --i) {
+                subnodes.at(i) = std::move(subnodes.at(i - 1));
+            }
+        }
+
+        subnodes.at(dstIndex) = std::move(temp);
+    }
 
   private:
     std::vector<UPtr> subnodes{};
