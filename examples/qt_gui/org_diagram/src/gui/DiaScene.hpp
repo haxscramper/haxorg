@@ -88,6 +88,18 @@ struct DiaScene : public QGraphicsScene {
 
     void setGridSnap(int snap) { gridSnap = snap; }
 
+    DiaSceneItem::UPtr* getMutableUPtrAtPath(hstd::Vec<int> const& path) {
+        DiaSceneItem::UPtr* result = &rootNode;
+        for (auto const& it : path) {
+            result = (**result).getMutableUPtr(it);
+        }
+        return result;
+    }
+
+    DiaSceneItem* getItemForPath(hstd::Vec<int> const& path) {
+        return rootNode->getItemAtPath(path);
+    }
+
     DiaSceneItem* getItemForId(DiaUniqId const& id) {
         return rootNode->getItemAtPath(id.getSelfPathFromRoot());
     }

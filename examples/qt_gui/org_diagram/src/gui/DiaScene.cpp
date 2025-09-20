@@ -124,8 +124,10 @@ DiaSceneItem* DiaScene::resetRootAdapter(
                 edit.hasDst() ? hstd::fmt(
                                     "{} {}",
                                     edit.getDst().getSelfPathFromRoot(),
-                                    hstd::descObjectPtr(
-                                        getItemForId(edit.getDst().id)))
+                                    edit.isInsert()
+                                        ? hstd::fmt("insert")
+                                        : hstd::descObjectPtr(getItemForId(
+                                              edit.getDst().id)))
                               : "<>"_ss));
 
         treeModel->beginEditApply(edit);
@@ -151,16 +153,22 @@ DiaSceneItem* DiaScene::resetRootAdapter(
             }
 
             case DiaEdit::Kind::Insert: {
-                DiaSceneItem* item = getItemForId(edit.getSrc().id);
+                DiaSceneItem* parent = getItemForPath(
+                    edit.getDst().getParentPathFromRoot());
+                auto newNode = addAdapterRec(edit.getDst());
+                parent->insertSubnode(
+                    std::move(newNode), edit.getInsert().dstIndex);
                 break;
             }
 
             case DiaEdit::Kind::Update: {
-                DiaSceneItem* item = getItemForId(edit.getSrc().id);
-                if (item == rootNode.get()) {}
-                auto oldSubnodes = item->moveSubnodes();
-
-
+                DiaSceneItem* item        = getItemForId(edit.getSrc().id);
+                auto          oldSubnodes = item->moveSubnodes();
+                auto          newNode = addAdapterNonRec(edit.getDst());
+                newNode->setSubnodes(std::move(oldSubnodes));
+                DiaSceneItem::UPtr* target = getMutableUPtrAtPath(
+                    edit.getSrc().getSelfPathFromRoot());
+                *target = std::move(newNode);
                 break;
             }
             default: {

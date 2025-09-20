@@ -92,6 +92,10 @@ struct DiaSceneItem : public QGraphicsItem {
         subnodes.emplace_back(std::move(child));
     }
 
+    void insertSubnode(UPtr&& node, int pos) {
+        subnodes.insert(subnodes.begin() + pos, std::move(node));
+    }
+
     void setSubnodes(std::vector<UPtr>&& nodes) {
         subnodes = std::move(nodes);
         for (auto const& sub : subnodes) { sub->parent = this; }
@@ -102,6 +106,8 @@ struct DiaSceneItem : public QGraphicsItem {
     }
 
     void removeSubnode(int pos) { subnodes.erase(subnodes.begin() + pos); }
+
+    UPtr* getMutableUPtr(int pos) { return &subnodes.at(pos); }
 
     std::vector<UPtr>        moveSubnodes() { return std::move(subnodes); }
     std::vector<UPtr> const& getSubnodes() const { return subnodes; }

@@ -492,20 +492,20 @@ std::vector<DiaEdit> getEdits(
     HSLOG_INFO(_cat, "getEdits");
     HSLOG_DEPTH_SCOPE_ANON();
 
-    if (srcRoot.getKind() != dstRoot.getKind()) {
+    diffSubnodes(srcRoot, dstRoot, results);
+
+    if (srcRoot.id.id != dstRoot.id.id) {
         HSLOG_TRACE(
             _cat,
             hstd::fmt(
-                "Creating root Update edit for kind mismatch {} -> {}",
-                srcRoot.getKind(),
-                dstRoot.getKind()));
+                "Creating root Update edit ID mismatch{} -> {}",
+                srcRoot.id.id,
+                dstRoot.id.id));
         results.emplace_back(DiaEdit::Update{
             .srcNode  = srcRoot,
             .dstNode  = dstRoot,
             .srcIndex = 0,
             .dstIndex = 0});
-    } else {
-        diffSubnodes(srcRoot, dstRoot, results);
     }
 
     return results;
