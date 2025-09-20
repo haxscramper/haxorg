@@ -309,10 +309,10 @@ void logger_processor::track_function_start(const function_info& info) {
 
 void logger_processor::track_function_end(const function_info& info) {
     --log_scoped_depth_attr::instance().depth;
-    log_record{}
-        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
-        .fmt_message("function end::'{}'", info.name)
-        .end();
+    // log_record{}
+    //     .set_callsite(info.loc.line, info.loc.function, info.loc.file)
+    //     .fmt_message("function end::'{}'", info.name)
+    //     .end();
 }
 
 void logger_processor::track_signal_emit(const signal_emit_info& info) {
@@ -375,10 +375,10 @@ void logger_processor::track_scope_enter(const scope_info& info) {
 
 void logger_processor::track_scope_exit(const scope_info& info) {
     --log_scoped_depth_attr::instance().depth;
-    log_record{}
-        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
-        .fmt_message("scope exit::'{}'", info.name)
-        .end();
+    // log_record{}
+    //     .set_callsite(info.loc.line, info.loc.function, info.loc.file)
+    //     .fmt_message("scope exit::'{}'", info.name)
+    //     .end();
 }
 
 void logger_processor::track_started(const tracked_info& info) {

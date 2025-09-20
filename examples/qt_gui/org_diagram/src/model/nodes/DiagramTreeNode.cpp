@@ -436,6 +436,8 @@ void processMatchedSubnodes(
     ProcessedNodes&       processedSrc,
     ProcessedNodes&       processedDst) {
 
+    diffSubnodes(srcSubnode, dstSubnode, results);
+
     // Compare DiaId (content) instead of DiaUniqId (content + position)
     if (srcSubnode.id.id == dstSubnode.id.id) {
         if (srcIndex != dstIndex) {
@@ -460,7 +462,6 @@ void processMatchedSubnodes(
                     "srcIndex:{}",
                     srcIndex));
         }
-        diffSubnodes(srcSubnode, dstSubnode, results);
     } else {
         HSLOG_TRACE(
             _cat,
@@ -476,7 +477,6 @@ void processMatchedSubnodes(
             .dstNode  = dstSubnode,
             .srcIndex = srcIndex,
             .dstIndex = dstIndex});
-        diffSubnodes(srcSubnode, dstSubnode, results);
     }
 
     processedSrc.insert(srcSubnode.id);

@@ -53,7 +53,7 @@ struct DiaSceneItemModel : public QAbstractItemModel {
     int rowCount(
         const QModelIndex& parent = QModelIndex{}) const override {
         if (hasScene()) {
-            return static_cast<int>(getNode(parent)->subnodes.size());
+            return static_cast<int>(getNode(parent)->size());
         } else {
             return 0;
         }

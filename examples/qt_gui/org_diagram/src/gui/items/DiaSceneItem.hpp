@@ -15,10 +15,11 @@ struct SelfRemDiaScene {
 
 struct DiaSceneItem : public QGraphicsItem {
     using UPtr = std::unique_ptr<DiaSceneItem, SelfRemDiaScene>;
-    std::vector<UPtr> subnodes{};
-    DiaSceneItem*     parent{nullptr};
-    QString           name{};
-    bool              TraceState = false;
+    DiaSceneItem* parent{nullptr};
+    QString       name{};
+    bool          TraceState = false;
+
+    bool hasParent() const { return parent != nullptr; }
 
     QRectF boundingRect() const override { return QRectF{}; }
     void   paint(
@@ -90,6 +91,23 @@ struct DiaSceneItem : public QGraphicsItem {
         child->parent = this;
         subnodes.emplace_back(std::move(child));
     }
+
+    void setSubnodes(std::vector<UPtr>&& nodes) {
+        subnodes = std::move(nodes);
+        for (auto const& sub : subnodes) { sub->parent = this; }
+    }
+
+    void setSubnode(UPtr&& node, int pos) {
+        subnodes[pos] = std::move(node);
+    }
+
+    void removeSubnode(int pos) { subnodes.erase(subnodes.begin() + pos); }
+
+    std::vector<UPtr>        moveSubnodes() { return std::move(subnodes); }
+    std::vector<UPtr> const& getSubnodes() const { return subnodes; }
+
+  private:
+    std::vector<UPtr> subnodes{};
 };
 
 struct DiaSceneItemCanvas

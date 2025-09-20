@@ -108,8 +108,26 @@ DiaSceneItem* DiaScene::resetRootAdapter(
     const std::vector<DiaEdit>& edits) {
     TRACKED_FUNCTION("resetRootAdapter");
     if (edits.empty()) { return rootNode.get(); }
-    DiaSceneItem::UPtr rootUpdate = nullptr;
+    DiaSceneItem* originalRoot = rootNode.get();
     for (auto const& edit : edits) {
+        TRACKED_SCOPE(hstd::fmt("Applying edit {}", edit));
+        HSLOG_INFO(
+            _cat,
+            hstd::fmt(
+                "SRC:{} DST:{}",
+                edit.hasSrc() ? hstd::fmt(
+                                    "{} {}",
+                                    edit.getSrc().getSelfPathFromRoot(),
+                                    hstd::descObjectPtr(
+                                        getItemForId(edit.getSrc().id)))
+                              : "<>"_ss,
+                edit.hasDst() ? hstd::fmt(
+                                    "{} {}",
+                                    edit.getDst().getSelfPathFromRoot(),
+                                    hstd::descObjectPtr(
+                                        getItemForId(edit.getDst().id)))
+                              : "<>"_ss));
+
         treeModel->beginEditApply(edit);
         switch (edit.getKind()) {
             case DiaEdit::Kind::Delete: {
@@ -126,18 +144,23 @@ DiaSceneItem* DiaScene::resetRootAdapter(
                     src,
                     hstd::descObjectPtr(item),
                     hstd::descObjectPtr(parent),
-                    hstd::descObjectPtr(parent->subnodes.at(src)));
+                    hstd::descObjectPtr(parent->at(src)));
 
-                parent->subnodes.erase(parent->subnodes.begin() + src);
+                parent->removeSubnode(src);
                 break;
             }
+
             case DiaEdit::Kind::Insert: {
                 DiaSceneItem* item = getItemForId(edit.getSrc().id);
                 break;
             }
+
             case DiaEdit::Kind::Update: {
-                DiaSceneItem* item        = getItemForId(edit.getSrc().id);
-                auto          oldSubnodes = std::move(item->subnodes);
+                DiaSceneItem* item = getItemForId(edit.getSrc().id);
+                if (item == rootNode.get()) {}
+                auto oldSubnodes = item->moveSubnodes();
+
+
                 break;
             }
             default: {
@@ -148,10 +171,9 @@ DiaSceneItem* DiaScene::resetRootAdapter(
     }
 
     LOGIC_ASSERTION_CHECK(
-        rootUpdate != nullptr,
+        originalRoot != rootNode.get(),
         "Non-empty set of edits is guaranteed to change the root node to "
         "a new structure, but the root update has not happened.");
-    rootNode = std::move(rootUpdate);
 
     return rootNode.get();
 }

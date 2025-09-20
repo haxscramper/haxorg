@@ -9,7 +9,7 @@ hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
             if (line.is_first()) {
                 os << os.indent(level * 2) << line.value()
                    << hstd::fmt(
-                          " 0x{:X}", reinterpret_cast<uintptr_t>(this))
+                          " 0x{:X}", reinterpret_cast<uintptr_t>(item))
                    << "\n";
             } else {
                 os << os.indent(level * 2) << line.value() << "\n";

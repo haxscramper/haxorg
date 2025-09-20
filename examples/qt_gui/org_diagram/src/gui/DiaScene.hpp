@@ -66,7 +66,7 @@ struct DiaScene : public QGraphicsScene {
     }
 
     DiaSceneItemLayer* findFirstLayer() {
-        for (const auto& child : rootNode->subnodes) {
+        for (const auto& child : rootNode->getSubnodes()) {
             if (auto it = dynamic_cast<DiaSceneItemLayer*>(child.get());
                 it != nullptr) {
                 return it;

@@ -392,6 +392,13 @@ struct log_graph_tracker {
             ::hstd::log::log_graph_processor::callsite::                  \
                 this_callsite()));
 
+#define HSLOG_TRACKED_SCOPE(__tracker, description)                       \
+    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_scope(     \
+        ::hstd::log::log_graph_processor::scope_info(                     \
+            description,                                                  \
+            ::hstd::log::log_graph_processor::callsite::                  \
+                this_callsite()));
+
 #if HAXORG_LOGGER_SUPPORT_QT
 
 #    define HSLOG_TRACKED_CONNECT(                                        \

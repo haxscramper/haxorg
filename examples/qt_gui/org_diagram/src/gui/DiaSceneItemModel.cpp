@@ -14,7 +14,7 @@ QModelIndex DiaSceneItemModel::index(
         parentNode = static_cast<DiaSceneItem*>(parent.internalPointer());
     }
 
-    if (row < static_cast<int>(parentNode->subnodes.size())) {
+    if (row < static_cast<int>(parentNode->size())) {
         return createIndex(row, column, parentNode->at(row));
     }
 
@@ -64,14 +64,14 @@ QModelIndex DiaSceneItemModel::findNodeIndex(
     if (!parentNode) { return QModelIndex{}; }
 
     // Check direct children
-    for (int i = 0; i < parentNode->subnodes.size(); ++i) {
+    for (int i = 0; i < parentNode->size(); ++i) {
         if (parentNode->at(i) == targetNode) {
             return index(i, 0, parent);
         }
     }
 
     // Search recursively in children
-    for (int i = 0; i < parentNode->subnodes.size(); ++i) {
+    for (int i = 0; i < parentNode->size(); ++i) {
         QModelIndex childIndex = index(i, 0, parent);
         QModelIndex found      = findNodeIndex(childIndex, targetNode);
         if (found.isValid()) { return found; }
