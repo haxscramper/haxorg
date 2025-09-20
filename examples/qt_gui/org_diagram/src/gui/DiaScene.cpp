@@ -77,16 +77,18 @@ void DiaScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
                 arrowSource = visualNode;
             } else {
                 if (arrowSource != visualNode) {
-                    auto edge = addNewItem<DiaSceneItemEdge>(
-                        arrowSource, visualNode);
+                    logic_todo_impl();
+                    // auto edge = addNewItem<DiaSceneItemEdge>(
+                    //     visualNode->staleAdapter, arrowSource,
+                    //     visualNode);
 
-                    auto layer = findFirstLayer();
-                    if (layer) {
-                        layer->add(std::move(edge));
-                    } else {
-                        rootNode->add(std::move(edge));
-                    }
-                    updateTreeView();
+                    // auto layer = findFirstLayer();
+                    // if (layer) {
+                    //     layer->add(std::move(edge));
+                    // } else {
+                    //     rootNode->add(std::move(edge));
+                    // }
+                    // updateTreeView();
                 }
                 arrowSource = nullptr;
             }
@@ -236,20 +238,21 @@ DiaSceneItem::UPtr DiaScene::addAdapterNonRec(const DiaAdapter& a) {
     switch (a.getKind()) {
         case DiaNodeKind::Group:
         case DiaNodeKind::Item: {
-            auto it   = a.as<DiaNodeItem>();
-            auto node = addNewItem<DiaSceneItemRectangle>(
-                QString::fromStdString(it->getSubtree().getCleanTitle()));
+            auto it    = a.as<DiaNodeItem>();
+            auto node  = addNewItem<DiaSceneItemRectangle>(a);
+            node->name = QString::fromStdString(
+                it->getSubtree().getCleanTitle());
             auto pos = it->getPos();
             node->setPos(pos.x, pos.y);
             node->color = Qt::green;
             return node;
         }
         case DiaNodeKind::Canvas: {
-            auto canvas = addNewItem<DiaSceneItemCanvas>();
+            auto canvas = addNewItem<DiaSceneItemCanvas>(a);
             return canvas;
         }
         case DiaNodeKind::Layer: {
-            auto layer = addNewItem<DiaSceneItemLayer>();
+            auto layer = addNewItem<DiaSceneItemLayer>(a);
             return layer;
         }
     }
@@ -344,26 +347,28 @@ void DiaScene::createGroupFromSelection() {
         if (currentGroup) { currentGroup->removeFromGroup(node); }
     }
 
-    // Create new group
-    auto group = addNewItem<DiaSceneItemGroup>("Group");
+    logic_todo_impl();
 
-    // Add nodes to the group
-    for (auto node : nodesToGroup) { group->addToGroup(node); }
+    // // Create new group
+    // auto group = addNewItem<DiaSceneItemGroup>("Group");
 
-    group->updateBoundsToFitNodes();
+    // // Add nodes to the group
+    // for (auto node : nodesToGroup) { group->addToGroup(node); }
 
-    // Add to scene hierarchy
-    auto layer = findFirstLayer();
-    if (layer) {
-        // Convert to shared_ptr if using shared_ptr management
-        layer->add(std::move(group));
-    } else {
-        rootNode->add(std::move(group));
-    }
+    // group->updateBoundsToFitNodes();
 
-    // Clear selection
-    for (auto node : selectedNodes) { node->setSelected(false); }
-    selectedNodes.clear();
+    // // Add to scene hierarchy
+    // auto layer = findFirstLayer();
+    // if (layer) {
+    //     // Convert to shared_ptr if using shared_ptr management
+    //     layer->add(std::move(group));
+    // } else {
+    //     rootNode->add(std::move(group));
+    // }
+
+    // // Clear selection
+    // for (auto node : selectedNodes) { node->setSelected(false); }
+    // selectedNodes.clear();
 
     updateTreeView();
 }

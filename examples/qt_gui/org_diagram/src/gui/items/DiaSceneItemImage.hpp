@@ -17,8 +17,8 @@ struct DiaSceneItemImage : public DiaSceneItemVisual {
     bool    isResizing{false};
     QPointF lastMousePos{};
 
-    DiaSceneItemImage(const QString& nodeName = "Image")
-        : DiaSceneItemVisual{nodeName} {
+    DiaSceneItemImage(DiaAdapter const& staleAdapter)
+        : DiaSceneItemVisual{staleAdapter} {
         bounds = QRectF{0, 0, 100, 100};
     }
 

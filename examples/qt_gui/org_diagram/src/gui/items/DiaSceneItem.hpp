@@ -18,6 +18,7 @@ struct DiaSceneItem : public QGraphicsItem {
     DiaSceneItem* parent{nullptr};
     QString       name{};
     bool          TraceState = false;
+    DiaAdapter    staleAdapter;
 
     bool hasParent() const { return parent != nullptr; }
 
@@ -66,7 +67,6 @@ struct DiaSceneItem : public QGraphicsItem {
             staleAdapter.ctx};
     }
 
-    DiaAdapter staleAdapter;
 
     DiaId getDiaId() const {
         hstd::logic_assertion_check_not_nil(staleAdapter.id.id);
@@ -82,7 +82,9 @@ struct DiaSceneItem : public QGraphicsItem {
         return res;
     }
 
-    DiaSceneItem(const QString& nodeName = "Node") : name{nodeName} {}
+    DiaSceneItem(DiaAdapter const& staleAdapter)
+        : staleAdapter{staleAdapter} {}
+
     virtual ~DiaSceneItem() = default;
 
     template <typename T>
@@ -151,8 +153,8 @@ struct DiaSceneItem : public QGraphicsItem {
 struct DiaSceneItemCanvas
     : public DiaSceneItem
     , public hstd::SharedPtrApiDerived<DiaSceneItemCanvas, DiaSceneItem> {
-    DiaSceneItemCanvas(const QString& nodeName = "Canvas")
-        : DiaSceneItem{nodeName} {}
+    DiaSceneItemCanvas(DiaAdapter const& staleAdapter)
+        : DiaSceneItem{staleAdapter} {}
 
     hstd::Vec<hstd::ColText> formatSelf() const override {
         return {hstd::ColText{"DiaSceneItemCanvas " + name.toStdString()}};
@@ -160,8 +162,8 @@ struct DiaSceneItemCanvas
 };
 
 struct DiaSceneItemLayer : public DiaSceneItem {
-    DiaSceneItemLayer(const QString& nodeName = "Layer")
-        : DiaSceneItem{nodeName} {}
+    DiaSceneItemLayer(DiaAdapter const& staleAdapter)
+        : DiaSceneItem{staleAdapter} {}
 
     hstd::Vec<hstd::ColText> formatSelf() const override {
         return {hstd::ColText{"DiaSceneItemLayer " + name.toStdString()}};

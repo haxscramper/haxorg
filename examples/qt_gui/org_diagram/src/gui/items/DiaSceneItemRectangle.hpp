@@ -13,8 +13,8 @@
 struct DiaSceneItemRectangle : public DiaSceneItemVisual {
     QColor color{Qt::blue};
 
-    DiaSceneItemRectangle(const QString& nodeName = "Rectangle")
-        : DiaSceneItemVisual{nodeName} {
+    DiaSceneItemRectangle(DiaAdapter const& staleAdapter)
+        : DiaSceneItemVisual{staleAdapter} {
         bounds = QRectF{0, 0, 100, 60};
     }
 

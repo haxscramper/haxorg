@@ -26,10 +26,12 @@ struct DiaScene : public QGraphicsScene {
     hstd::UnorderedMap<DiaUniqId, DiaSceneItem*> diaItemMap;
 
     template <typename T, typename... Args>
-    std::unique_ptr<T, SelfRemDiaScene> addNewItem(Args&&... args) {
+    std::unique_ptr<T, SelfRemDiaScene> addNewItem(
+        DiaAdapter const& staleAdapter,
+        Args&&... args) {
         std::unique_ptr<T, SelfRemDiaScene>
             result = std::unique_ptr<T, SelfRemDiaScene>(
-                new T{std::forward<Args>(args)...});
+                new T{staleAdapter, std::forward<Args>(args)...});
         addItem(result.get());
 
         HSLOG_TRACE(
@@ -135,9 +137,11 @@ struct DiaScene : public QGraphicsScene {
     void removeAdapterRec(DiaAdapter const& a) {}
 
     void addEdge(
+        DiaAdapter const&   adapter,
         DiaSceneItemVisual* sourceNode,
         DiaSceneItemVisual* targetNode) {
-        auto edge = addNewItem<DiaSceneItemEdge>(sourceNode, targetNode);
+        auto edge = addNewItem<DiaSceneItemEdge>(
+            adapter, sourceNode, targetNode);
 
         auto layer = findFirstLayer();
         if (layer) {
@@ -168,7 +172,8 @@ struct DiaScene : public QGraphicsScene {
             return;
         }
 
-        addEdge(sourceNode, targetNode);
+        logic_todo_impl();
+        // addEdge(sourceNode, targetNode);
 
         // Clear selection
         for (auto node : selectedNodes) { node->setSelected(false); }
@@ -176,33 +181,8 @@ struct DiaScene : public QGraphicsScene {
         updateTreeView();
     }
 
-    void addLayer() {
-        auto layer = addNewItem<DiaSceneItemLayer>("New Layer");
-        rootNode->add(std::move(layer));
-        updateTreeView();
-    }
-
-    void addImage() {
-        QString fileName = QFileDialog::getOpenFileName(
-            nullptr,
-            "Open Image",
-            "",
-            "Images (*.png *.jpg *.jpeg *.bmp)");
-        if (!fileName.isEmpty()) {
-            auto node = addNewItem<DiaSceneItemImage>("Image");
-            node->setImage(
-                QPixmap{fileName}.scaled(100, 100, Qt::KeepAspectRatio));
-            node->setPos(150, 300);
-
-            auto layer = findFirstLayer();
-            if (layer) {
-                layer->add(std::move(node));
-            } else {
-                rootNode->add(std::move(node));
-            }
-            updateTreeView();
-        }
-    }
+    void addLayer() {}
+    void addImage() {}
 
     DiaSceneItemGroup* findGroupContaining(DiaSceneItemVisual* node);
 

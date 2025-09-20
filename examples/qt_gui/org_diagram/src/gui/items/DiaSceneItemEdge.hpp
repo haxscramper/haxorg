@@ -28,10 +28,10 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
     QPainterPath         edgePath{};
 
     DiaSceneItemEdge(
+        DiaAdapter const&   adapter,
         DiaSceneItemVisual* source,
-        DiaSceneItemVisual* target,
-        const QString&      nodeName = "Edge")
-        : DiaSceneItemVisual{nodeName}
+        DiaSceneItemVisual* target)
+        : DiaSceneItemVisual{adapter}
         , sourceNode{source}
         , targetNode{target} {
         setFlag(QGraphicsItem::ItemIsMovable, false);

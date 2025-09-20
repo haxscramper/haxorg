@@ -15,8 +15,8 @@ struct DiaSceneItemVisual : public DiaSceneItem {
         return {hstd::ColText{"DiaSceneItemVisual " + name.toStdString()}};
     }
 
-    DiaSceneItemVisual(const QString& nodeName = "Node")
-        : DiaSceneItem{nodeName} {
+    DiaSceneItemVisual(DiaAdapter const& staleAdapter)
+        : DiaSceneItem{staleAdapter} {
         setFlag(QGraphicsItem::ItemIsMovable);
         setFlag(QGraphicsItem::ItemIsSelectable);
         setFlag(QGraphicsItem::ItemSendsGeometryChanges);

@@ -13,8 +13,8 @@ struct DiaSceneItemGroup : public DiaSceneItemVisual {
     QColor                           groupColor{Qt::lightGray};
     std::vector<DiaSceneItemVisual*> groupedNodes{};
 
-    DiaSceneItemGroup(const QString& nodeName = "Group")
-        : DiaSceneItemVisual{nodeName} {
+    DiaSceneItemGroup(DiaAdapter const& staleAdapter)
+        : DiaSceneItemVisual{staleAdapter} {
         bounds = QRectF{0, 0, 200, 150};
         setFlag(QGraphicsItem::ItemIsMovable);
         setFlag(QGraphicsItem::ItemIsSelectable);
