@@ -1,5 +1,44 @@
 #include "DiaSceneItemModel.hpp"
 
+hstd::ColText DiaSceneItemModel::format() {
+    return printModelTree(
+        this,
+        QModelIndex{},
+        [](QModelIndex const& idx) -> hstd::ColText {
+            hstd::ColStream os;
+            DiaSceneItem*   ptr = static_cast<DiaSceneItem*>(
+                idx.internalPointer());
+            if (ptr == nullptr) {
+                os << "nullptr";
+            } else {
+                os << "object-desc:";
+                os << hstd::descObjectPtr(ptr);
+                os << " adapter:";
+                os << hstd::fmt1(ptr->staleAdapter);
+                // os << " self-path:";
+                // os << hstd::fmt1(ptr->getSelfPathFromRoot());
+
+                if (ptr->getParent() != nullptr) {
+                    os << " parent:";
+                    os << hstd::descObjectPtr(ptr->getParent());
+                }
+
+                auto selfFormat = ptr->formatSelf();
+                switch (selfFormat.size()) {
+                    case 0: break;
+                    case 1: os << " " << selfFormat.at(0); break;
+                    default:
+                        for (auto const& line : selfFormat) {
+                            os << "\n";
+                            os << line;
+                        }
+                }
+            }
+            return os;
+        },
+        true);
+}
+
 QModelIndex DiaSceneItemModel::index(
     int                row,
     int                column,
@@ -53,6 +92,7 @@ QVariant DiaSceneItemModel::data(const QModelIndex& index, int role)
 
     return QVariant{};
 }
+
 QModelIndex DiaSceneItemModel::findNodeIndex(
     const QModelIndex& parent,
     DiaSceneItem*      targetNode) const {

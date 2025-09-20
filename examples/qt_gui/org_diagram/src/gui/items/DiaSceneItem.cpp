@@ -49,11 +49,45 @@ org::imm::ImmPath DiaSceneItem::getActivePath() const {
     }
 }
 
-DiaSceneItem* DiaSceneItem::getParent() {
-    if (!getSelfPathFromRoot().empty()) {
+void DiaSceneItem::moveSubnode(int srcIndex, int dstIndex) {
+    if (srcIndex < 0 || subnodes.size() <= srcIndex || dstIndex < 0
+        || subnodes.size() <= dstIndex) {
+        throw hstd::RangeError::init(std::format(
+            "Index out of bounds: src={}, dst={}, size={}",
+            srcIndex,
+            dstIndex,
+            subnodes.size()));
+    }
+
+    if (srcIndex == dstIndex) { return; }
+
+    auto temp = std::move(subnodes.at(srcIndex));
+
+    if (srcIndex < dstIndex) {
+        for (int i = srcIndex; i < dstIndex; ++i) {
+            subnodes.at(i) = std::move(subnodes.at(i + 1));
+        }
+    } else {
+        for (int i = srcIndex; i > dstIndex; --i) {
+            subnodes.at(i) = std::move(subnodes.at(i - 1));
+        }
+    }
+
+    subnodes.at(dstIndex) = std::move(temp);
+}
+
+DiaSceneItem* DiaSceneItem::getParent() const {
+    if (!isinstance<DiaSceneItemCanvas>()) {
+        LOGIC_ASSERTION_CHECK(this != nullptr, "calling on null object");
+
+
         LOGIC_ASSERTION_CHECK(
             parent != nullptr,
-            "Non-root node must have the parent assigned");
+            "Non-root node must have the parent assigned. The node {} "
+            "with adapter {}",
+            hstd::descObjectPtr(this),
+            staleAdapter);
+
         if (__asan_address_is_poisoned(parent)) {
             __asan_describe_address(parent);
         }

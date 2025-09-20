@@ -87,17 +87,6 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
         scene.logSceneRoot();
     }
 
-    int editApplyTargetIndex = 0;
-
-    void setV2Step() {
-        scene.applyPartialEditStep(edits.at(editApplyTargetIndex));
-        ++editApplyTargetIndex;
-        if (editApplyTargetIndex == edits.size()) {
-            HSLOG_TRACE(_cat, "Scene root after updating the adapter");
-            scene.logSceneRoot();
-        }
-    }
-
     void setV2() {
         scene.resetRootAdapter(edits);
         HSLOG_TRACE(_cat, "Scene root after updating the adapter");

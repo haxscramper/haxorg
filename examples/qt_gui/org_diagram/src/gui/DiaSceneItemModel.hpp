@@ -19,6 +19,8 @@ struct DiaSceneItemModel : public QAbstractItemModel {
 
     bool hasScene() const { return rootNode != nullptr; }
 
+    hstd::ColText format();
+
     DiaSceneItemModel(QObject* parent = nullptr)
         : QAbstractItemModel{parent} {}
 

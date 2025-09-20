@@ -13,7 +13,7 @@ struct SelfRemDiaScene {
     void operator()(DiaSceneItem* item);
 };
 
-struct DiaSceneItem : public QGraphicsItem {
+struct DiaSceneItem : public QGraphicsObject {
     using UPtr = std::unique_ptr<DiaSceneItem, SelfRemDiaScene>;
     QString    name{};
     bool       TraceState = false;
@@ -94,22 +94,23 @@ struct DiaSceneItem : public QGraphicsItem {
             hstd::dynamic_pointer_cast<DiaSceneItem>(std::move(sub)));
     }
 
-    void add(DiaSceneItem::UPtr&& child) {
+    void add(DiaSceneItem::UPtr child) {
         child->parent = this;
         subnodes.emplace_back(std::move(child));
     }
 
-    void insertSubnode(UPtr&& node, int pos) {
+    void insertSubnode(UPtr node, int pos) {
         subnodes.insert(subnodes.begin() + pos, std::move(node));
     }
 
-    void setSubnodes(std::vector<UPtr>&& nodes) {
+    void setSubnodes(std::vector<UPtr> nodes) {
         subnodes = std::move(nodes);
         for (auto const& sub : subnodes) { sub->parent = this; }
     }
 
-    void setSubnode(UPtr&& node, int pos) {
-        subnodes[pos] = std::move(node);
+    void setSubnode(UPtr node, int pos) {
+        subnodes[pos]            = std::move(node);
+        subnodes.at(pos)->parent = this;
     }
 
     void removeSubnode(int pos) { subnodes.erase(subnodes.begin() + pos); }
@@ -119,34 +120,9 @@ struct DiaSceneItem : public QGraphicsItem {
     std::vector<UPtr>        moveSubnodes() { return std::move(subnodes); }
     std::vector<UPtr> const& getSubnodes() const { return subnodes; }
 
-    void moveSubnode(int srcIndex, int dstIndex) {
-        if (srcIndex < 0 || subnodes.size() <= srcIndex || dstIndex < 0
-            || subnodes.size() <= dstIndex) {
-            throw hstd::RangeError::init(std::format(
-                "Index out of bounds: src={}, dst={}, size={}",
-                srcIndex,
-                dstIndex,
-                subnodes.size()));
-        }
+    void moveSubnode(int srcIndex, int dstIndex);
 
-        if (srcIndex == dstIndex) { return; }
-
-        auto temp = std::move(subnodes.at(srcIndex));
-
-        if (srcIndex < dstIndex) {
-            for (int i = srcIndex; i < dstIndex; ++i) {
-                subnodes.at(i) = std::move(subnodes.at(i + 1));
-            }
-        } else {
-            for (int i = srcIndex; i > dstIndex; --i) {
-                subnodes.at(i) = std::move(subnodes.at(i - 1));
-            }
-        }
-
-        subnodes.at(dstIndex) = std::move(temp);
-    }
-
-    DiaSceneItem* getParent();
+    DiaSceneItem* getParent() const;
 
   private:
     std::vector<UPtr> subnodes{};

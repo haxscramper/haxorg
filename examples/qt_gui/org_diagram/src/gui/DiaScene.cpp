@@ -210,7 +210,14 @@ void DiaScene::applyPartialEditStep(DiaEdit const& edit) {
             newNode->setSubnodes(std::move(oldSubnodes));
             DiaSceneItem::UPtr* target = getMutableUPtrAtPath(
                 edit.getSrc().getSelfPathFromRoot());
-            *target = std::move(newNode);
+            auto parent = target->get()->getParent();
+            if (parent == nullptr) {
+                *target = std::move(newNode);
+            } else {
+                parent->setSubnode(
+                    std::move(newNode), edit.getUpdate().dstIndex);
+            }
+
             treeModel->endEditApply(edit);
             break;
         }
@@ -225,7 +232,12 @@ DiaSceneItem* DiaScene::resetRootAdapter(
     TRACKED_FUNCTION("resetRootAdapter");
     if (edits.empty()) { return rootNode.get(); }
     DiaSceneItem* originalRoot = rootNode.get();
-    for (auto const& edit : edits) { applyPartialEditStep(edit); }
+    for (auto const& edit : edits) {
+        HSLOG_INFO(
+            _cat, hstd::fmt("{}", treeModel->format().toString(false)));
+
+        applyPartialEditStep(edit);
+    }
 
     LOGIC_ASSERTION_CHECK(
         originalRoot != rootNode.get(),

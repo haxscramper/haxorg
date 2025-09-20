@@ -27,24 +27,24 @@ class DebugTarget : public QObject {
                     ditem(3, "group B", {20, 10}),
                     ditem(4, "leaf B1", {21, 11}),
                     ditem(4, "leaf B2", {22, 12}),
-                    ditem(4, "leaf B3", {23, 13}),
                     ditem(3, "group C", {30, 10}),
                     ditem(4, "leaf C1", {31, 11}),
-                    ditem(4, "leaf C2", {32, 12})}),
+                    ditem(4, "leaf C2", {32, 12}),
+                    ditem(4, "leaf C3", {33, 13})}),
             makeLayerText(
                 DiaNodeLayerParams{},
                 hstd::Vec{
                     ditem("root"),
                     ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf A1", {11, 11}),
                     ditem(4, "leaf B1", {21, 11}),
-                    ditem(4, "new leaf A4", {14, 14}),
                     ditem(3, "group B", {20, 10}),
                     ditem(4, "leaf A2", {12, 12}),
                     ditem(4, "leaf C1", {31, 11}),
-                    ditem(4, "new leaf B4", {24, 14}),
                     ditem(3, "group C", {30, 10}),
                     ditem(4, "leaf A3", {13, 13}),
-                    ditem(4, "new leaf C3", {33, 13})}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(4, "leaf C2", {32, 12})}),
         };
 
         visualizeTestDiff(this, scope);
