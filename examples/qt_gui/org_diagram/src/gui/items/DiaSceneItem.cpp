@@ -32,16 +32,10 @@ org::imm::ImmPath DiaSceneItem::getActivePath() const {
     } else {
         org::imm::ImmPath::Store result;
         auto                     result_transient = result.transient();
-        DiaSceneItem*            tmp              = parent;
-        DiaSceneItem*            root             = parent;
-        while (tmp != nullptr) {
-            result_transient.push_back(tmp->getRelativeToParent());
-            if (tmp->parent == nullptr) {
-                tmp = tmp->parent;
-            } else {
-                tmp  = tmp->parent;
-                root = tmp->parent;
-            }
+        DiaSceneItem const*      root             = this;
+        while (root->hasParent()) {
+            result_transient.push_back(root->getRelativeToParent());
+            root = root->parent;
         }
         return org::imm::ImmPath{
             root->staleAdapter.get()->id.id,

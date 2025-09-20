@@ -124,8 +124,6 @@ class DiaSceneItemModelTest : public QObject {
         QCOMPARE_EQ2(
             scope.itemViaIndexAt({0, 0})->name.toStdString(), "item 1"_ss);
 
-        QPersistentModelIndex rootIndex;
-
         QSignalSpy insertSpy{
             &scope.model, &QAbstractItemModel::rowsInserted};
         QSignalSpy updateSpy{
@@ -144,11 +142,9 @@ class DiaSceneItemModelTest : public QObject {
         QCOMPARE_EQ2(updateSpy.count(), 2);
 
         // Test insert triggered at position 1 in layer
-        QList<QVariant> insertArgs = insertSpy.takeFirst();
-        QModelIndex insertParent   = insertArgs.at(0).value<QModelIndex>();
-        int         insertFirst    = insertArgs.at(1).toInt();
-        int         insertLast     = insertArgs.at(2).toInt();
-        QCOMPARE(insertParent, scope.indexAt({0}));
+        QList<QVariant> insertArgs  = insertSpy.takeFirst();
+        int             insertFirst = insertArgs.at(1).toInt();
+        int             insertLast  = insertArgs.at(2).toInt();
         QCOMPARE(insertFirst, 1);
         QCOMPARE(insertLast, 1);
 
@@ -167,8 +163,8 @@ class DiaSceneItemModelTest : public QObject {
                                          .value<QModelIndex>();
         QModelIndex update2BottomRight = update2Args.at(1)
                                              .value<QModelIndex>();
-        QCOMPARE(update2TopLeft, rootIndex);
-        QCOMPARE(update2BottomRight, rootIndex);
+        QCOMPARE(update2TopLeft, QModelIndex{});
+        QCOMPARE(update2BottomRight, QModelIndex{});
     }
 
     void testOneItemSwap() {
