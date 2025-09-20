@@ -232,12 +232,7 @@ DiaSceneItem* DiaScene::resetRootAdapter(
     TRACKED_FUNCTION("resetRootAdapter");
     if (edits.empty()) { return rootNode.get(); }
     DiaSceneItem* originalRoot = rootNode.get();
-    for (auto const& edit : edits) {
-        HSLOG_INFO(
-            _cat, hstd::fmt("{}", treeModel->format().toString(false)));
-
-        applyPartialEditStep(edit);
-    }
+    for (auto const& edit : edits) { applyPartialEditStep(edit); }
 
     LOGIC_ASSERTION_CHECK(
         originalRoot != rootNode.get(),

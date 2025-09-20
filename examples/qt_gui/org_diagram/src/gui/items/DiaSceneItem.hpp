@@ -100,6 +100,7 @@ struct DiaSceneItem : public QGraphicsObject {
     }
 
     void insertSubnode(UPtr node, int pos) {
+        node->parent = this;
         subnodes.insert(subnodes.begin() + pos, std::move(node));
     }
 
