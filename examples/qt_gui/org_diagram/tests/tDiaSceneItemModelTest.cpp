@@ -187,7 +187,22 @@ class DiaSceneItemModelTest : public QObject {
 
         visualizeTestDiff(this, scope);
         scope.setV1();
+
+        QCOMPARE_EQ2(scope.model.rowCount(), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0})), 2);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0})->name.toStdString(), "item 1"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 1})->name.toStdString(), "item 2"_ss);
+
         scope.setV2();
+
+        QCOMPARE_EQ2(scope.model.rowCount(), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0})), 2);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0})->name.toStdString(), "item 2"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 1})->name.toStdString(), "item 1"_ss);
     }
 
     void testOneItemUpdate() {
@@ -210,7 +225,88 @@ class DiaSceneItemModelTest : public QObject {
 
         visualizeTestDiff(this, scope);
         scope.setV1();
+
+        QCOMPARE_EQ2(scope.model.rowCount(), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0})), 2);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0})->name.toStdString(), "item 1"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 1})->name.toStdString(), "item 2"_ss);
+
         scope.setV2();
+
+        QCOMPARE_EQ2(scope.model.rowCount(), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0})), 2);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0})->name.toStdString(), "item 1"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 1})->name.toStdString(),
+            "item 2-updated"_ss);
+    }
+
+    void testNestedSubtreeUpdate() {
+        auto __scope = trackTestExecution(this);
+
+        ScopeV12UpdateTest scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "level 1"),
+                    ditem(3, "level 2"),
+                    ditem(4, "level 3"),
+                    ditem(5, "level 4"),
+                }),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "level 1-updated"),
+                    ditem(3, "level 2-updated"),
+                    ditem(4, "level 3-updated"),
+                    ditem(5, "level 4-updated"),
+                }),
+        };
+
+        visualizeTestDiff(this, scope);
+        scope.setV1();
+
+        QCOMPARE_EQ2(scope.model.rowCount(), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0})), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0, 0})), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0, 0, 0})), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0, 0, 0, 0})), 0);
+
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0})->name.toStdString(), "level 1"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0})->name.toStdString(),
+            "level 2"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0, 0})->name.toStdString(),
+            "level 3"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0, 0, 0})->name.toStdString(),
+            "level 4"_ss);
+
+        scope.setV2();
+
+        QCOMPARE_EQ2(scope.model.rowCount(), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0})), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0, 0})), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0, 0, 0})), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0, 0, 0, 0})), 0);
+
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0})->name.toStdString(),
+            "level 1-updated"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0})->name.toStdString(),
+            "level 2-updated"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0, 0})->name.toStdString(),
+            "level 3-updated"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0, 0, 0})->name.toStdString(),
+            "level 4-updated"_ss);
     }
 
     void testStepByStepUpdates() {
