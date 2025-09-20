@@ -25,11 +25,11 @@ QModelIndex DiaSceneItemModel::parent(const QModelIndex& index) const {
 
     DiaSceneItem* childNode = static_cast<DiaSceneItem*>(
         index.internalPointer());
-    DiaSceneItem* parentNode = childNode->parent;
+    DiaSceneItem* parentNode = childNode->getParent();
 
     if (parentNode == rootNode) { return QModelIndex{}; }
 
-    DiaSceneItem* grandParent = parentNode->parent;
+    DiaSceneItem* grandParent = parentNode->getParent();
     if (!grandParent) { return QModelIndex{}; }
 
     for (int i = 0; i < grandParent->size(); ++i) {

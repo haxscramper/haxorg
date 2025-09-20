@@ -105,131 +105,136 @@ DiaSceneItem* DiaScene::setRootAdapter(const DiaAdapter& a) {
     return rootNode.get();
 }
 
+void DiaScene::applyPartialEditStep(DiaEdit const& edit) {
+    TRACKED_SCOPE(hstd::fmt("Applying edit {}", edit));
+    HSLOG_INFO(
+        _cat,
+        hstd::fmt(
+            "SRC:{} DST:{}",
+            edit.hasSrc()
+                ? hstd::fmt(
+                      "{} {}",
+                      edit.getSrc().getSelfPathFromRoot(),
+                      hstd::descObjectPtr(getItemForId(edit.getSrc().id)))
+                : "<>"_ss,
+            edit.hasDst() ? hstd::fmt(
+                                "{} {}",
+                                edit.getDst().getSelfPathFromRoot(),
+                                edit.isInsert()
+                                    ? hstd::fmt("insert")
+                                    : hstd::descObjectPtr(
+                                          getItemForId(edit.getDst().id)))
+                          : "<>"_ss));
+
+
+    switch (edit.getKind()) {
+        case DiaEdit::Kind::Delete: {
+            DiaSceneItem* item   = getItemForId(edit.getSrc().id);
+            auto const&   del    = edit.getDelete();
+            int           src    = del.srcIndex;
+            auto          parent = item->getParent();
+
+            LOGIC_ASSERTION_CHECK(
+                parent->at(src) == item,
+                "Delete of item at index {} should have removed the "
+                "scene item {}, but the parent {} has item "
+                "{} at this index",
+                src,
+                hstd::descObjectPtr(item),
+                hstd::descObjectPtr(parent),
+                hstd::descObjectPtr(parent->at(src)));
+
+            treeModel->beginEditApply(edit);
+            parent->removeSubnode(src);
+            treeModel->endEditApply(edit);
+            break;
+        }
+
+        case DiaEdit::Kind::Move: {
+            auto srcParent       = edit.getDst().getParentPathFromRoot();
+            auto dstParent       = edit.getDst().getParentPathFromRoot();
+            DiaSceneItem* parent = getItemForPath(srcParent);
+            LOGIC_ASSERTION_CHECK(
+                srcParent == dstParent,
+                "Destination node and source node have different "
+                "parent paths. SRC node parent is at path {}, while "
+                "DST node parent is at path {}",
+                srcParent,
+                dstParent);
+
+            auto const& m = edit.getMove();
+            if (parent->at(m.dstIndex)->getDiaId()
+                == m.dstNode.getDiaId()) {
+                HSLOG_INFO(
+                    _cat,
+                    hstd::fmt(
+                        "Move operation is a no-op. Parent {} already "
+                        "has item with ID {} placed at index {}",
+                        parent->getDiaId(),
+                        m.dstNode.getDiaId(),
+                        m.dstIndex));
+            } else {
+                HSLOG_INFO(
+                    _cat,
+                    hstd::fmt(
+                        "Move operation is required. Parent {} has "
+                        "item with ID {} at index {}, but the move "
+                        "operation requires item with ID {}",
+                        parent->getDiaId(),
+                        parent->at(m.dstIndex)->getDiaId(),
+                        m.dstIndex,
+                        m.dstNode.getDiaId()));
+                treeModel->beginEditApply(edit);
+                parent->moveSubnode(m.srcIndex, m.dstIndex);
+                treeModel->endEditApply(edit);
+            }
+            break;
+        }
+
+        case DiaEdit::Kind::Insert: {
+            treeModel->beginEditApply(edit);
+            DiaSceneItem* parent = getItemForPath(
+                edit.getDst().getParentPathFromRoot());
+            auto newNode = addAdapterRec(edit.getDst());
+            parent->insertSubnode(
+                std::move(newNode), edit.getInsert().dstIndex);
+            treeModel->endEditApply(edit);
+            break;
+        }
+
+        case DiaEdit::Kind::Update: {
+            treeModel->beginEditApply(edit);
+            DiaSceneItem* item        = getItemForId(edit.getSrc().id);
+            auto          oldSubnodes = item->moveSubnodes();
+            auto          newNode     = addAdapterNonRec(edit.getDst());
+            newNode->setSubnodes(std::move(oldSubnodes));
+            DiaSceneItem::UPtr* target = getMutableUPtrAtPath(
+                edit.getSrc().getSelfPathFromRoot());
+            *target = std::move(newNode);
+            treeModel->endEditApply(edit);
+            break;
+        }
+        default: {
+            logic_todo_impl();
+        }
+    }
+}
+
 DiaSceneItem* DiaScene::resetRootAdapter(
-    const DiaAdapter&           a,
     const std::vector<DiaEdit>& edits) {
     TRACKED_FUNCTION("resetRootAdapter");
     if (edits.empty()) { return rootNode.get(); }
     DiaSceneItem* originalRoot = rootNode.get();
-    for (auto const& edit : edits) {
-        TRACKED_SCOPE(hstd::fmt("Applying edit {}", edit));
-        HSLOG_INFO(
-            _cat,
-            hstd::fmt(
-                "SRC:{} DST:{}",
-                edit.hasSrc() ? hstd::fmt(
-                                    "{} {}",
-                                    edit.getSrc().getSelfPathFromRoot(),
-                                    hstd::descObjectPtr(
-                                        getItemForId(edit.getSrc().id)))
-                              : "<>"_ss,
-                edit.hasDst() ? hstd::fmt(
-                                    "{} {}",
-                                    edit.getDst().getSelfPathFromRoot(),
-                                    edit.isInsert()
-                                        ? hstd::fmt("insert")
-                                        : hstd::descObjectPtr(getItemForId(
-                                              edit.getDst().id)))
-                              : "<>"_ss));
-
-
-        switch (edit.getKind()) {
-            case DiaEdit::Kind::Delete: {
-                DiaSceneItem* item   = getItemForId(edit.getSrc().id);
-                auto const&   del    = edit.getDelete();
-                int           src    = del.srcIndex;
-                auto          parent = item->parent;
-
-                LOGIC_ASSERTION_CHECK(
-                    item->parent->at(src) == item,
-                    "Delete of item at index {} should have removed the "
-                    "scene item {}, but the parent {} has item "
-                    "{} at this index",
-                    src,
-                    hstd::descObjectPtr(item),
-                    hstd::descObjectPtr(parent),
-                    hstd::descObjectPtr(parent->at(src)));
-
-                treeModel->beginEditApply(edit);
-                parent->removeSubnode(src);
-                treeModel->endEditApply(edit);
-                break;
-            }
-
-            case DiaEdit::Kind::Move: {
-                auto srcParent = edit.getDst().getParentPathFromRoot();
-                auto dstParent = edit.getDst().getParentPathFromRoot();
-                DiaSceneItem* parent = getItemForPath(srcParent);
-                LOGIC_ASSERTION_CHECK(
-                    srcParent == dstParent,
-                    "Destination node and source node have different "
-                    "parent paths. SRC node parent is at path {}, while "
-                    "DST node parent is at path {}",
-                    srcParent,
-                    dstParent);
-
-                auto const& m = edit.getMove();
-                if (parent->at(m.dstIndex)->getDiaId()
-                    == m.dstNode.getDiaId()) {
-                    HSLOG_INFO(
-                        _cat,
-                        hstd::fmt(
-                            "Move operation is a no-op. Parent {} already "
-                            "has item with ID {} placed at index {}",
-                            parent->getDiaId(),
-                            m.dstNode.getDiaId(),
-                            m.dstIndex));
-                } else {
-                    HSLOG_INFO(
-                        _cat,
-                        hstd::fmt(
-                            "Move operation is required. Parent {} has "
-                            "item with ID {} at index {}, but the move "
-                            "operation requires item with ID {}",
-                            parent->getDiaId(),
-                            parent->at(m.dstIndex)->getDiaId(),
-                            m.dstIndex,
-                            m.dstNode.getDiaId()));
-                    treeModel->beginEditApply(edit);
-                    parent->moveSubnode(m.srcIndex, m.dstIndex);
-                    treeModel->endEditApply(edit);
-                }
-                break;
-            }
-
-            case DiaEdit::Kind::Insert: {
-                treeModel->beginEditApply(edit);
-                DiaSceneItem* parent = getItemForPath(
-                    edit.getDst().getParentPathFromRoot());
-                auto newNode = addAdapterRec(edit.getDst());
-                parent->insertSubnode(
-                    std::move(newNode), edit.getInsert().dstIndex);
-                treeModel->endEditApply(edit);
-                break;
-            }
-
-            case DiaEdit::Kind::Update: {
-                treeModel->beginEditApply(edit);
-                DiaSceneItem* item        = getItemForId(edit.getSrc().id);
-                auto          oldSubnodes = item->moveSubnodes();
-                auto          newNode = addAdapterNonRec(edit.getDst());
-                newNode->setSubnodes(std::move(oldSubnodes));
-                DiaSceneItem::UPtr* target = getMutableUPtrAtPath(
-                    edit.getSrc().getSelfPathFromRoot());
-                *target = std::move(newNode);
-                treeModel->endEditApply(edit);
-                break;
-            }
-            default: {
-                logic_todo_impl();
-            }
-        }
-    }
+    for (auto const& edit : edits) { applyPartialEditStep(edit); }
 
     LOGIC_ASSERTION_CHECK(
         originalRoot != rootNode.get(),
         "Non-empty set of edits is guaranteed to change the root node to "
         "a new structure, but the root update has not happened.");
+
+    hstd::logic_assertion_check_not_nil(rootNode.get());
+
+    treeModel->rootNode = rootNode.get();
 
     return rootNode.get();
 }

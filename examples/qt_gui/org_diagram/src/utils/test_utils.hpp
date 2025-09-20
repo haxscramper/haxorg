@@ -71,6 +71,14 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
         : ScopeV12ItemModel{src, dst}
         , signalCatcher{get_tracker(), &model} {}
 
+    QModelIndex indexAt(hstd::Vec<int> const& path) {
+        return model.indexAtPath(path).value();
+    }
+
+    DiaSceneItem* itemViaIndexAt(hstd::Vec<int> const& path) {
+        return static_cast<DiaSceneItem*>(indexAt(path).internalPointer());
+    }
+
     void setV1() {
         HSLOG_TRACE(_cat, "Scene root before setting the adapter");
         scene.logSceneRoot();
@@ -78,8 +86,20 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
         HSLOG_TRACE(_cat, "Scene root after setting the adapter");
         scene.logSceneRoot();
     }
+
+    int editApplyTargetIndex = 0;
+
+    void setV2Step() {
+        scene.applyPartialEditStep(edits.at(editApplyTargetIndex));
+        ++editApplyTargetIndex;
+        if (editApplyTargetIndex == edits.size()) {
+            HSLOG_TRACE(_cat, "Scene root after updating the adapter");
+            scene.logSceneRoot();
+        }
+    }
+
     void setV2() {
-        scene.resetRootAdapter(dstAdapter, edits);
+        scene.resetRootAdapter(edits);
         HSLOG_TRACE(_cat, "Scene root after updating the adapter");
         scene.logSceneRoot();
     }

@@ -110,12 +110,12 @@ struct DiaScene : public QGraphicsScene {
 
     /// \brief Swap the existing scene item structure with the new one
     /// based on the provided edits.
-    DiaSceneItem* resetRootAdapter(
-        DiaAdapter const&           a,
-        std::vector<DiaEdit> const& edits);
+    DiaSceneItem* resetRootAdapter(std::vector<DiaEdit> const& edits);
 
-    /// \brief Create a new scene item based on the adapter data and add it
-    /// to the scene.
+    void applyPartialEditStep(DiaEdit const& edit);
+
+    /// \brief Create a new scene item based on the adapter data and
+    /// add it to the scene.
     DiaSceneItem::UPtr addAdapterNonRec(DiaAdapter const& a);
 
     /// \brief Create a new scene item, recursively, with all the nested

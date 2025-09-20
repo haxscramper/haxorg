@@ -15,10 +15,9 @@ struct SelfRemDiaScene {
 
 struct DiaSceneItem : public QGraphicsItem {
     using UPtr = std::unique_ptr<DiaSceneItem, SelfRemDiaScene>;
-    DiaSceneItem* parent{nullptr};
-    QString       name{};
-    bool          TraceState = false;
-    DiaAdapter    staleAdapter;
+    QString    name{};
+    bool       TraceState = false;
+    DiaAdapter staleAdapter;
 
     bool hasParent() const { return parent != nullptr; }
 
@@ -79,6 +78,7 @@ struct DiaSceneItem : public QGraphicsItem {
     DiaSceneItem* getItemAtPath(hstd::Vec<int> const& path) const {
         DiaSceneItem* res = const_cast<DiaSceneItem*>(this);
         for (auto const& it : path) { res = res->at(it); }
+        hstd::logic_assertion_check_not_nil(res);
         return res;
     }
 
@@ -146,8 +146,11 @@ struct DiaSceneItem : public QGraphicsItem {
         subnodes.at(dstIndex) = std::move(temp);
     }
 
+    DiaSceneItem* getParent();
+
   private:
     std::vector<UPtr> subnodes{};
+    DiaSceneItem*     parent{nullptr};
 };
 
 struct DiaSceneItemCanvas

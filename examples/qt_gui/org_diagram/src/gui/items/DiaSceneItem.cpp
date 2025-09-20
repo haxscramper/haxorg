@@ -1,5 +1,6 @@
 #include "DiaSceneItem.hpp"
 #include <src/gui/DiaScene.hpp>
+#include <sanitizer/asan_interface.h>
 
 hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
     hstd::ColStream                               os;
@@ -46,6 +47,19 @@ org::imm::ImmPath DiaSceneItem::getActivePath() const {
             root->staleAdapter.get()->id.id,
             result_transient.persistent()};
     }
+}
+
+DiaSceneItem* DiaSceneItem::getParent() {
+    if (!getSelfPathFromRoot().empty()) {
+        LOGIC_ASSERTION_CHECK(
+            parent != nullptr,
+            "Non-root node must have the parent assigned");
+        if (__asan_address_is_poisoned(parent)) {
+            __asan_describe_address(parent);
+        }
+        LOGIC_ASSERTION_CHECK(!__asan_address_is_poisoned(parent), "");
+    }
+    return parent;
 }
 
 void SelfRemDiaScene::operator()(DiaSceneItem* item) {
