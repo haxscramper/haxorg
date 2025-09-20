@@ -58,7 +58,6 @@ class DiaSceneItemModelTest : public QObject {
             s.itemViaIndexAt({0, 1})->name.toStdString(), "item 2"_ss);
 
         QPersistentModelIndex rootIndex;
-        QPersistentModelIndex layer1Index = s.indexAt({0});
 
         QSignalSpy deleteSpy{&s.model, &QAbstractItemModel::rowsRemoved};
         QSignalSpy updateSpy{&s.model, &QAbstractItemModel::dataChanged};
@@ -78,18 +77,17 @@ class DiaSceneItemModelTest : public QObject {
         QModelIndex deleteParent   = deleteArgs.at(0).value<QModelIndex>();
         int         deleteFirst    = deleteArgs.at(1).toInt();
         int         deleteLast     = deleteArgs.at(2).toInt();
-        QCOMPARE(deleteParent, layer1Index);
         QCOMPARE(deleteFirst, 1);
         QCOMPARE(deleteLast, 1);
 
-        // Test first update triggered on layer1Index
+        // Test first update triggered on s.indexAt({0})
         QList<QVariant> update1Args    = updateSpy.at(0);
         QModelIndex     update1TopLeft = update1Args.at(0)
                                          .value<QModelIndex>();
         QModelIndex update1BottomRight = update1Args.at(1)
                                              .value<QModelIndex>();
-        QCOMPARE(update1TopLeft, layer1Index);
-        QCOMPARE(update1BottomRight, layer1Index);
+        QCOMPARE(update1TopLeft, s.indexAt({0}));
+        QCOMPARE(update1BottomRight, s.indexAt({0}));
 
         // Test second update triggered on rootIndex
         QList<QVariant> update2Args    = updateSpy.at(1);
@@ -120,7 +118,57 @@ class DiaSceneItemModelTest : public QObject {
 
         visualizeTestDiff(this, scope);
         scope.setV1();
+
+        QCOMPARE_EQ2(scope.model.rowCount(), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0})), 1);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0})->name.toStdString(), "item 1"_ss);
+
+        QPersistentModelIndex rootIndex;
+
+        QSignalSpy insertSpy{
+            &scope.model, &QAbstractItemModel::rowsInserted};
+        QSignalSpy updateSpy{
+            &scope.model, &QAbstractItemModel::dataChanged};
+
         scope.setV2();
+
+        QCOMPARE_EQ2(scope.model.rowCount(), 1);
+        QCOMPARE_EQ2(scope.model.rowCount(scope.indexAt({0})), 2);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 0})->name.toStdString(), "item 1"_ss);
+        QCOMPARE_EQ2(
+            scope.itemViaIndexAt({0, 1})->name.toStdString(), "item 2"_ss);
+
+        QCOMPARE_EQ2(insertSpy.count(), 1);
+        QCOMPARE_EQ2(updateSpy.count(), 2);
+
+        // Test insert triggered at position 1 in layer
+        QList<QVariant> insertArgs = insertSpy.takeFirst();
+        QModelIndex insertParent   = insertArgs.at(0).value<QModelIndex>();
+        int         insertFirst    = insertArgs.at(1).toInt();
+        int         insertLast     = insertArgs.at(2).toInt();
+        QCOMPARE(insertParent, scope.indexAt({0}));
+        QCOMPARE(insertFirst, 1);
+        QCOMPARE(insertLast, 1);
+
+        // Test first update triggered on layer
+        QList<QVariant> update1Args    = updateSpy.at(0);
+        QModelIndex     update1TopLeft = update1Args.at(0)
+                                         .value<QModelIndex>();
+        QModelIndex update1BottomRight = update1Args.at(1)
+                                             .value<QModelIndex>();
+        QCOMPARE(update1TopLeft, scope.indexAt({0}));
+        QCOMPARE(update1BottomRight, scope.indexAt({0}));
+
+        // Test second update triggered on root
+        QList<QVariant> update2Args    = updateSpy.at(1);
+        QModelIndex     update2TopLeft = update2Args.at(0)
+                                         .value<QModelIndex>();
+        QModelIndex update2BottomRight = update2Args.at(1)
+                                             .value<QModelIndex>();
+        QCOMPARE(update2TopLeft, rootIndex);
+        QCOMPARE(update2BottomRight, rootIndex);
     }
 
     void testOneItemSwap() {

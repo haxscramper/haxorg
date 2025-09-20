@@ -148,6 +148,10 @@ std::string qdebug_to_str(T const& index) {
     return output.toStdString();
 }
 
+namespace hstd {
+hstd::Vec<ColText> split(ColText const& text, Str const& delimiter);
+} // namespace hstd
+
 hstd::finally_std trackTestExecution(
     QObject*         testClas,
     hstd::Str const& suffix   = "",

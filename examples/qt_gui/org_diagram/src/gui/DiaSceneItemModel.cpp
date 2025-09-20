@@ -1,5 +1,7 @@
 #include "DiaSceneItemModel.hpp"
 
+#include <sanitizer/asan_interface.h>
+
 hstd::ColText DiaSceneItemModel::format() {
     return printModelTree(
         this,
@@ -9,27 +11,34 @@ hstd::ColText DiaSceneItemModel::format() {
             DiaSceneItem*   ptr = static_cast<DiaSceneItem*>(
                 idx.internalPointer());
             if (ptr == nullptr) {
-                os << "nullptr";
+                os << "nullptr " << qdebug_to_str(idx);
             } else {
-                os << "object-desc:";
-                os << hstd::descObjectPtr(ptr);
-                os << " adapter:";
-                os << hstd::fmt1(ptr->staleAdapter);
-                // os << " self-path:";
-                // os << hstd::fmt1(ptr->getSelfPathFromRoot());
+                os << "object-desc:" << hstd::descObjectPtr(ptr);
+                os << "\nadapter:" << hstd::fmt1(ptr->staleAdapter);
+                os << "\nindex:" << qdebug_to_str(idx);
+                if (ptr->hasParent()) {
+                    os << "\nself-path:"
+                       << hstd::fmt1(ptr->getSelfPathFromRoot());
+                } else {
+                    os << "\nself-path:[]";
+                }
+
+                if (__asan_address_is_poisoned(ptr)) {
+                    __asan_describe_address(ptr);
+                }
 
                 if (ptr->getParent() != nullptr) {
-                    os << " parent:";
-                    os << hstd::descObjectPtr(ptr->getParent());
+                    os << "\nparent:"
+                       << hstd::descObjectPtr(ptr->getParent());
                 }
 
                 auto selfFormat = ptr->formatSelf();
                 switch (selfFormat.size()) {
                     case 0: break;
-                    case 1: os << " " << selfFormat.at(0); break;
+                    case 1: os << "\nself:" << selfFormat.at(0); break;
                     default:
                         for (auto const& line : selfFormat) {
-                            os << "\n";
+                            os << "\nself:";
                             os << line;
                         }
                 }

@@ -85,12 +85,16 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
         scene.setRootAdapter(srcAdapter);
         HSLOG_TRACE(_cat, "Scene root after setting the adapter");
         scene.logSceneRoot();
+        HSLOG_TRACE(_cat, "Tree model after setting the adapter");
+        HSLOG_TRACE(_cat, model.format().toString(false));
     }
 
     void setV2() {
         scene.resetRootAdapter(edits);
         HSLOG_TRACE(_cat, "Scene root after updating the adapter");
         scene.logSceneRoot();
+        HSLOG_TRACE(_cat, "Tree model after updating the adapter");
+        HSLOG_TRACE(_cat, model.format().toString(false));
     }
 };
 

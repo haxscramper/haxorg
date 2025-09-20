@@ -32,6 +32,8 @@ struct DiaSceneItem : public QGraphicsObject {
     }
 
     org::imm::ImmPathStep getRelativeToParent() const {
+        LOGIC_ASSERTION_CHECK(!staleAdapter.id.path.empty(), "");
+        LOGIC_ASSERTION_CHECK(!staleAdapter.id.path.path.empty(), "");
         return staleAdapter.id.path.path.back();
     }
 

@@ -332,7 +332,19 @@ hstd::ColText format_records(hstd::CVec<ModelLevelRecord> records) {
             ;
         }
 
-        os << " " << hstd::ColText{escape_literal(l.finalRepr)};
+        auto splitFinalRepr = hstd::split(l.finalRepr, "\n");
+        if (splitFinalRepr.empty()) {}
+        if (splitFinalRepr.size() == 1) {
+            os << " "
+               << hstd::ColText{escape_literal(splitFinalRepr.at(0))};
+        } else {
+            for (auto const& line : splitFinalRepr) {
+                os << "\n";
+                os.indent(l.depth * 2 + 2);
+                os << " >> " << line;
+            }
+        }
+
 
         for (auto const& role : l.roles) {
             os << "\n";
@@ -422,3 +434,21 @@ bool hasArgsProperty(
     return node.getProperty("propargs", kind).has_value();
 }
 
+hstd::Vec<hstd::ColText> hstd::split(
+    ColText const& text,
+    Str const&     delimiter) {
+    hstd::Vec<ColText> result;
+    ColText            current;
+
+    for (int i = 0; i < text.size(); ++i) {
+        if (text.at(i).rune == delimiter) {
+            result.push_back(current);
+            current.clear();
+        } else {
+            current.push_back(text.at(i));
+        }
+    }
+
+    result.push_back(current);
+    return result;
+}
