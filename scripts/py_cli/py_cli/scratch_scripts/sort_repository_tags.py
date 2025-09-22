@@ -29,6 +29,7 @@ class TagSortingOptions(BaseModel):
     )
 
     output_dir: Path = Field("Directory for all output files")
+    autocomplete_file: Path = Field(default=None, description="Optional file with one tag per line for autocomplete purposes")
 
     cachedir: Optional[Path] = None
 
@@ -87,6 +88,8 @@ def find_duplicate_tags(target_count: Dict[OrgTagDesc, int],
                     if k == l:
                         part_similarity = SequenceMatcher(None, part1, part2).ratio()
                         if part_similarity >= 0.8 and part1 != part2:
+                            if k == 0:
+                                break
                             duplicates.append(("part_similar", tag1, tag2))
                             break
 
@@ -187,11 +190,41 @@ def generate_tag_files(target_count: Dict[OrgTagDesc, int],
     console = Console(file=open(tree_output, "w"), width=120)
     console.print(tree)
     console.file.close()
+    tree_content = tree_output.read_text().replace("│   ", "    ").replace("├── ", "    ").replace("└── ", "    ")
+    tree_output.write_text(tree_content)
     log(CAT).info(f"Wrote tag tree to {tree_output}")
 
     find_duplicate_tags(target_count, duplicates_output=duplicates_output)
     log(CAT).info(f"Wrote duplicate analysis to {duplicates_output}")
 
+    if opts.autocomplete_file and opts.autocomplete_file.exists():
+        autocomplete_output = opts.output_dir / "autocomplete.patch"
+        
+        with open(opts.autocomplete_file, "r") as f:
+            autocomplete_tags = set()
+            for line in f:
+                line = line.strip()
+                if line:
+                    tag_parts = tuple(line.lstrip("#").split("##"))
+                    autocomplete_tags.add(OrgTagDesc(tag=tag_parts))
+        
+        all_referenced_tags = target_tags | glossary_usage
+        
+        tags_to_add = all_referenced_tags - autocomplete_tags
+        tags_to_remove = autocomplete_tags - all_referenced_tags
+        
+        with open(autocomplete_output, "w") as f:
+            f.write("--- autocomplete_old\n")
+            f.write("+++ autocomplete_new\n")
+            f.write("@@ -1,1 +1,1 @@\n")
+            
+            for tag in sorted(tags_to_remove, key=lambda x: "##".join(x.tag)):
+                f.write(f"-#{'##'.join(tag.tag)}\n")
+            
+            for tag in sorted(tags_to_add, key=lambda x: "##".join(x.tag)):
+                f.write(f"+#{'##'.join(tag.tag)}\n")
+        
+        log(CAT).info(f"Wrote autocomplete patch to {autocomplete_output}")
 
 @click.command()
 @click.option("--config",
