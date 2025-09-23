@@ -53,6 +53,13 @@ std::vector<DiaEdit> DiaContextStore::getDiaEdits(
     return ::getEdits(getDiaRoot(lhsVer), getDiaRoot(rhsVer), conf);
 }
 
+DiaAdapter DiaContextStore::buildTree(
+    org::imm::ImmAdapter const& adapter) {
+    dia_trees.insert_or_assign(
+        adapter.uniq(), FromDocument(dia_context, adapter));
+    return dia_trees.at(adapter.uniq());
+}
+
 DiaContextStore::DiaContextStore(
     org::imm::ImmAstContext::Ptr context,
     DiaContext::Ptr              dia_context)

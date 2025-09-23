@@ -84,6 +84,8 @@ struct DiaContextStore
     int                                                 active = 0;
     hstd::UnorderedMap<org::imm::ImmUniqId, DiaAdapter> dia_trees;
 
+    DiaAdapter buildTree(org::imm::ImmAdapter const& adapter);
+
     int addHistory(org::imm::ImmAstVersion const&);
 
     /// Set the current version of the document -- this will push a new

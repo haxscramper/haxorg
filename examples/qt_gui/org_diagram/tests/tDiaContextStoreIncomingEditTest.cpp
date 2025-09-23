@@ -1,10 +1,9 @@
-#include <src/model/DiaNodeTreeModel.hpp>
 #include <QTest>
+#include <haxorg/sem/SemBaseApi.hpp>
 #include <src/model/DiaContextStore.hpp>
 #include <src/utils/common.hpp>
 #include <src/utils/test_utils.hpp>
-#include <QTimer>
-#include <QSignalSpy>
+#include <src/model/nodes/DiagramTreeNode.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "test.history"
@@ -14,11 +13,12 @@ using namespace test;
 using S  = DiaContextStore;
 using EC = S::EditCmd;
 
-class DebugTarget : public QObject {
+class DiaContextStoreIncomingEditTest : public QObject {
+    Q_OBJECT
+  public:
   public slots:
-    void run_thing() {
-        auto __scope = trackTestExecution(this);
-
+    void testDiagramTreeRemove() {
+        auto                 __scope = trackTestExecution(this);
         ScopeDiaContextEdits scope;
 
         auto res = scope.setText(makeLayerText(
@@ -32,15 +32,9 @@ class DebugTarget : public QObject {
             .edits = {EC{EC::RemoveDiaNode{
                 .target = S::EditTarget{
                     S::EditTarget::Existing{.target = res.dia.id}}}}}});
-
-
-        QApplication::quit();
     }
 };
 
-int main(int argc, char** argv) {
-    QApplication app(argc, argv);
-    DebugTarget  dt;
-    QTimer::singleShot(0, &dt, &DebugTarget::run_thing);
-    return app.exec();
-}
+
+HAXORG_QT_TEST_MAIN(DiaContextStoreIncomingEditTest)
+#include "tDiaContextStoreIncomingEditTest.moc"

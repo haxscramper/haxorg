@@ -7,21 +7,23 @@
 #include <src/gui/DiaScene.hpp>
 
 namespace test {
-struct ScopeV12 {
+struct ScopeManaged {
     org::imm::ImmAstContext::Ptr imm_context;
-    hstd::SPtr<DiaContext>       dia_context;
-    DiaContextStore              manager;
-    ScopeV12()
+    DiaContext::Ptr              dia_context;
+    DiaContextStore::Ptr         manager;
+    ScopeManaged()
         : imm_context{org::imm::ImmAstContext::init_start_context()}
         , dia_context{DiaContext::shared()}
-        , manager{imm_context, dia_context} //
+        , manager{DiaContextStore::shared(imm_context, dia_context)} //
     {}
+};
 
+struct ScopeV12 : public ScopeManaged {
     org::imm::ImmAdapter getRootV1() const {
-        return manager.getImmRoot(0);
+        return manager->getImmRoot(0);
     }
     org::imm::ImmAdapter getRootV2() const {
-        return manager.getImmRoot(1);
+        return manager->getImmRoot(1);
     }
 };
 
@@ -100,6 +102,20 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
         HSLOG_TRACE(_cat, "Tree model after updating the adapter");
         HSLOG_TRACE(_cat, model.format().toString(false));
     }
+};
+
+struct ScopeDiaContextEdits : public ScopeManaged {
+    DiaSceneItemModel model;
+    DiaScene          scene;
+    ScopeDiaContextEdits() : scene{&model} {}
+
+    struct TextSetResult {
+        DiaAdapter           dia;
+        org::imm::ImmAdapter imm;
+        int                  rootIndex;
+    };
+
+    TextSetResult setText(std::string const& text);
 };
 
 std::string makeItemText(DiaNodeItemParams const& conf);

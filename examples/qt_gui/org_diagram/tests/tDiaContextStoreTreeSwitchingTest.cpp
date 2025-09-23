@@ -10,7 +10,7 @@
 
 using namespace test;
 
-class HistoryManagerTest : public QObject {
+class DiaContextStoreTreeSwitchingTest : public QObject {
     Q_OBJECT
 
 
@@ -51,7 +51,7 @@ class HistoryManagerTest : public QObject {
     void testTreeEdits() {
         auto     __scope = trackTestExecution(this);
         ScopeV12 scope;
-        scope.manager.addDocument(R"(
+        scope.manager->addDocument(R"(
 * layer 1
 ** item 1
     :properties:
@@ -59,7 +59,7 @@ class HistoryManagerTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )");
-        scope.manager.addDocument(R"(
+        scope.manager->addDocument(R"(
 * layer 1
 ** item 1
     :properties:
@@ -838,5 +838,5 @@ class HistoryManagerTest : public QObject {
     }
 };
 
-HAXORG_QT_TEST_MAIN(HistoryManagerTest)
-#include "tHistoryManagerTest.moc"
+HAXORG_QT_TEST_MAIN(DiaContextStoreTreeSwitchingTest)
+#include "tDiaContextStoreTreeSwitchingTest.moc"

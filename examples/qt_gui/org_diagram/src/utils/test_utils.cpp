@@ -52,8 +52,8 @@ test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
     HSLOG_INFO("test", "src:\n", src);
     HSLOG_INFO("test", "dst:\n", dst);
 
-    manager.addDocument(src);
-    manager.addDocument(dst);
+    manager->addDocument(src);
+    manager->addDocument(dst);
 
     org::imm::ImmAdapter::TreeReprConf conf;
     conf.with_field(&org::imm::ImmSubtree::properties);
@@ -83,4 +83,35 @@ test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
         hstd::indent(dstAdapter.format().toString(false), 2));
 
     log_collection("test", hstd::log::severity_level::trace, edits).end();
+}
+
+test::ScopeDiaContextEdits::TextSetResult test::ScopeDiaContextEdits::
+    setText(const std::string& text) {
+    HSLOG_INFO("test", "text:\n", text);
+    TextSetResult res;
+
+    res.rootIndex = manager->addDocument(text);
+
+    org::imm::ImmAdapter::TreeReprConf conf;
+    conf.with_field(&org::imm::ImmSubtree::properties);
+
+    HSLOG_INFO(
+        "test",
+        "srcRoot:\n",
+        hstd::indent(
+            manager->getImmRoot(res.rootIndex)
+                .treeRepr(conf)
+                .toString(false),
+            2));
+
+    res.imm = manager->getImmRoot(res.rootIndex);
+    res.dia = manager->buildTree(res.imm);
+
+
+    HSLOG_INFO(
+        "test",
+        "srcAdapter:\n",
+        hstd::indent(res.dia.format().toString(false), 2));
+
+    return res;
 }
