@@ -535,6 +535,8 @@ struct DiaAdapter {
     int            size() const { return ctx->at(id)->subnodes.size(); }
     DiaNode const* get() const { return ctx->at(id); }
 
+    org::imm::ImmAdapter getImmAdapter() const { return get()->id; }
+
     DiaId getDiaId() const {
         hstd::logic_assertion_check_not_nil(id.id);
         return id.id;
@@ -551,6 +553,15 @@ struct DiaAdapter {
 
     hstd::Vec<int> getSelfPathFromRoot() const {
         return id.getSelfPathFromRoot();
+    }
+
+    int getSelfIndex() const {
+        return id.path.path.back().path.last().getIndex().index;
+    }
+
+    DiaAdapter getParent() const {
+        return DiaAdapter{
+            DiaUniqId{ctx->at(id.path.pop()), id.path.pop()}, ctx};
     }
 
     DiaAdapter at(DiaId const& at_id, org::imm::ImmPathStep const& step)

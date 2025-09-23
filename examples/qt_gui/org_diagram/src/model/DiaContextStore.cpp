@@ -5,9 +5,7 @@
 #include <hstd/stdlib/Debug.hpp>
 
 #include <vector>
-#include <unordered_map>
-#include <unordered_set>
-#include <queue>
+#include <haxorg/sem/ImmOrgEdit.hpp>
 
 using namespace hstd;
 
@@ -70,6 +68,43 @@ DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
 
     DiaContextStore::EditApplyResult res;
 
+    auto get_target = [&](EditTarget const& target) -> DiaAdapter {
+        if (target.isExisting()) {
+            return DiaAdapter{target.getExisting().target, dia_context};
+        } else {
+            logic_todo_impl();
+        }
+    };
+
+    for (auto const& edit : edits.edits) {
+        switch (edit.getKind()) {
+            case EditCmd::Kind::RemoveDiaNode: {
+
+
+                DiaAdapter adapter = get_target(
+                    edit.getRemoveDiaNode().target);
+
+                DiaAdapter parent = adapter.getParent();
+
+                org::imm::ImmAstVersion vEdit //
+                    = getEditVersion(
+                        [&](org::imm::ImmAstContext::Ptr ctx,
+                            org::imm::ImmAstEditContext& edit)
+                            -> org::imm::ImmAstReplaceGroup {
+                            return org::imm::dropSubnode(
+                                parent.getImmAdapter(),
+                                adapter.getSelfIndex(),
+                                edit);
+                        });
+
+                break;
+            }
+
+            default: {
+            }
+        }
+    }
+
     return res;
 }
 
@@ -85,6 +120,13 @@ int DiaContextStore::addHistory(const org::imm::ImmAstVersion& version) {
 int DiaContextStore::addDocument(const std::string& document) {
     auto version = imm_context->addRoot(org::parseString(document));
     return addHistory(version);
+}
+
+org::imm::ImmAstVersion DiaContextStore::getEditVersion(
+    std::function<org::imm::ImmAstReplaceGroup(
+        org::imm::ImmAstContext::Ptr,
+        org::imm::ImmAstEditContext&)> cb) {
+    return getActiveImmVersion().getEditVersion(cb);
 }
 
 

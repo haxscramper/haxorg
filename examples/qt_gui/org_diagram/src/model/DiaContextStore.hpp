@@ -84,7 +84,16 @@ struct DiaContextStore
     int                                                 active = 0;
     hstd::UnorderedMap<org::imm::ImmUniqId, DiaAdapter> dia_trees;
 
+    org::imm::ImmAstVersion getEditVersion(
+        std::function<org::imm::ImmAstReplaceGroup(
+            org::imm::ImmAstContext::Ptr,
+            org::imm::ImmAstEditContext&)> cb);
+
     DiaAdapter buildTree(org::imm::ImmAdapter const& adapter);
+
+    org::imm::ImmAstVersion getActiveImmVersion() const {
+        return history.at(active);
+    }
 
     int addHistory(org::imm::ImmAstVersion const&);
 
