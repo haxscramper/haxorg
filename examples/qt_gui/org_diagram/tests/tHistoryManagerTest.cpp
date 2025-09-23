@@ -1,6 +1,6 @@
 #include <QTest>
 #include <haxorg/sem/SemBaseApi.hpp>
-#include <src/model/HistoryManager.hpp>
+#include <src/model/DiaContextStore.hpp>
 #include <src/utils/common.hpp>
 #include <src/utils/test_utils.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
@@ -33,15 +33,17 @@ class HistoryManagerTest : public QObject {
 
   private slots:
     void testFromRegularText() {
-        HistoryManager manager{
-            org::imm::ImmAstContext::init_start_context()};
+        DiaContextStore manager{
+            org::imm::ImmAstContext::init_start_context(),
+            DiaContext::shared()};
         manager.addDocument("*bold*");
         manager.addDocument("/italic/");
     }
 
     void testGetSimpleDifference() {
-        HistoryManager manager{
-            org::imm::ImmAstContext::init_start_context()};
+        DiaContextStore manager{
+            org::imm::ImmAstContext::init_start_context(),
+            DiaContext::shared()};
         manager.addDocument("word");
         manager.addDocument("word second");
     }
@@ -65,7 +67,7 @@ class HistoryManagerTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )");
-        auto treeV1 = FromDocument(scope.tree_context, scope.getRootV1());
+        auto treeV1 = FromDocument(scope.dia_context, scope.getRootV1());
 
         HSLOG_INFO(
             _cat,

@@ -16,7 +16,7 @@ class DiaNodeTest : public QObject {
         ScopeDiagramTree scope;
         auto             v1   = scope.getAdapter("* document level");
         auto             tree = FromDocument(
-            scope.tree_context,
+            scope.dia_context,
             v1.getRootAdapter().as<org::imm::ImmDocument>());
     }
 
@@ -41,7 +41,7 @@ class DiaNodeTest : public QObject {
         HSLOG_INFO(
             "test", v1.getRootAdapter().treeRepr(conf).toString(false));
         auto canvas = FromDocument(
-            scope.tree_context,
+            scope.dia_context,
             v1.getRootAdapter().as<org::imm::ImmDocument>());
         QVERIFY(canvas.as<DiaNodeCanvas>() != nullptr);
         QCOMPARE_EQ2(canvas.get()->id.getKind(), OrgSemKind::Document);

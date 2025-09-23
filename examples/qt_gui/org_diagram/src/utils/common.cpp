@@ -2,6 +2,7 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <qsortfilterproxymodel.h>
 #include <hstd/stdlib/Map.hpp>
+#include <src/model/DiaContextStore.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <QModelIndex>
@@ -451,4 +452,11 @@ hstd::Vec<hstd::ColText> hstd::split(
 
     result.push_back(current);
     return result;
+}
+
+void q_register_metatypes() {
+    qRegisterMetaType<DiaContextStore::EditTarget>();
+    qRegisterMetaType<DiaContextStore::EditCmd>();
+    qRegisterMetaType<DiaContextStore::EditGroup>();
+    qRegisterMetaType<DiaContextStore::EditApplyResult>();
 }

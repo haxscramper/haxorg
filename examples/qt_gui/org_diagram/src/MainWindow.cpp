@@ -4,10 +4,10 @@
 #include <qstatusbar.h>
 
 DiaSelectionManager::DiaSelectionManager(
-    DiagramView*        view,
-    QTreeView*          treeView,
+    DiagramView*       view,
+    QTreeView*         treeView,
     DiaSceneItemModel* model,
-    QObject*            parent)
+    QObject*           parent)
     : QObject{parent}
     , diagramView{view}
     , treeView{treeView}
@@ -311,14 +311,14 @@ void MainWindow::loadFile(const QString& path) {
     {
         HSLOG_INFO(_cat, "Add document to history manager");
         HSLOG_DEPTH_SCOPE_ANON();
-        history_manager.addDocument(hstd::readFile(p));
+        history_manager->addDocument(hstd::readFile(p));
     }
     DiaAdapter adapter;
     {
         HSLOG_INFO(_cat, "Convert document to dia adapter");
         HSLOG_DEPTH_SCOPE_ANON();
         adapter = FromDocument(
-            tree_context, history_manager.getActiveRoot());
+            dia_context, history_manager->getActiveImmRoot());
     }
     {
         HSLOG_INFO(_cat, "Set root adapter to scene");

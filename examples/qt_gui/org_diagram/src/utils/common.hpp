@@ -177,6 +177,7 @@ hstd::ColText printModelTree(
         QT_PREPEND_NAMESPACE(                                             \
             QTest::Internal::callInitMain)<Test_Class>();                 \
         qInstallMessageHandler(customMessageHandler);                     \
+        q_register_metatypes();                                           \
         QTEST_QAPP_SETUP(QApplication);                                   \
         Test_Class tc;                                                    \
         hstd::log::push_sink(hstd::log::init_file_sink(                   \
@@ -328,3 +329,5 @@ bool hasJsonProperty(
 bool hasArgsProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
     std::string const&                                 kind);
+
+void q_register_metatypes();

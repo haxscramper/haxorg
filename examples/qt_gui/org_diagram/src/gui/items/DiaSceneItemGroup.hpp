@@ -13,6 +13,17 @@ struct DiaSceneItemGroup : public DiaSceneItemVisual {
     QColor                           groupColor{Qt::lightGray};
     std::vector<DiaSceneItemVisual*> groupedNodes{};
 
+    virtual void setNodeTreeData(
+        org::imm::ImmAdapter const& adapter) override {
+        logic_todo_impl();
+    }
+
+    virtual std::shared_ptr<org::imm::ImmOrg> getNodeTreeData()
+        const override {
+        logic_todo_impl();
+        return nullptr;
+    }
+
     DiaSceneItemGroup(DiaAdapter const& staleAdapter)
         : DiaSceneItemVisual{staleAdapter} {
         bounds = QRectF{0, 0, 200, 150};

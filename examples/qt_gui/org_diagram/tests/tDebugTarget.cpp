@@ -1,6 +1,6 @@
 #include <src/model/DiaNodeTreeModel.hpp>
 #include <QTest>
-#include <src/model/HistoryManager.hpp>
+#include <src/model/DiaContextStore.hpp>
 #include <src/utils/common.hpp>
 #include <src/utils/test_utils.hpp>
 #include <QTimer>

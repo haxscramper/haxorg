@@ -4,7 +4,6 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <QObject>
 #include <haxorg/sem/ImmOrg.hpp>
-#include <src/model/HistoryManager.hpp>
 #include <hstd/ext/graphviz.hpp>
 
 #define _cat "model.diagram"

@@ -27,6 +27,12 @@ struct DiaSceneItem : public QGraphicsObject {
           const QStyleOptionGraphicsItem* option,
           QWidget*                        widget) override {}
 
+    /// \brief Import AST information to the scene item
+    virtual void setNodeTreeData(org::imm::ImmAdapter const& adapter) = 0;
+    /// \brief Pack the scene item information into a newly constructed
+    /// immutable AST value object.
+    virtual std::shared_ptr<org::imm::ImmOrg> getNodeTreeData() const = 0;
+
     virtual hstd::Vec<hstd::ColText> formatSelf() const {
         return {hstd::ColText{"DiaSceneItem " + name.toStdString()}};
     }
@@ -141,6 +147,17 @@ struct DiaSceneItemCanvas
     hstd::Vec<hstd::ColText> formatSelf() const override {
         return {hstd::ColText{"DiaSceneItemCanvas " + name.toStdString()}};
     }
+
+    virtual void setNodeTreeData(
+        org::imm::ImmAdapter const& adapter) override {
+        logic_todo_impl();
+    }
+
+    virtual std::shared_ptr<org::imm::ImmOrg> getNodeTreeData()
+        const override {
+        logic_todo_impl();
+        return nullptr;
+    }
 };
 
 struct DiaSceneItemLayer : public DiaSceneItem {
@@ -149,5 +166,16 @@ struct DiaSceneItemLayer : public DiaSceneItem {
 
     hstd::Vec<hstd::ColText> formatSelf() const override {
         return {hstd::ColText{"DiaSceneItemLayer " + name.toStdString()}};
+    }
+
+    virtual void setNodeTreeData(
+        org::imm::ImmAdapter const& adapter) override {
+        logic_todo_impl();
+    }
+
+    virtual std::shared_ptr<org::imm::ImmOrg> getNodeTreeData()
+        const override {
+        logic_todo_impl();
+        return nullptr;
     }
 };

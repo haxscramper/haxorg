@@ -1,4 +1,4 @@
-#include "HistoryManager.hpp"
+#include "DiaContextStore.hpp"
 
 #include <hstd/stdlib/diffs.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
@@ -46,28 +46,27 @@ SeqEditPairs extractDeleteInsertPairs(const Vec<SeqEdit>& edits) {
     return result;
 }
 
-hstd::Vec<HistoryManager::AstEdit> HistoryManager::getDifference(
-    int lhsVer,
-    int rhsVer) const {
-    hstd::Vec<AstEdit> result;
-
-    // temporary placeholder -- registers a complete AST change between to
-    // AST trees.
-    result.push_back(AstEdit{AstEdit::Delete{
-        .id = getRoot(lhsVer).uniq(),
-    }});
-
-    result.push_back(AstEdit{AstEdit::Insert{
-        .id = getRoot(rhsVer).uniq(),
-    }});
-
-    return result;
+std::vector<DiaEdit> DiaContextStore::getDiaEdits(
+    int                lhsVer,
+    int                rhsVer,
+    DiaEditConf const& conf) const {
+    return ::getEdits(getDiaRoot(lhsVer), getDiaRoot(rhsVer), conf);
 }
 
-HistoryManager::HistoryManager(org::imm::ImmAstContext::Ptr context)
-    : context{context} {}
+DiaContextStore::DiaContextStore(
+    org::imm::ImmAstContext::Ptr context,
+    DiaContext::Ptr              dia_context)
+    : imm_context{context}, dia_context{dia_context} {}
 
-int HistoryManager::addHistory(const org::imm::ImmAstVersion& version) {
+DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
+    const EditGroup& edits) {
+
+    DiaContextStore::EditApplyResult res;
+
+    return res;
+}
+
+int DiaContextStore::addHistory(const org::imm::ImmAstVersion& version) {
     if (active != history.high()) {
         history.erase(history.begin() + active, history.end());
     }
@@ -76,7 +75,10 @@ int HistoryManager::addHistory(const org::imm::ImmAstVersion& version) {
     return active;
 }
 
-int HistoryManager::addDocument(const std::string& document) {
-    auto version = context->addRoot(org::parseString(document));
+int DiaContextStore::addDocument(const std::string& document) {
+    auto version = imm_context->addRoot(org::parseString(document));
     return addHistory(version);
 }
+
+
+#include "DiaContextStore.moc"

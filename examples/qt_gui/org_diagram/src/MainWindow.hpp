@@ -13,6 +13,7 @@
 #include <src/gui/DiagramView.hpp>
 #include <src/gui/DiaSceneItemModel.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <src/model/DiaContextStore.hpp>
 
 struct StartupArgc {
     std::string documentPath;
@@ -24,10 +25,10 @@ class DiaSelectionManager : public QObject {
 
   public:
     DiaSelectionManager(
-        DiagramView*        view,
-        QTreeView*          treeView,
+        DiagramView*       view,
+        QTreeView*         treeView,
         DiaSceneItemModel* model,
-        QObject*            parent = nullptr);
+        QObject*           parent = nullptr);
 
   private slots:
     void onSceneSelectionChanged(
@@ -43,8 +44,8 @@ class DiaSelectionManager : public QObject {
     void setupConnections();
 
   private:
-    DiagramView*        diagramView;
-    QTreeView*          treeView;
+    DiagramView*       diagramView;
+    QTreeView*         treeView;
     DiaSceneItemModel* treeModel;
     bool updatingSelection{false}; // Prevent infinite recursion
 };
@@ -59,7 +60,7 @@ struct MainWindow : public QMainWindow {
     DiagramView*                 view{};
     QSpinBox*                    gridSnapBox{};
     QTreeView*                   treeView{};
-    DiaSceneItemModel*          treeModel{};
+    DiaSceneItemModel*           treeModel{};
     QWidget*                     propertiesPanel{};
     QVBoxLayout*                 propertiesLayout{};
     QPushButton*                 createEdgeButton{};
@@ -70,17 +71,20 @@ struct MainWindow : public QMainWindow {
     QLabel*                      zoomLabel{};
     QPushButton*                 zoomFitButton{};
     DiaSelectionManager*         selectionManager{};
-    org::imm::ImmAstContext::Ptr context;
-    HistoryManager               history_manager;
-    hstd::SPtr<DiaContext>       tree_context;
+    org::imm::ImmAstContext::Ptr imm_context;
+    DiaContext::Ptr              dia_context;
+    DiaContextStore::Ptr         history_manager;
 
 
     MainWindow(StartupArgc const& conf)
         : QMainWindow{nullptr}
         , conf{conf}
-        , context{org::imm::ImmAstContext::init_start_context()}
-        , history_manager{context}
-        , tree_context{DiaContext::shared()} {
+        , imm_context{org::imm::ImmAstContext::init_start_context()}
+        , dia_context{DiaContext::shared()}
+        , history_manager{DiaContextStore::shared(
+              imm_context,
+              dia_context)} //
+    {
         setupUI();
         connectSignals();
         loadFile(QString::fromStdString(conf.documentPath));

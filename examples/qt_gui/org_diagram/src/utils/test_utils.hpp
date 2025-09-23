@@ -1,24 +1,28 @@
 #pragma once
 
 #include <haxorg/sem/SemBaseApi.hpp>
-#include <src/model/HistoryManager.hpp>
+#include <src/model/DiaContextStore.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
 #include <src/model/DiaNodeTreeModel.hpp>
 #include <src/gui/DiaScene.hpp>
 
 namespace test {
 struct ScopeV12 {
-    org::imm::ImmAstContext::Ptr context;
-    HistoryManager               manager;
-    hstd::SPtr<DiaContext>       tree_context;
+    org::imm::ImmAstContext::Ptr imm_context;
+    hstd::SPtr<DiaContext>       dia_context;
+    DiaContextStore              manager;
     ScopeV12()
-        : context{org::imm::ImmAstContext::init_start_context()}
-        , manager{context}
-        , tree_context{DiaContext::shared()} //
+        : imm_context{org::imm::ImmAstContext::init_start_context()}
+        , dia_context{DiaContext::shared()}
+        , manager{imm_context, dia_context} //
     {}
 
-    org::imm::ImmAdapter getRootV1() const { return manager.getRoot(0); }
-    org::imm::ImmAdapter getRootV2() const { return manager.getRoot(1); }
+    org::imm::ImmAdapter getRootV1() const {
+        return manager.getImmRoot(0);
+    }
+    org::imm::ImmAdapter getRootV2() const {
+        return manager.getImmRoot(1);
+    }
 };
 
 
@@ -30,17 +34,17 @@ struct ScopeV12DiagramDiff : ScopeV12 {
 };
 
 struct ScopeDiagramTree {
-    org::imm::ImmAstContext::Ptr context;
-    hstd::SPtr<DiaContext>       tree_context;
+    org::imm::ImmAstContext::Ptr imm_context;
+    hstd::SPtr<DiaContext>       dia_context;
 
     org::imm::ImmAstVersion getAdapter(std::string const& text) {
         auto parsed = org::parseString(text);
-        return context->addRoot(parsed);
+        return imm_context->addRoot(parsed);
     }
 
     ScopeDiagramTree()
-        : context{org::imm::ImmAstContext::init_start_context()}
-        , tree_context{DiaContext::shared()} //
+        : imm_context{org::imm::ImmAstContext::init_start_context()}
+        , dia_context{DiaContext::shared()} //
     {}
 };
 

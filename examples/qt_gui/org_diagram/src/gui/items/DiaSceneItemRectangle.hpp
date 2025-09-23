@@ -45,4 +45,15 @@ struct DiaSceneItemRectangle : public DiaSceneItemVisual {
 
         paintText(painter);
     }
+
+    virtual void setNodeTreeData(
+        org::imm::ImmAdapter const& adapter) override {
+        logic_todo_impl();
+    }
+
+    virtual std::shared_ptr<org::imm::ImmOrg> getNodeTreeData()
+        const override {
+        logic_todo_impl();
+        return nullptr;
+    }
 };

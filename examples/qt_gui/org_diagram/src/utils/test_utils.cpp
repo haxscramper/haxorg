@@ -68,8 +68,8 @@ test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
         "dstRoot:\n",
         hstd::indent(getRootV2().treeRepr(conf).toString(false), 2));
 
-    srcAdapter = FromDocument(tree_context, getRootV1());
-    dstAdapter = FromDocument(tree_context, getRootV2());
+    srcAdapter = FromDocument(dia_context, getRootV1());
+    dstAdapter = FromDocument(dia_context, getRootV2());
     edits      = getEdits(srcAdapter, dstAdapter, DiaEditConf{});
 
     HSLOG_INFO(
