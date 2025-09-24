@@ -6,6 +6,10 @@
 #include <src/model/nodes/DiagramTreeNode.hpp>
 #include <QObject>
 
+template <>
+struct std::formatter<org::imm::ImmOrg*>
+    : hstd::std_format_ptr_as_hex<org::imm::ImmOrg> {};
+
 /// \brief Central class to store all versions of the diagram node tree,
 /// switch between active versions and generate edit signals.
 struct DiaContextStore
@@ -27,6 +31,7 @@ struct DiaContextStore
         };
         SUB_VARIANTS(Kind, Data, data, getKind, Existing, LastInserted);
         Data data;
+        DESC_FIELDS(EditTarget, (data));
     };
 
     struct EditCmd {

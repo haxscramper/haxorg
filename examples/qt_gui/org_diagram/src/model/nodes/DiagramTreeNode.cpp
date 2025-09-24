@@ -511,6 +511,12 @@ std::vector<DiaEdit> getEdits(
     return results;
 }
 
+int DiaAdapter::getSelfIndex() const {
+    LOGIC_ASSERTION_CHECK(!id.path.path.empty(), "{}", *this);
+    LOGIC_ASSERTION_CHECK(!id.path.path.back().path.empty(), "{}", *this);
+    return id.path.path.back().path.last().getIndex().index;
+}
+
 hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
     hstd::ColStream                          os;
     hstd::Func<void(DiaAdapter const&, int)> aux;
@@ -624,4 +630,35 @@ hstd::Vec<int> asIndexPath(const org::imm::ImmPath& path) {
         result.push_back(it.path.at(1).getIndex().index);
     }
     return result;
+}
+
+DiaId DiaContext::at(DiaId node, const org::imm::ImmPathStep& item) const {
+    hstd::logic_assertion_check_not_nil(node);
+    if (item.path.isSingle() && item.path.first().isIndex()) {
+        return value<DiaNode>(node).subnodes.at(
+            item.path.first().getIndex().index);
+    } else {
+        hstd::Opt<DiaId> result;
+        switch_dia_ptr(at(node), [&]<typename T>(T const* ptr) {
+            hstd::logic_assertion_check_not_nil(ptr);
+            reflVisitPath<T>(
+                *ptr,
+                item.path,
+                hstd::overloaded{
+                    [&](DiaId const& id) { result = id; },
+                    [&]<typename K>(DiaIdT<K> const& id) {
+                        result = id.toId();
+                    },
+                    [&](auto const& other) {
+                        LOGIC_ASSERTION_CHECK(
+                            false,
+                            "Path {} does not point to a field "
+                            "with ID, resolved to {}",
+                            hstd::fmt1_maybe(item),
+                            hstd::fmt1_maybe(other));
+                    },
+                });
+        });
+        return result.value();
+    }
 }

@@ -65,6 +65,7 @@ DiaContextStore::DiaContextStore(
 
 DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
     const EditGroup& edits) {
+    TRACKED_FUNCTION("applyDiaEdits");
 
     DiaContextStore::EditApplyResult res;
 
@@ -77,14 +78,22 @@ DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
     };
 
     for (auto const& edit : edits.edits) {
+        TRACKED_SCOPE(hstd::fmt("Edit {}", edit));
         switch (edit.getKind()) {
             case EditCmd::Kind::RemoveDiaNode: {
-
-
                 DiaAdapter adapter = get_target(
                     edit.getRemoveDiaNode().target);
 
-                DiaAdapter parent = adapter.getParent();
+                hstd::Opt<DiaAdapter> parent = adapter.getParent();
+                LOGIC_ASSERTION_CHECK(
+                    parent.has_value(),
+                    "Cannot remove node without parent: the adapter {} "
+                    "targets node with no parent",
+                    adapter);
+
+                HSLOG_TRACE(
+                    _cat,
+                    hstd::fmt("adapter:{} parent:{}", adapter, parent));
 
                 org::imm::ImmAstVersion vEdit //
                     = getEditVersion(
@@ -92,7 +101,7 @@ DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
                             org::imm::ImmAstEditContext& edit)
                             -> org::imm::ImmAstReplaceGroup {
                             return org::imm::dropSubnode(
-                                parent.getImmAdapter(),
+                                parent->getImmAdapter(),
                                 adapter.getSelfIndex(),
                                 edit);
                         });

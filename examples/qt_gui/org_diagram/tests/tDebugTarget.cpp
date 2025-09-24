@@ -28,10 +28,13 @@ class DebugTarget : public QObject {
                 ditem(2, "item 2"),
             }));
 
+        DiaAdapter target = res.dia.at(0, true).at(0, true);
+        QVERIFY(target.getKind() == DiaNodeKind::Item);
+
         scope.manager->applyDiaEdits(S::EditGroup{
             .edits = {EC{EC::RemoveDiaNode{
                 .target = S::EditTarget{
-                    S::EditTarget::Existing{.target = res.dia.id}}}}}});
+                    S::EditTarget::Existing{.target = target.id}}}}}});
 
 
         QApplication::quit();

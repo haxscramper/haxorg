@@ -140,8 +140,6 @@ struct [[refl]] DiaId : DiaIdBase {
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
 
-    void assertValid() const;
-
     bool operator<(Id other) const noexcept {
         return getValue() < other.getValue();
     }
@@ -490,36 +488,7 @@ struct DiaContext : hstd::SharedPtrApi<DiaContext> {
     }
 
 
-    DiaId at(DiaId node, const org::imm::ImmPathStep& item) const {
-        node.assertValid();
-        if (item.path.isSingle() && item.path.first().isIndex()) {
-            return value<DiaNode>(node).subnodes.at(
-                item.path.first().getIndex().index);
-        } else {
-            hstd::Opt<DiaId> result;
-            switch_dia_ptr(at(node), [&]<typename T>(T const* ptr) {
-                hstd::logic_assertion_check_not_nil(ptr);
-                reflVisitPath<T>(
-                    *ptr,
-                    item.path,
-                    hstd::overloaded{
-                        [&](DiaId const& id) { result = id; },
-                        [&]<typename K>(DiaIdT<K> const& id) {
-                            result = id.toId();
-                        },
-                        [&](auto const& other) {
-                            LOGIC_ASSERTION_CHECK(
-                                false,
-                                "Path {} does not point to a field "
-                                "with ID, resolved to {}",
-                                hstd::fmt1_maybe(item),
-                                hstd::fmt1_maybe(other));
-                        },
-                    });
-            });
-            return result.value();
-        }
-    }
+    DiaId at(DiaId node, const org::imm::ImmPathStep& item) const;
 
     DiaId at(const org::imm::ImmPath& item) const {
         auto result = item.root;
@@ -555,13 +524,17 @@ struct DiaAdapter {
         return id.getSelfPathFromRoot();
     }
 
-    int getSelfIndex() const {
-        return id.path.path.back().path.last().getIndex().index;
-    }
+    int getSelfIndex() const;
 
-    DiaAdapter getParent() const {
-        return DiaAdapter{
-            DiaUniqId{ctx->at(id.path.pop()), id.path.pop()}, ctx};
+    bool hasParent() const { return 1 < id.path.path.size(); }
+
+    hstd::Opt<DiaAdapter> getParent() const {
+        if (hasParent()) {
+            return DiaAdapter{
+                DiaUniqId{ctx->at(id.path.pop()), id.path.pop()}, ctx};
+        } else {
+            return std::nullopt;
+        }
     }
 
     DiaAdapter at(DiaId const& at_id, org::imm::ImmPathStep const& step)
