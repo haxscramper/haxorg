@@ -28,7 +28,7 @@ hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
 
 org::imm::ImmPath DiaSceneItem::getActivePath() const {
     if (parent == nullptr) {
-        return org::imm::ImmPath{staleAdapter.get()->id.id};
+        return org::imm::ImmPath{staleAdapter->id.id};
     } else {
         org::imm::ImmPath::Store result;
         auto                     result_transient = result.transient();
@@ -38,8 +38,7 @@ org::imm::ImmPath DiaSceneItem::getActivePath() const {
             root = root->parent;
         }
         return org::imm::ImmPath{
-            root->staleAdapter.get()->id.id,
-            result_transient.persistent()};
+            root->staleAdapter->id.id, result_transient.persistent()};
     }
 }
 

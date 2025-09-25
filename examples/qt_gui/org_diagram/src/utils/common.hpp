@@ -14,6 +14,29 @@
 
 namespace hstd {
 
+struct logic_unhandled_kind_error
+    : CRTP_hexception<logic_unhandled_kind_error> {
+    template <IsEnum E>
+    static logic_unhandled_kind_error init(
+        E           kind,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION(),
+        char const* file     = __builtin_FILE()) {
+        auto result = logic_unhandled_kind_error{};
+#if !ORG_EMCC_BUILD
+        result.eager = cpptrace::generate_trace();
+#endif
+        result.msg = hstd::fmt(
+            "Unexpected kind {} (0x{:X}",
+            kind,
+            static_cast<std::underlying_type_t<E>>(kind));
+        result.line     = line;
+        result.file     = file;
+        result.function = function;
+        return result;
+    }
+};
+
 template <class T, class D, class U>
     requires(requires(std::unique_ptr<U, D>::pointer p) {
                 dynamic_cast<std::unique_ptr<T, D>::pointer>(p);
@@ -136,6 +159,9 @@ hstd::ext::Graphviz::Graph                    get_tracker_graph();
     HSLOG_TRACKED_CONNECT(get_tracker(), __VA_ARGS__)
 #define TRACKED_OBJECT(...)                                               \
     HSLOG_TRACKED_OBJECT(get_tracker(), __VA_ARGS__)
+
+#define HSLOG_FMT1(value)                                                 \
+    HSLOG_DEBUG("debug", hstd::fmt("{} = {}", #value, value));
 
 hstd::fs::path getDebugFile(
     QObject*         testClass,

@@ -250,7 +250,7 @@ DiaSceneItem::UPtr DiaScene::addAdapterNonRec(const DiaAdapter& a) {
     switch (a.getKind()) {
         case DiaNodeKind::Group:
         case DiaNodeKind::Item: {
-            auto it    = a.as<DiaNodeItem>();
+            auto it    = a->dyn_cast<DiaNodeItem>();
             auto node  = addNewItem<DiaSceneItemRectangle>(a);
             node->name = QString::fromStdString(
                 it->getSubtree().getCleanTitle());

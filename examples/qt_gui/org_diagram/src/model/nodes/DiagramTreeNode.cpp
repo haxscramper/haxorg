@@ -309,10 +309,7 @@ void diffSubnodes(
     const DiaAdapter&     dstNode,
     std::vector<DiaEdit>& results) {
 
-    if (srcNode.get()->subnodes.empty()
-        && dstNode.get()->subnodes.empty()) {
-        return;
-    }
+    if (srcNode->subnodes.empty() && dstNode->subnodes.empty()) { return; }
 
     HSLOG_TRACE(_cat, hstd::fmt("aux on src:{} dst:{}", srcNode, dstNode));
     HSLOG_DEPTH_SCOPE_ANON();
@@ -517,6 +514,17 @@ int DiaAdapter::getSelfIndex() const {
     return id.path.path.back().path.last().getIndex().index;
 }
 
+hstd::Opt<DiaAdapter> DiaAdapter::getParent() const {
+    if (hasParent()) {
+        HSLOG_FMT1(id);
+        HSLOG_FMT1(id.path);
+        auto parentPath = id.path.pop();
+        return DiaAdapter{DiaUniqId{ctx->at(parentPath), parentPath}, ctx};
+    } else {
+        return std::nullopt;
+    }
+}
+
 hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
     hstd::ColStream                          os;
     hstd::Func<void(DiaAdapter const&, int)> aux;
@@ -531,7 +539,7 @@ hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
 
         os << hstd::fmt(
             "{} ID:{} HASH:0x{:X} UNIQ-ID:{}\n",
-            node.get()->getKind(),
+            node->getKind(),
             node.id.id,
             node_hash,
             node.id);
@@ -560,7 +568,7 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
     aux = [&](G::Graph& gvCluster, DiaAdapter const& it) -> G::Node {
         std::string label;
         if (it.getKind() == DiaNodeKind::Item) {
-            auto item = it.get()->dyn_cast<DiaNodeItem>();
+            auto item = it->dyn_cast<DiaNodeItem>();
             label += item->getSubtree().getCleanTitle();
             label += "\n";
         }

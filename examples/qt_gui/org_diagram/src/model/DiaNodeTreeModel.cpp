@@ -69,7 +69,7 @@ QModelIndex DiaNodeTreeModel::index(
     if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
 
     DiaAdapter parentNode = getNode(parent);
-    if (row < static_cast<int>(parentNode.get()->subnodes.size())) {
+    if (row < static_cast<int>(parentNode->subnodes.size())) {
         return indexForData(row, column, parentNode.at(row, true));
     } else {
         return QModelIndex{};

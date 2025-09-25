@@ -108,9 +108,22 @@ struct [[refl]] DiaId : DiaIdBase {
     static DiaId FromValue(hstd::u64 value) {
         return DiaId{DiaIdBase::FromValue(value)};
     }
-    DiaId(DiaIdBase const& base) : DiaIdBase{base} {};
+    explicit DiaId(DiaIdBase const& base) : DiaIdBase{base} {
+        if (!isNil()) {
+            switch (getKind()) {
+#define __case(__Kind)                                                    \
+    case DiaNodeKind::__Kind: break;
+                EACH_DIAGRAM_KIND(__case);
+#undef __case
+                default: {
+                    throw hstd::logic_unhandled_kind_error::init(
+                        getKind());
+                }
+            }
+        }
+    };
 
-    DiaId(DiaNodeKind kind, NodeIdxT nodeIndex)
+    explicit DiaId(DiaNodeKind kind, NodeIdxT nodeIndex)
         : DiaIdBase{combineFullValue(kind, nodeIndex)} {}
 
     [[refl]] DiaNodeKind getKind() const { return DiaId::getKind(value); }
@@ -176,12 +189,26 @@ struct DiaIdT : public DiaId {
 };
 
 
+template <>
+struct std::formatter<DiaId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const DiaId& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(
+            hstd::fmt("DiaId-{}({})", p.getKind(), p.getNodeIndex()), ctx);
+    }
+};
+
+
 hstd::Vec<int> asIndexPath(org::imm::ImmPath const& path);
 
 struct [[refl]] DiaUniqId {
-    DiaId             id;
+    DiaId             target;
+    DiaId             root;
     org::imm::ImmPath path;
-    DESC_FIELDS(DiaUniqId, (id, path));
+    DESC_FIELDS(DiaUniqId, (target, root, path));
+
+    DiaUniqId(DiaId target, DiaId root, org::imm::ImmPath const& path)
+        : target{target}, root{root}, path{path} {}
 
     hstd::Vec<int> getParentPathFromRoot() const {
         return asIndexPath(path.pop());
@@ -191,18 +218,12 @@ struct [[refl]] DiaUniqId {
         return asIndexPath(path);
     }
 
-    DiaUniqId update(DiaId id) const {
-        auto res = *this;
-        res.id   = id;
-        return res;
-    }
-
     bool operator==(DiaUniqId const& it) const {
-        return id == it.id && path == it.path;
+        return target == it.target && path == it.path && root == it.root;
     }
 
     bool operator<(DiaUniqId const& it) const {
-        return id < it.id && path < it.path;
+        return target < it.target && root < it.root && path < it.path;
     }
 };
 
@@ -210,7 +231,8 @@ template <>
 struct std::hash<DiaUniqId> {
     std::size_t operator()(DiaUniqId const& it) const noexcept {
         std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.id);
+        hstd::hax_hash_combine(result, it.target);
+        hstd::hax_hash_combine(result, it.root);
         hstd::hax_hash_combine(result, it.path);
         return result;
     }
@@ -332,6 +354,9 @@ void switch_dia_id(DiaId node, Func const& cb) {
 
         EACH_DIAGRAM_KIND(_case)
 #undef _case
+        default: {
+            throw hstd::logic_unhandled_kind_error::init(node.getKind());
+        }
     }
 }
 
@@ -445,7 +470,7 @@ struct DiaNodeStore {
     }
 
     DiaNode const* at(DiaId const& id) const {
-        DiaNode const* res;
+        DiaNode const* res = nullptr;
         switch_dia_id(id, [&]<typename K>(DiaIdT<K> id) {
             res = getStore<K>()->at(id);
             LOGIC_ASSERTION_CHECK(
@@ -466,7 +491,7 @@ struct DiaContext : hstd::SharedPtrApi<DiaContext> {
     DESC_FIELDS(DiaContext, (store));
 
     DiaNode const* at(DiaId const& id) const { return store->at(id); }
-    DiaNode const* at(DiaUniqId const& id) const { return at(id.id); }
+    DiaNode const* at(DiaUniqId const& id) const { return at(id.target); }
 
     DiaContext() { store = std::make_shared<DiaNodeStore>(); }
 
@@ -489,12 +514,6 @@ struct DiaContext : hstd::SharedPtrApi<DiaContext> {
 
 
     DiaId at(DiaId node, const org::imm::ImmPathStep& item) const;
-
-    DiaId at(const org::imm::ImmPath& item) const {
-        auto result = item.root;
-        for (auto const& step : item.path) { result = at(result, step); }
-        return result;
-    }
 };
 
 struct DiaAdapter {
@@ -502,18 +521,13 @@ struct DiaAdapter {
     std::shared_ptr<DiaContext> ctx;
 
     int            size() const { return ctx->at(id)->subnodes.size(); }
-    DiaNode const* get() const { return ctx->at(id); }
+    DiaNode const* operator->() const { return ctx->at(id); }
 
-    org::imm::ImmAdapter getImmAdapter() const { return get()->id; }
+    org::imm::ImmAdapter getImmAdapter() const { return ctx->at(id)->id; }
 
     DiaId getDiaId() const {
-        hstd::logic_assertion_check_not_nil(id.id);
-        return id.id;
-    }
-
-    template <typename T>
-    T const* as() const {
-        return get()->dyn_cast<T>();
+        hstd::logic_assertion_check_not_nil(id.target);
+        return id.target;
     }
 
     hstd::Vec<int> getParentPathFromRoot() const {
@@ -528,25 +542,19 @@ struct DiaAdapter {
 
     bool hasParent() const { return 1 < id.path.path.size(); }
 
-    hstd::Opt<DiaAdapter> getParent() const {
-        if (hasParent()) {
-            return DiaAdapter{
-                DiaUniqId{ctx->at(id.path.pop()), id.path.pop()}, ctx};
-        } else {
-            return std::nullopt;
-        }
-    }
+    hstd::Opt<DiaAdapter> getParent() const;
 
     DiaAdapter at(DiaId const& at_id, org::imm::ImmPathStep const& step)
         const {
         hstd::logic_assertion_check_not_nil(at_id);
-        return DiaAdapter{DiaUniqId{at_id, id.path.add(step)}, ctx};
+        return DiaAdapter{
+            DiaUniqId{at_id, id.root, id.path.add(step)}, ctx};
     }
 
     static DiaAdapter Root(DiaId const& id, DiaContext::Ptr const& ctx) {
         hstd::logic_assertion_check_not_nil(id);
         return DiaAdapter{
-            DiaUniqId{id, org::imm::ImmPath{ctx->at(id)->id.id}}, ctx};
+            DiaUniqId{id, id, org::imm::ImmPath{ctx->at(id)->id.id}}, ctx};
     }
 
     struct TreeReprConf {
@@ -564,10 +572,7 @@ struct DiaAdapter {
     hstd::ColText format(TreeReprConf const& conf) const;
     hstd::ColText format() const { return format(TreeReprConf{}); }
 
-    DiaNodeKind getKind() const { return get()->getKind(); }
-
-    DiaAdapter(org::imm::ImmPath const& path, DiaContext::Ptr ctx)
-        : id{ctx->at(path)}, ctx{ctx} {}
+    DiaNodeKind getKind() const { return ctx->at(id)->getKind(); }
 
     DiaAdapter(DiaUniqId id, DiaContext::Ptr ctx) : id{id}, ctx{ctx} {}
 
@@ -599,7 +604,7 @@ template <>
 struct std::formatter<DiaUniqId> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const DiaUniqId& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx(hstd::fmt("{}{}", p.id, p.path), ctx);
+        return hstd::fmt_ctx(hstd::fmt("{} {}", p.id, p.path), ctx);
     }
 };
 
