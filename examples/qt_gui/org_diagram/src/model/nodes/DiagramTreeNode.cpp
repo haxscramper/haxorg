@@ -108,7 +108,7 @@ using NodesByDiaId   = hstd::UnorderedMap<DiaId, std::vector<int>>;
 NodesByDiaId buildNodeIndex(const std::vector<DiaAdapter>& subnodes) {
     NodesByDiaId nodesByDiaId;
     for (int i = 0; i < subnodes.size(); ++i) {
-        nodesByDiaId[subnodes.at(i).id.id].push_back(i);
+        nodesByDiaId[subnodes.at(i).getDiaId()].push_back(i);
     }
     return nodesByDiaId;
 }
@@ -130,7 +130,7 @@ std::optional<int> findMatchingByDiaId(
     const std::vector<DiaAdapter>& srcSubnodes,
     const ProcessedNodes&          processedSrc) {
 
-    auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.id.id);
+    auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.getDiaId());
     if (srcIndicesIt == srcSubnodesByDiaId.end()) { return std::nullopt; }
 
     std::optional<int> matchingSrcIndex;
@@ -173,7 +173,7 @@ bool shouldPreferInsert(
     const ProcessedNodes&          processedDst,
     int                            unprocessedSrcCount) {
 
-    auto dstIndicesIt = dstSubnodesByDiaId.find(dstSubnode.id.id);
+    auto dstIndicesIt = dstSubnodesByDiaId.find(dstSubnode.getDiaId());
     if (dstIndicesIt == dstSubnodesByDiaId.end()) { return false; }
 
     int unprocessedDstCount = countUnprocessedNodes(
@@ -212,11 +212,12 @@ std::optional<MatchCandidate> findBestMatch(
             dstIndex));
     HSLOG_DEPTH_SCOPE_ANON();
 
-    auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.id.id);
+    auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.getDiaId());
     if (srcIndicesIt == srcSubnodesByDiaId.end()) {
         HSLOG_TRACE(
             _cat,
-            hstd::fmt("No DiaId match found for {}", dstSubnode.id.id));
+            hstd::fmt(
+                "No DiaId match found for {}", dstSubnode.getDiaId()));
         return findMatchingByKind(dstSubnode, srcSubnodes, processedSrc)
             .transform(
                 [](int idx) { return MatchCandidate{idx, false, false}; });
@@ -235,7 +236,7 @@ std::optional<MatchCandidate> findBestMatch(
 
         // Compare DiaId (content) instead of DiaUniqId (content +
         // position)
-        bool isExact = srcSubnode.id.id == dstSubnode.id.id;
+        bool isExact = srcSubnode.getDiaId() == dstSubnode.getDiaId();
         bool isMove  = srcIndex != dstIndex;
 
         HSLOG_TRACE(
@@ -355,7 +356,8 @@ void diffSubnodes(
             processedSrc);
 
         if (matchCandidate.has_value()) {
-            auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.id.id);
+            auto srcIndicesIt = srcSubnodesByDiaId.find(
+                dstSubnode.getDiaId());
             if (srcIndicesIt != srcSubnodesByDiaId.end()) {
                 int unprocessedSrcCount = countUnprocessedNodes(
                     srcIndicesIt->second, srcSubnodes, processedSrc);
@@ -436,7 +438,7 @@ void processMatchedSubnodes(
     diffSubnodes(srcSubnode, dstSubnode, results);
 
     // Compare DiaId (content) instead of DiaUniqId (content + position)
-    if (srcSubnode.id.id == dstSubnode.id.id) {
+    if (srcSubnode.getDiaId() == dstSubnode.getDiaId()) {
         if (srcIndex != dstIndex) {
             HSLOG_TRACE(
                 _cat,
@@ -491,13 +493,13 @@ std::vector<DiaEdit> getEdits(
 
     diffSubnodes(srcRoot, dstRoot, results);
 
-    if (srcRoot.id.id != dstRoot.id.id) {
+    if (srcRoot.getDiaId() != dstRoot.getDiaId()) {
         HSLOG_TRACE(
             _cat,
             hstd::fmt(
                 "Creating root Update edit ID mismatch{} -> {}",
-                srcRoot.id.id,
-                dstRoot.id.id));
+                srcRoot.getDiaId(),
+                dstRoot.getDiaId()));
         results.emplace_back(DiaEdit::Update{
             .srcNode  = srcRoot,
             .dstNode  = dstRoot,
@@ -518,8 +520,10 @@ hstd::Opt<DiaAdapter> DiaAdapter::getParent() const {
     if (hasParent()) {
         HSLOG_FMT1(id);
         HSLOG_FMT1(id.path);
-        auto parentPath = id.path.pop();
-        return DiaAdapter{DiaUniqId{ctx->at(parentPath), parentPath}, ctx};
+        org::imm::ImmPath parentPath = id.path.pop();
+        return DiaAdapter{
+            DiaUniqId{ctx->at(id.root, parentPath), id.root, parentPath},
+            ctx};
     } else {
         return std::nullopt;
     }
@@ -533,14 +537,14 @@ hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
         os.indent(level * 2);
         std::size_t node_hash{};
         switch_dia_ptr(
-            node.ctx->at(node.id.id), [&]<typename T>(T const* p) {
+            node.ctx->at(node.id.target), [&]<typename T>(T const* p) {
                 node_hash = std::hash<T>{}(*p);
             });
 
         os << hstd::fmt(
             "{} ID:{} HASH:0x{:X} UNIQ-ID:{}\n",
             node->getKind(),
-            node.id.id,
+            node.id.target,
             node_hash,
             node.id);
         for (auto const& sub : node.sub(true)) { aux(sub, level + 1); }
@@ -669,4 +673,14 @@ DiaId DiaContext::at(DiaId node, const org::imm::ImmPathStep& item) const {
         });
         return result.value();
     }
+}
+
+DiaId DiaContext::at(DiaId root, const org::imm::ImmPath& path) const {
+    DiaId result = root;
+    HSLOG_FMT1(result);
+    for (auto const& step : path.path) {
+        result = at(result, step);
+        HSLOG_FMT1(result);
+    }
+    return result;
 }

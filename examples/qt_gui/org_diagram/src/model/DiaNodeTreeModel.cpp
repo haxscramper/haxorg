@@ -32,7 +32,7 @@ QVariant DiaNodeTreeModel::data(const QModelIndex& index, int role) const {
 
     if (role == Qt::DisplayRole) {
         DiaAdapter node = getNode(index);
-        return std::format("Node {}", node.id.id.format()).c_str();
+        return std::format("Node {}", node.getDiaId().format()).c_str();
     }
 
     return QVariant{};

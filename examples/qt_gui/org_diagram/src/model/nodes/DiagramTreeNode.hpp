@@ -79,9 +79,9 @@ struct std::formatter<org::imm::ImmReflPathItemBase::Deref>
 
 struct [[refl]] DiaId : DiaIdBase {
     BOOST_DESCRIBE_CLASS(DiaId, (DiaIdBase), (), (), ());
-    using IdType   = hstd::u64;
-    using NodeIdxT = hstd::u32;
-
+    using IdType       = hstd::u64;
+    using NodeIdxT     = hstd::u32;
+    using id_mask_type = hstd::u64;
 
     inline static const hstd::u64 NodeIdxMask = 0x000000FFFFFFFFFF; // >>0*0=0,
     inline static const hstd::u64 NodeIdxOffset = 0;
@@ -97,7 +97,11 @@ struct [[refl]] DiaId : DiaIdBase {
             >> DiaIdMaskOffset;
     }
 
-    static IdType combineFullValue(DiaNodeKind kind, NodeIdxT node);
+    static IdType combineFullValue(DiaNodeKind kind, NodeIdxT node) {
+        return (combineMask(kind) << DiaIdMaskOffset)
+             | (hstd::u64(node) << NodeIdxOffset) & NodeIdxMask;
+    }
+
 
     static DiaId Nil() {
         auto res = DiaId::FromValue(0);
@@ -108,6 +112,17 @@ struct [[refl]] DiaId : DiaIdBase {
     static DiaId FromValue(hstd::u64 value) {
         return DiaId{DiaIdBase::FromValue(value)};
     }
+
+    static DiaId FromIndex(hstd::u64 index) {
+        return DiaId::FromValue(index + 1);
+    }
+
+    static DiaId FromMaskedIdx(int index, id_mask_type mask) {
+        auto res = FromIndex(index);
+        res.setMask(mask);
+        return res;
+    }
+
     explicit DiaId(DiaIdBase const& base) : DiaIdBase{base} {
         if (!isNil()) {
             switch (getKind()) {
@@ -206,6 +221,10 @@ struct [[refl]] DiaUniqId {
     DiaId             root;
     org::imm::ImmPath path;
     DESC_FIELDS(DiaUniqId, (target, root, path));
+
+    static DiaUniqId Nil() {
+        return DiaUniqId{DiaId::Nil(), DiaId::Nil(), {}};
+    }
 
     DiaUniqId(DiaId target, DiaId root, org::imm::ImmPath const& path)
         : target{target}, root{root}, path{path} {}
@@ -514,6 +533,7 @@ struct DiaContext : hstd::SharedPtrApi<DiaContext> {
 
 
     DiaId at(DiaId node, const org::imm::ImmPathStep& item) const;
+    DiaId at(DiaId root, org::imm::ImmPath const& path) const;
 };
 
 struct DiaAdapter {
@@ -529,6 +549,8 @@ struct DiaAdapter {
         hstd::logic_assertion_check_not_nil(id.target);
         return id.target;
     }
+
+    DiaId getRootId() const { return id.root; }
 
     hstd::Vec<int> getParentPathFromRoot() const {
         return id.getParentPathFromRoot();
@@ -575,27 +597,21 @@ struct DiaAdapter {
     DiaNodeKind getKind() const { return ctx->at(id)->getKind(); }
 
     DiaAdapter(DiaUniqId id, DiaContext::Ptr ctx) : id{id}, ctx{ctx} {}
-
-    DiaAdapter(
-        DiaId                    id,
-        DiaContext::Ptr          ctx,
-        org::imm::ImmPath const& path)
-        : id{id}, ctx{ctx} {}
-
     DiaAdapter(DiaAdapter const& other) : id{other.id}, ctx{other.ctx} {}
 
-    DiaAdapter() : id{DiaId::Nil()}, ctx{} {}
+    DiaAdapter() : id{DiaUniqId::Nil()}, ctx{} {}
 
     DiaAdapter at(int idx, bool withPath) const {
+        DiaId idAt = ctx->at(id)->subnodes.at(idx);
         if (withPath) {
             return at(
-                ctx->at(id)->subnodes.at(idx),
+                idAt,
                 org::imm::ImmPathStep::FieldIdx(
                     org::imm::ImmReflFieldId::FromTypeField<DiaNode>(
                         &DiaNode::subnodes),
                     idx));
         } else {
-            return DiaAdapter{ctx->at(id)->subnodes.at(idx), ctx, {}};
+            return DiaAdapter{DiaUniqId{idAt, idAt, {}}, ctx};
         }
     }
 };
@@ -604,7 +620,8 @@ template <>
 struct std::formatter<DiaUniqId> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const DiaUniqId& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx(hstd::fmt("{} {}", p.id, p.path), ctx);
+        return hstd::fmt_ctx(
+            hstd::fmt("{} {}/{}", p.target, p.root, p.path), ctx);
     }
 };
 
@@ -613,7 +630,13 @@ struct std::formatter<DiaAdapter> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const DiaAdapter& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(
-            hstd::fmt("{}({} {})", p.getKind(), p.id.id, p.id.path), ctx);
+            hstd::fmt(
+                "{}({} {}/{})",
+                p.getKind(),
+                p.id.target,
+                p.id.root,
+                p.id.path),
+            ctx);
     }
 };
 

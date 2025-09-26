@@ -70,14 +70,17 @@ struct DiaSceneItem : public QGraphicsObject {
 
     DiaAdapter getActiveAdapter() const {
         return DiaAdapter{
-            DiaUniqId{staleAdapter.id.id, getActivePath()},
+            DiaUniqId{
+                staleAdapter.getDiaId(),
+                staleAdapter.getRootId(),
+                getActivePath()},
             staleAdapter.ctx};
     }
 
 
     DiaId getDiaId() const {
-        hstd::logic_assertion_check_not_nil(staleAdapter.id.id);
-        return staleAdapter.id.id;
+        hstd::logic_assertion_check_not_nil(staleAdapter.getDiaId());
+        return staleAdapter.getDiaId();
     }
 
     DiaSceneItem* at(int pos) { return subnodes.at(pos).get(); }
