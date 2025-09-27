@@ -15,11 +15,13 @@ struct DiaScene : public QGraphicsScene {
     Q_OBJECT
 
   public:
-    int                              gridSnap{10};
-    DiaSceneItem::UPtr               rootNode{};
-    DiaSceneItemVisual*              selectedNode{};
-    DiaSceneItemVisual*              arrowSource{};
-    DiaSceneItemModel*               treeModel{nullptr};
+    int                  gridSnap{10};
+    DiaSceneItem::UPtr   rootNode{};
+    DiaSceneItemVisual*  selectedNode{};
+    DiaSceneItemVisual*  arrowSource{};
+    DiaSceneItemModel*   treeModel{nullptr};
+    DiaVersionStore::Ptr version_store;
+
     std::vector<DiaSceneItemVisual*> selectedNodes{};
     bool                             showGrid{true};
     QColor                           gridColor{Qt::lightGray};
@@ -44,25 +46,19 @@ struct DiaScene : public QGraphicsScene {
 
     void logSceneRoot();
 
-    DiaScene(DiaSceneItemModel* treeModel, QObject* parent = nullptr)
-        : QGraphicsScene{parent}, treeModel{treeModel} {}
+    DiaScene(
+        DiaSceneItemModel*   treeModel,
+        DiaVersionStore::Ptr version_store,
+        QObject*             parent = nullptr)
+        : QGraphicsScene{parent}
+        , version_store{version_store}
+        , treeModel{treeModel} {}
 
     void drawBackground(QPainter* painter, const QRectF& rect) override;
 
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override {
-        if (!selectedNode && (event->buttons() & Qt::LeftButton)) {
-            auto img = dynamic_cast<DiaSceneItemImage*>(selectedNode);
-            if (!img || !img->isResizing) {
-                QPointF newPos = event->scenePos()
-                               - selectedNode->dragOffset;
-                selectedNode->setPosition(newPos, gridSnap);
-                return;
-            }
-        }
-        QGraphicsScene::mouseMoveEvent(event);
-    }
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
 
     void updateTreeView() {
         if (treeModel) { treeModel->refresh(); }
@@ -159,6 +155,8 @@ struct DiaScene : public QGraphicsScene {
         gridColor = color;
         invalidate(); // Force redraw
     }
+
+    void deleteSelectedNode();
 
     void setGridSnap(int snap) { gridSnap = snap; }
 

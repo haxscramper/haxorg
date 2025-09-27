@@ -98,6 +98,18 @@ void DiaScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     }
 }
 
+void DiaScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+    if (!selectedNode && (event->buttons() & Qt::LeftButton)) {
+        auto img = dynamic_cast<DiaSceneItemImage*>(selectedNode);
+        if (!img || !img->isResizing) {
+            QPointF newPos = event->scenePos() - selectedNode->dragOffset;
+            selectedNode->setPosition(newPos, gridSnap);
+            return;
+        }
+    }
+    QGraphicsScene::mouseMoveEvent(event);
+}
+
 DiaSceneItem* DiaScene::setRootAdapter(const DiaAdapter& a) {
     TRACKED_FUNCTION("setRootAdapter");
     rootNode            = addAdapterRec(a);
@@ -332,6 +344,17 @@ std::vector<DiaSceneItemVisual*> DiaScene::findCommonParentNodes(
     }
 
     return result;
+}
+
+void DiaScene::deleteSelectedNode() {
+    TRACKED_SLOT("deleteSelectedNode");
+    if (selectedNode == nullptr) {
+        throw hstd::logic_assertion_error::init("No node selected");
+    } else {
+        version_store->applyDiaEdits(
+            DiaVersionStore::EditGroup::Remove1ExistingNode(
+                selectedNode->getActiveAdapter().uniq()));
+    }
 }
 
 void DiaScene::createGroupFromSelection() {

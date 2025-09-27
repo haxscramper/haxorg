@@ -65,6 +65,7 @@ struct MainWindow : public QMainWindow {
     QVBoxLayout*                 propertiesLayout{};
     QPushButton*                 createEdgeButton{};
     QPushButton*                 createGroupButton{};
+    QPushButton*                 deleteSelectedNodeButton{};
     QCheckBox*                   showGridCheck{};
     QPushButton*                 gridColorButton{};
     QSlider*                     zoomSlider{};
@@ -73,7 +74,7 @@ struct MainWindow : public QMainWindow {
     DiaSelectionManager*         selectionManager{};
     org::imm::ImmAstContext::Ptr imm_context;
     DiaContext::Ptr              dia_context;
-    DiaVersionStore::Ptr         history_manager;
+    DiaVersionStore::Ptr         version_store;
 
 
     MainWindow(StartupArgc const& conf)
@@ -81,9 +82,8 @@ struct MainWindow : public QMainWindow {
         , conf{conf}
         , imm_context{org::imm::ImmAstContext::init_start_context()}
         , dia_context{DiaContext::shared()}
-        , history_manager{DiaVersionStore::shared(
-              imm_context,
-              dia_context)} //
+        , version_store{DiaVersionStore::shared(imm_context, dia_context)}
+    //
     {
         setupUI();
         connectSignals();

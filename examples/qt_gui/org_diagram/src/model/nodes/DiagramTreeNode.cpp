@@ -183,13 +183,13 @@ bool shouldPreferInsert(
 }
 
 void processMatchedSubnodes(
-    const DiaAdapter&     srcSubnode,
-    const DiaAdapter&     dstSubnode,
-    int                   srcIndex,
-    int                   dstIndex,
+    const DiaAdapter&   srcSubnode,
+    const DiaAdapter&   dstSubnode,
+    int                 srcIndex,
+    int                 dstIndex,
     hstd::Vec<DiaEdit>& results,
-    ProcessedNodes&       processedSrc,
-    ProcessedNodes&       processedDst);
+    ProcessedNodes&     processedSrc,
+    ProcessedNodes&     processedDst);
 
 struct MatchCandidate {
     int  srcIndex;
@@ -306,8 +306,8 @@ std::optional<MatchCandidate> findBestMatch(
 }
 
 void diffSubnodes(
-    const DiaAdapter&     srcNode,
-    const DiaAdapter&     dstNode,
+    const DiaAdapter&   srcNode,
+    const DiaAdapter&   dstNode,
     hstd::Vec<DiaEdit>& results) {
 
     if (srcNode->subnodes.empty() && dstNode->subnodes.empty()) { return; }
@@ -427,13 +427,13 @@ void diffSubnodes(
 }
 
 void processMatchedSubnodes(
-    const DiaAdapter&     srcSubnode,
-    const DiaAdapter&     dstSubnode,
-    int                   srcIndex,
-    int                   dstIndex,
+    const DiaAdapter&   srcSubnode,
+    const DiaAdapter&   dstSubnode,
+    int                 srcIndex,
+    int                 dstIndex,
     hstd::Vec<DiaEdit>& results,
-    ProcessedNodes&       processedSrc,
-    ProcessedNodes&       processedDst) {
+    ProcessedNodes&     processedSrc,
+    ProcessedNodes&     processedDst) {
 
     diffSubnodes(srcSubnode, dstSubnode, results);
 
@@ -521,6 +521,7 @@ hstd::Opt<DiaAdapter> DiaAdapter::getParent() const {
         HSLOG_FMT1(id);
         HSLOG_FMT1(id.path);
         org::imm::ImmPath parentPath = id.path.pop();
+        HSLOG_FMT1(parentPath);
         return DiaAdapter{
             DiaUniqId{ctx->at(id.root, parentPath), id.root, parentPath},
             ctx};
@@ -555,8 +556,8 @@ hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
 }
 
 hstd::ext::Graphviz::Graph getEditMappingGraphviz(
-    const DiaAdapter&           src,
-    const DiaAdapter&           dst,
+    const DiaAdapter&         src,
+    const DiaAdapter&         dst,
     const hstd::Vec<DiaEdit>& edits) {
     using namespace hstd::ext;
     using G = Graphviz;
@@ -679,6 +680,7 @@ DiaId DiaContext::at(DiaId root, const org::imm::ImmPath& path) const {
     DiaId result = root;
     HSLOG_FMT1(result);
     for (auto const& step : path.path) {
+        HSLOG_FMT1(step);
         result = at(result, step);
         HSLOG_FMT1(result);
     }

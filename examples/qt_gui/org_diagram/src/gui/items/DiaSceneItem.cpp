@@ -30,15 +30,14 @@ org::imm::ImmPath DiaSceneItem::getActivePath() const {
     if (parent == nullptr) {
         return org::imm::ImmPath{staleAdapter->id.id};
     } else {
-        org::imm::ImmPath::Store result;
-        auto                     result_transient = result.transient();
-        DiaSceneItem const*      root             = this;
+        hstd::Vec<org::imm::ImmPathStep> result;
+        DiaSceneItem const*              root = this;
         while (root->hasParent()) {
-            result_transient.push_back(root->getRelativeToParent());
+            result.push_back(root->getRelativeToParent());
             root = root->parent;
         }
-        return org::imm::ImmPath{
-            root->staleAdapter->id.id, result_transient.persistent()};
+        std::reverse(result.begin(), result.end());
+        return org::imm::ImmPath{root->staleAdapter->id.id, result};
     }
 }
 

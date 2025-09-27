@@ -101,7 +101,7 @@ void DiaSelectionManager::setupConnections() {
 
 void MainWindow::setupUI() {
     treeModel = new DiaSceneItemModel{this};
-    scene     = new DiaScene{treeModel, this};
+    scene     = new DiaScene{treeModel, version_store, this};
     view      = new DiagramView{};
     view->setScene(scene);
 
@@ -125,8 +125,9 @@ void MainWindow::setupUI() {
     gridColorButton->setStyleSheet("background-color: lightgray");
 
 
-    createEdgeButton  = new QPushButton{"Create Edge"};
-    createGroupButton = new QPushButton{"Create Group"};
+    createEdgeButton         = new QPushButton{"Create Edge"};
+    createGroupButton        = new QPushButton{"Create Group"};
+    deleteSelectedNodeButton = new QPushButton{"Delete selected node"};
 
     treeView = new QTreeView{};
     treeView->setModel(treeModel);
@@ -157,6 +158,7 @@ void MainWindow::setupUI() {
     leftLayout->addLayout(zoomButtonLayout);
     leftLayout->addWidget(createEdgeButton);
     leftLayout->addWidget(createGroupButton);
+    leftLayout->addWidget(deleteSelectedNodeButton);
     leftLayout->addWidget(new QLabel{"Scene Tree:"});
     leftLayout->addWidget(treeView);
 
@@ -204,6 +206,19 @@ void MainWindow::connectSignals() {
         &QPushButton::clicked,
         scene,
         &DiaScene::createGroupFromSelection);
+
+    connect(
+        deleteSelectedNodeButton,
+        &QPushButton::clicked,
+        scene,
+        &DiaScene::deleteSelectedNode);
+
+    connect(
+        version_store.get(),
+        &DiaVersionStore::diaRootChanged,
+        scene,
+        &DiaScene::diaRootChanged);
+
     connect(
         showGridCheck, &QCheckBox::toggled, scene, &DiaScene::setShowGrid);
     connect(gridColorButton, &QPushButton::clicked, scene, [this]() {
@@ -311,14 +326,14 @@ void MainWindow::loadFile(const QString& path) {
     {
         HSLOG_INFO(_cat, "Add document to history manager");
         HSLOG_DEPTH_SCOPE_ANON();
-        history_manager->addDocument(hstd::readFile(p));
+        version_store->addDocument(hstd::readFile(p));
     }
     DiaAdapter adapter;
     {
         HSLOG_INFO(_cat, "Convert document to dia adapter");
         HSLOG_DEPTH_SCOPE_ANON();
         adapter = FromDocument(
-            dia_context, history_manager->getActiveImmRoot());
+            dia_context, version_store->getActiveImmRoot());
     }
     {
         HSLOG_INFO(_cat, "Set root adapter to scene");

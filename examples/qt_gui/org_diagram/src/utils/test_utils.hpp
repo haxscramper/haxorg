@@ -65,7 +65,7 @@ struct ScopeV12ItemModel : ScopeV12DiagramDiff {
     DiaSceneItemModel model;
     DiaScene          scene;
     ScopeV12ItemModel(std::string const& src, std::string const& dst)
-        : ScopeV12DiagramDiff{src, dst}, scene{&model} {}
+        : ScopeV12DiagramDiff{src, dst}, scene{&model, version_store} {}
 
     void logModel() {
         HSLOG_INFO(_cat, printModelTree(&model).toString(false));
@@ -108,7 +108,7 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
 struct ScopeDiaContextEdits : public ScopeManaged {
     DiaSceneItemModel model;
     DiaScene          scene;
-    ScopeDiaContextEdits() : scene{&model} {
+    ScopeDiaContextEdits() : scene{&model, version_store} {
         QObject::connect(
             version_store.get(),
             &DiaVersionStore::diaRootChanged,

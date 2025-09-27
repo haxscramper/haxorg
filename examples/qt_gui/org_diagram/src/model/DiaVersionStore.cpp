@@ -133,12 +133,24 @@ DiaVersionStore::EditApplyResult DiaVersionStore::applyDiaEdits(
     HSLOG_TRACE(
         _cat,
         hstd::fmt(
+            "dia version:\n{}",
+            getActiveDiaRoot().format().toString(false)));
+
+    HSLOG_TRACE(
+        _cat,
+        hstd::fmt(
             "imm version:\n{}",
             vEdit.getRootAdapter().treeRepr().toString(false)));
 
     for (auto const& edit : edits.edits) { stepEditForward(vEdit, edit); }
 
     addHistory(vEdit);
+
+    HSLOG_TRACE(
+        _cat,
+        hstd::fmt(
+            "dia version:\n{}",
+            getActiveDiaRoot().format().toString(false)));
 
     return res;
 }

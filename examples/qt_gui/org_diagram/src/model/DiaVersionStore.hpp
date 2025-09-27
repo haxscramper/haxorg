@@ -75,6 +75,13 @@ struct DiaVersionStore
     struct EditGroup {
         hstd::Vec<EditCmd> edits;
         DESC_FIELDS(EditGroup, (edits));
+
+        static EditGroup Remove1ExistingNode(DiaUniqId const& id) {
+            return EditGroup{
+                .edits = {EditCmd{EditCmd::RemoveDiaNode{
+                    .target = EditTarget{
+                        EditTarget::Existing{.target = id}}}}}};
+        }
     };
 
     struct EditApplyResult {

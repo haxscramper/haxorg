@@ -545,6 +545,8 @@ struct DiaAdapter {
 
     org::imm::ImmAdapter getImmAdapter() const { return ctx->at(id)->id; }
 
+    DiaUniqId uniq() const { return id; }
+
     DiaId getDiaId() const {
         hstd::logic_assertion_check_not_nil(id.target);
         return id.target;
@@ -723,6 +725,6 @@ hstd::Vec<DiaEdit> getEdits(
 struct DiaEditMappingGraphvizConf {};
 
 hstd::ext::Graphviz::Graph getEditMappingGraphviz(
-    DiaAdapter const&           src,
-    DiaAdapter const&           dst,
+    DiaAdapter const&         src,
+    DiaAdapter const&         dst,
     hstd::Vec<DiaEdit> const& edits);
