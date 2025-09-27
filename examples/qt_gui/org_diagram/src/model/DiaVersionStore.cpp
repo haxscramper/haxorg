@@ -1,4 +1,4 @@
-#include "DiaContextStore.hpp"
+#include "DiaVersionStore.hpp"
 
 #include <hstd/stdlib/diffs.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
@@ -44,26 +44,26 @@ SeqEditPairs extractDeleteInsertPairs(const Vec<SeqEdit>& edits) {
     return result;
 }
 
-hstd::Vec<DiaEdit> DiaContextStore::getDiaEdits(
+hstd::Vec<DiaEdit> DiaVersionStore::getDiaEdits(
     int                lhsVer,
     int                rhsVer,
     DiaEditConf const& conf) {
     return ::getEdits(getDiaRoot(lhsVer), getDiaRoot(rhsVer), conf);
 }
 
-DiaAdapter DiaContextStore::buildTree(
+DiaAdapter DiaVersionStore::buildTree(
     org::imm::ImmAdapter const& adapter) {
     dia_trees.insert_or_assign(
         adapter.uniq(), FromDocument(dia_context, adapter));
     return dia_trees.at(adapter.uniq());
 }
 
-DiaContextStore::DiaContextStore(
+DiaVersionStore::DiaVersionStore(
     org::imm::ImmAstContext::Ptr context,
     DiaContext::Ptr              dia_context)
     : imm_context{context}, dia_context{dia_context} {}
 
-void DiaContextStore::stepEditForward(
+void DiaVersionStore::stepEditForward(
     org::imm::ImmAstVersion& vEdit,
     const EditCmd&           edit) {
     TRACKED_SCOPE(hstd::fmt("Edit {}", edit));
@@ -122,11 +122,11 @@ void DiaContextStore::stepEditForward(
     }
 }
 
-DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
+DiaVersionStore::EditApplyResult DiaVersionStore::applyDiaEdits(
     const EditGroup& edits) {
     TRACKED_FUNCTION("applyDiaEdits");
 
-    DiaContextStore::EditApplyResult res;
+    DiaVersionStore::EditApplyResult res;
 
     auto vEdit = getActiveImmVersion();
 
@@ -143,7 +143,7 @@ DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
     return res;
 }
 
-int DiaContextStore::addHistory(const org::imm::ImmAstVersion& version) {
+int DiaVersionStore::addHistory(const org::imm::ImmAstVersion& version) {
     if (active != history.high()) {
         history.erase(history.begin() + active, history.end());
     }
@@ -165,12 +165,12 @@ int DiaContextStore::addHistory(const org::imm::ImmAstVersion& version) {
     return active;
 }
 
-int DiaContextStore::addDocument(const std::string& document) {
+int DiaVersionStore::addDocument(const std::string& document) {
     auto version = imm_context->addRoot(org::parseString(document));
     return addHistory(version);
 }
 
-org::imm::ImmAstVersion DiaContextStore::getEditVersion(
+org::imm::ImmAstVersion DiaVersionStore::getEditVersion(
     std::function<org::imm::ImmAstReplaceGroup(
         org::imm::ImmAstContext::Ptr,
         org::imm::ImmAstEditContext&)> cb) {
@@ -178,4 +178,4 @@ org::imm::ImmAstVersion DiaContextStore::getEditVersion(
 }
 
 
-#include "DiaContextStore.moc"
+#include "DiaVersionStore.moc"

@@ -1,6 +1,6 @@
 #include <src/model/DiaNodeTreeModel.hpp>
 #include <QTest>
-#include <src/model/DiaContextStore.hpp>
+#include <src/model/DiaVersionStore.hpp>
 #include <src/utils/common.hpp>
 #include <src/utils/test_utils.hpp>
 #include <QTimer>
@@ -11,7 +11,7 @@
 
 using namespace test;
 
-using S  = DiaContextStore;
+using S  = DiaVersionStore;
 using EC = S::EditCmd;
 
 class DebugTarget : public QObject {
@@ -31,10 +31,12 @@ class DebugTarget : public QObject {
                 ditem(2, "item 2"),
             }));
 
+        scope.scene.setRootAdapter(res.dia);
+
         DiaAdapter target = res.dia.at(0, true).at(0, true);
         QVERIFY(target.getKind() == DiaNodeKind::Item);
 
-        scope.manager->applyDiaEdits(S::EditGroup{
+        scope.version_store->applyDiaEdits(S::EditGroup{
             .edits = {EC{EC::RemoveDiaNode{
                 .target = S::EditTarget{
                     S::EditTarget::Existing{.target = target.id}}}}}});

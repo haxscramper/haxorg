@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/model/DiaVersionStore.hpp"
 #include <src/model/nodes/DiagramTreeNode.hpp>
 #include <QGraphicsScene>
 #include <src/gui/items/DiaSceneItemVisual.hpp>
@@ -77,18 +78,10 @@ struct DiaScene : public QGraphicsScene {
         return nullptr;
     }
 
-  public slots:
-    void setShowGrid(bool show) {
-        showGrid = show;
-        invalidate(); // Force redraw
+    DiaSceneItem* root() {
+        hstd::logic_assertion_check_not_nil(rootNode.get());
+        return rootNode.get();
     }
-
-    void setGridColor(const QColor& color) {
-        gridColor = color;
-        invalidate(); // Force redraw
-    }
-
-    void setGridSnap(int snap) { gridSnap = snap; }
 
     DiaSceneItem::UPtr* getMutableUPtrAtPath(hstd::Vec<int> const& path) {
         DiaSceneItem::UPtr* result = &rootNode;
@@ -99,11 +92,11 @@ struct DiaScene : public QGraphicsScene {
     }
 
     DiaSceneItem* getItemForPath(hstd::Vec<int> const& path) {
-        return rootNode->getItemAtPath(path);
+        return root()->getItemAtPath(path);
     }
 
     DiaSceneItem* getItemForId(DiaUniqId const& id) {
-        return rootNode->getItemAtPath(id.getSelfPathFromRoot());
+        return root()->getItemAtPath(id.getSelfPathFromRoot());
     }
 
     DiaSceneItem* setRootAdapter(DiaAdapter const& a);
@@ -147,9 +140,29 @@ struct DiaScene : public QGraphicsScene {
         if (layer) {
             layer->add(std::move(edge));
         } else {
-            rootNode->add(std::move(edge));
+            root()->add(std::move(edge));
         }
     }
+
+    DiaSceneItemGroup* findGroupContaining(DiaSceneItemVisual* node);
+
+    std::vector<DiaSceneItemVisual*> findCommonParentNodes(
+        const std::vector<DiaSceneItemVisual*>& nodes);
+
+  public slots:
+    void setShowGrid(bool show) {
+        showGrid = show;
+        invalidate(); // Force redraw
+    }
+
+    void setGridColor(const QColor& color) {
+        gridColor = color;
+        invalidate(); // Force redraw
+    }
+
+    void setGridSnap(int snap) { gridSnap = snap; }
+
+    void diaRootChanged(DiaVersionStore::DiaRootChange const& change);
 
     void createEdgeFromSelection() {
         if (selectedNodes.size() != 2) {
@@ -184,10 +197,6 @@ struct DiaScene : public QGraphicsScene {
     void addLayer() {}
     void addImage() {}
 
-    DiaSceneItemGroup* findGroupContaining(DiaSceneItemVisual* node);
-
-    std::vector<DiaSceneItemVisual*> findCommonParentNodes(
-        const std::vector<DiaSceneItemVisual*>& nodes);
 
   public slots:
     void createGroupFromSelection();

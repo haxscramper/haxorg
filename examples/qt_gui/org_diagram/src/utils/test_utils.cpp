@@ -52,8 +52,8 @@ test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
     HSLOG_INFO("test", "src:\n", src);
     HSLOG_INFO("test", "dst:\n", dst);
 
-    manager->addDocument(src);
-    manager->addDocument(dst);
+    version_store->addDocument(src);
+    version_store->addDocument(dst);
 
     org::imm::ImmAdapter::TreeReprConf conf;
     conf.with_field(&org::imm::ImmSubtree::properties);
@@ -90,7 +90,7 @@ test::ScopeDiaContextEdits::TextSetResult test::ScopeDiaContextEdits::
     HSLOG_INFO("test", "text:\n", text);
     TextSetResult res;
 
-    res.rootIndex = manager->addDocument(text);
+    res.rootIndex = version_store->addDocument(text);
 
     org::imm::ImmAdapter::TreeReprConf conf;
     conf.with_field(&org::imm::ImmSubtree::properties);
@@ -99,13 +99,13 @@ test::ScopeDiaContextEdits::TextSetResult test::ScopeDiaContextEdits::
         "test",
         "srcRoot:\n",
         hstd::indent(
-            manager->getImmRoot(res.rootIndex)
+            version_store->getImmRoot(res.rootIndex)
                 .treeRepr(conf)
                 .toString(false),
             2));
 
-    res.imm = manager->getImmRoot(res.rootIndex);
-    res.dia = manager->buildTree(res.imm);
+    res.imm = version_store->getImmRoot(res.rootIndex);
+    res.dia = version_store->buildTree(res.imm);
 
 
     HSLOG_INFO(

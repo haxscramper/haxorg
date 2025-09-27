@@ -13,7 +13,7 @@
 #include <src/gui/DiagramView.hpp>
 #include <src/gui/DiaSceneItemModel.hpp>
 #include <hstd/stdlib/Debug.hpp>
-#include <src/model/DiaContextStore.hpp>
+#include <src/model/DiaVersionStore.hpp>
 
 struct StartupArgc {
     std::string documentPath;
@@ -73,7 +73,7 @@ struct MainWindow : public QMainWindow {
     DiaSelectionManager*         selectionManager{};
     org::imm::ImmAstContext::Ptr imm_context;
     DiaContext::Ptr              dia_context;
-    DiaContextStore::Ptr         history_manager;
+    DiaVersionStore::Ptr         history_manager;
 
 
     MainWindow(StartupArgc const& conf)
@@ -81,7 +81,7 @@ struct MainWindow : public QMainWindow {
         , conf{conf}
         , imm_context{org::imm::ImmAstContext::init_start_context()}
         , dia_context{DiaContext::shared()}
-        , history_manager{DiaContextStore::shared(
+        , history_manager{DiaVersionStore::shared(
               imm_context,
               dia_context)} //
     {

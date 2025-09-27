@@ -12,12 +12,12 @@ struct std::formatter<org::imm::ImmOrg*>
 
 /// \brief Central class to store all versions of the diagram node tree,
 /// switch between active versions and generate edit signals.
-struct DiaContextStore
+struct DiaVersionStore
     : public QObject
-    , public hstd::SharedPtrApi<DiaContextStore> {
+    , public hstd::SharedPtrApi<DiaVersionStore> {
     Q_OBJECT
   public:
-    DiaContextStore(
+    DiaVersionStore(
         org::imm::ImmAstContext::Ptr context,
         DiaContext::Ptr              dia_context);
 
@@ -153,8 +153,8 @@ struct DiaContextStore
     void diaRootChanged(DiaRootChange const& change);
 };
 
-Q_DECLARE_METATYPE(DiaContextStore::EditTarget);
-Q_DECLARE_METATYPE(DiaContextStore::EditCmd);
-Q_DECLARE_METATYPE(DiaContextStore::EditGroup);
-Q_DECLARE_METATYPE(DiaContextStore::EditApplyResult);
-Q_DECLARE_METATYPE(DiaContextStore::DiaRootChange);
+Q_DECLARE_METATYPE(DiaVersionStore::EditTarget);
+Q_DECLARE_METATYPE(DiaVersionStore::EditCmd);
+Q_DECLARE_METATYPE(DiaVersionStore::EditGroup);
+Q_DECLARE_METATYPE(DiaVersionStore::EditApplyResult);
+Q_DECLARE_METATYPE(DiaVersionStore::DiaRootChange);

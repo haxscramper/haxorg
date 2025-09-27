@@ -227,11 +227,10 @@ void DiaScene::applyPartialEditStep(DiaEdit const& edit) {
     }
 }
 
-DiaSceneItem* DiaScene::resetRootAdapter(
-    const hstd::Vec<DiaEdit>& edits) {
+DiaSceneItem* DiaScene::resetRootAdapter(const hstd::Vec<DiaEdit>& edits) {
     TRACKED_FUNCTION("resetRootAdapter");
-    if (edits.empty()) { return rootNode.get(); }
-    DiaSceneItem* originalRoot = rootNode.get();
+    if (edits.empty()) { return root(); }
+    DiaSceneItem* originalRoot = root();
     for (auto const& edit : edits) { applyPartialEditStep(edit); }
 
     LOGIC_ASSERTION_CHECK(
@@ -239,11 +238,19 @@ DiaSceneItem* DiaScene::resetRootAdapter(
         "Non-empty set of edits is guaranteed to change the root node to "
         "a new structure, but the root update has not happened.");
 
-    hstd::logic_assertion_check_not_nil(rootNode.get());
-
     treeModel->rootNode = rootNode.get();
 
     return rootNode.get();
+}
+
+void DiaScene::diaRootChanged(
+    DiaVersionStore::DiaRootChange const& change) {
+    TRACKED_SLOT("diaRootChange");
+    if (rootNode.get() == nullptr) {
+        setRootAdapter(change.newRoot);
+    } else {
+        resetRootAdapter(change.edits);
+    }
 }
 
 DiaSceneItem::UPtr DiaScene::addAdapterNonRec(const DiaAdapter& a) {

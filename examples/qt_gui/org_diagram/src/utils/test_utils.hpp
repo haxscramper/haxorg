@@ -1,7 +1,7 @@
 #pragma once
 
 #include <haxorg/sem/SemBaseApi.hpp>
-#include <src/model/DiaContextStore.hpp>
+#include <src/model/DiaVersionStore.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
 #include <src/model/DiaNodeTreeModel.hpp>
 #include <src/gui/DiaScene.hpp>
@@ -10,20 +10,21 @@ namespace test {
 struct ScopeManaged {
     org::imm::ImmAstContext::Ptr imm_context;
     DiaContext::Ptr              dia_context;
-    DiaContextStore::Ptr         manager;
+    DiaVersionStore::Ptr         version_store;
     ScopeManaged()
         : imm_context{org::imm::ImmAstContext::init_start_context()}
         , dia_context{DiaContext::shared()}
-        , manager{DiaContextStore::shared(imm_context, dia_context)} //
+        , version_store{DiaVersionStore::shared(imm_context, dia_context)}
+    //
     {}
 };
 
 struct ScopeV12 : public ScopeManaged {
     org::imm::ImmAdapter getRootV1() const {
-        return manager->getImmRoot(0);
+        return version_store->getImmRoot(0);
     }
     org::imm::ImmAdapter getRootV2() const {
-        return manager->getImmRoot(1);
+        return version_store->getImmRoot(1);
     }
 };
 
@@ -107,9 +108,17 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
 struct ScopeDiaContextEdits : public ScopeManaged {
     DiaSceneItemModel model;
     DiaScene          scene;
-    ScopeDiaContextEdits() : scene{&model} {}
+    ScopeDiaContextEdits() : scene{&model} {
+        QObject::connect(
+            version_store.get(),
+            &DiaVersionStore::diaRootChanged,
+            &scene,
+            &DiaScene::diaRootChanged);
+    }
 
-    DiaAdapter getRoot() { return this->manager->getActiveDiaRoot(); }
+    DiaAdapter getRoot() {
+        return this->version_store->getActiveDiaRoot();
+    }
 
     struct TextSetResult {
         DiaAdapter           dia;

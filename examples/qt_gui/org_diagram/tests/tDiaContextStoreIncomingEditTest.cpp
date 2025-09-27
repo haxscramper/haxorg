@@ -1,6 +1,6 @@
 #include <QTest>
 #include <haxorg/sem/SemBaseApi.hpp>
-#include <src/model/DiaContextStore.hpp>
+#include <src/model/DiaVersionStore.hpp>
 #include <src/utils/common.hpp>
 #include <src/utils/test_utils.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
@@ -10,7 +10,7 @@
 
 using namespace test;
 
-using S  = DiaContextStore;
+using S  = DiaVersionStore;
 using EC = S::EditCmd;
 
 class DiaContextStoreIncomingEditTest : public QObject {
@@ -37,7 +37,7 @@ class DiaContextStoreIncomingEditTest : public QObject {
 
         DiaAdapter target = res.dia.at(0, true).at(0, true);
         QVERIFY(target.getKind() == DiaNodeKind::Item);
-        scope.manager->applyDiaEdits(S::EditGroup{
+        scope.version_store->applyDiaEdits(S::EditGroup{
             .edits = {EC{EC::RemoveDiaNode{
                 .target = S::EditTarget{
                     S::EditTarget::Existing{.target = target.id}}}}}});

@@ -1,6 +1,6 @@
 #include <QTest>
 #include <haxorg/sem/SemBaseApi.hpp>
-#include <src/model/DiaContextStore.hpp>
+#include <src/model/DiaVersionStore.hpp>
 #include <src/utils/common.hpp>
 #include <src/utils/test_utils.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
@@ -33,7 +33,7 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
 
   private slots:
     void testFromRegularText() {
-        DiaContextStore manager{
+        DiaVersionStore manager{
             org::imm::ImmAstContext::init_start_context(),
             DiaContext::shared()};
         manager.addDocument("*bold*");
@@ -41,7 +41,7 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     }
 
     void testGetSimpleDifference() {
-        DiaContextStore manager{
+        DiaVersionStore manager{
             org::imm::ImmAstContext::init_start_context(),
             DiaContext::shared()};
         manager.addDocument("word");
@@ -51,7 +51,7 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     void testTreeEdits() {
         auto     __scope = trackTestExecution(this);
         ScopeV12 scope;
-        scope.manager->addDocument(R"(
+        scope.version_store->addDocument(R"(
 * layer 1
 ** item 1
     :properties:
@@ -59,7 +59,7 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )");
-        scope.manager->addDocument(R"(
+        scope.version_store->addDocument(R"(
 * layer 1
 ** item 1
     :properties:
