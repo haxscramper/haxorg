@@ -715,7 +715,7 @@ struct DiaEditConf {
     DESC_FIELDS(DiaEditConf, ());
 };
 
-std::vector<DiaEdit> getEdits(
+hstd::Vec<DiaEdit> getEdits(
     DiaAdapter const&  srcRoot,
     DiaAdapter const&  dstRoot,
     DiaEditConf const& confi);
@@ -725,4 +725,4 @@ struct DiaEditMappingGraphvizConf {};
 hstd::ext::Graphviz::Graph getEditMappingGraphviz(
     DiaAdapter const&           src,
     DiaAdapter const&           dst,
-    std::vector<DiaEdit> const& edits);
+    hstd::Vec<DiaEdit> const& edits);

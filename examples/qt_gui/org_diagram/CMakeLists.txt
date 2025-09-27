@@ -42,6 +42,8 @@ target_compile_options(org_diagram_lib PUBLIC "-ftemplate-backtrace-limit=0")
 target_compile_options(org_diagram_lib PUBLIC "-Werror=implicit-fallthrough")
 target_compile_options(org_diagram_lib PUBLIC "-fsanitize=undefined,address")
 target_compile_options(org_diagram_lib PUBLIC "-shared-libasan")
+target_compile_options(org_diagram_lib PUBLIC "-Werror=sometimes-uninitialized")
+target_compile_options(org_diagram_lib PUBLIC "-Werror=conditional-uninitialized")
 target_link_options(org_diagram_lib PUBLIC "-fsanitize=undefined,address")
 
 target_include_directories(

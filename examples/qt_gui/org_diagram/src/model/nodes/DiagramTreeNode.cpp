@@ -187,7 +187,7 @@ void processMatchedSubnodes(
     const DiaAdapter&     dstSubnode,
     int                   srcIndex,
     int                   dstIndex,
-    std::vector<DiaEdit>& results,
+    hstd::Vec<DiaEdit>& results,
     ProcessedNodes&       processedSrc,
     ProcessedNodes&       processedDst);
 
@@ -308,7 +308,7 @@ std::optional<MatchCandidate> findBestMatch(
 void diffSubnodes(
     const DiaAdapter&     srcNode,
     const DiaAdapter&     dstNode,
-    std::vector<DiaEdit>& results) {
+    hstd::Vec<DiaEdit>& results) {
 
     if (srcNode->subnodes.empty() && dstNode->subnodes.empty()) { return; }
 
@@ -431,7 +431,7 @@ void processMatchedSubnodes(
     const DiaAdapter&     dstSubnode,
     int                   srcIndex,
     int                   dstIndex,
-    std::vector<DiaEdit>& results,
+    hstd::Vec<DiaEdit>& results,
     ProcessedNodes&       processedSrc,
     ProcessedNodes&       processedDst) {
 
@@ -483,11 +483,11 @@ void processMatchedSubnodes(
 }
 } // namespace
 
-std::vector<DiaEdit> getEdits(
+hstd::Vec<DiaEdit> getEdits(
     const DiaAdapter&  srcRoot,
     const DiaAdapter&  dstRoot,
     const DiaEditConf& confi) {
-    std::vector<DiaEdit> results;
+    hstd::Vec<DiaEdit> results;
     HSLOG_INFO(_cat, "getEdits");
     HSLOG_DEPTH_SCOPE_ANON();
 
@@ -557,7 +557,7 @@ hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
 hstd::ext::Graphviz::Graph getEditMappingGraphviz(
     const DiaAdapter&           src,
     const DiaAdapter&           dst,
-    const std::vector<DiaEdit>& edits) {
+    const hstd::Vec<DiaEdit>& edits) {
     using namespace hstd::ext;
     using G = Graphviz;
 

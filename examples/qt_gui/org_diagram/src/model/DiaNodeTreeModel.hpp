@@ -21,7 +21,7 @@ struct DiaNodeTreeModel : public QAbstractItemModel {
 
     void setNewRoot(
         DiaAdapter const&           root,
-        const std::vector<DiaEdit>& edits);
+        const hstd::Vec<DiaEdit>& edits);
 
     hstd::ColText format();
 

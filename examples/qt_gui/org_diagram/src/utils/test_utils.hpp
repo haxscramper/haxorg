@@ -29,9 +29,9 @@ struct ScopeV12 : public ScopeManaged {
 
 
 struct ScopeV12DiagramDiff : ScopeV12 {
-    DiaAdapter           srcAdapter;
-    DiaAdapter           dstAdapter;
-    std::vector<DiaEdit> edits;
+    DiaAdapter         srcAdapter;
+    DiaAdapter         dstAdapter;
+    hstd::Vec<DiaEdit> edits;
     ScopeV12DiagramDiff(std::string const& src, std::string const& dst);
 };
 
@@ -108,6 +108,8 @@ struct ScopeDiaContextEdits : public ScopeManaged {
     DiaSceneItemModel model;
     DiaScene          scene;
     ScopeDiaContextEdits() : scene{&model} {}
+
+    DiaAdapter getRoot() { return this->manager->getActiveDiaRoot(); }
 
     struct TextSetResult {
         DiaAdapter           dia;

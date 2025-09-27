@@ -459,4 +459,5 @@ void q_register_metatypes() {
     qRegisterMetaType<DiaContextStore::EditCmd>();
     qRegisterMetaType<DiaContextStore::EditGroup>();
     qRegisterMetaType<DiaContextStore::EditApplyResult>();
+    qRegisterMetaType<DiaContextStore::DiaRootChange>();
 }

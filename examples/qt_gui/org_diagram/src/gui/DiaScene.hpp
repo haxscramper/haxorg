@@ -110,7 +110,7 @@ struct DiaScene : public QGraphicsScene {
 
     /// \brief Swap the existing scene item structure with the new one
     /// based on the provided edits.
-    DiaSceneItem* resetRootAdapter(std::vector<DiaEdit> const& edits);
+    DiaSceneItem* resetRootAdapter(hstd::Vec<DiaEdit> const& edits);
 
     void applyPartialEditStep(DiaEdit const& edit);
 

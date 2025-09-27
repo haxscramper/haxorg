@@ -228,7 +228,7 @@ void DiaScene::applyPartialEditStep(DiaEdit const& edit) {
 }
 
 DiaSceneItem* DiaScene::resetRootAdapter(
-    const std::vector<DiaEdit>& edits) {
+    const hstd::Vec<DiaEdit>& edits) {
     TRACKED_FUNCTION("resetRootAdapter");
     if (edits.empty()) { return rootNode.get(); }
     DiaSceneItem* originalRoot = rootNode.get();

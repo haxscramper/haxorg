@@ -82,6 +82,9 @@ struct DiaContextStore
     };
 
     EditApplyResult applyDiaEdits(EditGroup const& edits);
+    void            stepEditForward(
+                   org::imm::ImmAstVersion& vEdit,
+                   EditCmd const&           edit);
 
     org::imm::ImmAstContext::Ptr                        imm_context;
     DiaContext::Ptr                                     dia_context;
@@ -114,18 +117,44 @@ struct DiaContextStore
         return history.at(index).getRootAdapter();
     }
 
-    DiaAdapter getDiaRoot(int index) const {
-        return dia_trees.at(getImmRoot(index).uniq());
+    DiaAdapter getActiveDiaRoot() { return getDiaRoot(active); }
+
+    DiaAdapter getDiaRoot(int index) {
+        org::imm::ImmAdapter immAdapter = getImmRoot(index);
+        auto                 id         = immAdapter.uniq();
+        if (!dia_trees.contains(id)) {
+            dia_trees.insert_or_assign(
+                id,
+                FromDocument(
+                    dia_context, immAdapter.as<org::imm::ImmDocument>()));
+        }
+
+        return dia_trees.at(id);
     }
 
+    struct DiaRootChange {
+        hstd::Vec<DiaEdit> edits;
+        DiaAdapter         newRoot;
+        DiaAdapter         oldRoot;
+        int                newIndex;
+        int                oldIndex;
+        DESC_FIELDS(
+            DiaRootChange,
+            (edits, newRoot, oldRoot, newIndex, oldIndex));
+    };
 
-    std::vector<DiaEdit> getDiaEdits(
+
+    hstd::Vec<DiaEdit> getDiaEdits(
         int                lhsVer,
         int                rhsVer,
-        const DiaEditConf& conf) const;
+        const DiaEditConf& conf);
+
+  signals:
+    void diaRootChanged(DiaRootChange const& change);
 };
 
 Q_DECLARE_METATYPE(DiaContextStore::EditTarget);
 Q_DECLARE_METATYPE(DiaContextStore::EditCmd);
 Q_DECLARE_METATYPE(DiaContextStore::EditGroup);
 Q_DECLARE_METATYPE(DiaContextStore::EditApplyResult);
+Q_DECLARE_METATYPE(DiaContextStore::DiaRootChange);
