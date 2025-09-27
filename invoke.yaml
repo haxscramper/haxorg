@@ -1,5 +1,5 @@
 quiet: false
-debug: false
+debug: true
 forceall: true
 instrument:
   coverage: false

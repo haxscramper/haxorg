@@ -77,6 +77,15 @@ DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
         }
     };
 
+    auto vEdit = getActiveImmVersion();
+
+
+    HSLOG_TRACE(
+        _cat,
+        hstd::fmt(
+            "imm version:\n{}",
+            vEdit.getRootAdapter().treeRepr().toString(false)));
+
     for (auto const& edit : edits.edits) {
         TRACKED_SCOPE(hstd::fmt("Edit {}", edit));
         switch (edit.getKind()) {
@@ -94,17 +103,30 @@ DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
                 HSLOG_TRACE(
                     _cat,
                     hstd::fmt("adapter:{} parent:{}", adapter, parent));
+                HSLOG_TRACE(
+                    _cat,
+                    hstd::fmt(
+                        "imm-adapter:{} imm-parent:{}",
+                        adapter.getImmAdapter(),
+                        parent->getImmAdapter()));
 
-                org::imm::ImmAstVersion vEdit //
-                    = getEditVersion(
-                        [&](org::imm::ImmAstContext::Ptr ctx,
-                            org::imm::ImmAstEditContext& edit)
-                            -> org::imm::ImmAstReplaceGroup {
-                            return org::imm::dropSubnode(
-                                parent->getImmAdapter(),
-                                adapter.getSelfIndex(),
-                                edit);
-                        });
+                vEdit = vEdit.getEditVersion(
+                    [&](org::imm::ImmAstContext::Ptr ctx,
+                        org::imm::ImmAstEditContext& edit)
+                        -> org::imm::ImmAstReplaceGroup {
+                        return org::imm::dropSubnode(
+                            parent->getImmAdapter(),
+                            adapter.getSelfIndex(),
+                            edit);
+                    });
+
+                HSLOG_TRACE(
+                    _cat,
+                    hstd::fmt(
+                        "imm version:\n{}",
+                        vEdit.getRootAdapter().treeRepr().toString(
+                            false)));
+
 
                 break;
             }
@@ -113,6 +135,8 @@ DiaContextStore::EditApplyResult DiaContextStore::applyDiaEdits(
             }
         }
     }
+
+    addHistory(vEdit);
 
     return res;
 }

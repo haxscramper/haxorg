@@ -21,6 +21,9 @@ class DebugTarget : public QObject {
 
         ScopeDiaContextEdits scope;
 
+        scope.imm_context->debug->setTraceFile(
+            getDebugFile(this, "imm_context_trace.log"));
+
         auto res = scope.setText(makeLayerText(
             DiaNodeLayerParams{},
             hstd::Vec{
@@ -35,7 +38,6 @@ class DebugTarget : public QObject {
             .edits = {EC{EC::RemoveDiaNode{
                 .target = S::EditTarget{
                     S::EditTarget::Existing{.target = target.id}}}}}});
-
 
         QApplication::quit();
     }

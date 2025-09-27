@@ -621,7 +621,7 @@ struct std::formatter<DiaUniqId> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const DiaUniqId& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(
-            hstd::fmt("{} {}/{}", p.target, p.root, p.path), ctx);
+            hstd::fmt("{} {}/{}", p.target, p.root, p.path.path), ctx);
     }
 };
 
@@ -635,7 +635,7 @@ struct std::formatter<DiaAdapter> : std::formatter<std::string> {
                 p.getKind(),
                 p.id.target,
                 p.id.root,
-                p.id.path),
+                p.id.path.path),
             ctx);
     }
 };
