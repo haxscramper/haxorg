@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <haxorg/sem/ImmOrgEdit.hpp>
+#include <algorithm>
 
 using namespace hstd;
 using namespace org;
@@ -165,31 +166,88 @@ void DiaVersionStore::stepEditForward(
                 "test", hstd::log::severity_level::trace, toMove)
                 .end();
 
-            for (auto const& rem : toMove) {
-                vEdit = vEdit.getEditVersion(
-                    [&](imm::ImmAstContext::Ptr ctx,
-                        imm::ImmAstEditContext& edit)
-                        -> imm::ImmAstReplaceGroup {
-                        return imm::dropSubnode(
-                            rem.getParent().value(), rem.id, edit);
-                    });
-            }
-
             vEdit = vEdit.getEditVersion(
                 [&](imm::ImmAstContext::Ptr ctx,
                     imm::ImmAstEditContext& edit)
                     -> imm::ImmAstReplaceGroup {
-                    hstd::Vec<imm::ImmId> movedIds;
+                    imm::ImmAstReplaceGroup result;
 
+                    struct Hasher {
+                        std::size_t operator()(
+                            imm::ImmAdapter const& it) const {
+                            return std::hash<imm::ImmUniqId>{}(it.uniq());
+                        }
+                    };
+
+                    struct Equator {
+                        bool operator()(
+                            imm::ImmAdapter const& lhs,
+                            imm::ImmAdapter const& rhs) const {
+                            return lhs.uniq() == rhs.uniq();
+                        }
+                    };
+
+                    std::unordered_map<
+                        imm::ImmAdapter,
+                        hstd::Vec<imm::ImmAdapter>,
+                        Hasher,
+                        Equator>
+                        parentGroup;
+
+                    for (auto const& it : toMove) {
+                        parentGroup[it.getParent().value()].push_back(it);
+                    }
+
+                    for (auto const& [parent, subnodesToRemove] :
+                         parentGroup) {
+                        hstd::Vec<int> subnodeIndices;
+                        for (auto const& node : subnodesToRemove) {
+                            subnodeIndices.push_back(
+                                parent->indexOf(node.id));
+                        }
+                        std::sort(
+                            subnodeIndices.begin(), subnodeIndices.end());
+
+                        HSLOG_INFO(
+                            _cat,
+                            hstd::fmt(
+                                "Removing subnodes {} under {}",
+                                subnodeIndices,
+                                parent));
+
+                        auto tmpSubnodes = hstd::Vec<imm::ImmId>{
+                            parent->subnodes.begin(),
+                            parent->subnodes.end()};
+                        for (int i : subnodeIndices) {
+                            tmpSubnodes.erase(tmpSubnodes.begin() + i);
+                        }
+
+                        HSLOG_INFO(
+                            _cat,
+                            hstd::fmt(
+                                "New subnodes under {}: {}",
+                                parent,
+                                tmpSubnodes));
+
+                        result.incl(setSubnodes(
+                            parent,
+                            ext::ImmVec<imm::ImmId>{
+                                tmpSubnodes.begin(), tmpSubnodes.end()},
+                            edit));
+                    }
+
+                    hstd::Vec<imm::ImmId> movedIds;
                     for (auto const& moved : toMove) {
                         movedIds.push_back(moved.id);
                     }
 
-                    return imm::insertSubnodes(
+                    result.incl(imm::insertSubnodes(
                         target,
                         movedIds,
                         mov.newIndex.value_or(target.size()),
-                        edit);
+                        edit));
+
+                    return result;
                 });
 
 
@@ -240,6 +298,10 @@ void DiaVersionStore::stepEditForward(
             throw hstd::logic_unhandled_kind_error::init(edit.getKind());
         }
     }
+
+    hstd::ColStream os;
+    vEdit.getContext()->store->format(os, "  ");
+    HSLOG_TRACE(_cat, hstd::fmt("imm store:\n{}", os.toString(false)));
 
     HSLOG_TRACE(
         _cat,
