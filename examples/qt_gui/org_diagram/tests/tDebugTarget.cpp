@@ -31,15 +31,31 @@ class DebugTarget : public QObject {
                 ditem(2, "item 2"),
             }));
 
-        scope.scene.setRootAdapter(res.dia);
 
-        DiaAdapter target = res.dia.at(0, true).at(0, true);
-        QVERIFY(target.getKind() == DiaNodeKind::Item);
+        {
+            auto root = scope.getRoot();
+            QCOMPARE_EQ2(root.size(), 1);
+            QCOMPARE_EQ2(root.at(0, true).size(), 1);
+            QCOMPARE_EQ2(root.at(0, true).at(0, true).size(), 2);
+        }
 
-        scope.version_store->applyDiaEdits(S::EditGroup{
-            .edits = {EC{EC::RemoveDiaNode{
-                .target = S::EditTarget{
-                    S::EditTarget::Existing{.target = target.id}}}}}});
+        QSignalSpy updateSpy{
+            scope.version_store.get(), &DiaVersionStore::diaRootChanged};
+
+        DiaAdapter target = res.dia.at(0, true);
+        QVERIFY(target.getKind() == DiaNodeKind::Layer);
+
+        scope.version_store->applyDiaEdits(
+            S::EditGroup::Append1NewNode(target.uniq()));
+
+        QCOMPARE_EQ(updateSpy.count(), 1);
+
+        {
+            auto root = scope.getRoot();
+            QCOMPARE_EQ2(root.size(), 1);
+            QCOMPARE_EQ2(root.at(0, true).size(), 1);
+            QCOMPARE_EQ2(root.at(0, true).at(0, true).size(), 1);
+        }
 
         QApplication::quit();
     }

@@ -107,19 +107,63 @@ void DiaVersionStore::stepEditForward(
                         edit);
                 });
 
+
+            break;
+        }
+
+        case EditCmd::Kind::InsertDiaNode: {
+            EditCmd::InsertDiaNode const& ins = edit.getInsertDiaNode();
+            DiaAdapter                    adapter = get_target(ins.target);
+
             HSLOG_TRACE(
                 _cat,
-                hstd::fmt(
-                    "imm version:\n{}",
-                    vEdit.getRootAdapter().treeRepr().toString(false)));
+                hstd::fmt("imm-adapter:{}", adapter.getImmAdapter()));
 
+
+            vEdit = vEdit.getEditVersion(
+                [&](org::imm::ImmAstContext::Ptr ctx,
+                    org::imm::ImmAstEditContext& edit)
+                    -> org::imm::ImmAstReplaceGroup {
+                    org::imm::ImmId title = imm_context->store->add(
+                        org::imm::ImmParagraph{}, edit);
+                    auto subtree  = org::imm::ImmSubtree{};
+                    subtree.title = title.as<org::imm::ImmParagraph>();
+                    subtree.properties = hstd::ext::ImmVec<
+                        org::sem::NamedProperty>{
+                        org::sem::NamedProperty{
+                            org::sem::NamedProperty::CustomSubtreeJson{
+                                .name  = DiaPropertyNames::diagramPosition,
+                                .value = hstd::to_json_eval(
+                                    DiaNodeItem::Pos{})}},
+                        org::sem::NamedProperty{
+                            org::sem::NamedProperty::CustomSubtreeFlags{
+                                .name = DiaPropertyNames::isDiagramNode,
+                            }},
+                    };
+                    org::imm::ImmId addedNode = imm_context->store->add(
+                        subtree, edit);
+
+                    return org::imm::insertSubnode(
+                        adapter.getImmAdapter(),
+                        addedNode,
+                        ins.index.value_or(adapter.size()),
+                        edit);
+                });
 
             break;
         }
 
         default: {
+            throw hstd::logic_unhandled_kind_error::init(edit.getKind());
         }
     }
+
+    HSLOG_TRACE(
+        _cat,
+        hstd::fmt(
+            "imm version:\n{}",
+            hstd::indent(
+                vEdit.getRootAdapter().treeRepr().toString(false), 2)));
 }
 
 DiaVersionStore::EditApplyResult DiaVersionStore::applyDiaEdits(
@@ -182,6 +226,19 @@ int DiaVersionStore::addDocument(const std::string& document) {
     return addHistory(version);
 }
 
+DiaAdapter DiaVersionStore::getDiaRoot(int index) {
+    org::imm::ImmAdapter immAdapter = getImmRoot(index);
+    auto                 id         = immAdapter.uniq();
+    if (!dia_trees.contains(id)) {
+        dia_trees.insert_or_assign(
+            id,
+            FromDocument(
+                dia_context, immAdapter.as<org::imm::ImmDocument>()));
+    }
+
+    return dia_trees.at(id);
+}
+
 org::imm::ImmAstVersion DiaVersionStore::getEditVersion(
     std::function<org::imm::ImmAstReplaceGroup(
         org::imm::ImmAstContext::Ptr,
@@ -191,3 +248,63 @@ org::imm::ImmAstVersion DiaVersionStore::getEditVersion(
 
 
 #include "DiaVersionStore.moc"
+
+DiaVersionStore::EditGroup DiaVersionStore::EditGroup::
+    MoveNodesUnderExisting(
+        const DiaUniqId&            parent,
+        const hstd::Vec<DiaUniqId>& nodes,
+        int                         index) {
+    hstd::Vec<EditTarget>
+        targets = nodes
+                | hstd::rv::transform(
+                      [](DiaUniqId const& id) -> EditTarget {
+                          return EditTarget{
+                              EditTarget::Existing{.target = id}};
+                      })
+                | hstd::rs::to<hstd::Vec>();
+    return EditGroup{
+        .edits = {EditCmd::Move(
+            targets, EditTarget::FromExisting(parent), index)}};
+}
+
+DiaVersionStore::EditGroup DiaVersionStore::EditGroup::Append1NewNode(
+    const DiaUniqId& id) {
+    return EditGroup{
+        .edits = {EditCmd::Insert(EditTarget::FromExisting(id))}};
+}
+
+DiaVersionStore::EditGroup DiaVersionStore::EditGroup::Create1NewNode(
+    const DiaUniqId& id,
+    int              index) {
+    return EditGroup{
+        .edits = {EditCmd::Insert(EditTarget::FromExisting(id), index)}};
+}
+
+DiaVersionStore::EditGroup DiaVersionStore::EditGroup::Remove1ExistingNode(
+    const DiaUniqId& id) {
+    return EditGroup{
+        .edits = {EditCmd::Remove(EditTarget::FromExisting(id))}};
+}
+
+DiaVersionStore::EditGroup DiaVersionStore::EditGroup::
+    Create1NewNodeWithValue(
+        const DiaUniqId&                    id,
+        int                                 index,
+        const hstd::SPtr<org::imm::ImmOrg>& initialValue) {
+    return EditGroup{
+        .edits = {
+            EditCmd::Insert(EditTarget::FromExisting(id), index),
+            EditCmd::Update(EditTarget::FromLastCreated(), initialValue),
+        }};
+}
+
+DiaVersionStore::EditGroup DiaVersionStore::EditGroup::
+    Append1NewNodeWithValue(
+        const DiaUniqId&                    id,
+        const hstd::SPtr<org::imm::ImmOrg>& initialValue) {
+    return EditGroup{
+        .edits = {
+            EditCmd::Insert(EditTarget::FromExisting(id)),
+            EditCmd::Update(EditTarget::FromLastCreated(), initialValue),
+        }};
+}

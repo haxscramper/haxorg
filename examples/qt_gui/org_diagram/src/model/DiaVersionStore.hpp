@@ -5,6 +5,7 @@
 #include <haxorg/sem/SemAstDiff.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
 #include <QObject>
+#include <hstd/stdlib/Ranges.hpp>
 
 template <>
 struct std::formatter<org::imm::ImmOrg*>
@@ -26,12 +27,20 @@ struct DiaVersionStore
             DiaUniqId target;
             DESC_FIELDS(Existing, (target));
         };
-        struct LastInserted {
-            DESC_FIELDS(LastInserted, ());
+        struct LastCreated {
+            DESC_FIELDS(LastCreated, ());
         };
-        SUB_VARIANTS(Kind, Data, data, getKind, Existing, LastInserted);
+        SUB_VARIANTS(Kind, Data, data, getKind, Existing, LastCreated);
         Data data;
         DESC_FIELDS(EditTarget, (data));
+
+        static EditTarget FromExisting(DiaUniqId const& id) {
+            return EditTarget{Existing{id}};
+        }
+
+        static EditTarget FromLastCreated() {
+            return EditTarget{LastCreated{}};
+        }
     };
 
     struct EditCmd {
@@ -41,8 +50,9 @@ struct DiaVersionStore
         };
 
         struct InsertDiaNode {
-            EditTarget target;
-            DESC_FIELDS(InsertDiaNode, (target));
+            EditTarget     target;
+            hstd::Opt<int> index;
+            DESC_FIELDS(InsertDiaNode, (target, index));
         };
 
         struct UpdateImmOrg {
@@ -52,11 +62,39 @@ struct DiaVersionStore
         };
 
         struct MoveDiaNode {
-            EditTarget         nodeToMove;
-            EditTarget         newParent;
-            std::optional<int> newIndex;
+            hstd::Vec<EditTarget> nodeToMove;
+            EditTarget            newParent;
+            std::optional<int>    newIndex;
             DESC_FIELDS(MoveDiaNode, (nodeToMove, newParent, newIndex));
         };
+
+        static EditCmd Remove(EditTarget const& target) {
+            return EditCmd{RemoveDiaNode{target}};
+        }
+
+        static EditCmd Update(
+            EditTarget const&            target,
+            hstd::SPtr<org::imm::ImmOrg> value) {
+            return EditCmd{UpdateImmOrg{.target = target, .value = value}};
+        }
+
+        static EditCmd Insert(
+            EditTarget const&     target,
+            hstd::Opt<int> const& index = std::nullopt) {
+            return EditCmd{
+                InsertDiaNode{.target = target, .index = index}};
+        }
+
+        static EditCmd Move(
+            hstd::Vec<EditTarget>     nodeToMove,
+            EditTarget                newParent,
+            std::optional<int> const& newIndex = std::nullopt) {
+            return EditCmd{EditCmd::MoveDiaNode{
+                .nodeToMove = nodeToMove,
+                .newParent  = newParent,
+                .newIndex   = newIndex,
+            }};
+        }
 
         SUB_VARIANTS(
             Kind,
@@ -76,12 +114,20 @@ struct DiaVersionStore
         hstd::Vec<EditCmd> edits;
         DESC_FIELDS(EditGroup, (edits));
 
-        static EditGroup Remove1ExistingNode(DiaUniqId const& id) {
-            return EditGroup{
-                .edits = {EditCmd{EditCmd::RemoveDiaNode{
-                    .target = EditTarget{
-                        EditTarget::Existing{.target = id}}}}}};
-        }
+        static EditGroup Remove1ExistingNode(DiaUniqId const& id);
+        static EditGroup Create1NewNode(DiaUniqId const& id, int index);
+        static EditGroup Append1NewNode(DiaUniqId const& id);
+        static EditGroup Create1NewNodeWithValue(
+            DiaUniqId const&                    id,
+            int                                 index,
+            hstd::SPtr<org::imm::ImmOrg> const& initialValue);
+        static EditGroup Append1NewNodeWithValue(
+            DiaUniqId const&                    id,
+            hstd::SPtr<org::imm::ImmOrg> const& initialValue);
+        static EditGroup MoveNodesUnderExisting(
+            DiaUniqId const&            parent,
+            hstd::Vec<DiaUniqId> const& nodes,
+            int                         index);
     };
 
     struct EditApplyResult {
@@ -126,18 +172,7 @@ struct DiaVersionStore
 
     DiaAdapter getActiveDiaRoot() { return getDiaRoot(active); }
 
-    DiaAdapter getDiaRoot(int index) {
-        org::imm::ImmAdapter immAdapter = getImmRoot(index);
-        auto                 id         = immAdapter.uniq();
-        if (!dia_trees.contains(id)) {
-            dia_trees.insert_or_assign(
-                id,
-                FromDocument(
-                    dia_context, immAdapter.as<org::imm::ImmDocument>()));
-        }
-
-        return dia_trees.at(id);
-    }
+    DiaAdapter getDiaRoot(int index);
 
     struct DiaRootChange {
         hstd::Vec<DiaEdit> edits;
