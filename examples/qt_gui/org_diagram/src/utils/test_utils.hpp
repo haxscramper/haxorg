@@ -120,6 +120,18 @@ struct ScopeDiaContextEdits : public ScopeManaged {
         return this->version_store->getActiveDiaRoot();
     }
 
+    DiaAdapter getRootAtPath(hstd::Vec<int> const& path) {
+        return getRoot().atPath(path, true);
+    }
+
+    hstd::Str getActiveTitleAt(hstd::Vec<int> const& path) {
+        return getRoot()
+            .atPath(path, true)
+            .getImmAdapter()
+            .as<org::imm::ImmSubtree>()
+            .getCleanTitle();
+    }
+
     struct TextSetResult {
         DiaAdapter           dia;
         org::imm::ImmAdapter imm;

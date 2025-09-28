@@ -16,8 +16,7 @@ using EC = S::EditCmd;
 
 class DiaContextStoreIncomingEditTest : public QObject {
     Q_OBJECT
-  public:
-  public slots:
+  private slots:
     void testDiagramTreeRemove() {
         auto                 __scope = trackTestExecution(this);
         ScopeDiaContextEdits scope;
@@ -91,6 +90,61 @@ class DiaContextStoreIncomingEditTest : public QObject {
             QCOMPARE_EQ2(root.at(0, true).size(), 1);
             QCOMPARE_EQ2(root.at(0, true).at(0, true).size(), 1);
         }
+    }
+
+    void testDiagramTreeUpdate() {
+        auto                 __scope = trackTestExecution(this);
+        ScopeDiaContextEdits scope;
+
+
+        auto res = scope.setText(makeLayerText(
+            DiaNodeLayerParams{},
+            hstd::Vec{
+                ditem(2, "item 1"),
+                ditem(2, "item 2"),
+                ditem(3, "item 2-nested"),
+                ditem(3, "item 3-nested"),
+            }));
+
+
+        QCOMPARE_EQ2(scope.getActiveTitleAt({0, 1}), "item 2"_ss);
+        QCOMPARE_EQ2(scope.getRootAtPath({0, 1}).size(), 2);
+        QCOMPARE_EQ2(
+            scope.getActiveTitleAt({0, 1, 0}), "item 2-nested"_ss);
+        QCOMPARE_EQ2(
+            scope.getActiveTitleAt({0, 1, 1}), "item 3-nested"_ss);
+
+        QSignalSpy updateSpy{
+            scope.version_store.get(), &DiaVersionStore::diaRootChanged};
+
+        DiaAdapter target = res.dia.at(0, true).at(1, true);
+        org::sem::SemId<org::sem::Subtree>
+            item2Subtree = org::imm::sem_from_immer(
+                               target.getImmAdapter().id,
+                               *scope.imm_context)
+                               .as<org::sem::Subtree>();
+
+        org::sem::SemId<org::sem::Org> tmpDocument = org::parseString(
+            "item updated");
+
+        org::sem::SemId<org::sem::Paragraph>
+            tmpTitle = tmpDocument.at(0).as<org::sem::Paragraph>();
+
+        item2Subtree->title = tmpTitle;
+
+        QCOMPARE_EQ2(target.getKind(), DiaNodeKind::Item);
+
+        scope.version_store->applyDiaEdits(
+            S::EditGroup::UpdateExisting(target.uniq(), item2Subtree));
+
+        QCOMPARE_EQ(updateSpy.count(), 1);
+
+        QCOMPARE_EQ2(scope.getActiveTitleAt({0, 1}), "item updated"_ss);
+        QCOMPARE_EQ2(scope.getRootAtPath({0, 1}).size(), 2);
+        QCOMPARE_EQ2(
+            scope.getActiveTitleAt({0, 1, 0}), "item 2-nested"_ss);
+        QCOMPARE_EQ2(
+            scope.getActiveTitleAt({0, 1, 1}), "item 3-nested"_ss);
     }
 };
 

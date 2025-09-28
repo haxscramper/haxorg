@@ -53,30 +53,23 @@ class DebugTarget : public QObject {
                                *scope.imm_context)
                                .as<org::sem::Subtree>();
 
-        HSLOG_INFO(_cat, "?");
         org::sem::SemId<org::sem::Org> tmpDocument = org::parseString(
             "item updated");
         HSLOG_INFO(
             _cat,
             org::algo::ExporterTree::treeRepr(tmpDocument)
                 .toString(false));
-        HSLOG_INFO(_cat, "?");
         org::sem::SemId<org::sem::Paragraph>
             tmpTitle = tmpDocument.at(0).as<org::sem::Paragraph>();
-        HSLOG_INFO(_cat, "?");
 
         item2Subtree->title = tmpTitle;
-        HSLOG_INFO(_cat, "?");
 
         LOGIC_ASSERTION_CHECK(target.getKind() == DiaNodeKind::Item, "");
-        HSLOG_INFO(_cat, "?");
 
         scope.version_store->applyDiaEdits(
             S::EditGroup::UpdateExisting(target.uniq(), item2Subtree));
-        HSLOG_INFO(_cat, "?");
 
         QCOMPARE_EQ(updateSpy.count(), 1);
-        HSLOG_INFO(_cat, "?");
 
         {
             auto root = scope.getRoot();
@@ -86,9 +79,12 @@ class DebugTarget : public QObject {
             _dbg(root.atPath({0, 1}, true).size());
             _dbg(root.atPath({0, 1, 0}, true).size());
             _dbg(root.atPath({0, 1, 1}, true).size());
+            _dbg(root.atPath({0, 1}, true)
+                     .getImmAdapter()
+                     .as<org::imm::ImmSubtree>()
+                     .getCleanTitle());
         }
 
-        HSLOG_INFO(_cat, "?");
 
         HSLOG_INFO(_cat, "done");
         QApplication::quit();
