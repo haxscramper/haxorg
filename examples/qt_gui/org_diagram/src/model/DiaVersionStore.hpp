@@ -50,14 +50,14 @@ struct DiaVersionStore
         };
 
         struct InsertDiaNode {
-            EditTarget     target;
+            EditTarget     newParent;
             hstd::Opt<int> index;
-            DESC_FIELDS(InsertDiaNode, (target, index));
+            DESC_FIELDS(InsertDiaNode, (newParent, index));
         };
 
         struct UpdateImmOrg {
-            EditTarget                        target;
-            std::shared_ptr<org::imm::ImmOrg> value;
+            EditTarget                     target;
+            org::sem::SemId<org::sem::Org> value;
             DESC_FIELDS(UpdateImmOrg, (target, value));
         };
 
@@ -73,8 +73,8 @@ struct DiaVersionStore
         }
 
         static EditCmd Update(
-            EditTarget const&            target,
-            hstd::SPtr<org::imm::ImmOrg> value) {
+            EditTarget const&              target,
+            org::sem::SemId<org::sem::Org> value) {
             return EditCmd{UpdateImmOrg{.target = target, .value = value}};
         }
 
@@ -82,7 +82,7 @@ struct DiaVersionStore
             EditTarget const&     target,
             hstd::Opt<int> const& index = std::nullopt) {
             return EditCmd{
-                InsertDiaNode{.target = target, .index = index}};
+                InsertDiaNode{.newParent = target, .index = index}};
         }
 
         static EditCmd Move(
@@ -118,16 +118,20 @@ struct DiaVersionStore
         static EditGroup Create1NewNode(DiaUniqId const& id, int index);
         static EditGroup Append1NewNode(DiaUniqId const& id);
         static EditGroup Create1NewNodeWithValue(
-            DiaUniqId const&                    id,
-            int                                 index,
-            hstd::SPtr<org::imm::ImmOrg> const& initialValue);
+            DiaUniqId const&                      id,
+            int                                   index,
+            org::sem::SemId<org::sem::Org> const& value);
         static EditGroup Append1NewNodeWithValue(
-            DiaUniqId const&                    id,
-            hstd::SPtr<org::imm::ImmOrg> const& initialValue);
+            DiaUniqId const&                      id,
+            org::sem::SemId<org::sem::Org> const& value);
         static EditGroup MoveNodesUnderExisting(
             DiaUniqId const&            parent,
             hstd::Vec<DiaUniqId> const& nodes,
             int                         index);
+
+        static EditGroup UpdateExisting(
+            DiaUniqId const&                      id,
+            org::sem::SemId<org::sem::Org> const& node);
     };
 
     struct EditApplyResult {

@@ -569,11 +569,7 @@ struct DiaAdapter {
     hstd::Opt<DiaAdapter> getParent() const;
 
     DiaAdapter at(DiaId const& at_id, org::imm::ImmPathStep const& step)
-        const {
-        hstd::logic_assertion_check_not_nil(at_id);
-        return DiaAdapter{
-            DiaUniqId{at_id, id.root, id.path.add(step)}, ctx};
-    }
+        const;
 
     static DiaAdapter Root(DiaId const& id, DiaContext::Ptr const& ctx) {
         hstd::logic_assertion_check_not_nil(id);
@@ -585,13 +581,7 @@ struct DiaAdapter {
         DESC_FIELDS(TreeReprConf, ());
     };
 
-    hstd::Vec<DiaAdapter> sub(bool withPath) const {
-        hstd::Vec<DiaAdapter> result;
-        for (int i = 0; i < size(); ++i) {
-            result.push_back(at(i, withPath));
-        }
-        return result;
-    }
+    hstd::Vec<DiaAdapter> sub(bool withPath) const;
 
     hstd::ColText format(TreeReprConf const& conf) const;
     hstd::ColText format() const { return format(TreeReprConf{}); }
@@ -603,19 +593,8 @@ struct DiaAdapter {
 
     DiaAdapter() : id{DiaUniqId::Nil()}, ctx{} {}
 
-    DiaAdapter at(int idx, bool withPath) const {
-        DiaId idAt = ctx->at(id)->subnodes.at(idx);
-        if (withPath) {
-            return at(
-                idAt,
-                org::imm::ImmPathStep::FieldIdx(
-                    org::imm::ImmReflFieldId::FromTypeField<DiaNode>(
-                        &DiaNode::subnodes),
-                    idx));
-        } else {
-            return DiaAdapter{DiaUniqId{idAt, idAt, {}}, ctx};
-        }
-    }
+    DiaAdapter at(int idx, bool withPath) const;
+    DiaAdapter atPath(hstd::Vec<int> const& path, bool withPath) const;
 };
 
 template <>

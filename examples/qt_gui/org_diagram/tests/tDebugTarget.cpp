@@ -5,6 +5,8 @@
 #include <src/utils/test_utils.hpp>
 #include <QTimer>
 #include <QSignalSpy>
+#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/exporters/exportertree.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "test.history"
@@ -29,6 +31,8 @@ class DebugTarget : public QObject {
             hstd::Vec{
                 ditem(2, "item 1"),
                 ditem(2, "item 2"),
+                ditem(3, "item 2-nested"),
+                ditem(3, "item 3-nested"),
             }));
 
 
@@ -42,21 +46,51 @@ class DebugTarget : public QObject {
         QSignalSpy updateSpy{
             scope.version_store.get(), &DiaVersionStore::diaRootChanged};
 
-        DiaAdapter target = res.dia.at(0, true);
-        QVERIFY(target.getKind() == DiaNodeKind::Layer);
+        DiaAdapter target = res.dia.at(0, true).at(1, true);
+        org::sem::SemId<org::sem::Subtree>
+            item2Subtree = org::imm::sem_from_immer(
+                               target.getImmAdapter().id,
+                               *scope.imm_context)
+                               .as<org::sem::Subtree>();
+
+        HSLOG_INFO(_cat, "?");
+        org::sem::SemId<org::sem::Org> tmpDocument = org::parseString(
+            "item updated");
+        HSLOG_INFO(
+            _cat,
+            org::algo::ExporterTree::treeRepr(tmpDocument)
+                .toString(false));
+        HSLOG_INFO(_cat, "?");
+        org::sem::SemId<org::sem::Paragraph>
+            tmpTitle = tmpDocument.at(0).as<org::sem::Paragraph>();
+        HSLOG_INFO(_cat, "?");
+
+        item2Subtree->title = tmpTitle;
+        HSLOG_INFO(_cat, "?");
+
+        LOGIC_ASSERTION_CHECK(target.getKind() == DiaNodeKind::Item, "");
+        HSLOG_INFO(_cat, "?");
 
         scope.version_store->applyDiaEdits(
-            S::EditGroup::Append1NewNode(target.uniq()));
+            S::EditGroup::UpdateExisting(target.uniq(), item2Subtree));
+        HSLOG_INFO(_cat, "?");
 
         QCOMPARE_EQ(updateSpy.count(), 1);
+        HSLOG_INFO(_cat, "?");
 
         {
             auto root = scope.getRoot();
-            QCOMPARE_EQ2(root.size(), 1);
-            QCOMPARE_EQ2(root.at(0, true).size(), 1);
-            QCOMPARE_EQ2(root.at(0, true).at(0, true).size(), 1);
+            _dbg(root.atPath({}, true).size());
+            _dbg(root.atPath({0}, true).size());
+            _dbg(root.atPath({0, 0}, true).size());
+            _dbg(root.atPath({0, 1}, true).size());
+            _dbg(root.atPath({0, 1, 0}, true).size());
+            _dbg(root.atPath({0, 1, 1}, true).size());
         }
 
+        HSLOG_INFO(_cat, "?");
+
+        HSLOG_INFO(_cat, "done");
         QApplication::quit();
     }
 };

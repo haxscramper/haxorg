@@ -1,6 +1,7 @@
 #include "DiagramTreeNode.hpp"
 #include <src/utils/common.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <range/v3/algorithm/any_of.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "model.tree"
@@ -65,11 +66,17 @@ DiaId FromSubtreeItemRec(
 
     auto tmp = result.subnodes.transient();
 
-    for (auto const& sub : subtree.subAs<org::imm::ImmSubtree>()) {
-        if (isSubtreeItem(sub)) {
+    hstd::Vec<org::imm::ImmAdapterT<org::imm::ImmSubtree>>
+        subnodes = subtree.subAs<org::imm::ImmSubtree>();
+
+    if (hstd::rs::any_of(subnodes, [](auto const& it) -> bool {
+            return isSubtreeItem(it).has_value();
+        })) {
+        for (auto const& sub : subnodes) {
             tmp.push_back(FromSubtreeItemRec(context, sub));
         }
     }
+
 
     result.subnodes = tmp.persistent();
     return context->add(result);
@@ -530,29 +537,80 @@ hstd::Opt<DiaAdapter> DiaAdapter::getParent() const {
     }
 }
 
+DiaAdapter DiaAdapter::at(
+    const DiaId&                 at_id,
+    const org::imm::ImmPathStep& step) const {
+    hstd::logic_assertion_check_not_nil(at_id);
+    return DiaAdapter{DiaUniqId{at_id, id.root, id.path.add(step)}, ctx};
+}
+
+DiaAdapter DiaAdapter::atPath(hstd::Vec<int> const& path, bool withPath)
+    const {
+    DiaAdapter res = *this;
+    for (int step : path) { res = res.at(step, withPath); }
+    return res;
+}
+
+hstd::Vec<DiaAdapter> DiaAdapter::sub(bool withPath) const {
+    hstd::Vec<DiaAdapter> result;
+    for (int i = 0; i < size(); ++i) { result.push_back(at(i, withPath)); }
+    return result;
+}
+
 hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
     hstd::ColStream                          os;
     hstd::Func<void(DiaAdapter const&, int)> aux;
 
     aux = [&](DiaAdapter const& node, int level) {
         os.indent(level * 2);
-        std::size_t node_hash{};
+        std::size_t          node_hash{};
+        hstd::Opt<hstd::Str> nodeName;
         switch_dia_ptr(
             node.ctx->at(node.id.target), [&]<typename T>(T const* p) {
                 node_hash = std::hash<T>{}(*p);
             });
 
+        switch_dia_ptr(
+            node.ctx->at(node.id.target),
+            hstd::overloaded{
+                [&](DiaNodeItem const* p) {
+                    nodeName = p->getSubtree().getCleanTitle();
+                },
+                [&](auto const* p) {},
+            });
+
         os << hstd::fmt(
-            "{} ID:{} HASH:0x{:X} UNIQ-ID:{}\n",
+            "{} ID:{} HASH:0x{:X} UNIQ-ID:{}",
             node->getKind(),
             node.id.target,
             node_hash,
             node.id);
+
+        if (nodeName) {
+            os << hstd::fmt(
+                " NAME:{}", hstd::escape_literal(nodeName.value()));
+        }
+
+        os << "\n";
         for (auto const& sub : node.sub(true)) { aux(sub, level + 1); }
     };
 
     aux(*this, 0);
     return os;
+}
+
+DiaAdapter DiaAdapter::at(int idx, bool withPath) const {
+    DiaId idAt = ctx->at(id)->subnodes.at(idx);
+    if (withPath) {
+        return at(
+            idAt,
+            org::imm::ImmPathStep::FieldIdx(
+                org::imm::ImmReflFieldId::FromTypeField<DiaNode>(
+                    &DiaNode::subnodes),
+                idx));
+    } else {
+        return DiaAdapter{DiaUniqId{idAt, idAt, {}}, ctx};
+    }
 }
 
 hstd::ext::Graphviz::Graph getEditMappingGraphviz(
