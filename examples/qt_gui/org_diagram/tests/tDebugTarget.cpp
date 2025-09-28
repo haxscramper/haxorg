@@ -31,8 +31,8 @@ class DebugTarget : public QObject {
             hstd::Vec{
                 ditem(2, "item 1"),
                 ditem(2, "item 2"),
-                ditem(3, "item 2-nested"),
-                ditem(3, "item 3-nested"),
+                ditem(3, "item 3-0"),
+                ditem(3, "item 3-1"),
             }));
 
 
@@ -46,47 +46,19 @@ class DebugTarget : public QObject {
         QSignalSpy updateSpy{
             scope.version_store.get(), &DiaVersionStore::diaRootChanged};
 
-        DiaAdapter target = res.dia.at(0, true).at(1, true);
-        org::sem::SemId<org::sem::Subtree>
-            item2Subtree = org::imm::sem_from_immer(
-                               target.getImmAdapter().id,
-                               *scope.imm_context)
-                               .as<org::sem::Subtree>();
-
-        org::sem::SemId<org::sem::Org> tmpDocument = org::parseString(
-            "item updated");
-        HSLOG_INFO(
-            _cat,
-            org::algo::ExporterTree::treeRepr(tmpDocument)
-                .toString(false));
-        org::sem::SemId<org::sem::Paragraph>
-            tmpTitle = tmpDocument.at(0).as<org::sem::Paragraph>();
-
-        item2Subtree->title = tmpTitle;
-
+        DiaAdapter target = res.dia.atPath({0, 0}, true);
         LOGIC_ASSERTION_CHECK(target.getKind() == DiaNodeKind::Item, "");
 
         scope.version_store->applyDiaEdits(
-            S::EditGroup::UpdateExisting(target.uniq(), item2Subtree));
+            S::EditGroup::MoveNodesUnderExisting(
+                target.uniq(),
+                hstd::Vec<DiaUniqId>{
+                    res.dia.atPath({0, 1, 0}, true).uniq(),
+                    res.dia.atPath({0, 1, 1}, true).uniq(),
+                },
+                0));
 
         QCOMPARE_EQ(updateSpy.count(), 1);
-
-        {
-            auto root = scope.getRoot();
-            _dbg(root.atPath({}, true).size());
-            _dbg(root.atPath({0}, true).size());
-            _dbg(root.atPath({0, 0}, true).size());
-            _dbg(root.atPath({0, 1}, true).size());
-            _dbg(root.atPath({0, 1, 0}, true).size());
-            _dbg(root.atPath({0, 1, 1}, true).size());
-            _dbg(root.atPath({0, 1}, true)
-                     .getImmAdapter()
-                     .as<org::imm::ImmSubtree>()
-                     .getCleanTitle());
-        }
-
-
-        HSLOG_INFO(_cat, "done");
         QApplication::quit();
     }
 };

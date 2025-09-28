@@ -148,6 +148,54 @@ void DiaVersionStore::stepEditForward(
             break;
         }
 
+        case EditCmd::Kind::MoveDiaNode: {
+            EditCmd::MoveDiaNode const& mov    = edit.getMoveDiaNode();
+            imm::ImmAdapter             target = get_target(mov.newParent);
+
+            hstd::Vec<imm::ImmAdapter>
+                toMove = mov.nodeToMove
+                       | rv::transform(
+                             [&](EditTarget const& t) -> imm::ImmAdapter {
+                                 return get_target(t);
+                             })
+                       | rs::to<Vec>();
+
+            HSLOG_INFO(_cat, "node collection to move");
+            log_collection(
+                "test", hstd::log::severity_level::trace, toMove)
+                .end();
+
+            for (auto const& rem : toMove) {
+                vEdit = vEdit.getEditVersion(
+                    [&](imm::ImmAstContext::Ptr ctx,
+                        imm::ImmAstEditContext& edit)
+                        -> imm::ImmAstReplaceGroup {
+                        return imm::dropSubnode(
+                            rem.getParent().value(), rem.id, edit);
+                    });
+            }
+
+            vEdit = vEdit.getEditVersion(
+                [&](imm::ImmAstContext::Ptr ctx,
+                    imm::ImmAstEditContext& edit)
+                    -> imm::ImmAstReplaceGroup {
+                    hstd::Vec<imm::ImmId> movedIds;
+
+                    for (auto const& moved : toMove) {
+                        movedIds.push_back(moved.id);
+                    }
+
+                    return imm::insertSubnodes(
+                        target,
+                        movedIds,
+                        mov.newIndex.value_or(target.size()),
+                        edit);
+                });
+
+
+            break;
+        }
+
         case EditCmd::Kind::InsertDiaNode: {
             EditCmd::InsertDiaNode const& ins = edit.getInsertDiaNode();
             imm::ImmAdapter adapter           = get_target(ins.newParent);

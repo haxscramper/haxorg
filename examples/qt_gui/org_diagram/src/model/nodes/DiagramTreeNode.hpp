@@ -554,6 +554,8 @@ struct DiaAdapter {
 
     DiaId getRootId() const { return id.root; }
 
+    org::imm::ImmPath const& getImmPath() const { return id.path; }
+
     hstd::Vec<int> getParentPathFromRoot() const {
         return id.getParentPathFromRoot();
     }
@@ -567,6 +569,10 @@ struct DiaAdapter {
     bool hasParent() const { return 1 < id.path.path.size(); }
 
     hstd::Opt<DiaAdapter> getParent() const;
+    bool                  isAncestorOf(DiaAdapter const& other) const;
+
+    static hstd::Vec<hstd::Pair<DiaAdapter, DiaAdapter>> getAncestorPairs(
+        hstd::Vec<DiaAdapter> const& adapters);
 
     DiaAdapter at(DiaId const& at_id, org::imm::ImmPathStep const& step)
         const;

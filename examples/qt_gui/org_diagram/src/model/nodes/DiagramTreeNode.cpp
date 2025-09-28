@@ -537,6 +537,53 @@ hstd::Opt<DiaAdapter> DiaAdapter::getParent() const {
     }
 }
 
+bool DiaAdapter::isAncestorOf(DiaAdapter const& other) const {
+    if (other.hasParent()) {
+        LOGIC_ASSERTION_CHECK(
+            getRootId() == other.getRootId(),
+            "Ancestor checks can only be performed between diagram "
+            "adapters from the same root, but this:{} root is {} while "
+            "other:{} root is {}",
+            *this,
+            getRootId(),
+            other,
+            other.getRootId());
+
+        auto const& thisPath  = getImmPath();
+        auto const& otherPath = other.getImmPath();
+
+        if (!(otherPath.path.size() < thisPath.path.size())) {
+            return false;
+        }
+
+        for (int i = 0;
+             i < std::min(thisPath.path.size(), otherPath.path.size());
+             ++i) {
+            if (otherPath.path.at(i) != thisPath.path.at(i)) {
+                return false;
+            }
+        }
+
+        return true;
+
+    } else {
+        return false;
+    }
+}
+
+hstd::Vec<hstd::Pair<DiaAdapter, DiaAdapter>> DiaAdapter::getAncestorPairs(
+    hstd::Vec<DiaAdapter> const& adapters) {
+    hstd::Vec<hstd::Pair<DiaAdapter, DiaAdapter>> res;
+    // naive O(n^2) implementation, efficient solution can use trie or some
+    // similar data structure, Right now it is not necessary.
+    for (auto const& lhs : adapters) {
+        for (auto const& rhs : adapters) {
+            if (lhs.isAncestorOf(rhs)) { res.push_back({lhs, rhs}); }
+        }
+    }
+    return res;
+}
+
 DiaAdapter DiaAdapter::at(
     const DiaId&                 at_id,
     const org::imm::ImmPathStep& step) const {
