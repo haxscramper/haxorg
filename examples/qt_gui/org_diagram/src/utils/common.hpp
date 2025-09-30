@@ -198,7 +198,14 @@ hstd::ColText printModelTree(
     bool           ignoreExceptions = false,
     hstd::Opt<int> maxDepth         = std::nullopt);
 
+
 #define HAXORG_QT_TEST_MAIN(Test_Class)                                   \
+    extern "C" {                                                          \
+    const char* __asan_default_options() { return "detect_leaks=0"; }     \
+    const char* __ubsan_default_options() {                               \
+        return "print_stacktrace=1:halt_on_error=1";                      \
+    }                                                                     \
+    }                                                                     \
     int main(int argc, char* argv[]) {                                    \
         QT_PREPEND_NAMESPACE(                                             \
             QTest::Internal::callInitMain)<Test_Class>();                 \

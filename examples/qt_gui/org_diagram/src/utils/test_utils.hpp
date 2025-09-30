@@ -1,5 +1,15 @@
 #pragma once
 
+
+#include <QAbstractItemModel>
+#include <QString>
+#include <QVariant>
+#include <QModelIndex>
+#include <vector>
+#include <string>
+#include <format>
+#include <functional>
+
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <src/model/DiaVersionStore.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
@@ -7,6 +17,96 @@
 #include <src/gui/DiaScene.hpp>
 
 namespace test {
+
+
+template <typename T>
+struct ModelMismatch {
+    std::string description;
+    T           value1;
+    T           value2;
+};
+
+template <typename T, typename Model>
+std::vector<ModelMismatch<T>> compareModels(
+    Model const*                                       model1,
+    Model const*                                       model2,
+    std::function<T(const QModelIndex&, Model const*)> valueConverter) {
+    std::vector<ModelMismatch<T>> mismatches;
+
+    std::function<void(
+        const QModelIndex&, const QModelIndex&, const std::string&)>
+        compareRecursive;
+
+    compareRecursive = [&](const QModelIndex& parent1,
+                           const QModelIndex& parent2,
+                           const std::string& path) {
+        int rowCount1 = model1->rowCount(parent1);
+        int rowCount2 = model2->rowCount(parent2);
+
+        if (rowCount1 != rowCount2) {
+            mismatches.push_back(
+                {std::format(
+                     "Row count mismatch at {}: {} vs {}",
+                     path,
+                     rowCount1,
+                     rowCount2),
+                 {},
+                 {}});
+            return;
+        }
+
+        int colCount1 = model1->columnCount(parent1);
+        int colCount2 = model2->columnCount(parent2);
+
+        if (colCount1 != colCount2) {
+            mismatches.push_back(
+                {std::format(
+                     "Column count mismatch at {}: {} vs {}",
+                     path,
+                     colCount1,
+                     colCount2),
+                 {},
+                 {}});
+            return;
+        }
+
+        for (int row = 0; row < rowCount1; ++row) {
+            for (int col = 0; col < colCount1; ++col) {
+                QModelIndex idx1 = model1->index(row, col, parent1);
+                QModelIndex idx2 = model2->index(row, col, parent2);
+
+                std::string currentPath = std::format(
+                    "{}[{},{}]", path, row, col);
+
+                T val1 = valueConverter(idx1, model1);
+                T val2 = valueConverter(idx2, model2);
+
+                if (val1 != val2) {
+                    mismatches.push_back(
+                        {std::format("Data mismatch at {}", currentPath),
+                         val1,
+                         val2});
+                }
+
+                if (model1->hasChildren(idx1)
+                    != model2->hasChildren(idx2)) {
+                    mismatches.push_back(
+                        {std::format(
+                             "HasChildren mismatch at {}", currentPath),
+                         {},
+                         {}});
+                } else if (model1->hasChildren(idx1)) {
+                    compareRecursive(idx1, idx2, currentPath);
+                }
+            }
+        }
+    };
+
+    compareRecursive(QModelIndex{}, QModelIndex{}, "root");
+
+    return mismatches;
+}
+
 struct ScopeManaged {
     org::imm::ImmAstContext::Ptr imm_context;
     DiaContext::Ptr              dia_context;

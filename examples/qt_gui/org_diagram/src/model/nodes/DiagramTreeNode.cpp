@@ -202,6 +202,7 @@ struct MatchCandidate {
     int  srcIndex;
     bool isExactMatch;
     bool isMove;
+    DESC_FIELDS(MatchCandidate, (srcIndex, isExactMatch, isMove));
 };
 
 std::optional<MatchCandidate> findBestMatch(
@@ -312,6 +313,61 @@ std::optional<MatchCandidate> findBestMatch(
     return std::nullopt;
 }
 
+bool recurseMatchCandidate(
+    NodesByDiaId const&          srcSubnodesByDiaId,
+    NodesByDiaId const&          dstSubnodesByDiaId,
+    DiaAdapter const&            dstSubnode,
+    hstd::Vec<DiaAdapter> const& srcSubnodes,
+    hstd::Vec<DiaAdapter> const& dstSubnodes,
+    ProcessedNodes&              processedSrc,
+    ProcessedNodes&              processedDst,
+    MatchCandidate const&        matchCandidate,
+    int                          dstIndex,
+    hstd::Vec<DiaEdit>&          results) {
+    TRACKED_SCOPE(hstd::fmt("recurse match candidate {}", matchCandidate));
+    auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.getDiaId());
+    if (srcIndicesIt != srcSubnodesByDiaId.end()) {
+        int unprocessedSrcCount = countUnprocessedNodes(
+            srcIndicesIt->second, srcSubnodes, processedSrc);
+
+        if (shouldPreferInsert(
+                dstSubnode,
+                dstSubnodesByDiaId,
+                dstSubnodes,
+                processedDst,
+                unprocessedSrcCount)) {
+            HSLOG_TRACE(
+                _cat,
+                hstd::fmt("Preferring insert over match due to "
+                          "duplicate handling"));
+            return false;
+        }
+    }
+
+    const auto& srcSubnode = srcSubnodes.at(matchCandidate.srcIndex);
+    HSLOG_TRACE(
+        _cat,
+        hstd::fmt(
+            "Processing match: srcIndex:{} -> dstIndex:{} "
+            "isExact:{} "
+            "isMove:{}",
+            matchCandidate.srcIndex,
+            dstIndex,
+            matchCandidate.isExactMatch,
+            matchCandidate.isMove));
+
+    processMatchedSubnodes(
+        srcSubnode,
+        dstSubnode,
+        matchCandidate.srcIndex,
+        dstIndex,
+        results,
+        processedSrc,
+        processedDst);
+
+    return true;
+}
+
 void diffSubnodes(
     const DiaAdapter&   srcNode,
     const DiaAdapter&   dstNode,
@@ -341,11 +397,10 @@ void diffSubnodes(
     ProcessedNodes processedSrc;
     ProcessedNodes processedDst;
 
-    for (int dstIndex = dstSubnodes.size() - 1; 0 <= dstIndex;
-         --dstIndex) {
+    for (int dstIndex = 0; dstIndex < dstSubnodes.size(); ++dstIndex) {
         HSLOG_TRACE(_cat, hstd::fmt("dst index {}", dstIndex));
         HSLOG_DEPTH_SCOPE_ANON();
-        const auto& dstSubnode = dstSubnodes.at(dstIndex);
+        DiaAdapter const& dstSubnode = dstSubnodes.at(dstIndex);
 
         if (processedDst.contains(dstSubnode.id)) {
             HSLOG_TRACE(
@@ -356,36 +411,30 @@ void diffSubnodes(
             continue;
         }
 
-        auto matchCandidate = findBestMatch(
+        hstd::Opt<MatchCandidate> const matchCandidate = findBestMatch(
             dstSubnode,
             dstIndex,
             srcSubnodesByDiaId,
             srcSubnodes,
             processedSrc);
 
-        if (matchCandidate.has_value()) {
-            auto srcIndicesIt = srcSubnodesByDiaId.find(
-                dstSubnode.getDiaId());
-            if (srcIndicesIt != srcSubnodesByDiaId.end()) {
-                int unprocessedSrcCount = countUnprocessedNodes(
-                    srcIndicesIt->second, srcSubnodes, processedSrc);
+        bool matchAccepted = false;
 
-                if (shouldPreferInsert(
-                        dstSubnode,
-                        dstSubnodesByDiaId,
-                        dstSubnodes,
-                        processedDst,
-                        unprocessedSrcCount)) {
-                    HSLOG_TRACE(
-                        _cat,
-                        hstd::fmt("Preferring insert over match due to "
-                                  "duplicate handling"));
-                    matchCandidate.reset();
-                }
-            }
+        if (matchCandidate.has_value()) {
+            matchAccepted = recurseMatchCandidate(
+                srcSubnodesByDiaId,
+                dstSubnodesByDiaId,
+                dstSubnode,
+                srcSubnodes,
+                dstSubnodes,
+                processedSrc,
+                processedDst,
+                matchCandidate.value(),
+                dstIndex,
+                results);
         }
 
-        if (!matchCandidate.has_value()) {
+        if (!matchAccepted) {
             HSLOG_TRACE(
                 _cat,
                 hstd::fmt(
@@ -397,27 +446,8 @@ void diffSubnodes(
             processedDst.insert(dstSubnode.id);
             continue;
         }
-
-        const auto& srcSubnode = srcSubnodes.at(matchCandidate->srcIndex);
-        HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "Processing match: srcIndex:{} -> dstIndex:{} isExact:{} "
-                "isMove:{}",
-                matchCandidate->srcIndex,
-                dstIndex,
-                matchCandidate->isExactMatch,
-                matchCandidate->isMove));
-
-        processMatchedSubnodes(
-            srcSubnode,
-            dstSubnode,
-            matchCandidate->srcIndex,
-            dstIndex,
-            results,
-            processedSrc,
-            processedDst);
     }
+
 
     for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
         const auto& srcSubnode = srcSubnodes.at(srcIndex);

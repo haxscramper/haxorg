@@ -30,6 +30,43 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
         ditem("suffix 5"),
     };
 
+    void verifyTransition(ScopeV12DiagramDiff const& diff) {
+        visualizeTestDiff(this, diff);
+
+        DiaSceneItemModel srcModel;
+        DiaScene          srcScene{&srcModel, diff.version_store};
+        srcScene.setRootAdapter(diff.srcAdapter);
+        srcScene.resetRootAdapter(diff.edits);
+        DiaSceneItemModel dstModel;
+        DiaScene          dstScene{&dstModel, diff.version_store};
+        dstScene.setRootAdapter(diff.dstAdapter);
+
+        auto compare = test::compareModels<DiaId, DiaSceneItemModel>(
+            &srcModel,
+            &dstModel,
+            [](QModelIndex const&       index,
+               DiaSceneItemModel const* model) -> DiaId {
+                return model->getNode(index)
+                    ->getActiveAdapter()
+                    .getDiaId();
+            });
+
+        if (!compare.empty()) {
+            std::string message;
+            message = "model switch failed";
+            for (auto const& it : compare) {
+                message += hstd::fmt("\n{}", it.description);
+            }
+
+            HSLOG_ERROR(_cat, message);
+            HSLOG_ERROR(
+                _cat, "src model:\n", srcModel.format().toString());
+            HSLOG_ERROR(
+                _cat, "dst model:\n", dstModel.format().toString());
+
+            QFAIL(message.c_str());
+        }
+    }
 
   private slots:
     void testFromRegularText() {
@@ -117,7 +154,7 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )"};
-        QCOMPARE_EQ(scope.edits.size(), 2);
+        QCOMPARE_EQ(scope.edits.size(), 3);
     }
 
     void testInsertDuplicateSubnode() {
@@ -154,7 +191,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )"};
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testSubnodeMove() {
@@ -186,7 +224,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     :prop_args:haxorg_diagram_node: :some-value t
     :end:
 )"};
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
 
@@ -205,7 +244,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     + hstd::Vec{ditem("item 2"), ditem("item 1")}
                     + simpleSuffix5_level2),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testSubnodeUpdateInPlace() {
@@ -221,7 +261,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                 simplePrefix5_level2 + hstd::Vec{ditem("item 1", {10, 20})}
                     + simpleSuffix5_level2),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testSubnodeUpdateDeepNode() {
@@ -244,7 +285,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(5, "item 4"),
                     ditem(6, "item 5", {10, 20})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testSubnodeSwapDeepNode() {
@@ -267,7 +309,32 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(5, "item 4"),
                     ditem(6, "item 5", {10, 20})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
+    }
+
+    void testSubnodeMoveToOtherSubtree() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                    ditem(2, "item 2"),
+                    ditem(3, "item 2-1"),
+                    ditem(3, "item 2-2"),
+                }),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem(2, "item 1"),
+                    ditem(3, "item 2-1"),
+                    ditem(3, "item 2-2"),
+                    ditem(2, "item 2"),
+                }),
+        };
+
+        verifyTransition(scope);
     }
 
     void testWideTreeMultipleEdits() {
@@ -290,7 +357,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem("item B", {40, 10}),
                     ditem("item F", {60, 10})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testSwapFollowedByInsert_TwoItems() {
@@ -307,7 +375,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem("item A", {10, 10}),
                     ditem("item C", {30, 10})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testSwapFollowedByInsert_WithPrefix() {
@@ -329,7 +398,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem("item A", {10, 10}),
                     ditem("item C", {30, 10})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testSwapFollowedByInsert_WithPrefixAndSuffix() {
@@ -355,7 +425,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem("item Z", {50, 10}),
                     ditem("item W", {60, 10})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testWideNodeAllLeavesChanged() {
@@ -386,7 +457,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(3, "leaf G", {75, 15}),
                     ditem(3, "leaf H", {85, 15})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testWideNodeSubnodesChanged() {
@@ -426,7 +498,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "c3", {33, 13})}),
         };
 
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testMultiWideTreeLeafMoves_UniqueLeaves() {
@@ -462,7 +535,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "leaf B2", {22, 12}),
                     ditem(4, "leaf C2", {32, 12})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testMultiWideTreeLeafMoves_DuplicateLeaves() {
@@ -496,7 +570,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "leaf B2", {22, 12}),
                     ditem(4, "shared item", {31, 11})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testMultiWideTreeLeafDeleteInsert_UniqueLeaves() {
@@ -529,7 +604,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "new leaf C2", {32, 12}),
                     ditem(4, "new leaf C3", {33, 13})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testMultiWideTreeLeafDeleteInsert_DuplicateLeaves() {
@@ -562,7 +638,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "common leaf", {32, 12}),
                     ditem(4, "shared item", {31, 11})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testMultiWideTreeComplexEdits_UniqueLeaves() {
@@ -598,7 +675,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "leaf A3", {13, 13}),
                     ditem(4, "new leaf C3", {33, 13})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testMultiWideTreeComplexEdits_DuplicateLeaves() {
@@ -634,7 +712,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "leaf A2", {12, 12}),
                     ditem(4, "common leaf", {11, 11})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testDeleteLevel3NodeWithLeaves() {
@@ -664,7 +743,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(3, "subgroup B1", {21, 11}),
                     ditem(4, "leaf B1-1", {22, 12})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testDeleteLevel2NodeWithSubtree() {
@@ -697,7 +777,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "leaf A2-1", {15, 15}),
                     ditem("group C", {30, 10})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testInsertLevel3NodeWithLeaves() {
@@ -728,7 +809,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "leaf B1-1", {22, 12})}),
         };
 
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testInsertLevel2NodeWithSubtree() {
@@ -762,7 +844,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem("group C", {30, 10})}),
         };
 
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testSwapLevel2ItemsWithLevel3Leaves() {
@@ -793,7 +876,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem("group C", {30, 10}),
                     ditem(3, "leaf C1", {31, 11})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 
     void testSwapLevel2ItemsWithNestedSubtrees() {
@@ -834,7 +918,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem("group C", {30, 10}),
                     ditem(3, "leaf C1", {31, 11})}),
         };
-        visualizeTestDiff(this, scope);
+
+        verifyTransition(scope);
     }
 };
 
