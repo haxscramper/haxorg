@@ -117,8 +117,11 @@ DiaSceneItem* DiaScene::setRootAdapter(const DiaAdapter& a) {
     return rootNode.get();
 }
 
-void DiaScene::applyPartialEditStep(DiaEdit const& edit) {
-    TRACKED_SCOPE(hstd::fmt("Applying edit {}", edit));
+void DiaScene::applyPartialEditStep(
+    DiaEdit const&      edit,
+    TransientEditState& state) {
+    TRACKED_SCOPE(hstd::fmt("Applying edit {}", edit.getKind()));
+    HSLOG_TRACE(_cat, hstd::fmt("EDIT:{}", edit));
     HSLOG_INFO(
         _cat,
         hstd::fmt(
@@ -205,9 +208,11 @@ void DiaScene::applyPartialEditStep(DiaEdit const& edit) {
 
         case DiaEdit::Kind::Insert: {
             treeModel->beginEditApply(edit);
-            DiaSceneItem* parent = getItemForPath(
-                edit.getDst().getParentPathFromRoot());
-            auto newNode = addAdapterRec(edit.getDst());
+            auto parentPath       = edit.getDst().getParentPathFromRoot();
+            DiaSceneItem* parent  = getItemForPath(parentPath);
+            auto          newNode = addAdapterRec(edit.getDst());
+            state.insertedIndicesUnderPath[parentPath].insert(
+                edit.getInsert().dstIndex);
             parent->insertSubnode(
                 std::move(newNode), edit.getInsert().dstIndex);
             treeModel->endEditApply(edit);
@@ -242,8 +247,12 @@ void DiaScene::applyPartialEditStep(DiaEdit const& edit) {
 DiaSceneItem* DiaScene::resetRootAdapter(const hstd::Vec<DiaEdit>& edits) {
     TRACKED_FUNCTION("resetRootAdapter");
     if (edits.empty()) { return root(); }
-    DiaSceneItem* originalRoot = root();
-    for (auto const& edit : edits) { applyPartialEditStep(edit); }
+    DiaSceneItem*      originalRoot = root();
+    TransientEditState state;
+    for (auto const& edit : edits) {
+        applyPartialEditStep(edit, state);
+        HSLOG_INFO(_cat, rootNode->treeRepr().toString(false));
+    }
 
     LOGIC_ASSERTION_CHECK(
         originalRoot != rootNode.get(),

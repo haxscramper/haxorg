@@ -324,7 +324,17 @@ bool recurseMatchCandidate(
     MatchCandidate const&        matchCandidate,
     int                          dstIndex,
     hstd::Vec<DiaEdit>&          results) {
-    TRACKED_SCOPE(hstd::fmt("recurse match candidate {}", matchCandidate));
+    const auto& srcSubnode = srcSubnodes.at(matchCandidate.srcIndex);
+    TRACKED_SCOPE("recurse candidate");
+
+    HSLOG_TRACE(
+        _cat,
+        hstd::fmt(
+            "{} to match src:{} with dst:{}",
+            matchCandidate,
+            srcSubnode,
+            dstSubnode));
+
     auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.getDiaId());
     if (srcIndicesIt != srcSubnodesByDiaId.end()) {
         int unprocessedSrcCount = countUnprocessedNodes(
@@ -344,7 +354,6 @@ bool recurseMatchCandidate(
         }
     }
 
-    const auto& srcSubnode = srcSubnodes.at(matchCandidate.srcIndex);
     HSLOG_TRACE(
         _cat,
         hstd::fmt(
@@ -449,7 +458,8 @@ void diffSubnodes(
     }
 
 
-    for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
+    for (int srcIndex = srcSubnodes.size() - 1; 0 <= srcIndex;
+         --srcIndex) {
         const auto& srcSubnode = srcSubnodes.at(srcIndex);
         if (!processedSrc.contains(srcSubnode.id)) {
             HSLOG_TRACE(

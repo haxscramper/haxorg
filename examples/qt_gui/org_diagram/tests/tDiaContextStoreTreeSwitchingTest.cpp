@@ -41,14 +41,12 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
         DiaScene          dstScene{&dstModel, diff.version_store};
         dstScene.setRootAdapter(diff.dstAdapter);
 
-        auto compare = test::compareModels<DiaId, DiaSceneItemModel>(
+        auto compare = test::compareModels<std::string, DiaSceneItemModel>(
             &srcModel,
             &dstModel,
             [](QModelIndex const&       index,
-               DiaSceneItemModel const* model) -> DiaId {
-                return model->getNode(index)
-                    ->getActiveAdapter()
-                    .getDiaId();
+               DiaSceneItemModel const* model) -> std::string {
+                return model->getNode(index)->name.toStdString();
             });
 
         if (!compare.empty()) {
@@ -58,11 +56,12 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                 message += hstd::fmt("\n{}", it.description);
             }
 
+
             HSLOG_ERROR(_cat, message);
             HSLOG_ERROR(
-                _cat, "src model:\n", srcModel.format().toString());
+                _cat, "src model:\n", srcModel.format().toString(false));
             HSLOG_ERROR(
-                _cat, "dst model:\n", dstModel.format().toString());
+                _cat, "dst model:\n", dstModel.format().toString(false));
 
             QFAIL(message.c_str());
         }
@@ -498,6 +497,44 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
                     ditem(4, "c3", {33, 13})}),
         };
 
+
+        verifyTransition(scope);
+    }
+
+    void testMultiWideTreeLeafMovesInserts_UniqueLeaves() {
+        auto                __scope = trackTestExecution(this);
+        ScopeV12DiagramDiff scope{
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf A1", {11, 11}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "leaf A3", {13, 13}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf B1", {21, 11}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf C1", {31, 11}),
+                    ditem(4, "leaf C2", {32, 12}),
+                    ditem(4, "leaf C3", {33, 13})}),
+            makeLayerText(
+                DiaNodeLayerParams{},
+                hstd::Vec{
+                    ditem("root"),
+                    ditem(3, "group pre-A", {10, 10}),
+                    ditem(3, "group A", {10, 10}),
+                    ditem(4, "leaf A1", {11, 11}),
+                    ditem(4, "leaf B1", {21, 11}),
+                    ditem(3, "group B", {20, 10}),
+                    ditem(4, "leaf A2", {12, 12}),
+                    ditem(4, "leaf C1", {31, 11}),
+                    ditem(3, "group C", {30, 10}),
+                    ditem(4, "leaf A3", {13, 13}),
+                    ditem(4, "leaf B2", {22, 12}),
+                    ditem(4, "leaf C2", {32, 12})}),
+        };
 
         verifyTransition(scope);
     }

@@ -8,10 +8,13 @@ hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
     aux = [&](DiaSceneItem const* item, int level) {
         for (auto const& line : hstd::enumerator(item->formatSelf())) {
             if (line.is_first()) {
-                os << os.indent(level * 2) << line.value()
-                   << hstd::fmt(
-                          " 0x{:X}", reinterpret_cast<uintptr_t>(item))
-                   << "\n";
+                os << os.indent(level * 2) << line.value();
+                if (false) {
+                    os << hstd::fmt(
+                        " 0x{:X}", reinterpret_cast<uintptr_t>(item));
+                }
+                os << hstd::fmt(" {}", item->getSelfPathFromRoot());
+                os << "\n";
             } else {
                 os << os.indent(level * 2) << line.value() << "\n";
             }

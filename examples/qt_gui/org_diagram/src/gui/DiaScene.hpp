@@ -9,6 +9,7 @@
 #include <src/gui/items/DiaSceneItemEdge.hpp>
 #include <src/gui/items/DiaSceneItemImage.hpp>
 #include <src/gui/items/DiaSceneItemGroup.hpp>
+#include <hstd/stdlib/Set.hpp>
 #include <QMessageBox>
 
 struct DiaScene : public QGraphicsScene {
@@ -101,7 +102,14 @@ struct DiaScene : public QGraphicsScene {
     /// based on the provided edits.
     DiaSceneItem* resetRootAdapter(hstd::Vec<DiaEdit> const& edits);
 
-    void applyPartialEditStep(DiaEdit const& edit);
+    struct TransientEditState {
+        hstd::UnorderedMap<hstd::Vec<int>, std::set<int>>
+            insertedIndicesUnderPath;
+    };
+
+    void applyPartialEditStep(
+        DiaEdit const&      edit,
+        TransientEditState& state);
 
     /// \brief Create a new scene item based on the adapter data and
     /// add it to the scene.

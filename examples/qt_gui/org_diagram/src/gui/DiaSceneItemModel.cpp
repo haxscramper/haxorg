@@ -13,24 +13,24 @@ hstd::ColText DiaSceneItemModel::format() {
             if (ptr == nullptr) {
                 os << "nullptr " << qdebug_to_str(idx);
             } else {
-                os << "object-desc:" << hstd::descObjectPtr(ptr);
-                os << "\nadapter:" << hstd::fmt1(ptr->staleAdapter);
-                os << "\nindex:" << qdebug_to_str(idx);
-                if (ptr->hasParent()) {
-                    os << "\nself-path:"
-                       << hstd::fmt1(ptr->getSelfPathFromRoot());
-                } else {
-                    os << "\nself-path:[]";
-                }
+                // os << "object-desc:" << hstd::deObjectPtr(ptr);
+                os << "adapter:" << hstd::fmt1(ptr->staleAdapter);
+                // os << "\nindex:" << qdebug_to_str(idx);
+                // if (ptr->hasParent()) {
+                //     os << "\nself-path:"
+                //        << hstd::fmt1(ptr->getSelfPathFromRoot());
+                // } else {
+                //     os << "\nself-path:[]";
+                // }
 
                 if (__asan_address_is_poisoned(ptr)) {
                     __asan_describe_address(ptr);
                 }
 
-                if (ptr->getParent() != nullptr) {
-                    os << "\nparent:"
-                       << hstd::descObjectPtr(ptr->getParent());
-                }
+                // if (ptr->getParent() != nullptr) {
+                //     os << "\nparent:"
+                //        << hstd::descObjectPtr(ptr->getParent());
+                // }
 
                 auto selfFormat = ptr->formatSelf();
                 switch (selfFormat.size()) {

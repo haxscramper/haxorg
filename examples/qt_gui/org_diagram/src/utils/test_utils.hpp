@@ -19,19 +19,16 @@
 namespace test {
 
 
-template <typename T>
 struct ModelMismatch {
     std::string description;
-    T           value1;
-    T           value2;
 };
 
 template <typename T, typename Model>
-std::vector<ModelMismatch<T>> compareModels(
+std::vector<ModelMismatch> compareModels(
     Model const*                                       model1,
     Model const*                                       model2,
     std::function<T(const QModelIndex&, Model const*)> valueConverter) {
-    std::vector<ModelMismatch<T>> mismatches;
+    std::vector<ModelMismatch> mismatches;
 
     std::function<void(
         const QModelIndex&, const QModelIndex&, const std::string&)>
@@ -44,14 +41,11 @@ std::vector<ModelMismatch<T>> compareModels(
         int rowCount2 = model2->rowCount(parent2);
 
         if (rowCount1 != rowCount2) {
-            mismatches.push_back(
-                {std::format(
-                     "Row count mismatch at {}: {} vs {}",
-                     path,
-                     rowCount1,
-                     rowCount2),
-                 {},
-                 {}});
+            mismatches.push_back({std::format(
+                "Row count mismatch at {}: {} vs {}",
+                path,
+                rowCount1,
+                rowCount2)});
             return;
         }
 
@@ -59,14 +53,11 @@ std::vector<ModelMismatch<T>> compareModels(
         int colCount2 = model2->columnCount(parent2);
 
         if (colCount1 != colCount2) {
-            mismatches.push_back(
-                {std::format(
-                     "Column count mismatch at {}: {} vs {}",
-                     path,
-                     colCount1,
-                     colCount2),
-                 {},
-                 {}});
+            mismatches.push_back({std::format(
+                "Column count mismatch at {}: {} vs {}",
+                path,
+                colCount1,
+                colCount2)});
             return;
         }
 
@@ -82,19 +73,17 @@ std::vector<ModelMismatch<T>> compareModels(
                 T val2 = valueConverter(idx2, model2);
 
                 if (val1 != val2) {
-                    mismatches.push_back(
-                        {std::format("Data mismatch at {}", currentPath),
-                         val1,
-                         val2});
+                    mismatches.push_back({std::format(
+                        "Data mismatch at {}: {} != {}",
+                        currentPath,
+                        val1,
+                        val2)});
                 }
 
                 if (model1->hasChildren(idx1)
                     != model2->hasChildren(idx2)) {
-                    mismatches.push_back(
-                        {std::format(
-                             "HasChildren mismatch at {}", currentPath),
-                         {},
-                         {}});
+                    mismatches.push_back({std::format(
+                        "HasChildren mismatch at {}", currentPath)});
                 } else if (model1->hasChildren(idx1)) {
                     compareRecursive(idx1, idx2, currentPath);
                 }
