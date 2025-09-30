@@ -341,7 +341,8 @@ void diffSubnodes(
     ProcessedNodes processedSrc;
     ProcessedNodes processedDst;
 
-    for (int dstIndex = 0; dstIndex < dstSubnodes.size(); ++dstIndex) {
+    for (int dstIndex = dstSubnodes.size() - 1; 0 <= dstIndex;
+         --dstIndex) {
         HSLOG_TRACE(_cat, hstd::fmt("dst index {}", dstIndex));
         HSLOG_DEPTH_SCOPE_ANON();
         const auto& dstSubnode = dstSubnodes.at(dstIndex);
