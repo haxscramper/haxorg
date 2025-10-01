@@ -403,8 +403,9 @@ void diffSubnodes(
     auto srcSubnodesByDiaId = buildNodeIndex(srcSubnodes);
     auto dstSubnodesByDiaId = buildNodeIndex(dstSubnodes);
 
-    ProcessedNodes processedSrc;
-    ProcessedNodes processedDst;
+    ProcessedNodes     processedSrc;
+    ProcessedNodes     processedDst;
+    hstd::Vec<DiaEdit> delayedEdits;
 
     for (int dstIndex = 0; dstIndex < dstSubnodes.size(); ++dstIndex) {
         HSLOG_TRACE(_cat, hstd::fmt("dst index {}", dstIndex));
@@ -458,8 +459,7 @@ void diffSubnodes(
     }
 
 
-    for (int srcIndex = srcSubnodes.size() - 1; 0 <= srcIndex;
-         --srcIndex) {
+    for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
         const auto& srcSubnode = srcSubnodes.at(srcIndex);
         if (!processedSrc.contains(srcSubnode.id)) {
             HSLOG_TRACE(
@@ -472,6 +472,29 @@ void diffSubnodes(
                 .srcNode = srcSubnode, .srcIndex = srcIndex});
         }
     }
+
+    // std::sort(
+    //     delayedEdits.begin(),
+    //     delayedEdits.end(),
+    //     [](DiaEdit const& lhs, DiaEdit const& rhs) -> bool {
+    //         auto getIndex = [](DiaEdit const& ed) {
+    //             if (ed.isDelete()) {
+    //                 return ed.getDelete().srcIndex;
+    //             } else {
+    //                 return ed.getInsert().dstIndex;
+    //             }
+    //         };
+    //         return getIndex(lhs) < getIndex(rhs);
+    //     });
+
+    // HSLOG_TRACE(
+    //     _cat,
+    //     hstd::fmt("Delayed edits under SRC:{} DST:{}", srcNode, dstNode));
+
+    // log_collection("test", hstd::log::severity_level::trace, delayedEdits)
+    //     .end();
+
+    // results.append(delayedEdits);
 }
 
 void processMatchedSubnodes(

@@ -86,9 +86,16 @@ struct DiaSceneItem : public QGraphicsObject {
     DiaSceneItem* at(int pos) { return subnodes.at(pos).get(); }
     int           size() const { return subnodes.size(); }
 
-    DiaSceneItem* getItemAtPath(hstd::Vec<int> const& path) const {
+    hstd::Opt<DiaSceneItem*> getItemAtPath(
+        hstd::Vec<int> const& path) const {
         DiaSceneItem* res = const_cast<DiaSceneItem*>(this);
-        for (auto const& it : path) { res = res->at(it); }
+        for (auto const& it : path) {
+            if (it < res->size()) {
+                res = res->at(it);
+            } else {
+                return std::nullopt;
+            }
+        }
         hstd::logic_assertion_check_not_nil(res);
         return res;
     }

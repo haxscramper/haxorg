@@ -12,7 +12,9 @@ struct DiaSceneItemVisual : public DiaSceneItem {
     QPointF dragOffset{};
 
     hstd::Vec<hstd::ColText> formatSelf() const override {
-        return {hstd::ColText{"DiaSceneItemVisual " + name.toStdString()}};
+        return {hstd::ColText{
+            "DiaSceneItemVisual "
+            + hstd::escape_literal(name.toStdString())}};
     }
 
     DiaSceneItemVisual(DiaAdapter const& staleAdapter)

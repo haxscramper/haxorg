@@ -14,6 +14,7 @@ hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
                         " 0x{:X}", reinterpret_cast<uintptr_t>(item));
                 }
                 os << hstd::fmt(" {}", item->getSelfPathFromRoot());
+                os << hstd::fmt(" {}", item->getDiaId());
                 os << "\n";
             } else {
                 os << os.indent(level * 2) << line.value() << "\n";

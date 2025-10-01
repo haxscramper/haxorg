@@ -88,11 +88,11 @@ struct DiaScene : public QGraphicsScene {
         return result;
     }
 
-    DiaSceneItem* getItemForPath(hstd::Vec<int> const& path) {
+    hstd::Opt<DiaSceneItem*> getItemForPath(hstd::Vec<int> const& path) {
         return root()->getItemAtPath(path);
     }
 
-    DiaSceneItem* getItemForId(DiaUniqId const& id) {
+    hstd::Opt<DiaSceneItem*> getItemForId(DiaUniqId const& id) {
         return root()->getItemAtPath(id.getSelfPathFromRoot());
     }
 
@@ -105,6 +105,8 @@ struct DiaScene : public QGraphicsScene {
     struct TransientEditState {
         hstd::UnorderedMap<hstd::Vec<int>, std::set<int>>
             insertedIndicesUnderPath;
+        hstd::UnorderedMap<hstd::Vec<int>, std::set<int>>
+            deletedIndicesUnderPath;
     };
 
     void applyPartialEditStep(
