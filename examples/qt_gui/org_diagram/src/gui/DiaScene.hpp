@@ -103,10 +103,7 @@ struct DiaScene : public QGraphicsScene {
     DiaSceneItem* resetRootAdapter(hstd::Vec<DiaEdit> const& edits);
 
     struct TransientEditState {
-        hstd::UnorderedMap<hstd::Vec<int>, std::set<int>>
-            insertedIndicesUnderPath;
-        hstd::UnorderedMap<hstd::Vec<int>, std::set<int>>
-            deletedIndicesUnderPath;
+        hstd::UnorderedMap<hstd::Vec<int>, std::vector<DiaEdit>> applied;
     };
 
     void applyPartialEditStep(

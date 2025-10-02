@@ -13,7 +13,11 @@ hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
                     os << hstd::fmt(
                         " 0x{:X}", reinterpret_cast<uintptr_t>(item));
                 }
-                os << hstd::fmt(" {}", item->getSelfPathFromRoot());
+                if (item->hasParent()) {
+                    os << hstd::fmt(" {}", item->getSelfPathFromRoot());
+                } else {
+                    os << " <no-parent>";
+                }
                 os << hstd::fmt(" {}", item->getDiaId());
                 os << "\n";
             } else {

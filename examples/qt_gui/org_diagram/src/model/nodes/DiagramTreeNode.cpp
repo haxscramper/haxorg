@@ -489,9 +489,11 @@ void diffSubnodes(
 
     // HSLOG_TRACE(
     //     _cat,
-    //     hstd::fmt("Delayed edits under SRC:{} DST:{}", srcNode, dstNode));
+    //     hstd::fmt("Delayed edits under SRC:{} DST:{}", srcNode,
+    //     dstNode));
 
-    // log_collection("test", hstd::log::severity_level::trace, delayedEdits)
+    // log_collection("test", hstd::log::severity_level::trace,
+    // delayedEdits)
     //     .end();
 
     // results.append(delayedEdits);
