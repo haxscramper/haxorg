@@ -857,3 +857,41 @@ DiaId DiaContext::at(DiaId root, const org::imm::ImmPath& path) const {
     }
     return result;
 }
+
+
+int DiaEditTransientState::updateIdx(
+    int                   index,
+    const hstd::Vec<int>& parentPath) {
+    auto it = applied.find(parentPath);
+    if (it == applied.end()) { return index; }
+
+    TRACKED_SCOPE(
+        hstd::fmt("adjust index {} under {}", index, parentPath));
+
+    int shift = 0;
+    for (const auto& edit : it->second) {
+        HSLOG_TRACE(_cat, hstd::fmt("shift:{} edit:{}", shift, edit));
+        if (edit.isInsert()) {
+            if (edit.getInsert().dstIndex <= index) {
+                HSLOG_DEBUG(_cat, "shift += 1");
+                shift += 1;
+            }
+        } else if (edit.isDelete()) {
+            if (edit.getDelete().srcIndex < index) {
+                HSLOG_DEBUG(_cat, "shift -= 1");
+                shift -= 1;
+            }
+        } else if (edit.isMove()) {
+            if (edit.getMove().srcIndex < index) {
+                HSLOG_DEBUG(_cat, "shift -= 1");
+                shift -= 1;
+            }
+            if (edit.getMove().dstIndex <= index) {
+                HSLOG_DEBUG(_cat, "shift += 1");
+                shift += 1;
+            }
+        }
+    }
+
+    return index + shift;
+}

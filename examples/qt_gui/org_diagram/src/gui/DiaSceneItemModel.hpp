@@ -28,17 +28,7 @@ struct DiaSceneItemModel : public QAbstractItemModel {
         return indexAtPath(id.getParentPathFromRoot());
     }
 
-    hstd::Opt<QModelIndex> indexAtPath(hstd::Vec<int> const& path) const {
-        QModelIndex result;
-        for (auto const& i : path) {
-            if (i < rowCount(result)) {
-                result = index(i, 0, result);
-            } else {
-                return std::nullopt;
-            }
-        }
-        return result;
-    }
+    hstd::Opt<QModelIndex> indexAtPath(hstd::Vec<int> const& path) const;
 
     QModelIndex index(
         int                row,
@@ -78,8 +68,8 @@ struct DiaSceneItemModel : public QAbstractItemModel {
     }
 
 
-    void beginEditApply(DiaEdit const& edit);
-    void endEditApply(DiaEdit const& edit);
+    void beginEditApply(DiaEdit const& edit, DiaEditTransientState& state);
+    void endEditApply(DiaEdit const& edit, DiaEditTransientState& state);
 
   public slots:
     void selectNodes(const QList<DiaSceneItemVisual*>& visualNodes) {

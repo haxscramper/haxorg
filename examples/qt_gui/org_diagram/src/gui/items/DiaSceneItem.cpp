@@ -9,7 +9,7 @@ hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
         for (auto const& line : hstd::enumerator(item->formatSelf())) {
             if (line.is_first()) {
                 os << os.indent(level * 2) << line.value();
-                if (false) {
+                if (true) {
                     os << hstd::fmt(
                         " 0x{:X}", reinterpret_cast<uintptr_t>(item));
                 }

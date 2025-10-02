@@ -102,13 +102,10 @@ struct DiaScene : public QGraphicsScene {
     /// based on the provided edits.
     DiaSceneItem* resetRootAdapter(hstd::Vec<DiaEdit> const& edits);
 
-    struct TransientEditState {
-        hstd::UnorderedMap<hstd::Vec<int>, std::vector<DiaEdit>> applied;
-    };
 
     void applyPartialEditStep(
-        DiaEdit const&      edit,
-        TransientEditState& state);
+        DiaEdit const&         edit,
+        DiaEditTransientState& state);
 
     /// \brief Create a new scene item based on the adapter data and
     /// add it to the scene.

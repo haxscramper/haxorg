@@ -48,6 +48,19 @@ hstd::ColText DiaSceneItemModel::format() {
         true);
 }
 
+hstd::Opt<QModelIndex> DiaSceneItemModel::indexAtPath(
+    const hstd::Vec<int>& path) const {
+    QModelIndex result;
+    for (auto const& i : path) {
+        if (i < rowCount(result)) {
+            result = index(i, 0, result);
+        } else {
+            return std::nullopt;
+        }
+    }
+    return result;
+}
+
 QModelIndex DiaSceneItemModel::index(
     int                row,
     int                column,
@@ -135,66 +148,75 @@ QModelIndex DiaSceneItemModel::findNodeIndex(
 }
 
 
-void DiaSceneItemModel::beginEditApply(const DiaEdit& edit) {
+void DiaSceneItemModel::beginEditApply(
+    const DiaEdit&         edit,
+    DiaEditTransientState& state) {
     TRACKED_FUNCTION("beginEditApply");
+
+    auto getParent = [&](DiaAdapter const& adapter) {
+        auto parentPath = adapter.getParentPathFromRoot();
+        hstd::Opt<QModelIndex> parentItem = indexAtPath(parentPath);
+
+        LOGIC_ASSERTION_CHECK(
+            parentItem.has_value(),
+            "No node found at path {}, cannot execute insert "
+            "operation",
+            parentPath);
+
+        return std::pair{parentPath, parentItem.value()};
+    };
+
     switch (edit.getKind()) {
         case DiaEdit::Kind::Delete: {
-            auto parent = getIdParentIndex(edit.getSrc());
-            LOGIC_ASSERTION_CHECK(
-                parent.has_value(),
-                "Rows cannot be removed from non-existent parent");
-            int idx = edit.getDelete().srcIndex;
+            auto [parentPath, parentIndex] = getParent(edit.getSrc());
+            int idx                        = state.updateIdx(
+                edit.getDelete().srcIndex, parentPath);
             HSLOG_INFO(
                 _cat,
                 hstd::fmt(
                     "About to remove item {} from {}",
                     idx,
-                    qdebug_to_str(parent)));
+                    qdebug_to_str(parentIndex)));
 
-            beginRemoveRows(parent.value(), idx, idx);
+            beginRemoveRows(parentIndex, idx, idx);
             break;
         }
 
         case DiaEdit::Kind::Move: {
-            auto parent = getIdParentIndex(edit.getSrc());
+            auto [parentPath, parentIndex] = getParent(edit.getSrc());
             LOGIC_ASSERTION_CHECK(
-                parent.has_value(),
-                "Cannot move rows from under non-existent parent");
-            LOGIC_ASSERTION_CHECK(
-                parent == getIdParentIndex(edit.getDst()),
+                parentIndex == getIdParentIndex(edit.getDst()),
                 "Dia edit moves should happen under the same parent");
 
-            int src = edit.getMove().srcIndex;
-            int dst = edit.getMove().dstIndex;
+            int src = state.updateIdx(edit.getMove().srcIndex, parentPath);
+            int dst = state.updateIdx(edit.getMove().dstIndex, parentPath);
 
             if (src < dst) { dst += 1; }
 
             bool isValid = beginMoveRows(
-                parent.value(), src, src, parent.value(), dst);
+                parentIndex, src, src, parentIndex, dst);
 
             LOGIC_ASSERTION_CHECK(
                 isValid,
                 "Move src={} dst={} under parent={} is not valid.",
                 src,
                 dst,
-                edit.getSrc().getParentPathFromRoot());
+                parentPath);
 
             break;
         }
 
         case DiaEdit::Kind::Insert: {
-            auto parent = getIdParentIndex(edit.getDst());
-            LOGIC_ASSERTION_CHECK(
-                parent.has_value(),
-                "Rows cannot be inserted from non-existent parent");
-            int idx = edit.getInsert().dstIndex;
+            auto [parentPath, parentIndex] = getParent(edit.getDst());
+            int idx                        = state.updateIdx(
+                edit.getInsert().dstIndex, parentPath);
             HSLOG_INFO(
                 _cat,
                 hstd::fmt(
                     "About to insert item {} under {}",
                     idx,
-                    qdebug_to_str(parent)));
-            beginInsertRows(parent.value(), idx, idx);
+                    qdebug_to_str(parentIndex)));
+            beginInsertRows(parentIndex, idx, idx);
             break;
         }
 
@@ -208,7 +230,9 @@ void DiaSceneItemModel::beginEditApply(const DiaEdit& edit) {
     }
 }
 
-void DiaSceneItemModel::endEditApply(const DiaEdit& edit) {
+void DiaSceneItemModel::endEditApply(
+    const DiaEdit&         edit,
+    DiaEditTransientState& state) {
     TRACKED_FUNCTION("endEditApply");
     switch (edit.getKind()) {
         case DiaEdit::Kind::Delete: {

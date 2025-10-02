@@ -566,7 +566,7 @@ struct DiaAdapter {
 
     int getSelfIndex() const;
 
-    bool hasParent() const { return 1 < id.path.path.size(); }
+    bool hasParent() const { return 0 < id.path.path.size(); }
 
     hstd::Opt<DiaAdapter> getParent() const;
     bool                  isAncestorOf(DiaAdapter const& other) const;
@@ -697,6 +697,12 @@ struct DiaEdit {
     Data data;
     DESC_FIELDS(DiaEdit, (data));
 };
+
+struct DiaEditTransientState {
+    hstd::UnorderedMap<hstd::Vec<int>, std::vector<DiaEdit>> applied;
+    int updateIdx(int index, const hstd::Vec<int>& parentPath);
+};
+
 
 struct DiaEditConf {
     DESC_FIELDS(DiaEditConf, ());
