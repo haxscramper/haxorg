@@ -120,8 +120,7 @@ DiaSceneItem* DiaScene::setRootAdapter(const DiaAdapter& a) {
 void DiaScene::applyPartialEditStep(
     DiaEdit const&         edit,
     DiaEditTransientState& state) {
-    TRACKED_SCOPE(hstd::fmt("Applying edit {}", edit.getKind()));
-    HSLOG_TRACE(_cat, hstd::fmt("EDIT:{}", edit));
+
     if (edit.hasSrc()) {
         hstd::Opt<DiaSceneItem*> item = getItemForId(edit.getSrc().id);
         HSLOG_DEBUG(
@@ -256,10 +255,17 @@ void DiaScene::applyPartialEditStep(
             if (edit.getSrc().hasParent()) {
                 TRACKED_SCOPE("update node with parent");
                 auto [parentPath, parentItem] = getParent(edit.getSrc());
-                int srcIndex                  = getIndex(
-                    edit.getUpdate().srcIndex, parentPath);
-                int dstIndex = getIndex(
-                    edit.getUpdate().dstIndex, parentPath);
+                auto const& upd               = edit.getUpdate();
+                int         srcIndex = getIndex(upd.srcIndex, parentPath);
+                LOGIC_ASSERTION_CHECK(
+                    srcIndex == upd.dstIndex,
+                    "Update position mismatch. Source index for the edit "
+                    "operation was:{}, adjusted for preceding edits:{}, "
+                    "operation destination index is:{}",
+                    upd.srcIndex,
+                    srcIndex,
+                    upd.dstIndex);
+
                 DiaSceneItem* item = parentItem->at(srcIndex);
 
                 auto oldSubnodes = item->moveSubnodes();
@@ -269,7 +275,7 @@ void DiaScene::applyPartialEditStep(
                     parentPath + hstd::Vec<int>{srcIndex});
                 auto parent = target->get()->getParent();
 
-                parent->setSubnode(std::move(newNode), dstIndex);
+                parent->setSubnode(std::move(newNode), srcIndex);
 
             } else {
                 TRACKED_SCOPE("update node without parent");
@@ -304,8 +310,12 @@ DiaSceneItem* DiaScene::resetRootAdapter(const hstd::Vec<DiaEdit>& edits) {
     DiaSceneItem*         originalRoot = root();
     DiaEditTransientState state;
     HSLOG_INFO(_cat, rootNode->treeRepr().toString(false));
-    for (auto const& edit : edits) {
-        applyPartialEditStep(edit, state);
+    for (auto const& edit : hstd::enumerator(edits)) {
+        TRACKED_SCOPE(
+            hstd::fmt("Applying edit {}", edit.value().getKind()));
+        HSLOG_TRACE(
+            _cat, hstd::fmt("[{}] EDIT:{}", edit.index(), edit.value()));
+        applyPartialEditStep(edit.value(), state);
         HSLOG_INFO(_cat, rootNode->treeRepr().toString(false));
     }
 
