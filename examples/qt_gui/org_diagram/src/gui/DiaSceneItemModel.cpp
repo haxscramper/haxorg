@@ -14,7 +14,7 @@ hstd::ColText DiaSceneItemModel::format() {
                 os << "nullptr " << qdebug_to_str(idx);
             } else {
                 // os << "object-desc:" << hstd::deObjectPtr(ptr);
-                os << "adapter:" << hstd::fmt1(ptr->staleAdapter);
+                os << "adapter:" << hstd::fmt1(ptr->adapter);
                 // os << "\nindex:" << qdebug_to_str(idx);
                 // if (ptr->hasParent()) {
                 //     os << "\nself-path:"

@@ -2,6 +2,16 @@
 #include <src/gui/DiaScene.hpp>
 #include <sanitizer/asan_interface.h>
 
+int DiaSceneItem::getSelfIndex() const {
+    LOGIC_ASSERTION_CHECK(hasParent(), "");
+    for (int i = 0; i < parent->size(); ++i) {
+        if (parent->at(i) == this) { return i; }
+    }
+
+    throw hstd::logic_assertion_error::init(
+        "parent node node does not contain `this` subnode");
+}
+
 hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
     hstd::ColStream                               os;
     std::function<void(DiaSceneItem const*, int)> aux;
@@ -36,17 +46,31 @@ hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
 
 org::imm::ImmPath DiaSceneItem::getActivePath() const {
     if (parent == nullptr) {
-        return org::imm::ImmPath{staleAdapter->id.id};
+        return org::imm::ImmPath{adapter->id.id};
     } else {
-        hstd::Vec<org::imm::ImmPathStep> result;
-        DiaSceneItem const*              root = this;
+        hstd::Vec<int>      result;
+        DiaSceneItem const* root = this;
         while (root->hasParent()) {
-            result.push_back(root->getRelativeToParent());
+            result.push_back(root->getSelfIndex());
             root = root->parent;
         }
         std::reverse(result.begin(), result.end());
-        return org::imm::ImmPath{root->staleAdapter->id.id, result};
+        return toImmPath(root->adapter->id.id, result);
     }
+}
+
+hstd::Opt<DiaSceneItem*> DiaSceneItem::getItemAtPath(
+    const hstd::Vec<int>& path) const {
+    DiaSceneItem* res = const_cast<DiaSceneItem*>(this);
+    for (auto const& it : path) {
+        if (it < res->size()) {
+            res = res->at(it);
+        } else {
+            return std::nullopt;
+        }
+    }
+    hstd::logic_assertion_check_not_nil(res);
+    return res;
 }
 
 void DiaSceneItem::moveSubnode(int srcIndex, int dstIndex) {
@@ -86,7 +110,7 @@ DiaSceneItem* DiaSceneItem::getParent() const {
             "Non-root node must have the parent assigned. The node {} "
             "with adapter {}",
             hstd::descObjectPtr(this),
-            staleAdapter);
+            adapter);
 
         if (__asan_address_is_poisoned(parent)) {
             __asan_describe_address(parent);

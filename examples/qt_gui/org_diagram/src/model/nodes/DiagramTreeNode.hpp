@@ -719,3 +719,7 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
     DiaAdapter const&         src,
     DiaAdapter const&         dst,
     hstd::Vec<DiaEdit> const& edits);
+
+org::imm::ImmPath toImmPath(
+    org::imm::ImmId const& root,
+    hstd::Vec<int> const&  path);

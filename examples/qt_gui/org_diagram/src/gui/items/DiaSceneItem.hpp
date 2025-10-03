@@ -17,7 +17,7 @@ struct DiaSceneItem : public QGraphicsObject {
     using UPtr = std::unique_ptr<DiaSceneItem, SelfRemDiaScene>;
     QString    name{};
     bool       TraceState = false;
-    DiaAdapter staleAdapter;
+    DiaAdapter adapter;
 
     bool hasParent() const { return parent != nullptr; }
 
@@ -37,12 +37,7 @@ struct DiaSceneItem : public QGraphicsObject {
         return {hstd::ColText{"DiaSceneItem " + name.toStdString()}};
     }
 
-    org::imm::ImmPathStep getRelativeToParent() const {
-        LOGIC_ASSERTION_CHECK(hasParent(), "");
-        LOGIC_ASSERTION_CHECK(!staleAdapter.id.path.empty(), "");
-        LOGIC_ASSERTION_CHECK(!staleAdapter.id.path.path.empty(), "");
-        return staleAdapter.id.path.path.back();
-    }
+    int getSelfIndex() const;
 
     template <typename T>
     bool isinstance() const {
@@ -72,39 +67,27 @@ struct DiaSceneItem : public QGraphicsObject {
     DiaAdapter getActiveAdapter() const {
         return DiaAdapter{
             DiaUniqId{
-                staleAdapter.getDiaId(),
-                staleAdapter.getRootId(),
-                getActivePath()},
-            staleAdapter.ctx};
+                adapter.getDiaId(), adapter.getRootId(), getActivePath()},
+            adapter.ctx};
     }
 
 
     DiaId getDiaId() const {
-        hstd::logic_assertion_check_not_nil(staleAdapter.getDiaId());
-        return staleAdapter.getDiaId();
+        hstd::logic_assertion_check_not_nil(adapter.getDiaId());
+        return adapter.getDiaId();
     }
 
     DiaSceneItem* at(int pos) { return subnodes.at(pos).get(); }
     int           size() const { return subnodes.size(); }
 
     hstd::Opt<DiaSceneItem*> getItemAtPath(
-        hstd::Vec<int> const& path) const {
-        DiaSceneItem* res = const_cast<DiaSceneItem*>(this);
-        for (auto const& it : path) {
-            if (it < res->size()) {
-                res = res->at(it);
-            } else {
-                return std::nullopt;
-            }
-        }
-        hstd::logic_assertion_check_not_nil(res);
-        return res;
-    }
+        hstd::Vec<int> const& path) const;
 
-    DiaSceneItem(DiaAdapter const& staleAdapter)
-        : staleAdapter{staleAdapter} {}
+    DiaSceneItem(DiaAdapter const& adapter) : adapter{adapter} {}
 
     virtual ~DiaSceneItem() = default;
+
+    void updateSubnodePath(int index) {}
 
     template <typename T>
     void add(std::unique_ptr<T, SelfRemDiaScene>&& sub) {
@@ -152,8 +135,8 @@ struct DiaSceneItem : public QGraphicsObject {
 struct DiaSceneItemCanvas
     : public DiaSceneItem
     , public hstd::SharedPtrApiDerived<DiaSceneItemCanvas, DiaSceneItem> {
-    DiaSceneItemCanvas(DiaAdapter const& staleAdapter)
-        : DiaSceneItem{staleAdapter} {}
+    DiaSceneItemCanvas(DiaAdapter const& adapter)
+        : DiaSceneItem{adapter} {}
 
     hstd::Vec<hstd::ColText> formatSelf() const override {
         return {hstd::ColText{"DiaSceneItemCanvas " + name.toStdString()}};
@@ -172,8 +155,7 @@ struct DiaSceneItemCanvas
 };
 
 struct DiaSceneItemLayer : public DiaSceneItem {
-    DiaSceneItemLayer(DiaAdapter const& staleAdapter)
-        : DiaSceneItem{staleAdapter} {}
+    DiaSceneItemLayer(DiaAdapter const& adapter) : DiaSceneItem{adapter} {}
 
     hstd::Vec<hstd::ColText> formatSelf() const override {
         return {hstd::ColText{"DiaSceneItemLayer " + name.toStdString()}};

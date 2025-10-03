@@ -17,8 +17,7 @@ struct DiaSceneItemVisual : public DiaSceneItem {
             + hstd::escape_literal(name.toStdString())}};
     }
 
-    DiaSceneItemVisual(DiaAdapter const& staleAdapter)
-        : DiaSceneItem{staleAdapter} {
+    DiaSceneItemVisual(DiaAdapter const& adapter) : DiaSceneItem{adapter} {
         setFlag(QGraphicsItem::ItemIsMovable);
         setFlag(QGraphicsItem::ItemIsSelectable);
         setFlag(QGraphicsItem::ItemSendsGeometryChanges);

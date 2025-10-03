@@ -173,12 +173,13 @@ void DiaScene::applyPartialEditStep(
             LOGIC_ASSERTION_CHECK(
                 parentItem->at(src)->getDiaId() == del.srcNode.getDiaId(),
                 "Delete of item at index {} should have removed the "
-                "scene item with ID {}, but the parent {} has item "
+                "scene item with ID {}, but the parent {} {} has item "
                 "with ID {} at this index",
                 src,
-                parentItem->at(src)->getDiaId(),
+                del.srcNode.getDiaId(),
                 parentPath,
-                del.srcNode.getDiaId());
+                hstd::descObjectPtr(parentItem),
+                parentItem->at(src)->getDiaId());
 
             treeModel->beginEditApply(edit, state);
             parentItem->removeSubnode(src);
@@ -192,7 +193,7 @@ void DiaScene::applyPartialEditStep(
 
         case DiaEdit::Kind::Insert: {
             auto [parentPath, parentItem] = getParent(edit.getDst());
-            int index = getIndex(edit.getInsert().dstIndex, parentPath);
+            int index                     = edit.getInsert().dstIndex;
 
             auto newNode = addAdapterRec(edit.getDst());
 

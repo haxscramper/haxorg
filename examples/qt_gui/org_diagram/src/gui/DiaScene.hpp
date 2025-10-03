@@ -31,11 +31,11 @@ struct DiaScene : public QGraphicsScene {
 
     template <typename T, typename... Args>
     std::unique_ptr<T, SelfRemDiaScene> addNewItem(
-        DiaAdapter const& staleAdapter,
+        DiaAdapter const& adapter,
         Args&&... args) {
         std::unique_ptr<T, SelfRemDiaScene>
             result = std::unique_ptr<T, SelfRemDiaScene>(
-                new T{staleAdapter, std::forward<Args>(args)...});
+                new T{adapter, std::forward<Args>(args)...});
         addItem(result.get());
 
         HSLOG_TRACE(

@@ -895,3 +895,17 @@ int DiaEditTransientState::updateIdx(
 
     return index + shift;
 }
+
+org::imm::ImmPath toImmPath(
+    const org::imm::ImmId& root,
+    const hstd::Vec<int>&  path) {
+    hstd::Vec<org::imm::ImmPathStep> result;
+    for (int const& idx : path) {
+        result.push_back(org::imm::ImmPathStep::FieldIdx(
+            org::imm::ImmReflFieldId::FromTypeField<DiaNode>(
+                &DiaNode::subnodes),
+            idx));
+    }
+    return org::imm::ImmPath{
+        root, org::imm::ImmPath::Store{result.begin(), result.end()}};
+}

@@ -24,8 +24,8 @@ struct DiaSceneItemGroup : public DiaSceneItemVisual {
         return nullptr;
     }
 
-    DiaSceneItemGroup(DiaAdapter const& staleAdapter)
-        : DiaSceneItemVisual{staleAdapter} {
+    DiaSceneItemGroup(DiaAdapter const& adapter)
+        : DiaSceneItemVisual{adapter} {
         bounds = QRectF{0, 0, 200, 150};
         setFlag(QGraphicsItem::ItemIsMovable);
         setFlag(QGraphicsItem::ItemIsSelectable);
