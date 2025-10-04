@@ -31,6 +31,61 @@
 
 namespace hstd::log {
 
+template <typename T>
+struct log_value_formatter {};
+
+
+template <typename T>
+concept has_log_value_formatter = requires(const T& value) {
+    {
+        hstd::log::log_value_formatter<T>{}.format(value)
+    } -> std::convertible_to<std::string>;
+};
+
+template <typename T>
+std::string format_single_argument(const T& value) {
+    if constexpr (has_log_value_formatter<T>) {
+        return hstd::log::log_value_formatter<T>{}.format(value);
+    } else if constexpr (hstd::StdFormattable<T>) {
+        return std::format("{}", value);
+    } else {
+        return "<type unformattable>";
+    }
+}
+
+template <typename... Args>
+std::string format_logger_arguments(
+    std::format_string<std::conditional_t<
+        hstd::log::has_log_value_formatter<std::decay_t<Args>>,
+        std::string,
+        std::conditional_t<
+            hstd::StdFormattable<std::decay_t<Args>>,
+            Args,
+            std::string>>...> __fmt,
+    const Args&... args) {
+    auto format_arg = [](const auto& arg) {
+        if constexpr (hstd::log::has_log_value_formatter<
+                          std::decay_t<decltype(arg)>>) {
+            return hstd::log::log_value_formatter<
+                       std::decay_t<decltype(arg)>>{}
+                .format(arg);
+        } else if constexpr (hstd::StdFormattable<
+                                 std::decay_t<decltype(arg)>>) {
+            return arg;
+        } else {
+            return std::string{"<type unformattable>"};
+        }
+    };
+
+    auto formatted_args = std::make_tuple(format_arg(args)...);
+    return std::apply(
+        [&__fmt](auto&... args_ref) {
+            return std::vformat(
+                __fmt.get(), std::make_format_args(args_ref...));
+        },
+        formatted_args);
+}
+
 enum class severity_level
 {
     trace,
