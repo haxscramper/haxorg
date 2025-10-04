@@ -1008,14 +1008,31 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return ImmUniqId{.id = id, .path = path};
     }
 
+    /// \brief Configure how immutable tree adapter is printed in tree form
     struct [[refl]] TreeReprConf {
-        [[refl]] int  maxDepth       = 40;
-        [[refl]] bool withAuxFields  = false;
+        /// \brief Do not print nodes that are more than N levels deep from
+        /// the root
+        [[refl]] int maxDepth = 40;
+        /// \brief Include auxiliary subnodes in the tree repr -- `.title`
+        /// field and other locations outside of standard `.subnodes`
+        [[refl]] bool withAuxFields = false;
+        /// \brief Format full immutable node value as a part of tree repr
         [[refl]] bool withReflFields = false;
+        /// \brief Profide extra pretty-printed information for a given
+        /// field subset.
+        [[refl]] hstd::UnorderedSet<hstd::Pair<OrgSemKind, ImmReflFieldId>>
+            withFieldSubset;
+
+        template <typename F, typename T>
+        TreeReprConf& with_field(F T::*fieldPtr) {
+            withFieldSubset.incl(
+                {T::staticKind, ImmReflFieldId::FromTypeField(fieldPtr)});
+            return *this;
+        }
 
         DESC_FIELDS(
             TreeReprConf,
-            (maxDepth, withAuxFields, withReflFields));
+            (maxDepth, withAuxFields, withReflFields, withFieldSubset));
 
         static TreeReprConf getDefault() { return TreeReprConf{}; }
     };
@@ -1728,6 +1745,30 @@ struct hstd::JsonSerde<org::imm::ImmAdapterT<T>> {
     }
 };
 
+template <>
+struct std::hash<org::imm::ImmReflPathItemBase> {
+    std::size_t operator()(
+        org::imm::ImmReflPathItemBase const& it) const noexcept {
+        hstd::AnyHasher<hstd::Str> hasher;
+        std::size_t                result = 0;
+        hstd::hax_hash_combine(result, it.getKind());
+        using K = org::imm::ImmReflPathItemBase::Kind;
+        switch (it.getKind()) {
+            case K::Index:
+                hstd::hax_hash_combine(result, it.getIndex().index);
+                break;
+            case K::FieldName:
+                hstd::hax_hash_combine(result, it.getFieldName().name);
+                break;
+            case K::AnyKey:
+                hstd::hax_hash_combine(result, hasher(it.getAnyKey().key));
+                break;
+            case K::Deref: break;
+        }
+
+        return result;
+    }
+};
 
 template <>
 struct std::hash<org::imm::ImmPathStep> {
@@ -1738,11 +1779,7 @@ struct std::hash<org::imm::ImmPathStep> {
         for (int i = 0; i < step.path.path.size(); ++i) {
             org::imm::ImmReflPathItemBase const& it = step.path.path.at(i);
             hstd::hax_hash_combine(result, i);
-            if (it.isAnyKey()) {
-                hstd::hax_hash_combine(result, hasher(it.getAnyKey().key));
-            } else {
-                hstd::hax_hash_combine(result, it);
-            }
+            hstd::hax_hash_combine(result, it);
         }
         return result;
     }

@@ -1,4 +1,5 @@
 #include "ImmOrgHash.hpp"
+#include <hstd/ext/logger.hpp>
 
 using namespace hstd;
 
@@ -14,13 +15,14 @@ std::size_t imm_hash_build(T const& value) {
             && field.name == loc_field) {
             // pass
         } else {
-            hstd::hax_hash_combine(
-                result,
-                std::hash<
-                    std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
-                    value.*field.pointer));
+            auto hash_value = std::hash<
+                std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
+                value.*field.pointer);
+            auto tmp_result = result;
+            hstd::hax_hash_combine(result, hash_value);
         }
     });
+
     return result;
 }
 

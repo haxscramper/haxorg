@@ -12,11 +12,15 @@ namespace hstd::ext {
 
 /// \brief Simplified wrapper around boost bimap, providing a simpler
 /// interace for 1-1 mapping between two types `L` and `R`.
-template <typename L, typename R>
+template <
+    typename L,
+    typename R,
+    typename LHash = std::hash<L>,
+    typename RHash = std::hash<R>>
 class Unordered1to1Bimap {
     using BoostBimap = boost::bimap<
-        boost::bimaps::unordered_set_of<L>,
-        boost::bimaps::unordered_set_of<R>>;
+        boost::bimaps::unordered_set_of<L, LHash>,
+        boost::bimaps::unordered_set_of<R, RHash>>;
 
     BoostBimap bimap;
 

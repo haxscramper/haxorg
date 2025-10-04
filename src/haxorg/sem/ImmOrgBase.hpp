@@ -32,87 +32,50 @@ struct ImmReflPathTag {
 using ImmReflPathItemBase = hstd::ReflPathItem<ImmReflPathTag>;
 using ImmReflPathBase     = hstd::ReflPath<ImmReflPathTag>;
 
-constexpr std::uint32_t fnv1a_hash(const char* str, std::size_t len) {
-    std::uint32_t hash = 2166136261u;
-    for (std::size_t i = 0; i < len; ++i) {
-        hash ^= static_cast<std::uint32_t>(str[i]);
-        hash *= 16777619u;
-    }
-    return hash;
-}
-
-constexpr std::uint32_t compile_time_hash(const char* str) {
-    std::size_t len = 0;
-    while (str[len] != '\0') { ++len; }
-    return fnv1a_hash(str, len);
-}
-
-template <typename T>
-constexpr std::uint32_t getStableTypeId() {
-    return compile_time_hash(__PRETTY_FUNCTION__);
-}
-
-
 struct ImmReflFieldId {
-    static hstd::UnorderedMap<ImmReflFieldId, hstd::Str> fieldNames;
-
     hstd::Str getName() const {
-        return fieldNames.get(*this).value_or("<none>");
+        if (typeId.has_value()) {
+            return hstd::get_registered_field_name(typeId.value(), index);
+        } else {
+            return hstd::fmt("field_{}", index);
+        }
     }
 
-    using type_id     = std::uint32_t;
     using offset_type = std::uint32_t;
 
-    type_id     typeId;
-    offset_type fieldOffset;
+    std::optional<std::type_index> typeId;
+    offset_type                    index;
 
     ImmReflFieldId() = default;
 
     static ImmReflFieldId FromIdParts(
-        type_id     typeId,
-        offset_type fieldOffset) {
-        ImmReflFieldId res;
-        res.typeId      = typeId;
-        res.fieldOffset = fieldOffset;
+        std::optional<std::type_index> typeId,
+        offset_type                    index) {
+        ImmReflFieldId res{};
+        res.typeId = typeId;
+        res.index  = index;
         return res;
     }
 
     template <typename T, typename F>
     static ImmReflFieldId FromTypeField(F T::*fieldPtr) {
         return ImmReflFieldId::FromIdParts(
-            getStableTypeId<T>(),
-            static_cast<offset_type>(reinterpret_cast<std::uintptr_t>(
-                &(static_cast<T*>(nullptr)->*fieldPtr))));
+            typeid(T), hstd::get_total_field_index_by_ptr(fieldPtr));
     }
 
     bool operator==(ImmReflFieldId const& other) const {
-        return typeId == other.typeId && fieldOffset == other.fieldOffset;
+        return index == other.index;
     }
 
     bool operator<(ImmReflFieldId const& other) const {
-        return typeId < other.typeId
-            || (typeId == other.typeId && fieldOffset < other.fieldOffset);
+        return index < other.index;
     }
 
-    std::uint64_t getSerializableId() const {
-        return (static_cast<std::uint64_t>(typeId) << 32) | fieldOffset;
-    }
+    std::uint64_t getSerializableId() const { return index; }
 
     static ImmReflFieldId fromSerializableId(std::uint64_t id) {
         return ImmReflFieldId::FromIdParts(
-            static_cast<type_id>(id >> 32),
-            static_cast<offset_type>(id & 0xFFFFFFFF));
-    }
-
-    template <typename T, typename F>
-    static ImmReflFieldId FromTypeFieldName(
-        char const* name,
-        F T::*fieldPtr) {
-        auto result = FromTypeField(fieldPtr);
-        if (!fieldNames.contains(result)) {
-            fieldNames.insert_or_assign(result, name);
-        }
-        return result;
+            std::nullopt, static_cast<offset_type>(id & 0xFFFFFFFF));
     }
 };
 
@@ -143,8 +106,7 @@ struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
     static org::imm::ImmReflPathTag::field_name_type InitFieldName(
         T const&    value,
         auto const& field) {
-        return org::imm::ImmReflFieldId::FromTypeFieldName<T>(
-            field.name, field.pointer);
+        return org::imm::ImmReflFieldId::FromTypeField<T>(field.pointer);
     }
 
     static ReflPath<org::imm::ImmReflPathTag> AddPathItem(

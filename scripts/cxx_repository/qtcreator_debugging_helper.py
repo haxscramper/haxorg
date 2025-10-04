@@ -61,3 +61,37 @@ def qdump__A(d, value):
     t = value.members(True)[0].type
     dptr, base_v = value.split("p{%s}" % t.name)
     d.putItem(base_v)
+
+def qdump__DiaIdBase(d, value):
+    print("Running dumper for DiaIdBase")
+    try:
+        # Get the raw value
+        raw_value = value["value"].integer()
+        
+        # Constants from your code
+        DiaIdMaskSize = 4 * 6  # 24 bits
+        DiaIdMaskOffset = 8 * 8 - DiaIdMaskSize  # 64 - 24 = 40 bits
+        
+        # Extract the masked portion (upper 24 bits)
+        mask = (1 << DiaIdMaskSize) - 1  # 0xFFFFFF
+        masked_value = (raw_value >> DiaIdMaskOffset) & mask
+        
+        # Extract the lower portion (lower 40 bits)
+        lower_mask = (1 << DiaIdMaskOffset) - 1  # 0xFFFFFFFFFF
+        lower_value = raw_value & lower_mask
+        
+        # Display the raw value as hex
+        d.putValue("0x%016x" % raw_value)
+        d.putExpandable()
+        d.putNumChild(3)
+        
+        if d.isExpanded():
+            with Children(d, 3):
+                d.putSubItem("Raw Value", "0x%016x (%d)" % (raw_value, raw_value))
+                d.putSubItem("Masked Value (upper 24 bits)", "0x%06x (%d)" % (masked_value, masked_value))
+                d.putSubItem("Lower Value (lower 40 bits)", "0x%010x (%d)" % (lower_value, lower_value))
+    
+    except Exception as e:
+        print("__________ DiaIdBase dumper had error ________")
+        print(e)
+        d.putValue("<Error: %s>" % str(e))

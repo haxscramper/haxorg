@@ -56,7 +56,7 @@ ImmAstReplace org::imm::dropSubnode(
     int                position,
     ImmAstEditContext& ctx) {
     AST_EDIT_MSG(fmt("Drop subnode {}[{}]", node, position));
-    return setSubnodes(node, node->subnodes.take(position), ctx);
+    return setSubnodes(node, node->subnodes.erase(position), ctx);
 }
 
 ImmAstReplace org::imm::dropSubnode(

@@ -2173,7 +2173,9 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
         exit(1)
 
 
-@org_task(pre=[build_haxorg, generate_python_protobuf_files, symlink_build],
+@org_task(pre=[
+    # build_haxorg, generate_python_protobuf_files, symlink_build,
+    ],
           iterable=["arg"])
 def run_py_script(ctx: Context, script: str, arg: List[str] = []):
     """

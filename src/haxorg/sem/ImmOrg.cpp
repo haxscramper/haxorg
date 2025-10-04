@@ -1,7 +1,5 @@
-#include "haxorg/exporters/Exporter.hpp"
-#include "haxorg/sem/ImmOrgEdit.hpp"
-#include "haxorg/sem/SemBaseApi.hpp"
-#include "hstd/stdlib/Set.hpp"
+#include <haxorg/sem/SemBaseApi.hpp>
+#include <hstd/stdlib/Set.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <immer/vector_transient.hpp>
@@ -29,14 +27,12 @@ const u64 ImmId::NodeIdxOffset  = 0;
 const u64 ImmId::NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
 const u64 ImmId::NodeKindOffset = 40;
 
-const org::imm::ParentPathMap     EmptyParentPathMap;
-UnorderedMap<ImmReflFieldId, Str> ImmReflFieldId::fieldNames;
+const org::imm::ParentPathMap EmptyParentPathMap;
 
 std::size_t std::hash<ImmReflFieldId>::operator()(
     ImmReflFieldId const& it) const noexcept {
     std::size_t result = 0;
-    hax_hash_combine(result, it.typeId);
-    hax_hash_combine(result, it.fieldOffset);
+    hax_hash_combine(result, it.index);
     return result;
 }
 
@@ -118,6 +114,18 @@ void ImmId::assertValid() const {
 EACH_SEM_ORG_KIND(_define_static)
 #undef _define_static
 
+HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmOrg)
+
+#define _register_type(__Kind)                                            \
+    HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::Imm##__Kind)                 \
+    HSTD_REGISTER_TYPE_FIELD_NAMES(org::sem::__Kind)
+
+EACH_SEM_ORG_KIND(_register_type)
+#undef _register_type
+
+HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmStmt);
+HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmCmd);
+HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmLeaf);
 
 using namespace org;
 
@@ -167,6 +175,72 @@ struct ImmTreeReprContext {
     }
 };
 
+namespace {
+template <typename T>
+struct TreeReprFieldPrint {
+    static void format(
+        ColStream&                os,
+        ImmTreeReprContext const& ctx,
+        std::string const&        field_name,
+        T const&                  field) {
+        os.indent(ctx.level * 2);
+        os << os.yellow() << field_name << os.end() << " ";
+        os << hstd::fmt1(field);
+        os << "\n";
+    }
+};
+
+
+template <typename T>
+struct TreeReprFieldPrint<hstd::ext::ImmVec<T>> {
+    static void format(
+        ColStream&                  os,
+        ImmTreeReprContext const&   ctx,
+        std::string const&          field_name,
+        hstd::ext::ImmVec<T> const& field) {
+        os.indent(ctx.level * 2);
+        os << field_name << "\n";
+        for (auto const& it : hstd::enumerator(field)) {
+            os.indent((ctx.level + 1) * 2);
+            os << os.cyan() << hstd::fmt("  [{}]: ", it.index())
+               << os.end() << hstd::fmt1(it.value()) << "\n";
+        }
+    }
+};
+
+template <>
+struct TreeReprFieldPrint<hstd::ext::ImmVec<org::sem::NamedProperty>> {
+    static void format(
+        ColStream&                                        os,
+        ImmTreeReprContext const&                         ctx,
+        std::string const&                                field_name,
+        hstd::ext::ImmVec<org::sem::NamedProperty> const& field) {
+        int prop_width = 0;
+
+        for (auto const& it : field) {
+            prop_width = std::max(it.getName().size(), prop_width);
+        }
+
+        os.indent(ctx.level * 2);
+        os << field_name << "\n";
+        for (auto const& it : field) {
+            os.indent((ctx.level + 1) * 2);
+            os << os.green()
+               << hstd::left_aligned(
+                      hstd::fmt(":{}: ", it.getName()), prop_width + 3)
+               << hstd::fmt1(it.getKind()) << os.end();
+
+            std::visit(
+                [&](auto const& prop) { os << hstd::fmt1(prop); },
+                it.data);
+            os << "\n";
+        }
+    }
+};
+} // namespace
+
+#define _cat "imm.repr"
+
 void treeReprRec(
     ImmAdapter                id,
     ColStream&                os,
@@ -174,6 +248,28 @@ void treeReprRec(
     os.indent(ctx.level * 2);
     os << fmt("{} {}", id->getKind(), id.id.getReadableId());
     if (!ctx.path.empty()) { os << fmt(" PATH:{}", ctx.path); }
+    bool printed_field_repr    = false;
+    auto print_detailed_fields = [&]() {
+        switch_node_value(
+            id.id, id.ctx.lock(), [&]<typename N>(N const& value) {
+                hstd::for_each_field_with_base_value<N>(
+                    value,
+                    [&](auto const& object_value, auto const& desc) {
+                        hstd::Pair<OrgSemKind, ImmReflFieldId> key{
+                            N::staticKind,
+                            ImmReflFieldId::FromTypeField(desc.pointer)};
+                        using F = DESC_FIELD_TYPE(desc);
+                        if (ctx.conf.withFieldSubset.contains(key)) {
+                            printed_field_repr = true;
+                            TreeReprFieldPrint<F>::format(
+                                os,
+                                ctx.addLevel(1),
+                                desc.name,
+                                object_value.*desc.pointer);
+                        }
+                    });
+            });
+    };
 
     if (ctx.conf.withReflFields) {
         if (ctx.conf.withAuxFields) {
@@ -183,11 +279,18 @@ void treeReprRec(
                 });
         }
         os << "\n";
+        print_detailed_fields();
+
+        if (printed_field_repr) {
+            os.indent((ctx.level + 1) * 2);
+            os << "subnodes\n";
+        }
+
         for (auto const& sub : id.getAllSubnodes(std::nullopt)) {
             os.indent((ctx.level + 1) * 2);
             os << fmt("{}", sub.path);
             os << "\n";
-            treeReprRec(sub, os, ctx.addLevel(2));
+            treeReprRec(sub, os, ctx.addLevel(printed_field_repr ? 3 : 2));
         }
     } else {
         if (ctx.conf.withAuxFields) {
@@ -198,10 +301,19 @@ void treeReprRec(
         }
 
         os << "\n";
+        print_detailed_fields();
+
+        if (printed_field_repr) {
+            os.indent((ctx.level + 1) * 2);
+            os << "subnodes\n";
+        }
 
         int idx = 0;
         for (auto const& it : id.sub()) {
-            treeReprRec(it, os, ctx.addLevel(1).addPath(idx));
+            treeReprRec(
+                it,
+                os,
+                ctx.addLevel(printed_field_repr ? 2 : 1).addPath(idx));
             ++idx;
         }
     }
@@ -300,7 +412,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
     Opt<ImmPath> const& rootPath,
     bool                withPath) const {
     Vec<ImmAdapter>           result;
-    auto                      root = *this;
+    auto const&               root = *this;
     ReflRecursiveVisitContext visitCtx;
 
     auto add_id = [&](ImmReflPathBase const& parent, ImmId const& id) {

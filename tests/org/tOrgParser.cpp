@@ -175,6 +175,7 @@ content
 }
 
 TEST(OrgParseSem, SubtreeProperties) {
+    using NP = sem::NamedProperty;
     {
         auto t = parseOne<sem::Subtree>(
             R"(* Parent capturing statistics
@@ -183,8 +184,7 @@ TEST(OrgParseSem, SubtreeProperties) {
   :END:)",
             getDebugFile("cookie_data"));
 
-        auto p = org::getSubtreeProperties<sem::NamedProperty::CookieData>(
-            t);
+        auto p = org::getSubtreeProperties<NP::CookieData>(t);
         EXPECT_EQ(p.size(), 1);
         EXPECT_EQ(p.at(0).isRecursive, true);
         EXPECT_EQ(p.at(0).source, SubtreeTodoSource::Todo);
@@ -209,8 +209,8 @@ TEST(OrgParseSem, SubtreeProperties) {
         // dbgString(tree);
 
         {
-            auto olpath = org::getSubtreeProperties<
-                sem::NamedProperty::ArchiveOlpath>(tree);
+            auto olpath = org::getSubtreeProperties<NP::ArchiveOlpath>(
+                tree);
             EXPECT_EQ(olpath.size(), 1);
             auto const& p = olpath.at(0).path.path;
             EXPECT_EQ(p.at(0), "Haxorg");
@@ -219,29 +219,25 @@ TEST(OrgParseSem, SubtreeProperties) {
         }
 
         {
-            auto p = org::getSubtreeProperties<
-                sem::NamedProperty::ArchiveFile>(tree);
+            auto p = org::getSubtreeProperties<NP::ArchiveFile>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).file, "~/projects.org");
         }
 
 
         {
-            auto p = org::getSubtreeProperties<
-                sem::NamedProperty::ArchiveCategory>(tree);
+            auto p = org::getSubtreeProperties<NP::ArchiveCategory>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).category, "projects");
         }
         {
-            auto p = org::getSubtreeProperties<
-                sem::NamedProperty::ArchiveTodo>(tree);
+            auto p = org::getSubtreeProperties<NP::ArchiveTodo>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).todo, "COMPLETED");
         }
 
         {
-            auto p = org::getSubtreeProperties<
-                sem::NamedProperty::ArchiveTarget>(tree);
+            auto p = org::getSubtreeProperties<NP::ArchiveTarget>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).pattern, "%s_archive");
             EXPECT_EQ(p.at(0).path.path.size(), 1);
@@ -258,20 +254,82 @@ TEST(OrgParseSem, SubtreeProperties) {
 :end:)",
             getDebugFile("prop_json"));
         {
-            auto p = org::getSubtreeProperties<
-                sem::NamedProperty::CustomSubtreeJson>(tree);
+            auto p = org::getSubtreeProperties<NP::CustomSubtreeJson>(
+                tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).name, "name"_ss);
             EXPECT_EQ(p.at(0).value.getField("key").getString(), "value");
         }
         {
-            auto p = org::getSubtreeProperties<
-                sem::NamedProperty::CustomSubtreeFlags>(tree);
+            auto p = org::getSubtreeProperties<NP::CustomSubtreeFlags>(
+                tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).value.getNamedSize(), 1);
             EXPECT_EQ(p.at(0).name, "name"_ss);
             EXPECT_EQ(
                 p.at(0).value.getFirstNamed("key")->getString(), "value");
+        }
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* tree
+:properties:
+:prop_json:name_one: [2, 3, 4]
+:prop_args:name_other: :key value
+:end:
+)");
+        {
+            auto p = t->getProperty("prop_json");
+            EXPECT_TRUE(p.has_value());
+            EXPECT_EQ2(p->getKind(), NP::Kind::CustomSubtreeJson);
+            EXPECT_EQ2(p->getCustomSubtreeJson().name, "nameone");
+            EXPECT_EQ2(
+                p->getCustomSubtreeJson().value.getRef().dump(),
+                "[2,3,4]"_ss);
+        }
+
+        {
+            auto p = t->getProperty("customsubtreejson");
+            EXPECT_TRUE(p.has_value());
+            EXPECT_EQ2(p->getKind(), NP::Kind::CustomSubtreeJson);
+            EXPECT_EQ2(p->getCustomSubtreeJson().name, "nameone");
+            EXPECT_EQ2(
+                p->getCustomSubtreeJson().value.getRef().dump(),
+                "[2,3,4]"_ss);
+        }
+        {
+            auto p = t->getProperty("prop_args");
+            EXPECT_TRUE(p.has_value());
+        }
+        {
+            auto p = t->getProperty("propargs");
+            EXPECT_TRUE(p.has_value());
+        }
+        {
+            auto p = t->getProperty("PROP_ARGS");
+            EXPECT_TRUE(p.has_value());
+        }
+    }
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* tree
+:properties:
+:prop_args:name_other:
+:end:
+)");
+        for (auto const& kind : hstd::Vec<hstd::Str>{
+                 "prop_args", "propargs", "PROP_ARGS", "PROPARGS"}) {
+            auto p = t->getProperty(kind);
+            EXPECT_TRUE(p.has_value());
+
+            for (auto const& subkind : hstd::Vec<hstd::Str>{
+                     "nameother",
+                     "NAME_OTHER",
+                     "NAMEOTHER",
+                     "name_other"}) {
+                auto p = t->getProperty(kind, subkind);
+                EXPECT_TRUE(p.has_value());
+            }
         }
     }
 }

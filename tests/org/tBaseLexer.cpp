@@ -13,6 +13,7 @@
 #include <haxorg/sem/SemOrgCereal.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include "../common.hpp"
+#include "hstd/ext/logger.hpp"
 #include "tOrgTestCommon.hpp"
 
 using namespace hstd;
@@ -37,7 +38,14 @@ TEST(ManualFileRun, TestCoverallOrg) {
         auto n     = start->init(org::parseString(content));
 
         writeFile(
-            "/tmp/TestDoc1_clean.txt",
+            getDebugFile("imm_repr_subnodes_only.txt"),
+            n.getRootAdapter()
+                .treeRepr(imm::ImmAdapter::TreeReprConf{})
+                .toString(false));
+
+
+        writeFile(
+            getDebugFile("imm_repr_clean.txt"),
             n.getRootAdapter()
                 .treeRepr(imm::ImmAdapter::TreeReprConf{
                     .withAuxFields = true,
@@ -45,13 +53,42 @@ TEST(ManualFileRun, TestCoverallOrg) {
                 .toString(false));
 
         writeFile(
-            "/tmp/TestDoc1_refl.txt",
+            getDebugFile("imm_repr_refl.txt"),
             n.getRootAdapter()
                 .treeRepr(imm::ImmAdapter::TreeReprConf{
                     .withAuxFields  = true,
                     .withReflFields = true,
                 })
                 .toString(false));
+
+        {
+            imm::ImmAdapter::TreeReprConf conf{};
+#define __visit_fields(                                                   \
+    __field_type,                                                         \
+    __field_lowercase,                                                    \
+    __field_uppercase,                                                    \
+    __parent_qual_type,                                                   \
+    __parent_name)                                                        \
+    conf.with_field(                                                      \
+        &BOOST_PP_REMOVE_PARENS __parent_qual_type::__field_lowercase);
+
+#define __visit_kind(__Kind)                                              \
+    EACH_SEM_ORG_##__Kind##_FIELD_WITH_BASE_FIELDS(__visit_fields)
+
+            EACH_SEM_ORG_KIND(__visit_kind);
+
+#undef __visit_kind
+#undef __visit_fields
+
+            auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([&]() {
+                return ::hstd::log::init_file_sink(
+                    getDebugFile("all_fields.log").native());
+            });
+
+            writeFile(
+                getDebugFile("imm_repr_with_all_fields.txt"),
+                n.getRootAdapter().treeRepr(conf).toString(false));
+        }
     }
 }
 
@@ -72,7 +109,7 @@ TEST(ManualFileRun, TestDoc1) {
             auto n     = start->init(org::parseString(content));
 
             writeFile(
-                "/tmp/TestDoc1_clean.txt",
+                getDebugFile("TestDoc1_clean.txt"),
                 n.getRootAdapter()
                     .treeRepr(imm::ImmAdapter::TreeReprConf{
                         .withAuxFields = true,
@@ -80,7 +117,7 @@ TEST(ManualFileRun, TestDoc1) {
                     .toString(false));
 
             writeFile(
-                "/tmp/TestDoc1_refl.txt",
+                getDebugFile("TestDoc1_refl.txt"),
                 n.getRootAdapter()
                     .treeRepr(imm::ImmAdapter::TreeReprConf{
                         .withAuxFields  = true,
