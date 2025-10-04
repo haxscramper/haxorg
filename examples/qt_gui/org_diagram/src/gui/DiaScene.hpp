@@ -12,6 +12,12 @@
 #include <hstd/stdlib/Set.hpp>
 #include <QMessageBox>
 
+/// \brief Central class for storing diagram scene items for the tree. The
+/// class creates new scene item form the diagram adapters and reacts to
+/// incoming changes issued by the `DiaVersionStore` signals.
+///
+/// It creates, removes and rearranges scene item tree, and triggers the
+/// associated tree model with updates.
 struct DiaScene : public QGraphicsScene {
     Q_OBJECT
 

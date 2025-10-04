@@ -909,3 +909,97 @@ org::imm::ImmPath toImmPath(
     return org::imm::ImmPath{
         root, org::imm::ImmPath::Store{result.begin(), result.end()}};
 }
+DiaAdapter DiaEdit::getDst() const {
+    if (isInsert()) {
+        return getInsert().dstNode;
+    } else if (isMove()) {
+        return getMove().dstNode;
+    } else if (isUpdate()) {
+        return getUpdate().dstNode;
+    } else {
+        throw hstd::logic_assertion_error::init(
+            "delete node has no source counterpart");
+    }
+}
+DiaAdapter DiaEdit::getSrc() const {
+    if (isDelete()) {
+        return getDelete().srcNode;
+    } else if (isMove()) {
+        return getMove().srcNode;
+    } else if (isUpdate()) {
+        return getUpdate().srcNode;
+    } else {
+        throw hstd::logic_assertion_error::init(
+            "insert node has no source counterpart");
+    }
+}
+
+const DiaNode* DiaNodeStore::at(const DiaId& id) const {
+    DiaNode const* res = nullptr;
+    switch_dia_id(id, [&]<typename K>(DiaIdT<K> id) {
+        res = getStore<K>()->at(id);
+        LOGIC_ASSERTION_CHECK(
+            res->getKind() == id.getKind(),
+            "id kind {} does not match result node kind {}",
+            id.getKind(),
+            res->getKind());
+    });
+
+    return res;
+}
+
+
+DiaNodeStore::DiaNodeStore()
+    :
+#define _kind(__Kind) , store##__Kind()
+    EACH_DIAGRAM_KIND_CSV(_kind)
+#undef _kind
+{
+}
+
+template <typename T>
+std::size_t dia_hash_build(T const& value) {
+    std::size_t result = 0;
+    hstd::hax_hash_combine(result, value.id.id);
+
+    hstd::for_each_field_with_bases<T>([&](auto const& field) {
+        using FieldType = DESC_FIELD_TYPE(field);
+        if constexpr (std::is_same_v<org::imm::ImmAdapter, FieldType>) {
+            hstd::hax_hash_combine(result, (value.*field.pointer).uniq());
+        } else {
+            auto hash_value = std::hash<
+                std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
+                value.*field.pointer);
+            auto tmp_result = result;
+            hstd::hax_hash_combine(result, hash_value);
+        }
+    });
+
+    return result;
+}
+
+
+std::size_t std::hash<DiaNodeLayer>::operator()(
+    const DiaNodeLayer& it) const noexcept {
+    return dia_hash_build(it);
+}
+
+std::size_t std::hash<DiaNode>::operator()(
+    const DiaNode& it) const noexcept {
+    return dia_hash_build(it);
+}
+
+std::size_t std::hash<DiaNodeCanvas>::operator()(
+    const DiaNodeCanvas& it) const noexcept {
+    return dia_hash_build(it);
+}
+
+std::size_t std::hash<DiaNodeGroup>::operator()(
+    const DiaNodeGroup& it) const noexcept {
+    return dia_hash_build(it);
+}
+
+std::size_t std::hash<DiaNodeItem>::operator()(
+    const DiaNodeItem& it) const noexcept {
+    return dia_hash_build(it);
+}

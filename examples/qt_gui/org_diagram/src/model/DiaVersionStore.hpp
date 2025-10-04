@@ -43,41 +43,72 @@ struct DiaVersionStore
         }
     };
 
+    /// \brief Single command to modify the current diagram scene tree.
+    /// Commands should be grouped in `EditGroup` and applied in batches.
     struct EditCmd {
+        /// \brief Remove the target node from the current subtree.
         struct RemoveDiaNode {
             EditTarget target;
             DESC_FIELDS(RemoveDiaNode, (target));
         };
 
+        /// \brief Insert a new, empty subtree with minimal properties at
+        /// the `index` of the `newParent`. Last inserted node can be
+        /// referred to as the `EditTarget::LastCreated`.
+        ///
+        /// Adding new node with some specific properties is a two-step
+        /// operation. First, an empty node is inserted into the tree,
+        /// followed by the edit operation.
         struct InsertDiaNode {
-            EditTarget     newParent;
+            EditTarget newParent;
+            /// \brief Index to insert at. If not provided, the node will
+            /// be appended to the parent.
             hstd::Opt<int> index;
             DESC_FIELDS(InsertDiaNode, (newParent, index));
         };
 
+        /// \brief Replace a `target` node with an new immutable ast
+        /// subtree created from `value`. The conversion is not recursive,
+        /// and none of the direct `.subnodes` of the value will be
+        /// transferred. Instead, the update will only replace the subtree
+        /// and re-use all the older nodes.
         struct UpdateImmOrg {
             EditTarget                     target;
             org::sem::SemId<org::sem::Org> value;
             DESC_FIELDS(UpdateImmOrg, (target, value));
         };
 
+        /// \brief Move the list of old nodes to the new parent at index.
         struct MoveDiaNode {
+            /// \brief List of nodes to move under a new parent. The nodes
+            /// do not have to be under the same parent originally, and can
+            /// be randomly scattered in the tree.
+            ///
+            /// \warning The only requirement is that no node will be a
+            /// direct ancestor of the other one.
             hstd::Vec<EditTarget> nodeToMove;
-            EditTarget            newParent;
-            std::optional<int>    newIndex;
+            /// \brief Target node to move to. Can be existing node, can be
+            /// a newly created one.
+            EditTarget newParent;
+            /// \brief New index to move nodes to. If not provided, append
+            /// nodes to the parent.
+            std::optional<int> newIndex;
             DESC_FIELDS(MoveDiaNode, (nodeToMove, newParent, newIndex));
         };
 
+        /// \brief Convenience function to construct a remove command.
         static EditCmd Remove(EditTarget const& target) {
             return EditCmd{RemoveDiaNode{target}};
         }
 
+        /// \brief Convenience function to construct an update command.
         static EditCmd Update(
             EditTarget const&              target,
             org::sem::SemId<org::sem::Org> value) {
             return EditCmd{UpdateImmOrg{.target = target, .value = value}};
         }
 
+        /// \brief Convenience function to construct an insert command.
         static EditCmd Insert(
             EditTarget const&     target,
             hstd::Opt<int> const& index = std::nullopt) {
@@ -85,6 +116,7 @@ struct DiaVersionStore
                 InsertDiaNode{.newParent = target, .index = index}};
         }
 
+        /// \brief Convenience function to construct a move command.
         static EditCmd Move(
             hstd::Vec<EditTarget>     nodeToMove,
             EditTarget                newParent,
@@ -110,6 +142,10 @@ struct DiaVersionStore
         DESC_FIELDS(EditCmd, (data));
     };
 
+
+    /// \brief Collection of the edit operations that should be applied in
+    /// batch. This is the structure that mutable GUI layer sends to the
+    /// version store to trigger updates.
     struct EditGroup {
         hstd::Vec<EditCmd> edits;
         DESC_FIELDS(EditGroup, (edits));
@@ -138,6 +174,9 @@ struct DiaVersionStore
         DESC_FIELDS(EditApplyResult, ());
     };
 
+    /// \brief Apply all diagram edits in sequence and returnt he final
+    /// application result. This method will add one item to the history,
+    /// triggering the update.
     EditApplyResult applyDiaEdits(EditGroup const& edits);
     void            stepEditForward(
                    org::imm::ImmAstVersion& vEdit,
@@ -190,13 +229,17 @@ struct DiaVersionStore
     };
 
 
+    /// \brief Create list of edits
     hstd::Vec<DiaEdit> getDiaEdits(
         int                lhsVer,
         int                rhsVer,
         const DiaEditConf& conf);
 
   signals:
-    void diaRootChanged(DiaRootChange const& change);
+    /// \brief Emitted every time the active tree changes. Returns the root
+    /// change object with the edits necessary to transform the original
+    /// diagram tree into the current version.
+    void diaRootChanged(DiaVersionStore::DiaRootChange const& change);
 };
 
 Q_DECLARE_METATYPE(DiaVersionStore::EditTarget);

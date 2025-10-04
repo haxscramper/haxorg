@@ -379,60 +379,30 @@ void switch_dia_id(DiaId node, Func const& cb) {
     }
 }
 
-template <typename T>
-std::size_t dia_hash_build(T const& value) {
-    std::size_t result = 0;
-    hstd::hax_hash_combine(result, value.id.id);
-    hstd::for_each_field_with_bases<T>([&](auto const& field) {
-        using FieldType = DESC_FIELD_TYPE(field);
-        if constexpr (std::is_same_v<org::imm::ImmAdapter, FieldType>) {
-            hstd::hax_hash_combine(result, (value.*field.pointer).uniq());
-        } else {
-            auto hash_value = std::hash<
-                std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
-                value.*field.pointer);
-            auto tmp_result = result;
-            hstd::hax_hash_combine(result, hash_value);
-        }
-    });
-
-    return result;
-}
-
 
 template <>
 struct std::hash<DiaNodeLayer> {
-    std::size_t operator()(DiaNodeLayer const& it) const noexcept {
-        return dia_hash_build(it);
-    }
+    std::size_t operator()(DiaNodeLayer const& it) const noexcept;
 };
 
 template <>
 struct std::hash<DiaNodeCanvas> {
-    std::size_t operator()(DiaNodeCanvas const& it) const noexcept {
-        return dia_hash_build(it);
-    }
+    std::size_t operator()(DiaNodeCanvas const& it) const noexcept;
 };
 
 template <>
 struct std::hash<DiaNodeGroup> {
-    std::size_t operator()(DiaNodeGroup const& it) const noexcept {
-        return dia_hash_build(it);
-    }
+    std::size_t operator()(DiaNodeGroup const& it) const noexcept;
 };
 
 template <>
 struct std::hash<DiaNodeItem> {
-    std::size_t operator()(DiaNodeItem const& it) const noexcept {
-        return dia_hash_build(it);
-    }
+    std::size_t operator()(DiaNodeItem const& it) const noexcept;
 };
 
 template <>
 struct std::hash<DiaNode> {
-    std::size_t operator()(DiaNode const& it) const noexcept {
-        return dia_hash_build(it);
-    }
+    std::size_t operator()(DiaNode const& it) const noexcept;
 };
 
 template <typename T>
@@ -475,32 +445,14 @@ struct DiaNodeStore {
 #undef _kind
 
 
-    DiaNodeStore()
-        :
-#define _kind(__Kind) , store##__Kind()
-        EACH_DIAGRAM_KIND_CSV(_kind)
-#undef _kind
-    {
-    }
+    DiaNodeStore();
 
     template <typename T>
     DiaId add(T const& value) {
         return getStore<T>()->add(value);
     }
 
-    DiaNode const* at(DiaId const& id) const {
-        DiaNode const* res = nullptr;
-        switch_dia_id(id, [&]<typename K>(DiaIdT<K> id) {
-            res = getStore<K>()->at(id);
-            LOGIC_ASSERTION_CHECK(
-                res->getKind() == id.getKind(),
-                "id kind {} does not match result node kind {}",
-                id.getKind(),
-                res->getKind());
-        });
-
-        return res;
-    }
+    DiaNode const* at(DiaId const& id) const;
 };
 
 
@@ -536,6 +488,7 @@ struct DiaContext : hstd::SharedPtrApi<DiaContext> {
     DiaId at(DiaId root, org::imm::ImmPath const& path) const;
 };
 
+/// \brief Utility class to simplify access to the diagram tree node data.
 struct DiaAdapter {
     DiaUniqId                   id;
     std::shared_ptr<DiaContext> ctx;
@@ -627,24 +580,43 @@ struct std::formatter<DiaAdapter> : std::formatter<std::string> {
     }
 };
 
+/// \brief Recursively construct the diagram adapter from the document.
 DiaAdapter FromDocument(
     hstd::SPtr<DiaContext> const&                       context,
     org::imm::ImmAdapterT<org::imm::ImmDocument> const& root);
 
+
+/// \brief Single edit operation on the path to transform the source
+/// diagram node tree into the destination diagram node tree.
 struct DiaEdit {
+    /// \brief Create a new scene item with the information from `dstNode`.
+    /// This operation inserts a whole new subtree, recursively.
     struct Insert {
+        /// \brief Node to insert. The parent can be inferred from the
+        /// `dstNode` data.
         DiaAdapter dstNode;
-        int        dstIndex;
+        /// \brief Target index of the `dstNode`
+        int dstIndex;
         DESC_FIELDS(Insert, (dstNode, dstIndex));
     };
 
+    /// \brief Delete the source node. This operation deletes teh whole new
+    /// subtree recursively.
     struct Delete {
+        /// \brief Node to delete. Parent can be inferred from the
+        /// `srcNode` data.
         DiaAdapter srcNode;
-        int        srcIndex;
+        /// \brief The index of the node to delete.
+        int srcIndex;
         DESC_FIELDS(Delete, (srcNode, srcIndex));
     };
 
+    /// \brief Move the source node from the provided index to the
+    /// destination node at index. Both nodes must be under the same
+    /// parent. For cross-parent moves the diff will issue delete and
+    /// insert operation.
     struct Move {
+        /// \brief Node to move.
         DiaAdapter srcNode;
         DiaAdapter dstNode;
         int        srcIndex;
@@ -652,6 +624,10 @@ struct DiaEdit {
         DESC_FIELDS(Move, (srcNode, dstNode, srcIndex, dstIndex));
     };
 
+    /// \brief Replace the source node from the provided index with the
+    /// destination node. Does not perform recursive update: subnodes might
+    /// have had their own updates and updating parent should not overwrite
+    /// them.
     struct Update {
         DiaAdapter srcNode;
         DiaAdapter dstNode;
@@ -660,36 +636,17 @@ struct DiaEdit {
         DESC_FIELDS(Update, (srcNode, dstNode, srcIndex, dstIndex));
     };
 
+    /// \brief Check if the diff has an associated source node.
     bool hasSrc() const { return isDelete() || isMove() || isUpdate(); }
+    /// \brief Check if the diff has an associated target node.
     bool hasDst() const { return isInsert() || isMove() || isUpdate(); }
-
-    DiaAdapter getDst() const {
-        if (isInsert()) {
-            return getInsert().dstNode;
-        } else if (isMove()) {
-            return getMove().dstNode;
-        } else if (isUpdate()) {
-            return getUpdate().dstNode;
-        } else {
-            throw hstd::logic_assertion_error::init(
-                "delete node has no source counterpart");
-        }
-    }
-
-    DiaAdapter getSrc() const {
-        if (isDelete()) {
-            return getDelete().srcNode;
-        } else if (isMove()) {
-            return getMove().srcNode;
-        } else if (isUpdate()) {
-            return getUpdate().srcNode;
-        } else {
-            throw hstd::logic_assertion_error::init(
-                "insert node has no source counterpart");
-        }
-    }
-
+    /// \brief Get associated destination diagram node
+    DiaAdapter getDst() const;
+    /// \brief Get associated source diagram node.
+    DiaAdapter getSrc() const;
+    /// \brief Shorthand to get unique ID for the source node.
     DiaUniqId getSrcUniq() const { return getSrc().id; }
+    /// \brief Shorthand to get unique ID for the destination node.
     DiaUniqId getDstUniq() const { return getDst().id; }
 
 
@@ -698,6 +655,9 @@ struct DiaEdit {
     DESC_FIELDS(DiaEdit, (data));
 };
 
+/// \brief Store information about edit operations applied *under* the
+/// provided paths. Used by the diagram scene item and item model to
+/// compute index offsets while performing tree edits.
 struct DiaEditTransientState {
     hstd::UnorderedMap<hstd::Vec<int>, std::vector<DiaEdit>> applied;
     int updateIdx(int index, const hstd::Vec<int>& parentPath);

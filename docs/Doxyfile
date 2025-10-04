@@ -1049,7 +1049,8 @@ EXCLUDE                = deps \
                          _CPack_Packages \
                          examples/imgui_gui/imgui \
                          src/haxorg/exporters/ExporterMethods.tcc \
-                         src/haxorg/base_lexer/base_lexer_gen.cpp
+                         src/haxorg/base_lexer/base_lexer_gen.cpp \
+                         src/wrappers/js/node_modules
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
