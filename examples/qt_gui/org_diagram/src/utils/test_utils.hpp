@@ -157,7 +157,7 @@ struct ScopeV12ItemModel : ScopeV12DiagramDiff {
         : ScopeV12DiagramDiff{src, dst}, scene{&model, version_store} {}
 
     void logModel() {
-        HSLOG_INFO(_cat, printModelTree(&model).toString(false));
+        HSLOG_INFO("{}", printModelTree(&model).toString(false));
     }
 };
 
@@ -176,21 +176,21 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
     }
 
     void setV1() {
-        HSLOG_TRACE(_cat, "Scene root before setting the adapter");
+        HSLOG_TRACE("Scene root before setting the adapter");
         scene.logSceneRoot();
         scene.setRootAdapter(srcAdapter);
-        HSLOG_TRACE(_cat, "Scene root after setting the adapter");
+        HSLOG_TRACE("Scene root after setting the adapter");
         scene.logSceneRoot();
-        HSLOG_TRACE(_cat, "Tree model after setting the adapter");
-        HSLOG_TRACE(_cat, model.format().toString(false));
+        HSLOG_TRACE("Tree model after setting the adapter");
+        HSLOG_TRACE(model.format().toString(false));
     }
 
     void setV2() {
         scene.resetRootAdapter(edits);
-        HSLOG_TRACE(_cat, "Scene root after updating the adapter");
+        HSLOG_TRACE("Scene root after updating the adapter");
         scene.logSceneRoot();
-        HSLOG_TRACE(_cat, "Tree model after updating the adapter");
-        HSLOG_TRACE(_cat, model.format().toString(false));
+        HSLOG_TRACE("Tree model after updating the adapter");
+        HSLOG_TRACE(model.format().toString(false));
     }
 };
 

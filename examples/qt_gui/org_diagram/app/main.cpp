@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
         &QFileSystemWatcher::fileChanged,
         [&](QString const& event) {
             HSLOG_TRACE(
-                _cat, hstd::fmt("File changed:{}", event.toStdString()));
+                _cat, "File changed:{}", event.toStdString());
             window->loadFile(event);
         });
 

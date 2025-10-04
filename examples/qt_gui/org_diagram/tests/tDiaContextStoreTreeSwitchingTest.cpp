@@ -57,11 +57,11 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
             }
 
 
-            HSLOG_ERROR(_cat, message);
+            HSLOG_ERROR("{}", message);
             HSLOG_ERROR(
-                _cat, "src model:\n", srcModel.format().toString(false));
+                "src model:\n{}", srcModel.format().toString(false));
             HSLOG_ERROR(
-                _cat, "dst model:\n", dstModel.format().toString(false));
+                "dst model:\n{}", dstModel.format().toString(false));
 
             QFAIL(message.c_str());
         }
@@ -106,17 +106,13 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
         auto treeV1 = FromDocument(scope.dia_context, scope.getRootV1());
 
         HSLOG_INFO(
-            _cat,
-            "treeV1 adapter repr\n",
-            scope.getRootV1().treeReprString());
+            "treeV1 adapter repr\n{}", scope.getRootV1().treeReprString());
 
         HSLOG_INFO(
-            _cat,
-            "treeV2 adapter repr\n",
-            scope.getRootV2().treeReprString());
+            "treeV2 adapter repr\n{}", scope.getRootV2().treeReprString());
 
         HSLOG_INFO(
-            _cat, "treeV1 before edit\n", treeV1.format().toString(false));
+            "treeV1 before edit\n{}", treeV1.format().toString(false));
     }
 
     void testDepletedEdits() {

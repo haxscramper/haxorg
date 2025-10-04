@@ -160,9 +160,6 @@ hstd::ext::Graphviz::Graph                    get_tracker_graph();
 #define TRACKED_OBJECT(...)                                               \
     HSLOG_TRACKED_OBJECT(get_tracker(), __VA_ARGS__)
 
-#define HSLOG_FMT1(value)                                                 \
-    HSLOG_DEBUG("debug", hstd::fmt("{} = {}", #value, value));
-
 hstd::fs::path getDebugFile(
     QObject*         testClass,
     const hstd::Str& suffix = "");

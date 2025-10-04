@@ -56,12 +56,12 @@ struct LoggerTest : public ::testing::Test {
 const hstd::log::log_category _cat = hstd::log::log_category{"cat"};
 
 TEST_F(LoggerTest, SimpleLog) {
-    HSLOG_TRACE(_cat, "trace");
-    HSLOG_DEBUG(_cat, "debug");
-    HSLOG_INFO(_cat, "info");
-    HSLOG_WARNING(_cat, "warning");
-    HSLOG_ERROR(_cat, "error");
-    HSLOG_ERROR(_cat, "fatal");
+    HSLOG_TRACE("trace");
+    HSLOG_DEBUG("debug");
+    HSLOG_INFO("info");
+    HSLOG_WARNING("warning");
+    HSLOG_ERROR("error");
+    HSLOG_ERROR("fatal");
 
     // debug();
     auto const& b = buffer;
@@ -75,12 +75,12 @@ TEST_F(LoggerTest, DifferentialDebug) {
     auto run     = [&]() {
         auto __log_diff = HSLOG_SINK_FACTORY_SCOPED(
             log::log_differential_sink_factory{getDebugFile("res.diff")});
-        HSLOG_TRACE(_cat, "trace {}", counter);
-        HSLOG_DEBUG(_cat, "debug {}", counter);
-        HSLOG_INFO(_cat, "info {}", counter);
-        HSLOG_WARNING(_cat, "warning {}", counter);
-        HSLOG_ERROR(_cat, "error {}", counter);
-        HSLOG_ERROR(_cat, "fatal {}", counter);
+        HSLOG_TRACE("trace {}", counter);
+        HSLOG_DEBUG("debug {}", counter);
+        HSLOG_INFO("info {}", counter);
+        HSLOG_WARNING("warning {}", counter);
+        HSLOG_ERROR("error {}", counter);
+        HSLOG_ERROR("fatal {}", counter);
         ++counter;
     };
 

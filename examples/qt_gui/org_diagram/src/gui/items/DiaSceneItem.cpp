@@ -124,6 +124,6 @@ void SelfRemDiaScene::operator()(DiaSceneItem* item) {
     item->scene()->removeItem(item);
     HSLOG_TRACE(
         _cat,
-        hstd::fmt("Deleting scene item {}", hstd::descObjectPtr(item)));
+        "Deleting scene item {}", hstd::descObjectPtr(item));
     delete item;
 }

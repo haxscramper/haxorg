@@ -49,8 +49,8 @@ void test::visualizeTestDiff(
 test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
     const std::string& src,
     const std::string& dst) {
-    HSLOG_INFO("test", "src:\n", src);
-    HSLOG_INFO("test", "dst:\n", dst);
+    HSLOG_INFO("src:\n{}", src);
+    HSLOG_INFO("dst:\n{}", dst);
 
     version_store->addDocument(src);
     version_store->addDocument(dst);
@@ -59,13 +59,11 @@ test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
     conf.with_field(&org::imm::ImmSubtree::properties);
 
     HSLOG_INFO(
-        "test",
-        "srcRoot:\n",
+        "srcRoot:\n{}",
         hstd::indent(getRootV1().treeRepr(conf).toString(false), 2));
 
     HSLOG_INFO(
-        "test",
-        "dstRoot:\n",
+        "dstRoot:\n{}",
         hstd::indent(getRootV2().treeRepr(conf).toString(false), 2));
 
     srcAdapter = FromDocument(dia_context, getRootV1());
@@ -73,13 +71,11 @@ test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
     edits      = getEdits(srcAdapter, dstAdapter, DiaEditConf{});
 
     HSLOG_INFO(
-        "test",
-        "srcAdapter:\n",
+        "srcAdapter:\n{}",
         hstd::indent(srcAdapter.format().toString(false), 2));
 
     HSLOG_INFO(
-        "test",
-        "dstAdapter:\n",
+        "dstAdapter:\n{}",
         hstd::indent(dstAdapter.format().toString(false), 2));
 
     log_collection("test", hstd::log::severity_level::trace, edits).end();
@@ -87,7 +83,7 @@ test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
 
 test::ScopeDiaContextEdits::TextSetResult test::ScopeDiaContextEdits::
     setText(const std::string& text) {
-    HSLOG_INFO("test", "text:\n", text);
+    HSLOG_INFO("text:\n{}", text);
     TextSetResult res;
 
     res.rootIndex = version_store->addDocument(text);
@@ -96,8 +92,7 @@ test::ScopeDiaContextEdits::TextSetResult test::ScopeDiaContextEdits::
     conf.with_field(&org::imm::ImmSubtree::properties);
 
     HSLOG_INFO(
-        "test",
-        "srcRoot:\n",
+        "srcRoot:\n{}",
         hstd::indent(
             version_store->getImmRoot(res.rootIndex)
                 .treeRepr(conf)
@@ -109,8 +104,7 @@ test::ScopeDiaContextEdits::TextSetResult test::ScopeDiaContextEdits::
 
 
     HSLOG_INFO(
-        "test",
-        "srcAdapter:\n",
+        "srcAdapter:\n{}",
         hstd::indent(res.dia.format().toString(false), 2));
 
     return res;

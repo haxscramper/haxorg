@@ -322,21 +322,21 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 void MainWindow::loadFile(const QString& path) {
     TRACKED_FUNCTION("loadFile");
     auto p = path.toStdString();
-    HSLOG_INFO(_cat, "Loading document from ", p);
+    HSLOG_INFO("Loading document from {}", p);
     {
-        HSLOG_INFO(_cat, "Add document to history manager");
+        HSLOG_INFO("Add document to history manager");
         HSLOG_DEPTH_SCOPE_ANON();
         version_store->addDocument(hstd::readFile(p));
     }
     DiaAdapter adapter;
     {
-        HSLOG_INFO(_cat, "Convert document to dia adapter");
+        HSLOG_INFO("Convert document to dia adapter");
         HSLOG_DEPTH_SCOPE_ANON();
         adapter = FromDocument(
             dia_context, version_store->getActiveImmRoot());
     }
     {
-        HSLOG_INFO(_cat, "Set root adapter to scene");
+        HSLOG_INFO("Set root adapter to scene");
         HSLOG_DEPTH_SCOPE_ANON();
         scene->setRootAdapter(adapter);
         hstd::logic_assertion_check_not_nil(scene->rootNode);

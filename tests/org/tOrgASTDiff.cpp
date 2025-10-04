@@ -153,12 +153,12 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
         SemSrc = org::parseString(Src);
         SemDst = org::parseString(Dst);
         {
-            HSLOG_INFO("test.imm", "Add SRC root");
+            HSLOG_INFO("Add SRC root");
             HSLOG_DEPTH_SCOPE_ANON();
             ImmSrc = context->addRoot(SemSrc);
         }
         {
-            HSLOG_INFO("test.imm", "Add DST root");
+            HSLOG_INFO("Add DST root");
             HSLOG_DEPTH_SCOPE_ANON();
             ImmDst = context->addRoot(SemDst);
         }
@@ -238,8 +238,9 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
 class OrgImmAstDiff : public ::testing::Test {
   protected:
     void SetUp() override {
-        hstd::log::push_sink(hstd::log::init_file_sink(
-            getDebugFile("test_log.log").native()));
+        hstd::log::push_sink(
+            hstd::log::init_file_sink(
+                getDebugFile("test_log.log").native()));
     }
 
     virtual void TearDown() override { hstd::log::clear_sink_backends(); }

@@ -578,6 +578,9 @@ constexpr ::hstd::log::severity_level  l_fatal   = ::hstd::log::severity_level::
 #    define HSLOG_ERROR(...) __ORG_LOG_IMPL(error, __VA_ARGS__)
 #    define HSLOG_FATAL(...) __ORG_LOG_IMPL(fatal, __VA_ARGS__)
 
+#    define HSLOG_FMT1(value)                                             \
+        HSLOG_DEBUG(hstd::fmt("{} = {}", #value, value));
+
 #    define HSLOG_SINK_SCOPE() ::hstd::log::log_sink_scope()
 /// \brief Create logging sink scope and clear all the current sink state
 #    define HSLOG_NOSINK_SCOPE() HSLOG_SINK_SCOPE().drop_current_sinks()
