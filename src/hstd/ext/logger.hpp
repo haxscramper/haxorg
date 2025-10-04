@@ -68,6 +68,12 @@ struct log_value_formatter<T> {
 };
 #    endif
 
+template <>
+struct log_value_formatter<hstd::ColText> {
+    static std::string format(hstd::ColText const& value) {
+        return value.toString(false);
+    }
+};
 
 template <typename T>
 concept has_log_value_formatter = requires(const T& value) {
