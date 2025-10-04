@@ -432,7 +432,8 @@ hstd::log::log_record& ::hstd::log::log_record::file(char const* f) {
     return *this;
 }
 
-hstd::log::log_record& ::hstd::log::log_record::category(Str const& cat) {
+hstd::log::log_record& ::hstd::log::log_record::category(
+    log_category const& cat) {
     data.category = cat;
     return *this;
 }
@@ -563,11 +564,7 @@ sink_ptr hstd::log::set_sink_filter(
     return sink;
 }
 
-bool ::hstd::log::is_log_accepted(
-    const Str&     category,
-    severity_level level) {
-    return true;
-}
+bool ::hstd::log::is_log_accepted(severity_level level) { return true; }
 
 ::hstd::log::log_builder::~log_builder() {
     if (!is_released) {

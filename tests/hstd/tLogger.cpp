@@ -53,7 +53,7 @@ struct LoggerTest : public ::testing::Test {
     }
 };
 
-const std::string _cat = "cat";
+const hstd::log::log_category _cat = hstd::log::log_category{"cat"};
 
 TEST_F(LoggerTest, SimpleLog) {
     HSLOG_TRACE(_cat, "trace");
@@ -75,12 +75,12 @@ TEST_F(LoggerTest, DifferentialDebug) {
     auto run     = [&]() {
         auto __log_diff = HSLOG_SINK_FACTORY_SCOPED(
             log::log_differential_sink_factory{getDebugFile("res.diff")});
-        HSLOG_TRACE(_cat, "trace ", counter);
-        HSLOG_DEBUG(_cat, "debug ", counter);
-        HSLOG_INFO(_cat, "info ", counter);
-        HSLOG_WARNING(_cat, "warning ", counter);
-        HSLOG_ERROR(_cat, "error ", counter);
-        HSLOG_ERROR(_cat, "fatal ", counter);
+        HSLOG_TRACE(_cat, "trace {}", counter);
+        HSLOG_DEBUG(_cat, "debug {}", counter);
+        HSLOG_INFO(_cat, "info {}", counter);
+        HSLOG_WARNING(_cat, "warning {}", counter);
+        HSLOG_ERROR(_cat, "error {}", counter);
+        HSLOG_ERROR(_cat, "fatal {}", counter);
         ++counter;
     };
 
