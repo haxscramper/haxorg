@@ -1,20 +1,27 @@
 #pragma once
 
-#include <qobject.h>
+#if ORG_USE_QT
+#    include <QObject>
+#endif
+
 #include <vector>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <stack>
 #include <hstd/ext/graphviz.hpp>
+#include <hstd/ext/logger.hpp>
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
 #    include <QDebug>
 #    include <QBuffer>
 #endif
 
 namespace hstd {
+#if ORG_USE_QT
 std::string descObjectPtr(QObject* obj);
+#endif
+
 template <typename T>
     requires std::is_class_v<T>
 std::string descObjectPtr(T* obj) {
@@ -59,46 +66,6 @@ std::string descObjectPtr(std::unique_ptr<T const, Deleter> const& ptr) {
 
 namespace hstd::log {
 
-template <typename T, typename Other = std::monostate>
-struct log_value_formatter {
-    static std::string format(T const& value) {
-        return hstd::value_metadata<T>::typeName() + " not formattable";
-    }
-};
-
-template <hstd::StdFormattable T>
-struct log_value_formatter<T> {
-    static std::string format(T const& value) { return hstd::fmt1(value); }
-};
-
-#if HAXORG_LOGGER_SUPPORT_QT
-template <typename T>
-concept QDebugFormattable = requires(QDebug debug, const T& value) {
-    debug << value;
-};
-
-template <QDebugFormattable T>
-std::string formatQtToString(const T& value) {
-    QBuffer buffer{};
-    buffer.open(QIODevice::WriteOnly);
-    QDebug debug{&buffer};
-    debug.nospace().noquote() << value;
-    buffer.close();
-    return buffer.data().toStdString();
-}
-
-template <typename T>
-concept OnlyQDebugFormattable = QDebugFormattable<T>
-                             && !hstd::StdFormattable<T>;
-
-template <OnlyQDebugFormattable T>
-struct log_value_formatter<T> {
-    static std::string format(T const& value) {
-        return formatQtToString(value);
-    }
-};
-
-#endif
 
 struct log_graph_processor {
     virtual ~log_graph_processor() = default;
@@ -133,6 +100,7 @@ struct log_graph_processor {
             : tracked_info{loc}, name{name} {}
     };
 
+#if ORG_USE_QT
     struct signal_emit_info : public tracked_info {
         std::string              name;
         QObject const*           sender;
@@ -173,6 +141,7 @@ struct log_graph_processor {
             , sender{sender}
             , receiver{receiver} {}
     };
+#endif
 
 
     struct scope_info : public tracked_info {
@@ -209,6 +178,7 @@ struct log_graph_processor {
     };
 
 
+#if ORG_USE_QT
     struct qobject_info : public tracked_info {
         QObject const* object;
         BOOST_DESCRIBE_STRUCT(qobject_info, (tracked_info), (object));
@@ -238,19 +208,24 @@ struct log_graph_processor {
             , receiver{receiver}
             , slot{slot} {}
     };
+#endif
 
-    virtual void track_function_start(function_info const& info)   = 0;
-    virtual void track_function_end(function_info const& info)     = 0;
+    virtual void track_function_start(function_info const& info) = 0;
+    virtual void track_function_end(function_info const& info)   = 0;
+#if ORG_USE_QT
     virtual void track_signal_emit(signal_emit_info const& info)   = 0;
     virtual void track_slot_trigger(slot_trigger_info const& info) = 0;
-    virtual void track_scope_enter(scope_info const& info)         = 0;
-    virtual void track_scope_exit(scope_info const& info)          = 0;
-    virtual void track_started(tracked_info const& info)           = 0;
-    virtual void track_ended(tracked_info const& info)             = 0;
-    virtual void track_named_text(named_text_info const& info)     = 0;
-    virtual void track_named_jump(named_jump_info const& info)     = 0;
-    virtual void track_qobject(qobject_info const& info)           = 0;
-    virtual void track_connect(connect_info const& info)           = 0;
+#endif
+    virtual void track_scope_enter(scope_info const& info)     = 0;
+    virtual void track_scope_exit(scope_info const& info)      = 0;
+    virtual void track_started(tracked_info const& info)       = 0;
+    virtual void track_ended(tracked_info const& info)         = 0;
+    virtual void track_named_text(named_text_info const& info) = 0;
+    virtual void track_named_jump(named_jump_info const& info) = 0;
+#if ORG_USE_QT
+    virtual void track_qobject(qobject_info const& info) = 0;
+    virtual void track_connect(connect_info const& info) = 0;
+#endif
 };
 
 struct log_graph_tracker {
@@ -300,7 +275,7 @@ struct log_graph_tracker {
         std::vector<std::string>& res,
         T const&                  value,
         Args&&... args) {
-        res.push_back(hstd::log::log_value_formatter<T>::format(value));
+        res.push_back(hstd::log::log_value_formatter<T>{}.format(value));
         format_args_aux(res, std::forward<Args>(args)...);
     }
 
@@ -314,7 +289,7 @@ struct log_graph_tracker {
     }
 
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
 
     void notify_signal_emit(
         log_graph_processor::signal_emit_info const& info);
@@ -399,7 +374,7 @@ struct log_graph_tracker {
             ::hstd::log::log_graph_processor::callsite::                  \
                 this_callsite()));
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
 
 #    define HSLOG_TRACKED_CONNECT(                                        \
         _tracker, _sender, _signal, _receiver, _slot, ...)                \
@@ -425,7 +400,7 @@ struct log_graph_tracker {
 #endif
 
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
 struct SignalDebugger : public QObject {
     Q_OBJECT
 
@@ -492,7 +467,7 @@ struct graphviz_processor : public log_graph_processor {
     void track_named_text(named_text_info const& info) override {}
     void track_named_jump(named_jump_info const& info) override;
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
     void track_signal_emit(signal_emit_info const& info) override;
     void track_slot_trigger(slot_trigger_info const& info) override;
     void track_qobject(qobject_info const& info) override {}
@@ -522,7 +497,7 @@ struct logger_processor : public log_graph_processor {
     void track_named_text(named_text_info const& info) override;
     void track_named_jump(named_jump_info const& info) override;
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
     void track_signal_emit(signal_emit_info const& info) override;
     void track_slot_trigger(slot_trigger_info const& info) override;
     void track_qobject(qobject_info const& info) override;

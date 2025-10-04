@@ -7,7 +7,10 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/ext/log_graph_tracker.hpp>
 #include "../common.hpp"
+
+#include <QString>
 
 using namespace hstd;
 
@@ -212,4 +215,12 @@ TEST_F(LoggerTest, CollectionRepr) {
         hstd::Vec<std::string>{"123", "222"})
         .as_info()
         .end();
+}
+
+TEST_F(LoggerTest, LogGraphTracker) {}
+
+
+TEST_F(LoggerTest, QtTypes) {
+    HSLOG_INFO("item {}", QString("test"));
+    //
 }

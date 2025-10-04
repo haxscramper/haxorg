@@ -30,10 +30,43 @@
 #    include <hstd/stdlib/TraceBase.hpp>
 #    include <hstd/stdlib/ContainerAPI.hpp>
 
+#    if ORG_USE_QT
+#        include <QDebug>
+#        include <QBuffer>
+#    endif
+
 namespace hstd::log {
 
 template <typename T>
 struct log_value_formatter {};
+
+#    if ORG_USE_QT
+template <typename T>
+concept QDebugFormattable = requires(QDebug debug, const T& value) {
+    debug << value;
+};
+
+template <QDebugFormattable T>
+std::string formatQtToString(const T& value) {
+    QBuffer buffer{};
+    buffer.open(QIODevice::WriteOnly);
+    QDebug debug{&buffer};
+    debug.nospace().noquote() << value;
+    buffer.close();
+    return buffer.data().toStdString();
+}
+
+template <typename T>
+concept OnlyQDebugFormattable = QDebugFormattable<T>
+                             && !hstd::StdFormattable<T>;
+
+template <OnlyQDebugFormattable T>
+struct log_value_formatter<T> {
+    static std::string format(T const& value) {
+        return formatQtToString(value);
+    }
+};
+#    endif
 
 
 template <typename T>
@@ -272,6 +305,7 @@ struct log_record {
 
     log_data data;
 
+    log_record& prepend_message(std::string const& message);
     log_record& function(char const* func);
     log_record& message(int const& msg);
     log_record& message(hstd::Str const& msg);

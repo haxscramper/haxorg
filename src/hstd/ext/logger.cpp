@@ -372,6 +372,11 @@ log_record log_record::from_operations(const OperationsMsg& msg) {
     return res;
 }
 
+log_record& log_record::prepend_message(const std::string& message) {
+    data.message.insert(0, message);
+    return *this;
+}
+
 log_record& log_record::source_scope_add(const Str& scope) {
     data.source_scope.push_back(scope);
     return *this;

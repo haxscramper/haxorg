@@ -34,10 +34,16 @@ target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/imm
                                        "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
 
 if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
+  find_package(Qt6 COMPONENTS Core)
   haxorg_add_executable(tests_hstd)
   glob_add_sources2(TARGET tests_hstd LS_REGEX "${BASE}/tests/hstd/.*" SEARCH_BASE "${BASE}")
   target_link_libraries(tests_hstd PUBLIC GTest::gtest GTest::gmock hstd absl::flags
                                           absl::flags_parse immer)
+
+  if(TARGET Qt6::Core)
+    target_link_libraries(tests_hstd PUBLIC Qt6::Core)
+    target_compile_definitions(tests_hstd PUBLIC ORG_USE_QT)
+  endif()
   add_test(NAME hstd_tests COMMAND tests_hstd)
 
   haxorg_add_executable(benchmark_hstd)
