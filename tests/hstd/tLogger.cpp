@@ -217,8 +217,6 @@ TEST_F(LoggerTest, CollectionRepr) {
         .end();
 }
 
-TEST_F(LoggerTest, LogGraphTracker) {}
-
 
 TEST_F(LoggerTest, QtTypes) {
     HSLOG_INFO("item {}", QString("test"));

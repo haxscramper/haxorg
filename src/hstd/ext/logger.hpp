@@ -131,6 +131,7 @@ std::string format_logger_arguments(
         formatted_args);
 }
 
+
 enum class severity_level
 {
     trace,

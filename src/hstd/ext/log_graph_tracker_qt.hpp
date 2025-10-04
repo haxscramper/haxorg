@@ -123,4 +123,74 @@ void logger_processor::track_connect(const connect_info& info) {
         .end();
 }
 
+
+
+void SignalDebugger::connectToAllSignals() {
+    if (!targetObject) { return; }
+
+    const QMetaObject* metaObject = targetObject->metaObject();
+
+    for (int i = 0; i < metaObject->methodCount(); ++i) {
+        QMetaMethod method = metaObject->method(i);
+        if (method.methodType() == QMetaMethod::Signal) {
+            connectToSignal(method);
+        }
+    }
+}
+
+void SignalDebugger::connectToSignal(const QMetaMethod& signal) {
+    QString    signalSignature     = signal.methodSignature();
+    QByteArray normalizedSignature = QMetaObject::normalizedSignature(
+        signalSignature.toLocal8Bit());
+
+    QMetaObject::Connection conn = QObject::connect(
+        targetObject,
+        ("2" + normalizedSignature).constData(),
+        this,
+        SLOT(onSignalTriggered()),
+        Qt::DirectConnection);
+
+    connections.push_back(conn);
+}
+
+void SignalDebugger::disconnectAll() {
+    for (auto& conn : connections) { QObject::disconnect(conn); }
+    connections.clear();
+}
+
+void SignalDebugger::onSignalTriggered() {
+    QObject* senderObj = sender();
+    if (!senderObj) { return; }
+
+    const QMetaObject* senderMeta  = senderObj->metaObject();
+    int                signalIndex = senderSignalIndex();
+
+    if (signalIndex >= 0) {
+        QMetaMethod signal = senderMeta->method(signalIndex);
+
+        tracker->notify_signal_emit(log_graph_processor::signal_emit_info(
+            senderObj,
+            signal.name().toStdString(),
+            formatParameterInfo(signal),
+            log_graph_processor::callsite::this_callsite()));
+    }
+}
+
+std::vector<std::string> SignalDebugger::formatParameterInfo(
+    const QMetaMethod& method) {
+    QList<QByteArray> paramNames = method.parameterNames();
+    QList<QByteArray> paramTypes = method.parameterTypes();
+
+    if (paramNames.size() != paramTypes.size()) { return {}; }
+    std::vector<std::string> debug{};
+    for (int i = 0; i < paramNames.size(); ++i) {
+        debug.push_back(hstd::fmt(
+            "{}={}",
+            paramTypes.at(i).toStdString(),
+            paramNames.at(i).toStdString()));
+    }
+
+    return debug;
+}
+
 #endif

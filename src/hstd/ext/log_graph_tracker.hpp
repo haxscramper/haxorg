@@ -94,10 +94,14 @@ struct log_graph_processor {
     };
 
     struct function_info : public tracked_info {
-        std::string name;
-        BOOST_DESCRIBE_STRUCT(function_info, (tracked_info), (name));
-        function_info(std::string const& name, callsite const& loc)
-            : tracked_info{loc}, name{name} {}
+        std::string                                 name;
+        hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> args;
+        BOOST_DESCRIBE_STRUCT(function_info, (tracked_info), (name, args));
+        function_info(
+            std::string const&                                 name,
+            hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> const& args,
+            callsite const&                                    loc)
+            : tracked_info{loc}, name{name}, args{args} {}
     };
 
 #if ORG_USE_QT
@@ -119,25 +123,19 @@ struct log_graph_processor {
     };
 
 
-    struct slot_trigger_info : public tracked_info {
-        std::string              name;
-        QObject const*           sender;
-        QObject const*           receiver;
-        std::vector<std::string> args;
+    struct slot_trigger_info : public function_info {
+        QObject const* sender;
+        QObject const* receiver;
         BOOST_DESCRIBE_STRUCT(
             slot_trigger_info,
-            (tracked_info),
-            (name, sender, receiver, args));
+            (function_info),
+            (sender, receiver));
 
         slot_trigger_info(
-            QObject const*                  sender,
-            QObject const*                  receiver,
-            std::string const&              name,
-            std::vector<std::string> const& args,
-            callsite const&                 loc)
-            : tracked_info{loc}
-            , name{name}
-            , args{args}
+            QObject const*       sender,
+            QObject const*       receiver,
+            function_info const& func_info)
+            : function_info{func_info.name, func_info.args, func_info.loc}
             , sender{sender}
             , receiver{receiver} {}
     };
@@ -212,19 +210,19 @@ struct log_graph_processor {
 
     virtual void track_function_start(function_info const& info) = 0;
     virtual void track_function_end(function_info const& info)   = 0;
-#if ORG_USE_QT
-    virtual void track_signal_emit(signal_emit_info const& info)   = 0;
-    virtual void track_slot_trigger(slot_trigger_info const& info) = 0;
-#endif
+
     virtual void track_scope_enter(scope_info const& info)     = 0;
     virtual void track_scope_exit(scope_info const& info)      = 0;
     virtual void track_started(tracked_info const& info)       = 0;
     virtual void track_ended(tracked_info const& info)         = 0;
     virtual void track_named_text(named_text_info const& info) = 0;
     virtual void track_named_jump(named_jump_info const& info) = 0;
+
 #if ORG_USE_QT
-    virtual void track_qobject(qobject_info const& info) = 0;
-    virtual void track_connect(connect_info const& info) = 0;
+    virtual void track_signal_emit(signal_emit_info const& info)   = 0;
+    virtual void track_slot_trigger(slot_trigger_info const& info) = 0;
+    virtual void track_qobject(qobject_info const& info)           = 0;
+    virtual void track_connect(connect_info const& info)           = 0;
 #endif
 };
 
@@ -272,20 +270,45 @@ struct log_graph_tracker {
 
     template <typename T, typename... Args>
     void format_args_aux(
-        std::vector<std::string>& res,
-        T const&                  value,
+        hstd::Vec<std::string>& res,
+        T const&                value,
         Args&&... args) {
         res.push_back(hstd::log::log_value_formatter<T>{}.format(value));
         format_args_aux(res, std::forward<Args>(args)...);
     }
 
-    void format_args_aux(std::vector<std::string>& res) {}
+    void format_args_aux(hstd::Vec<hstd::Str>& res) {}
 
     template <typename... Args>
-    std::vector<std::string> format_args(Args&&... args) {
-        std::vector<std::string> res;
+    hstd::Vec<hstd::Str> format_args(Args&&... args) {
+        hstd::Vec<hstd::Str> res;
         format_args_aux(res, std::forward<Args>(args)...);
         return res;
+    }
+
+    template <typename... Args>
+    hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> format_args_with_vars(
+        const hstd::Vec<hstd::Str>& names,
+        const Args&... args) {
+        hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> result;
+        auto format_var = [](const auto& var) -> std::string {
+            using VarType = std::decay_t<decltype(var)>;
+            if constexpr (hstd::log::has_log_value_formatter<VarType>) {
+                return hstd::log::log_value_formatter<VarType>{}.format(
+                    var);
+            } else if constexpr (hstd::StdFormattable<VarType>) {
+                return std::format("{}", var);
+            } else {
+                return hstd::Str{"<type unformattable>"};
+            }
+        };
+
+        auto values = std::vector<std::string>{format_var(args)...};
+        for (size_t i = 0; i < names.size(); ++i) {
+            result.push_back(
+                hstd::Pair<hstd::Str, hstd::Str>{names[i], values[i]});
+        }
+        return result;
     }
 
 
@@ -339,15 +362,19 @@ struct log_graph_tracker {
     std::vector<std::shared_ptr<log_graph_processor>> processors{};
 };
 
+#define HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, ...)                      \
+    __tracker->format_args_with_vars(                                     \
+        {__VA_OPT__(#__VA_ARGS__)} __VA_OPT__(, ) __VA_ARGS__)
 
 #define HSLOG_TRACKED_EMIT(__tracker, method, ...)                        \
     __tracker->notify_signal_emit(                                        \
         ::hstd::log::log_graph_processor::signal_emit_info(               \
             this,                                                         \
-            #method,                                                      \
-            __tracker->format_args(__VA_ARGS__),                          \
-            ::hstd::log::log_graph_processor::callsite::                  \
-                this_callsite()));                                        \
+            ::hstd::log::function_info(                                   \
+                #method,                                                  \
+                HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),     \
+                ::hstd::log::log_graph_processor::callsite::              \
+                    this_callsite())));                                   \
     emit method(__VA_ARGS__);
 
 #define HSLOG_TRACKED_SLOT(__tracker, method, ...)                        \
@@ -355,15 +382,18 @@ struct log_graph_tracker {
         ::hstd::log::log_graph_processor::slot_trigger_info(              \
             this,                                                         \
             sender(),                                                     \
-            #method,                                                      \
-            __tracker->format_args(__VA_ARGS__),                          \
-            ::hstd::log::log_graph_processor::callsite::                  \
-                this_callsite()));
+            ::hstd::log::function_info(                                   \
+                #method,                                                  \
+                HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),     \
+                ::hstd::log::log_graph_processor::callsite::              \
+                    this_callsite())));
 
-#define HSLOG_TRACKED_FUNCTION(__tracker, method)                         \
+
+#define HSLOG_TRACKED_FUNCTION(__tracker, method, ...)                    \
     auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_function(  \
         ::hstd::log::log_graph_processor::function_info(                  \
             #method,                                                      \
+            HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),         \
             ::hstd::log::log_graph_processor::callsite::                  \
                 this_callsite()));
 
@@ -373,6 +403,14 @@ struct log_graph_tracker {
             description,                                                  \
             ::hstd::log::log_graph_processor::callsite::                  \
                 this_callsite()));
+
+#define HSLOG_TRACKED_JUMP(__tracker, description)                        \
+    __tracker->notify_named_jump(                                         \
+        ::hstd::log::log_graph_processor::named_jump_info(                \
+            description,                                                  \
+            ::hstd::log::log_graph_processor::callsite::                  \
+                this_callsite()));
+
 
 #if ORG_USE_QT
 
