@@ -31,6 +31,7 @@
 #    include <fstream>
 #    include <cpptrace.hpp>
 
+
 using namespace hstd;
 
 BOOST_LOG_GLOBAL_LOGGER(
@@ -442,6 +443,30 @@ hstd::log::log_record& ::hstd::log::log_record::severity(
     severity_level l) {
     data.severity = l;
     return *this;
+}
+
+log_record& log_record::as_trace() {
+    return severity(severity_level::trace);
+}
+
+log_record& log_record::as_debug() {
+    return severity(severity_level::debug);
+}
+
+log_record& log_record::as_info() {
+    return severity(severity_level::info);
+}
+
+log_record& log_record::as_warning() {
+    return severity(severity_level::warning);
+}
+
+log_record& log_record::as_error() {
+    return severity(severity_level::error);
+}
+
+log_record& log_record::as_fatal() {
+    return severity(severity_level::fatal);
 }
 
 std::size_t log_record::log_data::hash() const {

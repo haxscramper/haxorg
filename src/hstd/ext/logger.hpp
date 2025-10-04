@@ -28,6 +28,7 @@
 #    include <boost/log/core.hpp>
 #    include <boost/log/sinks/sink.hpp>
 #    include <hstd/stdlib/TraceBase.hpp>
+#    include <hstd/stdlib/ContainerAPI.hpp>
 
 namespace hstd::log {
 
@@ -287,6 +288,13 @@ struct log_record {
     log_record& metadata(hstd::Str const& field, json const& value);
     log_record& maybe_space();
 
+    log_record& as_trace();
+    log_record& as_debug();
+    log_record& as_info();
+    log_record& as_warning();
+    log_record& as_error();
+    log_record& as_fatal();
+
     /// \brief Use stacktace information as a log record message
     log_record& fmt_stacktrace();
 
@@ -534,6 +542,53 @@ constexpr ::hstd::log::severity_level  l_warning = ::hstd::log::severity_level::
 constexpr ::hstd::log::severity_level  l_error   = ::hstd::log::severity_level::error;
 constexpr ::hstd::log::severity_level  l_fatal   = ::hstd::log::severity_level::fatal;
 // clang-format on
+
+template <typename Collection>
+hstd::log::log_record log_sequential_collection(
+    Collection const& items,
+    int               line     = __builtin_LINE(),
+    char const*       function = __builtin_FUNCTION(),
+    char const*       file     = __builtin_FILE()) {
+    auto res = ::hstd::log::log_record{}.set_callsite(
+        line, function, file);
+    res.fmt_message(
+        "{} with {} items:",
+        hstd::value_metadata<Collection>::typeName(),
+        items.size());
+    SequentialContainerAdapter<Collection> container{&items};
+    for (int i = 0; i < items.size(); ++i) {
+        res.fmt_message(
+            "\n[{}]: {}", i, format_logger_argument1(items.at(i)));
+    }
+    return res;
+}
+
+template <typename Collection>
+hstd::log::log_record log_associative_collection(
+    Collection const& items,
+    int               line     = __builtin_LINE(),
+    char const*       function = __builtin_FUNCTION(),
+    char const*       file     = __builtin_FILE()) {
+    auto res = ::hstd::log::log_record{}.set_callsite(
+        line, function, file);
+    res.fmt_message(
+        "{} with {} items:",
+        hstd::value_metadata<Collection>::typeName(),
+        items.size());
+    AssociativeContainerAdapter<Collection> container{&items};
+
+    auto keys = container.keys();
+
+    if constexpr (std::equality_comparable<decltype(keys.at(0))>) {
+        std::sort(keys.begin(), keys.end());
+    }
+
+    for (auto const& key : keys) {
+        res.fmt_message(
+            "\n[{}]: {}", key, format_logger_argument1(items.at(key)));
+    }
+    return res;
+}
 
 } // namespace hstd::log
 

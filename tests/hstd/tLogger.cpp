@@ -6,6 +6,7 @@
 #include <boost/core/null_deleter.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <hstd/stdlib/Map.hpp>
 #include "../common.hpp"
 
 using namespace hstd;
@@ -199,4 +200,16 @@ TEST_F(LoggerTest, StdFormatterSpecifications) {
         hstd::log::format_logger_arguments(
             "Custom with spec: {:>15}", StdFormattableType{100}),
         "Custom with spec:     std_fmt:100");
+}
+
+TEST_F(LoggerTest, CollectionRepr) {
+    hstd::log::log_associative_collection(
+        hstd::UnorderedMap<int, std::string>{{1, "123"}, {2, "33"}})
+        .as_info()
+        .end();
+
+    hstd::log::log_sequential_collection(
+        hstd::Vec<std::string>{"123", "222"})
+        .as_info()
+        .end();
 }
