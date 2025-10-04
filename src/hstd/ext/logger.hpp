@@ -675,7 +675,7 @@ hstd::log::log_record log_associative_collection(
 #    define HSLOG_FATAL(...) __ORG_LOG_IMPL(fatal, __VA_ARGS__)
 
 #    define HSLOG_FMT1(value)                                             \
-        HSLOG_DEBUG(hstd::fmt("{} = {}", #value, value));
+        HSLOG_DEBUG("{} = {}", #value, value);
 
 #    define HSLOG_SINK_SCOPE() ::hstd::log::log_sink_scope()
 /// \brief Create logging sink scope and clear all the current sink state

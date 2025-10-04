@@ -159,9 +159,7 @@ void DiaVersionStore::stepEditForward(
                        | rs::to<Vec>();
 
             HSLOG_INFO("node collection to move");
-            log_collection(
-                "test", hstd::log::severity_level::trace, toMove)
-                .end();
+            hstd::log::log_sequential_collection(toMove).as_trace().end();
 
             vEdit = vEdit.getEditVersion(
                 [&](imm::ImmAstContext::Ptr ctx,
@@ -234,12 +232,11 @@ void DiaVersionStore::stepEditForward(
                         movedIds.push_back(moved.id);
                     }
 
-                    result.incl(
-                        imm::insertSubnodes(
-                            target,
-                            movedIds,
-                            mov.newIndex.value_or(target.size()),
-                            edit));
+                    result.incl(imm::insertSubnodes(
+                        target,
+                        movedIds,
+                        mov.newIndex.value_or(target.size()),
+                        edit));
 
                     return result;
                 });
@@ -343,8 +340,7 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
     change.newRoot  = getDiaRoot(active);
     TRACKED_EMIT(diaRootChanged, change);
 
-    log_collection(_cat, hstd::log::severity_level::trace, change.edits)
-        .end();
+    hstd::log::log_sequential_collection(change.edits).as_trace().end();
 
 
     return active;

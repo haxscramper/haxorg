@@ -22,8 +22,7 @@ class DiaSceneItemModelTest : public QObject {
         visualizeTestDiff(this, scope);
         HSLOG_INFO(_cat, printModelTree(&scope.model).toString(false));
 
-        hstd::log::SignalDebugger signalCatcher{
-            get_tracker(), &scope.model};
+        SignalDebugger signalCatcher{get_tracker(), &scope.model};
 
         scope.scene.setRootAdapter(scope.srcAdapter);
         scope.scene.resetRootAdapter(scope.edits);

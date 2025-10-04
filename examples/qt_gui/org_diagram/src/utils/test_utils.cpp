@@ -78,7 +78,7 @@ test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
         "dstAdapter:\n{}",
         hstd::indent(dstAdapter.format().toString(false), 2));
 
-    log_collection("test", hstd::log::severity_level::trace, edits).end();
+    hstd::log::log_sequential_collection(edits).as_trace().end();
 }
 
 test::ScopeDiaContextEdits::TextSetResult test::ScopeDiaContextEdits::

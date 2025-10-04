@@ -105,21 +105,15 @@ struct log_graph_processor {
     };
 
 #if ORG_USE_QT
-    struct signal_emit_info : public tracked_info {
-        std::string              name;
-        QObject const*           sender;
-        std::vector<std::string> args;
+    struct signal_emit_info : public function_info {
+        QObject const* sender;
         BOOST_DESCRIBE_STRUCT(
             signal_emit_info,
             (tracked_info),
             (name, sender, args));
 
-        signal_emit_info(
-            QObject const*                  sender,
-            std::string const&              name,
-            std::vector<std::string> const& args,
-            callsite const&                 loc)
-            : tracked_info{loc}, name{name}, args{args}, sender{sender} {}
+        signal_emit_info(QObject const* sender, function_info const& func)
+            : function_info{func}, sender{sender} {}
     };
 
 
@@ -237,16 +231,18 @@ struct log_graph_tracker {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
         char const* file     = __builtin_FILE()) {
-        start_tracing(log_graph_processor::tracked_info(
-            log_graph_processor::callsite(line, function, file)));
+        start_tracing(
+            log_graph_processor::tracked_info(
+                log_graph_processor::callsite(line, function, file)));
     }
 
     void end_tracing(
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
         char const* file     = __builtin_FILE()) {
-        end_tracing(log_graph_processor::tracked_info(
-            log_graph_processor::callsite(line, function, file)));
+        end_tracing(
+            log_graph_processor::tracked_info(
+                log_graph_processor::callsite(line, function, file)));
     }
 
     void start_tracing(log_graph_processor::tracked_info const& info);
@@ -370,7 +366,7 @@ struct log_graph_tracker {
     __tracker->notify_signal_emit(                                        \
         ::hstd::log::log_graph_processor::signal_emit_info(               \
             this,                                                         \
-            ::hstd::log::function_info(                                   \
+            ::hstd::log::log_graph_processor::function_info(              \
                 #method,                                                  \
                 HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),     \
                 ::hstd::log::log_graph_processor::callsite::              \
@@ -380,9 +376,9 @@ struct log_graph_tracker {
 #define HSLOG_TRACKED_SLOT(__tracker, method, ...)                        \
     auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_slot(      \
         ::hstd::log::log_graph_processor::slot_trigger_info(              \
-            this,                                                         \
             sender(),                                                     \
-            ::hstd::log::function_info(                                   \
+            this,                                                         \
+            ::hstd::log::log_graph_processor::function_info(              \
                 #method,                                                  \
                 HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),     \
                 ::hstd::log::log_graph_processor::callsite::              \
@@ -436,50 +432,6 @@ struct log_graph_tracker {
             ::hstd::log::log_graph_processor::callsite::this_callsite());
 
 #endif
-
-
-#if ORG_USE_QT
-struct SignalDebugger : public QObject {
-    Q_OBJECT
-
-  private:
-    QObject*                                      targetObject;
-    std::vector<QMetaObject::Connection>          connections;
-    std::shared_ptr<hstd::log::log_graph_tracker> tracker;
-
-  public:
-    explicit SignalDebugger(
-        std::shared_ptr<hstd::log::log_graph_tracker> tracker,
-        QObject*                                      sender,
-        QObject*                                      parent = nullptr)
-        : QObject{parent}, targetObject{sender}, tracker{tracker} {
-        connectToAllSignals();
-    }
-
-    ~SignalDebugger() { disconnectAll(); }
-
-  private:
-    void                     connectToAllSignals();
-    void                     connectToSignal(const QMetaMethod& signal);
-    void                     disconnectAll();
-    std::vector<std::string> formatParameterInfo(
-        const QMetaMethod& method);
-
-  private slots:
-    void onSignalTriggered();
-
-  public:
-    void setEnabled(bool enabled) {
-        if (enabled) {
-            connectToAllSignals();
-        } else {
-            disconnectAll();
-        }
-    }
-};
-
-#endif
-
 
 struct graphviz_processor : public log_graph_processor {
     struct call_info {

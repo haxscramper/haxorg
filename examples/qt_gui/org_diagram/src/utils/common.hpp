@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hstd/ext/logger.hpp>
-#include "log_graph_tracker.hpp"
+#include <hstd/ext/log_graph_tracker.hpp>
 #include <QDebug>
 #include <QObject>
 #include <QTest>
@@ -121,31 +121,6 @@ struct SharedPtrApiDerived {
     using ::hstd::SharedPtrApiDerived<__Derived, __Base>::WPtr;
 
 } // namespace hstd
-
-
-template <typename T>
-hstd::log::log_record log_collection(
-    char const*               cat,
-    hstd::log::severity_level severity,
-    std::vector<T> const&     items,
-    int                       line     = __builtin_LINE(),
-    char const*               function = __builtin_FUNCTION(),
-    char const*               file     = __builtin_FILE()) {
-    auto res = ::hstd::log::log_record{}
-                   .file(file)
-                   .line(line)
-                   .category(cat)
-                   .function(function)
-                   .severity(severity);
-    res.fmt_message(
-        "std::vector<{}> with {} items:",
-        hstd::value_metadata<T>::typeName(),
-        items.size());
-    for (int i = 0; i < items.size(); ++i) {
-        res.fmt_message("\n[{}]: {}", i, hstd::fmt1(items.at(i)));
-    }
-    return res;
-}
 
 std::shared_ptr<hstd::log::log_graph_tracker> get_tracker();
 hstd::ext::Graphviz::Graph                    get_tracker_graph();
@@ -361,3 +336,42 @@ bool hasArgsProperty(
     std::string const&                                 kind);
 
 void q_register_metatypes();
+
+struct SignalDebugger : public QObject {
+    Q_OBJECT
+
+  private:
+    QObject*                                      targetObject;
+    std::vector<QMetaObject::Connection>          connections;
+    std::shared_ptr<hstd::log::log_graph_tracker> tracker;
+
+  public:
+    explicit SignalDebugger(
+        std::shared_ptr<hstd::log::log_graph_tracker> tracker,
+        QObject*                                      sender,
+        QObject*                                      parent = nullptr)
+        : QObject{parent}, targetObject{sender}, tracker{tracker} {
+        connectToAllSignals();
+    }
+
+    ~SignalDebugger() { disconnectAll(); }
+
+  private:
+    void connectToAllSignals();
+    void connectToSignal(const QMetaMethod& signal);
+    void disconnectAll();
+    hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> formatParameterInfo(
+        const QMetaMethod& method);
+
+  private slots:
+    void onSignalTriggered();
+
+  public:
+    void setEnabled(bool enabled) {
+        if (enabled) {
+            connectToAllSignals();
+        } else {
+            disconnectAll();
+        }
+    }
+};

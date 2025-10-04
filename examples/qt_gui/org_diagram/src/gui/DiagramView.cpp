@@ -90,7 +90,7 @@ void DiagramView::mouseReleaseEvent(QMouseEvent* event) {
 void DiagramView::emitSelectionChanged() {
     if (!scene()) { return; }
     QList<DiaSceneItemVisual*> selectedNodes;
-    QList<QGraphicsItem*>     selectedItems = scene()->selectedItems();
+    QList<QGraphicsItem*>      selectedItems = scene()->selectedItems();
 
     for (QGraphicsItem* item : selectedItems) {
         DiaSceneItemVisual* nodeVisual = dynamic_cast<DiaSceneItemVisual*>(

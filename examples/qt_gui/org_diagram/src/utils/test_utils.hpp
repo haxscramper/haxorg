@@ -162,7 +162,7 @@ struct ScopeV12ItemModel : ScopeV12DiagramDiff {
 };
 
 struct ScopeV12UpdateTest : ScopeV12ItemModel {
-    hstd::log::SignalDebugger signalCatcher;
+    SignalDebugger signalCatcher;
     ScopeV12UpdateTest(std::string const& src, std::string const& dst)
         : ScopeV12ItemModel{src, dst}
         , signalCatcher{get_tracker(), &model} {}
@@ -182,7 +182,7 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
         HSLOG_TRACE("Scene root after setting the adapter");
         scene.logSceneRoot();
         HSLOG_TRACE("Tree model after setting the adapter");
-        HSLOG_TRACE(model.format().toString(false));
+        HSLOG_TRACE("{}", model.format().toString(false));
     }
 
     void setV2() {
@@ -190,7 +190,7 @@ struct ScopeV12UpdateTest : ScopeV12ItemModel {
         HSLOG_TRACE("Scene root after updating the adapter");
         scene.logSceneRoot();
         HSLOG_TRACE("Tree model after updating the adapter");
-        HSLOG_TRACE(model.format().toString(false));
+        HSLOG_TRACE("{}", model.format().toString(false));
     }
 };
 

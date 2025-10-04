@@ -31,20 +31,18 @@ hstd::described_predicate_result isSubtreeItem(
         && hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)) {
         return true;
     } else {
-        return hstd::described_predicate_error::init(
-            hstd::fmt(
-                "{} (title: {}) does not meet the criteria: top-level "
-                "subtree "
-                "for subtree item must have :prop_json:{} and "
-                ":prop_args:{} "
-                "properties. has position:{} has diagram node:{}",
-                subtree.uniq(),
-                subtree.getCleanTitle(),
-                DiaPropertyNames::diagramPosition,
-                DiaPropertyNames::isDiagramNode,
-                position.has_value() ? "true" : position.error(),
-                hasArgsProperty(
-                    subtree, DiaPropertyNames::isDiagramNode)));
+        return hstd::described_predicate_error::init(hstd::fmt(
+            "{} (title: {}) does not meet the criteria: top-level "
+            "subtree "
+            "for subtree item must have :prop_json:{} and "
+            ":prop_args:{} "
+            "properties. has position:{} has diagram node:{}",
+            subtree.uniq(),
+            subtree.getCleanTitle(),
+            DiaPropertyNames::diagramPosition,
+            DiaPropertyNames::isDiagramNode,
+            position.has_value() ? "true" : position.error(),
+            hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)));
     }
 }
 
@@ -427,9 +425,8 @@ void diffSubnodes(
                 "Creating Insert edit for dstIndex:{} dstSubnode:{}",
                 dstIndex,
                 dstSubnode);
-            results.emplace_back(
-                DiaEdit::Insert{
-                    .dstNode = dstSubnode, .dstIndex = dstIndex});
+            results.emplace_back(DiaEdit::Insert{
+                .dstNode = dstSubnode, .dstIndex = dstIndex});
             processedDst.insert(dstSubnode.id);
             continue;
         }
@@ -443,9 +440,8 @@ void diffSubnodes(
                 "Creating Delete edit for srcIndex:{} srcSubnode:{}",
                 srcIndex,
                 srcSubnode);
-            results.emplace_back(
-                DiaEdit::Delete{
-                    .srcNode = srcSubnode, .srcIndex = srcIndex});
+            results.emplace_back(DiaEdit::Delete{
+                .srcNode = srcSubnode, .srcIndex = srcIndex});
         }
     }
 }
@@ -470,12 +466,11 @@ void processMatchedSubnodes(
                 srcIndex,
                 dstIndex,
                 srcSubnode);
-            results.emplace_back(
-                DiaEdit::Move{
-                    .srcNode  = srcSubnode,
-                    .dstNode  = dstSubnode,
-                    .srcIndex = srcIndex,
-                    .dstIndex = dstIndex});
+            results.emplace_back(DiaEdit::Move{
+                .srcNode  = srcSubnode,
+                .dstNode  = dstSubnode,
+                .srcIndex = srcIndex,
+                .dstIndex = dstIndex});
         } else {
             HSLOG_TRACE(
                 "Nodes identical at same position, no edit needed for "
@@ -490,12 +485,11 @@ void processMatchedSubnodes(
             dstIndex,
             srcSubnode,
             dstSubnode);
-        results.emplace_back(
-            DiaEdit::Update{
-                .srcNode  = srcSubnode,
-                .dstNode  = dstSubnode,
-                .srcIndex = srcIndex,
-                .dstIndex = dstIndex});
+        results.emplace_back(DiaEdit::Update{
+            .srcNode  = srcSubnode,
+            .dstNode  = dstSubnode,
+            .srcIndex = srcIndex,
+            .dstIndex = dstIndex});
     }
 
     processedSrc.insert(srcSubnode.id);
@@ -518,12 +512,11 @@ hstd::Vec<DiaEdit> getEdits(
             "Creating root Update edit ID mismatch{} -> {}",
             srcRoot.getDiaId(),
             dstRoot.getDiaId());
-        results.emplace_back(
-            DiaEdit::Update{
-                .srcNode  = srcRoot,
-                .dstNode  = dstRoot,
-                .srcIndex = 0,
-                .dstIndex = 0});
+        results.emplace_back(DiaEdit::Update{
+            .srcNode  = srcRoot,
+            .dstNode  = dstRoot,
+            .srcIndex = 0,
+            .dstIndex = 0});
     }
 
     return results;
@@ -847,11 +840,10 @@ org::imm::ImmPath toImmPath(
     const hstd::Vec<int>&  path) {
     hstd::Vec<org::imm::ImmPathStep> result;
     for (int const& idx : path) {
-        result.push_back(
-            org::imm::ImmPathStep::FieldIdx(
-                org::imm::ImmReflFieldId::FromTypeField<DiaNode>(
-                    &DiaNode::subnodes),
-                idx));
+        result.push_back(org::imm::ImmPathStep::FieldIdx(
+            org::imm::ImmReflFieldId::FromTypeField<DiaNode>(
+                &DiaNode::subnodes),
+            idx));
     }
     return org::imm::ImmPath{
         root, org::imm::ImmPath::Store{result.begin(), result.end()}};

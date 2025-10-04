@@ -125,9 +125,7 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
 * layer
 )"};
         QCOMPARE_EQ(scope.edits.size(), 0);
-        log_collection(
-            "test", hstd::log::severity_level::trace, scope.edits)
-            .end();
+        hstd::log::log_sequential_collection(scope.edits).as_trace().end();
     }
 
     void testLeafChange() {
