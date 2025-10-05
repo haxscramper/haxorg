@@ -162,7 +162,7 @@ struct ScopeV12ItemModel : ScopeV12DiagramDiff {
 };
 
 struct ScopeV12UpdateTest : ScopeV12ItemModel {
-    SignalDebugger signalCatcher;
+    hstd::log::SignalDebugger signalCatcher;
     ScopeV12UpdateTest(std::string const& src, std::string const& dst)
         : ScopeV12ItemModel{src, dst}
         , signalCatcher{get_tracker(), &model} {}

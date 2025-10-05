@@ -494,4 +494,51 @@ struct logger_processor : public log_graph_processor {
     void track_connect(connect_info const& info) override;
 #endif
 };
+
+#if ORG_USE_QT
+
+struct SignalDebugger : public QObject {
+    Q_OBJECT
+
+  private:
+    QObject*                                      targetObject;
+    std::vector<QMetaObject::Connection>          connections;
+    std::shared_ptr<hstd::log::log_graph_tracker> tracker;
+
+  public:
+    explicit SignalDebugger(
+        std::shared_ptr<hstd::log::log_graph_tracker> tracker,
+        QObject*                                      sender,
+        QObject*                                      parent = nullptr)
+        : QObject{parent}, targetObject{sender}, tracker{tracker} {
+        connectToAllSignals();
+    }
+
+    ~SignalDebugger() { disconnectAll(); }
+
+  private:
+    void connectToAllSignals();
+    void connectToSignal(const QMetaMethod& signal);
+    void disconnectAll();
+    hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> formatParameterInfo(
+        const QMetaMethod& method);
+
+  private slots:
+    void onSignalTriggered();
+
+  public:
+    void setEnabled(bool enabled) {
+        if (enabled) {
+            connectToAllSignals();
+        } else {
+            disconnectAll();
+        }
+    }
+};
+
+#endif
+
+
 } // namespace hstd::log
+
+

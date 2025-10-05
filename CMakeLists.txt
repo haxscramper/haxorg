@@ -59,6 +59,7 @@ option(ORG_USE_SANITIZER "Use sanitizers" ON)
 # default this option forces the dependency to be configured for all builds.
 option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" ON)
 option(ORG_EMCC_BUILD "Building for emscripten target" OFF)
+option(ORG_USE_QT "Enable Qt-related features and API" OFF)
 
 option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
 option(ORG_DEPS_USE_PROTOBUF "Include protobuf functionality in the build" ON)

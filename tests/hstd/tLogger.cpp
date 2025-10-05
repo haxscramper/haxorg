@@ -10,7 +10,9 @@
 #include <hstd/ext/log_graph_tracker.hpp>
 #include "../common.hpp"
 
-#include <QString>
+#if ORG_USE_QT
+#    include <QString>
+#endif
 
 using namespace hstd;
 
@@ -219,6 +221,8 @@ TEST_F(LoggerTest, CollectionRepr) {
 
 
 TEST_F(LoggerTest, QtTypes) {
+#if ORG_USE_QT
     HSLOG_INFO("item {}", QString("test"));
     //
+#endif
 }
