@@ -1,20 +1,27 @@
 #pragma once
 
-#include <qobject.h>
+#if ORG_USE_QT
+#    include <QObject>
+#endif
+
 #include <vector>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <stack>
 #include <hstd/ext/graphviz.hpp>
+#include <hstd/ext/logger.hpp>
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
 #    include <QDebug>
 #    include <QBuffer>
 #endif
 
 namespace hstd {
+#if ORG_USE_QT
 std::string descObjectPtr(QObject* obj);
+#endif
+
 template <typename T>
     requires std::is_class_v<T>
 std::string descObjectPtr(T* obj) {
@@ -59,46 +66,6 @@ std::string descObjectPtr(std::unique_ptr<T const, Deleter> const& ptr) {
 
 namespace hstd::log {
 
-template <typename T, typename Other = std::monostate>
-struct log_value_formatter {
-    static std::string format(T const& value) {
-        return hstd::value_metadata<T>::typeName() + " not formattable";
-    }
-};
-
-template <hstd::StdFormattable T>
-struct log_value_formatter<T> {
-    static std::string format(T const& value) { return hstd::fmt1(value); }
-};
-
-#if HAXORG_LOGGER_SUPPORT_QT
-template <typename T>
-concept QDebugFormattable = requires(QDebug debug, const T& value) {
-    debug << value;
-};
-
-template <QDebugFormattable T>
-std::string formatQtToString(const T& value) {
-    QBuffer buffer{};
-    buffer.open(QIODevice::WriteOnly);
-    QDebug debug{&buffer};
-    debug.nospace().noquote() << value;
-    buffer.close();
-    return buffer.data().toStdString();
-}
-
-template <typename T>
-concept OnlyQDebugFormattable = QDebugFormattable<T>
-                             && !hstd::StdFormattable<T>;
-
-template <OnlyQDebugFormattable T>
-struct log_value_formatter<T> {
-    static std::string format(T const& value) {
-        return formatQtToString(value);
-    }
-};
-
-#endif
 
 struct log_graph_processor {
     virtual ~log_graph_processor() = default;
@@ -127,52 +94,46 @@ struct log_graph_processor {
     };
 
     struct function_info : public tracked_info {
-        std::string name;
-        BOOST_DESCRIBE_STRUCT(function_info, (tracked_info), (name));
-        function_info(std::string const& name, callsite const& loc)
-            : tracked_info{loc}, name{name} {}
+        std::string                                 name;
+        hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> args;
+        BOOST_DESCRIBE_STRUCT(function_info, (tracked_info), (name, args));
+        function_info(
+            std::string const&                                 name,
+            hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> const& args,
+            callsite const&                                    loc)
+            : tracked_info{loc}, name{name}, args{args} {}
     };
 
-    struct signal_emit_info : public tracked_info {
-        std::string              name;
-        QObject const*           sender;
-        std::vector<std::string> args;
+#if ORG_USE_QT
+    struct signal_emit_info : public function_info {
+        QObject const* sender;
         BOOST_DESCRIBE_STRUCT(
             signal_emit_info,
             (tracked_info),
             (name, sender, args));
 
-        signal_emit_info(
-            QObject const*                  sender,
-            std::string const&              name,
-            std::vector<std::string> const& args,
-            callsite const&                 loc)
-            : tracked_info{loc}, name{name}, args{args}, sender{sender} {}
+        signal_emit_info(QObject const* sender, function_info const& func)
+            : function_info{func}, sender{sender} {}
     };
 
 
-    struct slot_trigger_info : public tracked_info {
-        std::string              name;
-        QObject const*           sender;
-        QObject const*           receiver;
-        std::vector<std::string> args;
+    struct slot_trigger_info : public function_info {
+        QObject const* sender;
+        QObject const* receiver;
         BOOST_DESCRIBE_STRUCT(
             slot_trigger_info,
-            (tracked_info),
-            (name, sender, receiver, args));
+            (function_info),
+            (sender, receiver));
 
         slot_trigger_info(
-            QObject const*                  sender,
-            QObject const*                  receiver,
-            std::string const&              name,
-            std::vector<std::string> const& args,
-            callsite const&                 loc)
-            : tracked_info{loc}
-            , name{name}
-            , args{args}
+            QObject const*       sender,
+            QObject const*       receiver,
+            function_info const& func_info)
+            : function_info{func_info.name, func_info.args, func_info.loc}
             , sender{sender}
             , receiver{receiver} {}
     };
+#endif
 
 
     struct scope_info : public tracked_info {
@@ -209,6 +170,7 @@ struct log_graph_processor {
     };
 
 
+#if ORG_USE_QT
     struct qobject_info : public tracked_info {
         QObject const* object;
         BOOST_DESCRIBE_STRUCT(qobject_info, (tracked_info), (object));
@@ -238,19 +200,24 @@ struct log_graph_processor {
             , receiver{receiver}
             , slot{slot} {}
     };
+#endif
 
-    virtual void track_function_start(function_info const& info)   = 0;
-    virtual void track_function_end(function_info const& info)     = 0;
+    virtual void track_function_start(function_info const& info) = 0;
+    virtual void track_function_end(function_info const& info)   = 0;
+
+    virtual void track_scope_enter(scope_info const& info)     = 0;
+    virtual void track_scope_exit(scope_info const& info)      = 0;
+    virtual void track_started(tracked_info const& info)       = 0;
+    virtual void track_ended(tracked_info const& info)         = 0;
+    virtual void track_named_text(named_text_info const& info) = 0;
+    virtual void track_named_jump(named_jump_info const& info) = 0;
+
+#if ORG_USE_QT
     virtual void track_signal_emit(signal_emit_info const& info)   = 0;
     virtual void track_slot_trigger(slot_trigger_info const& info) = 0;
-    virtual void track_scope_enter(scope_info const& info)         = 0;
-    virtual void track_scope_exit(scope_info const& info)          = 0;
-    virtual void track_started(tracked_info const& info)           = 0;
-    virtual void track_ended(tracked_info const& info)             = 0;
-    virtual void track_named_text(named_text_info const& info)     = 0;
-    virtual void track_named_jump(named_jump_info const& info)     = 0;
     virtual void track_qobject(qobject_info const& info)           = 0;
     virtual void track_connect(connect_info const& info)           = 0;
+#endif
 };
 
 struct log_graph_tracker {
@@ -264,16 +231,18 @@ struct log_graph_tracker {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
         char const* file     = __builtin_FILE()) {
-        start_tracing(log_graph_processor::tracked_info(
-            log_graph_processor::callsite(line, function, file)));
+        start_tracing(
+            log_graph_processor::tracked_info(
+                log_graph_processor::callsite(line, function, file)));
     }
 
     void end_tracing(
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
         char const* file     = __builtin_FILE()) {
-        end_tracing(log_graph_processor::tracked_info(
-            log_graph_processor::callsite(line, function, file)));
+        end_tracing(
+            log_graph_processor::tracked_info(
+                log_graph_processor::callsite(line, function, file)));
     }
 
     void start_tracing(log_graph_processor::tracked_info const& info);
@@ -297,24 +266,49 @@ struct log_graph_tracker {
 
     template <typename T, typename... Args>
     void format_args_aux(
-        std::vector<std::string>& res,
-        T const&                  value,
+        hstd::Vec<std::string>& res,
+        T const&                value,
         Args&&... args) {
-        res.push_back(hstd::log::log_value_formatter<T>::format(value));
+        res.push_back(hstd::log::log_value_formatter<T>{}.format(value));
         format_args_aux(res, std::forward<Args>(args)...);
     }
 
-    void format_args_aux(std::vector<std::string>& res) {}
+    void format_args_aux(hstd::Vec<hstd::Str>& res) {}
 
     template <typename... Args>
-    std::vector<std::string> format_args(Args&&... args) {
-        std::vector<std::string> res;
+    hstd::Vec<hstd::Str> format_args(Args&&... args) {
+        hstd::Vec<hstd::Str> res;
         format_args_aux(res, std::forward<Args>(args)...);
         return res;
     }
 
+    template <typename... Args>
+    hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> format_args_with_vars(
+        const hstd::Vec<hstd::Str>& names,
+        const Args&... args) {
+        hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> result;
+        auto format_var = [](const auto& var) -> std::string {
+            using VarType = std::decay_t<decltype(var)>;
+            if constexpr (hstd::log::has_log_value_formatter<VarType>) {
+                return hstd::log::log_value_formatter<VarType>{}.format(
+                    var);
+            } else if constexpr (hstd::StdFormattable<VarType>) {
+                return std::format("{}", var);
+            } else {
+                return hstd::Str{"<type unformattable>"};
+            }
+        };
 
-#if HAXORG_LOGGER_SUPPORT_QT
+        auto values = std::vector<std::string>{format_var(args)...};
+        for (size_t i = 0; i < names.size(); ++i) {
+            result.push_back(
+                hstd::Pair<hstd::Str, hstd::Str>{names[i], values[i]});
+        }
+        return result;
+    }
+
+
+#if ORG_USE_QT
 
     void notify_signal_emit(
         log_graph_processor::signal_emit_info const& info);
@@ -364,31 +358,38 @@ struct log_graph_tracker {
     std::vector<std::shared_ptr<log_graph_processor>> processors{};
 };
 
+#define HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, ...)                      \
+    __tracker->format_args_with_vars(                                     \
+        {__VA_OPT__(#__VA_ARGS__)} __VA_OPT__(, ) __VA_ARGS__)
 
 #define HSLOG_TRACKED_EMIT(__tracker, method, ...)                        \
     __tracker->notify_signal_emit(                                        \
         ::hstd::log::log_graph_processor::signal_emit_info(               \
             this,                                                         \
-            #method,                                                      \
-            __tracker->format_args(__VA_ARGS__),                          \
-            ::hstd::log::log_graph_processor::callsite::                  \
-                this_callsite()));                                        \
+            ::hstd::log::log_graph_processor::function_info(              \
+                #method,                                                  \
+                HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),     \
+                ::hstd::log::log_graph_processor::callsite::              \
+                    this_callsite())));                                   \
     emit method(__VA_ARGS__);
 
 #define HSLOG_TRACKED_SLOT(__tracker, method, ...)                        \
     auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_slot(      \
         ::hstd::log::log_graph_processor::slot_trigger_info(              \
-            this,                                                         \
             sender(),                                                     \
-            #method,                                                      \
-            __tracker->format_args(__VA_ARGS__),                          \
-            ::hstd::log::log_graph_processor::callsite::                  \
-                this_callsite()));
+            this,                                                         \
+            ::hstd::log::log_graph_processor::function_info(              \
+                #method,                                                  \
+                HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),     \
+                ::hstd::log::log_graph_processor::callsite::              \
+                    this_callsite())));
 
-#define HSLOG_TRACKED_FUNCTION(__tracker, method)                         \
+
+#define HSLOG_TRACKED_FUNCTION(__tracker, method, ...)                    \
     auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_function(  \
         ::hstd::log::log_graph_processor::function_info(                  \
             #method,                                                      \
+            HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),         \
             ::hstd::log::log_graph_processor::callsite::                  \
                 this_callsite()));
 
@@ -399,7 +400,15 @@ struct log_graph_tracker {
             ::hstd::log::log_graph_processor::callsite::                  \
                 this_callsite()));
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#define HSLOG_TRACKED_JUMP(__tracker, description)                        \
+    __tracker->notify_named_jump(                                         \
+        ::hstd::log::log_graph_processor::named_jump_info(                \
+            description,                                                  \
+            ::hstd::log::log_graph_processor::callsite::                  \
+                this_callsite()));
+
+
+#if ORG_USE_QT
 
 #    define HSLOG_TRACKED_CONNECT(                                        \
         _tracker, _sender, _signal, _receiver, _slot, ...)                \
@@ -423,50 +432,6 @@ struct log_graph_tracker {
             ::hstd::log::log_graph_processor::callsite::this_callsite());
 
 #endif
-
-
-#if HAXORG_LOGGER_SUPPORT_QT
-struct SignalDebugger : public QObject {
-    Q_OBJECT
-
-  private:
-    QObject*                                      targetObject;
-    std::vector<QMetaObject::Connection>          connections;
-    std::shared_ptr<hstd::log::log_graph_tracker> tracker;
-
-  public:
-    explicit SignalDebugger(
-        std::shared_ptr<hstd::log::log_graph_tracker> tracker,
-        QObject*                                      sender,
-        QObject*                                      parent = nullptr)
-        : QObject{parent}, targetObject{sender}, tracker{tracker} {
-        connectToAllSignals();
-    }
-
-    ~SignalDebugger() { disconnectAll(); }
-
-  private:
-    void                     connectToAllSignals();
-    void                     connectToSignal(const QMetaMethod& signal);
-    void                     disconnectAll();
-    std::vector<std::string> formatParameterInfo(
-        const QMetaMethod& method);
-
-  private slots:
-    void onSignalTriggered();
-
-  public:
-    void setEnabled(bool enabled) {
-        if (enabled) {
-            connectToAllSignals();
-        } else {
-            disconnectAll();
-        }
-    }
-};
-
-#endif
-
 
 struct graphviz_processor : public log_graph_processor {
     struct call_info {
@@ -492,7 +457,7 @@ struct graphviz_processor : public log_graph_processor {
     void track_named_text(named_text_info const& info) override {}
     void track_named_jump(named_jump_info const& info) override;
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
     void track_signal_emit(signal_emit_info const& info) override;
     void track_slot_trigger(slot_trigger_info const& info) override;
     void track_qobject(qobject_info const& info) override {}
@@ -522,11 +487,58 @@ struct logger_processor : public log_graph_processor {
     void track_named_text(named_text_info const& info) override;
     void track_named_jump(named_jump_info const& info) override;
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
     void track_signal_emit(signal_emit_info const& info) override;
     void track_slot_trigger(slot_trigger_info const& info) override;
     void track_qobject(qobject_info const& info) override;
     void track_connect(connect_info const& info) override;
 #endif
 };
+
+#if ORG_USE_QT
+
+struct SignalDebugger : public QObject {
+    Q_OBJECT
+
+  private:
+    QObject*                                      targetObject;
+    std::vector<QMetaObject::Connection>          connections;
+    std::shared_ptr<hstd::log::log_graph_tracker> tracker;
+
+  public:
+    explicit SignalDebugger(
+        std::shared_ptr<hstd::log::log_graph_tracker> tracker,
+        QObject*                                      sender,
+        QObject*                                      parent = nullptr)
+        : QObject{parent}, targetObject{sender}, tracker{tracker} {
+        connectToAllSignals();
+    }
+
+    ~SignalDebugger() { disconnectAll(); }
+
+  private:
+    void connectToAllSignals();
+    void connectToSignal(const QMetaMethod& signal);
+    void disconnectAll();
+    hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> formatParameterInfo(
+        const QMetaMethod& method);
+
+  private slots:
+    void onSignalTriggered();
+
+  public:
+    void setEnabled(bool enabled) {
+        if (enabled) {
+            connectToAllSignals();
+        } else {
+            disconnectAll();
+        }
+    }
+};
+
+#endif
+
+
 } // namespace hstd::log
+
+

@@ -44,10 +44,7 @@ struct DiaScene : public QGraphicsScene {
                 new T{adapter, std::forward<Args>(args)...});
         addItem(result.get());
 
-        HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "Create scene item {}", hstd::descObjectPtr(result)));
+        HSLOG_TRACE("Create scene item {}", hstd::descObjectPtr(result));
         return result;
     }
 

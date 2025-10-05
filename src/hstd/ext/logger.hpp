@@ -28,8 +28,109 @@
 #    include <boost/log/core.hpp>
 #    include <boost/log/sinks/sink.hpp>
 #    include <hstd/stdlib/TraceBase.hpp>
+#    include <hstd/stdlib/ContainerAPI.hpp>
+
+#    if ORG_USE_QT
+#        include <QDebug>
+#        include <QBuffer>
+#    endif
 
 namespace hstd::log {
+
+template <typename T>
+struct log_value_formatter {};
+
+#    if ORG_USE_QT
+template <typename T>
+concept QDebugFormattable = requires(QDebug debug, const T& value) {
+    debug << value;
+};
+
+template <QDebugFormattable T>
+std::string formatQtToString(const T& value) {
+    QBuffer buffer{};
+    buffer.open(QIODevice::WriteOnly);
+    QDebug debug{&buffer};
+    debug.nospace().noquote() << value;
+    buffer.close();
+    return buffer.data().toStdString();
+}
+
+template <typename T>
+concept OnlyQDebugFormattable = QDebugFormattable<T>
+                             && !hstd::StdFormattable<T>;
+
+template <OnlyQDebugFormattable T>
+struct log_value_formatter<T> {
+    static std::string format(T const& value) {
+        return formatQtToString(value);
+    }
+};
+#    endif
+
+template <>
+struct log_value_formatter<hstd::ColText> {
+    static std::string format(hstd::ColText const& value) {
+        return value.toString(false);
+    }
+};
+
+template <typename T>
+concept has_log_value_formatter = requires(const T& value) {
+    {
+        hstd::log::log_value_formatter<T>{}.format(value)
+    } -> std::convertible_to<std::string>;
+};
+
+template <typename T>
+std::string format_single_argument(const T& value) {
+    if constexpr (has_log_value_formatter<T>) {
+        return hstd::log::log_value_formatter<T>{}.format(value);
+    } else if constexpr (hstd::StdFormattable<T>) {
+        return std::format("{}", value);
+    } else {
+        return "<type unformattable>";
+    }
+}
+
+template <typename... Args>
+using LogFormatStr = std::format_string<std::conditional_t<
+    hstd::log::has_log_value_formatter<std::decay_t<Args>>,
+    std::string,
+    std::conditional_t<
+        hstd::StdFormattable<std::decay_t<Args>>,
+        Args,
+        std::string>>...>;
+
+template <typename T>
+auto format_logger_argument1(T const& arg) {
+    if constexpr (hstd::log::has_log_value_formatter<
+                      std::decay_t<decltype(arg)>>) {
+        return hstd::log::log_value_formatter<
+                   std::decay_t<decltype(arg)>>{}
+            .format(arg);
+    } else if constexpr (hstd::StdFormattable<
+                             std::decay_t<decltype(arg)>>) {
+        return arg;
+    } else {
+        return std::string{"<type unformattable>"};
+    }
+}
+
+template <typename... Args>
+std::string format_logger_arguments(
+    LogFormatStr<Args...> __fmt,
+    const Args&... args) {
+    auto formatted_args = std::make_tuple(
+        format_logger_argument1<Args>(args)...);
+    return std::apply(
+        [&__fmt](auto&... args_ref) {
+            return std::vformat(
+                __fmt.get(), std::make_format_args(args_ref...));
+        },
+        formatted_args);
+}
+
 
 enum class severity_level
 {
@@ -98,13 +199,25 @@ hstd::Vec<sink_ptr> get_sink_list();
 /// \brief remove all sink backends from the logger
 void clear_sink_backends();
 
+struct log_category {
+    std::string category;
+    log_category() = default;
+    explicit log_category(std::string const& category)
+        : category{category} {}
+
+    bool operator==(log_category const& other) const {
+        return category == other.category;
+    }
+
+    DESC_FIELDS(log_category, (category));
+};
 
 struct log_record {
     struct log_data {
         hstd::Str            message;
         int                  line = 0;
         char const*          file = nullptr;
-        hstd::Str            category;
+        log_category         category;
         severity_level       severity     = severity_level::trace;
         char const*          function     = nullptr;
         hstd::Opt<int>       depth        = std::nullopt;
@@ -137,15 +250,76 @@ struct log_record {
 
     static log_record from_operations(hstd::OperationsMsg const& msg);
 
+    template <typename... Args>
+    static log_record from_log_fmt_macro(
+        char const*           function,
+        char const*           file,
+        int                   line,
+        severity_level        severity,
+        log_category const&   category,
+        LogFormatStr<Args...> fmt,
+        Args&&... args) {
+        log_record rec;
+        auto       formatted_args = std::make_tuple(
+            format_logger_argument1<Args>(args)...);
+        rec.line(line)
+            .severity(severity)
+            .category(category)
+            .function(function)
+            .message(std::apply(
+                [&fmt](auto&... args_ref) {
+                    return std::vformat(
+                        fmt.get(), std::make_format_args(args_ref...));
+                },
+                formatted_args));
+        return rec;
+    }
+
+    template <typename... Args>
+    static log_record from_log_fmt_macro(
+        char const*           function,
+        char const*           file,
+        int                   line,
+        severity_level        severity,
+        LogFormatStr<Args...> fmt,
+        Args&&... args) {
+        log_record rec;
+        auto       formatted_args = std::make_tuple(
+            format_logger_argument1<Args>(args)...);
+        rec.line(line).severity(severity).function(function).message(
+            std::apply(
+                [&fmt](auto&... args_ref) {
+                    return std::vformat(
+                        fmt.get(), std::make_format_args(args_ref...));
+                },
+                formatted_args));
+        return rec;
+    }
+
+    static log_record from_macro_args(
+        log_category const& category,
+        severity_level      severity,
+        int                 line     = __builtin_LINE(),
+        char const*         function = __builtin_FUNCTION(),
+        char const*         file     = __builtin_FILE()) {
+        return log_record{}
+            .severity(severity)
+            .category(category)
+            .line(line)
+            .function(function)
+            .file(file);
+    }
+
     log_data data;
 
+    log_record& prepend_message(std::string const& message);
     log_record& function(char const* func);
     log_record& message(int const& msg);
     log_record& message(hstd::Str const& msg);
     log_record& message(char const* msg);
     log_record& line(int l);
     log_record& file(char const* f);
-    log_record& category(hstd::Str const& cat);
+    log_record& category(log_category const& cat);
     log_record& severity(severity_level l);
     log_record& depth(int depth);
     log_record& source_scope(hstd::Vec<hstd::Str> const& scope);
@@ -154,6 +328,13 @@ struct log_record {
     log_record& metadata(json const& metadata);
     log_record& metadata(hstd::Str const& field, json const& value);
     log_record& maybe_space();
+
+    log_record& as_trace();
+    log_record& as_debug();
+    log_record& as_info();
+    log_record& as_warning();
+    log_record& as_error();
+    log_record& as_fatal();
 
     /// \brief Use stacktace information as a log record message
     log_record& fmt_stacktrace();
@@ -392,7 +573,7 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
             log_builder_get_mutable_finalizer_filter_changed_value<       \
                 __COUNTER__>(__reset)
 
-bool is_log_accepted(hstd::Str const& category, severity_level level);
+bool is_log_accepted(severity_level level);
 
 // clang-format off
 constexpr ::hstd::log::severity_level  l_trace   = ::hstd::log::severity_level::trace;
@@ -402,6 +583,53 @@ constexpr ::hstd::log::severity_level  l_warning = ::hstd::log::severity_level::
 constexpr ::hstd::log::severity_level  l_error   = ::hstd::log::severity_level::error;
 constexpr ::hstd::log::severity_level  l_fatal   = ::hstd::log::severity_level::fatal;
 // clang-format on
+
+template <typename Collection>
+hstd::log::log_record log_sequential_collection(
+    Collection const& items,
+    int               line     = __builtin_LINE(),
+    char const*       function = __builtin_FUNCTION(),
+    char const*       file     = __builtin_FILE()) {
+    auto res = ::hstd::log::log_record{}.set_callsite(
+        line, function, file);
+    res.fmt_message(
+        "{} with {} items:",
+        hstd::value_metadata<Collection>::typeName(),
+        items.size());
+    SequentialContainerAdapter<Collection> container{&items};
+    for (int i = 0; i < items.size(); ++i) {
+        res.fmt_message(
+            "\n[{}]: {}", i, format_logger_argument1(items.at(i)));
+    }
+    return res;
+}
+
+template <typename Collection>
+hstd::log::log_record log_associative_collection(
+    Collection const& items,
+    int               line     = __builtin_LINE(),
+    char const*       function = __builtin_FUNCTION(),
+    char const*       file     = __builtin_FILE()) {
+    auto res = ::hstd::log::log_record{}.set_callsite(
+        line, function, file);
+    res.fmt_message(
+        "{} with {} items:",
+        hstd::value_metadata<Collection>::typeName(),
+        items.size());
+    AssociativeContainerAdapter<Collection> container{&items};
+
+    auto keys = container.keys();
+
+    if constexpr (std::equality_comparable<decltype(keys.at(0))>) {
+        std::sort(keys.begin(), keys.end());
+    }
+
+    for (auto const& key : keys) {
+        res.fmt_message(
+            "\n[{}]: {}", key, format_logger_argument1(items.at(key)));
+    }
+    return res;
+}
 
 } // namespace hstd::log
 
@@ -414,39 +642,40 @@ constexpr ::hstd::log::severity_level  l_fatal   = ::hstd::log::severity_level::
 #    define HSLOG_BUILDER()                                               \
         ::hstd::log::log_builder {}
 
-#    define __ORG_LOG_IMPL(__cat, __severity, ...)                        \
+#    define __ORG_LOG_IMPL(__severity, ...)                               \
         if (::hstd::log::is_log_accepted(                                 \
-                __cat, ::hstd::log::severity_level::__severity)) {        \
-            HSLOG_INIT(__cat, __severity)                                 \
-            __ORG_LOG_ALL_ARGS(__VA_ARGS__).end();                        \
+                ::hstd::log::severity_level::__severity)) {               \
+            ::hstd::log::log_record::from_log_fmt_macro(                  \
+                __FUNCTION__,                                             \
+                __FILE__,                                                 \
+                __LINE__,                                                 \
+                ::hstd::log::severity_level::__severity,                  \
+                __VA_ARGS__)                                              \
+                .end();                                                   \
         }
 
-#    define HSLOG_INIT(__cat, __severity)                                 \
+#    define HSLOG_INIT(__severity)                                        \
         ::hstd::log::log_record{}                                         \
             .file(__FILE__)                                               \
             .line(__LINE__)                                               \
-            .category(__cat)                                              \
             .function(__FUNCTION__)                                       \
             .severity(::hstd::log::severity_level::__severity)
 
 #    define HSLOG_TRACE_STACKTRACE(__cat, __severity)                     \
         if (::hstd::log::is_log_accepted(                                 \
-                __cat, ::hstd::log::severity_level::__severity)) {        \
+                ::hstd::log::severity_level::__severity)) {               \
             HSLOG_INIT(__cat, __severity).fmt_stacktrace().end();         \
         }
 
+#    define HSLOG_TRACE(...) __ORG_LOG_IMPL(trace, __VA_ARGS__)
+#    define HSLOG_DEBUG(...) __ORG_LOG_IMPL(debug, __VA_ARGS__)
+#    define HSLOG_INFO(...) __ORG_LOG_IMPL(info, __VA_ARGS__)
+#    define HSLOG_WARNING(...) __ORG_LOG_IMPL(warning, __VA_ARGS__)
+#    define HSLOG_ERROR(...) __ORG_LOG_IMPL(error, __VA_ARGS__)
+#    define HSLOG_FATAL(...) __ORG_LOG_IMPL(fatal, __VA_ARGS__)
 
-#    define HSLOG_TRACE(__cat, ...)                                       \
-        __ORG_LOG_IMPL(__cat, trace, __VA_ARGS__)
-#    define HSLOG_DEBUG(__cat, ...)                                       \
-        __ORG_LOG_IMPL(__cat, debug, __VA_ARGS__)
-#    define HSLOG_INFO(__cat, ...) __ORG_LOG_IMPL(__cat, info, __VA_ARGS__)
-#    define HSLOG_WARNING(__cat, ...)                                     \
-        __ORG_LOG_IMPL(__cat, warning, __VA_ARGS__)
-#    define HSLOG_ERROR(__cat, ...)                                       \
-        __ORG_LOG_IMPL(__cat, error, __VA_ARGS__)
-#    define HSLOG_FATAL(__cat, ...)                                       \
-        __ORG_LOG_IMPL(__cat, fatal, __VA_ARGS__)
+#    define HSLOG_FMT1(value)                                             \
+        HSLOG_DEBUG("{} = {}", #value, value);
 
 #    define HSLOG_SINK_SCOPE() ::hstd::log::log_sink_scope()
 /// \brief Create logging sink scope and clear all the current sink state
@@ -475,3 +704,14 @@ struct std::hash<hstd::log::log_record::log_data> {
 };
 
 #endif
+
+
+template <>
+struct std::hash<hstd::log::log_category> {
+    std::size_t operator()(
+        hstd::log::log_category const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.category);
+        return result;
+    }
+};

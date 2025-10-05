@@ -72,10 +72,11 @@ void StoryNode::Text::render(
 
         if (res) {
             CTX_MSG(fmt("Text edit result {}", res.value()));
-            ctx.action(GridAction::EditNodeText{
-                .edit = res.value(),
-                .id   = id,
-            });
+            ctx.action(
+                GridAction::EditNodeText{
+                    .edit = res.value(),
+                    .id   = id,
+                });
         }
 
         IM_FN_END(End);
@@ -98,9 +99,10 @@ void StoryNode::LinkList::render(
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         if (ImGui::Button("Focus")) {
-            model.ctx.action(GridAction::LinkListClick{
-                .id = id,
-            });
+            model.ctx.action(
+                GridAction::LinkListClick{
+                    .id = id,
+                });
         }
 
         if (IM_FN_BEGIN(
@@ -120,10 +122,11 @@ void StoryNode::LinkList::render(
                 bool edit = false;
                 auto res  = item.text.render(fmt("list_{}", id));
                 if (res) {
-                    model.ctx.action(GridAction::EditNodeText{
-                        .edit = res.value(),
-                        .id   = id,
-                    });
+                    model.ctx.action(
+                        GridAction::EditNodeText{
+                            .edit = res.value(),
+                            .id   = id,
+                        });
                 }
             }
             IM_FN_END(EndTable);
@@ -223,7 +226,7 @@ Opt<json> story_grid_loop(
 
     auto font_path = get_fontconfig_path("Iosevka");
     if (font_path) {
-        HSLOG_INFO("story-grid", fmt("Using font file {}", *font_path));
+        HSLOG_INFO("story-grid", "Using font file {}", *font_path);
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->AddFontFromFileTTF(font_path->c_str(), 16);
     } else {
@@ -1241,24 +1244,27 @@ void run_story_grid_cycle(
     auto&    ctx = model.ctx;
     if (io.MouseWheel != 0.0f) {
         CTX_MSG(fmt("Mouse scrolling"));
-        model.ctx.action(GridAction::Scroll{
-            .pos       = io.MousePos,
-            .direction = io.MouseWheel,
-        });
+        model.ctx.action(
+            GridAction::Scroll{
+                .pos       = io.MousePos,
+                .direction = io.MouseWheel,
+            });
     }
 
     if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
-        model.ctx.action(GridAction::Scroll{
-            .pos       = io.MousePos,
-            .direction = static_cast<float>(conf.pageUpScrollStep),
-        });
+        model.ctx.action(
+            GridAction::Scroll{
+                .pos       = io.MousePos,
+                .direction = static_cast<float>(conf.pageUpScrollStep),
+            });
     }
 
     if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
-        model.ctx.action(GridAction::Scroll{
-            .pos       = io.MousePos,
-            .direction = static_cast<float>(conf.pageDownScrollStep),
-        });
+        model.ctx.action(
+            GridAction::Scroll{
+                .pos       = io.MousePos,
+                .direction = static_cast<float>(conf.pageDownScrollStep),
+            });
     }
 }
 

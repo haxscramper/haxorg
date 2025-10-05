@@ -461,3 +461,4 @@ void q_register_metatypes() {
     qRegisterMetaType<DiaVersionStore::EditApplyResult>();
     qRegisterMetaType<DiaVersionStore::DiaRootChange>();
 }
+

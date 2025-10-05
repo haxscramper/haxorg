@@ -112,7 +112,7 @@ struct ContentNode : public SharedPtrApi<ContentNode> {
 SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
     if (hadChanges(file)) {
         HSLOG_INFO(
-            "load", "Loading file ", fs::relative(file, root).native());
+            "load", "Loading file {}", fs::relative(file, root).native());
         auto node = org::parseString(readFile(file));
         auto root = ctx->addRoot(node);
         auto res  = ContentNode::from_node(*this, root.getRootAdapter());
@@ -202,7 +202,7 @@ struct DirNode : public SharedPtrApi<DirNode> {
         }
 
         HSLOG_INFO(
-            "load", "Loading directory ", escape_literal(res->relative));
+            "load", "Loading directory {}", escape_literal(res->relative));
         HSLOG_DEPTH_SCOPE_ANON();
 
         for (const auto& entry : fs::directory_iterator(dir)) {
@@ -323,7 +323,7 @@ class InotifyWatcher {
                     fs::path const& path = watchDescriptors.at(event->wd);
                     std::string     description = format_event(*event);
                     HSLOG_INFO(
-                        "watch", "Path ", path.native(), description);
+                        "watch", "Path {}", path.native(), description);
                     had_changes = true;
                 }
                 i += sizeof(struct inotify_event) + event->len;

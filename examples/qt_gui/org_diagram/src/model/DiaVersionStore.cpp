@@ -92,10 +92,7 @@ void DiaVersionStore::stepEditForward(
                 "targets node with no parent",
                 adapter);
 
-            HSLOG_TRACE(
-                _cat,
-                hstd::fmt(
-                    "imm-adapter:{} imm-parent:{}", adapter, parent));
+            HSLOG_TRACE("imm-adapter:{} imm-parent:{}", adapter, parent);
 
 
             vEdit = vEdit.getEditVersion(
@@ -113,7 +110,7 @@ void DiaVersionStore::stepEditForward(
         case EditCmd::Kind::UpdateImmOrg: {
             EditCmd::UpdateImmOrg const& upd     = edit.getUpdateImmOrg();
             imm::ImmAdapter              adapter = get_target(upd.target);
-            HSLOG_TRACE(_cat, hstd::fmt("imm-adapter:{}", adapter));
+            HSLOG_TRACE("imm-adapter:{}", adapter);
 
 
             vEdit = vEdit.getEditVersion(
@@ -161,10 +158,8 @@ void DiaVersionStore::stepEditForward(
                              })
                        | rs::to<Vec>();
 
-            HSLOG_INFO(_cat, "node collection to move");
-            log_collection(
-                "test", hstd::log::severity_level::trace, toMove)
-                .end();
+            HSLOG_INFO("node collection to move");
+            hstd::log::log_sequential_collection(toMove).as_trace().end();
 
             vEdit = vEdit.getEditVersion(
                 [&](imm::ImmAstContext::Ptr ctx,
@@ -209,11 +204,9 @@ void DiaVersionStore::stepEditForward(
                             subnodeIndices.begin(), subnodeIndices.end());
 
                         HSLOG_INFO(
-                            _cat,
-                            hstd::fmt(
-                                "Removing subnodes {} under {}",
-                                subnodeIndices,
-                                parent));
+                            "Removing subnodes {} under {}",
+                            subnodeIndices,
+                            parent);
 
                         auto tmpSubnodes = hstd::Vec<imm::ImmId>{
                             parent->subnodes.begin(),
@@ -223,11 +216,9 @@ void DiaVersionStore::stepEditForward(
                         }
 
                         HSLOG_INFO(
-                            _cat,
-                            hstd::fmt(
-                                "New subnodes under {}: {}",
-                                parent,
-                                tmpSubnodes));
+                            "New subnodes under {}: {}",
+                            parent,
+                            tmpSubnodes);
 
                         result.incl(setSubnodes(
                             parent,
@@ -258,7 +249,7 @@ void DiaVersionStore::stepEditForward(
             EditCmd::InsertDiaNode const& ins = edit.getInsertDiaNode();
             imm::ImmAdapter adapter           = get_target(ins.newParent);
 
-            HSLOG_TRACE(_cat, hstd::fmt("imm-adapter:{}", adapter));
+            HSLOG_TRACE("imm-adapter:{}", adapter);
 
 
             vEdit = vEdit.getEditVersion(
@@ -301,14 +292,12 @@ void DiaVersionStore::stepEditForward(
 
     hstd::ColStream os;
     vEdit.getContext()->store->format(os, "  ");
-    HSLOG_TRACE(_cat, hstd::fmt("imm store:\n{}", os.toString(false)));
+    HSLOG_TRACE("imm store:\n{}", os.toString(false));
 
     HSLOG_TRACE(
-        _cat,
-        hstd::fmt(
-            "imm version:\n{}",
-            hstd::indent(
-                vEdit.getRootAdapter().treeRepr().toString(false), 2)));
+        "imm version:\n{}",
+        hstd::indent(
+            vEdit.getRootAdapter().treeRepr().toString(false), 2));
 }
 
 DiaVersionStore::EditApplyResult DiaVersionStore::applyDiaEdits(
@@ -320,26 +309,18 @@ DiaVersionStore::EditApplyResult DiaVersionStore::applyDiaEdits(
     auto vEdit = getActiveImmVersion();
 
     HSLOG_TRACE(
-        _cat,
-        hstd::fmt(
-            "dia version:\n{}",
-            getActiveDiaRoot().format().toString(false)));
+        "dia version:\n{}", getActiveDiaRoot().format().toString(false));
 
     HSLOG_TRACE(
-        _cat,
-        hstd::fmt(
-            "imm version:\n{}",
-            vEdit.getRootAdapter().treeRepr().toString(false)));
+        "imm version:\n{}",
+        vEdit.getRootAdapter().treeRepr().toString(false));
 
     for (auto const& edit : edits.edits) { stepEditForward(vEdit, edit); }
 
     addHistory(vEdit);
 
     HSLOG_TRACE(
-        _cat,
-        hstd::fmt(
-            "dia version:\n{}",
-            getActiveDiaRoot().format().toString(false)));
+        "dia version:\n{}", getActiveDiaRoot().format().toString(false));
 
     return res;
 }
@@ -359,8 +340,7 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
     change.newRoot  = getDiaRoot(active);
     TRACKED_EMIT(diaRootChanged, change);
 
-    log_collection(_cat, hstd::log::severity_level::trace, change.edits)
-        .end();
+    hstd::log::log_sequential_collection(change.edits).as_trace().end();
 
 
     return active;

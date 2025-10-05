@@ -3,7 +3,7 @@
 #include <QAbstractItemModel>
 #include <QObject>
 #include <haxorg/sem/ImmOrg.hpp>
-#include <src/utils/log_graph_tracker.hpp>
+#include <hstd/ext/log_graph_tracker.hpp>
 #include <src/utils/common.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
 

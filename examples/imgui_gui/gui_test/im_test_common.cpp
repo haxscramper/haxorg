@@ -10,11 +10,11 @@ void PrintAllWindows() {
         ImGuiWindow* window = g.Windows[i];
         HSLOG_INFO(
             "im-test-common",
-            fmt("Window Name:\"{}\", ID:{} POS:{} SIZE:{}",
+            "Window Name:\"{}\", ID:{} POS:{} SIZE:{}",
                 window->Name,
                 window->ID,
                 window->Pos,
-                window->Size));
+                window->Size);
     }
 }
 

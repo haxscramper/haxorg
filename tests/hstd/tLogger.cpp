@@ -6,7 +6,13 @@
 #include <boost/core/null_deleter.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <hstd/stdlib/Map.hpp>
+#include <hstd/ext/log_graph_tracker.hpp>
 #include "../common.hpp"
+
+#if ORG_USE_QT
+#    include <QString>
+#endif
 
 using namespace hstd;
 
@@ -53,15 +59,15 @@ struct LoggerTest : public ::testing::Test {
     }
 };
 
-const std::string _cat = "cat";
+const hstd::log::log_category _cat = hstd::log::log_category{"cat"};
 
 TEST_F(LoggerTest, SimpleLog) {
-    HSLOG_TRACE(_cat, "trace");
-    HSLOG_DEBUG(_cat, "debug");
-    HSLOG_INFO(_cat, "info");
-    HSLOG_WARNING(_cat, "warning");
-    HSLOG_ERROR(_cat, "error");
-    HSLOG_ERROR(_cat, "fatal");
+    HSLOG_TRACE("trace");
+    HSLOG_DEBUG("debug");
+    HSLOG_INFO("info");
+    HSLOG_WARNING("warning");
+    HSLOG_ERROR("error");
+    HSLOG_ERROR("fatal");
 
     // debug();
     auto const& b = buffer;
@@ -75,15 +81,148 @@ TEST_F(LoggerTest, DifferentialDebug) {
     auto run     = [&]() {
         auto __log_diff = HSLOG_SINK_FACTORY_SCOPED(
             log::log_differential_sink_factory{getDebugFile("res.diff")});
-        HSLOG_TRACE(_cat, "trace ", counter);
-        HSLOG_DEBUG(_cat, "debug ", counter);
-        HSLOG_INFO(_cat, "info ", counter);
-        HSLOG_WARNING(_cat, "warning ", counter);
-        HSLOG_ERROR(_cat, "error ", counter);
-        HSLOG_ERROR(_cat, "fatal ", counter);
+        HSLOG_TRACE("trace {}", counter);
+        HSLOG_DEBUG("debug {}", counter);
+        HSLOG_INFO("info {}", counter);
+        HSLOG_WARNING("warning {}", counter);
+        HSLOG_ERROR("error {}", counter);
+        HSLOG_ERROR("fatal {}", counter);
         ++counter;
     };
 
     run();
     run();
+}
+
+struct UnformattableType {
+    int value;
+};
+
+struct StdFormattableType {
+    int value;
+};
+
+template <>
+struct std::formatter<StdFormattableType> : std::formatter<std::string> {
+    auto format(const StdFormattableType& obj, format_context& ctx) const {
+        return std::formatter<std::string>::format(
+            "std_fmt:" + std::to_string(obj.value), ctx);
+    }
+};
+
+struct LogFormattableType {
+    int value;
+};
+
+namespace hstd::log {
+template <>
+struct log_value_formatter<LogFormattableType> {
+    std::string format(const LogFormattableType& value) {
+        return "log_fmt:" + std::to_string(value.value);
+    }
+};
+} // namespace hstd::log
+
+struct BothFormattableType {
+    int value;
+};
+
+template <>
+struct std::formatter<BothFormattableType> : std::formatter<std::string> {
+    auto format(const BothFormattableType& obj, format_context& ctx)
+        const {
+        return std::formatter<std::string>::format(
+            "std_both:" + std::to_string(obj.value), ctx);
+    }
+};
+
+namespace hstd::log {
+template <>
+struct log_value_formatter<BothFormattableType> {
+    std::string format(const BothFormattableType& value) {
+        return "log_both:" + std::to_string(value.value);
+    }
+};
+} // namespace hstd::log
+
+
+TEST_F(LoggerTest, LogStringFormatting) {
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments("Value: {}", 42), "Value: 42");
+
+    static_assert(hstd::StdFormattable<StdFormattableType>);
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments(
+            "Value: {}", StdFormattableType{123}),
+        "Value: std_fmt:123");
+
+
+    static_assert(hstd::log::has_log_value_formatter<LogFormattableType>);
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments(
+            "Value: {}", LogFormattableType{456}),
+        "Value: log_fmt:456");
+
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments(
+            "Value: {}", BothFormattableType{789}),
+        "Value: log_both:789");
+
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments(
+            "Value: {}", UnformattableType{999}),
+        "Value: <type unformattable>");
+
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments(
+            "Multiple: {} and {}", 10, LogFormattableType{20}),
+        "Multiple: 10 and log_fmt:20");
+}
+
+TEST_F(LoggerTest, StdFormatterSpecifications) {
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments("Hex: {:X}", 255), "Hex: FF");
+
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments("Padded: {:05d}", 42),
+        "Padded: 00042");
+
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments("Float: {:.2f}", 3.14159),
+        "Float: 3.14");
+
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments(
+            "String: {:>10}", std::string{"test"}),
+        "String:       test");
+
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments(
+            "Mixed: {:X} and {:.1f}", 16, 2.718),
+        "Mixed: 10 and 2.7");
+
+    EXPECT_EQ(
+        hstd::log::format_logger_arguments(
+            "Custom with spec: {:>15}", StdFormattableType{100}),
+        "Custom with spec:     std_fmt:100");
+}
+
+TEST_F(LoggerTest, CollectionRepr) {
+    hstd::log::log_associative_collection(
+        hstd::UnorderedMap<int, std::string>{{1, "123"}, {2, "33"}})
+        .as_info()
+        .end();
+
+    hstd::log::log_sequential_collection(
+        hstd::Vec<std::string>{"123", "222"})
+        .as_info()
+        .end();
+}
+
+
+TEST_F(LoggerTest, QtTypes) {
+#if ORG_USE_QT
+    HSLOG_INFO("item {}", QString("test"));
+    //
+#endif
 }

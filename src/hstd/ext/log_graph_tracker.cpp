@@ -6,22 +6,10 @@
 #include <hstd/system/Formatter.hpp>
 #include <hstd/ext/graphviz.hpp>
 
-#if HAXORG_LOGGER_SUPPORT_QT
+#if ORG_USE_QT
 #    include <QMetaObject>
 #    include <QMetaMethod>
 #endif
-
-
-std::string hstd::descObjectPtr(QObject* obj) {
-    return hstd::fmt(
-        "'{}' at 0x{:X}",
-        obj ? (obj->objectName().isEmpty()
-                   ? obj->metaObject()->className()
-                   : obj->objectName().toStdString())
-            : "<nullptr>",
-        reinterpret_cast<std::ptrdiff_t>(obj));
-}
-
 
 using namespace hstd::log;
 
@@ -66,21 +54,6 @@ void log_graph_tracker::notify_function_end(
     }
 }
 
-void log_graph_tracker::notify_signal_emit(
-    log_graph_processor::signal_emit_info const& info) {
-    if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_signal_emit(info);
-    }
-}
-
-void log_graph_tracker::notify_slot_trigger(
-    const log_graph_processor::slot_trigger_info& info) {
-    if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_slot_trigger(info);
-    }
-}
 
 void log_graph_tracker::notify_scope_enter(
     const log_graph_processor::scope_info& info) {
@@ -114,24 +87,6 @@ void log_graph_tracker::notify_named_jump(
     }
 }
 
-hstd::finally_std log_graph_tracker::track_slot(
-    const log_graph_processor::slot_trigger_info& info) {
-    notify_slot_trigger(info);
-    return track_function(
-        log_graph_processor::function_info(info.name, info.loc));
-}
-
-void log_graph_tracker::notify_qobject(
-    const log_graph_processor::qobject_info& info) {
-    if (!TraceState) { return; }
-    for (auto& processor : processors) { processor->track_qobject(info); }
-}
-
-void log_graph_tracker::notify_connect(
-    const log_graph_processor::connect_info& info) {
-    if (!TraceState) { return; }
-    for (auto& processor : processors) { processor->track_connect(info); }
-}
 
 hstd::finally_std log_graph_tracker::track_scope(
     const log_graph_processor::scope_info& info) {
@@ -165,28 +120,6 @@ void graphviz_processor::track_function_end(
     if (!call_stack.empty()) { call_stack.pop(); }
 }
 
-void graphviz_processor::track_signal_emit(const signal_emit_info& info) {
-    std::string full_name = std::format("{}", info.name);
-    if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
-    nodes.insert_or_assign(
-        full_name,
-        node_info{
-            .name      = full_name,
-            .is_signal = true,
-        });
-}
-
-void graphviz_processor::track_slot_trigger(
-    const slot_trigger_info& info) {
-    std::string full_name = std::format("{}", info.name);
-    call_stack.push(full_name);
-    nodes.insert_or_assign(
-        full_name,
-        node_info{
-            .name    = full_name,
-            .is_slot = true,
-        });
-}
 
 void graphviz_processor::track_scope_enter(scope_info const& info) {
     call_stack.push(info.name);
@@ -315,55 +248,6 @@ void logger_processor::track_function_end(const function_info& info) {
     //     .end();
 }
 
-void logger_processor::track_signal_emit(const signal_emit_info& info) {
-    log_record{}
-        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
-        .fmt_message(
-            "signal emit::{} -> '{}({})'",
-            descObjectPtr(info.sender),
-            info.name,
-            info.args)
-        .end();
-}
-
-void logger_processor::track_slot_trigger(const slot_trigger_info& info) {
-    log_record{}
-        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
-        .fmt_message(
-            "slot trigger::{} -> '{}'",
-            descObjectPtr(info.receiver),
-            info.name)
-        .end();
-}
-
-void logger_processor::track_qobject(
-    log_graph_processor::qobject_info const& info) {
-    log_record{}
-        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
-        .fmt_message("created {}", descObjectPtr(info.object))
-        .end();
-
-    QObject::connect(
-        info.object, &QObject::destroyed, info.object, [info]() {
-            log_record{}
-                .set_callsite(
-                    info.loc.line, info.loc.function, info.loc.file)
-                .fmt_message("destroyed {}", descObjectPtr(info.object))
-                .end();
-        });
-}
-
-void logger_processor::track_connect(const connect_info& info) {
-    log_record{}
-        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
-        .fmt_message(
-            "connect 0x{:X}::{} -> 0x{:X}::{}",
-            reinterpret_cast<std::ptrdiff_t>(info.sender),
-            info.signal,
-            reinterpret_cast<std::ptrdiff_t>(info.receiver),
-            info.slot)
-        .end();
-}
 
 void logger_processor::track_scope_enter(const scope_info& info) {
     log_record{}
@@ -411,7 +295,129 @@ void logger_processor::track_named_jump(const named_jump_info& info) {
         .end();
 }
 
-#if HAXORG_LOGGER_SUPPORT_QT
+
+#if ORG_USE_QT
+std::string hstd::descObjectPtr(QObject* obj) {
+    return hstd::fmt(
+        "'{}' at 0x{:X}",
+        obj ? (obj->objectName().isEmpty()
+                   ? obj->metaObject()->className()
+                   : obj->objectName().toStdString())
+            : "<nullptr>",
+        reinterpret_cast<std::ptrdiff_t>(obj));
+}
+
+
+void hstd::log::log_graph_tracker::notify_signal_emit(
+    log_graph_processor::signal_emit_info const& info) {
+    if (!TraceState) { return; }
+    for (auto& processor : processors) {
+        processor->track_signal_emit(info);
+    }
+}
+
+void hstd::log::log_graph_tracker::notify_slot_trigger(
+    const log_graph_processor::slot_trigger_info& info) {
+    if (!TraceState) { return; }
+    for (auto& processor : processors) {
+        processor->track_slot_trigger(info);
+    }
+}
+
+hstd::finally_std hstd::log::log_graph_tracker::track_slot(
+    const log_graph_processor::slot_trigger_info& info) {
+    notify_slot_trigger(info);
+    return track_function(hstd::log::log_graph_processor::function_info(
+        info.name, info.args, info.loc));
+}
+
+void hstd::log::log_graph_tracker::notify_qobject(
+    const log_graph_processor::qobject_info& info) {
+    if (!TraceState) { return; }
+    for (auto& processor : processors) { processor->track_qobject(info); }
+}
+
+void hstd::log::log_graph_tracker::notify_connect(
+    const log_graph_processor::connect_info& info) {
+    if (!TraceState) { return; }
+    for (auto& processor : processors) { processor->track_connect(info); }
+}
+
+void hstd::log::graphviz_processor::track_signal_emit(
+    const signal_emit_info& info) {
+    std::string full_name = std::format("{}", info.name);
+    if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
+    nodes.insert_or_assign(
+        full_name,
+        node_info{
+            .name      = full_name,
+            .is_signal = true,
+        });
+}
+
+void hstd::log::graphviz_processor::track_slot_trigger(
+    const slot_trigger_info& info) {
+    std::string full_name = std::format("{}", info.name);
+    call_stack.push(full_name);
+    nodes.insert_or_assign(
+        full_name,
+        node_info{
+            .name    = full_name,
+            .is_slot = true,
+        });
+}
+
+void hstd::log::logger_processor::track_signal_emit(
+    const signal_emit_info& info) {
+    log_record{}
+        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
+        .fmt_message(
+            "signal emit::{} -> '{}({})'",
+            descObjectPtr(info.sender),
+            info.name,
+            info.args)
+        .end();
+}
+
+void hstd::log::logger_processor::track_slot_trigger(
+    const slot_trigger_info& info) {
+    log_record{}
+        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
+        .fmt_message(
+            "slot trigger::{} -> '{}'",
+            descObjectPtr(info.receiver),
+            info.name)
+        .end();
+}
+
+void hstd::log::logger_processor::track_qobject(
+    log_graph_processor::qobject_info const& info) {
+    log_record{}
+        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
+        .fmt_message("created {}", descObjectPtr(info.object))
+        .end();
+
+    QObject::connect(
+        info.object, &QObject::destroyed, info.object, [info]() {
+            log_record{}
+                .set_callsite(
+                    info.loc.line, info.loc.function, info.loc.file)
+                .fmt_message("destroyed {}", descObjectPtr(info.object))
+                .end();
+        });
+}
+
+void hstd::log::logger_processor::track_connect(const connect_info& info) {
+    log_record{}
+        .set_callsite(info.loc.line, info.loc.function, info.loc.file)
+        .fmt_message(
+            "connect 0x{:X}::{} -> 0x{:X}::{}",
+            reinterpret_cast<std::ptrdiff_t>(info.sender),
+            info.signal,
+            reinterpret_cast<std::ptrdiff_t>(info.receiver),
+            info.slot)
+        .end();
+}
 
 
 void SignalDebugger::connectToAllSignals() {
@@ -457,29 +463,34 @@ void SignalDebugger::onSignalTriggered() {
     if (signalIndex >= 0) {
         QMetaMethod signal = senderMeta->method(signalIndex);
 
-        tracker->notify_signal_emit(log_graph_processor::signal_emit_info(
-            senderObj,
-            signal.name().toStdString(),
-            formatParameterInfo(signal),
-            log_graph_processor::callsite::this_callsite()));
+        tracker->notify_signal_emit(
+            hstd::log::log_graph_processor::signal_emit_info(
+                senderObj,
+                hstd::log::log_graph_processor::function_info(
+                    signal.name().toStdString(),
+                    formatParameterInfo(signal),
+                    hstd::log::log_graph_processor::callsite::
+                        this_callsite())));
     }
 }
 
-std::vector<std::string> SignalDebugger::formatParameterInfo(
-    const QMetaMethod& method) {
+hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> SignalDebugger::
+    formatParameterInfo(const QMetaMethod& method) {
     QList<QByteArray> paramNames = method.parameterNames();
     QList<QByteArray> paramTypes = method.parameterTypes();
 
     if (paramNames.size() != paramTypes.size()) { return {}; }
-    std::vector<std::string> debug{};
+    hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> debug{};
     for (int i = 0; i < paramNames.size(); ++i) {
-        debug.push_back(hstd::fmt(
-            "{}={}",
-            paramTypes.at(i).toStdString(),
-            paramNames.at(i).toStdString()));
+        debug.push_back(
+            {paramTypes.at(i).toStdString(),
+             paramNames.at(i).toStdString()});
     }
 
     return debug;
 }
+
+
+#    include "log_graph_tracker.moc"
 
 #endif

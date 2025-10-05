@@ -681,6 +681,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
     result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
+    result.append(cmake_opt("ORG_USE_QT", True))
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
 

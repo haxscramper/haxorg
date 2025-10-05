@@ -32,8 +32,10 @@ hstd::described_predicate_result isSubtreeItem(
         return true;
     } else {
         return hstd::described_predicate_error::init(hstd::fmt(
-            "{} (title: {}) does not meet the criteria: top-level subtree "
-            "for subtree item must have :prop_json:{} and :prop_args:{} "
+            "{} (title: {}) does not meet the criteria: top-level "
+            "subtree "
+            "for subtree item must have :prop_json:{} and "
+            ":prop_args:{} "
             "properties. has position:{} has diagram node:{}",
             subtree.uniq(),
             subtree.getCleanTitle(),
@@ -58,7 +60,7 @@ DiaNodeItem FromSubtreeItem(
 DiaId FromSubtreeItemRec(
     hstd::SPtr<DiaContext> const&                      context,
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
-    HSLOG_INFO(_cat, hstd::fmt("Subtree item {}", subtree.uniq()));
+    HSLOG_INFO("Subtree item {}", subtree.uniq());
     HSLOG_DEPTH_SCOPE_ANON();
     LOGIC_ASSERTION_CHECK_DESCRIBED(isSubtreeItem(subtree));
 
@@ -86,7 +88,7 @@ DiaId FromSubtreeItemRec(
 DiaAdapter FromDocument(
     hstd::SPtr<DiaContext> const&                       context,
     const org::imm::ImmAdapterT<org::imm::ImmDocument>& root) {
-    HSLOG_INFO(_cat, hstd::fmt("Creating canvas from {}", root.uniq()));
+    HSLOG_INFO("Creating canvas from {}", root.uniq());
     HSLOG_DEPTH_SCOPE_ANON();
     auto canvas = DiaNodeCanvas{};
     canvas.id   = root;
@@ -213,19 +215,14 @@ std::optional<MatchCandidate> findBestMatch(
     const ProcessedNodes&          processedSrc) {
 
     HSLOG_TRACE(
-        _cat,
-        hstd::fmt(
-            "Finding best match for dstSubnode:{} at dstIndex:{}",
-            dstSubnode,
-            dstIndex));
+        "Finding best match for dstSubnode:{} at dstIndex:{}",
+        dstSubnode,
+        dstIndex);
     HSLOG_DEPTH_SCOPE_ANON();
 
     auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.getDiaId());
     if (srcIndicesIt == srcSubnodesByDiaId.end()) {
-        HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "No DiaId match found for {}", dstSubnode.getDiaId()));
+        HSLOG_TRACE("No DiaId match found for {}", dstSubnode.getDiaId());
         return findMatchingByKind(dstSubnode, srcSubnodes, processedSrc)
             .transform(
                 [](int idx) { return MatchCandidate{idx, false, false}; });
@@ -248,14 +245,12 @@ std::optional<MatchCandidate> findBestMatch(
         bool isMove  = srcIndex != dstIndex;
 
         HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "Evaluating srcIndex:{} isExact:{} isMove:{} "
-                "srcSubnode:{}",
-                srcIndex,
-                isExact,
-                isMove,
-                srcSubnode));
+            "Evaluating srcIndex:{} isExact:{} isMove:{} "
+            "srcSubnode:{}",
+            srcIndex,
+            isExact,
+            isMove,
+            srcSubnode);
 
         if (isExact) {
             if (isMove) {
@@ -263,38 +258,31 @@ std::optional<MatchCandidate> findBestMatch(
                     || !moveCandidate->isExactMatch) {
                     moveCandidate = MatchCandidate{srcIndex, true, true};
                     HSLOG_TRACE(
-                        _cat,
-                        hstd::fmt(
-                            "Found exact move candidate at srcIndex:{}",
-                            srcIndex));
+                        "Found exact move candidate at srcIndex:{}",
+                        srcIndex);
                 }
             } else {
                 exactMatch = MatchCandidate{srcIndex, true, false};
-                HSLOG_TRACE(
-                    _cat,
-                    hstd::fmt(
-                        "Found exact match at srcIndex:{}", srcIndex));
+                HSLOG_TRACE("Found exact match at srcIndex:{}", srcIndex);
             }
         } else if (!exactMatch.has_value() && !diaIdMatch.has_value()) {
             diaIdMatch = MatchCandidate{srcIndex, false, isMove};
-            HSLOG_TRACE(
-                _cat,
-                hstd::fmt("Found DiaId match at srcIndex:{}", srcIndex));
+            HSLOG_TRACE("Found DiaId match at srcIndex:{}", srcIndex);
         }
     }
 
     if (moveCandidate.has_value() && moveCandidate->isExactMatch) {
-        HSLOG_TRACE(_cat, hstd::fmt("Selecting exact move candidate"));
+        HSLOG_TRACE("Selecting exact move candidate");
         return moveCandidate;
     }
 
     if (exactMatch.has_value()) {
-        HSLOG_TRACE(_cat, hstd::fmt("Selecting exact match"));
+        HSLOG_TRACE("Selecting exact match");
         return exactMatch;
     }
 
     if (diaIdMatch.has_value()) {
-        HSLOG_TRACE(_cat, hstd::fmt("Selecting DiaId match"));
+        HSLOG_TRACE("Selecting DiaId match");
         return diaIdMatch;
     }
 
@@ -302,14 +290,12 @@ std::optional<MatchCandidate> findBestMatch(
         dstSubnode, srcSubnodes, processedSrc);
     if (kindMatch.has_value()) {
         HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "Selecting kind match at srcIndex:{}", kindMatch.value()));
+            "Selecting kind match at srcIndex:{}", kindMatch.value());
         return MatchCandidate{
             kindMatch.value(), false, kindMatch.value() != dstIndex};
     }
 
-    HSLOG_TRACE(_cat, hstd::fmt("No match found"));
+    HSLOG_TRACE("No match found");
     return std::nullopt;
 }
 
@@ -328,12 +314,10 @@ bool recurseMatchCandidate(
     TRACKED_SCOPE("recurse candidate");
 
     HSLOG_TRACE(
-        _cat,
-        hstd::fmt(
-            "{} to match src:{} with dst:{}",
-            matchCandidate,
-            srcSubnode,
-            dstSubnode));
+        "{} to match src:{} with dst:{}",
+        matchCandidate,
+        srcSubnode,
+        dstSubnode);
 
     auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.getDiaId());
     if (srcIndicesIt != srcSubnodesByDiaId.end()) {
@@ -347,23 +331,19 @@ bool recurseMatchCandidate(
                 processedDst,
                 unprocessedSrcCount)) {
             HSLOG_TRACE(
-                _cat,
-                hstd::fmt("Preferring insert over match due to "
-                          "duplicate handling"));
+                "Preferring insert over match due to "
+                "duplicate handling");
             return false;
         }
     }
 
     HSLOG_TRACE(
-        _cat,
-        hstd::fmt(
-            "Processing match: srcIndex:{} -> dstIndex:{} "
-            "isExact:{} "
-            "isMove:{}",
-            matchCandidate.srcIndex,
-            dstIndex,
-            matchCandidate.isExactMatch,
-            matchCandidate.isMove));
+        "Processing match: srcIndex:{} -> dstIndex:{} "
+        "isExact:{} isMove:{}",
+        matchCandidate.srcIndex,
+        dstIndex,
+        matchCandidate.isExactMatch,
+        matchCandidate.isMove);
 
     processMatchedSubnodes(
         srcSubnode,
@@ -384,16 +364,14 @@ void diffSubnodes(
 
     if (srcNode->subnodes.empty() && dstNode->subnodes.empty()) { return; }
 
-    HSLOG_TRACE(_cat, hstd::fmt("aux on src:{} dst:{}", srcNode, dstNode));
+    HSLOG_TRACE("aux on src:{} dst:{}", srcNode, dstNode);
     HSLOG_DEPTH_SCOPE_ANON();
 
     if (srcNode.getKind() != dstNode.getKind()) {
         HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "Node kind mismatch, early return {} != {}",
-                srcNode.getKind(),
-                dstNode.getKind()));
+            "Node kind mismatch, early return {} != {}",
+            srcNode.getKind(),
+            dstNode.getKind());
         return;
     }
 
@@ -408,16 +386,14 @@ void diffSubnodes(
     hstd::Vec<DiaEdit> delayedEdits;
 
     for (int dstIndex = 0; dstIndex < dstSubnodes.size(); ++dstIndex) {
-        HSLOG_TRACE(_cat, hstd::fmt("dst index {}", dstIndex));
+        HSLOG_TRACE("dst index {}", dstIndex);
         HSLOG_DEPTH_SCOPE_ANON();
         DiaAdapter const& dstSubnode = dstSubnodes.at(dstIndex);
 
         if (processedDst.contains(dstSubnode.id)) {
             HSLOG_TRACE(
-                _cat,
-                hstd::fmt(
-                    "Skipping already processed dstSubnode at index:{}",
-                    dstIndex));
+                "Skipping already processed dstSubnode at index:{}",
+                dstIndex);
             continue;
         }
 
@@ -446,11 +422,9 @@ void diffSubnodes(
 
         if (!matchAccepted) {
             HSLOG_TRACE(
-                _cat,
-                hstd::fmt(
-                    "Creating Insert edit for dstIndex:{} dstSubnode:{}",
-                    dstIndex,
-                    dstSubnode));
+                "Creating Insert edit for dstIndex:{} dstSubnode:{}",
+                dstIndex,
+                dstSubnode);
             results.emplace_back(DiaEdit::Insert{
                 .dstNode = dstSubnode, .dstIndex = dstIndex});
             processedDst.insert(dstSubnode.id);
@@ -463,40 +437,13 @@ void diffSubnodes(
         const auto& srcSubnode = srcSubnodes.at(srcIndex);
         if (!processedSrc.contains(srcSubnode.id)) {
             HSLOG_TRACE(
-                _cat,
-                hstd::fmt(
-                    "Creating Delete edit for srcIndex:{} srcSubnode:{}",
-                    srcIndex,
-                    srcSubnode));
+                "Creating Delete edit for srcIndex:{} srcSubnode:{}",
+                srcIndex,
+                srcSubnode);
             results.emplace_back(DiaEdit::Delete{
                 .srcNode = srcSubnode, .srcIndex = srcIndex});
         }
     }
-
-    // std::sort(
-    //     delayedEdits.begin(),
-    //     delayedEdits.end(),
-    //     [](DiaEdit const& lhs, DiaEdit const& rhs) -> bool {
-    //         auto getIndex = [](DiaEdit const& ed) {
-    //             if (ed.isDelete()) {
-    //                 return ed.getDelete().srcIndex;
-    //             } else {
-    //                 return ed.getInsert().dstIndex;
-    //             }
-    //         };
-    //         return getIndex(lhs) < getIndex(rhs);
-    //     });
-
-    // HSLOG_TRACE(
-    //     _cat,
-    //     hstd::fmt("Delayed edits under SRC:{} DST:{}", srcNode,
-    //     dstNode));
-
-    // log_collection("test", hstd::log::severity_level::trace,
-    // delayedEdits)
-    //     .end();
-
-    // results.append(delayedEdits);
 }
 
 void processMatchedSubnodes(
@@ -514,13 +461,11 @@ void processMatchedSubnodes(
     if (srcSubnode.getDiaId() == dstSubnode.getDiaId()) {
         if (srcIndex != dstIndex) {
             HSLOG_TRACE(
-                _cat,
-                hstd::fmt(
-                    "Creating Move edit from srcIndex:{} to dstIndex:{} "
-                    "for node:{}",
-                    srcIndex,
-                    dstIndex,
-                    srcSubnode));
+                "Creating Move edit from srcIndex:{} to dstIndex:{} "
+                "for node:{}",
+                srcIndex,
+                dstIndex,
+                srcSubnode);
             results.emplace_back(DiaEdit::Move{
                 .srcNode  = srcSubnode,
                 .dstNode  = dstSubnode,
@@ -528,22 +473,18 @@ void processMatchedSubnodes(
                 .dstIndex = dstIndex});
         } else {
             HSLOG_TRACE(
-                _cat,
-                hstd::fmt(
-                    "Nodes identical at same position, no edit needed for "
-                    "srcIndex:{}",
-                    srcIndex));
+                "Nodes identical at same position, no edit needed for "
+                "srcIndex:{}",
+                srcIndex);
         }
     } else {
         HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "Creating Update edit from srcIndex:{} to dstIndex:{} "
-                "srcSubnode:{} dstSubnode:{}",
-                srcIndex,
-                dstIndex,
-                srcSubnode,
-                dstSubnode));
+            "Creating Update edit from srcIndex:{} to dstIndex:{} "
+            "srcSubnode:{} dstSubnode:{}",
+            srcIndex,
+            dstIndex,
+            srcSubnode,
+            dstSubnode);
         results.emplace_back(DiaEdit::Update{
             .srcNode  = srcSubnode,
             .dstNode  = dstSubnode,
@@ -568,11 +509,9 @@ hstd::Vec<DiaEdit> getEdits(
 
     if (srcRoot.getDiaId() != dstRoot.getDiaId()) {
         HSLOG_TRACE(
-            _cat,
-            hstd::fmt(
-                "Creating root Update edit ID mismatch{} -> {}",
-                srcRoot.getDiaId(),
-                dstRoot.getDiaId()));
+            "Creating root Update edit ID mismatch{} -> {}",
+            srcRoot.getDiaId(),
+            dstRoot.getDiaId());
         results.emplace_back(DiaEdit::Update{
             .srcNode  = srcRoot,
             .dstNode  = dstRoot,
@@ -870,24 +809,24 @@ int DiaEditTransientState::updateIdx(
 
     int shift = 0;
     for (const auto& edit : it->second) {
-        HSLOG_TRACE(_cat, hstd::fmt("shift:{} edit:{}", shift, edit));
+        HSLOG_TRACE("shift:{} edit:{}", shift, edit);
         if (edit.isInsert()) {
             if (edit.getInsert().dstIndex <= index) {
-                HSLOG_DEBUG(_cat, "shift += 1");
+                HSLOG_DEBUG("shift += 1");
                 shift += 1;
             }
         } else if (edit.isDelete()) {
             if (edit.getDelete().srcIndex < index) {
-                HSLOG_DEBUG(_cat, "shift -= 1");
+                HSLOG_DEBUG("shift -= 1");
                 shift -= 1;
             }
         } else if (edit.isMove()) {
             if (edit.getMove().srcIndex < index) {
-                HSLOG_DEBUG(_cat, "shift -= 1");
+                HSLOG_DEBUG("shift -= 1");
                 shift -= 1;
             }
             if (edit.getMove().dstIndex <= index) {
-                HSLOG_DEBUG(_cat, "shift += 1");
+                HSLOG_DEBUG("shift += 1");
                 shift += 1;
             }
         }

@@ -1,4 +1,27 @@
-haxorg_add_library(hstd)
+if(${ORG_USE_QT})
+  find_package(
+    Qt6
+    COMPONENTS
+    REQUIRED Core)
+
+  qt_add_library(hstd STATIC)
+  set_common_files(hstd)
+  set_target_output(hstd)
+  set_target_flags(hstd)
+
+  target_link_libraries(hstd PUBLIC Qt6::Core)
+  target_compile_definitions(hstd PUBLIC ORG_USE_QT=1)
+
+  set_target_properties(
+    hstd
+    PROPERTIES AUTOMOC ON
+               AUTOUIC ON
+               AUTORCC ON)
+else()
+  haxorg_add_library(hstd)
+
+endif()
+
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/stdlib/.*" SEARCH_BASE "${BASE}")
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/system/.*" SEARCH_BASE "${BASE}")
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/ext/.*" SEARCH_BASE "${BASE}")
@@ -35,9 +58,15 @@ target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/imm
 
 if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
   haxorg_add_executable(tests_hstd)
+
+  if(${ORG_USE_QT})
+    target_compile_definitions(tests_hstd PUBLIC ORG_USE_QT=1)
+  endif()
+
   glob_add_sources2(TARGET tests_hstd LS_REGEX "${BASE}/tests/hstd/.*" SEARCH_BASE "${BASE}")
   target_link_libraries(tests_hstd PUBLIC GTest::gtest GTest::gmock hstd absl::flags
                                           absl::flags_parse immer)
+
   add_test(NAME hstd_tests COMMAND tests_hstd)
 
   haxorg_add_executable(benchmark_hstd)

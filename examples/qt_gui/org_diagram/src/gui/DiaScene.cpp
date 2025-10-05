@@ -124,25 +124,21 @@ void DiaScene::applyPartialEditStep(
     if (edit.hasSrc()) {
         hstd::Opt<DiaSceneItem*> item = getItemForId(edit.getSrc().id);
         HSLOG_DEBUG(
-            _cat,
-            hstd::fmt(
-                "SRC:{} {}",
-                edit.getSrc().getSelfPathFromRoot(),
-                item.has_value()
-                    ? hstd::descObjectPtr(item.value())
-                    : hstd::fmt("<no item for ID:{}>", edit.getSrc().id)));
+            "SRC:{} {}",
+            edit.getSrc().getSelfPathFromRoot(),
+            item.has_value()
+                ? hstd::descObjectPtr(item.value())
+                : hstd::fmt("<no item for ID:{}>", edit.getSrc().id));
     }
 
     if (edit.hasDst()) {
         hstd::Opt<DiaSceneItem*> item = getItemForId(edit.getDst().id);
         HSLOG_DEBUG(
-            _cat,
-            hstd::fmt(
-                "DST:{} {}",
-                edit.getDst().getSelfPathFromRoot(),
-                item.has_value()
-                    ? hstd::descObjectPtr(item.value())
-                    : hstd::fmt("<no item for ID:{}>", edit.getDst().id)));
+            "DST:{} {}",
+            edit.getDst().getSelfPathFromRoot(),
+            item.has_value()
+                ? hstd::descObjectPtr(item.value())
+                : hstd::fmt("<no item for ID:{}>", edit.getDst().id));
     }
 
     auto getParent = [&](DiaAdapter const& adapter) {
@@ -224,24 +220,20 @@ void DiaScene::applyPartialEditStep(
             if (parentItem->at(dstIndex)->getDiaId()
                 == m.dstNode.getDiaId()) {
                 HSLOG_INFO(
-                    _cat,
-                    hstd::fmt(
-                        "Move operation is a no-op. Parent {} already "
-                        "has item with ID {} placed at index {}",
-                        parentItem->getDiaId(),
-                        m.dstNode.getDiaId(),
-                        dstIndex));
+                    "Move operation is a no-op. Parent {} already "
+                    "has item with ID {} placed at index {}",
+                    parentItem->getDiaId(),
+                    m.dstNode.getDiaId(),
+                    dstIndex);
             } else {
                 HSLOG_INFO(
-                    _cat,
-                    hstd::fmt(
-                        "Move operation is required. Parent {} has "
-                        "item with ID {} at index {}, but the move "
-                        "operation requires item with ID {}",
-                        parentItem->getDiaId(),
-                        parentItem->at(dstIndex)->getDiaId(),
-                        dstIndex,
-                        m.dstNode.getDiaId()));
+                    "Move operation is required. Parent {} has "
+                    "item with ID {} at index {}, but the move "
+                    "operation requires item with ID {}",
+                    parentItem->getDiaId(),
+                    parentItem->at(dstIndex)->getDiaId(),
+                    dstIndex,
+                    m.dstNode.getDiaId());
                 treeModel->beginEditApply(edit, state);
                 parentItem->moveSubnode(srcIndex, dstIndex);
                 treeModel->endEditApply(edit, state);
@@ -282,8 +274,7 @@ void DiaScene::applyPartialEditStep(
                 hstd::Opt<DiaSceneItem*> item = getItemForId(
                     edit.getSrc().id);
                 HSLOG_INFO(
-                    _cat,
-                    "target item\n",
+                    "target item\n{}",
                     item.value()->treeRepr().toString(false));
                 auto oldSubnodes = item.value()->moveSubnodes();
                 auto newNode     = addAdapterNonRec(edit.getDst());
@@ -292,7 +283,7 @@ void DiaScene::applyPartialEditStep(
                 *target                    = std::move(newNode);
             }
 
-            HSLOG_INFO(_cat, rootNode->treeRepr().toString(false));
+            HSLOG_INFO("{}", rootNode->treeRepr().toString(false));
 
 
             treeModel->endEditApply(edit, state);
@@ -309,14 +300,13 @@ DiaSceneItem* DiaScene::resetRootAdapter(const hstd::Vec<DiaEdit>& edits) {
     if (edits.empty()) { return root(); }
     DiaSceneItem*         originalRoot = root();
     DiaEditTransientState state;
-    HSLOG_INFO(_cat, rootNode->treeRepr().toString(false));
+    HSLOG_INFO("{}", rootNode->treeRepr().toString(false));
     for (auto const& edit : hstd::enumerator(edits)) {
         TRACKED_SCOPE(
             hstd::fmt("Applying edit {}", edit.value().getKind()));
-        HSLOG_TRACE(
-            _cat, hstd::fmt("[{}] EDIT:{}", edit.index(), edit.value()));
+        HSLOG_TRACE("[{}] EDIT:{}", edit.index(), edit.value());
         applyPartialEditStep(edit.value(), state);
-        HSLOG_INFO(_cat, rootNode->treeRepr().toString(false));
+        HSLOG_INFO("{}", rootNode->treeRepr().toString(false));
     }
 
     LOGIC_ASSERTION_CHECK(

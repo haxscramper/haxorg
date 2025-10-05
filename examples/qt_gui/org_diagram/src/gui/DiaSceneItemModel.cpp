@@ -140,8 +140,7 @@ QModelIndex DiaSceneItemModel::findNodeIndex(
     }
 
     HSLOG_WARNING(
-        _cat,
-        "Could not find index for target node ",
+        "Could not find index for target node {}",
         targetNode->name.toStdString());
 
     return QModelIndex{};
@@ -172,11 +171,9 @@ void DiaSceneItemModel::beginEditApply(
             int idx                        = state.updateIdx(
                 edit.getDelete().srcIndex, parentPath);
             HSLOG_INFO(
-                _cat,
-                hstd::fmt(
-                    "About to remove item {} from {}",
-                    idx,
-                    qdebug_to_str(parentIndex)));
+                "About to remove item {} from {}",
+                idx,
+                qdebug_to_str(parentIndex));
 
             beginRemoveRows(parentIndex, idx, idx);
             break;
@@ -211,11 +208,9 @@ void DiaSceneItemModel::beginEditApply(
             int idx                        = state.updateIdx(
                 edit.getInsert().dstIndex, parentPath);
             HSLOG_INFO(
-                _cat,
-                hstd::fmt(
-                    "About to insert item {} under {}",
-                    idx,
-                    qdebug_to_str(parentIndex)));
+                "About to insert item {} under {}",
+                idx,
+                qdebug_to_str(parentIndex));
             beginInsertRows(parentIndex, idx, idx);
             break;
         }

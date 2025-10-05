@@ -31,6 +31,7 @@
 #    include <fstream>
 #    include <cpptrace.hpp>
 
+
 using namespace hstd;
 
 BOOST_LOG_GLOBAL_LOGGER(
@@ -371,6 +372,11 @@ log_record log_record::from_operations(const OperationsMsg& msg) {
     return res;
 }
 
+log_record& log_record::prepend_message(const std::string& message) {
+    data.message.insert(0, message);
+    return *this;
+}
+
 log_record& log_record::source_scope_add(const Str& scope) {
     data.source_scope.push_back(scope);
     return *this;
@@ -432,7 +438,8 @@ hstd::log::log_record& ::hstd::log::log_record::file(char const* f) {
     return *this;
 }
 
-hstd::log::log_record& ::hstd::log::log_record::category(Str const& cat) {
+hstd::log::log_record& ::hstd::log::log_record::category(
+    log_category const& cat) {
     data.category = cat;
     return *this;
 }
@@ -441,6 +448,30 @@ hstd::log::log_record& ::hstd::log::log_record::severity(
     severity_level l) {
     data.severity = l;
     return *this;
+}
+
+log_record& log_record::as_trace() {
+    return severity(severity_level::trace);
+}
+
+log_record& log_record::as_debug() {
+    return severity(severity_level::debug);
+}
+
+log_record& log_record::as_info() {
+    return severity(severity_level::info);
+}
+
+log_record& log_record::as_warning() {
+    return severity(severity_level::warning);
+}
+
+log_record& log_record::as_error() {
+    return severity(severity_level::error);
+}
+
+log_record& log_record::as_fatal() {
+    return severity(severity_level::fatal);
 }
 
 std::size_t log_record::log_data::hash() const {
@@ -563,11 +594,7 @@ sink_ptr hstd::log::set_sink_filter(
     return sink;
 }
 
-bool ::hstd::log::is_log_accepted(
-    const Str&     category,
-    severity_level level) {
-    return true;
-}
+bool ::hstd::log::is_log_accepted(severity_level level) { return true; }
 
 ::hstd::log::log_builder::~log_builder() {
     if (!is_released) {

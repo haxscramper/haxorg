@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hstd/ext/logger.hpp>
-#include "log_graph_tracker.hpp"
+#include <hstd/ext/log_graph_tracker.hpp>
 #include <QDebug>
 #include <QObject>
 #include <QTest>
@@ -122,31 +122,6 @@ struct SharedPtrApiDerived {
 
 } // namespace hstd
 
-
-template <typename T>
-hstd::log::log_record log_collection(
-    char const*               cat,
-    hstd::log::severity_level severity,
-    std::vector<T> const&     items,
-    int                       line     = __builtin_LINE(),
-    char const*               function = __builtin_FUNCTION(),
-    char const*               file     = __builtin_FILE()) {
-    auto res = ::hstd::log::log_record{}
-                   .file(file)
-                   .line(line)
-                   .category(cat)
-                   .function(function)
-                   .severity(severity);
-    res.fmt_message(
-        "std::vector<{}> with {} items:",
-        hstd::value_metadata<T>::typeName(),
-        items.size());
-    for (int i = 0; i < items.size(); ++i) {
-        res.fmt_message("\n[{}]: {}", i, hstd::fmt1(items.at(i)));
-    }
-    return res;
-}
-
 std::shared_ptr<hstd::log::log_graph_tracker> get_tracker();
 hstd::ext::Graphviz::Graph                    get_tracker_graph();
 
@@ -159,9 +134,6 @@ hstd::ext::Graphviz::Graph                    get_tracker_graph();
     HSLOG_TRACKED_CONNECT(get_tracker(), __VA_ARGS__)
 #define TRACKED_OBJECT(...)                                               \
     HSLOG_TRACKED_OBJECT(get_tracker(), __VA_ARGS__)
-
-#define HSLOG_FMT1(value)                                                 \
-    HSLOG_DEBUG("debug", hstd::fmt("{} = {}", #value, value));
 
 hstd::fs::path getDebugFile(
     QObject*         testClass,
