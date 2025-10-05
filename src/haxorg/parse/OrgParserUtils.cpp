@@ -99,6 +99,16 @@ OrgId OrgParser::end(int line, const char* function) {
     return res;
 }
 
+OrgParser::ParseResult OrgParser::error_end(
+    std::string const& message,
+    OrgLexer&          lex,
+    int                line,
+    char const*        function) {
+    error_token(message, lex, line, function);
+    return ParseFail{};
+}
+
+
 void OrgParser::fail(
     CR<OrgLexer> lex,
     CR<OrgNode>  replace,
@@ -175,7 +185,7 @@ OrgId OrgParser::error_token(
     box->parserFunction = function;
     box->parserLine     = line;
     mono.data           = OrgNodeMono::Error{.box = box};
-    OrgNode error       = OrgNode{OrgNodeKind::ErrorToken, mono};
+    OrgNode error       = OrgNode{OrgNodeKind::ErrorInfoToken, mono};
     return token(error);
 }
 

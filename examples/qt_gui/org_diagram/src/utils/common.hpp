@@ -14,50 +14,7 @@
 
 namespace hstd {
 
-struct logic_unhandled_kind_error
-    : CRTP_hexception<logic_unhandled_kind_error> {
-    template <IsEnum E>
-    static logic_unhandled_kind_error init(
-        E           kind,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION(),
-        char const* file     = __builtin_FILE()) {
-        auto result = logic_unhandled_kind_error{};
-#if !ORG_EMCC_BUILD
-        result.eager = cpptrace::generate_trace();
-#endif
-        result.msg = hstd::fmt(
-            "Unexpected kind {} (0x{:X}",
-            kind,
-            static_cast<std::underlying_type_t<E>>(kind));
-        result.line     = line;
-        result.file     = file;
-        result.function = function;
-        return result;
-    }
-};
 
-template <class T, class D, class U>
-    requires(requires(std::unique_ptr<U, D>::pointer p) {
-                dynamic_cast<std::unique_ptr<T, D>::pointer>(p);
-            })
-constexpr auto dynamic_pointer_cast(std::unique_ptr<U, D>&& r) noexcept
-    -> std::unique_ptr<T, D> {
-    static_assert(
-        !std::is_array_v<T> && !std::is_array_v<U>,
-        "don't work with array of polymorphic objects");
-    if (auto p = dynamic_cast<std::unique_ptr<T, D>::pointer>(r.get())) {
-        r.release();
-        return std::unique_ptr<T, D>(p, std::forward<D>(r.get_deleter()));
-    } else if constexpr (
-        !std::is_pointer_v<D> && std::is_default_constructible_v<D>) {
-        return {};
-    } else if constexpr (std::is_copy_constructible_v<D>) {
-        return std::unique_ptr<T, D>(nullptr, r.get_deleter());
-    } else {
-        static_assert(false, "unable to create an empty unique_ptr");
-    }
-}
 
 
 template <typename T>
@@ -240,39 +197,7 @@ bool haxorg_qCompareOp(
 #define QCOMPARE_GE2(computed, baseline)                                  \
     QCOMPARE_OP_IMPL(computed, baseline, >=, GreaterThanOrEqual)
 
-namespace outcome = BOOST_OUTCOME_V2_NAMESPACE;
 
-/// \brief Macro to handle std::optional - converts to outcome::result
-#define BOOST_OUTCOME_TRY_OPTIONAL(var, optional_expr, error_msg)         \
-    auto BOOST_OUTCOME_UNIQUE_NAME = (optional_expr);                     \
-    if (!BOOST_OUTCOME_UNIQUE_NAME.has_value()) {                         \
-        return ::outcome::failure(error_msg);                             \
-    }                                                                     \
-    auto const& var = std::move(BOOST_OUTCOME_UNIQUE_NAME.value());
-
-/// \brief Macro to handle is<X>() + get<X>() pattern
-#define BOOST_OUTCOME_TRY_VALIDATE_GET(                                   \
-    var, obj, check_method, get_method, error_msg)                        \
-    if (!(obj).check_method()) { return ::outcome::failure(error_msg); }  \
-    auto const& var = (obj).get_method();
-
-/// \brief Alternative macro if get_method() doesn't return optional
-#define BOOST_OUTCOME_TRY_VALIDATE_GET_DIRECT(                            \
-    var, obj, check_method, get_method, error_msg)                        \
-    if (!(obj).check_method()) { return ::outcome::failure(error_msg); }  \
-    auto const& var = (obj).get_method();
-
-
-#define BOOST_OUTCOME_TRY_SUB_VARIANT(var, obj, variant_name)             \
-    BOOST_OUTCOME_TRY_VALIDATE_GET(                                       \
-        var,                                                              \
-        obj,                                                              \
-        is##variant_name,                                                 \
-        get##variant_name,                                                \
-        hstd::fmt(                                                        \
-            "Expected sub variant '{}' but got '{}'",                     \
-            #variant_name,                                                \
-            obj.sub_variant_get_kind()))
 
 template <typename T>
 outcome::result<T, std::string> getStructuredProperty(
@@ -287,37 +212,6 @@ outcome::result<T, std::string> getStructuredProperty(
     return hstd::from_json_eval<T>(json_data.value.getRef());
 }
 
-namespace hstd {
-
-struct described_predicate_error {
-    int         line;
-    char const* function;
-    char const* file;
-    std::string text;
-
-    ::hstd::logic_assertion_error as_exception(char const* expr) {
-        return ::hstd::logic_assertion_error::init(
-            ::hstd::fmt("{}: {}", expr, text), line, function, file);
-    }
-
-    static described_predicate_error init(
-        std::string const& message,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE()) {
-        return described_predicate_error{line, function, file, message};
-    }
-};
-
-using described_predicate_result = outcome::
-    result<bool, described_predicate_error>;
-
-#define LOGIC_ASSERTION_CHECK_DESCRIBED(expr)                             \
-    if (::hstd::described_predicate_result tmp = expr; !(tmp)) {          \
-        throw tmp.error().as_exception(#expr);                            \
-    }
-
-} // namespace hstd
 
 outcome::result<org::sem::AttrGroup const*, std::string> getFlagProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,

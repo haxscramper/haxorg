@@ -519,6 +519,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth)
     .property("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields)
     .property("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields)
+    .property("withFieldSubset", &org::imm::ImmAdapter::TreeReprConf::withFieldSubset)
     .constructor<>()
     ;
   emscripten::class_<org::imm::ImmAdapterVirtualBase>("ImmAdapterVirtualBase")

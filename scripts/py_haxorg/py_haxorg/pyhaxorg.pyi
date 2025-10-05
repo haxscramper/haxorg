@@ -635,12 +635,13 @@ class ImmAstVersion:
     def __getattr__(self, name: str) -> object: ...
 
 class ImmAdapterTreeReprConf:
-    def __init__(self, maxDepth: int, withAuxFields: bool, withReflFields: bool) -> None: ...
+    def __init__(self, maxDepth: int, withAuxFields: bool, withReflFields: bool, withFieldSubset: UnorderedSet[stdpair[OrgSemKind, ImmReflFieldId]]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     maxDepth: int
     withAuxFields: bool
     withReflFields: bool
+    withFieldSubset: UnorderedSet[stdpair[OrgSemKind, ImmReflFieldId]]
 
 class ImmAdapter:
     def __init__(self) -> None: ...
@@ -4610,58 +4611,59 @@ class OrgNodeKind(Enum):
     BlockDynamicFallback = 69
     BigIdent = 70
     Bold = 71
-    ErrorWrap = 72
-    ErrorToken = 73
-    Italic = 74
-    Verbatim = 75
-    Backtick = 76
-    Underline = 77
-    Strike = 78
-    Quote = 79
-    Angle = 80
-    Monospace = 81
-    Par = 82
-    CriticMarkStructure = 83
-    InlineMath = 84
-    DisplayMath = 85
-    Space = 86
-    Punctuation = 87
-    Colon = 88
-    Word = 89
-    Escaped = 90
-    Newline = 91
-    RawLink = 92
-    Link = 93
-    Macro = 94
-    Symbol = 95
-    StaticActiveTime = 96
-    StaticInactiveTime = 97
-    DynamicActiveTime = 98
-    DynamicInactiveTime = 99
-    TimeRange = 100
-    SimpleTime = 101
-    HashTag = 102
-    MetaSymbol = 103
-    AtMention = 104
-    Placeholder = 105
-    RadioTarget = 106
-    Target = 107
-    SrcInlineCode = 108
-    InlineCallCode = 109
-    InlineExport = 110
-    InlineComment = 111
-    RawText = 112
-    SubtreeDescription = 113
-    SubtreeUrgency = 114
-    DrawerLogbook = 115
-    Drawer = 116
-    DrawerPropertyList = 117
-    DrawerProperty = 118
-    Subtree = 119
-    SubtreeTimes = 120
-    SubtreeStars = 121
-    SubtreeCompletion = 122
-    SubtreeImportance = 123
+    ErrorInfoToken = 72
+    ErrorSkipGroup = 73
+    ErrorSkipToken = 74
+    Italic = 75
+    Verbatim = 76
+    Backtick = 77
+    Underline = 78
+    Strike = 79
+    Quote = 80
+    Angle = 81
+    Monospace = 82
+    Par = 83
+    CriticMarkStructure = 84
+    InlineMath = 85
+    DisplayMath = 86
+    Space = 87
+    Punctuation = 88
+    Colon = 89
+    Word = 90
+    Escaped = 91
+    Newline = 92
+    RawLink = 93
+    Link = 94
+    Macro = 95
+    Symbol = 96
+    StaticActiveTime = 97
+    StaticInactiveTime = 98
+    DynamicActiveTime = 99
+    DynamicInactiveTime = 100
+    TimeRange = 101
+    SimpleTime = 102
+    HashTag = 103
+    MetaSymbol = 104
+    AtMention = 105
+    Placeholder = 106
+    RadioTarget = 107
+    Target = 108
+    SrcInlineCode = 109
+    InlineCallCode = 110
+    InlineExport = 111
+    InlineComment = 112
+    RawText = 113
+    SubtreeDescription = 114
+    SubtreeUrgency = 115
+    DrawerLogbook = 116
+    Drawer = 117
+    DrawerPropertyList = 118
+    DrawerProperty = 119
+    Subtree = 120
+    SubtreeTimes = 121
+    SubtreeStars = 122
+    SubtreeCompletion = 123
+    SubtreeImportance = 124
 
 class OrgTokenKind(Enum):
     Ampersand = 1

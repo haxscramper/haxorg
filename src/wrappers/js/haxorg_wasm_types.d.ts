@@ -1189,8 +1189,9 @@ export interface haxorg_wasm_module_auto {
     BlockDynamicFallback: OrgNodeKind,
     BigIdent: OrgNodeKind,
     Bold: OrgNodeKind,
-    ErrorWrap: OrgNodeKind,
-    ErrorToken: OrgNodeKind,
+    ErrorInfoToken: OrgNodeKind,
+    ErrorSkipGroup: OrgNodeKind,
+    ErrorSkipToken: OrgNodeKind,
     Italic: OrgNodeKind,
     Verbatim: OrgNodeKind,
     Backtick: OrgNodeKind,
@@ -2009,6 +2010,7 @@ export interface ImmAdapterTreeReprConf {
   maxDepth: number
   withAuxFields: boolean
   withReflFields: boolean
+  withFieldSubset: UnorderedSet<StdPair<OrgSemKind, ImmReflFieldId>>
 }
 export interface ImmAdapterVirtualBaseConstructor { new(): ImmAdapterVirtualBase; }
 export interface ImmAdapterVirtualBase {  }
@@ -5682,8 +5684,9 @@ export enum OrgNodeKind {
   BlockDynamicFallback,
   BigIdent,
   Bold,
-  ErrorWrap,
-  ErrorToken,
+  ErrorInfoToken,
+  ErrorSkipGroup,
+  ErrorSkipToken,
   Italic,
   Verbatim,
   Backtick,

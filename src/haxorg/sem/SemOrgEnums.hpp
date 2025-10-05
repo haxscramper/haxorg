@@ -2122,8 +2122,12 @@ enum class OrgNodeKind : short int {
   ///      elements like `some text (notes)` are also represented as `Word,
   ///      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
   Bold,
-  ErrorWrap,
-  ErrorToken,
+  /// \brief Error leaf node inserted into the parse tree on failure
+  ErrorInfoToken,
+  /// \brief Parent node for one or more tokens skipped during error recovery
+  ErrorSkipGroup,
+  /// \brief Single token node skipped while the parser searched for recovery point
+  ErrorSkipToken,
   Italic,
   Verbatim,
   Backtick,
@@ -2284,8 +2288,9 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockDynamicFallback)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BigIdent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Bold)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorWrap)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorToken)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorInfoToken)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorSkipGroup)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorSkipToken)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Italic)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Verbatim)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Backtick)

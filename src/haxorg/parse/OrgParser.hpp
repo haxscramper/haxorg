@@ -5,6 +5,7 @@
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Exception.hpp>
+#include <hstd/stdlib/Outcome.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>
 
@@ -49,59 +50,63 @@ struct OrgParser : public hstd::OperationsTracer {
   public:
     OrgParser() {}
 
-    OrgId parseFootnote(OrgLexer& lex);
-    OrgId parseMacro(OrgLexer& lex);
-    OrgId parseCallArguments(OrgLexer& lex);
-    OrgId parseAttrValue(OrgLexer& lex);
-    OrgId parseAttrLisp(OrgLexer& lex);
-    OrgId parseLink(OrgLexer& lex);
-    OrgId parseInlineMath(OrgLexer& lex);
-    OrgId parseSymbol(OrgLexer& lex);
-    OrgId parseHashTag(OrgLexer& lex);
-    OrgId parseTimeRange(OrgLexer& lex);
-    OrgId parseTimeStamp(OrgLexer& lex);
-    OrgId parseSrcInline(OrgLexer& lex);
-    OrgId parseVerbatimOrMonospace(OrgLexer& lex);
-    OrgId parseAngleTarget(OrgLexer& lex);
-    OrgId parseTable(OrgLexer& lex);
-    OrgId parsePlaceholder(OrgLexer& lex);
-    OrgId parseCommandArguments(OrgLexer& lex);
-    OrgId parseSrcArguments(OrgLexer& lex);
-    OrgId parseSrc(OrgLexer& lex);
-    OrgId parseExample(OrgLexer& lex);
-    OrgId parseColonExample(OrgLexer& lex);
-    OrgId parseListItem(OrgLexer& lex);
-    OrgId parseList(OrgLexer& lex);
-    OrgId parseLatex(OrgLexer& lex);
-    OrgId parseBlockExport(OrgLexer& lex);
-    OrgId parseParagraph(OrgLexer& lex);
-    OrgId parseInlineExport(OrgLexer& lex);
-    OrgId parseCriticMarkup(OrgLexer& lex);
+    struct ParseFail : std::exception {};
 
-    OrgId parseSubtree(OrgLexer& lex);
-    OrgId parseSubtreeTodo(OrgLexer& lex);
-    OrgId parseSubtreeUrgency(OrgLexer& lex);
-    OrgId parseSubtreeDrawer(OrgLexer& lex);
-    OrgId parseSubtreeCompletion(OrgLexer& lex);
-    OrgId parseSubtreeTags(OrgLexer& lex);
-    OrgId parseSubtreeTitle(OrgLexer& lex);
-    OrgId parseSubtreeTimes(OrgLexer& lex);
+    using ParseResult = hstd::outcome::outcome<OrgId, ParseFail>;
 
-    OrgId parseSubtreeLogbook(OrgLexer& lex);
-    OrgId parseSubtreeProperties(OrgLexer& lex);
+    ParseResult parseFootnote(OrgLexer& lex);
+    ParseResult parseMacro(OrgLexer& lex);
+    ParseResult parseCallArguments(OrgLexer& lex);
+    ParseResult parseAttrValue(OrgLexer& lex);
+    ParseResult parseAttrLisp(OrgLexer& lex);
+    ParseResult parseLink(OrgLexer& lex);
+    ParseResult parseInlineMath(OrgLexer& lex);
+    ParseResult parseSymbol(OrgLexer& lex);
+    ParseResult parseHashTag(OrgLexer& lex);
+    ParseResult parseTimeRange(OrgLexer& lex);
+    ParseResult parseTimeStamp(OrgLexer& lex);
+    ParseResult parseSrcInline(OrgLexer& lex);
+    ParseResult parseVerbatimOrMonospace(OrgLexer& lex);
+    ParseResult parseAngleTarget(OrgLexer& lex);
+    ParseResult parseTable(OrgLexer& lex);
+    ParseResult parsePlaceholder(OrgLexer& lex);
+    ParseResult parseCommandArguments(OrgLexer& lex);
+    ParseResult parseSrcArguments(OrgLexer& lex);
+    ParseResult parseSrc(OrgLexer& lex);
+    ParseResult parseExample(OrgLexer& lex);
+    ParseResult parseColonExample(OrgLexer& lex);
+    ParseResult parseListItem(OrgLexer& lex);
+    ParseResult parseList(OrgLexer& lex);
+    ParseResult parseLatex(OrgLexer& lex);
+    ParseResult parseBlockExport(OrgLexer& lex);
+    ParseResult parseParagraph(OrgLexer& lex);
+    ParseResult parseInlineExport(OrgLexer& lex);
+    ParseResult parseCriticMarkup(OrgLexer& lex);
 
-    OrgId parseOrgFile(OrgLexer& lex);
-    OrgId parseLineCommand(OrgLexer& lex);
-    OrgId parseStmtListItem(OrgLexer& lex);
-    OrgId parseTop(OrgLexer& lex);
+    ParseResult parseSubtree(OrgLexer& lex);
+    ParseResult parseSubtreeTodo(OrgLexer& lex);
+    ParseResult parseSubtreeUrgency(OrgLexer& lex);
+    ParseResult parseSubtreeDrawer(OrgLexer& lex);
+    ParseResult parseSubtreeCompletion(OrgLexer& lex);
+    ParseResult parseSubtreeTags(OrgLexer& lex);
+    ParseResult parseSubtreeTitle(OrgLexer& lex);
+    ParseResult parseSubtreeTimes(OrgLexer& lex);
 
-    OrgId parseFull(OrgLexer& lex);
-    OrgId parseTextWrapCommand(OrgLexer& lex);
-    void  extendSubtreeTrails(OrgId position);
-    void  parseCSVArguments(OrgLexer& lex);
+    ParseResult parseSubtreeLogbook(OrgLexer& lex);
+    ParseResult parseSubtreeProperties(OrgLexer& lex);
 
-    OrgId subParseImpl(
-        OrgId (OrgParser::*func)(OrgLexer&),
+    ParseResult parseOrgFile(OrgLexer& lex);
+    ParseResult parseLineCommand(OrgLexer& lex);
+    ParseResult parseStmtListItem(OrgLexer& lex);
+    ParseResult parseTop(OrgLexer& lex);
+
+    ParseResult parseFull(OrgLexer& lex);
+    ParseResult parseTextWrapCommand(OrgLexer& lex);
+    void        extendSubtreeTrails(OrgId position);
+    void        parseCSVArguments(OrgLexer& lex);
+
+    ParseResult subParseImpl(
+        ParseResult (OrgParser::*func)(OrgLexer&),
         OrgLexer&   lex,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
@@ -156,6 +161,12 @@ struct OrgParser : public hstd::OperationsTracer {
         char const* function = __builtin_FUNCTION());
 
     OrgId error_token(
+        std::string const& message,
+        OrgLexer&          lex,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION());
+
+    ParseResult error_end(
         std::string const& message,
         OrgLexer&          lex,
         int                line     = __builtin_LINE(),

@@ -1356,9 +1356,13 @@ created anew following the immutable ID structure.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth)
-    .def_readwrite("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields)
-    .def_readwrite("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields)
+    .def_readwrite("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth, R"RAW(\brief Do not print nodes that are more than N levels deep from
+the root)RAW")
+    .def_readwrite("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields, R"RAW(\brief Include auxiliary subnodes in the tree repr -- `.title`
+field and other locations outside of standard `.subnodes`)RAW")
+    .def_readwrite("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields, R"RAW(\brief Format full immutable node value as a part of tree repr)RAW")
+    .def_readwrite("withFieldSubset", &org::imm::ImmAdapter::TreeReprConf::withFieldSubset, R"RAW(\brief Profide extra pretty-printed information for a given
+field subset.)RAW")
     .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -9080,8 +9084,9 @@ ingoing elements.)RAW")
      NOTE: when structured sentences are enabled, regular punctuation
      elements like `some text (notes)` are also represented as `Word,
      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.)RAW")
-    .value("ErrorWrap", OrgNodeKind::ErrorWrap)
-    .value("ErrorToken", OrgNodeKind::ErrorToken)
+    .value("ErrorInfoToken", OrgNodeKind::ErrorInfoToken, R"RAW(Error leaf node inserted into the parse tree on failure)RAW")
+    .value("ErrorSkipGroup", OrgNodeKind::ErrorSkipGroup, R"RAW(Parent node for one or more tokens skipped during error recovery)RAW")
+    .value("ErrorSkipToken", OrgNodeKind::ErrorSkipToken, R"RAW(Single token node skipped while the parser searched for recovery point)RAW")
     .value("Italic", OrgNodeKind::Italic)
     .value("Verbatim", OrgNodeKind::Verbatim)
     .value("Backtick", OrgNodeKind::Backtick)
