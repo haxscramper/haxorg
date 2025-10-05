@@ -47,6 +47,13 @@ namespace hstd {
 
 namespace outcome = BOOST_OUTCOME_V2_NAMESPACE;
 
+template <
+    typename Value,
+    typename Error,
+    class NoValuePolicy = outcome::policy::
+        default_policy<Value, Error, void>>
+using Result = outcome::result<Value, Error, NoValuePolicy>;
+
 struct described_predicate_error {
     int         line;
     char const* function;

@@ -50,9 +50,12 @@ struct OrgParser : public hstd::OperationsTracer {
   public:
     OrgParser() {}
 
-    struct ParseFail : std::exception {};
+    struct ParseFail {};
+    struct ParseOk {};
 
-    using ParseResult = hstd::outcome::outcome<OrgId, ParseFail>;
+    using MaybeTokenFail = hstd::Result<bool, OrgNodeMono::Error>;
+    using ParseResult    = hstd::Result<ParseOk, ParseFail>;
+    using LexResult      = hstd::Result<OrgTokenId, ParseFail>;
 
     ParseResult parseFootnote(OrgLexer& lex);
     ParseResult parseMacro(OrgLexer& lex);
@@ -102,8 +105,8 @@ struct OrgParser : public hstd::OperationsTracer {
 
     ParseResult parseFull(OrgLexer& lex);
     ParseResult parseTextWrapCommand(OrgLexer& lex);
+    ParseResult parseCSVArguments(OrgLexer& lex);
     void        extendSubtreeTrails(OrgId position);
-    void        parseCSVArguments(OrgLexer& lex);
 
     ParseResult subParseImpl(
         ParseResult (OrgParser::*func)(OrgLexer&),
@@ -160,14 +163,39 @@ struct OrgParser : public hstd::OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
-    OrgId error_token(
+    OrgNodeMono::Error error_value(
         std::string const& message,
-        OrgLexer&          lex,
+        const OrgLexer&    lex,
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION());
 
     ParseResult error_end(
         std::string const& message,
+        const OrgLexer&    lex,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION()) {
+        return error_end(
+            error_value(message, lex, line, function), line, function);
+    }
+
+    OrgId error_token(
+        OrgNodeMono::Error const& err,
+        int                       line     = __builtin_LINE(),
+        char const*               function = __builtin_FUNCTION());
+
+    ParseResult error_end(
+        OrgNodeMono::Error const& err,
+        int                       line     = __builtin_LINE(),
+        char const*               function = __builtin_FUNCTION());
+
+    ParseResult maybe_error_end(
+        MaybeTokenFail const& err,
+        int                   line     = __builtin_LINE(),
+        char const*           function = __builtin_FUNCTION());
+
+    ParseResult maybe_recursive_error_end(
+        ParseResult const& res,
+        std::string const& on_fail_message,
         OrgLexer&          lex,
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION());
@@ -187,21 +215,35 @@ struct OrgParser : public hstd::OperationsTracer {
         int             line     = __builtin_LINE(),
         char const*     function = __builtin_FUNCTION());
 
-    void expect(
+    [[nodiscard]] ParseResult expect(
         OrgLexer const&                 lex,
         OrgParser::OrgExpectable const& item,
         int                             line     = __builtin_LINE(),
         char const*                     function = __builtin_FUNCTION());
 
     OrgTokenId pop(
+        OrgLexer&   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        return pop(lex, std::nullopt, line, function).assume_value();
+    }
+
+    [[nodiscard]] LexResult pop(
         OrgLexer&                           lex,
-        hstd::Opt<OrgParser::OrgExpectable> tok  = std::nullopt,
+        hstd::Opt<OrgParser::OrgExpectable> tok,
         int                                 line = __builtin_LINE(),
         char const* function                     = __builtin_FUNCTION());
 
     void skip(
+        OrgLexer&   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        std::ignore = skip(lex, std::nullopt, line, function);
+    }
+
+    [[nodiscard]] ParseResult skip(
         OrgLexer&                           lex,
-        hstd::Opt<OrgParser::OrgExpectable> item = std::nullopt,
+        hstd::Opt<OrgParser::OrgExpectable> item,
         int                                 line = __builtin_LINE(),
         char const* function                     = __builtin_FUNCTION());
 
