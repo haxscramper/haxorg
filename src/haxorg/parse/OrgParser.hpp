@@ -75,6 +75,8 @@ struct OrgParser : public hstd::OperationsTracer {
     ParseResult parseVerbatimOrMonospace(OrgLexer& lex);
     ParseResult parseAngleTarget(OrgLexer& lex);
     ParseResult parseTable(OrgLexer& lex);
+    ParseResult parseTablePipeRow(OrgLexer& lex);
+    ParseResult parseTableBlockRow(OrgLexer& lex);
     ParseResult parsePlaceholder(OrgLexer& lex);
     ParseResult parseCommandArguments(OrgLexer& lex);
     ParseResult parseSrcArguments(OrgLexer& lex);
@@ -166,16 +168,10 @@ struct OrgParser : public hstd::OperationsTracer {
         OrgParser* parser;
         OrgId      startId = OrgId::Nil();
 
-        OrgParser::ParseOk end() {
-            auto result = parser->end_impl();
-            LOGIC_ASSERTION_CHECK(
-                parser->treeDepth() == startingDepth,
-                "{} != {}",
-                startingDepth,
-                parser->treeDepth());
-
-            return OrgParser::ParseOk{result};
-        }
+        OrgParser::ParseOk end(
+            std::string const& desc     = "",
+            int                line     = __builtin_LINE(),
+            char const*        function = __builtin_FUNCTION());
     };
 
 

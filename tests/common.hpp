@@ -57,29 +57,29 @@ inline hstd::fs::path getDebugFile(
     auto testname = ::testing::UnitTest::GetInstance()
                         ->current_test_info()
                         ->name();
-    hstd::fs::path result;
+    hstd::fs::path outPath;
 
     if (suffix.empty()) {
         hstd::Str result = hstd::fmt("{}/{}", dir.native(), testname);
         hstd::createDirectory(hstd::fs::path{result.toBase()});
-        result = result.toBase();
+        outPath = result.toBase();
     } else {
         hstd::Str result = hstd::fmt(
             "{}/{}/{}", dir.native(), testname, suffix);
         hstd::createDirectory(
             hstd::fs::path{result.toBase()}.parent_path());
-        result = result.toBase();
+        outPath = result.toBase();
     }
 
     if (cleanParent) {
-        auto parent = result.parent_path();
+        auto parent = outPath.parent_path();
         if (hstd::fs::exists(parent)) {
             hstd::fs::remove_all(parent);
             hstd::createDirectory(parent);
         }
     }
 
-    return result;
+    return outPath;
 }
 
 

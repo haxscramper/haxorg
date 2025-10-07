@@ -150,10 +150,17 @@ OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
 OrgId OrgParser::token(CR<OrgNode> node, int line, const char* function) {
     auto res = group->token(node);
     if (TraceState) {
+        std::string msg;
+        if (node.isMono()) {
+            if (node.getMono().isError()) {
+                msg = hstd::fmt("{}", *node.getMono().getError().box);
+            }
+        }
         report(
             Builder(
                 OrgParser::ReportKind::AddToken, nullptr, line, function)
                 .with_node(res)
+                .with_msg(msg)
                 .report);
     }
     return res;

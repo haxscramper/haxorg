@@ -147,8 +147,10 @@ OrgParser::ParseResult OrgParser::parseMacro(OrgLexer& lex) {
             std::ignore = skip(lex, otk::CurlyEnd);
         } else {
             LOGIC_ASSERTION_CHECK(!hasClose, "");
-            return error_end(
+            auto fail = error_end(
                 "macro is missing closing triple curly brace", lex);
+            end_impl();
+            return fail;
         }
     }
 
@@ -576,7 +578,6 @@ void OrgParser::textFold(OrgLexer& lex) {
 #undef CASE_SINGLE
 #undef CASE_INLINE
 
-        end_impl();
         return ParseOk{};
     };
 
@@ -1191,62 +1192,120 @@ OrgParser::ParseResult OrgParser::parseAngleTarget(OrgLexer& lex) {
     }
 }
 
+OrgParser::ParseResult OrgParser::parseTablePipeRow(OrgLexer& lex) {
+    auto rowGuard = start(onk::TableRow);
+    empty();                               // no row parameters
+    empty();                               // no row-level text
+    auto listGuard = start(onk::StmtList); // List of rows
+
+    while (lex.at(OrgTokSet{otk::LeadingPipe, otk::Pipe})) {
+        auto cellGuard = start(onk::TableCell);
+        empty();                                   // No cell parameters
+        auto     listGuard = start(onk::StmtList); // Cell content
+        SubLexer sub{lex};
+        skip(lex);
+        OrgTokSet CellEnd{otk::Pipe, otk::TrailingPipe};
+        OrgTokSet CellStart{otk::Pipe, otk::LeadingPipe};
+        while (lex.can_search(CellEnd)) {
+            if (lex.at(otk::Whitespace)
+                && (lex.at(CellEnd, +1) || lex.at(CellStart, -1))) {
+                lex.next();
+            } else {
+                sub.add(pop(lex));
+            }
+        }
+        if (sub.empty()) {
+            auto guard = start(onk::Paragraph);
+            guard.end();
+        } else {
+            sub.start();
+            SUB_PARSE(Paragraph, sub, "table cell content.");
+        }
+
+        listGuard.end();
+        cellGuard.end();
+    }
+    BOOST_OUTCOME_TRY(skip(lex, otk::TrailingPipe));
+    if (lex.at(Newline)) { skip(lex); }
+
+    listGuard.end();
+    return rowGuard.end();
+}
+
+OrgParser::ParseResult OrgParser::parseTableBlockRow(OrgLexer& lex) {
+    TRY_SKIP(lex, otk::CmdPrefix);
+    TRY_SKIP(lex, otk::CmdRow);
+    auto rowGuard = start(onk::TableRow);
+    SUB_PARSE(CommandArguments, lex, "command arguments for table row");
+    empty();
+    newline(lex);
+
+    auto stmtGuard = start(onk::StmtList);
+    if (lex.at(otk::LeadingPipe)) {
+        while (lex.at(otk::LeadingPipe)) {
+            TRY_SKIP(lex, otk::LeadingPipe);
+            space(lex);
+            auto cellGuard = start(onk::TableCell);
+            empty();
+            auto stmtGuard = start(onk::StmtList);
+            auto sub       = subToEol(lex);
+            if (sub.empty()) {
+                empty();
+            } else {
+                SUB_PARSE(
+                    Paragraph,
+                    sub,
+                    "command "
+                    "arguments for table cell");
+            }
+            stmtGuard.end();
+            cellGuard.end();
+            newline(lex);
+        }
+    } else {
+        while (lex.at(Vec{otk::CmdPrefix, otk::CmdCell})) {
+            TRY_SKIP(lex, otk::CmdPrefix);
+            TRY_SKIP(lex, otk::CmdCell);
+            auto cellGuard = start(onk::TableCell);
+            SUB_PARSE(
+                CommandArguments,
+                lex,
+                "command arguments "
+                "for table cell");
+            auto stmtGuard = start(onk::StmtList);
+            while (!(
+                lex.at(otk::CmdPrefix)
+                && lex.at(
+                    OrgTokSet{otk::CmdCell, otk::CmdRow, otk::CmdTableEnd},
+                    +1))) {
+                SUB_PARSE(
+                    StmtListItem,
+                    lex,
+                    "cell item in "
+                    "table block");
+            }
+            stmtGuard.end();
+            cellGuard.end();
+        }
+    }
+
+    stmtGuard.end();
+    return rowGuard.end();
+}
+
 
 OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
     __perf_trace("parsing", "parseTable");
-    auto __trace    = trace(lex);
-    auto tableGuard = start(onk::Table);
+    auto __trace = trace(lex);
 
-
-    auto parse_pipe_row = [&]() -> ParseResult {
-        auto rowGuard = start(onk::TableRow);
-        empty();                               // no row parameters
-        empty();                               // no row-level text
-        auto listGuard = start(onk::StmtList); // List of rows
-
-        while (lex.at(OrgTokSet{otk::LeadingPipe, otk::Pipe})) {
-            auto cellGuard = start(onk::TableCell);
-            empty(); // No cell parameters
-            auto     listGuard = start(onk::StmtList); // Cell content
-            SubLexer sub{lex};
-            skip(lex);
-            OrgTokSet CellEnd{otk::Pipe, otk::TrailingPipe};
-            OrgTokSet CellStart{otk::Pipe, otk::LeadingPipe};
-            while (lex.can_search(CellEnd)) {
-                if (lex.at(otk::Whitespace)
-                    && (lex.at(CellEnd, +1) || lex.at(CellStart, -1))) {
-                    lex.next();
-                } else {
-                    sub.add(pop(lex));
-                }
-            }
-            if (sub.empty()) {
-                auto guard = start(onk::Paragraph);
-                guard.end();
-            } else {
-                sub.start();
-                SUB_PARSE(Paragraph, sub, "table cell content.");
-            }
-
-            listGuard.end();
-            cellGuard.end();
-        }
-        BOOST_OUTCOME_TRY(
-            skip(lex, otk::TrailingPipe, __LINE__, "parse_pipe_row"));
-        if (lex.at(Newline)) { skip(lex); }
-
-        listGuard.end();
-        return rowGuard.end();
-    };
-
-    Vec<otk> TableEnd{otk::CmdPrefix, otk::CmdTableEnd};
 
     if (lex.at(OrgTokSet{otk::LeadingPipe, otk::TableSeparator})) {
+        auto tableGuard = start(onk::Table);
         empty(); // No table command arguments for a pipe table
         while (lex.at(OrgTokSet{otk::LeadingPipe, otk::TableSeparator})) {
             switch (lex.kind()) {
                 case otk::LeadingPipe: {
-                    BOOST_OUTCOME_TRY(parse_pipe_row());
+                    SUB_PARSE(TablePipeRow, lex, "");
                     break;
                 }
                 case otk::TableSeparator: {
@@ -1258,7 +1317,11 @@ OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
                 }
             }
         }
+        return tableGuard.end();
     } else {
+        auto     tableGuard = start(onk::Table);
+        Vec<otk> TableEnd{otk::CmdPrefix, otk::CmdTableEnd};
+
         TRY_SKIP(lex, otk::CmdPrefix);
         TRY_SKIP(lex, otk::CmdTableBegin);
         SUB_PARSE(
@@ -1268,83 +1331,11 @@ OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
         while (lex.can_search(TableEnd)) {
             switch (lex.kind()) {
                 case otk::LeadingPipe: {
-                    BOOST_OUTCOME_TRY(parse_pipe_row());
+                    SUB_PARSE(TablePipeRow, lex, "pipe row");
                     break;
                 }
                 case otk::CmdPrefix: {
-                    TRY_SKIP(lex, otk::CmdPrefix);
-                    TRY_SKIP(lex, otk::CmdRow);
-                    auto rowGuard = start(onk::TableRow);
-                    SUB_PARSE(
-                        CommandArguments,
-                        lex,
-                        "command arguments for table row");
-                    empty();
-                    newline(lex);
-
-                    auto stmtGuard = start(onk::StmtList);
-                    if (lex.at(otk::LeadingPipe)) {
-                        while (lex.at(otk::LeadingPipe)) {
-                            TRY_SKIP(lex, otk::LeadingPipe);
-                            space(lex);
-                            auto cellGuard = start(onk::TableCell);
-                            {
-                                empty();
-                                auto stmtGuard = start(onk::StmtList);
-                                {
-                                    auto sub = subToEol(lex);
-                                    if (sub.empty()) {
-                                        empty();
-                                    } else {
-                                        SUB_PARSE(
-                                            Paragraph,
-                                            sub,
-                                            "command "
-                                            "arguments for table cell");
-                                    }
-                                }
-                                stmtGuard.end();
-                            }
-                            cellGuard.end();
-                            newline(lex);
-                        }
-                    } else {
-                        while (lex.at(Vec{otk::CmdPrefix, otk::CmdCell})) {
-                            TRY_SKIP(lex, otk::CmdPrefix);
-                            TRY_SKIP(lex, otk::CmdCell);
-                            auto cellGuard = start(onk::TableCell);
-                            {
-                                SUB_PARSE(
-                                    CommandArguments,
-                                    lex,
-                                    "command arguments "
-                                    "for table cell");
-                                auto stmtGuard = start(onk::StmtList);
-                                {
-                                    while (
-                                        !(lex.at(otk::CmdPrefix)
-                                          && lex.at(
-                                              OrgTokSet{
-                                                  otk::CmdCell,
-                                                  otk::CmdRow,
-                                                  otk::CmdTableEnd},
-                                              +1))) {
-                                        SUB_PARSE(
-                                            StmtListItem,
-                                            lex,
-                                            "cell item in "
-                                            "table block");
-                                    }
-                                }
-                                stmtGuard.end();
-                            }
-                            cellGuard.end();
-                        }
-                    }
-
-                    stmtGuard.end();
-                    rowGuard.end();
-
+                    SUB_PARSE(TableBlockRow, lex, "table block row");
                     break;
                 }
                 default: {
@@ -1359,10 +1350,8 @@ OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
 
         TRY_SKIP(lex, otk::CmdPrefix);
         TRY_SKIP(lex, otk::CmdTableEnd);
+        return tableGuard.end();
     }
-
-
-    return tableGuard.end();
 }
 
 
@@ -2819,4 +2808,18 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
     __perf_trace("parsing", "extendSubtreeTrails");
     extendSubtreeTrailsImpl(this, position, 0);
     assertValidStructure(group, position);
+}
+
+OrgParser::ParseOk OrgParser::NodeGuard::end(
+    const std::string& desc,
+    int                line,
+    const char*        function) {
+    auto result = parser->end_impl(desc, line, function);
+    LOGIC_ASSERTION_CHECK(
+        parser->treeDepth() == startingDepth,
+        "{} != {}",
+        startingDepth,
+        parser->treeDepth());
+
+    return OrgParser::ParseOk{result};
 }
