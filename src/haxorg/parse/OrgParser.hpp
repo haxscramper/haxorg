@@ -237,6 +237,7 @@ struct OrgParser : public hstd::OperationsTracer {
     [[nodiscard]] ParseResult expect(
         OrgLexer const&                 lex,
         OrgParser::OrgExpectable const& item,
+        hstd::Opt<hstd::Str>            message  = std::nullopt,
         int                             line     = __builtin_LINE(),
         char const*                     function = __builtin_FUNCTION());
 
@@ -254,17 +255,19 @@ struct OrgParser : public hstd::OperationsTracer {
         char const* function                     = __builtin_FUNCTION());
 
     void skip(
-        OrgLexer&   lex,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
-        std::ignore = skip(lex, std::nullopt, line, function);
+        OrgLexer&            lex,
+        hstd::Opt<hstd::Str> message  = std::nullopt,
+        int                  line     = __builtin_LINE(),
+        char const*          function = __builtin_FUNCTION()) {
+        std::ignore = skip(lex, std::nullopt, message, line, function);
     }
 
     [[nodiscard]] ParseResult skip(
         OrgLexer&                           lex,
         hstd::Opt<OrgParser::OrgExpectable> item,
-        int                                 line = __builtin_LINE(),
-        char const* function                     = __builtin_FUNCTION());
+        hstd::Opt<hstd::Str>                message = std::nullopt,
+        int                                 line    = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     void space(
         OrgLexer&   lex,

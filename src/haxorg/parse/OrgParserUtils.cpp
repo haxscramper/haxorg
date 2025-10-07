@@ -219,7 +219,9 @@ OrgParser::ParseResult OrgParser::maybe_recursive_error_end(
     if (res.has_value()) {
         return res;
     } else {
-        return error_end(on_fail_message, lex, line, function);
+        auto fail = error_end(on_fail_message, lex, line, function);
+        end_impl();
+        return fail;
     }
 }
 
@@ -235,10 +237,11 @@ OrgParser::ParseResult OrgParser::maybe_error_end(
 }
 
 OrgParser::ParseResult OrgParser::expect(
-    CR<OrgLexer>      lex,
-    CR<OrgExpectable> item,
-    int               line,
-    char const*       function) {
+    CR<OrgLexer>         lex,
+    CR<OrgExpectable>    item,
+    hstd::Opt<hstd::Str> message,
+    int                  line,
+    char const*          function) {
 
     if (at(lex, item)) {
         return ParseOk{};
@@ -249,6 +252,12 @@ OrgParser::ParseResult OrgParser::expect(
             item,
             getLocMsg(lex),
             lex.finished() ? "<lexer-finished>" : fmt1(lex.kind()));
+
+        if (message) {
+            msg += ". ";
+            msg += message.value();
+        }
+
         if (TraceState) {
             report(
                 Builder(
@@ -266,7 +275,9 @@ OrgParser::LexResult OrgParser::pop(
     Opt<OrgExpectable> tok,
     int                line,
     char const*        function) {
-    if (tok) { BOOST_OUTCOME_TRY(expect(lex, *tok, line, function)); }
+    if (tok) {
+        BOOST_OUTCOME_TRY(expect(lex, *tok, std::nullopt, line, function));
+    }
     if (TraceState) {
         print(fmt("pop {}", lex.tok()), &lex, line, function);
     }
@@ -275,12 +286,15 @@ OrgParser::LexResult OrgParser::pop(
 
 
 OrgParser::ParseResult OrgParser::skip(
-    OrgLexer&          lex,
-    Opt<OrgExpectable> item,
-    int                line,
-    char const*        function) {
+    OrgLexer&            lex,
+    Opt<OrgExpectable>   item,
+    hstd::Opt<hstd::Str> message,
+    int                  line,
+    char const*          function) {
 
-    if (item) { BOOST_OUTCOME_TRY(expect(lex, *item, line, function)); }
+    if (item) {
+        BOOST_OUTCOME_TRY(expect(lex, *item, message, line, function));
+    }
 
     if (TraceState) {
         print(fmt("skip {}", lex.tok()), &lex, line, function);

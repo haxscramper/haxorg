@@ -54,27 +54,35 @@ const OrgTokSet BlockTerminator{
 
 #define SUB_PARSE(__kind, __lex, __on_failure)                            \
     BOOST_OUTCOME_TRYX(maybe_recursive_error_end(                         \
-        this->subParseImpl(                                               \
-            &OrgParser::parse##__kind, __lex, __LINE__, __func__),        \
-        "" #__kind ": " __on_failure,                                     \
-        __lex))
+        parse##__kind(__lex), "" #__kind ": " __on_failure, __lex))
 
 
-#define TRY_SKIP(__lex, __expected)                                       \
+#define TRY_SKIP_2(__lex, __expected)                                     \
     BOOST_OUTCOME_TRY(skip(__lex, __expected))
+
+#define TRY_SKIP_3(__lex, __expected, __message)                          \
+    BOOST_OUTCOME_TRY(skip(__lex, __expected, __message))
+
+#define TRY_SKIP_IMPL(__count) BOOST_PP_CAT(TRY_SKIP_, __count)
+
+#define TRY_SKIP(...)                                                     \
+    TRY_SKIP_IMPL(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__))(__VA_ARGS__)
+
 
 #define TRY_POPX(__lex, __expression)                                     \
     BOOST_OUTCOME_TRYX(pop(__lex, __expression))
 
 void OrgParser::space(OrgLexer& lex, int line, char const* function) {
     while (lex.at(OrgTokSet{otk::Whitespace, otk::LeadingSpace})) {
-        std::ignore = skip(lex, std::nullopt, line, function);
+        std::ignore = skip(
+            lex, std::nullopt, std::nullopt, line, function);
     }
 }
 
 void OrgParser::newline(OrgLexer& lex, int line, char const* function) {
     while (lex.at(Newline)) {
-        std::ignore = skip(lex, std::nullopt, line, function);
+        std::ignore = skip(
+            lex, std::nullopt, std::nullopt, line, function);
     }
 }
 
@@ -1339,10 +1347,12 @@ OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
                     break;
                 }
                 default: {
-                    throw fatalError(
-                        lex,
+                    auto fail = error_end(
                         "Expected cmd row or leading pipe in the block "
-                        "table");
+                        "table",
+                        lex);
+                    end_impl();
+                    return fail;
                 }
             }
         }
@@ -1867,7 +1877,11 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
     __perf_trace("parsing", "parseSubtreeProperties");
     auto __trace = trace(lex);
     TRY_SKIP(lex, otk::ColonProperties);
-    TRY_SKIP(lex, otk::Newline);
+    TRY_SKIP(
+        lex,
+        otk::Newline,
+        ":properties: must be immediately followed by the property list "
+        "starting from the next line");
     auto propertyListGuard = start(onk::DrawerPropertyList);
     while (lex.can_search(otk::ColonEnd)) {
         trace(lex, "Parse single subtree property");
@@ -2094,23 +2108,40 @@ OrgParser::ParseResult OrgParser::parseSubtree(OrgLexer& lex) {
     auto subtreeGuard = start(onk::Subtree);
     // prefix
 
-    token(onk::RawText, TRY_POPX(lex, otk::SubtreeStars));   // 0
-    SUB_PARSE(SubtreeTodo, lex, "subtree todo");             // 1
-    SUB_PARSE(SubtreeUrgency, lex, "subtree urgency");       // 2
-    space(lex);                                              //
-    SUB_PARSE(SubtreeTitle, lex, "subtree title");           // 3
-    SUB_PARSE(SubtreeCompletion, lex, "subtree completion"); // 4
+    std::optional<ParseFail> parseFail;
+
+    // subtree processing gets special treatment because the structure of
+    // the subtree is very important to the final document, so having
+    // exactly 8 subnodes, with the last one being StmtList is required to
+    // properly form the document down the line.
+    auto parseElement =
+        [&](OrgParser::ParseResult (OrgParser::*func)(OrgLexer&)) {
+            if (parseFail) {
+                empty();
+            } else {
+                auto result = (this->*func)(lex);
+                if (result.has_error()) {
+                    parseFail = result.assume_error();
+                }
+            }
+        };
+
+    token(onk::RawText, TRY_POPX(lex, otk::SubtreeStars)); // 0
+    parseElement(&OrgParser::parseSubtreeTodo);            // 1
+    parseElement(&OrgParser::parseSubtreeUrgency);         // 2
+    space(lex);                                            //
+    parseElement(&OrgParser::parseSubtreeTitle);           // 3
+    parseElement(&OrgParser::parseSubtreeCompletion);      // 4
     space(lex);
-    SUB_PARSE(SubtreeTags, lex, "subtree tags"); // 5
+    parseElement(&OrgParser::parseSubtreeTags); // 5
 
     if (lex.at(otk::Newline)) { newline(lex); }
-    SUB_PARSE(SubtreeTimes, lex, "subtree times"); // 6
-
+    parseElement(&OrgParser::parseSubtreeTimes); // 6
 
     if (lex.at(otk::Newline)) { newline(lex); }
 
     if (lex.at(OrgTokSet{otk::ColonProperties, otk::ColonLogbook})) { // 7
-        SUB_PARSE(SubtreeDrawer, lex, "subtree drawer");
+        parseElement(&OrgParser::parseSubtreeDrawer);
     } else {
         empty();
     }
@@ -2119,7 +2150,13 @@ OrgParser::ParseResult OrgParser::parseSubtree(OrgLexer& lex) {
 
     auto stmtListGuard = start(onk::StmtList); // 8
     stmtListGuard.end();
-    return subtreeGuard.end();
+
+    if (parseFail) {
+        end_impl();
+        return parseFail.value();
+    } else {
+        return subtreeGuard.end();
+    }
 }
 
 
@@ -2495,14 +2532,14 @@ OrgParser::ParseResult OrgParser::parseStmtListItem(OrgLexer& lex) {
     auto __trace = trace(lex);
     switch (lex.kind()) {
         case otk::SubtreeStars: {
-            SUB_PARSE(Subtree, lex, "subtree in the statement list.");
+            return parseSubtree(lex);
             break;
         }
         case otk::Indent: {
             TRY_SKIP(lex, otk::Indent);
-            SUB_PARSE(List, lex, "top-level list in the statement list.");
+            auto res = parseList(lex);
             TRY_SKIP(lex, otk::Dedent);
-            break;
+            return res;
         }
 
         case otk::Whitespace: {
@@ -2523,51 +2560,35 @@ OrgParser::ParseResult OrgParser::parseStmtListItem(OrgLexer& lex) {
 
         case otk::TableSeparator:
         case otk::LeadingPipe: {
-            SUB_PARSE(Table, lex, "top-level table");
-            break;
+            return parseTable(lex);
         }
         case otk::ColonExampleLine: {
-            SUB_PARSE(ColonExample, lex, "top-level colon example.");
-            break;
+            return parseColonExample(lex);
         }
 
         case otk::CmdPrefix: {
             switch (lex.kind(+1)) {
                 case otk::CmdSrcBegin: {
-                    return SUB_PARSE(
-                        Src, lex, "top-level source code block");
-                    break;
+                    return parseSrc(lex);
                 }
                 case otk::CmdExampleBegin: {
-                    return SUB_PARSE(
-                        Example, lex, "top-level example command");
-                    break;
+                    return parseExample(lex);
                 }
                 case otk::CmdExportBegin: {
-                    return SUB_PARSE(
-                        BlockExport, lex, "top-level export block");
-                    break;
+                    return parseBlockExport(lex);
                 }
                 case otk::CmdVerseBegin:
                 case otk::CmdCenterBegin:
                 case otk::CmdCommentBegin:
                 case otk::CmdDynamicBlockBegin:
                 case otk::CmdQuoteBegin: {
-                    return SUB_PARSE(
-                        TextWrapCommand,
-                        lex,
-                        "top-level text wrap command");
-                    break;
+                    return parseTextWrapCommand(lex);
                 }
                 case otk::CmdTableBegin: {
-                    return SUB_PARSE(
-                        Table, lex, "top-level table command");
-                    break;
+                    return parseTable(lex);
                 }
                 default: {
-                    return SUB_PARSE(
-                        LineCommand, lex, "top-level line command");
-                    break;
+                    return parseLineCommand(lex);
                 }
             }
             break;
@@ -2579,7 +2600,7 @@ OrgParser::ParseResult OrgParser::parseStmtListItem(OrgLexer& lex) {
             }
 
             sub.start();
-            return SUB_PARSE(Paragraph, sub, "top-level paragraph");
+            return parseParagraph(sub);
         }
     }
 
@@ -2595,11 +2616,16 @@ OrgParser::ParseResult OrgParser::parseTop(OrgLexer& lex) {
         if (lex.at(otk::Comment)) {
             skip(lex);
         } else {
-            SUB_PARSE(
-                StmtListItem,
-                lex,
-                "statement list item on the document "
-                "top.");
+            auto result = parseStmtListItem(lex);
+            if (result.has_error()) {
+                auto syncSkipGuard = start(onk::ErrorSkipGroup);
+
+                while (lex.can_search(Newline)) {
+                    token(onk::ErrorSkipToken, pop(lex));
+                }
+
+                syncSkipGuard.end();
+            }
         };
     }
     return stmtListGuard.end();
@@ -2738,7 +2764,11 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
             if (level < sub) {
                 OrgId stmt = g.subnode(tree, 8);
                 LOGIC_ASSERTION_CHECK(
-                    g.at(stmt).kind == onk::StmtList, "");
+                    g.at(stmt).kind == onk::StmtList
+                        || g.at(stmt).kind == onk::ErrorSkipGroup,
+                    "{}",
+                    g.at(stmt));
+
                 id = extendSubtreeTrailsImpl(parser, stmt + 1, sub);
                 LOGIC_ASSERTION_CHECK(stmt + 1 <= id, "");
                 // AUX returns next position to start looping from, so
