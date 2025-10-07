@@ -12,7 +12,7 @@ std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
         result = "$#:$# (tok $#, pos $#)"
                % to_string_vec(loc->line, loc->column, pos, loc->pos);
     } else {
-        result = "(tok $#, pos $#)" % to_string_vec(pos, loc->pos);
+        result = "(tok $#)" % to_string_vec(pos);
     }
 
     return result;
@@ -75,8 +75,12 @@ struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
     }
 };
 
-OrgId OrgParser::start(OrgNodeKind kind, int line, const char* function) {
-    auto res = group->startTree(kind);
+org::parse::OrgParser::NodeGuard OrgParser::start(
+    OrgNodeKind kind,
+    int         line,
+    const char* function) {
+    int const startingDepth = treeDepth();
+    auto      res           = group->startTree(kind);
     if (TraceState) {
         report(
             Builder(
@@ -84,16 +88,20 @@ OrgId OrgParser::start(OrgNodeKind kind, int line, const char* function) {
                 .with_node(res)
                 .report);
     }
-    return res;
+    return NodeGuard{startingDepth, this, res};
 }
 
-OrgId OrgParser::end(int line, const char* function) {
+OrgId OrgParser::end_impl(
+    const std::string& desc,
+    int                line,
+    const char*        function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->endTree();
     if (TraceState) {
         report(Builder(
                    OrgParser::ReportKind::EndNode, nullptr, line, function)
                    .with_node(res)
+                   .with_msg(desc)
                    .report);
     }
     return res;

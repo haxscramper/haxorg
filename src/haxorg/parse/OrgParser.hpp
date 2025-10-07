@@ -51,7 +51,10 @@ struct OrgParser : public hstd::OperationsTracer {
     OrgParser() {}
 
     struct ParseFail {};
-    struct ParseOk {};
+    struct ParseOk {
+        hstd::Opt<OrgId> result;
+        DESC_FIELDS(ParseOk, (result));
+    };
 
     using MaybeTokenFail = hstd::Result<bool, OrgNodeMono::Error>;
     using ParseResult    = hstd::Result<ParseOk, ParseFail>;
@@ -103,10 +106,11 @@ struct OrgParser : public hstd::OperationsTracer {
     ParseResult parseStmtListItem(OrgLexer& lex);
     ParseResult parseTop(OrgLexer& lex);
 
-    ParseResult parseFull(OrgLexer& lex);
     ParseResult parseTextWrapCommand(OrgLexer& lex);
     ParseResult parseCSVArguments(OrgLexer& lex);
     void        extendSubtreeTrails(OrgId position);
+
+    OrgId parseFull(OrgLexer& lex);
 
     ParseResult subParseImpl(
         ParseResult (OrgParser::*func)(OrgLexer&),
@@ -157,11 +161,33 @@ struct OrgParser : public hstd::OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
+    struct NodeGuard {
+        int        startingDepth;
+        OrgParser* parser;
+        OrgId      startId = OrgId::Nil();
 
-    OrgId start(
+        OrgParser::ParseOk end() {
+            auto result = parser->end_impl();
+            LOGIC_ASSERTION_CHECK(
+                parser->treeDepth() == startingDepth,
+                "{} != {}",
+                startingDepth,
+                parser->treeDepth());
+
+            return OrgParser::ParseOk{result};
+        }
+    };
+
+
+    [[nodiscard]] NodeGuard start(
         OrgNodeKind kind,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
+
+    OrgId end_impl(
+        std::string const& desc     = "",
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION());
 
     OrgNodeMono::Error error_value(
         std::string const& message,
@@ -200,9 +226,6 @@ struct OrgParser : public hstd::OperationsTracer {
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION());
 
-    OrgId end(
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
 
     OrgId fake(
         OrgNodeKind kind,

@@ -44,7 +44,9 @@ extern TestParameters testParameters;
 
 GTEST_ADL_PRINT_TYPE(hstd::Str);
 
-inline hstd::fs::path getDebugFile(const hstd::Str& suffix = "") {
+inline hstd::fs::path getDebugFile(
+    const hstd::Str& suffix      = "",
+    bool             cleanParent = false) {
     auto dir = std::filesystem::temp_directory_path()
              / hstd::fs::path{hstd::fmt(
                  "haxorg_tests/{}",
@@ -55,17 +57,29 @@ inline hstd::fs::path getDebugFile(const hstd::Str& suffix = "") {
     auto testname = ::testing::UnitTest::GetInstance()
                         ->current_test_info()
                         ->name();
+    hstd::fs::path result;
+
     if (suffix.empty()) {
         hstd::Str result = hstd::fmt("{}/{}", dir.native(), testname);
         hstd::createDirectory(hstd::fs::path{result.toBase()});
-        return result.toBase();
+        result = result.toBase();
     } else {
         hstd::Str result = hstd::fmt(
             "{}/{}/{}", dir.native(), testname, suffix);
         hstd::createDirectory(
             hstd::fs::path{result.toBase()}.parent_path());
-        return result.toBase();
+        result = result.toBase();
     }
+
+    if (cleanParent) {
+        auto parent = result.parent_path();
+        if (hstd::fs::exists(parent)) {
+            hstd::fs::remove_all(parent);
+            hstd::createDirectory(parent);
+        }
+    }
+
+    return result;
 }
 
 

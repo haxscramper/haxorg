@@ -260,7 +260,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
                 parser.traceColored = false;
             }
 
-            auto id      = parser.parseFull(lex).value();
+            auto id      = parser.parseFull(lex);
             auto adapter = org::parse::OrgAdapter(&nodes.at(i), id);
 
             // adapter.tr
@@ -311,7 +311,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
             parser.traceColored = false;
         }
 
-        auto              id = parser.parseFull(lex).value();
+        auto              id = parser.parseFull(lex);
         sem::OrgConverter converter{};
         if (opts->semTracePath) {
             converter.setTraceFile(*opts->semTracePath);

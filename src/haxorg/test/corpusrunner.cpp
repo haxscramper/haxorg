@@ -1173,6 +1173,9 @@ TestResult org::test::gtest_run_spec(CR<TestParams> params) {
 
     auto spec              = params.spec;
     spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
+    if (hstd::fs::exists(spec.debug.debugOutDir)) {
+        hstd::fs::remove_all(spec.debug.debugOutDir);
+    }
     CorpusRunner runner;
     runner.setTraceFile(
         "/tmp/runner_log/" + params.testName() + "/exec_trace.txt");
