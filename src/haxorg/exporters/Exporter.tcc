@@ -484,6 +484,32 @@ void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomSubtreeFlags const&
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, org::sem::OrgDiagnostics::Data const& object) { visitVariants(res, sem::OrgDiagnostics::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseTokenError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, detail);
+  __obj_field(res, object, parserFunction);
+  __obj_field(res, object, parserLine);
+  __obj_field(res, object, tokenKind);
+  __obj_field(res, object, tokenText);
+  __obj_field(res, object, tokenLine);
+  __obj_field(res, object, tokenCol);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, detail);
+  __obj_field(res, object, parserFunction);
+  __obj_field(res, object, parserLine);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, loc);

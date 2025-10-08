@@ -186,16 +186,16 @@ struct OrgParser : public hstd::OperationsTracer {
         char const*        function = __builtin_FUNCTION());
 
     OrgNodeMono::Error error_value(
-        std::string const& message,
-        const OrgLexer&    lex,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION());
+        org::sem::OrgDiagnostics::ParseError const& message,
+        const OrgLexer&                             lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     ParseResult error_end(
-        std::string const& message,
-        const OrgLexer&    lex,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION()) {
+        org::sem::OrgDiagnostics::ParseError const& message,
+        const OrgLexer&                             lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
         return error_end(
             error_value(message, lex, line, function), line, function);
     }
@@ -216,11 +216,11 @@ struct OrgParser : public hstd::OperationsTracer {
         char const*           function = __builtin_FUNCTION());
 
     ParseResult maybe_recursive_error_end(
-        ParseResult const& res,
-        std::string const& on_fail_message,
-        OrgLexer&          lex,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION());
+        ParseResult const&                          res,
+        org::sem::OrgDiagnostics::ParseError const& on_fail_message,
+        OrgLexer&                                   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
 
     OrgId fake(

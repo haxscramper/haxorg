@@ -1594,6 +1594,40 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::NamedProperty::Kind>("OrgSemNamedPropertyKind");
+  emscripten::class_<org::sem::OrgDiagnostics>("OrgDiagnostics")
+    .property("data", &org::sem::OrgDiagnostics::data)
+    .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::*)(org::sem::OrgDiagnostics const&) const>(&org::sem::OrgDiagnostics::operator==))
+    .function("isParseTokenError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isParseTokenError))
+    .function("getParseTokenErrorConst", static_cast<org::sem::OrgDiagnostics::ParseTokenError const&(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::getParseTokenError))
+    .function("getParseTokenErrorMut", static_cast<org::sem::OrgDiagnostics::ParseTokenError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseTokenError))
+    .function("isParseError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isParseError))
+    .function("getParseErrorConst", static_cast<org::sem::OrgDiagnostics::ParseError const&(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::getParseError))
+    .function("getParseErrorMut", static_cast<org::sem::OrgDiagnostics::ParseError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseError))
+    .class_function("getKindStatic", static_cast<org::sem::OrgDiagnostics::Kind(*)(org::sem::OrgDiagnostics::Data const&)>(&org::sem::OrgDiagnostics::getKind))
+    .function("getKind", static_cast<org::sem::OrgDiagnostics::Kind(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::getKind))
+    .constructor<>()
+    ;
+  emscripten::class_<org::sem::OrgDiagnostics::ParseTokenError>("OrgDiagnosticsParseTokenError")
+    .property("brief", &org::sem::OrgDiagnostics::ParseTokenError::brief)
+    .property("detail", &org::sem::OrgDiagnostics::ParseTokenError::detail)
+    .property("parserFunction", &org::sem::OrgDiagnostics::ParseTokenError::parserFunction)
+    .property("parserLine", &org::sem::OrgDiagnostics::ParseTokenError::parserLine)
+    .property("tokenKind", &org::sem::OrgDiagnostics::ParseTokenError::tokenKind)
+    .property("tokenText", &org::sem::OrgDiagnostics::ParseTokenError::tokenText)
+    .property("tokenLine", &org::sem::OrgDiagnostics::ParseTokenError::tokenLine)
+    .property("tokenCol", &org::sem::OrgDiagnostics::ParseTokenError::tokenCol)
+    .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::ParseTokenError::*)(org::sem::OrgDiagnostics::ParseTokenError const&) const>(&org::sem::OrgDiagnostics::ParseTokenError::operator==))
+    .constructor<>()
+    ;
+  emscripten::class_<org::sem::OrgDiagnostics::ParseError>("OrgDiagnosticsParseError")
+    .property("brief", &org::sem::OrgDiagnostics::ParseError::brief)
+    .property("detail", &org::sem::OrgDiagnostics::ParseError::detail)
+    .property("parserFunction", &org::sem::OrgDiagnostics::ParseError::parserFunction)
+    .property("parserLine", &org::sem::OrgDiagnostics::ParseError::parserLine)
+    .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::ParseError::*)(org::sem::OrgDiagnostics::ParseError const&) const>(&org::sem::OrgDiagnostics::ParseError::operator==))
+    .constructor<>()
+    ;
+  org::bind::js::bind_enum<org::sem::OrgDiagnostics::Kind>("OrgSemOrgDiagnosticsKind");
   emscripten::class_<org::sem::None, emscripten::base<org::sem::Org>>("None")
     .smart_ptr<org::sem::SemId<org::sem::None>>("None")
     .function("getKind", static_cast<OrgSemKind(org::sem::None::*)() const>(&org::sem::None::getKind))
@@ -1883,6 +1917,9 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::File::Attachment>("FileAttachment")
     .constructor<>()
     ;
+}
+
+void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::File::Source>("FileSource")
     .constructor<>()
     ;
@@ -1901,9 +1938,6 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::Symlink::*)() const>(&org::sem::Symlink::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::Symlink>>)
     ;
-}
-
-void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::CmdInclude, emscripten::base<org::sem::Org>>("CmdInclude")
     .smart_ptr<org::sem::SemId<org::sem::CmdInclude>>("CmdInclude")
     .property("path", &org::sem::CmdInclude::path)
@@ -2240,6 +2274,9 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmEmpty::*)(org::imm::ImmEmpty const&) const>(&org::imm::ImmEmpty::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmLeaf, emscripten::base<org::imm::ImmOrg>>("ImmLeaf")
     .property("text", &org::imm::ImmLeaf::text)
     .function("__eq__", static_cast<bool(org::imm::ImmLeaf::*)(org::imm::ImmLeaf const&) const>(&org::imm::ImmLeaf::operator==))
@@ -2267,9 +2304,6 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::imm::ImmTime::Repeat::Mode>("OrgImmImmTimeRepeatMode");
-}
-
-void subdivide_5(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<org::imm::ImmTime::Repeat::Period>("OrgImmImmTimeRepeatPeriod");
   emscripten::class_<org::imm::ImmTime::Static>("ImmTimeStatic")
     .property("repeat", &org::imm::ImmTime::Static::repeat)
@@ -2730,6 +2764,9 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmColonExampleValue, emscripten::base<org::imm::ImmColonExampleValueRead>>("ImmColonExampleValue")
     ;
+}
+
+void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmCmdAttrValue, emscripten::base<org::imm::ImmCmdAttrValueRead>>("ImmCmdAttrValue")
     .function("setTarget", static_cast<void(org::imm::ImmCmdAttrValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdAttrValue::setTarget))
     ;
@@ -2744,9 +2781,6 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmListValue, emscripten::base<org::imm::ImmListValueRead>>("ImmListValue")
     ;
-}
-
-void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmListItemValue, emscripten::base<org::imm::ImmListItemValueRead>>("ImmListItemValue")
     .function("setCheckbox", static_cast<void(org::imm::ImmListItemValue::*)(CheckboxState const&)>(&org::imm::ImmListItemValue::setCheckbox))
     .function("setHeader", static_cast<void(org::imm::ImmListItemValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmListItemValue::setHeader))
@@ -3193,6 +3227,9 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterDocumentOptionsAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDocumentOptionsAPI")
     ;
+}
+
+void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterDocumentAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDocumentAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterFileTargetAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterFileTargetAPI")
@@ -3201,9 +3238,6 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterCmdIncludeAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterCmdIncludeAPI")
     ;
-}
-
-void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterDocumentGroupAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDocumentGroupAPI")
     ;
   emscripten::class_<org::sem::Block, emscripten::base<org::sem::Cmd>>("Block")
@@ -3551,6 +3585,9 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>, emscripten::base<org::imm::ImmAdapterCmdCustomRawAPI>>("ImmCmdCustomRawAdapter")
     .function("getValue", static_cast<org::imm::ImmCmdCustomRawValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getValue))
     ;
+}
+
+void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>, emscripten::base<org::imm::ImmAdapterCmdCustomTextAPI>>("ImmCmdCustomTextAdapter")
     .function("getValue", static_cast<org::imm::ImmCmdCustomTextValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getValue))
     ;
@@ -3563,9 +3600,6 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmParagraph>, emscripten::base<org::imm::ImmAdapterParagraphAPI>>("ImmParagraphAdapter")
     .function("getValue", static_cast<org::imm::ImmParagraphValueRead(org::imm::ImmAdapterT<org::imm::ImmParagraph>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmParagraph>::getValue))
     ;
-}
-
-void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmList>, emscripten::base<org::imm::ImmAdapterListAPI>>("ImmListAdapter")
     .function("getValue", static_cast<org::imm::ImmListValueRead(org::imm::ImmAdapterT<org::imm::ImmList>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmList>::getValue))
     ;
@@ -3840,13 +3874,13 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::function("exportToYamlString", static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgYamlExportOpts const&)>(&org::exportToYamlString));
   emscripten::function("exportToYamlFile", static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgYamlExportOpts const&)>(&org::exportToYamlFile));
   emscripten::function("exportToJsonString", static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&)>(&org::exportToJsonString));
+}
+
+void subdivide_9(org::bind::js::type_registration_guard& g) {
   emscripten::function("exportToJsonFile", static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string)>(&org::exportToJsonFile));
   emscripten::function("readProtobufFile", static_cast<org::sem::SemId<org::sem::Document>(*)(std::string const&)>(&org::readProtobufFile));
   emscripten::function("exportToProtobufFile", static_cast<void(*)(org::sem::SemId<org::sem::Document>, std::string const&)>(&org::exportToProtobufFile));
   emscripten::function("exportToTreeString", static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgTreeExportOpts const&)>(&org::exportToTreeString));
-}
-
-void subdivide_9(org::bind::js::type_registration_guard& g) {
   emscripten::function("exportToTreeFile", static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgTreeExportOpts const&)>(&org::exportToTreeFile));
   emscripten::function("getAstTrackingMap", static_cast<org::AstTrackingMap(*)(hstd::Vec<org::sem::SemId<org::sem::Org>> const&)>(&org::getAstTrackingMap));
   emscripten::function("getSubnodeGroups", static_cast<hstd::Vec<org::AstTrackingGroup>(*)(org::sem::SemId<org::sem::Org>, org::AstTrackingMap const&)>(&org::getSubnodeGroups));

@@ -429,6 +429,14 @@ export interface haxorg_wasm_module_auto {
     CustomSubtreeFlags: NamedPropertyKind,
   }
   format_NamedPropertyKind(value: NamedPropertyKind): string;
+  OrgDiagnostics: OrgDiagnosticsConstructor;
+  OrgDiagnosticsParseTokenError: OrgDiagnosticsParseTokenErrorConstructor;
+  OrgDiagnosticsParseError: OrgDiagnosticsParseErrorConstructor;
+  OrgDiagnosticsKind: {
+    ParseTokenError: OrgDiagnosticsKind,
+    ParseError: OrgDiagnosticsKind,
+  }
+  format_OrgDiagnosticsKind(value: OrgDiagnosticsKind): string;
   None: NoneConstructor;
   ErrorItem: ErrorItemConstructor;
   ErrorGroup: ErrorGroupConstructor;
@@ -3280,6 +3288,47 @@ export enum NamedPropertyKind {
   CustomId,
   CustomSubtreeJson,
   CustomSubtreeFlags,
+}
+export interface OrgDiagnosticsConstructor { new(): OrgDiagnostics; }
+export interface OrgDiagnostics {
+  __eq__(other: OrgDiagnostics): boolean;
+  isParseTokenError(): boolean;
+  getParseTokenErrorConst(): OrgDiagnosticsParseTokenError;
+  getParseTokenErrorMut(): OrgDiagnosticsParseTokenError;
+  isParseError(): boolean;
+  getParseErrorConst(): OrgDiagnosticsParseError;
+  getParseErrorMut(): OrgDiagnosticsParseError;
+  getKindStatic(__input: OrgDiagnosticsData): OrgDiagnosticsKind;
+  getKind(): OrgDiagnosticsKind;
+  sub_variant_get_name(): string;
+  sub_variant_get_data(): OrgDiagnosticsData;
+  sub_variant_get_kind(): OrgDiagnosticsKind;
+  data: OrgDiagnosticsData
+}
+export interface OrgDiagnosticsParseTokenErrorConstructor { new(): OrgDiagnosticsParseTokenError; }
+export interface OrgDiagnosticsParseTokenError {
+  __eq__(other: OrgDiagnosticsParseTokenError): boolean;
+  brief: string
+  detail: string
+  parserFunction: string
+  parserLine: number
+  tokenKind: OrgTokenKind
+  tokenText: string
+  tokenLine: number
+  tokenCol: number
+}
+export interface OrgDiagnosticsParseErrorConstructor { new(): OrgDiagnosticsParseError; }
+export interface OrgDiagnosticsParseError {
+  __eq__(other: OrgDiagnosticsParseError): boolean;
+  brief: string
+  detail: string
+  parserFunction: string
+  parserLine: number
+}
+export type OrgDiagnosticsData = haxorg_wasm.StdVariant<OrgDiagnosticsParseTokenError, OrgDiagnosticsParseError>;
+export enum OrgDiagnosticsKind {
+  ParseTokenError,
+  ParseError,
 }
 export interface NoneConstructor { new(): None; }
 export interface None { getKind(): OrgSemKind; }

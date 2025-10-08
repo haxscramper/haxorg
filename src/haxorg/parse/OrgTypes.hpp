@@ -7,6 +7,7 @@
 #include <haxorg/sem/SemOrgEnums.hpp>
 #include <haxorg/base_lexer/base_token.hpp>
 #include <hstd/system/reflection.hpp>
+#include <haxorg/sem/SemOrgSharedTypes.hpp>
 
 
 template <>
@@ -32,13 +33,25 @@ struct OrgNodeMono {
 
     struct Error {
         struct Box {
-            std::string error;
-            int         parserLine;
-            std::string parserFunction;
-            OrgToken    failToken;
-            DESC_FIELDS(
-                Box,
-                (error, parserLine, parserFunction, failToken));
+            struct ParseFail {
+                sem::OrgDiagnostics::ParseError err;
+                DESC_FIELDS(ParseFail, (err));
+            };
+
+            struct ParseTokenFail {
+                sem::OrgDiagnostics::ParseTokenError err;
+                DESC_FIELDS(ParseTokenFail, (err));
+            };
+
+            SUB_VARIANTS(
+                Kind,
+                Data,
+                data,
+                getKind,
+                ParseFail,
+                ParseTokenFail);
+            Data data;
+            DESC_FIELDS(Box, (data));
         };
 
         hstd::SPtr<Box> box;

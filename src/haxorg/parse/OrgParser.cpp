@@ -882,8 +882,8 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
             TRY_SKIP(lex, otk::InactiveDynamicTimeContent);
         }
 
-        std::function<void()> aux;
-        aux = [&]() {
+        std::function<ParseResult()> aux;
+        aux = [&]() -> ParseResult {
             if (lex.at(otk::ParBegin)) {
                 auto stmtGuard = start(onk::InlineStmtList);
                 TRY_SKIP(lex, otk::ParBegin);
@@ -897,14 +897,14 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
                     space(lex);
                 }
                 TRY_SKIP(lex, otk::ParEnd);
-                stmtGuard.end();
+                return stmtGuard.end();
             } else {
-                token(onk::RawText, pop(lex));
+                return ParseOk{token(onk::RawText, pop(lex))};
             }
         };
 
 
-        aux();
+        std::ignore = aux();
 
         result = timeGuard.end();
     } else {

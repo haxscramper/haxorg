@@ -1679,6 +1679,70 @@ void org::algo::proto_serde<::orgproto::NamedProperty, org::sem::NamedProperty>:
   }
 }
 
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError>::write(::orgproto::OrgDiagnostics::ParseTokenError* out, org::sem::OrgDiagnostics::ParseTokenError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_brief(), in.brief);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_detail(), in.detail);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_parserfunction(), in.parserFunction);
+  out->set_parserline(in.parserLine);
+  out->set_tokenkind(static_cast<orgproto::OrgTokenKind>(in.tokenKind));
+  proto_serde<std::string, hstd::Str>::write(out->mutable_tokentext(), in.tokenText);
+  out->set_tokenline(in.tokenLine);
+  out->set_tokencol(in.tokenCol);
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError>::read(::orgproto::OrgDiagnostics::ParseTokenError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseTokenError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.brief(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::brief));
+  proto_serde<std::string, hstd::Str>::read(out.detail(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::detail));
+  proto_serde<std::string, hstd::Str>::read(out.parserfunction(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::parserFunction));
+  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::parserLine).get() = out.parserline();
+  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenKind).get() = static_cast<OrgTokenKind>(out.tokenkind());
+  proto_serde<std::string, hstd::Str>::read(out.tokentext(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenText));
+  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenLine).get() = out.tokenline();
+  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenCol).get() = out.tokencol();
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::write(::orgproto::OrgDiagnostics::ParseError* out, org::sem::OrgDiagnostics::ParseError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_brief(), in.brief);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_detail(), in.detail);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_parserfunction(), in.parserFunction);
+  out->set_parserline(in.parserLine);
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::read(::orgproto::OrgDiagnostics::ParseError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.brief(), in.for_field(&org::sem::OrgDiagnostics::ParseError::brief));
+  proto_serde<std::string, hstd::Str>::read(out.detail(), in.for_field(&org::sem::OrgDiagnostics::ParseError::detail));
+  proto_serde<std::string, hstd::Str>::read(out.parserfunction(), in.for_field(&org::sem::OrgDiagnostics::ParseError::parserFunction));
+  in.for_field(&org::sem::OrgDiagnostics::ParseError::parserLine).get() = out.parserline();
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::write(::orgproto::OrgDiagnostics* out, org::sem::OrgDiagnostics const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError>::write(out->mutable_data()->mutable_parsetokenerror(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::write(out->mutable_data()->mutable_parseerror(), std::get<1>(in.data));
+      break;
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::read(::orgproto::OrgDiagnostics const& out, proto_write_accessor<org::sem::OrgDiagnostics> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::OrgDiagnostics::Data::kParsetokenerror:
+      in.for_field_variant<0>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError>::read(out.data().parsetokenerror(), in.for_field_variant<0>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::kParseerror:
+      in.for_field_variant<1>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::read(out.data().parseerror(), in.for_field_variant<1>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
+  }
+}
+
 void org::algo::proto_serde<::orgproto::None, org::sem::None>::write(::orgproto::None* out, org::sem::None const& in) {
   org::algo::proto_serde<::orgproto::None, org::sem::Org>::write(out, in);
 }

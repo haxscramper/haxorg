@@ -287,8 +287,41 @@ def d_simple_enum(name: QualType, doc: AnyDoc, *args):
         ],
     )
 
+@beartype
+def get_diagnostic_types() -> List[GenTuStruct]:
+    return [
+        org_struct(
+            t_nest_shared("ParseTokenError", [t("OrgDiagnostics")]),
+            GenTuDoc("Parser errors for situations when failure can be attributed to specific token"),
+            fields=[
+                org_field(t_str(), "brief"),
+                org_field(t_str(), "detail"),
+                org_field(t_str(), "parserFunction"),
+                org_field(t_int(), "parserLine"),
+                org_field(t("OrgTokenKind"), "tokenKind"),
+                org_field(t_str(), "tokenText"),
+                org_field(t_int(), "tokenLine"),
+                org_field(t_int(), "tokenCol"),
+            ],
+            nested=[GenTuPass("ParseTokenError() {}")],
+            methods=[eq_method(t_nest_shared("ParseTokenError", [t("OrgDiagnostics")]))],
+        ),
+        org_struct(
+            t_nest_shared("ParseError", [t("OrgDiagnostics")]),
+            GenTuDoc("General parser errors"),
+            fields=[
+                org_field(t_str(), "brief"),
+                org_field(t_str(), "detail"),
+                org_field(t_str(), "parserFunction"),
+                org_field(t_int(), "parserLine"),
+            ],
+            nested=[GenTuPass("ParseError() {}")],
+            methods=[eq_method(t_nest_shared("ParseError", [t("OrgDiagnostics")]))],
+        ),
+    ]
 
-def get_subtree_property_types():
+@beartype
+def get_subtree_property_types() -> List[GenTuStruct]:
     return [
         org_struct(
             t_nest_shared("Nonblocking", [t("NamedProperty")]),
@@ -2726,6 +2759,22 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 ),
                 GenTuPass("NamedProperty(Data const& data) : data(data) {}"),
             ],
+        ),
+        org_struct(
+            t_nest_shared("OrgDiagnostics", []),
+            GenTuDoc("Structure to store all diagnostics data collected by the parser, sem, eval etc."),
+            methods=[
+                eq_method(t_nest_shared("OrgDiagnostics", [])),
+            ],
+            nested=[
+                GenTuPass("OrgDiagnostics() {}"),
+                GenTuTypeGroup(
+                    get_diagnostic_types(),
+                    enumName=t_nest_shared("Kind", [t("OrgDiagnostics")]),
+                    variantName=t_nest_shared("Data", [t("OrgDiagnostics")]),
+                ),
+                GenTuPass("OrgDiagnostics(Data const& data) : data(data) {}"),
+            ]
         ),
     ]
 

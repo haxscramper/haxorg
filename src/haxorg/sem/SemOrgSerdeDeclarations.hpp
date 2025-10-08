@@ -786,6 +786,27 @@ struct org::algo::proto_serde<::orgproto::NamedProperty, org::sem::NamedProperty
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError> {
+  static void write(::orgproto::OrgDiagnostics::ParseTokenError* out, org::sem::OrgDiagnostics::ParseTokenError const& in);
+  static void read(::orgproto::OrgDiagnostics::ParseTokenError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseTokenError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError> {
+  static void write(::orgproto::OrgDiagnostics::ParseError* out, org::sem::OrgDiagnostics::ParseError const& in);
+  static void read(::orgproto::OrgDiagnostics::ParseError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics> {
+  static void write(::orgproto::OrgDiagnostics* out, org::sem::OrgDiagnostics const& in);
+  static void read(::orgproto::OrgDiagnostics const& out, proto_write_accessor<org::sem::OrgDiagnostics> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::None, org::sem::None> {
   static void write(::orgproto::None* out, org::sem::None const& in);
   static void read(::orgproto::None const& out, proto_write_accessor<org::sem::None> in);

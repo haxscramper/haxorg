@@ -184,19 +184,29 @@ OrgId OrgParser::token(
 }
 
 OrgNodeMono::Error OrgParser::error_value(
-    std::string const& message,
-    OrgLexer const&    lex,
-    int                line,
-    char const*        function) {
-    auto box   = std::make_shared<OrgNodeMono::Error::Box>();
-    box->error = message;
+    org::sem::OrgDiagnostics::ParseError const& message,
+    OrgLexer const&                             lex,
+    int                                         line,
+    char const*                                 function) {
+    auto box = std::make_shared<OrgNodeMono::Error::Box>();
+    org::parse::OrgNodeMono::Error::Box::ParseTokenFail fail;
+    fail.err.brief          = message.brief;
+    fail.err.detail         = message.detail;
+    fail.err.parserFunction = function;
+    fail.err.parserLine     = line;
+    std::optional<OrgToken> failToken;
     if (lex.finished()) {
-        if (lex.lastToken) { box->failToken = lex.lastToken.value(); }
+        if (lex.lastToken) { failToken = lex.lastToken.value(); }
     } else {
-        box->failToken = lex.tok();
+        failToken = lex.tok();
     }
-    box->parserFunction = function;
-    box->parserLine     = line;
+
+    if (failToken) {
+        fail.err.tokenCol  = failToken->value.col;
+        fail.err.tokenLine = failToken->value.line;
+        fail.err.tokenText = failToken->value.text;
+    }
+
     return OrgNodeMono::Error{.box = box};
 }
 
@@ -211,11 +221,11 @@ OrgId OrgParser::error_token(
 }
 
 OrgParser::ParseResult OrgParser::maybe_recursive_error_end(
-    ParseResult const& res,
-    std::string const& on_fail_message,
-    OrgLexer&          lex,
-    int                line,
-    const char*        function) {
+    ParseResult const&                          res,
+    org::sem::OrgDiagnostics::ParseError const& on_fail_message,
+    OrgLexer&                                   lex,
+    int                                         line,
+    const char*                                 function) {
     if (res.has_value()) {
         return res;
     } else {

@@ -85,7 +85,9 @@
     __IMPL(NamedProperty, CustomRaw, (CustomRaw)) \
     __IMPL(NamedProperty, CustomId, (CustomId)) \
     __IMPL(NamedProperty, CustomSubtreeJson, (CustomSubtreeJson)) \
-    __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags))
+    __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags)) \
+    __IMPL(OrgDiagnostics, ParseTokenError, (ParseTokenError)) \
+    __IMPL(OrgDiagnostics, ParseError, (ParseError))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
     __IMPL(LispCode, Kind, (Kind)) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
@@ -109,7 +111,8 @@
     __IMPL(DocumentExportConfig, TocExportKind, (TocExportKind)) \
     __IMPL(SubtreePeriod, Kind, (Kind)) \
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
-    __IMPL(NamedProperty, Kind, (Kind))
+    __IMPL(NamedProperty, Kind, (Kind)) \
+    __IMPL(OrgDiagnostics, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
     __IMPL(LispCode, (LispCode)) \
     __IMPL(LispCode::Call, (LispCode, Call)) \
@@ -211,7 +214,10 @@
     __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw)) \
     __IMPL(NamedProperty::CustomId, (NamedProperty, CustomId)) \
     __IMPL(NamedProperty::CustomSubtreeJson, (NamedProperty, CustomSubtreeJson)) \
-    __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags))
+    __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags)) \
+    __IMPL(OrgDiagnostics, (OrgDiagnostics)) \
+    __IMPL(OrgDiagnostics::ParseTokenError, (OrgDiagnostics, ParseTokenError)) \
+    __IMPL(OrgDiagnostics::ParseError, (OrgDiagnostics, ParseError))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(Time, Repeat, (Repeat)) \
     __IMPL(Time, Static, (Static)) \

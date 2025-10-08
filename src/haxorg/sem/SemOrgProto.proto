@@ -1337,6 +1337,39 @@ message NamedProperty {
   string                                           debug                            = 1000;
 }
 
+message OrgDiagnostics {
+  message ParseTokenError {
+    string                                         brief                            = 1;
+    string                                         detail                           = 2;
+    string                                         parserFunction                   = 3;
+    int32                                          parserLine                       = 4;
+    OrgTokenKind                                   tokenKind                        = 5;
+    string                                         tokenText                        = 6;
+    int32                                          tokenLine                        = 7;
+    int32                                          tokenCol                         = 8;
+    string                                         debug                            = 1000;
+  }
+  message ParseError {
+    string                                         brief                            = 1;
+    string                                         detail                           = 2;
+    string                                         parserFunction                   = 3;
+    int32                                          parserLine                       = 4;
+    string                                         debug                            = 1000;
+  }
+  message Data {
+    oneof kind {
+      OrgDiagnostics.ParseTokenError               parsetokenerror                  = 1;
+      OrgDiagnostics.ParseError                    parseerror                       = 2;
+    }
+  }
+  enum Kind {
+    Kind_ParseTokenError_f                                                          = 0;
+    Kind_ParseError_f                                                               = 1;
+  }
+  OrgDiagnostics.Data                              data                             = 1;
+  string                                           debug                            = 1000;
+}
+
 message None {
   optional org.parse.LineCol                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
