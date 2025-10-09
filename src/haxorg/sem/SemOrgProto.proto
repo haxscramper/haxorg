@@ -1366,6 +1366,12 @@ message OrgDiagnostics {
     string                                         errCode                          = 6;
     string                                         debug                            = 1000;
   }
+  message IncludeError {
+    string                                         brief                            = 1;
+    string                                         targetPath                       = 2;
+    string                                         workingFile                      = 3;
+    string                                         debug                            = 1000;
+  }
   message ConvertError {
     string                                         brief                            = 1;
     string                                         detail                           = 2;
@@ -1389,15 +1395,17 @@ message OrgDiagnostics {
     oneof kind {
       OrgDiagnostics.ParseTokenError               parsetokenerror                  = 1;
       OrgDiagnostics.ParseError                    parseerror                       = 2;
-      OrgDiagnostics.ConvertError                  converterror                     = 3;
-      OrgDiagnostics.InternalError                 internalerror                    = 4;
+      OrgDiagnostics.IncludeError                  includeerror                     = 3;
+      OrgDiagnostics.ConvertError                  converterror                     = 4;
+      OrgDiagnostics.InternalError                 internalerror                    = 5;
     }
   }
   enum Kind {
     Kind_ParseTokenError_f                                                          = 0;
     Kind_ParseError_f                                                               = 1;
-    Kind_ConvertError_f                                                             = 2;
-    Kind_InternalError_f                                                            = 3;
+    Kind_IncludeError_f                                                             = 2;
+    Kind_ConvertError_f                                                             = 3;
+    Kind_InternalError_f                                                            = 4;
   }
   OrgDiagnostics.Data                              data                             = 1;
   string                                           debug                            = 1000;

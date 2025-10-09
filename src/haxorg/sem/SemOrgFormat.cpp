@@ -829,7 +829,7 @@ auto Formatter::toString(SemId<ErrorGroup> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<ErrorItem> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str(id->message)});
+    return b.line({str(hstd::fmt1(id->diag))});
 }
 
 auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {

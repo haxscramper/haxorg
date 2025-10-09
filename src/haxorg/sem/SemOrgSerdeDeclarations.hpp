@@ -807,6 +807,13 @@ struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError> {
+  static void write(::orgproto::OrgDiagnostics::IncludeError* out, org::sem::OrgDiagnostics::IncludeError const& in);
+  static void read(::orgproto::OrgDiagnostics::IncludeError const& out, proto_write_accessor<org::sem::OrgDiagnostics::IncludeError> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError> {
   static void write(::orgproto::OrgDiagnostics::ConvertError* out, org::sem::OrgDiagnostics::ConvertError const& in);
   static void read(::orgproto::OrgDiagnostics::ConvertError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ConvertError> in);

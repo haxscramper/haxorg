@@ -512,12 +512,13 @@ void postProcessInclude(
             }
         }
     } else {
-        auto group     = sem::SemId<sem::ErrorGroup>::New();
-        auto error     = sem::SemId<sem::ErrorItem>::New();
-        error->message = fmt(
-            "Could not resolve include target '{}' from working file '{}'",
-            incl->path,
-            filePath);
+        auto group = sem::SemId<sem::ErrorGroup>::New();
+        auto error = sem::SemId<sem::ErrorItem>::New();
+        org::sem::OrgDiagnostics::IncludeError inc{};
+        inc.brief       = "Could not resolve include target";
+        inc.targetPath  = inc.brief;
+        inc.workingFile = filePath.native();
+        error->diag     = org::sem::OrgDiagnostics{inc};
         arg->push_back(error);
     }
 }

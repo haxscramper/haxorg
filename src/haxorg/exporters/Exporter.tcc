@@ -520,6 +520,13 @@ void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseError const& object
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::IncludeError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, targetPath);
+  __obj_field(res, object, workingFile);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ConvertError const& object) {
   __obj_field(res, object, brief);
   __obj_field(res, object, detail);

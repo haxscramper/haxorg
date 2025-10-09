@@ -240,6 +240,7 @@ Opt<ImmAstReplace> setNewSubnodes(
                         [&](sem::TodoKeyword const&) { fail_field(); },
                         [&](sem::SubtreeLogHead const&) { fail_field(); },
                         [&](sem::OrgCodeEvalOutput const&) { fail_field(); },
+                        [&](sem::OrgDiagnostics const&) { fail_field(); },
                         [&](Vec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
                         [&](ImmVec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
                         // clang-format on
@@ -895,6 +896,7 @@ __same_type(sem::SubtreePath);
 __same_type(sem::LispCode);
 __same_type(org::parse::LineCol);
 __same_type(org::sem::OrgCodeEvalOutput);
+__same_type(org::sem::OrgDiagnostics);
 
 
 template <typename SemType, typename ImmType>

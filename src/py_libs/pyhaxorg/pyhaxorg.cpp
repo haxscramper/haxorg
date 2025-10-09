@@ -9,10 +9,9 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>)
 PYBIND11_MAKE_OPAQUE(immer::box<hstd::Str>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<hstd::Str>>)
-PYBIND11_MAKE_OPAQUE(immer::box<std::optional<int>>)
-PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmSymbol::Param>)
@@ -30,6 +29,7 @@ PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<bool>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<int>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::ColumnView>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::TodoKeyword>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>)
@@ -132,10 +132,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
   bind_hstdVec<org::sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmFlexVectorOfImmIdTOfImmErrorItem", type_registry_guard);
   bind_immerbox<hstd::Str>(m, "ImmBoxOfStr", type_registry_guard);
   bind_immerbox<std::optional<hstd::Str>>(m, "ImmBoxOfStdOptionalOfStr", type_registry_guard);
-  bind_immerbox<std::optional<int>>(m, "ImmBoxOfStdOptionalOfInt", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmFlexVectorOfImmIdTOfImmErrorItem", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmFlexVectorOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
   bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmOrg", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmSymbol::Param>(m, "ImmFlexVectorOfImmSymbolParam", type_registry_guard);
@@ -153,6 +152,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmFlexVectorOfImmIdTOfImmCell", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmFlexVectorOfImmIdTOfImmRow", type_registry_guard);
   bind_immerbox<std::optional<bool>>(m, "ImmBoxOfStdOptionalOfBool", type_registry_guard);
+  bind_immerbox<std::optional<int>>(m, "ImmBoxOfStdOptionalOfInt", type_registry_guard);
   bind_immerbox<std::optional<org::sem::ColumnView>>(m, "ImmBoxOfStdOptionalOfColumnView", type_registry_guard);
   bind_immerflex_vector<org::sem::TodoKeyword>(m, "ImmFlexVectorOfTodoKeyword", type_registry_guard);
   bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmRawText", type_registry_guard);
@@ -459,9 +459,7 @@ ImmPathStep documentation.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmErrorItemValueRead>(m, "ImmErrorItemValueRead")
-    .def("getMessage", static_cast<immer::box<hstd::Str> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getMessage))
-    .def("getFunction", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getFunction))
-    .def("getLine", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getLine))
+    .def("getDiag", static_cast<org::sem::OrgDiagnostics const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getDiag))
     .def("__repr__", [](org::imm::ImmErrorItemValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -473,8 +471,6 @@ ImmPathStep documentation.)RAW")
     ;
   pybind11::class_<org::imm::ImmErrorGroupValueRead>(m, "ImmErrorGroupValueRead")
     .def("getDiagnostics", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getDiagnostics))
-    .def("getFunction", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getFunction))
-    .def("getLine", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getLine))
     .def("__repr__", [](org::imm::ImmErrorGroupValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5046,6 +5042,27 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::OrgDiagnostics::IncludeError>(m, "OrgDiagnosticsIncludeError")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics::IncludeError {
+                        org::sem::OrgDiagnostics::IncludeError result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("brief", &org::sem::OrgDiagnostics::IncludeError::brief)
+    .def_readwrite("targetPath", &org::sem::OrgDiagnostics::IncludeError::targetPath)
+    .def_readwrite("workingFile", &org::sem::OrgDiagnostics::IncludeError::workingFile)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::IncludeError::*)(org::sem::OrgDiagnostics::IncludeError const&) const>(&org::sem::OrgDiagnostics::IncludeError::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgDiagnostics::IncludeError const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgDiagnostics::IncludeError const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::OrgDiagnostics::ConvertError>(m, "OrgDiagnosticsConvertError")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics::ConvertError {
                         org::sem::OrgDiagnostics::ConvertError result{};
@@ -5099,6 +5116,7 @@ ingoing elements.)RAW")
   pybind11::enum_<org::sem::OrgDiagnostics::Kind>(m, "OrgDiagnosticsKind")
     .value("ParseTokenError", org::sem::OrgDiagnostics::Kind::ParseTokenError)
     .value("ParseError", org::sem::OrgDiagnostics::Kind::ParseError)
+    .value("IncludeError", org::sem::OrgDiagnostics::Kind::IncludeError)
     .value("ConvertError", org::sem::OrgDiagnostics::Kind::ConvertError)
     .value("InternalError", org::sem::OrgDiagnostics::Kind::InternalError)
     .def("__iter__", [](org::sem::OrgDiagnostics::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgDiagnostics::Kind> {
@@ -5130,6 +5148,8 @@ ingoing elements.)RAW")
     .def("getParseTokenError", static_cast<org::sem::OrgDiagnostics::ParseTokenError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseTokenError))
     .def("isParseError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isParseError))
     .def("getParseError", static_cast<org::sem::OrgDiagnostics::ParseError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseError))
+    .def("isIncludeError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isIncludeError))
+    .def("getIncludeError", static_cast<org::sem::OrgDiagnostics::IncludeError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getIncludeError))
     .def("isConvertError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isConvertError))
     .def("getConvertError", static_cast<org::sem::OrgDiagnostics::ConvertError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getConvertError))
     .def("isInternalError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isInternalError))
@@ -6660,14 +6680,8 @@ ingoing elements.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmErrorItemValue, org::imm::ImmErrorItemValueRead>(m, "ImmErrorItemValue")
-    .def("setMessage",
-         static_cast<void(org::imm::ImmErrorItemValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmErrorItemValue::setMessage),
-         pybind11::arg("value"))
-    .def("setFunction",
-         static_cast<void(org::imm::ImmErrorItemValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmErrorItemValue::setFunction),
-         pybind11::arg("value"))
-    .def("setLine",
-         static_cast<void(org::imm::ImmErrorItemValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmErrorItemValue::setLine),
+    .def("setDiag",
+         static_cast<void(org::imm::ImmErrorItemValue::*)(org::sem::OrgDiagnostics const&)>(&org::imm::ImmErrorItemValue::setDiag),
          pybind11::arg("value"))
     .def("__repr__", [](org::imm::ImmErrorItemValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -6681,12 +6695,6 @@ ingoing elements.)RAW")
   pybind11::class_<org::imm::ImmErrorGroupValue, org::imm::ImmErrorGroupValueRead>(m, "ImmErrorGroupValue")
     .def("setDiagnostics",
          static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&)>(&org::imm::ImmErrorGroupValue::setDiagnostics),
-         pybind11::arg("value"))
-    .def("setFunction",
-         static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmErrorGroupValue::setFunction),
-         pybind11::arg("value"))
-    .def("setLine",
-         static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmErrorGroupValue::setLine),
          pybind11::arg("value"))
     .def("__repr__", [](org::imm::ImmErrorGroupValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);

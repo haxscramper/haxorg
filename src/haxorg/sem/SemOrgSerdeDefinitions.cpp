@@ -1741,6 +1741,18 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::Or
   proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ParseError::errCode));
 }
 
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError>::write(::orgproto::OrgDiagnostics::IncludeError* out, org::sem::OrgDiagnostics::IncludeError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_brief(), in.brief);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_targetpath(), in.targetPath);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_workingfile(), in.workingFile);
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError>::read(::orgproto::OrgDiagnostics::IncludeError const& out, proto_write_accessor<org::sem::OrgDiagnostics::IncludeError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.brief(), in.for_field(&org::sem::OrgDiagnostics::IncludeError::brief));
+  proto_serde<std::string, hstd::Str>::read(out.targetpath(), in.for_field(&org::sem::OrgDiagnostics::IncludeError::targetPath));
+  proto_serde<std::string, hstd::Str>::read(out.workingfile(), in.for_field(&org::sem::OrgDiagnostics::IncludeError::workingFile));
+}
+
 void org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::write(::orgproto::OrgDiagnostics::ConvertError* out, org::sem::OrgDiagnostics::ConvertError const& in) {
   proto_serde<std::string, hstd::Str>::write(out->mutable_brief(), in.brief);
   proto_serde<std::string, hstd::Str>::write(out->mutable_detail(), in.detail);
@@ -1796,10 +1808,13 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics
       proto_serde<orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::write(out->mutable_data()->mutable_parseerror(), std::get<1>(in.data));
       break;
     case 2:
-      proto_serde<orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::write(out->mutable_data()->mutable_converterror(), std::get<2>(in.data));
+      proto_serde<orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError>::write(out->mutable_data()->mutable_includeerror(), std::get<2>(in.data));
       break;
     case 3:
-      proto_serde<orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::write(out->mutable_data()->mutable_internalerror(), std::get<3>(in.data));
+      proto_serde<orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::write(out->mutable_data()->mutable_converterror(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::write(out->mutable_data()->mutable_internalerror(), std::get<4>(in.data));
       break;
   }
 }
@@ -1814,13 +1829,17 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics
       in.for_field_variant<1>(&org::sem::OrgDiagnostics::data).get();
       proto_serde<orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::read(out.data().parseerror(), in.for_field_variant<1>(&org::sem::OrgDiagnostics::data));
       break;
-    case ::orgproto::OrgDiagnostics::Data::kConverterror:
+    case ::orgproto::OrgDiagnostics::Data::kIncludeerror:
       in.for_field_variant<2>(&org::sem::OrgDiagnostics::data).get();
-      proto_serde<orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::read(out.data().converterror(), in.for_field_variant<2>(&org::sem::OrgDiagnostics::data));
+      proto_serde<orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError>::read(out.data().includeerror(), in.for_field_variant<2>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::kConverterror:
+      in.for_field_variant<3>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::read(out.data().converterror(), in.for_field_variant<3>(&org::sem::OrgDiagnostics::data));
       break;
     case ::orgproto::OrgDiagnostics::Data::kInternalerror:
-      in.for_field_variant<3>(&org::sem::OrgDiagnostics::data).get();
-      proto_serde<orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::read(out.data().internalerror(), in.for_field_variant<3>(&org::sem::OrgDiagnostics::data));
+      in.for_field_variant<4>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::read(out.data().internalerror(), in.for_field_variant<4>(&org::sem::OrgDiagnostics::data));
       break;
     case ::orgproto::OrgDiagnostics::Data::KIND_NOT_SET: {
       throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");

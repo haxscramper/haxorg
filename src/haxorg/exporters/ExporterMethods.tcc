@@ -115,6 +115,7 @@ void visit(R& res, org::sem::OrgDiagnostics::Data const& object);
 void visit(R& res, sem::OrgDiagnostics const& object);
 void visit(R& res, sem::OrgDiagnostics::ParseTokenError const& object);
 void visit(R& res, sem::OrgDiagnostics::ParseError const& object);
+void visit(R& res, sem::OrgDiagnostics::IncludeError const& object);
 void visit(R& res, sem::OrgDiagnostics::ConvertError const& object);
 void visit(R& res, sem::OrgDiagnostics::InternalError const& object);
 void visitNone(R& res, In<sem::None> object);

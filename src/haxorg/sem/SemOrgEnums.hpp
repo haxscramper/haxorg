@@ -88,6 +88,7 @@
     __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags)) \
     __IMPL(OrgDiagnostics, ParseTokenError, (ParseTokenError)) \
     __IMPL(OrgDiagnostics, ParseError, (ParseError)) \
+    __IMPL(OrgDiagnostics, IncludeError, (IncludeError)) \
     __IMPL(OrgDiagnostics, ConvertError, (ConvertError)) \
     __IMPL(OrgDiagnostics, InternalError, (InternalError))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
@@ -221,6 +222,7 @@
     __IMPL(OrgDiagnostics, (OrgDiagnostics)) \
     __IMPL(OrgDiagnostics::ParseTokenError, (OrgDiagnostics, ParseTokenError)) \
     __IMPL(OrgDiagnostics::ParseError, (OrgDiagnostics, ParseError)) \
+    __IMPL(OrgDiagnostics::IncludeError, (OrgDiagnostics, IncludeError)) \
     __IMPL(OrgDiagnostics::ConvertError, (OrgDiagnostics, ConvertError)) \
     __IMPL(OrgDiagnostics::InternalError, (OrgDiagnostics, InternalError))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \

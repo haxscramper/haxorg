@@ -2459,7 +2459,7 @@ SemId<ErrorItem> OrgConverter::SemErrorItem(
     char const*                     function) {
     auto res  = Sem<ErrorItem>(adapter);
     res->diag = diag;
-    if (TraceState) { print(fmt("{} {}", diag), line, function); }
+    if (TraceState) { print(fmt("{}", diag), line, function); }
     return res;
 }
 

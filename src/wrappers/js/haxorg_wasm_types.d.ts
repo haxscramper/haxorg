@@ -433,11 +433,13 @@ export interface haxorg_wasm_module_auto {
   OrgDiagnostics: OrgDiagnosticsConstructor;
   OrgDiagnosticsParseTokenError: OrgDiagnosticsParseTokenErrorConstructor;
   OrgDiagnosticsParseError: OrgDiagnosticsParseErrorConstructor;
+  OrgDiagnosticsIncludeError: OrgDiagnosticsIncludeErrorConstructor;
   OrgDiagnosticsConvertError: OrgDiagnosticsConvertErrorConstructor;
   OrgDiagnosticsInternalError: OrgDiagnosticsInternalErrorConstructor;
   OrgDiagnosticsKind: {
     ParseTokenError: OrgDiagnosticsKind,
     ParseError: OrgDiagnosticsKind,
+    IncludeError: OrgDiagnosticsKind,
     ConvertError: OrgDiagnosticsKind,
     InternalError: OrgDiagnosticsKind,
   }
@@ -1699,17 +1701,9 @@ export interface ImmAstReplaceEpoch {  }
 export interface ImmNoneValueReadConstructor { new(): ImmNoneValueRead; }
 export interface ImmNoneValueRead {  }
 export interface ImmErrorItemValueReadConstructor { new(): ImmErrorItemValueRead; }
-export interface ImmErrorItemValueRead {
-  getMessage(): haxorg_wasm.ImmerBox<string>;
-  getFunction(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
-  getLine(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
-}
+export interface ImmErrorItemValueRead { getDiag(): OrgDiagnostics; }
 export interface ImmErrorGroupValueReadConstructor { new(): ImmErrorGroupValueRead; }
-export interface ImmErrorGroupValueRead {
-  getDiagnostics(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>;
-  getFunction(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
-  getLine(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
-}
+export interface ImmErrorGroupValueRead { getDiagnostics(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>; }
 export interface ImmStmtListValueReadConstructor { new(): ImmStmtListValueRead; }
 export interface ImmStmtListValueRead {  }
 export interface ImmEmptyValueReadConstructor { new(): ImmEmptyValueRead; }
@@ -3311,6 +3305,9 @@ export interface OrgDiagnostics {
   isParseError(): boolean;
   getParseErrorConst(): OrgDiagnosticsParseError;
   getParseErrorMut(): OrgDiagnosticsParseError;
+  isIncludeError(): boolean;
+  getIncludeErrorConst(): OrgDiagnosticsIncludeError;
+  getIncludeErrorMut(): OrgDiagnosticsIncludeError;
   isConvertError(): boolean;
   getConvertErrorConst(): OrgDiagnosticsConvertError;
   getConvertErrorMut(): OrgDiagnosticsConvertError;
@@ -3347,6 +3344,13 @@ export interface OrgDiagnosticsParseError {
   errName: string
   errCode: string
 }
+export interface OrgDiagnosticsIncludeErrorConstructor { new(): OrgDiagnosticsIncludeError; }
+export interface OrgDiagnosticsIncludeError {
+  __eq__(other: OrgDiagnosticsIncludeError): boolean;
+  brief: string
+  targetPath: string
+  workingFile: string
+}
 export interface OrgDiagnosticsConvertErrorConstructor { new(): OrgDiagnosticsConvertError; }
 export interface OrgDiagnosticsConvertError {
   __eq__(other: OrgDiagnosticsConvertError): boolean;
@@ -3368,10 +3372,11 @@ export interface OrgDiagnosticsInternalError {
   file: string
   loc: haxorg_wasm.Optional<SourceLocation>
 }
-export type OrgDiagnosticsData = haxorg_wasm.StdVariant<OrgDiagnosticsParseTokenError, OrgDiagnosticsParseError, OrgDiagnosticsConvertError, OrgDiagnosticsInternalError>;
+export type OrgDiagnosticsData = haxorg_wasm.StdVariant<OrgDiagnosticsParseTokenError, OrgDiagnosticsParseError, OrgDiagnosticsIncludeError, OrgDiagnosticsConvertError, OrgDiagnosticsInternalError>;
 export enum OrgDiagnosticsKind {
   ParseTokenError,
   ParseError,
+  IncludeError,
   ConvertError,
   InternalError,
 }
@@ -4278,17 +4283,9 @@ export enum ImmCmdIncludeKind {
 export interface ImmNoneValueConstructor { new(): ImmNoneValue; }
 export interface ImmNoneValue {  }
 export interface ImmErrorItemValueConstructor { new(): ImmErrorItemValue; }
-export interface ImmErrorItemValue {
-  setMessage(value: haxorg_wasm.ImmerBox<string>): void;
-  setFunction(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
-  setLine(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
-}
+export interface ImmErrorItemValue { setDiag(value: OrgDiagnostics): void; }
 export interface ImmErrorGroupValueConstructor { new(): ImmErrorGroupValue; }
-export interface ImmErrorGroupValue {
-  setDiagnostics(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>): void;
-  setFunction(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
-  setLine(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
-}
+export interface ImmErrorGroupValue { setDiagnostics(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>): void; }
 export interface ImmStmtListValueConstructor { new(): ImmStmtListValue; }
 export interface ImmStmtListValue {  }
 export interface ImmEmptyValueConstructor { new(): ImmEmptyValue; }
