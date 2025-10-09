@@ -213,6 +213,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 fieldN(slice(0, 1_B), N::Body, {onk::RawText, onk::Empty}),
             })},
+        SpecPair{
+            onk::ErrorSkipGroup,
+            OrgPattern({
+                fieldN(slice(0, 1_B), N::Body, {onk::ErrorSkipToken}),
+            })},
         SpecPair{onk::StmtList, anySubnodePattern},
         SpecPair{onk::Paragraph, anySubnodePattern},
         SpecPair{onk::InlineStmtList, anySubnodePattern},

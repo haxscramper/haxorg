@@ -1,4 +1,5 @@
 /* clang-format off */
+void visit(R& res, sem::SourceLocation const& object);
 void visit(R& res, org::sem::LispCode::Data const& object);
 void visit(R& res, sem::LispCode const& object);
 void visit(R& res, sem::LispCode::Call const& object);
@@ -110,6 +111,13 @@ void visit(R& res, sem::NamedProperty::CustomRaw const& object);
 void visit(R& res, sem::NamedProperty::CustomId const& object);
 void visit(R& res, sem::NamedProperty::CustomSubtreeJson const& object);
 void visit(R& res, sem::NamedProperty::CustomSubtreeFlags const& object);
+void visit(R& res, org::sem::OrgDiagnostics::Data const& object);
+void visit(R& res, sem::OrgDiagnostics const& object);
+void visit(R& res, sem::OrgDiagnostics::ParseTokenError const& object);
+void visit(R& res, sem::OrgDiagnostics::ParseError const& object);
+void visit(R& res, sem::OrgDiagnostics::IncludeError const& object);
+void visit(R& res, sem::OrgDiagnostics::ConvertError const& object);
+void visit(R& res, sem::OrgDiagnostics::InternalError const& object);
 void visitNone(R& res, In<sem::None> object);
 void visitErrorItem(R& res, In<sem::ErrorItem> object);
 void visitErrorGroup(R& res, In<sem::ErrorGroup> object);

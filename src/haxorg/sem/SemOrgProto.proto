@@ -168,58 +168,59 @@ enum OrgNodeKind {
   OrgNodeKind_BlockDynamicFallback_f                                                = 68;
   OrgNodeKind_BigIdent_f                                                            = 69;
   OrgNodeKind_Bold_f                                                                = 70;
-  OrgNodeKind_ErrorWrap_f                                                           = 71;
-  OrgNodeKind_ErrorToken_f                                                          = 72;
-  OrgNodeKind_Italic_f                                                              = 73;
-  OrgNodeKind_Verbatim_f                                                            = 74;
-  OrgNodeKind_Backtick_f                                                            = 75;
-  OrgNodeKind_Underline_f                                                           = 76;
-  OrgNodeKind_Strike_f                                                              = 77;
-  OrgNodeKind_Quote_f                                                               = 78;
-  OrgNodeKind_Angle_f                                                               = 79;
-  OrgNodeKind_Monospace_f                                                           = 80;
-  OrgNodeKind_Par_f                                                                 = 81;
-  OrgNodeKind_CriticMarkStructure_f                                                 = 82;
-  OrgNodeKind_InlineMath_f                                                          = 83;
-  OrgNodeKind_DisplayMath_f                                                         = 84;
-  OrgNodeKind_Space_f                                                               = 85;
-  OrgNodeKind_Punctuation_f                                                         = 86;
-  OrgNodeKind_Colon_f                                                               = 87;
-  OrgNodeKind_Word_f                                                                = 88;
-  OrgNodeKind_Escaped_f                                                             = 89;
-  OrgNodeKind_Newline_f                                                             = 90;
-  OrgNodeKind_RawLink_f                                                             = 91;
-  OrgNodeKind_Link_f                                                                = 92;
-  OrgNodeKind_Macro_f                                                               = 93;
-  OrgNodeKind_Symbol_f                                                              = 94;
-  OrgNodeKind_StaticActiveTime_f                                                    = 95;
-  OrgNodeKind_StaticInactiveTime_f                                                  = 96;
-  OrgNodeKind_DynamicActiveTime_f                                                   = 97;
-  OrgNodeKind_DynamicInactiveTime_f                                                 = 98;
-  OrgNodeKind_TimeRange_f                                                           = 99;
-  OrgNodeKind_SimpleTime_f                                                          = 100;
-  OrgNodeKind_HashTag_f                                                             = 101;
-  OrgNodeKind_MetaSymbol_f                                                          = 102;
-  OrgNodeKind_AtMention_f                                                           = 103;
-  OrgNodeKind_Placeholder_f                                                         = 104;
-  OrgNodeKind_RadioTarget_f                                                         = 105;
-  OrgNodeKind_Target_f                                                              = 106;
-  OrgNodeKind_SrcInlineCode_f                                                       = 107;
-  OrgNodeKind_InlineCallCode_f                                                      = 108;
-  OrgNodeKind_InlineExport_f                                                        = 109;
-  OrgNodeKind_InlineComment_f                                                       = 110;
-  OrgNodeKind_RawText_f                                                             = 111;
-  OrgNodeKind_SubtreeDescription_f                                                  = 112;
-  OrgNodeKind_SubtreeUrgency_f                                                      = 113;
-  OrgNodeKind_DrawerLogbook_f                                                       = 114;
-  OrgNodeKind_Drawer_f                                                              = 115;
-  OrgNodeKind_DrawerPropertyList_f                                                  = 116;
-  OrgNodeKind_DrawerProperty_f                                                      = 117;
-  OrgNodeKind_Subtree_f                                                             = 118;
-  OrgNodeKind_SubtreeTimes_f                                                        = 119;
-  OrgNodeKind_SubtreeStars_f                                                        = 120;
-  OrgNodeKind_SubtreeCompletion_f                                                   = 121;
-  OrgNodeKind_SubtreeImportance_f                                                   = 122;
+  OrgNodeKind_ErrorInfoToken_f                                                      = 71;
+  OrgNodeKind_ErrorSkipGroup_f                                                      = 72;
+  OrgNodeKind_ErrorSkipToken_f                                                      = 73;
+  OrgNodeKind_Italic_f                                                              = 74;
+  OrgNodeKind_Verbatim_f                                                            = 75;
+  OrgNodeKind_Backtick_f                                                            = 76;
+  OrgNodeKind_Underline_f                                                           = 77;
+  OrgNodeKind_Strike_f                                                              = 78;
+  OrgNodeKind_Quote_f                                                               = 79;
+  OrgNodeKind_Angle_f                                                               = 80;
+  OrgNodeKind_Monospace_f                                                           = 81;
+  OrgNodeKind_Par_f                                                                 = 82;
+  OrgNodeKind_CriticMarkStructure_f                                                 = 83;
+  OrgNodeKind_InlineMath_f                                                          = 84;
+  OrgNodeKind_DisplayMath_f                                                         = 85;
+  OrgNodeKind_Space_f                                                               = 86;
+  OrgNodeKind_Punctuation_f                                                         = 87;
+  OrgNodeKind_Colon_f                                                               = 88;
+  OrgNodeKind_Word_f                                                                = 89;
+  OrgNodeKind_Escaped_f                                                             = 90;
+  OrgNodeKind_Newline_f                                                             = 91;
+  OrgNodeKind_RawLink_f                                                             = 92;
+  OrgNodeKind_Link_f                                                                = 93;
+  OrgNodeKind_Macro_f                                                               = 94;
+  OrgNodeKind_Symbol_f                                                              = 95;
+  OrgNodeKind_StaticActiveTime_f                                                    = 96;
+  OrgNodeKind_StaticInactiveTime_f                                                  = 97;
+  OrgNodeKind_DynamicActiveTime_f                                                   = 98;
+  OrgNodeKind_DynamicInactiveTime_f                                                 = 99;
+  OrgNodeKind_TimeRange_f                                                           = 100;
+  OrgNodeKind_SimpleTime_f                                                          = 101;
+  OrgNodeKind_HashTag_f                                                             = 102;
+  OrgNodeKind_MetaSymbol_f                                                          = 103;
+  OrgNodeKind_AtMention_f                                                           = 104;
+  OrgNodeKind_Placeholder_f                                                         = 105;
+  OrgNodeKind_RadioTarget_f                                                         = 106;
+  OrgNodeKind_Target_f                                                              = 107;
+  OrgNodeKind_SrcInlineCode_f                                                       = 108;
+  OrgNodeKind_InlineCallCode_f                                                      = 109;
+  OrgNodeKind_InlineExport_f                                                        = 110;
+  OrgNodeKind_InlineComment_f                                                       = 111;
+  OrgNodeKind_RawText_f                                                             = 112;
+  OrgNodeKind_SubtreeDescription_f                                                  = 113;
+  OrgNodeKind_SubtreeUrgency_f                                                      = 114;
+  OrgNodeKind_DrawerLogbook_f                                                       = 115;
+  OrgNodeKind_Drawer_f                                                              = 116;
+  OrgNodeKind_DrawerPropertyList_f                                                  = 117;
+  OrgNodeKind_DrawerProperty_f                                                      = 118;
+  OrgNodeKind_Subtree_f                                                             = 119;
+  OrgNodeKind_SubtreeTimes_f                                                        = 120;
+  OrgNodeKind_SubtreeStars_f                                                        = 121;
+  OrgNodeKind_SubtreeCompletion_f                                                   = 122;
+  OrgNodeKind_SubtreeImportance_f                                                   = 123;
 }
 
 enum OrgTokenKind {
@@ -537,6 +538,13 @@ enum OrgSemKind {
   OrgSemKind_Directory_f                                                            = 71;
   OrgSemKind_Symlink_f                                                              = 72;
   OrgSemKind_CmdInclude_f                                                           = 73;
+}
+
+message SourceLocation {
+  int32                                            line                             = 1;
+  optional int32                                   column                           = 2;
+  optional string                                  file                             = 3;
+  string                                           debug                            = 1000;
 }
 
 message LispCode {
@@ -1336,6 +1344,73 @@ message NamedProperty {
   string                                           debug                            = 1000;
 }
 
+message OrgDiagnostics {
+  message ParseTokenError {
+    string                                         brief                            = 1;
+    string                                         detail                           = 2;
+    string                                         parserFunction                   = 3;
+    int32                                          parserLine                       = 4;
+    OrgTokenKind                                   tokenKind                        = 5;
+    string                                         tokenText                        = 6;
+    SourceLocation                                 loc                              = 7;
+    string                                         errName                          = 8;
+    string                                         errCode                          = 9;
+    string                                         debug                            = 1000;
+  }
+  message ParseError {
+    string                                         brief                            = 1;
+    string                                         detail                           = 2;
+    string                                         parserFunction                   = 3;
+    int32                                          parserLine                       = 4;
+    string                                         errName                          = 5;
+    string                                         errCode                          = 6;
+    string                                         debug                            = 1000;
+  }
+  message IncludeError {
+    string                                         brief                            = 1;
+    string                                         targetPath                       = 2;
+    string                                         workingFile                      = 3;
+    string                                         debug                            = 1000;
+  }
+  message ConvertError {
+    string                                         brief                            = 1;
+    string                                         detail                           = 2;
+    string                                         convertFunction                  = 3;
+    int32                                          convertLine                      = 4;
+    string                                         convertFile                      = 5;
+    string                                         errName                          = 6;
+    string                                         errCode                          = 7;
+    optional SourceLocation                        loc                              = 8;
+    string                                         debug                            = 1000;
+  }
+  message InternalError {
+    string                                         message                          = 1;
+    string                                         function                         = 2;
+    int32                                          line                             = 3;
+    string                                         file                             = 4;
+    optional SourceLocation                        loc                              = 5;
+    string                                         debug                            = 1000;
+  }
+  message Data {
+    oneof kind {
+      OrgDiagnostics.ParseTokenError               parsetokenerror                  = 1;
+      OrgDiagnostics.ParseError                    parseerror                       = 2;
+      OrgDiagnostics.IncludeError                  includeerror                     = 3;
+      OrgDiagnostics.ConvertError                  converterror                     = 4;
+      OrgDiagnostics.InternalError                 internalerror                    = 5;
+    }
+  }
+  enum Kind {
+    Kind_ParseTokenError_f                                                          = 0;
+    Kind_ParseError_f                                                               = 1;
+    Kind_IncludeError_f                                                             = 2;
+    Kind_ConvertError_f                                                             = 3;
+    Kind_InternalError_f                                                            = 4;
+  }
+  OrgDiagnostics.Data                              data                             = 1;
+  string                                           debug                            = 1000;
+}
+
 message None {
   optional org.parse.LineCol                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -1347,9 +1422,7 @@ message ErrorItem {
   optional org.parse.LineCol                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
-  string                                           message                          = 4;
-  optional string                                  function                         = 5;
-  optional int32                                   line                             = 6;
+  OrgDiagnostics                                   diag                             = 4;
   string                                           debug                            = 1000;
 }
 
@@ -1358,8 +1431,6 @@ message ErrorGroup {
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   repeated ErrorItem                               diagnostics                      = 4;
-  optional string                                  function                         = 5;
-  optional int32                                   line                             = 6;
   string                                           debug                            = 1000;
 }
 

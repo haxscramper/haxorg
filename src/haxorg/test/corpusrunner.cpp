@@ -1173,6 +1173,9 @@ TestResult org::test::gtest_run_spec(CR<TestParams> params) {
 
     auto spec              = params.spec;
     spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
+    if (hstd::fs::exists(spec.debug.debugOutDir)) {
+        hstd::fs::remove_all(spec.debug.debugOutDir);
+    }
     CorpusRunner runner;
     runner.setTraceFile(
         "/tmp/runner_log/" + params.testName() + "/exec_trace.txt");
@@ -1284,6 +1287,14 @@ hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org
     return [=](OrgNodeGroup::TreeReprConf::WriteParams const& par) {
         switch (par.pos) {
             case Pos::AfterKind: {
+                auto const& node = nodes->at(par.current);
+                if (node.isMono()) {
+                    auto mono = node.getMono();
+                    if (mono.isError()) {
+                        par.os << " " << hstd::fmt1(*mono.getError().box);
+                    }
+                }
+
                 if (par.parent && par.subnodeIdx) {
                     auto name = spec->fieldName(
                         OrgAdapter(nodes, *par.parent), *par.subnodeIdx);
@@ -1300,6 +1311,8 @@ hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org
                                << par.os.end() << " ";
                     }
                 }
+
+
                 break;
             }
             case Pos::LineEnd: {

@@ -76,6 +76,28 @@ struct remove_smart_pointer<std::weak_ptr<T>> {
     using type = T;
 };
 
+template <class T, class D, class U>
+    requires(requires(std::unique_ptr<U, D>::pointer p) {
+                dynamic_cast<std::unique_ptr<T, D>::pointer>(p);
+            })
+constexpr auto dynamic_pointer_cast(std::unique_ptr<U, D>&& r) noexcept
+    -> std::unique_ptr<T, D> {
+    static_assert(
+        !std::is_array_v<T> && !std::is_array_v<U>,
+        "don't work with array of polymorphic objects");
+    if (auto p = dynamic_cast<std::unique_ptr<T, D>::pointer>(r.get())) {
+        r.release();
+        return std::unique_ptr<T, D>(p, std::forward<D>(r.get_deleter()));
+    } else if constexpr (
+        !std::is_pointer_v<D> && std::is_default_constructible_v<D>) {
+        return {};
+    } else if constexpr (std::is_copy_constructible_v<D>) {
+        return std::unique_ptr<T, D>(nullptr, r.get_deleter());
+    } else {
+        static_assert(false, "unable to create an empty unique_ptr");
+    }
+}
+
 
 } // namespace hstd
 

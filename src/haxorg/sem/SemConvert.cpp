@@ -22,6 +22,95 @@
 #include <lexy/action/trace.hpp>
 #include <stack>
 
+
+namespace {
+org::sem::OrgDiagnostics::ConvertError ConvertErrorInit(
+    std::string_view   name,
+    std::string        code,
+    std::string const& brief,
+    std::string const& detail) {
+    org::sem::OrgDiagnostics::ConvertError result;
+    result.brief   = brief;
+    result.errCode = code;
+    result.errName = std::string{name};
+    result.detail  = detail;
+    return result;
+}
+
+struct ErrorTable {
+#define P_ERROR(__fieldname, __short, __long)                                                  \
+    static const inline org::sem::OrgDiagnostics::ConvertError __fieldname = ConvertErrorInit( \
+        #__fieldname,                                                                          \
+        ::org::fieldname_to_code(#__fieldname),                                                \
+        __short,                                                                               \
+        __long);
+
+    P_ERROR(
+        MissingLogHashtag,
+        "No hashtag provided for the 'tag' value",
+        "");
+    P_ERROR(
+        MissingCurrentState,
+        "No current state provided for the subtree state log "
+        "change",
+        "");
+
+    P_ERROR(
+        MissingRefileTime,
+        "No 'on' time for the refiled subtree log",
+        "");
+
+    P_ERROR(
+        OverloadedHashtagDef,
+        "Only one hashtag is allowed in definition",
+        ":hashtag_def: property can contain only one "
+        "definition, to assign multiple definitions "
+        "to the subtree use repeated `:hashtag_def:` "
+        "property blocks.");
+
+    P_ERROR(
+        UnexpectedHashtagDefNode,
+        "Hashtag definition can only contain space or hashtag nodes",
+        "");
+
+    P_ERROR(
+        UnexpectedCreatedValue,
+        "Expected timestamp for :CREATED: property",
+        "");
+
+    P_ERROR(
+        UnexpectedCookieData,
+        "Unexpected COOKIE_DATA property value.",
+        "Expected 'todo', 'recursive', 'both' or 'checkbox'.");
+
+    P_ERROR(
+        ExpectedStaticSubtreeTime,
+        "Subtree times are expected to have static time.",
+        "");
+
+    P_ERROR(
+        UnexpectedSubtreeTimeName,
+        "Accepted subtree time kinds are 'closed', "
+        "'deadline', 'scheduled'",
+        "");
+
+    P_ERROR(TimeFormatFail, "Could not parse datetime entry.", "");
+
+    P_ERROR(UnexpectedCheckboxValue, "Unexpected list item checkbox.", "");
+    P_ERROR(TableExpressionFail, "Failed to parse `#+tblfm`", "");
+    P_ERROR(
+        ColumnExpressionFail,
+        "Could not parse formatting expression for column command",
+        "");
+
+    P_ERROR(UnexpectedDocumentOption, "Unexpected document option", "");
+    P_ERROR(IncludeFailure, "Cannot resolve include", "");
+
+#undef P_ERROR
+};
+
+} // namespace
+
 template <typename T>
 org::sem::SemId<T> org::sem::OrgConverter::SemLeaf(In adapter) {
     auto res = Sem<T>(adapter);
@@ -138,7 +227,6 @@ void remove_empty_text(SemId<Org> node) {
         s.pop_back();
     }
 }
-
 } // namespace
 
 Str get_text(
@@ -361,7 +449,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 res.tag = tag->as<sem::HashTag>()->text;
             } else {
                 return SemError(
-                    a, "No hashtag provided for the 'tag' value");
+                    a, MakeConvert(a, ErrorTable::MissingLogHashtag));
             }
 
             if (auto on = time_after("on")) {
@@ -383,9 +471,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 states.to = state.value().as<sem::BigIdent>()->text;
             } else {
                 return SemError(
-                    a,
-                    "No current state provided for the subtree state log "
-                    "change");
+                    a, MakeConvert(a, ErrorTable::MissingCurrentState));
             }
             if (auto from = node_after("from", {osk::BigIdent})) {
                 states.from = from.value().as<sem::BigIdent>()->text;
@@ -416,7 +502,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 refile.on = time.value()->getStaticTime();
             } else {
                 return SemError(
-                    a, "No 'on' time for the refiled subtree log");
+                    a, MakeConvert(a, ErrorTable::MissingRefileTime));
             }
 
             if (!link.empty()) { refile.from = link.at(0)->target; }
@@ -634,17 +720,15 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 } else {
                     return SemError(
                         a,
-                        fmt(":hashtag_def: property can contain only one "
-                            "definition, to assign multiple definitions "
-                            "to the subtree use repeated `:hashtag_def:` "
-                            "property blocks."));
+                        MakeConvert(a, ErrorTable::OverloadedHashtagDef));
                 }
             } else {
                 return SemError(
                     a,
-                    fmt("Hashtag definition property can only contain "
-                        "space or hashtag node, but found node of kind {}",
-                        tag->getKind()));
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedHashtagDefNode,
+                        hstd::fmt("Found {}", tag->getKind())));
             }
         }
 
@@ -661,10 +745,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         } else {
             return SemError(
                 a,
-                fmt("Could not parse property 'created' of the subtree -- "
-                    "expected time node, but found {} at {}",
-                    par0->getKind(),
-                    getLocMsg(a)));
+                MakeConvert(
+                    a,
+                    ErrorTable::UnexpectedCreatedValue,
+                    hstd::fmt(
+                        "found {} at {}", par0->getKind(), getLocMsg(a))));
         }
 
     } else if (name == "visibility") {
@@ -695,7 +780,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 p.source = SubtreeTodoSource::Checkbox;
             } else {
                 return SemError(
-                    a, fmt("Unexpected cookie data parameter: {}", arg));
+                    a,
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedCookieData,
+                        fmt("Unexpected cookie data parameter: {}", arg)));
             }
         }
 
@@ -916,8 +1005,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
             if (!time->isStatic()) {
                 return SemError(
                     a,
-                    fmt("Subtree times are expected to have static time, "
-                        "provided value is not static."));
+                    MakeConvert(a, ErrorTable::ExpectedStaticSubtreeTime));
             }
 
             if (org_streq(kind->text, "closed")) {
@@ -929,9 +1017,10 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
             } else {
                 return SemError(
                     a,
-                    fmt("Accepted subtree time kinds are 'closed', "
-                        "'deadline', 'scheduled', but the value was '{}'",
-                        kind));
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedSubtreeTimeName,
+                        fmt("The value was '{}'", kind)));
             }
         }
     }
@@ -1051,10 +1140,10 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
         } else {
             return SemError(
                 a,
-                fmt("Could not parse date time entry in format: '{}' at "
-                    "'{}'",
-                    datetime,
-                    getLocMsg(a)));
+                MakeConvert(
+                    a,
+                    ErrorTable::TimeFormatFail,
+                    hstd::fmt("Format '{}'", datetime)));
         }
     }
 
@@ -1283,7 +1372,11 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
             item->checkbox = CheckboxState::Partial;
         } else {
             return SemError(
-                a, fmt("Unexpected list item checkbox {}", text));
+                a,
+                MakeConvert(
+                    a,
+                    ErrorTable::UnexpectedCheckboxValue,
+                    fmt("got value '{}'", text)));
         }
     }
 
@@ -1703,7 +1796,9 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     } else {
         return SemError(
             a,
-            fmt("Table format expression failed\n{}",
+            MakeConvert(
+                a,
+                ErrorTable::TableExpressionFail,
                 join("\n", result.errors())));
     }
 }
@@ -2332,7 +2427,9 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
     } else {
         return SemError(
             a,
-            fmt("Column format expression failed\n{}",
+            MakeConvert(
+                a,
+                ErrorTable::ColumnExpressionFail,
                 join("\n", spec.errors())));
     }
 
@@ -2356,30 +2453,13 @@ OrgConverter::ConvResult<InlineExport> OrgConverter::convertInlineExport(
 }
 
 SemId<ErrorItem> OrgConverter::SemErrorItem(
-    In          adapter,
-    CR<Str>     message,
-    int         line,
-    const char* function) {
-    auto res      = Sem<ErrorItem>(adapter);
-    res->message  = message;
-    res->line     = line;
-    res->function = function;
-    if (TraceState) {
-        print(fmt("{} {}", message, getLocMsg(adapter)), line, function);
-    }
-    return res;
-}
-
-SemId<ErrorGroup> OrgConverter::SemError(
-    In          adapter,
-    CR<Str>     message,
-    int         line,
-    const char* function) {
-    auto res = Sem<ErrorGroup>(adapter);
-    res->diagnostics.push_back(
-        SemErrorItem(adapter, message, line, function));
-    res->line     = line;
-    res->function = function;
+    In                              adapter,
+    org::sem::OrgDiagnostics const& diag,
+    int                             line,
+    char const*                     function) {
+    auto res  = Sem<ErrorItem>(adapter);
+    res->diag = diag;
+    if (TraceState) { print(fmt("{}", diag), line, function); }
     return res;
 }
 
@@ -2390,8 +2470,16 @@ SemId<ErrorGroup> OrgConverter::SemError(
     const char*           function) {
     auto res         = Sem<ErrorGroup>(adapter);
     res->diagnostics = errors;
-    res->line        = line;
-    res->function    = function;
+    return res;
+}
+
+SemId<ErrorGroup> OrgConverter::SemError(
+    In                              adapter,
+    org::sem::OrgDiagnostics const& err,
+    int                             line,
+    const char*                     function) {
+    auto res         = Sem<ErrorGroup>(adapter);
+    res->diagnostics = {SemErrorItem(adapter, {err}, line, function)};
     return res;
 }
 
@@ -2480,7 +2568,9 @@ OrgConverter::ConvResult<CmdCall> OrgConverter::convertCmdCall(__args) {
         call->endHeaderAttrs    = convertAttrs(one(a, N::EndArgs));
         return call;
     } else {
-        return SemError(a, "TODO Convert inline call");
+        return SemError(
+            a,
+            {SemErrorItem(a, MakeInternal("TODO Convert inline call"))});
     }
 }
 
@@ -2574,6 +2664,36 @@ SemId<Org> OrgConverter::convert(__args) {
         "Invalid node encountered during conversion {}",
         a.id);
 
+    bool hasError = false;
+    for (auto const& sub : a) {
+        if (sub.isMono() && sub.getMono().isError()) { hasError = true; }
+    }
+
+    if (hasError) {
+        auto group = Sem<ErrorGroup>(a);
+        for (auto const& sub : a) {
+            if (sub.isMono() && sub.getMono().isError()) {
+                auto mono = sub.getMono().getError();
+                LOGIC_ASSERTION_CHECK(
+                    mono.box, "Mono error for node should have box data");
+                if (mono.box->isParseFail()) {
+                    group->diagnostics.push_back(SemErrorItem(
+                        sub,
+                        org::sem::OrgDiagnostics{
+                            mono.box->getParseFail().err}));
+                } else {
+                    group->diagnostics.push_back(SemErrorItem(
+                        sub,
+                        org::sem::OrgDiagnostics{
+                            mono.box->getParseTokenFail().err}));
+                }
+            } else {
+                group->push_back(convert(sub));
+            }
+        }
+        return group;
+    }
+
     switch (a.kind()) {
         case onk::Newline: return convertNewline(a).unwrap();
         case onk::StmtList: return convertStmtList(a).unwrap();
@@ -2639,31 +2759,10 @@ SemId<Org> OrgConverter::convert(__args) {
             return convertCriticMarkup(a).unwrap();
         case onk::BlockDynamicFallback:
             return convertBlockDynamicFallback(a).unwrap();
-        case onk::ErrorWrap: {
-            auto group = Sem<ErrorGroup>(a);
-            for (auto const& sub : a) {
-                if (sub.isMono() && sub.getMono().isError()) {
-                    auto mono = sub.getMono().getError();
-                    LOGIC_ASSERTION_CHECK(
-                        mono.box,
-                        "Mono error for node should have box data");
-                    group->diagnostics.push_back(SemErrorItem(
-                        sub,
-                        fmt("{} at {}:{} {}",
-                            mono.box->error,
-                            mono.box->failToken->line,
-                            mono.box->failToken->col,
-                            escape_literal(mono.box->failToken->text)),
-                        mono.box->parserLine,
-                        mono.box->parserFunction.c_str()));
-                } else {
-                    group->push_back(convert(sub));
-                }
-            }
-            return group;
-        }
         default: {
-            return SemError(a, fmt("ERR Unknown content {}", a.getKind()));
+            return SemError(
+                a,
+                MakeInternal(fmt("ERR Unknown content {}", a.getKind())));
         }
     }
 #undef CASE
@@ -2718,18 +2817,26 @@ void OrgConverter::convertDocumentOptions(
             } else {
                 opts->push_back(SemError(
                     a,
-                    fmt("Unexpected document option value {}, head:'{}', "
-                        "tail:'{}'",
-                        value,
-                        head,
-                        tail)));
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedDocumentOption,
+                        fmt("Value {}, "
+                            "head:'{}', "
+                            "tail:'{}'",
+                            value,
+                            head,
+                            tail))));
             }
 
         } else if (org_streq(value, ":")) {
             opts->fixedWidthSections = true;
         } else {
             opts->push_back(SemError(
-                a, fmt("Unexpected document option value {}", value)));
+                a,
+                MakeConvert(
+                    a,
+                    ErrorTable::UnexpectedDocumentOption,
+                    fmt("value {}", value))));
         }
     }
 }

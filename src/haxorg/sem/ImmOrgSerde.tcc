@@ -19,18 +19,14 @@ template <>
 struct ImmSemSerde<org::sem::ErrorItem, org::imm::ImmErrorItem> {
   static org::imm::ImmErrorItem to_immer(org::sem::ErrorItem const& value, ImmAstEditContext& ctx) {
     org::imm::ImmErrorItem result = hstd::SerdeDefaultProvider<org::imm::ImmErrorItem>::get();
-    assign_immer_field(result.message, value.message, ctx);
-    assign_immer_field(result.function, value.function, ctx);
-    assign_immer_field(result.line, value.line, ctx);
+    assign_immer_field(result.diag, value.diag, ctx);
     assign_immer_field(result.loc, value.loc, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
   static org::sem::ErrorItem from_immer(org::imm::ImmErrorItem const& value, ImmAstContext const& ctx) {
     org::sem::ErrorItem result = hstd::SerdeDefaultProvider<org::sem::ErrorItem>::get();
-    assign_sem_field(result.message, value.message, ctx);
-    assign_sem_field(result.function, value.function, ctx);
-    assign_sem_field(result.line, value.line, ctx);
+    assign_sem_field(result.diag, value.diag, ctx);
     assign_sem_field(result.loc, value.loc, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
@@ -42,8 +38,6 @@ struct ImmSemSerde<org::sem::ErrorGroup, org::imm::ImmErrorGroup> {
   static org::imm::ImmErrorGroup to_immer(org::sem::ErrorGroup const& value, ImmAstEditContext& ctx) {
     org::imm::ImmErrorGroup result = hstd::SerdeDefaultProvider<org::imm::ImmErrorGroup>::get();
     assign_immer_field(result.diagnostics, value.diagnostics, ctx);
-    assign_immer_field(result.function, value.function, ctx);
-    assign_immer_field(result.line, value.line, ctx);
     assign_immer_field(result.loc, value.loc, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
@@ -51,8 +45,6 @@ struct ImmSemSerde<org::sem::ErrorGroup, org::imm::ImmErrorGroup> {
   static org::sem::ErrorGroup from_immer(org::imm::ImmErrorGroup const& value, ImmAstContext const& ctx) {
     org::sem::ErrorGroup result = hstd::SerdeDefaultProvider<org::sem::ErrorGroup>::get();
     assign_sem_field(result.diagnostics, value.diagnostics, ctx);
-    assign_sem_field(result.function, value.function, ctx);
-    assign_sem_field(result.line, value.line, ctx);
     assign_sem_field(result.loc, value.loc, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;

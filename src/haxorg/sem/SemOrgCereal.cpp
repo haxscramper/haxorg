@@ -1143,7 +1143,6 @@ void msgpack_from_text(std::string const& binary, T& value) {
 std::string org::imm::serializeToText(
     const std::shared_ptr<ImmAstContext>& store) {
     auto tmp = msgpack_to_text(store);
-    _dbg(tmp.size());
     return tmp;
 }
 

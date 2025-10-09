@@ -79,6 +79,13 @@
         __MAP(kCmdinclude, cmdinclude, CmdInclude)  \
 
 template <>
+struct org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation> {
+  static void write(::orgproto::SourceLocation* out, org::sem::SourceLocation const& in);
+  static void read(::orgproto::SourceLocation const& out, proto_write_accessor<org::sem::SourceLocation> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call> {
   static void write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in);
   static void read(::orgproto::LispCode::Call const& out, proto_write_accessor<org::sem::LispCode::Call> in);
@@ -782,6 +789,48 @@ template <>
 struct org::algo::proto_serde<::orgproto::NamedProperty, org::sem::NamedProperty> {
   static void write(::orgproto::NamedProperty* out, org::sem::NamedProperty const& in);
   static void read(::orgproto::NamedProperty const& out, proto_write_accessor<org::sem::NamedProperty> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError> {
+  static void write(::orgproto::OrgDiagnostics::ParseTokenError* out, org::sem::OrgDiagnostics::ParseTokenError const& in);
+  static void read(::orgproto::OrgDiagnostics::ParseTokenError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseTokenError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError> {
+  static void write(::orgproto::OrgDiagnostics::ParseError* out, org::sem::OrgDiagnostics::ParseError const& in);
+  static void read(::orgproto::OrgDiagnostics::ParseError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError> {
+  static void write(::orgproto::OrgDiagnostics::IncludeError* out, org::sem::OrgDiagnostics::IncludeError const& in);
+  static void read(::orgproto::OrgDiagnostics::IncludeError const& out, proto_write_accessor<org::sem::OrgDiagnostics::IncludeError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError> {
+  static void write(::orgproto::OrgDiagnostics::ConvertError* out, org::sem::OrgDiagnostics::ConvertError const& in);
+  static void read(::orgproto::OrgDiagnostics::ConvertError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ConvertError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError> {
+  static void write(::orgproto::OrgDiagnostics::InternalError* out, org::sem::OrgDiagnostics::InternalError const& in);
+  static void read(::orgproto::OrgDiagnostics::InternalError const& out, proto_write_accessor<org::sem::OrgDiagnostics::InternalError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics> {
+  static void write(::orgproto::OrgDiagnostics* out, org::sem::OrgDiagnostics const& in);
+  static void read(::orgproto::OrgDiagnostics const& out, proto_write_accessor<org::sem::OrgDiagnostics> in);
 };
 
 

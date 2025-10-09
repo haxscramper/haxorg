@@ -234,6 +234,7 @@ std::string NodeGroup<N, K, V, M>::treeRepr(Id node, CR<TreeReprConf> conf)
     const {
     std::stringstream buffer;
     ColStream         text{buffer};
+    text.colored = false;
     treeRepr(text, node, 0, conf);
     return buffer.str();
 }

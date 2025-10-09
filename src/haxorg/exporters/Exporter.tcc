@@ -1,5 +1,12 @@
 /* clang-format off */
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SourceLocation const& object) {
+  __obj_field(res, object, line);
+  __obj_field(res, object, column);
+  __obj_field(res, object, file);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, org::sem::LispCode::Data const& object) { visitVariants(res, sem::LispCode::getKind(object), object); }
 
 template <typename V, typename R>
@@ -484,6 +491,63 @@ void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomSubtreeFlags const&
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, org::sem::OrgDiagnostics::Data const& object) { visitVariants(res, sem::OrgDiagnostics::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseTokenError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, detail);
+  __obj_field(res, object, parserFunction);
+  __obj_field(res, object, parserLine);
+  __obj_field(res, object, tokenKind);
+  __obj_field(res, object, tokenText);
+  __obj_field(res, object, loc);
+  __obj_field(res, object, errName);
+  __obj_field(res, object, errCode);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, detail);
+  __obj_field(res, object, parserFunction);
+  __obj_field(res, object, parserLine);
+  __obj_field(res, object, errName);
+  __obj_field(res, object, errCode);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::IncludeError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, targetPath);
+  __obj_field(res, object, workingFile);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ConvertError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, detail);
+  __obj_field(res, object, convertFunction);
+  __obj_field(res, object, convertLine);
+  __obj_field(res, object, convertFile);
+  __obj_field(res, object, errName);
+  __obj_field(res, object, errCode);
+  __obj_field(res, object, loc);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::InternalError const& object) {
+  __obj_field(res, object, message);
+  __obj_field(res, object, function);
+  __obj_field(res, object, line);
+  __obj_field(res, object, file);
+  __obj_field(res, object, loc);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, loc);
@@ -493,9 +557,7 @@ void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitErrorItem(R& res, In<sem::ErrorItem> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, message);
-  __org_field(res, object, function);
-  __org_field(res, object, line);
+  __org_field(res, object, diag);
   __org_field(res, object, loc);
   __org_field(res, object, subnodes);
 }
@@ -504,8 +566,6 @@ template <typename V, typename R>
 void Exporter<V, R>::visitErrorGroup(R& res, In<sem::ErrorGroup> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, diagnostics);
-  __org_field(res, object, function);
-  __org_field(res, object, line);
   __org_field(res, object, loc);
   __org_field(res, object, subnodes);
 }

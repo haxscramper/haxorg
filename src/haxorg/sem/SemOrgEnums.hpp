@@ -85,7 +85,12 @@
     __IMPL(NamedProperty, CustomRaw, (CustomRaw)) \
     __IMPL(NamedProperty, CustomId, (CustomId)) \
     __IMPL(NamedProperty, CustomSubtreeJson, (CustomSubtreeJson)) \
-    __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags))
+    __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags)) \
+    __IMPL(OrgDiagnostics, ParseTokenError, (ParseTokenError)) \
+    __IMPL(OrgDiagnostics, ParseError, (ParseError)) \
+    __IMPL(OrgDiagnostics, IncludeError, (IncludeError)) \
+    __IMPL(OrgDiagnostics, ConvertError, (ConvertError)) \
+    __IMPL(OrgDiagnostics, InternalError, (InternalError))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
     __IMPL(LispCode, Kind, (Kind)) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
@@ -109,8 +114,10 @@
     __IMPL(DocumentExportConfig, TocExportKind, (TocExportKind)) \
     __IMPL(SubtreePeriod, Kind, (Kind)) \
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
-    __IMPL(NamedProperty, Kind, (Kind))
+    __IMPL(NamedProperty, Kind, (Kind)) \
+    __IMPL(OrgDiagnostics, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(SourceLocation, (SourceLocation)) \
     __IMPL(LispCode, (LispCode)) \
     __IMPL(LispCode::Call, (LispCode, Call)) \
     __IMPL(LispCode::List, (LispCode, List)) \
@@ -211,7 +218,13 @@
     __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw)) \
     __IMPL(NamedProperty::CustomId, (NamedProperty, CustomId)) \
     __IMPL(NamedProperty::CustomSubtreeJson, (NamedProperty, CustomSubtreeJson)) \
-    __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags))
+    __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags)) \
+    __IMPL(OrgDiagnostics, (OrgDiagnostics)) \
+    __IMPL(OrgDiagnostics::ParseTokenError, (OrgDiagnostics, ParseTokenError)) \
+    __IMPL(OrgDiagnostics::ParseError, (OrgDiagnostics, ParseError)) \
+    __IMPL(OrgDiagnostics::IncludeError, (OrgDiagnostics, IncludeError)) \
+    __IMPL(OrgDiagnostics::ConvertError, (OrgDiagnostics, ConvertError)) \
+    __IMPL(OrgDiagnostics::InternalError, (OrgDiagnostics, InternalError))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(Time, Repeat, (Repeat)) \
     __IMPL(Time, Static, (Static)) \
@@ -568,26 +581,18 @@
     __IMPL_BASE((org::sem::Org)) \
 
 #define EACH_SEM_ORG_ErrorItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::Str), message, Message, (org::sem::ErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function, (org::sem::ErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::ErrorItem), ErrorItem) \
+    __IMPL_FIELD((org::sem::OrgDiagnostics), diag, Diag, (org::sem::ErrorItem), ErrorItem) \
 
 #define EACH_SEM_ORG_ErrorItem_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((hstd::Str), message, Message, (org::sem::ErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function, (org::sem::ErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::ErrorItem), ErrorItem) \
+    __IMPL_FIELD((org::sem::OrgDiagnostics), diag, Diag, (org::sem::ErrorItem), ErrorItem) \
 
 #define EACH_SEM_ORG_ErrorGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>), diagnostics, Diagnostics, (org::sem::ErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function, (org::sem::ErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::ErrorGroup), ErrorGroup) \
 
 #define EACH_SEM_ORG_ErrorGroup_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>), diagnostics, Diagnostics, (org::sem::ErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function, (org::sem::ErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::ErrorGroup), ErrorGroup) \
 
 #define EACH_SEM_ORG_Stmt_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Org>>), attached, Attached, (org::sem::Stmt), Stmt) \
@@ -1224,26 +1229,18 @@
     __IMPL_BASE((org::imm::ImmOrg)) \
 
 #define EACH_IMM_ORG_ImmErrorItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), message, Message, (org::imm::ImmErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), function, Function, (org::imm::ImmErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmErrorItem), ErrorItem) \
+    __IMPL_FIELD((org::sem::OrgDiagnostics), diag, Diag, (org::imm::ImmErrorItem), ErrorItem) \
 
 #define EACH_IMM_ORG_ImmErrorItem_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), message, Message, (org::imm::ImmErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), function, Function, (org::imm::ImmErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmErrorItem), ErrorItem) \
+    __IMPL_FIELD((org::sem::OrgDiagnostics), diag, Diag, (org::imm::ImmErrorItem), ErrorItem) \
 
 #define EACH_IMM_ORG_ImmErrorGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>), diagnostics, Diagnostics, (org::imm::ImmErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), function, Function, (org::imm::ImmErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmErrorGroup), ErrorGroup) \
 
 #define EACH_IMM_ORG_ImmErrorGroup_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>), diagnostics, Diagnostics, (org::imm::ImmErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), function, Function, (org::imm::ImmErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmErrorGroup), ErrorGroup) \
 
 #define EACH_IMM_ORG_ImmStmt_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>), attached, Attached, (org::imm::ImmStmt), Stmt) \
@@ -2122,8 +2119,12 @@ enum class OrgNodeKind : short int {
   ///      elements like `some text (notes)` are also represented as `Word,
   ///      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
   Bold,
-  ErrorWrap,
-  ErrorToken,
+  /// \brief Error leaf node inserted into the parse tree on failure
+  ErrorInfoToken,
+  /// \brief Parent node for one or more tokens skipped during error recovery
+  ErrorSkipGroup,
+  /// \brief Single token node skipped while the parser searched for recovery point
+  ErrorSkipToken,
   Italic,
   Verbatim,
   Backtick,
@@ -2284,8 +2285,9 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockDynamicFallback)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BigIdent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Bold)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorWrap)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorToken)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorInfoToken)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorSkipGroup)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorSkipToken)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Italic)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Verbatim)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Backtick)

@@ -118,6 +118,7 @@ export interface haxorg_wasm_module_auto {
   GraphMapGraph: GraphMapGraphConstructor;
   GraphMapConfig: GraphMapConfigConstructor;
   GraphMapGraphState: GraphMapGraphStateConstructor;
+  SourceLocation: SourceLocationConstructor;
   LispCode: LispCodeConstructor;
   LispCodeCall: LispCodeCallConstructor;
   LispCodeList: LispCodeListConstructor;
@@ -429,6 +430,20 @@ export interface haxorg_wasm_module_auto {
     CustomSubtreeFlags: NamedPropertyKind,
   }
   format_NamedPropertyKind(value: NamedPropertyKind): string;
+  OrgDiagnostics: OrgDiagnosticsConstructor;
+  OrgDiagnosticsParseTokenError: OrgDiagnosticsParseTokenErrorConstructor;
+  OrgDiagnosticsParseError: OrgDiagnosticsParseErrorConstructor;
+  OrgDiagnosticsIncludeError: OrgDiagnosticsIncludeErrorConstructor;
+  OrgDiagnosticsConvertError: OrgDiagnosticsConvertErrorConstructor;
+  OrgDiagnosticsInternalError: OrgDiagnosticsInternalErrorConstructor;
+  OrgDiagnosticsKind: {
+    ParseTokenError: OrgDiagnosticsKind,
+    ParseError: OrgDiagnosticsKind,
+    IncludeError: OrgDiagnosticsKind,
+    ConvertError: OrgDiagnosticsKind,
+    InternalError: OrgDiagnosticsKind,
+  }
+  format_OrgDiagnosticsKind(value: OrgDiagnosticsKind): string;
   None: NoneConstructor;
   ErrorItem: ErrorItemConstructor;
   ErrorGroup: ErrorGroupConstructor;
@@ -1189,8 +1204,9 @@ export interface haxorg_wasm_module_auto {
     BlockDynamicFallback: OrgNodeKind,
     BigIdent: OrgNodeKind,
     Bold: OrgNodeKind,
-    ErrorWrap: OrgNodeKind,
-    ErrorToken: OrgNodeKind,
+    ErrorInfoToken: OrgNodeKind,
+    ErrorSkipGroup: OrgNodeKind,
+    ErrorSkipToken: OrgNodeKind,
     Italic: OrgNodeKind,
     Verbatim: OrgNodeKind,
     Backtick: OrgNodeKind,
@@ -1685,17 +1701,9 @@ export interface ImmAstReplaceEpoch {  }
 export interface ImmNoneValueReadConstructor { new(): ImmNoneValueRead; }
 export interface ImmNoneValueRead {  }
 export interface ImmErrorItemValueReadConstructor { new(): ImmErrorItemValueRead; }
-export interface ImmErrorItemValueRead {
-  getMessage(): haxorg_wasm.ImmerBox<string>;
-  getFunction(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
-  getLine(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
-}
+export interface ImmErrorItemValueRead { getDiag(): OrgDiagnostics; }
 export interface ImmErrorGroupValueReadConstructor { new(): ImmErrorGroupValueRead; }
-export interface ImmErrorGroupValueRead {
-  getDiagnostics(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>;
-  getFunction(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
-  getLine(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
-}
+export interface ImmErrorGroupValueRead { getDiagnostics(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>; }
 export interface ImmStmtListValueReadConstructor { new(): ImmStmtListValueRead; }
 export interface ImmStmtListValueRead {  }
 export interface ImmEmptyValueReadConstructor { new(): ImmEmptyValueRead; }
@@ -2009,6 +2017,7 @@ export interface ImmAdapterTreeReprConf {
   maxDepth: number
   withAuxFields: boolean
   withReflFields: boolean
+  withFieldSubset: UnorderedSet<StdPair<OrgSemKind, ImmReflFieldId>>
 }
 export interface ImmAdapterVirtualBaseConstructor { new(): ImmAdapterVirtualBase; }
 export interface ImmAdapterVirtualBase {  }
@@ -2195,6 +2204,14 @@ export interface GraphMapGraphState {
   getUnresolvedLink(node: ImmLinkAdapter, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
   graph: GraphMapGraph
   ast: ImmAstContext
+}
+export interface SourceLocationConstructor { new(): SourceLocation; }
+export interface SourceLocation {
+  __eq__(other: SourceLocation): boolean;
+  SourceLocation(): void;
+  line: number
+  column: haxorg_wasm.Optional<number>
+  file: haxorg_wasm.Optional<string>
 }
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
@@ -3279,21 +3296,101 @@ export enum NamedPropertyKind {
   CustomSubtreeJson,
   CustomSubtreeFlags,
 }
+export interface OrgDiagnosticsConstructor { new(): OrgDiagnostics; }
+export interface OrgDiagnostics {
+  __eq__(other: OrgDiagnostics): boolean;
+  isParseTokenError(): boolean;
+  getParseTokenErrorConst(): OrgDiagnosticsParseTokenError;
+  getParseTokenErrorMut(): OrgDiagnosticsParseTokenError;
+  isParseError(): boolean;
+  getParseErrorConst(): OrgDiagnosticsParseError;
+  getParseErrorMut(): OrgDiagnosticsParseError;
+  isIncludeError(): boolean;
+  getIncludeErrorConst(): OrgDiagnosticsIncludeError;
+  getIncludeErrorMut(): OrgDiagnosticsIncludeError;
+  isConvertError(): boolean;
+  getConvertErrorConst(): OrgDiagnosticsConvertError;
+  getConvertErrorMut(): OrgDiagnosticsConvertError;
+  isInternalError(): boolean;
+  getInternalErrorConst(): OrgDiagnosticsInternalError;
+  getInternalErrorMut(): OrgDiagnosticsInternalError;
+  getKindStatic(__input: OrgDiagnosticsData): OrgDiagnosticsKind;
+  getKind(): OrgDiagnosticsKind;
+  sub_variant_get_name(): string;
+  sub_variant_get_data(): OrgDiagnosticsData;
+  sub_variant_get_kind(): OrgDiagnosticsKind;
+  data: OrgDiagnosticsData
+}
+export interface OrgDiagnosticsParseTokenErrorConstructor { new(): OrgDiagnosticsParseTokenError; }
+export interface OrgDiagnosticsParseTokenError {
+  __eq__(other: OrgDiagnosticsParseTokenError): boolean;
+  brief: string
+  detail: string
+  parserFunction: string
+  parserLine: number
+  tokenKind: OrgTokenKind
+  tokenText: string
+  loc: SourceLocation
+  errName: string
+  errCode: string
+}
+export interface OrgDiagnosticsParseErrorConstructor { new(): OrgDiagnosticsParseError; }
+export interface OrgDiagnosticsParseError {
+  __eq__(other: OrgDiagnosticsParseError): boolean;
+  brief: string
+  detail: string
+  parserFunction: string
+  parserLine: number
+  errName: string
+  errCode: string
+}
+export interface OrgDiagnosticsIncludeErrorConstructor { new(): OrgDiagnosticsIncludeError; }
+export interface OrgDiagnosticsIncludeError {
+  __eq__(other: OrgDiagnosticsIncludeError): boolean;
+  brief: string
+  targetPath: string
+  workingFile: string
+}
+export interface OrgDiagnosticsConvertErrorConstructor { new(): OrgDiagnosticsConvertError; }
+export interface OrgDiagnosticsConvertError {
+  __eq__(other: OrgDiagnosticsConvertError): boolean;
+  brief: string
+  detail: string
+  convertFunction: string
+  convertLine: number
+  convertFile: string
+  errName: string
+  errCode: string
+  loc: haxorg_wasm.Optional<SourceLocation>
+}
+export interface OrgDiagnosticsInternalErrorConstructor { new(): OrgDiagnosticsInternalError; }
+export interface OrgDiagnosticsInternalError {
+  __eq__(other: OrgDiagnosticsInternalError): boolean;
+  message: string
+  function: string
+  line: number
+  file: string
+  loc: haxorg_wasm.Optional<SourceLocation>
+}
+export type OrgDiagnosticsData = haxorg_wasm.StdVariant<OrgDiagnosticsParseTokenError, OrgDiagnosticsParseError, OrgDiagnosticsIncludeError, OrgDiagnosticsConvertError, OrgDiagnosticsInternalError>;
+export enum OrgDiagnosticsKind {
+  ParseTokenError,
+  ParseError,
+  IncludeError,
+  ConvertError,
+  InternalError,
+}
 export interface NoneConstructor { new(): None; }
 export interface None { getKind(): OrgSemKind; }
 export interface ErrorItemConstructor { new(): ErrorItem; }
 export interface ErrorItem {
   getKind(): OrgSemKind;
-  message: string
-  function: haxorg_wasm.Optional<string>
-  line: haxorg_wasm.Optional<number>
+  diag: OrgDiagnostics
 }
 export interface ErrorGroupConstructor { new(): ErrorGroup; }
 export interface ErrorGroup {
   getKind(): OrgSemKind;
   diagnostics: haxorg_wasm.Vec<ErrorItem>
-  function: haxorg_wasm.Optional<string>
-  line: haxorg_wasm.Optional<number>
 }
 export interface StmtConstructor { new(): Stmt; }
 export interface Stmt {
@@ -3813,17 +3910,13 @@ export interface ImmErrorItemConstructor { new(): ImmErrorItem; }
 export interface ImmErrorItem {
   getKind(): OrgSemKind;
   __eq__(other: ImmErrorItem): boolean;
-  message: haxorg_wasm.ImmBox<string>
-  function: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
-  line: haxorg_wasm.ImmBox<haxorg_wasm.Optional<number>>
+  diag: OrgDiagnostics
 }
 export interface ImmErrorGroupConstructor { new(): ImmErrorGroup; }
 export interface ImmErrorGroup {
   getKind(): OrgSemKind;
   __eq__(other: ImmErrorGroup): boolean;
   diagnostics: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmErrorItem>>
-  function: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
-  line: haxorg_wasm.ImmBox<haxorg_wasm.Optional<number>>
 }
 export interface ImmStmtConstructor { new(): ImmStmt; }
 export interface ImmStmt {
@@ -4190,17 +4283,9 @@ export enum ImmCmdIncludeKind {
 export interface ImmNoneValueConstructor { new(): ImmNoneValue; }
 export interface ImmNoneValue {  }
 export interface ImmErrorItemValueConstructor { new(): ImmErrorItemValue; }
-export interface ImmErrorItemValue {
-  setMessage(value: haxorg_wasm.ImmerBox<string>): void;
-  setFunction(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
-  setLine(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
-}
+export interface ImmErrorItemValue { setDiag(value: OrgDiagnostics): void; }
 export interface ImmErrorGroupValueConstructor { new(): ImmErrorGroupValue; }
-export interface ImmErrorGroupValue {
-  setDiagnostics(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>): void;
-  setFunction(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
-  setLine(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
-}
+export interface ImmErrorGroupValue { setDiagnostics(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>): void; }
 export interface ImmStmtListValueConstructor { new(): ImmStmtListValue; }
 export interface ImmStmtListValue {  }
 export interface ImmEmptyValueConstructor { new(): ImmEmptyValue; }
@@ -5682,8 +5767,9 @@ export enum OrgNodeKind {
   BlockDynamicFallback,
   BigIdent,
   Bold,
-  ErrorWrap,
-  ErrorToken,
+  ErrorInfoToken,
+  ErrorSkipGroup,
+  ErrorSkipToken,
   Italic,
   Verbatim,
   Backtick,

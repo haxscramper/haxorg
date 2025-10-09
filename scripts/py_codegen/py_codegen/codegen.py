@@ -1244,6 +1244,24 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                 [GenTuPass('#include "SemOrgEnums.hpp"')] + groups.full_enums,
             ),
         ),
+                GenUnit(
+            GenTu(
+                "{base}/sem/SemOrgSharedTypes.hpp",
+                [
+                    GenTuPass("#pragma once"),
+                    GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
+                    GenTuInclude("hstd/stdlib/Vec.hpp", True),
+                    GenTuInclude("hstd/stdlib/Variant.hpp", True),
+                    GenTuInclude("hstd/stdlib/Time.hpp", True),
+                    GenTuInclude("hstd/stdlib/Opt.hpp", True),
+                    GenTuInclude("hstd/stdlib/Str.hpp", True),
+                    GenTuInclude("boost/describe.hpp", True),
+                    GenTuInclude("hstd/system/macros.hpp", True),
+                    GenTuInclude("haxorg/sem/SemOrgBaseSharedTypes.hpp", True),
+                    GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
+                    GenTuNamespace(n_sem(), groups.shared_types ),
+                ],
+            )),
         GenUnit(
             GenTu(
                 "{base}/sem/SemOrgTypes.hpp",
@@ -1260,7 +1278,8 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace(n_sem(), groups.shared_types + groups.expanded),
+                    GenTuInclude("haxorg/sem/SemOrgSharedTypes.hpp", True),
+                    GenTuNamespace(n_sem(), groups.expanded),
                 ],
             )),
         GenUnit(

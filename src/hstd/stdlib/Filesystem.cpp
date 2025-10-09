@@ -12,7 +12,7 @@ void hstd::writeFile(const fs::path& target, const std::string& content) {
         file << content;
     } else {
         throw FilesystemError::init(
-            "Could not write to file '" + target.native());
+            "Could not write to file '" + target.native() + "'");
     }
 }
 
