@@ -103,8 +103,9 @@ struct OrgConverter : public hstd::OperationsTracer {
     void report(Report const& in);
 
   public:
-    hstd::UPtr<OrgSpec> spec;
-    hstd::Opt<int>      documentId = std::nullopt;
+    hstd::UPtr<OrgSpec>           spec;
+    hstd::Opt<int>                documentId = std::nullopt;
+    std::optional<hstd::fs::path> file;
 
     OrgConverter(hstd::Opt<int> documentId = std::nullopt)
         : documentId(documentId) {
@@ -264,22 +265,38 @@ struct OrgConverter : public hstd::OperationsTracer {
     SemId<T> SemLeaf(In adapter);
 
     SemId<ErrorItem> SemErrorItem(
-        In               adapter,
-        hstd::Str const& message,
-        int              line     = __builtin_LINE(),
-        char const*      function = __builtin_FUNCTION());
-
-    SemId<ErrorGroup> SemError(
-        In               adapter,
-        hstd::Str const& message,
-        int              line     = __builtin_LINE(),
-        char const*      function = __builtin_FUNCTION());
+        In                              adapter,
+        org::sem::OrgDiagnostics const& diag,
+        int                             line     = __builtin_LINE(),
+        char const*                     function = __builtin_FUNCTION());
 
     SemId<ErrorGroup> SemError(
         In                          adapter,
         hstd::Vec<SemId<ErrorItem>> errors   = {},
         int                         line     = __builtin_LINE(),
         char const*                 function = __builtin_FUNCTION());
+
+    SemId<ErrorGroup> SemError(
+        In                              adapter,
+        org::sem::OrgDiagnostics const& err,
+        int                             line     = __builtin_LINE(),
+        char const*                     function = __builtin_FUNCTION());
+
+    org::sem::OrgDiagnostics MakeInternal(
+        std::string const& message,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE());
+
+    org::sem::OrgDiagnostics MakeConvert(
+        org::parse::OrgAdapter const&                 a,
+        org::sem::OrgDiagnostics::ConvertError const& conv,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION(),
+        char const* file     = __builtin_FILE());
+
+    hstd::Opt<org::sem::SourceLocation> MakeSourceLocation(
+        org::parse::OrgAdapter const& a);
 
     SemId<Org> convert(In);
 

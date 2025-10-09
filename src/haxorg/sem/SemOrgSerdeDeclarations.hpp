@@ -79,6 +79,13 @@
         __MAP(kCmdinclude, cmdinclude, CmdInclude)  \
 
 template <>
+struct org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation> {
+  static void write(::orgproto::SourceLocation* out, org::sem::SourceLocation const& in);
+  static void read(::orgproto::SourceLocation const& out, proto_write_accessor<org::sem::SourceLocation> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call> {
   static void write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in);
   static void read(::orgproto::LispCode::Call const& out, proto_write_accessor<org::sem::LispCode::Call> in);
@@ -796,6 +803,20 @@ template <>
 struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError> {
   static void write(::orgproto::OrgDiagnostics::ParseError* out, org::sem::OrgDiagnostics::ParseError const& in);
   static void read(::orgproto::OrgDiagnostics::ParseError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError> {
+  static void write(::orgproto::OrgDiagnostics::ConvertError* out, org::sem::OrgDiagnostics::ConvertError const& in);
+  static void read(::orgproto::OrgDiagnostics::ConvertError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ConvertError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError> {
+  static void write(::orgproto::OrgDiagnostics::InternalError* out, org::sem::OrgDiagnostics::InternalError const& in);
+  static void read(::orgproto::OrgDiagnostics::InternalError const& out, proto_write_accessor<org::sem::OrgDiagnostics::InternalError> in);
 };
 
 

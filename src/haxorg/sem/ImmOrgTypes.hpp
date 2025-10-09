@@ -24,15 +24,9 @@ struct ImmErrorItem : public org::imm::ImmOrg {
                        (),
                        (),
                        (staticKind,
-                        message,
-                        function,
-                        line))
+                        diag))
   static OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> message;
-  /// \brief Conversion function name where the error was created
-  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> function = std::nullopt;
-  /// \brief Line number for the conversion where the error was created
-  hstd::ext::ImmBox<hstd::Opt<int>> line = std::nullopt;
+  org::sem::OrgDiagnostics diag;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorItem; }
   bool operator==(org::imm::ImmErrorItem const& other) const;
 };
@@ -46,15 +40,9 @@ struct ImmErrorGroup : public org::imm::ImmOrg {
                        (),
                        (),
                        (staticKind,
-                        diagnostics,
-                        function,
-                        line))
+                        diagnostics))
   static OrgSemKind const staticKind;
   hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> diagnostics = {};
-  /// \brief Conversion function name where the error was created
-  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> function = std::nullopt;
-  /// \brief Line number for the conversion where the error was created
-  hstd::ext::ImmBox<hstd::Opt<int>> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
   bool operator==(org::imm::ImmErrorGroup const& other) const;
 };

@@ -33,13 +33,9 @@ struct ErrorItem : public org::sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, message, function, line))
+                       (staticKind, diag))
   static OrgSemKind const staticKind;
-  hstd::Str message;
-  /// \brief Conversion function name where the error was created
-  hstd::Opt<hstd::Str> function = std::nullopt;
-  /// \brief Line number for the conversion where the error was created
-  hstd::Opt<int> line = std::nullopt;
+  org::sem::OrgDiagnostics diag;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorItem; }
 };
 
@@ -51,13 +47,9 @@ struct ErrorGroup : public org::sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, diagnostics, function, line))
+                       (staticKind, diagnostics))
   static OrgSemKind const staticKind;
   hstd::Vec<org::sem::SemId<org::sem::ErrorItem>> diagnostics = {};
-  /// \brief Conversion function name where the error was created
-  hstd::Opt<hstd::Str> function = std::nullopt;
-  /// \brief Line number for the conversion where the error was created
-  hstd::Opt<int> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
 };
 

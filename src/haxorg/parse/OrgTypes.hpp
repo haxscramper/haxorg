@@ -22,7 +22,12 @@ struct std::formatter<OrgSpecName> : std::formatter<std::string> {
     }
 };
 
+namespace org {
+std::string fieldname_to_code(std::string_view str);
+} // namespace org
+
 namespace org::parse {
+
 
 using OrgToken = Token<OrgTokenKind, OrgFill>;
 

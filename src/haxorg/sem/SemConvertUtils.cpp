@@ -11,6 +11,47 @@ using onk = OrgNodeKind;
 using otk = OrgTokenKind;
 using Err = OrgConverter::Errors;
 
+org::sem::OrgDiagnostics OrgConverter::MakeInternal(
+    std::string const& message,
+    int                line,
+    char const*        function,
+    char const*        file) {
+    org::sem::OrgDiagnostics::InternalError ice;
+    ice.message  = message;
+    ice.function = function;
+    ice.line     = line;
+    ice.file     = file;
+    return org::sem::OrgDiagnostics{ice};
+}
+
+org::sem::OrgDiagnostics OrgConverter::MakeConvert(
+    org::parse::OrgAdapter const&                 a,
+    org::sem::OrgDiagnostics::ConvertError const& conv,
+    int                                           line,
+    char const*                                   function,
+    char const*                                   file) {
+    org::sem::OrgDiagnostics::ConvertError res = conv;
+
+    res.convertFile     = file;
+    res.convertFunction = function;
+    res.convertLine     = line;
+    res.loc             = MakeSourceLocation(a);
+    return org::sem::OrgDiagnostics{res};
+}
+
+hstd::Opt<org::sem::SourceLocation> OrgConverter::MakeSourceLocation(
+    org::parse::OrgAdapter const& a) {
+    auto loc = getLoc(a);
+    if (loc.has_value()) {
+        org::sem::SourceLocation sloc;
+        sloc.column = loc->column;
+        sloc.line   = loc->line;
+        if (this->file) { sloc.file = this->file->native(); }
+        return sloc;
+    } else {
+        return std::nullopt;
+    }
+}
 
 OrgConverter::ConvertError OrgConverter::wrapError(
     CR<Error>             err,

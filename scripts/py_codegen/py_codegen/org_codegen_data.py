@@ -300,8 +300,7 @@ def get_diagnostic_types() -> List[GenTuStruct]:
                 org_field(t_int(), "parserLine"),
                 org_field(t("OrgTokenKind"), "tokenKind"),
                 org_field(t_str(), "tokenText"),
-                org_field(t_int(), "tokenLine"),
-                org_field(t_int(), "tokenCol"),
+                org_field(t_nest_shared("SourceLocation"), "loc"),
                 org_field(t_str(), "errName"),
                 org_field(t_str(), "errCode"),
             ],
@@ -321,6 +320,35 @@ def get_diagnostic_types() -> List[GenTuStruct]:
             ],
             nested=[GenTuPass("ParseError() {}")],
             methods=[eq_method(t_nest_shared("ParseError", [t("OrgDiagnostics")]))],
+        ),
+        org_struct(
+            t_nest_shared("ConvertError", [t("OrgDiagnostics")]),
+            GenTuDoc("Cannot convert parsed tree into"),
+            fields=[
+                org_field(t_str(), "brief"),
+                org_field(t_str(), "detail"),
+                org_field(t_str(), "convertFunction"),
+                org_field(t_int(), "convertLine"),
+                org_field(t_str(), "convertFile"),
+                org_field(t_str(), "errName"),
+                org_field(t_str(), "errCode"),
+                opt_field(t_nest_shared("SourceLocation"), "loc"),
+            ],
+            nested=[GenTuPass("ConvertError() {}")],
+            methods=[eq_method(t_nest_shared("ConvertError", [t("OrgDiagnostics")]))],
+        ),
+        org_struct(
+            t_nest_shared("InternalError", [t("OrgDiagnostics")]),
+            GenTuDoc("Internal implementation error: should not be visible to the end-user."),
+            fields=[
+                org_field(t_str(), "message"),
+                org_field(t_str(), "function"),
+                org_field(t_int(), "line"),
+                org_field(t_str(), "file"),
+                opt_field(t_nest_shared("SourceLocation"), "loc"),
+            ],
+            nested=[GenTuPass("InternalError() {}")],
+            methods=[eq_method(t_nest_shared("InternalError", [t("OrgDiagnostics")]))],
         ),
     ]
 
@@ -577,17 +605,7 @@ def get_sem_bases():
             doc=org_doc(""),
             bases=[t_nest(t_org("Org"))],
             fields=[
-                org_field(t_str(), "message"),
-                opt_field(
-                    t_str(),
-                    "function",
-                    "Conversion function name where the error was created",
-                ),
-                opt_field(
-                    t_int(),
-                    "line",
-                    "Line number for the conversion where the error was created",
-                ),
+                org_field(t_nest_shared("OrgDiagnostics", []), "diag"),
             ],
         ),
         d_org(
@@ -596,16 +614,6 @@ def get_sem_bases():
             bases=[t_nest(t_org("Org"))],
             fields=[
                 vec_field(t_id("ErrorItem"), "diagnostics"),
-                opt_field(
-                    t_str(),
-                    "function",
-                    "Conversion function name where the error was created",
-                ),
-                opt_field(
-                    t_int(),
-                    "line",
-                    "Line number for the conversion where the error was created",
-                ),
             ],
         ),
         d_org(
@@ -1473,6 +1481,18 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
     )
 
     return [
+        org_struct(
+            t_nest_shared("SourceLocation"),
+            methods=[
+                eq_method(t_nest_shared("SourceLocation")),
+                default_constructor_method("SourceLocation"),
+            ],
+            fields=[
+                org_field(t_int(), "line", value="-1"),
+                opt_field(t_int(), "column"),
+                opt_field(t_str(), "file"),
+            ]
+        ),
         org_struct(
             t_nest_shared("LispCode"),
             methods=[

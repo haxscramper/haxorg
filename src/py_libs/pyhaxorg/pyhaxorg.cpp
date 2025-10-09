@@ -2163,6 +2163,27 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::SourceLocation>(m, "SourceLocation")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::SourceLocation {
+                        org::sem::SourceLocation result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("line", &org::sem::SourceLocation::line)
+    .def_readwrite("column", &org::sem::SourceLocation::column)
+    .def_readwrite("file", &org::sem::SourceLocation::file)
+    .def("__eq__",
+         static_cast<bool(org::sem::SourceLocation::*)(org::sem::SourceLocation const&) const>(&org::sem::SourceLocation::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::SourceLocation const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::SourceLocation const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::LispCode::Call>(m, "LispCodeCall")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::Call {
                         org::sem::LispCode::Call result{};
@@ -4986,8 +5007,7 @@ ingoing elements.)RAW")
     .def_readwrite("parserLine", &org::sem::OrgDiagnostics::ParseTokenError::parserLine)
     .def_readwrite("tokenKind", &org::sem::OrgDiagnostics::ParseTokenError::tokenKind)
     .def_readwrite("tokenText", &org::sem::OrgDiagnostics::ParseTokenError::tokenText)
-    .def_readwrite("tokenLine", &org::sem::OrgDiagnostics::ParseTokenError::tokenLine)
-    .def_readwrite("tokenCol", &org::sem::OrgDiagnostics::ParseTokenError::tokenCol)
+    .def_readwrite("loc", &org::sem::OrgDiagnostics::ParseTokenError::loc)
     .def_readwrite("errName", &org::sem::OrgDiagnostics::ParseTokenError::errName)
     .def_readwrite("errCode", &org::sem::OrgDiagnostics::ParseTokenError::errCode)
     .def("__eq__",
@@ -5026,10 +5046,61 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::OrgDiagnostics::ConvertError>(m, "OrgDiagnosticsConvertError")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics::ConvertError {
+                        org::sem::OrgDiagnostics::ConvertError result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("brief", &org::sem::OrgDiagnostics::ConvertError::brief)
+    .def_readwrite("detail", &org::sem::OrgDiagnostics::ConvertError::detail)
+    .def_readwrite("convertFunction", &org::sem::OrgDiagnostics::ConvertError::convertFunction)
+    .def_readwrite("convertLine", &org::sem::OrgDiagnostics::ConvertError::convertLine)
+    .def_readwrite("convertFile", &org::sem::OrgDiagnostics::ConvertError::convertFile)
+    .def_readwrite("errName", &org::sem::OrgDiagnostics::ConvertError::errName)
+    .def_readwrite("errCode", &org::sem::OrgDiagnostics::ConvertError::errCode)
+    .def_readwrite("loc", &org::sem::OrgDiagnostics::ConvertError::loc)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::ConvertError::*)(org::sem::OrgDiagnostics::ConvertError const&) const>(&org::sem::OrgDiagnostics::ConvertError::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgDiagnostics::ConvertError const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgDiagnostics::ConvertError const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::OrgDiagnostics::InternalError>(m, "OrgDiagnosticsInternalError")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics::InternalError {
+                        org::sem::OrgDiagnostics::InternalError result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("message", &org::sem::OrgDiagnostics::InternalError::message)
+    .def_readwrite("function", &org::sem::OrgDiagnostics::InternalError::function)
+    .def_readwrite("line", &org::sem::OrgDiagnostics::InternalError::line)
+    .def_readwrite("file", &org::sem::OrgDiagnostics::InternalError::file)
+    .def_readwrite("loc", &org::sem::OrgDiagnostics::InternalError::loc)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::InternalError::*)(org::sem::OrgDiagnostics::InternalError const&) const>(&org::sem::OrgDiagnostics::InternalError::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgDiagnostics::InternalError const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgDiagnostics::InternalError const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   bind_enum_iterator<org::sem::OrgDiagnostics::Kind>(m, "OrgDiagnosticsKind", type_registry_guard);
   pybind11::enum_<org::sem::OrgDiagnostics::Kind>(m, "OrgDiagnosticsKind")
     .value("ParseTokenError", org::sem::OrgDiagnostics::Kind::ParseTokenError)
     .value("ParseError", org::sem::OrgDiagnostics::Kind::ParseError)
+    .value("ConvertError", org::sem::OrgDiagnostics::Kind::ConvertError)
+    .value("InternalError", org::sem::OrgDiagnostics::Kind::InternalError)
     .def("__iter__", [](org::sem::OrgDiagnostics::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgDiagnostics::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::OrgDiagnostics::Kind>();
                      })
@@ -5059,6 +5130,10 @@ ingoing elements.)RAW")
     .def("getParseTokenError", static_cast<org::sem::OrgDiagnostics::ParseTokenError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseTokenError))
     .def("isParseError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isParseError))
     .def("getParseError", static_cast<org::sem::OrgDiagnostics::ParseError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseError))
+    .def("isConvertError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isConvertError))
+    .def("getConvertError", static_cast<org::sem::OrgDiagnostics::ConvertError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getConvertError))
+    .def("isInternalError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isInternalError))
+    .def("getInternalError", static_cast<org::sem::OrgDiagnostics::InternalError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getInternalError))
     .def_static("getKindStatic",
                 static_cast<org::sem::OrgDiagnostics::Kind(*)(org::sem::OrgDiagnostics::Data const&)>(&org::sem::OrgDiagnostics::getKind),
                 pybind11::arg("__input"))
@@ -5096,9 +5171,7 @@ ingoing elements.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("message", &org::sem::ErrorItem::message)
-    .def_readwrite("function", &org::sem::ErrorItem::function, R"RAW(Conversion function name where the error was created)RAW")
-    .def_readwrite("line", &org::sem::ErrorItem::line, R"RAW(Line number for the conversion where the error was created)RAW")
+    .def_readwrite("diag", &org::sem::ErrorItem::diag)
     .def("__repr__", [](org::sem::ErrorItem const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5115,8 +5188,6 @@ ingoing elements.)RAW")
                         return result;
                         }))
     .def_readwrite("diagnostics", &org::sem::ErrorGroup::diagnostics)
-    .def_readwrite("function", &org::sem::ErrorGroup::function, R"RAW(Conversion function name where the error was created)RAW")
-    .def_readwrite("line", &org::sem::ErrorGroup::line, R"RAW(Line number for the conversion where the error was created)RAW")
     .def("__repr__", [](org::sem::ErrorGroup const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })

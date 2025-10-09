@@ -14,25 +14,6 @@ using namespace hstd;
 
 namespace {
 
-constexpr std::string fieldname_to_code(std::string_view str) {
-    constexpr char chars[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    constexpr int  base    = sizeof(chars) - 1;
-
-    uint64_t hash = 14695981039346656037ULL;
-    for (char c : str) {
-        hash ^= static_cast<uint64_t>(c);
-        hash *= 1099511628211ULL;
-    }
-
-    std::string result{};
-    result.reserve(4);
-    for (int i = 0; i < 4; ++i) {
-        result += chars[hash % base];
-        hash /= base;
-    }
-
-    return result;
-}
 
 org::sem::OrgDiagnostics::ParseError ParseErrorInit(
     std::string_view   name,
@@ -47,7 +28,10 @@ org::sem::OrgDiagnostics::ParseError ParseErrorInit(
 struct ErrorTable {
 #define P_ERROR(__fieldname, __short, __long)                                              \
     static const inline org::sem::OrgDiagnostics::ParseError __fieldname = ParseErrorInit( \
-        #__fieldname, fieldname_to_code(#__fieldname), __short, __long);
+        #__fieldname,                                                                      \
+        ::org::fieldname_to_code(#__fieldname),                                            \
+        __short,                                                                           \
+        __long);
 
     P_ERROR(MissingClosingParen, "Expected closing `)`", "");
     P_ERROR(MissingClosingBracket, "Expected closing `]`", "");

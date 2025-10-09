@@ -540,6 +540,13 @@ enum OrgSemKind {
   OrgSemKind_CmdInclude_f                                                           = 73;
 }
 
+message SourceLocation {
+  int32                                            line                             = 1;
+  optional int32                                   column                           = 2;
+  optional string                                  file                             = 3;
+  string                                           debug                            = 1000;
+}
+
 message LispCode {
   message Call {
     string                                         name                             = 1;
@@ -1345,10 +1352,9 @@ message OrgDiagnostics {
     int32                                          parserLine                       = 4;
     OrgTokenKind                                   tokenKind                        = 5;
     string                                         tokenText                        = 6;
-    int32                                          tokenLine                        = 7;
-    int32                                          tokenCol                         = 8;
-    string                                         errName                          = 9;
-    string                                         errCode                          = 10;
+    SourceLocation                                 loc                              = 7;
+    string                                         errName                          = 8;
+    string                                         errCode                          = 9;
     string                                         debug                            = 1000;
   }
   message ParseError {
@@ -1360,15 +1366,38 @@ message OrgDiagnostics {
     string                                         errCode                          = 6;
     string                                         debug                            = 1000;
   }
+  message ConvertError {
+    string                                         brief                            = 1;
+    string                                         detail                           = 2;
+    string                                         convertFunction                  = 3;
+    int32                                          convertLine                      = 4;
+    string                                         convertFile                      = 5;
+    string                                         errName                          = 6;
+    string                                         errCode                          = 7;
+    optional SourceLocation                        loc                              = 8;
+    string                                         debug                            = 1000;
+  }
+  message InternalError {
+    string                                         message                          = 1;
+    string                                         function                         = 2;
+    int32                                          line                             = 3;
+    string                                         file                             = 4;
+    optional SourceLocation                        loc                              = 5;
+    string                                         debug                            = 1000;
+  }
   message Data {
     oneof kind {
       OrgDiagnostics.ParseTokenError               parsetokenerror                  = 1;
       OrgDiagnostics.ParseError                    parseerror                       = 2;
+      OrgDiagnostics.ConvertError                  converterror                     = 3;
+      OrgDiagnostics.InternalError                 internalerror                    = 4;
     }
   }
   enum Kind {
     Kind_ParseTokenError_f                                                          = 0;
     Kind_ParseError_f                                                               = 1;
+    Kind_ConvertError_f                                                             = 2;
+    Kind_InternalError_f                                                            = 3;
   }
   OrgDiagnostics.Data                              data                             = 1;
   string                                           debug                            = 1000;
@@ -1385,9 +1414,7 @@ message ErrorItem {
   optional org.parse.LineCol                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
-  string                                           message                          = 4;
-  optional string                                  function                         = 5;
-  optional int32                                   line                             = 6;
+  OrgDiagnostics                                   diag                             = 4;
   string                                           debug                            = 1000;
 }
 
@@ -1396,8 +1423,6 @@ message ErrorGroup {
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   repeated ErrorItem                               diagnostics                      = 4;
-  optional string                                  function                         = 5;
-  optional int32                                   line                             = 6;
   string                                           debug                            = 1000;
 }
 

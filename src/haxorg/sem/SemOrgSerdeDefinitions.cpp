@@ -2,6 +2,26 @@
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation>::write(::orgproto::SourceLocation* out, org::sem::SourceLocation const& in) {
+  out->set_line(in.line);
+  if (in.column) {
+    out->set_column(*in.column);
+  }
+  if (in.file) {
+    proto_serde<std::string, hstd::Str>::write(out->mutable_file(), *in.file);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation>::read(::orgproto::SourceLocation const& out, proto_write_accessor<org::sem::SourceLocation> in) {
+  in.for_field(&org::sem::SourceLocation::line).get() = out.line();
+  if (out.has_column()) {
+    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.column(), in.for_field(&org::sem::SourceLocation::column));
+  }
+  if (out.has_file()) {
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.file(), in.for_field(&org::sem::SourceLocation::file));
+  }
+}
+
 void org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call>::write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in) {
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::LispCode>, hstd::Vec<org::sem::LispCode>>::write(out->mutable_args(), in.args);
@@ -1686,8 +1706,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::se
   out->set_parserline(in.parserLine);
   out->set_tokenkind(static_cast<orgproto::OrgTokenKind>(in.tokenKind));
   proto_serde<std::string, hstd::Str>::write(out->mutable_tokentext(), in.tokenText);
-  out->set_tokenline(in.tokenLine);
-  out->set_tokencol(in.tokenCol);
+  proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::write(out->mutable_loc(), in.loc);
   proto_serde<std::string, hstd::Str>::write(out->mutable_errname(), in.errName);
   proto_serde<std::string, hstd::Str>::write(out->mutable_errcode(), in.errCode);
 }
@@ -1699,8 +1718,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::se
   in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::parserLine).get() = out.parserline();
   in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenKind).get() = static_cast<OrgTokenKind>(out.tokenkind());
   proto_serde<std::string, hstd::Str>::read(out.tokentext(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenText));
-  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenLine).get() = out.tokenline();
-  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenCol).get() = out.tokencol();
+  proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::loc));
   proto_serde<std::string, hstd::Str>::read(out.errname(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::errName));
   proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::errCode));
 }
@@ -1723,6 +1741,52 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::Or
   proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ParseError::errCode));
 }
 
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::write(::orgproto::OrgDiagnostics::ConvertError* out, org::sem::OrgDiagnostics::ConvertError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_brief(), in.brief);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_detail(), in.detail);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_convertfunction(), in.convertFunction);
+  out->set_convertline(in.convertLine);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_convertfile(), in.convertFile);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_errname(), in.errName);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_errcode(), in.errCode);
+  if (in.loc) {
+    proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::write(out->mutable_loc(), *in.loc);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::read(::orgproto::OrgDiagnostics::ConvertError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ConvertError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.brief(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::brief));
+  proto_serde<std::string, hstd::Str>::read(out.detail(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::detail));
+  proto_serde<std::string, hstd::Str>::read(out.convertfunction(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::convertFunction));
+  in.for_field(&org::sem::OrgDiagnostics::ConvertError::convertLine).get() = out.convertline();
+  proto_serde<std::string, hstd::Str>::read(out.convertfile(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::convertFile));
+  proto_serde<std::string, hstd::Str>::read(out.errname(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::errName));
+  proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::errCode));
+  if (out.has_loc()) {
+    proto_serde<hstd::Opt<orgproto::SourceLocation>, hstd::Opt<org::sem::SourceLocation>>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::loc));
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::write(::orgproto::OrgDiagnostics::InternalError* out, org::sem::OrgDiagnostics::InternalError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_message(), in.message);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_function(), in.function);
+  out->set_line(in.line);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_file(), in.file);
+  if (in.loc) {
+    proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::write(out->mutable_loc(), *in.loc);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::read(::orgproto::OrgDiagnostics::InternalError const& out, proto_write_accessor<org::sem::OrgDiagnostics::InternalError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.message(), in.for_field(&org::sem::OrgDiagnostics::InternalError::message));
+  proto_serde<std::string, hstd::Str>::read(out.function(), in.for_field(&org::sem::OrgDiagnostics::InternalError::function));
+  in.for_field(&org::sem::OrgDiagnostics::InternalError::line).get() = out.line();
+  proto_serde<std::string, hstd::Str>::read(out.file(), in.for_field(&org::sem::OrgDiagnostics::InternalError::file));
+  if (out.has_loc()) {
+    proto_serde<hstd::Opt<orgproto::SourceLocation>, hstd::Opt<org::sem::SourceLocation>>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::InternalError::loc));
+  }
+}
+
 void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::write(::orgproto::OrgDiagnostics* out, org::sem::OrgDiagnostics const& in) {
   switch (in.data.index()) {
     case 0:
@@ -1730,6 +1794,12 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics
       break;
     case 1:
       proto_serde<orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::write(out->mutable_data()->mutable_parseerror(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::write(out->mutable_data()->mutable_converterror(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::write(out->mutable_data()->mutable_internalerror(), std::get<3>(in.data));
       break;
   }
 }
@@ -1743,6 +1813,14 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics
     case ::orgproto::OrgDiagnostics::Data::kParseerror:
       in.for_field_variant<1>(&org::sem::OrgDiagnostics::data).get();
       proto_serde<orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::read(out.data().parseerror(), in.for_field_variant<1>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::kConverterror:
+      in.for_field_variant<2>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::read(out.data().converterror(), in.for_field_variant<2>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::kInternalerror:
+      in.for_field_variant<3>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::read(out.data().internalerror(), in.for_field_variant<3>(&org::sem::OrgDiagnostics::data));
       break;
     case ::orgproto::OrgDiagnostics::Data::KIND_NOT_SET: {
       throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
@@ -1761,46 +1839,22 @@ void org::algo::proto_serde<::orgproto::None, org::sem::None>::read(::orgproto::
 
 void org::algo::proto_serde<::orgproto::ErrorItem, org::sem::ErrorItem>::write(::orgproto::ErrorItem* out, org::sem::ErrorItem const& in) {
   org::algo::proto_serde<::orgproto::ErrorItem, org::sem::Org>::write(out, in);
-  proto_serde<std::string, hstd::Str>::write(out->mutable_message(), in.message);
-  if (in.function) {
-    proto_serde<std::string, hstd::Str>::write(out->mutable_function(), *in.function);
-  }
-  if (in.line) {
-    out->set_line(*in.line);
-  }
+  proto_serde<orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::write(out->mutable_diag(), in.diag);
 }
 
 void org::algo::proto_serde<::orgproto::ErrorItem, org::sem::ErrorItem>::read(::orgproto::ErrorItem const& out, proto_write_accessor<org::sem::ErrorItem> in) {
   org::algo::proto_serde<::orgproto::ErrorItem, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.message(), in.for_field(&org::sem::ErrorItem::message));
-  if (out.has_function()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.function(), in.for_field(&org::sem::ErrorItem::function));
-  }
-  if (out.has_line()) {
-    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.line(), in.for_field(&org::sem::ErrorItem::line));
-  }
+  proto_serde<orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::read(out.diag(), in.for_field(&org::sem::ErrorItem::diag));
 }
 
 void org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::ErrorGroup>::write(::orgproto::ErrorGroup* out, org::sem::ErrorGroup const& in) {
   org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorItem>, hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>>::write(out->mutable_diagnostics(), in.diagnostics);
-  if (in.function) {
-    proto_serde<std::string, hstd::Str>::write(out->mutable_function(), *in.function);
-  }
-  if (in.line) {
-    out->set_line(*in.line);
-  }
 }
 
 void org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::ErrorGroup>::read(::orgproto::ErrorGroup const& out, proto_write_accessor<org::sem::ErrorGroup> in) {
   org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::Org>::read(out, in.as<org::sem::Org>());
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorItem>, hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>>::read(out.diagnostics(), in.for_field(&org::sem::ErrorGroup::diagnostics));
-  if (out.has_function()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.function(), in.for_field(&org::sem::ErrorGroup::function));
-  }
-  if (out.has_line()) {
-    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.line(), in.for_field(&org::sem::ErrorGroup::line));
-  }
 }
 
 void org::algo::proto_serde<::orgproto::StmtList, org::sem::StmtList>::write(::orgproto::StmtList* out, org::sem::StmtList const& in) {

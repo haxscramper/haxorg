@@ -11,6 +11,19 @@
 #include <haxorg/sem/SemOrgBaseSharedTypes.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace org::sem {
+struct SourceLocation {
+  BOOST_DESCRIBE_CLASS(SourceLocation,
+                       (),
+                       (),
+                       (),
+                       (line, column, file))
+  int line = -1;
+  hstd::Opt<int> column = std::nullopt;
+  hstd::Opt<hstd::Str> file = std::nullopt;
+  bool operator==(org::sem::SourceLocation const& other) const;
+  SourceLocation() {  }
+};
+
 struct LispCode {
   struct Call {
     BOOST_DESCRIBE_CLASS(Call,
@@ -1726,8 +1739,7 @@ struct OrgDiagnostics {
                           parserLine,
                           tokenKind,
                           tokenText,
-                          tokenLine,
-                          tokenCol,
+                          loc,
                           errName,
                           errCode))
     hstd::Str brief;
@@ -1736,8 +1748,7 @@ struct OrgDiagnostics {
     int parserLine;
     OrgTokenKind tokenKind;
     hstd::Str tokenText;
-    int tokenLine;
-    int tokenCol;
+    org::sem::SourceLocation loc;
     hstd::Str errName;
     hstd::Str errCode;
     bool operator==(org::sem::OrgDiagnostics::ParseTokenError const& other) const;
@@ -1765,9 +1776,51 @@ struct OrgDiagnostics {
     bool operator==(org::sem::OrgDiagnostics::ParseError const& other) const;
   };
 
-  using Data = std::variant<org::sem::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseError>;
-  enum class Kind : short int { ParseTokenError, ParseError, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, ParseTokenError, ParseError)
+  /// \brief Cannot convert parsed tree into
+  struct ConvertError {
+    ConvertError() {}
+    BOOST_DESCRIBE_CLASS(ConvertError,
+                         (),
+                         (),
+                         (),
+                         (brief,
+                          detail,
+                          convertFunction,
+                          convertLine,
+                          convertFile,
+                          errName,
+                          errCode,
+                          loc))
+    hstd::Str brief;
+    hstd::Str detail;
+    hstd::Str convertFunction;
+    int convertLine;
+    hstd::Str convertFile;
+    hstd::Str errName;
+    hstd::Str errCode;
+    hstd::Opt<org::sem::SourceLocation> loc = std::nullopt;
+    bool operator==(org::sem::OrgDiagnostics::ConvertError const& other) const;
+  };
+
+  /// \brief Internal implementation error: should not be visible to the end-user.
+  struct InternalError {
+    InternalError() {}
+    BOOST_DESCRIBE_CLASS(InternalError,
+                         (),
+                         (),
+                         (),
+                         (message, function, line, file, loc))
+    hstd::Str message;
+    hstd::Str function;
+    int line;
+    hstd::Str file;
+    hstd::Opt<org::sem::SourceLocation> loc = std::nullopt;
+    bool operator==(org::sem::OrgDiagnostics::InternalError const& other) const;
+  };
+
+  using Data = std::variant<org::sem::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::InternalError>;
+  enum class Kind : short int { ParseTokenError, ParseError, ConvertError, InternalError, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, ParseTokenError, ParseError, ConvertError, InternalError)
   using variant_enum_type = org::sem::OrgDiagnostics::Kind;
   using variant_data_type = org::sem::OrgDiagnostics::Data;
   OrgDiagnostics(Data const& data) : data(data) {}
@@ -1784,6 +1837,12 @@ struct OrgDiagnostics {
   bool isParseError() const { return getKind() == Kind::ParseError; }
   org::sem::OrgDiagnostics::ParseError const& getParseError() const { return hstd::variant_get<1>(data); }
   org::sem::OrgDiagnostics::ParseError& getParseError() { return hstd::variant_get<1>(data); }
+  bool isConvertError() const { return getKind() == Kind::ConvertError; }
+  org::sem::OrgDiagnostics::ConvertError const& getConvertError() const { return hstd::variant_get<2>(data); }
+  org::sem::OrgDiagnostics::ConvertError& getConvertError() { return hstd::variant_get<2>(data); }
+  bool isInternalError() const { return getKind() == Kind::InternalError; }
+  org::sem::OrgDiagnostics::InternalError const& getInternalError() const { return hstd::variant_get<3>(data); }
+  org::sem::OrgDiagnostics::InternalError& getInternalError() { return hstd::variant_get<3>(data); }
   static org::sem::OrgDiagnostics::Kind getKind(org::sem::OrgDiagnostics::Data const& __input) { return static_cast<org::sem::OrgDiagnostics::Kind>(__input.index()); }
   org::sem::OrgDiagnostics::Kind getKind() const { return getKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
