@@ -27,6 +27,7 @@ org::sem::OrgDiagnostics OrgConverter::MakeInternal(
 org::sem::OrgDiagnostics OrgConverter::MakeConvert(
     org::parse::OrgAdapter const&                 a,
     org::sem::OrgDiagnostics::ConvertError const& conv,
+    hstd::Opt<hstd::Str> const&                   extraDetail,
     int                                           line,
     char const*                                   function,
     char const*                                   file) {
@@ -35,7 +36,8 @@ org::sem::OrgDiagnostics OrgConverter::MakeConvert(
     res.convertFile     = file;
     res.convertFunction = function;
     res.convertLine     = line;
-    res.loc             = MakeSourceLocation(a);
+    if (extraDetail) { res.detail += extraDetail.value(); }
+    res.loc = MakeSourceLocation(a);
     return org::sem::OrgDiagnostics{res};
 }
 

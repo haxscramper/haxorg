@@ -24,11 +24,6 @@
 
 
 namespace {
-void AddDetail(org::sem::OrgDiagnostics& diag, std::string const& detail) {
-    diag.getConvertError().detail += detai;
-}
-
-
 org::sem::OrgDiagnostics::ConvertError ConvertErrorInit(
     std::string_view   name,
     std::string        code,
@@ -86,7 +81,30 @@ struct ErrorTable {
     P_ERROR(
         UnexpectedCookieData,
         "Unexpected COOKIE_DATA property value.",
-        "Expected 'todo', 'recursive', 'both' or 'checkbox'. ");
+        "Expected 'todo', 'recursive', 'both' or 'checkbox'.");
+
+    P_ERROR(
+        ExpectedStaticSubtreeTime,
+        "Subtree times are expected to have static time.",
+        "");
+
+    P_ERROR(
+        UnexpectedSubtreeTimeName,
+        "Accepted subtree time kinds are 'closed', "
+        "'deadline', 'scheduled'",
+        "");
+
+    P_ERROR(TimeFormatFail, "Could not parse datetime entry.", "");
+
+    P_ERROR(UnexpectedCheckboxValue, "Unexpected list item checkbox.", "");
+    P_ERROR(TableExpressionFail, "Failed to parse `#+tblfm`", "");
+    P_ERROR(
+        ColumnExpressionFail,
+        "Could not parse formatting expression for column command",
+        "");
+
+    P_ERROR(UnexpectedDocumentOption, "Unexpected document option", "");
+    P_ERROR(IncludeFailure, "Cannot resolve include", "");
 
 #undef P_ERROR
 };
@@ -705,11 +723,12 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                         MakeConvert(a, ErrorTable::OverloadedHashtagDef));
                 }
             } else {
-                auto err = MakeConvert(
-                    a, ErrorTable::UnexpectedHashtagDefNode);
-                err.getConvertError().detail = hstd::fmt(
-                    "Found {}", tag->getKind());
-                return SemError(a, err);
+                return SemError(
+                    a,
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedHashtagDefNode,
+                        hstd::fmt("Found {}", tag->getKind())));
             }
         }
 
@@ -724,9 +743,13 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
             created.time = par0.as<sem::Time>()->getStatic().time;
             result       = Property(created);
         } else {
-            auto err = MakeConvert(a, ErrorTable::UnexpectedCreatedValue);
-            err.getConvertError().detail = hstd::fmt(
-                "found {} at {}", par0->getKind(), getLocMsg(a));
+            return SemError(
+                a,
+                MakeConvert(
+                    a,
+                    ErrorTable::UnexpectedCreatedValue,
+                    hstd::fmt(
+                        "found {} at {}", par0->getKind(), getLocMsg(a))));
         }
 
     } else if (name == "visibility") {
@@ -757,7 +780,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 p.source = SubtreeTodoSource::Checkbox;
             } else {
                 return SemError(
-                    a, fmt("Unexpected cookie data parameter: {}", arg));
+                    a,
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedCookieData,
+                        fmt("Unexpected cookie data parameter: {}", arg)));
             }
         }
 
@@ -978,8 +1005,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
             if (!time->isStatic()) {
                 return SemError(
                     a,
-                    fmt("Subtree times are expected to have static time, "
-                        "provided value is not static."));
+                    MakeConvert(a, ErrorTable::ExpectedStaticSubtreeTime));
             }
 
             if (org_streq(kind->text, "closed")) {
@@ -991,9 +1017,10 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
             } else {
                 return SemError(
                     a,
-                    fmt("Accepted subtree time kinds are 'closed', "
-                        "'deadline', 'scheduled', but the value was '{}'",
-                        kind));
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedSubtreeTimeName,
+                        fmt("The value was '{}'", kind)));
             }
         }
     }
@@ -1113,10 +1140,10 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
         } else {
             return SemError(
                 a,
-                fmt("Could not parse date time entry in format: '{}' at "
-                    "'{}'",
-                    datetime,
-                    getLocMsg(a)));
+                MakeConvert(
+                    a,
+                    ErrorTable::TimeFormatFail,
+                    hstd::fmt("Format '{}'", datetime)));
         }
     }
 
@@ -1345,7 +1372,11 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
             item->checkbox = CheckboxState::Partial;
         } else {
             return SemError(
-                a, fmt("Unexpected list item checkbox {}", text));
+                a,
+                MakeConvert(
+                    a,
+                    ErrorTable::UnexpectedCheckboxValue,
+                    fmt("got value '{}'", text)));
         }
     }
 
@@ -1765,7 +1796,9 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     } else {
         return SemError(
             a,
-            fmt("Table format expression failed\n{}",
+            MakeConvert(
+                a,
+                ErrorTable::TableExpressionFail,
                 join("\n", result.errors())));
     }
 }
@@ -2394,7 +2427,9 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
     } else {
         return SemError(
             a,
-            fmt("Column format expression failed\n{}",
+            MakeConvert(
+                a,
+                ErrorTable::ColumnExpressionFail,
                 join("\n", spec.errors())));
     }
 
@@ -2641,7 +2676,17 @@ SemId<Org> OrgConverter::convert(__args) {
                 auto mono = sub.getMono().getError();
                 LOGIC_ASSERTION_CHECK(
                     mono.box, "Mono error for node should have box data");
-                group->diagnostics.push_back(SemErrorItem(sub, mono));
+                if (mono.box->isParseFail()) {
+                    group->diagnostics.push_back(SemErrorItem(
+                        sub,
+                        org::sem::OrgDiagnostics{
+                            mono.box->getParseFail().err}));
+                } else {
+                    group->diagnostics.push_back(SemErrorItem(
+                        sub,
+                        org::sem::OrgDiagnostics{
+                            mono.box->getParseTokenFail().err}));
+                }
             } else {
                 group->push_back(convert(sub));
             }
@@ -2715,7 +2760,9 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::BlockDynamicFallback:
             return convertBlockDynamicFallback(a).unwrap();
         default: {
-            return SemError(a, fmt("ERR Unknown content {}", a.getKind()));
+            return SemError(
+                a,
+                MakeInternal(fmt("ERR Unknown content {}", a.getKind())));
         }
     }
 #undef CASE
@@ -2770,18 +2817,26 @@ void OrgConverter::convertDocumentOptions(
             } else {
                 opts->push_back(SemError(
                     a,
-                    fmt("Unexpected document option value {}, head:'{}', "
-                        "tail:'{}'",
-                        value,
-                        head,
-                        tail)));
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedDocumentOption,
+                        fmt("Value {}, "
+                            "head:'{}', "
+                            "tail:'{}'",
+                            value,
+                            head,
+                            tail))));
             }
 
         } else if (org_streq(value, ":")) {
             opts->fixedWidthSections = true;
         } else {
             opts->push_back(SemError(
-                a, fmt("Unexpected document option value {}", value)));
+                a,
+                MakeConvert(
+                    a,
+                    ErrorTable::UnexpectedDocumentOption,
+                    fmt("value {}", value))));
         }
     }
 }

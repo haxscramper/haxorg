@@ -338,6 +338,22 @@ def get_diagnostic_types() -> List[GenTuStruct]:
             methods=[eq_method(t_nest_shared("ConvertError", [t("OrgDiagnostics")]))],
         ),
         org_struct(
+            t_nest_shared("ConvertError", [t("OrgDiagnostics")]),
+            GenTuDoc("Cannot convert parsed tree into"),
+            fields=[
+                org_field(t_str(), "brief"),
+                org_field(t_str(), "detail"),
+                org_field(t_str(), "convertFunction"),
+                org_field(t_int(), "convertLine"),
+                org_field(t_str(), "convertFile"),
+                org_field(t_str(), "errName"),
+                org_field(t_str(), "errCode"),
+                opt_field(t_nest_shared("SourceLocation"), "loc"),
+            ],
+            nested=[GenTuPass("ConvertError() {}")],
+            methods=[eq_method(t_nest_shared("ConvertError", [t("OrgDiagnostics")]))],
+        ),
+        org_struct(
             t_nest_shared("InternalError", [t("OrgDiagnostics")]),
             GenTuDoc("Internal implementation error: should not be visible to the end-user."),
             fields=[

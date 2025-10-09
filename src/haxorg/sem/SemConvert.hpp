@@ -291,9 +291,10 @@ struct OrgConverter : public hstd::OperationsTracer {
     org::sem::OrgDiagnostics MakeConvert(
         org::parse::OrgAdapter const&                 a,
         org::sem::OrgDiagnostics::ConvertError const& conv,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION(),
-        char const* file     = __builtin_FILE());
+        hstd::Opt<hstd::Str> const& extraDetail = std::nullopt,
+        int                         line        = __builtin_LINE(),
+        char const*                 function    = __builtin_FUNCTION(),
+        char const*                 file        = __builtin_FILE());
 
     hstd::Opt<org::sem::SourceLocation> MakeSourceLocation(
         org::parse::OrgAdapter const& a);

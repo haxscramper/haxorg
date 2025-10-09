@@ -202,9 +202,10 @@ OrgNodeMono::Error OrgParser::error_value(
     }
 
     if (failToken) {
-        fail.err.tokenCol  = failToken->value.col;
-        fail.err.tokenLine = failToken->value.line;
-        fail.err.tokenText = failToken->value.text;
+        fail.err.loc        = org::sem::SourceLocation{};
+        fail.err.loc.column = failToken->value.col;
+        fail.err.loc.line   = failToken->value.line;
+        fail.err.tokenText  = failToken->value.text;
     }
 
     return OrgNodeMono::Error{.box = box};
