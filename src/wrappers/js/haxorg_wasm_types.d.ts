@@ -3316,6 +3316,8 @@ export interface OrgDiagnosticsParseTokenError {
   tokenText: string
   tokenLine: number
   tokenCol: number
+  errName: string
+  errCode: string
 }
 export interface OrgDiagnosticsParseErrorConstructor { new(): OrgDiagnosticsParseError; }
 export interface OrgDiagnosticsParseError {
@@ -3324,6 +3326,8 @@ export interface OrgDiagnosticsParseError {
   detail: string
   parserFunction: string
   parserLine: number
+  errName: string
+  errCode: string
 }
 export type OrgDiagnosticsData = haxorg_wasm.StdVariant<OrgDiagnosticsParseTokenError, OrgDiagnosticsParseError>;
 export enum OrgDiagnosticsKind {

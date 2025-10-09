@@ -247,11 +247,11 @@ OrgParser::ParseResult OrgParser::maybe_error_end(
 }
 
 OrgParser::ParseResult OrgParser::expect(
-    CR<OrgLexer>         lex,
-    CR<OrgExpectable>    item,
-    hstd::Opt<hstd::Str> message,
-    int                  line,
-    char const*          function) {
+    CR<OrgLexer>                                           lex,
+    CR<OrgExpectable>                                      item,
+    hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message,
+    int                                                    line,
+    char const*                                            function) {
 
     if (at(lex, item)) {
         return ParseOk{};
@@ -263,9 +263,13 @@ OrgParser::ParseResult OrgParser::expect(
             getLocMsg(lex),
             lex.finished() ? "<lexer-finished>" : fmt1(lex.kind()));
 
-        if (message) {
-            msg += ". ";
-            msg += message.value();
+        org::sem::OrgDiagnostics::ParseError err;
+        if (message) { err = message.value(); }
+
+        if (err.detail.empty()) {
+            err.detail = msg;
+        } else {
+            err.detail += "\n\n" + msg;
         }
 
         if (TraceState) {
@@ -276,7 +280,7 @@ OrgParser::ParseResult OrgParser::expect(
                     .report);
         }
 
-        return error_end(error_value(msg, lex, line, function));
+        return error_end(error_value(err, lex, line, function));
     }
 }
 
@@ -296,11 +300,11 @@ OrgParser::LexResult OrgParser::pop(
 
 
 OrgParser::ParseResult OrgParser::skip(
-    OrgLexer&            lex,
-    Opt<OrgExpectable>   item,
-    hstd::Opt<hstd::Str> message,
-    int                  line,
-    char const*          function) {
+    OrgLexer&                                              lex,
+    Opt<OrgExpectable>                                     item,
+    hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message,
+    int                                                    line,
+    char const*                                            function) {
 
     if (item) {
         BOOST_OUTCOME_TRY(expect(lex, *item, message, line, function));

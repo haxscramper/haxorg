@@ -1347,6 +1347,8 @@ message OrgDiagnostics {
     string                                         tokenText                        = 6;
     int32                                          tokenLine                        = 7;
     int32                                          tokenCol                         = 8;
+    string                                         errName                          = 9;
+    string                                         errCode                          = 10;
     string                                         debug                            = 1000;
   }
   message ParseError {
@@ -1354,6 +1356,8 @@ message OrgDiagnostics {
     string                                         detail                           = 2;
     string                                         parserFunction                   = 3;
     int32                                          parserLine                       = 4;
+    string                                         errName                          = 5;
+    string                                         errCode                          = 6;
     string                                         debug                            = 1000;
   }
   message Data {

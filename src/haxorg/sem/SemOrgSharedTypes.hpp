@@ -1727,7 +1727,9 @@ struct OrgDiagnostics {
                           tokenKind,
                           tokenText,
                           tokenLine,
-                          tokenCol))
+                          tokenCol,
+                          errName,
+                          errCode))
     hstd::Str brief;
     hstd::Str detail;
     hstd::Str parserFunction;
@@ -1736,6 +1738,8 @@ struct OrgDiagnostics {
     hstd::Str tokenText;
     int tokenLine;
     int tokenCol;
+    hstd::Str errName;
+    hstd::Str errCode;
     bool operator==(org::sem::OrgDiagnostics::ParseTokenError const& other) const;
   };
 
@@ -1746,11 +1750,18 @@ struct OrgDiagnostics {
                          (),
                          (),
                          (),
-                         (brief, detail, parserFunction, parserLine))
+                         (brief,
+                          detail,
+                          parserFunction,
+                          parserLine,
+                          errName,
+                          errCode))
     hstd::Str brief;
     hstd::Str detail;
     hstd::Str parserFunction;
     int parserLine;
+    hstd::Str errName;
+    hstd::Str errCode;
     bool operator==(org::sem::OrgDiagnostics::ParseError const& other) const;
   };
 

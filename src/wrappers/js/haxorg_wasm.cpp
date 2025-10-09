@@ -1616,6 +1616,8 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("tokenText", &org::sem::OrgDiagnostics::ParseTokenError::tokenText)
     .property("tokenLine", &org::sem::OrgDiagnostics::ParseTokenError::tokenLine)
     .property("tokenCol", &org::sem::OrgDiagnostics::ParseTokenError::tokenCol)
+    .property("errName", &org::sem::OrgDiagnostics::ParseTokenError::errName)
+    .property("errCode", &org::sem::OrgDiagnostics::ParseTokenError::errCode)
     .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::ParseTokenError::*)(org::sem::OrgDiagnostics::ParseTokenError const&) const>(&org::sem::OrgDiagnostics::ParseTokenError::operator==))
     .constructor<>()
     ;
@@ -1624,6 +1626,8 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("detail", &org::sem::OrgDiagnostics::ParseError::detail)
     .property("parserFunction", &org::sem::OrgDiagnostics::ParseError::parserFunction)
     .property("parserLine", &org::sem::OrgDiagnostics::ParseError::parserLine)
+    .property("errName", &org::sem::OrgDiagnostics::ParseError::errName)
+    .property("errCode", &org::sem::OrgDiagnostics::ParseError::errCode)
     .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::ParseError::*)(org::sem::OrgDiagnostics::ParseError const&) const>(&org::sem::OrgDiagnostics::ParseError::operator==))
     .constructor<>()
     ;

@@ -499,6 +499,8 @@ void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseTokenError const& o
   __obj_field(res, object, tokenText);
   __obj_field(res, object, tokenLine);
   __obj_field(res, object, tokenCol);
+  __obj_field(res, object, errName);
+  __obj_field(res, object, errCode);
 }
 
 template <typename V, typename R>
@@ -507,6 +509,8 @@ void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseError const& object
   __obj_field(res, object, detail);
   __obj_field(res, object, parserFunction);
   __obj_field(res, object, parserLine);
+  __obj_field(res, object, errName);
+  __obj_field(res, object, errCode);
 }
 
 template <typename V, typename R>

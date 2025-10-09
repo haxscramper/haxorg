@@ -4988,6 +4988,8 @@ ingoing elements.)RAW")
     .def_readwrite("tokenText", &org::sem::OrgDiagnostics::ParseTokenError::tokenText)
     .def_readwrite("tokenLine", &org::sem::OrgDiagnostics::ParseTokenError::tokenLine)
     .def_readwrite("tokenCol", &org::sem::OrgDiagnostics::ParseTokenError::tokenCol)
+    .def_readwrite("errName", &org::sem::OrgDiagnostics::ParseTokenError::errName)
+    .def_readwrite("errCode", &org::sem::OrgDiagnostics::ParseTokenError::errCode)
     .def("__eq__",
          static_cast<bool(org::sem::OrgDiagnostics::ParseTokenError::*)(org::sem::OrgDiagnostics::ParseTokenError const&) const>(&org::sem::OrgDiagnostics::ParseTokenError::operator==),
          pybind11::arg("other"))
@@ -5010,6 +5012,8 @@ ingoing elements.)RAW")
     .def_readwrite("detail", &org::sem::OrgDiagnostics::ParseError::detail)
     .def_readwrite("parserFunction", &org::sem::OrgDiagnostics::ParseError::parserFunction)
     .def_readwrite("parserLine", &org::sem::OrgDiagnostics::ParseError::parserLine)
+    .def_readwrite("errName", &org::sem::OrgDiagnostics::ParseError::errName)
+    .def_readwrite("errCode", &org::sem::OrgDiagnostics::ParseError::errCode)
     .def("__eq__",
          static_cast<bool(org::sem::OrgDiagnostics::ParseError::*)(org::sem::OrgDiagnostics::ParseError const&) const>(&org::sem::OrgDiagnostics::ParseError::operator==),
          pybind11::arg("other"))

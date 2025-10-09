@@ -237,9 +237,10 @@ struct OrgParser : public hstd::OperationsTracer {
     [[nodiscard]] ParseResult expect(
         OrgLexer const&                 lex,
         OrgParser::OrgExpectable const& item,
-        hstd::Opt<hstd::Str>            message  = std::nullopt,
-        int                             line     = __builtin_LINE(),
-        char const*                     function = __builtin_FUNCTION());
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::
+            nullopt,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     OrgTokenId pop(
         OrgLexer&   lex,
@@ -255,18 +256,20 @@ struct OrgParser : public hstd::OperationsTracer {
         char const* function                     = __builtin_FUNCTION());
 
     void skip(
-        OrgLexer&            lex,
-        hstd::Opt<hstd::Str> message  = std::nullopt,
-        int                  line     = __builtin_LINE(),
-        char const*          function = __builtin_FUNCTION()) {
+        OrgLexer& lex,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::
+            nullopt,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
         std::ignore = skip(lex, std::nullopt, message, line, function);
     }
 
     [[nodiscard]] ParseResult skip(
         OrgLexer&                           lex,
         hstd::Opt<OrgParser::OrgExpectable> item,
-        hstd::Opt<hstd::Str>                message = std::nullopt,
-        int                                 line    = __builtin_LINE(),
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::
+            nullopt,
+        int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
     void space(
