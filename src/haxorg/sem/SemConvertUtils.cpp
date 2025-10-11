@@ -213,7 +213,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
                     os << " ";
                     int prefix_end = os.position;
                     os.write_indented_after_first(
-                        *in.msg, prefix_end - start_pos);
+                        hstd::Str{*in.msg}, prefix_end - start_pos);
                 }
             }
         }

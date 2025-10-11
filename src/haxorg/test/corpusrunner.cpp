@@ -1316,22 +1316,31 @@ hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org
     return [=](OrgNodeGroup::TreeReprConf::WriteParams const& par) {
         switch (par.pos) {
             case Pos::AfterKind: {
-                auto const& node = nodes->at(par.current);
+                auto const& node    = nodes->at(par.current);
+                bool        isError = false;
                 if (node.isMono()) {
                     auto mono = node.getMono();
                     if (mono.isError()) {
-                        par.os << " " << hstd::fmt1(*mono.getError().box);
+                        isError = true;
+                        par.os << " "
+                               << hstd::to_compact_json(hstd::to_json_eval(
+                                      *mono.getError().box));
                     }
                 }
 
                 if (par.parent && par.subnodeIdx) {
                     auto name = spec->fieldName(
                         OrgAdapter(nodes, *par.parent), *par.subnodeIdx);
-                    if (name) {
-                        par.os << " " << par.os.magenta()
-                               << fmt("{}", *name) << par.os.end();
+                    if (isError) {
+                        par.os << "\n";
                     } else {
-                        par.os << " " << par.os.red()
+                        par.os << " ";
+                    }
+                    if (name) {
+                        par.os << par.os.magenta() << fmt("{}", *name)
+                               << par.os.end();
+                    } else {
+                        par.os << par.os.red()
                                << fmt("!! Missing field name for "
                                       "element {} of node {} !!",
                                       *par.subnodeIdx,
