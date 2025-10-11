@@ -21,7 +21,10 @@ org::sem::OrgDiagnostics::ParseError ParseErrorInit(
     std::string const& brief,
     std::string const& detail) {
     org::sem::OrgDiagnostics::ParseError result;
-
+    result.errName = std::string{name};
+    result.errCode = code;
+    result.brief   = brief;
+    result.detail  = detail;
     return result;
 }
 

@@ -76,8 +76,8 @@ struct LineLabel {
     }
 
 struct Writer {
-    ColStream& stream;
-    Config*    config;
+    ColStream&    stream;
+    Config const* config;
 
     bool dbg_report() const { return config->debug_report_info; }
 
@@ -698,7 +698,7 @@ Vec<Label> Report::build_multi_labels(Vec<LabelInfo> const& labels) {
 }
 
 
-Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
+Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
     Vec<SourceGroup> groups;
     for (const auto& label : labels) {
         auto src_display            = cache->display(label.span.source());
@@ -1004,7 +1004,7 @@ void write_report_header(Report const& report, Writer& op) {
     }
 }
 
-void Report::write_for_stream(Cache& cache, ColStream& w) {
+void Report::write_for_stream(Cache& cache, ColStream& w) const {
     UnorderedMap<int, int> label_ids;
     for (auto const& [label_idx, l] : enumerate(labels)) {
         if (label_ids.contains(l.id)) {
@@ -1104,4 +1104,31 @@ std::pair<char, int> Config::char_width(char c, int col) const {
         int char_width = 1;
         return std::make_pair(c, char_width);
     }
+}
+
+void StrCache::add(
+    Id                 id,
+    const std::string& source,
+    const std::string& name) {
+    auto knownName = names.get_right(id);
+    LOGIC_ASSERTION_CHECK(
+        !knownName.has_value() || knownName == name,
+        "Attempting to add source with name '{}' as ID {}. This ID is "
+        "already used for source name '{}'",
+        name,
+        id,
+        knownName.value());
+
+    if (!knownName.has_value()) {
+        sources[id] = std::make_shared<Source>(source);
+        names.add_unique(id, name);
+    }
+}
+
+Id StrCache::add_path(const hstd::fs::path& path) {
+    Id id = std::hash<std::string>{}(path.native());
+    if (!names.get_right(id).has_value()) {
+        add(id, hstd::readFile(path), path);
+    }
+    return id;
 }

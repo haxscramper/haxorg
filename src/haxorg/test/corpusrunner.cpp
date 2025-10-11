@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 
 
 using namespace org::test;
@@ -1160,6 +1161,21 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
             tree.evalTop(document);
         }
     }
+
+
+    if (spec.debug.printErrorsToFile || spec.debug.traceAll) {
+        hstd::ext::StrCache cache;
+        auto reports = org::collectDiagnostics(cache, p.node);
+
+        std::string formatted;
+        for (auto const& report : reports) {
+            formatted += report.to_string(cache, false);
+            formatted += "\n";
+        }
+
+        writeFile(spec, "errors.txt", formatted, relDebug);
+    }
+
 
     if (spec.sem.has_value()) {
         return compareSem(spec, document, spec.sem.value());

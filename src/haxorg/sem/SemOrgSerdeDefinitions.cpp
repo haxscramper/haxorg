@@ -1730,6 +1730,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::Or
   out->set_parserline(in.parserLine);
   proto_serde<std::string, hstd::Str>::write(out->mutable_errname(), in.errName);
   proto_serde<std::string, hstd::Str>::write(out->mutable_errcode(), in.errCode);
+  proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::write(out->mutable_loc(), in.loc);
 }
 
 void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::read(::orgproto::OrgDiagnostics::ParseError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseError> in) {
@@ -1739,6 +1740,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::Or
   in.for_field(&org::sem::OrgDiagnostics::ParseError::parserLine).get() = out.parserline();
   proto_serde<std::string, hstd::Str>::read(out.errname(), in.for_field(&org::sem::OrgDiagnostics::ParseError::errName));
   proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ParseError::errCode));
+  proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ParseError::loc));
 }
 
 void org::algo::proto_serde<::orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError>::write(::orgproto::OrgDiagnostics::IncludeError* out, org::sem::OrgDiagnostics::IncludeError const& in) {

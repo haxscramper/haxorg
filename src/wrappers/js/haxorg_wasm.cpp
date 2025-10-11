@@ -1640,6 +1640,7 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("parserLine", &org::sem::OrgDiagnostics::ParseError::parserLine)
     .property("errName", &org::sem::OrgDiagnostics::ParseError::errName)
     .property("errCode", &org::sem::OrgDiagnostics::ParseError::errCode)
+    .property("loc", &org::sem::OrgDiagnostics::ParseError::loc)
     .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::ParseError::*)(org::sem::OrgDiagnostics::ParseError const&) const>(&org::sem::OrgDiagnostics::ParseError::operator==))
     .constructor<>()
     ;

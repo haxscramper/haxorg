@@ -1364,6 +1364,7 @@ message OrgDiagnostics {
     int32                                          parserLine                       = 4;
     string                                         errName                          = 5;
     string                                         errCode                          = 6;
+    SourceLocation                                 loc                              = 7;
     string                                         debug                            = 1000;
   }
   message IncludeError {

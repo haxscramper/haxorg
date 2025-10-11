@@ -10,7 +10,7 @@
 
 namespace org::test {
 
-json       toJson(hstd::CR<yaml> node);
+json toJson(hstd::CR<yaml> node);
 yaml toYaml(hstd::CR<json> node);
 
 struct ParseSpec {
@@ -73,10 +73,13 @@ struct ParseSpec {
         /// making the test corpus too brittle.
         bool doFlatParseCompare = true;
         /// Print sem/lex/parse output debug information to the file
-        bool printLexedToFile       = false;
-        bool printBaseLexedToFile   = false;
-        bool printParsedToFile      = false;
-        bool printSemToFile         = false;
+        bool printLexedToFile     = false;
+        bool printBaseLexedToFile = false;
+        bool printParsedToFile    = false;
+        bool printSemToFile       = false;
+        /// If the sem conversion completed without a catastrophic failure,
+        /// format the non-critical errors into the debug file.
+        bool printErrorsToFile = false;
         /// directory to write debug files to
         std::string debugOutDir = "";
 
@@ -102,6 +105,7 @@ struct ParseSpec {
              printBaseLexedToFile,
              printParsedToFile,
              printSemToFile,
+             printErrorsToFile,
              debugOutDir));
     };
 
@@ -134,7 +138,7 @@ struct ParseSpec {
     }
 
     ParseSpec(
-        hstd::CR<yaml>  node,
+        hstd::CR<yaml>        node,
         hstd::CR<std::string> specFile,
         hstd::CR<std::string> testRoot);
 
@@ -160,9 +164,9 @@ struct ParseSpec {
     hstd::Opt<std::string> file           = std::nullopt;
     Dbg                    debug          = Dbg{};
     Conf                   conf           = Conf{};
-    hstd::Opt<yaml>  subnodes       = std::nullopt;
-    hstd::Opt<yaml>  base_tokens    = std::nullopt;
-    hstd::Opt<yaml>  tokens         = std::nullopt;
+    hstd::Opt<yaml>        subnodes       = std::nullopt;
+    hstd::Opt<yaml>        base_tokens    = std::nullopt;
+    hstd::Opt<yaml>        tokens         = std::nullopt;
     hstd::Opt<json>        sem            = std::nullopt;
     hstd::Str              source         = "";
     hstd::Opt<std::string> name           = std::nullopt;
@@ -194,7 +198,7 @@ struct ParseSpec {
 
 struct ParseSpecGroup {
     ParseSpecGroup(
-        hstd::CR<yaml>  node,
+        hstd::CR<yaml>        node,
         hstd::CR<std::string> from,
         hstd::CR<std::string> testRoot);
 

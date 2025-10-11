@@ -5030,6 +5030,7 @@ ingoing elements.)RAW")
     .def_readwrite("parserLine", &org::sem::OrgDiagnostics::ParseError::parserLine)
     .def_readwrite("errName", &org::sem::OrgDiagnostics::ParseError::errName)
     .def_readwrite("errCode", &org::sem::OrgDiagnostics::ParseError::errCode)
+    .def_readwrite("loc", &org::sem::OrgDiagnostics::ParseError::loc)
     .def("__eq__",
          static_cast<bool(org::sem::OrgDiagnostics::ParseError::*)(org::sem::OrgDiagnostics::ParseError const&) const>(&org::sem::OrgDiagnostics::ParseError::operator==),
          pybind11::arg("other"))

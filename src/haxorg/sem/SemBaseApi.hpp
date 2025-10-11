@@ -3,6 +3,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/ext/error_write.hpp>
 
 namespace org {
 
@@ -104,7 +105,7 @@ struct [[refl(
     std::string const&                                  file,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts);
 
-[[refl]] std::shared_ptr<imm::ImmAstContext>   initImmutableAstContext();
+[[refl]] std::shared_ptr<imm::ImmAstContext> initImmutableAstContext();
 
 struct OrgCodeEvalParameters {
     hstd::Func<hstd::Vec<sem::OrgCodeEvalOutput>(
@@ -122,6 +123,11 @@ struct OrgCodeEvalParameters {
 sem::SemId<sem::Org> evaluateCodeBlocks(
     sem::SemId<sem::Org>         document,
     OrgCodeEvalParameters const& conf);
+
+
+hstd::Vec<hstd::ext::Report> collectDiagnostics(
+    hstd::ext::StrCache&                  cache,
+    org::sem::SemId<org::sem::Org> const& tree);
 
 /// \brief Remove outer wrapper containers from a node and return its
 /// single subnode.

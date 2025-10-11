@@ -517,6 +517,7 @@ void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseError const& object
   __obj_field(res, object, parserLine);
   __obj_field(res, object, errName);
   __obj_field(res, object, errCode);
+  __obj_field(res, object, loc);
 }
 
 template <typename V, typename R>

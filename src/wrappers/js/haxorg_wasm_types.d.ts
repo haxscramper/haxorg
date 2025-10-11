@@ -3343,6 +3343,7 @@ export interface OrgDiagnosticsParseError {
   parserLine: number
   errName: string
   errCode: string
+  loc: SourceLocation
 }
 export interface OrgDiagnosticsIncludeErrorConstructor { new(): OrgDiagnosticsIncludeError; }
 export interface OrgDiagnosticsIncludeError {

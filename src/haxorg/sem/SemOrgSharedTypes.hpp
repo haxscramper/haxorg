@@ -1766,13 +1766,15 @@ struct OrgDiagnostics {
                           parserFunction,
                           parserLine,
                           errName,
-                          errCode))
+                          errCode,
+                          loc))
     hstd::Str brief;
     hstd::Str detail;
     hstd::Str parserFunction;
     int parserLine;
     hstd::Str errName;
     hstd::Str errCode;
+    org::sem::SourceLocation loc;
     bool operator==(org::sem::OrgDiagnostics::ParseError const& other) const;
   };
 

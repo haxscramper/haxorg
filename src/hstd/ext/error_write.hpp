@@ -17,6 +17,8 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/ext/bimap_wrap.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
 
 namespace hstd::ext {
 
@@ -130,16 +132,11 @@ class StrCache : public Cache {
 
     /// Cache interface
   public:
-    UnorderedMap<Id, std::shared_ptr<Source>> sources;
-    UnorderedMap<Id, std::string>             names;
+    UnorderedMap<Id, std::shared_ptr<Source>>      sources;
+    hstd::ext::Unordered1to1Bimap<Id, std::string> names;
 
-    inline void add(
-        Id                 id,
-        std::string const& source,
-        std::string const& name) {
-        sources[id] = std::make_shared<Source>(source);
-        names[id]   = name;
-    }
+    void add(Id id, std::string const& source, std::string const& name);
+    Id   add_path(hstd::fs::path const& path);
 
     inline std::shared_ptr<Source> fetch(const Id& id) override {
         return sources.at(id);
@@ -147,7 +144,7 @@ class StrCache : public Cache {
 
     inline std::optional<std::string> display(
         const Id& id) const override {
-        return names.get(id);
+        return names.get_right(id);
     }
 };
 
@@ -467,21 +464,21 @@ class Report {
     Report(ReportKind kind, Id id, int offset)
         : kind(kind), location({id, offset}) {}
 
-    Vec<SourceGroup> get_source_groups(Cache* cache);
+    Vec<SourceGroup> get_source_groups(Cache* cache) const;
 
 
     void write(Cache& cache, std::ostream& w) {
         write_for_stream(cache, w);
     }
 
-    void write_for_stream(Cache& cache, std::ostream& stream) {
+    void write_for_stream(Cache& cache, std::ostream& stream) const {
         ColStream w{stream};
         write_for_stream(cache, w);
     }
 
-    void write_for_stream(Cache& cache, ColStream& w);
+    void write_for_stream(Cache& cache, ColStream& w) const;
 
-    std::string to_string(Cache& cache, bool colored) {
+    std::string to_string(Cache& cache, bool colored) const {
         ColStream buf;
         write_for_stream(cache, buf);
         return buf.toString(colored);

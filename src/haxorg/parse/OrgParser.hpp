@@ -48,7 +48,8 @@ struct OrgParser : public hstd::OperationsTracer {
 
 
   public:
-    OrgParser() {}
+    std::string currentFile;
+    OrgParser(std::string const& currentFile) : currentFile{currentFile} {}
 
     struct ParseFail {};
     struct ParseOk {

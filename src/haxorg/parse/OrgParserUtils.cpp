@@ -208,6 +208,8 @@ OrgNodeMono::Error OrgParser::error_value(
         fail.err.tokenText  = failToken->value.text;
     }
 
+    box->data = fail;
+
     return OrgNodeMono::Error{.box = box};
 }
 

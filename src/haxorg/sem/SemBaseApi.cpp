@@ -1732,3 +1732,56 @@ std::vector<std::string> OrgDirectoryParseParameters::getDirectoryEntries(
         return content;
     }
 }
+
+hstd::Vec<ext::Report> org::collectDiagnostics(
+    hstd::ext::StrCache&             cache,
+    const org::sem::SemId<sem::Org>& tree) {
+    hstd::Vec<ext::Report> result;
+
+    org::eachSubnodeRec(tree, [&](sem::SemId<sem::Org> const& node) {
+        if (auto group = node.asOpt<org::sem::ErrorGroup>(); group) {
+            for (auto const& item : group->diagnostics) {
+                using K       = org::sem::OrgDiagnostics::Kind;
+                auto const& d = item->diag;
+
+                auto getId = [&](org::sem::SourceLocation const& loc) {
+                    return cache.add_path(loc.file.value().toBase());
+                };
+
+                switch (d.getKind()) {
+                    case K::ConvertError: {
+                        auto id = getId(d.getConvertError().loc.value());
+
+                        result.push_back(
+                            ext::Report(ext::ReportKind::Error, id, 0)
+                                .with_label(
+                                    ext::Label{1}
+                                        .with_span(id, slice(1, 2))
+                                        .with_message(
+                                            d.getConvertError().brief)));
+                        break;
+                    }
+
+                    case K::ParseError: {
+                        auto id = getId(d.getParseError().loc);
+                        result.push_back(
+                            ext::Report(ext::ReportKind::Error, id, 0)
+                                .with_label(
+                                    ext::Label{1}
+                                        .with_span(id, slice(1, 2))
+                                        .with_message(
+                                            d.getParseError().brief)));
+                        break;
+                    }
+
+                    default: {
+                        throw hstd::logic_unhandled_kind_error::init(
+                            d.getKind());
+                    }
+                }
+            }
+        }
+    });
+
+    return result;
+}
