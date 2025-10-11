@@ -5,6 +5,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Set.hpp>
 #include "error_write.hpp"
+#include "hstd/stdlib/Enumerate.hpp"
 
 using namespace hstd::ext;
 using namespace hstd;
@@ -943,11 +944,26 @@ void write_report_group(
             write_margin(base);
             op("\n");
         }
-        write_margin(base);
 
-        op("Note: ");
-        op(report.note.value());
-        op("\n");
+        auto noteLines = report.note.value().split("\n");
+        if (noteLines.size() <= 1) {
+            write_margin(base);
+            op("Note: ");
+            op(report.note.value());
+            op("\n");
+        } else {
+            for (auto const& it : enumerator(noteLines)) {
+                write_margin(base);
+                if (it.is_first()) {
+                    op("Note: ");
+                } else {
+                    op("      ");
+                }
+
+                op(it.value());
+                op("\n");
+            }
+        }
     }
 
     // Tail of report
@@ -995,10 +1011,26 @@ void write_report_header(Report const& report, Writer& op) {
     }
 
     if (report.msg) {
-        op(ColText(kind_color, kindName));
-        op(": ");
-        op(report.msg.value());
-        op("\n");
+        auto split = report.msg.value().split("\n");
+        auto kind  = ColText(kind_color, kindName);
+        if (split.size() <= 1) {
+            op(kind);
+            op(": ");
+            op(report.msg.value());
+            op("\n");
+        } else {
+            for (auto const& it : enumerator(split)) {
+                if (it.is_first()) {
+                    op(kind);
+                    op(": ");
+                } else {
+                    op(Str{" "}.repeated(kind.size() + 2));
+                }
+                op(it.value());
+                op("\n");
+            }
+        }
+
     } else {
         op("\n");
     }

@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include "../common.hpp"
 
 using namespace hstd::ext;
 using namespace hstd;
@@ -48,7 +49,9 @@ def six =
                   "Outputs of {} expressions must coerce to the same type"_ss);
 
 
-    writeFile("/tmp/error_Simple.txt", report.to_string(sources, false));
+    writeFile(
+        getDebugFile("error_Simple.txt"),
+        report.to_string(sources, false));
 }
 
 Pair<Vec<Label>, Str> labelPair(Vec<Label> const& it, Str const& it2) {
@@ -128,9 +131,9 @@ struct PrintErrorTestSetup {
         pivoted     = pivotStringTable(report_text);
     }
 
-    void write_report(Str const& path) {
+    void write_report(hstd::fs::path const& path) {
         writeFile(
-            path.c_str(),
+            path,
             fmt(R"(- - - - - -
 {}
 - - - - - -
@@ -219,7 +222,7 @@ TEST(PrintError, StringBuilder1) {
     Str pivoted     = pivotStringTable(report_text);
 
     writeFile(
-        fmt("/tmp/error_{}.txt", "StringBuilder1"),
+        getDebugFile(fmt("error_{}.txt", "StringBuilder1")),
         fmt(R"(- - - - - -
 {}
 - - - - - -
@@ -266,7 +269,7 @@ TEST(PrintError, StringBuilderSetup1) {
 
     s.build_report();
 
-    // s.write_report("/tmp/error_StringBuilderSetup1.txt");
+    // s.write_report(getDebugFile"error_StringBuilderSetup1.txt");
 
     EXPECT_TRUE(s.pivoted.contains("4^"));
     EXPECT_TRUE(s.pivoted.contains("5|"));
@@ -291,7 +294,7 @@ TEST(PrintError, StringBuilderSetup_MultiLabels) {
     // s.report.config.with_debug_writes(true);
     s.build_report();
 
-    s.write_report("/tmp/StringBuilderSetup_MultiLabels.txt");
+    s.write_report(getDebugFile("res.txt"));
     EXPECT_TRUE(s.report_text.contains(",^ ,^ ,^"));
     // overlapping arrows under the last 'A' group
     EXPECT_TRUE(s.pivoted.contains("A,-|-|"));
@@ -318,7 +321,7 @@ TEST(PrintError, StringBuilderSetup_MultiLabels_ManyLines) {
 
     // s.report.config.with_debug_writes(true);
     s.build_report();
-    // s.write_report("/tmp/StringBuilderSetup_MultiLabels_ManyLines.txt");
+    // s.write_report(getDebugFile"StringBuilderSetup_MultiLabels_ManyLines.txt");
     EXPECT_TRUE(s.pivoted.contains("A,-|-|` B,-|-|` "));
 }
 
@@ -366,8 +369,47 @@ def six =
                   "Outputs of {} expressions must coerce to the same type",
                   "match"));
 
-    writeFile(
-        "/tmp/error_RepoExample.txt", report.to_string(sources, false));
+    writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
+}
+
+TEST(PrintError, MultilineAnnotations) {
+    StrCache sources;
+    Id       a_id = 1;
+
+    sources.add(
+        a_id,
+        R"(def five = match () in {
+    () => 5,
+    () => "5",
+}
+
+def six =
+    five
+    + 1
+)",
+        "a_tao");
+
+    auto a = ColStyle{}.red();
+    auto b = ColStyle{}.green();
+    auto report //
+        = Report(ReportKind::Error, a_id, 12)
+              .with_message(
+                  "Multi-line note\nthat has four\nseparate lines\nto visualize"_ss)
+              .with_label(
+                  Label{1}
+                      .with_span(a_id, slice(30, 30))
+                      .with_message(fmt(
+                          "Single line label on the base range", "Nat"))
+                      .with_color(a))
+              .with_label(
+                  Label{2}
+                      .with_span(a_id, slice(31, 31))
+                      .with_message(fmt("Multiple line label\nwith at "
+                                        "least\nthree separate lines"))
+                      .with_color(b))
+              .with_note(fmt("Single line note"));
+
+    writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
 }
 
 TEST(PrintError, MultipleFiles) {
@@ -418,13 +460,14 @@ TEST(PrintError, MultipleFiles) {
               .with_note(
                   natColorized
                   + ColText(" is a number and can only be added "
-                            "to other numbers"));
+                            "to other numbers"))
+              .with_note(ColText{"Multiline notes test\nsomething otherh "
+                                 "whatever\nother things"});
 
 
     report.with_config(Config{}.with_debug_report_info(true));
 
-    writeFile(
-        "/tmp/error_MultipleFiles.txt", report.to_string(sources, false));
+    writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
 }
 
 TEST(PrintError, MultipleAnnotations) {
@@ -501,9 +544,7 @@ def multiline :: Str = match Some 5 in {
                                .with_underlines(true)
                                .with_tab_width(4));
 
-    writeFile(
-        "/tmp/error_MultipleAnnotations.txt",
-        report.to_string(sources, false));
+    writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
 }
 
 TEST(PrintError, MultipleAnnotations2) {
@@ -545,7 +586,7 @@ def multiline :: Str = match Some 5 in {
     // report.config.with_debug_writes(true);
 
     writeFile(
-        "/tmp/error_MultipleAnnotations2.txt",
+        getDebugFile("error_MultipleAnnotations2.txt"),
         fmt("{}\n{}..{}\n",
             report.to_string(sources, false),
             code.at(108),
