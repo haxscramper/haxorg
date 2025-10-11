@@ -435,24 +435,6 @@ bool hasArgsProperty(
     return node.getProperty("propargs", kind).has_value();
 }
 
-hstd::Vec<hstd::ColText> hstd::split(
-    ColText const& text,
-    Str const&     delimiter) {
-    hstd::Vec<ColText> result;
-    ColText            current;
-
-    for (int i = 0; i < text.size(); ++i) {
-        if (text.at(i).rune == delimiter) {
-            result.push_back(current);
-            current.clear();
-        } else {
-            current.push_back(text.at(i));
-        }
-    }
-
-    result.push_back(current);
-    return result;
-}
 
 void q_register_metatypes() {
     qRegisterMetaType<DiaVersionStore::EditTarget>();

@@ -32,6 +32,12 @@ struct CodeSpan {
     Id         id;
     Slice<int> range;
 
+    CodeSpan() = default;
+    CodeSpan(Id id, Slice<int> const& range) : id{id}, range{range} {
+        LOGIC_ASSERTION_CHECK(0 <= range.first, "{}", range.first);
+        LOGIC_ASSERTION_CHECK(range.first <= range.last, "{}", range);
+    }
+
     /// \brief Get the identifier of the source that this Codespan refers
     /// to.
     const Id source() const { return id; }

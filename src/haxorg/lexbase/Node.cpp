@@ -156,6 +156,7 @@ void NodeGroup<N, K, V, M>::treeRepr(
         conf.customWrite(par);
     }
 
+    int const startPosition = os.size();
     os << repeat("  ", level) << std::format("{}", at(node).kind);
 
     if (conf.customWrite) {
@@ -197,8 +198,12 @@ void NodeGroup<N, K, V, M>::treeRepr(
             LOGIC_ASSERTION_CHECK(begin.id <= end.id, "");
             if (conf.flushEach) { os.flush(); }
             if (conf.customWrite) {
-                par.pos = Pos::LineEnd;
+                int const trailOffset = os.size() - startPosition;
+                par.pos               = Pos::LineEnd;
+                hstd::ColStream tmp;
+                par.os = tmp;
                 conf.customWrite(par);
+                os.write_indented_after_first(tmp, trailOffset);
             }
             os << "\n";
             treeRepr(os, *begin, level + 1, conf, idx, node);

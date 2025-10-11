@@ -237,10 +237,7 @@ struct ColText : hstd::Vec<ColRune> {
 
     std::string toHtml() const { return to_colored_html(*this); }
 
-    ColText& withStyle(CR<ColStyle> style) {
-        for (auto& ch : *this) { ch.style = style; }
-        return *this;
-    }
+    ColText& withStyle(CR<ColStyle> style);
 
     ColText() = default;
     ColText(CR<ColStyle> style, CR<std::string> text);
@@ -255,25 +252,15 @@ struct ColText : hstd::Vec<ColRune> {
     inline ColText operator<<=(int n) const { return leftAligned(n); }
     inline ColText operator>>=(int n) const { return rightAligned(n); }
 
-    inline void append(int repeat, ColRune c) {
-        for (int i = 0; i < repeat; ++i) { push_back(c); }
-    }
+    void append(int repeat, ColRune c);
 
-    inline void append(ColRune c) { push_back(c); }
+    void append(ColRune c);
 
-    inline ColText rightAligned(int n, ColRune c = ColRune{' '}) const {
-        ColText res;
-        if (size() < n) { res.append(n - size(), c); }
-        res.append(*this);
-        return res;
-    }
+    ColText rightAligned(int n, ColRune c = ColRune{' '}) const;
 
-    inline ColText leftAligned(int n, ColRune c = hstd::ColRune{' '})
-        const {
-        auto s = *this;
-        while (s.size() < n) { s.push_back(c); }
-        return s;
-    }
+    ColText leftAligned(int n, ColRune c = hstd::ColRune{' '}) const;
+
+    hstd::Vec<hstd::ColText> split(Str const& delimiter) const;
 };
 
 
@@ -336,6 +323,8 @@ struct ColStream : public ColText {
     /// \brief Split text into lines, write first one without indentation,
     /// write others with the indentation
     void write_indented_after_first(Str const& text, int indent);
+    void write_indented_after_first(Vec<ColText> const& text, int indent);
+    void write_indented_after_first(ColText const& text, int indent);
 };
 
 
@@ -449,26 +438,11 @@ struct hshow_opts {
 #undef __nop
         ;
 
-    hshow_opts& cond(hshow_flag flag, bool doAdd) {
-        if (doAdd) {
-            flags.incl(flag);
-        } else {
-            flags.excl(flag);
-        }
-        return *this;
-    }
-    hshow_opts& incl(hshow_flag flag) {
-        flags.incl(flag);
-        return *this;
-    }
-    hshow_opts& excl(hshow_flag flag) {
-        flags.excl(flag);
-        return *this;
-    }
-    hshow_opts& with(IntSet<hshow_flag> flag) {
-        flags = flag;
-        return *this;
-    }
+    hshow_opts& cond(hshow_flag flag, bool doAdd);
+
+    hshow_opts& incl(hshow_flag flag);
+    hshow_opts& excl(hshow_flag flag);
+    hshow_opts& with(IntSet<hshow_flag> flag);
 };
 
 // aux template to allow partial template specialization with concept

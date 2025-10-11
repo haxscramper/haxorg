@@ -136,6 +136,25 @@ void ColStream::write_indented_after_first(const Str& text, int indent) {
     }
 }
 
+
+void ColStream::write_indented_after_first(
+    const Vec<ColText>& text,
+    int                 indent) {
+    if (text.has(0)) { write(ColText{text.at(0)}); }
+    for (int i = 1; i < text.size(); ++i) {
+        write(ColText{"\n"});
+        write(ColText{Str{' '}.repeated(indent)});
+        write(text.at(i));
+    }
+}
+
+void ColStream::write_indented_after_first(
+    const ColText& text,
+    int            indent) {
+    write_indented_after_first(text.split("\n"), indent);
+}
+
+
 void hstd::hshow<std::string_view>::format(
     ColStream&           os,
     CR<std::string_view> value,
@@ -190,10 +209,51 @@ void hstd::hshow<std::string_view>::format(
     }
 }
 
+ColText& ColText::withStyle(CR<ColStyle> style) {
+    for (auto& ch : *this) { ch.style = style; }
+    return *this;
+}
+
 hstd::ColText::ColText(CR<ColStyle> style, CR<std::string> text) {
     for (const auto& ch : rune_chunks(text)) {
         push_back(ColRune(ch, style));
     }
+}
+
+void ColText::append(int repeat, ColRune c) {
+    for (int i = 0; i < repeat; ++i) { push_back(c); }
+}
+
+void ColText::append(ColRune c) { push_back(c); }
+
+ColText ColText::rightAligned(int n, ColRune c) const {
+    ColText res;
+    if (size() < n) { res.append(n - size(), c); }
+    res.append(*this);
+    return res;
+}
+
+ColText ColText::leftAligned(int n, ColRune c) const {
+    auto s = *this;
+    while (s.size() < n) { s.push_back(c); }
+    return s;
+}
+
+hstd::Vec<ColText> ColText::split(const Str& delimiter) const {
+    hstd::Vec<ColText> result;
+    ColText            current;
+
+    for (int i = 0; i < size(); ++i) {
+        if (at(i).rune == delimiter) {
+            result.push_back(current);
+            current.clear();
+        } else {
+            current.push_back(at(i));
+        }
+    }
+
+    result.push_back(current);
+    return result;
 }
 
 namespace {
@@ -255,4 +315,28 @@ std::string hstd::to_colored_html(const Vec<ColRune>& runes) {
     }
 
     return result;
+}
+
+hshow_opts& hshow_opts::cond(hshow_flag flag, bool doAdd) {
+    if (doAdd) {
+        flags.incl(flag);
+    } else {
+        flags.excl(flag);
+    }
+    return *this;
+}
+
+hshow_opts& hshow_opts::incl(hshow_flag flag) {
+    flags.incl(flag);
+    return *this;
+}
+
+hshow_opts& hshow_opts::excl(hshow_flag flag) {
+    flags.excl(flag);
+    return *this;
+}
+
+hshow_opts& hshow_opts::with(IntSet<hshow_flag> flag) {
+    flags = flag;
+    return *this;
 }
