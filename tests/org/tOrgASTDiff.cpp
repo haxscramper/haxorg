@@ -25,7 +25,7 @@ struct SemDiffBuilder : org::algo::SemNodeDiff {
     sem::SemId<sem::Document> setOrg(std::string const& text, bool isSrc) {
         auto mock = isSrc ? &srcParse : &dstParse;
         mock->run(text);
-        sem::OrgConverter converter{};
+        sem::OrgConverter converter{mock->parser->currentFile};
         return converter
             .convertDocument(
                 org::parse::OrgAdapter(&mock->nodes, org::parse::OrgId(0)))

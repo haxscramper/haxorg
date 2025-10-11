@@ -271,7 +271,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
             });
         }
 
-        sem::OrgConverter converter{};
+        sem::OrgConverter converter{opts->currentFile};
         if (opts->semTracePath) {
             converter.setTraceFile(*opts->semTracePath);
             converter.traceColored = false;
@@ -311,7 +311,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
         }
 
         auto              id = parser.parseFull(lex);
-        sem::OrgConverter converter{};
+        sem::OrgConverter converter{opts->currentFile};
         if (opts->semTracePath) {
             converter.setTraceFile(*opts->semTracePath);
             converter.traceColored = false;

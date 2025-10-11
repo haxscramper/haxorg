@@ -103,12 +103,11 @@ struct OrgConverter : public hstd::OperationsTracer {
     void report(Report const& in);
 
   public:
-    hstd::UPtr<OrgSpec>           spec;
-    hstd::Opt<int>                documentId = std::nullopt;
-    std::optional<hstd::fs::path> file;
+    hstd::UPtr<OrgSpec> spec;
+    std::string         currentFile;
 
-    OrgConverter(hstd::Opt<int> documentId = std::nullopt)
-        : documentId(documentId) {
+    OrgConverter(std::string currentFile) : currentFile{currentFile} {
+        LOGIC_ASSERTION_CHECK(!currentFile.empty(), "");
         spec = getOrgSpec();
     }
 

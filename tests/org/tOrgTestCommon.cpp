@@ -35,7 +35,7 @@ sem::SemId<sem::Org> testParseString(
     const std::string&         text,
     std::optional<std::string> debug) {
     org::test::MockFull p{"<test>", debug.has_value(), debug.has_value()};
-    sem::OrgConverter   converter{};
+    sem::OrgConverter   converter{"<test>"};
     org::parse::LexerParams params;
     if (debug) {
         p.tokenizer->setTraceFile(

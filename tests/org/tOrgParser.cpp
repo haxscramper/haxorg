@@ -57,7 +57,7 @@ TEST(OrgParseSem, TracerOperations1) {
     p.parser->setTraceFile(parser_trace);
     p.parser->traceStructured = true;
 
-    sem::OrgConverter converter{};
+    sem::OrgConverter converter{p.parser->currentFile};
     fs::path          sem_trace{"/tmp/TraceOperations1_sem_trace.txt"};
     converter.setTraceFile(sem_trace);
     converter.traceStructured = true;

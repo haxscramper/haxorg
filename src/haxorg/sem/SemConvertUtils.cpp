@@ -48,7 +48,7 @@ hstd::Opt<org::sem::SourceLocation> OrgConverter::MakeSourceLocation(
         org::sem::SourceLocation sloc;
         sloc.column = loc->column;
         sloc.line   = loc->line;
-        if (this->file) { sloc.file = this->file->native(); }
+        sloc.file   = this->currentFile;
         return sloc;
     } else {
         return std::nullopt;

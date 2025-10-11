@@ -64,7 +64,7 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
     std::string source = readFile(fs::path(file));
     p.run(source);
 
-    sem::OrgConverter converter{};
+    sem::OrgConverter converter{file};
     sem::SemId        write_node = converter
                                 .convertDocument(
                                     OrgAdapter(&p.nodes, OrgId(0)))
@@ -122,7 +122,7 @@ TEST(TestFiles, AllNodeCoverage) {
     p.run(source);
 
     SemSet            foundNodes;
-    sem::OrgConverter converter{};
+    sem::OrgConverter converter{file};
     sem::SemId        node = converter
                           .convertDocument(OrgAdapter(&p.nodes, OrgId(0)))
                           .value();

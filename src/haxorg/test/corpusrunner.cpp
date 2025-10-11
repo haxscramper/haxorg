@@ -1126,7 +1126,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     CR<ParseSpec> spec,
     CR<Str>       relDebug) {
     __perf_trace("cli", "sem convert");
-    sem::OrgConverter converter{};
+    sem::OrgConverter converter{p.parser->currentFile};
 
     converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
     if (converter.TraceState) {
