@@ -16,6 +16,7 @@ PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeE
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmSymbol::Param>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<hstd::Str>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::OrgCodeEvalOutput>)
@@ -95,6 +96,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Time::Repeat>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Time::Repeat>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Symbol::Param>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorSkipToken>>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::SubtreeLog>>)
@@ -139,6 +142,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmOrg", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmSymbol::Param>(m, "ImmFlexVectorOfImmSymbolParam", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "ImmFlexVectorOfImmIdTOfImmOrg", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(m, "ImmFlexVectorOfImmIdTOfImmErrorSkipToken", type_registry_guard);
   bind_immerflex_vector<hstd::Str>(m, "ImmFlexVectorOfStr", type_registry_guard);
   bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmParagraph", type_registry_guard);
   bind_immerflex_vector<org::sem::OrgCodeEvalOutput>(m, "ImmFlexVectorOfOrgCodeEvalOutput", type_registry_guard);
@@ -187,6 +191,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_hstdVec<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
   bind_hstdVec<org::sem::Time::Repeat>(m, "VecOfTimeRepeat", type_registry_guard);
   bind_hstdVec<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::ErrorSkipToken>>(m, "VecOfSemIdOfErrorSkipToken", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
   bind_hstdVec<org::sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
@@ -778,6 +783,27 @@ ImmPathStep documentation.)RAW")
                      })
     .def("__getattr__",
          [](org::imm::ImmTextTargetValueRead const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmErrorSkipTokenValueRead>(m, "ImmErrorSkipTokenValueRead")
+    .def("__repr__", [](org::imm::ImmErrorSkipTokenValueRead const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmErrorSkipTokenValueRead const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmErrorSkipGroupValueRead>(m, "ImmErrorSkipGroupValueRead")
+    .def("getSkipped", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> const&(org::imm::ImmErrorSkipGroupValueRead::*)() const>(&org::imm::ImmErrorSkipGroupValueRead::getSkipped))
+    .def("__repr__", [](org::imm::ImmErrorSkipGroupValueRead const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmErrorSkipGroupValueRead const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -5511,6 +5537,22 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::ErrorSkipGroup, org::sem::SemId<org::sem::ErrorSkipGroup>, org::sem::Org>(m, "ErrorSkipGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ErrorSkipGroup {
+                        org::sem::ErrorSkipGroup result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("skipped", &org::sem::ErrorSkipGroup::skipped)
+    .def("__repr__", [](org::sem::ErrorSkipGroup const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::ErrorSkipGroup const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::Markup, org::sem::SemId<org::sem::Markup>, org::sem::Org>(m, "Markup")
     ;
   pybind11::class_<org::sem::RadioTarget, org::sem::SemId<org::sem::RadioTarget>, org::sem::Org>(m, "RadioTarget")
@@ -6204,6 +6246,10 @@ ingoing elements.)RAW")
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmBigIdent>, org::imm::ImmId>(m, "ImmIdTBigIdent")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmTextTarget>, org::imm::ImmId>(m, "ImmIdTTextTarget")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>, org::imm::ImmId>(m, "ImmIdTErrorSkipToken")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipGroup>, org::imm::ImmId>(m, "ImmIdTErrorSkipGroup")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmMarkup>, org::imm::ImmId>(m, "ImmIdTMarkup")
     ;
@@ -7070,6 +7116,29 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::imm::ImmTextTargetValue const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmErrorSkipTokenValue, org::imm::ImmErrorSkipTokenValueRead>(m, "ImmErrorSkipTokenValue")
+    .def("__repr__", [](org::imm::ImmErrorSkipTokenValue const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmErrorSkipTokenValue const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmErrorSkipGroupValue, org::imm::ImmErrorSkipGroupValueRead>(m, "ImmErrorSkipGroupValue")
+    .def("setSkipped",
+         static_cast<void(org::imm::ImmErrorSkipGroupValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> const&)>(&org::imm::ImmErrorSkipGroupValue::setSkipped),
+         pybind11::arg("value"))
+    .def("__repr__", [](org::imm::ImmErrorSkipGroupValue const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmErrorSkipGroupValue const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -8088,6 +8157,21 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::ErrorSkipToken, org::sem::SemId<org::sem::ErrorSkipToken>, org::sem::Leaf>(m, "ErrorSkipToken")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ErrorSkipToken {
+                        org::sem::ErrorSkipToken result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::sem::ErrorSkipToken const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::ErrorSkipToken const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::Bold, org::sem::SemId<org::sem::Bold>, org::sem::Markup>(m, "Bold")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Bold {
                         org::sem::Bold result{};
@@ -8223,6 +8307,10 @@ ingoing elements.)RAW")
   pybind11::class_<org::imm::ImmAdapterErrorItemAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorItemAPI")
     ;
   pybind11::class_<org::imm::ImmAdapterErrorGroupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorGroupAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterErrorSkipGroupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorSkipGroupAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterErrorSkipTokenAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorSkipTokenAPI")
     ;
   pybind11::class_<org::imm::ImmAdapterStmtListAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterStmtListAPI")
     ;
@@ -8377,6 +8465,14 @@ ingoing elements.)RAW")
   pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>, org::imm::ImmAdapterErrorGroupAPI>(m, "ImmErrorGroupAdapter")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmErrorGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>, org::imm::ImmAdapterErrorSkipGroupAPI>(m, "ImmErrorSkipGroupAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmErrorSkipGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>, org::imm::ImmAdapterErrorSkipTokenAPI>(m, "ImmErrorSkipTokenAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmErrorSkipTokenValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::getValue))
     ;
   pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmStmtList>, org::imm::ImmAdapterStmtListAPI>(m, "ImmStmtListAdapter")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
@@ -9643,6 +9739,8 @@ ingoing elements.)RAW")
     .value("Placeholder", OrgSemKind::Placeholder)
     .value("BigIdent", OrgSemKind::BigIdent)
     .value("TextTarget", OrgSemKind::TextTarget)
+    .value("ErrorSkipToken", OrgSemKind::ErrorSkipToken)
+    .value("ErrorSkipGroup", OrgSemKind::ErrorSkipGroup)
     .value("Bold", OrgSemKind::Bold)
     .value("Underline", OrgSemKind::Underline)
     .value("Monospace", OrgSemKind::Monospace)

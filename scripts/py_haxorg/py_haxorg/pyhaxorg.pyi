@@ -311,6 +311,17 @@ class ImmTextTargetValueRead:
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
+class ImmErrorSkipTokenValueRead:
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmErrorSkipGroupValueRead:
+    def __init__(self) -> None: ...
+    def getSkipped(self) -> ImmFlexVector[ImmIdTErrorSkipToken]: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
 class ImmBoldValueRead:
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
@@ -2446,6 +2457,12 @@ class Symbol(Org):
     parameters: List[SymbolParam]
     positional: List[Org]
 
+class ErrorSkipGroup(Org):
+    def __init__(self, skipped: List[ErrorSkipToken]) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    skipped: List[ErrorSkipToken]
+
 class Markup(Org):
     def __init__(self) -> None: ...
 
@@ -2833,6 +2850,12 @@ class ImmIdTBigIdent(ImmId):
     def __init__(self) -> None: ...
 
 class ImmIdTTextTarget(ImmId):
+    def __init__(self) -> None: ...
+
+class ImmIdTErrorSkipToken(ImmId):
+    def __init__(self) -> None: ...
+
+class ImmIdTErrorSkipGroup(ImmId):
     def __init__(self) -> None: ...
 
 class ImmIdTMarkup(ImmId):
@@ -3297,6 +3320,17 @@ class ImmTextTargetValue(ImmTextTargetValueRead):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
+class ImmErrorSkipTokenValue(ImmErrorSkipTokenValueRead):
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmErrorSkipGroupValue(ImmErrorSkipGroupValueRead):
+    def __init__(self) -> None: ...
+    def setSkipped(self, value: ImmFlexVector[ImmIdTErrorSkipToken]) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
 class ImmBoldValue(ImmBoldValueRead):
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
@@ -3731,6 +3765,11 @@ class TextTarget(Leaf):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
+class ErrorSkipToken(Leaf):
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
 class Bold(Markup):
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
@@ -3793,6 +3832,12 @@ class ImmAdapterErrorItemAPI(ImmAdapterOrgAPI):
     def __init__(self) -> None: ...
 
 class ImmAdapterErrorGroupAPI(ImmAdapterOrgAPI):
+    def __init__(self) -> None: ...
+
+class ImmAdapterErrorSkipGroupAPI(ImmAdapterOrgAPI):
+    def __init__(self) -> None: ...
+
+class ImmAdapterErrorSkipTokenAPI(ImmAdapterOrgAPI):
     def __init__(self) -> None: ...
 
 class ImmAdapterStmtListAPI(ImmAdapterOrgAPI):
@@ -3943,6 +3988,16 @@ class ImmErrorGroupAdapter(ImmAdapterTBase[ImmErrorGroup], ImmAdapterErrorGroupA
     def __init__(self) -> None: ...
     def __init__(self, other: ImmAdapter) -> ImmErrorGroupAdapter: ...
     def getValue(self) -> ImmErrorGroupValueRead: ...
+
+class ImmErrorSkipGroupAdapter(ImmAdapterTBase[ImmErrorSkipGroup], ImmAdapterErrorSkipGroupAPI):
+    def __init__(self) -> None: ...
+    def __init__(self, other: ImmAdapter) -> ImmErrorSkipGroupAdapter: ...
+    def getValue(self) -> ImmErrorSkipGroupValueRead: ...
+
+class ImmErrorSkipTokenAdapter(ImmAdapterTBase[ImmErrorSkipToken], ImmAdapterErrorSkipTokenAPI):
+    def __init__(self) -> None: ...
+    def __init__(self, other: ImmAdapter) -> ImmErrorSkipTokenAdapter: ...
+    def getValue(self) -> ImmErrorSkipTokenValueRead: ...
 
 class ImmStmtListAdapter(ImmAdapterTBase[ImmStmtList], ImmAdapterStmtListAPI):
     def __init__(self) -> None: ...
@@ -5027,50 +5082,52 @@ class OrgSemKind(Enum):
     Placeholder = 28
     BigIdent = 29
     TextTarget = 30
-    Bold = 31
-    Underline = 32
-    Monospace = 33
-    MarkQuote = 34
-    Verbatim = 35
-    Italic = 36
-    Strike = 37
-    Par = 38
-    RadioTarget = 39
-    Latex = 40
-    Link = 41
-    BlockCenter = 42
-    BlockQuote = 43
-    BlockComment = 44
-    BlockVerse = 45
-    BlockDynamicFallback = 46
-    BlockExample = 47
-    BlockExport = 48
-    BlockAdmonition = 49
-    BlockCodeEvalResult = 50
-    BlockCode = 51
-    SubtreeLog = 52
-    Subtree = 53
-    Cell = 54
-    Row = 55
-    Table = 56
-    Paragraph = 57
-    ColonExample = 58
-    CmdAttr = 59
-    CmdExport = 60
-    Call = 61
-    List = 62
-    ListItem = 63
-    DocumentOptions = 64
-    DocumentFragment = 65
-    CriticMarkup = 66
-    Document = 67
-    FileTarget = 68
-    TextSeparator = 69
-    DocumentGroup = 70
-    File = 71
-    Directory = 72
-    Symlink = 73
-    CmdInclude = 74
+    ErrorSkipToken = 31
+    ErrorSkipGroup = 32
+    Bold = 33
+    Underline = 34
+    Monospace = 35
+    MarkQuote = 36
+    Verbatim = 37
+    Italic = 38
+    Strike = 39
+    Par = 40
+    RadioTarget = 41
+    Latex = 42
+    Link = 43
+    BlockCenter = 44
+    BlockQuote = 45
+    BlockComment = 46
+    BlockVerse = 47
+    BlockDynamicFallback = 48
+    BlockExample = 49
+    BlockExport = 50
+    BlockAdmonition = 51
+    BlockCodeEvalResult = 52
+    BlockCode = 53
+    SubtreeLog = 54
+    Subtree = 55
+    Cell = 56
+    Row = 57
+    Table = 58
+    Paragraph = 59
+    ColonExample = 60
+    CmdAttr = 61
+    CmdExport = 62
+    Call = 63
+    List = 64
+    ListItem = 65
+    DocumentOptions = 66
+    DocumentFragment = 67
+    CriticMarkup = 68
+    Document = 69
+    FileTarget = 70
+    TextSeparator = 71
+    DocumentGroup = 72
+    File = 73
+    Directory = 74
+    Symlink = 75
+    CmdInclude = 76
 
 class AstTrackingGroupKind(Enum):
     RadioTarget = 1

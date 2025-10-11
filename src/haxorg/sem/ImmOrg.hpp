@@ -1407,6 +1407,8 @@ struct [[refl]] ImmAdapterAttrListAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterAttrsAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterErrorItemAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterErrorGroupAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterErrorSkipGroupAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterErrorSkipTokenAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterStmtListAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterEmptyAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterLineCommandAPI : ImmAdapterCmdAPI {};

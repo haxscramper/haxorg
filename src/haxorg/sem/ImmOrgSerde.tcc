@@ -662,6 +662,42 @@ struct ImmSemSerde<org::sem::TextTarget, org::imm::ImmTextTarget> {
 };
 
 template <>
+struct ImmSemSerde<org::sem::ErrorSkipToken, org::imm::ImmErrorSkipToken> {
+  static org::imm::ImmErrorSkipToken to_immer(org::sem::ErrorSkipToken const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmErrorSkipToken result = hstd::SerdeDefaultProvider<org::imm::ImmErrorSkipToken>::get();
+    assign_immer_field(result.text, value.text, ctx);
+    assign_immer_field(result.loc, value.loc, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static org::sem::ErrorSkipToken from_immer(org::imm::ImmErrorSkipToken const& value, ImmAstContext const& ctx) {
+    org::sem::ErrorSkipToken result = hstd::SerdeDefaultProvider<org::sem::ErrorSkipToken>::get();
+    assign_sem_field(result.text, value.text, ctx);
+    assign_sem_field(result.loc, value.loc, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::ErrorSkipGroup, org::imm::ImmErrorSkipGroup> {
+  static org::imm::ImmErrorSkipGroup to_immer(org::sem::ErrorSkipGroup const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmErrorSkipGroup result = hstd::SerdeDefaultProvider<org::imm::ImmErrorSkipGroup>::get();
+    assign_immer_field(result.skipped, value.skipped, ctx);
+    assign_immer_field(result.loc, value.loc, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static org::sem::ErrorSkipGroup from_immer(org::imm::ImmErrorSkipGroup const& value, ImmAstContext const& ctx) {
+    org::sem::ErrorSkipGroup result = hstd::SerdeDefaultProvider<org::sem::ErrorSkipGroup>::get();
+    assign_sem_field(result.skipped, value.skipped, ctx);
+    assign_sem_field(result.loc, value.loc, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<org::sem::Bold, org::imm::ImmBold> {
   static org::imm::ImmBold to_immer(org::sem::Bold const& value, ImmAstEditContext& ctx) {
     org::imm::ImmBold result = hstd::SerdeDefaultProvider<org::imm::ImmBold>::get();

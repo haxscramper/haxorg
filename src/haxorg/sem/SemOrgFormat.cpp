@@ -832,6 +832,25 @@ auto Formatter::toString(SemId<ErrorItem> id, CR<Context> ctx) -> Res {
     return b.line({str(hstd::fmt1(id->diag))});
 }
 
+auto Formatter::toString(SemId<ErrorSkipToken> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) {
+        return str("<nil>");
+    } else {
+        return str(id->text);
+    }
+}
+
+auto Formatter::toString(SemId<ErrorSkipGroup> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    Res res = b.line();
+    for (auto const& it : id->skipped) {
+        b.add_at(res, toString(it, ctx));
+    }
+    return res;
+}
+
 auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     auto result = b.line({

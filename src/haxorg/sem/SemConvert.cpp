@@ -1832,6 +1832,22 @@ OrgConverter::ConvResult<RawText> OrgConverter::convertRawText(__args) {
     return SemLeaf<RawText>(a);
 }
 
+OrgConverter::ConvResult<ErrorSkipToken> OrgConverter::
+    convertErrorSkipToken(__args) {
+    return SemLeaf<ErrorSkipToken>(a);
+}
+
+
+OrgConverter::ConvResult<ErrorSkipGroup> OrgConverter::
+    convertErrorSkipGroup(__args) {
+    auto __trace = trace(a);
+    auto result  = Sem<ErrorSkipGroup>(a);
+    for (auto const& sub : a) {
+        result->skipped.push_back(convert(sub).as<ErrorSkipToken>());
+    }
+    return result;
+}
+
 OrgConverter::ConvResult<RadioTarget> OrgConverter::convertRadioTarget(
     __args) {
     auto result = Sem<RadioTarget>(a);
@@ -2695,6 +2711,8 @@ SemId<Org> OrgConverter::convert(__args) {
     }
 
     switch (a.kind()) {
+        case onk::ErrorSkipGroup: return convertErrorSkipGroup(a).unwrap();
+        case onk::ErrorSkipToken: return convertErrorSkipToken(a).unwrap();
         case onk::Newline: return convertNewline(a).unwrap();
         case onk::StmtList: return convertStmtList(a).unwrap();
         case onk::Subtree: return convertSubtree(a).unwrap();

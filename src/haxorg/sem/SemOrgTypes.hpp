@@ -620,6 +620,33 @@ struct TextTarget : public org::sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::TextTarget; }
 };
 
+/// \brief Single token skipped during error recovery
+struct ErrorSkipToken : public org::sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~ErrorSkipToken() = default;
+  BOOST_DESCRIBE_CLASS(ErrorSkipToken,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorSkipToken; }
+};
+
+/// \brief Group of tokens skipped in search of the next synchronization point during parse fail recovery
+struct ErrorSkipGroup : public org::sem::Org {
+  using Org::Org;
+  virtual ~ErrorSkipGroup() = default;
+  BOOST_DESCRIBE_CLASS(ErrorSkipGroup,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, skipped))
+  static OrgSemKind const staticKind;
+  hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>> skipped = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorSkipGroup; }
+};
+
 struct Markup : public org::sem::Org {
   using Org::Org;
   virtual ~Markup() = default;

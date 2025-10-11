@@ -903,6 +903,22 @@ void Exporter<V, R>::visitTextTarget(R& res, In<sem::TextTarget> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitErrorSkipToken(R& res, In<sem::ErrorSkipToken> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, text);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitErrorSkipGroup(R& res, In<sem::ErrorSkipGroup> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, skipped);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitMarkup(R& res, In<sem::Markup> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, loc);

@@ -1196,6 +1196,15 @@ def get_sem_text():
         d_org("Placeholder", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
         d_org("BigIdent", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
         d_org("TextTarget", GenTuDoc("`<<target>>`"), bases=[t_nest(t_org("Leaf"))]),
+        d_org("ErrorSkipToken", GenTuDoc("Single token skipped during error recovery"), bases=[t_nest(t_org("Leaf"))]),
+        d_org(
+            "ErrorSkipGroup",
+            doc=org_doc("Group of tokens skipped in search of the next synchronization point during parse fail recovery"),
+            bases=[t_nest(t_org("Org"))],
+            fields=[
+                vec_field(t_id("ErrorSkipToken"), "skipped"),
+            ],
+        ),
         d_org(
             "Markup",
             GenTuDoc(""),

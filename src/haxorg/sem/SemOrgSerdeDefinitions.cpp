@@ -2294,6 +2294,26 @@ void org::algo::proto_serde<::orgproto::TextTarget, org::sem::TextTarget>::read(
   org::algo::proto_serde<::orgproto::TextTarget, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
+void org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::ErrorSkipToken>::write(::orgproto::ErrorSkipToken* out, org::sem::ErrorSkipToken const& in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Org>::write(out, in);
+}
+
+void org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::ErrorSkipToken>::read(::orgproto::ErrorSkipToken const& out, proto_write_accessor<org::sem::ErrorSkipToken> in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Org>::read(out, in.as<org::sem::Org>());
+}
+
+void org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::ErrorSkipGroup>::write(::orgproto::ErrorSkipGroup* out, org::sem::ErrorSkipGroup const& in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::Org>::write(out, in);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorSkipToken>, hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>>::write(out->mutable_skipped(), in.skipped);
+}
+
+void org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::ErrorSkipGroup>::read(::orgproto::ErrorSkipGroup const& out, proto_write_accessor<org::sem::ErrorSkipGroup> in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorSkipToken>, hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>>::read(out.skipped(), in.for_field(&org::sem::ErrorSkipGroup::skipped));
+}
+
 void org::algo::proto_serde<::orgproto::Bold, org::sem::Bold>::write(::orgproto::Bold* out, org::sem::Bold const& in) {
   org::algo::proto_serde<::orgproto::Bold, org::sem::Org>::write(out, in);
 }

@@ -160,6 +160,8 @@ void visitPunctuation(R& res, In<sem::Punctuation> object);
 void visitPlaceholder(R& res, In<sem::Placeholder> object);
 void visitBigIdent(R& res, In<sem::BigIdent> object);
 void visitTextTarget(R& res, In<sem::TextTarget> object);
+void visitErrorSkipToken(R& res, In<sem::ErrorSkipToken> object);
+void visitErrorSkipGroup(R& res, In<sem::ErrorSkipGroup> object);
 void visitMarkup(R& res, In<sem::Markup> object);
 void visitBold(R& res, In<sem::Bold> object);
 void visitUnderline(R& res, In<sem::Underline> object);

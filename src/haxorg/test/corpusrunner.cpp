@@ -1001,6 +1001,13 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
         __perf_trace("cli", "write lexer yaml file");
         if (spec.debug.traceAll || spec.debug.printLexedToFile) {
             writeFile(spec, "lexed.yaml", content + "\n", relDebug);
+            writeFile(
+                spec,
+                "lexed.json",
+                hstd::to_compact_json(
+                    hstd::to_json_eval(p.tokens),
+                    hstd::JsonFormatOptions{.width = 200}),
+                relDebug);
         } else {
             std::cout << content << std::endl;
         }

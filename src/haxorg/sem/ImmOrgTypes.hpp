@@ -677,6 +677,36 @@ struct ImmTextTarget : public org::imm::ImmLeaf {
   bool operator==(org::imm::ImmTextTarget const& other) const;
 };
 
+/// \brief Single token skipped during error recovery
+struct ImmErrorSkipToken : public org::imm::ImmLeaf {
+  using ImmLeaf::ImmLeaf;
+  virtual ~ImmErrorSkipToken() = default;
+  BOOST_DESCRIBE_CLASS(ImmErrorSkipToken,
+                       (ImmLeaf),
+                       (),
+                       (),
+                       (staticKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorSkipToken; }
+  bool operator==(org::imm::ImmErrorSkipToken const& other) const;
+};
+
+/// \brief Group of tokens skipped in search of the next synchronization point during parse fail recovery
+struct ImmErrorSkipGroup : public org::imm::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmErrorSkipGroup() = default;
+  BOOST_DESCRIBE_CLASS(ImmErrorSkipGroup,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind,
+                        skipped))
+  static OrgSemKind const staticKind;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> skipped = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorSkipGroup; }
+  bool operator==(org::imm::ImmErrorSkipGroup const& other) const;
+};
+
 struct ImmMarkup : public org::imm::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmMarkup() = default;

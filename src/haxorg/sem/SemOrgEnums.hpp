@@ -288,6 +288,8 @@
     __IMPL(Placeholder, (Placeholder)) \
     __IMPL(BigIdent, (BigIdent)) \
     __IMPL(TextTarget, (TextTarget)) \
+    __IMPL(ErrorSkipToken, (ErrorSkipToken)) \
+    __IMPL(ErrorSkipGroup, (ErrorSkipGroup)) \
     __IMPL(Markup, (Markup)) \
     __IMPL(Bold, (Bold)) \
     __IMPL(Underline, (Underline)) \
@@ -373,6 +375,8 @@
     __IMPL(Placeholder) \
     __IMPL(BigIdent) \
     __IMPL(TextTarget) \
+    __IMPL(ErrorSkipToken) \
+    __IMPL(ErrorSkipGroup) \
     __IMPL(Bold) \
     __IMPL(Underline) \
     __IMPL(Monospace) \
@@ -448,6 +452,8 @@
     __IMPL(Placeholder, Leaf) \
     __IMPL(BigIdent, Leaf) \
     __IMPL(TextTarget, Leaf) \
+    __IMPL(ErrorSkipToken, Leaf) \
+    __IMPL(ErrorSkipGroup, Org) \
     __IMPL(Bold, Markup) \
     __IMPL(Underline, Markup) \
     __IMPL(Monospace, Markup) \
@@ -530,6 +536,8 @@
     __IMPL(Placeholder, Leaf) \
     __IMPL(BigIdent, Leaf) \
     __IMPL(TextTarget, Leaf) \
+    __IMPL(ErrorSkipToken, Leaf) \
+    __IMPL(ErrorSkipGroup, Org) \
     __IMPL(Markup, Org) \
     __IMPL(Bold, Markup) \
     __IMPL(Underline, Markup) \
@@ -833,6 +841,18 @@
 
 #define EACH_SEM_ORG_TextTarget_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_ErrorSkipToken_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_ErrorSkipToken_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_ErrorSkipGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>), skipped, Skipped, (org::sem::ErrorSkipGroup), ErrorSkipGroup) \
+
+#define EACH_SEM_ORG_ErrorSkipGroup_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>), skipped, Skipped, (org::sem::ErrorSkipGroup), ErrorSkipGroup) \
 
 #define EACH_SEM_ORG_Markup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
@@ -1481,6 +1501,18 @@
 
 #define EACH_IMM_ORG_ImmTextTarget_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmLeaf)) \
+
+#define EACH_IMM_ORG_ImmErrorSkipToken_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_IMM_ORG_ImmErrorSkipToken_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmLeaf)) \
+
+#define EACH_IMM_ORG_ImmErrorSkipGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>), skipped, Skipped, (org::imm::ImmErrorSkipGroup), ErrorSkipGroup) \
+
+#define EACH_IMM_ORG_ImmErrorSkipGroup_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmOrg)) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>), skipped, Skipped, (org::imm::ImmErrorSkipGroup), ErrorSkipGroup) \
 
 #define EACH_IMM_ORG_ImmMarkup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
@@ -2579,7 +2611,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgJsonKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Int)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Float)
 BOOST_DESCRIBE_ENUM_END(OrgJsonKind)
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, None)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorItem)
@@ -2611,6 +2643,8 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Placeholder)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BigIdent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, TextTarget)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorSkipToken)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorSkipGroup)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Bold)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Underline)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Monospace)

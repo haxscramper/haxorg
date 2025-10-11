@@ -43,6 +43,8 @@ export interface haxorg_wasm_module_auto {
   ImmPlaceholderValueRead: ImmPlaceholderValueReadConstructor;
   ImmBigIdentValueRead: ImmBigIdentValueReadConstructor;
   ImmTextTargetValueRead: ImmTextTargetValueReadConstructor;
+  ImmErrorSkipTokenValueRead: ImmErrorSkipTokenValueReadConstructor;
+  ImmErrorSkipGroupValueRead: ImmErrorSkipGroupValueReadConstructor;
   ImmBoldValueRead: ImmBoldValueReadConstructor;
   ImmUnderlineValueRead: ImmUnderlineValueReadConstructor;
   ImmMonospaceValueRead: ImmMonospaceValueReadConstructor;
@@ -481,6 +483,7 @@ export interface haxorg_wasm_module_auto {
   Macro: MacroConstructor;
   Symbol: SymbolConstructor;
   SymbolParam: SymbolParamConstructor;
+  ErrorSkipGroup: ErrorSkipGroupConstructor;
   Markup: MarkupConstructor;
   RadioTarget: RadioTargetConstructor;
   Latex: LatexConstructor;
@@ -568,6 +571,8 @@ export interface haxorg_wasm_module_auto {
   ImmIdTPlaceholder: ImmIdTPlaceholderConstructor;
   ImmIdTBigIdent: ImmIdTBigIdentConstructor;
   ImmIdTTextTarget: ImmIdTTextTargetConstructor;
+  ImmIdTErrorSkipToken: ImmIdTErrorSkipTokenConstructor;
+  ImmIdTErrorSkipGroup: ImmIdTErrorSkipGroupConstructor;
   ImmIdTMarkup: ImmIdTMarkupConstructor;
   ImmIdTBold: ImmIdTBoldConstructor;
   ImmIdTUnderline: ImmIdTUnderlineConstructor;
@@ -650,6 +655,7 @@ export interface haxorg_wasm_module_auto {
   ImmMacro: ImmMacroConstructor;
   ImmSymbol: ImmSymbolConstructor;
   ImmSymbolParam: ImmSymbolParamConstructor;
+  ImmErrorSkipGroup: ImmErrorSkipGroupConstructor;
   ImmMarkup: ImmMarkupConstructor;
   ImmRadioTarget: ImmRadioTargetConstructor;
   ImmLatex: ImmLatexConstructor;
@@ -730,6 +736,8 @@ export interface haxorg_wasm_module_auto {
   ImmPlaceholderValue: ImmPlaceholderValueConstructor;
   ImmBigIdentValue: ImmBigIdentValueConstructor;
   ImmTextTargetValue: ImmTextTargetValueConstructor;
+  ImmErrorSkipTokenValue: ImmErrorSkipTokenValueConstructor;
+  ImmErrorSkipGroupValue: ImmErrorSkipGroupValueConstructor;
   ImmBoldValue: ImmBoldValueConstructor;
   ImmUnderlineValue: ImmUnderlineValueConstructor;
   ImmMonospaceValue: ImmMonospaceValueConstructor;
@@ -795,6 +803,7 @@ export interface haxorg_wasm_module_auto {
   Placeholder: PlaceholderConstructor;
   BigIdent: BigIdentConstructor;
   TextTarget: TextTargetConstructor;
+  ErrorSkipToken: ErrorSkipTokenConstructor;
   Bold: BoldConstructor;
   Underline: UnderlineConstructor;
   Monospace: MonospaceConstructor;
@@ -823,6 +832,7 @@ export interface haxorg_wasm_module_auto {
   ImmPlaceholder: ImmPlaceholderConstructor;
   ImmBigIdent: ImmBigIdentConstructor;
   ImmTextTarget: ImmTextTargetConstructor;
+  ImmErrorSkipToken: ImmErrorSkipTokenConstructor;
   ImmBold: ImmBoldConstructor;
   ImmUnderline: ImmUnderlineConstructor;
   ImmMonospace: ImmMonospaceConstructor;
@@ -839,6 +849,8 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterAttrsAPI: ImmAdapterAttrsAPIConstructor;
   ImmAdapterErrorItemAPI: ImmAdapterErrorItemAPIConstructor;
   ImmAdapterErrorGroupAPI: ImmAdapterErrorGroupAPIConstructor;
+  ImmAdapterErrorSkipGroupAPI: ImmAdapterErrorSkipGroupAPIConstructor;
+  ImmAdapterErrorSkipTokenAPI: ImmAdapterErrorSkipTokenAPIConstructor;
   ImmAdapterStmtListAPI: ImmAdapterStmtListAPIConstructor;
   ImmAdapterEmptyAPI: ImmAdapterEmptyAPIConstructor;
   ImmAdapterInlineAPI: ImmAdapterInlineAPIConstructor;
@@ -887,6 +899,8 @@ export interface haxorg_wasm_module_auto {
   ImmNoneAdapter: ImmNoneAdapterConstructor;
   ImmErrorItemAdapter: ImmErrorItemAdapterConstructor;
   ImmErrorGroupAdapter: ImmErrorGroupAdapterConstructor;
+  ImmErrorSkipGroupAdapter: ImmErrorSkipGroupAdapterConstructor;
+  ImmErrorSkipTokenAdapter: ImmErrorSkipTokenAdapterConstructor;
   ImmStmtListAdapter: ImmStmtListAdapterConstructor;
   ImmEmptyAdapter: ImmEmptyAdapterConstructor;
   ImmAdapterHashTagAPI: ImmAdapterHashTagAPIConstructor;
@@ -1530,6 +1544,8 @@ export interface haxorg_wasm_module_auto {
     Placeholder: OrgSemKind,
     BigIdent: OrgSemKind,
     TextTarget: OrgSemKind,
+    ErrorSkipToken: OrgSemKind,
+    ErrorSkipGroup: OrgSemKind,
     Bold: OrgSemKind,
     Underline: OrgSemKind,
     Monospace: OrgSemKind,
@@ -1795,6 +1811,10 @@ export interface ImmBigIdentValueReadConstructor { new(): ImmBigIdentValueRead; 
 export interface ImmBigIdentValueRead {  }
 export interface ImmTextTargetValueReadConstructor { new(): ImmTextTargetValueRead; }
 export interface ImmTextTargetValueRead {  }
+export interface ImmErrorSkipTokenValueReadConstructor { new(): ImmErrorSkipTokenValueRead; }
+export interface ImmErrorSkipTokenValueRead {  }
+export interface ImmErrorSkipGroupValueReadConstructor { new(): ImmErrorSkipGroupValueRead; }
+export interface ImmErrorSkipGroupValueRead { getSkipped(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorSkipToken>>; }
 export interface ImmBoldValueReadConstructor { new(): ImmBoldValueRead; }
 export interface ImmBoldValueRead {  }
 export interface ImmUnderlineValueReadConstructor { new(): ImmUnderlineValueRead; }
@@ -3508,6 +3528,11 @@ export interface SymbolParam {
   key: haxorg_wasm.Optional<string>
   value: string
 }
+export interface ErrorSkipGroupConstructor { new(): ErrorSkipGroup; }
+export interface ErrorSkipGroup {
+  getKind(): OrgSemKind;
+  skipped: haxorg_wasm.Vec<ErrorSkipToken>
+}
 export interface MarkupConstructor { new(): Markup; }
 export interface Markup {  }
 export interface RadioTargetConstructor { new(): RadioTarget; }
@@ -3814,6 +3839,10 @@ export interface ImmIdTBigIdentConstructor { new(): ImmIdTBigIdent; }
 export interface ImmIdTBigIdent {  }
 export interface ImmIdTTextTargetConstructor { new(): ImmIdTTextTarget; }
 export interface ImmIdTTextTarget {  }
+export interface ImmIdTErrorSkipTokenConstructor { new(): ImmIdTErrorSkipToken; }
+export interface ImmIdTErrorSkipToken {  }
+export interface ImmIdTErrorSkipGroupConstructor { new(): ImmIdTErrorSkipGroup; }
+export interface ImmIdTErrorSkipGroup {  }
 export interface ImmIdTMarkupConstructor { new(): ImmIdTMarkup; }
 export interface ImmIdTMarkup {  }
 export interface ImmIdTBoldConstructor { new(): ImmIdTBold; }
@@ -4029,6 +4058,12 @@ export interface ImmSymbolParam {
   __eq__(other: ImmSymbolParam): boolean;
   key: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
   value: haxorg_wasm.ImmBox<string>
+}
+export interface ImmErrorSkipGroupConstructor { new(): ImmErrorSkipGroup; }
+export interface ImmErrorSkipGroup {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmErrorSkipGroup): boolean;
+  skipped: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmErrorSkipToken>>
 }
 export interface ImmMarkupConstructor { new(): ImmMarkup; }
 export interface ImmMarkup { __eq__(other: ImmMarkup): boolean; }
@@ -4380,6 +4415,10 @@ export interface ImmBigIdentValueConstructor { new(): ImmBigIdentValue; }
 export interface ImmBigIdentValue {  }
 export interface ImmTextTargetValueConstructor { new(): ImmTextTargetValue; }
 export interface ImmTextTargetValue {  }
+export interface ImmErrorSkipTokenValueConstructor { new(): ImmErrorSkipTokenValue; }
+export interface ImmErrorSkipTokenValue {  }
+export interface ImmErrorSkipGroupValueConstructor { new(): ImmErrorSkipGroupValue; }
+export interface ImmErrorSkipGroupValue { setSkipped(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorSkipToken>>): void; }
 export interface ImmBoldValueConstructor { new(): ImmBoldValue; }
 export interface ImmBoldValue {  }
 export interface ImmUnderlineValueConstructor { new(): ImmUnderlineValue; }
@@ -4654,6 +4693,8 @@ export interface BigIdentConstructor { new(): BigIdent; }
 export interface BigIdent { getKind(): OrgSemKind; }
 export interface TextTargetConstructor { new(): TextTarget; }
 export interface TextTarget { getKind(): OrgSemKind; }
+export interface ErrorSkipTokenConstructor { new(): ErrorSkipToken; }
+export interface ErrorSkipToken { getKind(): OrgSemKind; }
 export interface BoldConstructor { new(): Bold; }
 export interface Bold { getKind(): OrgSemKind; }
 export interface UnderlineConstructor { new(): Underline; }
@@ -4783,6 +4824,11 @@ export interface ImmTextTarget {
   getKind(): OrgSemKind;
   __eq__(other: ImmTextTarget): boolean;
 }
+export interface ImmErrorSkipTokenConstructor { new(): ImmErrorSkipToken; }
+export interface ImmErrorSkipToken {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmErrorSkipToken): boolean;
+}
 export interface ImmBoldConstructor { new(): ImmBold; }
 export interface ImmBold {
   getKind(): OrgSemKind;
@@ -4839,6 +4885,10 @@ export interface ImmAdapterErrorItemAPIConstructor { new(): ImmAdapterErrorItemA
 export interface ImmAdapterErrorItemAPI {  }
 export interface ImmAdapterErrorGroupAPIConstructor { new(): ImmAdapterErrorGroupAPI; }
 export interface ImmAdapterErrorGroupAPI {  }
+export interface ImmAdapterErrorSkipGroupAPIConstructor { new(): ImmAdapterErrorSkipGroupAPI; }
+export interface ImmAdapterErrorSkipGroupAPI {  }
+export interface ImmAdapterErrorSkipTokenAPIConstructor { new(): ImmAdapterErrorSkipTokenAPI; }
+export interface ImmAdapterErrorSkipTokenAPI {  }
 export interface ImmAdapterStmtListAPIConstructor { new(): ImmAdapterStmtListAPI; }
 export interface ImmAdapterStmtListAPI {  }
 export interface ImmAdapterEmptyAPIConstructor { new(): ImmAdapterEmptyAPI; }
@@ -4978,6 +5028,16 @@ export interface ImmErrorGroupAdapterConstructor { new(): ImmErrorGroupAdapter; 
 export interface ImmErrorGroupAdapter {
   ImmAdapterT(other: ImmAdapter): ImmErrorGroupAdapter;
   getValue(): ImmErrorGroupValueRead;
+}
+export interface ImmErrorSkipGroupAdapterConstructor { new(): ImmErrorSkipGroupAdapter; }
+export interface ImmErrorSkipGroupAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmErrorSkipGroupAdapter;
+  getValue(): ImmErrorSkipGroupValueRead;
+}
+export interface ImmErrorSkipTokenAdapterConstructor { new(): ImmErrorSkipTokenAdapter; }
+export interface ImmErrorSkipTokenAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmErrorSkipTokenAdapter;
+  getValue(): ImmErrorSkipTokenValueRead;
 }
 export interface ImmStmtListAdapterConstructor { new(): ImmStmtListAdapter; }
 export interface ImmStmtListAdapter {
@@ -6093,6 +6153,8 @@ export enum OrgSemKind {
   Placeholder,
   BigIdent,
   TextTarget,
+  ErrorSkipToken,
+  ErrorSkipGroup,
   Bold,
   Underline,
   Monospace,

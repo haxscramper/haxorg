@@ -33,6 +33,8 @@
         __MAP(kPlaceholder, placeholder, Placeholder)  \
         __MAP(kBigident, bigident, BigIdent)  \
         __MAP(kTexttarget, texttarget, TextTarget)  \
+        __MAP(kErrorskiptoken, errorskiptoken, ErrorSkipToken)  \
+        __MAP(kErrorskipgroup, errorskipgroup, ErrorSkipGroup)  \
         __MAP(kBold, bold, Bold)  \
         __MAP(kUnderline, underline, Underline)  \
         __MAP(kMonospace, monospace, Monospace)  \
@@ -1069,6 +1071,20 @@ template <>
 struct org::algo::proto_serde<::orgproto::TextTarget, org::sem::TextTarget> {
   static void write(::orgproto::TextTarget* out, org::sem::TextTarget const& in);
   static void read(::orgproto::TextTarget const& out, proto_write_accessor<org::sem::TextTarget> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::ErrorSkipToken> {
+  static void write(::orgproto::ErrorSkipToken* out, org::sem::ErrorSkipToken const& in);
+  static void read(::orgproto::ErrorSkipToken const& out, proto_write_accessor<org::sem::ErrorSkipToken> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::ErrorSkipGroup> {
+  static void write(::orgproto::ErrorSkipGroup* out, org::sem::ErrorSkipGroup const& in);
+  static void read(::orgproto::ErrorSkipGroup const& out, proto_write_accessor<org::sem::ErrorSkipGroup> in);
 };
 
 
