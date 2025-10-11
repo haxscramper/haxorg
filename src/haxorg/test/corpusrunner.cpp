@@ -705,7 +705,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<std::string> from,
     CR<Str>         relDebug) {
     __perf_trace("cli", "run spec");
-    MockFull p(spec.debug.traceParse, spec.debug.traceLex);
+    MockFull p(
+        "<test-initial>", spec.debug.traceParse, spec.debug.traceLex);
 
     if (spec.debug.traceAll || spec.debug.printSource) {
         writeFile(spec, "source.org", spec.source, relDebug);
@@ -760,9 +761,10 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         return skip;
     }
 
-    inRerun                    = true;
-    ParseSpec            rerun = spec;
-    MockFull             p2(spec.debug.traceParse, spec.debug.traceLex);
+    inRerun         = true;
+    ParseSpec rerun = spec;
+    MockFull  p2(
+        "<test-reformat>", spec.debug.traceParse, spec.debug.traceLex);
     org::algo::Formatter formatter;
     auto                 fmt_result = formatter.toString(
         p.node, org::algo::Formatter::Context{});

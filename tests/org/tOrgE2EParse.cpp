@@ -60,7 +60,7 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
     std::string file
         = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     // std::string file = "/home/haxscramper/tmp/doc1.org";
-    MockFull    p{false, false};
+    MockFull    p{file, false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);
 
@@ -117,7 +117,7 @@ TEST(TestFiles, AllNodeCoverage) {
     GTEST_SKIP();
     std::string file
         = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
-    MockFull    p{false, false};
+    MockFull    p{file, false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);
 

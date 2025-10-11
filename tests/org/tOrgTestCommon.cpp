@@ -34,8 +34,8 @@ void writeTreeRepr(sem::SemId<sem::Org> node, fs::path const& full) {
 sem::SemId<sem::Org> testParseString(
     const std::string&         text,
     std::optional<std::string> debug) {
-    org::test::MockFull     p{debug.has_value(), debug.has_value()};
-    sem::OrgConverter       converter{};
+    org::test::MockFull p{"<test>", debug.has_value(), debug.has_value()};
+    sem::OrgConverter   converter{};
     org::parse::LexerParams params;
     if (debug) {
         p.tokenizer->setTraceFile(

@@ -39,6 +39,7 @@ struct [[refl(
     [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
+    [[refl]] hstd::Str              currentFile;
 
     hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)>
         getFragments;
@@ -46,7 +47,11 @@ struct [[refl(
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,
         (),
-        (baseTokenTracePath, tokenTracePath, parseTracePath, semTracePath),
+        (baseTokenTracePath,
+         tokenTracePath,
+         parseTracePath,
+         semTracePath,
+         currentFile),
         (),
         ());
 };

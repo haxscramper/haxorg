@@ -203,7 +203,6 @@ sem::SemId<sem::Org> org::parseStringOpts(
     const std::string                          text,
     const std::shared_ptr<OrgParseParameters>& opts) {
 
-
     if (opts->getFragments) {
         auto                          fragments = opts->getFragments(text);
         Vec<OrgConverter::InFragment> toConvert;
@@ -254,7 +253,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
             org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{
                 &tokens.at(i)};
 
-            org::parse::OrgParser parser{&nodes.at(i)};
+            org::parse::OrgParser parser{&nodes.at(i), opts->currentFile};
             if (opts->parseTracePath) {
                 parser.setTraceFile(*opts->parseTracePath, false);
                 parser.traceColored = false;
@@ -305,7 +304,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
         org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
 
         org::parse::OrgNodeGroup nodes{&tokens};
-        org::parse::OrgParser    parser{&nodes};
+        org::parse::OrgParser    parser{&nodes, opts->currentFile};
         if (opts->parseTracePath) {
             parser.setTraceFile(*opts->parseTracePath);
             parser.traceColored = false;

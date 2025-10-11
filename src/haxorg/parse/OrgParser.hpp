@@ -48,9 +48,6 @@ struct OrgParser : public hstd::OperationsTracer {
 
 
   public:
-    std::string currentFile;
-    OrgParser(std::string const& currentFile) : currentFile{currentFile} {}
-
     struct ParseFail {};
     struct ParseOk {
         hstd::Opt<OrgId> result;
@@ -301,7 +298,17 @@ struct OrgParser : public hstd::OperationsTracer {
 
     hstd::Func<void(Report const&)> reportHook;
     OrgNodeGroup*                   group = nullptr;
-    OrgParser(OrgNodeGroup* _group) : group(_group) {}
+
+    /// \brief Identification for the current file being processed. Value
+    /// from this field is passed to the source location for the failure
+    /// diagnostics.
+    std::string currentFile;
+    OrgParser(OrgNodeGroup* _group, std::string const& currentFile)
+        : group{_group}, currentFile{currentFile} {
+        LOGIC_ASSERTION_CHECK(
+            !currentFile.empty(),
+            "Current file name cannot be empty in parser.");
+    }
 
     void reserve(int size) { group->nodes.reserve(size); }
 

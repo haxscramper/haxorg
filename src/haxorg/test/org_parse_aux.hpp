@@ -24,10 +24,14 @@ struct MockFull {
 
     org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex;
 
-    MockFull(bool tracedParser = false, bool tracedLexer = false)
+    MockFull(
+        std::string const& currentFile,
+        bool               tracedParser = false,
+        bool               tracedLexer  = false)
         : tokenizer(), nodes(nullptr), lex(&tokens) {
         spec   = getOrgSpec();
-        parser = std::make_shared<org::parse::OrgParser>(&nodes);
+        parser = std::make_shared<org::parse::OrgParser>(
+            &nodes, currentFile);
         parser->TraceState = tracedParser;
         tokenizer = std::make_shared<org::parse::OrgTokenizer>(&tokens);
         tokenizer->TraceState = tracedLexer;

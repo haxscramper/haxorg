@@ -48,7 +48,7 @@ TEST(OrgParseSem, TracerOperations1) {
   :key: value
   :end:
 )";
-    org::test::MockFull p{true, true};
+    org::test::MockFull p{"<test>", true, true};
     fs::path tokenizer_trace{"/tmp/TraceOperations1_tokenizer_trace.txt"};
     p.tokenizer->setTraceFile(tokenizer_trace);
     p.tokenizer->traceStructured = true;

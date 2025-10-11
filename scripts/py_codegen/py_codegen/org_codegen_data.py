@@ -320,7 +320,7 @@ def get_diagnostic_types() -> List[GenTuStruct]:
                 org_field(t_int(), "parserLine"),
                 org_field(t_str(), "errName"),
                 org_field(t_str(), "errCode"),
-                org_field(t_nest_shared("SourceLocation"), "loc"),
+                opt_field(t_nest_shared("SourceLocation"), "loc"),
             ],
             nested=[GenTuPass("ParseError() {}")],
             methods=[eq_method(t_nest_shared("ParseError", [t("OrgDiagnostics")]))],

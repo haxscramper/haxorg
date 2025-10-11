@@ -19,9 +19,8 @@ using namespace org;
 
 
 struct SemDiffBuilder : org::algo::SemNodeDiff {
-    org::test::MockFull srcParse;
-    org::test::MockFull dstParse;
-
+    org::test::MockFull srcParse{"<src>"};
+    org::test::MockFull dstParse{"<dst>"};
 
     sem::SemId<sem::Document> setOrg(std::string const& text, bool isSrc) {
         auto mock = isSrc ? &srcParse : &dstParse;
@@ -238,9 +237,8 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
 class OrgImmAstDiff : public ::testing::Test {
   protected:
     void SetUp() override {
-        hstd::log::push_sink(
-            hstd::log::init_file_sink(
-                getDebugFile("test_log.log").native()));
+        hstd::log::push_sink(hstd::log::init_file_sink(
+            getDebugFile("test_log.log").native()));
     }
 
     virtual void TearDown() override { hstd::log::clear_sink_backends(); }
