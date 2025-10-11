@@ -4,9 +4,8 @@
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
 void org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation>::write(::orgproto::SourceLocation* out, org::sem::SourceLocation const& in) {
   out->set_line(in.line);
-  if (in.column) {
-    out->set_column(*in.column);
-  }
+  out->set_column(in.column);
+  out->set_pos(in.pos);
   if (in.file) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_file(), *in.file);
   }
@@ -14,9 +13,8 @@ void org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation
 
 void org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation>::read(::orgproto::SourceLocation const& out, proto_write_accessor<org::sem::SourceLocation> in) {
   in.for_field(&org::sem::SourceLocation::line).get() = out.line();
-  if (out.has_column()) {
-    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.column(), in.for_field(&org::sem::SourceLocation::column));
-  }
+  in.for_field(&org::sem::SourceLocation::column).get() = out.column();
+  in.for_field(&org::sem::SourceLocation::pos).get() = out.pos();
   if (out.has_file()) {
     proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.file(), in.for_field(&org::sem::SourceLocation::file));
   }

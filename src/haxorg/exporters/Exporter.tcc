@@ -3,6 +3,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SourceLocation const& object) {
   __obj_field(res, object, line);
   __obj_field(res, object, column);
+  __obj_field(res, object, pos);
   __obj_field(res, object, file);
 }
 

@@ -1505,7 +1505,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                    ],
                    fields=[
                        org_field(t_int(), "line", value="-1"),
-                       opt_field(t_int(), "column"),
+                       org_field(t_int(), "column", value="-1"),
+                       org_field(t_int(), "pos", value="-1"),
                        opt_field(t_str(), "file"),
                    ]),
         org_struct(

@@ -208,6 +208,7 @@ OrgNodeMono::Error OrgParser::error_value(
         fail.err.loc.column = failToken->value.col;
         fail.err.loc.line   = failToken->value.line;
         fail.err.tokenText  = failToken->value.text;
+        fail.err.loc.pos    = failToken->value.pos;
         fail.err.loc.file   = currentFile;
     }
 

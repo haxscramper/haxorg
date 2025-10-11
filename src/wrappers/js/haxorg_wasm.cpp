@@ -59,7 +59,6 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<org::graph::MapNode>(g, "VecOfGraphMapNode");
   org::bind::js::hstdVec_bind<org::graph::MapEdge>(g, "VecOfGraphMapEdge");
   org::bind::js::stdoptional_bind<org::graph::MapLink>(g, "StdOptionalOfGraphMapLink");
-  org::bind::js::hstdOpt_bind<int>(g, "OptOfInt");
   org::bind::js::hstdOpt_bind<hstd::Str>(g, "OptOfStr");
   org::bind::js::hstdVec_bind<org::sem::LispCode>(g, "VecOfLispCode");
   org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign>(g, "VecOfTblfmAssign");
@@ -69,6 +68,7 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign::Flag>(g, "VecOfTblfmAssignFlag");
   org::bind::js::hstdVec_bind<org::sem::AttrValue::DimensionSpan>(g, "VecOfAttrValueDimensionSpan");
   org::bind::js::hstdOpt_bind<bool>(g, "OptOfBool");
+  org::bind::js::hstdOpt_bind<int>(g, "OptOfInt");
   org::bind::js::hstdOpt_bind<double>(g, "OptOfDouble");
   org::bind::js::hstdVec_bind<hstd::Str>(g, "VecOfStr");
   org::bind::js::hstdVec_bind<org::sem::HashTagText>(g, "VecOfHashTagText");
@@ -722,6 +722,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::SourceLocation>("SourceLocation")
     .property("line", &org::sem::SourceLocation::line)
     .property("column", &org::sem::SourceLocation::column)
+    .property("pos", &org::sem::SourceLocation::pos)
     .property("file", &org::sem::SourceLocation::file)
     .function("__eq__", static_cast<bool(org::sem::SourceLocation::*)(org::sem::SourceLocation const&) const>(&org::sem::SourceLocation::operator==))
     .constructor<>()

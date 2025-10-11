@@ -2211,7 +2211,8 @@ export interface SourceLocation {
   __eq__(other: SourceLocation): boolean;
   SourceLocation(): void;
   line: number
-  column: haxorg_wasm.Optional<number>
+  column: number
+  pos: number
   file: haxorg_wasm.Optional<string>
 }
 export interface LispCodeConstructor { new(): LispCode; }

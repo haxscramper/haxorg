@@ -1777,26 +1777,37 @@ hstd::Vec<ext::Report> org::collectDiagnostics(
                     }
 
                     case K::ParseError: {
-                        auto id = getId(d.getParseError().loc.value());
+                        auto const& err = d.getParseError();
+                        auto        id  = getId(err.loc.value());
+                        auto        l   = //
+                            ext::Label{1}
+                                .with_span(
+                                    id,
+                                    slice(err.loc->pos, err.loc->pos + 1))
+                                .with_message(err.brief);
+
                         result.push_back(
                             ext::Report(ext::ReportKind::Error, id, 0)
-                                .with_label(
-                                    ext::Label{1}
-                                        .with_span(id, slice(1, 2))
-                                        .with_message(
-                                            d.getParseError().brief)));
+                                .with_label(l));
                         break;
                     }
 
                     case K::ParseTokenError: {
-                        auto id = getId(d.getParseTokenError().loc);
+                        auto const& err = d.getParseTokenError();
+                        auto        id  = getId(err.loc);
+                        auto        l   = //
+                            ext::Label{1}
+                                .with_span(
+                                    id,
+                                    slice(
+                                        err.loc.pos,
+                                        err.loc.pos
+                                            + err.tokenText.size()))
+                                .with_message(err.brief);
+
                         result.push_back(
                             ext::Report(ext::ReportKind::Error, id, 0)
-                                .with_label(ext::Label{1}
-                                                .with_span(id, slice(1, 2))
-                                                .with_message(
-                                                    d.getParseTokenError()
-                                                        .brief)));
+                                .with_label(l));
                         break;
                     }
 

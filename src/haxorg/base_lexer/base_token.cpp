@@ -396,7 +396,8 @@ struct Cursor {
         OrgToken tok;
         tok->col  = this->col;
         tok->line = this->line;
-        tok.kind  = kind;
+        tok->pos  = start;
+        tok.kind = kind;
 
         tok.value.text = std::string{
             text.begin() + start,
@@ -426,6 +427,7 @@ struct Cursor {
         OrgToken tok;
         tok->col  = this->col;
         tok->line = this->line;
+        tok->pos  = this->pos;
         tok.kind  = kind;
 
         int start = pos;

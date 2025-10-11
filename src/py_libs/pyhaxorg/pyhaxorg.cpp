@@ -2168,6 +2168,7 @@ ingoing elements.)RAW")
                         }))
     .def_readwrite("line", &org::sem::SourceLocation::line)
     .def_readwrite("column", &org::sem::SourceLocation::column)
+    .def_readwrite("pos", &org::sem::SourceLocation::pos)
     .def_readwrite("file", &org::sem::SourceLocation::file)
     .def("__eq__",
          static_cast<bool(org::sem::SourceLocation::*)(org::sem::SourceLocation const&) const>(&org::sem::SourceLocation::operator==),

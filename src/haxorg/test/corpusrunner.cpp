@@ -942,6 +942,13 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
 
         if (spec.debug.traceAll || spec.debug.printBaseLexedToFile) {
             writeFile(spec, "base_lexed.yaml", content + "\n", relDebug);
+            writeFile(
+                spec,
+                "base_lexed.json",
+                hstd::to_compact_json(
+                    hstd::to_json_eval(p.baseTokens),
+                    hstd::JsonFormatOptions{.width = 200}),
+                relDebug);
         } else {
             std::cout << content << std::endl;
         }

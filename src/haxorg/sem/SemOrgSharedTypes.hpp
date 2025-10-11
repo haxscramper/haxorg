@@ -16,9 +16,10 @@ struct SourceLocation {
                        (),
                        (),
                        (),
-                       (line, column, file))
+                       (line, column, pos, file))
   int line = -1;
-  hstd::Opt<int> column = std::nullopt;
+  int column = -1;
+  int pos = -1;
   hstd::Opt<hstd::Str> file = std::nullopt;
   bool operator==(org::sem::SourceLocation const& other) const;
   SourceLocation() {  }

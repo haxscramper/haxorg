@@ -542,8 +542,9 @@ enum OrgSemKind {
 
 message SourceLocation {
   int32                                            line                             = 1;
-  optional int32                                   column                           = 2;
-  optional string                                  file                             = 3;
+  int32                                            column                           = 2;
+  int32                                            pos                              = 3;
+  optional string                                  file                             = 4;
   string                                           debug                            = 1000;
 }
 
