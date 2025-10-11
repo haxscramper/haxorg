@@ -623,36 +623,66 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
     In              a) {
     __perf_trace("convert", "convertSubtreeDrawer");
     auto __trace = trace(a);
+
+    hstd::Vec<SemId<ErrorItem>> diags;
     if (a.kind() != onk::Empty) {
         for (const auto& group : a) {
             switch (group.kind()) {
                 case onk::SubtreeDescription: {
-                    tree->description = convertParagraph(group[0]).value();
+                    auto desc = convertParagraph(group[0]);
+                    if (desc.isError()) {
+                        diags.append(desc.error()->diagnostics);
+                    } else {
+                        tree->description = desc.value();
+                    }
                     break;
                 }
 
                 case onk::DrawerLogbook: {
                     for (auto const& entry : group.at(0)) {
-                        auto log = convertSubtreeLog(entry).value();
-                        tree->logbook.push_back(log);
+                        auto log = convertSubtreeLog(entry);
+                        if (log.isError()) {
+                            diags.append(log.error()->diagnostics);
+                        } else {
+                            tree->logbook.push_back(log.value());
+                        }
                     }
                     break;
                 }
 
                 case onk::DrawerPropertyList: {
                     for (const auto& prop : group) {
-                        convertPropertyList(tree, prop);
+                        auto res = convertPropertyList(tree, prop);
+                        if (res) {
+                            diags.append(res.value()->diagnostics);
+                        }
                     }
                     break;
                 }
 
+                case onk::ErrorInfoToken: {
+                    diags.push_back(convertErrorItem(group).value());
+                    break;
+                }
+
                 default: {
+                    diags.push_back(SemErrorItem(
+                        a,
+                        MakeInternal(hstd::fmt(
+                            "Unexpected node type in the subtree drawer: "
+                            "{}",
+                            group.getKind()))));
+                    break;
                 }
             }
         }
     }
 
-    return std::nullopt;
+    if (diags.empty()) {
+        return std::nullopt;
+    } else {
+        return SemError(a, diags);
+    }
 }
 
 Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
@@ -1027,7 +1057,8 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         auto __field = field(N::Drawer, a);
-        convertSubtreeDrawer(tree, one(a, N::Drawer));
+        auto err     = convertSubtreeDrawer(tree, one(a, N::Drawer));
+        if (err) { tree->push_back(err.value()); }
     }
 
     {
@@ -1847,6 +1878,23 @@ OrgConverter::ConvResult<ErrorSkipGroup> OrgConverter::
     }
     return result;
 }
+
+OrgConverter::ConvResult<ErrorItem> OrgConverter::convertErrorItem(
+    __args) {
+    auto __trace = trace(a);
+    auto mono    = a.getMono().getError();
+    LOGIC_ASSERTION_CHECK(
+        mono.box, "Mono error for node should have box data");
+    if (mono.box->isParseFail()) {
+        return SemErrorItem(
+            a, org::sem::OrgDiagnostics{mono.box->getParseFail().err});
+    } else {
+        return SemErrorItem(
+            a,
+            org::sem::OrgDiagnostics{mono.box->getParseTokenFail().err});
+    }
+}
+
 
 OrgConverter::ConvResult<RadioTarget> OrgConverter::convertRadioTarget(
     __args) {
@@ -2689,20 +2737,8 @@ SemId<Org> OrgConverter::convert(__args) {
         auto group = Sem<ErrorGroup>(a);
         for (auto const& sub : a) {
             if (sub.isMono() && sub.getMono().isError()) {
-                auto mono = sub.getMono().getError();
-                LOGIC_ASSERTION_CHECK(
-                    mono.box, "Mono error for node should have box data");
-                if (mono.box->isParseFail()) {
-                    group->diagnostics.push_back(SemErrorItem(
-                        sub,
-                        org::sem::OrgDiagnostics{
-                            mono.box->getParseFail().err}));
-                } else {
-                    group->diagnostics.push_back(SemErrorItem(
-                        sub,
-                        org::sem::OrgDiagnostics{
-                            mono.box->getParseTokenFail().err}));
-                }
+                group->diagnostics.push_back(
+                    convertErrorItem(sub).value());
             } else {
                 group->push_back(convert(sub));
             }

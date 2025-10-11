@@ -1764,15 +1764,19 @@ hstd::Vec<ext::Report> org::collectDiagnostics(
 
                 switch (d.getKind()) {
                     case K::ConvertError: {
-                        auto id = getId(d.getConvertError().loc.value());
+                        auto const& err = d.getConvertError();
+                        auto        id  = getId(err.loc.value());
 
                         result.push_back(
                             ext::Report(ext::ReportKind::Error, id, 0)
+                                .with_message(err.brief)
+                                .with_code(err.errCode)
+                                .with_note(hstd::to_compact_json(
+                                    hstd::to_json_eval(err)))
                                 .with_label(
                                     ext::Label{1}
                                         .with_span(id, slice(1, 2))
-                                        .with_message(
-                                            d.getConvertError().brief)));
+                                        .with_message(err.detail)));
                         break;
                     }
 
@@ -1784,10 +1788,14 @@ hstd::Vec<ext::Report> org::collectDiagnostics(
                                 .with_span(
                                     id,
                                     slice(err.loc->pos, err.loc->pos + 1))
-                                .with_message(err.brief);
+                                .with_message(err.detail);
 
                         result.push_back(
                             ext::Report(ext::ReportKind::Error, id, 0)
+                                .with_message(err.brief)
+                                .with_code(err.errCode)
+                                .with_note(hstd::to_compact_json(
+                                    hstd::to_json_eval(err)))
                                 .with_label(l));
                         break;
                     }
@@ -1803,10 +1811,14 @@ hstd::Vec<ext::Report> org::collectDiagnostics(
                                         err.loc.pos,
                                         err.loc.pos
                                             + err.tokenText.size()))
-                                .with_message(err.brief);
+                                .with_message(err.detail);
 
                         result.push_back(
                             ext::Report(ext::ReportKind::Error, id, 0)
+                                .with_message(err.brief)
+                                .with_code(err.errCode)
+                                .with_note(hstd::to_compact_json(
+                                    hstd::to_json_eval(err)))
                                 .with_label(l));
                         break;
                     }

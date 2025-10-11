@@ -178,6 +178,7 @@ struct OrgConverter : public hstd::OperationsTracer {
     ConvResult<Newline>         convertNewline(In);
     ConvResult<ErrorSkipGroup>  convertErrorSkipGroup(In);
     ConvResult<ErrorSkipToken>  convertErrorSkipToken(In);
+    ConvResult<ErrorItem>       convertErrorItem(In);
     ConvResult<Word>            convertWord(In);
     ConvResult<Space>           convertSpace(In);
     ConvResult<Paragraph>       convertParagraph(In);
