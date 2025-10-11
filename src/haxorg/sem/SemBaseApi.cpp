@@ -192,11 +192,16 @@ void org::exportToTreeFile(
 sem::SemId<sem::Org> org::parseFile(
     std::string                                file,
     std::shared_ptr<OrgParseParameters> const& opts) {
+    opts->currentFile = file;
     return parseStringOpts(readFile(fs::path{file}), opts);
 }
 
-sem::SemId<sem::Org> org::parseString(std::string text) {
-    return parseStringOpts(text, OrgParseParameters::shared());
+sem::SemId<sem::Org> org::parseString(
+    std::string        text,
+    const std::string& currentFile) {
+    auto opts         = OrgParseParameters::shared();
+    opts->currentFile = currentFile;
+    return parseStringOpts(text, opts);
 }
 
 sem::SemId<sem::Org> org::parseStringOpts(
@@ -918,7 +923,7 @@ void org::setDescriptionListItemBody(
     Vec<sem::SemId<Org>> value) {
     int idx = getListHeaderIndex(list, text);
     if (idx == -1) {
-        auto key = parseString(text);
+        auto key = parseString(text, "<description-list-item-assign>");
         auto par = asOneNode(key);
         insertDescriptionListItem(
             list, list.size(), par.as<sem::Paragraph>(), value);
@@ -1208,6 +1213,13 @@ struct EvalContext {
     imm::ImmAstVersion           version;
     Vec<imm::ImmAstVersion>      history;
     UnorderedMap<Str, json>      namedResults;
+    UnorderedMap<Str, Str>       evalResults;
+    /// \brief Original name that is currently being evaluated.
+    hstd::Str currentFile;
+    /// \brief Count number of evaluations in the context in order to
+    /// assign unique names to the source file names for evaluation result
+    /// parsing.
+    int evalCounter = 0;
 
     imm::ImmAstContext::Ptr getContext() const { return version.context; }
     hstd::SPtr<imm::ImmAstTrackingMap> getTrack() const {
@@ -1369,12 +1381,15 @@ struct EvalContext {
         const OrgCodeEvalParameters&  conf) {
         EVAL_SCOPE();
         EVAL_TRACE(fmt("Parsing stdout"));
-        auto doc  = org::parseString(out.stdoutText);
+        std::string activeName = hstd::fmt(
+            "{}-output-{}", currentFile, evalCounter);
+        auto doc  = org::parseString(out.stdoutText, activeName);
         auto stmt = sem::SemId<sem::StmtList>::New();
         for (auto const& node : doc) {
             EVAL_TRACE(fmt("Result node {}", node->getKind()));
             stmt->subnodes.push_back(node);
         }
+        ++evalCounter;
         return stmt;
     }
 
@@ -1762,7 +1777,7 @@ hstd::Vec<ext::Report> org::collectDiagnostics(
                     }
 
                     case K::ParseError: {
-                        auto id = getId(d.getParseError().loc);
+                        auto id = getId(d.getParseError().loc.value());
                         result.push_back(
                             ext::Report(ext::ReportKind::Error, id, 0)
                                 .with_label(
@@ -1770,6 +1785,22 @@ hstd::Vec<ext::Report> org::collectDiagnostics(
                                         .with_span(id, slice(1, 2))
                                         .with_message(
                                             d.getParseError().brief)));
+                        break;
+                    }
+
+                    case K::ParseTokenError: {
+                        auto id = getId(d.getParseTokenError().loc);
+                        result.push_back(
+                            ext::Report(ext::ReportKind::Error, id, 0)
+                                .with_label(ext::Label{1}
+                                                .with_span(id, slice(1, 2))
+                                                .with_message(
+                                                    d.getParseTokenError()
+                                                        .brief)));
+                        break;
+                    }
+
+                    case K::InternalError: {
                         break;
                     }
 

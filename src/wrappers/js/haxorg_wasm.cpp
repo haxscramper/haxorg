@@ -533,6 +533,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("tokenTracePath", &org::OrgParseParameters::tokenTracePath)
     .property("parseTracePath", &org::OrgParseParameters::parseTracePath)
     .property("semTracePath", &org::OrgParseParameters::semTracePath)
+    .property("currentFile", &org::OrgParseParameters::currentFile)
     .constructor(&org::bind::js::holder_type_constructor<std::shared_ptr<org::OrgParseParameters>>)
     ;
   emscripten::class_<org::OrgDirectoryParseParameters>("OrgDirectoryParseParameters")
@@ -3897,7 +3898,7 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<org::graph::MapLink::Kind>("OrgGraphMapLinkKind");
   emscripten::function("newSemTimeStatic", static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic));
   emscripten::function("parseFile", static_cast<org::sem::SemId<org::sem::Org>(*)(std::string, std::shared_ptr<org::OrgParseParameters> const&)>(&org::parseFile));
-  emscripten::function("parseString", static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const)>(&org::parseString));
+  emscripten::function("parseString", static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const, std::string const&)>(&org::parseString));
   emscripten::function("parseStringOpts", static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const, std::shared_ptr<org::OrgParseParameters> const&)>(&org::parseStringOpts));
   emscripten::function("parseDirectoryOpts", static_cast<std::optional<org::sem::SemId<org::sem::Org>>(*)(std::string const&, std::shared_ptr<org::OrgDirectoryParseParameters> const&)>(&org::parseDirectoryOpts));
   emscripten::function("parseFileWithIncludes", static_cast<org::sem::SemId<org::sem::File>(*)(std::string const&, std::shared_ptr<org::OrgDirectoryParseParameters> const&)>(&org::parseFileWithIncludes));

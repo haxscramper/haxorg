@@ -705,8 +705,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<std::string> from,
     CR<Str>         relDebug) {
     __perf_trace("cli", "run spec");
-    MockFull p(
-        "<test-initial>", spec.debug.traceParse, spec.debug.traceLex);
+    MockFull p("<mock>", spec.debug.traceParse, spec.debug.traceLex);
 
     if (spec.debug.traceAll || spec.debug.printSource) {
         writeFile(spec, "source.org", spec.source, relDebug);
@@ -763,8 +762,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     inRerun         = true;
     ParseSpec rerun = spec;
-    MockFull  p2(
-        "<test-reformat>", spec.debug.traceParse, spec.debug.traceLex);
+    MockFull  p2("<mock>", spec.debug.traceParse, spec.debug.traceLex);
     org::algo::Formatter formatter;
     auto                 fmt_result = formatter.toString(
         p.node, org::algo::Formatter::Context{});
@@ -1167,6 +1165,12 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 
     if (spec.debug.printErrorsToFile || spec.debug.traceAll) {
         hstd::ext::StrCache cache;
+
+        cache.getFileSource = [&](std::string const& path) -> std::string {
+            LOGIC_ASSERTION_CHECK(path == "<mock>", "{}", path);
+            return spec.source.toBase();
+        };
+
         auto reports = org::collectDiagnostics(cache, p.node);
 
         std::string formatted;

@@ -35,7 +35,7 @@ TEST(ManualFileRun, TestCoverallOrg) {
         });
 
         auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(org::parseString(content));
+        auto n     = start->init(org::parseString(content, file));
 
         writeFile(
             getDebugFile("imm_repr_subnodes_only.txt"),
@@ -105,7 +105,7 @@ TEST(ManualFileRun, TestDoc1) {
         });
 
         auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(org::parseString(content));
+        auto n     = start->init(org::parseString(content, file));
 
         writeFile(
             getDebugFile("TestDoc1_clean.txt"),
@@ -143,7 +143,7 @@ TEST(ManualFileRun, TestDoc2) {
         });
 
         auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(org::parseString(content));
+        auto n     = start->init(org::parseString(content, file));
     }
 }
 

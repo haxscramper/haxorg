@@ -134,6 +134,7 @@ class StrCache : public Cache {
   public:
     UnorderedMap<Id, std::shared_ptr<Source>>      sources;
     hstd::ext::Unordered1to1Bimap<Id, std::string> names;
+    std::function<std::string(std::string const&)> getFileSource;
 
     void add(Id id, std::string const& source, std::string const& name);
     Id   add_path(hstd::fs::path const& path);

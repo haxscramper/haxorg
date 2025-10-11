@@ -1774,7 +1774,7 @@ struct OrgDiagnostics {
     int parserLine;
     hstd::Str errName;
     hstd::Str errCode;
-    org::sem::SourceLocation loc;
+    hstd::Opt<org::sem::SourceLocation> loc = std::nullopt;
     bool operator==(org::sem::OrgDiagnostics::ParseError const& other) const;
   };
 

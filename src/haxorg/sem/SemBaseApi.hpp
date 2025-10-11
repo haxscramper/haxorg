@@ -97,7 +97,9 @@ struct [[refl(
     std::shared_ptr<OrgParseParameters> const& opts);
 
 
-[[refl]] sem::SemId<sem::Org> parseString(std::string const text);
+[[refl]] sem::SemId<sem::Org> parseString(
+    std::string const  text,
+    std::string const& currentFile);
 [[refl]] sem::SemId<sem::Org> parseStringOpts(
     std::string const                          text,
     std::shared_ptr<OrgParseParameters> const& opts);
@@ -117,6 +119,8 @@ struct OrgCodeEvalParameters {
         sem::OrgCodeEvalInput const&)>
                                        evalBlock;
     hstd::SPtr<hstd::OperationsTracer> debug;
+    std::string                        currentFile;
+
     bool isTraceEnabled() const { return debug && debug->TraceState; }
 
     OrgCodeEvalParameters()

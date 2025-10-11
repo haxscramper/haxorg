@@ -1445,6 +1445,7 @@ field subset.)RAW")
     .def_readwrite("tokenTracePath", &org::OrgParseParameters::tokenTracePath)
     .def_readwrite("parseTracePath", &org::OrgParseParameters::parseTracePath)
     .def_readwrite("semTracePath", &org::OrgParseParameters::semTracePath)
+    .def_readwrite("currentFile", &org::OrgParseParameters::currentFile)
     .def("__repr__", [](org::OrgParseParameters const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -9774,8 +9775,9 @@ ingoing elements.)RAW")
         pybind11::arg("file"),
         pybind11::arg("opts"));
   m.def("parseString",
-        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const)>(&org::parseString),
-        pybind11::arg("text"));
+        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const, std::string const&)>(&org::parseString),
+        pybind11::arg("text"),
+        pybind11::arg("currentFile"));
   m.def("parseStringOpts",
         static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const, std::shared_ptr<org::OrgParseParameters> const&)>(&org::parseStringOpts),
         pybind11::arg("text"),

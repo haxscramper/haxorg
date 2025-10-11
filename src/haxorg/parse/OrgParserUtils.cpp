@@ -194,6 +194,8 @@ OrgNodeMono::Error OrgParser::error_value(
     fail.err.detail         = message.detail;
     fail.err.parserFunction = function;
     fail.err.parserLine     = line;
+    fail.err.errCode        = message.errCode;
+    fail.err.errName        = message.errName;
     std::optional<OrgToken> failToken;
     if (lex.finished()) {
         if (lex.lastToken) { failToken = lex.lastToken.value(); }

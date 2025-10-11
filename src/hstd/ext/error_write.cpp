@@ -1128,7 +1128,7 @@ void StrCache::add(
 Id StrCache::add_path(const hstd::fs::path& path) {
     Id id = std::hash<std::string>{}(path.native());
     if (!names.get_right(id).has_value()) {
-        add(id, hstd::readFile(path), path);
+        add(id, getFileSource(path), path);
     }
     return id;
 }

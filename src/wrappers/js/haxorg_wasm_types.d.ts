@@ -1589,7 +1589,7 @@ export interface haxorg_wasm_module_auto {
   format_GraphMapLinkKind(value: GraphMapLinkKind): string;
   newSemTimeStatic(breakdown: UserTimeBreakdown, isActive: boolean): Time;
   parseFile(file: string, opts: OrgParseParameters): Org;
-  parseString(text: string): Org;
+  parseString(text: string, currentFile: string): Org;
   parseStringOpts(text: string, opts: OrgParseParameters): Org;
   parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
   parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
@@ -2033,6 +2033,7 @@ export interface OrgParseParameters {
   tokenTracePath: haxorg_wasm.Optional<string>
   parseTracePath: haxorg_wasm.Optional<string>
   semTracePath: haxorg_wasm.Optional<string>
+  currentFile: string
 }
 export interface OrgDirectoryParseParametersConstructor { new(): OrgDirectoryParseParameters; }
 export interface OrgDirectoryParseParameters {  }
@@ -3343,7 +3344,7 @@ export interface OrgDiagnosticsParseError {
   parserLine: number
   errName: string
   errCode: string
-  loc: SourceLocation
+  loc: haxorg_wasm.Optional<SourceLocation>
 }
 export interface OrgDiagnosticsIncludeErrorConstructor { new(): OrgDiagnosticsIncludeError; }
 export interface OrgDiagnosticsIncludeError {

@@ -454,13 +454,15 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
             result.incl(imm::replaceNode(
                 t2.nameOrigin,
                 ast->add(
-                    org::asOneNode(org::parseString("New title")), ctx),
+                    org::asOneNode(
+                        org::parseString("New title", "<test-1>")),
+                    ctx),
                 ctx));
             result.incl(imm::replaceNode(
                 t2.storyEventOrigin,
                 ast->add(
-                    org::asOneNode(
-                        org::parseString("New story event description")),
+                    org::asOneNode(org::parseString(
+                        "New story event description", "<test-2>")),
                     ctx),
                 ctx));
             return result;
