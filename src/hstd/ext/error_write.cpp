@@ -82,13 +82,18 @@ struct Writer {
 
     bool dbg_report() const { return config->debug_report_info; }
 
+    void debug(std::string const& message) {
+        if (config->debug_writes) { stream << message; }
+    }
+
     template <typename T>
     void write(
         CR<T>       value,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
         if (config->debug_writes) {
-            stream << value << fmt("@{}", line);
+            stream << stream.green() << value << stream.end()
+                   << stream.blue() << fmt("@{}", line) << stream.end();
         } else {
             stream << value;
         }
@@ -310,49 +315,63 @@ Pair<ColRune, ColRune> get_corner_elements(
     if (margin.corner) {
         auto [label, is_start] = *margin.corner;
         if (is_start) {
-            base = ColRune(c.draw().ltop, label.color);
+            base = ColRune(c.draw().ltop, label.color)
+                       .dbg_origin(c.config.debug_writes);
         } else {
-            base = ColRune(c.draw().lbot, label.color);
+            base = ColRune(c.draw().lbot, label.color)
+                       .dbg_origin(c.config.debug_writes);
         }
 
-        extended = ColRune(c.draw().hbar, label.color);
+        extended = ColRune(c.draw().hbar, label.color)
+                       .dbg_origin(c.config.debug_writes);
     } else if (margin.hbar && margin.vbar && !c.config.cross_gap) {
-        base     = ColRune(c.draw().xbar, margin.hbar->color);
-        extended = ColRune(c.draw().hbar, margin.hbar->color);
+        base = ColRune(c.draw().xbar, margin.hbar->color)
+                   .dbg_origin(c.config.debug_writes);
+        extended = ColRune(c.draw().hbar, margin.hbar->color)
+                       .dbg_origin(c.config.debug_writes);
     } else if (margin.hbar) {
-        base     = ColRune(c.draw().hbar, margin.hbar->color);
-        extended = ColRune(c.draw().hbar, margin.hbar->color);
+        base = ColRune(c.draw().hbar, margin.hbar->color)
+                   .dbg_origin(c.config.debug_writes);
+        extended = ColRune(c.draw().hbar, margin.hbar->color)
+                       .dbg_origin(c.config.debug_writes);
     } else if (margin.vbar) {
         if (c.is_ellipsis) {
-            base = ColRune(c.draw().vbar_gap, margin.vbar->color);
+            base = ColRune(c.draw().vbar_gap, margin.vbar->color)
+                       .dbg_origin(c.config.debug_writes);
         } else {
-            base = ColRune(c.draw().vbar, margin.vbar->color);
+            base = ColRune(c.draw().vbar, margin.vbar->color)
+                       .dbg_origin(c.config.debug_writes);
         }
-        extended = ColRune(' ');
+        extended = ColRune(' ').dbg_origin(c.config.debug_writes);
     } else if (margin.margin_ptr && c.is_line) {
         auto [label, is_start] = *margin.margin_ptr;
         bool is_col   = multi_label && (multi_label->get() == label.label);
         bool is_limit = col == c.multi_labels.size();
         if (is_limit) {
-            base = ColRune(c.draw().rarrow, label.label.color);
+            base = ColRune(c.draw().rarrow, label.label.color)
+                       .dbg_origin(c.config.debug_writes);
         } else if (is_col) {
             if (is_start) {
-                base = ColRune(c.draw().ltop, label.label.color);
+                base = ColRune(c.draw().ltop, label.label.color)
+                           .dbg_origin(c.config.debug_writes);
             } else {
-                base = ColRune(c.draw().lcross, label.label.color);
+                base = ColRune(c.draw().lcross, label.label.color)
+                           .dbg_origin(c.config.debug_writes);
             }
         } else {
-            base = ColRune(c.draw().hbar, label.label.color);
+            base = ColRune(c.draw().hbar, label.label.color)
+                       .dbg_origin(c.config.debug_writes);
         }
 
         if (is_limit) {
-            extended = ColRune(' ');
+            extended = ColRune(' ').dbg_origin(c.config.debug_writes);
         } else {
-            extended = ColRune(c.draw().hbar, label.label.color);
+            extended = ColRune(c.draw().hbar, label.label.color)
+                           .dbg_origin(c.config.debug_writes);
         }
     } else {
-        base     = ColRune(' ');
-        extended = ColRune(' ');
+        base     = ColRune(' ').dbg_origin(c.config.debug_writes);
+        extended = ColRune(' ').dbg_origin(c.config.debug_writes);
     }
 
     return {base, extended};
@@ -648,17 +667,21 @@ void write_lines(
             if (line_label.multi) {
                 if (line_label.draw_msg) {
                     c.w.write(
-                        ColRune(c.draw().mbot, line_label.label.color));
+                        ColRune(c.draw().mbot, line_label.label.color)
+                            .dbg_origin(c.config.debug_writes));
                 } else {
                     c.w.write(
-                        ColRune(c.draw().rbot, line_label.label.color));
+                        ColRune(c.draw().rbot, line_label.label.color)
+                            .dbg_origin(c.config.debug_writes));
                 }
             } else {
                 if (is_first_label_line) {
                     c.w.write(
-                        ColRune(c.draw().lbot, line_label.label.color));
+                        ColRune(c.draw().lbot, line_label.label.color)
+                            .dbg_origin(c.config.debug_writes));
                 } else {
-                    c.w.write(ColRune(' '));
+                    c.w.write(
+                        ColRune(' ').dbg_origin(c.config.debug_writes));
                 }
             }
 
@@ -666,22 +689,26 @@ void write_lines(
             vbar_ll.has_value()
             && (col != line_label.col || line_label.label.msg)) {
             if (!c.config.cross_gap && is_hbar) {
-                c.w.write(ColRune(c.draw().xbar, line_label.label.color));
+                c.w.write(ColRune(c.draw().xbar, line_label.label.color)
+                              .dbg_origin(c.config.debug_writes));
             } else if (is_hbar) {
-                c.w.write(ColRune(c.draw().hbar, line_label.label.color));
+                c.w.write(ColRune(c.draw().hbar, line_label.label.color)
+                              .dbg_origin(c.config.debug_writes));
             } else {
                 if (vbar_ll->multi && row == 0 && c.config.compact) {
                     c.w.write(
-                        ColRune(c.draw().uarrow, vbar_ll->label.color));
+                        ColRune(c.draw().uarrow, vbar_ll->label.color)
+                            .dbg_origin(c.config.debug_writes));
                 } else {
-                    c.w.write(
-                        ColRune(c.draw().vbar, vbar_ll->label.color));
+                    c.w.write(ColRune(c.draw().vbar, vbar_ll->label.color)
+                                  .dbg_origin(c.config.debug_writes));
                 }
             }
         } else if (is_hbar) {
-            c.w.write(ColRune(c.draw().hbar, line_label.label.color));
+            c.w.write(ColRune(c.draw().hbar, line_label.label.color)
+                          .dbg_origin(c.config.debug_writes));
         } else {
-            c.w.write(ColRune(' '));
+            c.w.write(ColRune(' ').dbg_origin(c.config.debug_writes));
         }
 
         if (chars != c.line_text.end()) { ++chars; }

@@ -208,6 +208,11 @@ std::string to_colored_html(const Vec<ColRune>& runes);
 struct ColRune {
     Str      rune  = " ";
     ColStyle style = ColStyle{};
+    ColRune& dbg_origin(
+        bool        enabled,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
     inline ColRune(Str rune = " ", CR<ColStyle> style = ColStyle{})
         : rune(rune), style(style) {}
 

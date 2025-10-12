@@ -340,3 +340,11 @@ hshow_opts& hshow_opts::with(IntSet<hshow_flag> flag) {
     flags = flag;
     return *this;
 }
+
+ColRune& ColRune::dbg_origin(
+    bool        enabled,
+    int         line,
+    const char* function) {
+    if (enabled) { this->rune += hstd::fmt("{}:{}", function, line); }
+    return *this;
+}

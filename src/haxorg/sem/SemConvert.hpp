@@ -113,15 +113,11 @@ struct OrgConverter : public hstd::OperationsTracer {
 
     org::parse::OrgAdapter one(
         org::parse::OrgAdapter node,
-        OrgSpecName            name) {
-        return spec->getSingleSubnode(node, name);
-    }
+        OrgSpecName            name);
 
     hstd::Vec<org::parse::OrgAdapter> many(
         org::parse::OrgAdapter node,
-        OrgSpecName            name) {
-        return spec->getMultipleSubnode(node, name);
-    }
+        OrgSpecName            name);
 
     template <typename T>
     struct ConvResult {

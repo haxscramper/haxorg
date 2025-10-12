@@ -24,6 +24,17 @@
 
 
 namespace {
+
+hstd::IntSet<OrgNodeKind> ErrorKinds{
+    OrgNodeKind::ErrorInfoToken,
+    OrgNodeKind::ErrorSkipToken,
+    OrgNodeKind::ErrorSkipGroup};
+
+bool IsErrorInfoToken(org::parse::OrgAdapter const& a) {
+    return a.getKind() == OrgNodeKind::ErrorInfoToken;
+}
+
+
 org::sem::OrgDiagnostics::ConvertError ConvertErrorInit(
     std::string_view   name,
     std::string        code,
@@ -689,6 +700,10 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     SemId<Subtree>& tree,
     In              a) {
     __perf_trace("convert", "convertPropertyList");
+
+    if (IsErrorInfoToken(a)) {
+        return SemError(a, {convertErrorItem(a).value()});
+    }
 
     std::string basename = strip(
         get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'});
@@ -2820,6 +2835,28 @@ SemId<Org> OrgConverter::convert(__args) {
         }
     }
 #undef CASE
+}
+
+
+parse::OrgAdapter OrgConverter::one(
+    parse::OrgAdapter node,
+    OrgSpecName       name) {
+    LOGIC_ASSERTION_CHECK(
+        !ErrorKinds.contains(node.getKind()),
+        "Attempting to index into a named field of the error info "
+        "token");
+    return spec->getSingleSubnode(node, name);
+}
+
+hstd::Vec<parse::OrgAdapter> OrgConverter::many(
+    parse::OrgAdapter node,
+    OrgSpecName       name) {
+    LOGIC_ASSERTION_CHECK(
+        !ErrorKinds.contains(node.getKind()),
+        "Attempting to index into a named field of the error info "
+        "token");
+
+    return spec->getMultipleSubnode(node, name);
 }
 
 void OrgConverter::convertDocumentOptions(

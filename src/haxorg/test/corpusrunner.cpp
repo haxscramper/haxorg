@@ -1187,13 +1187,24 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 
         auto reports = org::collectDiagnostics(cache, p.node);
 
-        std::string formatted;
-        for (auto const& report : reports) {
-            formatted += report.to_string(cache, false);
-            formatted += "\n";
-        }
+        for (auto const& value : Vec<bool>::Splice(true, false)) {
+            std::string formatted;
+            for (auto const& report : reports) {
+                auto tmp = report;
+                tmp.config.with_debug_writes(value);
+                formatted += tmp.to_string(cache, value);
+                formatted += "\n";
+            }
 
-        writeFile(spec, "errors.txt", formatted, relDebug);
+            writeFile(
+                spec,
+                hstd::fmt(
+                    "errors_{}.{}",
+                    value ? "debug" : "direct",
+                    value ? "ansi" : "txt"),
+                formatted,
+                relDebug);
+        }
     }
 
 

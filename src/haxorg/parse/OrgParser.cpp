@@ -12,6 +12,8 @@ using onk = OrgNodeKind;
 using namespace org::parse;
 using namespace hstd;
 
+using TokSet = IntSet<OrgTokenKind>;
+
 namespace {
 
 
@@ -1889,8 +1891,19 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
     auto propertyListGuard = start(onk::DrawerPropertyList);
     while (lex.can_search(otk::ColonEnd)) {
         trace(lex, "Parse single subtree property");
+        auto head = lex.kind();
+        if (!TokSet{
+                otk::ColonLiteralProperty,
+                otk::ColonArgumentsProperty,
+                otk::ColonPropertyText}
+                 .contains(head)) {
+            auto fail = error_end(
+                ErrorTable::MissingPropertyContinuation, lex);
+            propertyListGuard.end();
+            return fail;
+        }
+
         auto propertyGuard = start(onk::DrawerProperty);
-        auto head          = lex.kind();
         token(onk::RawText, TRY_POPX(lex, head));
         switch (head) {
             case otk::ColonLiteralProperty: {
@@ -1912,8 +1925,6 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
                 break;
             }
             default: {
-                throw fatalError(
-                    lex, fmt("Unhandled property kind parse {}", head));
             }
         }
         TRY_SKIP(lex, otk::Newline);
