@@ -162,9 +162,15 @@ struct OrgParser : public hstd::OperationsTracer {
         char const* function = __builtin_FUNCTION());
 
     struct NodeGuard {
-        int        startingDepth;
-        OrgParser* parser;
-        OrgId      startId = OrgId::Nil();
+        int         startingDepth;
+        OrgParser*  parser;
+        OrgId       startId = OrgId::Nil();
+        bool        closed  = false;
+        std::string debug;
+
+        ~NodeGuard() {
+            if (!closed) { end(); }
+        }
 
         OrgParser::ParseOk end(
             std::string const& desc     = "",

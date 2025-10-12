@@ -183,6 +183,7 @@ void OrgParser::report(CR<Report> in) {
                     os << " ext="
                        << std::format("{}", group->at(id).getExtent());
                 }
+                if (in.msg && !in.msg->empty()) { os << " " << *in.msg; }
                 break;
             }
 

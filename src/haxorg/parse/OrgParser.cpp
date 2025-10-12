@@ -212,9 +212,7 @@ OrgParser::ParseResult OrgParser::parseMacro(OrgLexer& lex) {
             std::ignore = skip(lex, otk::CurlyEnd);
         } else {
             LOGIC_ASSERTION_CHECK(!hasClose, "");
-            auto fail = error_end(ErrorTable::MissingMacroClose, lex);
-            end_impl();
-            return fail;
+            return error_end(ErrorTable::MissingMacroClose, lex);
         }
     }
 
@@ -1371,10 +1369,8 @@ OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
                     break;
                 }
                 default: {
-                    auto fail = error_end(
+                    return error_end(
                         ErrorTable::UnexpectedTableElement, lex);
-                    end_impl();
-                    return fail;
                 }
             }
         }
@@ -1897,10 +1893,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
                 otk::ColonArgumentsProperty,
                 otk::ColonPropertyText}
                  .contains(head)) {
-            auto fail = error_end(
-                ErrorTable::MissingPropertyContinuation, lex);
-            propertyListGuard.end();
-            return fail;
+            return error_end(ErrorTable::MissingPropertyContinuation, lex);
         }
 
         auto propertyGuard = start(onk::DrawerProperty);
@@ -2164,7 +2157,6 @@ OrgParser::ParseResult OrgParser::parseSubtree(OrgLexer& lex) {
     stmtListGuard.end();
 
     if (parseFail) {
-        end_impl();
         return parseFail.value();
     } else {
         return subtreeGuard.end();
@@ -2839,12 +2831,16 @@ OrgParser::ParseOk OrgParser::NodeGuard::end(
     const std::string& desc,
     int                line,
     const char*        function) {
-    auto result = parser->end_impl(desc, line, function);
+    auto result = parser->end_impl(
+        desc + (debug.empty() ? "" : " for guard '" + debug + "'"),
+        line,
+        function);
     LOGIC_ASSERTION_CHECK(
         parser->treeDepth() == startingDepth,
         "{} != {}",
         startingDepth,
         parser->treeDepth());
 
+    this->closed = true;
     return OrgParser::ParseOk{result};
 }

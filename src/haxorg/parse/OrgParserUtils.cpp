@@ -88,7 +88,9 @@ org::parse::OrgParser::NodeGuard OrgParser::start(
                 .with_node(res)
                 .report);
     }
-    return NodeGuard{startingDepth, this, res};
+    auto tmp  = NodeGuard{startingDepth, this, res};
+    tmp.debug = hstd::fmt("line:{}", line);
+    return tmp;
 }
 
 OrgId OrgParser::end_impl(
@@ -236,9 +238,7 @@ OrgParser::ParseResult OrgParser::maybe_recursive_error_end(
     if (res.has_value()) {
         return res;
     } else {
-        auto fail = error_end(on_fail_message, lex, line, function);
-        end_impl();
-        return fail;
+        return error_end(on_fail_message, lex, line, function);
     }
 }
 
