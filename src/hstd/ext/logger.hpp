@@ -674,9 +674,48 @@ hstd::log::log_record log_associative_collection(
 #    define HSLOG_ERROR(...) __ORG_LOG_IMPL(error, __VA_ARGS__)
 #    define HSLOG_FATAL(...) __ORG_LOG_IMPL(fatal, __VA_ARGS__)
 
-#    define HSLOG_FMT1(value)                                             \
-        HSLOG_DEBUG("{} = {}", #value, value);
+#    define HSLOG_DEBUG_FMT_STRINGIZE_EACH_impl(_1, _2, arg)              \
+        BOOST_PP_STRINGIZE(arg),
 
+#    define HSLOG_DEBUG_FMT_STRINGIZE_EACH(...)                           \
+        BOOST_PP_SEQ_FOR_EACH(                                            \
+            HSLOG_DEBUG_FMT_STRINGIZE_EACH_impl,                          \
+            _,                                                            \
+            BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+
+namespace hstd::log {
+template <typename... Args>
+std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
+    std::vector<std::string> argNames,
+    Args&&... args) {
+    std::string result;
+    auto        values = std::make_tuple(std::forward<Args>(args)...);
+
+    auto format_arg = [&](int index, const auto& value) {
+        if (index > 0) { result += " "; }
+        result += hstd::fmt(
+            "{} = ⦃{}⦄",
+            argNames.at(index),
+            hstd::fmt1(::hstd::log::format_logger_argument1(value)));
+    };
+
+    int index = 0;
+    std::apply(
+        [&](const auto&... vals) { ((format_arg(index++, vals)), ...); },
+        values);
+
+    return result;
+}
+} // namespace hstd::log
+
+#    define HSLOG_DEBUG_FMT_EXPR_IMPL(...)                                \
+        ::hstd::log::__HSLOG_DEBUG_FMT_EXPR_IMPL_impl(                    \
+            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)}, __VA_ARGS__)
+
+#    define HSLOG_DEBUG_FMT(...)                                          \
+        HSLOG_DEBUG("{}", HSLOG_DEBUG_FMT_EXPR_IMPL(__VA_ARGS__));
+
+#    define HSLOG_DEBUG_FMT1(value) HSLOG_DEBUG("{} = {}", #value, value);
 #    define HSLOG_SINK_SCOPE() ::hstd::log::log_sink_scope()
 /// \brief Create logging sink scope and clear all the current sink state
 #    define HSLOG_NOSINK_SCOPE() HSLOG_SINK_SCOPE().drop_current_sinks()

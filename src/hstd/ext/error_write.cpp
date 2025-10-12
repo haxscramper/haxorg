@@ -6,9 +6,12 @@
 #include <hstd/stdlib/Set.hpp>
 #include "error_write.hpp"
 #include "hstd/stdlib/Enumerate.hpp"
+#include <hstd/ext/logger.hpp>
+#include <boost/preprocessor/seq.hpp>
 
 using namespace hstd::ext;
 using namespace hstd;
+
 
 Characters Config::unicode() {
     return Characters{
@@ -559,6 +562,11 @@ Vec<LineLabel> build_line_labels(
     Vec<LabelInfo> const& labels,
     Opt<LineLabel> const& margin_label,
     Vec<Label> const&     multi_labels) {
+    HSLOG_DEPTH_SCOPE_ANON();
+    HSLOG_DEBUG("Build multi line labels");
+    HSLOG_DEBUG_FMT(
+        labels.size(), margin_label.has_value(), multi_labels.size());
+
     Vec<LineLabel> line_labels;
     for (CR<Label> label : multi_labels) {
         bool is_start = line.span().contains(label.span.start());
@@ -586,7 +594,12 @@ Vec<LineLabel> build_line_labels(
     }
 
     for (const LabelInfo& label_info : labels) {
-        if (label_info.label.span.start() >= line.span().first
+        HSLOG_DEBUG("label_info");
+        HSLOG_DEPTH_SCOPE_ANON();
+        HSLOG_DEBUG_FMT(line.span().first, line.span().last);
+        HSLOG_DEBUG_FMT(
+            label_info.label.span.start(), label_info.label.span.end());
+        if (line.span().first <= label_info.label.span.start()
             && label_info.label.span.end() <= line.span().last) {
             if (label_info.kind == LabelKind::Inline) {
                 int position = 0;
@@ -619,6 +632,7 @@ Vec<LineLabel> build_line_labels(
         }
     }
 
+    HSLOG_DEBUG_FMT(line_labels.size());
     return line_labels;
 }
 

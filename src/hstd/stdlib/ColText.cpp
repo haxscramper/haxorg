@@ -103,6 +103,73 @@ std::string hstd::to_colored_string(
     return result;
 }
 
+json hstd::to_formatting_json(const Vec<ColRune>& runes) {
+    json result;
+    result["ansi_format"]  = to_colored_string(runes, true);
+    result["plain_format"] = to_colored_string(runes, false);
+
+    json data_format = json::array();
+    if (runes.empty()) {
+        result["data_format"] = data_format;
+        return result;
+    }
+
+    auto prev = ColStyle{};
+    Str  current_text;
+
+    for (int i = 0; i < runes.size(); ++i) {
+        const auto& rune = runes.at(i);
+
+        if (rune.style.fg != prev.fg || rune.style.bg != prev.bg
+            || rune.style.style != prev.style) {
+            if (!current_text.empty()) {
+                json chunk;
+                chunk["text"] = current_text;
+                if (!isDefault(prev.fg)) {
+                    chunk["fg"] = static_cast<u8>(prev.fg);
+                }
+                if (!isDefault(prev.bg)) {
+                    chunk["bg"] = static_cast<u8>(prev.bg);
+                }
+                if (prev.style.size() > 0) {
+                    json style_array = json::array();
+                    for (const auto& style : prev.style) {
+                        style_array.push_back(static_cast<u8>(style));
+                    }
+                    chunk["style"] = style_array;
+                }
+                data_format.push_back(chunk);
+                current_text.clear();
+            }
+            prev = rune.style;
+        }
+
+        current_text += rune.rune;
+    }
+
+    if (!current_text.empty()) {
+        json chunk;
+        chunk["text"] = current_text;
+        if (!isDefault(prev.fg)) {
+            chunk["fg"] = static_cast<u8>(prev.fg);
+        }
+        if (!isDefault(prev.bg)) {
+            chunk["bg"] = static_cast<u8>(prev.bg);
+        }
+        if (prev.style.size() > 0) {
+            json style_array = json::array();
+            for (const auto& style : prev.style) {
+                style_array.push_back(static_cast<u8>(style));
+            }
+            chunk["style"] = style_array;
+        }
+        data_format.push_back(chunk);
+    }
+
+    result["data_format"] = data_format;
+    return result;
+}
+
 void hstd::ColStream::flush() {
     if (!buffered) { ostream->flush(); }
 }

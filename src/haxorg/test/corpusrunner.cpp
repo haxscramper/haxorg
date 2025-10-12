@@ -1187,6 +1187,18 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 
         auto reports = org::collectDiagnostics(cache, p.node);
 
+        writeFile(
+            spec,
+            "errors.json",
+            hstd::to_compact_json(hstd::to_json_eval(reports)),
+            relDebug);
+
+        writeFile(
+            spec,
+            "sources.json",
+            hstd::to_compact_json(hstd::to_json_eval(cache)),
+            relDebug);
+
         for (auto const& value : Vec<bool>::Splice(true, false)) {
             std::string formatted;
             for (auto const& report : reports) {

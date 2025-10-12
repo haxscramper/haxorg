@@ -95,6 +95,13 @@ TEST(ManualFileRun, TestCoverallOrg) {
 TEST(ManualFileRun, TestDoc1) {
     fs::path file{"/home/haxscramper/tmp/doc1.org"};
     if (fs::exists(file)) {
+        auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([]() {
+            return ::hstd::log::init_file_sink(
+                getDebugFile("execution_trace.log").native());
+        });
+
+        HSLOG_INFO("Send initial message");
+
         std::string content = readFile(file);
         auto        spec    = ParseSpec::FromSource(std::move(content));
         spec.debug.traceAll = true;

@@ -31,6 +31,7 @@ using Id = int;
 struct CodeSpan {
     Id         id;
     Slice<int> range;
+    DESC_FIELDS(CodeSpan, (id, range));
 
     CodeSpan() = default;
     CodeSpan(Id id, Slice<int> const& range) : id{id}, range{range} {
@@ -69,6 +70,8 @@ class Cache {
 
     // Display the given ID. as a single inline value.
     virtual std::optional<std::string> display(Id const& id) const = 0;
+
+    DESC_FIELDS(Cache, (fetch, display));
 };
 
 
@@ -141,6 +144,8 @@ class StrCache : public Cache {
     UnorderedMap<Id, std::shared_ptr<Source>>      sources;
     hstd::ext::Unordered1to1Bimap<Id, std::string> names;
     std::function<std::string(std::string const&)> getFileSource;
+
+    BOOST_DESCRIBE_CLASS(StrCache, (Cache), (sources, names), (), ());
 
     void add(Id id, std::string const& source, std::string const& name);
     Id   add_path(hstd::fs::path const& path);

@@ -38,6 +38,8 @@ struct ErrorTable {
         __short,                                                                           \
         __long);
 
+    P_ERROR(FallbackError, "Default fallback error", "");
+    P_ERROR(UnexpectedToken, "Found unexpected token during parsing", "");
     P_ERROR(MissingClosingParen, "Expected closing `)`", "");
     P_ERROR(MissingClosingBracket, "Expected closing `]`", "");
     P_ERROR(
@@ -100,9 +102,7 @@ const OrgTokSet BlockTerminator{
 
 #define SUB_PARSE_2(__kind, __lex)                                        \
     BOOST_OUTCOME_TRYX(maybe_recursive_error_end(                         \
-        parse##__kind(__lex),                                             \
-        org::sem::OrgDiagnostics::ParseError{},                           \
-        __lex))
+        parse##__kind(__lex), ErrorTable::FallbackError, __lex))
 
 #define SUB_PARSE_3(__kind, __lex, __on_failure)                          \
     BOOST_OUTCOME_TRYX(maybe_recursive_error_end(                         \
@@ -115,7 +115,7 @@ const OrgTokSet BlockTerminator{
 
 
 #define TRY_SKIP_2(__lex, __expected)                                     \
-    BOOST_OUTCOME_TRY(skip(__lex, __expected))
+    BOOST_OUTCOME_TRY(skip(__lex, __expected, ErrorTable::UnexpectedToken))
 
 #define TRY_SKIP_3(__lex, __expected, __message)                          \
     BOOST_OUTCOME_TRY(skip(__lex, __expected, ErrorTable::__message))
