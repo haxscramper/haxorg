@@ -407,6 +407,13 @@ def six =
                       .with_message(fmt("Multiple line label\nwith at "
                                         "least\nthree separate lines"))
                       .with_color(b))
+              .with_label(
+                  Label{3}
+                      .with_span(a_id, slice(32, 32))
+                      .with_message(
+                          fmt("Another multiline\nannotation "
+                              "immediately\nfollowing the previous\none"))
+                      .with_color(b))
               .with_note(fmt("Single line note"));
 
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));

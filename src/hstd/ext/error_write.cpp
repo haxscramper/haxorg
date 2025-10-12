@@ -83,7 +83,7 @@ struct Writer {
     bool dbg_report() const { return config->debug_report_info; }
 
     template <typename T>
-    void operator()(
+    void write(
         CR<T>       value,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
@@ -200,7 +200,7 @@ bool sort_line_labels(
         } else {
             if (!c.config.compact && !is_ellipsis) {
                 write_margin(c.clone().with_is_ellipsis(is_ellipsis));
-                c.w("\n");
+                c.w.write("\n");
             }
             is_ellipsis = true;
             return false;
@@ -373,9 +373,9 @@ void write_margin(MarginContext const& c) {
         line_no_margin += (c.is_ellipsis ? c.draw().vbar_gap : c.draw().vbar_break);
     }
 
-    c.w(" ");
-    c.w(ColText(c.config.margin_color, line_no_margin));
-    c.w(c.config.compact ? "" : " ");
+    c.w.write(" ");
+    c.w.write(ColText(c.config.margin_color, line_no_margin));
+    c.w.write(c.config.compact ? "" : " ");
 
 
     // Multi-line margins
@@ -410,8 +410,8 @@ void write_margin(MarginContext const& c) {
                 auto [base, extended] = get_corner_elements(
                     c, col, margin, multi_label);
 
-                c.w(base);
-                if (!c.config.compact) { c.w(extended); }
+                c.w.write(base);
+                if (!c.config.compact) { c.w.write(extended); }
             }
         }
     }
@@ -508,25 +508,25 @@ void write_line_label_arrows(
                 col, row, c.line_labels, c.margin_label)) {
             if (underline) {
                 if (vbar->label.span.len() == 0) {
-                    c.w(c.draw().underbar);
+                    c.w.write(c.draw().underbar);
                 } else if (
                     c.line.offset + col == vbar->label.span.start()) {
-                    c.w(c.draw().ltop);
+                    c.w.write(c.draw().ltop);
                 } else if (c.line.offset + col == vbar->label.span.end()) {
-                    c.w(c.draw().rtop);
+                    c.w.write(c.draw().rtop);
                 } else {
-                    c.w(c.draw().underbar);
+                    c.w.write(c.draw().underbar);
                 }
             } else if (
                 vbar->multi && row == 0 && c.config.multiline_arrows) {
-                c.w(c.draw().uarrow);
+                c.w.write(c.draw().uarrow);
             } else {
-                c.w(c.draw().vbar);
+                c.w.write(c.draw().vbar);
             }
         } else if (underline) {
-            c.w(ColRune(c.draw().underline, underline->label.color));
+            c.w.write(ColRune(c.draw().underline, underline->label.color));
         } else {
-            c.w(ColRune(' '));
+            c.w.write(ColRune(' '));
         }
 
         if (chars != c.line_text.end()) { ++chars; }
@@ -621,13 +621,14 @@ void write_lines(
     Line const&          line,
     int                  arrow_len,
     LineLabel const&     line_label,
-    int                  row) {
+    int                  row,
+    bool                 is_first_label_line) {
     // Lines
     auto chars = c.line_text.begin();
     for (int col = 0; col < arrow_len; ++col) {
         int  width   = 1;
         bool is_hbar = false;
-        if (line_label.label.msg.has_value()) {
+        if (is_first_label_line && line_label.label.msg.has_value()) {
             is_hbar = (
                 //
                 (line_label.col < col && !line_label.multi)
@@ -646,32 +647,41 @@ void write_lines(
                 || line_label.label != c.margin_label->label)) {
             if (line_label.multi) {
                 if (line_label.draw_msg) {
-                    c.w(ColRune(c.draw().mbot, line_label.label.color));
+                    c.w.write(
+                        ColRune(c.draw().mbot, line_label.label.color));
                 } else {
-                    c.w(ColRune(c.draw().rbot, line_label.label.color));
+                    c.w.write(
+                        ColRune(c.draw().rbot, line_label.label.color));
                 }
             } else {
-                c.w(ColRune(c.draw().lbot, line_label.label.color));
+                if (is_first_label_line) {
+                    c.w.write(
+                        ColRune(c.draw().lbot, line_label.label.color));
+                } else {
+                    c.w.write(ColRune(' '));
+                }
             }
 
         } else if (
             vbar_ll.has_value()
             && (col != line_label.col || line_label.label.msg)) {
             if (!c.config.cross_gap && is_hbar) {
-                c.w(ColRune(c.draw().xbar, line_label.label.color));
+                c.w.write(ColRune(c.draw().xbar, line_label.label.color));
             } else if (is_hbar) {
-                c.w(ColRune(c.draw().hbar, line_label.label.color));
+                c.w.write(ColRune(c.draw().hbar, line_label.label.color));
             } else {
                 if (vbar_ll->multi && row == 0 && c.config.compact) {
-                    c.w(ColRune(c.draw().uarrow, vbar_ll->label.color));
+                    c.w.write(
+                        ColRune(c.draw().uarrow, vbar_ll->label.color));
                 } else {
-                    c.w(ColRune(c.draw().vbar, vbar_ll->label.color));
+                    c.w.write(
+                        ColRune(c.draw().vbar, vbar_ll->label.color));
                 }
             }
         } else if (is_hbar) {
-            c.w(ColRune(c.draw().hbar, line_label.label.color));
+            c.w.write(ColRune(c.draw().hbar, line_label.label.color));
         } else {
-            c.w(ColRune(' '));
+            c.w.write(ColRune(' '));
         }
 
         if (chars != c.line_text.end()) { ++chars; }
@@ -756,13 +766,14 @@ void write_report_group_header(
     std::shared_ptr<Source> src = cache.fetch(group.src_id);
     Str src_name = cache.display(group.src_id).value_or("<unknown>");
 
-    op(Str(" ").repeated(line_no_width + 2));
-    op((group_idx == 0 ? ColRune(config.char_set.ltop)
-                       : ColRune(config.char_set.lcross))
-       + config.margin_color);
-    op(ColRune(config.char_set.hbar) + config.margin_color);
-    op(ColRune(config.char_set.lbox) + config.margin_color);
-    op(src_name);
+    op.write(Str(" ").repeated(line_no_width + 2));
+    op.write(
+        (group_idx == 0 ? ColRune(config.char_set.ltop)
+                        : ColRune(config.char_set.lcross))
+        + config.margin_color);
+    op.write(ColRune(config.char_set.hbar) + config.margin_color);
+    op.write(ColRune(config.char_set.lbox) + config.margin_color);
+    op.write(src_name);
 
     // File name & reference
     int location = (group.src_id == report.location.first)
@@ -773,21 +784,21 @@ void write_report_group_header(
 
     // Error line and column number in the error message header
     if (offset_line) {
-        op(":");
-        op(fmt1(offset_line->idx + 1));
-        op(":");
-        op(fmt1(offset_line->col + 1));
+        op.write(":");
+        op.write(fmt1(offset_line->idx + 1));
+        op.write(":");
+        op.write(fmt1(offset_line->col + 1));
     } else {
-        op(":?:?");
+        op.write(":?:?");
     }
 
-    op(ColRune(config.char_set.rbox) + config.margin_color);
-    op("\n");
+    op.write(ColRune(config.char_set.rbox) + config.margin_color);
+    op.write("\n");
 
     if (!config.compact) {
-        op(Str(" ").repeated(line_no_width + 2));
-        op(ColRune(config.char_set.vbar) + config.margin_color);
-        op("\n");
+        op.write(Str(" ").repeated(line_no_width + 2));
+        op.write(ColRune(config.char_set.vbar) + config.margin_color);
+        op.write("\n");
     }
 }
 
@@ -809,7 +820,7 @@ void write_report_source_line(
             ColStyle color = highlight ? highlight->get().color
                                        : base.config.unimportant_color;
 
-            base.w(ColRune(c.rune, color));
+            base.w.write(ColRune(c.rune, color));
 
             col++;
         }
@@ -832,7 +843,7 @@ void write_report_line_annotations(MarginContext base) {
                 row,
                 base.arrow_len);
 
-            base.w("\n");
+            base.w.write("\n");
         }
 
         // Margin
@@ -842,13 +853,38 @@ void write_report_line_annotations(MarginContext base) {
                          .with_draw_labels(true));
 
         write_lines(
-            base.clone(), base.line, base.arrow_len, line_label, row);
+            base.clone(),
+            base.line,
+            base.arrow_len,
+            line_label,
+            row,
+            true);
 
         if (line_label.label.msg) {
-            base.w(" ");
-            base.w(line_label.label.msg.value());
+            base.w.write(" ");
+            auto split = line_label.label.msg.value().split("\n");
+            if (split.size() <= 1) {
+                base.w.write(line_label.label.msg.value());
+            } else {
+                for (auto const& it : enumerator(split)) {
+                    if (!it.is_first()) {
+                        base.w.write("\n");
+                        write_margin(base);
+
+                        write_lines(
+                            base.clone(),
+                            base.line,
+                            base.arrow_len,
+                            line_label,
+                            row,
+                            false);
+                        base.w.write(" ");
+                    }
+                    base.w.write(it.value());
+                }
+            }
         }
-        base.w("\n");
+        base.w.write("\n");
     }
 }
 
@@ -901,7 +937,7 @@ void write_report_group(
             int arrow_len = get_arrow_len(base);
             base.with_arrow_len(arrow_len);
             write_report_source_line(base, margin_label);
-            op("\n");
+            op.write("\n");
             write_report_line_annotations(base);
         }
     }
@@ -930,38 +966,38 @@ void write_report_group(
     if (report.help.has_value() && is_final_group) {
         if (!config.compact) {
             write_margin(base);
-            op("\n");
+            op.write("\n");
         }
         write_margin(base);
-        op("Help: ");
-        op(report.help.value());
-        op("\n");
+        op.write("Help: ");
+        op.write(report.help.value());
+        op.write("\n");
     }
 
     // Note
     if (report.note.has_value() && is_final_group) {
         if (!config.compact) {
             write_margin(base);
-            op("\n");
+            op.write("\n");
         }
 
         auto noteLines = report.note.value().split("\n");
         if (noteLines.size() <= 1) {
             write_margin(base);
-            op("Note: ");
-            op(report.note.value());
-            op("\n");
+            op.write("Note: ");
+            op.write(report.note.value());
+            op.write("\n");
         } else {
             for (auto const& it : enumerator(noteLines)) {
                 write_margin(base);
                 if (it.is_first()) {
-                    op("Note: ");
+                    op.write("Note: ");
                 } else {
-                    op("      ");
+                    op.write("      ");
                 }
 
-                op(it.value());
-                op("\n");
+                op.write(it.value());
+                op.write("\n");
             }
         }
     }
@@ -969,13 +1005,14 @@ void write_report_group(
     // Tail of report
     if (!config.compact) {
         if (is_final_group) {
-            op(Str(config.char_set.hbar).repeated(line_no_width + 2));
-            op(config.char_set.rbot);
-            op("\n");
+            op.write(
+                Str(config.char_set.hbar).repeated(line_no_width + 2));
+            op.write(config.char_set.rbot);
+            op.write("\n");
         } else {
-            op(Str(" ").repeated(line_no_width + 2));
-            op(config.char_set.vbar);
-            op("\n");
+            op.write(Str(" ").repeated(line_no_width + 2));
+            op.write(config.char_set.vbar);
+            op.write("\n");
         }
     }
 }
@@ -1007,32 +1044,32 @@ void write_report_header(Report const& report, Writer& op) {
     }
 
     if (report.code.has_value()) {
-        op(ColText(kind_color, ("[" + *report.code + "] ")));
+        op.write(ColText(kind_color, ("[" + *report.code + "] ")));
     }
 
     if (report.msg) {
         auto split = report.msg.value().split("\n");
         auto kind  = ColText(kind_color, kindName);
         if (split.size() <= 1) {
-            op(kind);
-            op(": ");
-            op(report.msg.value());
-            op("\n");
+            op.write(kind);
+            op.write(": ");
+            op.write(report.msg.value());
+            op.write("\n");
         } else {
             for (auto const& it : enumerator(split)) {
                 if (it.is_first()) {
-                    op(kind);
-                    op(": ");
+                    op.write(kind);
+                    op.write(": ");
                 } else {
-                    op(Str{" "}.repeated(kind.size() + 2));
+                    op.write(Str{" "}.repeated(kind.size() + 2));
                 }
-                op(it.value());
-                op("\n");
+                op.write(it.value());
+                op.write("\n");
             }
         }
 
     } else {
-        op("\n");
+        op.write("\n");
     }
 }
 
