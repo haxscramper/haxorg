@@ -814,11 +814,17 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
         auto start_line //
             = src->get_offset_line(label.span.start()).value().idx;
 
-        auto end_line //
-            = src->get_offset_line(
-                     std::max(label.span.end() - 1, label.span.start()))
-                  .value()
-                  .idx;
+        int const offset = std::max(
+            label.span.end() - 1, label.span.start());
+        auto const offset_line = src->get_offset_line(offset);
+        LOGIC_ASSERTION_CHECK(
+            offset_line.has_value(),
+            "Could not get line for offset {} from label span {}. Source "
+            "len is {}",
+            offset,
+            label.span,
+            src->len);
+        auto end_line = offset_line.value().idx;
 
         LabelInfo label_info{
             .kind  = (start_line == end_line) ? LabelKind::Inline

@@ -744,3 +744,140 @@ Error: can't compare apples with oranges
 ---'
 )"_ss));
 }
+
+
+TEST(PrintError, TwoLabelsWithMessages) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = R"(apple == orange;)";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 4))
+                              .with_message("This is an apple"_ss))
+              .with_label(Label{2}
+                              .with_span(id, slice(9, 14))
+                              .with_message("This is an orange"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[<unknown>:1:1]
+   |
+ 1 | apple == orange;
+   | ^^|^^    ^^|^^^
+   |   `------------- This is an apple
+   |            |
+   |            `---- This is an orange
+---'
+)"_ss));
+}
+
+TEST(PrintError, MultiByteChars) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = R"(äpplë == örängë;)";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare äpplës with örängës"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 4))
+                              .with_message("This is an äpplë"_ss))
+              .with_label(Label{2}
+                              .with_span(id, slice(9, 14))
+                              .with_message("This is an örängë"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare äpplës with örängës
+   ,-[<unknown>:1:1]
+   |
+ 1 | äpplë == örängë;
+   | ^^|^^    ^^|^^^
+   |   `------------- This is an äpplë
+   |            |
+   |            `---- This is an örängë
+---'
+)"_ss));
+}
+
+TEST(PrintError, ByteLabel) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = R"(äpplë == örängë;)";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare äpplës with örängës"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 6))
+                              .with_message("This is an äpplë"_ss))
+              .with_label(Label{2}
+                              .with_span(id, slice(9, 14))
+                              .with_message("This is an örängë"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare äpplës with örängës
+   ,-[<unknown>:1:1]
+   |
+ 1 | äpplë == örängë;
+   | ^^^|^^^  ^^|^^^
+   |    `------------ This is an äpplë
+   |            |
+   |            `---- This is an örängë
+---'
+)"_ss));
+}
+
+TEST(PrintError, ByteColumn) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = R"(äpplë == örängë;)";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 11)
+              .with_message("can't compare äpplës with örängës"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 6))
+                              .with_message("This is an äpplë"_ss))
+              .with_label(Label{2}
+                              .with_span(id, slice(9, 14))
+                              .with_message("This is an örängë"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare äpplës with örängës
+   ,-[<unknown>:1:12]
+   |
+ 1 | äpplë == örängë;
+   | ^^^|^^^  ^^|^^^
+   |    `------------ This is an äpplë
+   |            |
+   |            `---- This is an örängë
+---'
+)"_ss));
+}

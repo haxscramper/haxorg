@@ -1,3 +1,5 @@
+/// \file rewrite of the https://github.com/zesterer/ariadne/tree/main for C++
+
 #pragma once
 
 #include "hstd/stdlib/Slice.hpp"
@@ -19,6 +21,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+
 
 namespace hstd::ext {
 
