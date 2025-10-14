@@ -938,8 +938,8 @@ Error: unexpected end of file
    ,-[ <unknown>:1:1 ]
    |
  1 | apple ==
-   |          |
-   |          `- Unexpected end of file
+   |         ,^
+   |         `-- Unexpected end of file
 ---'
 )"_ss));
 }
@@ -1001,6 +1001,459 @@ Error: unexpected end of file
    | `- No more fruit!
    |
    | Help: have you tried going to the farmer's market?
+---'
+)"_ss));
+}
+
+
+TEST(PrintError, EmptyInputNote) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("unexpected end of file"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 0))
+                              .with_message("No more fruit!"_ss))
+              .with_note("eat your greens!"_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: unexpected end of file
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 |
+   | |
+   | `- No more fruit!
+   |
+   | Note: eat your greens!
+---'
+)"_ss));
+}
+
+TEST(PrintError, EmptyInputHelpNote) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("unexpected end of file"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 0))
+                              .with_message("No more fruit!"_ss))
+              .with_note("eat your greens!"_ss)
+              .with_help("have you tried going to the farmer's market?"_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: unexpected end of file
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 |
+   | |
+   | `- No more fruit!
+   |
+   | Help: have you tried going to the farmer's market?
+   |
+   | Note: eat your greens!
+---'
+)"_ss));
+}
+
+TEST(PrintError, MultilineLabel) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple\n==\norange";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice1<int>(0, code.size() - 1))
+                      .with_message("illegal comparison"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error:
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | ,-> apple
+   : :
+ 3 | |-> orange
+   | |
+   | `----------- illegal comparison
+---'
+)"_ss));
+}
+
+TEST(PrintError, PartiallyOverlappingLabels) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "https://example.com/";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto colon_pos = code.find(':');
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice1<int>(0, code.length() - 1))
+                      .with_message("URL"_ss))
+              .with_label(Label{2}
+                              .with_span(id, slice1<int>(0, colon_pos - 1))
+                              .with_message("scheme"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error:
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | https://example.com/
+   | ^^|^^^^^^^|^^^^^^^^^
+   |   `------------------- scheme
+   |           |
+   |           `----------- URL
+---'
+)"_ss));
+}
+
+TEST(PrintError, MultipleLabelsSameSpan) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple == orange;";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 4))
+                              .with_message("This is an apple"_ss))
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice(0, 4))
+                      .with_message(
+                          "Have I mentioned that this is an apple?"_ss))
+              .with_label(Label{3}
+                              .with_span(id, slice(0, 4))
+                              .with_message(
+                                  "No really, have I mentioned that?"_ss))
+              .with_label(Label{4}
+                              .with_span(id, slice(9, 14))
+                              .with_message("This is an orange"_ss))
+              .with_label(
+                  Label{5}
+                      .with_span(id, slice(9, 14))
+                      .with_message(
+                          "Have I mentioned that this is an orange?"_ss))
+              .with_label(Label{6}
+                              .with_span(id, slice(9, 14))
+                              .with_message(
+                                  "No really, have I mentioned that?"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple == orange;
+   | ^^|^^    ^^|^^^
+   |   `------------- This is an apple
+   |   |        |
+   |   `------------- Have I mentioned that this is an apple?
+   |   |        |
+   |   `------------- No really, have I mentioned that?
+   |            |
+   |            `---- This is an orange
+   |            |
+   |            `---- Have I mentioned that this is an orange?
+   |            |
+   |            `---- No really, have I mentioned that?
+---'
+)"_ss));
+}
+
+TEST(PrintError, Note) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple == orange;";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 4))
+                              .with_message("This is an apple"_ss))
+              .with_label(Label{2}
+                              .with_span(id, slice(9, 14))
+                              .with_message("This is an orange"_ss))
+              .with_note("stop trying ... this is a fruitless endeavor"_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple == orange;
+   | ^^|^^    ^^|^^^
+   |   `------------- This is an apple
+   |            |
+   |            `---- This is an orange
+   |
+   | Note: stop trying ... this is a fruitless endeavor
+---'
+)"_ss));
+}
+
+TEST(PrintError, Help) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple == orange;";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 4))
+                              .with_message("This is an apple"_ss))
+              .with_label(Label{2}
+                              .with_span(id, slice(9, 14))
+                              .with_message("This is an orange"_ss))
+              .with_help("have you tried peeling the orange?"_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple == orange;
+   | ^^|^^    ^^|^^^
+   |   `------------- This is an apple
+   |            |
+   |            `---- This is an orange
+   |
+   | Help: have you tried peeling the orange?
+---'
+)"_ss));
+}
+
+TEST(PrintError, HelpAndNote) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple == orange;";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 4))
+                              .with_message("This is an apple"_ss))
+              .with_label(Label{2}
+                              .with_span(id, slice(9, 14))
+                              .with_message("This is an orange"_ss))
+              .with_help("have you tried peeling the orange?"_ss)
+              .with_note("stop trying ... this is a fruitless endeavor"_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple == orange;
+   | ^^|^^    ^^|^^^
+   |   `------------- This is an apple
+   |            |
+   |            `---- This is an orange
+   |
+   | Help: have you tried peeling the orange?
+   |
+   | Note: stop trying ... this is a fruitless endeavor
+---'
+)"_ss));
+}
+
+TEST(PrintError, SingleNoteSingleLine) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple == orange;";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 14))
+                      .with_message("This is a strange comparison"_ss))
+              .with_note("No need to try, they can't be compared."_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple == orange;
+   | ^^^^^^^|^^^^^^^
+   |        `-------- This is a strange comparison
+   |
+   | Note: No need to try, they can't be compared.
+---'
+)"_ss));
+}
+
+TEST(PrintError, MultiNotesSingleLines) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple == orange;";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 14))
+                      .with_message("This is a strange comparison"_ss))
+              .with_note("No need to try, they can't be compared."_ss)
+              .with_note("Yeah, really, please stop."_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple == orange;
+   | ^^^^^^^|^^^^^^^
+   |        `-------- This is a strange comparison
+   |
+   | Note 1: No need to try, they can't be compared.
+   |
+   | Note 2: Yeah, really, please stop.
+---'
+)"_ss));
+}
+
+TEST(PrintError, MultiNotesMultiLines) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple == orange;";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 14))
+                      .with_message("This is a strange comparison"_ss))
+              .with_note("No need to try, they can't be compared."_ss)
+              .with_note(
+                  "Yeah, really, please stop.\nIt has no resemblance."_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple == orange;
+   | ^^^^^^^|^^^^^^^
+   |        `-------- This is a strange comparison
+   |
+   | Note 1: No need to try, they can't be compared.
+   |
+   | Note 2: Yeah, really, please stop.
+   |         It has no resemblance.
+---'
+)"_ss));
+}
+
+TEST(PrintError, MultiHelpsMultiLines) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple == orange;";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 14))
+                      .with_message("This is a strange comparison"_ss))
+              .with_help("No need to try, they can't be compared."_ss)
+              .with_help(
+                  "Yeah, really, please stop.\nIt has no resemblance."_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple == orange;
+   | ^^^^^^^|^^^^^^^
+   |        `-------- This is a strange comparison
+   |
+   | Help 1: No need to try, they can't be compared.
+   |
+   | Help 2: Yeah, really, please stop.
+   |         It has no resemblance.
 ---'
 )"_ss));
 }
