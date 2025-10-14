@@ -172,7 +172,7 @@ std::optional<LineLabel> get_margin_label(
         Label const& label    = multi_labels[i];
         bool         is_start = line.span().contains(label.span.start());
         bool         is_end   = line.span().contains(label.span.end());
-        HSLOG_DEBUG_FMT(is_start, is_end, line.span(), label.span);
+        HSLOG_DEBUG_FMT_LINE(is_start, is_end, line.span(), label.span);
 
         if (is_start || is_end) {
             LineLabel ll{
@@ -260,10 +260,10 @@ MarginElements fill_margin_elements(MarginContext const& c, int col) {
             margin = c.margin_label;
         }
 
-        HSLOG_DEBUG_FMT(margin);
-        HSLOG_DEBUG_FMT(line_span);
+        HSLOG_DEBUG_FMT_LINE(margin);
+        HSLOG_DEBUG_FMT_LINE(line_span);
 
-        HSLOG_DEBUG_FMT(
+        HSLOG_DEBUG_FMT_LINE(
             label.span.start(),
             line_span.last,
             label.span.start() <= line_span.last,
@@ -276,7 +276,7 @@ MarginElements fill_margin_elements(MarginContext const& c, int col) {
             bool is_parent = i != col;
             bool is_start  = line_span.contains(label.span.start());
             bool is_end    = line_span.contains(label.span.end());
-            HSLOG_DEBUG_FMT(is_parent, is_start, is_end);
+            HSLOG_DEBUG_FMT_LINE(is_parent, is_start, is_end);
 
             if (margin && c.is_line) {
                 HSLOG_DEBUG("-- ");
@@ -601,16 +601,17 @@ void write_line_label_arrows(
 
 
 Vec<LineLabel> build_line_labels(
-    Config const&         config,
-    Line const&           line,
-    Vec<LabelInfo> const& labels,
-    Opt<LineLabel> const& margin_label,
-    Vec<Label> const&     multi_labels) {
+    Config const&           config,
+    Line const&             line,
+    Vec<LabelInfo> const&   labels,
+    Opt<LineLabel> const&   margin_label,
+    Vec<Label> const&       multi_labels,
+    std::shared_ptr<Source> src) {
     HSLOG_DEPTH_SCOPE_ANON();
     HSLOG_DEBUG("Build line labels");
-    HSLOG_DEBUG_FMT(
+    HSLOG_DEBUG_FMT_LINE(
         labels.size(), margin_label.has_value(), multi_labels.size());
-    HSLOG_DEBUG_FMT(line);
+    HSLOG_DEBUG_FMT_LINE(line);
 
     Vec<LineLabel> line_labels;
     for (CR<Label> label : multi_labels) {
@@ -651,8 +652,19 @@ Vec<LineLabel> build_line_labels(
         }
 
         hstd::log::log_described_record(label_info.label).end();
+        hstd::log::log_described_record(line).end();
+        HSLOG_DEBUG_FMT_STACK(
+            line.span().first,
+            label_info.label.span.start(),
+            line.span().first <= label_info.label.span.start(),
+            label_info.label.span.end(),
+            line.span().last,
+            label_info.label.span.end() <= line.span().last);
+
         if (line.span().first <= label_info.label.span.start()
-            && label_info.label.span.end() <= line.span().last) {
+            && (label_info.label.span.end() <= line.span().last
+                || src->len <= label_info.label.span.end())) {
+
             if (label_info.kind == LabelKind::Inline) {
                 int position = 0;
                 switch (config.label_attach) {
@@ -684,7 +696,7 @@ Vec<LineLabel> build_line_labels(
         }
     }
 
-    HSLOG_DEBUG_FMT(line_labels.size());
+    HSLOG_DEBUG_FMT_LINE(line_labels.size());
     return line_labels;
 }
 
@@ -1017,7 +1029,7 @@ void write_report_group(
     Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
     Slice<int> line_range = src->get_line_range(CodeSpan{{}, group.span});
 
-    HSLOG_DEBUG_FMT(multi_labels.size());
+    HSLOG_DEBUG_FMT_LINE(multi_labels.size());
 
     bool is_ellipsis = false;
     for (int idx = line_range.first; idx <= line_range.last; ++idx) {
@@ -1033,7 +1045,12 @@ void write_report_group(
 
         Vec<LineLabel> line_labels //
             = build_line_labels(
-                config, line, group.labels, margin_label, multi_labels);
+                config,
+                line,
+                group.labels,
+                margin_label,
+                multi_labels,
+                src);
 
         MarginContext base{
             .w             = op,
@@ -1051,14 +1068,14 @@ void write_report_group(
         {
             HSLOG_INFO("Margin context");
             HSLOG_DEPTH_SCOPE_ANON();
-            HSLOG_DEBUG_FMT(config);
-            HSLOG_DEBUG_FMT(multi_labels);
-            HSLOG_DEBUG_FMT(line_labels);
-            HSLOG_DEBUG_FMT(idx);
-            HSLOG_DEBUG_FMT(line_no_width);
-            HSLOG_DEBUG_FMT(line);
-            HSLOG_DEBUG_FMT(margin_label);
-            HSLOG_DEBUG_FMT(src->get_line_text(line));
+            HSLOG_DEBUG_FMT_LINE(config);
+            HSLOG_DEBUG_FMT_LINE(multi_labels);
+            HSLOG_DEBUG_FMT_LINE(line_labels);
+            HSLOG_DEBUG_FMT_LINE(idx);
+            HSLOG_DEBUG_FMT_LINE(line_no_width);
+            HSLOG_DEBUG_FMT_LINE(line);
+            HSLOG_DEBUG_FMT_LINE(margin_label);
+            HSLOG_DEBUG_FMT_LINE(src->get_line_text(line));
         }
 
 

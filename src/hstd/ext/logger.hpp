@@ -712,15 +712,28 @@ namespace hstd::log {
 template <typename... Args>
 std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
     std::vector<std::string> argNames,
+    bool                     stack,
     Args&&... args) {
     std::string result;
     auto        values = std::make_tuple(std::forward<Args>(args)...);
 
+    int names_width = 0;
+    for (auto const& n : argNames) {
+        names_width = std::max<int>(names_width, n.size());
+    }
+
     auto format_arg = [&](int index, const auto& value) {
-        if (index > 0) { result += " "; }
+        if (index > 0) {
+            if (stack) {
+                result += "\n";
+            } else {
+                result += " ";
+            }
+        }
         result += hstd::fmt(
             "{} = ⦃{}⦄",
-            argNames.at(index),
+            stack ? hstd::left_aligned(argNames.at(index), names_width)
+                  : argNames.at(index),
             hstd::fmt1(::hstd::log::format_logger_argument1(value)));
     };
 
@@ -733,12 +746,23 @@ std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
 }
 } // namespace hstd::log
 
-#    define HSLOG_DEBUG_FMT_EXPR_IMPL(...)                                \
+#    define HSLOG_DEBUG_FMT_LINE_EXPR_IMPL(...)                           \
         ::hstd::log::__HSLOG_DEBUG_FMT_EXPR_IMPL_impl(                    \
-            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)}, __VA_ARGS__)
+            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)},                \
+            false,                                                        \
+            __VA_ARGS__)
 
-#    define HSLOG_DEBUG_FMT(...)                                          \
-        HSLOG_DEBUG("{}", HSLOG_DEBUG_FMT_EXPR_IMPL(__VA_ARGS__));
+#    define HSLOG_DEBUG_FMT_LINE(...)                                     \
+        HSLOG_DEBUG("{}", HSLOG_DEBUG_FMT_LINE_EXPR_IMPL(__VA_ARGS__));
+
+#    define HSLOG_DEBUG_FMT_STACK_EXPR_IMPL(...)                          \
+        ::hstd::log::__HSLOG_DEBUG_FMT_EXPR_IMPL_impl(                    \
+            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)},                \
+            true,                                                         \
+            __VA_ARGS__)
+
+#    define HSLOG_DEBUG_FMT_STACK(...)                                    \
+        HSLOG_DEBUG("{}", HSLOG_DEBUG_FMT_STACK_EXPR_IMPL(__VA_ARGS__));
 
 #    define HSLOG_DEBUG_FMT1(value) HSLOG_DEBUG("{} = {}", #value, value);
 #    define HSLOG_SINK_SCOPE() ::hstd::log::log_sink_scope()

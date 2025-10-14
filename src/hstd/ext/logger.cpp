@@ -229,14 +229,12 @@ void format_log_record_data(
 
     if (data.message.contains('\n')) {
         auto split = data.message.split('\n');
-        strm << split.at(0);
         write_trail();
-        if (split.has(1)) {
-            for (auto const& line : split.at(slice(1, 1_B))) {
-                strm << "\n";
-                strm << Str{" "}.repeated(prefix.size());
-                strm << line;
-            }
+        for (auto const& line : split) {
+            strm << "\n";
+            strm << Str{" "}.repeated(prefix.size());
+            strm << "  ";
+            strm << line;
         }
     } else {
         strm << data.message;
