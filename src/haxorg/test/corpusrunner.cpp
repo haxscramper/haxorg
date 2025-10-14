@@ -146,77 +146,6 @@ Vec<DiffItem> json_diff(
     return result;
 }
 
-
-void format(
-    ColStream&               os,
-    CR<FormattedDiff>        text,
-    Func<ColText(int, bool)> formatCb,
-    int                      lhsSize          = 48,
-    int                      rhsSize          = 16,
-    bool                     dropLeadingKeep  = false,
-    bool                     dropTrailingKeep = false) {
-    if (text.isUnified()) {
-        os << (ColText("Given") <<= lhsSize) << (ColText("Expected"))
-           << "\n";
-        Vec<Pair<FormattedDiff::DiffLine, FormattedDiff::DiffLine>> lines;
-        for (auto const& pair : text.unifiedLines()) {
-            lines.push_back(pair);
-        }
-
-        if (lines.empty()) {
-            os << "No diff content to compare\n";
-            return;
-        }
-
-        Slice<int> range = slice(0, lines.size() - 1);
-        if (dropLeadingKeep) {
-            for (int i = 0; i <= range.last; ++i) {
-                if (lines[i].first.prefix == SeqEditKind::Keep
-                    && lines[i].second.prefix == SeqEditKind::Keep) {
-                    range.first = i;
-                } else {
-                    // two lines of context before diff
-                    range.first = std::max(0, i - 1);
-                    break;
-                }
-            }
-        }
-
-        if (dropTrailingKeep) {
-            for (int i = range.last; range.first < i; --i) {
-                if (lines[i].first.prefix == SeqEditKind::Keep
-                    && lines[i].second.prefix == SeqEditKind::Keep) {
-                    range.last = i;
-                } else {
-                    range.last = std::min(lines.high(), i + 1);
-                    break;
-                }
-            }
-        }
-
-        for (const auto& i : range) {
-            auto const& lhs = lines[i].first;
-            auto const& rhs = lines[i].second;
-
-            auto lhsStyle = toStyle(lhs.prefix);
-            auto rhsStyle = toStyle(rhs.prefix);
-
-            os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
-               << ((lhs.empty() ? ColText("")
-                                : formatCb(lhs.index().value(), true)
-                                      .withStyle(lhsStyle))
-                   <<= lhsSize)
-               << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2)
-               << ((rhs.empty() ? ColText("")
-                                : formatCb(rhs.index().value(), false)
-                                      .withStyle(rhsStyle))
-                   <<= rhsSize)
-               << "\n";
-        }
-    }
-}
-
-
 void describeDiff(
     ColStream&      os,
     DiffItem const& it,
@@ -481,10 +410,7 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                     return result;
                 }}};
 
-        ColStream os;
-        os << text.format();
-
-        return {{.isOk = false, .failDescribe = os.getBuffer()}};
+        return {{.isOk = false, .failDescribe = text.format()}};
     }
 }
 
@@ -577,10 +503,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                             : fmt("ext={}", node.getExtent()));
                 }}};
 
-        ColStream os;
-        os << text.format();
-
-        return {{.isOk = false, .failDescribe = os.getBuffer()}};
+        return {{.isOk = false, .failDescribe = text.format()}};
     }
 }
 

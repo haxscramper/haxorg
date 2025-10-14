@@ -104,13 +104,15 @@ Vec<SeqEdit> hstd::myersDiff(
 
     if (lhsSize == 0 && rhsSize == 0) { return Vec<SeqEdit>{}; }
 
-    Vec<Pair<int, Vec<SeqEdit>>> front(lhsSize + rhsSize + 3);
+    int                          maxD = lhsSize + rhsSize;
+    Vec<Pair<int, Vec<SeqEdit>>> front(2 * maxD + 1);
 
-    front.at(1 + lhsSize + rhsSize).first = 0;
+    int offset             = maxD;
+    front.at(offset).first = 0;
 
-    for (int fullIdx = 0; fullIdx <= lhsSize + rhsSize; fullIdx++) {
+    for (int fullIdx = 0; fullIdx <= maxD; fullIdx++) {
         for (int backIdx = -fullIdx; backIdx <= fullIdx; backIdx += 2) {
-            int frontIndex = backIdx + lhsSize + rhsSize;
+            int frontIndex = backIdx + offset;
 
             bool goDown
                 = (backIdx == -fullIdx
@@ -390,6 +392,29 @@ bool hstd::hasInvisibleChanges(
     return false;
 }
 
+int FormattedDiff::maxLineNumber() const {
+    int result = 0;
+    if (isUnified()) {
+        for (const auto& it : unified().lhs) {
+            if (it.lineIndex.has_value()) {
+                result = std::max(result, it.lineIndex.value());
+            }
+        }
+        for (const auto& it : unified().rhs) {
+            if (it.lineIndex.has_value()) {
+                result = std::max(result, it.lineIndex.value());
+            }
+        }
+    } else {
+        for (const auto& it : stacked().elements) {
+            if (it.lineIndex.has_value()) {
+                result = std::max(result, it.lineIndex.value());
+            }
+        }
+    }
+    return result;
+}
+
 hstd::FormattedDiff::FormattedDiff(
     const ShiftedDiff& shifted,
     const Conf&        conf)
@@ -571,7 +596,15 @@ ColText FormattedDiff::format() {
                       return elem.second.size();
                   })));
 
-        os << (ColText("Given") <<= lhsSize) << (ColText("Expected"))
+        int const linePrefixSize = 2;
+
+        ColText splitSeparator{" "_ss};
+
+        os << (ColText{""} <<= linePrefixSize) //
+           << (ColText("Given") <<= lhsSize)   //
+           << splitSeparator                   //
+           << (ColText{""} <<= linePrefixSize) //
+           << (ColText("Expected"))            //
            << "\n";
 
 
@@ -613,12 +646,13 @@ ColText FormattedDiff::format() {
             auto lhsStyle = toStyle(lhs.prefix);
             auto rhsStyle = toStyle(rhs.prefix);
 
-            os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
+            os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= linePrefixSize)
                << ((lhs.empty() ? ColText("")
                                 : formattedLines.at(lhs.index().value())
                                       .first.withStyle(lhsStyle))
                    <<= lhsSize)
-               << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2)
+               << splitSeparator //
+               << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= linePrefixSize)
                << ((rhs.empty() ? ColText("")
                                 : formattedLines.at(rhs.index().value())
                                       .second.withStyle(rhsStyle))

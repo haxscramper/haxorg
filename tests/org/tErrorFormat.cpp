@@ -610,7 +610,13 @@ def multiline :: Str = match Some 5 in {
 }
 
 hstd::Str remove_trailing(hstd::Str const& in) {
-    return hstd::strip(in, CharSet{}, CharSet{'\n'});
+    hstd::Str noLeadTail = hstd::strip(
+        in, CharSet{'\n', ' '}, CharSet{'\n', ' '});
+    return hstd::own_view(noLeadTail.split('\n'))
+         | rv::transform([](hstd::Str const& str) -> hstd::Str {
+               return hstd::strip(str, CharSet{}, CharSet{' '});
+           })
+         | hstd::rv_intersperse_newline_join;
 }
 
 TEST(PrintError, OneMessageWrite) {
@@ -640,31 +646,58 @@ hstd::ColText __gtest_assert_eq_seq_fail_message(
         rhs,
         FormattedDiff::Conf{
             .formatLine = FormattedDiff::getSequenceFormatterCb(
-                &lhs, &rhs)});
+                &lhs, &rhs, true)});
+}
+
+template <typename T>
+hstd::ColText __gtest_assert_eq_seq_format_text_compare(
+    hstd::ColText const& diff,
+    T const&             lhs,
+    T const&             rhs) {
+    hstd::ColStream os;
+    os << diff;
+    os << "\nGiven lhs:\n";
+    os << hstd::Str("+").repeated(32) << "\n";
+    os << lhs;
+    os << "\n" << hstd::Str("+").repeated(32) << "\n";
+    os << "\nExpected rhs:\n";
+    os << hstd::Str("-").repeated(32) << "\n";
+    os << rhs;
+    os << "\n" << hstd::Str("-").repeated(32) << "\n";
+    return os.getBuffer();
 }
 
 template <>
 hstd::ColText __gtest_assert_eq_seq_fail_message<std::string>(
     std::string const& lhs,
     std::string const& rhs) {
-    return __gtest_assert_eq_seq_fail_message(
-        hstd::split(lhs, '\n'), hstd::split(rhs, '\n'));
+    return __gtest_assert_eq_seq_format_text_compare(
+        __gtest_assert_eq_seq_fail_message(
+            hstd::split(lhs, '\n'), hstd::split(rhs, '\n')),
+        lhs,
+        rhs);
 }
 
 template <>
 hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::Str>(
     hstd::Str const& lhs,
     hstd::Str const& rhs) {
-    return __gtest_assert_eq_seq_fail_message(
-        hstd::split(lhs, '\n'), hstd::split(rhs, '\n'));
+    return __gtest_assert_eq_seq_format_text_compare(
+        __gtest_assert_eq_seq_fail_message(
+            hstd::split(lhs, '\n'), hstd::split(rhs, '\n')),
+        lhs,
+        rhs);
 }
 
 template <>
 hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
     hstd::ColText const& lhs,
     hstd::ColText const& rhs) {
-    return __gtest_assert_eq_seq_fail_message(
-        lhs.split('\n'), lhs.split('\n'));
+    return __gtest_assert_eq_seq_format_text_compare(
+        __gtest_assert_eq_seq_fail_message(
+            lhs.split('\n'), lhs.split('\n')),
+        lhs,
+        rhs);
 }
 
 
@@ -699,15 +732,15 @@ TEST(PrintError, TwoLabelsWithoutMessageWrite) {
 
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
-        R"(
+        remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[tao:1:1]
    |
  1 | apple == orange;
-   | ^^|^^    ^^^|^^
-   |   `-------------- This is an apple
-   |             |
-   |             `---- This is an orange
+   | ^^|^^    ^^|^^^
+   |   `------------- This is an apple
+   |            |
+   |            `---- This is an orange
 ---'
-)"_ss);
+)"_ss));
 }

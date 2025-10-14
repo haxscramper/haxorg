@@ -561,28 +561,7 @@ struct FormattedDiff {
         return std::get<UnifiedDiff>(content);
     }
 
-    int maxLineNumber() const {
-        int result = 0;
-        if (isUnified()) {
-            for (const auto& it : unified().lhs) {
-                if (it.lineIndex.has_value()) {
-                    result = std::max(result, it.lineIndex.value());
-                }
-            }
-            for (const auto& it : unified().rhs) {
-                if (it.lineIndex.has_value()) {
-                    result = std::max(result, it.lineIndex.value());
-                }
-            }
-        } else {
-            for (const auto& it : stacked().elements) {
-                if (it.lineIndex.has_value()) {
-                    result = std::max(result, it.lineIndex.value());
-                }
-            }
-        }
-        return result;
-    }
+    int maxLineNumber() const;
 
     bool isUnified() const {
         return std::holds_alternative<UnifiedDiff>(content);
@@ -602,14 +581,27 @@ struct FormattedDiff {
     template <typename T>
     static Conf::FormatCb getSequenceFormatterCb(
         T const* lhs,
-        T const* rhs) {
-        return [&](FormattedDiff::DiffLine const& line) -> ColText {
+        T const* rhs,
+        bool     formatLine = false) {
+        return [lhs, rhs, formatLine](
+                   FormattedDiff::DiffLine const& line) -> ColText {
             if (line.empty()) {
                 return ColText{""_ss};
-            } else if (line.isLhs) {
-                return std::format("{}", lhs->at(line.index().value()));
             } else {
-                return std::format("{}", rhs->at(line.index().value()));
+                int const idx = line.index().value();
+                if (formatLine) {
+                    if (line.isLhs) {
+                        return std::format("[{}] {}", idx, lhs->at(idx));
+                    } else {
+                        return std::format("[{}] {}", idx, rhs->at(idx));
+                    }
+                } else {
+                    if (line.isLhs) {
+                        return std::format("{}", lhs->at(idx));
+                    } else {
+                        return std::format("{}", rhs->at(idx));
+                    }
+                }
             }
         };
     }
@@ -713,8 +705,7 @@ ColText formatDiffed(
     auto          diff = myersDiffCbCmp(oldSeq, newSeq, eqCmp);
     ShiftedDiff   shifted{diff};
     FormattedDiff formatted{shifted, conf};
-    return ColText{};
-    // map(oldSeq, strConv), map(newSeq, strConv),
+    return formatted.format();
 }
 
 inline ColText formatDiffed(
