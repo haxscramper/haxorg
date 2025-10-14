@@ -187,11 +187,13 @@ struct Characters {
     Str underline;
 };
 
-enum LabelKind
+enum class LabelKind
 {
     Inline,
     Multiline
 };
+
+BOOST_DESCRIBE_ENUM(LabelKind, Inline, Multiline);
 
 struct Label {
     /// \brief Give this label a message

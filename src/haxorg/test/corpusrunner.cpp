@@ -14,6 +14,7 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
+#include <hstd/ext/logger.hpp>
 
 
 using namespace org::test;
@@ -450,45 +451,38 @@ CorpusRunner::RunResult::LexCompare compareTokens(
         ShiftedDiff tokenDiff{
             tokenSimilarity, lexed.size(), expected.size()};
 
-        Func<Str(CR<Tok>)> conv = [](CR<Tok> tok) -> Str {
-            return std::format("{}", tok);
-        };
+        FormattedDiff text{
+            tokenDiff,
+            FormattedDiff::Conf{
+                .minLhsSize = 30,
+                .minRhsSize = 48,
+                .formatLine =
+                    [&](FormattedDiff::DiffLine const& line) -> ColText {
+                    auto tok = line.isLhs ? lexed.tokens.content.at(
+                                                line.index().value())
+                                          : expected.tokens.content.at(
+                                                line.index().value());
 
-        FormattedDiff text{tokenDiff};
+                    hshow_opts opts{};
+                    opts.flags.excl(hshow_flag::use_quotes);
+
+                    std::string text = escape_literal(
+                        hshow1(get_token_text(tok), opts).toString(false));
+
+                    std::string result = //
+                        "${index} ${kind} ${text}"
+                        % fold_format_pairs({
+                            {"index", fmt1(line.index().value())},
+                            {"kind", fmt1(tok.kind)},
+                            {"text", text},
+                            {"size", fmt1(rune_length(text))},
+                        });
+
+                    return result;
+                }}};
 
         ColStream os;
-        int       lhsSize = 48;
-        int       rhsSize = 30;
-
-        format(
-            os,
-            text,
-            [&](int id, bool isLhs) -> ColText {
-                auto tok = isLhs ? lexed.tokens.content.at(id)
-                                 : expected.tokens.content.at(id);
-
-                hshow_opts opts{};
-                opts.flags.excl(hshow_flag::use_quotes);
-
-                std::string text = escape_literal(
-                    hshow1(get_token_text(tok), opts).toString(false));
-
-                std::string result = //
-                    "${index} ${kind} ${text}"
-                    % fold_format_pairs({
-                        {"index", fmt1(id)},
-                        {"kind", fmt1(tok.kind)},
-                        {"text", text},
-                        {"size", fmt1(rune_length(text))},
-                    });
-
-                auto indexFmt = Str(std::format("[{}]", id));
-                return result;
-            },
-            lhsSize,
-            rhsSize,
-            false,
-            false);
+        os << text.format();
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};
     }
@@ -546,46 +540,45 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
         ShiftedDiff nodeDiff{
             nodeSimilarity, parsed.size(), expected.size()};
 
-        Func<Str(CR<OrgNode>)> conv = [](CR<OrgNode> tok) -> Str {
-            return std::format("{}", tok);
-        };
 
-        FormattedDiff text{nodeDiff};
-        ColStream     os;
-        format(
-            os,
-            text,
-            [&](int id, bool isLhs) -> ColText {
-                auto node = isLhs ? parsed.nodes.content.at(id)
-                                  : expected.nodes.content.at(id);
+        FormattedDiff text{
+            nodeDiff,
+            FormattedDiff::Conf{
+                .formatLine =
+                    [&](FormattedDiff::DiffLine const& line) -> ColText {
+                    if (line.empty()) { return ColText{""}; }
+                    auto node = line.isLhs ? parsed.nodes.content.at(
+                                                 line.index().value())
+                                           : expected.nodes.content.at(
+                                                 line.index().value());
 
-                auto group = isLhs ? &parsed : &expected;
+                    auto group = line.isLhs ? &parsed : &expected;
 
-                return fmt(
-                    "{} {} {}({})",
-                    id,
-                    node.kind,
-                    node.isTerminal()
-                        ? escape_literal(
-                              hshow1(
-                                  group->tokens->tokens.content
-                                      .get_copy(node.getToken().getIndex())
-                                      .value_or(OrgToken{})
-                                      ->text,
-                                  hshow_opts().excl(
-                                      hshow_flag::use_quotes))
-                                  .toString(false))
-                        : std::string(""),
-                    node.isTerminal()
-                        ? fmt("id={} kind={}",
-                              node.getToken().getIndex(),
-                              group->tokens->at(node.getToken()).kind)
-                        : fmt("ext={}", node.getExtent()));
-            },
-            48,
-            16,
-            false,
-            false);
+                    return fmt(
+                        "{} {} {}({})",
+                        line.index().value(),
+                        node.kind,
+                        node.isTerminal()
+                            ? escape_literal(
+                                  hshow1(
+                                      group->tokens->tokens.content
+                                          .get_copy(
+                                              node.getToken().getIndex())
+                                          .value_or(OrgToken{})
+                                          ->text,
+                                      hshow_opts().excl(
+                                          hshow_flag::use_quotes))
+                                      .toString(false))
+                            : std::string(""),
+                        node.isTerminal()
+                            ? fmt("id={} kind={}",
+                                  node.getToken().getIndex(),
+                                  group->tokens->at(node.getToken()).kind)
+                            : fmt("ext={}", node.getExtent()));
+                }}};
+
+        ColStream os;
+        os << text.format();
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};
     }
@@ -673,25 +666,13 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 
         ShiftedDiff sem_diff{
             sem_lcs, converted_lines.size(), expected_lines.size()};
-        FormattedDiff text{sem_diff};
+        FormattedDiff text{
+            sem_diff,
+            FormattedDiff::Conf{
+                .formatLine = FormattedDiff::getSequenceFormatterCb(
+                    &converted_lines, &expected_lines)}};
 
-        format(
-            os,
-            text,
-            [&](int id, bool isLhs) -> ColText {
-                auto node = isLhs ? converted_lines.at(id)
-                                  : expected_lines.at(id);
-                return ColText{node};
-            },
-            rs::max(converted_lines | rv::transform([](CR<Str> s) {
-                        return s.size();
-                    }))
-                + 8,
-            rs::max(expected_lines | rv::transform([](CR<Str> s) {
-                        return s.size();
-                    }))
-                + 8);
-
+        os << text.format();
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};
     } else {
@@ -1201,6 +1182,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 
         for (auto const& value : Vec<bool>::Splice(true, false)) {
             std::string formatted;
+            HSLOG_DEPTH_SCOPE_ANON();
+            HSLOG_DEBUG("Report group for colors:{}", value);
             for (auto const& report : reports) {
                 auto tmp = report;
                 tmp.config.with_debug_writes(value);

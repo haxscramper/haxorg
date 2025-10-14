@@ -1937,11 +1937,11 @@ OrgParser::ParseResult OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
     while (lex.at(OrgTokSet{otk::ColonProperties, otk::ColonLogbook})) {
         switch (lex.tok().kind) {
             case otk::ColonProperties: {
-                SUB_PARSE(SubtreeProperties, lex);
+                BOOST_OUTCOME_TRY(parseSubtreeProperties(lex));
                 break;
             }
             case otk::ColonLogbook: {
-                SUB_PARSE(SubtreeLogbook, lex);
+                BOOST_OUTCOME_TRY(parseSubtreeLogbook(lex));
                 break;
             }
             default:
