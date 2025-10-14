@@ -1,4 +1,5 @@
-/// \file rewrite of the https://github.com/zesterer/ariadne/tree/main for C++
+/// \file rewrite of the https://github.com/zesterer/ariadne/tree/main for
+/// C++
 
 #pragma once
 
@@ -254,7 +255,7 @@ struct Label {
 struct LabelInfo {
     LabelKind kind;
     Label     label;
-    DESC_FIELDS(LabelInfo, (kind));
+    DESC_FIELDS(LabelInfo, (kind, label));
 };
 
 

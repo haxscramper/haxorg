@@ -636,10 +636,21 @@ hstd::log::log_record log_described_record(
         line, function, file);
     res.fmt_message("{}:", hstd::value_metadata<Rec>::typeName());
 
+    int field_name_align = 0;
+
+    hstd::for_each_field_value_with_bases(
+        items, [&](char const* fieldName, auto const& value) {
+            field_name_align = std::max<int>(
+                field_name_align, std::string_view{fieldName}.size());
+        });
+
+
     hstd::for_each_field_value_with_bases(
         items, [&](char const* fieldName, auto const& value) {
             res.fmt_message(
-                "\n  {} = {}", fieldName, format_logger_argument1(value));
+                "\n  {} = {}",
+                hstd::left_aligned(fieldName, field_name_align),
+                format_logger_argument1(value));
         });
 
     return res;

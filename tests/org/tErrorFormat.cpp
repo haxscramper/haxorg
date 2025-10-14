@@ -734,7 +734,7 @@ TEST(PrintError, TwoLabelsWithoutMessageWrite) {
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
 Error: can't compare apples with oranges
-   ,-[tao:1:1]
+   ,-[ tao:1:1 ]
    |
  1 | apple == orange;
    | ^^|^^    ^^|^^^
@@ -769,7 +769,7 @@ TEST(PrintError, TwoLabelsWithMessages) {
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
 Error: can't compare apples with oranges
-   ,-[<unknown>:1:1]
+   ,-[ <unknown>:1:1 ]
    |
  1 | apple == orange;
    | ^^|^^    ^^|^^^
@@ -803,7 +803,7 @@ TEST(PrintError, MultiByteChars) {
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
 Error: can't compare äpplës with örängës
-   ,-[<unknown>:1:1]
+   ,-[ <unknown>:1:1 ]
    |
  1 | äpplë == örängë;
    | ^^|^^    ^^|^^^
@@ -837,7 +837,7 @@ TEST(PrintError, ByteLabel) {
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
 Error: can't compare äpplës with örängës
-   ,-[<unknown>:1:1]
+   ,-[ <unknown>:1:1 ]
    |
  1 | äpplë == örängë;
    | ^^^|^^^  ^^|^^^
@@ -871,13 +871,136 @@ TEST(PrintError, ByteColumn) {
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
 Error: can't compare äpplës with örängës
-   ,-[<unknown>:1:12]
+   ,-[ <unknown>:1:12 ]
    |
  1 | äpplë == örängë;
    | ^^^|^^^  ^^|^^^
    |    `------------ This is an äpplë
    |            |
    |            `---- This is an örängë
+---'
+)"_ss));
+}
+
+TEST(PrintError, LabelAtEndOfLongLine) {
+    auto      __scope  = getDebugLogScope();
+    Id        id       = 0;
+    hstd::Str repeated = "";
+    for (int i = 0; i < 100; ++i) { repeated += "apple == "; }
+    hstd::Str code = repeated + "orange"_ss;
+    StrCache  sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(
+                  Label{1}
+                      .with_span(
+                          id, slice(code.size() - 5, code.size() - 1))
+                      .with_message("This is an orange"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: can't compare apples with oranges
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == orange
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ^^|^^
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `--- This is an orange
+---'
+)"_ss));
+}
+
+TEST(PrintError, LabelOfWidthZeroAtEndOfLine) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "apple ==\n";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("unexpected end of file"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(8, 9))
+                              .with_message("Unexpected end of file"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: unexpected end of file
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 | apple ==
+   |          |
+   |          `- Unexpected end of file
+---'
+)"_ss));
+}
+
+TEST(PrintError, EmptyInput) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("unexpected end of file"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 0))
+                              .with_message("No more fruit!"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: unexpected end of file
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 |
+   | |
+   | `- No more fruit!
+---'
+)"_ss));
+}
+
+TEST(PrintError, EmptyInputHelp) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = "";
+    StrCache    sources;
+    sources.add(id, code, "<unknown>");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("unexpected end of file"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 0))
+                              .with_message("No more fruit!"_ss))
+              .with_help("have you tried going to the farmer's market?"_ss)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        remove_trailing(R"(
+Error: unexpected end of file
+   ,-[ <unknown>:1:1 ]
+   |
+ 1 |
+   | |
+   | `- No more fruit!
+   |
+   | Help: have you tried going to the farmer's market?
 ---'
 )"_ss));
 }

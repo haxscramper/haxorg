@@ -614,6 +614,8 @@ Vec<LineLabel> build_line_labels(
 
     Vec<LineLabel> line_labels;
     for (CR<Label> label : multi_labels) {
+        HSLOG_DEBUG("multi_label");
+        HSLOG_DEPTH_SCOPE_ANON();
         bool is_start = line.span().contains(label.span.start());
         bool is_end   = line.span().contains(label.span.end());
         bool different_from_margin_label
@@ -643,12 +645,12 @@ Vec<LineLabel> build_line_labels(
         HSLOG_DEPTH_SCOPE_ANON();
         if (label_info.label.msg) {
             HSLOG_DEBUG(
-                "{}",
+                "label.info.label.msg = {}",
                 hstd::escape_literal(
                     label_info.label.msg.value().toString(false)));
         }
 
-        HSLOG_DEBUG_FMT(label_info);
+        hstd::log::log_described_record(label_info.label).end();
         if (line.span().first <= label_info.label.span.start()
             && label_info.label.span.end() <= line.span().last) {
             if (label_info.kind == LabelKind::Inline) {
@@ -811,8 +813,16 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
             label.span.start() <= label.span.end(),
             "Label start is after its end");
 
-        auto start_line //
-            = src->get_offset_line(label.span.start()).value().idx;
+        auto const start_line = src->get_offset_line(label.span.start());
+        LOGIC_ASSERTION_CHECK(
+            start_line.has_value(),
+            "Could not get line for offset {} from label span {}. Source "
+            "len is {}",
+            label.span.start(),
+            label.span,
+            src->len);
+
+        auto start_line_idx = start_line.value().idx;
 
         int const offset = std::max(
             label.span.end() - 1, label.span.start());
@@ -827,8 +837,8 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
         auto end_line = offset_line.value().idx;
 
         LabelInfo label_info{
-            .kind  = (start_line == end_line) ? LabelKind::Inline
-                                              : LabelKind::Multiline,
+            .kind  = (start_line_idx == end_line) ? LabelKind::Inline
+                                                  : LabelKind::Multiline,
             .label = label,
         };
 
@@ -870,6 +880,7 @@ void write_report_group_header(
         + config.margin_color);
     op.write(ColRune(config.char_set.hbar) + config.margin_color);
     op.write(ColRune(config.char_set.lbox) + config.margin_color);
+    if (!config.compact) { op.write(ColRune{' '}); }
     op.write(src_name);
 
     // File name & reference
@@ -888,6 +899,7 @@ void write_report_group_header(
     } else {
         op.write(":?:?");
     }
+    if (!config.compact) { op.write(ColRune{' '}); }
 
     op.write(ColRune(config.char_set.rbox) + config.margin_color);
     op.write("\n");
@@ -1039,7 +1051,6 @@ void write_report_group(
         {
             HSLOG_INFO("Margin context");
             HSLOG_DEPTH_SCOPE_ANON();
-            HSLOG_DEBUG_FMT(op);
             HSLOG_DEBUG_FMT(config);
             HSLOG_DEBUG_FMT(multi_labels);
             HSLOG_DEBUG_FMT(line_labels);
@@ -1225,16 +1236,18 @@ void Report::write_for_stream(Cache& cache, ColStream& w) const {
 
 Source::Source(const Str& l) : content{l} {
     int offset = 0;
-    for (std::string const& line : l.split('\n')) {
-        Line l{
-            .offset = offset,
-            .len    = rune_length(line),
-        };
 
-        // _dfmt(line, l.len, line.size());
-        offset += l.len + 1;
+    if (l.empty()) {
+        Line l{.offset = offset, .len = 0};
         lines.push_back(l);
+    } else {
+        for (std::string const& line : l.split('\n')) {
+            Line l{.offset = offset, .len = rune_length(line)};
+            offset += l.len + 1;
+            lines.push_back(l);
+        }
     }
+
     len = offset;
 }
 
@@ -1248,14 +1261,18 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
                 return line.offset <= offset;
             });
         if (it != lines.begin()) { --it; }
-        int         idx  = std::distance(lines.begin(), it);
-        const Line& line = lines[idx];
-        LOGIC_ASSERTION_CHECK(
-            line.offset <= offset,
-            "line.offset = {} <= offset = {}",
-            line.offset,
-            offset);
-        return OffsetLine{std::ref(line), idx, offset - line.offset};
+        int idx = std::distance(lines.begin(), it);
+        if (lines.has(idx)) {
+            const Line& line = lines[idx];
+            LOGIC_ASSERTION_CHECK(
+                line.offset <= offset,
+                "line.offset = {} <= offset = {}",
+                line.offset,
+                offset);
+            return OffsetLine{std::ref(line), idx, offset - line.offset};
+        } else {
+            return std::nullopt;
+        }
     } else {
         return std::nullopt;
     }
