@@ -1250,9 +1250,9 @@ void write_report_header(Report const& report, Writer& op) {
         op.write(ColText(kind_color, ("[" + *report.code + "] ")));
     }
 
+    auto kind = ColText(kind_color, kindName);
     if (report.msg) {
         auto split = report.msg.value().split("\n");
-        auto kind  = ColText(kind_color, kindName);
         if (split.size() <= 1) {
             op.write(kind);
             op.write(": ");
@@ -1272,6 +1272,8 @@ void write_report_header(Report const& report, Writer& op) {
         }
 
     } else {
+        op.write(kind);
+        op.write(": ");
         op.write("\n");
     }
 }
