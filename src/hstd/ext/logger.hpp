@@ -650,7 +650,8 @@ hstd::log::log_record log_described_record(
             res.fmt_message(
                 "\n  {} = {}",
                 hstd::left_aligned(fieldName, field_name_align),
-                format_logger_argument1(value));
+                hstd::escape_literal(
+                    hstd::fmt1(format_logger_argument1(value))));
         });
 
     return res;
@@ -731,10 +732,11 @@ std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
             }
         }
         result += hstd::fmt(
-            "{} = ⦃{}⦄",
+            "{} = {}",
             stack ? hstd::left_aligned(argNames.at(index), names_width)
                   : argNames.at(index),
-            hstd::fmt1(::hstd::log::format_logger_argument1(value)));
+            ::hstd::escape_literal(::hstd::fmt1(
+                ::hstd::log::format_logger_argument1(value))));
     };
 
     int index = 0;
