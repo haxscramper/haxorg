@@ -726,7 +726,8 @@ template <>
 struct std::formatter<hstd::ColText> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const hstd::ColText& p, FormatContext& ctx) const {
-        return std::formatter<hstd::Vec<hstd::ColRune>>{}.format(p, ctx);
+        return std::formatter<std::string>{}.format(
+            p.toString(false), ctx);
     }
 };
 

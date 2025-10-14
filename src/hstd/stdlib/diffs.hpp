@@ -531,6 +531,25 @@ struct FormattedDiff {
         Vec<DiffLine> rhs;
     };
 
+
+    struct Conf {
+        using FormatCb = Func<ColText(DiffLine)>;
+        FormatCb formatLine;
+        Opt<int> minLhsSize;
+        Opt<int> minRhsSize;
+        Opt<int> maxLhsSize;
+        Opt<int> maxRhsSize;
+        bool     dropLeadingKeep  = false;
+        bool     dropTrailingKeep = false;
+        bool     groupLine        = false;
+        bool     sideBySide       = true;
+        int      maxUnchanged     = value_domain<int>::high();
+
+        bool unified() const { return !sideBySide; }
+    };
+
+    Conf conf;
+
     Variant<StackedDiff, UnifiedDiff> content;
 
     StackedDiff&       stacked() { return std::get<StackedDiff>(content); }
@@ -580,14 +599,31 @@ struct FormattedDiff {
         }
     }
 
-    FormattedDiff(
-        const ShiftedDiff& shifted,
-        DiffFormatConf     conf = DiffFormatConf{});
+    template <typename T>
+    static Conf::FormatCb getSequenceFormatterCb(
+        T const* lhs,
+        T const* rhs) {
+        return [&](FormattedDiff::DiffLine const& line) -> ColText {
+            if (line.empty()) {
+                return ColText{""_ss};
+            } else if (line.isLhs) {
+                return std::format("{}", lhs->at(line.index().value()));
+            } else {
+                return std::format("{}", rhs->at(line.index().value()));
+            }
+        };
+    }
+
+
+    FormattedDiff(const ShiftedDiff& shifted, Conf const& conf);
 
     FormattedDiff(
-        const Vec<BufItem>&   oldText,
-        const Vec<BufItem>&   newText,
-        const DiffFormatConf& conf = DiffFormatConf{});
+        const Vec<BufItem>& oldText,
+        const Vec<BufItem>& newText,
+        Conf const&         conf);
+
+
+    ColText format();
 };
 
 
@@ -669,11 +705,10 @@ template <typename T>
 ColText formatDiffed(
     const Vec<T>&                  oldSeq,
     const Vec<T>&                  newSeq,
-    const DiffFormatConf&          conf = DiffFormatConf{},
-    Func<bool(const T&, const T&)> eqCmp =
-        [](const T& a, const T& b) { return a == b; },
-    Func<Str(const T&)> strConv =
-        [](const T& a) { return std::format("{}", a); }) {
+    FormattedDiff::Conf const&     conf,
+    Func<bool(const T&, const T&)> eqCmp = [](const T& a, const T& b) {
+        return a == b;
+    }) {
 
     auto          diff = myersDiffCbCmp(oldSeq, newSeq, eqCmp);
     ShiftedDiff   shifted{diff};
@@ -683,9 +718,9 @@ ColText formatDiffed(
 }
 
 inline ColText formatDiffed(
-    const Str&            text1,
-    const Str&            text2,
-    const DiffFormatConf& conf = DiffFormatConf{}) {
+    const Str&                 text1,
+    const Str&                 text2,
+    FormattedDiff::Conf const& conf) {
     return formatDiffed(split(text1, '\n'), split(text2, '\n'), conf);
 }
 
