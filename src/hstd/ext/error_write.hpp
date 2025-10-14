@@ -405,8 +405,8 @@ class Report {
     ReportKind                 kind     = ReportKind::Error;
     std::optional<std::string> code     = std::nullopt;
     std::optional<ColText>     msg      = std::nullopt;
-    std::optional<ColText>     note     = std::nullopt;
-    std::optional<ColText>     help     = std::nullopt;
+    hstd::Vec<ColText>         note     = {};
+    hstd::Vec<ColText>         help     = {};
     std::pair<Id, int>         location = {0, 0};
     Vec<Label>                 labels   = {};
     Config                     config   = Config{};
@@ -433,20 +433,20 @@ class Report {
     }
 
     /// \brief Set the note of this report.
-    void set_note(const ColText& note) { this->note = note; }
+    void add_note(const ColText& note) { this->note.push_back(note); }
 
     /// \brief Set the note of this report.
     Report& with_note(const ColText& note) {
-        set_note(note);
+        add_note(note);
         return *this;
     }
 
     /// \brief Set the help message of this report.
-    void set_help(const ColText& help) { this->help = help; }
+    void add_help(const ColText& help) { this->help.push_back(help); }
 
     /// \brief Set the help message of this report.
     Report& with_help(const ColText& help) {
-        set_help(help);
+        add_help(help);
         return *this;
     }
 

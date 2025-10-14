@@ -563,36 +563,76 @@ void write_line_label_arrows(
     int                  row,
     int                  arrow_len) {
     // Lines alternate
+    HSLOG_DEBUG_FMT_STACK(row, arrow_len);
     auto chars = c.line_text.begin();
     for (int col = 0; col < arrow_len; ++col) {
 
         Opt<LineLabel> underline = get_underline(c, col);
         if (row != 0) { underline.reset(); }
 
-        std::array<ColRune, 2> ct_array;
+        HSLOG_DEBUG_FMT_STACK(col, underline);
+
+        ColRune ch;
+        ColRune tail;
+        // original rust code is a barely legible nested if-else
+        // expression, and even after several days of looking at the
+        // `write.rs` file I don't have any confidence in my understanding
+        // of what this thing is supposed to be in the end. It draws the
+        // arrows, yes, but if I actually use the `tail` code, like it is
+        // written in the rust version, the final result looks horrible.
         if (Opt<LineLabel> vbar = get_vbar(
                 col, row, c.line_labels, c.margin_label)) {
             if (underline) {
+                // the original comment from the `write.rs` regarding the
+                // `|| true` on the first branch. No idea what "feature"
+                // this refers to, but maybe in the future I will figure it
+                // out.
+
+                // clang-format off
+                // // TODO: Is this good?
+                // // The `true` is used here because it's temporarily disabling a
+                // // feature that might be reenabled later.
+                // #[allow(clippy::overly_complex_bool_expr)]
+                // clang-format on
+
                 if (vbar->label.span.len() == 0) {
-                    c.w.write(c.draw().underbar);
+                    ch   = c.draw().underbar;
+                    tail = c.draw().underline;
                 } else if (
                     c.line.offset + col == vbar->label.span.start()) {
-                    c.w.write(c.draw().ltop);
+                    ch   = c.draw().ltop;
+                    tail = c.draw().underbar;
                 } else if (c.line.offset + col == vbar->label.span.end()) {
-                    c.w.write(c.draw().rtop);
+                    ch   = c.draw().rtop;
+                    tail = c.draw().underbar;
                 } else {
-                    c.w.write(c.draw().underbar);
+                    ch   = c.draw().underbar;
+                    tail = c.draw().underline;
                 }
             } else if (
                 vbar->multi && row == 0 && c.config.multiline_arrows) {
-                c.w.write(c.draw().uarrow);
+                ch   = c.draw().uarrow;
+                tail = ColRune(' ');
             } else {
-                c.w.write(c.draw().vbar);
+                ch   = c.draw().vbar;
+                tail = ColRune(' ');
             }
         } else if (underline) {
-            c.w.write(ColRune(c.draw().underline, underline->label.color));
+            ch   = ColRune(c.draw().underline, underline->label.color);
+            tail = ColRune(c.draw().underline, underline->label.color);
         } else {
-            c.w.write(ColRune(' '));
+            ch   = ColRune(' ');
+            tail = ColRune(' ');
+        }
+
+        if (true) {
+            c.w.write(ch);
+        } else {
+            if (col == 0) {
+                c.w.write(ch);
+            } else {
+                c.w.write(tail);
+            }
         }
 
         if (chars != c.line_text.end()) { ++chars; }
@@ -661,8 +701,12 @@ Vec<LineLabel> build_line_labels(
             line.span().last,
             label_info.label.span.end() <= line.span().last);
 
+        // if the line fully contains an inline label
         if (line.span().first <= label_info.label.span.start()
             && (label_info.label.span.end() <= line.span().last
+                // or if the inline label starts on the line and goes out
+                // of the source range (e.g. error with "unexpected end of
+                // file" might require this).
                 || src->len <= label_info.label.span.end())) {
 
             if (label_info.kind == LabelKind::Inline) {
@@ -1108,43 +1152,55 @@ void write_report_group(
          .margin_label  = null_label,
     };
 
-
-    // Help
-    if (report.help.has_value() && is_final_group) {
-        if (!config.compact) {
-            write_margin(base);
-            op.write("\n");
-        }
-        write_margin(base);
-        op.write("Help: ");
-        op.write(report.help.value());
-        op.write("\n");
-    }
-
-    // Note
-    if (report.note.has_value() && is_final_group) {
+    auto write_annotation = [&](std::string const&   note,
+                                hstd::ColText const& text) {
         if (!config.compact) {
             write_margin(base);
             op.write("\n");
         }
 
-        auto noteLines = report.note.value().split("\n");
+        auto noteLines = text.split("\n");
         if (noteLines.size() <= 1) {
             write_margin(base);
-            op.write("Note: ");
-            op.write(report.note.value());
+            op.write(note);
+            op.write(text);
             op.write("\n");
         } else {
             for (auto const& it : enumerator(noteLines)) {
                 write_margin(base);
                 if (it.is_first()) {
-                    op.write("Note: ");
+                    op.write(note);
                 } else {
-                    op.write("      ");
+                    op.write(hstd::Str(" ").repeated(note.size()));
                 }
 
                 op.write(it.value());
                 op.write("\n");
+            }
+        }
+    };
+
+
+    // Help
+    if (!report.help.empty() && is_final_group) {
+        if (report.help.size() == 1) {
+            write_annotation("Help: ", report.help.at(0));
+        } else {
+            for (auto const& it : enumerator(report.help)) {
+                write_annotation(
+                    hstd::fmt("Help {}: ", it.index() + 1), it.value());
+            }
+        }
+    }
+
+    // Note
+    if (!report.note.empty() && is_final_group) {
+        if (report.note.size() == 1) {
+            write_annotation("Note: ", report.note.at(0));
+        } else {
+            for (auto const& it : enumerator(report.note)) {
+                write_annotation(
+                    hstd::fmt("Note {}: ", it.index() + 1), it.value());
             }
         }
     }

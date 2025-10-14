@@ -583,7 +583,11 @@ struct FormattedDiff {
         T const* lhs,
         T const* rhs,
         bool     formatLine = false) {
-        return [lhs, rhs, formatLine](
+        int digitCount = std::max<int>(
+            std::ceil(std::log10(lhs->size())),
+            std::ceil(std::log10(rhs->size())));
+
+        return [lhs, rhs, formatLine, digitCount](
                    FormattedDiff::DiffLine const& line) -> ColText {
             if (line.empty()) {
                 return ColText{""_ss};
@@ -591,9 +595,11 @@ struct FormattedDiff {
                 int const idx = line.index().value();
                 if (formatLine) {
                     if (line.isLhs) {
-                        return std::format("[{}] {}", idx, lhs->at(idx));
+                        return std::format(
+                            "[{:0{}}] {}", idx, digitCount, lhs->at(idx));
                     } else {
-                        return std::format("[{}] {}", idx, rhs->at(idx));
+                        return std::format(
+                            "[{:0{}}] {}", idx, digitCount, rhs->at(idx));
                     }
                 } else {
                     if (line.isLhs) {
