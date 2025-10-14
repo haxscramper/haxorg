@@ -54,6 +54,7 @@ option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
 option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
 option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
 option(ORG_USE_SANITIZER "Use sanitizers" ON)
+option(ORG_USE_PYTHON_BINDINGS "Enable build of the python bindings" ON)
 # Adaptagrams in the editor project uses libtooling for compilation and does not react well to the
 # changes in the main environment. Sometimes it does not build or does not rebuild things. By
 # default this option forces the dependency to be configured for all builds.
