@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/diffs.hpp>
 #include "../common.hpp"
 
 using namespace hstd::ext;
@@ -258,6 +259,7 @@ TEST(PrintError, StringBuilder1) {
 }
 
 TEST(PrintError, StringBuilderSetup1) {
+    auto                __scope = getDebugLogScope();
     PrintErrorTestSetup s{
         {
             labelPair({}, "012\n"),
@@ -279,6 +281,7 @@ TEST(PrintError, StringBuilderSetup1) {
 }
 
 TEST(PrintError, StringBuilderSetup_MultiLabels) {
+    auto                __scope = getDebugLogScope();
     PrintErrorTestSetup s{
         {
             labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
@@ -301,6 +304,7 @@ TEST(PrintError, StringBuilderSetup_MultiLabels) {
 }
 
 TEST(PrintError, StringBuilderSetup_MultiLabels_ManyLines) {
+    auto                __scope = getDebugLogScope();
     PrintErrorTestSetup s{
         {
             labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
@@ -327,6 +331,7 @@ TEST(PrintError, StringBuilderSetup_MultiLabels_ManyLines) {
 
 
 TEST(PrintError, RepoExample) {
+    auto     __scope = getDebugLogScope();
     StrCache sources;
     Id       a_id = 1;
 
@@ -373,6 +378,7 @@ def six =
 }
 
 TEST(PrintError, MultilineAnnotations) {
+    auto     __scope = getDebugLogScope();
     StrCache sources;
     Id       a_id = 1;
 
@@ -420,8 +426,9 @@ def six =
 }
 
 TEST(PrintError, MultipleFiles) {
-    std::string a_tao = R"''(def five = 5)''";
-    std::string b_tao = R"''(def six = five + "1")''";
+    auto        __scope = getDebugLogScope();
+    std::string a_tao   = R"''(def five = 5)''";
+    std::string b_tao   = R"''(def six = five + "1")''";
 
     ColText natColorized  = "Nat"_qs;
     ColText strColorized  = "Str"_qs;
@@ -478,8 +485,9 @@ TEST(PrintError, MultipleFiles) {
 }
 
 TEST(PrintError, MultipleAnnotations) {
-    Id          id   = 0;
-    std::string code = R"(def fives = ["5", 5]
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = R"(def fives = ["5", 5]
 
 def sixes = ["6", 6, True, (), []]
 
@@ -555,8 +563,9 @@ def multiline :: Str = match Some 5 in {
 }
 
 TEST(PrintError, MultipleAnnotations2) {
-    Id          id   = 0;
-    std::string code = R"(def fives = ["5", 5]
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = R"(def fives = ["5", 5]
 
 def sixes = ["6", 6, True, (), []]1
 
@@ -593,9 +602,112 @@ def multiline :: Str = match Some 5 in {
     // report.config.with_debug_writes(true);
 
     writeFile(
-        getDebugFile("error_MultipleAnnotations2.txt"),
+        getDebugFile("res.txt"),
         fmt("{}\n{}..{}\n",
             report.to_string(sources, false),
             code.at(108),
             code.at(122)));
+}
+
+hstd::Str remove_trailing(hstd::Str const& in) {
+    return hstd::strip(in, CharSet{}, CharSet{'\n'});
+}
+
+TEST(PrintError, OneMessageWrite) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = R"()";
+    StrCache    sources;
+    sources.add(id, code, "tao");
+
+    auto report //
+        = Report(ReportKind::Error, id, 13)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ(
+        remove_trailing(report.to_string(sources, false)),
+        "Error: can't compare apples with oranges"_ss);
+}
+
+template <typename T>
+hstd::ColText __gtest_assert_eq_seq_fail_message(
+    T const& lhs,
+    T const& rhs) {
+    return hstd::formatDiffed(
+        lhs,
+        rhs,
+        FormattedDiff::Conf{
+            .formatLine = FormattedDiff::getSequenceFormatterCb(
+                &lhs, &rhs)});
+}
+
+template <>
+hstd::ColText __gtest_assert_eq_seq_fail_message<std::string>(
+    std::string const& lhs,
+    std::string const& rhs) {
+    return __gtest_assert_eq_seq_fail_message(
+        hstd::split(lhs, '\n'), hstd::split(rhs, '\n'));
+}
+
+template <>
+hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::Str>(
+    hstd::Str const& lhs,
+    hstd::Str const& rhs) {
+    return __gtest_assert_eq_seq_fail_message(
+        hstd::split(lhs, '\n'), hstd::split(rhs, '\n'));
+}
+
+template <>
+hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
+    hstd::ColText const& lhs,
+    hstd::ColText const& rhs) {
+    return __gtest_assert_eq_seq_fail_message(
+        lhs.split('\n'), lhs.split('\n'));
+}
+
+
+#define GTEST_ASSERT_EQ_SEQ(__lhs_arg, __rhs_arg)                         \
+    {                                                                     \
+        auto const __lhs = __lhs_arg;                                     \
+        auto const __rhs = __rhs_arg;                                     \
+        if (!(__lhs == __rhs)) {                                          \
+            FAIL() << __gtest_assert_eq_seq_fail_message(__lhs, __rhs)    \
+                          .toString(false);                               \
+        }                                                                 \
+    }
+
+TEST(PrintError, TwoLabelsWithoutMessageWrite) {
+    auto        __scope = getDebugLogScope();
+    Id          id      = 0;
+    std::string code    = R"(apple == orange;)";
+    StrCache    sources;
+    sources.add(id, code, "tao");
+
+    auto report //
+        = Report(ReportKind::Error, id, 0)
+              .with_message("can't compare apples with oranges"_qs)
+              .with_label(Label{1}
+                              .with_span(id, slice(0, 4))
+                              .with_message("This is an apple"_ss))
+              .with_label(Label{2}
+                              .with_span(id, slice(9, 14))
+                              .with_message("This is an orange"_ss))
+              .with_config(Config().with_color(false).with_char_set(
+                  Config::ascii()));
+
+    GTEST_ASSERT_EQ_SEQ(
+        remove_trailing(report.to_string(sources, false)),
+        R"(
+Error: can't compare apples with oranges
+   ,-[tao:1:1]
+   |
+ 1 | apple == orange;
+   | ^^|^^    ^^^|^^
+   |   `-------------- This is an apple
+   |             |
+   |             `---- This is an orange
+---'
+)"_ss);
 }

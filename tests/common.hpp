@@ -2,6 +2,7 @@
 
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/ext/logger.hpp>
 
 struct TestParameters {
     hstd::Str corpusGlob;
@@ -80,6 +81,15 @@ inline hstd::fs::path getDebugFile(
     }
 
     return outPath;
+}
+
+inline auto getDebugLogScope(
+    hstd::Str const& suffix      = "execution.log",
+    bool             cleanParent = false) {
+    return HSLOG_SINK_FACTORY_SCOPED(([suffix, cleanParent]() {
+        return ::hstd::log::init_file_sink(
+            getDebugFile(suffix, cleanParent).native());
+    }));
 }
 
 

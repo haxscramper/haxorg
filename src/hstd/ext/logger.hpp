@@ -82,17 +82,6 @@ concept has_log_value_formatter = requires(const T& value) {
     } -> std::convertible_to<std::string>;
 };
 
-template <typename T>
-std::string format_single_argument(const T& value) {
-    if constexpr (has_log_value_formatter<T>) {
-        return hstd::log::log_value_formatter<T>{}.format(value);
-    } else if constexpr (hstd::StdFormattable<T>) {
-        return std::format("{}", value);
-    } else {
-        return "<type unformattable>";
-    }
-}
-
 template <typename... Args>
 using LogFormatStr = std::format_string<std::conditional_t<
     hstd::log::has_log_value_formatter<std::decay_t<Args>>,
@@ -113,7 +102,9 @@ auto format_logger_argument1(T const& arg) {
                              std::decay_t<decltype(arg)>>) {
         return arg;
     } else {
-        return std::string{"<type unformattable>"};
+        return hstd::fmt(
+            "<type unformattable '{}'>",
+            hstd::value_metadata<T>::typeName());
     }
 }
 
@@ -263,6 +254,7 @@ struct log_record {
         auto       formatted_args = std::make_tuple(
             format_logger_argument1<Args>(args)...);
         rec.line(line)
+            .file(file)
             .severity(severity)
             .category(category)
             .function(function)
@@ -286,8 +278,11 @@ struct log_record {
         log_record rec;
         auto       formatted_args = std::make_tuple(
             format_logger_argument1<Args>(args)...);
-        rec.line(line).severity(severity).function(function).message(
-            std::apply(
+        rec.line(line)
+            .file(file)
+            .severity(severity)
+            .function(function)
+            .message(std::apply(
                 [&fmt](auto&... args_ref) {
                     return std::vformat(
                         fmt.get(), std::make_format_args(args_ref...));
@@ -628,6 +623,25 @@ hstd::log::log_record log_associative_collection(
         res.fmt_message(
             "\n[{}]: {}", key, format_logger_argument1(items.at(key)));
     }
+    return res;
+}
+
+template <hstd::DescribedRecord Rec>
+hstd::log::log_record log_described_record(
+    Rec const&  items,
+    int         line     = __builtin_LINE(),
+    char const* function = __builtin_FUNCTION(),
+    char const* file     = __builtin_FILE()) {
+    auto res = ::hstd::log::log_record{}.set_callsite(
+        line, function, file);
+    res.fmt_message("{}:", hstd::value_metadata<Rec>::typeName());
+
+    hstd::for_each_field_value_with_bases(
+        items, [&](char const* fieldName, auto const& value) {
+            res.fmt_message(
+                "\n  {} = {}", fieldName, format_logger_argument1(value));
+        });
+
     return res;
 }
 
