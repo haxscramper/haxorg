@@ -237,7 +237,10 @@ struct Label {
 
     Label clone() const { return *this; }
 
-    int                    id;
+    /// \brief Unique ID to disambiguate different labels from each other
+    /// and uniquely identify them.
+    int id;
+    /// \brief Range of code this label applies to.
     CodeSpan               span;
     std::optional<ColText> msg      = std::nullopt;
     ColStyle               color    = ColStyle{};
@@ -251,7 +254,7 @@ struct Label {
     }
 };
 
-
+/// \brief Metadata about the label.
 struct LabelInfo {
     LabelKind kind;
     Label     label;
