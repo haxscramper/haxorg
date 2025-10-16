@@ -304,11 +304,19 @@ Characters Config::ascii() {
 
 
 namespace {
+/// \brief Line label object associated with some specific line.
 struct LineLabel {
-    int   col;
+    /// \brief Which column on the line is targeted by the label. In case
+    /// of the multiline label this field is used in two contexts. One for
+    int col;
+    /// \brief Information about the
     Label label;
-    bool  multi;
-    bool  draw_msg;
+    /// \brief Report is labeling content across multiple lines at once.
+    bool multi;
+    /// \brief Whether to draw the label on the associated line, or it will
+    /// be drawn somewhere else. The `.label` field is present regardless,
+    /// but only used if the `draw_msg` is set to true.
+    bool draw_msg;
     DESC_FIELDS(LineLabel, (col, label, multi, draw_msg));
 };
 
@@ -355,9 +363,14 @@ struct MarginContext {
     MarginContext clone() const { return *this; }
     ColText       line_text;
     _field(int, idx, 0);
+    /// \brief Drawing margin for the line showing source code.
     _field(bool, is_line, false);
-    _field(bool, is_ellipsis, false);
+    /// \brief Gap in the vertical lines for empty spaces between source
+    /// content lines with annotations.
+    _field(bool, is_gap, false);
+    /// \brief Number of characters taken by the line number in the report.
     _field(int, line_number_width, 0);
+    /// \brief Draw the label part of the margin, like horizontal end rows.
     _field(bool, draw_labels, false);
     _field(int, arrow_len, 0);
     Line const&                         line;
@@ -408,6 +421,9 @@ int get_arrow_len(MarginContext const& base) {
     return arrow_len;
 }
 
+/// \brief Get the information about the multi-label on the target line.
+/// Returns a single label with the start/end closest to the actual line
+/// span.
 std::optional<LineLabel> get_margin_label(
     Line const&       line,
     Vec<Label> const& multi_labels) {
@@ -415,12 +431,9 @@ std::optional<LineLabel> get_margin_label(
     int                      min_key = std::numeric_limits<int>::max();
     HSLOG_DEBUG("get margin label");
     HSLOG_DEPTH_SCOPE_ANON();
-    for (int i = 0; i < multi_labels.size(); ++i) {
-        HSLOG_DEBUG("[{}]", i);
-        HSLOG_DEPTH_SCOPE_ANON();
-        Label const& label    = multi_labels[i];
-        bool         is_start = line.span().contains(label.span.start());
-        bool         is_end   = line.span().contains(label.span.end());
+    for (Label const& label : multi_labels) {
+        bool is_start = line.span().contains(label.span.start());
+        bool is_end   = line.span().contains(label.span.end());
         HSLOG_DEBUG_FMT_LINE(is_start, is_end, line.span(), label.span);
 
         if (is_start || is_end) {
@@ -433,6 +446,8 @@ std::optional<LineLabel> get_margin_label(
             };
 
 
+            // TODO: Not clear how this construct arranges the multi-labels
+            // and selects something for the target line.
             int key = (ll.col << 1) | (!label.span.start());
             if (key < min_key) {
                 min_key      = key;
@@ -440,15 +455,17 @@ std::optional<LineLabel> get_margin_label(
             }
         }
     }
+
     return margin_label;
 }
 
 void write_margin(MarginContext const& c);
 
-bool sort_line_labels(
-    MarginContext const& c,
-    bool&                is_ellipsis,
-    Vec<LineLabel>&      line_labels) {
+Pair<bool, bool> is_gap_and_skip_line(
+    MarginContext const&  c,
+    bool                  is_gap,
+    Vec<LineLabel> const& line_labels) {
+    bool is_skip = false;
     // Skip this line if we don't have labels for it
     if (line_labels.size() == 0 && !c.margin_label.has_value()) {
         bool within_label = std::any_of(
@@ -457,19 +474,25 @@ bool sort_line_labels(
             [&](Label const& label) {
                 return label.span.contains(c.line.span().first);
             });
-        if (!is_ellipsis && within_label) {
-            is_ellipsis = true;
+        if (!is_gap && within_label) {
+            is_gap = true;
         } else {
-            if (!c.config.compact && !is_ellipsis) {
-                write_margin(c.clone().with_is_ellipsis(is_ellipsis));
+            if (!c.config.compact && !is_gap) {
+                write_margin(c.clone().with_is_gap(is_gap));
                 c.w.write("\n");
             }
-            is_ellipsis = true;
-            return false;
+            is_gap  = true;
+            is_skip = true;
         }
     } else {
-        is_ellipsis = false;
+        is_gap = false;
     }
+    return {is_skip, is_gap};
+}
+
+bool sort_line_labels(
+    MarginContext const& c,
+    Vec<LineLabel>&      line_labels) {
 
     // Sort the labels by their columns
     std::sort(
@@ -498,14 +521,25 @@ struct MarginElements {
 MarginElements fill_margin_elements(MarginContext const& c, int col) {
     HSLOG_DEBUG("fill_margin_elements");
     HSLOG_DEPTH_SCOPE_ANON();
+    HSLOG_DEBUG_FMT_LINE(
+        c.multi_labels.size(),
+        c.is_line,
+        c.is_gap,
+        c.line_number_width,
+        c.draw_labels,
+        c.arrow_len);
 
     MarginElements result;
 
     Slice<int> line_span = c.src->line(c.idx).value().span();
-    for (int i = 0; i < std::min(col + 1, c.multi_labels.size()); ++i) {
+    // Iterate over all multi-line labels in the report to find which
+    // labels are applicable for a given line span.
+    for (int label_index = 0;
+         label_index < std::min(col + 1, c.multi_labels.size());
+         ++label_index) {
         HSLOG_DEPTH_SCOPE_ANON();
-        auto label = c.multi_labels.at(i);
-        HSLOG_DEBUG("{} label {}", i, label.span);
+        auto label = c.multi_labels.at(label_index);
+        HSLOG_DEBUG("{} label {}", label_index, label.span);
         Opt<LineLabel> margin;
         if (c.margin_label && label == c.margin_label->label) {
             margin = c.margin_label;
@@ -524,7 +558,7 @@ MarginElements fill_margin_elements(MarginContext const& c, int col) {
 
         if (label.span.start() <= line_span.last
             && line_span.first <= label.span.end()) {
-            bool is_parent = i != col;
+            bool is_parent = label_index != col;
             bool is_start  = line_span.contains(label.span.start());
             bool is_end    = line_span.contains(label.span.end());
             HSLOG_DEBUG_FMT_LINE(is_parent, is_start, is_end);
@@ -554,7 +588,7 @@ MarginElements fill_margin_elements(MarginContext const& c, int col) {
                 if (report_row_value.first == label_row) {
                     HSLOG_DEBUG("-- ");
                     if (margin) {
-                        if (col == i) {
+                        if (col == label_index) {
                             HSLOG_DEBUG("-- ");
                             result.vbar = margin->label;
                         } else {
@@ -611,86 +645,52 @@ Pair<ColRune, ColRune> get_corner_elements(
     HSLOG_DEBUG("get_corner_elements");
     HSLOG_DEPTH_SCOPE_ANON();
 
-    if (HSLOG_DEBUG_EXPR_VAL(HSLOG_DEBUG_EXPR_BOOL(margin.corner))) {
-        HSLOG_DEBUG_IF();
+    if (margin.corner) {
         auto [label, is_start] = *margin.corner;
-        if (HSLOG_DEBUG_EXPR_VAL1(is_start)) {
-            HSLOG_DEBUG_IF();
-            base = ColRune(c.draw().ltop, label.color)
-                       .dbg_origin(c.config.debug_writes);
+        if (is_start) {
+            base = ColRune(c.draw().ltop, label.color);
         } else {
-            HSLOG_DEBUG_ELSE();
-            base = ColRune(c.draw().lbot, label.color)
-                       .dbg_origin(c.config.debug_writes);
+            base = ColRune(c.draw().lbot, label.color);
         }
 
-        extended = ColRune(c.draw().hbar, label.color)
-                       .dbg_origin(c.config.debug_writes);
-    } else if (HSLOG_DEBUG_EXPR_VAL(
-                   HSLOG_DEBUG_EXPR_BOOL(margin.hbar)
-                   && HSLOG_DEBUG_EXPR_BOOL(margin.vbar)
-                   && !HSLOG_DEBUG_EXPR_BOOL(c.config.cross_gap))) {
-        HSLOG_DEBUG_IF();
-        base = ColRune(c.draw().xbar, margin.hbar->color)
-                   .dbg_origin(c.config.debug_writes);
-        extended = ColRune(c.draw().hbar, margin.hbar->color)
-                       .dbg_origin(c.config.debug_writes);
-    } else if (HSLOG_DEBUG_EXPR_VAL1(margin.hbar)) {
-        HSLOG_DEBUG_IF();
-        base = ColRune(c.draw().hbar, margin.hbar->color)
-                   .dbg_origin(c.config.debug_writes);
-        extended = ColRune(c.draw().hbar, margin.hbar->color)
-                       .dbg_origin(c.config.debug_writes);
-    } else if (HSLOG_DEBUG_EXPR_VAL1(margin.vbar)) {
-        HSLOG_DEBUG_IF();
-        if (HSLOG_DEBUG_EXPR_VAL1(c.is_ellipsis)) {
-            base = ColRune(c.draw().vbar_gap, margin.vbar->color)
-                       .dbg_origin(c.config.debug_writes);
+        extended = ColRune(c.draw().hbar, label.color);
+    } else if (margin.hbar && margin.vbar && !c.config.cross_gap) {
+        base     = ColRune(c.draw().xbar, margin.hbar->color);
+        extended = ColRune(c.draw().hbar, margin.hbar->color);
+    } else if (margin.hbar) {
+        base     = ColRune(c.draw().hbar, margin.hbar->color);
+        extended = ColRune(c.draw().hbar, margin.hbar->color);
+    } else if (margin.vbar) {
+        if ((c.is_gap)) {
+            base = ColRune(c.draw().vbar_gap, margin.vbar->color);
         } else {
-            HSLOG_DEBUG_ELSE();
-            base = ColRune(c.draw().vbar, margin.vbar->color)
-                       .dbg_origin(c.config.debug_writes);
+            base = ColRune(c.draw().vbar, margin.vbar->color);
         }
-        extended = ColRune(' ').dbg_origin(c.config.debug_writes);
-    } else if (HSLOG_DEBUG_EXPR_VAL(
-                   HSLOG_DEBUG_EXPR_BOOL(margin.margin_ptr)
-                   && HSLOG_DEBUG_EXPR_BOOL(c.is_line))) {
-        HSLOG_DEBUG_IF();
+        extended = ColRune(' ');
+    } else if (margin.margin_ptr && c.is_line) {
         auto [label, is_start] = *margin.margin_ptr;
         bool is_col   = multi_label && (multi_label->get() == label.label);
         bool is_limit = col == c.multi_labels.size();
-        if (HSLOG_DEBUG_EXPR_VAL1(is_limit)) {
-            HSLOG_DEBUG_IF();
-            base = ColRune(c.draw().rarrow, label.label.color)
-                       .dbg_origin(c.config.debug_writes);
-        } else if (HSLOG_DEBUG_EXPR_VAL1(is_col)) {
-            HSLOG_DEBUG_IF();
-            if (HSLOG_DEBUG_EXPR_VAL1(is_start)) {
-                HSLOG_DEBUG_IF();
-                base = ColRune(c.draw().ltop, label.label.color)
-                           .dbg_origin(c.config.debug_writes);
+        if (is_limit) {
+            base = ColRune(c.draw().rarrow, label.label.color);
+        } else if (is_col) {
+            if (is_start) {
+                base = ColRune(c.draw().ltop, label.label.color);
             } else {
-                HSLOG_DEBUG_ELSE();
-                base = ColRune(c.draw().lcross, label.label.color)
-                           .dbg_origin(c.config.debug_writes);
+                base = ColRune(c.draw().lcross, label.label.color);
             }
         } else {
-            base = ColRune(c.draw().hbar, label.label.color)
-                       .dbg_origin(c.config.debug_writes);
+            base = ColRune(c.draw().hbar, label.label.color);
         }
 
-        if (HSLOG_DEBUG_EXPR_VAL1(is_limit)) {
-            HSLOG_DEBUG_IF();
-            extended = ColRune(' ').dbg_origin(c.config.debug_writes);
+        if (is_limit) {
+            extended = ColRune(' ');
         } else {
-            HSLOG_DEBUG_ELSE();
-            extended = ColRune(c.draw().hbar, label.label.color)
-                           .dbg_origin(c.config.debug_writes);
+            extended = ColRune(c.draw().hbar, label.label.color);
         }
     } else {
-        HSLOG_DEBUG_ELSE();
-        base     = ColRune(' ').dbg_origin(c.config.debug_writes);
-        extended = ColRune(' ').dbg_origin(c.config.debug_writes);
+        base     = ColRune(' ');
+        extended = ColRune(' ');
     }
 
     return {base, extended};
@@ -700,14 +700,14 @@ void write_margin_line_number(MarginContext const& c) {
     Str line_number;
 
     // Get the line number text for the report.
-    if (c.is_line && !c.is_ellipsis) {
+    if (c.is_line && !c.is_gap) {
         int line_no = c.idx + 1;
         line_number = Str(" ").repeated(
                           c.line_number_width - fmt1(line_no).length())
                     + Str(fmt1(line_no)) + Str(" ") + Str(c.draw().vbar);
     } else {
         line_number = Str(" ").repeated(c.line_number_width + 1);
-        line_number += (c.is_ellipsis ? c.draw().vbar_gap : c.draw().vbar);
+        line_number += (c.is_gap ? c.draw().vbar_gap : c.draw().vbar);
     }
 
     c.w.write(" ");
@@ -764,7 +764,7 @@ void write_margin(MarginContext const& c) {
 
 
 /// \brief Should we draw a vertical bar as part of a label arrow
-/// on this line?
+/// on this line and column?
 auto get_vbar(
     int                   col,
     int                   row,
@@ -918,24 +918,12 @@ void write_line_label_arrows(
     }
 }
 
+void collect_multiline_labels(
+    Vec<LineLabel>&       line_labels,
+    Line const&           line,
+    Vec<Label> const&     multi_labels,
+    Opt<LineLabel> const& margin_label) {
 
-/// \brief Collect line labels associated with the input line. Include both
-/// labels that are contained in the range of the single line, and ones
-/// that span multiple lines.
-Vec<LineLabel> build_line_labels(
-    Config const&           config,
-    Line const&             line,
-    Vec<LabelInfo> const&   labels,
-    Opt<LineLabel> const&   margin_label,
-    Vec<Label> const&       multi_labels,
-    std::shared_ptr<Source> src) {
-    HSLOG_DEBUG("Build line labels");
-    HSLOG_DEPTH_SCOPE_ANON();
-    HSLOG_DEBUG_FMT_LINE(
-        labels.size(), margin_label.has_value(), multi_labels.size());
-    HSLOG_DEBUG_FMT_LINE(line);
-
-    Vec<LineLabel> line_labels;
     for (CR<Label> label : multi_labels) {
         HSLOG_DEBUG("multi_label");
         HSLOG_DEPTH_SCOPE_ANON();
@@ -962,7 +950,14 @@ Vec<LineLabel> build_line_labels(
             line_labels.push_back(ll);
         }
     }
+}
 
+void collect_inline_labels(
+    Vec<LineLabel>&         line_labels,
+    Config const&           config,
+    Line const&             line,
+    Vec<LabelInfo> const&   labels,
+    std::shared_ptr<Source> src) {
     for (const LabelInfo& label_info : labels) {
         HSLOG_DEBUG("label_info");
         HSLOG_DEPTH_SCOPE_ANON();
@@ -1020,6 +1015,29 @@ Vec<LineLabel> build_line_labels(
             }
         }
     }
+}
+
+
+/// \brief Collect line labels associated with the input line. Include both
+/// labels that are contained in the range of the single line, and ones
+/// that span multiple lines.
+Vec<LineLabel> build_line_labels(
+    Config const&           config,
+    Line const&             line,
+    Vec<LabelInfo> const&   labels,
+    Opt<LineLabel> const&   margin_label,
+    Vec<Label> const&       multi_labels,
+    std::shared_ptr<Source> src) {
+    HSLOG_DEBUG("Build line labels");
+    HSLOG_DEPTH_SCOPE_ANON();
+    HSLOG_DEBUG_FMT_LINE(
+        labels.size(), margin_label.has_value(), multi_labels.size());
+    HSLOG_DEBUG_FMT_LINE(line);
+    Vec<LineLabel> line_labels;
+    collect_multiline_labels(
+        line_labels, line, multi_labels, margin_label);
+
+    collect_inline_labels(line_labels, config, line, labels, src);
 
     HSLOG_DEBUG_FMT_LINE(line_labels.size());
     return line_labels;
@@ -1265,11 +1283,11 @@ void write_report_source_line(
     HSLOG_DEPTH_SCOPE_ANON();
     write_margin(base.clone()
                      .with_is_line(true)
-                     .with_is_ellipsis(base.is_ellipsis)
+                     .with_is_gap(base.is_gap)
                      .with_draw_labels(true));
 
     // Lines
-    if (!base.is_ellipsis) {
+    if (!base.is_gap) {
         int col = 0;
         for (ColRune const& c : base.line_text) {
             Opt<CRw<Label>> highlight = get_highlight(
@@ -1299,16 +1317,14 @@ void write_report_line_annotations(MarginContext base) {
                     {row, false}));
 
             write_line_label_arrows(
-                base.with_is_ellipsis(base.is_ellipsis),
-                row,
-                base.arrow_len);
+                base.with_is_gap(base.is_gap), row, base.arrow_len);
 
             base.w.write("\n");
         }
 
         // Margin for the first line of the label.
         write_margin(base.clone()
-                         .with_is_ellipsis(base.is_ellipsis)
+                         .with_is_gap(base.is_gap)
                          .with_report_row({row, true})
                          .with_draw_labels(true));
 
@@ -1370,7 +1386,7 @@ void write_report_group(
 
     HSLOG_DEBUG_FMT_LINE(multi_labels.size());
 
-    bool is_ellipsis = false;
+    bool is_gap = false;
     for (int idx = line_range.first; idx <= line_range.last; ++idx) {
 
         /* auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED(
@@ -1425,9 +1441,14 @@ void write_report_group(
             HSLOG_DEBUG_FMT_LINE(src->get_line_text(line));
         }
 
+        auto [is_skip, is_gap_upd] = is_gap_and_skip_line(
+            base, is_gap, line_labels);
 
-        if (sort_line_labels(base, is_ellipsis, line_labels)) {
-            base.with_is_ellipsis(is_ellipsis);
+        is_gap = is_gap_upd;
+
+        if (!is_skip) {
+            sort_line_labels(base, line_labels);
+            base.with_is_gap(is_gap);
             int arrow_len = get_arrow_len(base);
             base.with_arrow_len(arrow_len);
             write_report_source_line(base, margin_label);
@@ -1449,7 +1470,7 @@ void write_report_group(
          .line_number_width = line_number_width,
          .draw_labels       = true,
          .is_line           = false,
-         .is_ellipsis       = false,
+         .is_gap            = false,
          .report_row        = std::pair{0, false},
          .line              = Line{},
          .margin_label      = null_label,
