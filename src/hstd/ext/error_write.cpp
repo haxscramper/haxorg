@@ -115,7 +115,7 @@ struct MarginContext {
     Writer&       w;
     MarginContext clone() const { return *this; }
     ColText       line_text;
-    _field(int, idx, 0);
+    _field(int, source_line_idx, 0);
     /// \brief Drawing margin for the line showing source code.
     _field(bool, is_line, false);
     /// \brief Gap in the vertical lines for empty spaces between source
@@ -126,8 +126,10 @@ struct MarginContext {
     /// \brief Draw the label part of the margin, like horizontal end rows.
     _field(bool, draw_labels, false);
     _field(int, arrow_len, 0);
-    Line const&                         line;
-    std::optional<std::pair<int, bool>> report_row = std::nullopt;
+    Line const& line;
+    /// \brief Information about the active report label that is being
+    /// drawn.
+    std::optional<std::pair<int, bool>> active_label = std::nullopt;
     Vec<LineLabel> const&               line_labels;
     std::optional<LineLabel> const&     margin_label;
     std::shared_ptr<Source>             src;
@@ -137,8 +139,9 @@ struct MarginContext {
     Vec<Label> const& multi_labels;
     Config const&     config;
 
-    MarginContext& with_report_row(std::pair<int, bool> const& value) {
-        report_row = value;
+    // TODO: What second parameter in the tuple (the bool one) refers to?
+    MarginContext& with_active_label(std::pair<int, bool> const& value) {
+        active_label = value;
         return *this;
     }
 
@@ -285,19 +288,21 @@ struct MarginElements {
          is_margin_label_start));
 };
 
-/// \brief
+/// \brief Get information about the margin rendering at the particular
+/// column. Margin context will provide additional information about active
+/// labels etc.
 MarginElements fill_margin_elements(
     MarginContext const& c,
     int                  margin_col) {
     MarginElements result;
-    Slice<int>     line_span = c.src->line(c.idx).value().span();
+    Slice<int> line_span = c.src->line(c.source_line_idx).value().span();
     // Iterate over all multi-line labels in the report to find which
     // labels are applicable for a given line span.
-    for (int margin_label_index = 0;
-         margin_label_index
+    for (int margin_label_idx = 0;
+         margin_label_idx
          < std::min(margin_col + 1, c.multi_labels.size());
-         ++margin_label_index) {
-        auto           label = c.multi_labels.at(margin_label_index);
+         ++margin_label_idx) {
+        auto           label = c.multi_labels.at(margin_label_idx);
         Opt<LineLabel> margin;
         if (c.margin_label && label == c.margin_label->label) {
             margin = c.margin_label;
@@ -306,20 +311,29 @@ MarginElements fill_margin_elements(
         if (label.span.start() <= line_span.last
             && line_span.first <= label.span.end()) {
             // TODO: What `is_parent` represents exactly?
-            bool is_parent = margin_label_index != margin_col;
+            bool is_parent = margin_label_idx != margin_col;
             bool is_start  = line_span.contains(label.span.start());
             bool is_end    = line_span.contains(label.span.end());
 
+
             if (margin && c.is_line) {
+                // Drawing margin on the real source code line. There is a
+                // margin label that is targeting this column exactly.
                 result.margin_label          = margin.value();
                 result.is_margin_label_start = is_start;
-            } else if (!is_start && (!is_end || c.is_line)) {
+            } else if (
+                (!is_start && !is_end) || (!is_start && c.is_line)) {
+                // Drawing margin on the intermediate gap between the start
+                // and the end.
                 if (!result.vbar_label && !is_parent) {
                     result.vbar_label = label;
                 }
-            } else if (c.report_row.has_value()) {
-                auto report_row_value = c.report_row.value();
-                int  label_row        = 0;
+            } else if (c.active_label.has_value()) {
+                // There is an active report label that the code is drawing
+                // margin for.
+                auto [active_label_idx, active_second_wtf] //
+                    = c.active_label.value();
+                int label_row = 0;
                 for (int r = 0; r < c.line_labels.size(); ++r) {
                     if (label == c.line_labels[r].label) {
                         label_row = r;
@@ -327,9 +341,10 @@ MarginElements fill_margin_elements(
                     }
                 }
 
-                if (report_row_value.first == label_row) {
+                if (active_label_idx == label_row) {
+                    // The margin is being drawn for the active label.
                     if (margin) {
-                        if (margin_col == margin_label_index) {
+                        if (margin_col == margin_label_idx) {
                             result.vbar_label = margin->label;
                         } else {
                             result.vbar_label = std::nullopt;
@@ -338,7 +353,7 @@ MarginElements fill_margin_elements(
                         if (is_start) { continue; }
                     }
 
-                    if (report_row_value.second) {
+                    if (active_second_wtf) {
                         result.hbar_label = label;
                         if (!is_parent) {
                             result.corner_label    = label;
@@ -350,9 +365,14 @@ MarginElements fill_margin_elements(
                         }
                     }
                 } else {
+                    // The margin is being drawn for some other label, but
+                    // it is possible it (the other label) is still
+                    // affecting how the margin is going to look like.
                     if (!result.vbar_label && !is_parent
-                        && (is_start
-                            ^ (report_row_value.first < label_row))) {
+                        && ((is_start && label_row <= active_label_idx)
+                            || //
+                            (!is_start
+                             && (active_label_idx < label_row)))) {
                         result.vbar_label = label;
                     }
                 }
@@ -467,7 +487,7 @@ void write_margin_line_number(MarginContext const& c) {
 
     // Get the line number text for the report.
     if (c.is_line && !c.is_gap) {
-        int line_no = c.idx + 1;
+        int line_no = c.source_line_idx + 1;
         line_number = Str(" ").repeated(
                           c.line_number_width - fmt1(line_no).length())
                     + Str(fmt1(line_no)) + Str(" ") + Str(c.draw().vbar);
@@ -528,7 +548,7 @@ void write_margin(MarginContext const& c) {
 
 /// \brief Should we draw a vertical bar as part of a label arrow
 /// on this line and column?
-auto get_vbar(
+auto get_vbar_label(
     int                   col,
     int                   row,
     Vec<LineLabel> const& line_labels,
@@ -619,7 +639,7 @@ void write_line_label_arrows(
         // of what this thing is supposed to be in the end. It draws the
         // arrows, yes, but if I actually use the `tail` code, like it is
         // written in the rust version, the final result looks horrible.
-        if (Opt<LineLabel> vbar = get_vbar(
+        if (Opt<LineLabel> vbar = get_vbar_label(
                 col, row, c.line_labels, c.margin_label)) {
             if (underline) {
                 // the original comment from the `write.rs` regarding the
@@ -815,7 +835,7 @@ void write_lines(
                     && line_label.col < col));
         }
 
-        std::optional<LineLabel> vbar_ll = get_vbar(
+        std::optional<LineLabel> vbar_ll = get_vbar_label(
             col, row, c.line_labels, c.margin_label);
 
         if (col == line_label.col && line_label.label.msg
@@ -1003,6 +1023,8 @@ void write_report_group_header(
     }
 }
 
+/// \brief Write the main source line of the report with all the margin
+/// elements.
 void write_report_source_line(
     MarginContext const&            base,
     std::optional<LineLabel> const& margin_label) {
@@ -1028,19 +1050,22 @@ void write_report_source_line(
     }
 }
 
+/// \brief Write all the follow-up annotations under the source line in the
+/// report.
 void write_report_line_annotations(MarginContext base) {
     auto scope = base.scope("line_annotations");
-    for (int row = 0; row < base.line_labels.size(); ++row) {
-        const auto& line_label = base.line_labels[row];
+    for (int label_idx = 0; label_idx < base.line_labels.size();
+         ++label_idx) {
+        const auto& line_label = base.line_labels[label_idx];
 
         if (!base.config.compact) {
             // Margin alternate
             write_margin(
-                base.clone().with_draw_labels(true).with_report_row(
-                    {row, false}));
+                base.clone().with_draw_labels(true).with_active_label(
+                    {label_idx, false}));
 
             write_line_label_arrows(
-                base.with_is_gap(base.is_gap), row, base.arrow_len);
+                base.with_is_gap(base.is_gap), label_idx, base.arrow_len);
 
             base.w.write("\n");
         }
@@ -1048,7 +1073,7 @@ void write_report_line_annotations(MarginContext base) {
         // Margin for the first line of the label.
         write_margin(base.clone()
                          .with_is_gap(base.is_gap)
-                         .with_report_row({row, true})
+                         .with_active_label({label_idx, true})
                          .with_draw_labels(true));
 
         write_lines(
@@ -1056,7 +1081,7 @@ void write_report_line_annotations(MarginContext base) {
             base.line,
             base.arrow_len,
             line_label,
-            row,
+            label_idx,
             true);
 
         if (line_label.label.msg) {
@@ -1075,7 +1100,7 @@ void write_report_line_annotations(MarginContext base) {
                             base.line,
                             base.arrow_len,
                             line_label,
-                            row,
+                            label_idx,
                             false);
                         base.w.write(" ");
                     }
@@ -1106,14 +1131,16 @@ void write_report_group(
     Slice<int> line_range = src->get_line_range(CodeSpan{{}, group.span});
 
     bool is_gap = false;
-    for (int idx = line_range.first; idx <= line_range.last; ++idx) {
-        auto line_opt = src->line(idx);
+    for (int line_idx = line_range.first; line_idx <= line_range.last;
+         ++line_idx) {
+        auto line_opt = src->line(line_idx);
         if (!line_opt) { continue; }
 
         Line const&              line         = line_opt.value();
         std::optional<LineLabel> margin_label = get_margin_label(
             line, multi_labels);
 
+        // Fine labels for the source line
         Vec<LineLabel> line_labels //
             = build_line_labels(
                 config,
@@ -1123,13 +1150,14 @@ void write_report_group(
                 multi_labels,
                 src);
 
+        // Create margin context for drawing this source code line.
         MarginContext base{
             .w                 = op,
             .config            = config,
             .multi_labels      = multi_labels,
             .line_labels       = line_labels,
             .src               = src,
-            .idx               = idx,
+            .source_line_idx   = line_idx,
             .line_number_width = line_number_width,
             .line              = line,
             .margin_label      = margin_label,
@@ -1161,16 +1189,18 @@ void write_report_group(
          .multi_labels      = multi_labels,
          .line_labels       = {},
          .src               = src,
-         .idx               = 0,
+         .source_line_idx   = 0,
          .line_number_width = line_number_width,
          .draw_labels       = true,
          .is_line           = false,
          .is_gap            = false,
-         .report_row        = std::pair{0, false},
+         .active_label      = std::pair{0, false},
          .line              = Line{},
          .margin_label      = null_label,
     };
 
+    // Render text for a trailing elements that come after the report
+    // labels.
     auto write_annotation = [&](std::string const&   note,
                                 hstd::ColText const& text) {
         if (!config.compact) {
