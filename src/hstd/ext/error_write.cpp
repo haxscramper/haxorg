@@ -358,6 +358,7 @@ MarginElements fill_margin_elements(MarginContext const& c, int col) {
     return result;
 }
 
+/// \brief Get characters used to build the line margin elements.
 Pair<ColRune, ColRune> get_corner_elements(
     MarginContext const&  c,
     int                   col,
@@ -858,6 +859,7 @@ void write_lines(
     }
 }
 }; // namespace
+
 
 Vec<Label> Report::build_multi_labels(Vec<LabelInfo> const& labels) {
     Vec<Label> multi_labels;

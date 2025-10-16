@@ -8,6 +8,25 @@
 using namespace hstd::ext;
 using namespace hstd;
 
+void dumpReport(StrCache& src, Report const& rep) {
+    for (auto const& [debug, color] : Vec<Pair<bool, bool>>::Splice(
+             pair1(true, true), pair1(true, false), pair1(false, false))) {
+        std::string formatted;
+        HSLOG_DEPTH_SCOPE_ANON();
+        HSLOG_DEBUG("Report group for colors:{}", debug);
+        auto tmp = rep;
+
+        tmp.config.with_debug_writes(debug);
+
+        writeFile(
+            getDebugFile(hstd::fmt(
+                "errors_{}.{}",
+                debug ? "debug" : "direct",
+                color ? "ansi" : "txt")),
+            tmp.to_string(src, color));
+    }
+}
+
 TEST(PrintError, Simple) {
     StrCache sources;
     Id       a_id = 1;
@@ -374,6 +393,7 @@ def six =
                   "Outputs of {} expressions must coerce to the same type",
                   "match"));
 
+    dumpReport(sources, report);
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
 }
 
@@ -422,6 +442,7 @@ def six =
                       .with_color(b))
               .with_note(fmt("Single line note"));
 
+    dumpReport(sources, report);
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
 }
 
@@ -481,6 +502,7 @@ TEST(PrintError, MultipleFiles) {
 
     report.with_config(Config{}.with_debug_report_info(true));
 
+    dumpReport(sources, report);
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
 }
 
@@ -559,6 +581,7 @@ def multiline :: Str = match Some 5 in {
                                .with_underlines(true)
                                .with_tab_width(4));
 
+    dumpReport(sources, report);
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
 }
 
@@ -601,6 +624,7 @@ def multiline :: Str = match Some 5 in {
 
     // report.config.with_debug_writes(true);
 
+    dumpReport(sources, report);
     writeFile(
         getDebugFile("res.txt"),
         fmt("{}\n{}..{}\n",
@@ -637,79 +661,6 @@ TEST(PrintError, OneMessageWrite) {
         "Error: can't compare apples with oranges"_ss);
 }
 
-template <typename T>
-hstd::ColText __gtest_assert_eq_seq_fail_message(
-    T const& lhs,
-    T const& rhs) {
-    return hstd::formatDiffed(
-        lhs,
-        rhs,
-        FormattedDiff::Conf{
-            .formatLine = FormattedDiff::getSequenceFormatterCb(
-                &lhs, &rhs, true)});
-}
-
-template <typename T>
-hstd::ColText __gtest_assert_eq_seq_format_text_compare(
-    hstd::ColText const& diff,
-    T const&             lhs,
-    T const&             rhs) {
-    hstd::ColStream os;
-    os << diff;
-    os << "\nGiven lhs:\n";
-    os << hstd::Str("+").repeated(32) << "\n";
-    os << lhs;
-    os << "\n" << hstd::Str("+").repeated(32) << "\n";
-    os << "\nExpected rhs:\n";
-    os << hstd::Str("-").repeated(32) << "\n";
-    os << rhs;
-    os << "\n" << hstd::Str("-").repeated(32) << "\n";
-    return os.getBuffer();
-}
-
-template <>
-hstd::ColText __gtest_assert_eq_seq_fail_message<std::string>(
-    std::string const& lhs,
-    std::string const& rhs) {
-    return __gtest_assert_eq_seq_format_text_compare(
-        __gtest_assert_eq_seq_fail_message(
-            hstd::split(lhs, '\n'), hstd::split(rhs, '\n')),
-        lhs,
-        rhs);
-}
-
-template <>
-hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::Str>(
-    hstd::Str const& lhs,
-    hstd::Str const& rhs) {
-    return __gtest_assert_eq_seq_format_text_compare(
-        __gtest_assert_eq_seq_fail_message(
-            hstd::split(lhs, '\n'), hstd::split(rhs, '\n')),
-        lhs,
-        rhs);
-}
-
-template <>
-hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
-    hstd::ColText const& lhs,
-    hstd::ColText const& rhs) {
-    return __gtest_assert_eq_seq_format_text_compare(
-        __gtest_assert_eq_seq_fail_message(
-            lhs.split('\n'), lhs.split('\n')),
-        lhs,
-        rhs);
-}
-
-
-#define GTEST_ASSERT_EQ_SEQ(__lhs_arg, __rhs_arg)                         \
-    {                                                                     \
-        auto const __lhs = __lhs_arg;                                     \
-        auto const __rhs = __rhs_arg;                                     \
-        if (!(__lhs == __rhs)) {                                          \
-            FAIL() << __gtest_assert_eq_seq_fail_message(__lhs, __rhs)    \
-                          .toString(false);                               \
-        }                                                                 \
-    }
 
 TEST(PrintError, TwoLabelsWithoutMessageWrite) {
     auto        __scope = getDebugLogScope();
@@ -730,6 +681,7 @@ TEST(PrintError, TwoLabelsWithoutMessageWrite) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -765,6 +717,7 @@ TEST(PrintError, TwoLabelsWithMessages) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -799,6 +752,7 @@ TEST(PrintError, MultiByteChars) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -833,6 +787,7 @@ TEST(PrintError, ByteLabel) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -867,6 +822,7 @@ TEST(PrintError, ByteColumn) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -902,6 +858,7 @@ TEST(PrintError, LabelAtEndOfLongLine) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -931,6 +888,7 @@ TEST(PrintError, LabelOfWidthZeroAtEndOfLine) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -960,6 +918,7 @@ TEST(PrintError, EmptyInput) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -990,6 +949,7 @@ TEST(PrintError, EmptyInputHelp) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1023,6 +983,7 @@ TEST(PrintError, EmptyInputNote) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1056,6 +1017,7 @@ TEST(PrintError, EmptyInputHelpNote) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1089,6 +1051,7 @@ TEST(PrintError, MultilineLabel) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1176,6 +1139,7 @@ TEST(PrintError, MultipleLabelsSameSpan) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1219,6 +1183,7 @@ TEST(PrintError, Note) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1256,6 +1221,7 @@ TEST(PrintError, Help) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1294,6 +1260,7 @@ TEST(PrintError, HelpAndNote) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1331,6 +1298,7 @@ TEST(PrintError, SingleNoteSingleLine) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1365,6 +1333,7 @@ TEST(PrintError, MultiNotesSingleLines) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1402,6 +1371,7 @@ TEST(PrintError, MultiNotesMultiLines) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(
@@ -1440,6 +1410,7 @@ TEST(PrintError, MultiHelpsMultiLines) {
               .with_config(Config().with_color(false).with_char_set(
                   Config::ascii()));
 
+    dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
         remove_trailing(R"(

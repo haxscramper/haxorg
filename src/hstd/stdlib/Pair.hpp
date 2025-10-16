@@ -22,6 +22,16 @@ auto format_tuple_impl(
     return fmt_ctx(")", ctx);
 }
 
+template <typename T>
+Pair<T, T> pair1(T const& first, T const& second) {
+    return Pair<T, T>{first, second};
+}
+
+template <typename A, typename B>
+Pair<A, B> pair2(A const& first, B const& second) {
+    return Pair<A, B>{first, second};
+}
+
 } // namespace hstd
 
 

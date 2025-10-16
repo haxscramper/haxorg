@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/diffs.hpp>
 
 struct TestParameters {
     hstd::Str corpusGlob;
@@ -45,52 +46,13 @@ extern TestParameters testParameters;
 
 GTEST_ADL_PRINT_TYPE(hstd::Str);
 
-inline hstd::fs::path getDebugFile(
+hstd::fs::path getDebugFile(
     const hstd::Str& suffix      = "",
-    bool             cleanParent = false) {
-    auto dir = std::filesystem::temp_directory_path()
-             / hstd::fs::path{hstd::fmt(
-                 "haxorg_tests/{}",
-                 ::testing::UnitTest::GetInstance()
-                     ->current_test_info()
-                     ->test_suite_name())};
+    bool             cleanParent = false);
 
-    auto testname = ::testing::UnitTest::GetInstance()
-                        ->current_test_info()
-                        ->name();
-    hstd::fs::path outPath;
-
-    if (suffix.empty()) {
-        hstd::Str result = hstd::fmt("{}/{}", dir.native(), testname);
-        hstd::createDirectory(hstd::fs::path{result.toBase()});
-        outPath = result.toBase();
-    } else {
-        hstd::Str result = hstd::fmt(
-            "{}/{}/{}", dir.native(), testname, suffix);
-        hstd::createDirectory(
-            hstd::fs::path{result.toBase()}.parent_path());
-        outPath = result.toBase();
-    }
-
-    if (cleanParent) {
-        auto parent = outPath.parent_path();
-        if (hstd::fs::exists(parent)) {
-            hstd::fs::remove_all(parent);
-            hstd::createDirectory(parent);
-        }
-    }
-
-    return outPath;
-}
-
-inline auto getDebugLogScope(
+hstd::log::log_sink_scope getDebugLogScope(
     hstd::Str const& suffix      = "execution.log",
-    bool             cleanParent = false) {
-    return HSLOG_SINK_FACTORY_SCOPED(([suffix, cleanParent]() {
-        return ::hstd::log::init_file_sink(
-            getDebugFile(suffix, cleanParent).native());
-    }));
-}
+    bool             cleanParent = false);
 
 
 template <typename T>
@@ -133,3 +95,41 @@ std::string format_test_fail(
 // the `gtest.h` header. `AbslStringify`, right. Fuck you.
 #define EXPECT_EQ2(lhs, rhs)                                              \
     EXPECT_EQ(lhs, rhs) << format_test_fail(lhs, rhs, #lhs, #rhs)
+
+
+template <typename T>
+hstd::ColText __gtest_assert_eq_seq_fail_message(
+    T const& lhs,
+    T const& rhs) {
+    return hstd::formatDiffed(
+        lhs,
+        rhs,
+        hstd::FormattedDiff::Conf{
+            .formatLine = hstd::FormattedDiff::getSequenceFormatterCb(
+                &lhs, &rhs, true)});
+}
+
+template <>
+hstd::ColText __gtest_assert_eq_seq_fail_message<std::string>(
+    std::string const& lhs,
+    std::string const& rhs);
+
+template <>
+hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::Str>(
+    hstd::Str const& lhs,
+    hstd::Str const& rhs);
+
+template <>
+hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
+    hstd::ColText const& lhs,
+    hstd::ColText const& rhs);
+
+#define GTEST_ASSERT_EQ_SEQ(__lhs_arg, __rhs_arg)                         \
+    {                                                                     \
+        auto const __lhs = __lhs_arg;                                     \
+        auto const __rhs = __rhs_arg;                                     \
+        if (!(__lhs == __rhs)) {                                          \
+            FAIL() << __gtest_assert_eq_seq_fail_message(__lhs, __rhs)    \
+                          .toString(false);                               \
+        }                                                                 \
+    }

@@ -1103,14 +1103,17 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
             hstd::to_compact_json(hstd::to_json_eval(cache)),
             relDebug);
 
-        for (auto const& value : Vec<bool>::Splice(true, false)) {
+        for (auto const& [debug, color] : Vec<Pair<bool, bool>>::Splice(
+                 pair1(true, true),
+                 pair1(true, false),
+                 pair1(false, false))) {
             std::string formatted;
             HSLOG_DEPTH_SCOPE_ANON();
-            HSLOG_DEBUG("Report group for colors:{}", value);
+            HSLOG_DEBUG("Report group for colors:{}", debug);
             for (auto const& report : reports) {
                 auto tmp = report;
-                tmp.config.with_debug_writes(value);
-                formatted += tmp.to_string(cache, value);
+                tmp.config.with_debug_writes(debug);
+                formatted += tmp.to_string(cache, color);
                 formatted += "\n";
             }
 
@@ -1118,8 +1121,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
                 spec,
                 hstd::fmt(
                     "errors_{}.{}",
-                    value ? "debug" : "direct",
-                    value ? "ansi" : "txt"),
+                    debug ? "debug" : "direct",
+                    color ? "ansi" : "txt"),
                 formatted,
                 relDebug);
         }

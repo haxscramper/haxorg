@@ -505,6 +505,7 @@ class Report {
         return buf.toString(colored);
     }
 
+    /// \brief Find all labels
     static Vec<Label> build_multi_labels(Vec<LabelInfo> const& labels);
 };
 
