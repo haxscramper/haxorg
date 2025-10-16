@@ -9,6 +9,8 @@ using namespace hstd::ext;
 using namespace hstd;
 
 void dumpReport(StrCache& src, Report const& rep) {
+    return;
+
     for (auto const& [debug, color] : Vec<Pair<bool, bool>>::Splice(
              pair1(true, true), pair1(true, false), pair1(false, false))) {
         std::string formatted;
