@@ -111,8 +111,15 @@ struct Writer {
     }
 };
 
+
+/// \brief Margin context provides information necessary to decide how each
+/// part of the margin is going to be rendered. The initial margin object
+/// is created one per anontated source code line, in `write_report_group`,
+/// and then cloned and amended for use in the report labels.
 struct MarginContext {
-    Writer&       w;
+    Writer& w;
+    /// \brief Return a copy of the current margin context that can then be
+    /// amended for a use in various report part rendering.
     MarginContext clone() const { return *this; }
     ColText       line_text;
     _field(int, source_line_idx, 0);
@@ -973,6 +980,7 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
     return groups;
 }
 
+
 void write_report_group_header(
     Config const&      config,
     int                group_idx,
@@ -1025,7 +1033,7 @@ void write_report_group_header(
 
 /// \brief Write the main source line of the report with all the margin
 /// elements.
-void write_report_source_line(
+void write_report_source_line_text(
     MarginContext const&            base,
     std::optional<LineLabel> const& margin_label) {
     write_margin(base.clone()
@@ -1050,9 +1058,10 @@ void write_report_source_line(
     }
 }
 
+
 /// \brief Write all the follow-up annotations under the source line in the
 /// report.
-void write_report_line_annotations(MarginContext base) {
+void write_report_source_line_annotations(MarginContext base) {
     auto scope = base.scope("line_annotations");
     for (int label_idx = 0; label_idx < base.line_labels.size();
          ++label_idx) {
@@ -1112,22 +1121,14 @@ void write_report_line_annotations(MarginContext base) {
     }
 }
 
-void write_report_group(
-    int                     group_idx,
-    int                     line_number_width,
-    Cache&                  cache,
+void write_report_group_source_lines(
     Report const&           report,
-    Vec<SourceGroup> const& groups,
+    int                     line_number_width,
+    std::shared_ptr<Source> src,
+    SourceGroup const&      group,
+    Vec<Label> const&       multi_labels,
     Writer&                 op) {
-    SourceGroup const&      group  = groups[group_idx];
-    auto const&             config = report.config;
-    std::shared_ptr<Source> src    = cache.fetch(group.src_id);
 
-    write_report_group_header(
-        config, group_idx, line_number_width, cache, report, op, group);
-
-    // Generate a list of multi-line labels
-    Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
     Slice<int> line_range = src->get_line_range(CodeSpan{{}, group.span});
 
     bool is_gap = false;
@@ -1143,7 +1144,7 @@ void write_report_group(
         // Fine labels for the source line
         Vec<LineLabel> line_labels //
             = build_line_labels(
-                config,
+                report.config,
                 line,
                 group.labels,
                 margin_label,
@@ -1153,7 +1154,7 @@ void write_report_group(
         // Create margin context for drawing this source code line.
         MarginContext base{
             .w                 = op,
-            .config            = config,
+            .config            = report.config,
             .multi_labels      = multi_labels,
             .line_labels       = line_labels,
             .src               = src,
@@ -1174,18 +1175,27 @@ void write_report_group(
             base.with_is_gap(is_gap);
             int arrow_len = get_arrow_len(base);
             base.with_arrow_len(arrow_len);
-            write_report_source_line(base, margin_label);
+            write_report_source_line_text(base, margin_label);
             op.write("\n");
-            write_report_line_annotations(base);
+            write_report_source_line_annotations(base);
         }
     }
+}
 
+void write_report_group_annotations(
+    Vec<SourceGroup> const& groups,
+    int                     group_idx,
+    int                     line_number_width,
+    Report const&           report,
+    Writer&                 op,
+    Vec<Label> const&       multi_labels,
+    std::shared_ptr<Source> src) {
     bool is_final_group = group_idx + 1 == groups.size();
 
     Opt<LineLabel> null_label = std::nullopt;
     MarginContext  base{
          .w                 = op,
-         .config            = config,
+         .config            = report.config,
          .multi_labels      = multi_labels,
          .line_labels       = {},
          .src               = src,
@@ -1203,7 +1213,7 @@ void write_report_group(
     // labels.
     auto write_annotation = [&](std::string const&   note,
                                 hstd::ColText const& text) {
-        if (!config.compact) {
+        if (!report.config.compact) {
             write_margin(base);
             op.write("\n");
         }
@@ -1255,18 +1265,49 @@ void write_report_group(
     }
 
     // Tail of report
-    if (!config.compact) {
+    if (!report.config.compact) {
         if (is_final_group) {
-            op.write(
-                Str(config.char_set.hbar).repeated(line_number_width + 2));
-            op.write(config.char_set.rbot);
+            op.write(Str(report.config.char_set.hbar)
+                         .repeated(line_number_width + 2));
+            op.write(report.config.char_set.rbot);
             op.write("\n");
         } else {
             op.write(Str(" ").repeated(line_number_width + 2));
-            op.write(config.char_set.vbar);
+            op.write(report.config.char_set.vbar);
             op.write("\n");
         }
     }
+}
+
+
+void write_report_group(
+    int                     group_idx,
+    int                     line_number_width,
+    Cache&                  cache,
+    Report const&           report,
+    Vec<SourceGroup> const& groups,
+    Writer&                 op) {
+    SourceGroup const&      group  = groups[group_idx];
+    auto const&             config = report.config;
+    std::shared_ptr<Source> src    = cache.fetch(group.src_id);
+
+    write_report_group_header(
+        config, group_idx, line_number_width, cache, report, op, group);
+
+    // Generate a list of multi-line labels
+    Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
+
+    write_report_group_source_lines(
+        report, line_number_width, src, group, multi_labels, op);
+
+    write_report_group_annotations(
+        groups,
+        group_idx,
+        line_number_width,
+        report,
+        op,
+        multi_labels,
+        src);
 }
 
 void write_report_header(Report const& report, Writer& op) {
