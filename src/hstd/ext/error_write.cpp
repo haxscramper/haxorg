@@ -9,247 +9,6 @@
 #include <hstd/ext/logger.hpp>
 #include <boost/preprocessor/seq.hpp>
 
-
-namespace hstd::log::expr {
-
-class ValueProxyBool {
-  public:
-    enum class OpType
-    {
-        Value,
-        And,
-        Or,
-        Not
-    };
-
-    struct ExprNode {
-        OpType                    type;
-        std::string               name;
-        hstd::Func<bool()>        value;
-        std::unique_ptr<ExprNode> left;
-        std::unique_ptr<ExprNode> right;
-
-        ExprNode(
-            OpType                    t,
-            const std::string&        n,
-            hstd::Func<bool()> const& ptr)
-            : type(t), name(n), value(ptr) {}
-
-        ExprNode(OpType t, const std::string& n) : type(t), name(n) {}
-
-        bool eval() const {
-            switch (type) {
-                case OpType::Value: return value();
-                case OpType::And: return left->eval() && right->eval();
-                case OpType::Or: return left->eval() || right->eval();
-                case OpType::Not: return !left->eval();
-            }
-            return false;
-        }
-    };
-
-  private:
-    std::unique_ptr<ExprNode> root;
-
-  public:
-    ValueProxyBool(hstd::Func<bool()> const& ptr, const std::string& name)
-        : root(std::make_unique<ExprNode>(OpType::Value, name, ptr)) {}
-
-    template <typename T>
-    static ValueProxyBool Init(
-        hstd::Opt<T> const* ptr,
-        const std::string&  name) {
-        return ValueProxyBool([ptr]() { return ptr->has_value(); }, name);
-    }
-
-    static ValueProxyBool Init(bool const* ptr, const std::string& name) {
-        return ValueProxyBool([ptr]() { return *ptr; }, name);
-    }
-
-    ValueProxyBool(std::unique_ptr<ExprNode> node)
-        : root(std::move(node)) {}
-
-    // Copy constructor
-    ValueProxyBool(const ValueProxyBool& other) {
-        root = copy_node(other.root.get());
-    }
-
-    // Copy assignment
-    ValueProxyBool& operator=(const ValueProxyBool& other) {
-        if (this != &other) { root = copy_node(other.root.get()); }
-        return *this;
-    }
-
-    // Move constructor and assignment (default)
-    ValueProxyBool(ValueProxyBool&&)            = default;
-    ValueProxyBool& operator=(ValueProxyBool&&) = default;
-
-    bool value() const { return root->eval(); }
-
-    std::string format() const {
-        struct GridCell {
-            std::string name;
-            bool        value;
-            int         depth;
-            bool        is_operator;
-        };
-
-        std::vector<GridCell> cells;
-
-        auto get_max_depth = [](ExprNode const* node, auto& self) {
-            if (node->type == OpType::Value) {
-                return 0;
-            } else if (node->type == OpType::Not) {
-                return 1 + self(node->left.get(), self);
-            } else {
-                return 1
-                     + std::max<int>(
-                           self(node->left.get(), self),
-                           self(node->right.get(), self));
-            }
-        };
-
-        int max_depth = get_max_depth(root.get(), get_max_depth);
-
-        auto collect_cells =
-            [&](const ExprNode* node, int depth, auto& self) -> void {
-            if (node->type == OpType::Value) {
-                cells.push_back(
-                    {node->name, node->eval(), max_depth - depth, false});
-            } else if (node->type == OpType::Not) {
-                self(node->left.get(), depth + 1, self);
-                cells.push_back(
-                    {node->name, node->eval(), max_depth - depth, true});
-            } else { // And, Or
-                self(node->left.get(), depth + 1, self);
-                self(node->right.get(), depth + 1, self);
-                cells.push_back(
-                    {node->name, node->eval(), max_depth - depth, true});
-            }
-        };
-
-        collect_cells(root.get(), 0, collect_cells);
-
-        std::vector<std::vector<std::string>> grid;
-
-        int total_cols = max_depth + 3;
-        grid.resize(cells.size());
-        for (auto& row : grid) { row.resize(total_cols, ""); }
-
-        for (int i = 0; i < static_cast<int>(cells.size()); ++i) {
-            const auto& cell     = cells.at(i);
-            int         base_col = cell.depth;
-
-            grid.at(i).at(base_col)     = cell.name;
-            grid.at(i).at(base_col + 1) = "=";
-            grid.at(i).at(base_col + 2) = cell.value ? "true" : "false";
-        }
-
-        std::vector<int> col_widths(total_cols, 0);
-        for (const auto& row : grid) {
-            for (int col = 0; col < static_cast<int>(row.size()); ++col) {
-                if (!row.at(col).empty()) {
-                    col_widths.at(col) = std::max(
-                        col_widths.at(col),
-                        static_cast<int>(row.at(col).length()));
-                }
-            }
-        }
-
-        std::string result;
-        for (int row = 0; row < static_cast<int>(grid.size()); ++row) {
-            std::string line;
-
-            for (int col = 0; col < static_cast<int>(grid.at(row).size());
-                 ++col) {
-                const std::string& cell = grid.at(row).at(col);
-
-                if (!cell.empty()) {
-                    if (col > 0) { line += " "; }
-                    line += std::format(
-                        "{:<{}}", cell, col_widths.at(col));
-                } else if (col_widths.at(col) > 0) {
-                    if (col > 0) { line += " "; }
-                    line += std::string(col_widths.at(col), ' ');
-                }
-            }
-
-            result += line;
-            if (row < static_cast<int>(grid.size()) - 1) {
-                result += "\n";
-            }
-        }
-
-        return result;
-    }
-
-    ValueProxyBool operator&&(const ValueProxyBool& other) const {
-        auto and_node   = std::make_unique<ExprNode>(OpType::And, "&&");
-        and_node->left  = copy_node(root.get());
-        and_node->right = copy_node(other.root.get());
-        return ValueProxyBool(std::move(and_node));
-    }
-
-    ValueProxyBool operator||(const ValueProxyBool& other) const {
-        auto or_node   = std::make_unique<ExprNode>(OpType::Or, "||");
-        or_node->left  = copy_node(root.get());
-        or_node->right = copy_node(other.root.get());
-        return ValueProxyBool(std::move(or_node));
-    }
-
-    ValueProxyBool operator!() const {
-        auto not_node  = std::make_unique<ExprNode>(OpType::Not, "!");
-        not_node->left = copy_node(root.get());
-        return ValueProxyBool(std::move(not_node));
-    }
-
-    // Prevent implicit conversion to bool
-    explicit operator bool() const = delete;
-
-    std::unique_ptr<ExprNode> copy_node(const ExprNode* node) const {
-        if (!node) { return nullptr; }
-
-        auto new_node = std::make_unique<ExprNode>(
-            node->type, node->name, node->value);
-        if (node->left) { new_node->left = copy_node(node->left.get()); }
-        if (node->right) {
-            new_node->right = copy_node(node->right.get());
-        }
-        return new_node;
-    }
-};
-
-} // namespace hstd::log::expr
-
-#define HSLOG_DEBUG_EXPR_BOOL(___expr)                                    \
-    hstd::log::expr::ValueProxyBool::Init(&(___expr), #___expr)
-
-#define HSLOG_DEBUG_EXPR_VAL(___expr)                                     \
-    ({                                                                    \
-        auto evaluator = (___expr);                                       \
-        HSLOG_DEBUG("{}", evaluator.format());                            \
-        evaluator.value();                                                \
-    })
-
-#define HSLOG_DEBUG_EXPR_VAL1(__expr)                                     \
-    HSLOG_DEBUG_EXPR_VAL(HSLOG_DEBUG_EXPR_BOOL(__expr))
-
-#define HSLOG_DEBUG_EXPR(__expr)                                          \
-    ({                                                                    \
-        auto const& res = __expr;                                         \
-        HSLOG_DEBUG(                                                      \
-            "{} = {}", #__expr, hstd::escape_literal(hstd::fmt1(res)));   \
-        res;                                                              \
-    })
-
-#define HSLOG_DEBUG_IF()                                                  \
-    HSLOG_DEBUG("IF");                                                    \
-    HSLOG_DEPTH_SCOPE_ANON();
-
-#define HSLOG_DEBUG_ELSE()                                                \
-    HSLOG_DEBUG("ELSE");                                                  \
-    HSLOG_DEPTH_SCOPE_ANON();
-
 using namespace hstd::ext;
 using namespace hstd;
 
@@ -343,12 +102,6 @@ struct Writer {
         CR<T>       value,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
-        HSLOG_DEBUG(
-            "write: {}:{} {}",
-            function,
-            line,
-            hstd::escape_literal(hstd::fmt1(value)));
-
         if (config->debug_writes) {
             stream << stream.green() << value << stream.end()
                    << stream.blue() << fmt("@{}", line) << stream.end();
@@ -405,8 +158,6 @@ struct MarginContext {
 int get_arrow_len(MarginContext const& base) {
     // Determine label bounds so we know where to put error
     // messages
-    HSLOG_DEBUG("get arrow len");
-    HSLOG_DEPTH_SCOPE_ANON();
     int arrow_len = 0;
     for (const auto& ll : base.line_labels) {
         if (ll.multi) {
@@ -429,12 +180,9 @@ std::optional<LineLabel> get_margin_label(
     Vec<Label> const& multi_labels) {
     std::optional<LineLabel> margin_label;
     int                      min_key = std::numeric_limits<int>::max();
-    HSLOG_DEBUG("get margin label");
-    HSLOG_DEPTH_SCOPE_ANON();
     for (Label const& label : multi_labels) {
         bool is_start = line.span().contains(label.span.start());
         bool is_end   = line.span().contains(label.span.end());
-        HSLOG_DEBUG_FMT_LINE(is_start, is_end, line.span(), label.span);
 
         if (is_start || is_end) {
             LineLabel ll{
@@ -518,111 +266,69 @@ struct MarginElements {
 };
 
 /// \brief
-MarginElements fill_margin_elements(MarginContext const& c, int col) {
-    HSLOG_DEBUG("fill_margin_elements");
-    HSLOG_DEPTH_SCOPE_ANON();
-    HSLOG_DEBUG_FMT_LINE(
-        c.multi_labels.size(),
-        c.is_line,
-        c.is_gap,
-        c.line_number_width,
-        c.draw_labels,
-        c.arrow_len);
-
+MarginElements fill_margin_elements(
+    MarginContext const& c,
+    int                  margin_col) {
     MarginElements result;
-
-    Slice<int> line_span = c.src->line(c.idx).value().span();
+    Slice<int>     line_span = c.src->line(c.idx).value().span();
     // Iterate over all multi-line labels in the report to find which
     // labels are applicable for a given line span.
     for (int label_index = 0;
-         label_index < std::min(col + 1, c.multi_labels.size());
+         label_index < std::min(margin_col + 1, c.multi_labels.size());
          ++label_index) {
-        HSLOG_DEPTH_SCOPE_ANON();
-        auto label = c.multi_labels.at(label_index);
-        HSLOG_DEBUG("{} label {}", label_index, label.span);
+        auto           label = c.multi_labels.at(label_index);
         Opt<LineLabel> margin;
         if (c.margin_label && label == c.margin_label->label) {
             margin = c.margin_label;
-            hstd::log::log_described_record(margin.value()).end();
         }
-
-        HSLOG_DEBUG_FMT_STACK(line_span);
-
-        HSLOG_DEBUG_FMT_STACK(
-            label.span.start(),
-            line_span.last,
-            label.span.start() <= line_span.last,
-            line_span.first,
-            label.span.end(),
-            line_span.first < label.span.end());
 
         if (label.span.start() <= line_span.last
             && line_span.first <= label.span.end()) {
-            bool is_parent = label_index != col;
+            bool is_parent = label_index != margin_col;
             bool is_start  = line_span.contains(label.span.start());
             bool is_end    = line_span.contains(label.span.end());
-            HSLOG_DEBUG_FMT_LINE(is_parent, is_start, is_end);
 
             if (margin && c.is_line) {
-                HSLOG_DEBUG("-- ");
                 result.margin_ptr = std::make_pair(
                     margin.value(), is_start);
             } else if (!is_start && (!is_end || c.is_line)) {
-                HSLOG_DEBUG("-- ");
-                if (!result.vbar && !is_parent) {
-                    HSLOG_DEBUG("-- ");
-                    result.vbar = label;
-                }
+                if (!result.vbar && !is_parent) { result.vbar = label; }
             } else if (c.report_row.has_value()) {
-                HSLOG_DEBUG("-- ");
                 auto report_row_value = c.report_row.value();
                 int  label_row        = 0;
                 for (int r = 0; r < c.line_labels.size(); ++r) {
                     if (label == c.line_labels[r].label) {
-                        HSLOG_DEBUG("-- ");
                         label_row = r;
                         break;
                     }
                 }
 
                 if (report_row_value.first == label_row) {
-                    HSLOG_DEBUG("-- ");
                     if (margin) {
-                        if (col == label_index) {
-                            HSLOG_DEBUG("-- ");
+                        if (margin_col == label_index) {
                             result.vbar = margin->label;
                         } else {
-                            HSLOG_DEBUG("-- ");
                             result.vbar = std::nullopt;
                         }
 
-                        if (is_start) {
-                            HSLOG_DEBUG("-- ");
-                            continue;
-                        }
+                        if (is_start) { continue; }
                     }
 
                     if (report_row_value.second) {
-                        HSLOG_DEBUG("-- ");
                         result.hbar = label;
                         if (!is_parent) {
-                            HSLOG_DEBUG("-- ");
                             result.corner = std::make_pair(
                                 label, is_start);
                         }
                     } else if (!is_start) {
-                        HSLOG_DEBUG("-- ");
                         if (!result.vbar && !is_parent) {
-                            HSLOG_DEBUG("-- ");
                             result.vbar = label;
                         }
                     }
                 } else {
-                    HSLOG_DEBUG("-- ");
                     if (!result.vbar && !is_parent
                         && (is_start
                             ^ (report_row_value.first < label_row))) {
-                        HSLOG_DEBUG("-- ");
                         result.vbar = label;
                     }
                 }
@@ -637,56 +343,55 @@ MarginElements fill_margin_elements(MarginContext const& c, int col) {
 /// \brief Get characters used to build the line margin elements.
 Pair<ColRune, ColRune> get_corner_elements(
     MarginContext const&  c,
-    int                   col,
+    int                   margin_col,
     MarginElements const& margin,
     CR<Opt<CRw<Label>>>   multi_label) {
-    ColRune base;
-    ColRune extended;
-    HSLOG_DEBUG("get_corner_elements");
-    HSLOG_DEPTH_SCOPE_ANON();
+    ColRune     base;
+    ColRune     extended;
+    auto const& d = c.draw();
 
     if (margin.corner) {
         auto [label, is_start] = *margin.corner;
         if (is_start) {
-            base = ColRune(c.draw().ltop, label.color);
+            base = ColRune(d.ltop, label.color);
         } else {
-            base = ColRune(c.draw().lbot, label.color);
+            base = ColRune(d.lbot, label.color);
         }
 
-        extended = ColRune(c.draw().hbar, label.color);
+        extended = ColRune(d.hbar, label.color);
     } else if (margin.hbar && margin.vbar && !c.config.cross_gap) {
-        base     = ColRune(c.draw().xbar, margin.hbar->color);
-        extended = ColRune(c.draw().hbar, margin.hbar->color);
+        base     = ColRune(d.xbar, margin.hbar->color);
+        extended = ColRune(d.hbar, margin.hbar->color);
     } else if (margin.hbar) {
-        base     = ColRune(c.draw().hbar, margin.hbar->color);
-        extended = ColRune(c.draw().hbar, margin.hbar->color);
+        base     = ColRune(d.hbar, margin.hbar->color);
+        extended = ColRune(d.hbar, margin.hbar->color);
     } else if (margin.vbar) {
         if ((c.is_gap)) {
-            base = ColRune(c.draw().vbar_gap, margin.vbar->color);
+            base = ColRune(d.vbar_gap, margin.vbar->color);
         } else {
-            base = ColRune(c.draw().vbar, margin.vbar->color);
+            base = ColRune(d.vbar, margin.vbar->color);
         }
         extended = ColRune(' ');
     } else if (margin.margin_ptr && c.is_line) {
-        auto [label, is_start] = *margin.margin_ptr;
-        bool is_col   = multi_label && (multi_label->get() == label.label);
-        bool is_limit = col == c.multi_labels.size();
+        auto [label, is_start] = margin.margin_ptr.value();
+        bool is_col   = multi_label && multi_label->get() == label.label;
+        bool is_limit = margin_col == c.multi_labels.size();
         if (is_limit) {
-            base = ColRune(c.draw().rarrow, label.label.color);
+            base = ColRune(d.rarrow, label.label.color);
         } else if (is_col) {
             if (is_start) {
-                base = ColRune(c.draw().ltop, label.label.color);
+                base = ColRune(d.ltop, label.label.color);
             } else {
-                base = ColRune(c.draw().lcross, label.label.color);
+                base = ColRune(d.lcross, label.label.color);
             }
         } else {
-            base = ColRune(c.draw().hbar, label.label.color);
+            base = ColRune(d.hbar, label.label.color);
         }
 
         if (is_limit) {
             extended = ColRune(' ');
         } else {
-            extended = ColRune(c.draw().hbar, label.label.color);
+            extended = ColRune(d.hbar, label.label.color);
         }
     } else {
         base     = ColRune(' ');
@@ -719,27 +424,25 @@ void write_margin_line_number(MarginContext const& c) {
 /// empty space to help with the alignment of the rest of the label.
 void write_margin(MarginContext const& c) {
     auto __scope = c.scope("margin");
-    HSLOG_DEBUG("write_margin idx:{}", c.idx);
-    HSLOG_DEPTH_SCOPE_ANON();
-
     write_margin_line_number(c);
 
     // Multi-line margins -- for labels that have spans over multiple lines
     // at once.
     if (c.draw_labels) {
-        for (int col = 0; col < c.multi_labels.size()
-                                    + (0 < c.multi_labels.size() ? 1 : 0);
-             ++col) {
-            Opt<CRw<Label>> multi_label = c.multi_labels.get(col);
-            auto            margin      = fill_margin_elements(c, col);
-            hstd::log::log_described_record(margin).as_debug().end();
+        for (int margin_col = 0;
+             margin_col
+             < c.multi_labels.size() + (0 < c.multi_labels.size() ? 1 : 0);
+             ++margin_col) {
+            Opt<CRw<Label>> multi_label = c.multi_labels.get(margin_col);
+            auto            margin = fill_margin_elements(c, margin_col);
 
             if (margin.margin_ptr && c.is_line) {
                 bool is_col = multi_label
                            && (*multi_label
                                == margin.margin_ptr->first.label);
 
-                bool is_limit = col + 1 == c.multi_labels.size();
+                bool is_limit = margin_col + 1 == c.multi_labels.size();
+                if (is_limit) { c.w.write("is_limit"); }
                 if (!is_col && !is_limit) {
                     margin.hbar = margin.hbar.value_or(
                         margin.margin_ptr->first.label);
@@ -754,7 +457,7 @@ void write_margin(MarginContext const& c) {
             }
 
             auto [base, extended] = get_corner_elements(
-                c, col, margin, multi_label);
+                c, margin_col, margin, multi_label);
 
             c.w.write(base);
             if (!c.config.compact) { c.w.write(extended); }
@@ -842,14 +545,11 @@ void write_line_label_arrows(
     int                  row,
     int                  arrow_len) {
     // Lines alternate
-    HSLOG_DEBUG_FMT_STACK(row, arrow_len);
     auto chars = c.line_text.begin();
     for (int col = 0; col < arrow_len; ++col) {
 
         Opt<LineLabel> underline = get_underline(c, col);
         if (row != 0) { underline.reset(); }
-
-        HSLOG_DEBUG_FMT_STACK(col, underline);
 
         ColRune ch;
         ColRune tail;
@@ -925,8 +625,6 @@ void collect_multiline_labels(
     Opt<LineLabel> const& margin_label) {
 
     for (CR<Label> label : multi_labels) {
-        HSLOG_DEBUG("multi_label");
-        HSLOG_DEPTH_SCOPE_ANON();
         bool is_start = line.span().contains(label.span.start());
         bool is_end   = line.span().contains(label.span.end());
         bool different_from_margin_label
@@ -959,25 +657,6 @@ void collect_inline_labels(
     Vec<LabelInfo> const&   labels,
     std::shared_ptr<Source> src) {
     for (const LabelInfo& label_info : labels) {
-        HSLOG_DEBUG("label_info");
-        HSLOG_DEPTH_SCOPE_ANON();
-        if (label_info.label.msg) {
-            HSLOG_DEBUG(
-                "label.info.label.msg = {}",
-                hstd::escape_literal(
-                    label_info.label.msg.value().toString(false)));
-        }
-
-        hstd::log::log_described_record(label_info.label).end();
-        hstd::log::log_described_record(line).end();
-        HSLOG_DEBUG_FMT_STACK(
-            line.span().first,
-            label_info.label.span.start(),
-            line.span().first <= label_info.label.span.start(),
-            label_info.label.span.end(),
-            line.span().last,
-            label_info.label.span.end() <= line.span().last);
-
         // if the line fully contains an inline label
         if (line.span().first <= label_info.label.span.start()
             && (label_info.label.span.end() <= line.span().last
@@ -1028,18 +707,12 @@ Vec<LineLabel> build_line_labels(
     Opt<LineLabel> const&   margin_label,
     Vec<Label> const&       multi_labels,
     std::shared_ptr<Source> src) {
-    HSLOG_DEBUG("Build line labels");
-    HSLOG_DEPTH_SCOPE_ANON();
-    HSLOG_DEBUG_FMT_LINE(
-        labels.size(), margin_label.has_value(), multi_labels.size());
-    HSLOG_DEBUG_FMT_LINE(line);
     Vec<LineLabel> line_labels;
     collect_multiline_labels(
         line_labels, line, multi_labels, margin_label);
 
     collect_inline_labels(line_labels, config, line, labels, src);
 
-    HSLOG_DEBUG_FMT_LINE(line_labels.size());
     return line_labels;
 }
 
@@ -1065,16 +738,10 @@ void write_lines(
     LineLabel const&     line_label,
     int                  row,
     bool                 is_first_label_line) {
-    HSLOG_DEBUG("write_lines");
-    HSLOG_DEPTH_SCOPE_ANON();
-    HSLOG_DEBUG_FMT_STACK(
-        arrow_len, row, line_label, is_first_label_line, line);
 
     // Lines
     auto chars = c.line_text.begin();
     for (int col = 0; col < arrow_len; ++col) {
-        HSLOG_DEBUG("col:{}", col);
-        HSLOG_DEPTH_SCOPE_ANON();
         int  width   = 1;
         bool is_hbar = false;
         if (is_first_label_line && line_label.label.msg.has_value()) {
@@ -1279,8 +946,6 @@ void write_report_group_header(
 void write_report_source_line(
     MarginContext const&            base,
     std::optional<LineLabel> const& margin_label) {
-    HSLOG_DEBUG("write_report_source_line");
-    HSLOG_DEPTH_SCOPE_ANON();
     write_margin(base.clone()
                      .with_is_line(true)
                      .with_is_gap(base.is_gap)
@@ -1304,8 +969,6 @@ void write_report_source_line(
 }
 
 void write_report_line_annotations(MarginContext base) {
-    HSLOG_DEBUG("write_report_line_annotations");
-    HSLOG_DEPTH_SCOPE_ANON();
     auto scope = base.scope("line_annotations");
     for (int row = 0; row < base.line_labels.size(); ++row) {
         const auto& line_label = base.line_labels[row];
@@ -1371,8 +1034,6 @@ void write_report_group(
     Report const&           report,
     Vec<SourceGroup> const& groups,
     Writer&                 op) {
-    HSLOG_INFO("write report group");
-    HSLOG_DEPTH_SCOPE_ANON();
     SourceGroup const&      group  = groups[group_idx];
     auto const&             config = report.config;
     std::shared_ptr<Source> src    = cache.fetch(group.src_id);
@@ -1384,23 +1045,10 @@ void write_report_group(
     Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
     Slice<int> line_range = src->get_line_range(CodeSpan{{}, group.span});
 
-    HSLOG_DEBUG_FMT_LINE(multi_labels.size());
-
     bool is_gap = false;
     for (int idx = line_range.first; idx <= line_range.last; ++idx) {
-
-        /* auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED(
-            ([idx = idx, debug_writes = op.config->debug_writes]() {
-                return ::hstd::log::init_file_sink(hstd::fmt(
-                    "/tmp/formatting_line_{}_{}.log", idx, debug_writes));
-            }));*/
-
-
         auto line_opt = src->line(idx);
         if (!line_opt) { continue; }
-
-        HSLOG_DEBUG("Build line labels for {}", idx);
-        HSLOG_DEPTH_SCOPE_ANON();
 
         Line const&              line         = line_opt.value();
         std::optional<LineLabel> margin_label = get_margin_label(
@@ -1427,19 +1075,6 @@ void write_report_group(
             .margin_label      = margin_label,
             .line_text         = src->get_line_text(line),
         };
-
-        {
-            HSLOG_INFO("Margin context");
-            HSLOG_DEPTH_SCOPE_ANON();
-            HSLOG_DEBUG_FMT_LINE(config);
-            HSLOG_DEBUG_FMT_LINE(multi_labels);
-            HSLOG_DEBUG_FMT_LINE(line_labels);
-            HSLOG_DEBUG_FMT_LINE(idx);
-            HSLOG_DEBUG_FMT_LINE(line_number_width);
-            HSLOG_DEBUG_FMT_LINE(line);
-            HSLOG_DEBUG_FMT_LINE(margin_label);
-            HSLOG_DEBUG_FMT_LINE(src->get_line_text(line));
-        }
 
         auto [is_skip, is_gap_upd] = is_gap_and_skip_line(
             base, is_gap, line_labels);
@@ -1507,8 +1142,6 @@ void write_report_group(
 
     // Help
     if (!report.help.empty() && is_final_group) {
-        HSLOG_DEBUG("write_annotation: Help");
-        HSLOG_DEPTH_SCOPE_ANON();
         if (report.help.size() == 1) {
             write_annotation("Help: ", report.help.at(0));
         } else {
@@ -1521,8 +1154,6 @@ void write_report_group(
 
     // Note
     if (!report.note.empty() && is_final_group) {
-        HSLOG_DEBUG("write_annotation: Note");
-        HSLOG_DEPTH_SCOPE_ANON();
         if (report.note.size() == 1) {
             write_annotation("Note: ", report.note.at(0));
         } else {
