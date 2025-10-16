@@ -981,53 +981,60 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
 }
 
 
-void write_report_group_header(
-    Config const&      config,
-    int                group_idx,
-    int                line_number_width,
-    Cache&             cache,
-    Report const&      report,
-    Writer&            op,
-    SourceGroup const& group) {
+struct ReportGroupContext {
+    Report const&           report;
+    int                     line_number_width;
+    std::shared_ptr<Source> src;
+    SourceGroup const&      group;
+    Vec<Label> const&       multi_labels;
+    Writer&                 op;
+    Config const&           config;
+    Cache&                  cache;
+    int                     group_idx;
+    Vec<SourceGroup> const& groups;
+};
 
-    std::shared_ptr<Source> src = cache.fetch(group.src_id);
-    Str src_name = cache.display(group.src_id).value_or("<unknown>");
+void write_report_group_header(ReportGroupContext& c) {
 
-    op.write(Str(" ").repeated(line_number_width + 2));
-    op.write(
-        (group_idx == 0 ? ColRune(config.char_set.ltop)
-                        : ColRune(config.char_set.lcross))
-        + config.margin_color);
-    op.write(ColRune(config.char_set.hbar) + config.margin_color);
-    op.write(ColRune(config.char_set.lbox) + config.margin_color);
-    if (!config.compact) { op.write(ColRune{' '}); }
-    op.write(src_name);
+    std::shared_ptr<Source> src = c.cache.fetch(c.group.src_id);
+    Str src_name = c.cache.display(c.group.src_id).value_or("<unknown>");
+
+    c.op.write(Str(" ").repeated(c.line_number_width + 2));
+    c.op.write(
+        (c.group_idx == 0 ? ColRune(c.config.char_set.ltop)
+                          : ColRune(c.config.char_set.lcross))
+        + c.config.margin_color);
+    c.op.write(ColRune(c.config.char_set.hbar) + c.config.margin_color);
+    c.op.write(ColRune(c.config.char_set.lbox) + c.config.margin_color);
+    if (!c.config.compact) { c.op.write(ColRune{' '}); }
+    c.op.write(src_name);
 
     // File name & reference
-    int location = (group.src_id == report.location.first)
-                     ? report.location.second
-                     : group.labels[0].label.span.start();
+    int location = (c.group.src_id == c.report.location.first)
+                     ? c.report.location.second
+                     : c.group.labels[0].label.span.start();
 
     auto offset_line = src->get_offset_line(location);
 
     // Error line and column number in the error message header
     if (offset_line) {
-        op.write(":");
-        op.write(fmt1(offset_line->idx + 1));
-        op.write(":");
-        op.write(fmt1(offset_line->col + 1));
+        c.op.write(":");
+        c.op.write(fmt1(offset_line->idx + 1));
+        c.op.write(":");
+        c.op.write(fmt1(offset_line->col + 1));
     } else {
-        op.write(":?:?");
+        c.op.write(":?:?");
     }
-    if (!config.compact) { op.write(ColRune{' '}); }
+    if (!c.config.compact) { c.op.write(ColRune{' '}); }
 
-    op.write(ColRune(config.char_set.rbox) + config.margin_color);
-    op.write("\n");
+    c.op.write(ColRune(c.config.char_set.rbox) + c.config.margin_color);
+    c.op.write("\n");
 
-    if (!config.compact) {
-        op.write(Str(" ").repeated(line_number_width + 2));
-        op.write(ColRune(config.char_set.vbar) + config.margin_color);
-        op.write("\n");
+    if (!c.config.compact) {
+        c.op.write(Str(" ").repeated(c.line_number_width + 2));
+        c.op.write(
+            ColRune(c.config.char_set.vbar) + c.config.margin_color);
+        c.op.write("\n");
     }
 }
 
@@ -1121,48 +1128,43 @@ void write_report_source_line_annotations(MarginContext base) {
     }
 }
 
-void write_report_group_source_lines(
-    Report const&           report,
-    int                     line_number_width,
-    std::shared_ptr<Source> src,
-    SourceGroup const&      group,
-    Vec<Label> const&       multi_labels,
-    Writer&                 op) {
 
-    Slice<int> line_range = src->get_line_range(CodeSpan{{}, group.span});
+void write_report_group_source_lines(ReportGroupContext& c) {
+    Slice<int> line_range = c.src->get_line_range(
+        CodeSpan{{}, c.group.span});
 
     bool is_gap = false;
     for (int line_idx = line_range.first; line_idx <= line_range.last;
          ++line_idx) {
-        auto line_opt = src->line(line_idx);
+        auto line_opt = c.src->line(line_idx);
         if (!line_opt) { continue; }
 
         Line const&              line         = line_opt.value();
         std::optional<LineLabel> margin_label = get_margin_label(
-            line, multi_labels);
+            line, c.multi_labels);
 
         // Fine labels for the source line
         Vec<LineLabel> line_labels //
             = build_line_labels(
-                report.config,
+                c.report.config,
                 line,
-                group.labels,
+                c.group.labels,
                 margin_label,
-                multi_labels,
-                src);
+                c.multi_labels,
+                c.src);
 
         // Create margin context for drawing this source code line.
         MarginContext base{
-            .w                 = op,
-            .config            = report.config,
-            .multi_labels      = multi_labels,
+            .w                 = c.op,
+            .config            = c.report.config,
+            .multi_labels      = c.multi_labels,
             .line_labels       = line_labels,
-            .src               = src,
+            .src               = c.src,
             .source_line_idx   = line_idx,
-            .line_number_width = line_number_width,
+            .line_number_width = c.line_number_width,
             .line              = line,
             .margin_label      = margin_label,
-            .line_text         = src->get_line_text(line),
+            .line_text         = c.src->get_line_text(line),
         };
 
         auto [is_skip, is_gap_upd] = is_gap_and_skip_line(
@@ -1176,31 +1178,24 @@ void write_report_group_source_lines(
             int arrow_len = get_arrow_len(base);
             base.with_arrow_len(arrow_len);
             write_report_source_line_text(base, margin_label);
-            op.write("\n");
+            c.op.write("\n");
             write_report_source_line_annotations(base);
         }
     }
 }
 
-void write_report_group_annotations(
-    Vec<SourceGroup> const& groups,
-    int                     group_idx,
-    int                     line_number_width,
-    Report const&           report,
-    Writer&                 op,
-    Vec<Label> const&       multi_labels,
-    std::shared_ptr<Source> src) {
-    bool is_final_group = group_idx + 1 == groups.size();
+void write_report_group_annotations(ReportGroupContext& c) {
+    bool is_final_group = c.group_idx + 1 == c.groups.size();
 
     Opt<LineLabel> null_label = std::nullopt;
     MarginContext  base{
-         .w                 = op,
-         .config            = report.config,
-         .multi_labels      = multi_labels,
+         .w                 = c.op,
+         .config            = c.report.config,
+         .multi_labels      = c.multi_labels,
          .line_labels       = {},
-         .src               = src,
+         .src               = c.src,
          .source_line_idx   = 0,
-         .line_number_width = line_number_width,
+         .line_number_width = c.line_number_width,
          .draw_labels       = true,
          .is_line           = false,
          .is_gap            = false,
@@ -1213,39 +1208,39 @@ void write_report_group_annotations(
     // labels.
     auto write_annotation = [&](std::string const&   note,
                                 hstd::ColText const& text) {
-        if (!report.config.compact) {
+        if (!c.report.config.compact) {
             write_margin(base);
-            op.write("\n");
+            c.op.write("\n");
         }
 
         auto noteLines = text.split("\n");
         if (noteLines.size() <= 1) {
             write_margin(base);
-            op.write(note);
-            op.write(text);
-            op.write("\n");
+            c.op.write(note);
+            c.op.write(text);
+            c.op.write("\n");
         } else {
             for (auto const& it : enumerator(noteLines)) {
                 write_margin(base);
                 if (it.is_first()) {
-                    op.write(note);
+                    c.op.write(note);
                 } else {
-                    op.write(hstd::Str(" ").repeated(note.size()));
+                    c.op.write(hstd::Str(" ").repeated(note.size()));
                 }
 
-                op.write(it.value());
-                op.write("\n");
+                c.op.write(it.value());
+                c.op.write("\n");
             }
         }
     };
 
 
     // Help
-    if (!report.help.empty() && is_final_group) {
-        if (report.help.size() == 1) {
-            write_annotation("Help: ", report.help.at(0));
+    if (!c.report.help.empty() && is_final_group) {
+        if (c.report.help.size() == 1) {
+            write_annotation("Help: ", c.report.help.at(0));
         } else {
-            for (auto const& it : enumerator(report.help)) {
+            for (auto const& it : enumerator(c.report.help)) {
                 write_annotation(
                     hstd::fmt("Help {}: ", it.index() + 1), it.value());
             }
@@ -1253,11 +1248,11 @@ void write_report_group_annotations(
     }
 
     // Note
-    if (!report.note.empty() && is_final_group) {
-        if (report.note.size() == 1) {
-            write_annotation("Note: ", report.note.at(0));
+    if (!c.report.note.empty() && is_final_group) {
+        if (c.report.note.size() == 1) {
+            write_annotation("Note: ", c.report.note.at(0));
         } else {
-            for (auto const& it : enumerator(report.note)) {
+            for (auto const& it : enumerator(c.report.note)) {
                 write_annotation(
                     hstd::fmt("Note {}: ", it.index() + 1), it.value());
             }
@@ -1265,50 +1260,20 @@ void write_report_group_annotations(
     }
 
     // Tail of report
-    if (!report.config.compact) {
+    if (!c.report.config.compact) {
         if (is_final_group) {
-            op.write(Str(report.config.char_set.hbar)
-                         .repeated(line_number_width + 2));
-            op.write(report.config.char_set.rbot);
-            op.write("\n");
+            c.op.write(Str(c.report.config.char_set.hbar)
+                           .repeated(c.line_number_width + 2));
+            c.op.write(c.report.config.char_set.rbot);
+            c.op.write("\n");
         } else {
-            op.write(Str(" ").repeated(line_number_width + 2));
-            op.write(report.config.char_set.vbar);
-            op.write("\n");
+            c.op.write(Str(" ").repeated(c.line_number_width + 2));
+            c.op.write(c.report.config.char_set.vbar);
+            c.op.write("\n");
         }
     }
 }
 
-
-void write_report_group(
-    int                     group_idx,
-    int                     line_number_width,
-    Cache&                  cache,
-    Report const&           report,
-    Vec<SourceGroup> const& groups,
-    Writer&                 op) {
-    SourceGroup const&      group  = groups[group_idx];
-    auto const&             config = report.config;
-    std::shared_ptr<Source> src    = cache.fetch(group.src_id);
-
-    write_report_group_header(
-        config, group_idx, line_number_width, cache, report, op, group);
-
-    // Generate a list of multi-line labels
-    Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
-
-    write_report_group_source_lines(
-        report, line_number_width, src, group, multi_labels, op);
-
-    write_report_group_annotations(
-        groups,
-        group_idx,
-        line_number_width,
-        report,
-        op,
-        multi_labels,
-        src);
-}
 
 void write_report_header(Report const& report, Writer& op) {
     ColStyle kind_color;
@@ -1393,9 +1358,28 @@ void Report::write_for_stream(Cache& cache, ColStream& w) const {
     int line_number_width = get_line_number_width(groups, cache);
     // --- Source sections ---
     for (int group_idx = 0; group_idx < groups.size(); ++group_idx) {
+        SourceGroup const&      group = groups.at(group_idx);
+        std::shared_ptr<Source> src   = cache.fetch(group.src_id);
 
-        write_report_group(
-            group_idx, line_number_width, cache, *this, groups, op);
+        // Generate a list of multi-line labels
+        Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
+
+        ReportGroupContext c{
+            .report            = *this,
+            .line_number_width = line_number_width,
+            .src               = src,
+            .group             = group,
+            .multi_labels      = multi_labels,
+            .op                = op,
+            .config            = config,
+            .cache             = cache,
+            .group_idx         = group_idx,
+            .groups            = groups,
+        };
+
+        write_report_group_header(c);
+        write_report_group_source_lines(c);
+        write_report_group_annotations(c);
     }
 }
 
