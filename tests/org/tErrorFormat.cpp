@@ -614,8 +614,6 @@ def multiline :: Str = match Some 5 in {
               .with_code("3")
               .with_message(("Incompatible types"_qs))
               .with_label(label(slice(108, 124)))
-              // .with_label(label(slice(105, 125)))
-              // .with_label(label(slice(112, 116)))
               .with_config(Config()
                                .with_cross_gap(false)
                                .with_compact(true)

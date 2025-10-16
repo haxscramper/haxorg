@@ -131,8 +131,11 @@ struct MarginContext {
     Vec<LineLabel> const&               line_labels;
     std::optional<LineLabel> const&     margin_label;
     std::shared_ptr<Source>             src;
-    Vec<Label> const&                   multi_labels;
-    Config const&                       config;
+    /// \brief List of the multi-labels for this record. All multi-labels
+    /// are visible for margin context. Margin column index maps to the
+    /// multi-label indices.
+    Vec<Label> const& multi_labels;
+    Config const&     config;
 
     MarginContext& with_report_row(std::pair<int, bool> const& value) {
         report_row = value;
@@ -258,11 +261,28 @@ bool sort_line_labels(
 
 /// \brief Information for rendering the left-most part of the report.
 struct MarginElements {
-    Opt<Label>                 hbar       = std::nullopt;
-    Opt<Label>                 vbar       = std::nullopt;
-    Opt<Pair<Label, bool>>     corner     = std::nullopt;
-    Opt<Pair<LineLabel, bool>> margin_ptr = std::nullopt;
-    DESC_FIELDS(MarginElements, (hbar, vbar, corner, margin_ptr));
+    /// \brief Which label requires drawing a horizontal bar here?
+    Opt<Label> hbar_label = std::nullopt;
+    /// \brief Which label requires drawing a vertical bar here?
+    Opt<Label> vbar_label = std::nullopt;
+    /// \brief Which label requires drawing a corner element here?
+    Opt<Label> corner_label = std::nullopt;
+    /// \brief If there is a label that requires drawing a corner, is this
+    /// corner a start or an end?
+    Opt<bool> is_corner_start = std::nullopt;
+    /// \brief Line label if there is an annotation label associated with
+    /// the specified column of the margin. If this field is set, then
+    /// `is_margin_label_start` should also be set.
+    Opt<LineLabel> margin_label          = std::nullopt;
+    Opt<bool>      is_margin_label_start = std::nullopt;
+    DESC_FIELDS(
+        MarginElements,
+        (hbar_label,
+         vbar_label,
+         corner_label,
+         is_corner_start,
+         margin_label,
+         is_margin_label_start));
 };
 
 /// \brief
@@ -273,10 +293,11 @@ MarginElements fill_margin_elements(
     Slice<int>     line_span = c.src->line(c.idx).value().span();
     // Iterate over all multi-line labels in the report to find which
     // labels are applicable for a given line span.
-    for (int label_index = 0;
-         label_index < std::min(margin_col + 1, c.multi_labels.size());
-         ++label_index) {
-        auto           label = c.multi_labels.at(label_index);
+    for (int margin_label_index = 0;
+         margin_label_index
+         < std::min(margin_col + 1, c.multi_labels.size());
+         ++margin_label_index) {
+        auto           label = c.multi_labels.at(margin_label_index);
         Opt<LineLabel> margin;
         if (c.margin_label && label == c.margin_label->label) {
             margin = c.margin_label;
@@ -284,15 +305,18 @@ MarginElements fill_margin_elements(
 
         if (label.span.start() <= line_span.last
             && line_span.first <= label.span.end()) {
-            bool is_parent = label_index != margin_col;
+            // TODO: What `is_parent` represents exactly?
+            bool is_parent = margin_label_index != margin_col;
             bool is_start  = line_span.contains(label.span.start());
             bool is_end    = line_span.contains(label.span.end());
 
             if (margin && c.is_line) {
-                result.margin_ptr = std::make_pair(
-                    margin.value(), is_start);
+                result.margin_label          = margin.value();
+                result.is_margin_label_start = is_start;
             } else if (!is_start && (!is_end || c.is_line)) {
-                if (!result.vbar && !is_parent) { result.vbar = label; }
+                if (!result.vbar_label && !is_parent) {
+                    result.vbar_label = label;
+                }
             } else if (c.report_row.has_value()) {
                 auto report_row_value = c.report_row.value();
                 int  label_row        = 0;
@@ -305,31 +329,31 @@ MarginElements fill_margin_elements(
 
                 if (report_row_value.first == label_row) {
                     if (margin) {
-                        if (margin_col == label_index) {
-                            result.vbar = margin->label;
+                        if (margin_col == margin_label_index) {
+                            result.vbar_label = margin->label;
                         } else {
-                            result.vbar = std::nullopt;
+                            result.vbar_label = std::nullopt;
                         }
 
                         if (is_start) { continue; }
                     }
 
                     if (report_row_value.second) {
-                        result.hbar = label;
+                        result.hbar_label = label;
                         if (!is_parent) {
-                            result.corner = std::make_pair(
-                                label, is_start);
+                            result.corner_label    = label;
+                            result.is_corner_start = is_start;
                         }
                     } else if (!is_start) {
-                        if (!result.vbar && !is_parent) {
-                            result.vbar = label;
+                        if (!result.vbar_label && !is_parent) {
+                            result.vbar_label = label;
                         }
                     }
                 } else {
-                    if (!result.vbar && !is_parent
+                    if (!result.vbar_label && !is_parent
                         && (is_start
                             ^ (report_row_value.first < label_row))) {
-                        result.vbar = label;
+                        result.vbar_label = label;
                     }
                 }
             }
@@ -349,53 +373,90 @@ Pair<ColRune, ColRune> get_corner_elements(
     ColRune     base;
     ColRune     extended;
     auto const& d = c.draw();
+// #define __DD(_value) hstd::fmt("{}:{}", #_value, __LINE__)
+#define __DD(_value) _value
 
-    if (margin.corner) {
-        auto [label, is_start] = *margin.corner;
+    if (margin.corner_label) {
+        Label const& label    = margin.corner_label.value();
+        bool const   is_start = margin.is_corner_start.value();
         if (is_start) {
-            base = ColRune(d.ltop, label.color);
+            base = ColRune(__DD(d.ltop), label.color);
         } else {
-            base = ColRune(d.lbot, label.color);
+            // <<get_corner_elements.bottom_multiline_angle>>
+            // Draw the bottom left angle of the multi-line arrow for
+            // position.
+            base = ColRune(__DD(d.lbot), label.color);
         }
 
-        extended = ColRune(d.hbar, label.color);
-    } else if (margin.hbar && margin.vbar && !c.config.cross_gap) {
-        base     = ColRune(d.xbar, margin.hbar->color);
-        extended = ColRune(d.hbar, margin.hbar->color);
-    } else if (margin.hbar) {
-        base     = ColRune(d.hbar, margin.hbar->color);
-        extended = ColRune(d.hbar, margin.hbar->color);
-    } else if (margin.vbar) {
-        if ((c.is_gap)) {
-            base = ColRune(d.vbar_gap, margin.vbar->color);
+        extended = ColRune(__DD(d.hbar), label.color);
+    } else if (
+        margin.hbar_label && margin.vbar_label && !c.config.cross_gap) {
+        base     = ColRune(__DD(d.xbar), margin.hbar_label->color);
+        extended = ColRune(__DD(d.hbar), margin.hbar_label->color);
+    } else if (margin.hbar_label) {
+        //
+        base     = ColRune(__DD(d.hbar), margin.hbar_label->color);
+        extended = ColRune(__DD(d.hbar), margin.hbar_label->color);
+    } else if (margin.vbar_label) {
+        if (c.is_gap) {
+            base = ColRune(__DD(d.vbar_gap), margin.vbar_label->color);
         } else {
-            base = ColRune(d.vbar, margin.vbar->color);
+            base = ColRune(__DD(d.vbar), margin.vbar_label->color);
         }
-        extended = ColRune(' ');
-    } else if (margin.margin_ptr && c.is_line) {
-        auto [label, is_start] = margin.margin_ptr.value();
+        extended = ColRune(__DD(' '));
+    } else if (margin.margin_label && c.is_line) {
+        auto const& label    = margin.margin_label.value();
+        bool        is_start = margin.is_margin_label_start.value();
         bool is_col   = multi_label && multi_label->get() == label.label;
         bool is_limit = margin_col == c.multi_labels.size();
+        // clang-format off
+        /*
+         *   ╭─[tao:1:14]
+         * 6 │╭>    # Some x => x
+         * 7 │├>    # None => 0
+         *   123
+         *
+         *   1 - main margin attached to the location info, not returned by this function
+         *   2 - `is_col`
+         *   3 - `is_limit`
+         */
+        // clang-format on
+
         if (is_limit) {
-            base = ColRune(d.rarrow, label.label.color);
+            // is the rightmost column on the margin for the the content
+            // line that has a label.
+            base = ColRune(__DD(d.rarrow), label.label.color);
         } else if (is_col) {
+            // Draw top or middle line of the multi-line label. Bottom line
+            // is drawn in [get_corner_elements.bottom_multiline_angle]
             if (is_start) {
-                base = ColRune(d.ltop, label.label.color);
+                // Topmost part of the margin label line
+                base = ColRune(__DD(d.ltop), label.label.color);
             } else {
-                base = ColRune(d.lcross, label.label.color);
+                // Continuation of a margin line for a multi-line label
+                base = ColRune(__DD(d.lcross), label.label.color);
             }
         } else {
-            base = ColRune(d.hbar, label.label.color);
+            // clang-format off
+            /*
+             *
+             *  3 │ ╭─────────>def sixes = ["6", 6, True, (), []]
+             *    │╭┼──────────────╯             │    │    │   │   MSG [26..100] 574
+             *
+             *    long line coming to `def` from the left is drawn here.
+             */
+            // clang-format on
+            base = ColRune(__DD(d.hbar), label.label.color);
         }
 
         if (is_limit) {
-            extended = ColRune(' ');
+            extended = ColRune(__DD(' '));
         } else {
-            extended = ColRune(d.hbar, label.label.color);
+            extended = ColRune(__DD(d.hbar), label.label.color);
         }
     } else {
-        base     = ColRune(' ');
-        extended = ColRune(' ');
+        base     = ColRune(__DD(' '));
+        extended = ColRune(__DD(' '));
     }
 
     return {base, extended};
@@ -436,24 +497,23 @@ void write_margin(MarginContext const& c) {
             Opt<CRw<Label>> multi_label = c.multi_labels.get(margin_col);
             auto            margin = fill_margin_elements(c, margin_col);
 
-            if (margin.margin_ptr && c.is_line) {
+            if (margin.margin_label && c.is_line) {
                 bool is_col = multi_label
                            && (*multi_label
-                               == margin.margin_ptr->first.label);
+                               == margin.margin_label.value().label);
 
                 bool is_limit = margin_col + 1 == c.multi_labels.size();
-                if (is_limit) { c.w.write("is_limit"); }
                 if (!is_col && !is_limit) {
-                    margin.hbar = margin.hbar.value_or(
-                        margin.margin_ptr->first.label);
+                    margin.hbar_label = margin.hbar_label.value_or(
+                        margin.margin_label.value().label);
                 }
             }
 
-            if (margin.hbar
+            if (margin.hbar_label
                 && !(
-                    (*margin.hbar != c.margin_label->label)
+                    (*margin.hbar_label != c.margin_label->label)
                     || !c.is_line)) {
-                margin.hbar = std::nullopt;
+                margin.hbar_label = std::nullopt;
             }
 
             auto [base, extended] = get_corner_elements(
