@@ -93,6 +93,21 @@ std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
     return tmp;
 }
 
+void OrgParser::start_no_guard(
+    OrgNodeKind kind,
+    int         line,
+    const char* function) {
+    auto res = group->startTree(kind);
+    if (TraceState) {
+        report(
+            Builder(
+                OrgParser::ReportKind::StartNode, nullptr, line, function)
+                .with_node(res)
+                .report);
+    }
+}
+
+
 OrgId OrgParser::end_impl(
     const std::string& desc,
     int                line,

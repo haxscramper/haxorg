@@ -599,7 +599,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};
     } else {
-        return {{.isOk = true}};
+        auto errors = org::collectErrorNodes(node);
+        return {{.isOk = true}, .expectedParseErrors = !errors.empty()};
     }
 }
 
@@ -656,6 +657,13 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     auto sem_result = runSpecSem(p, spec, relDebug);
     if (!parse_result.isOk) {
         message("sem fail -> test fail");
+        return RunResult{sem_result};
+    }
+
+    if (sem_result.isOk && sem_result.expectedParseErrors) {
+        message(
+            "sem OK, but contained expected errors. Skipping re-format "
+            "parse -> overall test OK");
         return RunResult{sem_result};
     }
 
@@ -1132,7 +1140,17 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     if (spec.sem.has_value()) {
         return compareSem(spec, document, spec.sem.value());
     } else {
-        return RunResult::SemCompare{{.isOk = true}};
+        auto errors = org::collectErrorNodes(document.asOrg());
+        if (errors.empty()) {
+            return RunResult::SemCompare{{.isOk = true}};
+        } else {
+            return RunResult::SemCompare{
+                {.isOk         = false,
+                 .failDescribe = "Test parse result contains errors, but "
+                                 "the spec does not contain a sem "
+                                 "example. Impossible to determine if the "
+                                 "errors were expected or not."_ss}};
+        }
     }
 }
 

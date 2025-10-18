@@ -195,6 +195,12 @@ struct OrgParser : public hstd::OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
+
+    void start_no_guard(
+        OrgNodeKind kind,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
     OrgId end_impl(
         std::string const& desc     = "",
         int                line     = __builtin_LINE(),

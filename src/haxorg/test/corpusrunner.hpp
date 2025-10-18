@@ -78,7 +78,19 @@ class CorpusRunner : public hstd::OperationsTracer {
 
         struct NodeCompare : CompareBase {};
         struct LexCompare : CompareBase {};
-        struct SemCompare : CompareBase {};
+        struct SemCompare : CompareBase {
+            /// \brief Parsed sem content has unexpected error nodes. This
+            /// field is populated if the parse had errors but no expected
+            /// sem structure. If there *is* an expected sem structure,
+            /// regular comparison takes precedence.
+            bool unexpectedParseErrors = false;
+
+            /// \brief If the sem compare is successful, but the tree
+            /// contains parsing errors. If this is the case, the rest of
+            /// the test will be skipped, as formatter is not going to
+            /// correctly reproduce the document back -- as is intended.
+            bool expectedParseErrors = false;
+        };
         struct Skip {};
         struct None {};
 

@@ -1838,3 +1838,14 @@ hstd::Vec<ext::Report> org::collectDiagnostics(
 
     return result;
 }
+
+hstd::Vec<sem::SemId<ErrorGroup>> org::collectErrorNodes(
+    const org::sem::SemId<sem::Org>& tree) {
+    hstd::Vec<sem::SemId<ErrorGroup>> res;
+    org::eachSubnodeRec(tree, [&](sem::SemId<sem::Org> const& node) {
+        if (auto group = node.asOpt<org::sem::ErrorGroup>(); group) {
+            res.push_back(group);
+        }
+    });
+    return res;
+}

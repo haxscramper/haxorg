@@ -395,8 +395,8 @@ void OrgParser::textFold(OrgLexer& lex) {
         print(fmt("begin {}", Kind));
         int        startDepth = treeDepth();
         OrgTokenId startToken = pop(lex);
-        std::ignore           = start(Kind);
-        std::ignore           = aux();
+        start_no_guard(Kind);
+        std::ignore = aux();
         print(
             fmt("Started on {} exited on {} tok {}",
                 startDepth,
@@ -439,195 +439,180 @@ void OrgParser::textFold(OrgLexer& lex) {
         }
     };
 
+    auto _single = [&]() -> ParseResult {
+        switch (lex.kind()) {
+            case otk::BoldBegin: _begin(onk::Bold); break;
+            case otk::BoldEnd: _end(onk::Bold); break;
+            case otk::BoldUnknown: _unknown(onk::Bold); break;
+            case otk::ItalicBegin: _begin(onk::Italic); break;
+            case otk::ItalicEnd: _end(onk::Italic); break;
+            case otk::ItalicUnknown: _unknown(onk::Italic); break;
+            case otk::UnderlineBegin: _begin(onk::Underline); break;
+            case otk::UnderlineEnd: _end(onk::Underline); break;
+            case otk::UnderlineUnknown: _unknown(onk::Underline); break;
+            case otk::StrikeBegin: _begin(onk::Strike); break;
+            case otk::StrikeEnd: _end(onk::Strike); break;
+            case otk::StrikeUnknown: _unknown(onk::Strike); break;
+
+            case otk::Whitespace: token(onk::Space, pop(lex)); break;
+            case otk::CurlyBegin: {
+                if (lex.at(
+                        Vec{otk::CurlyBegin,
+                            otk::CurlyBegin,
+                            otk::CurlyBegin})) {
+                    SUB_PARSE(Macro, lex);
+                } else {
+                    token(onk::Punctuation, pop(lex));
+                }
+                break;
+            }
+
+            case otk::AngleEnd: {
+                token(onk::Punctuation, pop(lex));
+                break;
+            }
+
+            case otk::Escaped: token(onk::Escaped, pop(lex)); break;
+            case otk::RawText: token(onk::RawText, pop(lex)); break;
+            case otk::Newline: token(onk::Newline, pop(lex)); break;
+            case otk::Word: token(onk::Word, pop(lex)); break;
+            case otk::BigIdent: token(onk::BigIdent, pop(lex)); break;
+            case otk::Punctuation:
+                token(onk::Punctuation, pop(lex));
+                break;
+
+            case otk::Colon: token(onk::Colon, pop(lex)); break;
+            case otk::MiscUnicode:
+            case otk::Time:
+            case otk::Date:
+            case otk::SubtreePriority:
+            case otk::Number: {
+                token(onk::Word, pop(lex));
+                break;
+            }
+
+            case otk::CriticAddBegin:
+            case otk::CriticDeleteBegin:
+            case otk::CriticReplaceBegin:
+            case otk::CriticCommentBegin:
+            case otk::CriticHighlightBegin: {
+                SUB_PARSE(CriticMarkup, lex);
+                break;
+            }
+
+            case otk::Placeholder: {
+                SUB_PARSE(Placeholder, lex);
+                break;
+            }
+
+            case otk::ActiveDynamicTimeContent:
+            case otk::InactiveDynamicTimeContent: {
+                SUB_PARSE(TimeRange, lex);
+                break;
+            }
+
+            case otk::AngleBegin: {
+                if (lex.at(otk::Date, +1)) {
+                    SUB_PARSE(TimeRange, lex);
+                } else {
+                    SUB_PARSE(Placeholder, lex);
+                }
+                break;
+            }
+
+            case otk::InlineExportBackend: {
+                SUB_PARSE(InlineExport, lex);
+                break;
+            }
+
+            case otk::TextSrcBegin: {
+                SUB_PARSE(SrcInline, lex);
+                break;
+            }
+            case otk::HashIdent: {
+                SUB_PARSE(HashTag, lex);
+                break;
+            }
+            case otk::LinkProtocolHttp:
+            case otk::LinkProtocol:
+            case otk::LinkBegin: {
+                SUB_PARSE(Link, lex);
+                break;
+            }
+            case otk::FootnoteInlineBegin:
+            case otk::FootnoteLinked: {
+                SUB_PARSE(Footnote, lex);
+                break;
+            }
+            case otk::Symbol: {
+                SUB_PARSE(Symbol, lex);
+                break;
+            }
+
+            case otk::BraceBegin: {
+                if (lex.at(otk::Date, +1)) {
+                    SUB_PARSE(TimeRange, lex);
+                } else {
+                    token(onk::Punctuation, pop(lex));
+                }
+                break;
+            }
+
+            case otk::At: {
+                token(onk::AtMention, TRY_POPX(lex, otk::At));
+                break;
+            }
+
+            case otk::VerbatimBegin:
+            case otk::MonospaceBegin: {
+                SUB_PARSE(VerbatimOrMonospace, lex);
+                break;
+            }
+
+            case otk::DoubleAngleBegin:
+            case otk::TripleAngleBegin: {
+                SUB_PARSE(AngleTarget, lex);
+                break;
+            }
+
+            case otk::Comment:
+            case otk::LeadingSpace: {
+                skip(lex);
+                break;
+            }
+
+            case otk::LinkEnd:
+            case otk::LinkDescriptionBegin:
+            case otk::LinkTargetEnd: {
+                if (lex.tok()->text.empty()) {
+                    skip(lex);
+                } else {
+                    token(onk::Punctuation, pop(lex));
+                }
+                break;
+            }
+
+            default: {
+                token(onk::Punctuation, pop(lex));
+                break;
+            }
+        }
+
+        return ParseOk{};
+    };
+
 
     aux = [&]() -> ParseResult {
         auto __trace = trace(lex, std::nullopt, __LINE__, "aux");
 
         while (!lex.finished()) {
-            switch (lex.kind()) {
-                case otk::Escaped: {
-                    token(onk::Escaped, TRY_POPX(lex, otk::Escaped));
-                    break;
-                }
-                case otk::RawText: {
-                    token(onk::RawText, TRY_POPX(lex, otk::RawText));
-                    break;
-                }
-                case otk::Newline: {
-                    token(onk::Newline, TRY_POPX(lex, otk::Newline));
-                    break;
-                }
-                case otk::Word: {
-                    token(onk::Word, TRY_POPX(lex, otk::Word));
-                    break;
-                }
-                case otk::BigIdent: {
-                    token(onk::BigIdent, TRY_POPX(lex, otk::BigIdent));
-                    break;
-                }
-                case otk::Punctuation: {
-                    token(
-                        onk::Punctuation, TRY_POPX(lex, otk::Punctuation));
-                    break;
-                }
-                case otk::Colon: {
-                    token(onk::Colon, TRY_POPX(lex, otk::Colon));
-                    break;
-                }
-
-                case otk::BoldBegin: _begin(onk::Bold); break;
-                case otk::BoldEnd: _end(onk::Bold); break;
-                case otk::BoldUnknown: _unknown(onk::Bold); break;
-                case otk::ItalicBegin: _begin(onk::Italic); break;
-                case otk::ItalicEnd: _end(onk::Italic); break;
-                case otk::ItalicUnknown: _unknown(onk::Italic); break;
-                case otk::UnderlineBegin: _begin(onk::Underline); break;
-                case otk::UnderlineEnd: _end(onk::Underline); break;
-                case otk::UnderlineUnknown:
-                    _unknown(onk::Underline);
-                    break;
-                case otk::StrikeBegin: _begin(onk::Strike); break;
-                case otk::StrikeEnd: _end(onk::Strike); break;
-                case otk::StrikeUnknown: _unknown(onk::Strike); break;
-
-                case otk::Whitespace: token(onk::Space, pop(lex)); break;
-                case otk::CurlyBegin: {
-                    if (lex.at(
-                            Vec{otk::CurlyBegin,
-                                otk::CurlyBegin,
-                                otk::CurlyBegin})) {
-                        SUB_PARSE(Macro, lex);
-                    } else {
-                        token(onk::Punctuation, pop(lex));
-                    }
-                    break;
-                }
-
-                case otk::AngleEnd: {
-                    token(onk::Punctuation, pop(lex));
-                    break;
-                }
-
-                case otk::MiscUnicode:
-                case otk::Time:
-                case otk::Date:
-                case otk::SubtreePriority:
-                case otk::Number: {
-                    token(onk::Word, pop(lex));
-                    break;
-                }
-
-                case otk::CriticAddBegin:
-                case otk::CriticDeleteBegin:
-                case otk::CriticReplaceBegin:
-                case otk::CriticCommentBegin:
-                case otk::CriticHighlightBegin: {
-                    SUB_PARSE(CriticMarkup, lex);
-                    break;
-                }
-
-                case otk::Placeholder: {
-                    SUB_PARSE(Placeholder, lex);
-                    break;
-                }
-
-                case otk::ActiveDynamicTimeContent:
-                case otk::InactiveDynamicTimeContent: {
-                    SUB_PARSE(TimeRange, lex);
-                    break;
-                }
-
-                case otk::AngleBegin: {
-                    if (lex.at(otk::Date, +1)) {
-                        SUB_PARSE(TimeRange, lex);
-                    } else {
-                        SUB_PARSE(Placeholder, lex);
-                    }
-                    break;
-                }
-
-                case otk::InlineExportBackend: {
-                    SUB_PARSE(InlineExport, lex);
-                    break;
-                }
-
-                case otk::TextSrcBegin: {
-                    SUB_PARSE(SrcInline, lex);
-                    break;
-                }
-                case otk::HashIdent: {
-                    SUB_PARSE(HashTag, lex);
-                    break;
-                }
-                case otk::LinkProtocolHttp:
-                case otk::LinkProtocol:
-                case otk::LinkBegin: {
-                    SUB_PARSE(Link, lex);
-                    break;
-                }
-                case otk::FootnoteInlineBegin:
-                case otk::FootnoteLinked: {
-                    SUB_PARSE(Footnote, lex);
-                    break;
-                }
-                case otk::Symbol: {
-                    SUB_PARSE(Symbol, lex);
-                    break;
-                }
-
-                case otk::BraceBegin: {
-                    if (lex.at(otk::Date, +1)) {
-                        SUB_PARSE(TimeRange, lex);
-                    } else {
-                        token(onk::Punctuation, pop(lex));
-                    }
-                    break;
-                }
-
-                case otk::At: {
-                    token(onk::AtMention, TRY_POPX(lex, otk::At));
-                    break;
-                }
-
-                case otk::VerbatimBegin:
-                case otk::MonospaceBegin: {
-                    SUB_PARSE(VerbatimOrMonospace, lex);
-                    break;
-                }
-
-                case otk::DoubleAngleBegin:
-                case otk::TripleAngleBegin: {
-                    SUB_PARSE(AngleTarget, lex);
-                    break;
-                }
-
-                case otk::Comment:
-                case otk::LeadingSpace: {
-                    skip(lex);
-                    break;
-                }
-
-                case otk::LinkEnd:
-                case otk::LinkDescriptionBegin:
-                case otk::LinkTargetEnd: {
-                    if (lex.tok()->text.empty()) {
-                        skip(lex);
-                    } else {
-                        token(onk::Punctuation, pop(lex));
-                    }
-                    break;
-                }
-
-                default: {
-                    token(onk::Punctuation, pop(lex));
-                    break;
-                }
-            }
+            // ignoring all failures in the text parsing: while parsing
+            // paragraph there is no need to search for the next
+            // synchronization points. Take the next token and try to parse
+            // it. All paragraphs are processed with sub-lexers, so it is
+            // safe to eagerly process everything.
+            std::ignore = _single();
         }
-
-#undef CASE_MARKUP
-#undef CASE_SINGLE
-#undef CASE_INLINE
 
         return ParseOk{};
     };
