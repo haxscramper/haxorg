@@ -5,15 +5,6 @@
 using namespace org::parse;
 using namespace org::test;
 
-template <>
-struct hstd::JsonSerde<YAML::Mark> {
-    static YAML::Mark from_json(json const& j) { return YAML::Mark(); }
-};
-
-template <>
-struct hstd::JsonSerde<YAML::Node> {
-    static YAML::Node from_json(json const& j) { return toYaml(j); }
-};
 
 
 template <>

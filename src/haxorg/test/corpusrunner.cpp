@@ -29,6 +29,7 @@ struct DiffItem {
 };
 
 
+
 Vec<DiffItem> json_diff(
     const json&          source,
     const json&          target,
@@ -1042,6 +1043,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     MockFull&     p,
     CR<ParseSpec> spec,
     CR<Str>       relDebug) {
+    HSLOG_INFO("Running spec sem");
+    HSLOG_DEPTH_SCOPE_ANON();
     __perf_trace("cli", "sem convert");
     sem::OrgConverter converter{p.parser->currentFile};
 
@@ -1165,9 +1168,15 @@ TestResult org::test::gtest_run_spec(
     CorpusRunner runner;
     runner.setTraceFile(testDir / "exec_trace.txt");
 
-    using RunResult  = CorpusRunner::RunResult;
-    RunResult result = runner.runSpec(
-        spec, params.file.native(), "initial");
+    using RunResult = CorpusRunner::RunResult;
+    RunResult result;
+
+    {
+        HSLOG_INFO("Run spec with initial configuration");
+        HSLOG_DEPTH_SCOPE_ANON();
+        HSLOG_TRACE("Spec:\n{}", hstd::to_json_eval(spec).dump(2));
+        result = runner.runSpec(spec, params.file.native(), "initial");
+    }
     TestResult test;
 
     if (result.isOk() && result.isSkip()) {
@@ -1195,8 +1204,13 @@ TestResult org::test::gtest_run_spec(
         spec.debug.printSemToFile       = true;
 
 
-        RunResult fail = runner.runSpec(
-            spec, params.file.native(), "fail");
+        RunResult fail;
+        {
+            HSLOG_INFO("Run spec with verbose configuration");
+            HSLOG_DEPTH_SCOPE_ANON();
+            HSLOG_TRACE("Spec:\n{}", hstd::to_json_eval(spec).dump(2));
+            fail = runner.runSpec(spec, params.file.native(), "fail");
+        }
         ColText os;
 
         std::visit(
@@ -1322,4 +1336,18 @@ hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org
             default:
         }
     };
+}
+
+void CorpusRunner::writeFile(
+    hstd::CR<ParseSpec> spec,
+    hstd::CR<hstd::Str> name,
+    hstd::CR<hstd::Str> content,
+    hstd::CR<hstd::Str> relDebug) {
+    files.push_back(TestResult::File{
+        .path  = name,
+        .rerun = inRerun,
+    });
+    auto patht = spec.debugFile(name, relDebug);
+    HSLOG_TRACE("Wrote file to {}", patht.native());
+    hstd::writeFile(patht, content);
 }
