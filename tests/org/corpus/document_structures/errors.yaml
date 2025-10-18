@@ -1,0 +1,5 @@
+items:
+  - name: "Missing subtree close"
+    source: |
+      * Subtree
+        :properties:

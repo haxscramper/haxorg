@@ -158,7 +158,9 @@ items:
     source: |
       - [2023-11-09 Thu 18:33:38 +04]
         #+caption:
-
+    debug:
+      traceAll: true
+      
   - name: "Source block with broken indentation"
     tags: ["org_paragraph", "defcon2"]
     source: |

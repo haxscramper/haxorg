@@ -75,7 +75,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
     }
 };
 
-org::parse::OrgParser::NodeGuard OrgParser::start(
+std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
     OrgNodeKind kind,
     int         line,
     const char* function) {
@@ -88,8 +88,8 @@ org::parse::OrgParser::NodeGuard OrgParser::start(
                 .with_node(res)
                 .report);
     }
-    auto tmp  = NodeGuard{startingDepth, this, res};
-    tmp.debug = hstd::fmt("line:{}", line);
+    auto tmp   = std::make_unique<NodeGuard>(startingDepth, this, res);
+    tmp->debug = hstd::fmt("line:{}", line);
     return tmp;
 }
 
