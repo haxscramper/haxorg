@@ -1,6 +1,7 @@
 #include "common.hpp"
 
-hstd::fs::path getDebugFile(const hstd::Str& suffix, bool cleanParent) {
+namespace {
+hstd::fs::path getDebugPath(const hstd::Str& suffix) {
     auto dir = std::filesystem::temp_directory_path()
              / hstd::fs::path{hstd::fmt(
                  "haxorg_tests/{}",
@@ -15,25 +16,49 @@ hstd::fs::path getDebugFile(const hstd::Str& suffix, bool cleanParent) {
 
     if (suffix.empty()) {
         hstd::Str result = hstd::fmt("{}/{}", dir.native(), testname);
-        hstd::createDirectory(hstd::fs::path{result.toBase()});
-        outPath = result.toBase();
+        outPath          = result.toBase();
     } else {
         hstd::Str result = hstd::fmt(
             "{}/{}/{}", dir.native(), testname, suffix);
-        hstd::createDirectory(
-            hstd::fs::path{result.toBase()}.parent_path());
         outPath = result.toBase();
     }
+    return outPath;
+}
+} // namespace
+
+hstd::fs::path getDebugFile(const hstd::Str& suffix, bool cleanParent) {
+    auto file = getDebugPath(suffix);
 
     if (cleanParent) {
-        auto parent = outPath.parent_path();
+        auto parent = file.parent_path();
         if (hstd::fs::exists(parent)) {
             hstd::fs::remove_all(parent);
             hstd::createDirectory(parent);
         }
     }
 
-    return outPath;
+
+    if (suffix.empty()) {
+        hstd::createDirectory(file);
+    } else {
+        hstd::createDirectory(file.parent_path());
+    }
+
+    return file;
+}
+
+hstd::fs::path getDebugDir(const hstd::Str& suffix, bool clean) {
+    auto dir = getDebugPath(suffix);
+
+    if (clean) {
+        if (hstd::fs::exists(dir)) {
+            hstd::fs::remove_all(dir);
+            hstd::createDirectory(dir);
+        }
+    }
+
+    hstd::createDirectory(dir);
+    return dir;
 }
 
 

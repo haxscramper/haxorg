@@ -202,11 +202,12 @@ TEST(ParseFileAux, GenerateYamlSchema) {
 }
 
 TEST_P(TestOrgParseCorpus, CorpusAll) {
-    TestParams params = GetParam();
+    auto       testDir = getDebugDir("", false);
+    TestParams params  = GetParam();
     if (is_full_trace_on_cli_enabled()) {
         params.spec.debug.traceAll = true;
     }
-    TestResult result = gtest_run_spec(params);
+    TestResult result = gtest_run_spec(params, getDebugDir());
     switch (result.getKind()) {
         case TestResult::Kind::Fail: {
             FAIL() << result.getFail().msg;

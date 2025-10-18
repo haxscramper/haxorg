@@ -50,6 +50,10 @@ hstd::fs::path getDebugFile(
     const hstd::Str& suffix      = "",
     bool             cleanParent = false);
 
+hstd::fs::path getDebugDir(
+    const hstd::Str& suffix = "",
+    bool             clean  = false);
+
 hstd::log::log_sink_scope getDebugLogScope(
     hstd::Str const& suffix      = "execution.log",
     bool             cleanParent = false);

@@ -568,12 +568,6 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         os << "\n";
     }
 
-    auto maybePathDiff = [&](json::json_pointer const& path) {
-        if (ops.contains(path.to_string())) {
-            describeDiff(os, ops[path.to_string()], expected, converted);
-        }
-    };
-
     if (0 < failCount) {
         yaml converted_yaml  = toYaml(converted);
         yaml expected_yaml   = toYaml(expected);
@@ -609,6 +603,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<ParseSpec>   spec,
     CR<std::string> from,
     CR<Str>         relDebug) {
+    HSLOG_INFO("Running test spec '{}'", spec.name);
     __perf_trace("cli", "run spec");
     MockFull p("<mock>", spec.debug.traceParse, spec.debug.traceLex);
 
@@ -616,59 +611,57 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         writeFile(spec, "source.org", spec.source, relDebug);
     }
 
-    message("running spec");
-
     auto skip = RunResult{RunResult::Skip{}};
 
     if (!spec.debug.doLexBase) {
-        message("no base lex for spec, skipping");
+        HSLOG_WARNING("no base lex for spec, skipping");
         return skip;
     }
     auto base_lex_result = runSpecBaseLex(p, spec, relDebug);
     if (!base_lex_result.isOk) {
-        message("base lex fail -> test fail");
+        HSLOG_ERROR("base lex fail -> test fail");
         return RunResult{base_lex_result};
     }
 
     if (!spec.debug.doLex) {
-        message("no lex for spec, skipping");
+        HSLOG_WARNING("no lex for spec, skipping");
         return skip;
     }
     auto lex_result = runSpecLex(p, spec, relDebug);
     if (!lex_result.isOk) {
-        message("lex fail -> test fail");
+        HSLOG_ERROR("lex fail -> test fail");
         return RunResult{lex_result};
     }
 
     if (!spec.debug.doParse) {
-        message("no parse for spec, skipping");
+        HSLOG_WARNING("no parse for spec, skipping");
         return skip;
     }
     auto parse_result = runSpecParse(p, spec, relDebug);
     if (!parse_result.isOk) {
-        message("parse fail -> test fail");
+        HSLOG_ERROR("parse fail -> test fail");
         return RunResult{parse_result};
     }
 
     if (!spec.debug.doSem) {
-        message("no sem for spec, skipping");
+        HSLOG_WARNING("no sem for spec, skipping");
         return skip;
     }
     auto sem_result = runSpecSem(p, spec, relDebug);
     if (!parse_result.isOk) {
-        message("sem fail -> test fail");
+        HSLOG_ERROR("sem fail -> test fail");
         return RunResult{sem_result};
     }
 
     if (sem_result.isOk && sem_result.expectedParseErrors) {
-        message(
+        HSLOG_INFO(
             "sem OK, but contained expected errors. Skipping re-format "
             "parse -> overall test OK");
         return RunResult{sem_result};
     }
 
     if (!spec.debug.doFormatReparse) {
-        message("no format reparse, skip test");
+        HSLOG_WARNING("no format reparse, skip test");
         return skip;
     }
 
@@ -734,13 +727,13 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         auto flat_reparse_compare = compareNodes(
             reparsedNodes, originalNodes);
         if (!flat_reparse_compare.isOk) {
-            message("flat reparse compare fail");
+            HSLOG_ERROR("flat reparse compare fail");
             return RunResult{flat_reparse_compare};
         }
     }
 
     if (!spec.debug.doFormatReparse) {
-        message("no format reparse, skip test");
+        HSLOG_WARNING("no format reparse, skip test");
         return skip;
     }
 
@@ -815,9 +808,9 @@ ${split}
     }
 
     if (!reformat_result.isOk) {
-        message(
-            fmt("reformat fail {}",
-                reformat_result.failDescribe.toString(false)));
+        HSLOG_ERROR(
+            "reformat fail {}",
+            reformat_result.failDescribe.toString(false));
         return RunResult{reformat_result};
     }
 
@@ -825,10 +818,10 @@ ${split}
     // but it *is* skipping parts of the check, so the example is
     // considered skipped.
     if (spec.debug.doFlatParseCompare) {
-        message("run result ok");
+        HSLOG_INFO("run result ok");
         return RunResult();
     } else {
-        message("no flat reparse compare, skip test");
+        HSLOG_WARNING("no flat reparse compare, skip test");
         return skip;
     }
 }
@@ -1154,17 +1147,23 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     }
 }
 
-TestResult org::test::gtest_run_spec(CR<TestParams> params) {
+TestResult org::test::gtest_run_spec(
+    CR<TestParams>        params,
+    hstd::fs::path const& testDir) {
+
+    auto sink = HSLOG_SINK_FACTORY_SCOPED(([testDir]() {
+        return ::hstd::log::init_file_sink(
+            (testDir / "hslog.log").native());
+    }));
 
 
     auto spec              = params.spec;
-    spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
+    spec.debug.debugOutDir = testDir / "init";
     if (hstd::fs::exists(spec.debug.debugOutDir)) {
         hstd::fs::remove_all(spec.debug.debugOutDir);
     }
     CorpusRunner runner;
-    runner.setTraceFile(
-        "/tmp/runner_log/" + params.testName() + "/exec_trace.txt");
+    runner.setTraceFile(testDir / "exec_trace.txt");
 
     using RunResult  = CorpusRunner::RunResult;
     RunResult result = runner.runSpec(
@@ -1182,11 +1181,11 @@ TestResult org::test::gtest_run_spec(CR<TestParams> params) {
     } else if (result.isOk()) {
         test.data = TestResult::Success{};
     } else {
-        spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
-        spec.debug.traceLex    = true;
-        spec.debug.traceParse  = true;
-        spec.debug.traceSem    = true;
-        spec.debug.printLexed  = true;
+        spec.debug.debugOutDir          = testDir / "verbose";
+        spec.debug.traceLex             = true;
+        spec.debug.traceParse           = true;
+        spec.debug.traceSem             = true;
+        spec.debug.printLexed           = true;
         spec.debug.printBaseLexed       = true;
         spec.debug.printParsed          = true;
         spec.debug.printSource          = true;

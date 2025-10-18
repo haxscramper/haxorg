@@ -165,7 +165,9 @@ struct TestParams {
 };
 
 
-TestResult gtest_run_spec(hstd::CR<TestParams> params);
+TestResult gtest_run_spec(
+    hstd::CR<TestParams>  params,
+    const hstd::fs::path& testDir);
 
 hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const& params)> getOrgParseWriteParams(
     OrgSpec const*                               spec,
