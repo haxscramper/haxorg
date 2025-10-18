@@ -68,11 +68,21 @@ class CorpusRunner : public hstd::OperationsTracer {
         struct CompareBase {
             bool          isOk = false;
             hstd::ColText failDescribe;
+            BOOST_DESCRIBE_STRUCT(CompareBase, (), (isOk, failDescribe));
         };
 
-        struct NodeCompare : CompareBase {};
-        struct LexCompare : CompareBase {};
+        struct NodeCompare : CompareBase {
+            BOOST_DESCRIBE_STRUCT(NodeCompare, (CompareBase), ());
+        };
+        struct LexCompare : CompareBase {
+            BOOST_DESCRIBE_STRUCT(LexCompare, (CompareBase), ());
+        };
         struct SemCompare : CompareBase {
+            BOOST_DESCRIBE_STRUCT(
+                SemCompare,
+                (CompareBase),
+                (unexpectedParseErrors, expectedParseErrors));
+
             /// \brief Parsed sem content has unexpected error nodes. This
             /// field is populated if the parse had errors but no expected
             /// sem structure. If there *is* an expected sem structure,
@@ -119,6 +129,18 @@ class CorpusRunner : public hstd::OperationsTracer {
         hstd::CR<org::parse::OrgNodeGroup> parsed,
         hstd::CR<org::parse::OrgNodeGroup> expected);
 
+    hstd::Opt<RunResult> runSpecInitial(
+        hstd::CR<ParseSpec>   spec,
+        hstd::CR<std::string> from,
+        hstd::CR<hstd::Str>   relDebug,
+        MockFull&             p);
+
+    RunResult runSpecFormatted(
+        hstd::CR<ParseSpec>   spec,
+        hstd::CR<std::string> from,
+        hstd::CR<hstd::Str>   relDebug,
+        MockFull&             p);
+
 
     RunResult::SemCompare compareSem(
         hstd::CR<ParseSpec>  spec,
@@ -129,6 +151,7 @@ class CorpusRunner : public hstd::OperationsTracer {
         hstd::CR<ParseSpec>   spec,
         hstd::CR<std::string> from,
         hstd::CR<hstd::Str>   relDebug);
+
     RunResult::LexCompare runSpecBaseLex(
         MockFull&           p,
         hstd::CR<ParseSpec> spec,

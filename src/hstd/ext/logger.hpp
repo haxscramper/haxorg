@@ -494,6 +494,31 @@ struct log_scoped_depth_attr {
 #    define HSLOG_DEPTH_SCOPE_ANON()                                      \
         auto BOOST_PP_CAT(__scope, __COUNTER__) = HSLOG_DEPTH_SCOPE();
 
+#    define HSLOG_DEBUG_DEPTH_SCOPE_ANON(...)                             \
+        HSLOG_DEBUG(__VA_ARGS__);                                         \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+#    define HSLOG_TRACE_DEPTH_SCOPE_ANON(...)                             \
+        HSLOG_TRACE(__VA_ARGS__);                                         \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+#    define HSLOG_INFO_DEPTH_SCOPE_ANON(...)                              \
+        HSLOG_INFO(__VA_ARGS__);                                          \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+#    define HSLOG_WARNING_DEPTH_SCOPE_ANON(...)                           \
+        HSLOG_WARNING(__VA_ARGS__);                                       \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+#    define HSLOG_ERROR_DEPTH_SCOPE_ANON(...)                             \
+        HSLOG_ERROR(__VA_ARGS__);                                         \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+
+#    define HSLOG_FATAL_DEPTH_SCOPE_ANON(...)                             \
+        HSLOG_FATAL(__VA_ARGS__);                                         \
+        HSLOG_DEPTH_SCOPE_ANON();
+
 /// \brief Create a finalizer that can use a mutable generator object as a
 /// filter on the callsite.
 template <int Unique, typename Generator>

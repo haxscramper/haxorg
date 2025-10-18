@@ -29,7 +29,6 @@ struct DiffItem {
 };
 
 
-
 Vec<DiffItem> json_diff(
     const json&          source,
     const json&          target,
@@ -532,6 +531,11 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     sem::SemId<sem::Org> node,
     json                 expected) {
 
+    auto errors = org::collectErrorNodes(node);
+
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Running sem comparison");
+    HSLOG_TRACE("Error count {}", errors.size());
+
     json          converted = toTestJson(node);
     Vec<DiffItem> diff      = json_diff(converted, expected);
     int           failCount = 0;
@@ -594,31 +598,31 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};
     } else {
-        auto errors = org::collectErrorNodes(node);
         return {{.isOk = true}, .expectedParseErrors = !errors.empty()};
     }
 }
 
+hstd::Opt<CorpusRunner::RunResult> CorpusRunner::runSpecInitial(
+    hstd::CR<ParseSpec>   spec,
+    hstd::CR<std::string> from,
+    hstd::CR<hstd::Str>   relDebug,
+    MockFull&             p) {
 
-CorpusRunner::RunResult CorpusRunner::runSpec(
-    CR<ParseSpec>   spec,
-    CR<std::string> from,
-    CR<Str>         relDebug) {
-    HSLOG_INFO("Running test spec '{}'", spec.name);
-    __perf_trace("cli", "run spec");
-    MockFull p("<mock>", spec.debug.traceParse, spec.debug.traceLex);
+    auto skip = RunResult{RunResult::Skip{}};
 
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Initial run of the spec");
     if (spec.debug.traceAll || spec.debug.printSource) {
         writeFile(spec, "source.org", spec.source, relDebug);
     }
 
-    auto skip = RunResult{RunResult::Skip{}};
 
     if (!spec.debug.doLexBase) {
         HSLOG_WARNING("no base lex for spec, skipping");
         return skip;
     }
+
     auto base_lex_result = runSpecBaseLex(p, spec, relDebug);
+    HSLOG_TRACE("base_lex_result: {}", base_lex_result);
     if (!base_lex_result.isOk) {
         HSLOG_ERROR("base lex fail -> test fail");
         return RunResult{base_lex_result};
@@ -628,7 +632,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         HSLOG_WARNING("no lex for spec, skipping");
         return skip;
     }
+
     auto lex_result = runSpecLex(p, spec, relDebug);
+    HSLOG_TRACE("lex_result: {}", lex_result);
     if (!lex_result.isOk) {
         HSLOG_ERROR("lex fail -> test fail");
         return RunResult{lex_result};
@@ -638,7 +644,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         HSLOG_WARNING("no parse for spec, skipping");
         return skip;
     }
+
     auto parse_result = runSpecParse(p, spec, relDebug);
+    HSLOG_TRACE("parse_result: {}", parse_result);
     if (!parse_result.isOk) {
         HSLOG_ERROR("parse fail -> test fail");
         return RunResult{parse_result};
@@ -648,15 +656,23 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         HSLOG_WARNING("no sem for spec, skipping");
         return skip;
     }
+
     auto sem_result = runSpecSem(p, spec, relDebug);
+    HSLOG_TRACE("sem_result: {}", sem_result);
     if (!parse_result.isOk) {
         HSLOG_ERROR("sem fail -> test fail");
         return RunResult{sem_result};
     }
 
+    if (sem_result.unexpectedParseErrors) {
+        HSLOG_WARNING("Test has unexpected parse errors");
+        return RunResult{sem_result};
+    }
+
     if (sem_result.isOk && sem_result.expectedParseErrors) {
         HSLOG_INFO(
-            "sem OK, but contained expected errors. Skipping re-format "
+            "sem OK, but contained expected errors. Skipping "
+            "re-format "
             "parse -> overall test OK");
         return RunResult{sem_result};
     }
@@ -666,6 +682,18 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         return skip;
     }
 
+    return std::nullopt;
+}
+
+CorpusRunner::RunResult CorpusRunner::runSpecFormatted(
+    hstd::CR<ParseSpec>   spec,
+    hstd::CR<std::string> from,
+    hstd::CR<hstd::Str>   relDebug,
+    MockFull&             p) {
+
+    auto skip = RunResult{RunResult::Skip{}};
+
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Re-running spec with formatted results");
     inRerun         = true;
     ParseSpec rerun = spec;
     MockFull  p2("<mock>", spec.debug.traceParse, spec.debug.traceLex);
@@ -673,8 +701,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     auto                 fmt_result = formatter.toString(
         p.node, org::algo::Formatter::Context{});
     rerun.source = formatter.store.toString(fmt_result);
-    // reset all expected tokens of the copied parse spec so `runSpecBase`
-    // did not try to run the validation.
+    // reset all expected tokens of the copied parse spec so
+    // `runSpecBase` did not try to run the validation.
     rerun.base_tokens = std::nullopt;
     rerun.subnodes    = std::nullopt;
     rerun.tokens      = std::nullopt;
@@ -696,8 +724,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     runSpecParse(p2, rerun, dbg);
 
 
-    // Compare flat formatted nodes, clean easily broken elements from the
-    // list
+    // Compare flat formatted nodes, clean easily broken elements from
+    // the list
     if (spec.debug.doFlatParseCompare) {
         auto filterBrittleNodes =
             [](OrgNodeGroup const& nodes) -> Vec<OrgNode> {
@@ -815,9 +843,9 @@ ${split}
         return RunResult{reformat_result};
     }
 
-    // flat reparse and compare does not prevent the full test execution,
-    // but it *is* skipping parts of the check, so the example is
-    // considered skipped.
+    // flat reparse and compare does not prevent the full test
+    // execution, but it *is* skipping parts of the check, so the
+    // example is considered skipped.
     if (spec.debug.doFlatParseCompare) {
         HSLOG_INFO("run result ok");
         return RunResult();
@@ -825,6 +853,19 @@ ${split}
         HSLOG_WARNING("no flat reparse compare, skip test");
         return skip;
     }
+}
+
+CorpusRunner::RunResult CorpusRunner::runSpec(
+    CR<ParseSpec>   spec,
+    CR<std::string> from,
+    CR<Str>         relDebug) {
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Running test spec '{}'", spec.name);
+    __perf_trace("cli", "run spec");
+    MockFull p("<mock>", spec.debug.traceParse, spec.debug.traceLex);
+    auto     initialResult = runSpecInitial(spec, from, relDebug, p);
+    if (initialResult.has_value()) { return initialResult.value(); }
+
+    return runSpecFormatted(spec, from, relDebug, p);
 }
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
@@ -1043,8 +1084,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     MockFull&     p,
     CR<ParseSpec> spec,
     CR<Str>       relDebug) {
-    HSLOG_INFO("Running spec sem");
-    HSLOG_DEPTH_SCOPE_ANON();
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Running spec sem");
     __perf_trace("cli", "sem convert");
     sem::OrgConverter converter{p.parser->currentFile};
 
@@ -1112,8 +1152,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
                  pair1(true, false),
                  pair1(false, false))) {
             std::string formatted;
-            HSLOG_DEPTH_SCOPE_ANON();
-            HSLOG_DEBUG("Report group for colors:{}", debug);
+            HSLOG_DEBUG_DEPTH_SCOPE_ANON(
+                "Report group for colors:{}", debug);
             for (auto const& report : reports) {
                 auto tmp = report;
                 tmp.config.with_debug_writes(debug);
@@ -1138,14 +1178,17 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     } else {
         auto errors = org::collectErrorNodes(document.asOrg());
         if (errors.empty()) {
+            HSLOG_INFO("Parse OK, no errors detected, no errors expected");
             return RunResult::SemCompare{{.isOk = true}};
         } else {
+            HSLOG_WARNING("Parse failed, found unexpected errors");
             return RunResult::SemCompare{
                 {.isOk         = false,
                  .failDescribe = "Test parse result contains errors, but "
                                  "the spec does not contain a sem "
                                  "example. Impossible to determine if the "
-                                 "errors were expected or not."_ss}};
+                                 "errors were expected or not."_ss},
+                .unexpectedParseErrors = true};
         }
     }
 }
@@ -1154,7 +1197,7 @@ TestResult org::test::gtest_run_spec(
     CR<TestParams>        params,
     hstd::fs::path const& testDir) {
 
-    auto sink = HSLOG_SINK_FACTORY_SCOPED(([testDir]() {
+    auto sink = HSLOG_SINK_FACTORY_SCOPED(([&testDir]() {
         return ::hstd::log::init_file_sink(
             (testDir / "hslog.log").native());
     }));
@@ -1172,8 +1215,7 @@ TestResult org::test::gtest_run_spec(
     RunResult result;
 
     {
-        HSLOG_INFO("Run spec with initial configuration");
-        HSLOG_DEPTH_SCOPE_ANON();
+        HSLOG_INFO_DEPTH_SCOPE_ANON("Run spec with initial configuration");
         HSLOG_TRACE("Spec:\n{}", hstd::to_json_eval(spec).dump(2));
         result = runner.runSpec(spec, params.file.native(), "initial");
     }
@@ -1206,8 +1248,8 @@ TestResult org::test::gtest_run_spec(
 
         RunResult fail;
         {
-            HSLOG_INFO("Run spec with verbose configuration");
-            HSLOG_DEPTH_SCOPE_ANON();
+            HSLOG_INFO_DEPTH_SCOPE_ANON(
+                "Run spec with verbose configuration");
             HSLOG_TRACE("Spec:\n{}", hstd::to_json_eval(spec).dump(2));
             fail = runner.runSpec(spec, params.file.native(), "fail");
         }

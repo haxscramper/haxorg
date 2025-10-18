@@ -5,7 +5,9 @@
 #include <haxorg/lexbase/NodeIO.hpp>
 #include <haxorg/test/NodeTest.hpp>
 #include <hstd/ext/error_write.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 #include <gtest/gtest.h>
+#include <iostream>
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
@@ -208,20 +210,59 @@ TEST_P(TestOrgParseCorpus, CorpusAll) {
         params.spec.debug.traceAll = true;
     }
     TestResult result = gtest_run_spec(params, getDebugDir());
+
+    auto add_gtest_prefix = [](hstd::Str const& text) {
+        auto                     lines = text.split("\n");
+        std::vector<std::string> filtered;
+
+        int start = 0;
+        int end   = lines.size() - 1;
+
+        while (start < lines.size()
+               && ranges::all_of(lines.at(start), [](char c) {
+                      return std::isspace(c);
+                  })) {
+            ++start;
+        }
+
+        while (0 <= end && ranges::all_of(lines.at(end), [](char c) {
+                   return std::isspace(c);
+               })) {
+            --end;
+        }
+
+        for (int i = start; i <= end; ++i) {
+            filtered.push_back(lines.at(i));
+        }
+
+        // if (!filtered.empty()) { __builtin_debugtrap(); }
+
+        return filtered | hstd::rv::transform([](hstd::Str const& s) {
+                   return "[          ] <"_ss + s + ">"_ss;
+               })
+             | hstd::rv_intersperse_newline_join;
+    };
+
+
     switch (result.getKind()) {
         case TestResult::Kind::Fail: {
-            FAIL() << result.getFail().msg;
-            break;
+            std::cout << "[          ] ";
+            return GTEST_MESSAGE_(
+                add_gtest_prefix(result.getFail().msg).c_str(),
+                ::testing::TestPartResult::kFatalFailure);
         }
 
         case TestResult::Kind::Success: {
-            GTEST_SUCCEED() << result.getSuccess().msg;
-            break;
+            return GTEST_MESSAGE_(
+                add_gtest_prefix(result.getSuccess().msg).c_str(),
+                ::testing::TestPartResult::kSuccess);
         }
 
         case TestResult::Kind::Skip: {
-            GTEST_SKIP() << result.getSkip().msg;
-            break;
+            std::cout << "[          ] ";
+            return GTEST_MESSAGE_(
+                add_gtest_prefix(result.getSkip().msg).c_str(),
+                ::testing::TestPartResult::kSkip);
         }
     }
 }

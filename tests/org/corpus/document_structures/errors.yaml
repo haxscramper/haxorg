@@ -1,5 +1,52 @@
 items:
-  - name: "Missing subtree close"
+  - name: "Missing subtree close, end document"
     source: |
       * Subtree
         :properties:
+
+    sem:
+      kind: Document
+      subnodes:
+        - kind: Subtree
+          level: 1
+          subnodes:
+            - kind: ErrorGroup
+              diagnostics:
+                - diag:
+                    data:
+                      kind: ParseTokenError
+            - kind: ErrorSkipGroup
+
+
+  - name: "Missing subtree close, other subtree"
+    source: |
+      * Subtree
+        :properties:
+
+
+      * Other
+
+
+    sem:
+      kind: Document
+      subnodes:
+        - kind: Subtree
+          level: 1
+          subnodes:
+            - kind: ErrorGroup
+              diagnostics:
+                - diag:
+                    data:
+                      kind: ParseTokenError
+                      ParseTokenError:
+                        errName: MissingPropertyContinuation
+            - kind: ErrorSkipGroup
+              skipped:
+                - text: "*"
+                  loc: ~
+                - text: " "
+                  loc: ~
+                - text: Other
+                  loc: ~
+              loc: ~
+            - {kind: Newline, text: "\n", loc: ~}
