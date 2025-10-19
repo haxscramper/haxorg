@@ -150,6 +150,28 @@ struct ImmSemSerde<org::sem::CmdAuthor, org::imm::ImmCmdAuthor> {
 };
 
 template <>
+struct ImmSemSerde<org::sem::CmdEmail, org::imm::ImmCmdEmail> {
+  static org::imm::ImmCmdEmail to_immer(org::sem::CmdEmail const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmCmdEmail result = hstd::SerdeDefaultProvider<org::imm::ImmCmdEmail>::get();
+    assign_immer_field(result.text, value.text, ctx);
+    assign_immer_field(result.attrs, value.attrs, ctx);
+    assign_immer_field(result.attached, value.attached, ctx);
+    assign_immer_field(result.loc, value.loc, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static org::sem::CmdEmail from_immer(org::imm::ImmCmdEmail const& value, ImmAstContext const& ctx) {
+    org::sem::CmdEmail result = hstd::SerdeDefaultProvider<org::sem::CmdEmail>::get();
+    assign_sem_field(result.text, value.text, ctx);
+    assign_sem_field(result.attrs, value.attrs, ctx);
+    assign_sem_field(result.attached, value.attached, ctx);
+    assign_sem_field(result.loc, value.loc, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<org::sem::CmdColumns, org::imm::ImmCmdColumns> {
   static org::imm::ImmCmdColumns to_immer(org::sem::CmdColumns const& value, ImmAstEditContext& ctx) {
     org::imm::ImmCmdColumns result = hstd::SerdeDefaultProvider<org::imm::ImmCmdColumns>::get();

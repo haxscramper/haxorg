@@ -182,11 +182,11 @@ struct ImmCmdCaption : public org::imm::ImmAttached {
 };
 
 /// \brief Creator of the document
-struct ImmCmdCreator : public org::imm::ImmAttached {
-  using ImmAttached::ImmAttached;
+struct ImmCmdCreator : public org::imm::ImmCmd {
+  using ImmCmd::ImmCmd;
   virtual ~ImmCmdCreator() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdCreator,
-                       (ImmAttached),
+                       (ImmCmd),
                        (),
                        (),
                        (staticKind,
@@ -199,11 +199,11 @@ struct ImmCmdCreator : public org::imm::ImmAttached {
 };
 
 /// \brief Author of the document
-struct ImmCmdAuthor : public org::imm::ImmAttached {
-  using ImmAttached::ImmAttached;
+struct ImmCmdAuthor : public org::imm::ImmCmd {
+  using ImmCmd::ImmCmd;
   virtual ~ImmCmdAuthor() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdAuthor,
-                       (ImmAttached),
+                       (ImmCmd),
                        (),
                        (),
                        (staticKind,
@@ -213,6 +213,21 @@ struct ImmCmdAuthor : public org::imm::ImmAttached {
   org::imm::ImmIdT<org::imm::ImmParagraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAuthor; }
   bool operator==(org::imm::ImmCmdAuthor const& other) const;
+};
+
+struct ImmCmdEmail : public org::imm::ImmCmd {
+  using ImmCmd::ImmCmd;
+  virtual ~ImmCmdEmail() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdEmail,
+                       (ImmCmd),
+                       (),
+                       (),
+                       (staticKind,
+                        text))
+  static OrgSemKind const staticKind;
+  hstd::ext::ImmBox<hstd::Str> text;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdEmail; }
+  bool operator==(org::imm::ImmCmdEmail const& other) const;
 };
 
 /// \brief Caption annotation for any subsequent node

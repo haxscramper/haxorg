@@ -2812,6 +2812,9 @@ class ImmIdTCmdCreator(ImmId):
 class ImmIdTCmdAuthor(ImmId):
     def __init__(self) -> None: ...
 
+class ImmIdTCmdEmail(ImmId):
+    def __init__(self) -> None: ...
+
 class ImmIdTCmdColumns(ImmId):
     def __init__(self) -> None: ...
 
@@ -3954,6 +3957,24 @@ class Block(Cmd):
 class LineCommand(Cmd):
     def __init__(self) -> None: ...
 
+class CmdCreator(Cmd):
+    def __init__(self, text: Paragraph) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: Paragraph
+
+class CmdAuthor(Cmd):
+    def __init__(self, text: Paragraph) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: Paragraph
+
+class CmdEmail(Cmd):
+    def __init__(self, text: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: str
+
 class CmdCustomArgs(Cmd):
     def __init__(self, name: str, isAttached: bool) -> None: ...
     def __repr__(self) -> str: ...
@@ -4432,18 +4453,6 @@ class CmdCaption(Attached):
     def __getattr__(self, name: str) -> object: ...
     text: Paragraph
 
-class CmdCreator(Attached):
-    def __init__(self, text: Paragraph) -> None: ...
-    def __repr__(self) -> str: ...
-    def __getattr__(self, name: str) -> object: ...
-    text: Paragraph
-
-class CmdAuthor(Attached):
-    def __init__(self, text: Paragraph) -> None: ...
-    def __repr__(self) -> str: ...
-    def __getattr__(self, name: str) -> object: ...
-    text: Paragraph
-
 class CmdColumns(Attached):
     def __init__(self, view: ColumnView) -> None: ...
     def __repr__(self) -> str: ...
@@ -4761,101 +4770,102 @@ class OrgNodeKind(Enum):
     CmdCreator = 27
     CmdInclude = 28
     CmdLanguage = 29
-    CmdAttr = 30
-    CmdStartup = 31
-    CmdName = 32
-    CmdCustomTextCommand = 33
-    CmdCustomArgsCommand = 34
-    CmdCustomRawCommand = 35
-    CmdResults = 36
-    CmdHeader = 37
-    CmdOptions = 38
-    CmdTblfm = 39
-    CmdCaption = 40
-    CmdResult = 41
-    CmdCallCode = 42
-    CmdFlag = 43
-    CmdLatexClass = 44
-    CmdLatexHeader = 45
-    CmdLatexCompiler = 46
-    CmdLatexClassOptions = 47
-    CmdHtmlHead = 48
-    CmdColumns = 49
-    CmdPropertyArgs = 50
-    CmdPropertyText = 51
-    CmdPropertyRaw = 52
-    CmdFiletags = 53
-    CmdKeywords = 54
-    BlockVerbatimMultiline = 55
-    CodeLine = 56
-    CodeText = 57
-    CodeTangle = 58
-    CodeCallout = 59
-    BlockCode = 60
-    BlockQuote = 61
-    BlockComment = 62
-    BlockCenter = 63
-    BlockVerse = 64
-    BlockExample = 65
-    BlockExport = 66
-    BlockDetails = 67
-    BlockSummary = 68
-    BlockDynamicFallback = 69
-    BigIdent = 70
-    Bold = 71
-    ErrorInfoToken = 72
-    ErrorSkipGroup = 73
-    ErrorSkipToken = 74
-    Italic = 75
-    Verbatim = 76
-    Backtick = 77
-    Underline = 78
-    Strike = 79
-    Quote = 80
-    Angle = 81
-    Monospace = 82
-    Par = 83
-    CriticMarkStructure = 84
-    InlineMath = 85
-    DisplayMath = 86
-    Space = 87
-    Punctuation = 88
-    Colon = 89
-    Word = 90
-    Escaped = 91
-    Newline = 92
-    RawLink = 93
-    Link = 94
-    Macro = 95
-    Symbol = 96
-    StaticActiveTime = 97
-    StaticInactiveTime = 98
-    DynamicActiveTime = 99
-    DynamicInactiveTime = 100
-    TimeRange = 101
-    SimpleTime = 102
-    HashTag = 103
-    MetaSymbol = 104
-    AtMention = 105
-    Placeholder = 106
-    RadioTarget = 107
-    Target = 108
-    SrcInlineCode = 109
-    InlineCallCode = 110
-    InlineExport = 111
-    InlineComment = 112
-    RawText = 113
-    SubtreeDescription = 114
-    SubtreeUrgency = 115
-    DrawerLogbook = 116
-    Drawer = 117
-    DrawerPropertyList = 118
-    DrawerProperty = 119
-    Subtree = 120
-    SubtreeTimes = 121
-    SubtreeStars = 122
-    SubtreeCompletion = 123
-    SubtreeImportance = 124
+    CmdEmail = 30
+    CmdAttr = 31
+    CmdStartup = 32
+    CmdName = 33
+    CmdCustomTextCommand = 34
+    CmdCustomArgsCommand = 35
+    CmdCustomRawCommand = 36
+    CmdResults = 37
+    CmdHeader = 38
+    CmdOptions = 39
+    CmdTblfm = 40
+    CmdCaption = 41
+    CmdResult = 42
+    CmdCallCode = 43
+    CmdFlag = 44
+    CmdLatexClass = 45
+    CmdLatexHeader = 46
+    CmdLatexCompiler = 47
+    CmdLatexClassOptions = 48
+    CmdHtmlHead = 49
+    CmdColumns = 50
+    CmdPropertyArgs = 51
+    CmdPropertyText = 52
+    CmdPropertyRaw = 53
+    CmdFiletags = 54
+    CmdKeywords = 55
+    BlockVerbatimMultiline = 56
+    CodeLine = 57
+    CodeText = 58
+    CodeTangle = 59
+    CodeCallout = 60
+    BlockCode = 61
+    BlockQuote = 62
+    BlockComment = 63
+    BlockCenter = 64
+    BlockVerse = 65
+    BlockExample = 66
+    BlockExport = 67
+    BlockDetails = 68
+    BlockSummary = 69
+    BlockDynamicFallback = 70
+    BigIdent = 71
+    Bold = 72
+    ErrorInfoToken = 73
+    ErrorSkipGroup = 74
+    ErrorSkipToken = 75
+    Italic = 76
+    Verbatim = 77
+    Backtick = 78
+    Underline = 79
+    Strike = 80
+    Quote = 81
+    Angle = 82
+    Monospace = 83
+    Par = 84
+    CriticMarkStructure = 85
+    InlineMath = 86
+    DisplayMath = 87
+    Space = 88
+    Punctuation = 89
+    Colon = 90
+    Word = 91
+    Escaped = 92
+    Newline = 93
+    RawLink = 94
+    Link = 95
+    Macro = 96
+    Symbol = 97
+    StaticActiveTime = 98
+    StaticInactiveTime = 99
+    DynamicActiveTime = 100
+    DynamicInactiveTime = 101
+    TimeRange = 102
+    SimpleTime = 103
+    HashTag = 104
+    MetaSymbol = 105
+    AtMention = 106
+    Placeholder = 107
+    RadioTarget = 108
+    Target = 109
+    SrcInlineCode = 110
+    InlineCallCode = 111
+    InlineExport = 112
+    InlineComment = 113
+    RawText = 114
+    SubtreeDescription = 115
+    SubtreeUrgency = 116
+    DrawerLogbook = 117
+    Drawer = 118
+    DrawerPropertyList = 119
+    DrawerProperty = 120
+    Subtree = 121
+    SubtreeTimes = 122
+    SubtreeStars = 123
+    SubtreeCompletion = 124
+    SubtreeImportance = 125
 
 class OrgTokenKind(Enum):
     Ampersand = 1
@@ -5104,76 +5114,77 @@ class OrgSemKind(Enum):
     CmdCaption = 6
     CmdCreator = 7
     CmdAuthor = 8
-    CmdColumns = 9
-    CmdName = 10
-    CmdCustomArgs = 11
-    CmdCustomRaw = 12
-    CmdCustomText = 13
-    CmdCall = 14
-    CmdTblfm = 15
-    HashTag = 16
-    InlineFootnote = 17
-    InlineExport = 18
-    Time = 19
-    TimeRange = 20
-    Macro = 21
-    Symbol = 22
-    Escaped = 23
-    Newline = 24
-    Space = 25
-    Word = 26
-    AtMention = 27
-    RawText = 28
-    Punctuation = 29
-    Placeholder = 30
-    BigIdent = 31
-    TextTarget = 32
-    ErrorSkipToken = 33
-    ErrorSkipGroup = 34
-    Bold = 35
-    Underline = 36
-    Monospace = 37
-    MarkQuote = 38
-    Verbatim = 39
-    Italic = 40
-    Strike = 41
-    Par = 42
-    RadioTarget = 43
-    Latex = 44
-    Link = 45
-    BlockCenter = 46
-    BlockQuote = 47
-    BlockComment = 48
-    BlockVerse = 49
-    BlockDynamicFallback = 50
-    BlockExample = 51
-    BlockExport = 52
-    BlockAdmonition = 53
-    BlockCodeEvalResult = 54
-    BlockCode = 55
-    SubtreeLog = 56
-    Subtree = 57
-    Cell = 58
-    Row = 59
-    Table = 60
-    Paragraph = 61
-    ColonExample = 62
-    CmdAttr = 63
-    CmdExport = 64
-    Call = 65
-    List = 66
-    ListItem = 67
-    DocumentOptions = 68
-    DocumentFragment = 69
-    CriticMarkup = 70
-    Document = 71
-    FileTarget = 72
-    TextSeparator = 73
-    DocumentGroup = 74
-    File = 75
-    Directory = 76
-    Symlink = 77
-    CmdInclude = 78
+    CmdEmail = 9
+    CmdColumns = 10
+    CmdName = 11
+    CmdCustomArgs = 12
+    CmdCustomRaw = 13
+    CmdCustomText = 14
+    CmdCall = 15
+    CmdTblfm = 16
+    HashTag = 17
+    InlineFootnote = 18
+    InlineExport = 19
+    Time = 20
+    TimeRange = 21
+    Macro = 22
+    Symbol = 23
+    Escaped = 24
+    Newline = 25
+    Space = 26
+    Word = 27
+    AtMention = 28
+    RawText = 29
+    Punctuation = 30
+    Placeholder = 31
+    BigIdent = 32
+    TextTarget = 33
+    ErrorSkipToken = 34
+    ErrorSkipGroup = 35
+    Bold = 36
+    Underline = 37
+    Monospace = 38
+    MarkQuote = 39
+    Verbatim = 40
+    Italic = 41
+    Strike = 42
+    Par = 43
+    RadioTarget = 44
+    Latex = 45
+    Link = 46
+    BlockCenter = 47
+    BlockQuote = 48
+    BlockComment = 49
+    BlockVerse = 50
+    BlockDynamicFallback = 51
+    BlockExample = 52
+    BlockExport = 53
+    BlockAdmonition = 54
+    BlockCodeEvalResult = 55
+    BlockCode = 56
+    SubtreeLog = 57
+    Subtree = 58
+    Cell = 59
+    Row = 60
+    Table = 61
+    Paragraph = 62
+    ColonExample = 63
+    CmdAttr = 64
+    CmdExport = 65
+    Call = 66
+    List = 67
+    ListItem = 68
+    DocumentOptions = 69
+    DocumentFragment = 70
+    CriticMarkup = 71
+    Document = 72
+    FileTarget = 73
+    TextSeparator = 74
+    DocumentGroup = 75
+    File = 76
+    Directory = 77
+    Symlink = 78
+    CmdInclude = 79
 
 class AstTrackingGroupKind(Enum):
     RadioTarget = 1

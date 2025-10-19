@@ -99,6 +99,7 @@ template class proto_serde<::orgproto::BlockAdmonition, sem::Cmd>;
 template class proto_serde<::orgproto::CmdCaption, sem::Cmd>;
 template class proto_serde<::orgproto::CmdCreator, sem::Cmd>;
 template class proto_serde<::orgproto::CmdAuthor, sem::Cmd>;
+template class proto_serde<::orgproto::CmdEmail, sem::Cmd>;
 template class proto_serde<::orgproto::Cell, sem::Cmd>;
 template class proto_serde<::orgproto::CmdAttr, sem::Cmd>;
 template class proto_serde<::orgproto::CmdName, sem::Cmd>;

@@ -825,14 +825,22 @@ def get_sem_commands():
         d_org(
             "CmdCreator",
             GenTuDoc("Creator of the document"),
-            bases=[t_nest(t_org("Attached"))],
+            bases=[t_nest(t_org("Cmd"))],
             fields=[id_field("Paragraph", "text", GenTuDoc("Creator name text"))],
         ),
         d_org(
             "CmdAuthor",
             GenTuDoc("Author of the document"),
-            bases=[t_nest(t_org("Attached"))],
+            bases=[t_nest(t_org("Cmd"))],
             fields=[id_field("Paragraph", "text", GenTuDoc("Author name text"))],
+        ),
+        d_org(
+            "CmdEmail",
+            GenTuDoc(""),
+            bases=[t_nest(t_org("Cmd"))],
+            fields=[
+                GenTuField(t_str(), "text", GenTuDoc(""))
+            ],
         ),
         d_org(
             "CmdColumns",
@@ -3497,6 +3505,7 @@ def get_org_node_kind_commands():
             "`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.",
         ),
         efield("CmdLanguage", "`#+language:`"),
+        efield("CmdEmail", "`#+email:`"),
         efield("CmdAttr", "`#+attr_html:`, `#+attr_image` etc."),
         efield("CmdStartup", "`#+startup:`"),
         efield("CmdName", "`#+name:` - name of the associated entry"),

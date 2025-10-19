@@ -2177,7 +2177,6 @@ OrgParser::ParseResult OrgParser::parseLineCommand(OrgLexer& lex) {
 
     std::unique_ptr<NodeGuard> cmdGuard;
     switch (cmd_kind) {
-        case otk::CmdEmailRaw:
         case otk::CmdBindRaw:
         case otk::CmdCategoryRaw:
         case otk::CmdSetupfileRaw:
@@ -2298,24 +2297,19 @@ OrgParser::ParseResult OrgParser::parseLineCommand(OrgLexer& lex) {
         }
 
 
+        case otk::CmdEmailRaw:
         case otk::CmdLatexHeader:
         case otk::CmdStartup:
         case otk::CmdLanguage: {
             switch (cmd_kind) {
+                case otk::CmdEmailRaw:
+                    cmdGuard = start(onk::CmdEmail);
+                    break;
                 case otk::CmdLanguage:
                     cmdGuard = start(onk::CmdLanguage);
                     break;
-                case otk::CmdOptions:
-                    cmdGuard = start(onk::CmdOptions);
-                    break;
                 case otk::CmdLatexHeader:
                     cmdGuard = start(onk::CmdLatexHeader);
-                    break;
-                case otk::CmdInclude:
-                    cmdGuard = start(onk::CmdInclude);
-                    break;
-                case otk::CmdColumns:
-                    cmdGuard = start(onk::CmdColumns);
                     break;
                 case otk::CmdStartup:
                     cmdGuard = start(onk::CmdStartup);

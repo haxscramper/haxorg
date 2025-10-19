@@ -182,11 +182,11 @@ struct CmdCaption : public org::sem::Attached {
 };
 
 /// \brief Creator of the document
-struct CmdCreator : public org::sem::Attached {
-  using Attached::Attached;
+struct CmdCreator : public org::sem::Cmd {
+  using Cmd::Cmd;
   virtual ~CmdCreator() = default;
   BOOST_DESCRIBE_CLASS(CmdCreator,
-                       (Attached),
+                       (Cmd),
                        (),
                        (),
                        (staticKind, text))
@@ -197,11 +197,11 @@ struct CmdCreator : public org::sem::Attached {
 };
 
 /// \brief Author of the document
-struct CmdAuthor : public org::sem::Attached {
-  using Attached::Attached;
+struct CmdAuthor : public org::sem::Cmd {
+  using Cmd::Cmd;
   virtual ~CmdAuthor() = default;
   BOOST_DESCRIBE_CLASS(CmdAuthor,
-                       (Attached),
+                       (Cmd),
                        (),
                        (),
                        (staticKind, text))
@@ -209,6 +209,19 @@ struct CmdAuthor : public org::sem::Attached {
   /// \brief Author name text
   org::sem::SemId<org::sem::Paragraph> text = sem::SemId<sem::Paragraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAuthor; }
+};
+
+struct CmdEmail : public org::sem::Cmd {
+  using Cmd::Cmd;
+  virtual ~CmdEmail() = default;
+  BOOST_DESCRIBE_CLASS(CmdEmail,
+                       (Cmd),
+                       (),
+                       (),
+                       (staticKind, text))
+  static OrgSemKind const staticKind;
+  hstd::Str text;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdEmail; }
 };
 
 /// \brief Caption annotation for any subsequent node

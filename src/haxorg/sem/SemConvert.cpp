@@ -1469,6 +1469,17 @@ OrgConverter::ConvResult<CmdAuthor> OrgConverter::convertCmdAuthor(
     return Author;
 }
 
+OrgConverter::ConvResult<CmdEmail> OrgConverter::convertCmdEmail(__args) {
+    __perf_trace("convert", "convertCmdEmail");
+    auto __trace = trace(a);
+    auto Email   = Sem<CmdEmail>(a);
+    if (0 < a.size()) {
+        Email->text = strip_space(get_text(one(a, N::Args)));
+    }
+
+    return Email;
+}
+
 OrgConverter::ConvResult<CmdCustomRaw> OrgConverter::convertCmdCustomRaw(
     __args) {
     __perf_trace("convert", "convertCmdCaption");
@@ -2857,6 +2868,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdCaption: return convertCmdCaption(a).unwrap();
         case onk::CmdCreator: return convertCmdCreator(a).unwrap();
         case onk::CmdAuthor: return convertCmdAuthor(a).unwrap();
+        case onk::CmdEmail: return convertCmdEmail(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCmdCall(a).unwrap();
         case onk::Paragraph: return convertParagraph(a).unwrap();

@@ -6244,6 +6244,8 @@ ingoing elements.)RAW")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdAuthor>, org::imm::ImmId>(m, "ImmIdTCmdAuthor")
     ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdEmail>, org::imm::ImmId>(m, "ImmIdTCmdEmail")
+    ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdColumns>, org::imm::ImmId>(m, "ImmIdTCmdColumns")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdName>, org::imm::ImmId>(m, "ImmIdTCmdName")
@@ -8415,6 +8417,54 @@ ingoing elements.)RAW")
     ;
   pybind11::class_<org::sem::LineCommand, org::sem::SemId<org::sem::LineCommand>, org::sem::Cmd>(m, "LineCommand")
     ;
+  pybind11::class_<org::sem::CmdCreator, org::sem::SemId<org::sem::CmdCreator>, org::sem::Cmd>(m, "CmdCreator")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCreator {
+                        org::sem::CmdCreator result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &org::sem::CmdCreator::text, R"RAW(Creator name text)RAW")
+    .def("__repr__", [](org::sem::CmdCreator const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::CmdCreator const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::CmdAuthor, org::sem::SemId<org::sem::CmdAuthor>, org::sem::Cmd>(m, "CmdAuthor")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdAuthor {
+                        org::sem::CmdAuthor result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &org::sem::CmdAuthor::text, R"RAW(Author name text)RAW")
+    .def("__repr__", [](org::sem::CmdAuthor const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::CmdAuthor const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::CmdEmail, org::sem::SemId<org::sem::CmdEmail>, org::sem::Cmd>(m, "CmdEmail")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdEmail {
+                        org::sem::CmdEmail result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &org::sem::CmdEmail::text)
+    .def("__repr__", [](org::sem::CmdEmail const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::CmdEmail const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::CmdCustomArgs, org::sem::SemId<org::sem::CmdCustomArgs>, org::sem::Cmd>(m, "CmdCustomArgs")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCustomArgs {
                         org::sem::CmdCustomArgs result{};
@@ -8954,38 +9004,6 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdCreator, org::sem::SemId<org::sem::CmdCreator>, org::sem::Attached>(m, "CmdCreator")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCreator {
-                        org::sem::CmdCreator result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("text", &org::sem::CmdCreator::text, R"RAW(Creator name text)RAW")
-    .def("__repr__", [](org::sem::CmdCreator const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::CmdCreator const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::CmdAuthor, org::sem::SemId<org::sem::CmdAuthor>, org::sem::Attached>(m, "CmdAuthor")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdAuthor {
-                        org::sem::CmdAuthor result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("text", &org::sem::CmdAuthor::text, R"RAW(Author name text)RAW")
-    .def("__repr__", [](org::sem::CmdAuthor const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::CmdAuthor const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<org::sem::CmdColumns, org::sem::SemId<org::sem::CmdColumns>, org::sem::Attached>(m, "CmdColumns")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdColumns {
                         org::sem::CmdColumns result{};
@@ -9389,6 +9407,7 @@ ingoing elements.)RAW")
     .value("CmdCreator", OrgNodeKind::CmdCreator, R"RAW(`#+creator:` Document creator)RAW")
     .value("CmdInclude", OrgNodeKind::CmdInclude, R"RAW(`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.)RAW")
     .value("CmdLanguage", OrgNodeKind::CmdLanguage, R"RAW(`#+language:`)RAW")
+    .value("CmdEmail", OrgNodeKind::CmdEmail, R"RAW(`#+email:`)RAW")
     .value("CmdAttr", OrgNodeKind::CmdAttr, R"RAW(`#+attr_html:`, `#+attr_image` etc.)RAW")
     .value("CmdStartup", OrgNodeKind::CmdStartup, R"RAW(`#+startup:`)RAW")
     .value("CmdName", OrgNodeKind::CmdName, R"RAW(`#+name:` - name of the associated entry)RAW")
@@ -9794,6 +9813,7 @@ ingoing elements.)RAW")
     .value("CmdCaption", OrgSemKind::CmdCaption)
     .value("CmdCreator", OrgSemKind::CmdCreator)
     .value("CmdAuthor", OrgSemKind::CmdAuthor)
+    .value("CmdEmail", OrgSemKind::CmdEmail)
     .value("CmdColumns", OrgSemKind::CmdColumns)
     .value("CmdName", OrgSemKind::CmdName)
     .value("CmdCustomArgs", OrgSemKind::CmdCustomArgs)

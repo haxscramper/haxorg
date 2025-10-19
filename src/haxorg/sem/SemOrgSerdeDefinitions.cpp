@@ -2062,6 +2062,20 @@ void org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor>::read(::
   proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdAuthor::text));
 }
 
+void org::algo::proto_serde<::orgproto::CmdEmail, org::sem::CmdEmail>::write(::orgproto::CmdEmail* out, org::sem::CmdEmail const& in) {
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Org>::write(out, in);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_text(), in.text);
+}
+
+void org::algo::proto_serde<::orgproto::CmdEmail, org::sem::CmdEmail>::read(::orgproto::CmdEmail const& out, proto_write_accessor<org::sem::CmdEmail> in) {
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.text(), in.for_field(&org::sem::CmdEmail::text));
+}
+
 void org::algo::proto_serde<::orgproto::CmdColumns, org::sem::CmdColumns>::write(::orgproto::CmdColumns* out, org::sem::CmdColumns const& in) {
   org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Cmd>::write(out, in);
   org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Stmt>::write(out, in);

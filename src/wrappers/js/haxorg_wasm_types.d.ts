@@ -555,6 +555,7 @@ export interface haxorg_wasm_module_auto {
   ImmIdTCmdCaption: ImmIdTCmdCaptionConstructor;
   ImmIdTCmdCreator: ImmIdTCmdCreatorConstructor;
   ImmIdTCmdAuthor: ImmIdTCmdAuthorConstructor;
+  ImmIdTCmdEmail: ImmIdTCmdEmailConstructor;
   ImmIdTCmdColumns: ImmIdTCmdColumnsConstructor;
   ImmIdTCmdName: ImmIdTCmdNameConstructor;
   ImmIdTCmdCustomArgs: ImmIdTCmdCustomArgsConstructor;
@@ -886,12 +887,18 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterDocumentGroupAPI: ImmAdapterDocumentGroupAPIConstructor;
   Block: BlockConstructor;
   LineCommand: LineCommandConstructor;
+  CmdCreator: CmdCreatorConstructor;
+  CmdAuthor: CmdAuthorConstructor;
+  CmdEmail: CmdEmailConstructor;
   CmdCustomArgs: CmdCustomArgsConstructor;
   CmdTblfm: CmdTblfmConstructor;
   Cell: CellConstructor;
   Row: RowConstructor;
   ImmBlock: ImmBlockConstructor;
   ImmLineCommand: ImmLineCommandConstructor;
+  ImmCmdCreator: ImmCmdCreatorConstructor;
+  ImmCmdAuthor: ImmCmdAuthorConstructor;
+  ImmCmdEmail: ImmCmdEmailConstructor;
   ImmCmdCustomArgs: ImmCmdCustomArgsConstructor;
   ImmCmdTblfm: ImmCmdTblfmConstructor;
   ImmCell: ImmCellConstructor;
@@ -1009,16 +1016,12 @@ export interface haxorg_wasm_module_auto {
   ImmStrikeAdapter: ImmStrikeAdapterConstructor;
   ImmParAdapter: ImmParAdapterConstructor;
   CmdCaption: CmdCaptionConstructor;
-  CmdCreator: CmdCreatorConstructor;
-  CmdAuthor: CmdAuthorConstructor;
   CmdColumns: CmdColumnsConstructor;
   CmdName: CmdNameConstructor;
   CmdCall: CmdCallConstructor;
   CmdAttr: CmdAttrConstructor;
   CmdExport: CmdExportConstructor;
   ImmCmdCaption: ImmCmdCaptionConstructor;
-  ImmCmdCreator: ImmCmdCreatorConstructor;
-  ImmCmdAuthor: ImmCmdAuthorConstructor;
   ImmCmdColumns: ImmCmdColumnsConstructor;
   ImmCmdName: ImmCmdNameConstructor;
   ImmCmdCall: ImmCmdCallConstructor;
@@ -1188,6 +1191,7 @@ export interface haxorg_wasm_module_auto {
     CmdCreator: OrgNodeKind,
     CmdInclude: OrgNodeKind,
     CmdLanguage: OrgNodeKind,
+    CmdEmail: OrgNodeKind,
     CmdAttr: OrgNodeKind,
     CmdStartup: OrgNodeKind,
     CmdName: OrgNodeKind,
@@ -1534,6 +1538,7 @@ export interface haxorg_wasm_module_auto {
     CmdCaption: OrgSemKind,
     CmdCreator: OrgSemKind,
     CmdAuthor: OrgSemKind,
+    CmdEmail: OrgSemKind,
     CmdColumns: OrgSemKind,
     CmdName: OrgSemKind,
     CmdCustomArgs: OrgSemKind,
@@ -3835,6 +3840,8 @@ export interface ImmIdTCmdCreatorConstructor { new(): ImmIdTCmdCreator; }
 export interface ImmIdTCmdCreator {  }
 export interface ImmIdTCmdAuthorConstructor { new(): ImmIdTCmdAuthor; }
 export interface ImmIdTCmdAuthor {  }
+export interface ImmIdTCmdEmailConstructor { new(): ImmIdTCmdEmail; }
+export interface ImmIdTCmdEmail {  }
 export interface ImmIdTCmdColumnsConstructor { new(): ImmIdTCmdColumns; }
 export interface ImmIdTCmdColumns {  }
 export interface ImmIdTCmdNameConstructor { new(): ImmIdTCmdName; }
@@ -4987,6 +4994,21 @@ export interface BlockConstructor { new(): Block; }
 export interface Block {  }
 export interface LineCommandConstructor { new(): LineCommand; }
 export interface LineCommand {  }
+export interface CmdCreatorConstructor { new(): CmdCreator; }
+export interface CmdCreator {
+  getKind(): OrgSemKind;
+  text: Paragraph
+}
+export interface CmdAuthorConstructor { new(): CmdAuthor; }
+export interface CmdAuthor {
+  getKind(): OrgSemKind;
+  text: Paragraph
+}
+export interface CmdEmailConstructor { new(): CmdEmail; }
+export interface CmdEmail {
+  getKind(): OrgSemKind;
+  text: string
+}
 export interface CmdCustomArgsConstructor { new(): CmdCustomArgs; }
 export interface CmdCustomArgs {
   getKind(): OrgSemKind;
@@ -5013,6 +5035,24 @@ export interface ImmBlockConstructor { new(): ImmBlock; }
 export interface ImmBlock { __eq__(other: ImmBlock): boolean; }
 export interface ImmLineCommandConstructor { new(): ImmLineCommand; }
 export interface ImmLineCommand { __eq__(other: ImmLineCommand): boolean; }
+export interface ImmCmdCreatorConstructor { new(): ImmCmdCreator; }
+export interface ImmCmdCreator {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdCreator): boolean;
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
+}
+export interface ImmCmdAuthorConstructor { new(): ImmCmdAuthor; }
+export interface ImmCmdAuthor {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdAuthor): boolean;
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
+}
+export interface ImmCmdEmailConstructor { new(): ImmCmdEmail; }
+export interface ImmCmdEmail {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdEmail): boolean;
+  text: haxorg_wasm.ImmBox<string>
+}
 export interface ImmCmdCustomArgsConstructor { new(): ImmCmdCustomArgs; }
 export interface ImmCmdCustomArgs {
   getKind(): OrgSemKind;
@@ -5497,16 +5537,6 @@ export interface CmdCaption {
   getKind(): OrgSemKind;
   text: Paragraph
 }
-export interface CmdCreatorConstructor { new(): CmdCreator; }
-export interface CmdCreator {
-  getKind(): OrgSemKind;
-  text: Paragraph
-}
-export interface CmdAuthorConstructor { new(): CmdAuthor; }
-export interface CmdAuthor {
-  getKind(): OrgSemKind;
-  text: Paragraph
-}
 export interface CmdColumnsConstructor { new(): CmdColumns; }
 export interface CmdColumns {
   getKind(): OrgSemKind;
@@ -5542,18 +5572,6 @@ export interface ImmCmdCaptionConstructor { new(): ImmCmdCaption; }
 export interface ImmCmdCaption {
   getKind(): OrgSemKind;
   __eq__(other: ImmCmdCaption): boolean;
-  text: haxorg_wasm.ImmIdT<ImmParagraph>
-}
-export interface ImmCmdCreatorConstructor { new(): ImmCmdCreator; }
-export interface ImmCmdCreator {
-  getKind(): OrgSemKind;
-  __eq__(other: ImmCmdCreator): boolean;
-  text: haxorg_wasm.ImmIdT<ImmParagraph>
-}
-export interface ImmCmdAuthorConstructor { new(): ImmCmdAuthor; }
-export interface ImmCmdAuthor {
-  getKind(): OrgSemKind;
-  __eq__(other: ImmCmdAuthor): boolean;
   text: haxorg_wasm.ImmIdT<ImmParagraph>
 }
 export interface ImmCmdColumnsConstructor { new(): ImmCmdColumns; }
@@ -5854,6 +5872,7 @@ export enum OrgNodeKind {
   CmdCreator,
   CmdInclude,
   CmdLanguage,
+  CmdEmail,
   CmdAttr,
   CmdStartup,
   CmdName,
@@ -6197,6 +6216,7 @@ export enum OrgSemKind {
   CmdCaption,
   CmdCreator,
   CmdAuthor,
+  CmdEmail,
   CmdColumns,
   CmdName,
   CmdCustomArgs,
