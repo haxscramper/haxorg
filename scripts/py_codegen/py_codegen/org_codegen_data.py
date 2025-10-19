@@ -843,6 +843,14 @@ def get_sem_commands():
             ],
         ),
         d_org(
+            "CmdLanguage",
+            GenTuDoc(""),
+            bases=[t_nest(t_org("Cmd"))],
+            fields=[
+                GenTuField(t_str(), "text", GenTuDoc(""))
+            ],
+        ),
+        d_org(
             "CmdColumns",
             GenTuDoc("Caption annotation for any subsequent node"),
             bases=[t_nest(t_org("Attached"))],

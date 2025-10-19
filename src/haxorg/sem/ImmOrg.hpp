@@ -1423,6 +1423,7 @@ struct [[refl]] ImmAdapterCmdCustomArgsAPI : ImmAdapterCmdAPI {};
 struct [[refl]] ImmAdapterCmdCreatorAPI : ImmAdapterCmdAPI {};
 struct [[refl]] ImmAdapterCmdAuthorAPI : ImmAdapterCmdAPI {};
 struct [[refl]] ImmAdapterCmdEmailAPI : ImmAdapterCmdAPI {};
+struct [[refl]] ImmAdapterCmdLanguageAPI : ImmAdapterCmdAPI {};
 struct [[refl]] ImmAdapterCmdCustomRawAPI : ImmAdapterStmtAPI {};
 struct [[refl]] ImmAdapterCmdCustomTextAPI : ImmAdapterStmtAPI {};
 struct [[refl]] ImmAdapterCmdResultsAPI : ImmAdapterAttachedAPI {};

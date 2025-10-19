@@ -707,6 +707,16 @@ void Exporter<V, R>::visitCmdEmail(R& res, In<sem::CmdEmail> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitCmdLanguage(R& res, In<sem::CmdLanguage> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, text);
+  __org_field(res, object, attrs);
+  __org_field(res, object, attached);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitCmdColumns(R& res, In<sem::CmdColumns> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, view);

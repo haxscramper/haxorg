@@ -224,6 +224,19 @@ struct CmdEmail : public org::sem::Cmd {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdEmail; }
 };
 
+struct CmdLanguage : public org::sem::Cmd {
+  using Cmd::Cmd;
+  virtual ~CmdLanguage() = default;
+  BOOST_DESCRIBE_CLASS(CmdLanguage,
+                       (Cmd),
+                       (),
+                       (),
+                       (staticKind, text))
+  static OrgSemKind const staticKind;
+  hstd::Str text;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdLanguage; }
+};
+
 /// \brief Caption annotation for any subsequent node
 struct CmdColumns : public org::sem::Attached {
   using Attached::Attached;

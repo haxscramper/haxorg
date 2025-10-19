@@ -1480,6 +1480,18 @@ OrgConverter::ConvResult<CmdEmail> OrgConverter::convertCmdEmail(__args) {
     return Email;
 }
 
+OrgConverter::ConvResult<CmdLanguage> OrgConverter::convertCmdLanguage(
+    __args) {
+    __perf_trace("convert", "convertCmdLanguage");
+    auto __trace  = trace(a);
+    auto Language = Sem<CmdLanguage>(a);
+    if (0 < a.size()) {
+        Language->text = strip_space(get_text(one(a, N::Args)));
+    }
+
+    return Language;
+}
+
 OrgConverter::ConvResult<CmdCustomRaw> OrgConverter::convertCmdCustomRaw(
     __args) {
     __perf_trace("convert", "convertCmdCaption");
@@ -1489,6 +1501,29 @@ OrgConverter::ConvResult<CmdCustomRaw> OrgConverter::convertCmdCustomRaw(
     if (1 < a.size()) { cmd->text = get_text(one(a, N::Args)); }
     return cmd;
 }
+
+OrgConverter::ConvResult<CmdCustomText> OrgConverter::convertCmdCustomText(
+    __args) {
+    __perf_trace("convert", "convertCmdCaption");
+    auto __trace = trace(a);
+    auto cmd     = Sem<CmdCustomText>(a);
+    cmd->name    = get_text(one(a, N::Name));
+    if (1 < a.size()) {
+        cmd->text = convertParagraph(one(a, N::Args)).value();
+    }
+    return cmd;
+}
+
+OrgConverter::ConvResult<CmdCustomArgs> OrgConverter::convertCmdCustomArgs(
+    __args) {
+    __perf_trace("convert", "convertCmdCaption");
+    auto __trace = trace(a);
+    auto cmd     = Sem<CmdCustomArgs>(a);
+    cmd->name    = get_text(one(a, N::Name));
+    cmd->attrs   = convertAttrs(one(a, N::Args));
+    return cmd;
+}
+
 
 namespace dsl  = lexy::dsl;
 using lexy_tok = lexy::string_lexeme<>;
@@ -2869,11 +2904,16 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdCreator: return convertCmdCreator(a).unwrap();
         case onk::CmdAuthor: return convertCmdAuthor(a).unwrap();
         case onk::CmdEmail: return convertCmdEmail(a).unwrap();
+        case onk::CmdLanguage: return convertCmdLanguage(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCmdCall(a).unwrap();
         case onk::Paragraph: return convertParagraph(a).unwrap();
         case onk::CmdCustomRawCommand:
             return convertCmdCustomRaw(a).unwrap();
+        case onk::CmdCustomTextCommand:
+            return convertCmdCustomText(a).unwrap();
+        case onk::CmdCustomArgsCommand:
+            return convertCmdCustomArgs(a).unwrap();
         case onk::CriticMarkStructure:
             return convertCriticMarkup(a).unwrap();
         case onk::BlockDynamicFallback:

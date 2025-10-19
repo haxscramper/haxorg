@@ -172,6 +172,28 @@ struct ImmSemSerde<org::sem::CmdEmail, org::imm::ImmCmdEmail> {
 };
 
 template <>
+struct ImmSemSerde<org::sem::CmdLanguage, org::imm::ImmCmdLanguage> {
+  static org::imm::ImmCmdLanguage to_immer(org::sem::CmdLanguage const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmCmdLanguage result = hstd::SerdeDefaultProvider<org::imm::ImmCmdLanguage>::get();
+    assign_immer_field(result.text, value.text, ctx);
+    assign_immer_field(result.attrs, value.attrs, ctx);
+    assign_immer_field(result.attached, value.attached, ctx);
+    assign_immer_field(result.loc, value.loc, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static org::sem::CmdLanguage from_immer(org::imm::ImmCmdLanguage const& value, ImmAstContext const& ctx) {
+    org::sem::CmdLanguage result = hstd::SerdeDefaultProvider<org::sem::CmdLanguage>::get();
+    assign_sem_field(result.text, value.text, ctx);
+    assign_sem_field(result.attrs, value.attrs, ctx);
+    assign_sem_field(result.attached, value.attached, ctx);
+    assign_sem_field(result.loc, value.loc, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<org::sem::CmdColumns, org::imm::ImmCmdColumns> {
   static org::imm::ImmCmdColumns to_immer(org::sem::CmdColumns const& value, ImmAstEditContext& ctx) {
     org::imm::ImmCmdColumns result = hstd::SerdeDefaultProvider<org::imm::ImmCmdColumns>::get();

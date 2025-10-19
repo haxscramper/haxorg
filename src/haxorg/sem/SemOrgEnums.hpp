@@ -264,6 +264,7 @@
     __IMPL(CmdCreator, (CmdCreator)) \
     __IMPL(CmdAuthor, (CmdAuthor)) \
     __IMPL(CmdEmail, (CmdEmail)) \
+    __IMPL(CmdLanguage, (CmdLanguage)) \
     __IMPL(CmdColumns, (CmdColumns)) \
     __IMPL(CmdName, (CmdName)) \
     __IMPL(CmdCustomArgs, (CmdCustomArgs)) \
@@ -358,6 +359,7 @@
     __IMPL(CmdCreator) \
     __IMPL(CmdAuthor) \
     __IMPL(CmdEmail) \
+    __IMPL(CmdLanguage) \
     __IMPL(CmdColumns) \
     __IMPL(CmdName) \
     __IMPL(CmdCustomArgs) \
@@ -438,6 +440,7 @@
     __IMPL(CmdCreator, Cmd) \
     __IMPL(CmdAuthor, Cmd) \
     __IMPL(CmdEmail, Cmd) \
+    __IMPL(CmdLanguage, Cmd) \
     __IMPL(CmdColumns, Attached) \
     __IMPL(CmdName, Attached) \
     __IMPL(CmdCustomArgs, Cmd) \
@@ -525,6 +528,7 @@
     __IMPL(CmdCreator, Cmd) \
     __IMPL(CmdAuthor, Cmd) \
     __IMPL(CmdEmail, Cmd) \
+    __IMPL(CmdLanguage, Cmd) \
     __IMPL(CmdColumns, Attached) \
     __IMPL(CmdName, Attached) \
     __IMPL(CmdCustomArgs, Cmd) \
@@ -693,6 +697,13 @@
 #define EACH_SEM_ORG_CmdEmail_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Cmd)) \
     __IMPL_FIELD((hstd::Str), text, Text, (org::sem::CmdEmail), CmdEmail) \
+
+#define EACH_SEM_ORG_CmdLanguage_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), text, Text, (org::sem::CmdLanguage), CmdLanguage) \
+
+#define EACH_SEM_ORG_CmdLanguage_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+    __IMPL_FIELD((hstd::Str), text, Text, (org::sem::CmdLanguage), CmdLanguage) \
 
 #define EACH_SEM_ORG_CmdColumns_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::sem::ColumnView), view, View, (org::sem::CmdColumns), CmdColumns) \
@@ -1374,6 +1385,13 @@
 #define EACH_IMM_ORG_ImmCmdEmail_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmCmd)) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), text, Text, (org::imm::ImmCmdEmail), CmdEmail) \
+
+#define EACH_IMM_ORG_ImmCmdLanguage_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), text, Text, (org::imm::ImmCmdLanguage), CmdLanguage) \
+
+#define EACH_IMM_ORG_ImmCmdLanguage_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmCmd)) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), text, Text, (org::imm::ImmCmdLanguage), CmdLanguage) \
 
 #define EACH_IMM_ORG_ImmCmdColumns_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::sem::ColumnView), view, View, (org::imm::ImmCmdColumns), CmdColumns) \
@@ -2669,7 +2687,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgJsonKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Int)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Float)
 BOOST_DESCRIBE_ENUM_END(OrgJsonKind)
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdLanguage, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, None)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorItem)
@@ -2680,6 +2698,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCreator)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdAuthor)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdEmail)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdLanguage)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdColumns)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdName)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCustomArgs)

@@ -776,6 +776,11 @@ auto Formatter::toString(SemId<CmdEmail> id, CR<Context> ctx) -> Res {
     return b.line({str("#+email: "), str(id->text)});
 }
 
+auto Formatter::toString(SemId<CmdLanguage> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str("#+language: "), str(id->text)});
+}
+
 auto Formatter::toString(SemId<CmdColumns> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+columns: ")});

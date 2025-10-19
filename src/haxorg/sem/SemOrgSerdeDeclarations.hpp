@@ -12,6 +12,7 @@
         __MAP(kCmdcreator, cmdcreator, CmdCreator)  \
         __MAP(kCmdauthor, cmdauthor, CmdAuthor)  \
         __MAP(kCmdemail, cmdemail, CmdEmail)  \
+        __MAP(kCmdlanguage, cmdlanguage, CmdLanguage)  \
         __MAP(kCmdcolumns, cmdcolumns, CmdColumns)  \
         __MAP(kCmdname, cmdname, CmdName)  \
         __MAP(kCmdcustomargs, cmdcustomargs, CmdCustomArgs)  \
@@ -899,6 +900,13 @@ template <>
 struct org::algo::proto_serde<::orgproto::CmdEmail, org::sem::CmdEmail> {
   static void write(::orgproto::CmdEmail* out, org::sem::CmdEmail const& in);
   static void read(::orgproto::CmdEmail const& out, proto_write_accessor<org::sem::CmdEmail> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::CmdLanguage> {
+  static void write(::orgproto::CmdLanguage* out, org::sem::CmdLanguage const& in);
+  static void read(::orgproto::CmdLanguage const& out, proto_write_accessor<org::sem::CmdLanguage> in);
 };
 
 

@@ -556,6 +556,7 @@ export interface haxorg_wasm_module_auto {
   ImmIdTCmdCreator: ImmIdTCmdCreatorConstructor;
   ImmIdTCmdAuthor: ImmIdTCmdAuthorConstructor;
   ImmIdTCmdEmail: ImmIdTCmdEmailConstructor;
+  ImmIdTCmdLanguage: ImmIdTCmdLanguageConstructor;
   ImmIdTCmdColumns: ImmIdTCmdColumnsConstructor;
   ImmIdTCmdName: ImmIdTCmdNameConstructor;
   ImmIdTCmdCustomArgs: ImmIdTCmdCustomArgsConstructor;
@@ -890,6 +891,7 @@ export interface haxorg_wasm_module_auto {
   CmdCreator: CmdCreatorConstructor;
   CmdAuthor: CmdAuthorConstructor;
   CmdEmail: CmdEmailConstructor;
+  CmdLanguage: CmdLanguageConstructor;
   CmdCustomArgs: CmdCustomArgsConstructor;
   CmdTblfm: CmdTblfmConstructor;
   Cell: CellConstructor;
@@ -899,6 +901,7 @@ export interface haxorg_wasm_module_auto {
   ImmCmdCreator: ImmCmdCreatorConstructor;
   ImmCmdAuthor: ImmCmdAuthorConstructor;
   ImmCmdEmail: ImmCmdEmailConstructor;
+  ImmCmdLanguage: ImmCmdLanguageConstructor;
   ImmCmdCustomArgs: ImmCmdCustomArgsConstructor;
   ImmCmdTblfm: ImmCmdTblfmConstructor;
   ImmCell: ImmCellConstructor;
@@ -1539,6 +1542,7 @@ export interface haxorg_wasm_module_auto {
     CmdCreator: OrgSemKind,
     CmdAuthor: OrgSemKind,
     CmdEmail: OrgSemKind,
+    CmdLanguage: OrgSemKind,
     CmdColumns: OrgSemKind,
     CmdName: OrgSemKind,
     CmdCustomArgs: OrgSemKind,
@@ -3842,6 +3846,8 @@ export interface ImmIdTCmdAuthorConstructor { new(): ImmIdTCmdAuthor; }
 export interface ImmIdTCmdAuthor {  }
 export interface ImmIdTCmdEmailConstructor { new(): ImmIdTCmdEmail; }
 export interface ImmIdTCmdEmail {  }
+export interface ImmIdTCmdLanguageConstructor { new(): ImmIdTCmdLanguage; }
+export interface ImmIdTCmdLanguage {  }
 export interface ImmIdTCmdColumnsConstructor { new(): ImmIdTCmdColumns; }
 export interface ImmIdTCmdColumns {  }
 export interface ImmIdTCmdNameConstructor { new(): ImmIdTCmdName; }
@@ -5009,6 +5015,11 @@ export interface CmdEmail {
   getKind(): OrgSemKind;
   text: string
 }
+export interface CmdLanguageConstructor { new(): CmdLanguage; }
+export interface CmdLanguage {
+  getKind(): OrgSemKind;
+  text: string
+}
 export interface CmdCustomArgsConstructor { new(): CmdCustomArgs; }
 export interface CmdCustomArgs {
   getKind(): OrgSemKind;
@@ -5051,6 +5062,12 @@ export interface ImmCmdEmailConstructor { new(): ImmCmdEmail; }
 export interface ImmCmdEmail {
   getKind(): OrgSemKind;
   __eq__(other: ImmCmdEmail): boolean;
+  text: haxorg_wasm.ImmBox<string>
+}
+export interface ImmCmdLanguageConstructor { new(): ImmCmdLanguage; }
+export interface ImmCmdLanguage {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdLanguage): boolean;
   text: haxorg_wasm.ImmBox<string>
 }
 export interface ImmCmdCustomArgsConstructor { new(): ImmCmdCustomArgs; }
@@ -6217,6 +6234,7 @@ export enum OrgSemKind {
   CmdCreator,
   CmdAuthor,
   CmdEmail,
+  CmdLanguage,
   CmdColumns,
   CmdName,
   CmdCustomArgs,

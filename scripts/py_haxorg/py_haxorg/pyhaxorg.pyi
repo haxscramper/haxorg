@@ -2815,6 +2815,9 @@ class ImmIdTCmdAuthor(ImmId):
 class ImmIdTCmdEmail(ImmId):
     def __init__(self) -> None: ...
 
+class ImmIdTCmdLanguage(ImmId):
+    def __init__(self) -> None: ...
+
 class ImmIdTCmdColumns(ImmId):
     def __init__(self) -> None: ...
 
@@ -3975,6 +3978,12 @@ class CmdEmail(Cmd):
     def __getattr__(self, name: str) -> object: ...
     text: str
 
+class CmdLanguage(Cmd):
+    def __init__(self, text: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: str
+
 class CmdCustomArgs(Cmd):
     def __init__(self, name: str, isAttached: bool) -> None: ...
     def __repr__(self) -> str: ...
@@ -5115,76 +5124,77 @@ class OrgSemKind(Enum):
     CmdCreator = 7
     CmdAuthor = 8
     CmdEmail = 9
-    CmdColumns = 10
-    CmdName = 11
-    CmdCustomArgs = 12
-    CmdCustomRaw = 13
-    CmdCustomText = 14
-    CmdCall = 15
-    CmdTblfm = 16
-    HashTag = 17
-    InlineFootnote = 18
-    InlineExport = 19
-    Time = 20
-    TimeRange = 21
-    Macro = 22
-    Symbol = 23
-    Escaped = 24
-    Newline = 25
-    Space = 26
-    Word = 27
-    AtMention = 28
-    RawText = 29
-    Punctuation = 30
-    Placeholder = 31
-    BigIdent = 32
-    TextTarget = 33
-    ErrorSkipToken = 34
-    ErrorSkipGroup = 35
-    Bold = 36
-    Underline = 37
-    Monospace = 38
-    MarkQuote = 39
-    Verbatim = 40
-    Italic = 41
-    Strike = 42
-    Par = 43
-    RadioTarget = 44
-    Latex = 45
-    Link = 46
-    BlockCenter = 47
-    BlockQuote = 48
-    BlockComment = 49
-    BlockVerse = 50
-    BlockDynamicFallback = 51
-    BlockExample = 52
-    BlockExport = 53
-    BlockAdmonition = 54
-    BlockCodeEvalResult = 55
-    BlockCode = 56
-    SubtreeLog = 57
-    Subtree = 58
-    Cell = 59
-    Row = 60
-    Table = 61
-    Paragraph = 62
-    ColonExample = 63
-    CmdAttr = 64
-    CmdExport = 65
-    Call = 66
-    List = 67
-    ListItem = 68
-    DocumentOptions = 69
-    DocumentFragment = 70
-    CriticMarkup = 71
-    Document = 72
-    FileTarget = 73
-    TextSeparator = 74
-    DocumentGroup = 75
-    File = 76
-    Directory = 77
-    Symlink = 78
-    CmdInclude = 79
+    CmdLanguage = 10
+    CmdColumns = 11
+    CmdName = 12
+    CmdCustomArgs = 13
+    CmdCustomRaw = 14
+    CmdCustomText = 15
+    CmdCall = 16
+    CmdTblfm = 17
+    HashTag = 18
+    InlineFootnote = 19
+    InlineExport = 20
+    Time = 21
+    TimeRange = 22
+    Macro = 23
+    Symbol = 24
+    Escaped = 25
+    Newline = 26
+    Space = 27
+    Word = 28
+    AtMention = 29
+    RawText = 30
+    Punctuation = 31
+    Placeholder = 32
+    BigIdent = 33
+    TextTarget = 34
+    ErrorSkipToken = 35
+    ErrorSkipGroup = 36
+    Bold = 37
+    Underline = 38
+    Monospace = 39
+    MarkQuote = 40
+    Verbatim = 41
+    Italic = 42
+    Strike = 43
+    Par = 44
+    RadioTarget = 45
+    Latex = 46
+    Link = 47
+    BlockCenter = 48
+    BlockQuote = 49
+    BlockComment = 50
+    BlockVerse = 51
+    BlockDynamicFallback = 52
+    BlockExample = 53
+    BlockExport = 54
+    BlockAdmonition = 55
+    BlockCodeEvalResult = 56
+    BlockCode = 57
+    SubtreeLog = 58
+    Subtree = 59
+    Cell = 60
+    Row = 61
+    Table = 62
+    Paragraph = 63
+    ColonExample = 64
+    CmdAttr = 65
+    CmdExport = 66
+    Call = 67
+    List = 68
+    ListItem = 69
+    DocumentOptions = 70
+    DocumentFragment = 71
+    CriticMarkup = 72
+    Document = 73
+    FileTarget = 74
+    TextSeparator = 75
+    DocumentGroup = 76
+    File = 77
+    Directory = 78
+    Symlink = 79
+    CmdInclude = 80
 
 class AstTrackingGroupKind(Enum):
     RadioTarget = 1

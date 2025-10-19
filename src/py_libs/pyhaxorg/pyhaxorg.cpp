@@ -6246,6 +6246,8 @@ ingoing elements.)RAW")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdEmail>, org::imm::ImmId>(m, "ImmIdTCmdEmail")
     ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdLanguage>, org::imm::ImmId>(m, "ImmIdTCmdLanguage")
+    ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdColumns>, org::imm::ImmId>(m, "ImmIdTCmdColumns")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdName>, org::imm::ImmId>(m, "ImmIdTCmdName")
@@ -8465,6 +8467,22 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::CmdLanguage, org::sem::SemId<org::sem::CmdLanguage>, org::sem::Cmd>(m, "CmdLanguage")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdLanguage {
+                        org::sem::CmdLanguage result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &org::sem::CmdLanguage::text)
+    .def("__repr__", [](org::sem::CmdLanguage const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::CmdLanguage const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::CmdCustomArgs, org::sem::SemId<org::sem::CmdCustomArgs>, org::sem::Cmd>(m, "CmdCustomArgs")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCustomArgs {
                         org::sem::CmdCustomArgs result{};
@@ -9814,6 +9832,7 @@ ingoing elements.)RAW")
     .value("CmdCreator", OrgSemKind::CmdCreator)
     .value("CmdAuthor", OrgSemKind::CmdAuthor)
     .value("CmdEmail", OrgSemKind::CmdEmail)
+    .value("CmdLanguage", OrgSemKind::CmdLanguage)
     .value("CmdColumns", OrgSemKind::CmdColumns)
     .value("CmdName", OrgSemKind::CmdName)
     .value("CmdCustomArgs", OrgSemKind::CmdCustomArgs)

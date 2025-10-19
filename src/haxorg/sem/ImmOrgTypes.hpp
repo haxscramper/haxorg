@@ -230,6 +230,21 @@ struct ImmCmdEmail : public org::imm::ImmCmd {
   bool operator==(org::imm::ImmCmdEmail const& other) const;
 };
 
+struct ImmCmdLanguage : public org::imm::ImmCmd {
+  using ImmCmd::ImmCmd;
+  virtual ~ImmCmdLanguage() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdLanguage,
+                       (ImmCmd),
+                       (),
+                       (),
+                       (staticKind,
+                        text))
+  static OrgSemKind const staticKind;
+  hstd::ext::ImmBox<hstd::Str> text;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdLanguage; }
+  bool operator==(org::imm::ImmCmdLanguage const& other) const;
+};
+
 /// \brief Caption annotation for any subsequent node
 struct ImmCmdColumns : public org::imm::ImmAttached {
   using ImmAttached::ImmAttached;
