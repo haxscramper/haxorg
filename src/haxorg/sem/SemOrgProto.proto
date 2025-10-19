@@ -1111,6 +1111,11 @@ message DocumentExportConfig {
     BrokenLinks_Raise_f                                                             = 2;
     BrokenLinks_Ignore_f                                                            = 3;
   }
+  enum ArchivedTrees {
+    ArchivedTrees_Skip_f                                                            = 0;
+    ArchivedTrees_Headline_f                                                        = 1;
+    ArchivedTrees_All_f                                                             = 2;
+  }
   message DoExport {
     bool                                           exportToc                        = 1;
     string                                         debug                            = 1000;
@@ -1138,10 +1143,31 @@ message DocumentExportConfig {
   optional bool                                    propertyDrawers                  = 7;
   optional bool                                    statisticsCookies                = 8;
   optional bool                                    todoText                         = 9;
-  DocumentExportConfig.BrokenLinks                 brokenLinks                      = 10;
-  DocumentExportConfig.TocExport                   tocExport                        = 11;
-  DocumentExportConfig.TagExport                   tagExport                        = 12;
-  DocumentExportConfig.TocExport                   data                             = 13;
+  optional bool                                    smartQuotes                      = 10;
+  optional bool                                    fixedWidth                       = 11;
+  optional bool                                    timestamps                       = 12;
+  optional bool                                    preserveBreaks                   = 13;
+  optional bool                                    subSuperscripts                  = 14;
+  optional bool                                    expandLinks                      = 15;
+  optional bool                                    creator                          = 16;
+  optional bool                                    drawers                          = 17;
+  optional bool                                    date                             = 18;
+  optional bool                                    entities                         = 19;
+  optional bool                                    email                            = 20;
+  optional bool                                    sectionNumbers                   = 21;
+  optional bool                                    planning                         = 22;
+  optional bool                                    priority                         = 23;
+  optional bool                                    latex                            = 24;
+  optional bool                                    timestamp                        = 25;
+  optional bool                                    title                            = 26;
+  optional bool                                    tables                           = 27;
+  optional int32                                   headlineLevels                   = 28;
+  DocumentExportConfig.BrokenLinks                 brokenLinks                      = 29;
+  DocumentExportConfig.TocExport                   tocExport                        = 30;
+  DocumentExportConfig.TagExport                   tagExport                        = 31;
+  DocumentExportConfig.TaskFiltering               taskFiltering                    = 32;
+  DocumentExportConfig.ArchivedTrees               archivedTrees                    = 33;
+  DocumentExportConfig.TocExport                   data                             = 34;
   string                                           debug                            = 1000;
 }
 

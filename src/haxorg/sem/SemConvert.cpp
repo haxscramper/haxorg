@@ -2891,7 +2891,7 @@ void OrgConverter::convertDocumentOptions(
                     opts->exportConfig.tocExport = DocumentExportConfig::
                         ExportFixed{tail.toInt()};
                 }
-            } else if (org_streq(head, "<")) {
+            } else if (org_streq(head, "inline")) {
                 opts->exportConfig.inlinetasks = parseBool(tail);
             } else if (org_streq(head, "f")) {
                 opts->exportConfig.footnotes = parseBool(tail);
@@ -2905,6 +2905,81 @@ void OrgConverter::convertDocumentOptions(
                 opts->exportConfig.emphasis = parseBool(tail);
             } else if (org_streq(head, "-")) {
                 opts->exportConfig.specialStrings = parseBool(tail);
+            } else if (org_streq(head, "'")) {
+                opts->exportConfig.smartQuotes = parseBool(tail);
+            } else if (org_streq(head, ":")) {
+                opts->exportConfig.fixedWidth = parseBool(tail);
+            } else if (org_streq(head, "<")) {
+                opts->exportConfig.timestamps = parseBool(tail);
+            } else if (org_streq(head, "\\n")) {
+                opts->exportConfig.preserveBreaks = parseBool(tail);
+            } else if (org_streq(head, "^")) {
+                opts->exportConfig.subSuperscripts = parseBool(tail);
+            } else if (org_streq(head, "expand-links")) {
+                opts->exportConfig.expandLinks = parseBool(tail);
+            } else if (org_streq(head, "creator")) {
+                opts->exportConfig.creator = parseBool(tail);
+            } else if (org_streq(head, "d")) {
+                opts->exportConfig.drawers = parseBool(tail);
+            } else if (org_streq(head, "date")) {
+                opts->exportConfig.date = parseBool(tail);
+            } else if (org_streq(head, "e")) {
+                opts->exportConfig.entities = parseBool(tail);
+            } else if (org_streq(head, "email")) {
+                opts->exportConfig.email = parseBool(tail);
+            } else if (org_streq(head, "num")) {
+                opts->exportConfig.sectionNumbers = parseBool(tail);
+            } else if (org_streq(head, "p")) {
+                opts->exportConfig.planning = parseBool(tail);
+            } else if (org_streq(head, "pri")) {
+                opts->exportConfig.priority = parseBool(tail);
+            } else if (org_streq(head, "prop")) {
+                opts->exportConfig.propertyDrawers = parseBool(tail);
+            } else if (org_streq(head, "stat")) {
+                opts->exportConfig.statisticsCookies = parseBool(tail);
+            } else if (org_streq(head, "tex")) {
+                opts->exportConfig.latex = parseBool(tail);
+            } else if (org_streq(head, "timestamp")) {
+                opts->exportConfig.timestamp = parseBool(tail);
+            } else if (org_streq(head, "title")) {
+                opts->exportConfig.title = parseBool(tail);
+            } else if (org_streq(head, "|")) {
+                opts->exportConfig.tables = parseBool(tail);
+            } else if (org_streq(head, "H")) {
+                opts->exportConfig.headlineLevels = tail.toInt();
+            } else if (org_streq(head, "arch")) {
+                if (org_streq(tail, "headline")) {
+                    opts->exportConfig.archivedTrees = DocumentExportConfig::
+                        ArchivedTrees::Headline;
+                } else if (org_streq(tail, "t")) {
+                    opts->exportConfig.archivedTrees = DocumentExportConfig::
+                        ArchivedTrees::All;
+                } else if (org_streq(tail, "nil")) {
+                    opts->exportConfig.archivedTrees = DocumentExportConfig::
+                        ArchivedTrees::Skip;
+                }
+            } else if (org_streq(head, "tags")) {
+                if (org_streq(tail, "not-in-toc")) {
+                    opts->exportConfig.tagExport = DocumentExportConfig::
+                        TagExport::NotInToc;
+                } else if (org_streq(tail, "t")) {
+                    opts->exportConfig.tagExport = DocumentExportConfig::
+                        TagExport::All;
+                } else if (org_streq(tail, "nil")) {
+                    opts->exportConfig.tagExport = DocumentExportConfig::
+                        TagExport::None;
+                }
+            } else if (org_streq(head, "tasks")) {
+                if (org_streq(tail, "nil")) {
+                    opts->exportConfig.taskFiltering = DocumentExportConfig::
+                        TaskFiltering::None;
+                } else if (org_streq(tail, "t")) {
+                    opts->exportConfig.taskFiltering = DocumentExportConfig::
+                        TaskFiltering::All;
+                } else if (org_streq(tail, "todo")) {
+                    opts->exportConfig.taskFiltering = DocumentExportConfig::
+                        TaskFiltering::Done;
+                }
             } else {
                 opts->push_back(SemError(
                     a,

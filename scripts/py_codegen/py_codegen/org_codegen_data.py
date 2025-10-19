@@ -1196,10 +1196,14 @@ def get_sem_text():
         d_org("Placeholder", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
         d_org("BigIdent", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
         d_org("TextTarget", GenTuDoc("`<<target>>`"), bases=[t_nest(t_org("Leaf"))]),
-        d_org("ErrorSkipToken", GenTuDoc("Single token skipped during error recovery"), bases=[t_nest(t_org("Leaf"))]),
+        d_org("ErrorSkipToken",
+              GenTuDoc("Single token skipped during error recovery"),
+              bases=[t_nest(t_org("Leaf"))]),
         d_org(
             "ErrorSkipGroup",
-            doc=org_doc("Group of tokens skipped in search of the next synchronization point during parse fail recovery"),
+            doc=org_doc(
+                "Group of tokens skipped in search of the next synchronization point during parse fail recovery"
+            ),
             bases=[t_nest(t_org("Org"))],
             fields=[
                 vec_field(t_id("ErrorSkipToken"), "skipped"),
@@ -2635,15 +2639,63 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 eq_method(t_nest_shared("DocumentExportConfig", [])),
             ],
             fields=[
-                opt_field(t_bool(), "inlinetasks"),
-                opt_field(t_bool(), "footnotes"),
-                opt_field(t_bool(), "clock"),
-                opt_field(t_bool(), "author"),
-                opt_field(t_bool(), "emphasis"),
-                opt_field(t_bool(), "specialStrings"),
-                opt_field(t_bool(), "propertyDrawers"),
-                opt_field(t_bool(), "statisticsCookies"),
-                opt_field(t_bool(), "todoText", "Include todo keywords in export"),
+                opt_field(t_bool(), "inlinetasks",
+                          GenTuDoc("Toggle inclusion of inlinetasks")),
+                opt_field(t_bool(), "footnotes",
+                          GenTuDoc("Toggle the inclusion of footnotes")),
+                opt_field(t_bool(), "clock",
+                          GenTuDoc("Toggle inclusion of 'CLOCK' keywords")),
+                opt_field(t_bool(), "author",
+                          GenTuDoc("Toggle inclusion of author name into exported file")),
+                opt_field(t_bool(), "emphasis", GenTuDoc("Toggle emphasized text")),
+                opt_field(t_bool(), "specialStrings",
+                          GenTuDoc("Toggle conversion of special strings")),
+                opt_field(t_bool(), "propertyDrawers",
+                          GenTuDoc("Toggle inclusion of property drawers")),
+                opt_field(t_bool(), "statisticsCookies",
+                          GenTuDoc("Toggle inclusion of statistics cookies")),
+                opt_field(
+                    t_bool(), "todoText",
+                    GenTuDoc("Toggle inclusion of TODO keywords into exported text")),
+                opt_field(t_bool(), "smartQuotes", GenTuDoc("Toggle smart quotes")),
+                opt_field(t_bool(), "fixedWidth",
+                          GenTuDoc("Toggle fixed-width sections")),
+                opt_field(
+                    t_bool(), "timestamps",
+                    GenTuDoc("Toggle inclusion of time/date active/inactive stamps")),
+                opt_field(t_bool(), "preserveBreaks",
+                          GenTuDoc("Toggles whether to preserve line breaks")),
+                opt_field(t_bool(), "subSuperscripts",
+                          GenTuDoc("Toggle TeX-like syntax for sub- and superscripts")),
+                opt_field(
+                    t_bool(), "expandLinks",
+                    GenTuDoc("Toggle expansion of environment variables in file paths")),
+                opt_field(
+                    t_bool(), "creator",
+                    GenTuDoc(
+                        "Toggle inclusion of creator information in the exported file")),
+                opt_field(t_bool(), "drawers", GenTuDoc("Toggle inclusion of drawers")),
+                opt_field(t_bool(), "date",
+                          GenTuDoc("Toggle inclusion of a date into exported file")),
+                opt_field(t_bool(), "entities", GenTuDoc("Toggle inclusion of entities")),
+                opt_field(
+                    t_bool(), "email",
+                    GenTuDoc(
+                        "Toggle inclusion of the author's e-mail into exported file")),
+                opt_field(t_bool(), "sectionNumbers", GenTuDoc("Toggle section-numbers")),
+                opt_field(t_bool(), "planning",
+                          GenTuDoc("Toggle export of planning information")),
+                opt_field(t_bool(), "priority",
+                          GenTuDoc("Toggle inclusion of priority cookies")),
+                opt_field(t_bool(), "latex", GenTuDoc("Toggle LaTeX export")),
+                opt_field(
+                    t_bool(), "timestamp",
+                    GenTuDoc(
+                        "Toggle inclusion of the creation time in the exported file")),
+                opt_field(t_bool(), "title", GenTuDoc("Toggle inclusion of title")),
+                opt_field(t_bool(), "tables", GenTuDoc("Toggle inclusion of tables")),
+                opt_field(t_int(), "headlineLevels",
+                          GenTuDoc("Set the number of headline levels for export")),
                 org_field(t_nest("BrokenLinks", [t("DocumentExportConfig")]),
                           "brokenLinks",
                           value="sem::DocumentExportConfig::BrokenLinks::None"),
@@ -2651,6 +2703,13 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 org_field(t_nest("TagExport", [t("DocumentExportConfig")]),
                           "tagExport",
                           value="org::sem::DocumentExportConfig::TagExport::NotInToc"),
+                org_field(t_nest("TaskFiltering", [t("DocumentExportConfig")]),
+                          "taskFiltering",
+                          value="org::sem::DocumentExportConfig::TaskFiltering::All"),
+                org_field(
+                    t_nest("ArchivedTrees", [t("DocumentExportConfig")]),
+                    "archivedTrees",
+                    value="org::sem::DocumentExportConfig::ArchivedTrees::Headline"),
             ],
             nested=[
                 org_struct(
@@ -2669,7 +2728,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     "All",
                     efield(
                         "NotInToc",
-                        "Expot tags in subtree titles but not in the table of content",
+                        "Export tags in subtree titles but not in the table of content",
                     ),
                 ),
                 d_simple_enum(
@@ -2687,6 +2746,13 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     "Mark",
                     "Raise",
                     "Ignore",
+                ),
+                d_simple_enum(
+                    t_nest("ArchivedTrees", [t("DocumentExportConfig")]),
+                    GenTuDoc("Configure how archived trees are exported"),
+                    efield("Skip", "Skip archived trees entirely"),
+                    efield("Headline", "Export only headlines of archived trees"),
+                    efield("All", "Export archived trees with full content"),
                 ),
                 GenTuTypeGroup(
                     [

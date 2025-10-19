@@ -68,20 +68,27 @@ class CorpusRunner : public hstd::OperationsTracer {
         struct CompareBase {
             bool          isOk = false;
             hstd::ColText failDescribe;
-            BOOST_DESCRIBE_STRUCT(CompareBase, (), (isOk, failDescribe));
+            BOOST_DESCRIBE_CLASS(
+                CompareBase,
+                (),
+                (isOk, failDescribe),
+                (),
+                ());
         };
 
         struct NodeCompare : CompareBase {
-            BOOST_DESCRIBE_STRUCT(NodeCompare, (CompareBase), ());
+            BOOST_DESCRIBE_CLASS(NodeCompare, (CompareBase), (), (), ());
         };
         struct LexCompare : CompareBase {
-            BOOST_DESCRIBE_STRUCT(LexCompare, (CompareBase), ());
+            BOOST_DESCRIBE_CLASS(LexCompare, (CompareBase), (), (), ());
         };
         struct SemCompare : CompareBase {
-            BOOST_DESCRIBE_STRUCT(
+            BOOST_DESCRIBE_CLASS(
                 SemCompare,
                 (CompareBase),
-                (unexpectedParseErrors, expectedParseErrors));
+                (unexpectedParseErrors, expectedParseErrors),
+                (),
+                ());
 
             /// \brief Parsed sem content has unexpected error nodes. This
             /// field is populated if the parse had errors but no expected
@@ -95,8 +102,12 @@ class CorpusRunner : public hstd::OperationsTracer {
             /// correctly reproduce the document back -- as is intended.
             bool expectedParseErrors = false;
         };
-        struct Skip {};
-        struct None {};
+        struct Skip {
+            DESC_FIELDS(Skip, ());
+        };
+        struct None {
+            DESC_FIELDS(None, ());
+        };
 
         SUB_VARIANTS(
             Kind,
@@ -112,6 +123,8 @@ class CorpusRunner : public hstd::OperationsTracer {
         RunResult() {}
         RunResult(hstd::CR<Data> data) : data(data) {}
         Data data;
+
+        DESC_FIELDS(RunResult, (data));
 
         bool isOk() const {
             return std::visit(

@@ -1330,9 +1330,30 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("propertyDrawers", &org::sem::DocumentExportConfig::propertyDrawers)
     .property("statisticsCookies", &org::sem::DocumentExportConfig::statisticsCookies)
     .property("todoText", &org::sem::DocumentExportConfig::todoText)
+    .property("smartQuotes", &org::sem::DocumentExportConfig::smartQuotes)
+    .property("fixedWidth", &org::sem::DocumentExportConfig::fixedWidth)
+    .property("timestamps", &org::sem::DocumentExportConfig::timestamps)
+    .property("preserveBreaks", &org::sem::DocumentExportConfig::preserveBreaks)
+    .property("subSuperscripts", &org::sem::DocumentExportConfig::subSuperscripts)
+    .property("expandLinks", &org::sem::DocumentExportConfig::expandLinks)
+    .property("creator", &org::sem::DocumentExportConfig::creator)
+    .property("drawers", &org::sem::DocumentExportConfig::drawers)
+    .property("date", &org::sem::DocumentExportConfig::date)
+    .property("entities", &org::sem::DocumentExportConfig::entities)
+    .property("email", &org::sem::DocumentExportConfig::email)
+    .property("sectionNumbers", &org::sem::DocumentExportConfig::sectionNumbers)
+    .property("planning", &org::sem::DocumentExportConfig::planning)
+    .property("priority", &org::sem::DocumentExportConfig::priority)
+    .property("latex", &org::sem::DocumentExportConfig::latex)
+    .property("timestamp", &org::sem::DocumentExportConfig::timestamp)
+    .property("title", &org::sem::DocumentExportConfig::title)
+    .property("tables", &org::sem::DocumentExportConfig::tables)
+    .property("headlineLevels", &org::sem::DocumentExportConfig::headlineLevels)
     .property("brokenLinks", &org::sem::DocumentExportConfig::brokenLinks)
     .property("tocExport", &org::sem::DocumentExportConfig::tocExport)
     .property("tagExport", &org::sem::DocumentExportConfig::tagExport)
+    .property("taskFiltering", &org::sem::DocumentExportConfig::taskFiltering)
+    .property("archivedTrees", &org::sem::DocumentExportConfig::archivedTrees)
     .property("data", &org::sem::DocumentExportConfig::data)
     .function("__eq__", static_cast<bool(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig const&) const>(&org::sem::DocumentExportConfig::operator==))
     .function("isDoExport", static_cast<bool(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::isDoExport))
@@ -1353,6 +1374,7 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<org::sem::DocumentExportConfig::TagExport>("OrgSemDocumentExportConfigTagExport");
   org::bind::js::bind_enum<org::sem::DocumentExportConfig::TaskFiltering>("OrgSemDocumentExportConfigTaskFiltering");
   org::bind::js::bind_enum<org::sem::DocumentExportConfig::BrokenLinks>("OrgSemDocumentExportConfigBrokenLinks");
+  org::bind::js::bind_enum<org::sem::DocumentExportConfig::ArchivedTrees>("OrgSemDocumentExportConfigArchivedTrees");
   emscripten::class_<org::sem::DocumentExportConfig::DoExport>("DocumentExportConfigDoExport")
     .property("exportToc", &org::sem::DocumentExportConfig::DoExport::exportToc)
     .function("__eq__", static_cast<bool(org::sem::DocumentExportConfig::DoExport::*)(org::sem::DocumentExportConfig::DoExport const&) const>(&org::sem::DocumentExportConfig::DoExport::operator==))
@@ -1880,6 +1902,9 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("getCleanHeader", static_cast<hstd::Opt<hstd::Str>(org::sem::ListItem::*)() const>(&org::sem::ListItem::getCleanHeader))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::ListItem>>)
     ;
+}
+
+void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::DocumentOptions, emscripten::base<org::sem::Org>>("DocumentOptions")
     .smart_ptr<org::sem::SemId<org::sem::DocumentOptions>>("DocumentOptions")
     .property("initialVisibility", &org::sem::DocumentOptions::initialVisibility)
@@ -1898,9 +1923,6 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("getProperty", static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperty))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::DocumentOptions>>)
     ;
-}
-
-void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::DocumentFragment, emscripten::base<org::sem::Org>>("DocumentFragment")
     .smart_ptr<org::sem::SemId<org::sem::DocumentFragment>>("DocumentFragment")
     .property("baseLine", &org::sem::DocumentFragment::baseLine)
@@ -2280,12 +2302,12 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmFileTarget>, emscripten::base<org::imm::ImmId>>("ImmIdTFileTarget")
     .constructor<>()
     ;
-  emscripten::class_<org::imm::ImmIdT<org::imm::ImmTextSeparator>, emscripten::base<org::imm::ImmId>>("ImmIdTTextSeparator")
-    .constructor<>()
-    ;
 }
 
 void subdivide_5(org::bind::js::type_registration_guard& g) {
+  emscripten::class_<org::imm::ImmIdT<org::imm::ImmTextSeparator>, emscripten::base<org::imm::ImmId>>("ImmIdTTextSeparator")
+    .constructor<>()
+    ;
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmDocumentGroup>, emscripten::base<org::imm::ImmId>>("ImmIdTDocumentGroup")
     .constructor<>()
     ;
@@ -2766,11 +2788,11 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmBlockCenterValue, emscripten::base<org::imm::ImmBlockCenterValueRead>>("ImmBlockCenterValue")
     ;
-  emscripten::class_<org::imm::ImmBlockQuoteValue, emscripten::base<org::imm::ImmBlockQuoteValueRead>>("ImmBlockQuoteValue")
-    ;
 }
 
 void subdivide_6(org::bind::js::type_registration_guard& g) {
+  emscripten::class_<org::imm::ImmBlockQuoteValue, emscripten::base<org::imm::ImmBlockQuoteValueRead>>("ImmBlockQuoteValue")
+    ;
   emscripten::class_<org::imm::ImmBlockCommentValue, emscripten::base<org::imm::ImmBlockCommentValueRead>>("ImmBlockCommentValue")
     ;
   emscripten::class_<org::imm::ImmBlockVerseValue, emscripten::base<org::imm::ImmBlockVerseValueRead>>("ImmBlockVerseValue")
@@ -3265,11 +3287,11 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterErrorSkipTokenAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterErrorSkipTokenAPI")
     ;
-  emscripten::class_<org::imm::ImmAdapterStmtListAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterStmtListAPI")
-    ;
 }
 
 void subdivide_7(org::bind::js::type_registration_guard& g) {
+  emscripten::class_<org::imm::ImmAdapterStmtListAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterStmtListAPI")
+    ;
   emscripten::class_<org::imm::ImmAdapterEmptyAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterEmptyAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterInlineAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterInlineAPI")
@@ -3564,6 +3586,9 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockAdmonition::*)() const>(&org::sem::BlockAdmonition::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::BlockAdmonition>>)
     ;
+}
+
+void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::BlockCodeEvalResult, emscripten::base<org::sem::Block>>("BlockCodeEvalResult")
     .smart_ptr<org::sem::SemId<org::sem::BlockCodeEvalResult>>("BlockCodeEvalResult")
     .property("raw", &org::sem::BlockCodeEvalResult::raw)
@@ -3571,9 +3596,6 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
     ;
-}
-
-void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::BlockCode, emscripten::base<org::sem::Block>>("BlockCode")
     .smart_ptr<org::sem::SemId<org::sem::BlockCode>>("BlockCode")
     .property("lang", &org::sem::BlockCode::lang)
@@ -3937,10 +3959,10 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
     .function("getValue", static_cast<org::imm::ImmCmdAttrValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::getValue))
     ;
   org::bind::js::bind_enum<CheckboxState>("CheckboxState");
-  org::bind::js::bind_enum<SubtreeTodoSource>("SubtreeTodoSource");
 }
 
 void subdivide_9(org::bind::js::type_registration_guard& g) {
+  org::bind::js::bind_enum<SubtreeTodoSource>("SubtreeTodoSource");
   org::bind::js::bind_enum<ListFormattingMode>("ListFormattingMode");
   org::bind::js::bind_enum<InitialSubtreeVisibility>("InitialSubtreeVisibility");
   org::bind::js::bind_enum<OrgSpecName>("OrgSpecName");

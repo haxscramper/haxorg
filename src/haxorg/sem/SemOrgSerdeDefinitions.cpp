@@ -1160,6 +1160,63 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
   if (in.todoText) {
     out->set_todotext(*in.todoText);
   }
+  if (in.smartQuotes) {
+    out->set_smartquotes(*in.smartQuotes);
+  }
+  if (in.fixedWidth) {
+    out->set_fixedwidth(*in.fixedWidth);
+  }
+  if (in.timestamps) {
+    out->set_timestamps(*in.timestamps);
+  }
+  if (in.preserveBreaks) {
+    out->set_preservebreaks(*in.preserveBreaks);
+  }
+  if (in.subSuperscripts) {
+    out->set_subsuperscripts(*in.subSuperscripts);
+  }
+  if (in.expandLinks) {
+    out->set_expandlinks(*in.expandLinks);
+  }
+  if (in.creator) {
+    out->set_creator(*in.creator);
+  }
+  if (in.drawers) {
+    out->set_drawers(*in.drawers);
+  }
+  if (in.date) {
+    out->set_date(*in.date);
+  }
+  if (in.entities) {
+    out->set_entities(*in.entities);
+  }
+  if (in.email) {
+    out->set_email(*in.email);
+  }
+  if (in.sectionNumbers) {
+    out->set_sectionnumbers(*in.sectionNumbers);
+  }
+  if (in.planning) {
+    out->set_planning(*in.planning);
+  }
+  if (in.priority) {
+    out->set_priority(*in.priority);
+  }
+  if (in.latex) {
+    out->set_latex(*in.latex);
+  }
+  if (in.timestamp) {
+    out->set_timestamp(*in.timestamp);
+  }
+  if (in.title) {
+    out->set_title(*in.title);
+  }
+  if (in.tables) {
+    out->set_tables(*in.tables);
+  }
+  if (in.headlineLevels) {
+    out->set_headlinelevels(*in.headlineLevels);
+  }
   out->set_brokenlinks(static_cast<orgproto::DocumentExportConfig_BrokenLinks>(in.brokenLinks));
   switch (in.tocExport.index()) {
     case 0:
@@ -1170,6 +1227,8 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
       break;
   }
   out->set_tagexport(static_cast<orgproto::DocumentExportConfig_TagExport>(in.tagExport));
+  out->set_taskfiltering(static_cast<orgproto::DocumentExportConfig_TaskFiltering>(in.taskFiltering));
+  out->set_archivedtrees(static_cast<orgproto::DocumentExportConfig_ArchivedTrees>(in.archivedTrees));
   switch (in.data.index()) {
     case 0:
       proto_serde<orgproto::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::DoExport>::write(out->mutable_data()->mutable_doexport(), std::get<0>(in.data));
@@ -1208,6 +1267,63 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
   if (out.has_todotext()) {
     proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.todotext(), in.for_field(&org::sem::DocumentExportConfig::todoText));
   }
+  if (out.has_smartquotes()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.smartquotes(), in.for_field(&org::sem::DocumentExportConfig::smartQuotes));
+  }
+  if (out.has_fixedwidth()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.fixedwidth(), in.for_field(&org::sem::DocumentExportConfig::fixedWidth));
+  }
+  if (out.has_timestamps()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.timestamps(), in.for_field(&org::sem::DocumentExportConfig::timestamps));
+  }
+  if (out.has_preservebreaks()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.preservebreaks(), in.for_field(&org::sem::DocumentExportConfig::preserveBreaks));
+  }
+  if (out.has_subsuperscripts()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.subsuperscripts(), in.for_field(&org::sem::DocumentExportConfig::subSuperscripts));
+  }
+  if (out.has_expandlinks()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.expandlinks(), in.for_field(&org::sem::DocumentExportConfig::expandLinks));
+  }
+  if (out.has_creator()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.creator(), in.for_field(&org::sem::DocumentExportConfig::creator));
+  }
+  if (out.has_drawers()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.drawers(), in.for_field(&org::sem::DocumentExportConfig::drawers));
+  }
+  if (out.has_date()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.date(), in.for_field(&org::sem::DocumentExportConfig::date));
+  }
+  if (out.has_entities()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.entities(), in.for_field(&org::sem::DocumentExportConfig::entities));
+  }
+  if (out.has_email()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.email(), in.for_field(&org::sem::DocumentExportConfig::email));
+  }
+  if (out.has_sectionnumbers()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.sectionnumbers(), in.for_field(&org::sem::DocumentExportConfig::sectionNumbers));
+  }
+  if (out.has_planning()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.planning(), in.for_field(&org::sem::DocumentExportConfig::planning));
+  }
+  if (out.has_priority()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.priority(), in.for_field(&org::sem::DocumentExportConfig::priority));
+  }
+  if (out.has_latex()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.latex(), in.for_field(&org::sem::DocumentExportConfig::latex));
+  }
+  if (out.has_timestamp()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.timestamp(), in.for_field(&org::sem::DocumentExportConfig::timestamp));
+  }
+  if (out.has_title()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.title(), in.for_field(&org::sem::DocumentExportConfig::title));
+  }
+  if (out.has_tables()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.tables(), in.for_field(&org::sem::DocumentExportConfig::tables));
+  }
+  if (out.has_headlinelevels()) {
+    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.headlinelevels(), in.for_field(&org::sem::DocumentExportConfig::headlineLevels));
+  }
   in.for_field(&org::sem::DocumentExportConfig::brokenLinks).get() = static_cast<org::sem::DocumentExportConfig::BrokenLinks>(out.brokenlinks());
   switch (out.tocexport().kind_case()) {
     case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
@@ -1224,6 +1340,8 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
     }
   }
   in.for_field(&org::sem::DocumentExportConfig::tagExport).get() = static_cast<org::sem::DocumentExportConfig::TagExport>(out.tagexport());
+  in.for_field(&org::sem::DocumentExportConfig::taskFiltering).get() = static_cast<org::sem::DocumentExportConfig::TaskFiltering>(out.taskfiltering());
+  in.for_field(&org::sem::DocumentExportConfig::archivedTrees).get() = static_cast<org::sem::DocumentExportConfig::ArchivedTrees>(out.archivedtrees());
   switch (out.data().kind_case()) {
     case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
       in.for_field_variant<0>(&org::sem::DocumentExportConfig::data).get();

@@ -247,22 +247,19 @@ TEST_P(TestOrgParseCorpus, CorpusAll) {
     switch (result.getKind()) {
         case TestResult::Kind::Fail: {
             std::cout << "[          ] ";
-            return GTEST_MESSAGE_(
-                add_gtest_prefix(result.getFail().msg).c_str(),
-                ::testing::TestPartResult::kFatalFailure);
+            GTEST_FAIL() << add_gtest_prefix(result.getFail().msg);
+            break;
         }
 
         case TestResult::Kind::Success: {
-            return GTEST_MESSAGE_(
-                add_gtest_prefix(result.getSuccess().msg).c_str(),
-                ::testing::TestPartResult::kSuccess);
+            GTEST_SUCCEED() << add_gtest_prefix(result.getSuccess().msg);
+            break;
         }
 
         case TestResult::Kind::Skip: {
             std::cout << "[          ] ";
-            return GTEST_MESSAGE_(
-                add_gtest_prefix(result.getSkip().msg).c_str(),
-                ::testing::TestPartResult::kSkip);
+            GTEST_SKIP() << add_gtest_prefix(result.getSkip().msg);
+            break;
         }
     }
 }

@@ -111,6 +111,7 @@
     __IMPL(DocumentExportConfig, TagExport, (TagExport)) \
     __IMPL(DocumentExportConfig, TaskFiltering, (TaskFiltering)) \
     __IMPL(DocumentExportConfig, BrokenLinks, (BrokenLinks)) \
+    __IMPL(DocumentExportConfig, ArchivedTrees, (ArchivedTrees)) \
     __IMPL(DocumentExportConfig, TocExportKind, (TocExportKind)) \
     __IMPL(SubtreePeriod, Kind, (Kind)) \
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \

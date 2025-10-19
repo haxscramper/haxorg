@@ -1848,6 +1848,11 @@ class DocumentExportConfigBrokenLinks(Enum):
     Raise = 3
     Ignore = 4
 
+class DocumentExportConfigArchivedTrees(Enum):
+    Skip = 1
+    Headline = 2
+    All = 3
+
 class DocumentExportConfigDoExport:
     def __init__(self, exportToc: bool) -> None: ...
     def __eq__(self, other: DocumentExportConfigDoExport) -> bool: ...
@@ -1868,7 +1873,7 @@ class DocumentExportConfigTocExportKind(Enum):
     ExportFixed = 2
 
 class DocumentExportConfig:
-    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], brokenLinks: DocumentExportConfigBrokenLinks, tocExport: DocumentExportConfigTocExport, tagExport: DocumentExportConfigTagExport, data: DocumentExportConfigTocExport) -> None: ...
+    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], smartQuotes: Optional[bool], fixedWidth: Optional[bool], timestamps: Optional[bool], preserveBreaks: Optional[bool], subSuperscripts: Optional[bool], expandLinks: Optional[bool], creator: Optional[bool], drawers: Optional[bool], date: Optional[bool], entities: Optional[bool], email: Optional[bool], sectionNumbers: Optional[bool], planning: Optional[bool], priority: Optional[bool], latex: Optional[bool], timestamp: Optional[bool], title: Optional[bool], tables: Optional[bool], headlineLevels: Optional[int], brokenLinks: DocumentExportConfigBrokenLinks, tocExport: DocumentExportConfigTocExport, tagExport: DocumentExportConfigTagExport, taskFiltering: DocumentExportConfigTaskFiltering, archivedTrees: DocumentExportConfigArchivedTrees, data: DocumentExportConfigTocExport) -> None: ...
     def __eq__(self, other: DocumentExportConfig) -> bool: ...
     def isDoExport(self) -> bool: ...
     def getDoExport(self) -> DocumentExportConfigDoExport: ...
@@ -1891,9 +1896,30 @@ class DocumentExportConfig:
     propertyDrawers: Optional[bool]
     statisticsCookies: Optional[bool]
     todoText: Optional[bool]
+    smartQuotes: Optional[bool]
+    fixedWidth: Optional[bool]
+    timestamps: Optional[bool]
+    preserveBreaks: Optional[bool]
+    subSuperscripts: Optional[bool]
+    expandLinks: Optional[bool]
+    creator: Optional[bool]
+    drawers: Optional[bool]
+    date: Optional[bool]
+    entities: Optional[bool]
+    email: Optional[bool]
+    sectionNumbers: Optional[bool]
+    planning: Optional[bool]
+    priority: Optional[bool]
+    latex: Optional[bool]
+    timestamp: Optional[bool]
+    title: Optional[bool]
+    tables: Optional[bool]
+    headlineLevels: Optional[int]
     brokenLinks: DocumentExportConfigBrokenLinks
     tocExport: DocumentExportConfigTocExport
     tagExport: DocumentExportConfigTagExport
+    taskFiltering: DocumentExportConfigTaskFiltering
+    archivedTrees: DocumentExportConfigArchivedTrees
     data: DocumentExportConfigTocExport
 
 class SubtreePeriodKind(Enum):

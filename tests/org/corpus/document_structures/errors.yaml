@@ -43,10 +43,6 @@ items:
             - kind: ErrorSkipGroup
               skipped:
                 - text: "*"
-                  loc: ~
                 - text: " "
-                  loc: ~
                 - text: Other
-                  loc: ~
-              loc: ~
-            - {kind: Newline, text: "\n", loc: ~}
+            - {kind: Newline, text: "\n"}

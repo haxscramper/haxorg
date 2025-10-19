@@ -4145,7 +4145,7 @@ ingoing elements.)RAW")
   pybind11::enum_<org::sem::DocumentExportConfig::TagExport>(m, "DocumentExportConfigTagExport")
     .value("None", org::sem::DocumentExportConfig::TagExport::None)
     .value("All", org::sem::DocumentExportConfig::TagExport::All)
-    .value("NotInToc", org::sem::DocumentExportConfig::TagExport::NotInToc, R"RAW(Expot tags in subtree titles but not in the table of content)RAW")
+    .value("NotInToc", org::sem::DocumentExportConfig::TagExport::NotInToc, R"RAW(Export tags in subtree titles but not in the table of content)RAW")
     .def("__iter__", [](org::sem::DocumentExportConfig::TagExport const& _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport> {
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport>();
                      })
@@ -4199,6 +4199,26 @@ ingoing elements.)RAW")
          pybind11::arg("rhs"))
     .def("__hash__",
          [](org::sem::DocumentExportConfig::BrokenLinks const& _self, org::sem::DocumentExportConfig::BrokenLinks it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  bind_enum_iterator<org::sem::DocumentExportConfig::ArchivedTrees>(m, "DocumentExportConfigArchivedTrees", type_registry_guard);
+  pybind11::enum_<org::sem::DocumentExportConfig::ArchivedTrees>(m, "DocumentExportConfigArchivedTrees")
+    .value("Skip", org::sem::DocumentExportConfig::ArchivedTrees::Skip, R"RAW(Skip archived trees entirely)RAW")
+    .value("Headline", org::sem::DocumentExportConfig::ArchivedTrees::Headline, R"RAW(Export only headlines of archived trees)RAW")
+    .value("All", org::sem::DocumentExportConfig::ArchivedTrees::All, R"RAW(Export archived trees with full content)RAW")
+    .def("__iter__", [](org::sem::DocumentExportConfig::ArchivedTrees const& _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::ArchivedTrees> {
+                     return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::ArchivedTrees>();
+                     })
+    .def("__eq__",
+         [](org::sem::DocumentExportConfig::ArchivedTrees const& _self, org::sem::DocumentExportConfig::ArchivedTrees lhs, org::sem::DocumentExportConfig::ArchivedTrees rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::DocumentExportConfig::ArchivedTrees const& _self, org::sem::DocumentExportConfig::ArchivedTrees it) -> int {
          return static_cast<int>(it);
          },
          pybind11::arg("it"))
@@ -4266,18 +4286,39 @@ ingoing elements.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("inlinetasks", &org::sem::DocumentExportConfig::inlinetasks)
-    .def_readwrite("footnotes", &org::sem::DocumentExportConfig::footnotes)
-    .def_readwrite("clock", &org::sem::DocumentExportConfig::clock)
-    .def_readwrite("author", &org::sem::DocumentExportConfig::author)
-    .def_readwrite("emphasis", &org::sem::DocumentExportConfig::emphasis)
-    .def_readwrite("specialStrings", &org::sem::DocumentExportConfig::specialStrings)
-    .def_readwrite("propertyDrawers", &org::sem::DocumentExportConfig::propertyDrawers)
-    .def_readwrite("statisticsCookies", &org::sem::DocumentExportConfig::statisticsCookies)
-    .def_readwrite("todoText", &org::sem::DocumentExportConfig::todoText, R"RAW(Include todo keywords in export)RAW")
+    .def_readwrite("inlinetasks", &org::sem::DocumentExportConfig::inlinetasks, R"RAW(Toggle inclusion of inlinetasks)RAW")
+    .def_readwrite("footnotes", &org::sem::DocumentExportConfig::footnotes, R"RAW(Toggle the inclusion of footnotes)RAW")
+    .def_readwrite("clock", &org::sem::DocumentExportConfig::clock, R"RAW(Toggle inclusion of 'CLOCK' keywords)RAW")
+    .def_readwrite("author", &org::sem::DocumentExportConfig::author, R"RAW(Toggle inclusion of author name into exported file)RAW")
+    .def_readwrite("emphasis", &org::sem::DocumentExportConfig::emphasis, R"RAW(Toggle emphasized text)RAW")
+    .def_readwrite("specialStrings", &org::sem::DocumentExportConfig::specialStrings, R"RAW(Toggle conversion of special strings)RAW")
+    .def_readwrite("propertyDrawers", &org::sem::DocumentExportConfig::propertyDrawers, R"RAW(Toggle inclusion of property drawers)RAW")
+    .def_readwrite("statisticsCookies", &org::sem::DocumentExportConfig::statisticsCookies, R"RAW(Toggle inclusion of statistics cookies)RAW")
+    .def_readwrite("todoText", &org::sem::DocumentExportConfig::todoText, R"RAW(Toggle inclusion of TODO keywords into exported text)RAW")
+    .def_readwrite("smartQuotes", &org::sem::DocumentExportConfig::smartQuotes, R"RAW(Toggle smart quotes)RAW")
+    .def_readwrite("fixedWidth", &org::sem::DocumentExportConfig::fixedWidth, R"RAW(Toggle fixed-width sections)RAW")
+    .def_readwrite("timestamps", &org::sem::DocumentExportConfig::timestamps, R"RAW(Toggle inclusion of time/date active/inactive stamps)RAW")
+    .def_readwrite("preserveBreaks", &org::sem::DocumentExportConfig::preserveBreaks, R"RAW(Toggles whether to preserve line breaks)RAW")
+    .def_readwrite("subSuperscripts", &org::sem::DocumentExportConfig::subSuperscripts, R"RAW(Toggle TeX-like syntax for sub- and superscripts)RAW")
+    .def_readwrite("expandLinks", &org::sem::DocumentExportConfig::expandLinks, R"RAW(Toggle expansion of environment variables in file paths)RAW")
+    .def_readwrite("creator", &org::sem::DocumentExportConfig::creator, R"RAW(Toggle inclusion of creator information in the exported file)RAW")
+    .def_readwrite("drawers", &org::sem::DocumentExportConfig::drawers, R"RAW(Toggle inclusion of drawers)RAW")
+    .def_readwrite("date", &org::sem::DocumentExportConfig::date, R"RAW(Toggle inclusion of a date into exported file)RAW")
+    .def_readwrite("entities", &org::sem::DocumentExportConfig::entities, R"RAW(Toggle inclusion of entities)RAW")
+    .def_readwrite("email", &org::sem::DocumentExportConfig::email, R"RAW(Toggle inclusion of the author's e-mail into exported file)RAW")
+    .def_readwrite("sectionNumbers", &org::sem::DocumentExportConfig::sectionNumbers, R"RAW(Toggle section-numbers)RAW")
+    .def_readwrite("planning", &org::sem::DocumentExportConfig::planning, R"RAW(Toggle export of planning information)RAW")
+    .def_readwrite("priority", &org::sem::DocumentExportConfig::priority, R"RAW(Toggle inclusion of priority cookies)RAW")
+    .def_readwrite("latex", &org::sem::DocumentExportConfig::latex, R"RAW(Toggle LaTeX export)RAW")
+    .def_readwrite("timestamp", &org::sem::DocumentExportConfig::timestamp, R"RAW(Toggle inclusion of the creation time in the exported file)RAW")
+    .def_readwrite("title", &org::sem::DocumentExportConfig::title, R"RAW(Toggle inclusion of title)RAW")
+    .def_readwrite("tables", &org::sem::DocumentExportConfig::tables, R"RAW(Toggle inclusion of tables)RAW")
+    .def_readwrite("headlineLevels", &org::sem::DocumentExportConfig::headlineLevels, R"RAW(Set the number of headline levels for export)RAW")
     .def_readwrite("brokenLinks", &org::sem::DocumentExportConfig::brokenLinks)
     .def_readwrite("tocExport", &org::sem::DocumentExportConfig::tocExport)
     .def_readwrite("tagExport", &org::sem::DocumentExportConfig::tagExport)
+    .def_readwrite("taskFiltering", &org::sem::DocumentExportConfig::taskFiltering)
+    .def_readwrite("archivedTrees", &org::sem::DocumentExportConfig::archivedTrees)
     .def_readwrite("data", &org::sem::DocumentExportConfig::data)
     .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig const&) const>(&org::sem::DocumentExportConfig::operator==),

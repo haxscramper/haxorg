@@ -357,9 +357,30 @@ void Exporter<V, R>::visit(R& res, sem::DocumentExportConfig const& object) {
   __obj_field(res, object, propertyDrawers);
   __obj_field(res, object, statisticsCookies);
   __obj_field(res, object, todoText);
+  __obj_field(res, object, smartQuotes);
+  __obj_field(res, object, fixedWidth);
+  __obj_field(res, object, timestamps);
+  __obj_field(res, object, preserveBreaks);
+  __obj_field(res, object, subSuperscripts);
+  __obj_field(res, object, expandLinks);
+  __obj_field(res, object, creator);
+  __obj_field(res, object, drawers);
+  __obj_field(res, object, date);
+  __obj_field(res, object, entities);
+  __obj_field(res, object, email);
+  __obj_field(res, object, sectionNumbers);
+  __obj_field(res, object, planning);
+  __obj_field(res, object, priority);
+  __obj_field(res, object, latex);
+  __obj_field(res, object, timestamp);
+  __obj_field(res, object, title);
+  __obj_field(res, object, tables);
+  __obj_field(res, object, headlineLevels);
   __obj_field(res, object, brokenLinks);
   __obj_field(res, object, tocExport);
   __obj_field(res, object, tagExport);
+  __obj_field(res, object, taskFiltering);
+  __obj_field(res, object, archivedTrees);
   __obj_field(res, object, data);
 }
 

@@ -1175,7 +1175,7 @@ struct DocumentExportConfig {
   enum class TagExport : short int {
     None,
     All,
-    /// \brief Expot tags in subtree titles but not in the table of content
+    /// \brief Export tags in subtree titles but not in the table of content
     NotInToc,
   };
   BOOST_DESCRIBE_NESTED_ENUM(TagExport, None, All, NotInToc)
@@ -1192,6 +1192,16 @@ struct DocumentExportConfig {
   BOOST_DESCRIBE_NESTED_ENUM(TaskFiltering, Whitelist, Done, None, All)
   enum class BrokenLinks : short int { None, Mark, Raise, Ignore, };
   BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, None, Mark, Raise, Ignore)
+  /// \brief Configure how archived trees are exported
+  enum class ArchivedTrees : short int {
+    /// \brief Skip archived trees entirely
+    Skip,
+    /// \brief Export only headlines of archived trees
+    Headline,
+    /// \brief Export archived trees with full content
+    All,
+  };
+  BOOST_DESCRIBE_NESTED_ENUM(ArchivedTrees, Skip, Headline, All)
   struct DoExport {
     BOOST_DESCRIBE_CLASS(DoExport,
                          (),
@@ -1230,23 +1240,92 @@ struct DocumentExportConfig {
                         propertyDrawers,
                         statisticsCookies,
                         todoText,
+                        smartQuotes,
+                        fixedWidth,
+                        timestamps,
+                        preserveBreaks,
+                        subSuperscripts,
+                        expandLinks,
+                        creator,
+                        drawers,
+                        date,
+                        entities,
+                        email,
+                        sectionNumbers,
+                        planning,
+                        priority,
+                        latex,
+                        timestamp,
+                        title,
+                        tables,
+                        headlineLevels,
                         brokenLinks,
                         tocExport,
                         tagExport,
+                        taskFiltering,
+                        archivedTrees,
                         data))
+  /// \brief Toggle inclusion of inlinetasks
   hstd::Opt<bool> inlinetasks = std::nullopt;
+  /// \brief Toggle the inclusion of footnotes
   hstd::Opt<bool> footnotes = std::nullopt;
+  /// \brief Toggle inclusion of 'CLOCK' keywords
   hstd::Opt<bool> clock = std::nullopt;
+  /// \brief Toggle inclusion of author name into exported file
   hstd::Opt<bool> author = std::nullopt;
+  /// \brief Toggle emphasized text
   hstd::Opt<bool> emphasis = std::nullopt;
+  /// \brief Toggle conversion of special strings
   hstd::Opt<bool> specialStrings = std::nullopt;
+  /// \brief Toggle inclusion of property drawers
   hstd::Opt<bool> propertyDrawers = std::nullopt;
+  /// \brief Toggle inclusion of statistics cookies
   hstd::Opt<bool> statisticsCookies = std::nullopt;
-  /// \brief Include todo keywords in export
+  /// \brief Toggle inclusion of TODO keywords into exported text
   hstd::Opt<bool> todoText = std::nullopt;
+  /// \brief Toggle smart quotes
+  hstd::Opt<bool> smartQuotes = std::nullopt;
+  /// \brief Toggle fixed-width sections
+  hstd::Opt<bool> fixedWidth = std::nullopt;
+  /// \brief Toggle inclusion of time/date active/inactive stamps
+  hstd::Opt<bool> timestamps = std::nullopt;
+  /// \brief Toggles whether to preserve line breaks
+  hstd::Opt<bool> preserveBreaks = std::nullopt;
+  /// \brief Toggle TeX-like syntax for sub- and superscripts
+  hstd::Opt<bool> subSuperscripts = std::nullopt;
+  /// \brief Toggle expansion of environment variables in file paths
+  hstd::Opt<bool> expandLinks = std::nullopt;
+  /// \brief Toggle inclusion of creator information in the exported file
+  hstd::Opt<bool> creator = std::nullopt;
+  /// \brief Toggle inclusion of drawers
+  hstd::Opt<bool> drawers = std::nullopt;
+  /// \brief Toggle inclusion of a date into exported file
+  hstd::Opt<bool> date = std::nullopt;
+  /// \brief Toggle inclusion of entities
+  hstd::Opt<bool> entities = std::nullopt;
+  /// \brief Toggle inclusion of the author's e-mail into exported file
+  hstd::Opt<bool> email = std::nullopt;
+  /// \brief Toggle section-numbers
+  hstd::Opt<bool> sectionNumbers = std::nullopt;
+  /// \brief Toggle export of planning information
+  hstd::Opt<bool> planning = std::nullopt;
+  /// \brief Toggle inclusion of priority cookies
+  hstd::Opt<bool> priority = std::nullopt;
+  /// \brief Toggle LaTeX export
+  hstd::Opt<bool> latex = std::nullopt;
+  /// \brief Toggle inclusion of the creation time in the exported file
+  hstd::Opt<bool> timestamp = std::nullopt;
+  /// \brief Toggle inclusion of title
+  hstd::Opt<bool> title = std::nullopt;
+  /// \brief Toggle inclusion of tables
+  hstd::Opt<bool> tables = std::nullopt;
+  /// \brief Set the number of headline levels for export
+  hstd::Opt<int> headlineLevels = std::nullopt;
   org::sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::None;
   org::sem::DocumentExportConfig::TocExport tocExport;
   org::sem::DocumentExportConfig::TagExport tagExport = org::sem::DocumentExportConfig::TagExport::NotInToc;
+  org::sem::DocumentExportConfig::TaskFiltering taskFiltering = org::sem::DocumentExportConfig::TaskFiltering::All;
+  org::sem::DocumentExportConfig::ArchivedTrees archivedTrees = org::sem::DocumentExportConfig::ArchivedTrees::Headline;
   org::sem::DocumentExportConfig::TocExport data;
   bool operator==(org::sem::DocumentExportConfig const& other) const;
   bool isDoExport() const { return getTocExportKind() == TocExportKind::DoExport; }

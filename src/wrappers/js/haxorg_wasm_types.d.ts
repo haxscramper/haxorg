@@ -349,6 +349,12 @@ export interface haxorg_wasm_module_auto {
     Ignore: DocumentExportConfigBrokenLinks,
   }
   format_DocumentExportConfigBrokenLinks(value: DocumentExportConfigBrokenLinks): string;
+  DocumentExportConfigArchivedTrees: {
+    Skip: DocumentExportConfigArchivedTrees,
+    Headline: DocumentExportConfigArchivedTrees,
+    All: DocumentExportConfigArchivedTrees,
+  }
+  format_DocumentExportConfigArchivedTrees(value: DocumentExportConfigArchivedTrees): string;
   DocumentExportConfigDoExport: DocumentExportConfigDoExportConstructor;
   DocumentExportConfigExportFixed: DocumentExportConfigExportFixedConstructor;
   DocumentExportConfigTocExportKind: {
@@ -2992,9 +2998,30 @@ export interface DocumentExportConfig {
   propertyDrawers: haxorg_wasm.Optional<boolean>
   statisticsCookies: haxorg_wasm.Optional<boolean>
   todoText: haxorg_wasm.Optional<boolean>
+  smartQuotes: haxorg_wasm.Optional<boolean>
+  fixedWidth: haxorg_wasm.Optional<boolean>
+  timestamps: haxorg_wasm.Optional<boolean>
+  preserveBreaks: haxorg_wasm.Optional<boolean>
+  subSuperscripts: haxorg_wasm.Optional<boolean>
+  expandLinks: haxorg_wasm.Optional<boolean>
+  creator: haxorg_wasm.Optional<boolean>
+  drawers: haxorg_wasm.Optional<boolean>
+  date: haxorg_wasm.Optional<boolean>
+  entities: haxorg_wasm.Optional<boolean>
+  email: haxorg_wasm.Optional<boolean>
+  sectionNumbers: haxorg_wasm.Optional<boolean>
+  planning: haxorg_wasm.Optional<boolean>
+  priority: haxorg_wasm.Optional<boolean>
+  latex: haxorg_wasm.Optional<boolean>
+  timestamp: haxorg_wasm.Optional<boolean>
+  title: haxorg_wasm.Optional<boolean>
+  tables: haxorg_wasm.Optional<boolean>
+  headlineLevels: haxorg_wasm.Optional<number>
   brokenLinks: DocumentExportConfigBrokenLinks
   tocExport: DocumentExportConfigTocExport
   tagExport: DocumentExportConfigTagExport
+  taskFiltering: DocumentExportConfigTaskFiltering
+  archivedTrees: DocumentExportConfigArchivedTrees
   data: DocumentExportConfigTocExport
 }
 export interface DocumentExportConfigTaskExportConstructor { new(): DocumentExportConfigTaskExport; }
@@ -3018,6 +3045,11 @@ export enum DocumentExportConfigBrokenLinks {
   Mark,
   Raise,
   Ignore,
+}
+export enum DocumentExportConfigArchivedTrees {
+  Skip,
+  Headline,
+  All,
 }
 export interface DocumentExportConfigDoExportConstructor { new(): DocumentExportConfigDoExport; }
 export interface DocumentExportConfigDoExport {

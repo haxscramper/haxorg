@@ -325,8 +325,8 @@ items:
 
   - name: "tbflm"
     debug: 
-      doFormatReparse: false
-      doFlatParseCompare: false
+      doSem: false
+      
     source: |
       #+TBLFM: $6=round(1000*$5/$4)/1000
 
