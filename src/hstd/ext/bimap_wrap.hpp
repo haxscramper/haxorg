@@ -7,12 +7,14 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/system/Formatter.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 namespace hstd::ext {
 
 /// \brief Simplified wrapper around boost bimap, providing a simpler
 /// interace for 1-1 mapping between two types `L` and `R`.
 template <
+
     typename L,
     typename R,
     typename LHash = std::hash<L>,
@@ -82,13 +84,14 @@ class Unordered1to1Bimap {
 
 } // namespace hstd::ext
 
-template <typename L, typename R>
-struct std::formatter<hstd::ext::Unordered1to1Bimap<L, R>>
+
+template <typename L, typename R, typename LHash, typename RHash>
+struct std::formatter<hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>>
     : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(
-        const hstd::ext::Unordered1to1Bimap<L, R>& p,
-        FormatContext&                             ctx) const {
+        const hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>& p,
+        FormatContext& ctx) const {
         bool first = true;
         fmt_ctx("{", ctx);
         for (auto const& [left, right] : p.get_map()) {
@@ -105,3 +108,32 @@ struct std::formatter<hstd::ext::Unordered1to1Bimap<L, R>>
         return fmt_ctx("}", ctx);
     }
 };
+
+
+namespace hstd {
+template <typename L, typename R, typename LHash, typename RHash>
+struct JsonSerde<hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>> {
+    static json to_json(
+        hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> const& it) {
+        auto result = json::array();
+        for (auto const& key : it.left_keys()) {
+            result.push_back(json::object({
+                {"left", JsonSerde<L>::to_json(key)},
+                {"right", JsonSerde<R>::to_json(it.at_right(key))},
+            }));
+        }
+
+        return result;
+    }
+    static hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> from_json(
+        json const& j) {
+        hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> result;
+        for (auto const& i : j) {
+            result.add_unique(
+                JsonSerde<L>::from_json(i["left"]),
+                JsonSerde<R>::from_json(i["right"]));
+        }
+        return result;
+    }
+};
+} // namespace hstd

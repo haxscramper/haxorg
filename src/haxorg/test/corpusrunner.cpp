@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
+#include <hstd/ext/logger.hpp>
 
 
 using namespace org::test;
@@ -143,77 +145,6 @@ Vec<DiffItem> json_diff(
 
     return result;
 }
-
-
-void format(
-    ColStream&               os,
-    CR<FormattedDiff>        text,
-    Func<ColText(int, bool)> formatCb,
-    int                      lhsSize          = 48,
-    int                      rhsSize          = 16,
-    bool                     dropLeadingKeep  = false,
-    bool                     dropTrailingKeep = false) {
-    if (text.isUnified()) {
-        os << (ColText("Given") <<= lhsSize) << (ColText("Expected"))
-           << "\n";
-        Vec<Pair<FormattedDiff::DiffLine, FormattedDiff::DiffLine>> lines;
-        for (auto const& pair : text.unifiedLines()) {
-            lines.push_back(pair);
-        }
-
-        if (lines.empty()) {
-            os << "No diff content to compare\n";
-            return;
-        }
-
-        Slice<int> range = slice(0, lines.size() - 1);
-        if (dropLeadingKeep) {
-            for (int i = 0; i <= range.last; ++i) {
-                if (lines[i].first.prefix == SeqEditKind::Keep
-                    && lines[i].second.prefix == SeqEditKind::Keep) {
-                    range.first = i;
-                } else {
-                    // two lines of context before diff
-                    range.first = std::max(0, i - 1);
-                    break;
-                }
-            }
-        }
-
-        if (dropTrailingKeep) {
-            for (int i = range.last; range.first < i; --i) {
-                if (lines[i].first.prefix == SeqEditKind::Keep
-                    && lines[i].second.prefix == SeqEditKind::Keep) {
-                    range.last = i;
-                } else {
-                    range.last = std::min(lines.high(), i + 1);
-                    break;
-                }
-            }
-        }
-
-        for (const auto& i : range) {
-            auto const& lhs = lines[i].first;
-            auto const& rhs = lines[i].second;
-
-            auto lhsStyle = toStyle(lhs.prefix);
-            auto rhsStyle = toStyle(rhs.prefix);
-
-            os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
-               << ((lhs.empty() ? ColText("")
-                                : formatCb(lhs.index().value(), true)
-                                      .withStyle(lhsStyle))
-                   <<= lhsSize)
-               << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2)
-               << ((rhs.empty() ? ColText("")
-                                : formatCb(rhs.index().value(), false)
-                                      .withStyle(rhsStyle))
-                   <<= rhsSize)
-               << "\n";
-        }
-    }
-}
-
 
 void describeDiff(
     ColStream&      os,
@@ -449,47 +380,37 @@ CorpusRunner::RunResult::LexCompare compareTokens(
         ShiftedDiff tokenDiff{
             tokenSimilarity, lexed.size(), expected.size()};
 
-        Func<Str(CR<Tok>)> conv = [](CR<Tok> tok) -> Str {
-            return std::format("{}", tok);
-        };
+        FormattedDiff text{
+            tokenDiff,
+            FormattedDiff::Conf{
+                .minLhsSize = 30,
+                .minRhsSize = 48,
+                .formatLine =
+                    [&](FormattedDiff::DiffLine const& line) -> ColText {
+                    auto tok = line.isLhs ? lexed.tokens.content.at(
+                                                line.index().value())
+                                          : expected.tokens.content.at(
+                                                line.index().value());
 
-        FormattedDiff text{tokenDiff};
+                    hshow_opts opts{};
+                    opts.flags.excl(hshow_flag::use_quotes);
 
-        ColStream os;
-        int       lhsSize = 48;
-        int       rhsSize = 30;
+                    std::string text = escape_literal(
+                        hshow1(get_token_text(tok), opts).toString(false));
 
-        format(
-            os,
-            text,
-            [&](int id, bool isLhs) -> ColText {
-                auto tok = isLhs ? lexed.tokens.content.at(id)
-                                 : expected.tokens.content.at(id);
+                    std::string result = //
+                        "${index} ${kind} ${text}"
+                        % fold_format_pairs({
+                            {"index", fmt1(line.index().value())},
+                            {"kind", fmt1(tok.kind)},
+                            {"text", text},
+                            {"size", fmt1(rune_length(text))},
+                        });
 
-                hshow_opts opts{};
-                opts.flags.excl(hshow_flag::use_quotes);
+                    return result;
+                }}};
 
-                std::string text = escape_literal(
-                    hshow1(get_token_text(tok), opts).toString(false));
-
-                std::string result = //
-                    "${index} ${kind} ${text}"
-                    % fold_format_pairs({
-                        {"index", fmt1(id)},
-                        {"kind", fmt1(tok.kind)},
-                        {"text", text},
-                        {"size", fmt1(rune_length(text))},
-                    });
-
-                auto indexFmt = Str(std::format("[{}]", id));
-                return result;
-            },
-            lhsSize,
-            rhsSize,
-            false,
-            false);
-
-        return {{.isOk = false, .failDescribe = os.getBuffer()}};
+        return {{.isOk = false, .failDescribe = text.format()}};
     }
 }
 
@@ -545,48 +466,44 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
         ShiftedDiff nodeDiff{
             nodeSimilarity, parsed.size(), expected.size()};
 
-        Func<Str(CR<OrgNode>)> conv = [](CR<OrgNode> tok) -> Str {
-            return std::format("{}", tok);
-        };
 
-        FormattedDiff text{nodeDiff};
-        ColStream     os;
-        format(
-            os,
-            text,
-            [&](int id, bool isLhs) -> ColText {
-                auto node = isLhs ? parsed.nodes.content.at(id)
-                                  : expected.nodes.content.at(id);
+        FormattedDiff text{
+            nodeDiff,
+            FormattedDiff::Conf{
+                .formatLine =
+                    [&](FormattedDiff::DiffLine const& line) -> ColText {
+                    if (line.empty()) { return ColText{""}; }
+                    auto node = line.isLhs ? parsed.nodes.content.at(
+                                                 line.index().value())
+                                           : expected.nodes.content.at(
+                                                 line.index().value());
 
-                auto group = isLhs ? &parsed : &expected;
+                    auto group = line.isLhs ? &parsed : &expected;
 
-                return fmt(
-                    "{} {} {}({})",
-                    id,
-                    node.kind,
-                    node.isTerminal()
-                        ? escape_literal(
-                              hshow1(
-                                  group->tokens->tokens.content
-                                      .get_copy(node.getToken().getIndex())
-                                      .value_or(OrgToken{})
-                                      ->text,
-                                  hshow_opts().excl(
-                                      hshow_flag::use_quotes))
-                                  .toString(false))
-                        : std::string(""),
-                    node.isTerminal()
-                        ? fmt("id={} kind={}",
-                              node.getToken().getIndex(),
-                              group->tokens->at(node.getToken()).kind)
-                        : fmt("ext={}", node.getExtent()));
-            },
-            48,
-            16,
-            false,
-            false);
+                    return fmt(
+                        "{} {} {}({})",
+                        line.index().value(),
+                        node.kind,
+                        node.isTerminal()
+                            ? escape_literal(
+                                  hshow1(
+                                      group->tokens->tokens.content
+                                          .get_copy(
+                                              node.getToken().getIndex())
+                                          .value_or(OrgToken{})
+                                          ->text,
+                                      hshow_opts().excl(
+                                          hshow_flag::use_quotes))
+                                      .toString(false))
+                            : std::string(""),
+                        node.isTerminal()
+                            ? fmt("id={} kind={}",
+                                  node.getToken().getIndex(),
+                                  group->tokens->at(node.getToken()).kind)
+                            : fmt("ext={}", node.getExtent()));
+                }}};
 
-        return {{.isOk = false, .failDescribe = os.getBuffer()}};
+        return {{.isOk = false, .failDescribe = text.format()}};
     }
 }
 
@@ -613,6 +530,11 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     CR<ParseSpec>        spec,
     sem::SemId<sem::Org> node,
     json                 expected) {
+
+    auto errors = org::collectErrorNodes(node);
+
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Running sem comparison");
+    HSLOG_TRACE("Error count {}", errors.size());
 
     json          converted = toTestJson(node);
     Vec<DiffItem> diff      = json_diff(converted, expected);
@@ -651,12 +573,6 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         os << "\n";
     }
 
-    auto maybePathDiff = [&](json::json_pointer const& path) {
-        if (ops.contains(path.to_string())) {
-            describeDiff(os, ops[path.to_string()], expected, converted);
-        }
-    };
-
     if (0 < failCount) {
         yaml converted_yaml  = toYaml(converted);
         yaml expected_yaml   = toYaml(expected);
@@ -672,102 +588,121 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 
         ShiftedDiff sem_diff{
             sem_lcs, converted_lines.size(), expected_lines.size()};
-        FormattedDiff text{sem_diff};
+        FormattedDiff text{
+            sem_diff,
+            FormattedDiff::Conf{
+                .formatLine = FormattedDiff::getSequenceFormatterCb(
+                    &converted_lines, &expected_lines)}};
 
-        format(
-            os,
-            text,
-            [&](int id, bool isLhs) -> ColText {
-                auto node = isLhs ? converted_lines.at(id)
-                                  : expected_lines.at(id);
-                return ColText{node};
-            },
-            rs::max(converted_lines | rv::transform([](CR<Str> s) {
-                        return s.size();
-                    }))
-                + 8,
-            rs::max(expected_lines | rv::transform([](CR<Str> s) {
-                        return s.size();
-                    }))
-                + 8);
-
+        os << text.format();
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};
     } else {
-        return {{.isOk = true}};
+        return {{.isOk = true}, .expectedParseErrors = !errors.empty()};
     }
 }
 
+hstd::Opt<CorpusRunner::RunResult> CorpusRunner::runSpecInitial(
+    hstd::CR<ParseSpec>   spec,
+    hstd::CR<std::string> from,
+    hstd::CR<hstd::Str>   relDebug,
+    MockFull&             p) {
 
-CorpusRunner::RunResult CorpusRunner::runSpec(
-    CR<ParseSpec>   spec,
-    CR<std::string> from,
-    CR<Str>         relDebug) {
-    __perf_trace("cli", "run spec");
-    MockFull p(spec.debug.traceParse, spec.debug.traceLex);
+    auto skip = RunResult{RunResult::Skip{}};
 
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Initial run of the spec");
     if (spec.debug.traceAll || spec.debug.printSource) {
         writeFile(spec, "source.org", spec.source, relDebug);
     }
 
-    message("running spec");
-
-    auto skip = RunResult{RunResult::Skip{}};
 
     if (!spec.debug.doLexBase) {
-        message("no base lex for spec, skipping");
+        HSLOG_WARNING("no base lex for spec, skipping");
         return skip;
     }
+
     auto base_lex_result = runSpecBaseLex(p, spec, relDebug);
+    HSLOG_TRACE("base_lex_result: {}", base_lex_result);
     if (!base_lex_result.isOk) {
-        message("base lex fail -> test fail");
+        HSLOG_ERROR("base lex fail -> test fail");
         return RunResult{base_lex_result};
     }
 
     if (!spec.debug.doLex) {
-        message("no lex for spec, skipping");
+        HSLOG_WARNING("no lex for spec, skipping");
         return skip;
     }
+
     auto lex_result = runSpecLex(p, spec, relDebug);
+    HSLOG_TRACE("lex_result: {}", lex_result);
     if (!lex_result.isOk) {
-        message("lex fail -> test fail");
+        HSLOG_ERROR("lex fail -> test fail");
         return RunResult{lex_result};
     }
 
     if (!spec.debug.doParse) {
-        message("no parse for spec, skipping");
+        HSLOG_WARNING("no parse for spec, skipping");
         return skip;
     }
+
     auto parse_result = runSpecParse(p, spec, relDebug);
+    HSLOG_TRACE("parse_result: {}", parse_result);
     if (!parse_result.isOk) {
-        message("parse fail -> test fail");
+        HSLOG_ERROR("parse fail -> test fail");
         return RunResult{parse_result};
     }
 
     if (!spec.debug.doSem) {
-        message("no sem for spec, skipping");
+        HSLOG_WARNING("no sem for spec, skipping");
         return skip;
     }
+
     auto sem_result = runSpecSem(p, spec, relDebug);
+    HSLOG_TRACE("sem_result: {}", sem_result);
     if (!parse_result.isOk) {
-        message("sem fail -> test fail");
+        HSLOG_ERROR("sem fail -> test fail");
+        return RunResult{sem_result};
+    }
+
+    if (sem_result.unexpectedParseErrors) {
+        HSLOG_WARNING("Test has unexpected parse errors");
+        return RunResult{sem_result};
+    }
+
+    if (sem_result.isOk && sem_result.expectedParseErrors) {
+        HSLOG_INFO(
+            "sem OK, but contained expected errors. Skipping "
+            "re-format "
+            "parse -> overall test OK");
         return RunResult{sem_result};
     }
 
     if (!spec.debug.doFormatReparse) {
-        message("no format reparse, skip test");
+        HSLOG_WARNING("no format reparse, skip test");
         return skip;
     }
 
-    inRerun                    = true;
-    ParseSpec            rerun = spec;
-    MockFull             p2(spec.debug.traceParse, spec.debug.traceLex);
+    return std::nullopt;
+}
+
+CorpusRunner::RunResult CorpusRunner::runSpecFormatted(
+    hstd::CR<ParseSpec>   spec,
+    hstd::CR<std::string> from,
+    hstd::CR<hstd::Str>   relDebug,
+    MockFull&             p) {
+
+    auto skip = RunResult{RunResult::Skip{}};
+
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Re-running spec with formatted results");
+    inRerun         = true;
+    ParseSpec rerun = spec;
+    MockFull  p2("<mock>", spec.debug.traceParse, spec.debug.traceLex);
     org::algo::Formatter formatter;
     auto                 fmt_result = formatter.toString(
         p.node, org::algo::Formatter::Context{});
     rerun.source = formatter.store.toString(fmt_result);
-    // reset all expected tokens of the copied parse spec so `runSpecBase`
-    // did not try to run the validation.
+    // reset all expected tokens of the copied parse spec so
+    // `runSpecBase` did not try to run the validation.
     rerun.base_tokens = std::nullopt;
     rerun.subnodes    = std::nullopt;
     rerun.tokens      = std::nullopt;
@@ -789,8 +724,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     runSpecParse(p2, rerun, dbg);
 
 
-    // Compare flat formatted nodes, clean easily broken elements from the
-    // list
+    // Compare flat formatted nodes, clean easily broken elements from
+    // the list
     if (spec.debug.doFlatParseCompare) {
         auto filterBrittleNodes =
             [](OrgNodeGroup const& nodes) -> Vec<OrgNode> {
@@ -821,13 +756,13 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         auto flat_reparse_compare = compareNodes(
             reparsedNodes, originalNodes);
         if (!flat_reparse_compare.isOk) {
-            message("flat reparse compare fail");
+            HSLOG_ERROR("flat reparse compare fail");
             return RunResult{flat_reparse_compare};
         }
     }
 
     if (!spec.debug.doFormatReparse) {
-        message("no format reparse, skip test");
+        HSLOG_WARNING("no format reparse, skip test");
         return skip;
     }
 
@@ -902,22 +837,35 @@ ${split}
     }
 
     if (!reformat_result.isOk) {
-        message(
-            fmt("reformat fail {}",
-                reformat_result.failDescribe.toString(false)));
+        HSLOG_ERROR(
+            "reformat fail {}",
+            reformat_result.failDescribe.toString(false));
         return RunResult{reformat_result};
     }
 
-    // flat reparse and compare does not prevent the full test execution,
-    // but it *is* skipping parts of the check, so the example is
-    // considered skipped.
+    // flat reparse and compare does not prevent the full test
+    // execution, but it *is* skipping parts of the check, so the
+    // example is considered skipped.
     if (spec.debug.doFlatParseCompare) {
-        message("run result ok");
+        HSLOG_INFO("run result ok");
         return RunResult();
     } else {
-        message("no flat reparse compare, skip test");
+        HSLOG_WARNING("no flat reparse compare, skip test");
         return skip;
     }
+}
+
+CorpusRunner::RunResult CorpusRunner::runSpec(
+    CR<ParseSpec>   spec,
+    CR<std::string> from,
+    CR<Str>         relDebug) {
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Running test spec '{}'", spec.name);
+    __perf_trace("cli", "run spec");
+    MockFull p("<mock>", spec.debug.traceParse, spec.debug.traceLex);
+    auto     initialResult = runSpecInitial(spec, from, relDebug, p);
+    if (initialResult.has_value()) { return initialResult.value(); }
+
+    return runSpecFormatted(spec, from, relDebug, p);
 }
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
@@ -941,6 +889,13 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
 
         if (spec.debug.traceAll || spec.debug.printBaseLexedToFile) {
             writeFile(spec, "base_lexed.yaml", content + "\n", relDebug);
+            writeFile(
+                spec,
+                "base_lexed.json",
+                hstd::to_compact_json(
+                    hstd::to_json_eval(p.baseTokens),
+                    hstd::JsonFormatOptions{.width = 200}),
+                relDebug);
         } else {
             std::cout << content << std::endl;
         }
@@ -993,6 +948,13 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
         __perf_trace("cli", "write lexer yaml file");
         if (spec.debug.traceAll || spec.debug.printLexedToFile) {
             writeFile(spec, "lexed.yaml", content + "\n", relDebug);
+            writeFile(
+                spec,
+                "lexed.json",
+                hstd::to_compact_json(
+                    hstd::to_json_eval(p.tokens),
+                    hstd::JsonFormatOptions{.width = 200}),
+                relDebug);
         } else {
             std::cout << content << std::endl;
         }
@@ -1122,8 +1084,9 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     MockFull&     p,
     CR<ParseSpec> spec,
     CR<Str>       relDebug) {
+    HSLOG_INFO_DEPTH_SCOPE_ANON("Running spec sem");
     __perf_trace("cli", "sem convert");
-    sem::OrgConverter converter{};
+    sem::OrgConverter converter{p.parser->currentFile};
 
     converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
     if (converter.TraceState) {
@@ -1161,25 +1124,101 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
         }
     }
 
+
+    if (spec.debug.printErrorsToFile || spec.debug.traceAll) {
+        hstd::ext::StrCache cache;
+
+        cache.getFileSource = [&](std::string const& path) -> std::string {
+            LOGIC_ASSERTION_CHECK(path == "<mock>", "{}", path);
+            return spec.source.toBase();
+        };
+
+        auto reports = org::collectDiagnostics(cache, p.node);
+
+        writeFile(
+            spec,
+            "errors.json",
+            hstd::to_compact_json(hstd::to_json_eval(reports)),
+            relDebug);
+
+        writeFile(
+            spec,
+            "sources.json",
+            hstd::to_compact_json(hstd::to_json_eval(cache)),
+            relDebug);
+
+        for (auto const& [debug, color] : Vec<Pair<bool, bool>>::Splice(
+                 pair1(true, true),
+                 pair1(true, false),
+                 pair1(false, false))) {
+            std::string formatted;
+            HSLOG_DEBUG_DEPTH_SCOPE_ANON(
+                "Report group for colors:{}", debug);
+            for (auto const& report : reports) {
+                auto tmp = report;
+                tmp.config.with_debug_writes(debug);
+                formatted += tmp.to_string(cache, color);
+                formatted += "\n";
+            }
+
+            writeFile(
+                spec,
+                hstd::fmt(
+                    "errors_{}.{}",
+                    debug ? "debug" : "direct",
+                    color ? "ansi" : "txt"),
+                formatted,
+                relDebug);
+        }
+    }
+
+
     if (spec.sem.has_value()) {
         return compareSem(spec, document, spec.sem.value());
     } else {
-        return RunResult::SemCompare{{.isOk = true}};
+        auto errors = org::collectErrorNodes(document.asOrg());
+        if (errors.empty()) {
+            HSLOG_INFO("Parse OK, no errors detected, no errors expected");
+            return RunResult::SemCompare{{.isOk = true}};
+        } else {
+            HSLOG_WARNING("Parse failed, found unexpected errors");
+            return RunResult::SemCompare{
+                {.isOk         = false,
+                 .failDescribe = "Test parse result contains errors, but "
+                                 "the spec does not contain a sem "
+                                 "example. Impossible to determine if the "
+                                 "errors were expected or not."_ss},
+                .unexpectedParseErrors = true};
+        }
     }
 }
 
-TestResult org::test::gtest_run_spec(CR<TestParams> params) {
+TestResult org::test::gtest_run_spec(
+    CR<TestParams>        params,
+    hstd::fs::path const& testDir) {
+
+    auto sink = HSLOG_SINK_FACTORY_SCOPED(([&testDir]() {
+        return ::hstd::log::init_file_sink(
+            (testDir / "hslog.log").native());
+    }));
 
 
     auto spec              = params.spec;
-    spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
+    spec.debug.debugOutDir = testDir / "init";
+    if (hstd::fs::exists(spec.debug.debugOutDir)) {
+        hstd::fs::remove_all(spec.debug.debugOutDir);
+    }
     CorpusRunner runner;
-    runner.setTraceFile(
-        "/tmp/runner_log/" + params.testName() + "/exec_trace.txt");
+    runner.setTraceFile(testDir / "exec_trace.txt");
 
-    using RunResult  = CorpusRunner::RunResult;
-    RunResult result = runner.runSpec(
-        spec, params.file.native(), "initial");
+    using RunResult = CorpusRunner::RunResult;
+    RunResult result;
+
+    {
+        HSLOG_INFO_DEPTH_SCOPE_ANON("Run spec with initial configuration");
+        HSLOG_TRACE("Spec:\n{}", hstd::to_json_eval(spec).dump(2));
+        result = runner.runSpec(spec, params.file.native(), "initial");
+    }
     TestResult test;
 
     if (result.isOk() && result.isSkip()) {
@@ -1193,11 +1232,11 @@ TestResult org::test::gtest_run_spec(CR<TestParams> params) {
     } else if (result.isOk()) {
         test.data = TestResult::Success{};
     } else {
-        spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
-        spec.debug.traceLex    = true;
-        spec.debug.traceParse  = true;
-        spec.debug.traceSem    = true;
-        spec.debug.printLexed  = true;
+        spec.debug.debugOutDir          = testDir / "verbose";
+        spec.debug.traceLex             = true;
+        spec.debug.traceParse           = true;
+        spec.debug.traceSem             = true;
+        spec.debug.printLexed           = true;
         spec.debug.printBaseLexed       = true;
         spec.debug.printParsed          = true;
         spec.debug.printSource          = true;
@@ -1207,8 +1246,13 @@ TestResult org::test::gtest_run_spec(CR<TestParams> params) {
         spec.debug.printSemToFile       = true;
 
 
-        RunResult fail = runner.runSpec(
-            spec, params.file.native(), "fail");
+        RunResult fail;
+        {
+            HSLOG_INFO_DEPTH_SCOPE_ANON(
+                "Run spec with verbose configuration");
+            HSLOG_TRACE("Spec:\n{}", hstd::to_json_eval(spec).dump(2));
+            fail = runner.runSpec(spec, params.file.native(), "fail");
+        }
         ColText os;
 
         std::visit(
@@ -1284,14 +1328,31 @@ hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org
     return [=](OrgNodeGroup::TreeReprConf::WriteParams const& par) {
         switch (par.pos) {
             case Pos::AfterKind: {
+                auto const& node    = nodes->at(par.current);
+                bool        isError = false;
+                if (node.isMono()) {
+                    auto mono = node.getMono();
+                    if (mono.isError()) {
+                        isError = true;
+                        par.os << " "
+                               << hstd::to_compact_json(hstd::to_json_eval(
+                                      *mono.getError().box));
+                    }
+                }
+
                 if (par.parent && par.subnodeIdx) {
                     auto name = spec->fieldName(
                         OrgAdapter(nodes, *par.parent), *par.subnodeIdx);
-                    if (name) {
-                        par.os << " " << par.os.magenta()
-                               << fmt("{}", *name) << par.os.end();
+                    if (isError) {
+                        par.os << "\n";
                     } else {
-                        par.os << " " << par.os.red()
+                        par.os << " ";
+                    }
+                    if (name) {
+                        par.os << par.os.magenta() << fmt("{}", *name)
+                               << par.os.end();
+                    } else {
+                        par.os << par.os.red()
                                << fmt("!! Missing field name for "
                                       "element {} of node {} !!",
                                       *par.subnodeIdx,
@@ -1300,6 +1361,8 @@ hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org
                                << par.os.end() << " ";
                     }
                 }
+
+
                 break;
             }
             case Pos::LineEnd: {
@@ -1315,4 +1378,18 @@ hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org
             default:
         }
     };
+}
+
+void CorpusRunner::writeFile(
+    hstd::CR<ParseSpec> spec,
+    hstd::CR<hstd::Str> name,
+    hstd::CR<hstd::Str> content,
+    hstd::CR<hstd::Str> relDebug) {
+    files.push_back(TestResult::File{
+        .path  = name,
+        .rerun = inRerun,
+    });
+    auto patht = spec.debugFile(name, relDebug);
+    HSLOG_TRACE("Wrote file to {}", patht.native());
+    hstd::writeFile(patht, content);
 }

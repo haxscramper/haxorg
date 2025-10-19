@@ -24,15 +24,9 @@ struct ImmErrorItem : public org::imm::ImmOrg {
                        (),
                        (),
                        (staticKind,
-                        message,
-                        function,
-                        line))
+                        diag))
   static OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> message;
-  /// \brief Conversion function name where the error was created
-  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> function = std::nullopt;
-  /// \brief Line number for the conversion where the error was created
-  hstd::ext::ImmBox<hstd::Opt<int>> line = std::nullopt;
+  org::sem::OrgDiagnostics diag;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorItem; }
   bool operator==(org::imm::ImmErrorItem const& other) const;
 };
@@ -46,15 +40,9 @@ struct ImmErrorGroup : public org::imm::ImmOrg {
                        (),
                        (),
                        (staticKind,
-                        diagnostics,
-                        function,
-                        line))
+                        diagnostics))
   static OrgSemKind const staticKind;
   hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> diagnostics = {};
-  /// \brief Conversion function name where the error was created
-  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> function = std::nullopt;
-  /// \brief Line number for the conversion where the error was created
-  hstd::ext::ImmBox<hstd::Opt<int>> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
   bool operator==(org::imm::ImmErrorGroup const& other) const;
 };
@@ -191,6 +179,70 @@ struct ImmCmdCaption : public org::imm::ImmAttached {
   org::imm::ImmIdT<org::imm::ImmParagraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCaption; }
   bool operator==(org::imm::ImmCmdCaption const& other) const;
+};
+
+/// \brief Creator of the document
+struct ImmCmdCreator : public org::imm::ImmCmd {
+  using ImmCmd::ImmCmd;
+  virtual ~ImmCmdCreator() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdCreator,
+                       (ImmCmd),
+                       (),
+                       (),
+                       (staticKind,
+                        text))
+  static OrgSemKind const staticKind;
+  /// \brief Creator name text
+  org::imm::ImmIdT<org::imm::ImmParagraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdCreator; }
+  bool operator==(org::imm::ImmCmdCreator const& other) const;
+};
+
+/// \brief Author of the document
+struct ImmCmdAuthor : public org::imm::ImmCmd {
+  using ImmCmd::ImmCmd;
+  virtual ~ImmCmdAuthor() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdAuthor,
+                       (ImmCmd),
+                       (),
+                       (),
+                       (staticKind,
+                        text))
+  static OrgSemKind const staticKind;
+  /// \brief Author name text
+  org::imm::ImmIdT<org::imm::ImmParagraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdAuthor; }
+  bool operator==(org::imm::ImmCmdAuthor const& other) const;
+};
+
+struct ImmCmdEmail : public org::imm::ImmCmd {
+  using ImmCmd::ImmCmd;
+  virtual ~ImmCmdEmail() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdEmail,
+                       (ImmCmd),
+                       (),
+                       (),
+                       (staticKind,
+                        text))
+  static OrgSemKind const staticKind;
+  hstd::ext::ImmBox<hstd::Str> text;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdEmail; }
+  bool operator==(org::imm::ImmCmdEmail const& other) const;
+};
+
+struct ImmCmdLanguage : public org::imm::ImmCmd {
+  using ImmCmd::ImmCmd;
+  virtual ~ImmCmdLanguage() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdLanguage,
+                       (ImmCmd),
+                       (),
+                       (),
+                       (staticKind,
+                        text))
+  static OrgSemKind const staticKind;
+  hstd::ext::ImmBox<hstd::Str> text;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdLanguage; }
+  bool operator==(org::imm::ImmCmdLanguage const& other) const;
 };
 
 /// \brief Caption annotation for any subsequent node
@@ -687,6 +739,36 @@ struct ImmTextTarget : public org::imm::ImmLeaf {
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::TextTarget; }
   bool operator==(org::imm::ImmTextTarget const& other) const;
+};
+
+/// \brief Single token skipped during error recovery
+struct ImmErrorSkipToken : public org::imm::ImmLeaf {
+  using ImmLeaf::ImmLeaf;
+  virtual ~ImmErrorSkipToken() = default;
+  BOOST_DESCRIBE_CLASS(ImmErrorSkipToken,
+                       (ImmLeaf),
+                       (),
+                       (),
+                       (staticKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorSkipToken; }
+  bool operator==(org::imm::ImmErrorSkipToken const& other) const;
+};
+
+/// \brief Group of tokens skipped in search of the next synchronization point during parse fail recovery
+struct ImmErrorSkipGroup : public org::imm::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmErrorSkipGroup() = default;
+  BOOST_DESCRIBE_CLASS(ImmErrorSkipGroup,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind,
+                        skipped))
+  static OrgSemKind const staticKind;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> skipped = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorSkipGroup; }
+  bool operator==(org::imm::ImmErrorSkipGroup const& other) const;
 };
 
 struct ImmMarkup : public org::imm::ImmOrg {

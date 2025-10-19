@@ -326,7 +326,6 @@ void DocBlockContext::message(
         .set_callsite(line, function, file)
         .message(value)
         .depth(activeLevel)
-        .category("doc-edit")
         .severity(hstd::log::l_info)
         .source_scope({"gui", "feature", "doc_edit"});
 

@@ -5,6 +5,7 @@
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Exception.hpp>
+#include <hstd/stdlib/Outcome.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>
 
@@ -47,61 +48,72 @@ struct OrgParser : public hstd::OperationsTracer {
 
 
   public:
-    OrgParser() {}
+    struct ParseFail {};
+    struct ParseOk {
+        hstd::Opt<OrgId> result;
+        DESC_FIELDS(ParseOk, (result));
+    };
 
-    OrgId parseFootnote(OrgLexer& lex);
-    OrgId parseMacro(OrgLexer& lex);
-    OrgId parseCallArguments(OrgLexer& lex);
-    OrgId parseAttrValue(OrgLexer& lex);
-    OrgId parseAttrLisp(OrgLexer& lex);
-    OrgId parseLink(OrgLexer& lex);
-    OrgId parseInlineMath(OrgLexer& lex);
-    OrgId parseSymbol(OrgLexer& lex);
-    OrgId parseHashTag(OrgLexer& lex);
-    OrgId parseTimeRange(OrgLexer& lex);
-    OrgId parseTimeStamp(OrgLexer& lex);
-    OrgId parseSrcInline(OrgLexer& lex);
-    OrgId parseVerbatimOrMonospace(OrgLexer& lex);
-    OrgId parseAngleTarget(OrgLexer& lex);
-    OrgId parseTable(OrgLexer& lex);
-    OrgId parsePlaceholder(OrgLexer& lex);
-    OrgId parseCommandArguments(OrgLexer& lex);
-    OrgId parseSrcArguments(OrgLexer& lex);
-    OrgId parseSrc(OrgLexer& lex);
-    OrgId parseExample(OrgLexer& lex);
-    OrgId parseColonExample(OrgLexer& lex);
-    OrgId parseListItem(OrgLexer& lex);
-    OrgId parseList(OrgLexer& lex);
-    OrgId parseLatex(OrgLexer& lex);
-    OrgId parseBlockExport(OrgLexer& lex);
-    OrgId parseParagraph(OrgLexer& lex);
-    OrgId parseInlineExport(OrgLexer& lex);
-    OrgId parseCriticMarkup(OrgLexer& lex);
+    using MaybeTokenFail = hstd::Result<bool, OrgNodeMono::Error>;
+    using ParseResult    = hstd::Result<ParseOk, ParseFail>;
+    using LexResult      = hstd::Result<OrgTokenId, ParseFail>;
 
-    OrgId parseSubtree(OrgLexer& lex);
-    OrgId parseSubtreeTodo(OrgLexer& lex);
-    OrgId parseSubtreeUrgency(OrgLexer& lex);
-    OrgId parseSubtreeDrawer(OrgLexer& lex);
-    OrgId parseSubtreeCompletion(OrgLexer& lex);
-    OrgId parseSubtreeTags(OrgLexer& lex);
-    OrgId parseSubtreeTitle(OrgLexer& lex);
-    OrgId parseSubtreeTimes(OrgLexer& lex);
+    ParseResult parseFootnote(OrgLexer& lex);
+    ParseResult parseMacro(OrgLexer& lex);
+    ParseResult parseCallArguments(OrgLexer& lex);
+    ParseResult parseAttrValue(OrgLexer& lex);
+    ParseResult parseAttrLisp(OrgLexer& lex);
+    ParseResult parseLink(OrgLexer& lex);
+    ParseResult parseInlineMath(OrgLexer& lex);
+    ParseResult parseSymbol(OrgLexer& lex);
+    ParseResult parseHashTag(OrgLexer& lex);
+    ParseResult parseTimeRange(OrgLexer& lex);
+    ParseResult parseTimeStamp(OrgLexer& lex);
+    ParseResult parseSrcInline(OrgLexer& lex);
+    ParseResult parseVerbatimOrMonospace(OrgLexer& lex);
+    ParseResult parseAngleTarget(OrgLexer& lex);
+    ParseResult parseTable(OrgLexer& lex);
+    ParseResult parseTablePipeRow(OrgLexer& lex);
+    ParseResult parseTableBlockRow(OrgLexer& lex);
+    ParseResult parsePlaceholder(OrgLexer& lex);
+    ParseResult parseCommandArguments(OrgLexer& lex);
+    ParseResult parseSrcArguments(OrgLexer& lex);
+    ParseResult parseSrc(OrgLexer& lex);
+    ParseResult parseExample(OrgLexer& lex);
+    ParseResult parseColonExample(OrgLexer& lex);
+    ParseResult parseListItem(OrgLexer& lex);
+    ParseResult parseList(OrgLexer& lex);
+    ParseResult parseLatex(OrgLexer& lex);
+    ParseResult parseBlockExport(OrgLexer& lex);
+    ParseResult parseParagraph(OrgLexer& lex);
+    ParseResult parseInlineExport(OrgLexer& lex);
+    ParseResult parseCriticMarkup(OrgLexer& lex);
 
-    OrgId parseSubtreeLogbook(OrgLexer& lex);
-    OrgId parseSubtreeProperties(OrgLexer& lex);
+    ParseResult parseSubtree(OrgLexer& lex);
+    ParseResult parseSubtreeTodo(OrgLexer& lex);
+    ParseResult parseSubtreeUrgency(OrgLexer& lex);
+    ParseResult parseSubtreeDrawer(OrgLexer& lex);
+    ParseResult parseSubtreeCompletion(OrgLexer& lex);
+    ParseResult parseSubtreeTags(OrgLexer& lex);
+    ParseResult parseSubtreeTitle(OrgLexer& lex);
+    ParseResult parseSubtreeTimes(OrgLexer& lex);
 
-    OrgId parseOrgFile(OrgLexer& lex);
-    OrgId parseLineCommand(OrgLexer& lex);
-    OrgId parseStmtListItem(OrgLexer& lex);
-    OrgId parseTop(OrgLexer& lex);
+    ParseResult parseSubtreeLogbook(OrgLexer& lex);
+    ParseResult parseSubtreeProperties(OrgLexer& lex);
+
+    ParseResult parseOrgFile(OrgLexer& lex);
+    ParseResult parseLineCommand(OrgLexer& lex);
+    ParseResult parseStmtListItem(OrgLexer& lex);
+    ParseResult parseTop(OrgLexer& lex);
+
+    ParseResult parseTextWrapCommand(OrgLexer& lex);
+    ParseResult parseCSVArguments(OrgLexer& lex);
+    void        extendSubtreeTrails(OrgId position);
 
     OrgId parseFull(OrgLexer& lex);
-    OrgId parseTextWrapCommand(OrgLexer& lex);
-    void  extendSubtreeTrails(OrgId position);
-    void  parseCSVArguments(OrgLexer& lex);
 
-    OrgId subParseImpl(
-        OrgId (OrgParser::*func)(OrgLexer&),
+    ParseResult subParseImpl(
+        ParseResult (OrgParser::*func)(OrgLexer&),
         OrgLexer&   lex,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
@@ -149,21 +161,88 @@ struct OrgParser : public hstd::OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
+    struct NodeGuard {
+        int         startingDepth;
+        OrgParser*  parser;
+        OrgId       startId = OrgId::Nil();
+        bool        closed  = false;
+        std::string debug;
 
-    OrgId start(
+        NodeGuard(int startingDepth, OrgParser* parser, OrgId startId)
+            : startingDepth{startingDepth}
+            , parser{parser}
+            , startId{startId} {}
+
+        NodeGuard()                       = delete;
+        NodeGuard(NodeGuard&& other)      = default;
+        NodeGuard(NodeGuard const& other) = delete;
+
+        ~NodeGuard() {
+            if (!closed && parser != nullptr && !startId.isNil()) {
+                end();
+            }
+        }
+
+        OrgParser::ParseOk end(
+            std::string const& desc     = "",
+            int                line     = __builtin_LINE(),
+            char const*        function = __builtin_FUNCTION());
+    };
+
+
+    [[nodiscard]] std::unique_ptr<NodeGuard> start(
         OrgNodeKind kind,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
-    OrgId error_token(
-        std::string const& message,
-        OrgLexer&          lex,
+
+    void start_no_guard(
+        OrgNodeKind kind,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    OrgId end_impl(
+        std::string const& desc     = "",
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION());
 
-    OrgId end(
+    OrgNodeMono::Error error_value(
+        org::sem::OrgDiagnostics::ParseError const& message,
+        const OrgLexer&                             lex,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
+
+    ParseResult error_end(
+        org::sem::OrgDiagnostics::ParseError const& message,
+        const OrgLexer&                             lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        return error_end(
+            error_value(message, lex, line, function), line, function);
+    }
+
+    OrgId error_token(
+        OrgNodeMono::Error const& err,
+        int                       line     = __builtin_LINE(),
+        char const*               function = __builtin_FUNCTION());
+
+    ParseResult error_end(
+        OrgNodeMono::Error const& err,
+        int                       line     = __builtin_LINE(),
+        char const*               function = __builtin_FUNCTION());
+
+    ParseResult maybe_error_end(
+        MaybeTokenFail const& err,
+        int                   line     = __builtin_LINE(),
+        char const*           function = __builtin_FUNCTION());
+
+    ParseResult maybe_recursive_error_end(
+        ParseResult const&                          res,
+        org::sem::OrgDiagnostics::ParseError const& on_fail_message,
+        OrgLexer&                                   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
 
     OrgId fake(
         OrgNodeKind kind,
@@ -176,23 +255,43 @@ struct OrgParser : public hstd::OperationsTracer {
         int             line     = __builtin_LINE(),
         char const*     function = __builtin_FUNCTION());
 
-    void expect(
+    [[nodiscard]] ParseResult expect(
         OrgLexer const&                 lex,
         OrgParser::OrgExpectable const& item,
-        int                             line     = __builtin_LINE(),
-        char const*                     function = __builtin_FUNCTION());
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::
+            nullopt,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     OrgTokenId pop(
+        OrgLexer&   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        return pop(lex, std::nullopt, line, function).assume_value();
+    }
+
+    [[nodiscard]] LexResult pop(
         OrgLexer&                           lex,
-        hstd::Opt<OrgParser::OrgExpectable> tok  = std::nullopt,
+        hstd::Opt<OrgParser::OrgExpectable> tok,
         int                                 line = __builtin_LINE(),
         char const* function                     = __builtin_FUNCTION());
 
     void skip(
+        OrgLexer& lex,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::
+            nullopt,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        std::ignore = skip(lex, std::nullopt, message, line, function);
+    }
+
+    [[nodiscard]] ParseResult skip(
         OrgLexer&                           lex,
-        hstd::Opt<OrgParser::OrgExpectable> item = std::nullopt,
-        int                                 line = __builtin_LINE(),
-        char const* function                     = __builtin_FUNCTION());
+        hstd::Opt<OrgParser::OrgExpectable> item,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::
+            nullopt,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     void space(
         OrgLexer&   lex,
@@ -222,7 +321,17 @@ struct OrgParser : public hstd::OperationsTracer {
 
     hstd::Func<void(Report const&)> reportHook;
     OrgNodeGroup*                   group = nullptr;
-    OrgParser(OrgNodeGroup* _group) : group(_group) {}
+
+    /// \brief Identification for the current file being processed. Value
+    /// from this field is passed to the source location for the failure
+    /// diagnostics.
+    std::string currentFile;
+    OrgParser(OrgNodeGroup* _group, std::string const& currentFile)
+        : group{_group}, currentFile{currentFile} {
+        LOGIC_ASSERTION_CHECK(
+            !currentFile.empty(),
+            "Current file name cannot be empty in parser.");
+    }
 
     void reserve(int size) { group->nodes.reserve(size); }
 

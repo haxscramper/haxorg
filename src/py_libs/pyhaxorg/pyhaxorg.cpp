@@ -9,14 +9,14 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>)
 PYBIND11_MAKE_OPAQUE(immer::box<hstd::Str>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<hstd::Str>>)
-PYBIND11_MAKE_OPAQUE(immer::box<std::optional<int>>)
-PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmSymbol::Param>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>)
+PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<hstd::Str>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::OrgCodeEvalOutput>)
@@ -30,6 +30,7 @@ PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<bool>>)
+PYBIND11_MAKE_OPAQUE(immer::box<std::optional<int>>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::sem::ColumnView>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::sem::TodoKeyword>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>)
@@ -95,6 +96,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Time::Repeat>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Time::Repeat>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Symbol::Param>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorSkipToken>>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::SubtreeLog>>)
@@ -132,14 +135,14 @@ PYBIND11_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
   bind_hstdVec<org::sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmFlexVectorOfImmIdTOfImmErrorItem", type_registry_guard);
   bind_immerbox<hstd::Str>(m, "ImmBoxOfStr", type_registry_guard);
   bind_immerbox<std::optional<hstd::Str>>(m, "ImmBoxOfStdOptionalOfStr", type_registry_guard);
-  bind_immerbox<std::optional<int>>(m, "ImmBoxOfStdOptionalOfInt", type_registry_guard);
-  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmFlexVectorOfImmIdTOfImmErrorItem", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmFlexVectorOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
   bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmOrg", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmSymbol::Param>(m, "ImmFlexVectorOfImmSymbolParam", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "ImmFlexVectorOfImmIdTOfImmOrg", type_registry_guard);
+  bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(m, "ImmFlexVectorOfImmIdTOfImmErrorSkipToken", type_registry_guard);
   bind_immerflex_vector<hstd::Str>(m, "ImmFlexVectorOfStr", type_registry_guard);
   bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmParagraph", type_registry_guard);
   bind_immerflex_vector<org::sem::OrgCodeEvalOutput>(m, "ImmFlexVectorOfOrgCodeEvalOutput", type_registry_guard);
@@ -153,6 +156,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmFlexVectorOfImmIdTOfImmCell", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmFlexVectorOfImmIdTOfImmRow", type_registry_guard);
   bind_immerbox<std::optional<bool>>(m, "ImmBoxOfStdOptionalOfBool", type_registry_guard);
+  bind_immerbox<std::optional<int>>(m, "ImmBoxOfStdOptionalOfInt", type_registry_guard);
   bind_immerbox<std::optional<org::sem::ColumnView>>(m, "ImmBoxOfStdOptionalOfColumnView", type_registry_guard);
   bind_immerflex_vector<org::sem::TodoKeyword>(m, "ImmFlexVectorOfTodoKeyword", type_registry_guard);
   bind_immerbox<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfStdOptionalOfImmIdTOfImmRawText", type_registry_guard);
@@ -187,6 +191,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_hstdVec<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
   bind_hstdVec<org::sem::Time::Repeat>(m, "VecOfTimeRepeat", type_registry_guard);
   bind_hstdVec<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::ErrorSkipToken>>(m, "VecOfSemIdOfErrorSkipToken", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
   bind_hstdVec<org::sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
@@ -459,9 +464,7 @@ ImmPathStep documentation.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmErrorItemValueRead>(m, "ImmErrorItemValueRead")
-    .def("getMessage", static_cast<immer::box<hstd::Str> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getMessage))
-    .def("getFunction", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getFunction))
-    .def("getLine", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getLine))
+    .def("getDiag", static_cast<org::sem::OrgDiagnostics const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getDiag))
     .def("__repr__", [](org::imm::ImmErrorItemValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -473,8 +476,6 @@ ImmPathStep documentation.)RAW")
     ;
   pybind11::class_<org::imm::ImmErrorGroupValueRead>(m, "ImmErrorGroupValueRead")
     .def("getDiagnostics", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getDiagnostics))
-    .def("getFunction", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getFunction))
-    .def("getLine", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getLine))
     .def("__repr__", [](org::imm::ImmErrorGroupValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -511,6 +512,50 @@ ImmPathStep documentation.)RAW")
                      })
     .def("__getattr__",
          [](org::imm::ImmCmdCaptionValueRead const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdCreatorValueRead>(m, "ImmCmdCreatorValueRead")
+    .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdCreatorValueRead::*)() const>(&org::imm::ImmCmdCreatorValueRead::getText))
+    .def("__repr__", [](org::imm::ImmCmdCreatorValueRead const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdCreatorValueRead const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdAuthorValueRead>(m, "ImmCmdAuthorValueRead")
+    .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdAuthorValueRead::*)() const>(&org::imm::ImmCmdAuthorValueRead::getText))
+    .def("__repr__", [](org::imm::ImmCmdAuthorValueRead const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdAuthorValueRead const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdEmailValueRead>(m, "ImmCmdEmailValueRead")
+    .def("getText", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdEmailValueRead::*)() const>(&org::imm::ImmCmdEmailValueRead::getText))
+    .def("__repr__", [](org::imm::ImmCmdEmailValueRead const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdEmailValueRead const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdLanguageValueRead>(m, "ImmCmdLanguageValueRead")
+    .def("getText", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdLanguageValueRead::*)() const>(&org::imm::ImmCmdLanguageValueRead::getText))
+    .def("__repr__", [](org::imm::ImmCmdLanguageValueRead const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdLanguageValueRead const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -782,6 +827,27 @@ ImmPathStep documentation.)RAW")
                      })
     .def("__getattr__",
          [](org::imm::ImmTextTargetValueRead const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmErrorSkipTokenValueRead>(m, "ImmErrorSkipTokenValueRead")
+    .def("__repr__", [](org::imm::ImmErrorSkipTokenValueRead const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmErrorSkipTokenValueRead const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmErrorSkipGroupValueRead>(m, "ImmErrorSkipGroupValueRead")
+    .def("getSkipped", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> const&(org::imm::ImmErrorSkipGroupValueRead::*)() const>(&org::imm::ImmErrorSkipGroupValueRead::getSkipped))
+    .def("__repr__", [](org::imm::ImmErrorSkipGroupValueRead const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmErrorSkipGroupValueRead const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -1356,9 +1422,13 @@ created anew following the immutable ID structure.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth)
-    .def_readwrite("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields)
-    .def_readwrite("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields)
+    .def_readwrite("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth, R"RAW(\brief Do not print nodes that are more than N levels deep from
+the root)RAW")
+    .def_readwrite("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields, R"RAW(\brief Include auxiliary subnodes in the tree repr -- `.title`
+field and other locations outside of standard `.subnodes`)RAW")
+    .def_readwrite("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields, R"RAW(\brief Format full immutable node value as a part of tree repr)RAW")
+    .def_readwrite("withFieldSubset", &org::imm::ImmAdapter::TreeReprConf::withFieldSubset, R"RAW(\brief Profide extra pretty-printed information for a given
+field subset.)RAW")
     .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1445,6 +1515,7 @@ created anew following the immutable ID structure.)RAW")
     .def_readwrite("tokenTracePath", &org::OrgParseParameters::tokenTracePath)
     .def_readwrite("parseTracePath", &org::OrgParseParameters::parseTracePath)
     .def_readwrite("semTracePath", &org::OrgParseParameters::semTracePath)
+    .def_readwrite("currentFile", &org::OrgParseParameters::currentFile)
     .def("__repr__", [](org::OrgParseParameters const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2155,6 +2226,28 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::bind::python::ExporterPython const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::SourceLocation>(m, "SourceLocation")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::SourceLocation {
+                        org::sem::SourceLocation result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("line", &org::sem::SourceLocation::line)
+    .def_readwrite("column", &org::sem::SourceLocation::column)
+    .def_readwrite("pos", &org::sem::SourceLocation::pos)
+    .def_readwrite("file", &org::sem::SourceLocation::file)
+    .def("__eq__",
+         static_cast<bool(org::sem::SourceLocation::*)(org::sem::SourceLocation const&) const>(&org::sem::SourceLocation::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::SourceLocation const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::SourceLocation const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4096,7 +4189,7 @@ ingoing elements.)RAW")
   pybind11::enum_<org::sem::DocumentExportConfig::TagExport>(m, "DocumentExportConfigTagExport")
     .value("None", org::sem::DocumentExportConfig::TagExport::None)
     .value("All", org::sem::DocumentExportConfig::TagExport::All)
-    .value("NotInToc", org::sem::DocumentExportConfig::TagExport::NotInToc, R"RAW(Expot tags in subtree titles but not in the table of content)RAW")
+    .value("NotInToc", org::sem::DocumentExportConfig::TagExport::NotInToc, R"RAW(Export tags in subtree titles but not in the table of content)RAW")
     .def("__iter__", [](org::sem::DocumentExportConfig::TagExport const& _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport> {
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport>();
                      })
@@ -4150,6 +4243,26 @@ ingoing elements.)RAW")
          pybind11::arg("rhs"))
     .def("__hash__",
          [](org::sem::DocumentExportConfig::BrokenLinks const& _self, org::sem::DocumentExportConfig::BrokenLinks it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  bind_enum_iterator<org::sem::DocumentExportConfig::ArchivedTrees>(m, "DocumentExportConfigArchivedTrees", type_registry_guard);
+  pybind11::enum_<org::sem::DocumentExportConfig::ArchivedTrees>(m, "DocumentExportConfigArchivedTrees")
+    .value("Skip", org::sem::DocumentExportConfig::ArchivedTrees::Skip, R"RAW(Skip archived trees entirely)RAW")
+    .value("Headline", org::sem::DocumentExportConfig::ArchivedTrees::Headline, R"RAW(Export only headlines of archived trees)RAW")
+    .value("All", org::sem::DocumentExportConfig::ArchivedTrees::All, R"RAW(Export archived trees with full content)RAW")
+    .def("__iter__", [](org::sem::DocumentExportConfig::ArchivedTrees const& _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::ArchivedTrees> {
+                     return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::ArchivedTrees>();
+                     })
+    .def("__eq__",
+         [](org::sem::DocumentExportConfig::ArchivedTrees const& _self, org::sem::DocumentExportConfig::ArchivedTrees lhs, org::sem::DocumentExportConfig::ArchivedTrees rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::DocumentExportConfig::ArchivedTrees const& _self, org::sem::DocumentExportConfig::ArchivedTrees it) -> int {
          return static_cast<int>(it);
          },
          pybind11::arg("it"))
@@ -4217,18 +4330,39 @@ ingoing elements.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("inlinetasks", &org::sem::DocumentExportConfig::inlinetasks)
-    .def_readwrite("footnotes", &org::sem::DocumentExportConfig::footnotes)
-    .def_readwrite("clock", &org::sem::DocumentExportConfig::clock)
-    .def_readwrite("author", &org::sem::DocumentExportConfig::author)
-    .def_readwrite("emphasis", &org::sem::DocumentExportConfig::emphasis)
-    .def_readwrite("specialStrings", &org::sem::DocumentExportConfig::specialStrings)
-    .def_readwrite("propertyDrawers", &org::sem::DocumentExportConfig::propertyDrawers)
-    .def_readwrite("statisticsCookies", &org::sem::DocumentExportConfig::statisticsCookies)
-    .def_readwrite("todoText", &org::sem::DocumentExportConfig::todoText, R"RAW(Include todo keywords in export)RAW")
+    .def_readwrite("inlinetasks", &org::sem::DocumentExportConfig::inlinetasks, R"RAW(Toggle inclusion of inlinetasks)RAW")
+    .def_readwrite("footnotes", &org::sem::DocumentExportConfig::footnotes, R"RAW(Toggle the inclusion of footnotes)RAW")
+    .def_readwrite("clock", &org::sem::DocumentExportConfig::clock, R"RAW(Toggle inclusion of 'CLOCK' keywords)RAW")
+    .def_readwrite("author", &org::sem::DocumentExportConfig::author, R"RAW(Toggle inclusion of author name into exported file)RAW")
+    .def_readwrite("emphasis", &org::sem::DocumentExportConfig::emphasis, R"RAW(Toggle emphasized text)RAW")
+    .def_readwrite("specialStrings", &org::sem::DocumentExportConfig::specialStrings, R"RAW(Toggle conversion of special strings)RAW")
+    .def_readwrite("propertyDrawers", &org::sem::DocumentExportConfig::propertyDrawers, R"RAW(Toggle inclusion of property drawers)RAW")
+    .def_readwrite("statisticsCookies", &org::sem::DocumentExportConfig::statisticsCookies, R"RAW(Toggle inclusion of statistics cookies)RAW")
+    .def_readwrite("todoText", &org::sem::DocumentExportConfig::todoText, R"RAW(Toggle inclusion of TODO keywords into exported text)RAW")
+    .def_readwrite("smartQuotes", &org::sem::DocumentExportConfig::smartQuotes, R"RAW(Toggle smart quotes)RAW")
+    .def_readwrite("fixedWidth", &org::sem::DocumentExportConfig::fixedWidth, R"RAW(Toggle fixed-width sections)RAW")
+    .def_readwrite("timestamps", &org::sem::DocumentExportConfig::timestamps, R"RAW(Toggle inclusion of time/date active/inactive stamps)RAW")
+    .def_readwrite("preserveBreaks", &org::sem::DocumentExportConfig::preserveBreaks, R"RAW(Toggles whether to preserve line breaks)RAW")
+    .def_readwrite("subSuperscripts", &org::sem::DocumentExportConfig::subSuperscripts, R"RAW(Toggle TeX-like syntax for sub- and superscripts)RAW")
+    .def_readwrite("expandLinks", &org::sem::DocumentExportConfig::expandLinks, R"RAW(Toggle expansion of environment variables in file paths)RAW")
+    .def_readwrite("creator", &org::sem::DocumentExportConfig::creator, R"RAW(Toggle inclusion of creator information in the exported file)RAW")
+    .def_readwrite("drawers", &org::sem::DocumentExportConfig::drawers, R"RAW(Toggle inclusion of drawers)RAW")
+    .def_readwrite("date", &org::sem::DocumentExportConfig::date, R"RAW(Toggle inclusion of a date into exported file)RAW")
+    .def_readwrite("entities", &org::sem::DocumentExportConfig::entities, R"RAW(Toggle inclusion of entities)RAW")
+    .def_readwrite("email", &org::sem::DocumentExportConfig::email, R"RAW(Toggle inclusion of the author's e-mail into exported file)RAW")
+    .def_readwrite("sectionNumbers", &org::sem::DocumentExportConfig::sectionNumbers, R"RAW(Toggle section-numbers)RAW")
+    .def_readwrite("planning", &org::sem::DocumentExportConfig::planning, R"RAW(Toggle export of planning information)RAW")
+    .def_readwrite("priority", &org::sem::DocumentExportConfig::priority, R"RAW(Toggle inclusion of priority cookies)RAW")
+    .def_readwrite("latex", &org::sem::DocumentExportConfig::latex, R"RAW(Toggle LaTeX export)RAW")
+    .def_readwrite("timestamp", &org::sem::DocumentExportConfig::timestamp, R"RAW(Toggle inclusion of the creation time in the exported file)RAW")
+    .def_readwrite("title", &org::sem::DocumentExportConfig::title, R"RAW(Toggle inclusion of title)RAW")
+    .def_readwrite("tables", &org::sem::DocumentExportConfig::tables, R"RAW(Toggle inclusion of tables)RAW")
+    .def_readwrite("headlineLevels", &org::sem::DocumentExportConfig::headlineLevels, R"RAW(Set the number of headline levels for export)RAW")
     .def_readwrite("brokenLinks", &org::sem::DocumentExportConfig::brokenLinks)
     .def_readwrite("tocExport", &org::sem::DocumentExportConfig::tocExport)
     .def_readwrite("tagExport", &org::sem::DocumentExportConfig::tagExport)
+    .def_readwrite("taskFiltering", &org::sem::DocumentExportConfig::taskFiltering)
+    .def_readwrite("archivedTrees", &org::sem::DocumentExportConfig::archivedTrees)
     .def_readwrite("data", &org::sem::DocumentExportConfig::data)
     .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig const&) const>(&org::sem::DocumentExportConfig::operator==),
@@ -4970,6 +5104,186 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::OrgDiagnostics::ParseTokenError>(m, "OrgDiagnosticsParseTokenError")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics::ParseTokenError {
+                        org::sem::OrgDiagnostics::ParseTokenError result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("brief", &org::sem::OrgDiagnostics::ParseTokenError::brief)
+    .def_readwrite("detail", &org::sem::OrgDiagnostics::ParseTokenError::detail)
+    .def_readwrite("parserFunction", &org::sem::OrgDiagnostics::ParseTokenError::parserFunction)
+    .def_readwrite("parserLine", &org::sem::OrgDiagnostics::ParseTokenError::parserLine)
+    .def_readwrite("tokenKind", &org::sem::OrgDiagnostics::ParseTokenError::tokenKind)
+    .def_readwrite("tokenText", &org::sem::OrgDiagnostics::ParseTokenError::tokenText)
+    .def_readwrite("loc", &org::sem::OrgDiagnostics::ParseTokenError::loc)
+    .def_readwrite("errName", &org::sem::OrgDiagnostics::ParseTokenError::errName)
+    .def_readwrite("errCode", &org::sem::OrgDiagnostics::ParseTokenError::errCode)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::ParseTokenError::*)(org::sem::OrgDiagnostics::ParseTokenError const&) const>(&org::sem::OrgDiagnostics::ParseTokenError::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgDiagnostics::ParseTokenError const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgDiagnostics::ParseTokenError const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::OrgDiagnostics::ParseError>(m, "OrgDiagnosticsParseError")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics::ParseError {
+                        org::sem::OrgDiagnostics::ParseError result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("brief", &org::sem::OrgDiagnostics::ParseError::brief)
+    .def_readwrite("detail", &org::sem::OrgDiagnostics::ParseError::detail)
+    .def_readwrite("parserFunction", &org::sem::OrgDiagnostics::ParseError::parserFunction)
+    .def_readwrite("parserLine", &org::sem::OrgDiagnostics::ParseError::parserLine)
+    .def_readwrite("errName", &org::sem::OrgDiagnostics::ParseError::errName)
+    .def_readwrite("errCode", &org::sem::OrgDiagnostics::ParseError::errCode)
+    .def_readwrite("loc", &org::sem::OrgDiagnostics::ParseError::loc)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::ParseError::*)(org::sem::OrgDiagnostics::ParseError const&) const>(&org::sem::OrgDiagnostics::ParseError::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgDiagnostics::ParseError const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgDiagnostics::ParseError const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::OrgDiagnostics::IncludeError>(m, "OrgDiagnosticsIncludeError")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics::IncludeError {
+                        org::sem::OrgDiagnostics::IncludeError result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("brief", &org::sem::OrgDiagnostics::IncludeError::brief)
+    .def_readwrite("targetPath", &org::sem::OrgDiagnostics::IncludeError::targetPath)
+    .def_readwrite("workingFile", &org::sem::OrgDiagnostics::IncludeError::workingFile)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::IncludeError::*)(org::sem::OrgDiagnostics::IncludeError const&) const>(&org::sem::OrgDiagnostics::IncludeError::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgDiagnostics::IncludeError const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgDiagnostics::IncludeError const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::OrgDiagnostics::ConvertError>(m, "OrgDiagnosticsConvertError")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics::ConvertError {
+                        org::sem::OrgDiagnostics::ConvertError result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("brief", &org::sem::OrgDiagnostics::ConvertError::brief)
+    .def_readwrite("detail", &org::sem::OrgDiagnostics::ConvertError::detail)
+    .def_readwrite("convertFunction", &org::sem::OrgDiagnostics::ConvertError::convertFunction)
+    .def_readwrite("convertLine", &org::sem::OrgDiagnostics::ConvertError::convertLine)
+    .def_readwrite("convertFile", &org::sem::OrgDiagnostics::ConvertError::convertFile)
+    .def_readwrite("errName", &org::sem::OrgDiagnostics::ConvertError::errName)
+    .def_readwrite("errCode", &org::sem::OrgDiagnostics::ConvertError::errCode)
+    .def_readwrite("loc", &org::sem::OrgDiagnostics::ConvertError::loc)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::ConvertError::*)(org::sem::OrgDiagnostics::ConvertError const&) const>(&org::sem::OrgDiagnostics::ConvertError::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgDiagnostics::ConvertError const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgDiagnostics::ConvertError const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::OrgDiagnostics::InternalError>(m, "OrgDiagnosticsInternalError")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics::InternalError {
+                        org::sem::OrgDiagnostics::InternalError result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("message", &org::sem::OrgDiagnostics::InternalError::message)
+    .def_readwrite("function", &org::sem::OrgDiagnostics::InternalError::function)
+    .def_readwrite("line", &org::sem::OrgDiagnostics::InternalError::line)
+    .def_readwrite("file", &org::sem::OrgDiagnostics::InternalError::file)
+    .def_readwrite("loc", &org::sem::OrgDiagnostics::InternalError::loc)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::InternalError::*)(org::sem::OrgDiagnostics::InternalError const&) const>(&org::sem::OrgDiagnostics::InternalError::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgDiagnostics::InternalError const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgDiagnostics::InternalError const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::sem::OrgDiagnostics::Kind>(m, "OrgDiagnosticsKind", type_registry_guard);
+  pybind11::enum_<org::sem::OrgDiagnostics::Kind>(m, "OrgDiagnosticsKind")
+    .value("ParseTokenError", org::sem::OrgDiagnostics::Kind::ParseTokenError)
+    .value("ParseError", org::sem::OrgDiagnostics::Kind::ParseError)
+    .value("IncludeError", org::sem::OrgDiagnostics::Kind::IncludeError)
+    .value("ConvertError", org::sem::OrgDiagnostics::Kind::ConvertError)
+    .value("InternalError", org::sem::OrgDiagnostics::Kind::InternalError)
+    .def("__iter__", [](org::sem::OrgDiagnostics::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgDiagnostics::Kind> {
+                     return org::bind::python::PyEnumIterator<org::sem::OrgDiagnostics::Kind>();
+                     })
+    .def("__eq__",
+         [](org::sem::OrgDiagnostics::Kind const& _self, org::sem::OrgDiagnostics::Kind lhs, org::sem::OrgDiagnostics::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         pybind11::arg("lhs"),
+         pybind11::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::OrgDiagnostics::Kind const& _self, org::sem::OrgDiagnostics::Kind it) -> int {
+         return static_cast<int>(it);
+         },
+         pybind11::arg("it"))
+    ;
+  pybind11::class_<org::sem::OrgDiagnostics>(m, "OrgDiagnostics")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgDiagnostics {
+                        org::sem::OrgDiagnostics result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &org::sem::OrgDiagnostics::data)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::*)(org::sem::OrgDiagnostics const&) const>(&org::sem::OrgDiagnostics::operator==),
+         pybind11::arg("other"))
+    .def("isParseTokenError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isParseTokenError))
+    .def("getParseTokenError", static_cast<org::sem::OrgDiagnostics::ParseTokenError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseTokenError))
+    .def("isParseError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isParseError))
+    .def("getParseError", static_cast<org::sem::OrgDiagnostics::ParseError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseError))
+    .def("isIncludeError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isIncludeError))
+    .def("getIncludeError", static_cast<org::sem::OrgDiagnostics::IncludeError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getIncludeError))
+    .def("isConvertError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isConvertError))
+    .def("getConvertError", static_cast<org::sem::OrgDiagnostics::ConvertError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getConvertError))
+    .def("isInternalError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isInternalError))
+    .def("getInternalError", static_cast<org::sem::OrgDiagnostics::InternalError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getInternalError))
+    .def_static("getKindStatic",
+                static_cast<org::sem::OrgDiagnostics::Kind(*)(org::sem::OrgDiagnostics::Data const&)>(&org::sem::OrgDiagnostics::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<org::sem::OrgDiagnostics::Kind(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::getKind))
+    .def("sub_variant_get_name", static_cast<char const*(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::sub_variant_get_name))
+    .def("sub_variant_get_data", static_cast<org::sem::OrgDiagnostics::Data const&(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::sub_variant_get_data))
+    .def("sub_variant_get_kind", static_cast<org::sem::OrgDiagnostics::Kind(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::sub_variant_get_kind))
+    .def("__repr__", [](org::sem::OrgDiagnostics const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgDiagnostics const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::None, org::sem::SemId<org::sem::None>, org::sem::Org>(m, "None")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::None {
                         org::sem::None result{};
@@ -4991,9 +5305,7 @@ ingoing elements.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("message", &org::sem::ErrorItem::message)
-    .def_readwrite("function", &org::sem::ErrorItem::function, R"RAW(Conversion function name where the error was created)RAW")
-    .def_readwrite("line", &org::sem::ErrorItem::line, R"RAW(Line number for the conversion where the error was created)RAW")
+    .def_readwrite("diag", &org::sem::ErrorItem::diag)
     .def("__repr__", [](org::sem::ErrorItem const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5010,8 +5322,6 @@ ingoing elements.)RAW")
                         return result;
                         }))
     .def_readwrite("diagnostics", &org::sem::ErrorGroup::diagnostics)
-    .def_readwrite("function", &org::sem::ErrorGroup::function, R"RAW(Conversion function name where the error was created)RAW")
-    .def_readwrite("line", &org::sem::ErrorGroup::line, R"RAW(Line number for the conversion where the error was created)RAW")
     .def("__repr__", [](org::sem::ErrorGroup const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5308,6 +5618,22 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::Symbol const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::ErrorSkipGroup, org::sem::SemId<org::sem::ErrorSkipGroup>, org::sem::Org>(m, "ErrorSkipGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ErrorSkipGroup {
+                        org::sem::ErrorSkipGroup result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("skipped", &org::sem::ErrorSkipGroup::skipped)
+    .def("__repr__", [](org::sem::ErrorSkipGroup const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::ErrorSkipGroup const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -5958,6 +6284,14 @@ ingoing elements.)RAW")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdCaption>, org::imm::ImmId>(m, "ImmIdTCmdCaption")
     ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdCreator>, org::imm::ImmId>(m, "ImmIdTCmdCreator")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdAuthor>, org::imm::ImmId>(m, "ImmIdTCmdAuthor")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdEmail>, org::imm::ImmId>(m, "ImmIdTCmdEmail")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdLanguage>, org::imm::ImmId>(m, "ImmIdTCmdLanguage")
+    ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdColumns>, org::imm::ImmId>(m, "ImmIdTCmdColumns")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmCmdName>, org::imm::ImmId>(m, "ImmIdTCmdName")
@@ -6005,6 +6339,10 @@ ingoing elements.)RAW")
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmBigIdent>, org::imm::ImmId>(m, "ImmIdTBigIdent")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmTextTarget>, org::imm::ImmId>(m, "ImmIdTTextTarget")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>, org::imm::ImmId>(m, "ImmIdTErrorSkipToken")
+    ;
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipGroup>, org::imm::ImmId>(m, "ImmIdTErrorSkipGroup")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmMarkup>, org::imm::ImmId>(m, "ImmIdTMarkup")
     ;
@@ -6484,14 +6822,8 @@ ingoing elements.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmErrorItemValue, org::imm::ImmErrorItemValueRead>(m, "ImmErrorItemValue")
-    .def("setMessage",
-         static_cast<void(org::imm::ImmErrorItemValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmErrorItemValue::setMessage),
-         pybind11::arg("value"))
-    .def("setFunction",
-         static_cast<void(org::imm::ImmErrorItemValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmErrorItemValue::setFunction),
-         pybind11::arg("value"))
-    .def("setLine",
-         static_cast<void(org::imm::ImmErrorItemValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmErrorItemValue::setLine),
+    .def("setDiag",
+         static_cast<void(org::imm::ImmErrorItemValue::*)(org::sem::OrgDiagnostics const&)>(&org::imm::ImmErrorItemValue::setDiag),
          pybind11::arg("value"))
     .def("__repr__", [](org::imm::ImmErrorItemValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -6505,12 +6837,6 @@ ingoing elements.)RAW")
   pybind11::class_<org::imm::ImmErrorGroupValue, org::imm::ImmErrorGroupValueRead>(m, "ImmErrorGroupValue")
     .def("setDiagnostics",
          static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&)>(&org::imm::ImmErrorGroupValue::setDiagnostics),
-         pybind11::arg("value"))
-    .def("setFunction",
-         static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmErrorGroupValue::setFunction),
-         pybind11::arg("value"))
-    .def("setLine",
-         static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmErrorGroupValue::setLine),
          pybind11::arg("value"))
     .def("__repr__", [](org::imm::ImmErrorGroupValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -6550,6 +6876,58 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::imm::ImmCmdCaptionValue const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdCreatorValue, org::imm::ImmCmdCreatorValueRead>(m, "ImmCmdCreatorValue")
+    .def("setText",
+         static_cast<void(org::imm::ImmCmdCreatorValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdCreatorValue::setText),
+         pybind11::arg("value"))
+    .def("__repr__", [](org::imm::ImmCmdCreatorValue const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdCreatorValue const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdAuthorValue, org::imm::ImmCmdAuthorValueRead>(m, "ImmCmdAuthorValue")
+    .def("setText",
+         static_cast<void(org::imm::ImmCmdAuthorValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdAuthorValue::setText),
+         pybind11::arg("value"))
+    .def("__repr__", [](org::imm::ImmCmdAuthorValue const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdAuthorValue const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdEmailValue, org::imm::ImmCmdEmailValueRead>(m, "ImmCmdEmailValue")
+    .def("setText",
+         static_cast<void(org::imm::ImmCmdEmailValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdEmailValue::setText),
+         pybind11::arg("value"))
+    .def("__repr__", [](org::imm::ImmCmdEmailValue const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdEmailValue const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmCmdLanguageValue, org::imm::ImmCmdLanguageValueRead>(m, "ImmCmdLanguageValue")
+    .def("setText",
+         static_cast<void(org::imm::ImmCmdLanguageValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdLanguageValue::setText),
+         pybind11::arg("value"))
+    .def("__repr__", [](org::imm::ImmCmdLanguageValue const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmCmdLanguageValue const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -6883,6 +7261,29 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::imm::ImmTextTargetValue const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmErrorSkipTokenValue, org::imm::ImmErrorSkipTokenValueRead>(m, "ImmErrorSkipTokenValue")
+    .def("__repr__", [](org::imm::ImmErrorSkipTokenValue const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmErrorSkipTokenValue const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::imm::ImmErrorSkipGroupValue, org::imm::ImmErrorSkipGroupValueRead>(m, "ImmErrorSkipGroupValue")
+    .def("setSkipped",
+         static_cast<void(org::imm::ImmErrorSkipGroupValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> const&)>(&org::imm::ImmErrorSkipGroupValue::setSkipped),
+         pybind11::arg("value"))
+    .def("__repr__", [](org::imm::ImmErrorSkipGroupValue const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmErrorSkipGroupValue const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -7901,6 +8302,21 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::ErrorSkipToken, org::sem::SemId<org::sem::ErrorSkipToken>, org::sem::Leaf>(m, "ErrorSkipToken")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ErrorSkipToken {
+                        org::sem::ErrorSkipToken result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::sem::ErrorSkipToken const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::ErrorSkipToken const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::Bold, org::sem::SemId<org::sem::Bold>, org::sem::Markup>(m, "Bold")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Bold {
                         org::sem::Bold result{};
@@ -8037,6 +8453,10 @@ ingoing elements.)RAW")
     ;
   pybind11::class_<org::imm::ImmAdapterErrorGroupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorGroupAPI")
     ;
+  pybind11::class_<org::imm::ImmAdapterErrorSkipGroupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorSkipGroupAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterErrorSkipTokenAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorSkipTokenAPI")
+    ;
   pybind11::class_<org::imm::ImmAdapterStmtListAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterStmtListAPI")
     ;
   pybind11::class_<org::imm::ImmAdapterEmptyAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterEmptyAPI")
@@ -8094,6 +8514,70 @@ ingoing elements.)RAW")
   pybind11::class_<org::sem::Block, org::sem::SemId<org::sem::Block>, org::sem::Cmd>(m, "Block")
     ;
   pybind11::class_<org::sem::LineCommand, org::sem::SemId<org::sem::LineCommand>, org::sem::Cmd>(m, "LineCommand")
+    ;
+  pybind11::class_<org::sem::CmdCreator, org::sem::SemId<org::sem::CmdCreator>, org::sem::Cmd>(m, "CmdCreator")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCreator {
+                        org::sem::CmdCreator result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &org::sem::CmdCreator::text, R"RAW(Creator name text)RAW")
+    .def("__repr__", [](org::sem::CmdCreator const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::CmdCreator const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::CmdAuthor, org::sem::SemId<org::sem::CmdAuthor>, org::sem::Cmd>(m, "CmdAuthor")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdAuthor {
+                        org::sem::CmdAuthor result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &org::sem::CmdAuthor::text, R"RAW(Author name text)RAW")
+    .def("__repr__", [](org::sem::CmdAuthor const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::CmdAuthor const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::CmdEmail, org::sem::SemId<org::sem::CmdEmail>, org::sem::Cmd>(m, "CmdEmail")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdEmail {
+                        org::sem::CmdEmail result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &org::sem::CmdEmail::text)
+    .def("__repr__", [](org::sem::CmdEmail const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::CmdEmail const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::CmdLanguage, org::sem::SemId<org::sem::CmdLanguage>, org::sem::Cmd>(m, "CmdLanguage")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdLanguage {
+                        org::sem::CmdLanguage result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &org::sem::CmdLanguage::text)
+    .def("__repr__", [](org::sem::CmdLanguage const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::CmdLanguage const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<org::sem::CmdCustomArgs, org::sem::SemId<org::sem::CmdCustomArgs>, org::sem::Cmd>(m, "CmdCustomArgs")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCustomArgs {
@@ -8190,6 +8674,14 @@ ingoing elements.)RAW")
   pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>, org::imm::ImmAdapterErrorGroupAPI>(m, "ImmErrorGroupAdapter")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmErrorGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>, org::imm::ImmAdapterErrorSkipGroupAPI>(m, "ImmErrorSkipGroupAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmErrorSkipGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>, org::imm::ImmAdapterErrorSkipTokenAPI>(m, "ImmErrorSkipTokenAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmErrorSkipTokenValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::getValue))
     ;
   pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmStmtList>, org::imm::ImmAdapterStmtListAPI>(m, "ImmStmtListAdapter")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
@@ -8494,6 +8986,14 @@ ingoing elements.)RAW")
     ;
   pybind11::class_<org::imm::ImmAdapterCmdCustomArgsAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdCustomArgsAPI")
     ;
+  pybind11::class_<org::imm::ImmAdapterCmdCreatorAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdCreatorAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdAuthorAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdAuthorAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdEmailAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdEmailAPI")
+    ;
+  pybind11::class_<org::imm::ImmAdapterCmdLanguageAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdLanguageAPI")
+    ;
   pybind11::class_<org::imm::ImmAdapterCmdTblfmAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdTblfmAPI")
     ;
   pybind11::class_<org::imm::ImmAdapterBlockAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterBlockAPI")
@@ -8717,6 +9217,22 @@ ingoing elements.)RAW")
   pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>, org::imm::ImmAdapterCmdCustomArgsAPI>(m, "ImmCmdCustomArgsAdapter")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdCustomArgsValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCreator>, org::imm::ImmAdapterCmdCreatorAPI>(m, "ImmCmdCreatorAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdCreatorValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>, org::imm::ImmAdapterCmdAuthorAPI>(m, "ImmCmdAuthorAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdAuthorValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdEmail>, org::imm::ImmAdapterCmdEmailAPI>(m, "ImmCmdEmailAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdEmailValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::getValue))
+    ;
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>, org::imm::ImmAdapterCmdLanguageAPI>(m, "ImmCmdLanguageAdapter")
+    .def(pybind11::init<org::imm::ImmAdapter const&>())
+    .def("getValue", static_cast<org::imm::ImmCmdLanguageValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::getValue))
     ;
   pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>, org::imm::ImmAdapterCmdTblfmAPI>(m, "ImmCmdTblfmAdapter")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
@@ -9029,6 +9545,7 @@ ingoing elements.)RAW")
     .value("CmdCreator", OrgNodeKind::CmdCreator, R"RAW(`#+creator:` Document creator)RAW")
     .value("CmdInclude", OrgNodeKind::CmdInclude, R"RAW(`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.)RAW")
     .value("CmdLanguage", OrgNodeKind::CmdLanguage, R"RAW(`#+language:`)RAW")
+    .value("CmdEmail", OrgNodeKind::CmdEmail, R"RAW(`#+email:`)RAW")
     .value("CmdAttr", OrgNodeKind::CmdAttr, R"RAW(`#+attr_html:`, `#+attr_image` etc.)RAW")
     .value("CmdStartup", OrgNodeKind::CmdStartup, R"RAW(`#+startup:`)RAW")
     .value("CmdName", OrgNodeKind::CmdName, R"RAW(`#+name:` - name of the associated entry)RAW")
@@ -9080,8 +9597,9 @@ ingoing elements.)RAW")
      NOTE: when structured sentences are enabled, regular punctuation
      elements like `some text (notes)` are also represented as `Word,
      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.)RAW")
-    .value("ErrorWrap", OrgNodeKind::ErrorWrap)
-    .value("ErrorToken", OrgNodeKind::ErrorToken)
+    .value("ErrorInfoToken", OrgNodeKind::ErrorInfoToken, R"RAW(Error leaf node inserted into the parse tree on failure)RAW")
+    .value("ErrorSkipGroup", OrgNodeKind::ErrorSkipGroup, R"RAW(Parent node for one or more tokens skipped during error recovery)RAW")
+    .value("ErrorSkipToken", OrgNodeKind::ErrorSkipToken, R"RAW(Single token node skipped while the parser searched for recovery point)RAW")
     .value("Italic", OrgNodeKind::Italic)
     .value("Verbatim", OrgNodeKind::Verbatim)
     .value("Backtick", OrgNodeKind::Backtick)
@@ -9431,6 +9949,10 @@ ingoing elements.)RAW")
     .value("StmtList", OrgSemKind::StmtList)
     .value("Empty", OrgSemKind::Empty)
     .value("CmdCaption", OrgSemKind::CmdCaption)
+    .value("CmdCreator", OrgSemKind::CmdCreator)
+    .value("CmdAuthor", OrgSemKind::CmdAuthor)
+    .value("CmdEmail", OrgSemKind::CmdEmail)
+    .value("CmdLanguage", OrgSemKind::CmdLanguage)
     .value("CmdColumns", OrgSemKind::CmdColumns)
     .value("CmdName", OrgSemKind::CmdName)
     .value("CmdCustomArgs", OrgSemKind::CmdCustomArgs)
@@ -9455,6 +9977,8 @@ ingoing elements.)RAW")
     .value("Placeholder", OrgSemKind::Placeholder)
     .value("BigIdent", OrgSemKind::BigIdent)
     .value("TextTarget", OrgSemKind::TextTarget)
+    .value("ErrorSkipToken", OrgSemKind::ErrorSkipToken)
+    .value("ErrorSkipGroup", OrgSemKind::ErrorSkipGroup)
     .value("Bold", OrgSemKind::Bold)
     .value("Underline", OrgSemKind::Underline)
     .value("Monospace", OrgSemKind::Monospace)
@@ -9588,8 +10112,9 @@ ingoing elements.)RAW")
         pybind11::arg("file"),
         pybind11::arg("opts"));
   m.def("parseString",
-        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const)>(&org::parseString),
-        pybind11::arg("text"));
+        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const, std::string const&)>(&org::parseString),
+        pybind11::arg("text"),
+        pybind11::arg("currentFile"));
   m.def("parseStringOpts",
         static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const, std::shared_ptr<org::OrgParseParameters> const&)>(&org::parseStringOpts),
         pybind11::arg("text"),

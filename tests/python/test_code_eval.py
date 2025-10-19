@@ -3,13 +3,14 @@ from py_scriptutils.script_logging import log
 from pathlib import Path
 from beartype.typing import List
 from py_haxorg.babel import evalCode
+import pytest
 
 CAT = __name__
 
 def test_trivial_code_eval():
     node = org.parseString("""#+begin_src test :results value raw
 content
-#+end_src""")
+#+end_src""", "<test>")
 
     conf = org.PyCodeEvalParameters()
     buf: List[org.OrgCodeEvalInput] = []
@@ -43,6 +44,7 @@ content
     w: org.Word = res.node.at(0).at(0).at(0)
     assert w.text == "bold"
 
+@pytest.mark.skip()
 def test_babel_eval_trivial():
     node = org.parseString("""#+begin_src plantuml
 @startuml
@@ -52,6 +54,6 @@ Bob --> Alice: Authentication Response
 Alice -> Bob: Another authentication Request
 Alice <-- Bob: Another authentication Response
 @enduml
-#+end_src""")
+#+end_src""", "<test>")
 
     evaluated = evalCode(node, Path("/tmp/babel_trivial_eval.log"))

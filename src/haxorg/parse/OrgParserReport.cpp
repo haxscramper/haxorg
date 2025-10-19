@@ -169,6 +169,9 @@ void OrgParser::report(CR<Report> in) {
                     escape_literal(
                         group->at(id).isMono() ? "<mono>"
                                                : group->val(id).text));
+                if (in.msg && !in.msg->empty()) {
+                    os << " " << in.msg.value();
+                }
                 break;
             }
 
@@ -180,6 +183,7 @@ void OrgParser::report(CR<Report> in) {
                     os << " ext="
                        << std::format("{}", group->at(id).getExtent());
                 }
+                if (in.msg && !in.msg->empty()) { os << " " << *in.msg; }
                 break;
             }
 

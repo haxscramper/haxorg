@@ -134,17 +134,13 @@ class ImmNoneValueRead:
 
 class ImmErrorItemValueRead:
     def __init__(self) -> None: ...
-    def getMessage(self) -> ImmBox[str]: ...
-    def getFunction(self) -> ImmBox[Optional[str]]: ...
-    def getLine(self) -> ImmBox[Optional[int]]: ...
+    def getDiag(self) -> OrgDiagnostics: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
 class ImmErrorGroupValueRead:
     def __init__(self) -> None: ...
     def getDiagnostics(self) -> ImmFlexVector[ImmIdTErrorItem]: ...
-    def getFunction(self) -> ImmBox[Optional[str]]: ...
-    def getLine(self) -> ImmBox[Optional[int]]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -161,6 +157,30 @@ class ImmEmptyValueRead:
 class ImmCmdCaptionValueRead:
     def __init__(self) -> None: ...
     def getText(self) -> ImmIdTParagraph: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmCmdCreatorValueRead:
+    def __init__(self) -> None: ...
+    def getText(self) -> ImmIdTParagraph: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmCmdAuthorValueRead:
+    def __init__(self) -> None: ...
+    def getText(self) -> ImmIdTParagraph: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmCmdEmailValueRead:
+    def __init__(self) -> None: ...
+    def getText(self) -> ImmBox[str]: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmCmdLanguageValueRead:
+    def __init__(self) -> None: ...
+    def getText(self) -> ImmBox[str]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -312,6 +332,17 @@ class ImmBigIdentValueRead:
 
 class ImmTextTargetValueRead:
     def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmErrorSkipTokenValueRead:
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmErrorSkipGroupValueRead:
+    def __init__(self) -> None: ...
+    def getSkipped(self) -> ImmFlexVector[ImmIdTErrorSkipToken]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -635,12 +666,13 @@ class ImmAstVersion:
     def __getattr__(self, name: str) -> object: ...
 
 class ImmAdapterTreeReprConf:
-    def __init__(self, maxDepth: int, withAuxFields: bool, withReflFields: bool) -> None: ...
+    def __init__(self, maxDepth: int, withAuxFields: bool, withReflFields: bool, withFieldSubset: UnorderedSet[stdpair[OrgSemKind, ImmReflFieldId]]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     maxDepth: int
     withAuxFields: bool
     withReflFields: bool
+    withFieldSubset: UnorderedSet[stdpair[OrgSemKind, ImmReflFieldId]]
 
 class ImmAdapter:
     def __init__(self) -> None: ...
@@ -679,13 +711,14 @@ class OrgParseFragment:
     text: str
 
 class OrgParseParameters(SharedPtrApi[OrgParseParameters]):
-    def __init__(self, baseTokenTracePath: Optional[str], tokenTracePath: Optional[str], parseTracePath: Optional[str], semTracePath: Optional[str]) -> None: ...
+    def __init__(self, baseTokenTracePath: Optional[str], tokenTracePath: Optional[str], parseTracePath: Optional[str], semTracePath: Optional[str], currentFile: str) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     baseTokenTracePath: Optional[str]
     tokenTracePath: Optional[str]
     parseTracePath: Optional[str]
     semTracePath: Optional[str]
+    currentFile: str
 
 class OrgDirectoryParseParameters(SharedPtrApi[OrgDirectoryParseParameters]):
     def __init__(self) -> None: ...
@@ -967,6 +1000,17 @@ class ExporterPython(Exporter[ExporterPython, object]):
     def eval(self, org: Org) -> ExporterPythonRes: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
+
+class SourceLocation:
+    def __init__(self, line: int, column: int, pos: int, file: Optional[str]) -> None: ...
+    def __eq__(self, other: SourceLocation) -> bool: ...
+    def __init__(self): ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    line: int
+    column: int
+    pos: int
+    file: Optional[str]
 
 class LispCodeCall:
     def __init__(self, name: str, args: List[LispCode]) -> None: ...
@@ -1828,6 +1872,11 @@ class DocumentExportConfigBrokenLinks(Enum):
     Raise = 3
     Ignore = 4
 
+class DocumentExportConfigArchivedTrees(Enum):
+    Skip = 1
+    Headline = 2
+    All = 3
+
 class DocumentExportConfigDoExport:
     def __init__(self, exportToc: bool) -> None: ...
     def __eq__(self, other: DocumentExportConfigDoExport) -> bool: ...
@@ -1848,7 +1897,7 @@ class DocumentExportConfigTocExportKind(Enum):
     ExportFixed = 2
 
 class DocumentExportConfig:
-    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], brokenLinks: DocumentExportConfigBrokenLinks, tocExport: DocumentExportConfigTocExport, tagExport: DocumentExportConfigTagExport, data: DocumentExportConfigTocExport) -> None: ...
+    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], smartQuotes: Optional[bool], fixedWidth: Optional[bool], timestamps: Optional[bool], preserveBreaks: Optional[bool], subSuperscripts: Optional[bool], expandLinks: Optional[bool], creator: Optional[bool], drawers: Optional[bool], date: Optional[bool], entities: Optional[bool], email: Optional[bool], sectionNumbers: Optional[bool], planning: Optional[bool], priority: Optional[bool], latex: Optional[bool], timestamp: Optional[bool], title: Optional[bool], tables: Optional[bool], headlineLevels: Optional[int], brokenLinks: DocumentExportConfigBrokenLinks, tocExport: DocumentExportConfigTocExport, tagExport: DocumentExportConfigTagExport, taskFiltering: DocumentExportConfigTaskFiltering, archivedTrees: DocumentExportConfigArchivedTrees, data: DocumentExportConfigTocExport) -> None: ...
     def __eq__(self, other: DocumentExportConfig) -> bool: ...
     def isDoExport(self) -> bool: ...
     def getDoExport(self) -> DocumentExportConfigDoExport: ...
@@ -1871,9 +1920,30 @@ class DocumentExportConfig:
     propertyDrawers: Optional[bool]
     statisticsCookies: Optional[bool]
     todoText: Optional[bool]
+    smartQuotes: Optional[bool]
+    fixedWidth: Optional[bool]
+    timestamps: Optional[bool]
+    preserveBreaks: Optional[bool]
+    subSuperscripts: Optional[bool]
+    expandLinks: Optional[bool]
+    creator: Optional[bool]
+    drawers: Optional[bool]
+    date: Optional[bool]
+    entities: Optional[bool]
+    email: Optional[bool]
+    sectionNumbers: Optional[bool]
+    planning: Optional[bool]
+    priority: Optional[bool]
+    latex: Optional[bool]
+    timestamp: Optional[bool]
+    title: Optional[bool]
+    tables: Optional[bool]
+    headlineLevels: Optional[int]
     brokenLinks: DocumentExportConfigBrokenLinks
     tocExport: DocumentExportConfigTocExport
     tagExport: DocumentExportConfigTagExport
+    taskFiltering: DocumentExportConfigTaskFiltering
+    archivedTrees: DocumentExportConfigArchivedTrees
     data: DocumentExportConfigTocExport
 
 class SubtreePeriodKind(Enum):
@@ -2196,26 +2266,115 @@ class NamedProperty:
     def __getattr__(self, name: str) -> object: ...
     data: NamedPropertyData
 
+class OrgDiagnosticsParseTokenError:
+    def __init__(self, brief: str, detail: str, parserFunction: str, parserLine: int, tokenKind: OrgTokenKind, tokenText: str, loc: SourceLocation, errName: str, errCode: str) -> None: ...
+    def __eq__(self, other: OrgDiagnosticsParseTokenError) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    brief: str
+    detail: str
+    parserFunction: str
+    parserLine: int
+    tokenKind: OrgTokenKind
+    tokenText: str
+    loc: SourceLocation
+    errName: str
+    errCode: str
+
+class OrgDiagnosticsParseError:
+    def __init__(self, brief: str, detail: str, parserFunction: str, parserLine: int, errName: str, errCode: str, loc: Optional[SourceLocation]) -> None: ...
+    def __eq__(self, other: OrgDiagnosticsParseError) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    brief: str
+    detail: str
+    parserFunction: str
+    parserLine: int
+    errName: str
+    errCode: str
+    loc: Optional[SourceLocation]
+
+class OrgDiagnosticsIncludeError:
+    def __init__(self, brief: str, targetPath: str, workingFile: str) -> None: ...
+    def __eq__(self, other: OrgDiagnosticsIncludeError) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    brief: str
+    targetPath: str
+    workingFile: str
+
+class OrgDiagnosticsConvertError:
+    def __init__(self, brief: str, detail: str, convertFunction: str, convertLine: int, convertFile: str, errName: str, errCode: str, loc: Optional[SourceLocation]) -> None: ...
+    def __eq__(self, other: OrgDiagnosticsConvertError) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    brief: str
+    detail: str
+    convertFunction: str
+    convertLine: int
+    convertFile: str
+    errName: str
+    errCode: str
+    loc: Optional[SourceLocation]
+
+class OrgDiagnosticsInternalError:
+    def __init__(self, message: str, function: str, line: int, file: str, loc: Optional[SourceLocation]) -> None: ...
+    def __eq__(self, other: OrgDiagnosticsInternalError) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    message: str
+    function: str
+    line: int
+    file: str
+    loc: Optional[SourceLocation]
+
+OrgDiagnosticsData = Union[OrgDiagnosticsParseTokenError, OrgDiagnosticsParseError, OrgDiagnosticsIncludeError, OrgDiagnosticsConvertError, OrgDiagnosticsInternalError]
+class OrgDiagnosticsKind(Enum):
+    ParseTokenError = 1
+    ParseError = 2
+    IncludeError = 3
+    ConvertError = 4
+    InternalError = 5
+
+class OrgDiagnostics:
+    def __init__(self, data: OrgDiagnosticsData) -> None: ...
+    def __eq__(self, other: OrgDiagnostics) -> bool: ...
+    def isParseTokenError(self) -> bool: ...
+    def getParseTokenError(self) -> OrgDiagnosticsParseTokenError: ...
+    def isParseError(self) -> bool: ...
+    def getParseError(self) -> OrgDiagnosticsParseError: ...
+    def isIncludeError(self) -> bool: ...
+    def getIncludeError(self) -> OrgDiagnosticsIncludeError: ...
+    def isConvertError(self) -> bool: ...
+    def getConvertError(self) -> OrgDiagnosticsConvertError: ...
+    def isInternalError(self) -> bool: ...
+    def getInternalError(self) -> OrgDiagnosticsInternalError: ...
+    @staticmethod
+    def getKindStatic(self, __input: OrgDiagnosticsData) -> OrgDiagnosticsKind: ...
+    def getKind(self) -> OrgDiagnosticsKind: ...
+    def sub_variant_get_name(self) -> char: ...
+    def sub_variant_get_data(self) -> OrgDiagnosticsData: ...
+    def sub_variant_get_kind(self) -> OrgDiagnosticsKind: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    data: OrgDiagnosticsData
+
 class None(Org):
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
 class ErrorItem(Org):
-    def __init__(self, message: str, function: Optional[str], line: Optional[int]) -> None: ...
+    def __init__(self, diag: OrgDiagnostics) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    message: str
-    function: Optional[str]
-    line: Optional[int]
+    diag: OrgDiagnostics
 
 class ErrorGroup(Org):
-    def __init__(self, diagnostics: List[ErrorItem], function: Optional[str], line: Optional[int]) -> None: ...
+    def __init__(self, diagnostics: List[ErrorItem]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     diagnostics: List[ErrorItem]
-    function: Optional[str]
-    line: Optional[int]
 
 class Stmt(Org):
     def __init__(self, attached: List[Org]) -> None: ...
@@ -2347,6 +2506,12 @@ class Symbol(Org):
     name: str
     parameters: List[SymbolParam]
     positional: List[Org]
+
+class ErrorSkipGroup(Org):
+    def __init__(self, skipped: List[ErrorSkipToken]) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    skipped: List[ErrorSkipToken]
 
 class Markup(Org):
     def __init__(self) -> None: ...
@@ -2665,6 +2830,18 @@ class ImmIdTLeaf(ImmId):
 class ImmIdTCmdCaption(ImmId):
     def __init__(self) -> None: ...
 
+class ImmIdTCmdCreator(ImmId):
+    def __init__(self) -> None: ...
+
+class ImmIdTCmdAuthor(ImmId):
+    def __init__(self) -> None: ...
+
+class ImmIdTCmdEmail(ImmId):
+    def __init__(self) -> None: ...
+
+class ImmIdTCmdLanguage(ImmId):
+    def __init__(self) -> None: ...
+
 class ImmIdTCmdColumns(ImmId):
     def __init__(self) -> None: ...
 
@@ -2735,6 +2912,12 @@ class ImmIdTBigIdent(ImmId):
     def __init__(self) -> None: ...
 
 class ImmIdTTextTarget(ImmId):
+    def __init__(self) -> None: ...
+
+class ImmIdTErrorSkipToken(ImmId):
+    def __init__(self) -> None: ...
+
+class ImmIdTErrorSkipGroup(ImmId):
     def __init__(self) -> None: ...
 
 class ImmIdTMarkup(ImmId):
@@ -3022,17 +3205,13 @@ class ImmNoneValue(ImmNoneValueRead):
 
 class ImmErrorItemValue(ImmErrorItemValueRead):
     def __init__(self) -> None: ...
-    def setMessage(self, value: ImmBox[str]) -> None: ...
-    def setFunction(self, value: ImmBox[Optional[str]]) -> None: ...
-    def setLine(self, value: ImmBox[Optional[int]]) -> None: ...
+    def setDiag(self, value: OrgDiagnostics) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
 class ImmErrorGroupValue(ImmErrorGroupValueRead):
     def __init__(self) -> None: ...
     def setDiagnostics(self, value: ImmFlexVector[ImmIdTErrorItem]) -> None: ...
-    def setFunction(self, value: ImmBox[Optional[str]]) -> None: ...
-    def setLine(self, value: ImmBox[Optional[int]]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -3049,6 +3228,30 @@ class ImmEmptyValue(ImmEmptyValueRead):
 class ImmCmdCaptionValue(ImmCmdCaptionValueRead):
     def __init__(self) -> None: ...
     def setText(self, value: ImmIdTParagraph) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmCmdCreatorValue(ImmCmdCreatorValueRead):
+    def __init__(self) -> None: ...
+    def setText(self, value: ImmIdTParagraph) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmCmdAuthorValue(ImmCmdAuthorValueRead):
+    def __init__(self) -> None: ...
+    def setText(self, value: ImmIdTParagraph) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmCmdEmailValue(ImmCmdEmailValueRead):
+    def __init__(self) -> None: ...
+    def setText(self, value: ImmBox[str]) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmCmdLanguageValue(ImmCmdLanguageValueRead):
+    def __init__(self) -> None: ...
+    def setText(self, value: ImmBox[str]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -3200,6 +3403,17 @@ class ImmBigIdentValue(ImmBigIdentValueRead):
 
 class ImmTextTargetValue(ImmTextTargetValueRead):
     def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmErrorSkipTokenValue(ImmErrorSkipTokenValueRead):
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ImmErrorSkipGroupValue(ImmErrorSkipGroupValueRead):
+    def __init__(self) -> None: ...
+    def setSkipped(self, value: ImmFlexVector[ImmIdTErrorSkipToken]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -3637,6 +3851,11 @@ class TextTarget(Leaf):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
+class ErrorSkipToken(Leaf):
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
 class Bold(Markup):
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
@@ -3699,6 +3918,12 @@ class ImmAdapterErrorItemAPI(ImmAdapterOrgAPI):
     def __init__(self) -> None: ...
 
 class ImmAdapterErrorGroupAPI(ImmAdapterOrgAPI):
+    def __init__(self) -> None: ...
+
+class ImmAdapterErrorSkipGroupAPI(ImmAdapterOrgAPI):
+    def __init__(self) -> None: ...
+
+class ImmAdapterErrorSkipTokenAPI(ImmAdapterOrgAPI):
     def __init__(self) -> None: ...
 
 class ImmAdapterStmtListAPI(ImmAdapterOrgAPI):
@@ -3783,6 +4008,30 @@ class Block(Cmd):
 class LineCommand(Cmd):
     def __init__(self) -> None: ...
 
+class CmdCreator(Cmd):
+    def __init__(self, text: Paragraph) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: Paragraph
+
+class CmdAuthor(Cmd):
+    def __init__(self, text: Paragraph) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: Paragraph
+
+class CmdEmail(Cmd):
+    def __init__(self, text: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: str
+
+class CmdLanguage(Cmd):
+    def __init__(self, text: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: str
+
 class CmdCustomArgs(Cmd):
     def __init__(self, name: str, isAttached: bool) -> None: ...
     def __repr__(self) -> str: ...
@@ -3849,6 +4098,16 @@ class ImmErrorGroupAdapter(ImmAdapterTBase[ImmErrorGroup], ImmAdapterErrorGroupA
     def __init__(self) -> None: ...
     def __init__(self, other: ImmAdapter) -> ImmErrorGroupAdapter: ...
     def getValue(self) -> ImmErrorGroupValueRead: ...
+
+class ImmErrorSkipGroupAdapter(ImmAdapterTBase[ImmErrorSkipGroup], ImmAdapterErrorSkipGroupAPI):
+    def __init__(self) -> None: ...
+    def __init__(self, other: ImmAdapter) -> ImmErrorSkipGroupAdapter: ...
+    def getValue(self) -> ImmErrorSkipGroupValueRead: ...
+
+class ImmErrorSkipTokenAdapter(ImmAdapterTBase[ImmErrorSkipToken], ImmAdapterErrorSkipTokenAPI):
+    def __init__(self) -> None: ...
+    def __init__(self, other: ImmAdapter) -> ImmErrorSkipTokenAdapter: ...
+    def getValue(self) -> ImmErrorSkipTokenValueRead: ...
 
 class ImmStmtListAdapter(ImmAdapterTBase[ImmStmtList], ImmAdapterStmtListAPI):
     def __init__(self) -> None: ...
@@ -4098,6 +4357,18 @@ class ImmAdapterLineCommandAPI(ImmAdapterCmdAPI):
 class ImmAdapterCmdCustomArgsAPI(ImmAdapterCmdAPI):
     def __init__(self) -> None: ...
 
+class ImmAdapterCmdCreatorAPI(ImmAdapterCmdAPI):
+    def __init__(self) -> None: ...
+
+class ImmAdapterCmdAuthorAPI(ImmAdapterCmdAPI):
+    def __init__(self) -> None: ...
+
+class ImmAdapterCmdEmailAPI(ImmAdapterCmdAPI):
+    def __init__(self) -> None: ...
+
+class ImmAdapterCmdLanguageAPI(ImmAdapterCmdAPI):
+    def __init__(self) -> None: ...
+
 class ImmAdapterCmdTblfmAPI(ImmAdapterCmdAPI):
     def __init__(self) -> None: ...
 
@@ -4294,6 +4565,26 @@ class ImmCmdCustomArgsAdapter(ImmAdapterTBase[ImmCmdCustomArgs], ImmAdapterCmdCu
     def __init__(self) -> None: ...
     def __init__(self, other: ImmAdapter) -> ImmCmdCustomArgsAdapter: ...
     def getValue(self) -> ImmCmdCustomArgsValueRead: ...
+
+class ImmCmdCreatorAdapter(ImmAdapterTBase[ImmCmdCreator], ImmAdapterCmdCreatorAPI):
+    def __init__(self) -> None: ...
+    def __init__(self, other: ImmAdapter) -> ImmCmdCreatorAdapter: ...
+    def getValue(self) -> ImmCmdCreatorValueRead: ...
+
+class ImmCmdAuthorAdapter(ImmAdapterTBase[ImmCmdAuthor], ImmAdapterCmdAuthorAPI):
+    def __init__(self) -> None: ...
+    def __init__(self, other: ImmAdapter) -> ImmCmdAuthorAdapter: ...
+    def getValue(self) -> ImmCmdAuthorValueRead: ...
+
+class ImmCmdEmailAdapter(ImmAdapterTBase[ImmCmdEmail], ImmAdapterCmdEmailAPI):
+    def __init__(self) -> None: ...
+    def __init__(self, other: ImmAdapter) -> ImmCmdEmailAdapter: ...
+    def getValue(self) -> ImmCmdEmailValueRead: ...
+
+class ImmCmdLanguageAdapter(ImmAdapterTBase[ImmCmdLanguage], ImmAdapterCmdLanguageAPI):
+    def __init__(self) -> None: ...
+    def __init__(self, other: ImmAdapter) -> ImmCmdLanguageAdapter: ...
+    def getValue(self) -> ImmCmdLanguageValueRead: ...
 
 class ImmCmdTblfmAdapter(ImmAdapterTBase[ImmCmdTblfm], ImmAdapterCmdTblfmAPI):
     def __init__(self) -> None: ...
@@ -4568,100 +4859,102 @@ class OrgNodeKind(Enum):
     CmdCreator = 27
     CmdInclude = 28
     CmdLanguage = 29
-    CmdAttr = 30
-    CmdStartup = 31
-    CmdName = 32
-    CmdCustomTextCommand = 33
-    CmdCustomArgsCommand = 34
-    CmdCustomRawCommand = 35
-    CmdResults = 36
-    CmdHeader = 37
-    CmdOptions = 38
-    CmdTblfm = 39
-    CmdCaption = 40
-    CmdResult = 41
-    CmdCallCode = 42
-    CmdFlag = 43
-    CmdLatexClass = 44
-    CmdLatexHeader = 45
-    CmdLatexCompiler = 46
-    CmdLatexClassOptions = 47
-    CmdHtmlHead = 48
-    CmdColumns = 49
-    CmdPropertyArgs = 50
-    CmdPropertyText = 51
-    CmdPropertyRaw = 52
-    CmdFiletags = 53
-    CmdKeywords = 54
-    BlockVerbatimMultiline = 55
-    CodeLine = 56
-    CodeText = 57
-    CodeTangle = 58
-    CodeCallout = 59
-    BlockCode = 60
-    BlockQuote = 61
-    BlockComment = 62
-    BlockCenter = 63
-    BlockVerse = 64
-    BlockExample = 65
-    BlockExport = 66
-    BlockDetails = 67
-    BlockSummary = 68
-    BlockDynamicFallback = 69
-    BigIdent = 70
-    Bold = 71
-    ErrorWrap = 72
-    ErrorToken = 73
-    Italic = 74
-    Verbatim = 75
-    Backtick = 76
-    Underline = 77
-    Strike = 78
-    Quote = 79
-    Angle = 80
-    Monospace = 81
-    Par = 82
-    CriticMarkStructure = 83
-    InlineMath = 84
-    DisplayMath = 85
-    Space = 86
-    Punctuation = 87
-    Colon = 88
-    Word = 89
-    Escaped = 90
-    Newline = 91
-    RawLink = 92
-    Link = 93
-    Macro = 94
-    Symbol = 95
-    StaticActiveTime = 96
-    StaticInactiveTime = 97
-    DynamicActiveTime = 98
-    DynamicInactiveTime = 99
-    TimeRange = 100
-    SimpleTime = 101
-    HashTag = 102
-    MetaSymbol = 103
-    AtMention = 104
-    Placeholder = 105
-    RadioTarget = 106
-    Target = 107
-    SrcInlineCode = 108
-    InlineCallCode = 109
-    InlineExport = 110
-    InlineComment = 111
-    RawText = 112
-    SubtreeDescription = 113
-    SubtreeUrgency = 114
-    DrawerLogbook = 115
-    Drawer = 116
-    DrawerPropertyList = 117
-    DrawerProperty = 118
-    Subtree = 119
-    SubtreeTimes = 120
-    SubtreeStars = 121
-    SubtreeCompletion = 122
-    SubtreeImportance = 123
+    CmdEmail = 30
+    CmdAttr = 31
+    CmdStartup = 32
+    CmdName = 33
+    CmdCustomTextCommand = 34
+    CmdCustomArgsCommand = 35
+    CmdCustomRawCommand = 36
+    CmdResults = 37
+    CmdHeader = 38
+    CmdOptions = 39
+    CmdTblfm = 40
+    CmdCaption = 41
+    CmdResult = 42
+    CmdCallCode = 43
+    CmdFlag = 44
+    CmdLatexClass = 45
+    CmdLatexHeader = 46
+    CmdLatexCompiler = 47
+    CmdLatexClassOptions = 48
+    CmdHtmlHead = 49
+    CmdColumns = 50
+    CmdPropertyArgs = 51
+    CmdPropertyText = 52
+    CmdPropertyRaw = 53
+    CmdFiletags = 54
+    CmdKeywords = 55
+    BlockVerbatimMultiline = 56
+    CodeLine = 57
+    CodeText = 58
+    CodeTangle = 59
+    CodeCallout = 60
+    BlockCode = 61
+    BlockQuote = 62
+    BlockComment = 63
+    BlockCenter = 64
+    BlockVerse = 65
+    BlockExample = 66
+    BlockExport = 67
+    BlockDetails = 68
+    BlockSummary = 69
+    BlockDynamicFallback = 70
+    BigIdent = 71
+    Bold = 72
+    ErrorInfoToken = 73
+    ErrorSkipGroup = 74
+    ErrorSkipToken = 75
+    Italic = 76
+    Verbatim = 77
+    Backtick = 78
+    Underline = 79
+    Strike = 80
+    Quote = 81
+    Angle = 82
+    Monospace = 83
+    Par = 84
+    CriticMarkStructure = 85
+    InlineMath = 86
+    DisplayMath = 87
+    Space = 88
+    Punctuation = 89
+    Colon = 90
+    Word = 91
+    Escaped = 92
+    Newline = 93
+    RawLink = 94
+    Link = 95
+    Macro = 96
+    Symbol = 97
+    StaticActiveTime = 98
+    StaticInactiveTime = 99
+    DynamicActiveTime = 100
+    DynamicInactiveTime = 101
+    TimeRange = 102
+    SimpleTime = 103
+    HashTag = 104
+    MetaSymbol = 105
+    AtMention = 106
+    Placeholder = 107
+    RadioTarget = 108
+    Target = 109
+    SrcInlineCode = 110
+    InlineCallCode = 111
+    InlineExport = 112
+    InlineComment = 113
+    RawText = 114
+    SubtreeDescription = 115
+    SubtreeUrgency = 116
+    DrawerLogbook = 117
+    Drawer = 118
+    DrawerPropertyList = 119
+    DrawerProperty = 120
+    Subtree = 121
+    SubtreeTimes = 122
+    SubtreeStars = 123
+    SubtreeCompletion = 124
+    SubtreeImportance = 125
 
 class OrgTokenKind(Enum):
     Ampersand = 1
@@ -4908,74 +5201,80 @@ class OrgSemKind(Enum):
     StmtList = 4
     Empty = 5
     CmdCaption = 6
-    CmdColumns = 7
-    CmdName = 8
-    CmdCustomArgs = 9
-    CmdCustomRaw = 10
-    CmdCustomText = 11
-    CmdCall = 12
-    CmdTblfm = 13
-    HashTag = 14
-    InlineFootnote = 15
-    InlineExport = 16
-    Time = 17
-    TimeRange = 18
-    Macro = 19
-    Symbol = 20
-    Escaped = 21
-    Newline = 22
-    Space = 23
-    Word = 24
-    AtMention = 25
-    RawText = 26
-    Punctuation = 27
-    Placeholder = 28
-    BigIdent = 29
-    TextTarget = 30
-    Bold = 31
-    Underline = 32
-    Monospace = 33
-    MarkQuote = 34
-    Verbatim = 35
-    Italic = 36
-    Strike = 37
-    Par = 38
-    RadioTarget = 39
-    Latex = 40
-    Link = 41
-    BlockCenter = 42
-    BlockQuote = 43
-    BlockComment = 44
-    BlockVerse = 45
-    BlockDynamicFallback = 46
-    BlockExample = 47
-    BlockExport = 48
-    BlockAdmonition = 49
-    BlockCodeEvalResult = 50
-    BlockCode = 51
-    SubtreeLog = 52
-    Subtree = 53
-    Cell = 54
-    Row = 55
-    Table = 56
-    Paragraph = 57
-    ColonExample = 58
-    CmdAttr = 59
-    CmdExport = 60
-    Call = 61
-    List = 62
-    ListItem = 63
-    DocumentOptions = 64
-    DocumentFragment = 65
-    CriticMarkup = 66
-    Document = 67
-    FileTarget = 68
-    TextSeparator = 69
-    DocumentGroup = 70
-    File = 71
-    Directory = 72
-    Symlink = 73
-    CmdInclude = 74
+    CmdCreator = 7
+    CmdAuthor = 8
+    CmdEmail = 9
+    CmdLanguage = 10
+    CmdColumns = 11
+    CmdName = 12
+    CmdCustomArgs = 13
+    CmdCustomRaw = 14
+    CmdCustomText = 15
+    CmdCall = 16
+    CmdTblfm = 17
+    HashTag = 18
+    InlineFootnote = 19
+    InlineExport = 20
+    Time = 21
+    TimeRange = 22
+    Macro = 23
+    Symbol = 24
+    Escaped = 25
+    Newline = 26
+    Space = 27
+    Word = 28
+    AtMention = 29
+    RawText = 30
+    Punctuation = 31
+    Placeholder = 32
+    BigIdent = 33
+    TextTarget = 34
+    ErrorSkipToken = 35
+    ErrorSkipGroup = 36
+    Bold = 37
+    Underline = 38
+    Monospace = 39
+    MarkQuote = 40
+    Verbatim = 41
+    Italic = 42
+    Strike = 43
+    Par = 44
+    RadioTarget = 45
+    Latex = 46
+    Link = 47
+    BlockCenter = 48
+    BlockQuote = 49
+    BlockComment = 50
+    BlockVerse = 51
+    BlockDynamicFallback = 52
+    BlockExample = 53
+    BlockExport = 54
+    BlockAdmonition = 55
+    BlockCodeEvalResult = 56
+    BlockCode = 57
+    SubtreeLog = 58
+    Subtree = 59
+    Cell = 60
+    Row = 61
+    Table = 62
+    Paragraph = 63
+    ColonExample = 64
+    CmdAttr = 65
+    CmdExport = 66
+    Call = 67
+    List = 68
+    ListItem = 69
+    DocumentOptions = 70
+    DocumentFragment = 71
+    CriticMarkup = 72
+    Document = 73
+    FileTarget = 74
+    TextSeparator = 75
+    DocumentGroup = 76
+    File = 77
+    Directory = 78
+    Symlink = 79
+    CmdInclude = 80
 
 class AstTrackingGroupKind(Enum):
     RadioTarget = 1
@@ -5001,7 +5300,7 @@ def newSemTimeStatic(breakdown: UserTimeBreakdown, isActive: bool) -> Time: ...
 
 def parseFile(file: str, opts: OrgParseParameters) -> Org: ...
 
-def parseString(text: str) -> Org: ...
+def parseString(text: str, currentFile: str) -> Org: ...
 
 def parseStringOpts(text: str, opts: OrgParseParameters) -> Org: ...
 

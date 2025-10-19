@@ -80,6 +80,7 @@ OrgFill fill(OrgLexer& lex) {
         .text = lex.tok()->text,
         .line = lex.tok()->line,
         .col  = lex.tok()->col,
+        .pos  = lex.tok()->pos,
     };
 }
 

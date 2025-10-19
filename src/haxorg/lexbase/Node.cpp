@@ -143,24 +143,33 @@ void NodeGroup<N, K, V, M>::treeRepr(
     using Pos = TreeReprConf::WritePos;
     using Par = TreeReprConf::WriteParams;
 
-    Par par{
-        .os         = os,
-        .current    = node,
-        .parent     = parent,
-        .subnodeIdx = subnodeIdx,
-        .level      = level,
+    auto getParams = [&](ColStream& stream) {
+        return Par{
+            .os         = stream,
+            .current    = node,
+            .parent     = parent,
+            .subnodeIdx = subnodeIdx,
+            .level      = level,
+        };
     };
 
+
     if (conf.customWrite) {
-        par.pos = Pos::LineStart;
+        auto par = getParams(os);
+        par.pos  = Pos::LineStart;
         conf.customWrite(par);
     }
 
+    int const startPosition = os.position;
     os << repeat("  ", level) << std::format("{}", at(node).kind);
 
     if (conf.customWrite) {
-        par.pos = Pos::AfterKind;
+        hstd::ColStream tmp;
+        auto            par = getParams(tmp);
+        par.pos             = Pos::AfterKind;
         conf.customWrite(par);
+        auto split = tmp.split("\n");
+        os.write_indented_after_first(split, os.position - startPosition);
     }
 
     if (conf.withSubnodeIdx) {
@@ -197,8 +206,12 @@ void NodeGroup<N, K, V, M>::treeRepr(
             LOGIC_ASSERTION_CHECK(begin.id <= end.id, "");
             if (conf.flushEach) { os.flush(); }
             if (conf.customWrite) {
-                par.pos = Pos::LineEnd;
+                hstd::ColStream tmp;
+                auto            par = getParams(tmp);
+                par.pos             = Pos::LineEnd;
                 conf.customWrite(par);
+                os.write_indented_after_first(
+                    tmp, os.size() - startPosition);
             }
             os << "\n";
             treeRepr(os, *begin, level + 1, conf, idx, node);
@@ -234,6 +247,7 @@ std::string NodeGroup<N, K, V, M>::treeRepr(Id node, CR<TreeReprConf> conf)
     const {
     std::stringstream buffer;
     ColStream         text{buffer};
+    text.colored = false;
     treeRepr(text, node, 0, conf);
     return buffer.str();
 }

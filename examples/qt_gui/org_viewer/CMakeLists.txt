@@ -22,6 +22,8 @@ file(GLOB PROJECT_SOURCES "${PROJ_ROOT}/*.?pp")
 
 qt_add_executable(org_viewer MANUAL_FINALIZATION ${PROJECT_SOURCES})
 
+target_compile_options(org_viewer PUBLIC "-Wno-deprecated-declarations")
+
 option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 if(${ORG_USE_COVERAGE})
   target_compile_options(org_viewer PRIVATE -fprofile-instr-generate -fcoverage-mapping)

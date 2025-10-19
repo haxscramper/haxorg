@@ -213,6 +213,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 fieldN(slice(0, 1_B), N::Body, {onk::RawText, onk::Empty}),
             })},
+        SpecPair{
+            onk::ErrorSkipGroup,
+            OrgPattern({
+                fieldN(slice(0, 1_B), N::Body, {onk::ErrorSkipToken}),
+            })},
         SpecPair{onk::StmtList, anySubnodePattern},
         SpecPair{onk::Paragraph, anySubnodePattern},
         SpecPair{onk::InlineStmtList, anySubnodePattern},
@@ -380,6 +385,9 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         SpecPair{onk::CmdTitle, parTextCmdPattern},
         SpecPair{onk::CmdCaption, parTextCmdPattern},
+        SpecPair{onk::CmdCreator, parTextCmdPattern},
+        SpecPair{onk::CmdAuthor, parTextCmdPattern},
+        SpecPair{onk::CmdEmail, parTextCmdPattern},
         SpecPair{
             onk::CmdColumns,
             OrgPattern({

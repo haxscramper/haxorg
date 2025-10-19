@@ -56,13 +56,7 @@ class CorpusRunner : public hstd::OperationsTracer {
         hstd::CR<ParseSpec> spec,
         hstd::CR<hstd::Str> name,
         hstd::CR<hstd::Str> content,
-        hstd::CR<hstd::Str> relDebug) {
-        files.push_back(TestResult::File{
-            .path  = name,
-            .rerun = inRerun,
-        });
-        hstd::writeFile(spec.debugFile(name, relDebug), content);
-    }
+        hstd::CR<hstd::Str> relDebug);
 
     json toTextLyt(
         hstd::layout::BlockStore&                   b,
@@ -74,13 +68,46 @@ class CorpusRunner : public hstd::OperationsTracer {
         struct CompareBase {
             bool          isOk = false;
             hstd::ColText failDescribe;
+            BOOST_DESCRIBE_CLASS(
+                CompareBase,
+                (),
+                (isOk, failDescribe),
+                (),
+                ());
         };
 
-        struct NodeCompare : CompareBase {};
-        struct LexCompare : CompareBase {};
-        struct SemCompare : CompareBase {};
-        struct Skip {};
-        struct None {};
+        struct NodeCompare : CompareBase {
+            BOOST_DESCRIBE_CLASS(NodeCompare, (CompareBase), (), (), ());
+        };
+        struct LexCompare : CompareBase {
+            BOOST_DESCRIBE_CLASS(LexCompare, (CompareBase), (), (), ());
+        };
+        struct SemCompare : CompareBase {
+            BOOST_DESCRIBE_CLASS(
+                SemCompare,
+                (CompareBase),
+                (unexpectedParseErrors, expectedParseErrors),
+                (),
+                ());
+
+            /// \brief Parsed sem content has unexpected error nodes. This
+            /// field is populated if the parse had errors but no expected
+            /// sem structure. If there *is* an expected sem structure,
+            /// regular comparison takes precedence.
+            bool unexpectedParseErrors = false;
+
+            /// \brief If the sem compare is successful, but the tree
+            /// contains parsing errors. If this is the case, the rest of
+            /// the test will be skipped, as formatter is not going to
+            /// correctly reproduce the document back -- as is intended.
+            bool expectedParseErrors = false;
+        };
+        struct Skip {
+            DESC_FIELDS(Skip, ());
+        };
+        struct None {
+            DESC_FIELDS(None, ());
+        };
 
         SUB_VARIANTS(
             Kind,
@@ -96,6 +123,8 @@ class CorpusRunner : public hstd::OperationsTracer {
         RunResult() {}
         RunResult(hstd::CR<Data> data) : data(data) {}
         Data data;
+
+        DESC_FIELDS(RunResult, (data));
 
         bool isOk() const {
             return std::visit(
@@ -113,6 +142,18 @@ class CorpusRunner : public hstd::OperationsTracer {
         hstd::CR<org::parse::OrgNodeGroup> parsed,
         hstd::CR<org::parse::OrgNodeGroup> expected);
 
+    hstd::Opt<RunResult> runSpecInitial(
+        hstd::CR<ParseSpec>   spec,
+        hstd::CR<std::string> from,
+        hstd::CR<hstd::Str>   relDebug,
+        MockFull&             p);
+
+    RunResult runSpecFormatted(
+        hstd::CR<ParseSpec>   spec,
+        hstd::CR<std::string> from,
+        hstd::CR<hstd::Str>   relDebug,
+        MockFull&             p);
+
 
     RunResult::SemCompare compareSem(
         hstd::CR<ParseSpec>  spec,
@@ -123,6 +164,7 @@ class CorpusRunner : public hstd::OperationsTracer {
         hstd::CR<ParseSpec>   spec,
         hstd::CR<std::string> from,
         hstd::CR<hstd::Str>   relDebug);
+
     RunResult::LexCompare runSpecBaseLex(
         MockFull&           p,
         hstd::CR<ParseSpec> spec,
@@ -153,7 +195,9 @@ struct TestParams {
 };
 
 
-TestResult gtest_run_spec(hstd::CR<TestParams> params);
+TestResult gtest_run_spec(
+    hstd::CR<TestParams>  params,
+    const hstd::fs::path& testDir);
 
 hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const& params)> getOrgParseWriteParams(
     OrgSpec const*                               spec,
@@ -161,3 +205,33 @@ hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const& param
     hstd::UnorderedMap<parse::OrgId, int> const* parseAddedOnLine);
 
 } // namespace org::test
+
+
+template <>
+struct hstd::JsonSerde<YAML::Mark> {
+    static YAML::Mark from_json(json const& j) {
+        auto res   = YAML::Mark();
+        res.line   = JsonSerde<int>::from_json(j["line"]);
+        res.column = JsonSerde<int>::from_json(j["column"]);
+        res.pos    = JsonSerde<int>::from_json(j["pos"]);
+        return res;
+    }
+
+    static json to_json(YAML::Mark const& value) {
+        return json::object({
+            {"line", JsonSerde<int>::to_json(value.line)},
+            {"column", JsonSerde<int>::to_json(value.column)},
+            {"pos", JsonSerde<int>::to_json(value.pos)},
+        });
+    }
+};
+
+template <>
+struct hstd::JsonSerde<YAML::Node> {
+    static YAML::Node from_json(json const& j) {
+        return org::test::toYaml(j);
+    }
+    static json to_json(YAML::Node const& j) {
+        return org::test::toJson(j);
+    }
+};

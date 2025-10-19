@@ -2,6 +2,24 @@
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation>::write(::orgproto::SourceLocation* out, org::sem::SourceLocation const& in) {
+  out->set_line(in.line);
+  out->set_column(in.column);
+  out->set_pos(in.pos);
+  if (in.file) {
+    proto_serde<std::string, hstd::Str>::write(out->mutable_file(), *in.file);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation>::read(::orgproto::SourceLocation const& out, proto_write_accessor<org::sem::SourceLocation> in) {
+  in.for_field(&org::sem::SourceLocation::line).get() = out.line();
+  in.for_field(&org::sem::SourceLocation::column).get() = out.column();
+  in.for_field(&org::sem::SourceLocation::pos).get() = out.pos();
+  if (out.has_file()) {
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.file(), in.for_field(&org::sem::SourceLocation::file));
+  }
+}
+
 void org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call>::write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in) {
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::LispCode>, hstd::Vec<org::sem::LispCode>>::write(out->mutable_args(), in.args);
@@ -1142,6 +1160,63 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
   if (in.todoText) {
     out->set_todotext(*in.todoText);
   }
+  if (in.smartQuotes) {
+    out->set_smartquotes(*in.smartQuotes);
+  }
+  if (in.fixedWidth) {
+    out->set_fixedwidth(*in.fixedWidth);
+  }
+  if (in.timestamps) {
+    out->set_timestamps(*in.timestamps);
+  }
+  if (in.preserveBreaks) {
+    out->set_preservebreaks(*in.preserveBreaks);
+  }
+  if (in.subSuperscripts) {
+    out->set_subsuperscripts(*in.subSuperscripts);
+  }
+  if (in.expandLinks) {
+    out->set_expandlinks(*in.expandLinks);
+  }
+  if (in.creator) {
+    out->set_creator(*in.creator);
+  }
+  if (in.drawers) {
+    out->set_drawers(*in.drawers);
+  }
+  if (in.date) {
+    out->set_date(*in.date);
+  }
+  if (in.entities) {
+    out->set_entities(*in.entities);
+  }
+  if (in.email) {
+    out->set_email(*in.email);
+  }
+  if (in.sectionNumbers) {
+    out->set_sectionnumbers(*in.sectionNumbers);
+  }
+  if (in.planning) {
+    out->set_planning(*in.planning);
+  }
+  if (in.priority) {
+    out->set_priority(*in.priority);
+  }
+  if (in.latex) {
+    out->set_latex(*in.latex);
+  }
+  if (in.timestamp) {
+    out->set_timestamp(*in.timestamp);
+  }
+  if (in.title) {
+    out->set_title(*in.title);
+  }
+  if (in.tables) {
+    out->set_tables(*in.tables);
+  }
+  if (in.headlineLevels) {
+    out->set_headlinelevels(*in.headlineLevels);
+  }
   out->set_brokenlinks(static_cast<orgproto::DocumentExportConfig_BrokenLinks>(in.brokenLinks));
   switch (in.tocExport.index()) {
     case 0:
@@ -1152,6 +1227,8 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
       break;
   }
   out->set_tagexport(static_cast<orgproto::DocumentExportConfig_TagExport>(in.tagExport));
+  out->set_taskfiltering(static_cast<orgproto::DocumentExportConfig_TaskFiltering>(in.taskFiltering));
+  out->set_archivedtrees(static_cast<orgproto::DocumentExportConfig_ArchivedTrees>(in.archivedTrees));
   switch (in.data.index()) {
     case 0:
       proto_serde<orgproto::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::DoExport>::write(out->mutable_data()->mutable_doexport(), std::get<0>(in.data));
@@ -1190,6 +1267,63 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
   if (out.has_todotext()) {
     proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.todotext(), in.for_field(&org::sem::DocumentExportConfig::todoText));
   }
+  if (out.has_smartquotes()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.smartquotes(), in.for_field(&org::sem::DocumentExportConfig::smartQuotes));
+  }
+  if (out.has_fixedwidth()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.fixedwidth(), in.for_field(&org::sem::DocumentExportConfig::fixedWidth));
+  }
+  if (out.has_timestamps()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.timestamps(), in.for_field(&org::sem::DocumentExportConfig::timestamps));
+  }
+  if (out.has_preservebreaks()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.preservebreaks(), in.for_field(&org::sem::DocumentExportConfig::preserveBreaks));
+  }
+  if (out.has_subsuperscripts()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.subsuperscripts(), in.for_field(&org::sem::DocumentExportConfig::subSuperscripts));
+  }
+  if (out.has_expandlinks()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.expandlinks(), in.for_field(&org::sem::DocumentExportConfig::expandLinks));
+  }
+  if (out.has_creator()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.creator(), in.for_field(&org::sem::DocumentExportConfig::creator));
+  }
+  if (out.has_drawers()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.drawers(), in.for_field(&org::sem::DocumentExportConfig::drawers));
+  }
+  if (out.has_date()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.date(), in.for_field(&org::sem::DocumentExportConfig::date));
+  }
+  if (out.has_entities()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.entities(), in.for_field(&org::sem::DocumentExportConfig::entities));
+  }
+  if (out.has_email()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.email(), in.for_field(&org::sem::DocumentExportConfig::email));
+  }
+  if (out.has_sectionnumbers()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.sectionnumbers(), in.for_field(&org::sem::DocumentExportConfig::sectionNumbers));
+  }
+  if (out.has_planning()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.planning(), in.for_field(&org::sem::DocumentExportConfig::planning));
+  }
+  if (out.has_priority()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.priority(), in.for_field(&org::sem::DocumentExportConfig::priority));
+  }
+  if (out.has_latex()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.latex(), in.for_field(&org::sem::DocumentExportConfig::latex));
+  }
+  if (out.has_timestamp()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.timestamp(), in.for_field(&org::sem::DocumentExportConfig::timestamp));
+  }
+  if (out.has_title()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.title(), in.for_field(&org::sem::DocumentExportConfig::title));
+  }
+  if (out.has_tables()) {
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.tables(), in.for_field(&org::sem::DocumentExportConfig::tables));
+  }
+  if (out.has_headlinelevels()) {
+    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.headlinelevels(), in.for_field(&org::sem::DocumentExportConfig::headlineLevels));
+  }
   in.for_field(&org::sem::DocumentExportConfig::brokenLinks).get() = static_cast<org::sem::DocumentExportConfig::BrokenLinks>(out.brokenlinks());
   switch (out.tocexport().kind_case()) {
     case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
@@ -1206,6 +1340,8 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
     }
   }
   in.for_field(&org::sem::DocumentExportConfig::tagExport).get() = static_cast<org::sem::DocumentExportConfig::TagExport>(out.tagexport());
+  in.for_field(&org::sem::DocumentExportConfig::taskFiltering).get() = static_cast<org::sem::DocumentExportConfig::TaskFiltering>(out.taskfiltering());
+  in.for_field(&org::sem::DocumentExportConfig::archivedTrees).get() = static_cast<org::sem::DocumentExportConfig::ArchivedTrees>(out.archivedtrees());
   switch (out.data().kind_case()) {
     case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
       in.for_field_variant<0>(&org::sem::DocumentExportConfig::data).get();
@@ -1679,6 +1815,161 @@ void org::algo::proto_serde<::orgproto::NamedProperty, org::sem::NamedProperty>:
   }
 }
 
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError>::write(::orgproto::OrgDiagnostics::ParseTokenError* out, org::sem::OrgDiagnostics::ParseTokenError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_brief(), in.brief);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_detail(), in.detail);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_parserfunction(), in.parserFunction);
+  out->set_parserline(in.parserLine);
+  out->set_tokenkind(static_cast<orgproto::OrgTokenKind>(in.tokenKind));
+  proto_serde<std::string, hstd::Str>::write(out->mutable_tokentext(), in.tokenText);
+  proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::write(out->mutable_loc(), in.loc);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_errname(), in.errName);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_errcode(), in.errCode);
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError>::read(::orgproto::OrgDiagnostics::ParseTokenError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseTokenError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.brief(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::brief));
+  proto_serde<std::string, hstd::Str>::read(out.detail(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::detail));
+  proto_serde<std::string, hstd::Str>::read(out.parserfunction(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::parserFunction));
+  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::parserLine).get() = out.parserline();
+  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenKind).get() = static_cast<OrgTokenKind>(out.tokenkind());
+  proto_serde<std::string, hstd::Str>::read(out.tokentext(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenText));
+  proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::loc));
+  proto_serde<std::string, hstd::Str>::read(out.errname(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::errName));
+  proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::errCode));
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::write(::orgproto::OrgDiagnostics::ParseError* out, org::sem::OrgDiagnostics::ParseError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_brief(), in.brief);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_detail(), in.detail);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_parserfunction(), in.parserFunction);
+  out->set_parserline(in.parserLine);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_errname(), in.errName);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_errcode(), in.errCode);
+  if (in.loc) {
+    proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::write(out->mutable_loc(), *in.loc);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::read(::orgproto::OrgDiagnostics::ParseError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.brief(), in.for_field(&org::sem::OrgDiagnostics::ParseError::brief));
+  proto_serde<std::string, hstd::Str>::read(out.detail(), in.for_field(&org::sem::OrgDiagnostics::ParseError::detail));
+  proto_serde<std::string, hstd::Str>::read(out.parserfunction(), in.for_field(&org::sem::OrgDiagnostics::ParseError::parserFunction));
+  in.for_field(&org::sem::OrgDiagnostics::ParseError::parserLine).get() = out.parserline();
+  proto_serde<std::string, hstd::Str>::read(out.errname(), in.for_field(&org::sem::OrgDiagnostics::ParseError::errName));
+  proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ParseError::errCode));
+  if (out.has_loc()) {
+    proto_serde<hstd::Opt<orgproto::SourceLocation>, hstd::Opt<org::sem::SourceLocation>>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ParseError::loc));
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError>::write(::orgproto::OrgDiagnostics::IncludeError* out, org::sem::OrgDiagnostics::IncludeError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_brief(), in.brief);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_targetpath(), in.targetPath);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_workingfile(), in.workingFile);
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError>::read(::orgproto::OrgDiagnostics::IncludeError const& out, proto_write_accessor<org::sem::OrgDiagnostics::IncludeError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.brief(), in.for_field(&org::sem::OrgDiagnostics::IncludeError::brief));
+  proto_serde<std::string, hstd::Str>::read(out.targetpath(), in.for_field(&org::sem::OrgDiagnostics::IncludeError::targetPath));
+  proto_serde<std::string, hstd::Str>::read(out.workingfile(), in.for_field(&org::sem::OrgDiagnostics::IncludeError::workingFile));
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::write(::orgproto::OrgDiagnostics::ConvertError* out, org::sem::OrgDiagnostics::ConvertError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_brief(), in.brief);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_detail(), in.detail);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_convertfunction(), in.convertFunction);
+  out->set_convertline(in.convertLine);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_convertfile(), in.convertFile);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_errname(), in.errName);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_errcode(), in.errCode);
+  if (in.loc) {
+    proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::write(out->mutable_loc(), *in.loc);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::read(::orgproto::OrgDiagnostics::ConvertError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ConvertError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.brief(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::brief));
+  proto_serde<std::string, hstd::Str>::read(out.detail(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::detail));
+  proto_serde<std::string, hstd::Str>::read(out.convertfunction(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::convertFunction));
+  in.for_field(&org::sem::OrgDiagnostics::ConvertError::convertLine).get() = out.convertline();
+  proto_serde<std::string, hstd::Str>::read(out.convertfile(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::convertFile));
+  proto_serde<std::string, hstd::Str>::read(out.errname(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::errName));
+  proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::errCode));
+  if (out.has_loc()) {
+    proto_serde<hstd::Opt<orgproto::SourceLocation>, hstd::Opt<org::sem::SourceLocation>>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::loc));
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::write(::orgproto::OrgDiagnostics::InternalError* out, org::sem::OrgDiagnostics::InternalError const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_message(), in.message);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_function(), in.function);
+  out->set_line(in.line);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_file(), in.file);
+  if (in.loc) {
+    proto_serde<orgproto::SourceLocation, org::sem::SourceLocation>::write(out->mutable_loc(), *in.loc);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::read(::orgproto::OrgDiagnostics::InternalError const& out, proto_write_accessor<org::sem::OrgDiagnostics::InternalError> in) {
+  proto_serde<std::string, hstd::Str>::read(out.message(), in.for_field(&org::sem::OrgDiagnostics::InternalError::message));
+  proto_serde<std::string, hstd::Str>::read(out.function(), in.for_field(&org::sem::OrgDiagnostics::InternalError::function));
+  in.for_field(&org::sem::OrgDiagnostics::InternalError::line).get() = out.line();
+  proto_serde<std::string, hstd::Str>::read(out.file(), in.for_field(&org::sem::OrgDiagnostics::InternalError::file));
+  if (out.has_loc()) {
+    proto_serde<hstd::Opt<orgproto::SourceLocation>, hstd::Opt<org::sem::SourceLocation>>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::InternalError::loc));
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::write(::orgproto::OrgDiagnostics* out, org::sem::OrgDiagnostics const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError>::write(out->mutable_data()->mutable_parsetokenerror(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::write(out->mutable_data()->mutable_parseerror(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError>::write(out->mutable_data()->mutable_includeerror(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::write(out->mutable_data()->mutable_converterror(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::write(out->mutable_data()->mutable_internalerror(), std::get<4>(in.data));
+      break;
+  }
+}
+
+void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::read(::orgproto::OrgDiagnostics const& out, proto_write_accessor<org::sem::OrgDiagnostics> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::OrgDiagnostics::Data::kParsetokenerror:
+      in.for_field_variant<0>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError>::read(out.data().parsetokenerror(), in.for_field_variant<0>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::kParseerror:
+      in.for_field_variant<1>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError>::read(out.data().parseerror(), in.for_field_variant<1>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::kIncludeerror:
+      in.for_field_variant<2>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError>::read(out.data().includeerror(), in.for_field_variant<2>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::kConverterror:
+      in.for_field_variant<3>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError>::read(out.data().converterror(), in.for_field_variant<3>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::kInternalerror:
+      in.for_field_variant<4>(&org::sem::OrgDiagnostics::data).get();
+      proto_serde<orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError>::read(out.data().internalerror(), in.for_field_variant<4>(&org::sem::OrgDiagnostics::data));
+      break;
+    case ::orgproto::OrgDiagnostics::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
+  }
+}
+
 void org::algo::proto_serde<::orgproto::None, org::sem::None>::write(::orgproto::None* out, org::sem::None const& in) {
   org::algo::proto_serde<::orgproto::None, org::sem::Org>::write(out, in);
 }
@@ -1689,46 +1980,22 @@ void org::algo::proto_serde<::orgproto::None, org::sem::None>::read(::orgproto::
 
 void org::algo::proto_serde<::orgproto::ErrorItem, org::sem::ErrorItem>::write(::orgproto::ErrorItem* out, org::sem::ErrorItem const& in) {
   org::algo::proto_serde<::orgproto::ErrorItem, org::sem::Org>::write(out, in);
-  proto_serde<std::string, hstd::Str>::write(out->mutable_message(), in.message);
-  if (in.function) {
-    proto_serde<std::string, hstd::Str>::write(out->mutable_function(), *in.function);
-  }
-  if (in.line) {
-    out->set_line(*in.line);
-  }
+  proto_serde<orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::write(out->mutable_diag(), in.diag);
 }
 
 void org::algo::proto_serde<::orgproto::ErrorItem, org::sem::ErrorItem>::read(::orgproto::ErrorItem const& out, proto_write_accessor<org::sem::ErrorItem> in) {
   org::algo::proto_serde<::orgproto::ErrorItem, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.message(), in.for_field(&org::sem::ErrorItem::message));
-  if (out.has_function()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.function(), in.for_field(&org::sem::ErrorItem::function));
-  }
-  if (out.has_line()) {
-    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.line(), in.for_field(&org::sem::ErrorItem::line));
-  }
+  proto_serde<orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::read(out.diag(), in.for_field(&org::sem::ErrorItem::diag));
 }
 
 void org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::ErrorGroup>::write(::orgproto::ErrorGroup* out, org::sem::ErrorGroup const& in) {
   org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorItem>, hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>>::write(out->mutable_diagnostics(), in.diagnostics);
-  if (in.function) {
-    proto_serde<std::string, hstd::Str>::write(out->mutable_function(), *in.function);
-  }
-  if (in.line) {
-    out->set_line(*in.line);
-  }
 }
 
 void org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::ErrorGroup>::read(::orgproto::ErrorGroup const& out, proto_write_accessor<org::sem::ErrorGroup> in) {
   org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::Org>::read(out, in.as<org::sem::Org>());
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorItem>, hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>>::read(out.diagnostics(), in.for_field(&org::sem::ErrorGroup::diagnostics));
-  if (out.has_function()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.function(), in.for_field(&org::sem::ErrorGroup::function));
-  }
-  if (out.has_line()) {
-    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.line(), in.for_field(&org::sem::ErrorGroup::line));
-  }
 }
 
 void org::algo::proto_serde<::orgproto::StmtList, org::sem::StmtList>::write(::orgproto::StmtList* out, org::sem::StmtList const& in) {
@@ -1761,6 +2028,66 @@ void org::algo::proto_serde<::orgproto::CmdCaption, org::sem::CmdCaption>::read(
   org::algo::proto_serde<::orgproto::CmdCaption, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
   org::algo::proto_serde<::orgproto::CmdCaption, org::sem::Org>::read(out, in.as<org::sem::Org>());
   proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCaption::text));
+}
+
+void org::algo::proto_serde<::orgproto::CmdCreator, org::sem::CmdCreator>::write(::orgproto::CmdCreator* out, org::sem::CmdCreator const& in) {
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Org>::write(out, in);
+  if (!in.text.isNil()) {
+    proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_text(), in.text);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::CmdCreator, org::sem::CmdCreator>::read(::orgproto::CmdCreator const& out, proto_write_accessor<org::sem::CmdCreator> in) {
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCreator::text));
+}
+
+void org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor>::write(::orgproto::CmdAuthor* out, org::sem::CmdAuthor const& in) {
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Org>::write(out, in);
+  if (!in.text.isNil()) {
+    proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_text(), in.text);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor>::read(::orgproto::CmdAuthor const& out, proto_write_accessor<org::sem::CmdAuthor> in) {
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdAuthor::text));
+}
+
+void org::algo::proto_serde<::orgproto::CmdEmail, org::sem::CmdEmail>::write(::orgproto::CmdEmail* out, org::sem::CmdEmail const& in) {
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Org>::write(out, in);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_text(), in.text);
+}
+
+void org::algo::proto_serde<::orgproto::CmdEmail, org::sem::CmdEmail>::read(::orgproto::CmdEmail const& out, proto_write_accessor<org::sem::CmdEmail> in) {
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.text(), in.for_field(&org::sem::CmdEmail::text));
+}
+
+void org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::CmdLanguage>::write(::orgproto::CmdLanguage* out, org::sem::CmdLanguage const& in) {
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Org>::write(out, in);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_text(), in.text);
+}
+
+void org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::CmdLanguage>::read(::orgproto::CmdLanguage const& out, proto_write_accessor<org::sem::CmdLanguage> in) {
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.text(), in.for_field(&org::sem::CmdLanguage::text));
 }
 
 void org::algo::proto_serde<::orgproto::CmdColumns, org::sem::CmdColumns>::write(::orgproto::CmdColumns* out, org::sem::CmdColumns const& in) {
@@ -2143,6 +2470,26 @@ void org::algo::proto_serde<::orgproto::TextTarget, org::sem::TextTarget>::write
 void org::algo::proto_serde<::orgproto::TextTarget, org::sem::TextTarget>::read(::orgproto::TextTarget const& out, proto_write_accessor<org::sem::TextTarget> in) {
   org::algo::proto_serde<::orgproto::TextTarget, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
   org::algo::proto_serde<::orgproto::TextTarget, org::sem::Org>::read(out, in.as<org::sem::Org>());
+}
+
+void org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::ErrorSkipToken>::write(::orgproto::ErrorSkipToken* out, org::sem::ErrorSkipToken const& in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Org>::write(out, in);
+}
+
+void org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::ErrorSkipToken>::read(::orgproto::ErrorSkipToken const& out, proto_write_accessor<org::sem::ErrorSkipToken> in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Org>::read(out, in.as<org::sem::Org>());
+}
+
+void org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::ErrorSkipGroup>::write(::orgproto::ErrorSkipGroup* out, org::sem::ErrorSkipGroup const& in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::Org>::write(out, in);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorSkipToken>, hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>>::write(out->mutable_skipped(), in.skipped);
+}
+
+void org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::ErrorSkipGroup>::read(::orgproto::ErrorSkipGroup const& out, proto_write_accessor<org::sem::ErrorSkipGroup> in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorSkipToken>, hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>>::read(out.skipped(), in.for_field(&org::sem::ErrorSkipGroup::skipped));
 }
 
 void org::algo::proto_serde<::orgproto::Bold, org::sem::Bold>::write(::orgproto::Bold* out, org::sem::Bold const& in) {

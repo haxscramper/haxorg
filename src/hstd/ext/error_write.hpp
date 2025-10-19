@@ -1,3 +1,6 @@
+/// \file rewrite of the https://github.com/zesterer/ariadne/tree/main for
+/// C++
+
 #pragma once
 
 #include "hstd/stdlib/Slice.hpp"
@@ -17,6 +20,9 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/ext/bimap_wrap.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+
 
 namespace hstd::ext {
 
@@ -29,6 +35,13 @@ using Id = int;
 struct CodeSpan {
     Id         id;
     Slice<int> range;
+    DESC_FIELDS(CodeSpan, (id, range));
+
+    CodeSpan() = default;
+    CodeSpan(Id id, Slice<int> const& range) : id{id}, range{range} {
+        LOGIC_ASSERTION_CHECK(0 <= range.first, "{}", range.first);
+        LOGIC_ASSERTION_CHECK(range.first <= range.last, "{}", range);
+    }
 
     /// \brief Get the identifier of the source that this Codespan refers
     /// to.
@@ -61,6 +74,8 @@ class Cache {
 
     // Display the given ID. as a single inline value.
     virtual std::optional<std::string> display(Id const& id) const = 0;
+
+    DESC_FIELDS(Cache, (fetch, display));
 };
 
 
@@ -130,16 +145,14 @@ class StrCache : public Cache {
 
     /// Cache interface
   public:
-    UnorderedMap<Id, std::shared_ptr<Source>> sources;
-    UnorderedMap<Id, std::string>             names;
+    UnorderedMap<Id, std::shared_ptr<Source>>      sources;
+    hstd::ext::Unordered1to1Bimap<Id, std::string> names;
+    std::function<std::string(std::string const&)> getFileSource;
 
-    inline void add(
-        Id                 id,
-        std::string const& source,
-        std::string const& name) {
-        sources[id] = std::make_shared<Source>(source);
-        names[id]   = name;
-    }
+    BOOST_DESCRIBE_CLASS(StrCache, (Cache), (sources, names), (), ());
+
+    void add(Id id, std::string const& source, std::string const& name);
+    Id   add_path(hstd::fs::path const& path);
 
     inline std::shared_ptr<Source> fetch(const Id& id) override {
         return sources.at(id);
@@ -147,7 +160,7 @@ class StrCache : public Cache {
 
     inline std::optional<std::string> display(
         const Id& id) const override {
-        return names.get(id);
+        return names.get_right(id);
     }
 };
 
@@ -178,11 +191,13 @@ struct Characters {
     Str underline;
 };
 
-enum LabelKind
+enum class LabelKind
 {
     Inline,
     Multiline
 };
+
+BOOST_DESCRIBE_ENUM(LabelKind, Inline, Multiline);
 
 struct Label {
     /// \brief Give this label a message
@@ -222,7 +237,10 @@ struct Label {
 
     Label clone() const { return *this; }
 
-    int                    id;
+    /// \brief Unique ID to disambiguate different labels from each other
+    /// and uniquely identify them.
+    int id;
+    /// \brief Range of code this label applies to.
     CodeSpan               span;
     std::optional<ColText> msg      = std::nullopt;
     ColStyle               color    = ColStyle{};
@@ -236,11 +254,11 @@ struct Label {
     }
 };
 
-
+/// \brief Metadata about the label.
 struct LabelInfo {
     LabelKind kind;
     Label     label;
-    DESC_FIELDS(LabelInfo, (kind));
+    DESC_FIELDS(LabelInfo, (kind, label));
 };
 
 
@@ -390,8 +408,8 @@ class Report {
     ReportKind                 kind     = ReportKind::Error;
     std::optional<std::string> code     = std::nullopt;
     std::optional<ColText>     msg      = std::nullopt;
-    std::optional<ColText>     note     = std::nullopt;
-    std::optional<ColText>     help     = std::nullopt;
+    hstd::Vec<ColText>         note     = {};
+    hstd::Vec<ColText>         help     = {};
     std::pair<Id, int>         location = {0, 0};
     Vec<Label>                 labels   = {};
     Config                     config   = Config{};
@@ -418,20 +436,20 @@ class Report {
     }
 
     /// \brief Set the note of this report.
-    void set_note(const ColText& note) { this->note = note; }
+    void add_note(const ColText& note) { this->note.push_back(note); }
 
     /// \brief Set the note of this report.
     Report& with_note(const ColText& note) {
-        set_note(note);
+        add_note(note);
         return *this;
     }
 
     /// \brief Set the help message of this report.
-    void set_help(const ColText& help) { this->help = help; }
+    void add_help(const ColText& help) { this->help.push_back(help); }
 
     /// \brief Set the help message of this report.
     Report& with_help(const ColText& help) {
-        set_help(help);
+        add_help(help);
         return *this;
     }
 
@@ -467,26 +485,27 @@ class Report {
     Report(ReportKind kind, Id id, int offset)
         : kind(kind), location({id, offset}) {}
 
-    Vec<SourceGroup> get_source_groups(Cache* cache);
+    Vec<SourceGroup> get_source_groups(Cache* cache) const;
 
 
     void write(Cache& cache, std::ostream& w) {
         write_for_stream(cache, w);
     }
 
-    void write_for_stream(Cache& cache, std::ostream& stream) {
+    void write_for_stream(Cache& cache, std::ostream& stream) const {
         ColStream w{stream};
         write_for_stream(cache, w);
     }
 
-    void write_for_stream(Cache& cache, ColStream& w);
+    void write_for_stream(Cache& cache, ColStream& w) const;
 
-    std::string to_string(Cache& cache, bool colored) {
+    std::string to_string(Cache& cache, bool colored) const {
         ColStream buf;
         write_for_stream(cache, buf);
         return buf.toString(colored);
     }
 
+    /// \brief Find all labels
     static Vec<Label> build_multi_labels(Vec<LabelInfo> const& labels);
 };
 

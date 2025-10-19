@@ -95,6 +95,7 @@ concept DescribedRecord = boost::describe::has_describe_members<
                        && boost::describe::has_describe_bases<
                               std::remove_cvref_t<T>>::value;
 
+
 } // namespace hstd
 
 namespace boost::describe {

@@ -19,14 +19,13 @@ using namespace org;
 
 
 struct SemDiffBuilder : org::algo::SemNodeDiff {
-    org::test::MockFull srcParse;
-    org::test::MockFull dstParse;
-
+    org::test::MockFull srcParse{"<src>"};
+    org::test::MockFull dstParse{"<dst>"};
 
     sem::SemId<sem::Document> setOrg(std::string const& text, bool isSrc) {
         auto mock = isSrc ? &srcParse : &dstParse;
         mock->run(text);
-        sem::OrgConverter converter{};
+        sem::OrgConverter converter{mock->parser->currentFile};
         return converter
             .convertDocument(
                 org::parse::OrgAdapter(&mock->nodes, org::parse::OrgId(0)))
@@ -150,8 +149,8 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
         : org::algo::ImmNodeDiff{
               org::imm::ImmAstContext::init_start_context(),
               DirectSubnodes} {
-        SemSrc = org::parseString(Src);
-        SemDst = org::parseString(Dst);
+        SemSrc = org::parseString(Src, "<src>");
+        SemDst = org::parseString(Dst, "<dst>");
         {
             HSLOG_INFO("Add SRC root");
             HSLOG_DEPTH_SCOPE_ANON();
@@ -238,9 +237,8 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
 class OrgImmAstDiff : public ::testing::Test {
   protected:
     void SetUp() override {
-        hstd::log::push_sink(
-            hstd::log::init_file_sink(
-                getDebugFile("test_log.log").native()));
+        hstd::log::push_sink(hstd::log::init_file_sink(
+            getDebugFile("test_log.log").native()));
     }
 
     virtual void TearDown() override { hstd::log::clear_sink_backends(); }

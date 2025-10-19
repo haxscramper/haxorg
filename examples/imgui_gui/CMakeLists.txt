@@ -10,6 +10,7 @@ set(DEPS_INSTALL "${REPO_ROOT}/build/deps_bin/install")
 
 option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_USE_SYSTEM_DEPS "Find packages in the system instead of using thirdparty" OFF)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Test)
 
 if(NOT ${ORG_USE_SYSTEM_DEPS})
   include("${DEPS_INSTALL}/paths.cmake")
@@ -80,6 +81,7 @@ target_include_directories(
 
 file(GLOB IMGUI_EXAMPLE_LIB_FILES "${PROJ_ROOT}/gui_lib/*.?pp")
 add_library(imgui_example_lib ${IMGUI_EXAMPLE_LIB_FILES})
+target_compile_options(imgui_example_lib PUBLIC "-Wno-deprecated-declarations")
 
 option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 if(${ORG_USE_COVERAGE})

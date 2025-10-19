@@ -1,5 +1,13 @@
 /* clang-format off */
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SourceLocation const& object) {
+  __obj_field(res, object, line);
+  __obj_field(res, object, column);
+  __obj_field(res, object, pos);
+  __obj_field(res, object, file);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, org::sem::LispCode::Data const& object) { visitVariants(res, sem::LispCode::getKind(object), object); }
 
 template <typename V, typename R>
@@ -349,9 +357,30 @@ void Exporter<V, R>::visit(R& res, sem::DocumentExportConfig const& object) {
   __obj_field(res, object, propertyDrawers);
   __obj_field(res, object, statisticsCookies);
   __obj_field(res, object, todoText);
+  __obj_field(res, object, smartQuotes);
+  __obj_field(res, object, fixedWidth);
+  __obj_field(res, object, timestamps);
+  __obj_field(res, object, preserveBreaks);
+  __obj_field(res, object, subSuperscripts);
+  __obj_field(res, object, expandLinks);
+  __obj_field(res, object, creator);
+  __obj_field(res, object, drawers);
+  __obj_field(res, object, date);
+  __obj_field(res, object, entities);
+  __obj_field(res, object, email);
+  __obj_field(res, object, sectionNumbers);
+  __obj_field(res, object, planning);
+  __obj_field(res, object, priority);
+  __obj_field(res, object, latex);
+  __obj_field(res, object, timestamp);
+  __obj_field(res, object, title);
+  __obj_field(res, object, tables);
+  __obj_field(res, object, headlineLevels);
   __obj_field(res, object, brokenLinks);
   __obj_field(res, object, tocExport);
   __obj_field(res, object, tagExport);
+  __obj_field(res, object, taskFiltering);
+  __obj_field(res, object, archivedTrees);
   __obj_field(res, object, data);
 }
 
@@ -484,6 +513,64 @@ void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomSubtreeFlags const&
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, org::sem::OrgDiagnostics::Data const& object) { visitVariants(res, sem::OrgDiagnostics::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseTokenError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, detail);
+  __obj_field(res, object, parserFunction);
+  __obj_field(res, object, parserLine);
+  __obj_field(res, object, tokenKind);
+  __obj_field(res, object, tokenText);
+  __obj_field(res, object, loc);
+  __obj_field(res, object, errName);
+  __obj_field(res, object, errCode);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ParseError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, detail);
+  __obj_field(res, object, parserFunction);
+  __obj_field(res, object, parserLine);
+  __obj_field(res, object, errName);
+  __obj_field(res, object, errCode);
+  __obj_field(res, object, loc);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::IncludeError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, targetPath);
+  __obj_field(res, object, workingFile);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::ConvertError const& object) {
+  __obj_field(res, object, brief);
+  __obj_field(res, object, detail);
+  __obj_field(res, object, convertFunction);
+  __obj_field(res, object, convertLine);
+  __obj_field(res, object, convertFile);
+  __obj_field(res, object, errName);
+  __obj_field(res, object, errCode);
+  __obj_field(res, object, loc);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::InternalError const& object) {
+  __obj_field(res, object, message);
+  __obj_field(res, object, function);
+  __obj_field(res, object, line);
+  __obj_field(res, object, file);
+  __obj_field(res, object, loc);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, loc);
@@ -493,9 +580,7 @@ void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitErrorItem(R& res, In<sem::ErrorItem> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, message);
-  __org_field(res, object, function);
-  __org_field(res, object, line);
+  __org_field(res, object, diag);
   __org_field(res, object, loc);
   __org_field(res, object, subnodes);
 }
@@ -504,8 +589,6 @@ template <typename V, typename R>
 void Exporter<V, R>::visitErrorGroup(R& res, In<sem::ErrorGroup> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, diagnostics);
-  __org_field(res, object, function);
-  __org_field(res, object, line);
   __org_field(res, object, loc);
   __org_field(res, object, subnodes);
 }
@@ -585,6 +668,46 @@ void Exporter<V, R>::visitLeaf(R& res, In<sem::Leaf> object) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visitCmdCaption(R& res, In<sem::CmdCaption> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, text);
+  __org_field(res, object, attrs);
+  __org_field(res, object, attached);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCmdCreator(R& res, In<sem::CmdCreator> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, text);
+  __org_field(res, object, attrs);
+  __org_field(res, object, attached);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCmdAuthor(R& res, In<sem::CmdAuthor> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, text);
+  __org_field(res, object, attrs);
+  __org_field(res, object, attached);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCmdEmail(R& res, In<sem::CmdEmail> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, text);
+  __org_field(res, object, attrs);
+  __org_field(res, object, attached);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCmdLanguage(R& res, In<sem::CmdLanguage> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
   __org_field(res, object, attrs);
@@ -836,6 +959,22 @@ template <typename V, typename R>
 void Exporter<V, R>::visitTextTarget(R& res, In<sem::TextTarget> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitErrorSkipToken(R& res, In<sem::ErrorSkipToken> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, text);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitErrorSkipGroup(R& res, In<sem::ErrorSkipGroup> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, skipped);
   __org_field(res, object, loc);
   __org_field(res, object, subnodes);
 }

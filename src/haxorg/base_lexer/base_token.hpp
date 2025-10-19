@@ -12,7 +12,9 @@ struct OrgFill {
     hstd::Str text;
     int       line = -1;
     int       col  = -1;
+    int       pos  = -1;
     bool      isFake() const { return line == -1 && col == -1; }
+    DESC_FIELDS(OrgFill, (text, line, col, pos));
 };
 
 using OrgToken      = Token<OrgTokenKind, OrgFill>;
@@ -45,6 +47,8 @@ struct std::formatter<org::parse::OrgFill> : std::formatter<std::string> {
         ::hstd::fmt_ctx(p.line, ctx);
         std::formatter<std::string>{}.format(":", ctx);
         ::hstd::fmt_ctx(p.col, ctx);
+        std::formatter<std::string>{}.format(":", ctx);
+        ::hstd::fmt_ctx(p.pos, ctx);
         return ctx.out();
     }
 };

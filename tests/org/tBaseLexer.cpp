@@ -29,13 +29,15 @@ TEST(ManualFileRun, TestCoverallOrg) {
         auto        spec    = ParseSpec::FromSource(std::move(content));
         spec.debug.traceAll = true;
         spec.debug.doFormatReparse = false;
-        gtest_run_spec(TestParams{
-            .spec = spec,
-            .file = "coverall",
-        });
+        gtest_run_spec(
+            TestParams{
+                .spec = spec,
+                .file = "coverall",
+            },
+            getDebugDir());
 
         auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(org::parseString(content));
+        auto n     = start->init(org::parseString(content, file));
 
         writeFile(
             getDebugFile("imm_repr_subnodes_only.txt"),
@@ -93,60 +95,68 @@ TEST(ManualFileRun, TestCoverallOrg) {
 }
 
 TEST(ManualFileRun, TestDoc1) {
-    {
-        fs::path file{"/home/haxscramper/tmp/doc1.org"};
-        if (fs::exists(file)) {
-            std::string content = readFile(file);
-            auto        spec = ParseSpec::FromSource(std::move(content));
-            spec.debug.traceAll        = true;
-            spec.debug.doFormatReparse = false;
-            gtest_run_spec(TestParams{
+    fs::path file{"/home/haxscramper/tmp/doc1.org"};
+    if (fs::exists(file)) {
+        auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([]() {
+            return ::hstd::log::init_file_sink(
+                getDebugFile("execution_trace.log").native());
+        });
+
+        HSLOG_INFO("Send initial message");
+
+        std::string content = readFile(file);
+        auto        spec    = ParseSpec::FromSource(std::move(content));
+        spec.debug.traceAll = true;
+        spec.debug.doFormatReparse = false;
+        gtest_run_spec(
+            TestParams{
                 .spec = spec,
                 .file = "doc1",
-            });
+            },
+            getDebugDir());
 
-            auto start = imm::ImmAstContext::init_start_context();
-            auto n     = start->init(org::parseString(content));
+        auto start = imm::ImmAstContext::init_start_context();
+        auto n     = start->init(org::parseString(content, file));
 
-            writeFile(
-                getDebugFile("TestDoc1_clean.txt"),
-                n.getRootAdapter()
-                    .treeRepr(imm::ImmAdapter::TreeReprConf{
-                        .withAuxFields = true,
-                    })
-                    .toString(false));
+        writeFile(
+            getDebugFile("TestDoc1_clean.txt"),
+            n.getRootAdapter()
+                .treeRepr(imm::ImmAdapter::TreeReprConf{
+                    .withAuxFields = true,
+                })
+                .toString(false));
 
-            writeFile(
-                getDebugFile("TestDoc1_refl.txt"),
-                n.getRootAdapter()
-                    .treeRepr(imm::ImmAdapter::TreeReprConf{
-                        .withAuxFields  = true,
-                        .withReflFields = true,
-                    })
-                    .toString(false));
+        writeFile(
+            getDebugFile("TestDoc1_refl.txt"),
+            n.getRootAdapter()
+                .treeRepr(imm::ImmAdapter::TreeReprConf{
+                    .withAuxFields  = true,
+                    .withReflFields = true,
+                })
+                .toString(false));
 
-            writeFile(
-                "/tmp/cereal_dump.bin",
-                org::imm::serializeToText(n.context));
-        }
+        writeFile(
+            "/tmp/cereal_dump.bin", org::imm::serializeToText(n.context));
     }
-    LOG(INFO) << "doc1.org ok";
-    {
-        fs::path file{"/home/haxscramper/tmp/doc2.org"};
-        if (fs::exists(file)) {
-            std::string content = readFile(file);
-            auto        spec = ParseSpec::FromSource(std::move(content));
-            spec.debug.doFormatReparse = false;
-            // spec.debug.printSemToFile         = true;
-            spec.debug.debugOutDir = "/tmp/doc2_run";
-            gtest_run_spec(TestParams{
+}
+
+TEST(ManualFileRun, TestDoc2) {
+    fs::path file{"/home/haxscramper/tmp/doc2.org"};
+    if (fs::exists(file)) {
+        std::string content = readFile(file);
+        auto        spec    = ParseSpec::FromSource(std::move(content));
+        spec.debug.doFormatReparse = false;
+        // spec.debug.printSemToFile         = true;
+        spec.debug.debugOutDir = "/tmp/doc2_run";
+        gtest_run_spec(
+            TestParams{
                 .spec = spec,
                 .file = "doc2",
-            });
+            },
+            getDebugDir());
 
-            auto start = imm::ImmAstContext::init_start_context();
-            auto n     = start->init(org::parseString(content));
-        }
+        auto start = imm::ImmAstContext::init_start_context();
+        auto n     = start->init(org::parseString(content, file));
     }
 }
 

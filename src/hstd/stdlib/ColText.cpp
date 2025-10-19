@@ -103,6 +103,73 @@ std::string hstd::to_colored_string(
     return result;
 }
 
+json hstd::to_formatting_json(const Vec<ColRune>& runes) {
+    json result;
+    result["ansi_format"]  = to_colored_string(runes, true);
+    result["plain_format"] = to_colored_string(runes, false);
+
+    json data_format = json::array();
+    if (runes.empty()) {
+        result["data_format"] = data_format;
+        return result;
+    }
+
+    auto prev = ColStyle{};
+    Str  current_text;
+
+    for (int i = 0; i < runes.size(); ++i) {
+        const auto& rune = runes.at(i);
+
+        if (rune.style.fg != prev.fg || rune.style.bg != prev.bg
+            || rune.style.style != prev.style) {
+            if (!current_text.empty()) {
+                json chunk;
+                chunk["text"] = current_text;
+                if (!isDefault(prev.fg)) {
+                    chunk["fg"] = static_cast<u8>(prev.fg);
+                }
+                if (!isDefault(prev.bg)) {
+                    chunk["bg"] = static_cast<u8>(prev.bg);
+                }
+                if (prev.style.size() > 0) {
+                    json style_array = json::array();
+                    for (const auto& style : prev.style) {
+                        style_array.push_back(static_cast<u8>(style));
+                    }
+                    chunk["style"] = style_array;
+                }
+                data_format.push_back(chunk);
+                current_text.clear();
+            }
+            prev = rune.style;
+        }
+
+        current_text += rune.rune;
+    }
+
+    if (!current_text.empty()) {
+        json chunk;
+        chunk["text"] = current_text;
+        if (!isDefault(prev.fg)) {
+            chunk["fg"] = static_cast<u8>(prev.fg);
+        }
+        if (!isDefault(prev.bg)) {
+            chunk["bg"] = static_cast<u8>(prev.bg);
+        }
+        if (prev.style.size() > 0) {
+            json style_array = json::array();
+            for (const auto& style : prev.style) {
+                style_array.push_back(static_cast<u8>(style));
+            }
+            chunk["style"] = style_array;
+        }
+        data_format.push_back(chunk);
+    }
+
+    result["data_format"] = data_format;
+    return result;
+}
+
 void hstd::ColStream::flush() {
     if (!buffered) { ostream->flush(); }
 }
@@ -135,6 +202,25 @@ void ColStream::write_indented_after_first(const Str& text, int indent) {
         write(ColText{lines.at(i)});
     }
 }
+
+
+void ColStream::write_indented_after_first(
+    const Vec<ColText>& text,
+    int                 indent) {
+    if (text.has(0)) { write(ColText{text.at(0)}); }
+    for (int i = 1; i < text.size(); ++i) {
+        write(ColText{"\n"});
+        write(ColText{Str{' '}.repeated(indent)});
+        write(text.at(i));
+    }
+}
+
+void ColStream::write_indented_after_first(
+    const ColText& text,
+    int            indent) {
+    write_indented_after_first(text.split("\n"), indent);
+}
+
 
 void hstd::hshow<std::string_view>::format(
     ColStream&           os,
@@ -190,10 +276,51 @@ void hstd::hshow<std::string_view>::format(
     }
 }
 
+ColText& ColText::withStyle(CR<ColStyle> style) {
+    for (auto& ch : *this) { ch.style = style; }
+    return *this;
+}
+
 hstd::ColText::ColText(CR<ColStyle> style, CR<std::string> text) {
     for (const auto& ch : rune_chunks(text)) {
         push_back(ColRune(ch, style));
     }
+}
+
+void ColText::append(int repeat, ColRune c) {
+    for (int i = 0; i < repeat; ++i) { push_back(c); }
+}
+
+void ColText::append(ColRune c) { push_back(c); }
+
+ColText ColText::rightAligned(int n, ColRune c) const {
+    ColText res;
+    if (size() < n) { res.append(n - size(), c); }
+    res.append(*this);
+    return res;
+}
+
+ColText ColText::leftAligned(int n, ColRune c) const {
+    auto s = *this;
+    while (s.size() < n) { s.push_back(c); }
+    return s;
+}
+
+hstd::Vec<ColText> ColText::split(const Str& delimiter) const {
+    hstd::Vec<ColText> result;
+    ColText            current;
+
+    for (int i = 0; i < size(); ++i) {
+        if (at(i).rune == delimiter) {
+            result.push_back(current);
+            current.clear();
+        } else {
+            current.push_back(at(i));
+        }
+    }
+
+    result.push_back(current);
+    return result;
 }
 
 namespace {
@@ -255,4 +382,36 @@ std::string hstd::to_colored_html(const Vec<ColRune>& runes) {
     }
 
     return result;
+}
+
+hshow_opts& hshow_opts::cond(hshow_flag flag, bool doAdd) {
+    if (doAdd) {
+        flags.incl(flag);
+    } else {
+        flags.excl(flag);
+    }
+    return *this;
+}
+
+hshow_opts& hshow_opts::incl(hshow_flag flag) {
+    flags.incl(flag);
+    return *this;
+}
+
+hshow_opts& hshow_opts::excl(hshow_flag flag) {
+    flags.excl(flag);
+    return *this;
+}
+
+hshow_opts& hshow_opts::with(IntSet<hshow_flag> flag) {
+    flags = flag;
+    return *this;
+}
+
+ColRune& ColRune::dbg_origin(
+    bool        enabled,
+    int         line,
+    const char* function) {
+    if (enabled) { this->rune += hstd::fmt("{}:{}", function, line); }
+    return *this;
 }

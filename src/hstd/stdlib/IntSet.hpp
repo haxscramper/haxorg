@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/SetCommon.hpp>
 #include <hstd/system/basic_templates.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 namespace hstd {
 
@@ -206,3 +207,24 @@ struct std::formatter<hstd::IntSet<T>> : std::formatter<std::string> {
         return fmt.format("}", ctx);
     }
 };
+
+namespace hstd {
+template <typename T>
+struct JsonSerde<IntSet<T>> {
+    static json to_json(IntSet<T> const& it) {
+        auto result = json::array();
+        for (auto const& item : it) {
+            result.push_back(JsonSerde<T>::to_json(item));
+        }
+
+        return result;
+    }
+    static IntSet<T> from_json(json const& j) {
+        IntSet<T> result;
+        for (auto const& i : j) {
+            result.incl(JsonSerde<T>::from_json(i));
+        }
+        return result;
+    }
+};
+} // namespace hstd

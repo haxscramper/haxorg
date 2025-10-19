@@ -254,8 +254,8 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
             return ctx.store().updateNode<imm::ImmSubtree>(
                 v1.getRootAdapter().at(0), ctx, [&](imm::ImmSubtree tree) {
                     tree.title = ctx->add(
-                                        org::asOneNode(
-                                            org::parseString("replaced")),
+                                        org::asOneNode(org::parseString(
+                                            "replaced", "<replaced>")),
                                         ctx)
                                      .as<imm::ImmParagraph>();
                     return tree;

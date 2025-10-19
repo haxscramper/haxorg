@@ -9,6 +9,10 @@
         __MAP(kStmtlist, stmtlist, StmtList)  \
         __MAP(kEmpty, empty, Empty)  \
         __MAP(kCmdcaption, cmdcaption, CmdCaption)  \
+        __MAP(kCmdcreator, cmdcreator, CmdCreator)  \
+        __MAP(kCmdauthor, cmdauthor, CmdAuthor)  \
+        __MAP(kCmdemail, cmdemail, CmdEmail)  \
+        __MAP(kCmdlanguage, cmdlanguage, CmdLanguage)  \
         __MAP(kCmdcolumns, cmdcolumns, CmdColumns)  \
         __MAP(kCmdname, cmdname, CmdName)  \
         __MAP(kCmdcustomargs, cmdcustomargs, CmdCustomArgs)  \
@@ -33,6 +37,8 @@
         __MAP(kPlaceholder, placeholder, Placeholder)  \
         __MAP(kBigident, bigident, BigIdent)  \
         __MAP(kTexttarget, texttarget, TextTarget)  \
+        __MAP(kErrorskiptoken, errorskiptoken, ErrorSkipToken)  \
+        __MAP(kErrorskipgroup, errorskipgroup, ErrorSkipGroup)  \
         __MAP(kBold, bold, Bold)  \
         __MAP(kUnderline, underline, Underline)  \
         __MAP(kMonospace, monospace, Monospace)  \
@@ -77,6 +83,13 @@
         __MAP(kDirectory, directory, Directory)  \
         __MAP(kSymlink, symlink, Symlink)  \
         __MAP(kCmdinclude, cmdinclude, CmdInclude)  \
+
+template <>
+struct org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation> {
+  static void write(::orgproto::SourceLocation* out, org::sem::SourceLocation const& in);
+  static void read(::orgproto::SourceLocation const& out, proto_write_accessor<org::sem::SourceLocation> in);
+};
+
 
 template <>
 struct org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call> {
@@ -786,6 +799,48 @@ struct org::algo::proto_serde<::orgproto::NamedProperty, org::sem::NamedProperty
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseTokenError> {
+  static void write(::orgproto::OrgDiagnostics::ParseTokenError* out, org::sem::OrgDiagnostics::ParseTokenError const& in);
+  static void read(::orgproto::OrgDiagnostics::ParseTokenError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseTokenError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::ParseError> {
+  static void write(::orgproto::OrgDiagnostics::ParseError* out, org::sem::OrgDiagnostics::ParseError const& in);
+  static void read(::orgproto::OrgDiagnostics::ParseError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ParseError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::IncludeError> {
+  static void write(::orgproto::OrgDiagnostics::IncludeError* out, org::sem::OrgDiagnostics::IncludeError const& in);
+  static void read(::orgproto::OrgDiagnostics::IncludeError const& out, proto_write_accessor<org::sem::OrgDiagnostics::IncludeError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::ConvertError> {
+  static void write(::orgproto::OrgDiagnostics::ConvertError* out, org::sem::OrgDiagnostics::ConvertError const& in);
+  static void read(::orgproto::OrgDiagnostics::ConvertError const& out, proto_write_accessor<org::sem::OrgDiagnostics::ConvertError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics::InternalError, org::sem::OrgDiagnostics::InternalError> {
+  static void write(::orgproto::OrgDiagnostics::InternalError* out, org::sem::OrgDiagnostics::InternalError const& in);
+  static void read(::orgproto::OrgDiagnostics::InternalError const& out, proto_write_accessor<org::sem::OrgDiagnostics::InternalError> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics> {
+  static void write(::orgproto::OrgDiagnostics* out, org::sem::OrgDiagnostics const& in);
+  static void read(::orgproto::OrgDiagnostics const& out, proto_write_accessor<org::sem::OrgDiagnostics> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::None, org::sem::None> {
   static void write(::orgproto::None* out, org::sem::None const& in);
   static void read(::orgproto::None const& out, proto_write_accessor<org::sem::None> in);
@@ -824,6 +879,34 @@ template <>
 struct org::algo::proto_serde<::orgproto::CmdCaption, org::sem::CmdCaption> {
   static void write(::orgproto::CmdCaption* out, org::sem::CmdCaption const& in);
   static void read(::orgproto::CmdCaption const& out, proto_write_accessor<org::sem::CmdCaption> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::CmdCreator, org::sem::CmdCreator> {
+  static void write(::orgproto::CmdCreator* out, org::sem::CmdCreator const& in);
+  static void read(::orgproto::CmdCreator const& out, proto_write_accessor<org::sem::CmdCreator> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor> {
+  static void write(::orgproto::CmdAuthor* out, org::sem::CmdAuthor const& in);
+  static void read(::orgproto::CmdAuthor const& out, proto_write_accessor<org::sem::CmdAuthor> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::CmdEmail, org::sem::CmdEmail> {
+  static void write(::orgproto::CmdEmail* out, org::sem::CmdEmail const& in);
+  static void read(::orgproto::CmdEmail const& out, proto_write_accessor<org::sem::CmdEmail> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::CmdLanguage> {
+  static void write(::orgproto::CmdLanguage* out, org::sem::CmdLanguage const& in);
+  static void read(::orgproto::CmdLanguage const& out, proto_write_accessor<org::sem::CmdLanguage> in);
 };
 
 
@@ -1020,6 +1103,20 @@ template <>
 struct org::algo::proto_serde<::orgproto::TextTarget, org::sem::TextTarget> {
   static void write(::orgproto::TextTarget* out, org::sem::TextTarget const& in);
   static void read(::orgproto::TextTarget const& out, proto_write_accessor<org::sem::TextTarget> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::ErrorSkipToken> {
+  static void write(::orgproto::ErrorSkipToken* out, org::sem::ErrorSkipToken const& in);
+  static void read(::orgproto::ErrorSkipToken const& out, proto_write_accessor<org::sem::ErrorSkipToken> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::ErrorSkipGroup> {
+  static void write(::orgproto::ErrorSkipGroup* out, org::sem::ErrorSkipGroup const& in);
+  static void read(::orgproto::ErrorSkipGroup const& out, proto_write_accessor<org::sem::ErrorSkipGroup> in);
 };
 
 

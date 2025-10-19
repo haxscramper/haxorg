@@ -217,11 +217,21 @@ void format_log_record_data(
 
     strm << prefix;
 
-    auto write_trail = [&]() {
-        if (data.metadata) { strm << " " << data.metadata->dump(-1); }
+    auto write_trail = [&](bool leading) {
+        if (data.metadata) {
+            if (!leading) {
+                strm << " ";
+                leading = false;
+            }
+            strm << data.metadata->dump(-1);
+        }
 
         if (data.file) {
-            strm << " " << fs::path{data.file}.filename().native();
+            if (!leading) {
+                strm << " ";
+                leading = false;
+            }
+            strm << fs::path{data.file}.filename().native();
             if (data.function) { strm << ":" << data.function; }
             strm << ":" << data.line;
         }
@@ -229,18 +239,16 @@ void format_log_record_data(
 
     if (data.message.contains('\n')) {
         auto split = data.message.split('\n');
-        strm << split.at(0);
-        write_trail();
-        if (split.has(1)) {
-            for (auto const& line : split.at(slice(1, 1_B))) {
-                strm << "\n";
-                strm << Str{" "}.repeated(prefix.size());
-                strm << line;
-            }
+        write_trail(true);
+        for (auto const& line : split) {
+            strm << "\n";
+            strm << Str{" "}.repeated(prefix.size());
+            strm << "  ";
+            strm << line;
         }
     } else {
         strm << data.message;
-        write_trail();
+        write_trail(false);
     }
 }
 } // namespace

@@ -12,7 +12,7 @@ std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
         result = "$#:$# (tok $#, pos $#)"
                % to_string_vec(loc->line, loc->column, pos, loc->pos);
     } else {
-        result = "(tok $#, pos $#)" % to_string_vec(pos, loc->pos);
+        result = "(tok $#)" % to_string_vec(pos);
     }
 
     return result;
@@ -75,7 +75,28 @@ struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
     }
 };
 
-OrgId OrgParser::start(OrgNodeKind kind, int line, const char* function) {
+std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
+    OrgNodeKind kind,
+    int         line,
+    const char* function) {
+    int const startingDepth = treeDepth();
+    auto      res           = group->startTree(kind);
+    if (TraceState) {
+        report(
+            Builder(
+                OrgParser::ReportKind::StartNode, nullptr, line, function)
+                .with_node(res)
+                .report);
+    }
+    auto tmp   = std::make_unique<NodeGuard>(startingDepth, this, res);
+    tmp->debug = hstd::fmt("line:{}", line);
+    return tmp;
+}
+
+void OrgParser::start_no_guard(
+    OrgNodeKind kind,
+    int         line,
+    const char* function) {
     auto res = group->startTree(kind);
     if (TraceState) {
         report(
@@ -84,20 +105,33 @@ OrgId OrgParser::start(OrgNodeKind kind, int line, const char* function) {
                 .with_node(res)
                 .report);
     }
-    return res;
 }
 
-OrgId OrgParser::end(int line, const char* function) {
+
+OrgId OrgParser::end_impl(
+    const std::string& desc,
+    int                line,
+    const char*        function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->endTree();
     if (TraceState) {
         report(Builder(
                    OrgParser::ReportKind::EndNode, nullptr, line, function)
                    .with_node(res)
+                   .with_msg(desc)
                    .report);
     }
     return res;
 }
+
+OrgParser::ParseResult OrgParser::error_end(
+    OrgNodeMono::Error const& err,
+    int                       line,
+    char const*               function) {
+    error_token(err, line, function);
+    return ParseFail{};
+}
+
 
 void OrgParser::fail(
     CR<OrgLexer> lex,
@@ -133,10 +167,17 @@ OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
 OrgId OrgParser::token(CR<OrgNode> node, int line, const char* function) {
     auto res = group->token(node);
     if (TraceState) {
+        std::string msg;
+        if (node.isMono()) {
+            if (node.getMono().isError()) {
+                msg = hstd::fmt("{}", *node.getMono().getError().box);
+            }
+        }
         report(
             Builder(
                 OrgParser::ReportKind::AddToken, nullptr, line, function)
                 .with_node(res)
+                .with_msg(msg)
                 .report);
     }
     return res;
@@ -159,39 +200,100 @@ OrgId OrgParser::token(
     return res;
 }
 
-OrgId OrgParser::error_token(
-    const std::string& message,
-    OrgLexer&          lex,
-    int                line,
-    const char*        function) {
-    OrgNodeMono mono;
-    auto        box = std::make_shared<OrgNodeMono::Error::Box>();
-    box->error      = message;
+OrgNodeMono::Error OrgParser::error_value(
+    org::sem::OrgDiagnostics::ParseError const& message,
+    OrgLexer const&                             lex,
+    int                                         line,
+    char const*                                 function) {
+    auto box = std::make_shared<OrgNodeMono::Error::Box>();
+    org::parse::OrgNodeMono::Error::Box::ParseTokenFail fail;
+    fail.err.brief          = message.brief;
+    fail.err.detail         = message.detail;
+    fail.err.parserFunction = function;
+    fail.err.parserLine     = line;
+    fail.err.errCode        = message.errCode;
+    fail.err.errName        = message.errName;
+    std::optional<OrgToken> failToken;
     if (lex.finished()) {
-        if (lex.lastToken) { box->failToken = lex.lastToken.value(); }
+        if (lex.lastToken) { failToken = lex.lastToken.value(); }
     } else {
-        box->failToken = lex.tok();
+        failToken = lex.tok();
     }
-    box->parserFunction = function;
-    box->parserLine     = line;
-    mono.data           = OrgNodeMono::Error{.box = box};
-    OrgNode error       = OrgNode{OrgNodeKind::ErrorToken, mono};
+
+    if (failToken) {
+        fail.err.loc        = org::sem::SourceLocation{};
+        fail.err.loc.column = failToken->value.col;
+        fail.err.loc.line   = failToken->value.line;
+        fail.err.tokenText  = failToken->value.text;
+        fail.err.loc.pos    = failToken->value.pos;
+        fail.err.loc.file   = currentFile;
+    }
+
+    box->data = fail;
+
+    return OrgNodeMono::Error{.box = box};
+}
+
+OrgId OrgParser::error_token(
+    const OrgNodeMono::Error& err,
+    int                       line,
+    const char*               function) {
+    OrgNodeMono mono;
+    mono.data     = err;
+    OrgNode error = OrgNode{OrgNodeKind::ErrorInfoToken, mono};
     return token(error);
 }
 
-void OrgParser::expect(
-    CR<OrgLexer>      lex,
-    CR<OrgExpectable> item,
-    int               line,
-    char const*       function) {
+OrgParser::ParseResult OrgParser::maybe_recursive_error_end(
+    ParseResult const&                          res,
+    org::sem::OrgDiagnostics::ParseError const& on_fail_message,
+    OrgLexer&                                   lex,
+    int                                         line,
+    const char*                                 function) {
+    if (res.has_value()) {
+        return res;
+    } else {
+        return error_end(on_fail_message, lex, line, function);
+    }
+}
 
-    if (!(at(lex, item))) {
+OrgParser::ParseResult OrgParser::maybe_error_end(
+    const MaybeTokenFail& err,
+    int                   line,
+    const char*           function) {
+    if (err.has_error()) {
+        return error_end(err.assume_error(), line, function);
+    } else {
+        return ParseOk{};
+    }
+}
+
+OrgParser::ParseResult OrgParser::expect(
+    CR<OrgLexer>                                           lex,
+    CR<OrgExpectable>                                      item,
+    hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message,
+    int                                                    line,
+    char const*                                            function) {
+
+    if (at(lex, item)) {
+        return ParseOk{};
+    } else {
         auto msg = fmt(
             "{}: Expected token {} {} but got '{}'",
             line,
             item,
             getLocMsg(lex),
             lex.finished() ? "<lexer-finished>" : fmt1(lex.kind()));
+
+        org::sem::OrgDiagnostics::ParseError err;
+        if (message) { err = message.value(); }
+
+        if (err.detail.empty()) {
+            err.detail = msg;
+        } else {
+            err.detail += "\n\n" + msg;
+        }
+
         if (TraceState) {
             report(
                 Builder(
@@ -200,16 +302,18 @@ void OrgParser::expect(
                     .report);
         }
 
-        throw fatalError(lex, msg, line, function);
+        return error_end(error_value(err, lex, line, function));
     }
 }
 
-OrgTokenId OrgParser::pop(
+OrgParser::LexResult OrgParser::pop(
     OrgLexer&          lex,
     Opt<OrgExpectable> tok,
     int                line,
     char const*        function) {
-    if (tok) { expect(lex, *tok, line, function); }
+    if (tok) {
+        BOOST_OUTCOME_TRY(expect(lex, *tok, std::nullopt, line, function));
+    }
     if (TraceState) {
         print(fmt("pop {}", lex.tok()), &lex, line, function);
     }
@@ -217,19 +321,23 @@ OrgTokenId OrgParser::pop(
 }
 
 
-void OrgParser::skip(
-    OrgLexer&          lex,
-    Opt<OrgExpectable> item,
-    int                line,
-    char const*        function) {
+OrgParser::ParseResult OrgParser::skip(
+    OrgLexer&                                              lex,
+    Opt<OrgExpectable>                                     item,
+    hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message,
+    int                                                    line,
+    char const*                                            function) {
 
-    if (item) { expect(lex, *item, line, function); }
+    if (item) {
+        BOOST_OUTCOME_TRY(expect(lex, *item, message, line, function));
+    }
 
     if (TraceState) {
         print(fmt("skip {}", lex.tok()), &lex, line, function);
     }
 
     lex.next();
+    return ParseOk{};
 }
 
 finally_std OrgParser::trace(

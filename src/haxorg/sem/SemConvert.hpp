@@ -104,24 +104,20 @@ struct OrgConverter : public hstd::OperationsTracer {
 
   public:
     hstd::UPtr<OrgSpec> spec;
-    hstd::Opt<int>      documentId = std::nullopt;
+    std::string         currentFile;
 
-    OrgConverter(hstd::Opt<int> documentId = std::nullopt)
-        : documentId(documentId) {
+    OrgConverter(std::string currentFile) : currentFile{currentFile} {
+        LOGIC_ASSERTION_CHECK(!currentFile.empty(), "");
         spec = getOrgSpec();
     }
 
     org::parse::OrgAdapter one(
         org::parse::OrgAdapter node,
-        OrgSpecName            name) {
-        return spec->getSingleSubnode(node, name);
-    }
+        OrgSpecName            name);
 
     hstd::Vec<org::parse::OrgAdapter> many(
         org::parse::OrgAdapter node,
-        OrgSpecName            name) {
-        return spec->getMultipleSubnode(node, name);
-    }
+        OrgSpecName            name);
 
     template <typename T>
     struct ConvResult {
@@ -176,6 +172,9 @@ struct OrgConverter : public hstd::OperationsTracer {
     ConvResult<Subtree>         convertSubtree(In);
     ConvResult<StmtList>        convertStmtList(In);
     ConvResult<Newline>         convertNewline(In);
+    ConvResult<ErrorSkipGroup>  convertErrorSkipGroup(In);
+    ConvResult<ErrorSkipToken>  convertErrorSkipToken(In);
+    ConvResult<ErrorItem>       convertErrorItem(In);
     ConvResult<Word>            convertWord(In);
     ConvResult<Space>           convertSpace(In);
     ConvResult<Paragraph>       convertParagraph(In);
@@ -197,6 +196,13 @@ struct OrgConverter : public hstd::OperationsTracer {
     ConvResult<ListItem>        convertListItem(In);
     ConvResult<CmdTblfm>        convertCmdTblfm(In);
     ConvResult<CmdCaption>      convertCmdCaption(In);
+    ConvResult<CmdCustomRaw>    convertCmdCustomRaw(In);
+    ConvResult<CmdCustomText>   convertCmdCustomText(In);
+    ConvResult<CmdCustomArgs>   convertCmdCustomArgs(In);
+    ConvResult<CmdCreator>      convertCmdCreator(In);
+    ConvResult<CmdAuthor>       convertCmdAuthor(In);
+    ConvResult<CmdEmail>        convertCmdEmail(In);
+    ConvResult<CmdLanguage>     convertCmdLanguage(In);
     ConvResult<BlockQuote>      convertBlockQuote(In);
     ConvResult<BlockComment>    convertBlockComment(In);
     ConvResult<Placeholder>     convertPlaceholder(In);
@@ -264,22 +270,39 @@ struct OrgConverter : public hstd::OperationsTracer {
     SemId<T> SemLeaf(In adapter);
 
     SemId<ErrorItem> SemErrorItem(
-        In               adapter,
-        hstd::Str const& message,
-        int              line     = __builtin_LINE(),
-        char const*      function = __builtin_FUNCTION());
-
-    SemId<ErrorGroup> SemError(
-        In               adapter,
-        hstd::Str const& message,
-        int              line     = __builtin_LINE(),
-        char const*      function = __builtin_FUNCTION());
+        In                              adapter,
+        org::sem::OrgDiagnostics const& diag,
+        int                             line     = __builtin_LINE(),
+        char const*                     function = __builtin_FUNCTION());
 
     SemId<ErrorGroup> SemError(
         In                          adapter,
         hstd::Vec<SemId<ErrorItem>> errors   = {},
         int                         line     = __builtin_LINE(),
         char const*                 function = __builtin_FUNCTION());
+
+    SemId<ErrorGroup> SemError(
+        In                              adapter,
+        org::sem::OrgDiagnostics const& err,
+        int                             line     = __builtin_LINE(),
+        char const*                     function = __builtin_FUNCTION());
+
+    org::sem::OrgDiagnostics MakeInternal(
+        std::string const& message,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE());
+
+    org::sem::OrgDiagnostics MakeConvert(
+        org::parse::OrgAdapter const&                 a,
+        org::sem::OrgDiagnostics::ConvertError const& conv,
+        hstd::Opt<hstd::Str> const& extraDetail = std::nullopt,
+        int                         line        = __builtin_LINE(),
+        char const*                 function    = __builtin_FUNCTION(),
+        char const*                 file        = __builtin_FILE());
+
+    hstd::Opt<org::sem::SourceLocation> MakeSourceLocation(
+        org::parse::OrgAdapter const& a);
 
     SemId<Org> convert(In);
 

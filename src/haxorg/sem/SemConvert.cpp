@@ -22,6 +22,106 @@
 #include <lexy/action/trace.hpp>
 #include <stack>
 
+
+namespace {
+
+hstd::IntSet<OrgNodeKind> ErrorKinds{
+    OrgNodeKind::ErrorInfoToken,
+    OrgNodeKind::ErrorSkipToken,
+    OrgNodeKind::ErrorSkipGroup};
+
+bool IsErrorInfoToken(org::parse::OrgAdapter const& a) {
+    return a.getKind() == OrgNodeKind::ErrorInfoToken;
+}
+
+
+org::sem::OrgDiagnostics::ConvertError ConvertErrorInit(
+    std::string_view   name,
+    std::string        code,
+    std::string const& brief,
+    std::string const& detail) {
+    org::sem::OrgDiagnostics::ConvertError result;
+    result.brief   = brief;
+    result.errCode = code;
+    result.errName = std::string{name};
+    result.detail  = detail;
+    return result;
+}
+
+struct ErrorTable {
+#define P_ERROR(__fieldname, __short, __long)                                                  \
+    static const inline org::sem::OrgDiagnostics::ConvertError __fieldname = ConvertErrorInit( \
+        #__fieldname,                                                                          \
+        ::org::fieldname_to_code(#__fieldname),                                                \
+        __short,                                                                               \
+        __long);
+
+    P_ERROR(
+        MissingLogHashtag,
+        "No hashtag provided for the 'tag' value",
+        "");
+    P_ERROR(
+        MissingCurrentState,
+        "No current state provided for the subtree state log "
+        "change",
+        "");
+
+    P_ERROR(
+        MissingRefileTime,
+        "No 'on' time for the refiled subtree log",
+        "");
+
+    P_ERROR(
+        OverloadedHashtagDef,
+        "Only one hashtag is allowed in definition",
+        ":hashtag_def: property can contain only one "
+        "definition, to assign multiple definitions "
+        "to the subtree use repeated `:hashtag_def:` "
+        "property blocks.");
+
+    P_ERROR(
+        UnexpectedHashtagDefNode,
+        "Hashtag definition can only contain space or hashtag nodes",
+        "");
+
+    P_ERROR(
+        UnexpectedCreatedValue,
+        "Expected timestamp for :CREATED: property",
+        "");
+
+    P_ERROR(
+        UnexpectedCookieData,
+        "Unexpected COOKIE_DATA property value.",
+        "Expected 'todo', 'recursive', 'both' or 'checkbox'.");
+
+    P_ERROR(
+        ExpectedStaticSubtreeTime,
+        "Subtree times are expected to have static time.",
+        "");
+
+    P_ERROR(
+        UnexpectedSubtreeTimeName,
+        "Accepted subtree time kinds are 'closed', "
+        "'deadline', 'scheduled'",
+        "");
+
+    P_ERROR(TimeFormatFail, "Could not parse datetime entry.", "");
+
+    P_ERROR(UnexpectedCheckboxValue, "Unexpected list item checkbox.", "");
+    P_ERROR(TableExpressionFail, "Failed to parse `#+tblfm`", "");
+    P_ERROR(
+        ColumnExpressionFail,
+        "Could not parse formatting expression for column command",
+        "");
+
+    P_ERROR(UnexpectedDocumentOption, "Unexpected document option", "");
+    P_ERROR(IncludeFailure, "Cannot resolve include", "");
+
+#undef P_ERROR
+};
+
+} // namespace
+
 template <typename T>
 org::sem::SemId<T> org::sem::OrgConverter::SemLeaf(In adapter) {
     auto res = Sem<T>(adapter);
@@ -138,7 +238,6 @@ void remove_empty_text(SemId<Org> node) {
         s.pop_back();
     }
 }
-
 } // namespace
 
 Str get_text(
@@ -361,7 +460,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 res.tag = tag->as<sem::HashTag>()->text;
             } else {
                 return SemError(
-                    a, "No hashtag provided for the 'tag' value");
+                    a, MakeConvert(a, ErrorTable::MissingLogHashtag));
             }
 
             if (auto on = time_after("on")) {
@@ -383,9 +482,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 states.to = state.value().as<sem::BigIdent>()->text;
             } else {
                 return SemError(
-                    a,
-                    "No current state provided for the subtree state log "
-                    "change");
+                    a, MakeConvert(a, ErrorTable::MissingCurrentState));
             }
             if (auto from = node_after("from", {osk::BigIdent})) {
                 states.from = from.value().as<sem::BigIdent>()->text;
@@ -416,7 +513,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 refile.on = time.value()->getStaticTime();
             } else {
                 return SemError(
-                    a, "No 'on' time for the refiled subtree log");
+                    a, MakeConvert(a, ErrorTable::MissingRefileTime));
             }
 
             if (!link.empty()) { refile.from = link.at(0)->target; }
@@ -537,42 +634,76 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
     In              a) {
     __perf_trace("convert", "convertSubtreeDrawer");
     auto __trace = trace(a);
+
+    hstd::Vec<SemId<ErrorItem>> diags;
     if (a.kind() != onk::Empty) {
         for (const auto& group : a) {
             switch (group.kind()) {
                 case onk::SubtreeDescription: {
-                    tree->description = convertParagraph(group[0]).value();
+                    auto desc = convertParagraph(group[0]);
+                    if (desc.isError()) {
+                        diags.append(desc.error()->diagnostics);
+                    } else {
+                        tree->description = desc.value();
+                    }
                     break;
                 }
 
                 case onk::DrawerLogbook: {
                     for (auto const& entry : group.at(0)) {
-                        auto log = convertSubtreeLog(entry).value();
-                        tree->logbook.push_back(log);
+                        auto log = convertSubtreeLog(entry);
+                        if (log.isError()) {
+                            diags.append(log.error()->diagnostics);
+                        } else {
+                            tree->logbook.push_back(log.value());
+                        }
                     }
                     break;
                 }
 
                 case onk::DrawerPropertyList: {
                     for (const auto& prop : group) {
-                        convertPropertyList(tree, prop);
+                        auto res = convertPropertyList(tree, prop);
+                        if (res) {
+                            diags.append(res.value()->diagnostics);
+                        }
                     }
                     break;
                 }
 
+                case onk::ErrorInfoToken: {
+                    diags.push_back(convertErrorItem(group).value());
+                    break;
+                }
+
                 default: {
+                    diags.push_back(SemErrorItem(
+                        a,
+                        MakeInternal(hstd::fmt(
+                            "Unexpected node type in the subtree drawer: "
+                            "{}",
+                            group.getKind()))));
+                    break;
                 }
             }
         }
     }
 
-    return std::nullopt;
+    if (diags.empty()) {
+        return std::nullopt;
+    } else {
+        return SemError(a, diags);
+    }
 }
 
 Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     SemId<Subtree>& tree,
     In              a) {
     __perf_trace("convert", "convertPropertyList");
+
+    if (IsErrorInfoToken(a)) {
+        return SemError(a, {convertErrorItem(a).value()});
+    }
 
     std::string basename = strip(
         get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'});
@@ -634,17 +765,15 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 } else {
                     return SemError(
                         a,
-                        fmt(":hashtag_def: property can contain only one "
-                            "definition, to assign multiple definitions "
-                            "to the subtree use repeated `:hashtag_def:` "
-                            "property blocks."));
+                        MakeConvert(a, ErrorTable::OverloadedHashtagDef));
                 }
             } else {
                 return SemError(
                     a,
-                    fmt("Hashtag definition property can only contain "
-                        "space or hashtag node, but found node of kind {}",
-                        tag->getKind()));
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedHashtagDefNode,
+                        hstd::fmt("Found {}", tag->getKind())));
             }
         }
 
@@ -661,10 +790,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         } else {
             return SemError(
                 a,
-                fmt("Could not parse property 'created' of the subtree -- "
-                    "expected time node, but found {} at {}",
-                    par0->getKind(),
-                    getLocMsg(a)));
+                MakeConvert(
+                    a,
+                    ErrorTable::UnexpectedCreatedValue,
+                    hstd::fmt(
+                        "found {} at {}", par0->getKind(), getLocMsg(a))));
         }
 
     } else if (name == "visibility") {
@@ -695,7 +825,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 p.source = SubtreeTodoSource::Checkbox;
             } else {
                 return SemError(
-                    a, fmt("Unexpected cookie data parameter: {}", arg));
+                    a,
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedCookieData,
+                        fmt("Unexpected cookie data parameter: {}", arg)));
             }
         }
 
@@ -916,8 +1050,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
             if (!time->isStatic()) {
                 return SemError(
                     a,
-                    fmt("Subtree times are expected to have static time, "
-                        "provided value is not static."));
+                    MakeConvert(a, ErrorTable::ExpectedStaticSubtreeTime));
             }
 
             if (org_streq(kind->text, "closed")) {
@@ -929,16 +1062,18 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
             } else {
                 return SemError(
                     a,
-                    fmt("Accepted subtree time kinds are 'closed', "
-                        "'deadline', 'scheduled', but the value was '{}'",
-                        kind));
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedSubtreeTimeName,
+                        fmt("The value was '{}'", kind)));
             }
         }
     }
 
     {
         auto __field = field(N::Drawer, a);
-        convertSubtreeDrawer(tree, one(a, N::Drawer));
+        auto err     = convertSubtreeDrawer(tree, one(a, N::Drawer));
+        if (err) { tree->push_back(err.value()); }
     }
 
     {
@@ -1051,10 +1186,10 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
         } else {
             return SemError(
                 a,
-                fmt("Could not parse date time entry in format: '{}' at "
-                    "'{}'",
-                    datetime,
-                    getLocMsg(a)));
+                MakeConvert(
+                    a,
+                    ErrorTable::TimeFormatFail,
+                    hstd::fmt("Format '{}'", datetime)));
         }
     }
 
@@ -1283,7 +1418,11 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
             item->checkbox = CheckboxState::Partial;
         } else {
             return SemError(
-                a, fmt("Unexpected list item checkbox {}", text));
+                a,
+                MakeConvert(
+                    a,
+                    ErrorTable::UnexpectedCheckboxValue,
+                    fmt("got value '{}'", text)));
         }
     }
 
@@ -1305,6 +1444,86 @@ OrgConverter::ConvResult<CmdCaption> OrgConverter::convertCmdCaption(
 
     return caption;
 }
+
+OrgConverter::ConvResult<CmdCreator> OrgConverter::convertCmdCreator(
+    __args) {
+    __perf_trace("convert", "convertCmdCreator");
+    auto __trace = trace(a);
+    auto creator = Sem<CmdCreator>(a);
+    if (0 < a.size()) {
+        creator->text = convertParagraph(one(a, N::Args)[0]).value();
+    }
+
+    return creator;
+}
+
+OrgConverter::ConvResult<CmdAuthor> OrgConverter::convertCmdAuthor(
+    __args) {
+    __perf_trace("convert", "convertCmdAuthor");
+    auto __trace = trace(a);
+    auto Author  = Sem<CmdAuthor>(a);
+    if (0 < a.size()) {
+        Author->text = convertParagraph(one(a, N::Args)[0]).value();
+    }
+
+    return Author;
+}
+
+OrgConverter::ConvResult<CmdEmail> OrgConverter::convertCmdEmail(__args) {
+    __perf_trace("convert", "convertCmdEmail");
+    auto __trace = trace(a);
+    auto Email   = Sem<CmdEmail>(a);
+    if (0 < a.size()) {
+        Email->text = strip_space(get_text(one(a, N::Args)));
+    }
+
+    return Email;
+}
+
+OrgConverter::ConvResult<CmdLanguage> OrgConverter::convertCmdLanguage(
+    __args) {
+    __perf_trace("convert", "convertCmdLanguage");
+    auto __trace  = trace(a);
+    auto Language = Sem<CmdLanguage>(a);
+    if (0 < a.size()) {
+        Language->text = strip_space(get_text(one(a, N::Args)));
+    }
+
+    return Language;
+}
+
+OrgConverter::ConvResult<CmdCustomRaw> OrgConverter::convertCmdCustomRaw(
+    __args) {
+    __perf_trace("convert", "convertCmdCaption");
+    auto __trace = trace(a);
+    auto cmd     = Sem<CmdCustomRaw>(a);
+    cmd->name    = get_text(one(a, N::Name));
+    if (1 < a.size()) { cmd->text = get_text(one(a, N::Args)); }
+    return cmd;
+}
+
+OrgConverter::ConvResult<CmdCustomText> OrgConverter::convertCmdCustomText(
+    __args) {
+    __perf_trace("convert", "convertCmdCaption");
+    auto __trace = trace(a);
+    auto cmd     = Sem<CmdCustomText>(a);
+    cmd->name    = get_text(one(a, N::Name));
+    if (1 < a.size()) {
+        cmd->text = convertParagraph(one(a, N::Args)).value();
+    }
+    return cmd;
+}
+
+OrgConverter::ConvResult<CmdCustomArgs> OrgConverter::convertCmdCustomArgs(
+    __args) {
+    __perf_trace("convert", "convertCmdCaption");
+    auto __trace = trace(a);
+    auto cmd     = Sem<CmdCustomArgs>(a);
+    cmd->name    = get_text(one(a, N::Name));
+    cmd->attrs   = convertAttrs(one(a, N::Args));
+    return cmd;
+}
+
 
 namespace dsl  = lexy::dsl;
 using lexy_tok = lexy::string_lexeme<>;
@@ -1703,7 +1922,9 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     } else {
         return SemError(
             a,
-            fmt("Table format expression failed\n{}",
+            MakeConvert(
+                a,
+                ErrorTable::TableExpressionFail,
                 join("\n", result.errors())));
     }
 }
@@ -1736,6 +1957,39 @@ OrgConverter::ConvResult<Escaped> OrgConverter::convertEscaped(__args) {
 OrgConverter::ConvResult<RawText> OrgConverter::convertRawText(__args) {
     return SemLeaf<RawText>(a);
 }
+
+OrgConverter::ConvResult<ErrorSkipToken> OrgConverter::
+    convertErrorSkipToken(__args) {
+    return SemLeaf<ErrorSkipToken>(a);
+}
+
+
+OrgConverter::ConvResult<ErrorSkipGroup> OrgConverter::
+    convertErrorSkipGroup(__args) {
+    auto __trace = trace(a);
+    auto result  = Sem<ErrorSkipGroup>(a);
+    for (auto const& sub : a) {
+        result->skipped.push_back(convert(sub).as<ErrorSkipToken>());
+    }
+    return result;
+}
+
+OrgConverter::ConvResult<ErrorItem> OrgConverter::convertErrorItem(
+    __args) {
+    auto __trace = trace(a);
+    auto mono    = a.getMono().getError();
+    LOGIC_ASSERTION_CHECK(
+        mono.box, "Mono error for node should have box data");
+    if (mono.box->isParseFail()) {
+        return SemErrorItem(
+            a, org::sem::OrgDiagnostics{mono.box->getParseFail().err});
+    } else {
+        return SemErrorItem(
+            a,
+            org::sem::OrgDiagnostics{mono.box->getParseTokenFail().err});
+    }
+}
+
 
 OrgConverter::ConvResult<RadioTarget> OrgConverter::convertRadioTarget(
     __args) {
@@ -2332,7 +2586,9 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
     } else {
         return SemError(
             a,
-            fmt("Column format expression failed\n{}",
+            MakeConvert(
+                a,
+                ErrorTable::ColumnExpressionFail,
                 join("\n", spec.errors())));
     }
 
@@ -2356,30 +2612,13 @@ OrgConverter::ConvResult<InlineExport> OrgConverter::convertInlineExport(
 }
 
 SemId<ErrorItem> OrgConverter::SemErrorItem(
-    In          adapter,
-    CR<Str>     message,
-    int         line,
-    const char* function) {
-    auto res      = Sem<ErrorItem>(adapter);
-    res->message  = message;
-    res->line     = line;
-    res->function = function;
-    if (TraceState) {
-        print(fmt("{} {}", message, getLocMsg(adapter)), line, function);
-    }
-    return res;
-}
-
-SemId<ErrorGroup> OrgConverter::SemError(
-    In          adapter,
-    CR<Str>     message,
-    int         line,
-    const char* function) {
-    auto res = Sem<ErrorGroup>(adapter);
-    res->diagnostics.push_back(
-        SemErrorItem(adapter, message, line, function));
-    res->line     = line;
-    res->function = function;
+    In                              adapter,
+    org::sem::OrgDiagnostics const& diag,
+    int                             line,
+    char const*                     function) {
+    auto res  = Sem<ErrorItem>(adapter);
+    res->diag = diag;
+    if (TraceState) { print(fmt("{}", diag), line, function); }
     return res;
 }
 
@@ -2390,8 +2629,16 @@ SemId<ErrorGroup> OrgConverter::SemError(
     const char*           function) {
     auto res         = Sem<ErrorGroup>(adapter);
     res->diagnostics = errors;
-    res->line        = line;
-    res->function    = function;
+    return res;
+}
+
+SemId<ErrorGroup> OrgConverter::SemError(
+    In                              adapter,
+    org::sem::OrgDiagnostics const& err,
+    int                             line,
+    const char*                     function) {
+    auto res         = Sem<ErrorGroup>(adapter);
+    res->diagnostics = {SemErrorItem(adapter, {err}, line, function)};
     return res;
 }
 
@@ -2480,7 +2727,9 @@ OrgConverter::ConvResult<CmdCall> OrgConverter::convertCmdCall(__args) {
         call->endHeaderAttrs    = convertAttrs(one(a, N::EndArgs));
         return call;
     } else {
-        return SemError(a, "TODO Convert inline call");
+        return SemError(
+            a,
+            {SemErrorItem(a, MakeInternal("TODO Convert inline call"))});
     }
 }
 
@@ -2574,7 +2823,27 @@ SemId<Org> OrgConverter::convert(__args) {
         "Invalid node encountered during conversion {}",
         a.id);
 
+    bool hasError = false;
+    for (auto const& sub : a) {
+        if (sub.isMono() && sub.getMono().isError()) { hasError = true; }
+    }
+
+    if (hasError) {
+        auto group = Sem<ErrorGroup>(a);
+        for (auto const& sub : a) {
+            if (sub.isMono() && sub.getMono().isError()) {
+                group->diagnostics.push_back(
+                    convertErrorItem(sub).value());
+            } else {
+                group->push_back(convert(sub));
+            }
+        }
+        return group;
+    }
+
     switch (a.kind()) {
+        case onk::ErrorSkipGroup: return convertErrorSkipGroup(a).unwrap();
+        case onk::ErrorSkipToken: return convertErrorSkipToken(a).unwrap();
         case onk::Newline: return convertNewline(a).unwrap();
         case onk::StmtList: return convertStmtList(a).unwrap();
         case onk::Subtree: return convertSubtree(a).unwrap();
@@ -2632,41 +2901,52 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdColumns: return convertCmdColumns(a).unwrap();
         case onk::ColonExample: return convertColonExample(a).unwrap();
         case onk::CmdCaption: return convertCmdCaption(a).unwrap();
+        case onk::CmdCreator: return convertCmdCreator(a).unwrap();
+        case onk::CmdAuthor: return convertCmdAuthor(a).unwrap();
+        case onk::CmdEmail: return convertCmdEmail(a).unwrap();
+        case onk::CmdLanguage: return convertCmdLanguage(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCmdCall(a).unwrap();
         case onk::Paragraph: return convertParagraph(a).unwrap();
+        case onk::CmdCustomRawCommand:
+            return convertCmdCustomRaw(a).unwrap();
+        case onk::CmdCustomTextCommand:
+            return convertCmdCustomText(a).unwrap();
+        case onk::CmdCustomArgsCommand:
+            return convertCmdCustomArgs(a).unwrap();
         case onk::CriticMarkStructure:
             return convertCriticMarkup(a).unwrap();
         case onk::BlockDynamicFallback:
             return convertBlockDynamicFallback(a).unwrap();
-        case onk::ErrorWrap: {
-            auto group = Sem<ErrorGroup>(a);
-            for (auto const& sub : a) {
-                if (sub.isMono() && sub.getMono().isError()) {
-                    auto mono = sub.getMono().getError();
-                    LOGIC_ASSERTION_CHECK(
-                        mono.box,
-                        "Mono error for node should have box data");
-                    group->diagnostics.push_back(SemErrorItem(
-                        sub,
-                        fmt("{} at {}:{} {}",
-                            mono.box->error,
-                            mono.box->failToken->line,
-                            mono.box->failToken->col,
-                            escape_literal(mono.box->failToken->text)),
-                        mono.box->parserLine,
-                        mono.box->parserFunction.c_str()));
-                } else {
-                    group->push_back(convert(sub));
-                }
-            }
-            return group;
-        }
         default: {
-            return SemError(a, fmt("ERR Unknown content {}", a.getKind()));
+            return SemError(
+                a,
+                MakeInternal(fmt("ERR Unknown content {}", a.getKind())));
         }
     }
 #undef CASE
+}
+
+
+parse::OrgAdapter OrgConverter::one(
+    parse::OrgAdapter node,
+    OrgSpecName       name) {
+    LOGIC_ASSERTION_CHECK(
+        !ErrorKinds.contains(node.getKind()),
+        "Attempting to index into a named field of the error info "
+        "token");
+    return spec->getSingleSubnode(node, name);
+}
+
+hstd::Vec<parse::OrgAdapter> OrgConverter::many(
+    parse::OrgAdapter node,
+    OrgSpecName       name) {
+    LOGIC_ASSERTION_CHECK(
+        !ErrorKinds.contains(node.getKind()),
+        "Attempting to index into a named field of the error info "
+        "token");
+
+    return spec->getMultipleSubnode(node, name);
 }
 
 void OrgConverter::convertDocumentOptions(
@@ -2701,7 +2981,7 @@ void OrgConverter::convertDocumentOptions(
                     opts->exportConfig.tocExport = DocumentExportConfig::
                         ExportFixed{tail.toInt()};
                 }
-            } else if (org_streq(head, "<")) {
+            } else if (org_streq(head, "inline")) {
                 opts->exportConfig.inlinetasks = parseBool(tail);
             } else if (org_streq(head, "f")) {
                 opts->exportConfig.footnotes = parseBool(tail);
@@ -2715,21 +2995,104 @@ void OrgConverter::convertDocumentOptions(
                 opts->exportConfig.emphasis = parseBool(tail);
             } else if (org_streq(head, "-")) {
                 opts->exportConfig.specialStrings = parseBool(tail);
+            } else if (org_streq(head, "'")) {
+                opts->exportConfig.smartQuotes = parseBool(tail);
+            } else if (org_streq(head, ":")) {
+                opts->exportConfig.fixedWidth = parseBool(tail);
+            } else if (org_streq(head, "<")) {
+                opts->exportConfig.timestamps = parseBool(tail);
+            } else if (org_streq(head, "\\n")) {
+                opts->exportConfig.preserveBreaks = parseBool(tail);
+            } else if (org_streq(head, "^")) {
+                opts->exportConfig.subSuperscripts = parseBool(tail);
+            } else if (org_streq(head, "expand-links")) {
+                opts->exportConfig.expandLinks = parseBool(tail);
+            } else if (org_streq(head, "creator")) {
+                opts->exportConfig.creator = parseBool(tail);
+            } else if (org_streq(head, "d")) {
+                opts->exportConfig.drawers = parseBool(tail);
+            } else if (org_streq(head, "date")) {
+                opts->exportConfig.date = parseBool(tail);
+            } else if (org_streq(head, "e")) {
+                opts->exportConfig.entities = parseBool(tail);
+            } else if (org_streq(head, "email")) {
+                opts->exportConfig.email = parseBool(tail);
+            } else if (org_streq(head, "num")) {
+                opts->exportConfig.sectionNumbers = parseBool(tail);
+            } else if (org_streq(head, "p")) {
+                opts->exportConfig.planning = parseBool(tail);
+            } else if (org_streq(head, "pri")) {
+                opts->exportConfig.priority = parseBool(tail);
+            } else if (org_streq(head, "prop")) {
+                opts->exportConfig.propertyDrawers = parseBool(tail);
+            } else if (org_streq(head, "stat")) {
+                opts->exportConfig.statisticsCookies = parseBool(tail);
+            } else if (org_streq(head, "tex")) {
+                opts->exportConfig.latex = parseBool(tail);
+            } else if (org_streq(head, "timestamp")) {
+                opts->exportConfig.timestamp = parseBool(tail);
+            } else if (org_streq(head, "title")) {
+                opts->exportConfig.title = parseBool(tail);
+            } else if (org_streq(head, "|")) {
+                opts->exportConfig.tables = parseBool(tail);
+            } else if (org_streq(head, "H")) {
+                opts->exportConfig.headlineLevels = tail.toInt();
+            } else if (org_streq(head, "arch")) {
+                if (org_streq(tail, "headline")) {
+                    opts->exportConfig.archivedTrees = DocumentExportConfig::
+                        ArchivedTrees::Headline;
+                } else if (org_streq(tail, "t")) {
+                    opts->exportConfig.archivedTrees = DocumentExportConfig::
+                        ArchivedTrees::All;
+                } else if (org_streq(tail, "nil")) {
+                    opts->exportConfig.archivedTrees = DocumentExportConfig::
+                        ArchivedTrees::Skip;
+                }
+            } else if (org_streq(head, "tags")) {
+                if (org_streq(tail, "not-in-toc")) {
+                    opts->exportConfig.tagExport = DocumentExportConfig::
+                        TagExport::NotInToc;
+                } else if (org_streq(tail, "t")) {
+                    opts->exportConfig.tagExport = DocumentExportConfig::
+                        TagExport::All;
+                } else if (org_streq(tail, "nil")) {
+                    opts->exportConfig.tagExport = DocumentExportConfig::
+                        TagExport::None;
+                }
+            } else if (org_streq(head, "tasks")) {
+                if (org_streq(tail, "nil")) {
+                    opts->exportConfig.taskFiltering = DocumentExportConfig::
+                        TaskFiltering::None;
+                } else if (org_streq(tail, "t")) {
+                    opts->exportConfig.taskFiltering = DocumentExportConfig::
+                        TaskFiltering::All;
+                } else if (org_streq(tail, "todo")) {
+                    opts->exportConfig.taskFiltering = DocumentExportConfig::
+                        TaskFiltering::Done;
+                }
             } else {
                 opts->push_back(SemError(
                     a,
-                    fmt("Unexpected document option value {}, head:'{}', "
-                        "tail:'{}'",
-                        value,
-                        head,
-                        tail)));
+                    MakeConvert(
+                        a,
+                        ErrorTable::UnexpectedDocumentOption,
+                        fmt("Value {}, "
+                            "head:'{}', "
+                            "tail:'{}'",
+                            value,
+                            head,
+                            tail))));
             }
 
         } else if (org_streq(value, ":")) {
             opts->fixedWidthSections = true;
         } else {
             opts->push_back(SemError(
-                a, fmt("Unexpected document option value {}", value)));
+                a,
+                MakeConvert(
+                    a,
+                    ErrorTable::UnexpectedDocumentOption,
+                    fmt("value {}", value))));
         }
     }
 }

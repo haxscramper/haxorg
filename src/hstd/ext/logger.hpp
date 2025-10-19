@@ -82,17 +82,6 @@ concept has_log_value_formatter = requires(const T& value) {
     } -> std::convertible_to<std::string>;
 };
 
-template <typename T>
-std::string format_single_argument(const T& value) {
-    if constexpr (has_log_value_formatter<T>) {
-        return hstd::log::log_value_formatter<T>{}.format(value);
-    } else if constexpr (hstd::StdFormattable<T>) {
-        return std::format("{}", value);
-    } else {
-        return "<type unformattable>";
-    }
-}
-
 template <typename... Args>
 using LogFormatStr = std::format_string<std::conditional_t<
     hstd::log::has_log_value_formatter<std::decay_t<Args>>,
@@ -113,7 +102,9 @@ auto format_logger_argument1(T const& arg) {
                              std::decay_t<decltype(arg)>>) {
         return arg;
     } else {
-        return std::string{"<type unformattable>"};
+        return hstd::fmt(
+            "<type unformattable '{}'>",
+            hstd::value_metadata<T>::typeName());
     }
 }
 
@@ -263,6 +254,7 @@ struct log_record {
         auto       formatted_args = std::make_tuple(
             format_logger_argument1<Args>(args)...);
         rec.line(line)
+            .file(file)
             .severity(severity)
             .category(category)
             .function(function)
@@ -286,8 +278,11 @@ struct log_record {
         log_record rec;
         auto       formatted_args = std::make_tuple(
             format_logger_argument1<Args>(args)...);
-        rec.line(line).severity(severity).function(function).message(
-            std::apply(
+        rec.line(line)
+            .file(file)
+            .severity(severity)
+            .function(function)
+            .message(std::apply(
                 [&fmt](auto&... args_ref) {
                     return std::vformat(
                         fmt.get(), std::make_format_args(args_ref...));
@@ -499,6 +494,31 @@ struct log_scoped_depth_attr {
 #    define HSLOG_DEPTH_SCOPE_ANON()                                      \
         auto BOOST_PP_CAT(__scope, __COUNTER__) = HSLOG_DEPTH_SCOPE();
 
+#    define HSLOG_DEBUG_DEPTH_SCOPE_ANON(...)                             \
+        HSLOG_DEBUG(__VA_ARGS__);                                         \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+#    define HSLOG_TRACE_DEPTH_SCOPE_ANON(...)                             \
+        HSLOG_TRACE(__VA_ARGS__);                                         \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+#    define HSLOG_INFO_DEPTH_SCOPE_ANON(...)                              \
+        HSLOG_INFO(__VA_ARGS__);                                          \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+#    define HSLOG_WARNING_DEPTH_SCOPE_ANON(...)                           \
+        HSLOG_WARNING(__VA_ARGS__);                                       \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+#    define HSLOG_ERROR_DEPTH_SCOPE_ANON(...)                             \
+        HSLOG_ERROR(__VA_ARGS__);                                         \
+        HSLOG_DEPTH_SCOPE_ANON();
+
+
+#    define HSLOG_FATAL_DEPTH_SCOPE_ANON(...)                             \
+        HSLOG_FATAL(__VA_ARGS__);                                         \
+        HSLOG_DEPTH_SCOPE_ANON();
+
 /// \brief Create a finalizer that can use a mutable generator object as a
 /// filter on the callsite.
 template <int Unique, typename Generator>
@@ -631,6 +651,37 @@ hstd::log::log_record log_associative_collection(
     return res;
 }
 
+template <hstd::DescribedRecord Rec>
+hstd::log::log_record log_described_record(
+    Rec const&  items,
+    int         line     = __builtin_LINE(),
+    char const* function = __builtin_FUNCTION(),
+    char const* file     = __builtin_FILE()) {
+    auto res = ::hstd::log::log_record{}.set_callsite(
+        line, function, file);
+    res.fmt_message("{}:", hstd::value_metadata<Rec>::typeName());
+
+    int field_name_align = 0;
+
+    hstd::for_each_field_value_with_bases(
+        items, [&](char const* fieldName, auto const& value) {
+            field_name_align = std::max<int>(
+                field_name_align, std::string_view{fieldName}.size());
+        });
+
+
+    hstd::for_each_field_value_with_bases(
+        items, [&](char const* fieldName, auto const& value) {
+            res.fmt_message(
+                "\n  {} = {}",
+                hstd::left_aligned(fieldName, field_name_align),
+                hstd::escape_literal(
+                    hstd::fmt1(format_logger_argument1(value))));
+        });
+
+    return res;
+}
+
 } // namespace hstd::log
 
 #    define __ORG_LOG_MESSAGE(_1, _2, arg) .message((arg))
@@ -674,9 +725,73 @@ hstd::log::log_record log_associative_collection(
 #    define HSLOG_ERROR(...) __ORG_LOG_IMPL(error, __VA_ARGS__)
 #    define HSLOG_FATAL(...) __ORG_LOG_IMPL(fatal, __VA_ARGS__)
 
-#    define HSLOG_FMT1(value)                                             \
-        HSLOG_DEBUG("{} = {}", #value, value);
+#    define HSLOG_DEBUG_FMT_STRINGIZE_EACH_impl(_1, _2, arg)              \
+        BOOST_PP_STRINGIZE(arg),
 
+#    define HSLOG_DEBUG_FMT_STRINGIZE_EACH(...)                           \
+        BOOST_PP_SEQ_FOR_EACH(                                            \
+            HSLOG_DEBUG_FMT_STRINGIZE_EACH_impl,                          \
+            _,                                                            \
+            BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+
+namespace hstd::log {
+template <typename... Args>
+std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
+    std::vector<std::string> argNames,
+    bool                     stack,
+    Args&&... args) {
+    std::string result;
+    auto        values = std::make_tuple(std::forward<Args>(args)...);
+
+    int names_width = 0;
+    for (auto const& n : argNames) {
+        names_width = std::max<int>(names_width, n.size());
+    }
+
+    auto format_arg = [&](int index, const auto& value) {
+        if (index > 0) {
+            if (stack) {
+                result += "\n";
+            } else {
+                result += " ";
+            }
+        }
+        result += hstd::fmt(
+            "{} = {}",
+            stack ? hstd::left_aligned(argNames.at(index), names_width)
+                  : argNames.at(index),
+            ::hstd::escape_literal(::hstd::fmt1(
+                ::hstd::log::format_logger_argument1(value))));
+    };
+
+    int index = 0;
+    std::apply(
+        [&](const auto&... vals) { ((format_arg(index++, vals)), ...); },
+        values);
+
+    return result;
+}
+} // namespace hstd::log
+
+#    define HSLOG_DEBUG_FMT_LINE_EXPR_IMPL(...)                           \
+        ::hstd::log::__HSLOG_DEBUG_FMT_EXPR_IMPL_impl(                    \
+            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)},                \
+            false,                                                        \
+            __VA_ARGS__)
+
+#    define HSLOG_DEBUG_FMT_LINE(...)                                     \
+        HSLOG_DEBUG("{}", HSLOG_DEBUG_FMT_LINE_EXPR_IMPL(__VA_ARGS__));
+
+#    define HSLOG_DEBUG_FMT_STACK_EXPR_IMPL(...)                          \
+        ::hstd::log::__HSLOG_DEBUG_FMT_EXPR_IMPL_impl(                    \
+            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)},                \
+            true,                                                         \
+            __VA_ARGS__)
+
+#    define HSLOG_DEBUG_FMT_STACK(...)                                    \
+        HSLOG_DEBUG("{}", HSLOG_DEBUG_FMT_STACK_EXPR_IMPL(__VA_ARGS__));
+
+#    define HSLOG_DEBUG_FMT1(value) HSLOG_DEBUG("{} = {}", #value, value);
 #    define HSLOG_SINK_SCOPE() ::hstd::log::log_sink_scope()
 /// \brief Create logging sink scope and clear all the current sink state
 #    define HSLOG_NOSINK_SCOPE() HSLOG_SINK_SCOPE().drop_current_sinks()

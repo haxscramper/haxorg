@@ -288,7 +288,89 @@ def d_simple_enum(name: QualType, doc: AnyDoc, *args):
     )
 
 
-def get_subtree_property_types():
+@beartype
+def get_diagnostic_types() -> List[GenTuStruct]:
+    return [
+        org_struct(
+            t_nest_shared("ParseTokenError", [t("OrgDiagnostics")]),
+            GenTuDoc(
+                "Parser errors for situations when failure can be attributed to specific token"
+            ),
+            fields=[
+                org_field(t_str(), "brief"),
+                org_field(t_str(), "detail"),
+                org_field(t_str(), "parserFunction"),
+                org_field(t_int(), "parserLine"),
+                org_field(t("OrgTokenKind"), "tokenKind"),
+                org_field(t_str(), "tokenText"),
+                org_field(t_nest_shared("SourceLocation"), "loc"),
+                org_field(t_str(), "errName"),
+                org_field(t_str(), "errCode"),
+            ],
+            nested=[GenTuPass("ParseTokenError() {}")],
+            methods=[eq_method(t_nest_shared("ParseTokenError", [t("OrgDiagnostics")]))],
+        ),
+        org_struct(
+            t_nest_shared("ParseError", [t("OrgDiagnostics")]),
+            GenTuDoc("General parser errors"),
+            fields=[
+                org_field(t_str(), "brief"),
+                org_field(t_str(), "detail"),
+                org_field(t_str(), "parserFunction"),
+                org_field(t_int(), "parserLine"),
+                org_field(t_str(), "errName"),
+                org_field(t_str(), "errCode"),
+                opt_field(t_nest_shared("SourceLocation"), "loc"),
+            ],
+            nested=[GenTuPass("ParseError() {}")],
+            methods=[eq_method(t_nest_shared("ParseError", [t("OrgDiagnostics")]))],
+        ),
+        org_struct(
+            t_nest_shared("IncludeError", [t("OrgDiagnostics")]),
+            GenTuDoc("Cannot convert parsed tree into"),
+            fields=[
+                org_field(t_str(), "brief"),
+                org_field(t_str(), "targetPath"),
+                org_field(t_str(), "workingFile"),
+            ],
+            nested=[GenTuPass("IncludeError() {}")],
+            methods=[eq_method(t_nest_shared("IncludeError", [t("OrgDiagnostics")]))],
+        ),
+        org_struct(
+            t_nest_shared("ConvertError", [t("OrgDiagnostics")]),
+            GenTuDoc("Cannot convert parsed tree into"),
+            fields=[
+                org_field(t_str(), "brief"),
+                org_field(t_str(), "detail"),
+                org_field(t_str(), "convertFunction"),
+                org_field(t_int(), "convertLine"),
+                org_field(t_str(), "convertFile"),
+                org_field(t_str(), "errName"),
+                org_field(t_str(), "errCode"),
+                opt_field(t_nest_shared("SourceLocation"), "loc"),
+            ],
+            nested=[GenTuPass("ConvertError() {}")],
+            methods=[eq_method(t_nest_shared("ConvertError", [t("OrgDiagnostics")]))],
+        ),
+        org_struct(
+            t_nest_shared("InternalError", [t("OrgDiagnostics")]),
+            GenTuDoc(
+                "Internal implementation error: should not be visible to the end-user."),
+            fields=[
+                org_field(t_str(), "message"),
+                org_field(t_str(), "function"),
+                org_field(t_int(), "line"),
+                org_field(t_str(), "file"),
+                opt_field(t_nest_shared("SourceLocation"), "loc"),
+            ],
+            nested=[GenTuPass("InternalError() {}")],
+            methods=[eq_method(t_nest_shared("InternalError", [t("OrgDiagnostics")]))],
+        ),
+    ]
+
+
+@beartype
+def get_subtree_property_types() -> List[GenTuStruct]:
     return [
         org_struct(
             t_nest_shared("Nonblocking", [t("NamedProperty")]),
@@ -540,17 +622,7 @@ def get_sem_bases():
             doc=org_doc(""),
             bases=[t_nest(t_org("Org"))],
             fields=[
-                org_field(t_str(), "message"),
-                opt_field(
-                    t_str(),
-                    "function",
-                    "Conversion function name where the error was created",
-                ),
-                opt_field(
-                    t_int(),
-                    "line",
-                    "Line number for the conversion where the error was created",
-                ),
+                org_field(t_nest_shared("OrgDiagnostics", []), "diag"),
             ],
         ),
         d_org(
@@ -559,16 +631,6 @@ def get_sem_bases():
             bases=[t_nest(t_org("Org"))],
             fields=[
                 vec_field(t_id("ErrorItem"), "diagnostics"),
-                opt_field(
-                    t_str(),
-                    "function",
-                    "Conversion function name where the error was created",
-                ),
-                opt_field(
-                    t_int(),
-                    "line",
-                    "Line number for the conversion where the error was created",
-                ),
             ],
         ),
         d_org(
@@ -759,6 +821,34 @@ def get_sem_commands():
             GenTuDoc("Caption annotation for any subsequent node"),
             bases=[t_nest(t_org("Attached"))],
             fields=[id_field("Paragraph", "text", GenTuDoc("Content description"))],
+        ),
+        d_org(
+            "CmdCreator",
+            GenTuDoc("Creator of the document"),
+            bases=[t_nest(t_org("Cmd"))],
+            fields=[id_field("Paragraph", "text", GenTuDoc("Creator name text"))],
+        ),
+        d_org(
+            "CmdAuthor",
+            GenTuDoc("Author of the document"),
+            bases=[t_nest(t_org("Cmd"))],
+            fields=[id_field("Paragraph", "text", GenTuDoc("Author name text"))],
+        ),
+        d_org(
+            "CmdEmail",
+            GenTuDoc(""),
+            bases=[t_nest(t_org("Cmd"))],
+            fields=[
+                GenTuField(t_str(), "text", GenTuDoc(""))
+            ],
+        ),
+        d_org(
+            "CmdLanguage",
+            GenTuDoc(""),
+            bases=[t_nest(t_org("Cmd"))],
+            fields=[
+                GenTuField(t_str(), "text", GenTuDoc(""))
+            ],
         ),
         d_org(
             "CmdColumns",
@@ -1134,6 +1224,19 @@ def get_sem_text():
         d_org("Placeholder", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
         d_org("BigIdent", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
         d_org("TextTarget", GenTuDoc("`<<target>>`"), bases=[t_nest(t_org("Leaf"))]),
+        d_org("ErrorSkipToken",
+              GenTuDoc("Single token skipped during error recovery"),
+              bases=[t_nest(t_org("Leaf"))]),
+        d_org(
+            "ErrorSkipGroup",
+            doc=org_doc(
+                "Group of tokens skipped in search of the next synchronization point during parse fail recovery"
+            ),
+            bases=[t_nest(t_org("Org"))],
+            fields=[
+                vec_field(t_id("ErrorSkipToken"), "skipped"),
+            ],
+        ),
         d_org(
             "Markup",
             GenTuDoc(""),
@@ -1436,6 +1539,17 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
     )
 
     return [
+        org_struct(t_nest_shared("SourceLocation"),
+                   methods=[
+                       eq_method(t_nest_shared("SourceLocation")),
+                       default_constructor_method("SourceLocation"),
+                   ],
+                   fields=[
+                       org_field(t_int(), "line", value="-1"),
+                       org_field(t_int(), "column", value="-1"),
+                       org_field(t_int(), "pos", value="-1"),
+                       opt_field(t_str(), "file"),
+                   ]),
         org_struct(
             t_nest_shared("LispCode"),
             methods=[
@@ -2553,15 +2667,63 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 eq_method(t_nest_shared("DocumentExportConfig", [])),
             ],
             fields=[
-                opt_field(t_bool(), "inlinetasks"),
-                opt_field(t_bool(), "footnotes"),
-                opt_field(t_bool(), "clock"),
-                opt_field(t_bool(), "author"),
-                opt_field(t_bool(), "emphasis"),
-                opt_field(t_bool(), "specialStrings"),
-                opt_field(t_bool(), "propertyDrawers"),
-                opt_field(t_bool(), "statisticsCookies"),
-                opt_field(t_bool(), "todoText", "Include todo keywords in export"),
+                opt_field(t_bool(), "inlinetasks",
+                          GenTuDoc("Toggle inclusion of inlinetasks")),
+                opt_field(t_bool(), "footnotes",
+                          GenTuDoc("Toggle the inclusion of footnotes")),
+                opt_field(t_bool(), "clock",
+                          GenTuDoc("Toggle inclusion of 'CLOCK' keywords")),
+                opt_field(t_bool(), "author",
+                          GenTuDoc("Toggle inclusion of author name into exported file")),
+                opt_field(t_bool(), "emphasis", GenTuDoc("Toggle emphasized text")),
+                opt_field(t_bool(), "specialStrings",
+                          GenTuDoc("Toggle conversion of special strings")),
+                opt_field(t_bool(), "propertyDrawers",
+                          GenTuDoc("Toggle inclusion of property drawers")),
+                opt_field(t_bool(), "statisticsCookies",
+                          GenTuDoc("Toggle inclusion of statistics cookies")),
+                opt_field(
+                    t_bool(), "todoText",
+                    GenTuDoc("Toggle inclusion of TODO keywords into exported text")),
+                opt_field(t_bool(), "smartQuotes", GenTuDoc("Toggle smart quotes")),
+                opt_field(t_bool(), "fixedWidth",
+                          GenTuDoc("Toggle fixed-width sections")),
+                opt_field(
+                    t_bool(), "timestamps",
+                    GenTuDoc("Toggle inclusion of time/date active/inactive stamps")),
+                opt_field(t_bool(), "preserveBreaks",
+                          GenTuDoc("Toggles whether to preserve line breaks")),
+                opt_field(t_bool(), "subSuperscripts",
+                          GenTuDoc("Toggle TeX-like syntax for sub- and superscripts")),
+                opt_field(
+                    t_bool(), "expandLinks",
+                    GenTuDoc("Toggle expansion of environment variables in file paths")),
+                opt_field(
+                    t_bool(), "creator",
+                    GenTuDoc(
+                        "Toggle inclusion of creator information in the exported file")),
+                opt_field(t_bool(), "drawers", GenTuDoc("Toggle inclusion of drawers")),
+                opt_field(t_bool(), "date",
+                          GenTuDoc("Toggle inclusion of a date into exported file")),
+                opt_field(t_bool(), "entities", GenTuDoc("Toggle inclusion of entities")),
+                opt_field(
+                    t_bool(), "email",
+                    GenTuDoc(
+                        "Toggle inclusion of the author's e-mail into exported file")),
+                opt_field(t_bool(), "sectionNumbers", GenTuDoc("Toggle section-numbers")),
+                opt_field(t_bool(), "planning",
+                          GenTuDoc("Toggle export of planning information")),
+                opt_field(t_bool(), "priority",
+                          GenTuDoc("Toggle inclusion of priority cookies")),
+                opt_field(t_bool(), "latex", GenTuDoc("Toggle LaTeX export")),
+                opt_field(
+                    t_bool(), "timestamp",
+                    GenTuDoc(
+                        "Toggle inclusion of the creation time in the exported file")),
+                opt_field(t_bool(), "title", GenTuDoc("Toggle inclusion of title")),
+                opt_field(t_bool(), "tables", GenTuDoc("Toggle inclusion of tables")),
+                opt_field(t_int(), "headlineLevels",
+                          GenTuDoc("Set the number of headline levels for export")),
                 org_field(t_nest("BrokenLinks", [t("DocumentExportConfig")]),
                           "brokenLinks",
                           value="sem::DocumentExportConfig::BrokenLinks::None"),
@@ -2569,6 +2731,13 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 org_field(t_nest("TagExport", [t("DocumentExportConfig")]),
                           "tagExport",
                           value="org::sem::DocumentExportConfig::TagExport::NotInToc"),
+                org_field(t_nest("TaskFiltering", [t("DocumentExportConfig")]),
+                          "taskFiltering",
+                          value="org::sem::DocumentExportConfig::TaskFiltering::All"),
+                org_field(
+                    t_nest("ArchivedTrees", [t("DocumentExportConfig")]),
+                    "archivedTrees",
+                    value="org::sem::DocumentExportConfig::ArchivedTrees::Headline"),
             ],
             nested=[
                 org_struct(
@@ -2587,7 +2756,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     "All",
                     efield(
                         "NotInToc",
-                        "Expot tags in subtree titles but not in the table of content",
+                        "Export tags in subtree titles but not in the table of content",
                     ),
                 ),
                 d_simple_enum(
@@ -2605,6 +2774,13 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     "Mark",
                     "Raise",
                     "Ignore",
+                ),
+                d_simple_enum(
+                    t_nest("ArchivedTrees", [t("DocumentExportConfig")]),
+                    GenTuDoc("Configure how archived trees are exported"),
+                    efield("Skip", "Skip archived trees entirely"),
+                    efield("Headline", "Export only headlines of archived trees"),
+                    efield("All", "Export archived trees with full content"),
                 ),
                 GenTuTypeGroup(
                     [
@@ -2727,6 +2903,23 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 GenTuPass("NamedProperty(Data const& data) : data(data) {}"),
             ],
         ),
+        org_struct(
+            t_nest_shared("OrgDiagnostics", []),
+            GenTuDoc(
+                "Structure to store all diagnostics data collected by the parser, sem, eval etc."
+            ),
+            methods=[
+                eq_method(t_nest_shared("OrgDiagnostics", [])),
+            ],
+            nested=[
+                GenTuPass("OrgDiagnostics() {}"),
+                GenTuTypeGroup(
+                    get_diagnostic_types(),
+                    enumName=t_nest_shared("Kind", [t("OrgDiagnostics")]),
+                    variantName=t_nest_shared("Data", [t("OrgDiagnostics")]),
+                ),
+                GenTuPass("OrgDiagnostics(Data const& data) : data(data) {}"),
+            ]),
     ]
 
 
@@ -3182,8 +3375,12 @@ def get_org_node_kind_text():
      elements like `some text (notes)` are also represented as `Word,
      Word, Markup(str: \"(\", [Word])` - e.g. structure is not fully flat.""",
         ),
-        efield("ErrorWrap"),
-        efield("ErrorToken"),
+        efield("ErrorInfoToken",
+               "Error leaf node inserted into the parse tree on failure"),
+        efield("ErrorSkipGroup",
+               "Parent node for one or more tokens skipped during error recovery"),
+        efield("ErrorSkipToken",
+               "Single token node skipped while the parser searched for recovery point"),
         efield("Italic"),
         efield("Verbatim"),
         efield("Backtick"),
@@ -3316,6 +3513,7 @@ def get_org_node_kind_commands():
             "`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.",
         ),
         efield("CmdLanguage", "`#+language:`"),
+        efield("CmdEmail", "`#+email:`"),
         efield("CmdAttr", "`#+attr_html:`, `#+attr_image` etc."),
         efield("CmdStartup", "`#+startup:`"),
         efield("CmdName", "`#+name:` - name of the associated entry"),

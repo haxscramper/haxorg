@@ -1255,7 +1255,7 @@ def test_total_representation():
 @beartype
 def get_test_node_from_text(prefix: str = "", postfix: str = "") -> org.Org:
     file = org_corpus_dir.joinpath("py_validated_all.org")
-    node = org.parseString(prefix + file.read_text() + postfix)
+    node = org.parseString(prefix + file.read_text() + postfix, "<test>")
     return node
 
 
@@ -1288,7 +1288,7 @@ def test_run_typst_exporter(cov):
         except CommandNotFound:
             pass
 
-        exp.expr(org.parseString("word"))
+        exp.expr(org.parseString("word", "<test>"))
         exp.evalParagraph(org.Paragraph())
 
         with pytest.raises(ValueError) as ex:
@@ -1296,7 +1296,7 @@ def test_run_typst_exporter(cov):
                 org.parseString("""
             - header :: body
             - mixed
-            """))
+            """, "<test>"))
 
             assert "mixed description list" in str(ex.value)
 
@@ -1306,7 +1306,7 @@ def test_run_typst_exporter(cov):
 #+begin_export typst :edit-config
 
 #+end_export
-            """))
+            """, "<test>"))
 
             assert "edit-config parameter" in str(ex.value)
 

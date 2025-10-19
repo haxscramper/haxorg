@@ -761,6 +761,26 @@ auto Formatter::toString(SemId<CmdCaption> id, CR<Context> ctx) -> Res {
     return b.line({str("#+caption: "), toString(id->text, ctx)});
 }
 
+auto Formatter::toString(SemId<CmdCreator> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str("#+creator: "), toString(id->text, ctx)});
+}
+
+auto Formatter::toString(SemId<CmdAuthor> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str("#+author: "), toString(id->text, ctx)});
+}
+
+auto Formatter::toString(SemId<CmdEmail> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str("#+email: "), str(id->text)});
+}
+
+auto Formatter::toString(SemId<CmdLanguage> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str("#+language: "), str(id->text)});
+}
+
 auto Formatter::toString(SemId<CmdColumns> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+columns: ")});
@@ -829,7 +849,26 @@ auto Formatter::toString(SemId<ErrorGroup> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<ErrorItem> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str(id->message)});
+    return b.line({str(hstd::fmt1(id->diag))});
+}
+
+auto Formatter::toString(SemId<ErrorSkipToken> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) {
+        return str("<nil>");
+    } else {
+        return str(id->text);
+    }
+}
+
+auto Formatter::toString(SemId<ErrorSkipGroup> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    Res res = b.line();
+    for (auto const& it : id->skipped) {
+        b.add_at(res, toString(it, ctx));
+    }
+    return res;
 }
 
 auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {

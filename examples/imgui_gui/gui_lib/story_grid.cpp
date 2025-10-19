@@ -29,10 +29,6 @@ using namespace hstd;
 #define CTX_MSG_ALL(...) ctx.message(__VA_ARGS__);
 
 
-#define SGR_LOG_ROOT(__cat, __severity)                                   \
-    ::hstd::log::log_builder{}.set_callsite().category(__cat).severity(   \
-        __severity)
-
 template <typename KeyValueWhatever>
 std::string fmt_key_value(KeyValueWhatever const& map) {
     std::string res;
@@ -209,7 +205,7 @@ Opt<json> story_grid_loop(
     model.ctx.setTraceFile("/tmp/story_grid_trace.log");
     for (auto const& f : file) {
         auto doc = docs.addRoot(
-            org::parseString(hstd::readFile(f.toBase())));
+            org::parseString(hstd::readFile(f.toBase()), f));
         model.documents = docs.migrate(model.documents).value();
         model.addDocument(doc);
         model.ctx.message(fmt("added file {}", f));
@@ -1126,7 +1122,6 @@ void StoryGridContext::message(
         .set_callsite(line, function, file)
         .message(value)
         .depth(activeLevel)
-        .category("story-grid")
         .severity(hstd::log::l_info)
         .source_scope({"gui", "feature", "story_grid"});
 

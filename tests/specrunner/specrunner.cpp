@@ -5,15 +5,6 @@
 using namespace org::parse;
 using namespace org::test;
 
-template <>
-struct hstd::JsonSerde<YAML::Mark> {
-    static YAML::Mark from_json(json const& j) { return YAML::Mark(); }
-};
-
-template <>
-struct hstd::JsonSerde<YAML::Node> {
-    static YAML::Node from_json(json const& j) { return toYaml(j); }
-};
 
 
 template <>
@@ -43,7 +34,7 @@ int main(int argc, char** argv) {
     auto spec = hstd::JsonSerde<ParseSpec>::from_json(
         json::parse(std::string(argv[1])));
 
-    TestResult result      = gtest_run_spec(TestParams{.spec = spec});
+    TestResult result = gtest_run_spec(TestParams{.spec = spec}, "/tmp");
     json       json_result = hstd::to_json_eval(result);
     std::cout << json_result.dump() << std::endl;
     return 0;

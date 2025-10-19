@@ -113,7 +113,7 @@ SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
     if (hadChanges(file)) {
         HSLOG_INFO(
             "load", "Loading file {}", fs::relative(file, root).native());
-        auto node = org::parseString(readFile(file));
+        auto node = org::parseString(readFile(file), file.native());
         auto root = ctx->addRoot(node);
         auto res  = ContentNode::from_node(*this, root.getRootAdapter());
         roots.push_back(root.context);

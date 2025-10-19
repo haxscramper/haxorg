@@ -3,6 +3,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/ext/error_write.hpp>
 
 namespace org {
 
@@ -38,6 +39,7 @@ struct [[refl(
     [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
+    [[refl]] hstd::Str              currentFile;
 
     hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)>
         getFragments;
@@ -45,7 +47,11 @@ struct [[refl(
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,
         (),
-        (baseTokenTracePath, tokenTracePath, parseTracePath, semTracePath),
+        (baseTokenTracePath,
+         tokenTracePath,
+         parseTracePath,
+         semTracePath,
+         currentFile),
         (),
         ());
 };
@@ -91,7 +97,9 @@ struct [[refl(
     std::shared_ptr<OrgParseParameters> const& opts);
 
 
-[[refl]] sem::SemId<sem::Org> parseString(std::string const text);
+[[refl]] sem::SemId<sem::Org> parseString(
+    std::string const  text,
+    std::string const& currentFile);
 [[refl]] sem::SemId<sem::Org> parseStringOpts(
     std::string const                          text,
     std::shared_ptr<OrgParseParameters> const& opts);
@@ -104,13 +112,15 @@ struct [[refl(
     std::string const&                                  file,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts);
 
-[[refl]] std::shared_ptr<imm::ImmAstContext>   initImmutableAstContext();
+[[refl]] std::shared_ptr<imm::ImmAstContext> initImmutableAstContext();
 
 struct OrgCodeEvalParameters {
     hstd::Func<hstd::Vec<sem::OrgCodeEvalOutput>(
         sem::OrgCodeEvalInput const&)>
                                        evalBlock;
     hstd::SPtr<hstd::OperationsTracer> debug;
+    std::string                        currentFile;
+
     bool isTraceEnabled() const { return debug && debug->TraceState; }
 
     OrgCodeEvalParameters()
@@ -122,6 +132,14 @@ struct OrgCodeEvalParameters {
 sem::SemId<sem::Org> evaluateCodeBlocks(
     sem::SemId<sem::Org>         document,
     OrgCodeEvalParameters const& conf);
+
+
+hstd::Vec<hstd::ext::Report> collectDiagnostics(
+    hstd::ext::StrCache&                  cache,
+    org::sem::SemId<org::sem::Org> const& tree);
+
+hstd::Vec<sem::SemId<sem::ErrorGroup>> collectErrorNodes(
+    org::sem::SemId<org::sem::Org> const& tree);
 
 /// \brief Remove outer wrapper containers from a node and return its
 /// single subnode.

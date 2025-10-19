@@ -19,6 +19,10 @@ export interface haxorg_wasm_module_auto {
   ImmStmtListValueRead: ImmStmtListValueReadConstructor;
   ImmEmptyValueRead: ImmEmptyValueReadConstructor;
   ImmCmdCaptionValueRead: ImmCmdCaptionValueReadConstructor;
+  ImmCmdCreatorValueRead: ImmCmdCreatorValueReadConstructor;
+  ImmCmdAuthorValueRead: ImmCmdAuthorValueReadConstructor;
+  ImmCmdEmailValueRead: ImmCmdEmailValueReadConstructor;
+  ImmCmdLanguageValueRead: ImmCmdLanguageValueReadConstructor;
   ImmCmdColumnsValueRead: ImmCmdColumnsValueReadConstructor;
   ImmCmdNameValueRead: ImmCmdNameValueReadConstructor;
   ImmCmdCustomArgsValueRead: ImmCmdCustomArgsValueReadConstructor;
@@ -43,6 +47,8 @@ export interface haxorg_wasm_module_auto {
   ImmPlaceholderValueRead: ImmPlaceholderValueReadConstructor;
   ImmBigIdentValueRead: ImmBigIdentValueReadConstructor;
   ImmTextTargetValueRead: ImmTextTargetValueReadConstructor;
+  ImmErrorSkipTokenValueRead: ImmErrorSkipTokenValueReadConstructor;
+  ImmErrorSkipGroupValueRead: ImmErrorSkipGroupValueReadConstructor;
   ImmBoldValueRead: ImmBoldValueReadConstructor;
   ImmUnderlineValueRead: ImmUnderlineValueReadConstructor;
   ImmMonospaceValueRead: ImmMonospaceValueReadConstructor;
@@ -118,6 +124,7 @@ export interface haxorg_wasm_module_auto {
   GraphMapGraph: GraphMapGraphConstructor;
   GraphMapConfig: GraphMapConfigConstructor;
   GraphMapGraphState: GraphMapGraphStateConstructor;
+  SourceLocation: SourceLocationConstructor;
   LispCode: LispCodeConstructor;
   LispCodeCall: LispCodeCallConstructor;
   LispCodeList: LispCodeListConstructor;
@@ -346,6 +353,12 @@ export interface haxorg_wasm_module_auto {
     Ignore: DocumentExportConfigBrokenLinks,
   }
   format_DocumentExportConfigBrokenLinks(value: DocumentExportConfigBrokenLinks): string;
+  DocumentExportConfigArchivedTrees: {
+    Skip: DocumentExportConfigArchivedTrees,
+    Headline: DocumentExportConfigArchivedTrees,
+    All: DocumentExportConfigArchivedTrees,
+  }
+  format_DocumentExportConfigArchivedTrees(value: DocumentExportConfigArchivedTrees): string;
   DocumentExportConfigDoExport: DocumentExportConfigDoExportConstructor;
   DocumentExportConfigExportFixed: DocumentExportConfigExportFixedConstructor;
   DocumentExportConfigTocExportKind: {
@@ -429,6 +442,20 @@ export interface haxorg_wasm_module_auto {
     CustomSubtreeFlags: NamedPropertyKind,
   }
   format_NamedPropertyKind(value: NamedPropertyKind): string;
+  OrgDiagnostics: OrgDiagnosticsConstructor;
+  OrgDiagnosticsParseTokenError: OrgDiagnosticsParseTokenErrorConstructor;
+  OrgDiagnosticsParseError: OrgDiagnosticsParseErrorConstructor;
+  OrgDiagnosticsIncludeError: OrgDiagnosticsIncludeErrorConstructor;
+  OrgDiagnosticsConvertError: OrgDiagnosticsConvertErrorConstructor;
+  OrgDiagnosticsInternalError: OrgDiagnosticsInternalErrorConstructor;
+  OrgDiagnosticsKind: {
+    ParseTokenError: OrgDiagnosticsKind,
+    ParseError: OrgDiagnosticsKind,
+    IncludeError: OrgDiagnosticsKind,
+    ConvertError: OrgDiagnosticsKind,
+    InternalError: OrgDiagnosticsKind,
+  }
+  format_OrgDiagnosticsKind(value: OrgDiagnosticsKind): string;
   None: NoneConstructor;
   ErrorItem: ErrorItemConstructor;
   ErrorGroup: ErrorGroupConstructor;
@@ -466,6 +493,7 @@ export interface haxorg_wasm_module_auto {
   Macro: MacroConstructor;
   Symbol: SymbolConstructor;
   SymbolParam: SymbolParamConstructor;
+  ErrorSkipGroup: ErrorSkipGroupConstructor;
   Markup: MarkupConstructor;
   RadioTarget: RadioTargetConstructor;
   Latex: LatexConstructor;
@@ -529,6 +557,10 @@ export interface haxorg_wasm_module_auto {
   ImmIdTAttached: ImmIdTAttachedConstructor;
   ImmIdTLeaf: ImmIdTLeafConstructor;
   ImmIdTCmdCaption: ImmIdTCmdCaptionConstructor;
+  ImmIdTCmdCreator: ImmIdTCmdCreatorConstructor;
+  ImmIdTCmdAuthor: ImmIdTCmdAuthorConstructor;
+  ImmIdTCmdEmail: ImmIdTCmdEmailConstructor;
+  ImmIdTCmdLanguage: ImmIdTCmdLanguageConstructor;
   ImmIdTCmdColumns: ImmIdTCmdColumnsConstructor;
   ImmIdTCmdName: ImmIdTCmdNameConstructor;
   ImmIdTCmdCustomArgs: ImmIdTCmdCustomArgsConstructor;
@@ -553,6 +585,8 @@ export interface haxorg_wasm_module_auto {
   ImmIdTPlaceholder: ImmIdTPlaceholderConstructor;
   ImmIdTBigIdent: ImmIdTBigIdentConstructor;
   ImmIdTTextTarget: ImmIdTTextTargetConstructor;
+  ImmIdTErrorSkipToken: ImmIdTErrorSkipTokenConstructor;
+  ImmIdTErrorSkipGroup: ImmIdTErrorSkipGroupConstructor;
   ImmIdTMarkup: ImmIdTMarkupConstructor;
   ImmIdTBold: ImmIdTBoldConstructor;
   ImmIdTUnderline: ImmIdTUnderlineConstructor;
@@ -635,6 +669,7 @@ export interface haxorg_wasm_module_auto {
   ImmMacro: ImmMacroConstructor;
   ImmSymbol: ImmSymbolConstructor;
   ImmSymbolParam: ImmSymbolParamConstructor;
+  ImmErrorSkipGroup: ImmErrorSkipGroupConstructor;
   ImmMarkup: ImmMarkupConstructor;
   ImmRadioTarget: ImmRadioTargetConstructor;
   ImmLatex: ImmLatexConstructor;
@@ -691,6 +726,10 @@ export interface haxorg_wasm_module_auto {
   ImmStmtListValue: ImmStmtListValueConstructor;
   ImmEmptyValue: ImmEmptyValueConstructor;
   ImmCmdCaptionValue: ImmCmdCaptionValueConstructor;
+  ImmCmdCreatorValue: ImmCmdCreatorValueConstructor;
+  ImmCmdAuthorValue: ImmCmdAuthorValueConstructor;
+  ImmCmdEmailValue: ImmCmdEmailValueConstructor;
+  ImmCmdLanguageValue: ImmCmdLanguageValueConstructor;
   ImmCmdColumnsValue: ImmCmdColumnsValueConstructor;
   ImmCmdNameValue: ImmCmdNameValueConstructor;
   ImmCmdCustomArgsValue: ImmCmdCustomArgsValueConstructor;
@@ -715,6 +754,8 @@ export interface haxorg_wasm_module_auto {
   ImmPlaceholderValue: ImmPlaceholderValueConstructor;
   ImmBigIdentValue: ImmBigIdentValueConstructor;
   ImmTextTargetValue: ImmTextTargetValueConstructor;
+  ImmErrorSkipTokenValue: ImmErrorSkipTokenValueConstructor;
+  ImmErrorSkipGroupValue: ImmErrorSkipGroupValueConstructor;
   ImmBoldValue: ImmBoldValueConstructor;
   ImmUnderlineValue: ImmUnderlineValueConstructor;
   ImmMonospaceValue: ImmMonospaceValueConstructor;
@@ -780,6 +821,7 @@ export interface haxorg_wasm_module_auto {
   Placeholder: PlaceholderConstructor;
   BigIdent: BigIdentConstructor;
   TextTarget: TextTargetConstructor;
+  ErrorSkipToken: ErrorSkipTokenConstructor;
   Bold: BoldConstructor;
   Underline: UnderlineConstructor;
   Monospace: MonospaceConstructor;
@@ -808,6 +850,7 @@ export interface haxorg_wasm_module_auto {
   ImmPlaceholder: ImmPlaceholderConstructor;
   ImmBigIdent: ImmBigIdentConstructor;
   ImmTextTarget: ImmTextTargetConstructor;
+  ImmErrorSkipToken: ImmErrorSkipTokenConstructor;
   ImmBold: ImmBoldConstructor;
   ImmUnderline: ImmUnderlineConstructor;
   ImmMonospace: ImmMonospaceConstructor;
@@ -824,6 +867,8 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterAttrsAPI: ImmAdapterAttrsAPIConstructor;
   ImmAdapterErrorItemAPI: ImmAdapterErrorItemAPIConstructor;
   ImmAdapterErrorGroupAPI: ImmAdapterErrorGroupAPIConstructor;
+  ImmAdapterErrorSkipGroupAPI: ImmAdapterErrorSkipGroupAPIConstructor;
+  ImmAdapterErrorSkipTokenAPI: ImmAdapterErrorSkipTokenAPIConstructor;
   ImmAdapterStmtListAPI: ImmAdapterStmtListAPIConstructor;
   ImmAdapterEmptyAPI: ImmAdapterEmptyAPIConstructor;
   ImmAdapterInlineAPI: ImmAdapterInlineAPIConstructor;
@@ -851,12 +896,20 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterDocumentGroupAPI: ImmAdapterDocumentGroupAPIConstructor;
   Block: BlockConstructor;
   LineCommand: LineCommandConstructor;
+  CmdCreator: CmdCreatorConstructor;
+  CmdAuthor: CmdAuthorConstructor;
+  CmdEmail: CmdEmailConstructor;
+  CmdLanguage: CmdLanguageConstructor;
   CmdCustomArgs: CmdCustomArgsConstructor;
   CmdTblfm: CmdTblfmConstructor;
   Cell: CellConstructor;
   Row: RowConstructor;
   ImmBlock: ImmBlockConstructor;
   ImmLineCommand: ImmLineCommandConstructor;
+  ImmCmdCreator: ImmCmdCreatorConstructor;
+  ImmCmdAuthor: ImmCmdAuthorConstructor;
+  ImmCmdEmail: ImmCmdEmailConstructor;
+  ImmCmdLanguage: ImmCmdLanguageConstructor;
   ImmCmdCustomArgs: ImmCmdCustomArgsConstructor;
   ImmCmdTblfm: ImmCmdTblfmConstructor;
   ImmCell: ImmCellConstructor;
@@ -872,6 +925,8 @@ export interface haxorg_wasm_module_auto {
   ImmNoneAdapter: ImmNoneAdapterConstructor;
   ImmErrorItemAdapter: ImmErrorItemAdapterConstructor;
   ImmErrorGroupAdapter: ImmErrorGroupAdapterConstructor;
+  ImmErrorSkipGroupAdapter: ImmErrorSkipGroupAdapterConstructor;
+  ImmErrorSkipTokenAdapter: ImmErrorSkipTokenAdapterConstructor;
   ImmStmtListAdapter: ImmStmtListAdapterConstructor;
   ImmEmptyAdapter: ImmEmptyAdapterConstructor;
   ImmAdapterHashTagAPI: ImmAdapterHashTagAPIConstructor;
@@ -940,6 +995,10 @@ export interface haxorg_wasm_module_auto {
   ImmAttached: ImmAttachedConstructor;
   ImmAdapterLineCommandAPI: ImmAdapterLineCommandAPIConstructor;
   ImmAdapterCmdCustomArgsAPI: ImmAdapterCmdCustomArgsAPIConstructor;
+  ImmAdapterCmdCreatorAPI: ImmAdapterCmdCreatorAPIConstructor;
+  ImmAdapterCmdAuthorAPI: ImmAdapterCmdAuthorAPIConstructor;
+  ImmAdapterCmdEmailAPI: ImmAdapterCmdEmailAPIConstructor;
+  ImmAdapterCmdLanguageAPI: ImmAdapterCmdLanguageAPIConstructor;
   ImmAdapterCmdTblfmAPI: ImmAdapterCmdTblfmAPIConstructor;
   ImmAdapterBlockAPI: ImmAdapterBlockAPIConstructor;
   ImmAdapterCellAPI: ImmAdapterCellAPIConstructor;
@@ -985,6 +1044,10 @@ export interface haxorg_wasm_module_auto {
   ImmCmdExport: ImmCmdExportConstructor;
   ImmAdapterAttachedAPI: ImmAdapterAttachedAPIConstructor;
   ImmCmdCustomArgsAdapter: ImmCmdCustomArgsAdapterConstructor;
+  ImmCmdCreatorAdapter: ImmCmdCreatorAdapterConstructor;
+  ImmCmdAuthorAdapter: ImmCmdAuthorAdapterConstructor;
+  ImmCmdEmailAdapter: ImmCmdEmailAdapterConstructor;
+  ImmCmdLanguageAdapter: ImmCmdLanguageAdapterConstructor;
   ImmCmdTblfmAdapter: ImmCmdTblfmAdapterConstructor;
   ImmAdapterBlockCenterAPI: ImmAdapterBlockCenterAPIConstructor;
   ImmAdapterBlockQuoteAPI: ImmAdapterBlockQuoteAPIConstructor;
@@ -1147,6 +1210,7 @@ export interface haxorg_wasm_module_auto {
     CmdCreator: OrgNodeKind,
     CmdInclude: OrgNodeKind,
     CmdLanguage: OrgNodeKind,
+    CmdEmail: OrgNodeKind,
     CmdAttr: OrgNodeKind,
     CmdStartup: OrgNodeKind,
     CmdName: OrgNodeKind,
@@ -1189,8 +1253,9 @@ export interface haxorg_wasm_module_auto {
     BlockDynamicFallback: OrgNodeKind,
     BigIdent: OrgNodeKind,
     Bold: OrgNodeKind,
-    ErrorWrap: OrgNodeKind,
-    ErrorToken: OrgNodeKind,
+    ErrorInfoToken: OrgNodeKind,
+    ErrorSkipGroup: OrgNodeKind,
+    ErrorSkipToken: OrgNodeKind,
     Italic: OrgNodeKind,
     Verbatim: OrgNodeKind,
     Backtick: OrgNodeKind,
@@ -1490,6 +1555,10 @@ export interface haxorg_wasm_module_auto {
     StmtList: OrgSemKind,
     Empty: OrgSemKind,
     CmdCaption: OrgSemKind,
+    CmdCreator: OrgSemKind,
+    CmdAuthor: OrgSemKind,
+    CmdEmail: OrgSemKind,
+    CmdLanguage: OrgSemKind,
     CmdColumns: OrgSemKind,
     CmdName: OrgSemKind,
     CmdCustomArgs: OrgSemKind,
@@ -1514,6 +1583,8 @@ export interface haxorg_wasm_module_auto {
     Placeholder: OrgSemKind,
     BigIdent: OrgSemKind,
     TextTarget: OrgSemKind,
+    ErrorSkipToken: OrgSemKind,
+    ErrorSkipGroup: OrgSemKind,
     Bold: OrgSemKind,
     Underline: OrgSemKind,
     Monospace: OrgSemKind,
@@ -1573,7 +1644,7 @@ export interface haxorg_wasm_module_auto {
   format_GraphMapLinkKind(value: GraphMapLinkKind): string;
   newSemTimeStatic(breakdown: UserTimeBreakdown, isActive: boolean): Time;
   parseFile(file: string, opts: OrgParseParameters): Org;
-  parseString(text: string): Org;
+  parseString(text: string, currentFile: string): Org;
   parseStringOpts(text: string, opts: OrgParseParameters): Org;
   parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
   parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
@@ -1685,23 +1756,23 @@ export interface ImmAstReplaceEpoch {  }
 export interface ImmNoneValueReadConstructor { new(): ImmNoneValueRead; }
 export interface ImmNoneValueRead {  }
 export interface ImmErrorItemValueReadConstructor { new(): ImmErrorItemValueRead; }
-export interface ImmErrorItemValueRead {
-  getMessage(): haxorg_wasm.ImmerBox<string>;
-  getFunction(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
-  getLine(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
-}
+export interface ImmErrorItemValueRead { getDiag(): OrgDiagnostics; }
 export interface ImmErrorGroupValueReadConstructor { new(): ImmErrorGroupValueRead; }
-export interface ImmErrorGroupValueRead {
-  getDiagnostics(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>;
-  getFunction(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>;
-  getLine(): haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>;
-}
+export interface ImmErrorGroupValueRead { getDiagnostics(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>; }
 export interface ImmStmtListValueReadConstructor { new(): ImmStmtListValueRead; }
 export interface ImmStmtListValueRead {  }
 export interface ImmEmptyValueReadConstructor { new(): ImmEmptyValueRead; }
 export interface ImmEmptyValueRead {  }
 export interface ImmCmdCaptionValueReadConstructor { new(): ImmCmdCaptionValueRead; }
 export interface ImmCmdCaptionValueRead { getText(): haxorg_wasm.ImmIdT<ImmParagraph>; }
+export interface ImmCmdCreatorValueReadConstructor { new(): ImmCmdCreatorValueRead; }
+export interface ImmCmdCreatorValueRead { getText(): haxorg_wasm.ImmIdT<ImmParagraph>; }
+export interface ImmCmdAuthorValueReadConstructor { new(): ImmCmdAuthorValueRead; }
+export interface ImmCmdAuthorValueRead { getText(): haxorg_wasm.ImmIdT<ImmParagraph>; }
+export interface ImmCmdEmailValueReadConstructor { new(): ImmCmdEmailValueRead; }
+export interface ImmCmdEmailValueRead { getText(): haxorg_wasm.ImmerBox<string>; }
+export interface ImmCmdLanguageValueReadConstructor { new(): ImmCmdLanguageValueRead; }
+export interface ImmCmdLanguageValueRead { getText(): haxorg_wasm.ImmerBox<string>; }
 export interface ImmCmdColumnsValueReadConstructor { new(): ImmCmdColumnsValueRead; }
 export interface ImmCmdColumnsValueRead { getView(): ColumnView; }
 export interface ImmCmdNameValueReadConstructor { new(): ImmCmdNameValueRead; }
@@ -1787,6 +1858,10 @@ export interface ImmBigIdentValueReadConstructor { new(): ImmBigIdentValueRead; 
 export interface ImmBigIdentValueRead {  }
 export interface ImmTextTargetValueReadConstructor { new(): ImmTextTargetValueRead; }
 export interface ImmTextTargetValueRead {  }
+export interface ImmErrorSkipTokenValueReadConstructor { new(): ImmErrorSkipTokenValueRead; }
+export interface ImmErrorSkipTokenValueRead {  }
+export interface ImmErrorSkipGroupValueReadConstructor { new(): ImmErrorSkipGroupValueRead; }
+export interface ImmErrorSkipGroupValueRead { getSkipped(): haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorSkipToken>>; }
 export interface ImmBoldValueReadConstructor { new(): ImmBoldValueRead; }
 export interface ImmBoldValueRead {  }
 export interface ImmUnderlineValueReadConstructor { new(): ImmUnderlineValueRead; }
@@ -2009,6 +2084,7 @@ export interface ImmAdapterTreeReprConf {
   maxDepth: number
   withAuxFields: boolean
   withReflFields: boolean
+  withFieldSubset: UnorderedSet<StdPair<OrgSemKind, ImmReflFieldId>>
 }
 export interface ImmAdapterVirtualBaseConstructor { new(): ImmAdapterVirtualBase; }
 export interface ImmAdapterVirtualBase {  }
@@ -2024,6 +2100,7 @@ export interface OrgParseParameters {
   tokenTracePath: haxorg_wasm.Optional<string>
   parseTracePath: haxorg_wasm.Optional<string>
   semTracePath: haxorg_wasm.Optional<string>
+  currentFile: string
 }
 export interface OrgDirectoryParseParametersConstructor { new(): OrgDirectoryParseParameters; }
 export interface OrgDirectoryParseParameters {  }
@@ -2195,6 +2272,15 @@ export interface GraphMapGraphState {
   getUnresolvedLink(node: ImmLinkAdapter, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
   graph: GraphMapGraph
   ast: ImmAstContext
+}
+export interface SourceLocationConstructor { new(): SourceLocation; }
+export interface SourceLocation {
+  __eq__(other: SourceLocation): boolean;
+  SourceLocation(): void;
+  line: number
+  column: number
+  pos: number
+  file: haxorg_wasm.Optional<string>
 }
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
@@ -2953,9 +3039,30 @@ export interface DocumentExportConfig {
   propertyDrawers: haxorg_wasm.Optional<boolean>
   statisticsCookies: haxorg_wasm.Optional<boolean>
   todoText: haxorg_wasm.Optional<boolean>
+  smartQuotes: haxorg_wasm.Optional<boolean>
+  fixedWidth: haxorg_wasm.Optional<boolean>
+  timestamps: haxorg_wasm.Optional<boolean>
+  preserveBreaks: haxorg_wasm.Optional<boolean>
+  subSuperscripts: haxorg_wasm.Optional<boolean>
+  expandLinks: haxorg_wasm.Optional<boolean>
+  creator: haxorg_wasm.Optional<boolean>
+  drawers: haxorg_wasm.Optional<boolean>
+  date: haxorg_wasm.Optional<boolean>
+  entities: haxorg_wasm.Optional<boolean>
+  email: haxorg_wasm.Optional<boolean>
+  sectionNumbers: haxorg_wasm.Optional<boolean>
+  planning: haxorg_wasm.Optional<boolean>
+  priority: haxorg_wasm.Optional<boolean>
+  latex: haxorg_wasm.Optional<boolean>
+  timestamp: haxorg_wasm.Optional<boolean>
+  title: haxorg_wasm.Optional<boolean>
+  tables: haxorg_wasm.Optional<boolean>
+  headlineLevels: haxorg_wasm.Optional<number>
   brokenLinks: DocumentExportConfigBrokenLinks
   tocExport: DocumentExportConfigTocExport
   tagExport: DocumentExportConfigTagExport
+  taskFiltering: DocumentExportConfigTaskFiltering
+  archivedTrees: DocumentExportConfigArchivedTrees
   data: DocumentExportConfigTocExport
 }
 export interface DocumentExportConfigTaskExportConstructor { new(): DocumentExportConfigTaskExport; }
@@ -2979,6 +3086,11 @@ export enum DocumentExportConfigBrokenLinks {
   Mark,
   Raise,
   Ignore,
+}
+export enum DocumentExportConfigArchivedTrees {
+  Skip,
+  Headline,
+  All,
 }
 export interface DocumentExportConfigDoExportConstructor { new(): DocumentExportConfigDoExport; }
 export interface DocumentExportConfigDoExport {
@@ -3279,21 +3391,102 @@ export enum NamedPropertyKind {
   CustomSubtreeJson,
   CustomSubtreeFlags,
 }
+export interface OrgDiagnosticsConstructor { new(): OrgDiagnostics; }
+export interface OrgDiagnostics {
+  __eq__(other: OrgDiagnostics): boolean;
+  isParseTokenError(): boolean;
+  getParseTokenErrorConst(): OrgDiagnosticsParseTokenError;
+  getParseTokenErrorMut(): OrgDiagnosticsParseTokenError;
+  isParseError(): boolean;
+  getParseErrorConst(): OrgDiagnosticsParseError;
+  getParseErrorMut(): OrgDiagnosticsParseError;
+  isIncludeError(): boolean;
+  getIncludeErrorConst(): OrgDiagnosticsIncludeError;
+  getIncludeErrorMut(): OrgDiagnosticsIncludeError;
+  isConvertError(): boolean;
+  getConvertErrorConst(): OrgDiagnosticsConvertError;
+  getConvertErrorMut(): OrgDiagnosticsConvertError;
+  isInternalError(): boolean;
+  getInternalErrorConst(): OrgDiagnosticsInternalError;
+  getInternalErrorMut(): OrgDiagnosticsInternalError;
+  getKindStatic(__input: OrgDiagnosticsData): OrgDiagnosticsKind;
+  getKind(): OrgDiagnosticsKind;
+  sub_variant_get_name(): string;
+  sub_variant_get_data(): OrgDiagnosticsData;
+  sub_variant_get_kind(): OrgDiagnosticsKind;
+  data: OrgDiagnosticsData
+}
+export interface OrgDiagnosticsParseTokenErrorConstructor { new(): OrgDiagnosticsParseTokenError; }
+export interface OrgDiagnosticsParseTokenError {
+  __eq__(other: OrgDiagnosticsParseTokenError): boolean;
+  brief: string
+  detail: string
+  parserFunction: string
+  parserLine: number
+  tokenKind: OrgTokenKind
+  tokenText: string
+  loc: SourceLocation
+  errName: string
+  errCode: string
+}
+export interface OrgDiagnosticsParseErrorConstructor { new(): OrgDiagnosticsParseError; }
+export interface OrgDiagnosticsParseError {
+  __eq__(other: OrgDiagnosticsParseError): boolean;
+  brief: string
+  detail: string
+  parserFunction: string
+  parserLine: number
+  errName: string
+  errCode: string
+  loc: haxorg_wasm.Optional<SourceLocation>
+}
+export interface OrgDiagnosticsIncludeErrorConstructor { new(): OrgDiagnosticsIncludeError; }
+export interface OrgDiagnosticsIncludeError {
+  __eq__(other: OrgDiagnosticsIncludeError): boolean;
+  brief: string
+  targetPath: string
+  workingFile: string
+}
+export interface OrgDiagnosticsConvertErrorConstructor { new(): OrgDiagnosticsConvertError; }
+export interface OrgDiagnosticsConvertError {
+  __eq__(other: OrgDiagnosticsConvertError): boolean;
+  brief: string
+  detail: string
+  convertFunction: string
+  convertLine: number
+  convertFile: string
+  errName: string
+  errCode: string
+  loc: haxorg_wasm.Optional<SourceLocation>
+}
+export interface OrgDiagnosticsInternalErrorConstructor { new(): OrgDiagnosticsInternalError; }
+export interface OrgDiagnosticsInternalError {
+  __eq__(other: OrgDiagnosticsInternalError): boolean;
+  message: string
+  function: string
+  line: number
+  file: string
+  loc: haxorg_wasm.Optional<SourceLocation>
+}
+export type OrgDiagnosticsData = haxorg_wasm.StdVariant<OrgDiagnosticsParseTokenError, OrgDiagnosticsParseError, OrgDiagnosticsIncludeError, OrgDiagnosticsConvertError, OrgDiagnosticsInternalError>;
+export enum OrgDiagnosticsKind {
+  ParseTokenError,
+  ParseError,
+  IncludeError,
+  ConvertError,
+  InternalError,
+}
 export interface NoneConstructor { new(): None; }
 export interface None { getKind(): OrgSemKind; }
 export interface ErrorItemConstructor { new(): ErrorItem; }
 export interface ErrorItem {
   getKind(): OrgSemKind;
-  message: string
-  function: haxorg_wasm.Optional<string>
-  line: haxorg_wasm.Optional<number>
+  diag: OrgDiagnostics
 }
 export interface ErrorGroupConstructor { new(): ErrorGroup; }
 export interface ErrorGroup {
   getKind(): OrgSemKind;
   diagnostics: haxorg_wasm.Vec<ErrorItem>
-  function: haxorg_wasm.Optional<string>
-  line: haxorg_wasm.Optional<number>
 }
 export interface StmtConstructor { new(): Stmt; }
 export interface Stmt {
@@ -3407,6 +3600,11 @@ export interface SymbolParamConstructor { new(): SymbolParam; }
 export interface SymbolParam {
   key: haxorg_wasm.Optional<string>
   value: string
+}
+export interface ErrorSkipGroupConstructor { new(): ErrorSkipGroup; }
+export interface ErrorSkipGroup {
+  getKind(): OrgSemKind;
+  skipped: haxorg_wasm.Vec<ErrorSkipToken>
 }
 export interface MarkupConstructor { new(): Markup; }
 export interface Markup {  }
@@ -3666,6 +3864,14 @@ export interface ImmIdTLeafConstructor { new(): ImmIdTLeaf; }
 export interface ImmIdTLeaf {  }
 export interface ImmIdTCmdCaptionConstructor { new(): ImmIdTCmdCaption; }
 export interface ImmIdTCmdCaption {  }
+export interface ImmIdTCmdCreatorConstructor { new(): ImmIdTCmdCreator; }
+export interface ImmIdTCmdCreator {  }
+export interface ImmIdTCmdAuthorConstructor { new(): ImmIdTCmdAuthor; }
+export interface ImmIdTCmdAuthor {  }
+export interface ImmIdTCmdEmailConstructor { new(): ImmIdTCmdEmail; }
+export interface ImmIdTCmdEmail {  }
+export interface ImmIdTCmdLanguageConstructor { new(): ImmIdTCmdLanguage; }
+export interface ImmIdTCmdLanguage {  }
 export interface ImmIdTCmdColumnsConstructor { new(): ImmIdTCmdColumns; }
 export interface ImmIdTCmdColumns {  }
 export interface ImmIdTCmdNameConstructor { new(): ImmIdTCmdName; }
@@ -3714,6 +3920,10 @@ export interface ImmIdTBigIdentConstructor { new(): ImmIdTBigIdent; }
 export interface ImmIdTBigIdent {  }
 export interface ImmIdTTextTargetConstructor { new(): ImmIdTTextTarget; }
 export interface ImmIdTTextTarget {  }
+export interface ImmIdTErrorSkipTokenConstructor { new(): ImmIdTErrorSkipToken; }
+export interface ImmIdTErrorSkipToken {  }
+export interface ImmIdTErrorSkipGroupConstructor { new(): ImmIdTErrorSkipGroup; }
+export interface ImmIdTErrorSkipGroup {  }
 export interface ImmIdTMarkupConstructor { new(): ImmIdTMarkup; }
 export interface ImmIdTMarkup {  }
 export interface ImmIdTBoldConstructor { new(): ImmIdTBold; }
@@ -3813,17 +4023,13 @@ export interface ImmErrorItemConstructor { new(): ImmErrorItem; }
 export interface ImmErrorItem {
   getKind(): OrgSemKind;
   __eq__(other: ImmErrorItem): boolean;
-  message: haxorg_wasm.ImmBox<string>
-  function: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
-  line: haxorg_wasm.ImmBox<haxorg_wasm.Optional<number>>
+  diag: OrgDiagnostics
 }
 export interface ImmErrorGroupConstructor { new(): ImmErrorGroup; }
 export interface ImmErrorGroup {
   getKind(): OrgSemKind;
   __eq__(other: ImmErrorGroup): boolean;
   diagnostics: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmErrorItem>>
-  function: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
-  line: haxorg_wasm.ImmBox<haxorg_wasm.Optional<number>>
 }
 export interface ImmStmtConstructor { new(): ImmStmt; }
 export interface ImmStmt {
@@ -3933,6 +4139,12 @@ export interface ImmSymbolParam {
   __eq__(other: ImmSymbolParam): boolean;
   key: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
   value: haxorg_wasm.ImmBox<string>
+}
+export interface ImmErrorSkipGroupConstructor { new(): ImmErrorSkipGroup; }
+export interface ImmErrorSkipGroup {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmErrorSkipGroup): boolean;
+  skipped: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmErrorSkipToken>>
 }
 export interface ImmMarkupConstructor { new(): ImmMarkup; }
 export interface ImmMarkup { __eq__(other: ImmMarkup): boolean; }
@@ -4190,23 +4402,23 @@ export enum ImmCmdIncludeKind {
 export interface ImmNoneValueConstructor { new(): ImmNoneValue; }
 export interface ImmNoneValue {  }
 export interface ImmErrorItemValueConstructor { new(): ImmErrorItemValue; }
-export interface ImmErrorItemValue {
-  setMessage(value: haxorg_wasm.ImmerBox<string>): void;
-  setFunction(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
-  setLine(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
-}
+export interface ImmErrorItemValue { setDiag(value: OrgDiagnostics): void; }
 export interface ImmErrorGroupValueConstructor { new(): ImmErrorGroupValue; }
-export interface ImmErrorGroupValue {
-  setDiagnostics(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>): void;
-  setFunction(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<string>>): void;
-  setLine(value: haxorg_wasm.ImmerBox<haxorg_wasm.Optional<number>>): void;
-}
+export interface ImmErrorGroupValue { setDiagnostics(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorItem>>): void; }
 export interface ImmStmtListValueConstructor { new(): ImmStmtListValue; }
 export interface ImmStmtListValue {  }
 export interface ImmEmptyValueConstructor { new(): ImmEmptyValue; }
 export interface ImmEmptyValue {  }
 export interface ImmCmdCaptionValueConstructor { new(): ImmCmdCaptionValue; }
 export interface ImmCmdCaptionValue { setText(value: haxorg_wasm.ImmIdT<ImmParagraph>): void; }
+export interface ImmCmdCreatorValueConstructor { new(): ImmCmdCreatorValue; }
+export interface ImmCmdCreatorValue { setText(value: haxorg_wasm.ImmIdT<ImmParagraph>): void; }
+export interface ImmCmdAuthorValueConstructor { new(): ImmCmdAuthorValue; }
+export interface ImmCmdAuthorValue { setText(value: haxorg_wasm.ImmIdT<ImmParagraph>): void; }
+export interface ImmCmdEmailValueConstructor { new(): ImmCmdEmailValue; }
+export interface ImmCmdEmailValue { setText(value: haxorg_wasm.ImmerBox<string>): void; }
+export interface ImmCmdLanguageValueConstructor { new(): ImmCmdLanguageValue; }
+export interface ImmCmdLanguageValue { setText(value: haxorg_wasm.ImmerBox<string>): void; }
 export interface ImmCmdColumnsValueConstructor { new(): ImmCmdColumnsValue; }
 export interface ImmCmdColumnsValue { setView(value: ColumnView): void; }
 export interface ImmCmdNameValueConstructor { new(): ImmCmdNameValue; }
@@ -4292,6 +4504,10 @@ export interface ImmBigIdentValueConstructor { new(): ImmBigIdentValue; }
 export interface ImmBigIdentValue {  }
 export interface ImmTextTargetValueConstructor { new(): ImmTextTargetValue; }
 export interface ImmTextTargetValue {  }
+export interface ImmErrorSkipTokenValueConstructor { new(): ImmErrorSkipTokenValue; }
+export interface ImmErrorSkipTokenValue {  }
+export interface ImmErrorSkipGroupValueConstructor { new(): ImmErrorSkipGroupValue; }
+export interface ImmErrorSkipGroupValue { setSkipped(value: haxorg_wasm.ImmerFlex_vector<haxorg_wasm.ImmIdT<ImmErrorSkipToken>>): void; }
 export interface ImmBoldValueConstructor { new(): ImmBoldValue; }
 export interface ImmBoldValue {  }
 export interface ImmUnderlineValueConstructor { new(): ImmUnderlineValue; }
@@ -4566,6 +4782,8 @@ export interface BigIdentConstructor { new(): BigIdent; }
 export interface BigIdent { getKind(): OrgSemKind; }
 export interface TextTargetConstructor { new(): TextTarget; }
 export interface TextTarget { getKind(): OrgSemKind; }
+export interface ErrorSkipTokenConstructor { new(): ErrorSkipToken; }
+export interface ErrorSkipToken { getKind(): OrgSemKind; }
 export interface BoldConstructor { new(): Bold; }
 export interface Bold { getKind(): OrgSemKind; }
 export interface UnderlineConstructor { new(): Underline; }
@@ -4695,6 +4913,11 @@ export interface ImmTextTarget {
   getKind(): OrgSemKind;
   __eq__(other: ImmTextTarget): boolean;
 }
+export interface ImmErrorSkipTokenConstructor { new(): ImmErrorSkipToken; }
+export interface ImmErrorSkipToken {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmErrorSkipToken): boolean;
+}
 export interface ImmBoldConstructor { new(): ImmBold; }
 export interface ImmBold {
   getKind(): OrgSemKind;
@@ -4751,6 +4974,10 @@ export interface ImmAdapterErrorItemAPIConstructor { new(): ImmAdapterErrorItemA
 export interface ImmAdapterErrorItemAPI {  }
 export interface ImmAdapterErrorGroupAPIConstructor { new(): ImmAdapterErrorGroupAPI; }
 export interface ImmAdapterErrorGroupAPI {  }
+export interface ImmAdapterErrorSkipGroupAPIConstructor { new(): ImmAdapterErrorSkipGroupAPI; }
+export interface ImmAdapterErrorSkipGroupAPI {  }
+export interface ImmAdapterErrorSkipTokenAPIConstructor { new(): ImmAdapterErrorSkipTokenAPI; }
+export interface ImmAdapterErrorSkipTokenAPI {  }
 export interface ImmAdapterStmtListAPIConstructor { new(): ImmAdapterStmtListAPI; }
 export interface ImmAdapterStmtListAPI {  }
 export interface ImmAdapterEmptyAPIConstructor { new(): ImmAdapterEmptyAPI; }
@@ -4805,6 +5032,26 @@ export interface BlockConstructor { new(): Block; }
 export interface Block {  }
 export interface LineCommandConstructor { new(): LineCommand; }
 export interface LineCommand {  }
+export interface CmdCreatorConstructor { new(): CmdCreator; }
+export interface CmdCreator {
+  getKind(): OrgSemKind;
+  text: Paragraph
+}
+export interface CmdAuthorConstructor { new(): CmdAuthor; }
+export interface CmdAuthor {
+  getKind(): OrgSemKind;
+  text: Paragraph
+}
+export interface CmdEmailConstructor { new(): CmdEmail; }
+export interface CmdEmail {
+  getKind(): OrgSemKind;
+  text: string
+}
+export interface CmdLanguageConstructor { new(): CmdLanguage; }
+export interface CmdLanguage {
+  getKind(): OrgSemKind;
+  text: string
+}
 export interface CmdCustomArgsConstructor { new(): CmdCustomArgs; }
 export interface CmdCustomArgs {
   getKind(): OrgSemKind;
@@ -4831,6 +5078,30 @@ export interface ImmBlockConstructor { new(): ImmBlock; }
 export interface ImmBlock { __eq__(other: ImmBlock): boolean; }
 export interface ImmLineCommandConstructor { new(): ImmLineCommand; }
 export interface ImmLineCommand { __eq__(other: ImmLineCommand): boolean; }
+export interface ImmCmdCreatorConstructor { new(): ImmCmdCreator; }
+export interface ImmCmdCreator {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdCreator): boolean;
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
+}
+export interface ImmCmdAuthorConstructor { new(): ImmCmdAuthor; }
+export interface ImmCmdAuthor {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdAuthor): boolean;
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
+}
+export interface ImmCmdEmailConstructor { new(): ImmCmdEmail; }
+export interface ImmCmdEmail {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdEmail): boolean;
+  text: haxorg_wasm.ImmBox<string>
+}
+export interface ImmCmdLanguageConstructor { new(): ImmCmdLanguage; }
+export interface ImmCmdLanguage {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdLanguage): boolean;
+  text: haxorg_wasm.ImmBox<string>
+}
 export interface ImmCmdCustomArgsConstructor { new(): ImmCmdCustomArgs; }
 export interface ImmCmdCustomArgs {
   getKind(): OrgSemKind;
@@ -4890,6 +5161,16 @@ export interface ImmErrorGroupAdapterConstructor { new(): ImmErrorGroupAdapter; 
 export interface ImmErrorGroupAdapter {
   ImmAdapterT(other: ImmAdapter): ImmErrorGroupAdapter;
   getValue(): ImmErrorGroupValueRead;
+}
+export interface ImmErrorSkipGroupAdapterConstructor { new(): ImmErrorSkipGroupAdapter; }
+export interface ImmErrorSkipGroupAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmErrorSkipGroupAdapter;
+  getValue(): ImmErrorSkipGroupValueRead;
+}
+export interface ImmErrorSkipTokenAdapterConstructor { new(): ImmErrorSkipTokenAdapter; }
+export interface ImmErrorSkipTokenAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmErrorSkipTokenAdapter;
+  getValue(): ImmErrorSkipTokenValueRead;
 }
 export interface ImmStmtListAdapterConstructor { new(): ImmStmtListAdapter; }
 export interface ImmStmtListAdapter {
@@ -5157,6 +5438,14 @@ export interface ImmAdapterLineCommandAPIConstructor { new(): ImmAdapterLineComm
 export interface ImmAdapterLineCommandAPI {  }
 export interface ImmAdapterCmdCustomArgsAPIConstructor { new(): ImmAdapterCmdCustomArgsAPI; }
 export interface ImmAdapterCmdCustomArgsAPI {  }
+export interface ImmAdapterCmdCreatorAPIConstructor { new(): ImmAdapterCmdCreatorAPI; }
+export interface ImmAdapterCmdCreatorAPI {  }
+export interface ImmAdapterCmdAuthorAPIConstructor { new(): ImmAdapterCmdAuthorAPI; }
+export interface ImmAdapterCmdAuthorAPI {  }
+export interface ImmAdapterCmdEmailAPIConstructor { new(): ImmAdapterCmdEmailAPI; }
+export interface ImmAdapterCmdEmailAPI {  }
+export interface ImmAdapterCmdLanguageAPIConstructor { new(): ImmAdapterCmdLanguageAPI; }
+export interface ImmAdapterCmdLanguageAPI {  }
 export interface ImmAdapterCmdTblfmAPIConstructor { new(): ImmAdapterCmdTblfmAPI; }
 export interface ImmAdapterCmdTblfmAPI {  }
 export interface ImmAdapterBlockAPIConstructor { new(): ImmAdapterBlockAPI; }
@@ -5384,6 +5673,26 @@ export interface ImmCmdCustomArgsAdapterConstructor { new(): ImmCmdCustomArgsAda
 export interface ImmCmdCustomArgsAdapter {
   ImmAdapterT(other: ImmAdapter): ImmCmdCustomArgsAdapter;
   getValue(): ImmCmdCustomArgsValueRead;
+}
+export interface ImmCmdCreatorAdapterConstructor { new(): ImmCmdCreatorAdapter; }
+export interface ImmCmdCreatorAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmCmdCreatorAdapter;
+  getValue(): ImmCmdCreatorValueRead;
+}
+export interface ImmCmdAuthorAdapterConstructor { new(): ImmCmdAuthorAdapter; }
+export interface ImmCmdAuthorAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmCmdAuthorAdapter;
+  getValue(): ImmCmdAuthorValueRead;
+}
+export interface ImmCmdEmailAdapterConstructor { new(): ImmCmdEmailAdapter; }
+export interface ImmCmdEmailAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmCmdEmailAdapter;
+  getValue(): ImmCmdEmailValueRead;
+}
+export interface ImmCmdLanguageAdapterConstructor { new(): ImmCmdLanguageAdapter; }
+export interface ImmCmdLanguageAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmCmdLanguageAdapter;
+  getValue(): ImmCmdLanguageValueRead;
 }
 export interface ImmCmdTblfmAdapterConstructor { new(): ImmCmdTblfmAdapter; }
 export interface ImmCmdTblfmAdapter {
@@ -5640,6 +5949,7 @@ export enum OrgNodeKind {
   CmdCreator,
   CmdInclude,
   CmdLanguage,
+  CmdEmail,
   CmdAttr,
   CmdStartup,
   CmdName,
@@ -5682,8 +5992,9 @@ export enum OrgNodeKind {
   BlockDynamicFallback,
   BigIdent,
   Bold,
-  ErrorWrap,
-  ErrorToken,
+  ErrorInfoToken,
+  ErrorSkipGroup,
+  ErrorSkipToken,
   Italic,
   Verbatim,
   Backtick,
@@ -5980,6 +6291,10 @@ export enum OrgSemKind {
   StmtList,
   Empty,
   CmdCaption,
+  CmdCreator,
+  CmdAuthor,
+  CmdEmail,
+  CmdLanguage,
   CmdColumns,
   CmdName,
   CmdCustomArgs,
@@ -6004,6 +6319,8 @@ export enum OrgSemKind {
   Placeholder,
   BigIdent,
   TextTarget,
+  ErrorSkipToken,
+  ErrorSkipGroup,
   Bold,
   Underline,
   Monospace,

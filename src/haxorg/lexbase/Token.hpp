@@ -80,7 +80,7 @@ struct TokenGroup {
 
     StoreT tokens;
 
-    DESC_FIELDS(StoreT, (tokens));
+    DESC_FIELDS(TokenGroup, (tokens));
 
     iterator begin() { return tokens.content.begin(); }
     iterator end() { return tokens.content.end(); }

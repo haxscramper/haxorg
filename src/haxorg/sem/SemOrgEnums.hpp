@@ -85,7 +85,12 @@
     __IMPL(NamedProperty, CustomRaw, (CustomRaw)) \
     __IMPL(NamedProperty, CustomId, (CustomId)) \
     __IMPL(NamedProperty, CustomSubtreeJson, (CustomSubtreeJson)) \
-    __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags))
+    __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags)) \
+    __IMPL(OrgDiagnostics, ParseTokenError, (ParseTokenError)) \
+    __IMPL(OrgDiagnostics, ParseError, (ParseError)) \
+    __IMPL(OrgDiagnostics, IncludeError, (IncludeError)) \
+    __IMPL(OrgDiagnostics, ConvertError, (ConvertError)) \
+    __IMPL(OrgDiagnostics, InternalError, (InternalError))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
     __IMPL(LispCode, Kind, (Kind)) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
@@ -106,11 +111,14 @@
     __IMPL(DocumentExportConfig, TagExport, (TagExport)) \
     __IMPL(DocumentExportConfig, TaskFiltering, (TaskFiltering)) \
     __IMPL(DocumentExportConfig, BrokenLinks, (BrokenLinks)) \
+    __IMPL(DocumentExportConfig, ArchivedTrees, (ArchivedTrees)) \
     __IMPL(DocumentExportConfig, TocExportKind, (TocExportKind)) \
     __IMPL(SubtreePeriod, Kind, (Kind)) \
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
-    __IMPL(NamedProperty, Kind, (Kind))
+    __IMPL(NamedProperty, Kind, (Kind)) \
+    __IMPL(OrgDiagnostics, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(SourceLocation, (SourceLocation)) \
     __IMPL(LispCode, (LispCode)) \
     __IMPL(LispCode::Call, (LispCode, Call)) \
     __IMPL(LispCode::List, (LispCode, List)) \
@@ -211,7 +219,13 @@
     __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw)) \
     __IMPL(NamedProperty::CustomId, (NamedProperty, CustomId)) \
     __IMPL(NamedProperty::CustomSubtreeJson, (NamedProperty, CustomSubtreeJson)) \
-    __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags))
+    __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags)) \
+    __IMPL(OrgDiagnostics, (OrgDiagnostics)) \
+    __IMPL(OrgDiagnostics::ParseTokenError, (OrgDiagnostics, ParseTokenError)) \
+    __IMPL(OrgDiagnostics::ParseError, (OrgDiagnostics, ParseError)) \
+    __IMPL(OrgDiagnostics::IncludeError, (OrgDiagnostics, IncludeError)) \
+    __IMPL(OrgDiagnostics::ConvertError, (OrgDiagnostics, ConvertError)) \
+    __IMPL(OrgDiagnostics::InternalError, (OrgDiagnostics, InternalError))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(Time, Repeat, (Repeat)) \
     __IMPL(Time, Static, (Static)) \
@@ -247,6 +261,10 @@
     __IMPL(Attached, (Attached)) \
     __IMPL(Leaf, (Leaf)) \
     __IMPL(CmdCaption, (CmdCaption)) \
+    __IMPL(CmdCreator, (CmdCreator)) \
+    __IMPL(CmdAuthor, (CmdAuthor)) \
+    __IMPL(CmdEmail, (CmdEmail)) \
+    __IMPL(CmdLanguage, (CmdLanguage)) \
     __IMPL(CmdColumns, (CmdColumns)) \
     __IMPL(CmdName, (CmdName)) \
     __IMPL(CmdCustomArgs, (CmdCustomArgs)) \
@@ -275,6 +293,8 @@
     __IMPL(Placeholder, (Placeholder)) \
     __IMPL(BigIdent, (BigIdent)) \
     __IMPL(TextTarget, (TextTarget)) \
+    __IMPL(ErrorSkipToken, (ErrorSkipToken)) \
+    __IMPL(ErrorSkipGroup, (ErrorSkipGroup)) \
     __IMPL(Markup, (Markup)) \
     __IMPL(Bold, (Bold)) \
     __IMPL(Underline, (Underline)) \
@@ -336,6 +356,10 @@
     __IMPL(StmtList) \
     __IMPL(Empty) \
     __IMPL(CmdCaption) \
+    __IMPL(CmdCreator) \
+    __IMPL(CmdAuthor) \
+    __IMPL(CmdEmail) \
+    __IMPL(CmdLanguage) \
     __IMPL(CmdColumns) \
     __IMPL(CmdName) \
     __IMPL(CmdCustomArgs) \
@@ -360,6 +384,8 @@
     __IMPL(Placeholder) \
     __IMPL(BigIdent) \
     __IMPL(TextTarget) \
+    __IMPL(ErrorSkipToken) \
+    __IMPL(ErrorSkipGroup) \
     __IMPL(Bold) \
     __IMPL(Underline) \
     __IMPL(Monospace) \
@@ -411,6 +437,10 @@
     __IMPL(StmtList, Org) \
     __IMPL(Empty, Org) \
     __IMPL(CmdCaption, Attached) \
+    __IMPL(CmdCreator, Cmd) \
+    __IMPL(CmdAuthor, Cmd) \
+    __IMPL(CmdEmail, Cmd) \
+    __IMPL(CmdLanguage, Cmd) \
     __IMPL(CmdColumns, Attached) \
     __IMPL(CmdName, Attached) \
     __IMPL(CmdCustomArgs, Cmd) \
@@ -435,6 +465,8 @@
     __IMPL(Placeholder, Leaf) \
     __IMPL(BigIdent, Leaf) \
     __IMPL(TextTarget, Leaf) \
+    __IMPL(ErrorSkipToken, Leaf) \
+    __IMPL(ErrorSkipGroup, Org) \
     __IMPL(Bold, Markup) \
     __IMPL(Underline, Markup) \
     __IMPL(Monospace, Markup) \
@@ -493,6 +525,10 @@
     __IMPL(Attached, LineCommand) \
     __IMPL(Leaf, Org) \
     __IMPL(CmdCaption, Attached) \
+    __IMPL(CmdCreator, Cmd) \
+    __IMPL(CmdAuthor, Cmd) \
+    __IMPL(CmdEmail, Cmd) \
+    __IMPL(CmdLanguage, Cmd) \
     __IMPL(CmdColumns, Attached) \
     __IMPL(CmdName, Attached) \
     __IMPL(CmdCustomArgs, Cmd) \
@@ -517,6 +553,8 @@
     __IMPL(Placeholder, Leaf) \
     __IMPL(BigIdent, Leaf) \
     __IMPL(TextTarget, Leaf) \
+    __IMPL(ErrorSkipToken, Leaf) \
+    __IMPL(ErrorSkipGroup, Org) \
     __IMPL(Markup, Org) \
     __IMPL(Bold, Markup) \
     __IMPL(Underline, Markup) \
@@ -568,26 +606,18 @@
     __IMPL_BASE((org::sem::Org)) \
 
 #define EACH_SEM_ORG_ErrorItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::Str), message, Message, (org::sem::ErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function, (org::sem::ErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::ErrorItem), ErrorItem) \
+    __IMPL_FIELD((org::sem::OrgDiagnostics), diag, Diag, (org::sem::ErrorItem), ErrorItem) \
 
 #define EACH_SEM_ORG_ErrorItem_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((hstd::Str), message, Message, (org::sem::ErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function, (org::sem::ErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::ErrorItem), ErrorItem) \
+    __IMPL_FIELD((org::sem::OrgDiagnostics), diag, Diag, (org::sem::ErrorItem), ErrorItem) \
 
 #define EACH_SEM_ORG_ErrorGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>), diagnostics, Diagnostics, (org::sem::ErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function, (org::sem::ErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::ErrorGroup), ErrorGroup) \
 
 #define EACH_SEM_ORG_ErrorGroup_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>), diagnostics, Diagnostics, (org::sem::ErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), function, Function, (org::sem::ErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::ErrorGroup), ErrorGroup) \
 
 #define EACH_SEM_ORG_Stmt_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Org>>), attached, Attached, (org::sem::Stmt), Stmt) \
@@ -646,6 +676,34 @@
 #define EACH_SEM_ORG_CmdCaption_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Attached)) \
     __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text, (org::sem::CmdCaption), CmdCaption) \
+
+#define EACH_SEM_ORG_CmdCreator_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text, (org::sem::CmdCreator), CmdCreator) \
+
+#define EACH_SEM_ORG_CmdCreator_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text, (org::sem::CmdCreator), CmdCreator) \
+
+#define EACH_SEM_ORG_CmdAuthor_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text, (org::sem::CmdAuthor), CmdAuthor) \
+
+#define EACH_SEM_ORG_CmdAuthor_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text, (org::sem::CmdAuthor), CmdAuthor) \
+
+#define EACH_SEM_ORG_CmdEmail_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), text, Text, (org::sem::CmdEmail), CmdEmail) \
+
+#define EACH_SEM_ORG_CmdEmail_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+    __IMPL_FIELD((hstd::Str), text, Text, (org::sem::CmdEmail), CmdEmail) \
+
+#define EACH_SEM_ORG_CmdLanguage_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), text, Text, (org::sem::CmdLanguage), CmdLanguage) \
+
+#define EACH_SEM_ORG_CmdLanguage_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Cmd)) \
+    __IMPL_FIELD((hstd::Str), text, Text, (org::sem::CmdLanguage), CmdLanguage) \
 
 #define EACH_SEM_ORG_CmdColumns_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::sem::ColumnView), view, View, (org::sem::CmdColumns), CmdColumns) \
@@ -828,6 +886,18 @@
 
 #define EACH_SEM_ORG_TextTarget_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_ErrorSkipToken_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_ErrorSkipToken_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Leaf)) \
+
+#define EACH_SEM_ORG_ErrorSkipGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>), skipped, Skipped, (org::sem::ErrorSkipGroup), ErrorSkipGroup) \
+
+#define EACH_SEM_ORG_ErrorSkipGroup_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Org)) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>), skipped, Skipped, (org::sem::ErrorSkipGroup), ErrorSkipGroup) \
 
 #define EACH_SEM_ORG_Markup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
@@ -1224,26 +1294,18 @@
     __IMPL_BASE((org::imm::ImmOrg)) \
 
 #define EACH_IMM_ORG_ImmErrorItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), message, Message, (org::imm::ImmErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), function, Function, (org::imm::ImmErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmErrorItem), ErrorItem) \
+    __IMPL_FIELD((org::sem::OrgDiagnostics), diag, Diag, (org::imm::ImmErrorItem), ErrorItem) \
 
 #define EACH_IMM_ORG_ImmErrorItem_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), message, Message, (org::imm::ImmErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), function, Function, (org::imm::ImmErrorItem), ErrorItem) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmErrorItem), ErrorItem) \
+    __IMPL_FIELD((org::sem::OrgDiagnostics), diag, Diag, (org::imm::ImmErrorItem), ErrorItem) \
 
 #define EACH_IMM_ORG_ImmErrorGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>), diagnostics, Diagnostics, (org::imm::ImmErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), function, Function, (org::imm::ImmErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmErrorGroup), ErrorGroup) \
 
 #define EACH_IMM_ORG_ImmErrorGroup_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>), diagnostics, Diagnostics, (org::imm::ImmErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), function, Function, (org::imm::ImmErrorGroup), ErrorGroup) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmErrorGroup), ErrorGroup) \
 
 #define EACH_IMM_ORG_ImmStmt_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>), attached, Attached, (org::imm::ImmStmt), Stmt) \
@@ -1302,6 +1364,34 @@
 #define EACH_IMM_ORG_ImmCmdCaption_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmAttached)) \
     __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmParagraph>), text, Text, (org::imm::ImmCmdCaption), CmdCaption) \
+
+#define EACH_IMM_ORG_ImmCmdCreator_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmParagraph>), text, Text, (org::imm::ImmCmdCreator), CmdCreator) \
+
+#define EACH_IMM_ORG_ImmCmdCreator_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmCmd)) \
+    __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmParagraph>), text, Text, (org::imm::ImmCmdCreator), CmdCreator) \
+
+#define EACH_IMM_ORG_ImmCmdAuthor_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmParagraph>), text, Text, (org::imm::ImmCmdAuthor), CmdAuthor) \
+
+#define EACH_IMM_ORG_ImmCmdAuthor_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmCmd)) \
+    __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmParagraph>), text, Text, (org::imm::ImmCmdAuthor), CmdAuthor) \
+
+#define EACH_IMM_ORG_ImmCmdEmail_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), text, Text, (org::imm::ImmCmdEmail), CmdEmail) \
+
+#define EACH_IMM_ORG_ImmCmdEmail_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmCmd)) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), text, Text, (org::imm::ImmCmdEmail), CmdEmail) \
+
+#define EACH_IMM_ORG_ImmCmdLanguage_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), text, Text, (org::imm::ImmCmdLanguage), CmdLanguage) \
+
+#define EACH_IMM_ORG_ImmCmdLanguage_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmCmd)) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), text, Text, (org::imm::ImmCmdLanguage), CmdLanguage) \
 
 #define EACH_IMM_ORG_ImmCmdColumns_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::sem::ColumnView), view, View, (org::imm::ImmCmdColumns), CmdColumns) \
@@ -1484,6 +1574,18 @@
 
 #define EACH_IMM_ORG_ImmTextTarget_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmLeaf)) \
+
+#define EACH_IMM_ORG_ImmErrorSkipToken_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_IMM_ORG_ImmErrorSkipToken_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmLeaf)) \
+
+#define EACH_IMM_ORG_ImmErrorSkipGroup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>), skipped, Skipped, (org::imm::ImmErrorSkipGroup), ErrorSkipGroup) \
+
+#define EACH_IMM_ORG_ImmErrorSkipGroup_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmOrg)) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>), skipped, Skipped, (org::imm::ImmErrorSkipGroup), ErrorSkipGroup) \
 
 #define EACH_IMM_ORG_ImmMarkup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
@@ -2041,6 +2143,8 @@ enum class OrgNodeKind : short int {
   CmdInclude,
   /// \brief `#+language:`
   CmdLanguage,
+  /// \brief `#+email:`
+  CmdEmail,
   /// \brief `#+attr_html:`, `#+attr_image` etc.
   CmdAttr,
   /// \brief `#+startup:`
@@ -2122,8 +2226,12 @@ enum class OrgNodeKind : short int {
   ///      elements like `some text (notes)` are also represented as `Word,
   ///      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
   Bold,
-  ErrorWrap,
-  ErrorToken,
+  /// \brief Error leaf node inserted into the parse tree on failure
+  ErrorInfoToken,
+  /// \brief Parent node for one or more tokens skipped during error recovery
+  ErrorSkipGroup,
+  /// \brief Single token node skipped while the parser searched for recovery point
+  ErrorSkipToken,
   Italic,
   Verbatim,
   Backtick,
@@ -2242,6 +2350,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdCreator)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdInclude)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdLanguage)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdEmail)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdAttr)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdStartup)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdName)
@@ -2284,8 +2393,9 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockDynamicFallback)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BigIdent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Bold)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorWrap)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorToken)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorInfoToken)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorSkipGroup)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorSkipToken)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Italic)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Verbatim)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Backtick)
@@ -2577,7 +2687,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgJsonKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Int)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Float)
 BOOST_DESCRIBE_ENUM_END(OrgJsonKind)
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdLanguage, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, None)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorItem)
@@ -2585,6 +2695,10 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, StmtList)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Empty)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCaption)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCreator)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdAuthor)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdEmail)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdLanguage)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdColumns)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdName)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCustomArgs)
@@ -2609,6 +2723,8 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Placeholder)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BigIdent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, TextTarget)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorSkipToken)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorSkipGroup)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Bold)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Underline)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Monospace)

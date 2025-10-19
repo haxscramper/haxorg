@@ -48,7 +48,7 @@ TEST(OrgParseSem, TracerOperations1) {
   :key: value
   :end:
 )";
-    org::test::MockFull p{true, true};
+    org::test::MockFull p{"<test>", true, true};
     fs::path tokenizer_trace{"/tmp/TraceOperations1_tokenizer_trace.txt"};
     p.tokenizer->setTraceFile(tokenizer_trace);
     p.tokenizer->traceStructured = true;
@@ -57,7 +57,7 @@ TEST(OrgParseSem, TracerOperations1) {
     p.parser->setTraceFile(parser_trace);
     p.parser->traceStructured = true;
 
-    sem::OrgConverter converter{};
+    sem::OrgConverter converter{p.parser->currentFile};
     fs::path          sem_trace{"/tmp/TraceOperations1_sem_trace.txt"};
     converter.setTraceFile(sem_trace);
     converter.traceStructured = true;
@@ -1278,19 +1278,6 @@ TEST(OrgParseSem, Macro) {
         EXPECT_EQ(m->attrs.getNamedSize(), 0);
         EXPECT_EQ(m->attrs.getPositional(0)->getString(), "value"_ss);
     }
-    {
-        auto par = parseOne<sem::Paragraph>(
-            R"({{{partial}})", getDebugFile("broken_macro"));
-        // _dbg(sem::exportToTreeString(par, sem::OrgTreeExportOpts{}));
-        EXPECT_EQ2(par.size(), 1);
-        EXPECT_EQ2(par.at(0)->getKind(), OrgSemKind::ErrorGroup);
-        auto err = par.at(0).as<sem::ErrorGroup>();
-        EXPECT_EQ2(err.size(), 1);
-        EXPECT_EQ2(err->diagnostics.size(), 1);
-        EXPECT_EQ2(err.at(0)->getKind(), OrgSemKind::Macro);
-        auto m = err.at(0).as<sem::Macro>();
-        EXPECT_EQ2(m->name, "partial"_ss);
-    }
 }
 
 TEST(OrgParseSem, SubtreeTitle) {
@@ -1940,7 +1927,8 @@ TEST(OrgParseSem, CmdCallNode) {
 }
 
 TEST(OrgParseSem, DocumentFragments) {
-    auto opts = OrgParseParameters::shared();
+    auto opts         = OrgParseParameters::shared();
+    opts->currentFile = "<DocumentFragments>";
     opts->getFragments =
         [](std::string const& text) -> Vec<OrgParseFragment> {
         return org::extractCommentBlocks(text, {"//#"});

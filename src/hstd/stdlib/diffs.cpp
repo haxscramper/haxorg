@@ -1,5 +1,7 @@
 #include "diffs.hpp"
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 
 using namespace hstd;
@@ -102,13 +104,15 @@ Vec<SeqEdit> hstd::myersDiff(
 
     if (lhsSize == 0 && rhsSize == 0) { return Vec<SeqEdit>{}; }
 
-    Vec<Pair<int, Vec<SeqEdit>>> front(lhsSize + rhsSize + 3);
+    int                          maxD = lhsSize + rhsSize;
+    Vec<Pair<int, Vec<SeqEdit>>> front(2 * maxD + 1);
 
-    front.at(1 + lhsSize + rhsSize).first = 0;
+    int offset             = maxD;
+    front.at(offset).first = 0;
 
-    for (int fullIdx = 0; fullIdx <= lhsSize + rhsSize; fullIdx++) {
+    for (int fullIdx = 0; fullIdx <= maxD; fullIdx++) {
         for (int backIdx = -fullIdx; backIdx <= fullIdx; backIdx += 2) {
-            int frontIndex = backIdx + lhsSize + rhsSize;
+            int frontIndex = backIdx + offset;
 
             bool goDown
                 = (backIdx == -fullIdx
@@ -388,9 +392,33 @@ bool hstd::hasInvisibleChanges(
     return false;
 }
 
+int FormattedDiff::maxLineNumber() const {
+    int result = 0;
+    if (isUnified()) {
+        for (const auto& it : unified().lhs) {
+            if (it.lineIndex.has_value()) {
+                result = std::max(result, it.lineIndex.value());
+            }
+        }
+        for (const auto& it : unified().rhs) {
+            if (it.lineIndex.has_value()) {
+                result = std::max(result, it.lineIndex.value());
+            }
+        }
+    } else {
+        for (const auto& it : stacked().elements) {
+            if (it.lineIndex.has_value()) {
+                result = std::max(result, it.lineIndex.value());
+            }
+        }
+    }
+    return result;
+}
+
 hstd::FormattedDiff::FormattedDiff(
     const ShiftedDiff& shifted,
-    DiffFormatConf     conf) {
+    const Conf&        conf)
+    : conf{conf} {
     Vec<BufItem> oldText, newText;
 
     using sek     = SeqEditKind;
@@ -429,9 +457,10 @@ hstd::FormattedDiff::FormattedDiff(
 }
 
 hstd::FormattedDiff::FormattedDiff(
-    const Vec<BufItem>&   oldText,
-    const Vec<BufItem>&   newText,
-    const DiffFormatConf& conf) {
+    const Vec<BufItem>& oldText,
+    const Vec<BufItem>& newText,
+    const Conf&         conf)
+    : conf{conf} {
     bool first = true;
 
     if (conf.groupLine) {
@@ -527,6 +556,114 @@ hstd::FormattedDiff::FormattedDiff(
             }
         }
     }
+}
+
+ColText FormattedDiff::format() {
+    ColStream os;
+    if (isUnified()) {
+        Vec<Pair<FormattedDiff::DiffLine, FormattedDiff::DiffLine>> lines;
+        Vec<Pair<ColText, ColText>> formattedLines;
+        for (auto const& pair : unifiedLines()) {
+            lines.push_back(pair);
+            auto lhsLine = conf.formatLine(pair.first);
+            auto rhsLine = conf.formatLine(pair.second);
+            if (conf.maxLhsSize) {
+                lhsLine = lhsLine.at(slice(
+                    0, std::min(lhsLine.size(), conf.maxLhsSize.value())));
+            }
+
+            if (conf.maxRhsSize) {
+                rhsLine = rhsLine.at(slice(
+                    0, std::min(rhsLine.size(), conf.maxRhsSize.value())));
+            }
+
+            formattedLines.push_back({lhsLine, rhsLine});
+        }
+
+        int lhsSize = std::max(
+            conf.minLhsSize.value_or(0),
+            rs::max(
+                formattedLines
+                | rv::transform([](Pair<ColText, ColText> const& elem) {
+                      return elem.first.size();
+                  })));
+
+        int rhsSize = std::max(
+            conf.minRhsSize.value_or(0),
+            rs::max(
+                formattedLines
+                | rv::transform([](Pair<ColText, ColText> const& elem) {
+                      return elem.second.size();
+                  })));
+
+        int const linePrefixSize = 2;
+
+        ColText splitSeparator{" "_ss};
+
+        os << (ColText{""} <<= linePrefixSize) //
+           << (ColText("Given") <<= lhsSize)   //
+           << splitSeparator                   //
+           << (ColText{""} <<= linePrefixSize) //
+           << (ColText("Expected"))            //
+           << "\n";
+
+
+        if (lines.empty()) {
+            os << "No diff content to compare\n";
+            return os;
+        }
+
+        Slice<int> range = slice(0, lines.size() - 1);
+        if (conf.dropLeadingKeep) {
+            for (int i = 0; i <= range.last; ++i) {
+                if (lines[i].first.prefix == SeqEditKind::Keep
+                    && lines[i].second.prefix == SeqEditKind::Keep) {
+                    range.first = i;
+                } else {
+                    // two lines of context before diff
+                    range.first = std::max(0, i - 1);
+                    break;
+                }
+            }
+        }
+
+        if (conf.dropTrailingKeep) {
+            for (int i = range.last; range.first < i; --i) {
+                if (lines[i].first.prefix == SeqEditKind::Keep
+                    && lines[i].second.prefix == SeqEditKind::Keep) {
+                    range.last = i;
+                } else {
+                    range.last = std::min(lines.high(), i + 1);
+                    break;
+                }
+            }
+        }
+
+        for (const auto& i : range) {
+            auto const& lhs = lines[i].first;
+            auto const& rhs = lines[i].second;
+
+            auto lhsStyle = toStyle(lhs.prefix);
+            auto rhsStyle = toStyle(rhs.prefix);
+
+            os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= linePrefixSize)
+               << ((lhs.empty() ? ColText("")
+                                : formattedLines.at(lhs.index().value())
+                                      .first.withStyle(lhsStyle))
+                   <<= lhsSize)
+               << splitSeparator //
+               << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= linePrefixSize)
+               << ((rhs.empty() ? ColText("")
+                                : formattedLines.at(rhs.index().value())
+                                      .second.withStyle(rhsStyle))
+                   <<= rhsSize)
+               << "\n";
+        }
+    } else {
+        logic_todo_impl();
+    }
+
+    return os;
 }
 
 hstd::ColText formatInlineDiff(

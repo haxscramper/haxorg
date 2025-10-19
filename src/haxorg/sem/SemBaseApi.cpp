@@ -192,17 +192,21 @@ void org::exportToTreeFile(
 sem::SemId<sem::Org> org::parseFile(
     std::string                                file,
     std::shared_ptr<OrgParseParameters> const& opts) {
+    opts->currentFile = file;
     return parseStringOpts(readFile(fs::path{file}), opts);
 }
 
-sem::SemId<sem::Org> org::parseString(std::string text) {
-    return parseStringOpts(text, OrgParseParameters::shared());
+sem::SemId<sem::Org> org::parseString(
+    std::string        text,
+    const std::string& currentFile) {
+    auto opts         = OrgParseParameters::shared();
+    opts->currentFile = currentFile;
+    return parseStringOpts(text, opts);
 }
 
 sem::SemId<sem::Org> org::parseStringOpts(
     const std::string                          text,
     const std::shared_ptr<OrgParseParameters>& opts) {
-
 
     if (opts->getFragments) {
         auto                          fragments = opts->getFragments(text);
@@ -254,7 +258,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
             org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{
                 &tokens.at(i)};
 
-            org::parse::OrgParser parser{&nodes.at(i)};
+            org::parse::OrgParser parser{&nodes.at(i), opts->currentFile};
             if (opts->parseTracePath) {
                 parser.setTraceFile(*opts->parseTracePath, false);
                 parser.traceColored = false;
@@ -272,7 +276,7 @@ sem::SemId<sem::Org> org::parseStringOpts(
             });
         }
 
-        sem::OrgConverter converter{};
+        sem::OrgConverter converter{opts->currentFile};
         if (opts->semTracePath) {
             converter.setTraceFile(*opts->semTracePath);
             converter.traceColored = false;
@@ -305,14 +309,14 @@ sem::SemId<sem::Org> org::parseStringOpts(
         org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
 
         org::parse::OrgNodeGroup nodes{&tokens};
-        org::parse::OrgParser    parser{&nodes};
+        org::parse::OrgParser    parser{&nodes, opts->currentFile};
         if (opts->parseTracePath) {
             parser.setTraceFile(*opts->parseTracePath);
             parser.traceColored = false;
         }
 
         auto              id = parser.parseFull(lex);
-        sem::OrgConverter converter{};
+        sem::OrgConverter converter{opts->currentFile};
         if (opts->semTracePath) {
             converter.setTraceFile(*opts->semTracePath);
             converter.traceColored = false;
@@ -512,12 +516,13 @@ void postProcessInclude(
             }
         }
     } else {
-        auto group     = sem::SemId<sem::ErrorGroup>::New();
-        auto error     = sem::SemId<sem::ErrorItem>::New();
-        error->message = fmt(
-            "Could not resolve include target '{}' from working file '{}'",
-            incl->path,
-            filePath);
+        auto group = sem::SemId<sem::ErrorGroup>::New();
+        auto error = sem::SemId<sem::ErrorItem>::New();
+        org::sem::OrgDiagnostics::IncludeError inc{};
+        inc.brief       = "Could not resolve include target";
+        inc.targetPath  = inc.brief;
+        inc.workingFile = filePath.native();
+        error->diag     = org::sem::OrgDiagnostics{inc};
         arg->push_back(error);
     }
 }
@@ -918,7 +923,7 @@ void org::setDescriptionListItemBody(
     Vec<sem::SemId<Org>> value) {
     int idx = getListHeaderIndex(list, text);
     if (idx == -1) {
-        auto key = parseString(text);
+        auto key = parseString(text, "<description-list-item-assign>");
         auto par = asOneNode(key);
         insertDescriptionListItem(
             list, list.size(), par.as<sem::Paragraph>(), value);
@@ -1208,6 +1213,13 @@ struct EvalContext {
     imm::ImmAstVersion           version;
     Vec<imm::ImmAstVersion>      history;
     UnorderedMap<Str, json>      namedResults;
+    UnorderedMap<Str, Str>       evalResults;
+    /// \brief Original name that is currently being evaluated.
+    hstd::Str currentFile;
+    /// \brief Count number of evaluations in the context in order to
+    /// assign unique names to the source file names for evaluation result
+    /// parsing.
+    int evalCounter = 0;
 
     imm::ImmAstContext::Ptr getContext() const { return version.context; }
     hstd::SPtr<imm::ImmAstTrackingMap> getTrack() const {
@@ -1369,12 +1381,15 @@ struct EvalContext {
         const OrgCodeEvalParameters&  conf) {
         EVAL_SCOPE();
         EVAL_TRACE(fmt("Parsing stdout"));
-        auto doc  = org::parseString(out.stdoutText);
+        std::string activeName = hstd::fmt(
+            "{}-output-{}", currentFile, evalCounter);
+        auto doc  = org::parseString(out.stdoutText, activeName);
         auto stmt = sem::SemId<sem::StmtList>::New();
         for (auto const& node : doc) {
             EVAL_TRACE(fmt("Result node {}", node->getKind()));
             stmt->subnodes.push_back(node);
         }
+        ++evalCounter;
         return stmt;
     }
 
@@ -1730,4 +1745,107 @@ std::vector<std::string> OrgDirectoryParseParameters::getDirectoryEntries(
         }
         return content;
     }
+}
+
+hstd::Vec<ext::Report> org::collectDiagnostics(
+    hstd::ext::StrCache&             cache,
+    const org::sem::SemId<sem::Org>& tree) {
+    hstd::Vec<ext::Report> result;
+
+    org::eachSubnodeRec(tree, [&](sem::SemId<sem::Org> const& node) {
+        if (auto group = node.asOpt<org::sem::ErrorGroup>(); group) {
+            for (auto const& item : group->diagnostics) {
+                using K       = org::sem::OrgDiagnostics::Kind;
+                auto const& d = item->diag;
+
+                auto getId = [&](org::sem::SourceLocation const& loc) {
+                    return cache.add_path(loc.file.value().toBase());
+                };
+
+                switch (d.getKind()) {
+                    case K::ConvertError: {
+                        auto const& err = d.getConvertError();
+                        auto        id  = getId(err.loc.value());
+
+                        result.push_back(
+                            ext::Report(ext::ReportKind::Error, id, 0)
+                                .with_message(err.brief)
+                                .with_code(err.errCode)
+                                .with_note(hstd::to_compact_json(
+                                    hstd::to_json_eval(err)))
+                                .with_label(
+                                    ext::Label{1}
+                                        .with_span(id, slice(1, 2))
+                                        .with_message(err.detail)));
+                        break;
+                    }
+
+                    case K::ParseError: {
+                        auto const& err = d.getParseError();
+                        auto        id  = getId(err.loc.value());
+                        auto        l   = //
+                            ext::Label{1}
+                                .with_span(
+                                    id,
+                                    slice(err.loc->pos, err.loc->pos + 1))
+                                .with_message(err.detail);
+
+                        result.push_back(
+                            ext::Report(ext::ReportKind::Error, id, 0)
+                                .with_message(err.brief)
+                                .with_code(err.errCode)
+                                .with_note(hstd::to_compact_json(
+                                    hstd::to_json_eval(err)))
+                                .with_label(l));
+                        break;
+                    }
+
+                    case K::ParseTokenError: {
+                        auto const& err = d.getParseTokenError();
+                        auto        id  = getId(err.loc);
+                        auto        l   = //
+                            ext::Label{1}
+                                .with_span(
+                                    id,
+                                    slice(
+                                        err.loc.pos,
+                                        err.loc.pos
+                                            + err.tokenText.size()))
+                                .with_message(err.detail);
+
+                        result.push_back(
+                            ext::Report(ext::ReportKind::Error, id, 0)
+                                .with_message(err.brief)
+                                .with_code(err.errCode)
+                                .with_note(hstd::to_compact_json(
+                                    hstd::to_json_eval(err)))
+                                .with_label(l));
+                        break;
+                    }
+
+                    case K::InternalError: {
+                        break;
+                    }
+
+                    default: {
+                        throw hstd::logic_unhandled_kind_error::init(
+                            d.getKind());
+                    }
+                }
+            }
+        }
+    });
+
+    return result;
+}
+
+hstd::Vec<sem::SemId<ErrorGroup>> org::collectErrorNodes(
+    const org::sem::SemId<sem::Org>& tree) {
+    hstd::Vec<sem::SemId<ErrorGroup>> res;
+    org::eachSubnodeRec(tree, [&](sem::SemId<sem::Org> const& node) {
+        if (auto group = node.asOpt<org::sem::ErrorGroup>(); group) {
+            res.push_back(group);
+        }
+    });
+    return res;
 }
