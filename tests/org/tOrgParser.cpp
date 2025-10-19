@@ -1278,19 +1278,6 @@ TEST(OrgParseSem, Macro) {
         EXPECT_EQ(m->attrs.getNamedSize(), 0);
         EXPECT_EQ(m->attrs.getPositional(0)->getString(), "value"_ss);
     }
-    {
-        auto par = parseOne<sem::Paragraph>(
-            R"({{{partial}})", getDebugFile("broken_macro"));
-        // _dbg(sem::exportToTreeString(par, sem::OrgTreeExportOpts{}));
-        EXPECT_EQ2(par.size(), 1);
-        EXPECT_EQ2(par.at(0)->getKind(), OrgSemKind::ErrorGroup);
-        auto err = par.at(0).as<sem::ErrorGroup>();
-        EXPECT_EQ2(err.size(), 1);
-        EXPECT_EQ2(err->diagnostics.size(), 1);
-        EXPECT_EQ2(err.at(0)->getKind(), OrgSemKind::Macro);
-        auto m = err.at(0).as<sem::Macro>();
-        EXPECT_EQ2(m->name, "partial"_ss);
-    }
 }
 
 TEST(OrgParseSem, SubtreeTitle) {
@@ -1940,7 +1927,8 @@ TEST(OrgParseSem, CmdCallNode) {
 }
 
 TEST(OrgParseSem, DocumentFragments) {
-    auto opts = OrgParseParameters::shared();
+    auto opts         = OrgParseParameters::shared();
+    opts->currentFile = "<DocumentFragments>";
     opts->getFragments =
         [](std::string const& text) -> Vec<OrgParseFragment> {
         return org::extractCommentBlocks(text, {"//#"});

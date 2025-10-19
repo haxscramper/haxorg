@@ -75,6 +75,7 @@ def parseCachedFile(
         if with_includes:
             opts = org.OrgDirectoryParseParameters()
             if parse_opts:
+                parse_opts.currentFile = str(file)
                 def parse_node_impl(path: str):
                     return org.parseStringOpts(Path(path).read_text(), parse_opts)
 
@@ -83,6 +84,7 @@ def parseCachedFile(
             return org.parseFileWithIncludes(str(file.resolve()), opts)
         else:
             if parse_opts:
+                parse_opts.currentFile = str(file)
                 return org.parseStringOpts(file.read_text(), parse_opts)
             else:
                 return org.parseFile(str(file.resolve()))

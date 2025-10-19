@@ -78,7 +78,7 @@ def test_pandoc_export():
         out_file = dir.joinpath("out_file.json")
         dir.joinpath("tree.txt").write_text(
             org.treeRepr(
-                org.parseString(all_org_file.read_text()),
+                org.parseString(all_org_file.read_text(), "<mock>"),
                 colored=False,
             ))
 

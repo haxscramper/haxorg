@@ -171,7 +171,7 @@ TEST_F(LoggerTest, LogStringFormatting) {
     EXPECT_EQ(
         hstd::log::format_logger_arguments(
             "Value: {}", UnformattableType{999}),
-        "Value: <type unformattable>");
+        "Value: <type unformattable 'UnformattableType'>");
 
     EXPECT_EQ(
         hstd::log::format_logger_arguments(

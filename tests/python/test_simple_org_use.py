@@ -29,7 +29,7 @@ CAT = "test_simple_org_use.py"
 
 def test_word() -> None:
     assert org.Document
-    node = org.parseString("*Text*")
+    node = org.parseString("*Text*", "test_word")
 
     assert node.getKind() == org.OrgSemKind.Document
     assert node[0].getKind() == org.OrgSemKind.Paragraph
@@ -40,7 +40,7 @@ def test_word() -> None:
 def test_attached_property_list():
     node = org.parseString("""#+attr_list: :export nil
 - =some_property= :: Value
-    """)
+    """, "<test>")
 
     l: org.List = node[0]
     assert l.getKind() == org.OrgSemKind.List
@@ -55,7 +55,7 @@ def test_attached_property_list():
 def test_attached_property_link():
     node = org.parseString("""#+attr_link: :attach-method copy :attach-on-export t
 [[attachment:image 1.jpg]]
-    """)
+    """, "<test>")
 
     p: org.Paragraph = node[0]
     assert p.getKind() == org.OrgSemKind.Paragraph
@@ -71,7 +71,7 @@ def test_attached_property_link():
 
 
 def test_subnode_visitor():
-    node = org.parseString("Word")
+    node = org.parseString("Word", "<test>")
     kinds = []
     org.eachSubnodeRec(node, lambda it: kinds.append(it.getKind()))
     assert kinds == [osk.Document, osk.Paragraph, osk.Word, osk.DocumentOptions], kinds
@@ -159,7 +159,7 @@ def test_sem_parser_expected():
             row.add(tags.td(tags.pre(text), _class="source-cell"))
 
             if entry.debug.doLexBase and entry.debug.doLex and entry.debug.doParse:
-                node = org.parseString(text)
+                node = org.parseString(text, "<test>")
                 yaml_pre = tags.pre()
                 try: 
                     yaml_text = org.exportToYamlString(
@@ -231,7 +231,7 @@ def test_doc1():
     if not file.exists():
         return
 
-    node = org.parseString(file.read_text())
+    node = org.parseString(file.read_text(), "<test>")
     text = org.treeRepr(node, colored=False)
     Path("/tmp/test_doc1.txt").write_text(text)
 

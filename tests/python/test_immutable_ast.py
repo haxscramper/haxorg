@@ -6,7 +6,7 @@ from py_scriptutils.script_logging import log
 CAT = __name__
 
 def test_immutable_ast_conversion():
-    node = org.parseString("random paragraph")
+    node = org.parseString("random paragraph", "<test>")
     context = org.initImmutableAstContext()
     version = context.addRoot(node)
     root_adapter = version.getRootAdapter()
@@ -22,7 +22,7 @@ def test_immutable_ast_mind_map():
   :properties:
   :id: subtree-id
   :end:
-    """)
+    """, "<test>")
 
     initial_context = org.initImmutableAstContext()
     version = initial_context.addRoot(node)
