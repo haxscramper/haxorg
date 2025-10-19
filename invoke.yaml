@@ -1,6 +1,9 @@
 quiet: false
 debug: true
 forceall: true
+use:
+  qt: true
+
 instrument:
   coverage: false
   xray: false

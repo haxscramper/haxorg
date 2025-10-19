@@ -11,6 +11,9 @@ class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
     asan: bool = Field(default=False)
     perfetto: bool = Field(default=False)
 
+class HaxorgUseConfig(BaseModel, extra="forbid"): 
+    qt: bool = Field(default=False)
+
 
 class HaxorgTasksConfig(BaseModel, extra="forbid"):
     skip_python_refl: bool = Field(default=False)
@@ -43,6 +46,7 @@ class HaxorgEmscriptenConfig(BaseModel, extra="forbid"):
 class HaxorgConfig(BaseModel, extra="forbid"):
     quiet: bool = Field(default=False)
     debug: bool = Field(default=False)
+    use: HaxorgUseConfig = Field(default_factory=lambda: HaxorgUseConfig())
     emscripten: HaxorgEmscriptenConfig = Field(
         default_factory=lambda: HaxorgEmscriptenConfig())
     instrument: HaxorgInstrumentConfig = Field(

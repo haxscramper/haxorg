@@ -25,6 +25,9 @@ def get_j_cap() -> List[str]:
     # memory in the system (64GB).
     return ["-j", str(get_threading_count())]
 
+def get_docker_cap_flags() -> List[str]:
+    return ["--memory=20G", f"--cpus={int(os.cpu_count() * 0.9)}"]
+
 
 @contextmanager
 def change_dir(target_dir: Path) -> Generator[None, None, None]:

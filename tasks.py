@@ -34,7 +34,7 @@ import signal
 import psutil
 import subprocess
 import tempfile
-from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count, haxorg_env, parse_haxorg_env
+from py_ci.util_scripting import cmake_opt, get_j_cap, get_threading_count, haxorg_env, parse_haxorg_env, get_docker_cap_flags
 from py_ci.data_build import (
     get_emscripten_cmake_flags,
     get_external_deps_list,
@@ -681,7 +681,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
     result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
-    result.append(cmake_opt("ORG_USE_QT", True))
+    result.append(cmake_opt("ORG_USE_QT", conf.use.qt))
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
 
@@ -852,7 +852,7 @@ def run_docker_develop_test(
             # Scratch directory for simplified local debugging and rebuilds if needed.
             *docker_mnt(HAXORG_BUILD_TMP, docker_path("build")),
             *(["-it"] if interactive else []),
-            "--memory=32G",
+            *get_docker_cap_flags(),
             "--rm",
             HAXORG_DOCKER_IMAGE,
             "./scripts/py_repository/poetry_with_deps.sh",
@@ -1540,7 +1540,7 @@ def run_docker_release_test(
                     dst=docker_path("thirdparty"),
                 ),
                 *(["-it"] if interactive else []),
-                "--memory=32G",
+                *get_docker_cap_flags(),
                 "--rm",
                 *docker_user(),
                 *docker_mnt(pass_mnt(), Path("/haxorg/src")),
@@ -2367,6 +2367,7 @@ def run_develop_ci(
     env = merge_dicts([
         haxorg_env(["ci"], True),
         haxorg_env(["forceall"], True),
+        haxorg_env(["use", "qt"], False),
     ])
 
     if coverage:
