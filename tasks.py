@@ -1700,7 +1700,7 @@ CODEGEN_TASKS = [
 
 @org_task(pre=[
     generate_python_protobuf_files,
-    # cmake_haxorg,
+    build_haxorg,
 ])
 def generate_reflection_snapshot(
     ctx: Context,

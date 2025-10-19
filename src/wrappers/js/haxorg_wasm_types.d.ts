@@ -19,6 +19,10 @@ export interface haxorg_wasm_module_auto {
   ImmStmtListValueRead: ImmStmtListValueReadConstructor;
   ImmEmptyValueRead: ImmEmptyValueReadConstructor;
   ImmCmdCaptionValueRead: ImmCmdCaptionValueReadConstructor;
+  ImmCmdCreatorValueRead: ImmCmdCreatorValueReadConstructor;
+  ImmCmdAuthorValueRead: ImmCmdAuthorValueReadConstructor;
+  ImmCmdEmailValueRead: ImmCmdEmailValueReadConstructor;
+  ImmCmdLanguageValueRead: ImmCmdLanguageValueReadConstructor;
   ImmCmdColumnsValueRead: ImmCmdColumnsValueReadConstructor;
   ImmCmdNameValueRead: ImmCmdNameValueReadConstructor;
   ImmCmdCustomArgsValueRead: ImmCmdCustomArgsValueReadConstructor;
@@ -722,6 +726,10 @@ export interface haxorg_wasm_module_auto {
   ImmStmtListValue: ImmStmtListValueConstructor;
   ImmEmptyValue: ImmEmptyValueConstructor;
   ImmCmdCaptionValue: ImmCmdCaptionValueConstructor;
+  ImmCmdCreatorValue: ImmCmdCreatorValueConstructor;
+  ImmCmdAuthorValue: ImmCmdAuthorValueConstructor;
+  ImmCmdEmailValue: ImmCmdEmailValueConstructor;
+  ImmCmdLanguageValue: ImmCmdLanguageValueConstructor;
   ImmCmdColumnsValue: ImmCmdColumnsValueConstructor;
   ImmCmdNameValue: ImmCmdNameValueConstructor;
   ImmCmdCustomArgsValue: ImmCmdCustomArgsValueConstructor;
@@ -987,6 +995,10 @@ export interface haxorg_wasm_module_auto {
   ImmAttached: ImmAttachedConstructor;
   ImmAdapterLineCommandAPI: ImmAdapterLineCommandAPIConstructor;
   ImmAdapterCmdCustomArgsAPI: ImmAdapterCmdCustomArgsAPIConstructor;
+  ImmAdapterCmdCreatorAPI: ImmAdapterCmdCreatorAPIConstructor;
+  ImmAdapterCmdAuthorAPI: ImmAdapterCmdAuthorAPIConstructor;
+  ImmAdapterCmdEmailAPI: ImmAdapterCmdEmailAPIConstructor;
+  ImmAdapterCmdLanguageAPI: ImmAdapterCmdLanguageAPIConstructor;
   ImmAdapterCmdTblfmAPI: ImmAdapterCmdTblfmAPIConstructor;
   ImmAdapterBlockAPI: ImmAdapterBlockAPIConstructor;
   ImmAdapterCellAPI: ImmAdapterCellAPIConstructor;
@@ -1032,6 +1044,10 @@ export interface haxorg_wasm_module_auto {
   ImmCmdExport: ImmCmdExportConstructor;
   ImmAdapterAttachedAPI: ImmAdapterAttachedAPIConstructor;
   ImmCmdCustomArgsAdapter: ImmCmdCustomArgsAdapterConstructor;
+  ImmCmdCreatorAdapter: ImmCmdCreatorAdapterConstructor;
+  ImmCmdAuthorAdapter: ImmCmdAuthorAdapterConstructor;
+  ImmCmdEmailAdapter: ImmCmdEmailAdapterConstructor;
+  ImmCmdLanguageAdapter: ImmCmdLanguageAdapterConstructor;
   ImmCmdTblfmAdapter: ImmCmdTblfmAdapterConstructor;
   ImmAdapterBlockCenterAPI: ImmAdapterBlockCenterAPIConstructor;
   ImmAdapterBlockQuoteAPI: ImmAdapterBlockQuoteAPIConstructor;
@@ -1749,6 +1765,14 @@ export interface ImmEmptyValueReadConstructor { new(): ImmEmptyValueRead; }
 export interface ImmEmptyValueRead {  }
 export interface ImmCmdCaptionValueReadConstructor { new(): ImmCmdCaptionValueRead; }
 export interface ImmCmdCaptionValueRead { getText(): haxorg_wasm.ImmIdT<ImmParagraph>; }
+export interface ImmCmdCreatorValueReadConstructor { new(): ImmCmdCreatorValueRead; }
+export interface ImmCmdCreatorValueRead { getText(): haxorg_wasm.ImmIdT<ImmParagraph>; }
+export interface ImmCmdAuthorValueReadConstructor { new(): ImmCmdAuthorValueRead; }
+export interface ImmCmdAuthorValueRead { getText(): haxorg_wasm.ImmIdT<ImmParagraph>; }
+export interface ImmCmdEmailValueReadConstructor { new(): ImmCmdEmailValueRead; }
+export interface ImmCmdEmailValueRead { getText(): haxorg_wasm.ImmerBox<string>; }
+export interface ImmCmdLanguageValueReadConstructor { new(): ImmCmdLanguageValueRead; }
+export interface ImmCmdLanguageValueRead { getText(): haxorg_wasm.ImmerBox<string>; }
 export interface ImmCmdColumnsValueReadConstructor { new(): ImmCmdColumnsValueRead; }
 export interface ImmCmdColumnsValueRead { getView(): ColumnView; }
 export interface ImmCmdNameValueReadConstructor { new(): ImmCmdNameValueRead; }
@@ -4387,6 +4411,14 @@ export interface ImmEmptyValueConstructor { new(): ImmEmptyValue; }
 export interface ImmEmptyValue {  }
 export interface ImmCmdCaptionValueConstructor { new(): ImmCmdCaptionValue; }
 export interface ImmCmdCaptionValue { setText(value: haxorg_wasm.ImmIdT<ImmParagraph>): void; }
+export interface ImmCmdCreatorValueConstructor { new(): ImmCmdCreatorValue; }
+export interface ImmCmdCreatorValue { setText(value: haxorg_wasm.ImmIdT<ImmParagraph>): void; }
+export interface ImmCmdAuthorValueConstructor { new(): ImmCmdAuthorValue; }
+export interface ImmCmdAuthorValue { setText(value: haxorg_wasm.ImmIdT<ImmParagraph>): void; }
+export interface ImmCmdEmailValueConstructor { new(): ImmCmdEmailValue; }
+export interface ImmCmdEmailValue { setText(value: haxorg_wasm.ImmerBox<string>): void; }
+export interface ImmCmdLanguageValueConstructor { new(): ImmCmdLanguageValue; }
+export interface ImmCmdLanguageValue { setText(value: haxorg_wasm.ImmerBox<string>): void; }
 export interface ImmCmdColumnsValueConstructor { new(): ImmCmdColumnsValue; }
 export interface ImmCmdColumnsValue { setView(value: ColumnView): void; }
 export interface ImmCmdNameValueConstructor { new(): ImmCmdNameValue; }
@@ -5406,6 +5438,14 @@ export interface ImmAdapterLineCommandAPIConstructor { new(): ImmAdapterLineComm
 export interface ImmAdapterLineCommandAPI {  }
 export interface ImmAdapterCmdCustomArgsAPIConstructor { new(): ImmAdapterCmdCustomArgsAPI; }
 export interface ImmAdapterCmdCustomArgsAPI {  }
+export interface ImmAdapterCmdCreatorAPIConstructor { new(): ImmAdapterCmdCreatorAPI; }
+export interface ImmAdapterCmdCreatorAPI {  }
+export interface ImmAdapterCmdAuthorAPIConstructor { new(): ImmAdapterCmdAuthorAPI; }
+export interface ImmAdapterCmdAuthorAPI {  }
+export interface ImmAdapterCmdEmailAPIConstructor { new(): ImmAdapterCmdEmailAPI; }
+export interface ImmAdapterCmdEmailAPI {  }
+export interface ImmAdapterCmdLanguageAPIConstructor { new(): ImmAdapterCmdLanguageAPI; }
+export interface ImmAdapterCmdLanguageAPI {  }
 export interface ImmAdapterCmdTblfmAPIConstructor { new(): ImmAdapterCmdTblfmAPI; }
 export interface ImmAdapterCmdTblfmAPI {  }
 export interface ImmAdapterBlockAPIConstructor { new(): ImmAdapterBlockAPI; }
@@ -5633,6 +5673,26 @@ export interface ImmCmdCustomArgsAdapterConstructor { new(): ImmCmdCustomArgsAda
 export interface ImmCmdCustomArgsAdapter {
   ImmAdapterT(other: ImmAdapter): ImmCmdCustomArgsAdapter;
   getValue(): ImmCmdCustomArgsValueRead;
+}
+export interface ImmCmdCreatorAdapterConstructor { new(): ImmCmdCreatorAdapter; }
+export interface ImmCmdCreatorAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmCmdCreatorAdapter;
+  getValue(): ImmCmdCreatorValueRead;
+}
+export interface ImmCmdAuthorAdapterConstructor { new(): ImmCmdAuthorAdapter; }
+export interface ImmCmdAuthorAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmCmdAuthorAdapter;
+  getValue(): ImmCmdAuthorValueRead;
+}
+export interface ImmCmdEmailAdapterConstructor { new(): ImmCmdEmailAdapter; }
+export interface ImmCmdEmailAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmCmdEmailAdapter;
+  getValue(): ImmCmdEmailValueRead;
+}
+export interface ImmCmdLanguageAdapterConstructor { new(): ImmCmdLanguageAdapter; }
+export interface ImmCmdLanguageAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmCmdLanguageAdapter;
+  getValue(): ImmCmdLanguageValueRead;
 }
 export interface ImmCmdTblfmAdapterConstructor { new(): ImmCmdTblfmAdapter; }
 export interface ImmCmdTblfmAdapter {
