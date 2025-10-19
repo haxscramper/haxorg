@@ -1300,8 +1300,22 @@ def build_example_qt_gui_org_viewer(ctx: Context):
         "example_qt_gui_org_viewer",
     )
 
+@org_task(pre=[validate_dependencies_install])
+def configure_example_qt_gui_org_diagram(ctx: Context):
+    run_cmake_configure_component(
+        ctx,
+        "example_qt_gui_org_diagram",
+        "examples/qt_gui/org_diagram",
+    )
 
-@org_task(pre=[build_example_qt_gui_org_viewer])
+@org_task(pre=[configure_example_qt_gui_org_diagram])
+def build_example_qt_gui_org_diagram(ctx: Context):
+    run_cmake_build_component(
+        ctx,
+        "example_qt_gui_org_viewer",
+    )
+
+@org_task(pre=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
 def build_example_qt_gui(ctx: Context):
     pass
 

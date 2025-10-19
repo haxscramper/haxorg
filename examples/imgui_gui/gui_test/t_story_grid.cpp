@@ -69,7 +69,7 @@ struct StoryGridVars : public ImTestVarsBase {
     }
 
     void add_text(std::string const& text) {
-        root            = model.history->addRoot(org::parseString(text));
+        root            = model.history->addRoot(org::parseString(text, "<test>"));
         model.documents = model.history->migrate(model.documents).value();
         model.addDocument(root);
         model.rebuild(conf);
@@ -238,8 +238,7 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
                             ::hstd::log::init_file_sink(getDebugFile(
                                 ctx->Test, "scintilla_sink.log")),
                             [](hstd::log::log_record const& rec) -> bool {
-                                return rec.data.category == "surface"
-                                    && rec.data.source_scope
+                                return rec.data.source_scope
                                            == hstd::Vec<hstd::Str>{
                                                "gui",
                                                "widget",

@@ -423,8 +423,9 @@ int main(int argc, char** argv) {
     hstd::Opt<json> appstate;
     if (conf.appstate.has_value()
         && hstd::fs::is_regular_file(conf.appstate.value().toBase())) {
-        appstate = json::parse(hstd::readFile(
-            hstd::fs::path{conf.appstate.value().toBase()}));
+        appstate = json::parse(
+            hstd::readFile(
+                hstd::fs::path{conf.appstate.value().toBase()}));
     }
 
     switch (conf.mode) {
@@ -433,20 +434,23 @@ int main(int argc, char** argv) {
             break;
         }
         case Config::Mode::SemTree: {
-            auto node = org::parseString(hstd::readFile(
-                hstd::fs::path{conf.file.front().toBase()}));
+            auto path = hstd::fs::path{conf.file.front().toBase()};
+            auto node = org::parseString(
+                hstd::readFile(path), path.native());
             sem_tree_loop(window, node);
             break;
         }
         case Config::Mode::Outline: {
-            auto node = org::parseString(hstd::readFile(
-                hstd::fs::path{conf.file.front().toBase()}));
+            auto path = hstd::fs::path{conf.file.front().toBase()};
+            auto node = org::parseString(
+                hstd::readFile(path), path.native());
             outline_tree_loop(window, node);
             break;
         }
         case Config::Mode::DocEditor: {
-            auto node = org::parseString(hstd::readFile(
-                hstd::fs::path{conf.file.front().toBase()}));
+            auto path = hstd::fs::path{conf.file.front().toBase()};
+            auto node = org::parseString(
+                hstd::readFile(path), path.native());
             doc_editor_loop(window, node);
             break;
         }

@@ -8,10 +8,9 @@
 #include <gui_lib/imgui_utils.hpp>
 #include <hstd/ext/logger.hpp>
 
-#define IM_TEST_LOG(__cat)                                                \
+#define IM_TEST_LOG()                                                \
     ::hstd::log::log_builder{}                                            \
         .set_callsite()                                                   \
-        .category(__cat)                                                  \
         .severity(hstd::log::l_info)                                      \
         .source_scope({"gui", "test"})
 
@@ -64,7 +63,7 @@ void im_ctx_act_impl(
     char const*       file,
     char const*       function,
     Args&&... args) {
-    IM_TEST_LOG("ctx")
+    IM_TEST_LOG()
         .fmt_message(
             "Run {} with {}",
             funcname,
