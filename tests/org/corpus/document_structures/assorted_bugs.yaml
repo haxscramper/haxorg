@@ -326,7 +326,7 @@ items:
   - name: "tbflm"
     debug: 
       doSem: false
-      
+
     source: |
       #+TBLFM: $6=round(1000*$5/$4)/1000
 
@@ -855,7 +855,6 @@ items:
       #+COLUMNS: %25ITEM %TODO %3PRIORITY %TAGS %Effort %CLOCKSUM
       #+FILETAGS9: ProjectX
       #+CONSTANTS: const1=Value1 const2=Value2
-      #+RESULTS: 
       #+CREATOR: Emacs 28.1 (Org mode 9.4)
       #+OPTIONS: tags:nil
       #+OPTIONS: timestamp:t

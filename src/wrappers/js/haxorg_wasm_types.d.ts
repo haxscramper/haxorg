@@ -553,6 +553,8 @@ export interface haxorg_wasm_module_auto {
   ImmIdTAttached: ImmIdTAttachedConstructor;
   ImmIdTLeaf: ImmIdTLeafConstructor;
   ImmIdTCmdCaption: ImmIdTCmdCaptionConstructor;
+  ImmIdTCmdCreator: ImmIdTCmdCreatorConstructor;
+  ImmIdTCmdAuthor: ImmIdTCmdAuthorConstructor;
   ImmIdTCmdColumns: ImmIdTCmdColumnsConstructor;
   ImmIdTCmdName: ImmIdTCmdNameConstructor;
   ImmIdTCmdCustomArgs: ImmIdTCmdCustomArgsConstructor;
@@ -1007,12 +1009,16 @@ export interface haxorg_wasm_module_auto {
   ImmStrikeAdapter: ImmStrikeAdapterConstructor;
   ImmParAdapter: ImmParAdapterConstructor;
   CmdCaption: CmdCaptionConstructor;
+  CmdCreator: CmdCreatorConstructor;
+  CmdAuthor: CmdAuthorConstructor;
   CmdColumns: CmdColumnsConstructor;
   CmdName: CmdNameConstructor;
   CmdCall: CmdCallConstructor;
   CmdAttr: CmdAttrConstructor;
   CmdExport: CmdExportConstructor;
   ImmCmdCaption: ImmCmdCaptionConstructor;
+  ImmCmdCreator: ImmCmdCreatorConstructor;
+  ImmCmdAuthor: ImmCmdAuthorConstructor;
   ImmCmdColumns: ImmCmdColumnsConstructor;
   ImmCmdName: ImmCmdNameConstructor;
   ImmCmdCall: ImmCmdCallConstructor;
@@ -1526,6 +1532,8 @@ export interface haxorg_wasm_module_auto {
     StmtList: OrgSemKind,
     Empty: OrgSemKind,
     CmdCaption: OrgSemKind,
+    CmdCreator: OrgSemKind,
+    CmdAuthor: OrgSemKind,
     CmdColumns: OrgSemKind,
     CmdName: OrgSemKind,
     CmdCustomArgs: OrgSemKind,
@@ -3823,6 +3831,10 @@ export interface ImmIdTLeafConstructor { new(): ImmIdTLeaf; }
 export interface ImmIdTLeaf {  }
 export interface ImmIdTCmdCaptionConstructor { new(): ImmIdTCmdCaption; }
 export interface ImmIdTCmdCaption {  }
+export interface ImmIdTCmdCreatorConstructor { new(): ImmIdTCmdCreator; }
+export interface ImmIdTCmdCreator {  }
+export interface ImmIdTCmdAuthorConstructor { new(): ImmIdTCmdAuthor; }
+export interface ImmIdTCmdAuthor {  }
 export interface ImmIdTCmdColumnsConstructor { new(): ImmIdTCmdColumns; }
 export interface ImmIdTCmdColumns {  }
 export interface ImmIdTCmdNameConstructor { new(): ImmIdTCmdName; }
@@ -5485,6 +5497,16 @@ export interface CmdCaption {
   getKind(): OrgSemKind;
   text: Paragraph
 }
+export interface CmdCreatorConstructor { new(): CmdCreator; }
+export interface CmdCreator {
+  getKind(): OrgSemKind;
+  text: Paragraph
+}
+export interface CmdAuthorConstructor { new(): CmdAuthor; }
+export interface CmdAuthor {
+  getKind(): OrgSemKind;
+  text: Paragraph
+}
 export interface CmdColumnsConstructor { new(): CmdColumns; }
 export interface CmdColumns {
   getKind(): OrgSemKind;
@@ -5520,6 +5542,18 @@ export interface ImmCmdCaptionConstructor { new(): ImmCmdCaption; }
 export interface ImmCmdCaption {
   getKind(): OrgSemKind;
   __eq__(other: ImmCmdCaption): boolean;
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
+}
+export interface ImmCmdCreatorConstructor { new(): ImmCmdCreator; }
+export interface ImmCmdCreator {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdCreator): boolean;
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
+}
+export interface ImmCmdAuthorConstructor { new(): ImmCmdAuthor; }
+export interface ImmCmdAuthor {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmCmdAuthor): boolean;
   text: haxorg_wasm.ImmIdT<ImmParagraph>
 }
 export interface ImmCmdColumnsConstructor { new(): ImmCmdColumns; }
@@ -6161,6 +6195,8 @@ export enum OrgSemKind {
   StmtList,
   Empty,
   CmdCaption,
+  CmdCreator,
+  CmdAuthor,
   CmdColumns,
   CmdName,
   CmdCustomArgs,

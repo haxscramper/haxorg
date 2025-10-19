@@ -196,6 +196,9 @@ struct OrgConverter : public hstd::OperationsTracer {
     ConvResult<ListItem>        convertListItem(In);
     ConvResult<CmdTblfm>        convertCmdTblfm(In);
     ConvResult<CmdCaption>      convertCmdCaption(In);
+    ConvResult<CmdCustomRaw>    convertCmdCustomRaw(In);
+    ConvResult<CmdCreator>      convertCmdCreator(In);
+    ConvResult<CmdAuthor>       convertCmdAuthor(In);
     ConvResult<BlockQuote>      convertBlockQuote(In);
     ConvResult<BlockComment>    convertBlockComment(In);
     ConvResult<Placeholder>     convertPlaceholder(In);

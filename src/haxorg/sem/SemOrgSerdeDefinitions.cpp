@@ -2030,6 +2030,38 @@ void org::algo::proto_serde<::orgproto::CmdCaption, org::sem::CmdCaption>::read(
   proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCaption::text));
 }
 
+void org::algo::proto_serde<::orgproto::CmdCreator, org::sem::CmdCreator>::write(::orgproto::CmdCreator* out, org::sem::CmdCreator const& in) {
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Org>::write(out, in);
+  if (!in.text.isNil()) {
+    proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_text(), in.text);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::CmdCreator, org::sem::CmdCreator>::read(::orgproto::CmdCreator const& out, proto_write_accessor<org::sem::CmdCreator> in) {
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCreator::text));
+}
+
+void org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor>::write(::orgproto::CmdAuthor* out, org::sem::CmdAuthor const& in) {
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Org>::write(out, in);
+  if (!in.text.isNil()) {
+    proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_text(), in.text);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor>::read(::orgproto::CmdAuthor const& out, proto_write_accessor<org::sem::CmdAuthor> in) {
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdAuthor::text));
+}
+
 void org::algo::proto_serde<::orgproto::CmdColumns, org::sem::CmdColumns>::write(::orgproto::CmdColumns* out, org::sem::CmdColumns const& in) {
   org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Cmd>::write(out, in);
   org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Stmt>::write(out, in);

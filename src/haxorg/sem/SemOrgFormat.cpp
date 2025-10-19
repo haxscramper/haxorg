@@ -761,6 +761,16 @@ auto Formatter::toString(SemId<CmdCaption> id, CR<Context> ctx) -> Res {
     return b.line({str("#+caption: "), toString(id->text, ctx)});
 }
 
+auto Formatter::toString(SemId<CmdCreator> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str("#+creator: "), toString(id->text, ctx)});
+}
+
+auto Formatter::toString(SemId<CmdAuthor> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str("#+author: "), toString(id->text, ctx)});
+}
+
 auto Formatter::toString(SemId<CmdColumns> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+columns: ")});

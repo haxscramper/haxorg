@@ -385,6 +385,8 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         SpecPair{onk::CmdTitle, parTextCmdPattern},
         SpecPair{onk::CmdCaption, parTextCmdPattern},
+        SpecPair{onk::CmdCreator, parTextCmdPattern},
+        SpecPair{onk::CmdAuthor, parTextCmdPattern},
         SpecPair{
             onk::CmdColumns,
             OrgPattern({

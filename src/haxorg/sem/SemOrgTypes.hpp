@@ -181,6 +181,36 @@ struct CmdCaption : public org::sem::Attached {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCaption; }
 };
 
+/// \brief Creator of the document
+struct CmdCreator : public org::sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdCreator() = default;
+  BOOST_DESCRIBE_CLASS(CmdCreator,
+                       (Attached),
+                       (),
+                       (),
+                       (staticKind, text))
+  static OrgSemKind const staticKind;
+  /// \brief Creator name text
+  org::sem::SemId<org::sem::Paragraph> text = sem::SemId<sem::Paragraph>::Nil();
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdCreator; }
+};
+
+/// \brief Author of the document
+struct CmdAuthor : public org::sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdAuthor() = default;
+  BOOST_DESCRIBE_CLASS(CmdAuthor,
+                       (Attached),
+                       (),
+                       (),
+                       (staticKind, text))
+  static OrgSemKind const staticKind;
+  /// \brief Author name text
+  org::sem::SemId<org::sem::Paragraph> text = sem::SemId<sem::Paragraph>::Nil();
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdAuthor; }
+};
+
 /// \brief Caption annotation for any subsequent node
 struct CmdColumns : public org::sem::Attached {
   using Attached::Attached;

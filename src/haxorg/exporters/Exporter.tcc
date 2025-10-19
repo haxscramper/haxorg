@@ -677,6 +677,26 @@ void Exporter<V, R>::visitCmdCaption(R& res, In<sem::CmdCaption> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitCmdCreator(R& res, In<sem::CmdCreator> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, text);
+  __org_field(res, object, attrs);
+  __org_field(res, object, attached);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCmdAuthor(R& res, In<sem::CmdAuthor> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, text);
+  __org_field(res, object, attrs);
+  __org_field(res, object, attached);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitCmdColumns(R& res, In<sem::CmdColumns> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, view);

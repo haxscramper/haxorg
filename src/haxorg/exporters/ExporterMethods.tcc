@@ -131,6 +131,8 @@ void visitLineCommand(R& res, In<sem::LineCommand> object);
 void visitAttached(R& res, In<sem::Attached> object);
 void visitLeaf(R& res, In<sem::Leaf> object);
 void visitCmdCaption(R& res, In<sem::CmdCaption> object);
+void visitCmdCreator(R& res, In<sem::CmdCreator> object);
+void visitCmdAuthor(R& res, In<sem::CmdAuthor> object);
 void visitCmdColumns(R& res, In<sem::CmdColumns> object);
 void visitCmdName(R& res, In<sem::CmdName> object);
 void visitCmdCustomArgs(R& res, In<sem::CmdCustomArgs> object);

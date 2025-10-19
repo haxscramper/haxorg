@@ -823,6 +823,18 @@ def get_sem_commands():
             fields=[id_field("Paragraph", "text", GenTuDoc("Content description"))],
         ),
         d_org(
+            "CmdCreator",
+            GenTuDoc("Creator of the document"),
+            bases=[t_nest(t_org("Attached"))],
+            fields=[id_field("Paragraph", "text", GenTuDoc("Creator name text"))],
+        ),
+        d_org(
+            "CmdAuthor",
+            GenTuDoc("Author of the document"),
+            bases=[t_nest(t_org("Attached"))],
+            fields=[id_field("Paragraph", "text", GenTuDoc("Author name text"))],
+        ),
+        d_org(
             "CmdColumns",
             GenTuDoc("Caption annotation for any subsequent node"),
             bases=[t_nest(t_org("Attached"))],

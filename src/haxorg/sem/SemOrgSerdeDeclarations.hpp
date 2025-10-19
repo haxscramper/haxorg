@@ -9,6 +9,8 @@
         __MAP(kStmtlist, stmtlist, StmtList)  \
         __MAP(kEmpty, empty, Empty)  \
         __MAP(kCmdcaption, cmdcaption, CmdCaption)  \
+        __MAP(kCmdcreator, cmdcreator, CmdCreator)  \
+        __MAP(kCmdauthor, cmdauthor, CmdAuthor)  \
         __MAP(kCmdcolumns, cmdcolumns, CmdColumns)  \
         __MAP(kCmdname, cmdname, CmdName)  \
         __MAP(kCmdcustomargs, cmdcustomargs, CmdCustomArgs)  \
@@ -875,6 +877,20 @@ template <>
 struct org::algo::proto_serde<::orgproto::CmdCaption, org::sem::CmdCaption> {
   static void write(::orgproto::CmdCaption* out, org::sem::CmdCaption const& in);
   static void read(::orgproto::CmdCaption const& out, proto_write_accessor<org::sem::CmdCaption> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::CmdCreator, org::sem::CmdCreator> {
+  static void write(::orgproto::CmdCreator* out, org::sem::CmdCreator const& in);
+  static void read(::orgproto::CmdCreator const& out, proto_write_accessor<org::sem::CmdCreator> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor> {
+  static void write(::orgproto::CmdAuthor* out, org::sem::CmdAuthor const& in);
+  static void read(::orgproto::CmdAuthor const& out, proto_write_accessor<org::sem::CmdAuthor> in);
 };
 
 

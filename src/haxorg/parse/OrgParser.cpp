@@ -2265,16 +2265,27 @@ OrgParser::ParseResult OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
+        case otk::CmdAuthor:
+        case otk::CmdCreator:
         case otk::CmdTitle:
         case otk::CmdCaption: {
             TRY_SKIP(lex, otk::CmdPrefix);
             TRY_SKIP(lex, cmd_kind);
             space(lex);
-            if (cmd_kind == otk::CmdTitle) {
-                cmdGuard = start(onk::CmdTitle);
-            } else {
-                cmdGuard = start(onk::CmdCaption);
+            switch (cmd_kind) {
+                case otk::CmdAuthor:
+                    cmdGuard = start(onk::CmdAuthor);
+                    break;
+                case otk::CmdCreator:
+                    cmdGuard = start(onk::CmdCreator);
+                    break;
+                case otk::CmdTitle: cmdGuard = start(onk::CmdTitle); break;
+                case otk::CmdCaption:
+                    cmdGuard = start(onk::CmdCaption);
+                    break;
+                default: throw fatalError(lex, "unhandled command kind");
             }
+
             auto attrsGuard = start(onk::Attrs);
             auto sub        = subToEol(
                 lex, ParagraphTerminator + OrgTokSet{otk::Newline});
@@ -2286,20 +2297,13 @@ OrgParser::ParseResult OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case otk::CmdCreator:
-        case otk::CmdAuthor:
+
         case otk::CmdLatexHeader:
         case otk::CmdStartup:
         case otk::CmdLanguage: {
             switch (cmd_kind) {
-                case otk::CmdCreator:
-                    cmdGuard = start(onk::CmdCreator);
-                    break;
                 case otk::CmdLanguage:
                     cmdGuard = start(onk::CmdLanguage);
-                    break;
-                case otk::CmdAuthor:
-                    cmdGuard = start(onk::CmdAuthor);
                     break;
                 case otk::CmdOptions:
                     cmdGuard = start(onk::CmdOptions);

@@ -1445,6 +1445,40 @@ OrgConverter::ConvResult<CmdCaption> OrgConverter::convertCmdCaption(
     return caption;
 }
 
+OrgConverter::ConvResult<CmdCreator> OrgConverter::convertCmdCreator(
+    __args) {
+    __perf_trace("convert", "convertCmdCreator");
+    auto __trace = trace(a);
+    auto creator = Sem<CmdCreator>(a);
+    if (0 < a.size()) {
+        creator->text = convertParagraph(one(a, N::Args)[0]).value();
+    }
+
+    return creator;
+}
+
+OrgConverter::ConvResult<CmdAuthor> OrgConverter::convertCmdAuthor(
+    __args) {
+    __perf_trace("convert", "convertCmdAuthor");
+    auto __trace = trace(a);
+    auto Author  = Sem<CmdAuthor>(a);
+    if (0 < a.size()) {
+        Author->text = convertParagraph(one(a, N::Args)[0]).value();
+    }
+
+    return Author;
+}
+
+OrgConverter::ConvResult<CmdCustomRaw> OrgConverter::convertCmdCustomRaw(
+    __args) {
+    __perf_trace("convert", "convertCmdCaption");
+    auto __trace = trace(a);
+    auto cmd     = Sem<CmdCustomRaw>(a);
+    cmd->name    = get_text(one(a, N::Name));
+    if (1 < a.size()) { cmd->text = get_text(one(a, N::Args)); }
+    return cmd;
+}
+
 namespace dsl  = lexy::dsl;
 using lexy_tok = lexy::string_lexeme<>;
 Str lexy_str(lexy_tok const& t) {
@@ -2821,9 +2855,13 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdColumns: return convertCmdColumns(a).unwrap();
         case onk::ColonExample: return convertColonExample(a).unwrap();
         case onk::CmdCaption: return convertCmdCaption(a).unwrap();
+        case onk::CmdCreator: return convertCmdCreator(a).unwrap();
+        case onk::CmdAuthor: return convertCmdAuthor(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCmdCall(a).unwrap();
         case onk::Paragraph: return convertParagraph(a).unwrap();
+        case onk::CmdCustomRawCommand:
+            return convertCmdCustomRaw(a).unwrap();
         case onk::CriticMarkStructure:
             return convertCriticMarkup(a).unwrap();
         case onk::BlockDynamicFallback:

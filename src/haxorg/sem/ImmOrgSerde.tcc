@@ -106,6 +106,50 @@ struct ImmSemSerde<org::sem::CmdCaption, org::imm::ImmCmdCaption> {
 };
 
 template <>
+struct ImmSemSerde<org::sem::CmdCreator, org::imm::ImmCmdCreator> {
+  static org::imm::ImmCmdCreator to_immer(org::sem::CmdCreator const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmCmdCreator result = hstd::SerdeDefaultProvider<org::imm::ImmCmdCreator>::get();
+    assign_immer_field(result.text, value.text, ctx);
+    assign_immer_field(result.attrs, value.attrs, ctx);
+    assign_immer_field(result.attached, value.attached, ctx);
+    assign_immer_field(result.loc, value.loc, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static org::sem::CmdCreator from_immer(org::imm::ImmCmdCreator const& value, ImmAstContext const& ctx) {
+    org::sem::CmdCreator result = hstd::SerdeDefaultProvider<org::sem::CmdCreator>::get();
+    assign_sem_field(result.text, value.text, ctx);
+    assign_sem_field(result.attrs, value.attrs, ctx);
+    assign_sem_field(result.attached, value.attached, ctx);
+    assign_sem_field(result.loc, value.loc, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::CmdAuthor, org::imm::ImmCmdAuthor> {
+  static org::imm::ImmCmdAuthor to_immer(org::sem::CmdAuthor const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmCmdAuthor result = hstd::SerdeDefaultProvider<org::imm::ImmCmdAuthor>::get();
+    assign_immer_field(result.text, value.text, ctx);
+    assign_immer_field(result.attrs, value.attrs, ctx);
+    assign_immer_field(result.attached, value.attached, ctx);
+    assign_immer_field(result.loc, value.loc, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static org::sem::CmdAuthor from_immer(org::imm::ImmCmdAuthor const& value, ImmAstContext const& ctx) {
+    org::sem::CmdAuthor result = hstd::SerdeDefaultProvider<org::sem::CmdAuthor>::get();
+    assign_sem_field(result.text, value.text, ctx);
+    assign_sem_field(result.attrs, value.attrs, ctx);
+    assign_sem_field(result.attached, value.attached, ctx);
+    assign_sem_field(result.loc, value.loc, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<org::sem::CmdColumns, org::imm::ImmCmdColumns> {
   static org::imm::ImmCmdColumns to_immer(org::sem::CmdColumns const& value, ImmAstEditContext& ctx) {
     org::imm::ImmCmdColumns result = hstd::SerdeDefaultProvider<org::imm::ImmCmdColumns>::get();
