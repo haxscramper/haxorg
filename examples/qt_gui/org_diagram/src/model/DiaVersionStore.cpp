@@ -347,7 +347,7 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
 }
 
 int DiaVersionStore::addDocument(const std::string& document) {
-    auto version = imm_context->addRoot(parseString(document));
+    auto version = imm_context->addRoot(parseString(document, "<text>"));
     return addHistory(version);
 }
 

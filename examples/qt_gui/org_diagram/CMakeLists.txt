@@ -37,6 +37,8 @@ set_target_properties(
              AUTOUIC ON
              AUTORCC ON)
 
+target_compile_definitions(org_diagram_lib PUBLIC IMMER_TAGGED_NODE=0)
+target_compile_definitions(org_diagram_lib PUBLIC IMMER_ENABLE_DEBUG_SIZE_HEAP=0)
 target_compile_definitions(org_diagram_lib PUBLIC ORG_USE_QT=1)
 target_compile_options(org_diagram_lib PUBLIC "-ftemplate-backtrace-limit=0")
 target_compile_options(org_diagram_lib PUBLIC "-Werror=implicit-fallthrough")

@@ -530,10 +530,10 @@ int DiaAdapter::getSelfIndex() const {
 
 hstd::Opt<DiaAdapter> DiaAdapter::getParent() const {
     if (hasParent()) {
-        HSLOG_FMT1(id);
-        HSLOG_FMT1(id.path);
+        HSLOG_DEBUG_FMT1(id);
+        HSLOG_DEBUG_FMT1(id.path);
         org::imm::ImmPath parentPath = id.path.pop();
-        HSLOG_FMT1(parentPath);
+        HSLOG_DEBUG_FMT1(parentPath);
         return DiaAdapter{
             DiaUniqId{ctx->at(id.root, parentPath), id.root, parentPath},
             ctx};
@@ -788,11 +788,11 @@ DiaId DiaContext::at(DiaId node, const org::imm::ImmPathStep& item) const {
 
 DiaId DiaContext::at(DiaId root, const org::imm::ImmPath& path) const {
     DiaId result = root;
-    HSLOG_FMT1(result);
+    HSLOG_DEBUG_FMT1(result);
     for (auto const& step : path.path) {
-        HSLOG_FMT1(step);
+        HSLOG_DEBUG_FMT1(step);
         result = at(result, step);
-        HSLOG_FMT1(result);
+        HSLOG_DEBUG_FMT1(result);
     }
     return result;
 }

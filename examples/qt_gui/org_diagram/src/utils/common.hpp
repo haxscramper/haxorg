@@ -11,10 +11,9 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <boost/outcome.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Outcome.hpp>
 
 namespace hstd {
-
-
 
 
 template <typename T>
@@ -102,10 +101,6 @@ std::string qdebug_to_str(T const& index) {
     QDebug(&output).noquote().nospace() << index;
     return output.toStdString();
 }
-
-namespace hstd {
-hstd::Vec<ColText> split(ColText const& text, Str const& delimiter);
-} // namespace hstd
 
 hstd::finally_std trackTestExecution(
     QObject*         testClas,
@@ -198,9 +193,8 @@ bool haxorg_qCompareOp(
     QCOMPARE_OP_IMPL(computed, baseline, >=, GreaterThanOrEqual)
 
 
-
 template <typename T>
-outcome::result<T, std::string> getStructuredProperty(
+hstd::outcome::result<T, std::string> getStructuredProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
     std::string const&                                 kind) {
     BOOST_OUTCOME_TRY_OPTIONAL(
@@ -213,7 +207,7 @@ outcome::result<T, std::string> getStructuredProperty(
 }
 
 
-outcome::result<org::sem::AttrGroup const*, std::string> getFlagProperty(
+hstd::outcome::result<org::sem::AttrGroup const*, std::string> getFlagProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
     std::string const&                                 kind);
 

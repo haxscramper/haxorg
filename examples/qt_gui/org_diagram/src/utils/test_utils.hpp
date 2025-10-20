@@ -130,7 +130,7 @@ struct ScopeDiagramTree {
     hstd::SPtr<DiaContext>       dia_context;
 
     org::imm::ImmAstVersion getAdapter(std::string const& text) {
-        auto parsed = org::parseString(text);
+        auto parsed = org::parseString(text, "<scope>");
         return imm_context->addRoot(parsed);
     }
 

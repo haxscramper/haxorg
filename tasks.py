@@ -682,6 +682,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
     result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
     result.append(cmake_opt("ORG_USE_QT", conf.use.qt))
+    # result.append(cmake_opt("CMAKE_CXX_INCLUDE_WHAT_YOU_USE", "/home/haxscramper/software/include-what-you-use/build/bin/include-what-you-use;--verbose=7"))
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
 
@@ -1067,7 +1068,7 @@ def run_cmake_haxorg_clean(ctx: Context):
         stamp_path.unlink()
 
     os_utils.rmdir_quiet(get_build_root().joinpath("deps_build"))
-    os_utils.rmdir_quiet(get_deps_install_dir())
+    os_utils.rmdir_quiet(get_deps_install_dir(ctx))
 
 
 @org_task(iterable=["build_whitelist"])

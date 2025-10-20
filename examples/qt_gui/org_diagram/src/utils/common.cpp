@@ -333,7 +333,7 @@ hstd::ColText format_records(hstd::CVec<ModelLevelRecord> records) {
             ;
         }
 
-        auto splitFinalRepr = hstd::split(l.finalRepr, "\n");
+        auto splitFinalRepr = l.finalRepr.split("\n");
         if (splitFinalRepr.empty()) {}
         if (splitFinalRepr.size() == 1) {
             os << " "
@@ -412,7 +412,7 @@ bool hasProperty(
     return node.getProperty(kind).has_value();
 }
 
-outcome::result<const org::sem::AttrGroup*, std::string> getFlagProperty(
+hstd::outcome::result<const org::sem::AttrGroup*, std::string> getFlagProperty(
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
     const std::string&                                 kind) {
     BOOST_OUTCOME_TRY_OPTIONAL(
@@ -443,4 +443,3 @@ void q_register_metatypes() {
     qRegisterMetaType<DiaVersionStore::EditApplyResult>();
     qRegisterMetaType<DiaVersionStore::DiaRootChange>();
 }
-
