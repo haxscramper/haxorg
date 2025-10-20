@@ -538,3 +538,7 @@ adaptagrams_debug.*
 libavoid-diagram.*
 thirdparty/scintilla
 _CPack_Packages
+
+gradle
+gradlew
+gradlew.bat

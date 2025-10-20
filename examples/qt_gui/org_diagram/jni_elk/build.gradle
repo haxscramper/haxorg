@@ -1,0 +1,73 @@
+plugins {
+    id 'java'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.eclipse.elk:org.eclipse.elk.core:0.11.0'
+    implementation 'org.eclipse.elk:org.eclipse.elk.graph:0.11.0'
+    implementation 'org.eclipse.elk:org.eclipse.elk.graph.json:0.11.0'
+    implementation 'org.eclipse.elk:org.eclipse.elk.alg.layered:0.11.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+}
+
+// Optimize for Linux builds
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation']
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveFileName = 'elk-wrapper.jar'
+    
+    manifest {
+        attributes(
+            'Implementation-Title': 'ELK JNI Wrapper',
+            'Implementation-Version': project.version,
+            'Built-By': System.getProperty('user.name'),
+            'Built-JDK': System.getProperty('java.version'),
+            'Main-Class': 'com.example.elk.ElkLayoutWrapper'
+        )
+    }
+}
+
+task copyJar(type: Copy, dependsOn: jar) {
+    from jar.archiveFile
+    into "${buildDir}/cmake-output"
+}
+
+build.dependsOn copyJar
+
+// Print Java information for debugging
+task printJavaInfo {
+    doLast {
+        println "=== Gradle Java Information ==="
+        println "Java version: ${System.getProperty('java.version')}"
+        println "Java home: ${System.getProperty('java.home')}"
+        println "Java vendor: ${System.getProperty('java.vendor')}"
+        println "OS: ${System.getProperty('os.name')} ${System.getProperty('os.arch')}"
+        println "Gradle version: ${gradle.gradleVersion}"
+        println "==============================="
+    }
+}
+
+compileJava.dependsOn printJavaInfo
+
+// Linux-specific cleanup
+task cleanAll(type: Delete) {
+    delete buildDir
+    delete "${buildDir}/cmake-output"
+}
