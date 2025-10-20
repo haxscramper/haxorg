@@ -10,15 +10,11 @@ import org.eclipse.elk.graph.json.ElkGraphJson;
 public class ElkLayoutWrapper {
     
     public static String performLayout(String inputJson) {
-        try {
-            JsonObject jsonGraph = JsonParser.parseString(inputJson).getAsJsonObject();
-            ElkNode elkGraph = ElkGraphJson.forGraph(jsonGraph).toElk();
-            RecursiveGraphLayoutEngine layoutEngine = new RecursiveGraphLayoutEngine();
-            BasicProgressMonitor monitor = new BasicProgressMonitor();
-            layoutEngine.layout(elkGraph, monitor);
-            return ElkGraphJson.forGraph(elkGraph).prettyPrint(true).toJson();
-        } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
-        }
+        JsonObject jsonGraph = JsonParser.parseString(inputJson).getAsJsonObject();
+        ElkNode elkGraph = ElkGraphJson.forGraph(jsonGraph).toElk();
+        RecursiveGraphLayoutEngine layoutEngine = new RecursiveGraphLayoutEngine();
+        BasicProgressMonitor monitor = new BasicProgressMonitor();
+        layoutEngine.layout(elkGraph, monitor);
+        return ElkGraphJson.forGraph(elkGraph).prettyPrint(true).toJson();
     }
 }

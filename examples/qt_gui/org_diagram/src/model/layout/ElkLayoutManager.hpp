@@ -2,6 +2,7 @@
 #include "elk_jni_wrapper.hpp"
 #include <memory>
 #include <hstd/stdlib/Exception.hpp>
+#include "ElkJsonSerial.hpp"
 
 class ElkLayoutManager {
   private:
@@ -18,14 +19,11 @@ class ElkLayoutManager {
     }
 
     ~ElkLayoutManager() {
-        if (elkEngine) { elkEngine->shutdown(); }
+        if (elkEngine) { // elkEngine->shutdown();
+        }
     }
 
-    std::string layoutDiagram(const std::string& graphJson) {
-        LOGIC_ASSERTION_CHECK(
-            elkEngine->isInitialized(),
-            "Initialization failed earlier, cannot execute layout");
-
-        return elkEngine->performLayout(graphJson);
-    }
+    std::string             layoutDiagram(const std::string& graphJson);
+    dia::layout::elk::Graph layoutDiagram(
+        dia::layout::elk::Graph const& graph);
 };

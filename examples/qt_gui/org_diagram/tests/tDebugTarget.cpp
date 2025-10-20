@@ -16,11 +16,14 @@ using namespace test;
 using S  = DiaVersionStore;
 using EC = S::EditCmd;
 
+using namespace dia::layout;
+
 class DebugTarget : public QObject {
   public slots:
-    void run_thing() {
+
+    void testDirectStringLayout() {
         auto             __scope = trackTestExecution(this);
-        ElkLayoutManager layoutManager{"jni_elk/lib/elk-wrapper.jar"};
+        ElkLayoutManager layoutManager{JNI_ELK_LIB_JAR_PATH};
 
         // Example JSON input (you would construct this based on your
         // diagram data)
@@ -38,14 +41,28 @@ class DebugTarget : public QObject {
         // Perform multiple layouts
         for (int i = 0; i < 5; ++i) {
             std::string result = layoutManager.layoutDiagram(inputJson);
-            if (result.find("ERROR:") == 0) {
-                std::cerr << "Layout failed: " << result << std::endl;
-            } else {
-                std::cout << "Layout " << i << " completed successfully "
-                          << result << std::endl;
-                // Process the result JSON...
-            }
         }
+    }
+
+    void testSerializedGraphLayout() {
+        auto             __scope = trackTestExecution(this);
+        ElkLayoutManager layoutManager{JNI_ELK_LIB_JAR_PATH};
+
+        layoutManager.layoutDiagram(elk::Graph{
+            .id       = "root",
+            .children = hstd::Vec<
+                elk::
+                    Node>{elk::Node{.id = "node1", .width = 100, .height = 100}, elk::Node{.id = "node2", .width = 100, .height = 100}},
+            .edges = hstd::Vec<elk::Edge>{elk::Edge{
+                .id      = "edge1",
+                .sources = hstd::Vec<hstd::Str>{"node1"},
+                .targets = hstd::Vec<hstd::Str>{"node2"} //
+            }}});
+    }
+
+    void run_thing() {
+        testDirectStringLayout();
+        testSerializedGraphLayout();
         QApplication::quit();
     }
 };
@@ -53,6 +70,8 @@ class DebugTarget : public QObject {
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
     DebugTarget  dt;
+    hstd::log::push_sink(
+        hstd::log::init_file_sink(getDebugFile(&dt, "main.log").native()));
     QTimer::singleShot(0, &dt, &DebugTarget::run_thing);
     return app.exec();
 }

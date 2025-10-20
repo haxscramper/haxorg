@@ -10,14 +10,19 @@
 namespace elk_jni {
 
 class ElkLayoutEngine::Impl {
+  private:
+    static inline JavaVM*   jvm                 = nullptr;
+    static inline JNIEnv*   env                 = nullptr;
+    static inline jclass    wrapperClass        = nullptr;
+    static inline jmethodID performLayoutMethod = nullptr;
+    static inline bool      initialized         = false;
+
   public:
-    JavaVM*   jvm                 = nullptr;
-    JNIEnv*   env                 = nullptr;
-    jclass    wrapperClass        = nullptr;
-    jmethodID performLayoutMethod = nullptr;
-    bool      initialized         = false;
+    bool isInitialized() const { return initialized; }
 
     bool initializeJVM(std::string const& wrapper_jar) {
+        if (initialized) { return true; }
+
         JavaVMInitArgs vm_args;
         JavaVMOption   options[2];
 
@@ -35,6 +40,24 @@ class ElkLayoutEngine::Impl {
 
         jint result = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
         if (result != JNI_OK) {
+            std::string desc;
+            switch (result) {
+                case JNI_OK: desc = "JNI_OK 0    /* success */";
+                case JNI_ERR: desc = "JNI_ERR (-1) /* unknown error */";
+                case JNI_EDETACHED:
+                    desc
+                        = "JNI_EDETACHED (-2) /* thread detached from the "
+                          "VM */";
+                case JNI_EVERSION:
+                    desc = "JNI_EVERSION (-3) /* JNI version error */";
+                case JNI_ENOMEM:
+                    desc = "JNI_ENOMEM (-4) /* not enough memory */";
+                case JNI_EEXIST:
+                    desc = "JNI_EEXIST (-5) /* VM already created */";
+                case JNI_EINVAL:
+                    desc = "JNI_EINVAL (-6) /* invalid arguments */";
+            }
+
             throw std::runtime_error(
                 std::format("Failed to create JVM: {}", result));
         }
@@ -45,7 +68,6 @@ class ElkLayoutEngine::Impl {
             env->ExceptionDescribe();
             throw std::runtime_error(
                 "Failed to find ElkLayoutWrapper class");
-            return false;
         }
 
         // Make it a global reference
@@ -60,7 +82,6 @@ class ElkLayoutEngine::Impl {
             env->ExceptionDescribe();
             throw std::runtime_error(
                 "Failed to find performLayout method");
-            return false;
         }
 
         initialized = true;
@@ -81,11 +102,15 @@ class ElkLayoutEngine::Impl {
     }
 
     std::string callPerformLayout(const std::string& inputJson) {
-        if (!initialized || !env) { return "ERROR: JVM not initialized"; }
+        if (!initialized || !env) {
+            throw std::runtime_error("JVM not initialized");
+        }
 
         // Create Java string
         jstring jInputJson = env->NewStringUTF(inputJson.c_str());
-        if (!jInputJson) { return "ERROR: Failed to create input string"; }
+        if (!jInputJson) {
+            throw std::runtime_error("Failed to create input string");
+        }
 
         // Call the method
         jstring jResult = (jstring)env->CallStaticObjectMethod(
@@ -97,10 +122,12 @@ class ElkLayoutEngine::Impl {
         if (env->ExceptionCheck()) {
             env->ExceptionDescribe();
             env->ExceptionClear();
-            return "ERROR: Exception in Java method";
+            throw std::runtime_error("Exception in Java method");
         }
 
-        if (!jResult) { return "ERROR: Null result from Java method"; }
+        if (!jResult) {
+            throw std::runtime_error("Null result from Java method");
+        }
 
         // Convert result to C++ string
         const char* resultChars = env->GetStringUTFChars(jResult, nullptr);
@@ -115,7 +142,7 @@ class ElkLayoutEngine::Impl {
 ElkLayoutEngine::ElkLayoutEngine() : pImpl(new Impl()) {}
 
 ElkLayoutEngine::~ElkLayoutEngine() {
-    shutdown();
+    // shutdown();
     delete pImpl;
 }
 
@@ -129,6 +156,8 @@ std::string ElkLayoutEngine::performLayout(const std::string& inputJson) {
     return pImpl->callPerformLayout(inputJson);
 }
 
-bool ElkLayoutEngine::isInitialized() const { return pImpl->initialized; }
+bool ElkLayoutEngine::isInitialized() const {
+    return pImpl->isInitialized();
+}
 
 } // namespace elk_jni

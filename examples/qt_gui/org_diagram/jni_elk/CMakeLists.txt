@@ -65,6 +65,9 @@ add_library(jni_elk_lib STATIC src/elk_jni_wrapper.cpp include/elk_jni_wrapper.h
 target_include_directories(jni_elk_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
                                               ${JNI_INCLUDE_DIRS})
 
+target_compile_definitions(
+  jni_elk_lib PUBLIC JNI_ELK_LIB_JAR_PATH="${CMAKE_CURRENT_BINARY_DIR}/lib/elk-wrapper.jar")
+
 target_link_libraries(jni_elk_lib PUBLIC ${JNI_LIBRARIES})
 
 # Add compiler definitions for JNI version compatibility
