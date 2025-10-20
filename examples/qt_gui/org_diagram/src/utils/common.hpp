@@ -224,3 +224,31 @@ bool hasArgsProperty(
     std::string const&                                 kind);
 
 void q_register_metatypes();
+
+
+template <typename T, typename Field>
+auto get_optional_field(const std::optional<T>& opt, Field T::*field_ptr)
+    -> std::conditional_t<
+        std::is_same_v<Field, std::optional<typename Field::value_type>>,
+        std::optional<typename Field::value_type>,
+        std::optional<Field>> {
+    if (!opt) { return std::nullopt; }
+
+    if constexpr (requires { typename Field::value_type; }) {
+        if constexpr (std::is_same_v<
+                          Field,
+                          std::optional<typename Field::value_type>>) {
+            return opt.value().*field_ptr;
+        } else {
+            return opt.value().*field_ptr;
+        }
+    } else {
+        return opt.value().*field_ptr;
+    }
+}
+
+struct Pos {
+    int x;
+    int y;
+    DESC_FIELDS(Pos, (x, y));
+};

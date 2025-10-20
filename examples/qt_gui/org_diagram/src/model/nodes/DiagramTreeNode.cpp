@@ -25,7 +25,7 @@ HSTD_REGISTER_TYPE_FIELD_NAMES(DiaNodeItem);
 hstd::described_predicate_result isSubtreeItem(
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
     auto position = getStructuredProperty<DiaNodeItem::Pos>(
-        subtree, DiaPropertyNames::diagramPosition);
+        subtree, DiaPropertyNames::diagramGeometry);
 
     if (position.has_value()
         && hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)) {
@@ -39,7 +39,7 @@ hstd::described_predicate_result isSubtreeItem(
             "properties. has position:{} has diagram node:{}",
             subtree.uniq(),
             subtree.getCleanTitle(),
-            DiaPropertyNames::diagramPosition,
+            DiaPropertyNames::diagramGeometry,
             DiaPropertyNames::isDiagramNode,
             position.has_value() ? "true" : position.error(),
             hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)));

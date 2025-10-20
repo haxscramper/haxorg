@@ -5,6 +5,7 @@
 #include <QObject>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/ext/graphviz.hpp>
+#include <src/utils/geometry.hpp>
 
 #define _cat "model.diagram"
 
@@ -37,8 +38,8 @@ using DiaIdBase                        = hstd::dod::Id<
                            std::integral_constant<hstd::u64, DiaIdMaskSize>>;
 
 struct DiaPropertyNames {
-    inline static const std::string diagramPosition
-        = "HAXORG_DIAGRAM_POSITION";
+    inline static const std::string diagramGeometry
+        = "HAXORG_DIAGRAM_GEOMETRY";
 
     inline static const std::string isDiagramNode = "HAXORG_DIAGRAM_NODE";
 };
@@ -319,6 +320,7 @@ struct DiaNodeGroup : DiaNode {
     BOOST_DESCRIBE_CLASS(DiaNodeGroup, (DiaNode), (), (), ());
 };
 
+
 struct DiaNodeItem : DiaNode {
     bool operator==(DiaNodeItem const& other) const {
         return DiaNode::operator==(other);
@@ -326,10 +328,10 @@ struct DiaNodeItem : DiaNode {
 
     inline static const DiaNodeKind staticKind = DiaNodeKind::Item;
 
-    struct Pos {
-        int x;
-        int y;
-        DESC_FIELDS(Pos, (x, y));
+    struct Geometry {
+        hstd::Opt<Size>  size;
+        hstd::Opt<Point> pos;
+        DESC_FIELDS(Geometry, (size, pos));
     };
 
 
@@ -337,10 +339,16 @@ struct DiaNodeItem : DiaNode {
         return id.as<org::imm::ImmSubtree>();
     }
 
-    Pos getPos() const {
-        return getStructuredProperty<Pos>(
-                   getSubtree(), DiaPropertyNames::diagramPosition)
-            .value();
+    hstd::Result<Point, std::string> getPos() const {
+        BOOST_OUTCOME_TRY(
+            auto geometry,
+            getStructuredProperty<Geometry>(
+                getSubtree(), DiaPropertyNames::diagramGeometry));
+
+        BOOST_OUTCOME_TRY_OPTIONAL(
+            pos, geometry.pos, "geometry has no position");
+
+        return pos;
     }
 
 

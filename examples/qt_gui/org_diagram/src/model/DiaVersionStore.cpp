@@ -264,7 +264,7 @@ void DiaVersionStore::stepEditForward(
                         sem::NamedProperty>{
                         sem::NamedProperty{
                             sem::NamedProperty::CustomSubtreeJson{
-                                .name  = DiaPropertyNames::diagramPosition,
+                                .name  = DiaPropertyNames::diagramGeometry,
                                 .value = hstd::to_json_eval(
                                     DiaNodeItem::Pos{})}},
                         sem::NamedProperty{

@@ -10,7 +10,7 @@ class ElkLayoutManager {
     std::string                               classPath;
 
   public:
-    ElkLayoutManager(std::string const& classPath)
+    ElkLayoutManager(std::string const& classPath = JNI_ELK_LIB_JAR_PATH)
         : elkEngine(std::make_unique<elk_jni::ElkLayoutEngine>())
         , classPath{classPath} {
         LOGIC_ASSERTION_CHECK(
