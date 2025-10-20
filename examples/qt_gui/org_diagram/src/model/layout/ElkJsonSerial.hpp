@@ -250,6 +250,7 @@ class Graph {
         ());
 };
 
+void validate(Graph const& graph);
 
 } // namespace dia::layout::elk
 
