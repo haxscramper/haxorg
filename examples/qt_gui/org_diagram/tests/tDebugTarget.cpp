@@ -20,7 +20,7 @@ class DebugTarget : public QObject {
   public slots:
     void run_thing() {
         auto             __scope = trackTestExecution(this);
-        ElkLayoutManager layoutManager{"lib/elk-wrapper.jar"};
+        ElkLayoutManager layoutManager{"jni_elk/lib/elk-wrapper.jar"};
 
         // Example JSON input (you would construct this based on your
         // diagram data)
@@ -41,8 +41,8 @@ class DebugTarget : public QObject {
             if (result.find("ERROR:") == 0) {
                 std::cerr << "Layout failed: " << result << std::endl;
             } else {
-                std::cout << "Layout " << i << " completed successfully"
-                          << std::endl;
+                std::cout << "Layout " << i << " completed successfully "
+                          << result << std::endl;
                 // Process the result JSON...
             }
         }

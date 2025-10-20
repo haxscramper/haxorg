@@ -46,7 +46,7 @@ add_custom_target(gradle_wrapper DEPENDS ${GRADLE_WRAPPER} ${GRADLE_WRAPPER_JAR}
 
 # Build the JAR file using Gradle wrapper
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/elk-wrapper.jar
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake-output/elk-wrapper.jar
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
   COMMAND ${CMAKE_COMMAND} -E env "JAVA_HOME=${JAVA_HOME}" "PATH=${JAVA_HOME}/bin:$ENV{PATH}"
           ${GRADLE_WRAPPER} clean build
@@ -56,7 +56,8 @@ add_custom_command(
   COMMENT "Building ELK wrapper JAR with Gradle wrapper and Java ${Java_VERSION}"
   VERBATIM)
 
-add_custom_target(elk_jar ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/elk-wrapper.jar)
+add_custom_target(elk_jar ALL
+                  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake-output/elk-wrapper.jar)
 
 # Create the JNI wrapper library
 add_library(jni_elk_lib STATIC src/elk_jni_wrapper.cpp include/elk_jni_wrapper.hpp)
@@ -80,7 +81,7 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E copy_if_different
     ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake-output/elk-wrapper.jar
-    $<TARGET_FILE_DIR:jni_elk_lib>/../lib/elk-wrapper.jar
+    ${CMAKE_CURRENT_BINARY_DIR}/lib/elk-wrapper.jar
   COMMENT "Copying JAR to runtime directory")
 
 # Debug targets
