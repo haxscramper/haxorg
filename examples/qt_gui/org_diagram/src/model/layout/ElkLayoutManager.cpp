@@ -13,8 +13,8 @@ std::string ElkLayoutManager::layoutDiagram(const std::string& graphJson) {
 dia::layout::elk::Graph ElkLayoutManager::layoutDiagram(
     const dia::layout::elk::Graph& graph) {
     json serial = hstd::to_json_eval(graph);
-    dia::layout::elk::validate(graph);
     HSLOG_TRACE("{}", serial.dump(2));
+    dia::layout::elk::validate(graph);
     std::string tmp    = serial.dump();
     auto        layout = layoutDiagram(tmp);
     HSLOG_TRACE("{}", layout);

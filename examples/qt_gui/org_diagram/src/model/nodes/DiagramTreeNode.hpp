@@ -541,6 +541,17 @@ struct DiaAdapter {
         return id.getSelfPathFromRoot();
     }
 
+    template <typename T>
+    hstd::Result<T, std::string> getStructuredSubtreeProperty(
+        std::string const& name) const {
+        BOOST_OUTCOME_TRY(
+            auto res,
+            getStructuredProperty<T>(
+                getImmAdapter().as<org::imm::ImmSubtree>(), name));
+
+        return res;
+    }
+
     int getSelfIndex() const;
 
     bool hasParent() const { return 0 < id.path.path.size(); }
@@ -608,6 +619,9 @@ struct std::formatter<DiaAdapter> : std::formatter<std::string> {
 DiaAdapter FromDocument(
     hstd::SPtr<DiaContext> const&                       context,
     org::imm::ImmAdapterT<org::imm::ImmDocument> const& root);
+
+hstd::described_predicate_result isSubtreeItem(
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree);
 
 
 /// \brief Single edit operation on the path to transform the source
