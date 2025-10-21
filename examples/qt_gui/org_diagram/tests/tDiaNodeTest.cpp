@@ -64,10 +64,10 @@ class DiaNodeTest : public QObject {
         auto item2_node = item2->dyn_cast<DiaNodeItem>();
         QVERIFY(item2_node != nullptr);
 
-        QCOMPARE_EQ2(item1_node->getPos().x, 12);
-        QCOMPARE_EQ2(item1_node->getPos().y, 30);
-        QCOMPARE_EQ(item2_node->getPos().x, 12);
-        QCOMPARE_EQ(item2_node->getPos().y, 90);
+        QCOMPARE_EQ2(item1_node->getPos().value().x(), 12);
+        QCOMPARE_EQ2(item1_node->getPos().value().y(), 30);
+        QCOMPARE_EQ(item2_node->getPos().value().x(), 12);
+        QCOMPARE_EQ(item2_node->getPos().value().y(), 90);
     }
 };
 

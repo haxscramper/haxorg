@@ -24,7 +24,7 @@ HSTD_REGISTER_TYPE_FIELD_NAMES(DiaNodeItem);
 
 hstd::described_predicate_result isSubtreeItem(
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
-    auto position = getStructuredProperty<DiaNodeItem::Pos>(
+    auto position = getStructuredProperty<DiaNodeItem::Geometry>(
         subtree, DiaPropertyNames::diagramGeometry);
 
     if (position.has_value()

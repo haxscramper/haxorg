@@ -16,7 +16,13 @@ struct hstd::ReflVisitor<unsigned long long, Tag>
     : hstd::ReflVisitorLeafType<unsigned long long, Tag> {};
 
 
-DECL_DESCRIBED_ENUM_STANDALONE(DiaNodeKind, Layer, Canvas, Group, Item);
+DECL_DESCRIBED_ENUM_STANDALONE(
+    DiaNodeKind,
+    Layer,
+    Canvas,
+    Group,
+    Item,
+    Edge);
 
 #define EACH_DIAGRAM_KIND(__impl)                                         \
     __impl(Layer) __impl(Canvas) __impl(Group) __impl(Item)
@@ -261,6 +267,7 @@ struct std::hash<DiaUniqId> {
 struct DiaNode {
     virtual DiaNodeKind      getKind() const = 0;
     hstd::ext::ImmVec<DiaId> subnodes;
+    hstd::ext::ImmVec<DiaId> edges;
     org::imm::ImmAdapter     id;
 
     bool operator==(DiaNode const& other) const {
@@ -291,6 +298,15 @@ struct DiaNode {
 
 
     DESC_FIELDS(DiaNode, (subnodes));
+};
+
+struct DiaEdge : DiaNode {
+    bool operator==(DiaEdge const& other) const {
+        return DiaNode::operator==(other);
+    }
+    inline static const DiaNodeKind staticKind = DiaNodeKind::Edge;
+    DiaNodeKind getKind() const override { return staticKind; }
+    BOOST_DESCRIBE_CLASS(DiaEdge, (DiaNode), (), (), ());
 };
 
 struct DiaNodeLayer : DiaNode {

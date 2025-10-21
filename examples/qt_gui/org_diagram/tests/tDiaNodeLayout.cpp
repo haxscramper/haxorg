@@ -8,9 +8,7 @@ class DiaNodeLayout : public QObject {
     Q_OBJECT
 
   private slots:
-    void testLayoutMultipleRuns() {
-
-    }
+    void testLayoutMultipleRuns() {}
 };
 
 HAXORG_QT_TEST_MAIN(DiaNodeLayout)

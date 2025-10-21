@@ -11,6 +11,7 @@
 #include <src/gui/items/DiaSceneItemGroup.hpp>
 #include <hstd/stdlib/Set.hpp>
 #include <QMessageBox>
+#include <src/model/layout/DiaNodeLayout.hpp>
 
 /// \brief Central class for storing diagram scene items for the tree. The
 /// class creates new scene item form the diagram adapters and reacts to
@@ -28,6 +29,7 @@ struct DiaScene : public QGraphicsScene {
     DiaSceneItemVisual*  arrowSource{};
     DiaSceneItemModel*   treeModel{nullptr};
     DiaVersionStore::Ptr version_store;
+    DiaLayout            layout;
 
     std::vector<DiaSceneItemVisual*> selectedNodes{};
     bool                             showGrid{true};
@@ -98,6 +100,8 @@ struct DiaScene : public QGraphicsScene {
     hstd::Opt<DiaSceneItem*> getItemForId(DiaUniqId const& id) {
         return root()->getItemAtPath(id.getSelfPathFromRoot());
     }
+
+    void updateLayoutForAdapter(DiaAdapter const& a);
 
     DiaSceneItem* setRootAdapter(DiaAdapter const& a);
 

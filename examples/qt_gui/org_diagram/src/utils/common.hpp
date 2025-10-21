@@ -154,8 +154,7 @@ bool haxorg_qCompareOp(
     const char* file,
     int         line) {
     using Comparator = QTest::Internal::Compare<op>;
-    bool success     = Comparator::compare(
-        std::forward<T1>(qt_lhs_arg), std::forward<T2>(qt_lhs_arg));
+    bool success     = Comparator::compare(qt_lhs_arg, qt_lhs_arg);
     return QTest::reportResult(
         success,
         [&qt_lhs_arg] {
@@ -203,7 +202,18 @@ hstd::outcome::result<T, std::string> getStructuredProperty(
         hstd::fmt("Property :prop_json:{}: not found", kind));
 
     BOOST_OUTCOME_TRY_SUB_VARIANT(json_data, property, CustomSubtreeJson);
-    return hstd::from_json_eval<T>(json_data.value.getRef());
+    try {
+        return hstd::from_json_eval<T>(json_data.value.getRef());
+    } catch (json::type_error& err) {
+        return hstd::fmt(
+            "Property :prop_json:{}: JSON did not match the expected "
+            "structure. While reading type {}, got error: {}. JSON syntax "
+            "is valid, the value is {}",
+            kind,
+            hstd::value_metadata<T>::typeName(),
+            err.what(),
+            json_data.value.getRef().dump());
+    }
 }
 
 

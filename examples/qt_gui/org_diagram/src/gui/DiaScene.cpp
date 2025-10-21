@@ -110,6 +110,10 @@ void DiaScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
     QGraphicsScene::mouseMoveEvent(event);
 }
 
+void DiaScene::updateLayoutForAdapter(const DiaAdapter& a) {
+    layout = DiaLayout::FromDiagram(a);
+}
+
 DiaSceneItem* DiaScene::setRootAdapter(const DiaAdapter& a) {
     TRACKED_FUNCTION("setRootAdapter");
     rootNode            = addAdapterRec(a);
@@ -322,6 +326,7 @@ DiaSceneItem* DiaScene::resetRootAdapter(const hstd::Vec<DiaEdit>& edits) {
 void DiaScene::diaRootChanged(
     DiaVersionStore::DiaRootChange const& change) {
     TRACKED_SLOT("diaRootChange");
+    updateLayoutForAdapter(change.newRoot);
     if (rootNode.get() == nullptr) {
         setRootAdapter(change.newRoot);
     } else {
@@ -337,8 +342,8 @@ DiaSceneItem::UPtr DiaScene::addAdapterNonRec(const DiaAdapter& a) {
             auto node  = addNewItem<DiaSceneItemRectangle>(a);
             node->name = QString::fromStdString(
                 it->getSubtree().getCleanTitle());
-            auto pos = it->getPos();
-            node->setPos(pos.x, pos.y);
+            auto pos = layout.getRelPos(a.uniq());
+            node->setPos(pos.x(), pos.y());
             node->color = Qt::green;
             return node;
         }
@@ -349,6 +354,12 @@ DiaSceneItem::UPtr DiaScene::addAdapterNonRec(const DiaAdapter& a) {
         case DiaNodeKind::Layer: {
             auto layer = addNewItem<DiaSceneItemLayer>(a);
             return layer;
+        }
+
+        case DiaNodeKind::Edge: {
+            throw hstd::logic_unreachable_error::init(
+                "Edges should not be created directly from the scene "
+                "adapter");
         }
     }
 }

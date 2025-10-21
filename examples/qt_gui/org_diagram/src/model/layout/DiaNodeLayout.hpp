@@ -1,6 +1,7 @@
 #pragma once
 
 #include <src/model/nodes/DiagramTreeNode.hpp>
+#include <src/utils/geometry.hpp>
 
 struct DiaLayout {
     hstd::UnorderedMap<DiaUniqId, Size>      sizes;

@@ -196,7 +196,7 @@ class Node {
     hstd::Opt<hstd::Str>        type;
     hstd::Opt<hstd::Vec<Port>>  ports;
     hstd::Opt<hstd::Vec<Label>> labels;
-    hstd::Opt<hstd::Vec<Node>>  children;
+    hstd::Vec<Node>             children;
     hstd::Opt<hstd::Vec<Edge>>  edges;
     hstd::Opt<NodeProperties>   properties;
     hstd::Opt<json>             layoutOptions;
@@ -228,7 +228,7 @@ class Graph {
     hstd::Opt<double>           width;
     hstd::Opt<double>           height;
     hstd::Opt<json>             layoutOptions;
-    hstd::Opt<hstd::Vec<Node>>  children;
+    hstd::Vec<Node>             children;
     hstd::Opt<hstd::Vec<Edge>>  edges;
     hstd::Opt<hstd::Vec<Port>>  ports;
     hstd::Opt<hstd::Vec<Label>> labels;

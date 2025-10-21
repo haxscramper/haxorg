@@ -25,18 +25,12 @@ void dia::layout::elk::validate(const Graph& graph) {
                 }
             }
 
-            if (node.children) {
-                for (const auto& child : *node.children) {
-                    collect_node_ids(child);
-                }
+            for (const auto& child : node.children) {
+                collect_node_ids(child);
             }
         };
 
-    if (graph.children) {
-        for (const auto& node : *graph.children) {
-            collect_node_ids(node);
-        }
-    }
+    for (const auto& node : graph.children) { collect_node_ids(node); }
 
     if (graph.ports) {
         for (const auto& port : *graph.ports) {
@@ -123,16 +117,10 @@ void dia::layout::elk::validate(const Graph& graph) {
     std::function<void(const Node&)> validate_node_edges =
         [&](const Node& node) {
             if (node.edges) { validate_edges(node.edges); }
-            if (node.children) {
-                for (const auto& child : *node.children) {
-                    validate_node_edges(child);
-                }
+            for (const auto& child : node.children) {
+                validate_node_edges(child);
             }
         };
 
-    if (graph.children) {
-        for (const auto& node : *graph.children) {
-            validate_node_edges(node);
-        }
-    }
+    for (const auto& node : graph.children) { validate_node_edges(node); }
 }
