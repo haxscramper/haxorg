@@ -11,6 +11,8 @@ class IGraphObjectBase {
     virtual bool        isEqual(IGraphObjectBase const* other) const = 0;
     virtual std::string getRepr() const                              = 0;
 
+    virtual ~IGraphObjectBase() = default;
+
     template <typename T>
     bool isInstance() const {
         return dynamic_cast<T const*>(this) != nullptr;
@@ -29,12 +31,28 @@ class IVertexID : public IGraphObjectBase {
     using Val = hstd::value_ptr<IVertexID>;
 };
 
-class IPortID {};
+/// \brief Categorize the in/out edge connections between vertices.
+///
+/// The concept of the node port is linked with the layout, but the the
+/// abstract graph interface it is also used to group different connections
+/// of edge to the vertices.
+class IPortID : public IGraphObjectBase {
+  public:
+    using Val = hstd::value_ptr<IPortID>;
+};
 
 class IEdgeID : public IGraphObjectBase {
   public:
     virtual IVertexID const* getSource() const = 0;
     virtual IVertexID const* getTarget() const = 0;
+
+    virtual hstd::Opt<IPortID::Val> getSourcePort() const {
+        return std::nullopt;
+    };
+
+    virtual hstd::Opt<IPortID::Val> getTargetPort() const {
+        return std::nullopt;
+    }
 
     using Val = hstd::value_ptr<IEdgeID>;
 };
@@ -122,18 +140,27 @@ class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
     virtual void delEdge(IEdgeID::Val const& id);
 
   public:
-    virtual void addVertex(IVertexID::Val const& id) = 0;
-    virtual void delVertex(IVertexID::Val const& id) = 0;
+    virtual void addVertex(IVertexID::Val const& id);
+    virtual void delVertex(IVertexID::Val const& id);
 
+    virtual hstd::Vec<IEdgeID::Val> getOutgoing(IVertexID::Val const& vert) = 0;
     virtual IEdgeCategory::Val getCategory() const = 0;
 };
 
 class IGraph {
   protected:
-    hstd::Vec<IEdgeCollection::Ptr> edges;
+    hstd::Vec<IEdgeCollection::Ptr>  collections;
+    hstd::Vec<IPropertyTracker::Ptr> trackers;
 
   public:
+    void addTracker(IPropertyTracker::Ptr const& tracker) {
+        trackers.push_back(tracker);
+    }
+
     virtual void addVertex(IVertexID::Val const& id);
     virtual void delVertex(IVertexID::Val const& id);
+
+    virtual void addVertexList(hstd::Vec<IVertexID::Val> const& ids);
+    virtual void delVertexList(hstd::Vec<IVertexID::Val> const& ids);
 };
 } // namespace org::graph

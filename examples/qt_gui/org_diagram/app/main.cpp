@@ -38,9 +38,6 @@
 #include <src/utils/file_watcher.hpp>
 #include <QFileSystemWatcher>
 
-#pragma clang diagnostic ignored "-Wmacro-redefined"
-#define _cat "main"
-
 int main(int argc, char* argv[]) {
     hstd::log::push_sink(
         hstd::log::init_file_sink("/tmp/org_diagram.log"));
@@ -48,32 +45,44 @@ int main(int argc, char* argv[]) {
     get_tracker()->start_tracing();
 
     auto conf = hstd::from_json_eval<StartupArgc>(json::parse(argv[1]));
-    QFileSystemWatcher watcher;
 
-
-    qInstallMessageHandler(customMessageHandler);
     QApplication app{argc, argv};
-    QLoggingCategory::setFilterRules("qt.qpa.painting.debug=true");
-
-    auto window = std::make_shared<MainWindow>(conf);
-
-    QObject::connect(
-        &watcher,
-        &QFileSystemWatcher::fileChanged,
-        [&](QString const& event) {
-            HSLOG_TRACE(
-                _cat, "File changed:{}", event.toStdString());
-            window->loadFile(event);
-        });
-
-    watcher.addPath(QString::fromStdString(conf.documentPath));
+    if (conf.mode == StartupArgc::Mode::Gui) {
+        QFileSystemWatcher watcher;
 
 
-    window->show();
+        qInstallMessageHandler(customMessageHandler);
+        QLoggingCategory::setFilterRules("qt.qpa.painting.debug=true");
 
-    int result = app.exec();
-    get_tracker()->end_tracing();
-    return result;
+        auto window = std::make_shared<MainWindow>(conf);
+
+        QObject::connect(
+            &watcher,
+            &QFileSystemWatcher::fileChanged,
+            [&](QString const& event) {
+                HSLOG_TRACE("File changed:{}", event.toStdString());
+                window->loadFile(event);
+            });
+
+        watcher.addPath(QString::fromStdString(conf.documentPath));
+
+
+        window->show();
+
+        int result = app.exec();
+        get_tracker()->end_tracing();
+        return result;
+    } else if (conf.mode == StartupArgc::Mode::MindMapDump) {
+        auto imm_context = org::imm::ImmAstContext::init_start_context();
+        auto dia_context = DiaContext::shared();
+        DiaVersionStore::Ptr version_store = DiaVersionStore::shared(
+            imm_context, dia_context);
+
+        version_store->addDocument(hstd::readFile(conf.documentPath));
+
+        auto adapter = FromDocument(
+            dia_context, version_store->getActiveImmRoot());
+    }
 }
 
 #include "main.moc"

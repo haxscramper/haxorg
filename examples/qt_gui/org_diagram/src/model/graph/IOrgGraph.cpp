@@ -14,11 +14,34 @@ const hstd::Vec<org::graph::IVertexID::Val>& org::graph::IPropertyTracker::
 }
 
 void org::graph::IGraph::addVertex(const IVertexID::Val& id) {
-    for (auto& collection : edges) { collection->addVertex(id); }
+    for (auto& collection : collections) { collection->addVertex(id); }
 }
 
 void org::graph::IGraph::delVertex(const IVertexID::Val& id) {
-    for (auto& collection : edges) { collection->delVertex(id); }
+    for (auto& collection : collections) { collection->delVertex(id); }
+}
+
+void org::graph::IGraph::addVertexList(
+    const hstd::Vec<IVertexID::Val>& ids) {
+    for (auto const& id : ids) {
+        for (auto& track : trackers) { track->addVertex(id); }
+    }
+
+    for (auto const& id : ids) {
+        for (auto& collection : collections) { collection->addVertex(id); }
+    }
+}
+
+void org::graph::IGraph::delVertexList(
+    const hstd::Vec<IVertexID::Val>& ids) {
+
+    for (auto const& id : ids) {
+        for (auto& collection : collections) { collection->delVertex(id); }
+    }
+
+    for (auto const& id : ids) {
+        for (auto& track : trackers) { track->delVertex(id); }
+    }
 }
 
 void org::graph::IEdgeCollection::addEdge(const IEdgeID::Val& id) {
@@ -32,4 +55,12 @@ void org::graph::IEdgeCollection::delEdge(const IEdgeID::Val& id) {
     auto it = vec.indexOf(id);
     LOGIC_ASSERTION_CHECK(it != -1, "{}", id->getRepr());
     vec.erase(vec.begin() + it);
+}
+
+void org::graph::IEdgeCollection::addVertex(const IVertexID::Val& id) {
+    for (auto const& e : getOutgoing(id)) { addEdge(e); }
+}
+
+void org::graph::IEdgeCollection::delVertex(const IVertexID::Val& id) {
+    for (auto const& e : getOutgoing(id)) { delEdge(e); }
 }
