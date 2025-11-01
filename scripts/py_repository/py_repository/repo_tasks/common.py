@@ -2,7 +2,7 @@ from beartype.typing import Dict, Callable, List, Optional
 from beartype import beartype
 from functools import wraps
 from py_scriptutils.script_logging import log
-from copy import copy
+import copy
 import typing
 import inspect
 import shutil
@@ -13,6 +13,8 @@ from invoke.tasks import Task
 
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_repository.repo_tasks.config import get_config
+from plumbum import local
 
 
 from pathlib import Path
@@ -97,6 +99,22 @@ def get_build_tmpdir(ctx: Context, component: str) -> Path:
         get_real_build_basename(ctx, component))
     ensure_existing_dir(result)
     return result
+
+
+@beartype
+def ui_notify(message: str, is_ok: bool = True):
+    try:
+        cmd = local["notify-send"]
+        cmd.run(
+            [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
+
+    except Exception:
+        if is_ok:
+            log(CAT).info(message)
+
+        else:
+            log(CAT).error(message)
+
 
 
 

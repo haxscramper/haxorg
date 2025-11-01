@@ -414,11 +414,13 @@ def run_cmake_configure_component(
             get_component_build_dir(ctx, component),
             "-S",
             get_script_root(script_path),
+            # "--fresh",
             cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
             cmake_opt("ORG_USE_COVERAGE",
                       get_config(ctx).instrument.coverage),
             "-G",
             "Ninja",
+            "-Wno-dev",
         ] + args,
         **kwargs,
     )
@@ -442,23 +444,6 @@ def run_cmake_build_component(
         ] + args,
         **kwargs,
     )
-
-
-@beartype
-def ui_notify(message: str, is_ok: bool = True):
-    try:
-        cmd = local["notify-send"]
-        cmd.run(
-            [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
-
-    except Exception:
-        if is_ok:
-            log(CAT).info(message)
-
-        else:
-            log(CAT).error(message)
-
-
 
 
 def get_toolchain_path(ctx: Context) -> Path:
@@ -1106,14 +1091,28 @@ def configure_example_qt_gui_org_diagram(ctx: Context):
         ctx,
         "example_qt_gui_org_diagram",
         "examples/qt_gui/org_diagram",
+        args=[cmake_opt("JAVA_HOME", "/usr/lib/jvm/default")],
     )
 
 @org_task(pre=[configure_example_qt_gui_org_diagram])
 def build_example_qt_gui_org_diagram(ctx: Context):
     run_cmake_build_component(
         ctx,
-        "example_qt_gui_org_viewer",
+        "example_qt_gui_org_diagram",
     )
+
+@org_task(pre=[build_example_qt_gui_org_diagram])
+def run_example_org_elk_diagram(ctx: Context, infile: str):
+    wrapper_dir = "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"
+    run_command(ctx, "gradle", args=["build"], cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
+    diagram_build_dir = get_component_build_dir(ctx, "example_qt_gui_org_diagram")
+    run_command(ctx, diagram_build_dir.joinpath("org_diagram"), args=[json.dumps(dict(
+        documentPath=infile,
+        mode="MindMapDump",
+        outputPath="/tmp/mind-map-dump.json",
+    ))])
+
+
 
 @org_task(pre=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
 def build_example_qt_gui(ctx: Context):
