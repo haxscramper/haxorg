@@ -170,6 +170,10 @@ class IGraph {
         trackers.push_back(tracker);
     }
 
+    void addCollection(IEdgeCollection::Ptr const& collection) {
+        collections.push_back(collection);
+    }
+
     virtual void trackVertex(VertexID const& id);
     virtual void untrackVertex(VertexID const& id);
 

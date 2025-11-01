@@ -62,7 +62,16 @@ class CliApplication : public QCoreApplication {
         , hierarchy_collection{
               std::make_shared<DiaHierarchyEdgeCollection>(
                   dia_context,
-                  dia_graph)} {}
+                  dia_graph)} {
+
+        dia_graph->addCollection(hierarchy_collection);
+
+        connect(
+            version_store.get(),
+            &DiaVersionStore::diaRootChanged,
+            this,
+            &CliApplication::diaRootChanged);
+    }
 
     void loadFile(std::string const& path) {
         version_store->addDocument(hstd::readFile(path));
@@ -70,6 +79,7 @@ class CliApplication : public QCoreApplication {
 
   public slots:
     void diaRootChanged(DiaVersionStore::DiaRootChange const& change) {
+        TRACKED_SLOT("diaRootChanged", change);
         hstd::Vec<org::graph::VertexID> added;
         hstd::Vec<org::graph::VertexID> removed;
         for (auto const& edit : change.edits) {
@@ -77,7 +87,7 @@ class CliApplication : public QCoreApplication {
                 case DiaEdit::Kind::Delete: {
                     auto aux = [&](DiaAdapter const& a,
                                    auto&&            self) -> void {
-                        removed.push_back(dia_graph->addVertex(a.uniq()));
+                        removed.push_back(dia_graph->delVertex(a.uniq()));
                         for (auto const& sub : a.sub(true)) {
                             self(sub, self);
                         }
@@ -89,7 +99,7 @@ class CliApplication : public QCoreApplication {
                 case DiaEdit::Kind::Insert: {
                     auto aux = [&](DiaAdapter const& a,
                                    auto&&            self) -> void {
-                        removed.push_back(dia_graph->delVertex(a.uniq()));
+                        added.push_back(dia_graph->addVertex(a.uniq()));
                         for (auto const& sub : a.sub(true)) {
                             self(sub, self);
                         }

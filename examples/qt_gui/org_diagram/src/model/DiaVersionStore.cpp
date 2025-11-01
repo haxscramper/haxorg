@@ -50,7 +50,15 @@ hstd::Vec<DiaEdit> DiaVersionStore::getDiaEdits(
     int                lhsVer,
     int                rhsVer,
     DiaEditConf const& conf) {
-    return ::getEdits(getDiaRoot(lhsVer), getDiaRoot(rhsVer), conf);
+    if (lhsVer == -1) {
+        return {DiaEdit{
+            .data = DiaEdit::Insert{
+                .dstNode  = getDiaRoot(rhsVer),
+                .dstIndex = rhsVer,
+            }}};
+    } else {
+        return ::getEdits(getDiaRoot(lhsVer), getDiaRoot(rhsVer), conf);
+    }
 }
 
 DiaAdapter DiaVersionStore::buildTree(imm::ImmAdapter const& adapter) {
@@ -336,8 +344,8 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
     change.edits    = getDiaEdits(oldActive, active, DiaEditConf{});
     change.oldIndex = oldActive;
     change.newIndex = active;
-    change.oldRoot  = getDiaRoot(oldActive);
-    change.newRoot  = getDiaRoot(active);
+    if (oldActive != -1) { change.oldRoot = getDiaRoot(oldActive); }
+    change.newRoot = getDiaRoot(active);
     TRACKED_EMIT(diaRootChanged, change);
 
     hstd::log::log_sequential_collection(change.edits).as_trace().end();

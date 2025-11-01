@@ -7,6 +7,7 @@ hstd::Vec<org::graph::Edge> DiaHierarchyEdgeCollection::getOutgoing(
          DiaAdapter{graph->getVertex(vert).uniq, tree_context}.sub(true)) {
         res.push_back(org::graph::Edge(vert, graph->getID(sub.uniq()), 0));
     }
+    HSLOG_DEBUG("get outgoing {}", res);
     return res;
 }
 
