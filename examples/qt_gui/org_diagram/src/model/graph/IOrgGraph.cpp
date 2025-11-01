@@ -4,7 +4,11 @@
 void org::graph::IPropertyTracker::addVertex(
     const hstd::value_ptr<IProperty>& property,
     const hstd::value_ptr<IVertexID>& vertex) {
-    map[property].push_back(vertex);
+    if (map.contains(property)) {
+        map.at(property).push_back(vertex.copy());
+    } else {
+        map[property.copy()].push_back(vertex.copy());
+    }
 }
 
 const hstd::Vec<org::graph::IVertexID::Val>& org::graph::IPropertyTracker::
@@ -45,8 +49,14 @@ void org::graph::IGraph::delVertexList(
 }
 
 void org::graph::IEdgeCollection::addEdge(const IEdgeID::Val& id) {
-    edges[IVertexID::Val(id->getSource())][IVertexID::Val(id->getTarget())]
-        .push_back(id);
+    auto source = IVertexID::Val(id->getSource());
+    auto target = IVertexID::Val(id->getTarget());
+    if (!edges.contains(source)) { edges[source.copy()]; }
+    if (!edges.at(source).contains(target)) {
+        edges.at(source)[target.copy()];
+    }
+
+    edges.at(source).at(target).push_back(id);
 }
 
 void org::graph::IEdgeCollection::delEdge(const IEdgeID::Val& id) {

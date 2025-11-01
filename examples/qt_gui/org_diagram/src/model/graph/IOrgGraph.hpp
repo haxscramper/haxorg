@@ -11,6 +11,8 @@ class IGraphObjectBase {
     virtual bool        isEqual(IGraphObjectBase const* other) const = 0;
     virtual std::string getRepr() const                              = 0;
 
+    virtual IGraphObjectBase* copy() const = 0;
+
     virtual ~IGraphObjectBase() = default;
 
     template <typename T>
@@ -55,6 +57,10 @@ class IEdgeID : public IGraphObjectBase {
     }
 
     using Val = hstd::value_ptr<IEdgeID>;
+
+    bool operator==(IEdgeID const& other) const {
+        return this->isEqual(&other);
+    }
 };
 
 class IEdgeCategory : public IGraphObjectBase {

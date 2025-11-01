@@ -13,6 +13,10 @@ class DiaGraphVertex : public org::graph::IVertexID {
         return std::hash<DiaUniqId>{}(id);
     }
 
+    IGraphObjectBase* copy() const override {
+        return new DiaGraphVertex(*this);
+    }
+
     virtual bool isEqual(const IGraphObjectBase* other) const override {
         return other->isInstance<DiaGraphVertex>()
             && dynamic_cast<DiaGraphVertex const*>(other)->id == id;
@@ -37,6 +41,10 @@ class DiaGraphEdge : public org::graph::IEdgeID {
     int bundleIndex;
 
     using Val = hstd::value_ptr<DiaGraphEdge>;
+
+    IGraphObjectBase* copy() const override {
+        return new DiaGraphEdge(*this);
+    }
 
     DiaGraphEdge(
         DiaGraphVertex const& source,
@@ -97,6 +105,10 @@ class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
 
         virtual std::string getRepr() const override {
             return "hierarchy-edge-collection";
+        }
+
+        IGraphObjectBase* copy() const override {
+            return new Category(*this);
         }
     };
 

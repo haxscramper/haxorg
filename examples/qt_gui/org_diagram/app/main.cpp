@@ -37,6 +37,35 @@
 #include <src/utils/common.hpp>
 #include <src/utils/file_watcher.hpp>
 #include <QFileSystemWatcher>
+#include <src/model/graph/IOrgGraph.hpp>
+#include <src/model/graph/DiaGraph.hpp>
+
+class CliApplication : public QCoreApplication {
+    Q_OBJECT
+  public:
+    StartupArgc conf;
+
+    org::imm::ImmAstContext::Ptr imm_context;
+    DiaContext::Ptr              dia_context;
+    DiaVersionStore::Ptr         version_store;
+
+    CliApplication(int argc, char* argv[], StartupArgc const& conf)
+        : QCoreApplication{argc, argv}
+        , conf{conf}
+        , imm_context{org::imm::ImmAstContext::init_start_context()}
+        , dia_context{DiaContext::shared()}
+        , version_store{
+              DiaVersionStore::shared(imm_context, dia_context)} {}
+
+    void loadFile(std::string const& path) {
+        version_store->addDocument(hstd::readFile(path));
+    }
+
+  public slots:
+    void diaRootChanged(DiaVersionStore::DiaRootChange const& change) {
+        // TODO impl
+    }
+};
 
 int main(int argc, char* argv[]) {
     hstd::log::push_sink(
@@ -46,8 +75,8 @@ int main(int argc, char* argv[]) {
 
     auto conf = hstd::from_json_eval<StartupArgc>(json::parse(argv[1]));
 
-    QApplication app{argc, argv};
     if (conf.mode == StartupArgc::Mode::Gui) {
+        QApplication       app{argc, argv};
         QFileSystemWatcher watcher;
 
 
@@ -73,15 +102,8 @@ int main(int argc, char* argv[]) {
         get_tracker()->end_tracing();
         return result;
     } else if (conf.mode == StartupArgc::Mode::MindMapDump) {
-        auto imm_context = org::imm::ImmAstContext::init_start_context();
-        auto dia_context = DiaContext::shared();
-        DiaVersionStore::Ptr version_store = DiaVersionStore::shared(
-            imm_context, dia_context);
-
-        version_store->addDocument(hstd::readFile(conf.documentPath));
-
-        auto adapter = FromDocument(
-            dia_context, version_store->getActiveImmRoot());
+        CliApplication app{argc, argv, conf};
+        app.loadFile(conf.documentPath);
     }
 }
 
