@@ -57,19 +57,42 @@ struct Edge {
 
     VertexID          source;
     VertexID          target;
-    int               bundleIndex;
-    hstd::Opt<PortID> sourcePort;
-    hstd::Opt<PortID> targetPort;
+    int               bundleIndex = -1;
+    hstd::Opt<PortID> sourcePort  = std::nullopt;
+    hstd::Opt<PortID> targetPort  = std::nullopt;
     DESC_FIELDS(
         Edge,
         (source, target, bundleIndex, sourcePort, targetPort));
+
+    bool operator==(Edge const& other) const {
+        return this->source == other.source //
+            && this->target == other.target
+            && this->bundleIndex == other.bundleIndex
+            && this->sourcePort == other.sourcePort
+            && this->targetPort == other.targetPort;
+    }
 };
 
 struct Port {
     using id_type = PortID;
     DESC_FIELDS(Port, ());
 };
+} // namespace org::graph
 
+template <>
+struct std::hash<org::graph::Edge> {
+    std::size_t operator()(org::graph::Edge const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.source);
+        hstd::hax_hash_combine(result, it.target);
+        hstd::hax_hash_combine(result, it.bundleIndex);
+        hstd::hax_hash_combine(result, it.sourcePort);
+        hstd::hax_hash_combine(result, it.targetPort);
+        return result;
+    }
+};
+
+namespace org::graph {
 struct IProperty {
   public:
     virtual std::size_t getHash() const                       = 0;

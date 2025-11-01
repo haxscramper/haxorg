@@ -4,7 +4,7 @@
 #include <src/model/nodes/DiagramTreeNode.hpp>
 
 struct DiaGraphVertex {
-    DiaUniqId const& uniq;
+    DiaUniqId uniq;
 
     bool operator==(DiaGraphVertex const& vert) const {
         return uniq == vert.uniq;
