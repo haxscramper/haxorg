@@ -18,8 +18,9 @@
 struct StartupArgc {
     DECL_DESCRIBED_ENUM(Mode, Gui, MindMapDump);
     std::string documentPath;
+    std::string outputPath;
     Mode        mode;
-    DESC_FIELDS(StartupArgc, (documentPath, mode));
+    DESC_FIELDS(StartupArgc, (documentPath, mode, outputPath));
 };
 
 class DiaSelectionManager : public QObject {

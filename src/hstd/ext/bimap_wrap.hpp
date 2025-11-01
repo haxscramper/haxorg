@@ -27,6 +27,10 @@ class Unordered1to1Bimap {
     BoostBimap bimap;
 
   public:
+    void erase_left(L const& leftKey) { bimap.left.erase(leftKey); }
+    void erase_right(R const& rightKey) { bimap.right.erase(rightKey); }
+
+
     bool contains_left(L const& leftKey) const {
         return bimap.left.find(leftKey) != bimap.left.end();
     }

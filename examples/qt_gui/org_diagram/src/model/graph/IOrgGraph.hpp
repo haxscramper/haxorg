@@ -6,6 +6,7 @@
 #include <hstd/stdlib/dod_base.hpp>
 #include <boost/serialization/strong_typedef.hpp>
 #include <hstd/ext/bimap_wrap.hpp>
+#include <hstd/ext/graphviz.hpp>
 
 namespace hstd {
 template <typename ID, typename T>
@@ -26,6 +27,18 @@ struct UnorderedStore {
                               : ID::FromIndex(current_size);
         store.add_unique(result, value);
         return result;
+    }
+
+    hstd::Vec<ID> keys() const {
+        hstd::Vec<ID> res;
+        for (auto const& it : store.get_map()) { res.push_back(it.first); }
+        return res;
+    }
+
+    ID del(T const& value) {
+        ID res = store.at_left(value);
+        store.erase_right(value);
+        return res;
     }
 
     T const&  at(ID const& id) const { return store.at_right(id); }
@@ -132,11 +145,19 @@ class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
     EdgeID         getID(Edge const& edge) const;
 
   public:
+    hstd::Vec<EdgeID> getEdges() const {
+        hstd::Vec<EdgeID> res;
+        for (auto const& e : edges.get_map()) { res.push_back(e.first); }
+        return res;
+    }
+
     virtual hstd::Vec<EdgeID> addVertex(VertexID const& id);
     virtual void              delVertex(VertexID const& id);
 
     virtual hstd::Vec<Edge> getOutgoing(VertexID const& vert) = 0;
     virtual EdgeCategory    getCategory() const               = 0;
+
+    virtual json getEdgeSerial(EdgeID const& id) const = 0;
 };
 
 class IGraph {
@@ -149,10 +170,22 @@ class IGraph {
         trackers.push_back(tracker);
     }
 
-    virtual void addVertex(VertexID const& id);
-    virtual void delVertex(VertexID const& id);
+    virtual void trackVertex(VertexID const& id);
+    virtual void untrackVertex(VertexID const& id);
 
-    virtual void addVertexList(hstd::Vec<VertexID> const& ids);
-    virtual void delVertexList(hstd::Vec<VertexID> const& ids);
+    virtual void trackVertexList(hstd::Vec<VertexID> const& ids);
+    virtual void untrackVertexList(hstd::Vec<VertexID> const& ids);
+
+    virtual json getVertexSerial(VertexID const& id) const = 0;
+    virtual hstd::Vec<VertexID> getVertices() const        = 0;
+
+
+    struct SerialSchema {
+        hstd::Vec<json> vertices;
+        hstd::Vec<json> edges;
+        DESC_FIELDS(SerialSchema, (vertices, edges));
+    };
+
+    virtual json getGraphSerial() const;
 };
 } // namespace org::graph

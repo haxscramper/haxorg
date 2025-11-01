@@ -1,15 +1,15 @@
 #include "IOrgGraph.hpp"
 
 
-void org::graph::IGraph::addVertex(const VertexID& id) {
+void org::graph::IGraph::trackVertex(const VertexID& id) {
     for (auto& collection : collections) { collection->addVertex(id); }
 }
 
-void org::graph::IGraph::delVertex(const VertexID& id) {
+void org::graph::IGraph::untrackVertex(const VertexID& id) {
     for (auto& collection : collections) { collection->delVertex(id); }
 }
 
-void org::graph::IGraph::addVertexList(const hstd::Vec<VertexID>& ids) {
+void org::graph::IGraph::trackVertexList(const hstd::Vec<VertexID>& ids) {
     for (auto const& id : ids) {
         for (auto& track : trackers) { track->addVertex(id); }
     }
@@ -19,7 +19,8 @@ void org::graph::IGraph::addVertexList(const hstd::Vec<VertexID>& ids) {
     }
 }
 
-void org::graph::IGraph::delVertexList(const hstd::Vec<VertexID>& ids) {
+void org::graph::IGraph::untrackVertexList(
+    const hstd::Vec<VertexID>& ids) {
 
     for (auto const& id : ids) {
         for (auto& collection : collections) { collection->delVertex(id); }
@@ -28,6 +29,21 @@ void org::graph::IGraph::delVertexList(const hstd::Vec<VertexID>& ids) {
     for (auto const& id : ids) {
         for (auto& track : trackers) { track->delVertex(id); }
     }
+}
+
+json org::graph::IGraph::getGraphSerial() const {
+    IGraph::SerialSchema res{};
+    for (auto const& collection : collections) {
+        for (auto const& edge : collection->getEdges()) {
+            res.edges.push_back(collection->getEdgeSerial(edge));
+        }
+    }
+
+    for (auto const& vertex : getVertices()) {
+        res.vertices.push_back(getVertexSerial(vertex));
+    }
+
+    return hstd::to_json_eval(res);
 }
 
 org::graph::EdgeID org::graph::IEdgeCollection::addEdge(const Edge& id) {

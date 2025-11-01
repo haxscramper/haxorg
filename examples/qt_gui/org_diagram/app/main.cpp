@@ -48,14 +48,21 @@ class CliApplication : public QCoreApplication {
     org::imm::ImmAstContext::Ptr imm_context;
     DiaContext::Ptr              dia_context;
     DiaVersionStore::Ptr         version_store;
+    hstd::SPtr<DiaGraph>         dia_graph;
+
+    hstd::SPtr<DiaHierarchyEdgeCollection> hierarchy_collection;
 
     CliApplication(int argc, char* argv[], StartupArgc const& conf)
         : QCoreApplication{argc, argv}
         , conf{conf}
         , imm_context{org::imm::ImmAstContext::init_start_context()}
         , dia_context{DiaContext::shared()}
-        , version_store{
-              DiaVersionStore::shared(imm_context, dia_context)} {}
+        , version_store{DiaVersionStore::shared(imm_context, dia_context)}
+        , dia_graph{std::make_shared<DiaGraph>(dia_context)}
+        , hierarchy_collection{
+              std::make_shared<DiaHierarchyEdgeCollection>(
+                  dia_context,
+                  dia_graph)} {}
 
     void loadFile(std::string const& path) {
         version_store->addDocument(hstd::readFile(path));
@@ -63,7 +70,43 @@ class CliApplication : public QCoreApplication {
 
   public slots:
     void diaRootChanged(DiaVersionStore::DiaRootChange const& change) {
-        // TODO impl
+        hstd::Vec<org::graph::VertexID> added;
+        hstd::Vec<org::graph::VertexID> removed;
+        for (auto const& edit : change.edits) {
+            switch (edit.getKind()) {
+                case DiaEdit::Kind::Delete: {
+                    auto aux = [&](DiaAdapter const& a,
+                                   auto&&            self) -> void {
+                        removed.push_back(dia_graph->addVertex(a.uniq()));
+                        for (auto const& sub : a.sub(true)) {
+                            self(sub, self);
+                        }
+                    };
+                    aux(edit.getSrc(), aux);
+                    break;
+                }
+
+                case DiaEdit::Kind::Insert: {
+                    auto aux = [&](DiaAdapter const& a,
+                                   auto&&            self) -> void {
+                        removed.push_back(dia_graph->delVertex(a.uniq()));
+                        for (auto const& sub : a.sub(true)) {
+                            self(sub, self);
+                        }
+                    };
+                    aux(edit.getDst(), aux);
+                    break;
+                }
+
+                case DiaEdit::Kind::Update:
+                case DiaEdit::Kind::Move: {
+                    // discard operations
+                }
+            }
+        }
+
+        dia_graph->untrackVertexList(removed);
+        dia_graph->trackVertexList(added);
     }
 };
 
@@ -104,6 +147,8 @@ int main(int argc, char* argv[]) {
     } else if (conf.mode == StartupArgc::Mode::MindMapDump) {
         CliApplication app{argc, argv, conf};
         app.loadFile(conf.documentPath);
+        auto serial = app.dia_graph->getGraphSerial();
+        hstd::writeFile(conf.outputPath, serial.dump(2));
     }
 }
 

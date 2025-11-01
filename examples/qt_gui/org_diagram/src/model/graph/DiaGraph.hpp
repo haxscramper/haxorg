@@ -9,6 +9,11 @@ struct DiaGraphVertex {
     bool operator==(DiaGraphVertex const& vert) const {
         return uniq == vert.uniq;
     }
+
+    std::string getStableId() const {
+        return std::format(
+            "{}-{}", uniq.target, std::hash<DiaUniqId>{}(uniq));
+    }
 };
 
 template <>
@@ -44,12 +49,27 @@ class DiaGraph : public org::graph::IGraph {
     org::graph::VertexID addVertex(DiaUniqId const& id) {
         return vertices.add(DiaGraphVertex{id});
     }
+
+    org::graph::VertexID delVertex(DiaUniqId const& id) {
+        return vertices.del(DiaGraphVertex(id));
+    }
+
+    struct SerialSchema {
+        std::string vertexId;
+        std::string vertexName;
+        DESC_FIELDS(SerialSchema, (vertexId, vertexName));
+    };
+
+    virtual json getVertexSerial(
+        org::graph::VertexID const& id) const override;
+
+    hstd::Vec<org::graph::VertexID> getVertices() const override {
+        return vertices.keys();
+    }
 };
 
 
 class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
-    // IEdgeCollection interface
-
     DiaContext::Ptr      tree_context;
     hstd::SPtr<DiaGraph> graph;
 
@@ -67,4 +87,25 @@ class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
 
     virtual hstd::Vec<org::graph::Edge> getOutgoing(
         const org::graph::VertexID& vert) override;
+
+    struct SerialSchema {
+        std::string            category = "hierarchy";
+        std::string            edgeId;
+        std::string            sourceId;
+        std::string            targetId;
+        int                    bundleIndex;
+        hstd::Opt<std::string> sourcePortId;
+        hstd::Opt<std::string> targetPortId;
+        DESC_FIELDS(
+            SerialSchema,
+            (category,
+             sourceId,
+             targetId,
+             bundleIndex,
+             sourcePortId,
+             targetPortId));
+    };
+
+    virtual json getEdgeSerial(
+        org::graph::EdgeID const& id) const override;
 };
