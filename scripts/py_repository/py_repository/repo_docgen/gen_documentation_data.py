@@ -6,7 +6,7 @@ import dominate.tags as tags
 import dominate.util as util
 from pygments import lex
 from pygments.token import Token, _TokenType
-from py_repository.gen_documentation_utils import abbreviate_token_name
+from py_repository.repo_docgen.gen_documentation_utils import abbreviate_token_name
 from dataclasses import dataclass, field
 import py_haxorg.pyhaxorg_wrap as org
 from py_exporters.export_html import ExporterHtml

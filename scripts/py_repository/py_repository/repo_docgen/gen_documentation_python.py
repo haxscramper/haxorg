@@ -6,9 +6,9 @@ import py_scriptutils.algorithm
 
 import dominate.tags as tags
 import dominate.util as util
-import py_repository.gen_coverage_python as cov_docpy
-import py_repository.gen_documentation_data as docdata
-import py_repository.gen_documentation_utils as docutils
+import py_repository.coverage_collection.gen_coverage_python as cov_docpy
+import py_repository.repo_docgen.gen_documentation_data as docdata
+import py_repository.repo_docgen.gen_documentation_utils as docutils
 from sqlalchemy.orm import Session
 from beartype import beartype
 from beartype.typing import (Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union)

@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from py_scriptutils.os_utils import gettempdir
 import re
 import pandas as pd
-import py_repository.gen_coverage_cxx as cov
+import py_repository.coverage_collection.gen_coverage_cxx as cov
 from beartype import beartype
 from beartype.typing import List, Optional, Union, Dict, Tuple
 from plumbum import local
