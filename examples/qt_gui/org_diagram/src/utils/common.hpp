@@ -16,6 +16,24 @@
 namespace hstd {
 
 
+/// \brief Map 32-bit value to 16-bit
+inline std::uint16_t hash_to_uint16(std::size_t value) {
+
+    // Use golden ratio approximation for good distribution
+    constexpr std::size_t golden_ratio //
+        = sizeof(std::size_t) == 8
+            // 64-bit golden ratio * 2^64
+            ? 0x9e3779b97f4a7c15ULL
+            // 32-bit golden ratio * 2^32
+            : 0x9e3779b9UL;
+
+    value *= golden_ratio;
+
+    // Take upper bits for better distribution
+    return static_cast<std::uint16_t>(
+        value >> (sizeof(std::size_t) * 8 - 16));
+}
+
 template <typename T>
 struct WPtr_safe : std::weak_ptr<T> {
     std::shared_ptr<T> lock() const { return hstd::safe_wptr_lock(this); }

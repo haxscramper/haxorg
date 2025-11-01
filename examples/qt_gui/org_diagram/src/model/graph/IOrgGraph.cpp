@@ -11,7 +11,7 @@ void org::graph::IGraph::untrackVertex(const VertexID& id) {
 
 void org::graph::IGraph::trackVertexList(const hstd::Vec<VertexID>& ids) {
     for (auto const& id : ids) {
-        for (auto& track : trackers) { track->addVertex(id); }
+        for (auto& track : trackers) { track->trackVertex(id); }
     }
 
     for (auto const& id : ids) {
@@ -27,7 +27,7 @@ void org::graph::IGraph::untrackVertexList(
     }
 
     for (auto const& id : ids) {
-        for (auto& track : trackers) { track->delVertex(id); }
+        for (auto& track : trackers) { track->untrackVertex(id); }
     }
 }
 

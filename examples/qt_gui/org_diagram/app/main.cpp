@@ -51,6 +51,9 @@ class CliApplication : public QCoreApplication {
     hstd::SPtr<DiaGraph>         dia_graph;
 
     hstd::SPtr<DiaHierarchyEdgeCollection> hierarchy_collection;
+    hstd::SPtr<DiaSubtreeIdTracker>        subtree_id_tracker;
+    hstd::SPtr<DiaDescriptionListEdgeCollection>
+        description_list_collection;
 
     CliApplication(int argc, char* argv[], StartupArgc const& conf)
         : QCoreApplication{argc, argv}
@@ -59,12 +62,18 @@ class CliApplication : public QCoreApplication {
         , dia_context{DiaContext::shared()}
         , version_store{DiaVersionStore::shared(imm_context, dia_context)}
         , dia_graph{std::make_shared<DiaGraph>(dia_context)}
-        , hierarchy_collection{
-              std::make_shared<DiaHierarchyEdgeCollection>(
-                  dia_context,
-                  dia_graph)} {
+        , hierarchy_collection{std::make_shared<
+              DiaHierarchyEdgeCollection>(dia_context, dia_graph)}
+        , subtree_id_tracker(
+              std::make_shared<DiaSubtreeIdTracker>(dia_graph))
+        , description_list_collection(
+              std::make_shared<DiaDescriptionListEdgeCollection>(
+                  dia_graph,
+                  subtree_id_tracker)) {
 
-        dia_graph->addCollection(hierarchy_collection);
+        // dia_graph->addCollection(hierarchy_collection);
+        dia_graph->addTracker(subtree_id_tracker);
+        dia_graph->addCollection(description_list_collection);
 
         connect(
             version_store.get(),

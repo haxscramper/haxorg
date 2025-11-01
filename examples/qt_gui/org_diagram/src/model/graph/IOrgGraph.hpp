@@ -122,10 +122,9 @@ struct IProperty {
 
 class IPropertyTracker : public hstd::SharedPtrApi<IPropertyTracker> {
   public:
-    virtual void addVertex(VertexID const& vertex) = 0;
-    virtual void delVertex(VertexID const& vertex) = 0;
-    virtual hstd::Vec<VertexID> const& getVertices(IProperty const& prop) = 0;
-    virtual hstd::Vec<EdgeID> getOutgoingEdges(VertexID const& id) = 0;
+    virtual void                trackVertex(VertexID const& vertex)   = 0;
+    virtual void                untrackVertex(VertexID const& vertex) = 0;
+    virtual hstd::Vec<VertexID> getVertices(IProperty const& prop)    = 0;
 };
 
 class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
