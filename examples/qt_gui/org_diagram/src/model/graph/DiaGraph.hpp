@@ -3,121 +3,68 @@
 #include <src/model/graph/IOrgGraph.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
 
-class DiaGraphVertex : public org::graph::IVertexID {
-  public:
-    DiaUniqId id;
+struct DiaGraphVertex {
+    DiaUniqId const& uniq;
 
-    DiaGraphVertex(DiaUniqId const& id) : id{id} {}
-
-    virtual std::size_t getHash() const override {
-        return std::hash<DiaUniqId>{}(id);
+    bool operator==(DiaGraphVertex const& vert) const {
+        return uniq == vert.uniq;
     }
+};
 
-    IGraphObjectBase* copy() const override {
-        return new DiaGraphVertex(*this);
-    }
-
-    virtual bool isEqual(const IGraphObjectBase* other) const override {
-        return other->isInstance<DiaGraphVertex>()
-            && dynamic_cast<DiaGraphVertex const*>(other)->id == id;
-    }
-
-    virtual std::string getRepr() const override {
-        return std::format("DiaGraphVertex({})", id);
-    }
-
-    static hstd::value_ptr<DiaGraphVertex> FromId(DiaUniqId const& id) {
-        return hstd::value_ptr<DiaGraphVertex>(DiaGraphVertex{id});
+template <>
+struct std::hash<DiaGraphVertex> {
+    std::size_t operator()(DiaGraphVertex const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.uniq);
+        return result;
     }
 };
 
 
-class DiaGraphEdge : public org::graph::IEdgeID {
+class DiaGraph : public org::graph::IGraph {
+    DiaContext::Ptr tree_context;
+    hstd::UnorderedStore<org::graph::VertexID, DiaGraphVertex> vertices;
+
   public:
-    DiaGraphVertex source;
-    DiaGraphVertex target;
-    /// \brief To disambiguate multi-edges between the source and the
-    /// target
-    int bundleIndex;
+    DiaGraph(DiaContext::Ptr tree_context) : tree_context{tree_context} {};
 
-    using Val = hstd::value_ptr<DiaGraphEdge>;
-
-    IGraphObjectBase* copy() const override {
-        return new DiaGraphEdge(*this);
+    org::graph::VertexID getID(DiaGraphVertex const& vert) const {
+        return vertices.at(vert);
     }
 
-    DiaGraphEdge(
-        DiaGraphVertex const& source,
-        DiaGraphVertex const& target,
-        int                   bundleIndex)
-        : source{source}, target{target}, bundleIndex{bundleIndex} {}
-
-    virtual std::size_t getHash() const override {
-        std::size_t res;
-        hstd::hax_hash_combine(res, source.getHash());
-        hstd::hax_hash_combine(res, target.getHash());
-        hstd::hax_hash_combine(res, bundleIndex);
-        return res;
+    DiaGraphVertex const& getVertex(
+        org::graph::VertexID const& vert) const {
+        return vertices.at(vert);
     }
 
-    virtual bool isEqual(const IGraphObjectBase* other) const override {
-        if (other->isInstance<DiaGraphEdge>()) {
-            auto edge = dynamic_cast<DiaGraphEdge const*>(other);
-            return edge->source.isEqual(&source)
-                && edge->target.isEqual(&target)
-                && edge->bundleIndex == bundleIndex;
-        } else {
-            return false;
-        }
+    org::graph::VertexID getID(DiaUniqId const& id) const {
+        return getID(DiaGraphVertex{id});
     }
 
-    virtual std::string getRepr() const override {
-        return std::format("DiaGraphEdge({}->{})", source.id, target.id);
-    }
-
-    virtual const org::graph::IVertexID* getSource() const override {
-        return &source;
-    }
-
-    virtual const org::graph::IVertexID* getTarget() const override {
-        return &target;
+    org::graph::VertexID addVertex(DiaUniqId const& id) {
+        return vertices.add(DiaGraphVertex{id});
     }
 };
+
 
 class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
     // IEdgeCollection interface
 
-    DiaContext::Ptr tree_context;
+    DiaContext::Ptr      tree_context;
+    hstd::SPtr<DiaGraph> graph;
 
   public:
-    DiaHierarchyEdgeCollection(DiaContext::Ptr tree_context)
-        : tree_context{tree_context} {}
+    DiaHierarchyEdgeCollection(
+        DiaContext::Ptr      tree_context,
+        hstd::SPtr<DiaGraph> graph)
+        : tree_context{tree_context}, graph{graph} {}
 
-    class Category : public org::graph::IEdgeCategory {
-        virtual std::size_t getHash() const override {
-            return typeid(Category).hash_code();
-        }
+    int const categoryId = 0;
 
-        virtual bool isEqual(
-            const IGraphObjectBase* other) const override {
-            return other->isInstance<Category>();
-        }
-
-        virtual std::string getRepr() const override {
-            return "hierarchy-edge-collection";
-        }
-
-        IGraphObjectBase* copy() const override {
-            return new Category(*this);
-        }
-    };
-
-    virtual org::graph::IEdgeCategory::Val getCategory() const override {
-        return org::graph::IEdgeCategory::Val(Category{});
+    virtual org::graph::EdgeCategory getCategory() const override {
+        return org::graph::EdgeCategory(categoryId);
     }
 
-    virtual hstd::Vec<org::graph::IEdgeID::Val> getOutgoing(
-        const org::graph::IVertexID::Val& vert) override;
+    virtual hstd::Vec<org::graph::Edge> getOutgoing(
+        const org::graph::VertexID& vert) override;
 };
-
-class DiaGraph : org::graph::IGraph {};

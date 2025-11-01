@@ -1,32 +1,15 @@
 #include "IOrgGraph.hpp"
 
 
-void org::graph::IPropertyTracker::addVertex(
-    const hstd::value_ptr<IProperty>& property,
-    const hstd::value_ptr<IVertexID>& vertex) {
-    if (map.contains(property)) {
-        map.at(property).push_back(vertex.copy());
-    } else {
-        map[property.copy()].push_back(vertex.copy());
-    }
-}
-
-const hstd::Vec<org::graph::IVertexID::Val>& org::graph::IPropertyTracker::
-    getVertices(IProperty::Val const& prop) {
-    LOGIC_ASSERTION_CHECK(map.contains(prop), "{}", prop->getRepr());
-    return map.at(prop);
-}
-
-void org::graph::IGraph::addVertex(const IVertexID::Val& id) {
+void org::graph::IGraph::addVertex(const VertexID& id) {
     for (auto& collection : collections) { collection->addVertex(id); }
 }
 
-void org::graph::IGraph::delVertex(const IVertexID::Val& id) {
+void org::graph::IGraph::delVertex(const VertexID& id) {
     for (auto& collection : collections) { collection->delVertex(id); }
 }
 
-void org::graph::IGraph::addVertexList(
-    const hstd::Vec<IVertexID::Val>& ids) {
+void org::graph::IGraph::addVertexList(const hstd::Vec<VertexID>& ids) {
     for (auto const& id : ids) {
         for (auto& track : trackers) { track->addVertex(id); }
     }
@@ -36,8 +19,7 @@ void org::graph::IGraph::addVertexList(
     }
 }
 
-void org::graph::IGraph::delVertexList(
-    const hstd::Vec<IVertexID::Val>& ids) {
+void org::graph::IGraph::delVertexList(const hstd::Vec<VertexID>& ids) {
 
     for (auto const& id : ids) {
         for (auto& collection : collections) { collection->delVertex(id); }
@@ -48,29 +30,40 @@ void org::graph::IGraph::delVertexList(
     }
 }
 
-void org::graph::IEdgeCollection::addEdge(const IEdgeID::Val& id) {
-    auto source = IVertexID::Val(id->getSource());
-    auto target = IVertexID::Val(id->getTarget());
-    if (!edges.contains(source)) { edges[source.copy()]; }
-    if (!edges.at(source).contains(target)) {
-        edges.at(source)[target.copy()];
-    }
-
-    edges.at(source).at(target).push_back(id);
+org::graph::EdgeID org::graph::IEdgeCollection::addEdge(const Edge& id) {
+    auto res_id = EdgeID::FromMaskedIdx(
+        edges.get_map().size(), getCategory().t);
+    edges.add_unique(res_id, id);
+    incidence[id.source][id.target].push_back(res_id);
+    return res_id;
 }
 
-void org::graph::IEdgeCollection::delEdge(const IEdgeID::Val& id) {
-    auto& vec = edges.at(IVertexID::Val(id->getSource()))
-                    .at(IVertexID::Val(id->getTarget()));
-    auto it = vec.indexOf(id);
-    LOGIC_ASSERTION_CHECK(it != -1, "{}", id->getRepr());
+void org::graph::IEdgeCollection::delEdge(const EdgeID& id) {
+    auto  edge = getEdge(id);
+    auto& vec  = incidence.at(edge.source).at(edge.target);
+    auto  it   = vec.indexOf(id);
+    LOGIC_ASSERTION_CHECK(it != -1, "{}", edge);
     vec.erase(vec.begin() + it);
 }
 
-void org::graph::IEdgeCollection::addVertex(const IVertexID::Val& id) {
-    for (auto const& e : getOutgoing(id)) { addEdge(e); }
+org::graph::EdgeID org::graph::IEdgeCollection::getID(
+    const Edge& edge) const {
+    return edges.at_left(edge);
 }
 
-void org::graph::IEdgeCollection::delVertex(const IVertexID::Val& id) {
-    for (auto const& e : getOutgoing(id)) { delEdge(e); }
+const org::graph::Edge& org::graph::IEdgeCollection::getEdge(
+    const EdgeID& id) const {
+    return edges.at_right(id);
+}
+
+
+hstd::Vec<org::graph::EdgeID> org::graph::IEdgeCollection::addVertex(
+    const VertexID& id) {
+    hstd::Vec<org::graph::EdgeID> res;
+    for (auto const& e : getOutgoing(id)) { res.push_back(addEdge(e)); }
+    return res;
+}
+
+void org::graph::IEdgeCollection::delVertex(const VertexID& id) {
+    for (auto const& e : getOutgoing(id)) { delEdge(getID(e)); }
 }
