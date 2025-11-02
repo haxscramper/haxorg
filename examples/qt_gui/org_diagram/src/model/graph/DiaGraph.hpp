@@ -102,6 +102,7 @@ class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
         DESC_FIELDS(
             SerialSchema,
             (category,
+             edgeId,
              sourceId,
              targetId,
              bundleIndex,
@@ -180,6 +181,7 @@ class DiaDescriptionListEdgeCollection
         DESC_FIELDS(
             SerialSchema,
             (category,
+             edgeId,
              sourceId,
              targetId,
              bundleIndex,

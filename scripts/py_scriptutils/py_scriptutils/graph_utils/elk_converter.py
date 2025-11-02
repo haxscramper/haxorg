@@ -429,8 +429,11 @@ def group_multi_layout(graph: elk.Graph):
 
 
 @beartype
-def convert_to_elk(graph: ig.Graph, vertex_to_node: Callable[[int, ig.Vertex],
-                                                             elk.Node]) -> elk.Graph:
+def convert_to_elk(
+    graph: ig.Graph,
+    vertex_to_node: Callable[[int, ig.Vertex], elk.Node],
+    edge_to_edge: Callable[[int, ig.Edge], elk.Edge],
+) -> elk.Graph:
 
     result = elk.Graph(
         id="root",
@@ -449,5 +452,8 @@ def convert_to_elk(graph: ig.Graph, vertex_to_node: Callable[[int, ig.Vertex],
 
     for vertex_idx, v in enumerate(graph.vs):
         result.children.append(vertex_to_node(vertex_idx, v))
+
+    for edge_idx, e in enumerate(graph.es):
+        result.edges.append(edge_to_edge(edge_idx, e))
 
     return result

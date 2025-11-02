@@ -944,6 +944,7 @@ def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
 
     with TemporaryDirectory() as output_subdir:
         dir = Path(output_subdir)
+        dir = Path("/tmp")
         validated_path = dir / f"result_validated.json"
         extra_metadata = extract_extra_data(graph)
         GraphSerializer.save_to_file(graph, validated_path, use_dotted=True)
@@ -969,32 +970,3 @@ def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
             raise ValueError(
                 "Failed to validate resulting graph layout") from None
 
-
-def process_graph_files():
-    input_dir = Path("elk-models")
-    output_dir = Path("/tmp/elk-layout")
-
-    for json_file in input_dir.rglob("*.json"):
-        relative_path = json_file.relative_to(input_dir)
-        output_subdir = output_dir / relative_path.parent
-        output_subdir.mkdir(parents=True, exist_ok=True)
-
-        base_name = relative_path.stem
-        sample_data = json.loads(json_file.read_text())
-        graph = Graph(**sample_data)
-
-        validate_graph_structure(graph)
-
-        validated_path = output_subdir / f"{base_name}_validated.json"
-        GraphSerializer.save_to_file(graph, validated_path, use_dotted=True)
-
-        layout_path = output_subdir / f"{base_name}_layout.json"
-
-        cmd = local[str(script_path)].with_cwd(script_dir)
-        cmd.run([f"--input={validated_path}", f"--output={layout_path}"])
-
-        graph = GraphSerializer.load_from_file(layout_path)
-
-        nodes, edges = compute_absolute_positions(graph)
-        png_path = output_subdir / f"{base_name}.png"
-        render_to_png(nodes, edges, png_path)

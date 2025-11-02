@@ -1,4 +1,4 @@
-from plumbum import local, ProcessExecutionError, FG, BG, NOHUP
+from plumbum import local, ProcessExecutionError, FG, BG, NOHUP, CommandNotFound
 import plumbum
 import re
 from py_scriptutils.script_logging import log
@@ -21,8 +21,12 @@ import json
 import sys
 import traceback
 import itertools
-from py_repository.repo_tasks.config import (HaxorgConfig,     HaxorgCoverageCookiePattern,
-    HaxorgCoverageAggregateFilter, get_config,)
+from py_repository.repo_tasks.config import (
+    HaxorgConfig,
+    HaxorgCoverageCookiePattern,
+    HaxorgCoverageAggregateFilter,
+    get_config,
+)
 
 from py_repository.coverage_collection.gen_coverage_cookies import ProfdataParams, ProfdataFullProfile, ProfdataCookie
 from py_scriptutils.algorithm import remove_ansi, maybe_splice, cond
@@ -82,8 +86,6 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
 sys.excepthook = custom_traceback_handler
 
 
-
-
 @beartype
 def filter_cookies(
     cookies: List[ProfdataCookie],
@@ -124,8 +126,6 @@ def matches_pattern(cookie: ProfdataCookie, pattern: HaxorgCoverageCookiePattern
             return False
 
     return True
-
-
 
 
 @beartype
@@ -197,7 +197,6 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
 
     else:
         return {}
-
 
 
 class RunCommandKwargs(TypedDict, total=False):
@@ -1085,6 +1084,7 @@ def build_example_qt_gui_org_viewer(ctx: Context):
         "example_qt_gui_org_viewer",
     )
 
+
 @org_task(pre=[validate_dependencies_install])
 def configure_example_qt_gui_org_diagram(ctx: Context):
     run_cmake_configure_component(
@@ -1094,6 +1094,7 @@ def configure_example_qt_gui_org_diagram(ctx: Context):
         args=[cmake_opt("JAVA_HOME", "/usr/lib/jvm/default")],
     )
 
+
 @org_task(pre=[configure_example_qt_gui_org_diagram])
 def build_example_qt_gui_org_diagram(ctx: Context):
     run_cmake_build_component(
@@ -1101,17 +1102,106 @@ def build_example_qt_gui_org_diagram(ctx: Context):
         "example_qt_gui_org_diagram",
     )
 
+
 @org_task(pre=[build_example_qt_gui_org_diagram])
 def run_example_org_elk_diagram(ctx: Context, infile: str):
-    wrapper_dir = "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"
-    run_command(ctx, "gradle", args=["build"], cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
-    diagram_build_dir = get_component_build_dir(ctx, "example_qt_gui_org_diagram")
-    run_command(ctx, diagram_build_dir.joinpath("org_diagram"), args=[json.dumps(dict(
-        documentPath=infile,
-        mode="MindMapDump",
-        outputPath="/tmp/mind-map-dump.json",
-    ))])
+    from py_scriptutils.graph_utils import haxorg_mind_map
+    from py_scriptutils.graph_utils import elk_converter
+    from py_scriptutils.graph_utils import elk_schema
+    from py_scriptutils.graph_utils import typst_schema
+    import igraph as ig
 
+    wrapper_dir = "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"
+    run_command(ctx,
+                "gradle",
+                args=["build"],
+                cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
+    run_command(ctx,
+                "gradle",
+                args=["install"],
+                cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
+    diagram_build_dir = get_component_build_dir(ctx, "example_qt_gui_org_diagram")
+    mman_initial_path = "/tmp/mind-map-dump.json"
+    run_command(ctx,
+                diagram_build_dir.joinpath("org_diagram"),
+                args=[
+                    json.dumps(
+                        dict(
+                            documentPath=infile,
+                            mode="MindMapDump",
+                            outputPath=mman_initial_path,
+                        ))
+                ])
+
+    mmap_model = haxorg_mind_map.Graph.model_validate(
+        json.loads(Path(mman_initial_path).read_text()))
+    mmap_igraph = haxorg_mind_map.convert_to_igraph(mmap_model)
+
+    @beartype
+    def vertex_to_node(vertex_index: int, vertex: ig.Vertex) -> elk_schema.Node:
+        data: haxorg_mind_map.Vertex = vertex["data"]
+        assert isinstance(data, haxorg_mind_map.Vertex)
+        return elk_schema.Node(
+            id=data.vertexId,
+            height=100,
+            width=200,
+            extra=data.extra,
+        )
+
+    @beartype
+    def edge_to_edge(edge_idx: int, edge: ig.Edge) -> elk_schema.Edge:
+        data: haxorg_mind_map.Edge = edge["data"]
+        assert isinstance(data, haxorg_mind_map.Edge)
+        return elk_schema.Edge(
+            id=data.edgeId,
+            source=data.sourceId,
+            target=data.targetId,
+            sourcePort=data.sourcePortId,
+            targetPort=data.targetPortId,
+            extra=data.extra,
+        )
+
+    mmap_elk = elk_converter.convert_to_elk(
+        mmap_igraph,
+        vertex_to_node=vertex_to_node,
+        edge_to_edge=edge_to_edge,
+    )
+
+    layout_script = Path(wrapper_dir).joinpath(
+        "build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
+    assert layout_script.exists()
+    mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))
+    doc = elk_converter.graph_to_typst(mmap_elk_layout)
+
+    doc.subnodes.insert(
+        0,
+        typst_schema.Import(
+            path=str(get_haxorg_repo_root_path().joinpath(
+                "scripts/py_scriptutils/py_scriptutils/graph_utils/haxorg_mind_map.typ")),
+            items=["*"],
+        ))
+
+    final = typst_schema.generate_typst(doc)
+    final_path = Path("/tmp/result.typ")
+    log(CAT).info(f"Write final text to {final_path}")
+    final_path.write_text(final)
+
+    try:
+        fmt = local["typstyle"]
+        fmt.run(["--inplace", str(final_path)])
+
+    except CommandNotFound:
+        log.warning(
+            f"Could not find commands `typstyle` -- install it for auto-formatting `.typ` file after creation"
+        )
+
+    compile_cmd = local["typst"]
+    compile_cmd.run([
+        "compile",
+        str(final_path),
+        "--root",
+        "/",
+    ])
 
 
 @org_task(pre=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
@@ -1320,7 +1410,7 @@ def run_docker_release_test(
 
                 else:
                     return get_script_root()
-                    
+
             else:
                 if source_prefix:
                     assert source_prefix.is_absolute(), source_prefix
@@ -1347,7 +1437,7 @@ def run_docker_release_test(
                 "-e",
                 "PYTHONPATH=/haxorg/src/scripts/py_ci",
                 "-e",
-                f"HAXORG_THIRD_PARTY_DIR_PATH={docker_path("thirdparty")}",
+                f"HAXORG_THIRD_PARTY_DIR_PATH={docker_path('thirdparty')}",
                 CPACK_TEST_IMAGE,
                 *(["bash"] if interactive else [
                     # "ls",
@@ -1987,10 +2077,11 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
         exit(1)
 
 
-@org_task(pre=[
-    # build_haxorg, generate_python_protobuf_files, symlink_build,
+@org_task(
+    pre=[
+        # build_haxorg, generate_python_protobuf_files, symlink_build,
     ],
-          iterable=["arg"])
+    iterable=["arg"])
 def run_py_script(ctx: Context, script: str, arg: List[str] = []):
     """
     Run script with arguments with all environment variables set.
