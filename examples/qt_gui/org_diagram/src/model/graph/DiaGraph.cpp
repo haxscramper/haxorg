@@ -26,9 +26,17 @@ json DiaHierarchyEdgeCollection::getEdgeSerial(
 }
 
 json DiaGraph::getVertexSerial(const org::graph::VertexID& id) const {
-    return hstd::to_json_eval(DiaGraph::SerialSchema{
+    DiaGraph::SerialSchema res{
         .vertexId = getVertex(id).getStableId(),
-    });
+    };
+
+    auto ad = getAdapter(id);
+    if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
+        subtree) {
+        res.vertexName = subtree->getCleanTitle();
+    }
+
+    return hstd::to_json_eval(res);
 }
 
 void DiaSubtreeIdTracker::trackVertex(const org::graph::VertexID& vertex) {

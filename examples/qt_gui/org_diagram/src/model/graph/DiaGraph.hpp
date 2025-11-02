@@ -59,8 +59,9 @@ class DiaGraph : public org::graph::IGraph {
     }
 
     struct SerialSchema {
-        std::string vertexId;
-        std::string vertexName;
+        std::string            vertexId;
+        std::string            vertexName;
+        hstd::Opt<std::string> vertexDescription;
         DESC_FIELDS(SerialSchema, (vertexId, vertexName));
     };
 

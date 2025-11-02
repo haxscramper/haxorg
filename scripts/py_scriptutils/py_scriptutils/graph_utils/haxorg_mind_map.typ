@@ -32,6 +32,45 @@
 }
 
 
+#let draw_label(label) = {
+  let label_x = if "x" in label { label.x * 1pt } else { 0pt }
+  let label_y = if "y" in label { label.y * 1pt } else { 0pt }
+  let label_width = if "width" in label { label.width * 1pt } else { auto }
+  let label_height = if "height" in label { label.height * 1pt } else { auto }
+  let label_text = if "text" in label { label.text } else { "" }
+
+  let breakable-text(str) = str.clusters().join("\u{200B}")
+
+  let fill-res = rgb("#F5F5DC")
+
+  place(
+    dx: label_x,
+    dy: label_y,
+    rect(
+      width: label_width,
+      height: label_height,
+      fill: fill-res,
+      radius: 2pt,
+      inset: 2pt,
+      place(
+        center + horizon,
+        text(
+          size: label.extra.font_size * 1pt,
+          fill: black,
+          breakable-text(label_text),
+        ),
+      ),
+    ),
+  )
+
+  // Handle nested labels if they exist
+  if "labels" in label and label.labels != none {
+    for nested_label in label.labels {
+      draw_label(nested_label)
+    }
+  }
+}
+
 #let draw_node_base(node, fill_color) = {
   rect(
     width: 100%,

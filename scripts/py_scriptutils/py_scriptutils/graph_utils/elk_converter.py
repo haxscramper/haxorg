@@ -273,13 +273,23 @@ def get_resource_port_id(id: str, side: Direction) -> str:
     return f"{id}-{side.name}"
 
 
+def round_to_multiple(number, multiple):
+    return round(number / multiple) * multiple
+
+
 @beartype
-def _single_line_label(
-    id: str, text: str, font_size: Number, extra_extra: Dict[str,
-                                                             Any] = dict()) -> elk.Label:
+def single_line_label(
+        id: str,
+        text: str,
+        font_size: Number,
+        extra_extra: Dict[str, Any] = dict(),
+        size_step: Number = 25,
+) -> elk.Label:
     font_path = fm.findfont(fm.FontProperties(family="DejaVu Sans"))
-    expected_width = get_text_width(text, font_path, font_size) + 4
-    expected_height = get_line_height(font_path, font_size)
+    expected_width = round_to_multiple(
+        get_text_width(text, font_path, font_size) + font_size * 2, size_step)
+    expected_height = round_to_multiple(
+        get_line_height(font_path, font_size) + font_size, size_step)
 
     return elk.Label(
         id=id,

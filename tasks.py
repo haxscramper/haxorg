@@ -1141,12 +1141,27 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
     def vertex_to_node(vertex_index: int, vertex: ig.Vertex) -> elk_schema.Node:
         data: haxorg_mind_map.Vertex = vertex["data"]
         assert isinstance(data, haxorg_mind_map.Vertex)
-        return elk_schema.Node(
+        result = elk_schema.Node(
             id=data.vertexId,
             height=100,
             width=200,
-            extra=data.extra,
+            extra=dict(data=data),
+            labels=[],
+            properties={
+                "nodeLabels.placement": "[H_CENTER, V_TOP, OUTSIDE]",
+                "portLabels.placement": "NEXT_TO_PORT_OF_POSSIBLE",
+            },
         )
+
+        if data.vertexName:
+            result.labels.append(
+                elk_converter.single_line_label(
+                    id=f"{data.vertexId}-title-label",
+                    text=data.vertexName,
+                    font_size=8.0,
+                ))
+
+        return result
 
     @beartype
     def edge_to_edge(edge_idx: int, edge: ig.Edge) -> elk_schema.Edge:
@@ -1158,7 +1173,7 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
             target=data.targetId,
             sourcePort=data.sourcePortId,
             targetPort=data.targetPortId,
-            extra=data.extra,
+            extra=dict(data=data),
         )
 
     mmap_elk = elk_converter.convert_to_elk(
@@ -1166,6 +1181,8 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
         vertex_to_node=vertex_to_node,
         edge_to_edge=edge_to_edge,
     )
+
+    pprint_to_file(mmap_elk, "/tmp/mmap_elk.py")
 
     layout_script = Path(wrapper_dir).joinpath(
         "build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
