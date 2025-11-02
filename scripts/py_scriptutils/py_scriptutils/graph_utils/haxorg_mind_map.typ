@@ -31,6 +31,50 @@
   )
 }
 
+#let render_org(node) = {
+  let kind = node.kind
+
+  let subnodes = node.at("subnodes", default: ())
+
+  // Helper function to render all subnodes
+  let render_subnodes() = {
+    if subnodes != () {
+      subnodes.map(subnode => render_org(subnode)).join()
+    }
+  }
+
+  let render_subnodes_wo_newlines() = {
+    if subnodes != () {
+      subnodes
+        .filter(subnode => subnode.kind != "Newline")
+        .map(subnode => render_org(subnode))
+        .join()
+    }
+  }
+
+  if (
+    kind == "Space" or kind == "BigIdent" or kind == "Word" or kind == "Newline"
+  ) {
+    node.text
+  } else if kind == "Bold" {
+    strong(node.subnodes.map(render_org).join())
+  } else if kind == "Paragraph" {
+    stack(render_subnodes(), dir: ltr)
+  } else if kind == "Italic" {
+    emph(node.subnodes.map(render_org).join())
+  } else if kind == "Underline" {
+    underline(node.subnodes.map(render_org).join())
+  } else if kind == "List" {
+    list(..node.subnodes.map(render_org))
+  } else if kind == "BlockDynamicFallback" {
+    if (node.name == "description") {
+      stack(render_subnodes_wo_newlines())
+    }
+  } else {
+    // Fallback for unknown node types
+    [Unknown node type: #kind, #debug_text(repr(node), red)]
+  }
+}
 
 #let draw_label(label) = {
   let label_x = if "x" in label { label.x * 1pt } else { 0pt }
@@ -122,8 +166,23 @@
   )
 }
 
+
+
 #let node(node) = {
   node_box(node, draw_node_base(node, blue.lighten(80%)), 0, 0)
+  if (
+    "structuredDescription" in node.extra.data.extra
+      and node.extra.data.extra.structuredDescription != none
+  ) {
+    node_box(
+      node,
+      box(width: 100%, height: 100%, inset: 4pt, text(size: 8pt, render_org(
+        node.extra.data.extra.structuredDescription,
+      ))),
+      0,
+      0,
+    )
+  }
 }
 
 
