@@ -2,6 +2,9 @@
 
 #include <hstd/stdlib/Ranges.hpp>
 #include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/exporters/ExporterJson.hpp>
+#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/exporters/ExporterUltraplain.hpp>
 
 hstd::Vec<org::graph::Edge> DiaHierarchyEdgeCollection::getOutgoing(
     const org::graph::VertexID& vert) {
@@ -26,14 +29,40 @@ json DiaHierarchyEdgeCollection::getEdgeSerial(
 }
 
 json DiaGraph::getVertexSerial(const org::graph::VertexID& id) const {
+    auto ad = getAdapter(id);
+
     DiaGraph::SerialSchema res{
-        .vertexId = getVertex(id).getStableId(),
+        .vertexId   = getVertex(id).getStableId(),
+        .vertexKind = hstd::fmt1(ad.getKind()),
     };
 
-    auto ad = getAdapter(id);
+
     if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
         subtree) {
+
+        org::imm::ImmAdapter::TreeReprConf conf;
+
+        conf.withAuxFields = true;
+
+        HSLOG_TRACE(
+            "Get vertex serial for subtree:\n{}",
+            subtree->treeRepr(conf).toString(false));
+
         res.vertexName = subtree->getCleanTitle();
+
+        for (auto const& desc :
+             subtree->subAs<org::imm::ImmBlockDynamicFallback>()) {
+            auto exp           = org::algo::ExporterJson{};
+            exp.skipEmptyLists = true;
+            exp.skipLocation   = true;
+            exp.skipId         = true;
+            exp.skipNullFields = true;
+            auto sem = org::imm::sem_from_immer(desc.id, *desc.ctx.lock());
+            res.extra.structuredDescription = exp.evalTop(sem);
+
+            res.vertexDescription = org::algo::ExporterUltraplain::toStr(
+                sem);
+        }
     }
 
     return hstd::to_json_eval(res);

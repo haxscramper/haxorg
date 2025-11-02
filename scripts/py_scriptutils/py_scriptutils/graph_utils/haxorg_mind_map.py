@@ -18,6 +18,8 @@ class Edge(BaseModel, extra="forbid"):
 class Vertex(BaseModel, extra="forbid"):
     vertexId: str
     vertexName: Optional[str] = None
+    vertexDescription: Optional[str] = None
+    vertexKind: Optional[str] = None
     extra: Optional[Dict[str, Any]] = None
 
 

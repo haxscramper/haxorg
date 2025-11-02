@@ -25,7 +25,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     Edge);
 
 #define EACH_DIAGRAM_KIND(__impl)                                         \
-    __impl(Layer) __impl(Canvas) __impl(Group) __impl(Item)
+    __impl(Layer) __impl(Canvas) __impl(Group) __impl(Item) __impl(Edge)
 
 #define SKIP_FIRST_ARG_AUX(op, ...) __VA_ARGS__
 #define SKIP_FIRST_ARG(op, ...) SKIP_FIRST_ARG_AUX(op)
@@ -336,6 +336,15 @@ struct DiaNodeGroup : DiaNode {
     BOOST_DESCRIBE_CLASS(DiaNodeGroup, (DiaNode), (), (), ());
 };
 
+struct DiaNodeEdge : DiaNode {
+    bool operator==(DiaNodeEdge const& other) const {
+        return DiaNode::operator==(other);
+    }
+    inline static const DiaNodeKind staticKind = DiaNodeKind::Group;
+    DiaNodeKind getKind() const override { return staticKind; }
+    BOOST_DESCRIBE_CLASS(DiaNodeEdge, (DiaNode), (), (), ());
+};
+
 
 struct DiaNodeItem : DiaNode {
     bool operator==(DiaNodeItem const& other) const {
@@ -427,6 +436,11 @@ struct std::hash<DiaNodeItem> {
 template <>
 struct std::hash<DiaNode> {
     std::size_t operator()(DiaNode const& it) const noexcept;
+};
+
+template <>
+struct std::hash<DiaNodeEdge> {
+    std::size_t operator()(DiaNodeEdge const& it) const noexcept;
 };
 
 template <typename T>
@@ -621,6 +635,9 @@ DiaAdapter FromDocument(
     org::imm::ImmAdapterT<org::imm::ImmDocument> const& root);
 
 hstd::described_predicate_result isSubtreeItem(
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree);
+
+hstd::described_predicate_result isSubtreeLayer(
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree);
 
 

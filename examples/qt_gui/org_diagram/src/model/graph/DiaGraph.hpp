@@ -61,8 +61,19 @@ class DiaGraph : public org::graph::IGraph {
     struct SerialSchema {
         std::string            vertexId;
         std::string            vertexName;
+        std::string            vertexKind;
         hstd::Opt<std::string> vertexDescription;
-        DESC_FIELDS(SerialSchema, (vertexId, vertexName));
+
+        struct Extra {
+            json structuredDescription;
+            DESC_FIELDS(Extra, (structuredDescription));
+        };
+
+        Extra extra;
+
+        DESC_FIELDS(
+            SerialSchema,
+            (vertexId, vertexName, vertexKind, vertexDescription, extra));
     };
 
     virtual json getVertexSerial(
