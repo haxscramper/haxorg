@@ -170,15 +170,37 @@
 
 #let node(node) = {
   node_box(node, draw_node_base(node, blue.lighten(80%)), 0, 0)
+  // node.extra.data is `DiaGraph::SerialSchema`
+  let data = node.extra.data
+  let extra = data.extra
   if (
-    "structuredDescription" in node.extra.data.extra
-      and node.extra.data.extra.structuredDescription != none
+    "structuredDescription" in extra and extra.structuredDescription != none
   ) {
     node_box(
       node,
       box(width: 100%, height: 100%, inset: 4pt, text(size: 8pt, render_org(
-        node.extra.data.extra.structuredDescription,
+        extra.structuredDescription,
       ))),
+      0,
+      0,
+    )
+  } else if "vertexDescription" in data {
+    node_box(
+      node,
+      box(width: 100%, height: 100%, inset: 4pt, text(
+        size: 8pt,
+        data.vertexDescription,
+      )),
+      0,
+      0,
+    )
+  } else if "vertexName" in data {
+    node_box(
+      node,
+      box(width: 100%, height: 100%, inset: 4pt, text(
+        size: 8pt,
+        data.vertexName,
+      )),
       0,
       0,
     )

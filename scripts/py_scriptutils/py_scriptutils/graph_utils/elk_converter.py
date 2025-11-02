@@ -278,6 +278,28 @@ def round_to_multiple(number, multiple):
 
 
 @beartype
+def get_node_height_for_text(text: str,
+                             expected_width: Number,
+                             font_size: Number,
+                             size_step: Number = 25) -> Number:
+    font_path = fm.findfont(fm.FontProperties(family="DejaVu Sans"))
+    split_fit = split_text_to_fit(
+        text,
+        expected_width=expected_width,
+        font_path=font_path,
+        font_size=font_size,
+    )
+
+    result = round_to_multiple(
+        get_line_height(font_path, font_size) *
+        len(split_fit.lines if split_fit.lines else [""]), size_step)
+
+    assert result is not None
+
+    return result
+
+
+@beartype
 def single_line_label(
         id: str,
         text: str,
@@ -457,6 +479,7 @@ def convert_to_elk(
             "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": 30,
             "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers": 20,
             "org.eclipse.elk.spacing.labelPortVertical": 0,
+            "org.eclipse.elk.direction": "LEFT",
         },
     )
 

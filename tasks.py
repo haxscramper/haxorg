@@ -1137,29 +1137,51 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
         json.loads(Path(mman_initial_path).read_text()))
     mmap_igraph = haxorg_mind_map.convert_to_igraph(mmap_model)
 
+    mmap_igraph = mmap_igraph.induced_subgraph(filter(lambda vertex: vertex["data"].vertexKind == "Item", mmap_igraph.vs))
+
     @beartype
     def vertex_to_node(vertex_index: int, vertex: ig.Vertex) -> elk_schema.Node:
         data: haxorg_mind_map.Vertex = vertex["data"]
         assert isinstance(data, haxorg_mind_map.Vertex)
-        result = elk_schema.Node(
-            id=data.vertexId,
-            height=100,
-            width=200,
-            extra=dict(data=data),
-            labels=[],
-            properties={
-                "nodeLabels.placement": "[H_CENTER, V_TOP, OUTSIDE]",
-                "portLabels.placement": "NEXT_TO_PORT_OF_POSSIBLE",
-            },
-        )
 
-        if data.vertexName:
-            result.labels.append(
-                elk_converter.single_line_label(
-                    id=f"{data.vertexId}-title-label",
-                    text=data.vertexName,
-                    font_size=8.0,
-                ))
+        node_width = 150
+
+        if data.vertexDescription:
+            result = elk_schema.Node(
+                id=data.vertexId,
+                height=elk_converter.get_node_height_for_text(
+                    data.vertexName,
+                    expected_width=node_width,
+                    font_size=12,
+                ),
+                width=node_width,
+                extra=dict(data=data),
+                labels=[],
+                properties={
+                    "nodeLabels.placement": "[H_CENTER, V_TOP, OUTSIDE]",
+                    "portLabels.placement": "NEXT_TO_PORT_OF_POSSIBLE",
+                },
+            )
+
+            if data.vertexName:
+                result.labels.append(
+                    elk_converter.single_line_label(
+                        id=f"{data.vertexId}-title-label",
+                        text=data.vertexName,
+                        font_size=8.0,
+                    ))
+
+        else:
+            result = elk_schema.Node(
+                id=data.vertexId,
+                width=node_width,
+                height=elk_converter.get_node_height_for_text(
+                    data.vertexName,
+                    expected_width=node_width,
+                    font_size=12,
+                ),
+                extra=dict(data=data),
+            )
 
         return result
 

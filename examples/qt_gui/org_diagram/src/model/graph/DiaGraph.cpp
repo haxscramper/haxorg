@@ -1,5 +1,6 @@
 #include "DiaGraph.hpp"
 
+#include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <haxorg/sem/ImmOrgGraph.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
@@ -44,11 +45,33 @@ json DiaGraph::getVertexSerial(const org::graph::VertexID& id) const {
 
         conf.withAuxFields = true;
 
-        HSLOG_TRACE(
-            "Get vertex serial for subtree:\n{}",
-            subtree->treeRepr(conf).toString(false));
+        // HSLOG_TRACE(
+        //     "Get vertex serial for subtree:\n{}",
+        //     subtree->treeRepr(conf).toString(false));
 
-        res.vertexName = subtree->getCleanTitle();
+        hstd::Vec<std::string> title;
+
+        auto todo_kwds = hstd::Vec<hstd::Str>{
+            "TODO",
+            "DONE",
+            "COMPLETED",
+            "FAILED",
+            "NEXT",
+            "WIP",
+            "CANCELLED"};
+
+        for (auto const& node : subtree->getTitle()) {
+            if (auto big = node.asOpt<org::imm::ImmBigIdent>();
+                big && todo_kwds.contains(big->getText())) {
+                continue;
+            }
+
+            if (node.getKind() == OrgSemKind::Space) { continue; }
+
+            title.push_back(org::getCleanText(node));
+        }
+
+        res.vertexName = hstd::join(" ", title);
 
         for (auto const& desc :
              subtree->subAs<org::imm::ImmBlockDynamicFallback>()) {
@@ -73,7 +96,7 @@ void DiaSubtreeIdTracker::trackVertex(const org::graph::VertexID& vertex) {
     if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
         subtree && subtree.value()->treeId->has_value()) {
         HSLOG_DEBUG(
-            "Tracking {} with ID",
+            "Tracking {} with ID '{}'",
             vertex,
             subtree.value()->treeId->value());
         map.insert_or_assign(subtree.value()->treeId->value(), vertex);
@@ -126,15 +149,22 @@ hstd::Vec<org::graph::Edge> DiaDescriptionListEdgeCollection::getOutgoing(
                     "Found link in item header, link kind {}",
                     link->target.getKind());
                 if (!link->target.isId()) { continue; }
-                HSLOG_DEBUG("Link is targeting ID");
+                HSLOG_DEBUG(
+                    "Link is targeting ID {}", link->target.getId().text);
 
-                for (auto const& v :
-                     tracker->getVertices(DiaSubtreeIdProperty(
-                         link->target.getId().text))) {
-                    res.push_back(org::graph::Edge{
-                        .source = vert,
-                        .target = v,
-                    });
+                auto targets = tracker->getVertices(
+                    DiaSubtreeIdProperty(link->target.getId().text));
+
+                if (targets.empty()) {
+                    HSLOG_WARNING("Could not find matching targets");
+                } else {
+                    for (auto const& v : targets) {
+                        HSLOG_TRACE("Found target {}", v);
+                        res.push_back(org::graph::Edge{
+                            .source = vert,
+                            .target = v,
+                        });
+                    }
                 }
             }
         }
