@@ -50,13 +50,9 @@ class DiaGraph : public org::graph::IGraph {
         return getID(DiaGraphVertex{id});
     }
 
-    org::graph::VertexID addVertex(DiaUniqId const& id) {
-        return vertices.add(DiaGraphVertex{id});
-    }
+    org::graph::VertexID addVertex(DiaUniqId const& id);
 
-    org::graph::VertexID delVertex(DiaUniqId const& id) {
-        return vertices.del(DiaGraphVertex(id));
-    }
+    org::graph::VertexID delVertex(DiaUniqId const& id);
 
     struct SerialSchema {
         std::string            vertexId;
@@ -76,12 +72,8 @@ class DiaGraph : public org::graph::IGraph {
             (vertexId, vertexName, vertexKind, vertexDescription, extra));
     };
 
-    virtual json getVertexSerial(
+    virtual json getVertexSerialNonRecursive(
         org::graph::VertexID const& id) const override;
-
-    hstd::Vec<org::graph::VertexID> getVertices() const override {
-        return vertices.keys();
-    }
 };
 
 

@@ -86,7 +86,8 @@ class CliApplication : public QCoreApplication {
         version_store->addDocument(hstd::readFile(path));
 
         HSLOG_DEBUG(
-            "Constructed tree:\n{}", version_store->getActiveDiaRoot().format().toString(false));
+            "Constructed tree:\n{}",
+            version_store->getActiveDiaRoot().format().toString(false));
     }
 
   public slots:
@@ -110,13 +111,20 @@ class CliApplication : public QCoreApplication {
 
                 case DiaEdit::Kind::Insert: {
                     auto aux = [&](DiaAdapter const& a,
-                                   auto&&            self) -> void {
-                        added.push_back(dia_graph->addVertex(a.uniq()));
+                                   auto&& self) -> org::graph::VertexID {
+                        auto added_vertex = dia_graph->addVertex(a.uniq());
+                        added.push_back(added_vertex);
                         for (auto const& sub : a.sub(true)) {
-                            self(sub, self);
+                            auto sub_vertex = self(sub, self);
+                            dia_graph->trackSubVertexRelation(
+                                added_vertex, sub_vertex);
                         }
+
+                        return added_vertex;
                     };
-                    aux(edit.getDst(), aux);
+                    // Discarding root vertices in the graph as there are
+                    // no super-vertices to attach them to.
+                    std::ignore = aux(edit.getDst(), aux);
                     break;
                 }
 

@@ -29,7 +29,20 @@ json DiaHierarchyEdgeCollection::getEdgeSerial(
     });
 }
 
-json DiaGraph::getVertexSerial(const org::graph::VertexID& id) const {
+org::graph::VertexID DiaGraph::addVertex(const DiaUniqId& id) {
+    auto result = vertices.add(DiaGraphVertex{id});
+    registerVertex(result);
+    return result;
+}
+
+org::graph::VertexID DiaGraph::delVertex(const DiaUniqId& id) {
+    auto result = vertices.del(DiaGraphVertex(id));
+    unregisterVertex(result);
+    return result;
+}
+
+json DiaGraph::getVertexSerialNonRecursive(
+    const org::graph::VertexID& id) const {
     auto ad = getAdapter(id);
 
     DiaGraph::SerialSchema res{
