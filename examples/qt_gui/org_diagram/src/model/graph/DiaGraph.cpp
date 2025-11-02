@@ -7,26 +7,15 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 
-hstd::Vec<org::graph::Edge> DiaHierarchyEdgeCollection::getOutgoing(
+hstd::Vec<org::graph::IEdge> DiaHierarchyEdgeCollection::getOutgoing(
     const org::graph::VertexID& vert) {
-    hstd::Vec<org::graph::Edge> res;
+    hstd::Vec<org::graph::IEdge> res;
     for (auto const& sub :
          DiaAdapter{graph->getVertex(vert).uniq, tree_context}.sub(true)) {
-        res.push_back(org::graph::Edge(vert, graph->getID(sub.uniq()), 0));
+        res.push_back(org::graph::IEdge(vert, graph->getID(sub.uniq()), 0));
     }
     HSLOG_DEBUG("get outgoing {}", res);
     return res;
-}
-
-json DiaHierarchyEdgeCollection::getEdgeSerial(
-    const org::graph::EdgeID& id) const {
-    auto const& e = getEdge(id);
-    return hstd::to_json_eval(SerialSchema{
-        .edgeId      = std::format("{}", std::hash<org::graph::Edge>{}(e)),
-        .sourceId    = graph->getVertex(e.source).getStableId(),
-        .targetId    = graph->getVertex(e.target).getStableId(),
-        .bundleIndex = e.bundleIndex,
-    });
 }
 
 org::graph::VertexID DiaGraph::addVertex(const DiaUniqId& id) {
@@ -137,13 +126,13 @@ hstd::Vec<org::graph::VertexID> DiaSubtreeIdTracker::getVertices(
     return res;
 }
 
-hstd::Vec<org::graph::Edge> DiaDescriptionListEdgeCollection::getOutgoing(
+hstd::Vec<org::graph::IEdge> DiaDescriptionListEdgeCollection::getOutgoing(
     const org::graph::VertexID& vert) {
     auto ad  = graph->getAdapter(vert);
     auto imm = ad.getImmAdapter();
     if (!imm.is(OrgSemKind::Subtree)) { return {}; }
 
-    hstd::Vec<org::graph::Edge> res;
+    hstd::Vec<org::graph::IEdge> res;
     auto                        tree = imm.as<org::imm::ImmSubtree>();
 
     for (auto const& sub : tree.sub(true)) {
@@ -173,7 +162,7 @@ hstd::Vec<org::graph::Edge> DiaDescriptionListEdgeCollection::getOutgoing(
                 } else {
                     for (auto const& v : targets) {
                         HSLOG_TRACE("Found target {}", v);
-                        res.push_back(org::graph::Edge{
+                        res.push_back(org::graph::IEdge{
                             .source = vert,
                             .target = v,
                         });
@@ -190,7 +179,7 @@ json DiaDescriptionListEdgeCollection::getEdgeSerial(
     const org::graph::EdgeID& id) const {
     auto const& e = getEdge(id);
     return hstd::to_json_eval(SerialSchema{
-        .edgeId      = std::format("{}", std::hash<org::graph::Edge>{}(e)),
+        .edgeId      = std::format("{}", std::hash<org::graph::IEdge>{}(e)),
         .sourceId    = graph->getVertex(e.source).getStableId(),
         .targetId    = graph->getVertex(e.target).getStableId(),
         .bundleIndex = e.bundleIndex,

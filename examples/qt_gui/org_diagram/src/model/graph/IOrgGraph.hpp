@@ -50,23 +50,41 @@ struct UnorderedStore {
 
 namespace org::graph {
 
+class IGraphObjectBase {
+  public:
+    virtual std::size_t getHash() const                              = 0;
+    virtual bool        isEqual(IGraphObjectBase const* other) const = 0;
+    virtual std::string getRepr() const                              = 0;
+    virtual std::string getStableId() const;
+
+    virtual ~IGraphObjectBase() = default;
+
+    template <typename T>
+    bool isInstance() const {
+        return dynamic_cast<T const*>(this) != nullptr;
+    }
+};
+
+
 BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCategory);
 
-DECL_ID_TYPE_MASKED(Vertex, VertexID, hstd::u64, 16);
-DECL_ID_TYPE_MASKED(Edge, EdgeID, hstd::u64, 16);
+DECL_ID_TYPE_MASKED(IVertex, VertexID, hstd::u64, 16);
+DECL_ID_TYPE_MASKED(IEdge, EdgeID, hstd::u64, 16);
 /// \brief Categorize the in/out edge connections between vertices.
 ///
 /// The concept of the node port is linked with the layout, but the the
 /// abstract graph interface it is also used to group different connections
 /// of edge to the vertices.
-DECL_ID_TYPE(Port, PortID, hstd::u64);
+DECL_ID_TYPE(IPort, PortID, hstd::u64);
 
-struct Vertex {
+struct IVertex : public IGraphObjectBase {
     using id_type = VertexID;
-    DESC_FIELDS(Vertex, ());
+    DESC_FIELDS(IVertex, ());
 };
 
-struct Edge {
+class IGraph;
+
+struct IEdge : public IGraphObjectBase {
     using id_type = EdgeID;
 
     VertexID          source;
@@ -75,27 +93,45 @@ struct Edge {
     hstd::Opt<PortID> sourcePort  = std::nullopt;
     hstd::Opt<PortID> targetPort  = std::nullopt;
     DESC_FIELDS(
-        Edge,
+        IEdge,
         (source, target, bundleIndex, sourcePort, targetPort));
 
-    bool operator==(Edge const& other) const {
-        return this->source == other.source //
-            && this->target == other.target
-            && this->bundleIndex == other.bundleIndex
-            && this->sourcePort == other.sourcePort
-            && this->targetPort == other.targetPort;
+    struct SerialSchema {
+        std::string            edgeId;
+        std::string            sourceId;
+        std::string            targetId;
+        int                    bundleIndex;
+        hstd::Opt<std::string> sourcePortId;
+        hstd::Opt<std::string> targetPortId;
+        DESC_FIELDS(
+            SerialSchema,
+            (edgeId,
+             sourceId,
+             targetId,
+             bundleIndex,
+             sourcePortId,
+             targetPortId));
+    };
+
+    bool operator==(IEdge const& other) const {
+        return this->isEqual(&other);
     }
+
+    virtual std::size_t getHash() const override {}
+    virtual bool isEqual(const IGraphObjectBase* other) const override;
+    virtual json getSerialNonRecursive(IGraph const* graph) const;
+    virtual std::string getRepr() const override {}
 };
 
-struct Port {
+struct IPort : public IGraphObjectBase {
     using id_type = PortID;
-    DESC_FIELDS(Port, ());
+    DESC_FIELDS(IPort, ());
 };
 } // namespace org::graph
 
 template <>
-struct std::hash<org::graph::Edge> {
-    std::size_t operator()(org::graph::Edge const& it) const noexcept {
+struct std::hash<org::graph::IEdge> {
+    std::size_t operator()(org::graph::IEdge const& it) const noexcept {
         std::size_t result = 0;
         hstd::hax_hash_combine(result, it.source);
         hstd::hax_hash_combine(result, it.target);
@@ -135,29 +171,22 @@ class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
         incidence;
 
     hstd::UnorderedMap<VertexID, hstd::Vec<VertexID>> incoming_from;
-    hstd::ext::Unordered1to1Bimap<EdgeID, Edge>       edges;
+    hstd::ext::Unordered1to1Bimap<EdgeID, IEdge>      edges;
 
 
   protected:
-    virtual EdgeID addEdge(Edge const& id);
+    virtual EdgeID addEdge(IEdge const& id);
     virtual void   delEdge(EdgeID const& id);
-    Edge const&    getEdge(EdgeID const& id) const;
-    EdgeID         getID(Edge const& edge) const;
+    EdgeID         getID(IEdge const& edge) const;
 
   public:
-    hstd::Vec<EdgeID> getEdges() const {
-        hstd::Vec<EdgeID> res;
-        for (auto const& e : edges.get_map()) { res.push_back(e.first); }
-        return res;
-    }
+    hstd::Vec<EdgeID> getEdges() const;
+    hstd::Vec<EdgeID> addVertex(VertexID const& id);
+    void              delVertex(VertexID const& id);
 
-    virtual hstd::Vec<EdgeID> addVertex(VertexID const& id);
-    virtual void              delVertex(VertexID const& id);
-
-    virtual hstd::Vec<Edge> getOutgoing(VertexID const& vert) = 0;
-    virtual EdgeCategory    getCategory() const               = 0;
-
-    virtual json getEdgeSerial(EdgeID const& id) const = 0;
+    virtual IEdge const&      getEdge(EdgeID const& id) const   = 0;
+    virtual hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) = 0;
+    virtual EdgeCategory      getCategory() const               = 0;
 };
 
 struct org_graph_error : public hstd::CRTP_hexception<org_graph_error> {};
@@ -185,6 +214,8 @@ class IGraph {
     void addCollection(IEdgeCollection::Ptr const& collection) {
         collections.push_back(collection);
     }
+
+    virtual IVertex const& getVertex(VertexID const& id) const = 0;
 
     /// \brief Add the vertex to the graph collection. Will not
     /// automatically register all nested vertices and recursive data.
@@ -254,9 +285,22 @@ class IGraph {
 
     virtual json getVertexSerialNonRecursive(VertexID const& id) const = 0;
     struct SerialSchema {
-        hstd::Vec<json> vertices;
-        hstd::Vec<json> edges;
-        DESC_FIELDS(SerialSchema, (vertices, edges));
+        hstd::Vec<json>                              vertices;
+        hstd::Vec<json>                              edges;
+        hstd::Vec<std::string>                       flatVertexIDs;
+        hstd::Vec<std::string>                       rootVertixIDs;
+        hstd::UnorderedMap<std::string, std::string> vertexParentMap;
+        hstd::UnorderedMap<std::string, hstd::Vec<std::string>>
+            vertexNestingMap;
+
+        DESC_FIELDS(
+            SerialSchema,
+            (vertices,
+             edges,
+             flatVertexIDs,
+             rootVertixIDs,
+             vertexParentMap,
+             vertexNestingMap));
     };
 
     virtual json getGraphSerial() const;

@@ -92,27 +92,9 @@ class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
             hstd::hash_to_uint16(typeid(this).hash_code()));
     }
 
-    virtual hstd::Vec<org::graph::Edge> getOutgoing(
+    virtual hstd::Vec<org::graph::IEdge> getOutgoing(
         const org::graph::VertexID& vert) override;
 
-    struct SerialSchema {
-        std::string            category = "hierarchy";
-        std::string            edgeId;
-        std::string            sourceId;
-        std::string            targetId;
-        int                    bundleIndex;
-        hstd::Opt<std::string> sourcePortId;
-        hstd::Opt<std::string> targetPortId;
-        DESC_FIELDS(
-            SerialSchema,
-            (category,
-             edgeId,
-             sourceId,
-             targetId,
-             bundleIndex,
-             sourcePortId,
-             targetPortId));
-    };
 
     virtual json getEdgeSerial(
         org::graph::EdgeID const& id) const override;
@@ -166,7 +148,7 @@ class DiaDescriptionListEdgeCollection
         hstd::SPtr<DiaSubtreeIdTracker> const& tracker)
         : graph{graph}, tracker{tracker} {}
 
-    virtual hstd::Vec<org::graph::Edge> getOutgoing(
+    virtual hstd::Vec<org::graph::IEdge> getOutgoing(
         const org::graph::VertexID& vert) override;
 
     virtual org::graph::EdgeCategory getCategory() const override {

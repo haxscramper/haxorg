@@ -1,4 +1,5 @@
 #include "IOrgGraph.hpp"
+#include <hstd/stdlib/algorithms.hpp>
 
 using namespace org::graph;
 
@@ -181,7 +182,14 @@ json IGraph::getGraphSerial() const {
         }
     }
 
+    for (auto const& vertex :
+         hstd::sorted(hstd::Vec{vertexIDs.begin(), vertexIDs.end()})) {
+        // res.flatVertexIDs.push_back(vertex.get);
+    }
+
     for (auto const& vertex : getRootVertices()) {
+
+
         json this_serial = getVertexSerialNonRecursive(vertex);
 
         res.vertices.push_back(this_serial);
@@ -190,7 +198,7 @@ json IGraph::getGraphSerial() const {
     return hstd::to_json_eval(res);
 }
 
-EdgeID IEdgeCollection::addEdge(const Edge& id) {
+EdgeID IEdgeCollection::addEdge(const IEdge& id) {
     auto res_id = EdgeID::FromMaskedIdx(
         edges.get_map().size(), getCategory().t);
     edges.add_unique(res_id, id);
@@ -206,11 +214,17 @@ void IEdgeCollection::delEdge(const EdgeID& id) {
     vec.erase(vec.begin() + it);
 }
 
-EdgeID IEdgeCollection::getID(const Edge& edge) const {
+EdgeID IEdgeCollection::getID(const IEdge& edge) const {
     return edges.at_left(edge);
 }
 
-const Edge& IEdgeCollection::getEdge(const EdgeID& id) const {
+hstd::Vec<EdgeID> IEdgeCollection::getEdges() const {
+    hstd::Vec<EdgeID> res;
+    for (auto const& e : edges.get_map()) { res.push_back(e.first); }
+    return res;
+}
+
+const IEdge& IEdgeCollection::getEdge(const EdgeID& id) const {
     return edges.at_right(id);
 }
 
@@ -223,4 +237,33 @@ hstd::Vec<EdgeID> IEdgeCollection::addVertex(const VertexID& id) {
 
 void IEdgeCollection::delVertex(const VertexID& id) {
     for (auto const& e : getOutgoing(id)) { delEdge(getID(e)); }
+}
+
+std::string IGraphObjectBase::getStableId() const {
+    return std::format("IGraphObjectBase-{}", getHash());
+}
+
+bool IEdge::isEqual(const IGraphObjectBase* other) const {
+    auto other_edge = dynamic_cast<IEdge const*>(other);
+    return other->isInstance<IEdge>()         //
+        && this->source == other_edge->source //
+        && this->target == other_edge->target
+        && this->bundleIndex == other_edge->bundleIndex
+        && this->sourcePort == other_edge->sourcePort
+        && this->targetPort == other_edge->targetPort;
+}
+
+json IEdge::getSerialNonRecursive(const IGraph* graph) const {
+    SerialSchema res{
+        .edgeId      = getStableId(),
+        .sourceId    = graph->getVertex(source).getStableId(),
+        .targetId    = graph->getVertex(target).getStableId(),
+        .bundleIndex = bundleIndex,
+    };
+
+    if (sourcePort) {
+        // res.sourcePortId = graph->get
+    }
+
+    return hstd::to_json_eval(res);
 }
