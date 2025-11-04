@@ -1153,6 +1153,7 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
                     data.vertexName,
                     expected_width=node_width,
                     font_size=12,
+                    size_step=50,
                 ),
                 width=node_width,
                 extra=dict(data=data),

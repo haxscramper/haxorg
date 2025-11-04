@@ -49,6 +49,32 @@ struct UnorderedStore {
 } // namespace hstd
 
 namespace org::graph {
+BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCategoryID);
+BOOST_STRONG_TYPEDEF(hstd::u16, PropertyTrackerID);
+} // namespace org::graph
+
+template <>
+struct std::hash<org::graph::EdgeCategoryID> {
+    std::size_t operator()(
+        org::graph::EdgeCategoryID const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.t);
+        return result;
+    }
+};
+
+template <>
+struct std::hash<org::graph::PropertyTrackerID> {
+    std::size_t operator()(
+        org::graph::PropertyTrackerID const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.t);
+        return result;
+    }
+};
+
+
+namespace org::graph {
 
 class IGraphObjectBase {
   public:
@@ -68,7 +94,6 @@ class IGraphObjectBase {
 template <typename T>
 concept IsGraphObject = std::derived_from<T, IGraphObjectBase>;
 
-BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCategory);
 
 DECL_ID_TYPE_MASKED(IVertex, VertexID, hstd::u64, 16);
 DECL_ID_TYPE_MASKED(IEdge, EdgeID, hstd::u64, 16);
@@ -166,14 +191,15 @@ struct IProperty {
 };
 
 
-class IPropertyTracker : public hstd::SharedPtrApi<IPropertyTracker> {
+class IPropertyTracker {
   public:
     virtual void                trackVertex(VertexID const& vertex)   = 0;
     virtual void                untrackVertex(VertexID const& vertex) = 0;
     virtual hstd::Vec<VertexID> getVertices(IProperty const& prop)    = 0;
+    virtual PropertyTrackerID   getTrackerID() const                  = 0;
 };
 
-class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
+class IEdgeCollection {
     hstd::UnorderedMap<
         VertexID,
         hstd::UnorderedMap<VertexID, hstd::Vec<EdgeID>>>
@@ -209,7 +235,7 @@ class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
     void delVertex(VertexID const& id);
 
     /// \brief Return edge category for this collection.
-    virtual EdgeCategory getCategory() const = 0;
+    virtual EdgeCategoryID getCategory() const = 0;
 
     /// \brief Get already constructed edge object from the store.
     virtual IEdge const& getEdge(EdgeID const& id) const = 0;
@@ -221,14 +247,18 @@ class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
     /// populate the edge collection tracker tables. The returned list of
     /// edges is used
     virtual hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) = 0;
+
+    virtual std::string getStableID() const = 0;
 };
 
 struct org_graph_error : public hstd::CRTP_hexception<org_graph_error> {};
 
 class IGraph {
   protected:
-    hstd::Vec<IEdgeCollection::Ptr>  collections;
-    hstd::Vec<IPropertyTracker::Ptr> trackers;
+    hstd::UnorderedMap<EdgeCategoryID, hstd::SPtr<IEdgeCollection>>
+        collections;
+    hstd::UnorderedMap<PropertyTrackerID, hstd::SPtr<IPropertyTracker>>
+        trackers;
 
     /// \brief Full set of all vertices in the graph
     hstd::UnorderedSet<VertexID> vertexIDs;
@@ -258,15 +288,15 @@ class IGraph {
     void unregisterVertex(VertexID const& id);
 
   public:
-    void addTracker(IPropertyTracker::Ptr const& tracker) {
-        trackers.push_back(tracker);
-    }
-
-    void addCollection(IEdgeCollection::Ptr const& collection) {
-        collections.push_back(collection);
-    }
+    void addTracker(hstd::SPtr<IPropertyTracker> const& tracker);
+    void delTracker(hstd::SPtr<IPropertyTracker> const& tracker);
+    void addCollection(hstd::SPtr<IEdgeCollection> const& collection);
+    void delCollection(hstd::SPtr<IEdgeCollection> const& collection);
 
     virtual IVertex const& getVertex(VertexID const& id) const = 0;
+
+
+    hstd::Vec<VertexID> getHierarchyCrossings(EdgeID const& id);
 
 
     /// \brief Provide additional information about the vertex nesting
@@ -318,11 +348,25 @@ class IGraph {
     hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
 
     struct SerialSchema {
-        hstd::UnorderedMap<std::string, json>        vertices;
-        hstd::Vec<json>                              edges;
-        hstd::Vec<std::string>                       flatVertexIDs;
-        hstd::Vec<std::string>                       rootVertexIDs;
-        hstd::UnorderedMap<std::string, std::string> vertexParentMap;
+        struct EdgeCategory {
+            hstd::Vec<json> edges;
+            std::string     categoryName;
+            /// \brief EdgeId -> List of Vertex IDs for parent hierarchies
+            /// it has crossed. See `getHierarchyCrossings` method for more
+            /// details.
+            hstd::UnorderedMap<std::string, hstd::Vec<std::string>>
+                hierarchyEdgeCrossings;
+            DESC_FIELDS(
+                EdgeCategory,
+                (edges, categoryName, hierarchyEdgeCrossings));
+        };
+
+
+        hstd::UnorderedMap<std::string, json>         vertices;
+        hstd::UnorderedMap<std::string, EdgeCategory> edges;
+        hstd::Vec<std::string>                        flatVertexIDs;
+        hstd::Vec<std::string>                        rootVertexIDs;
+        hstd::UnorderedMap<std::string, std::string>  vertexParentMap;
         hstd::UnorderedMap<std::string, hstd::Vec<std::string>>
             vertexNestingMap;
 
@@ -338,4 +382,6 @@ class IGraph {
 
     virtual json getGraphSerial() const;
 };
+
+
 } // namespace org::graph

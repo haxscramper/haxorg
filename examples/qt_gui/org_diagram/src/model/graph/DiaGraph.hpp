@@ -87,10 +87,6 @@ class DiaGraph : public org::graph::IGraph {
 
 class DiaHierarchyEdge : public org::graph::IEdge {
     using IEdge::IEdge;
-
-    virtual json getSerialNonRecursive(
-        const org::graph::IGraph* graph,
-        org::graph::EdgeID const& id) const override;
 };
 
 class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
@@ -104,9 +100,14 @@ class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
         hstd::SPtr<DiaGraph> graph)
         : tree_context{tree_context}, graph{graph} {}
 
-    virtual org::graph::EdgeCategory getCategory() const override {
-        return org::graph::EdgeCategory(
+    virtual org::graph::EdgeCategoryID getCategory() const override {
+        return org::graph::EdgeCategoryID(
             hstd::hash_to_uint16(typeid(this).hash_code()));
+    }
+
+    virtual std::string getStableID() const override {
+        return hstd::value_metadata<
+            DiaHierarchyEdgeCollection>::typeName();
     }
 
     virtual hstd::Vec<org::graph::EdgeID> addAllOutgoing(
@@ -149,6 +150,12 @@ class DiaSubtreeIdTracker : public org::graph::IPropertyTracker {
     DiaSubtreeIdTracker(hstd::SPtr<DiaGraph> const& graph)
         : graph{graph} {}
 
+    virtual org::graph::PropertyTrackerID getTrackerID() const override {
+        return org::graph::PropertyTrackerID(
+            hstd::hash_to_uint16(typeid(this).hash_code()));
+    }
+
+
     virtual void trackVertex(const org::graph::VertexID& vertex) override;
     virtual void untrackVertex(
         const org::graph::VertexID& vertex) override;
@@ -158,10 +165,6 @@ class DiaSubtreeIdTracker : public org::graph::IPropertyTracker {
 
 class DiaDescriptionListEdge : public org::graph::IEdge {
     using IEdge::IEdge;
-
-    virtual json getSerialNonRecursive(
-        const org::graph::IGraph* graph,
-        org::graph::EdgeID const& id) const override;
 };
 
 class DiaDescriptionListEdgeCollection
@@ -180,9 +183,14 @@ class DiaDescriptionListEdgeCollection
     virtual hstd::Vec<org::graph::EdgeID> addAllOutgoing(
         const org::graph::VertexID& vert) override;
 
-    virtual org::graph::EdgeCategory getCategory() const override {
-        return org::graph::EdgeCategory(
+    virtual org::graph::EdgeCategoryID getCategory() const override {
+        return org::graph::EdgeCategoryID(
             hstd::hash_to_uint16(typeid(this).hash_code()));
+    }
+
+    virtual std::string getStableID() const override {
+        return hstd::value_metadata<
+            DiaDescriptionListEdgeCollection>::typeName();
     }
 
     virtual const org::graph::IEdge& getEdge(

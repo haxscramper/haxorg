@@ -199,19 +199,3 @@ bool DiaGraphVertex::isEqual(const IGraphObjectBase* other) const {
 }
 
 std::string DiaGraphVertex::getRepr() const { return hstd::fmt1(uniq); }
-
-json DiaDescriptionListEdge::getSerialNonRecursive(
-    const org::graph::IGraph* graph,
-    const org::graph::EdgeID& id) const {
-    auto res        = org::graph::IEdge::getSerialNonRecursive(graph, id);
-    res["category"] = "description-list";
-    return res;
-}
-
-json DiaHierarchyEdge::getSerialNonRecursive(
-    const org::graph::IGraph* graph,
-    const org::graph::EdgeID& id) const {
-    auto res        = org::graph::IEdge::getSerialNonRecursive(graph, id);
-    res["category"] = "hierarchy";
-    return res;
-}

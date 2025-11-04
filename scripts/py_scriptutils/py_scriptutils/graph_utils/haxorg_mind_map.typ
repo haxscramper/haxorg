@@ -53,11 +53,18 @@
   }
 
   if (
-    kind == "Space" or kind == "BigIdent" or kind == "Word" or kind == "Newline"
+    kind == "Space"
+      or kind == "BigIdent"
+      or kind == "Word"
+      or kind == "Newline"
+      or kind == "Punctuation"
+      or kind == "RawText"
   ) {
     node.text
   } else if kind == "Bold" {
     strong(node.subnodes.map(render_org).join())
+  } else if kind == "Verbatim" {
+    stack(node.subnodes.map(render_org).join(), dir: ltr)
   } else if kind == "Paragraph" {
     stack(render_subnodes(), dir: ltr)
   } else if kind == "Italic" {

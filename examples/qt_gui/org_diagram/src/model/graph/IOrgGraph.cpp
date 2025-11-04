@@ -62,6 +62,36 @@ void org::graph::IGraph::unregisterVertex(const VertexID& id) {
     }
 }
 
+void IGraph::delCollection(const hstd::SPtr<IEdgeCollection>& collection) {
+    collections.erase(collection->getCategory());
+}
+
+void IGraph::addTracker(hstd::SPtr<IPropertyTracker> const& tracker) {
+    trackers.insert_or_assign(tracker->getTrackerID(), tracker);
+}
+
+void IGraph::delTracker(hstd::SPtr<IPropertyTracker> const& tracker) {
+    trackers.erase(tracker->getTrackerID());
+}
+
+void IGraph::addCollection(hstd::SPtr<IEdgeCollection> const& collection) {
+    LOGIC_ASSERTION_CHECK(
+        !collections.contains(collection->getCategory()),
+        "Collection with category ID {} already exists in the graph "
+        "tracker",
+        collection->getCategory().t);
+
+    for (auto const& coll : collections) {
+        LOGIC_ASSERTION_CHECK(
+            (coll.second->getStableID() != collection->getStableID()),
+            "Collection with stable {} ID already existsin in the graph "
+            "tracker",
+            collection->getStableID());
+    }
+
+    collections.insert_or_assign(collection->getCategory(), collection);
+}
+
 void org::graph::IGraph::trackVertexList(const hstd::Vec<VertexID>& ids) {
     for (const auto& id : ids) {
         if (!vertexIDs.contains(id)) {
@@ -71,18 +101,18 @@ void org::graph::IGraph::trackVertexList(const hstd::Vec<VertexID>& ids) {
     }
 
     for (const auto& id : ids) {
-        for (auto& track : trackers) { track->trackVertex(id); }
+        for (auto& track : trackers) { track.second->trackVertex(id); }
     }
 
     for (auto const& id : ids) {
         for (auto& collection : collections) {
-            collection->trackVertex(id);
+            collection.second->trackVertex(id);
         }
     }
 
     for (const auto& id : ids) {
         for (auto& collection : collections) {
-            collection->addAllOutgoing(id);
+            collection.second->addAllOutgoing(id);
         }
     }
 }
@@ -97,11 +127,13 @@ void org::graph::IGraph::untrackVertexList(
     }
 
     for (const auto& id : ids) {
-        for (auto& collection : collections) { collection->delVertex(id); }
+        for (auto& collection : collections) {
+            collection.second->delVertex(id);
+        }
     }
 
     for (const auto& id : ids) {
-        for (auto& track : trackers) { track->untrackVertex(id); }
+        for (auto& track : trackers) { track.second->untrackVertex(id); }
     }
 }
 
@@ -213,11 +245,15 @@ struct hstd::JsonSerde<hstd::UnorderedMap<std::string, V>>
 json IGraph::getGraphSerial() const {
     IGraph::SerialSchema res{};
     for (auto const& collection : collections) {
-        for (auto const& edge : collection->getEdges()) {
-            res.edges.push_back(
-                collection->getEdge(edge).getSerialNonRecursive(
+        SerialSchema::EdgeCategory category;
+        category.categoryName = collection.second->getStableID();
+        for (auto const& edge : collection.second->getEdges()) {
+            category.edges.push_back(
+                collection.second->getEdge(edge).getSerialNonRecursive(
                     this, edge));
         }
+
+        res.edges.insert_or_assign(category.categoryName, category);
     }
 
     for (auto const& vertex : hstd::sorted(

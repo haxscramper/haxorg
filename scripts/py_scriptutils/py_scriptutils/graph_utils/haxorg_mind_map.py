@@ -6,7 +6,6 @@ import igraph as ig
 
 class Edge(BaseModel, extra="forbid"):
     edgeId: str
-    category: str
     sourceId: str
     targetId: str
     sourcePortId: Optional[str] = None
@@ -14,6 +13,10 @@ class Edge(BaseModel, extra="forbid"):
     bundleIndex: Optional[int] = None
     extra: Optional[Dict[str, Any]] = None
 
+class EdgeCategory(BaseModel, extra="forbid"):
+    edges: List[Edge]
+    categoryName: str
+    hierarchyEdgeCrossings: Dict[str, List[str]] = Field(default_factory=list)
 
 class Vertex(BaseModel, extra="forbid"):
     vertexId: str
@@ -21,11 +24,16 @@ class Vertex(BaseModel, extra="forbid"):
     vertexDescription: Optional[str] = None
     vertexKind: Optional[str] = None
     extra: Optional[Dict[str, Any]] = None
+    extra_type: Optional[str] = None
 
 
 class Graph(BaseModel, extra="forbid"):
-    edges: List[Edge]
-    vertices: List[Vertex]
+    edges: Dict[str, EdgeCategory]
+    vertices: Dict[str, Vertex]
+    flatVertexIDs: List[str]
+    rootVertexIDs: List[str]
+    vertexNestingMap: Dict[str, List[str]]
+    vertexParentMap: Dict[str, str]
 
 
 @beartype
@@ -46,10 +54,11 @@ def convert_to_igraph(g: Graph) -> ig.Graph:
             data=edge,
         )
 
-    for v in g.vertices:
+    for v_id, v in g.vertices.items():
         add_node(v)
 
-    for e in g.edges:
-        add_edge(e)
+    for _, cat in g.edges.items():
+        for e in cat.edges:
+            add_edge(e)
 
     return result

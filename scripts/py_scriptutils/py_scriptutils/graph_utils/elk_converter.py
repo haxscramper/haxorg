@@ -274,7 +274,11 @@ def get_resource_port_id(id: str, side: Direction) -> str:
 
 
 def round_to_multiple(number, multiple):
-    return round(number / multiple) * multiple
+    if round(number / multiple) == 0: 
+        return multiple
+        
+    else:
+        return round(number / multiple) * multiple
 
 
 @beartype
@@ -295,6 +299,7 @@ def get_node_height_for_text(text: str,
         len(split_fit.lines if split_fit.lines else [""]), size_step)
 
     assert result is not None
+    assert result != 0
 
     return result
 
