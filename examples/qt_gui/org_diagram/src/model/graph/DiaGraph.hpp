@@ -3,17 +3,22 @@
 #include <src/model/graph/IOrgGraph.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
 
-struct DiaGraphVertex {
+struct DiaGraphVertex : public org::graph::IVertex {
     DiaUniqId uniq;
+
+    DiaGraphVertex(DiaUniqId const& id) : uniq{id} {}
 
     bool operator==(DiaGraphVertex const& vert) const {
         return uniq == vert.uniq;
     }
 
-    std::string getStableId() const {
-        return std::format(
-            "{}-{}", uniq.target, std::hash<DiaUniqId>{}(uniq));
-    }
+    std::string getStableId() const override;
+
+    virtual std::size_t getHash() const override;
+    virtual bool isEqual(const IGraphObjectBase* other) const override;
+    virtual std::string getRepr() const override;
+    virtual json        getSerialNonRecursive(
+               org::graph::IGraph const* graph) const override;
 };
 
 template <>
@@ -38,7 +43,7 @@ class DiaGraph : public org::graph::IGraph {
     }
 
     DiaGraphVertex const& getVertex(
-        org::graph::VertexID const& vert) const {
+        org::graph::VertexID const& vert) const override {
         return vertices.at(vert);
     }
 

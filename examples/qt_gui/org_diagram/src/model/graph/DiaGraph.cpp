@@ -185,3 +185,18 @@ json DiaDescriptionListEdgeCollection::getEdgeSerial(
         .bundleIndex = e.bundleIndex,
     });
 }
+
+std::string DiaGraphVertex::getStableId() const {
+    return std::format("{}-{}", uniq.target, std::hash<DiaUniqId>{}(uniq));
+}
+
+std::size_t DiaGraphVertex::getHash() const {
+    return std::hash<DiaUniqId>{}(uniq);
+}
+
+bool DiaGraphVertex::isEqual(const IGraphObjectBase* other) const {
+    LOGIC_ASSERTION_CHECK(other->isInstance<DiaGraphVertex>(), "");
+    return dynamic_cast<DiaGraphVertex const*>(other)->uniq == this->uniq;
+}
+
+std::string DiaGraphVertex::getRepr() const { return hstd::fmt1(uniq); }

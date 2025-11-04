@@ -178,7 +178,8 @@ json IGraph::getGraphSerial() const {
     IGraph::SerialSchema res{};
     for (auto const& collection : collections) {
         for (auto const& edge : collection->getEdges()) {
-            res.edges.push_back(collection->getEdgeSerial(edge));
+            res.edges.push_back(
+                collection->getEdge(edge).getSerialNonRecursive(this));
         }
     }
 
@@ -241,6 +242,16 @@ void IEdgeCollection::delVertex(const VertexID& id) {
 
 std::string IGraphObjectBase::getStableId() const {
     return std::format("IGraphObjectBase-{}", getHash());
+}
+
+std::size_t IEdge::getHash() const {
+    std::size_t result = 0;
+    hstd::hax_hash_combine(result, source);
+    hstd::hax_hash_combine(result, target);
+    hstd::hax_hash_combine(result, bundleIndex);
+    hstd::hax_hash_combine(result, sourcePort);
+    hstd::hax_hash_combine(result, targetPort);
+    return result;
 }
 
 bool IEdge::isEqual(const IGraphObjectBase* other) const {

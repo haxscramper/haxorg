@@ -77,12 +77,15 @@ DECL_ID_TYPE_MASKED(IEdge, EdgeID, hstd::u64, 16);
 /// of edge to the vertices.
 DECL_ID_TYPE(IPort, PortID, hstd::u64);
 
+class IGraph;
+
 struct IVertex : public IGraphObjectBase {
     using id_type = VertexID;
     DESC_FIELDS(IVertex, ());
+
+    virtual json getSerialNonRecursive(IGraph const* graph) const = 0;
 };
 
-class IGraph;
 
 struct IEdge : public IGraphObjectBase {
     using id_type = EdgeID;
@@ -117,10 +120,12 @@ struct IEdge : public IGraphObjectBase {
         return this->isEqual(&other);
     }
 
-    virtual std::size_t getHash() const override {}
+    virtual std::size_t getHash() const override;
     virtual bool isEqual(const IGraphObjectBase* other) const override;
     virtual json getSerialNonRecursive(IGraph const* graph) const;
-    virtual std::string getRepr() const override {}
+    virtual std::string getRepr() const override {
+        return hstd::fmt1(*this);
+    }
 };
 
 struct IPort : public IGraphObjectBase {
@@ -132,13 +137,7 @@ struct IPort : public IGraphObjectBase {
 template <>
 struct std::hash<org::graph::IEdge> {
     std::size_t operator()(org::graph::IEdge const& it) const noexcept {
-        std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.source);
-        hstd::hax_hash_combine(result, it.target);
-        hstd::hax_hash_combine(result, it.bundleIndex);
-        hstd::hax_hash_combine(result, it.sourcePort);
-        hstd::hax_hash_combine(result, it.targetPort);
-        return result;
+        return it.getHash();
     }
 };
 
@@ -171,8 +170,6 @@ class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
         incidence;
 
     hstd::UnorderedMap<VertexID, hstd::Vec<VertexID>> incoming_from;
-    hstd::ext::Unordered1to1Bimap<EdgeID, IEdge>      edges;
-
 
   protected:
     virtual EdgeID addEdge(IEdge const& id);
@@ -180,10 +177,16 @@ class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
     EdgeID         getID(IEdge const& edge) const;
 
   public:
+    /// \brief Get the full list of edges stored in the collection
     hstd::Vec<EdgeID> getEdges() const;
+    /// \brief Add the vertex to the collection and register all new
+    /// outgoing edges.
     hstd::Vec<EdgeID> addVertex(VertexID const& id);
-    void              delVertex(VertexID const& id);
+    /// \brief Remove the vertex from teh collection and remove all
+    /// incident edges.
+    void delVertex(VertexID const& id);
 
+    /// \brief Get already constructed edge object from the store.
     virtual IEdge const&      getEdge(EdgeID const& id) const   = 0;
     virtual hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) = 0;
     virtual EdgeCategory      getCategory() const               = 0;
@@ -205,18 +208,7 @@ class IGraph {
     /// \brief Set of vertices that don't have parent items in the map.
     hstd::UnorderedSet<VertexID> rootVertices;
 
-
-  public:
-    void addTracker(IPropertyTracker::Ptr const& tracker) {
-        trackers.push_back(tracker);
-    }
-
-    void addCollection(IEdgeCollection::Ptr const& collection) {
-        collections.push_back(collection);
-    }
-
-    virtual IVertex const& getVertex(VertexID const& id) const = 0;
-
+  protected:
     /// \brief Add the vertex to the graph collection. Will not
     /// automatically register all nested vertices and recursive data.
     /// After the base vertex is registered, provide additional structural
@@ -233,6 +225,18 @@ class IGraph {
     /// \warning Calling this method will RECURSIVELY DROP ALL SUB-VERTICES
     /// under `id`.
     void unregisterVertex(VertexID const& id);
+
+  public:
+    void addTracker(IPropertyTracker::Ptr const& tracker) {
+        trackers.push_back(tracker);
+    }
+
+    void addCollection(IEdgeCollection::Ptr const& collection) {
+        collections.push_back(collection);
+    }
+
+    virtual IVertex const& getVertex(VertexID const& id) const = 0;
+
 
     /// \brief Provide additional information about the vertex nesting
     /// relation.
@@ -282,8 +286,8 @@ class IGraph {
     hstd::Vec<VertexID> getSubVertices(VertexID const& id) const;
     hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
 
-
     virtual json getVertexSerialNonRecursive(VertexID const& id) const = 0;
+
     struct SerialSchema {
         hstd::Vec<json>                              vertices;
         hstd::Vec<json>                              edges;
