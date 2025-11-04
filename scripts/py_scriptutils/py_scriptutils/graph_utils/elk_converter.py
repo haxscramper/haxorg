@@ -15,6 +15,10 @@ from shapely.ops import unary_union
 from PIL import Image
 import numpy as np
 from sklearn.cluster import KMeans
+from abc import ABC, abstractmethod
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 class HyperEdgeData(BaseModel):
@@ -32,8 +36,8 @@ class ElkExtra(BaseModel, extra="forbid"):
 
 def graph_to_typst(
     graph: elk.Graph,
-    edge_command: str = "edge",
-    node_command: str = "node",
+    edge_command: str = "draw_edge",
+    node_command: str = "draw_node",
 ) -> typ.Document:
     subnodes: List[typ.TypstNode] = []
 
@@ -274,9 +278,9 @@ def get_resource_port_id(id: str, side: Direction) -> str:
 
 
 def round_to_multiple(number, multiple):
-    if round(number / multiple) == 0: 
+    if round(number / multiple) == 0:
         return multiple
-        
+
     else:
         return round(number / multiple) * multiple
 
@@ -466,32 +470,61 @@ def group_multi_layout(graph: elk.Graph):
 
 
 @beartype
-def convert_to_elk(
-    graph: ig.Graph,
-    vertex_to_node: Callable[[int, ig.Vertex], elk.Node],
-    edge_to_edge: Callable[[int, ig.Edge], elk.Edge],
-) -> elk.Graph:
+class GraphWalker(ABC):
 
-    result = elk.Graph(
-        id="root",
-        children=[],
-        edges=[],
-        ports=[],
-        layoutOptions={
-            "org.eclipse.elk.spacing.edgeEdge": 15,
-            "org.eclipse.elk.spacing.edgeNode": 20,
-            "org.eclipse.elk.spacing.labelNode": 10,
-            "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": 30,
-            "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers": 20,
-            "org.eclipse.elk.spacing.labelPortVertical": 0,
-            "org.eclipse.elk.direction": "LEFT",
-        },
-    )
+    @abstractmethod
+    def getTopVertices(self) -> List[str]:
+        ...
 
-    for vertex_idx, v in enumerate(graph.vs):
-        result.children.append(vertex_to_node(vertex_idx, v))
+    @abstractmethod
+    def getELKNodeNonRec(self, vertex_id: str) -> elk.Node:
+        ...
 
-    for edge_idx, e in enumerate(graph.es):
-        result.edges.append(edge_to_edge(edge_idx, e))
+    @abstractmethod
+    def getELKEdge(self, edge_id: str) -> elk.Edge:
+        ...
 
-    return result
+    @abstractmethod
+    def getNestedVertices(self, vertex_id: str) -> List[str]:
+        ...
+
+
+    @abstractmethod
+    def getEdges(self) -> List[str]:
+        ...
+
+
+    def getELKNodeRec(self, vertex_id: str) -> elk.Node:
+        result = self.getELKNodeNonRec(vertex_id)
+        nested = self.getNestedVertices(vertex_id)
+        if nested:
+            result.children = []
+            for sub in nested:
+                result.children.append(self.getELKNodeRec(sub))
+
+        return result
+
+    def getELKGraph(self) -> elk.Graph:
+        result = elk.Graph(
+            id="root",
+            children=[],
+            edges=[],
+            ports=[],
+            layoutOptions={
+                "org.eclipse.elk.spacing.edgeEdge": 15,
+                "org.eclipse.elk.spacing.edgeNode": 20,
+                "org.eclipse.elk.spacing.labelNode": 10,
+                "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": 30,
+                "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers": 20,
+                "org.eclipse.elk.spacing.labelPortVertical": 0,
+                "org.eclipse.elk.direction": "LEFT",
+            },
+        )
+
+        for v in self.getTopVertices():
+            result.children.append(self.getELKNodeRec(v))
+
+        for e in self.getEdges():
+            result.edges.append(self.getELKEdge(e))
+
+        return result

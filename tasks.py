@@ -1103,6 +1103,8 @@ def build_example_qt_gui_org_diagram(ctx: Context):
     )
 
 
+
+
 @org_task(pre=[build_example_qt_gui_org_diagram])
 def run_example_org_elk_diagram(ctx: Context, infile: str):
     from py_scriptutils.graph_utils import haxorg_mind_map
@@ -1110,6 +1112,8 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
     from py_scriptutils.graph_utils import elk_schema
     from py_scriptutils.graph_utils import typst_schema
     import igraph as ig
+
+
 
     wrapper_dir = "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"
     run_command(ctx,
@@ -1139,71 +1143,8 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
 
     mmap_igraph = mmap_igraph.induced_subgraph(filter(lambda vertex: vertex["data"].vertexKind == "Item", mmap_igraph.vs))
 
-    @beartype
-    def vertex_to_node(vertex_index: int, vertex: ig.Vertex) -> elk_schema.Node:
-        data: haxorg_mind_map.Vertex = vertex["data"]
-        assert isinstance(data, haxorg_mind_map.Vertex)
-
-        node_width = 150
-
-        if data.vertexDescription:
-            result = elk_schema.Node(
-                id=data.vertexId,
-                height=elk_converter.get_node_height_for_text(
-                    data.vertexName,
-                    expected_width=node_width,
-                    font_size=12,
-                    size_step=50,
-                ),
-                width=node_width,
-                extra=dict(data=data),
-                labels=[],
-                properties={
-                    "nodeLabels.placement": "[H_CENTER, V_TOP, OUTSIDE]",
-                    "portLabels.placement": "NEXT_TO_PORT_OF_POSSIBLE",
-                },
-            )
-
-            if data.vertexName:
-                result.labels.append(
-                    elk_converter.single_line_label(
-                        id=f"{data.vertexId}-title-label",
-                        text=data.vertexName,
-                        font_size=8.0,
-                    ))
-
-        else:
-            result = elk_schema.Node(
-                id=data.vertexId,
-                width=node_width,
-                height=elk_converter.get_node_height_for_text(
-                    data.vertexName,
-                    expected_width=node_width,
-                    font_size=12,
-                ),
-                extra=dict(data=data),
-            )
-
-        return result
-
-    @beartype
-    def edge_to_edge(edge_idx: int, edge: ig.Edge) -> elk_schema.Edge:
-        data: haxorg_mind_map.Edge = edge["data"]
-        assert isinstance(data, haxorg_mind_map.Edge)
-        return elk_schema.Edge(
-            id=data.edgeId,
-            source=data.sourceId,
-            target=data.targetId,
-            sourcePort=data.sourcePortId,
-            targetPort=data.targetPortId,
-            extra=dict(data=data),
-        )
-
-    mmap_elk = elk_converter.convert_to_elk(
-        mmap_igraph,
-        vertex_to_node=vertex_to_node,
-        edge_to_edge=edge_to_edge,
-    )
+    mmap_walker = haxorg_mind_map.HaxorgMMapWalker(mmap_igraph, mmap_model)
+    mmap_elk = mmap_walker.getELKGraph()
 
     pprint_to_file(mmap_elk, "/tmp/mmap_elk.py")
 

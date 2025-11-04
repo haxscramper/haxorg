@@ -174,48 +174,6 @@
 }
 
 
-
-#let node(node) = {
-  node_box(node, draw_node_base(node, blue.lighten(80%)), 0, 0)
-  // node.extra.data is `DiaGraph::SerialSchema`
-  let data = node.extra.data
-  let extra = data.extra
-  if (
-    "structuredDescription" in extra and extra.structuredDescription != none
-  ) {
-    node_box(
-      node,
-      box(width: 100%, height: 100%, inset: 4pt, text(size: 8pt, render_org(
-        extra.structuredDescription,
-      ))),
-      0,
-      0,
-    )
-  } else if "vertexDescription" in data {
-    node_box(
-      node,
-      box(width: 100%, height: 100%, inset: 4pt, text(
-        size: 8pt,
-        data.vertexDescription,
-      )),
-      0,
-      0,
-    )
-  } else if "vertexName" in data {
-    node_box(
-      node,
-      box(width: 100%, height: 100%, inset: 4pt, text(
-        size: 8pt,
-        data.vertexName,
-      )),
-      0,
-      0,
-    )
-  }
-}
-
-
-
 #let draw_edge_with_polygon(edge_data) = {
   let polygon_points = edge_data.extra.data.data.polygon
   let typst_points = ()
@@ -287,7 +245,7 @@
   }
 }
 
-#let edge(edge_data) = {
+#let draw_edge(edge_data) = {
   // Check if hyperedge polygon is specified
   if (
     "extra" in edge_data
@@ -300,3 +258,58 @@
     draw_edge_with_sections(edge_data)
   }
 }
+
+
+
+#let draw_node(node) = {
+  node_box(node, draw_node_base(node, blue.lighten(80%)), 0, 0)
+  // node.extra.data is `DiaGraph::SerialSchema`
+  let data = node.extra.data
+  let extra = data.extra
+  if (
+    "structuredDescription" in extra and extra.structuredDescription != none
+  ) {
+    node_box(
+      node,
+      box(width: 100%, height: 100%, inset: 4pt, text(size: 8pt, render_org(
+        extra.structuredDescription,
+      ))),
+      0,
+      0,
+    )
+  } else if "vertexDescription" in data {
+    node_box(
+      node,
+      box(width: 100%, height: 100%, inset: 4pt, text(
+        size: 8pt,
+        data.vertexDescription,
+      )),
+      0,
+      0,
+    )
+  } else if "vertexName" in data {
+    node_box(
+      node,
+      box(width: 100%, height: 100%, inset: 4pt, text(
+        size: 8pt,
+        data.vertexName,
+      )),
+      0,
+      0,
+    )
+  }
+
+  if "children" in node {
+    for subnode in node.children {
+      node_box(node, draw_node(subnode), 0, 0)
+    }
+  }
+
+  if "edges" in node {
+    for edge in node.edges {
+      node_box(node, draw_edge(edge), 0, 0)
+    }
+  }
+}
+
+
