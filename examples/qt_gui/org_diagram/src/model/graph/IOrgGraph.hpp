@@ -234,7 +234,8 @@ class IEdgeCollection {
     /// incident edges.
     void delVertex(VertexID const& id);
 
-    /// \brief Return edge category for this collection.
+    /// \brief Return edge category for this collection, uniquely
+    /// identifying this specific one collection.
     virtual EdgeCategoryID getCategory() const = 0;
 
     /// \brief Get already constructed edge object from the store.
@@ -296,7 +297,36 @@ class IGraph {
     virtual IVertex const& getVertex(VertexID const& id) const = 0;
 
 
-    hstd::Vec<VertexID> getHierarchyCrossings(EdgeID const& id);
+    /// \brief For id with given ID, compute the list of vertex
+    /// boundaries it crossed between the source and the target.
+    ///
+    /// - If the source and target of the id are under the same parent
+    ///   vertex, hen no hierarchy crossings happened.
+    /// - If the source and target are under different parents, then the
+    ///   hierarcy crossings is computed by first starting at source and
+    ///   getting to the common parent of the source and target and then
+    ///   traversing down to teh target vertex.
+    ///
+    /// \par Example:
+    /// The graph hierarchy is `(a (b c d) (e (f g) h)`
+    /// where each letter represents one vertex and `()` represents a
+    /// hierarchy group. So `g` is under the group with `f` as a parent
+    /// vertex, which is under `e`, which in turn is under `a`.
+    ///
+    /// \par
+    /// - Edge `c-d` will have **0** crossings -- source and target
+    ///   are both placed under the same parent
+    /// - Edge `c-a` will have **1** crossing -- source and target
+    ///   are placed under the different parent.
+    /// - Edge `c-b` will have **0** crossings -- the id is counted
+    ///   as one inside of the group for `b`.
+    /// - Edge `c-g` will have **3** crossings
+    ///   - traverse `g->e` -- one "up" crossing
+    ///   - traverse `e->a` -- one "up" crossing
+    ///   - traverse `a->b` -- one "down" crossing.
+    ///
+    /// \returns List of crossings for the provided id.
+    hstd::Vec<VertexID> getHierarchyCrossings(EdgeID const& id) const;
 
 
     /// \brief Provide additional information about the vertex nesting
@@ -346,6 +376,7 @@ class IGraph {
     hstd::Vec<VertexID> getRootVertices() const;
     hstd::Vec<VertexID> getSubVertices(VertexID const& id) const;
     hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
+    IEdge const&        getEdge(EdgeID const& id) const;
 
     struct SerialSchema {
         struct EdgeCategory {

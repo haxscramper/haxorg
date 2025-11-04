@@ -1,5 +1,6 @@
 #include "IOrgGraph.hpp"
 #include <hstd/stdlib/algorithms.hpp>
+#include <stack>
 
 using namespace org::graph;
 
@@ -64,6 +65,55 @@ void org::graph::IGraph::unregisterVertex(const VertexID& id) {
 
 void IGraph::delCollection(const hstd::SPtr<IEdgeCollection>& collection) {
     collections.erase(collection->getCategory());
+}
+
+hstd::Vec<VertexID> IGraph::getHierarchyCrossings(const EdgeID& id) const {
+    auto findLCA = [this](VertexID u, VertexID v) -> VertexID {
+        hstd::UnorderedSet<VertexID> parents{};
+        while (true) {
+            parents.insert(u);
+            u = parentMap.contains(u) ? parentMap.at(u) : u;
+            if (parents.contains(v)) { return v; }
+            if (!parentMap.contains(v)) { break; }
+            v = parentMap.at(v);
+        }
+        return u;
+    };
+
+    auto const& edge   = getEdge(id);
+    auto        source = edge.getSource();
+    auto        target = edge.getTarget();
+
+    bool sourceHasParent = parentMap.contains(source);
+    bool targetHasParent = parentMap.contains(target);
+
+    if (!sourceHasParent && !targetHasParent) { return {}; }
+    if (sourceHasParent && targetHasParent
+        && parentMap.at(source) == parentMap.at(target)) {
+        return {};
+    }
+
+    auto                lca = findLCA(source, target);
+    hstd::Vec<VertexID> path{};
+    VertexID            current = source;
+    while (current != lca) {
+        path.emplace_back(current);
+        current = parentMap.at(current);
+    }
+
+    current = target;
+    std::stack<VertexID> temp{};
+
+    while (current != lca) {
+        temp.push(current);
+        current = parentMap.at(current);
+    }
+
+    while (!temp.empty()) {
+        path.emplace_back(temp.top());
+        temp.pop();
+    }
+    return path;
 }
 
 void IGraph::addTracker(hstd::SPtr<IPropertyTracker> const& tracker) {
@@ -213,6 +263,10 @@ hstd::Opt<VertexID> IGraph::getParentVertex(const VertexID& id) const {
     return hstd::Opt<VertexID>{};
 }
 
+const IEdge& IGraph::getEdge(const EdgeID& id) const {
+    return collections.at(EdgeCategoryID(id.getMask()))->getEdge(id);
+}
+
 
 template <typename K, typename V, typename MapType>
 struct JsonSerdeMapApiAsObject {
@@ -244,13 +298,20 @@ struct hstd::JsonSerde<hstd::UnorderedMap<std::string, V>>
 
 json IGraph::getGraphSerial() const {
     IGraph::SerialSchema res{};
-    for (auto const& collection : collections) {
+    for (auto const& [_, collection] : collections) {
         SerialSchema::EdgeCategory category;
-        category.categoryName = collection.second->getStableID();
-        for (auto const& edge : collection.second->getEdges()) {
+        category.categoryName = collection->getStableID();
+        for (auto const& edge : collection->getEdges()) {
             category.edges.push_back(
-                collection.second->getEdge(edge).getSerialNonRecursive(
+                collection->getEdge(edge).getSerialNonRecursive(
                     this, edge));
+
+            auto& cross = category.hierarchyEdgeCrossings
+                              [collection->getEdge(edge).getStableId()];
+            hstd::Vec<VertexID> crossings = getHierarchyCrossings(edge);
+            for (auto const& c : crossings) {
+                cross.push_back(getVertex(c).getStableId());
+            }
         }
 
         res.edges.insert_or_assign(category.categoryName, category);

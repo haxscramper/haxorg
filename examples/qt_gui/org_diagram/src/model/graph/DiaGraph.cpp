@@ -13,7 +13,8 @@ hstd::Vec<org::graph::EdgeID> DiaHierarchyEdgeCollection::addAllOutgoing(
     for (auto const& sub :
          DiaAdapter{graph->getVertex(vert).uniq, tree_context}.sub(true)) {
         auto res_id = store.add(
-            DiaHierarchyEdge{vert, graph->getID(sub.uniq())});
+            DiaHierarchyEdge{vert, graph->getID(sub.uniq())},
+            getCategory().t);
         trackEdge(res_id);
         res.push_back(res_id);
     }
@@ -170,7 +171,8 @@ hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
                     for (auto const& v : targets) {
                         HSLOG_TRACE("Found target {}", v);
                         auto res_id = store.add(
-                            DiaDescriptionListEdge{vert, v});
+                            DiaDescriptionListEdge{vert, v},
+                            getCategory().t);
                         trackEdge(res_id);
                         res.push_back(res_id);
                     }
