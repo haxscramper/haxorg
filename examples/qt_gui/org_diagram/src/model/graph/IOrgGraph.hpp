@@ -65,6 +65,8 @@ class IGraphObjectBase {
     }
 };
 
+template <typename T>
+concept IsGraphObject = std::derived_from<T, IGraphObjectBase>;
 
 BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCategory);
 
@@ -83,7 +85,7 @@ struct IVertex : public IGraphObjectBase {
     using id_type = VertexID;
     DESC_FIELDS(IVertex, ());
 
-    virtual json getSerialNonRecursive(IGraph const* graph) const = 0;
+    virtual json getSerialNonRecursive(IGraph const* graph, org::graph::VertexID const& id) const = 0;
 };
 
 
@@ -98,6 +100,9 @@ struct IEdge : public IGraphObjectBase {
     DESC_FIELDS(
         IEdge,
         (source, target, bundleIndex, sourcePort, targetPort));
+
+    IEdge(VertexID const& source, VertexID const& target)
+        : source{source}, target{target} {}
 
     struct SerialSchema {
         std::string            edgeId;
@@ -120,9 +125,14 @@ struct IEdge : public IGraphObjectBase {
         return this->isEqual(&other);
     }
 
+    VertexID getSource() const { return source; }
+    VertexID getTarget() const { return target; }
+
     virtual std::size_t getHash() const override;
     virtual bool isEqual(const IGraphObjectBase* other) const override;
-    virtual json getSerialNonRecursive(IGraph const* graph) const;
+    virtual json getSerialNonRecursive(
+        IGraph const*             graph,
+        org::graph::EdgeID const& id) const;
     virtual std::string getRepr() const override {
         return hstd::fmt1(*this);
     }
@@ -134,9 +144,9 @@ struct IPort : public IGraphObjectBase {
 };
 } // namespace org::graph
 
-template <>
-struct std::hash<org::graph::IEdge> {
-    std::size_t operator()(org::graph::IEdge const& it) const noexcept {
+template <org::graph::IsGraphObject T>
+struct std::hash<T> {
+    std::size_t operator()(T const& it) const noexcept {
         return it.getHash();
     }
 };
@@ -171,25 +181,46 @@ class IEdgeCollection : public hstd::SharedPtrApi<IEdgeCollection> {
 
     hstd::UnorderedMap<VertexID, hstd::Vec<VertexID>> incoming_from;
 
-  protected:
-    virtual EdgeID addEdge(IEdge const& id);
-    virtual void   delEdge(EdgeID const& id);
-    EdgeID         getID(IEdge const& edge) const;
 
   public:
+    /// \brief Get list of all outgoing edges for the target vertex
+    hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) const;
+
+    hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const;
+
+    /// \brief Add the vertex to the edge collection without any of the
+    /// incoming/outgoing edges.
+    void trackVertex(VertexID const& vert);
+    /// \brief Remove the vertex from the collection including any outgoing
+    /// edges. Edge removal is done using `untrackEdge`.
+    void untrackVertex(VertexID const& vert);
+    /// \brief Track the new edge in the collection. Associated
+    /// `IEdge`-derived object should already be accessible through the
+    /// `getEdge()` virtual method override.
+    void trackEdge(EdgeID const& id);
+    /// \brief Remove the edge from the collection. This method is called
+    /// by the `untrackVertex`.
+    void untrackEdge(EdgeID const& id);
+
     /// \brief Get the full list of edges stored in the collection
     hstd::Vec<EdgeID> getEdges() const;
-    /// \brief Add the vertex to the collection and register all new
-    /// outgoing edges.
-    hstd::Vec<EdgeID> addVertex(VertexID const& id);
     /// \brief Remove the vertex from teh collection and remove all
     /// incident edges.
     void delVertex(VertexID const& id);
 
+    /// \brief Return edge category for this collection.
+    virtual EdgeCategory getCategory() const = 0;
+
     /// \brief Get already constructed edge object from the store.
-    virtual IEdge const&      getEdge(EdgeID const& id) const   = 0;
-    virtual hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) = 0;
-    virtual EdgeCategory      getCategory() const               = 0;
+    virtual IEdge const& getEdge(EdgeID const& id) const = 0;
+
+    /// \brief Add all edges outgoing from the `id`. The vertex itself
+    /// should already be registered with `trackVertex`.
+    ///
+    /// \note The override of this method should make use of `trackEdge` to
+    /// populate the edge collection tracker tables. The returned list of
+    /// edges is used
+    virtual hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) = 0;
 };
 
 struct org_graph_error : public hstd::CRTP_hexception<org_graph_error> {};
@@ -286,13 +317,11 @@ class IGraph {
     hstd::Vec<VertexID> getSubVertices(VertexID const& id) const;
     hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
 
-    virtual json getVertexSerialNonRecursive(VertexID const& id) const = 0;
-
     struct SerialSchema {
-        hstd::Vec<json>                              vertices;
+        hstd::UnorderedMap<std::string, json>        vertices;
         hstd::Vec<json>                              edges;
         hstd::Vec<std::string>                       flatVertexIDs;
-        hstd::Vec<std::string>                       rootVertixIDs;
+        hstd::Vec<std::string>                       rootVertexIDs;
         hstd::UnorderedMap<std::string, std::string> vertexParentMap;
         hstd::UnorderedMap<std::string, hstd::Vec<std::string>>
             vertexNestingMap;
@@ -302,7 +331,7 @@ class IGraph {
             (vertices,
              edges,
              flatVertexIDs,
-             rootVertixIDs,
+             rootVertexIDs,
              vertexParentMap,
              vertexNestingMap));
     };

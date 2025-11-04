@@ -7,12 +7,15 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 
-hstd::Vec<org::graph::IEdge> DiaHierarchyEdgeCollection::getOutgoing(
+hstd::Vec<org::graph::EdgeID> DiaHierarchyEdgeCollection::addAllOutgoing(
     const org::graph::VertexID& vert) {
-    hstd::Vec<org::graph::IEdge> res;
+    hstd::Vec<org::graph::EdgeID> res;
     for (auto const& sub :
          DiaAdapter{graph->getVertex(vert).uniq, tree_context}.sub(true)) {
-        res.push_back(org::graph::IEdge(vert, graph->getID(sub.uniq()), 0));
+        auto res_id = store.add(
+            DiaHierarchyEdge{vert, graph->getID(sub.uniq())});
+        trackEdge(res_id);
+        res.push_back(res_id);
     }
     HSLOG_DEBUG("get outgoing {}", res);
     return res;
@@ -30,12 +33,14 @@ org::graph::VertexID DiaGraph::delVertex(const DiaUniqId& id) {
     return result;
 }
 
-json DiaGraph::getVertexSerialNonRecursive(
+json DiaGraphVertex::getSerialNonRecursive(
+    org::graph::IGraph const*   graph_,
     const org::graph::VertexID& id) const {
-    auto ad = getAdapter(id);
+    DiaGraph const* graph = dynamic_cast<DiaGraph const*>(graph_);
+    auto            ad    = graph->getAdapter(id);
 
-    DiaGraph::SerialSchema res{
-        .vertexId   = getVertex(id).getStableId(),
+    DiaGraphVertex::SerialSchema res{
+        .vertexId   = getStableId(),
         .vertexKind = hstd::fmt1(ad.getKind()),
     };
 
@@ -74,6 +79,8 @@ json DiaGraph::getVertexSerialNonRecursive(
         }
 
         res.vertexName = hstd::join(" ", title);
+
+        res.extra_type = hstd::value_metadata<SerialSchema>::typeName();
 
         for (auto const& desc :
              subtree->subAs<org::imm::ImmBlockDynamicFallback>()) {
@@ -126,14 +133,14 @@ hstd::Vec<org::graph::VertexID> DiaSubtreeIdTracker::getVertices(
     return res;
 }
 
-hstd::Vec<org::graph::IEdge> DiaDescriptionListEdgeCollection::getOutgoing(
-    const org::graph::VertexID& vert) {
+hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
+    addAllOutgoing(const org::graph::VertexID& vert) {
     auto ad  = graph->getAdapter(vert);
     auto imm = ad.getImmAdapter();
     if (!imm.is(OrgSemKind::Subtree)) { return {}; }
 
-    hstd::Vec<org::graph::IEdge> res;
-    auto                        tree = imm.as<org::imm::ImmSubtree>();
+    hstd::Vec<org::graph::EdgeID> res;
+    auto                          tree = imm.as<org::imm::ImmSubtree>();
 
     for (auto const& sub : tree.sub(true)) {
         if (!org::graph::isAttachedDescriptionList(sub)) { continue; }
@@ -162,10 +169,10 @@ hstd::Vec<org::graph::IEdge> DiaDescriptionListEdgeCollection::getOutgoing(
                 } else {
                     for (auto const& v : targets) {
                         HSLOG_TRACE("Found target {}", v);
-                        res.push_back(org::graph::IEdge{
-                            .source = vert,
-                            .target = v,
-                        });
+                        auto res_id = store.add(
+                            DiaDescriptionListEdge{vert, v});
+                        trackEdge(res_id);
+                        res.push_back(res_id);
                     }
                 }
             }
@@ -175,19 +182,11 @@ hstd::Vec<org::graph::IEdge> DiaDescriptionListEdgeCollection::getOutgoing(
     return res;
 }
 
-json DiaDescriptionListEdgeCollection::getEdgeSerial(
-    const org::graph::EdgeID& id) const {
-    auto const& e = getEdge(id);
-    return hstd::to_json_eval(SerialSchema{
-        .edgeId      = std::format("{}", std::hash<org::graph::IEdge>{}(e)),
-        .sourceId    = graph->getVertex(e.source).getStableId(),
-        .targetId    = graph->getVertex(e.target).getStableId(),
-        .bundleIndex = e.bundleIndex,
-    });
-}
-
 std::string DiaGraphVertex::getStableId() const {
-    return std::format("{}-{}", uniq.target, std::hash<DiaUniqId>{}(uniq));
+    return std::format(
+        "{}-{}",
+        uniq.target,
+        hstd::hash_to_uint16(std::hash<DiaUniqId>{}(uniq)));
 }
 
 std::size_t DiaGraphVertex::getHash() const {
@@ -200,3 +199,19 @@ bool DiaGraphVertex::isEqual(const IGraphObjectBase* other) const {
 }
 
 std::string DiaGraphVertex::getRepr() const { return hstd::fmt1(uniq); }
+
+json DiaDescriptionListEdge::getSerialNonRecursive(
+    const org::graph::IGraph* graph,
+    const org::graph::EdgeID& id) const {
+    auto res        = org::graph::IEdge::getSerialNonRecursive(graph, id);
+    res["category"] = "description-list";
+    return res;
+}
+
+json DiaHierarchyEdge::getSerialNonRecursive(
+    const org::graph::IGraph* graph,
+    const org::graph::EdgeID& id) const {
+    auto res        = org::graph::IEdge::getSerialNonRecursive(graph, id);
+    res["category"] = "hierarchy";
+    return res;
+}

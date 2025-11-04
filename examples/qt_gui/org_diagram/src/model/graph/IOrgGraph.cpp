@@ -74,8 +74,16 @@ void org::graph::IGraph::trackVertexList(const hstd::Vec<VertexID>& ids) {
         for (auto& track : trackers) { track->trackVertex(id); }
     }
 
+    for (auto const& id : ids) {
+        for (auto& collection : collections) {
+            collection->trackVertex(id);
+        }
+    }
+
     for (const auto& id : ids) {
-        for (auto& collection : collections) { collection->addVertex(id); }
+        for (auto& collection : collections) {
+            collection->addAllOutgoing(id);
+        }
     }
 }
 
@@ -174,70 +182,73 @@ hstd::Opt<VertexID> IGraph::getParentVertex(const VertexID& id) const {
 }
 
 
+template <typename K, typename V, typename MapType>
+struct JsonSerdeMapApiAsObject {
+    static json to_json(MapType const& it) {
+        auto result = json::object();
+        for (auto const& [key, val] : it) {
+            result[hstd::JsonSerde<K>::to_json(key).template get<std::string>()] = hstd::
+                JsonSerde<V>::to_json(val);
+        }
+
+        return result;
+    }
+    static MapType from_json(json const& j) {
+        MapType result;
+        for (auto const& it : j.get<json::object_t>()) {
+            result[it.first] = hstd::JsonSerde<V>::from_json(it.second);
+        }
+        return result;
+    }
+};
+
+template <typename V>
+struct hstd::JsonSerde<hstd::UnorderedMap<std::string, V>>
+    : public JsonSerdeMapApiAsObject<
+          std::string,
+          V,
+          hstd::UnorderedMap<std::string, V>> {};
+
+
 json IGraph::getGraphSerial() const {
     IGraph::SerialSchema res{};
     for (auto const& collection : collections) {
         for (auto const& edge : collection->getEdges()) {
             res.edges.push_back(
-                collection->getEdge(edge).getSerialNonRecursive(this));
+                collection->getEdge(edge).getSerialNonRecursive(
+                    this, edge));
         }
     }
 
-    for (auto const& vertex :
-         hstd::sorted(hstd::Vec{vertexIDs.begin(), vertexIDs.end()})) {
-        // res.flatVertexIDs.push_back(vertex.get);
+    for (auto const& vertex : hstd::sorted(
+             hstd::Vec<VertexID>{vertexIDs.begin(), vertexIDs.end()})) {
+        res.flatVertexIDs.push_back(getVertex(vertex).getStableId());
     }
 
-    for (auto const& vertex : getRootVertices()) {
+    for (auto const& vertex : hstd::sorted(
+             hstd::Vec<VertexID>{rootVertices.begin(), vertexIDs.end()})) {
+        res.rootVertexIDs.push_back(getVertex(vertex).getStableId());
+    }
 
+    for (auto const& [parent, nested] : nestedInMap) {
+        auto& arr = res.vertexNestingMap[getVertex(parent).getStableId()];
+        for (auto const& it : nested) {
+            arr.push_back(getVertex(it).getStableId());
+        }
+    }
 
-        json this_serial = getVertexSerialNonRecursive(vertex);
+    for (auto const& [nested, parent] : parentMap) {
+        res.vertexParentMap[getVertex(parent).getStableId()] //
+            = getVertex(parent).getStableId();
+    }
 
-        res.vertices.push_back(this_serial);
+    for (auto const& vertex : vertexIDs) {
+        json this_serial = getVertex(vertex).getSerialNonRecursive(
+            this, vertex);
+        res.vertices[getVertex(vertex).getStableId()] = this_serial;
     }
 
     return hstd::to_json_eval(res);
-}
-
-EdgeID IEdgeCollection::addEdge(const IEdge& id) {
-    auto res_id = EdgeID::FromMaskedIdx(
-        edges.get_map().size(), getCategory().t);
-    edges.add_unique(res_id, id);
-    incidence[id.source][id.target].push_back(res_id);
-    return res_id;
-}
-
-void IEdgeCollection::delEdge(const EdgeID& id) {
-    auto  edge = getEdge(id);
-    auto& vec  = incidence.at(edge.source).at(edge.target);
-    auto  it   = vec.indexOf(id);
-    LOGIC_ASSERTION_CHECK(it != -1, "{}", edge);
-    vec.erase(vec.begin() + it);
-}
-
-EdgeID IEdgeCollection::getID(const IEdge& edge) const {
-    return edges.at_left(edge);
-}
-
-hstd::Vec<EdgeID> IEdgeCollection::getEdges() const {
-    hstd::Vec<EdgeID> res;
-    for (auto const& e : edges.get_map()) { res.push_back(e.first); }
-    return res;
-}
-
-const IEdge& IEdgeCollection::getEdge(const EdgeID& id) const {
-    return edges.at_right(id);
-}
-
-
-hstd::Vec<EdgeID> IEdgeCollection::addVertex(const VertexID& id) {
-    hstd::Vec<EdgeID> res;
-    for (auto const& e : getOutgoing(id)) { res.push_back(addEdge(e)); }
-    return res;
-}
-
-void IEdgeCollection::delVertex(const VertexID& id) {
-    for (auto const& e : getOutgoing(id)) { delEdge(getID(e)); }
 }
 
 std::string IGraphObjectBase::getStableId() const {
@@ -264,7 +275,9 @@ bool IEdge::isEqual(const IGraphObjectBase* other) const {
         && this->targetPort == other_edge->targetPort;
 }
 
-json IEdge::getSerialNonRecursive(const IGraph* graph) const {
+json IEdge::getSerialNonRecursive(const IGraph* graph, const EdgeID& id)
+    const {
+
     SerialSchema res{
         .edgeId      = getStableId(),
         .sourceId    = graph->getVertex(source).getStableId(),
@@ -278,3 +291,126 @@ json IEdge::getSerialNonRecursive(const IGraph* graph) const {
 
     return hstd::to_json_eval(res);
 }
+
+
+hstd::Vec<EdgeID> IEdgeCollection::getOutgoing(
+    VertexID const& vert) const {
+    hstd::Vec<EdgeID> result;
+    if (incidence.contains(vert)) {
+        for (const auto& [target, edges] : incidence.at(vert)) {
+            for (const auto& edge : edges) { result.push_back(edge); }
+        }
+    }
+    return result;
+}
+
+hstd::Vec<EdgeID> IEdgeCollection::getIncoming(
+    VertexID const& vert) const {
+    hstd::Vec<EdgeID> result;
+    if (incoming_from.contains(vert)) {
+        for (const auto& source : incoming_from.at(vert)) {
+            if (incidence.contains(source)
+                && incidence.at(source).contains(vert)) {
+                for (const auto& edge : incidence.at(source).at(vert)) {
+                    result.push_back(edge);
+                }
+            }
+        }
+    }
+    return result;
+}
+
+void IEdgeCollection::trackVertex(VertexID const& vert) {
+    if (!incidence.contains(vert)) {
+        incidence.insert_or_assign(
+            vert, hstd::UnorderedMap<VertexID, hstd::Vec<EdgeID>>{});
+    }
+    if (!incoming_from.contains(vert)) {
+        incoming_from.insert_or_assign(vert, hstd::Vec<VertexID>{});
+    }
+}
+
+void IEdgeCollection::untrackVertex(VertexID const& vert) {
+    hstd::Vec<EdgeID> edgesToRemove;
+
+    if (incidence.contains(vert)) {
+        for (const auto& [target, edges] : incidence.at(vert)) {
+            for (const auto& edge : edges) {
+                edgesToRemove.push_back(edge);
+            }
+        }
+    }
+
+    if (incoming_from.contains(vert)) {
+        for (const auto& source : incoming_from.at(vert)) {
+            if (incidence.contains(source)
+                && incidence.at(source).contains(vert)) {
+                for (const auto& edge : incidence.at(source).at(vert)) {
+                    edgesToRemove.push_back(edge);
+                }
+            }
+        }
+    }
+
+    for (const auto& edge : edgesToRemove) { untrackEdge(edge); }
+
+    incidence.erase(vert);
+    incoming_from.erase(vert);
+}
+
+void IEdgeCollection::trackEdge(EdgeID const& id) {
+    const IEdge& edge   = getEdge(id);
+    VertexID     source = edge.getSource();
+    VertexID     target = edge.getTarget();
+
+    if (!incidence.contains(source)) {
+        incidence.insert_or_assign(
+            source, hstd::UnorderedMap<VertexID, hstd::Vec<EdgeID>>{});
+    }
+    if (!incidence.at(source).contains(target)) {
+        incidence.at(source).insert_or_assign(target, hstd::Vec<EdgeID>{});
+    }
+    incidence.at(source).at(target).push_back(id);
+
+    if (!incoming_from.contains(target)) {
+        incoming_from.insert_or_assign(target, hstd::Vec<VertexID>{});
+    }
+    incoming_from.at(target).push_back(source);
+}
+
+void IEdgeCollection::untrackEdge(EdgeID const& id) {
+    const IEdge& edge   = getEdge(id);
+    VertexID     source = edge.getSource();
+    VertexID     target = edge.getTarget();
+
+    if (incidence.contains(source)
+        && incidence.at(source).contains(target)) {
+        auto& edges = incidence.at(source).at(target);
+        edges.erase(
+            std::remove(edges.begin(), edges.end(), id), edges.end());
+        if (edges.empty()) {
+            incidence.at(source).erase(target);
+            if (incidence.at(source).empty()) { incidence.erase(source); }
+        }
+    }
+
+    if (incoming_from.contains(target)) {
+        auto& sources = incoming_from.at(target);
+        sources.erase(
+            std::remove(sources.begin(), sources.end(), source),
+            sources.end());
+        if (sources.empty()) { incoming_from.erase(target); }
+    }
+}
+
+hstd::Vec<EdgeID> IEdgeCollection::getEdges() const {
+    hstd::Vec<EdgeID> result;
+    for (const auto& [source, targets] : incidence) {
+        for (const auto& [target, edges] : targets) {
+            for (const auto& edge : edges) { result.push_back(edge); }
+        }
+    }
+    return result;
+}
+
+void IEdgeCollection::delVertex(VertexID const& id) { untrackVertex(id); }
