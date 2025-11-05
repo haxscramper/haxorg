@@ -68,15 +68,46 @@ json DiaGraphVertex::getSerialNonRecursive(
             "WIP",
             "CANCELLED"};
 
-        for (auto const& node : subtree->getTitle()) {
+        hstd::Vec<org::sem::SemId<org::sem::Org>> directTitle;
+
+        hstd::Vec<org::imm::ImmAdapter> title_seq;
+        for (auto const& it : subtree->getTitle()) {
+            title_seq.push_back(it);
+        }
+
+        int i = 0;
+
+        for (; i < title_seq.size(); ++i) {
+            auto const& node = title_seq.at(i);
             if (auto big = node.asOpt<org::imm::ImmBigIdent>();
                 big && todo_kwds.contains(big->getText())) {
+                if (title_seq.has(i + 1)
+                    && title_seq.at(i + 1).getKind()
+                           == OrgSemKind::Space) {
+                    ++i;
+                }
                 continue;
+            } else {
+                break;
             }
+        }
 
-            if (node.getKind() == OrgSemKind::Space) { continue; }
-
+        for (; i < title_seq.size(); ++i) {
+            auto const& node = title_seq.at(i);
             title.push_back(org::getCleanText(node));
+            directTitle.push_back(
+                org::imm::sem_from_immer(node.id, *subtree->ctx.lock()));
+        }
+
+        {
+            auto exp      = org::algo::ExporterJson{};
+            auto par      = org::sem::SemId<org::sem::Paragraph>::New();
+            par->subnodes = directTitle;
+            exp.skipEmptyLists       = true;
+            exp.skipLocation         = true;
+            exp.skipId               = true;
+            exp.skipNullFields       = true;
+            res.extra.structuredName = exp.eval(par);
         }
 
         res.vertexName = hstd::join(" ", title);

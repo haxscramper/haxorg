@@ -442,7 +442,7 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge]) -> elk.Edge:
         sections=all_sections,
         junctionPoints=all_junction_points if all_junction_points else None,
         labels=all_labels if all_labels else None,
-        extra=dict(data=ElkExtra(
+        extra=dict(elk_extra=ElkExtra(
             data=HyperEdgeData(
                 polygon=compute_hyperedge_polygon(all_sections, width=4.0),
                 merged_edge_extra=merged_extra,
@@ -514,10 +514,11 @@ class GraphWalker(ABC):
                 "org.eclipse.elk.spacing.edgeEdge": 15,
                 "org.eclipse.elk.spacing.edgeNode": 20,
                 "org.eclipse.elk.spacing.labelNode": 10,
-                "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": 30,
-                "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers": 20,
+                # "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": 30,
+                # "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers": 20,
                 "org.eclipse.elk.spacing.labelPortVertical": 0,
-                "org.eclipse.elk.direction": "LEFT",
+                # "elk.direction": "DOWN",
+                'elk.algorithm': 'org.eclipse.elk.force',
             },
         )
 

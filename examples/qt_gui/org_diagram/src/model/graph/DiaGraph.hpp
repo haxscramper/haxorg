@@ -20,7 +20,8 @@ struct DiaGraphVertex : public org::graph::IVertex {
 
         struct Extra {
             json structuredDescription;
-            DESC_FIELDS(Extra, (structuredDescription));
+            json structuredName;
+            DESC_FIELDS(Extra, (structuredDescription, structuredName));
         };
 
         std::string extra_type;

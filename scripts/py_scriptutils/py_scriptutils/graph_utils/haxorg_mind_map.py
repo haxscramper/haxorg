@@ -205,7 +205,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     size_step=50,
                 ),
                 width=node_width,
-                extra=dict(data=data),
+                extra=dict(haxorg_vertex=data),
                 labels=[],
                 properties={
                     "nodeLabels.placement": "[H_CENTER, V_TOP, OUTSIDE]",
@@ -230,7 +230,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     expected_width=node_width,
                     font_size=12,
                 ),
-                extra=dict(data=data),
+                extra=dict(haxorg_vertex=data),
             )
 
         if data.vertexId in self.node_crossing_ports:

@@ -139,8 +139,10 @@
     strong(node.subnodes.map(render_org).join())
   } else if kind == "Verbatim" {
     stack(node.subnodes.map(render_org).join(), dir: ltr)
+  } else if kind == "Monospace" {
+    raw(node.subnodes.map(it => it.text).join())
   } else if kind == "Paragraph" {
-    stack(render_subnodes(), dir: ltr)
+    par(render_subnodes())
   } else if kind == "Italic" {
     emph(node.subnodes.map(render_org).join())
   } else if kind == "Underline" {
@@ -249,7 +251,7 @@
 
 
 #let draw_edge_with_polygon(edge_data) = {
-  let polygon_points = edge_data.extra.data.data.polygon
+  let polygon_points = edge_data.extra.elk_extra.data.polygon
   let typst_points = ()
 
   for point in polygon_points {
@@ -258,8 +260,8 @@
 
   let fill_style = gray.lighten(80%)
 
-  if "pattern" in edge_data.extra.data.data {
-    let palette = edge_data.extra.data.data.pattern.palette
+  if "pattern" in edge_data.extra.elk_extra.data {
+    let palette = edge_data.extra.elk_extra.data.pattern.palette
     if palette.len() > 0 {
       let colors = palette.map(c => rgb(c.r, c.g, c.b))
       fill_style = if colors.len() == 1 {
@@ -323,9 +325,9 @@
   // Check if hyperedge polygon is specified
   if (
     "extra" in edge_data
-      and "data" in edge_data.extra
-      and "data" in edge_data.extra.data
-      and "polygon" in edge_data.extra.data.data
+      and "elk_extra" in edge_data.extra
+      and "data" in edge_data.extra.elk_extra
+      and "polygon" in edge_data.extra.elk_extra.data
   ) {
     draw_edge_with_polygon(edge_data)
   } else if "sections" in edge_data {
@@ -334,43 +336,40 @@
 }
 
 
+#let draw_node_description(node, body) = {
+  node_box(
+    node,
+    box(width: 100%, height: 100%, inset: 4pt, text(size: 8pt, body)),
+    0,
+    0,
+  )
+}
 
 #let draw_node(node) = {
   node_box(node, draw_node_base(node, blue.lighten(80%)), 0, 0)
   // node.extra.data is `DiaGraph::SerialSchema`
-  let data = node.extra.data
+  let data = node.extra.haxorg_vertex
   let extra = data.extra
   if (
     "structuredDescription" in extra and extra.structuredDescription != none
   ) {
-    node_box(
-      node,
-      box(width: 100%, height: 100%, inset: 4pt, text(size: 8pt, render_org(
-        extra.structuredDescription,
-      ))),
-      0,
-      0,
-    )
+    draw_node_description(node, render_org(
+      extra.structuredDescription,
+    ))
   } else if "vertexDescription" in data {
-    node_box(
-      node,
-      box(width: 100%, height: 100%, inset: 4pt, text(
-        size: 8pt,
-        data.vertexDescription,
-      )),
-      0,
-      0,
-    )
+    draw_node_description(node, text(
+      size: 8pt,
+      data.vertexDescription,
+    ))
+  } else if "structuredName" in extra and extra.structuredName != none {
+    draw_node_description(node, render_org(
+      extra.structuredName,
+    ))
   } else if "vertexName" in data {
-    node_box(
-      node,
-      box(width: 100%, height: 100%, inset: 4pt, text(
-        size: 8pt,
-        data.vertexName,
-      )),
-      0,
-      0,
-    )
+    draw_node_description(node, text(
+      size: 8pt,
+      data.vertexName,
+    ))
   }
 
   if "children" in node {
