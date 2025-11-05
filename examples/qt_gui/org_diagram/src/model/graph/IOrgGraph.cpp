@@ -97,7 +97,7 @@ hstd::Vec<VertexID> IGraph::getHierarchyCrossings(const EdgeID& id) const {
     hstd::Vec<VertexID> path{};
     VertexID            current = source;
     while (current != lca) {
-        path.emplace_back(current);
+        if (current != source) { path.emplace_back(current); }
         current = parentMap.at(current);
     }
 
@@ -110,7 +110,7 @@ hstd::Vec<VertexID> IGraph::getHierarchyCrossings(const EdgeID& id) const {
     }
 
     while (!temp.empty()) {
-        path.emplace_back(temp.top());
+        if (temp.top() != target) { path.emplace_back(temp.top()); }
         temp.pop();
     }
     return path;

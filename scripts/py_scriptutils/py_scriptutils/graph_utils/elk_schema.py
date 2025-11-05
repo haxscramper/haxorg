@@ -940,7 +940,6 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str,
 
 
 def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
-    validate_graph_structure(graph)
 
     with TemporaryDirectory() as output_subdir:
         dir = Path(output_subdir)
@@ -948,6 +947,7 @@ def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
         validated_path = dir / f"result_validated.json"
         extra_metadata = extract_extra_data(graph)
         GraphSerializer.save_to_file(graph, validated_path, use_dotted=True)
+        validate_graph_structure(graph) 
 
         layout_path = dir / f"result_layout.json"
 
