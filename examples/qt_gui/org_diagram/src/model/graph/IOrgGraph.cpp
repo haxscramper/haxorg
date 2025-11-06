@@ -288,6 +288,37 @@ const IEdge& IGraph::getEdge(const EdgeID& id) const {
     return collections.at(EdgeCategoryID(id.getMask()))->getEdge(id);
 }
 
+int IGraph::getMaxNestingLevel() const {
+    auto aux = [&](VertexID const& id, auto&& self) -> int {
+        if (this->getSubVertices(id).empty()) {
+            return 1;
+        } else {
+            int result = 0;
+            for (auto const& sub : this->getSubVertices(id)) {
+                result = std::max<int>(result, self(id, self));
+            }
+            return result + 1;
+        }
+    };
+
+    int result = 0;
+    for (auto const& root : this->getRootVertices()) {
+        result = std::max<int>(result, aux(root, aux));
+    }
+
+    return result;
+}
+
+hstd::Vec<VertexID> IGraph::getParentChain(const VertexID& id) const {
+    hstd::Vec<VertexID> result;
+    auto                current = id;
+    while (auto parent = getParentVertex(current)) {
+        result.push_back(parent.value());
+        current = parent.value();
+    }
+    return result;
+}
+
 
 template <typename K, typename V, typename MapType>
 struct JsonSerdeMapApiAsObject {

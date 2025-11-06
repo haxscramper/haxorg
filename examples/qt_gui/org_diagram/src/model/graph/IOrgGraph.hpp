@@ -378,6 +378,12 @@ class IGraph {
     hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
     IEdge const&        getEdge(EdgeID const& id) const;
 
+    /// \brief Return the highest level of nesting in the graph
+    int getMaxNestingLevel() const;
+
+    hstd::Vec<VertexID> getParentChain(VertexID const& id) const;
+
+
     struct SerialSchema {
         struct EdgeCategory {
             hstd::Vec<json> edges;
@@ -401,6 +407,8 @@ class IGraph {
         hstd::UnorderedMap<std::string, hstd::Vec<std::string>>
             vertexNestingMap;
 
+        int maxNestingLevel = 0;
+
         DESC_FIELDS(
             SerialSchema,
             (vertices,
@@ -408,7 +416,8 @@ class IGraph {
              flatVertexIDs,
              rootVertexIDs,
              vertexParentMap,
-             vertexNestingMap));
+             vertexNestingMap,
+             maxNestingLevel));
     };
 
     virtual json getGraphSerial() const;

@@ -345,8 +345,44 @@
   )
 }
 
+#let get_note_color(node) = {
+  if "todoState" in node.extra.haxorg_vertex.extra {
+    let state = node.extra.haxorg_vertex.extra.todoState
+
+    if state == "TODO" {
+      yellow
+    } else if state == "DONE" or state == "COMPLETED" {
+      green
+    } else if state == "WIP" {
+      orange
+    } else if state == "FAILED" {
+      red
+    } else {
+      blue
+    }
+  } else {
+    blue
+  }
+}
+
+#let get_depth_lighten_percent(node) = {
+  if "nestingLevel" in node.extra.haxorg_vertex.extra {
+    90% - node.extra.haxorg_vertex.extra.nestingLevel * 10%
+  } else {
+    80%
+  }
+}
+
 #let draw_node(node) = {
-  node_box(node, draw_node_base(node, blue.lighten(80%)), 0, 0)
+  node_box(
+    node,
+    draw_node_base(
+      node,
+      get_note_color(node).lighten(get_depth_lighten_percent(node)),
+    ),
+    0,
+    0,
+  )
   // node.extra.data is `DiaGraph::SerialSchema`
   let data = node.extra.haxorg_vertex
   let extra = data.extra

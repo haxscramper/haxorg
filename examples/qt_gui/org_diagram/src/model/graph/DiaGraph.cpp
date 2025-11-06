@@ -49,6 +49,8 @@ json DiaGraphVertex::getSerialNonRecursive(
     if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
         subtree) {
 
+        res.extra.nestingLevel = graph->getParentChain(id).size();
+
         org::imm::ImmAdapter::TreeReprConf conf;
 
         conf.withAuxFields = true;
@@ -77,10 +79,12 @@ json DiaGraphVertex::getSerialNonRecursive(
 
         int i = 0;
 
+
         for (; i < title_seq.size(); ++i) {
             auto const& node = title_seq.at(i);
             if (auto big = node.asOpt<org::imm::ImmBigIdent>();
                 big && todo_kwds.contains(big->getText())) {
+                res.extra.todoState = big.value()->text;
                 if (title_seq.has(i + 1)
                     && title_seq.at(i + 1).getKind()
                            == OrgSemKind::Space) {
@@ -91,6 +95,7 @@ json DiaGraphVertex::getSerialNonRecursive(
                 break;
             }
         }
+
 
         for (; i < title_seq.size(); ++i) {
             auto const& node = title_seq.at(i);

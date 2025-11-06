@@ -40,6 +40,7 @@ class Graph(BaseModel, extra="forbid"):
     rootVertexIDs: List[str]
     vertexNestingMap: Dict[str, List[str]]
     vertexParentMap: Dict[str, str]
+    maxNestingLevel: int = 0
 
 
 @beartype
