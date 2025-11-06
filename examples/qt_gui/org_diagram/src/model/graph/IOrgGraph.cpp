@@ -93,26 +93,47 @@ hstd::Vec<VertexID> IGraph::getHierarchyCrossings(const EdgeID& id) const {
         return {};
     }
 
-    auto                lca = findLCA(source, target);
+    auto lca = findLCA(source, target);
+
     hstd::Vec<VertexID> path{};
-    VertexID            current = source;
-    while (current != lca) {
-        if (current != source) { path.emplace_back(current); }
-        current = parentMap.at(current);
+
+    if (lca == source || lca == target) {
+        // source is the ancestor of the target
+        if (lca == source) {
+            VertexID current = target;
+            while (current != lca) {
+                if (current != target) { path.emplace_back(current); }
+                current = parentMap.at(current);
+            }
+        } else {
+            VertexID current = source;
+            while (current != lca) {
+                if (current != source) { path.emplace_back(current); }
+                current = parentMap.at(current);
+            }
+        }
+    } else {
+        VertexID current = source;
+        while (current != lca) {
+            if (current != source) { path.emplace_back(current); }
+            current = parentMap.at(current);
+        }
+
+        current = target;
+        std::stack<VertexID> temp{};
+
+        while (current != lca) {
+            temp.push(current);
+            current = parentMap.at(current);
+        }
+
+        while (!temp.empty()) {
+            if (temp.top() != target) { path.emplace_back(temp.top()); }
+            temp.pop();
+        }
     }
 
-    current = target;
-    std::stack<VertexID> temp{};
 
-    while (current != lca) {
-        temp.push(current);
-        current = parentMap.at(current);
-    }
-
-    while (!temp.empty()) {
-        if (temp.top() != target) { path.emplace_back(temp.top()); }
-        temp.pop();
-    }
     return path;
 }
 

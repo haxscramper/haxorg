@@ -517,8 +517,8 @@ class GraphWalker(ABC):
                 # "org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers": 30,
                 # "org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers": 20,
                 "org.eclipse.elk.spacing.labelPortVertical": 0,
-                # "elk.direction": "DOWN",
-                'elk.algorithm': 'org.eclipse.elk.force',
+                "org.eclipse.elk.direction": "LEFT",
+                "org.eclipse.elk.hierarchyHandling": "INCLUDE_CHILDREN",
             },
         )
 
