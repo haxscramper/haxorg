@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from beartype.typing import List, Optional, Dict, Any
+from beartype.typing import List, Optional, Dict, Any, Set
 from beartype import beartype
 from py_scriptutils.graph_utils import elk_converter
 from py_scriptutils.graph_utils import elk_schema
@@ -94,6 +94,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
     fragmented_edge_map: Dict[str, HaxorgMMapEdgeCrossingSegment]
     node_crossing_ports: Dict[str, Dict[str, HaxorgMMapPortCrossing]]
     visual_root_vertices: List[str]
+    excluded_vertices: Set[str]
 
     def __init__(self, igraph: ig.Graph, hgraph: Graph) -> None:
         super().__init__()
@@ -103,12 +104,14 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         self.fragmented_edge_map = dict()
         self.node_crossing_ports = dict()
         self.visual_root_vertices = list()
+        self.excluded_vertices = set()
 
         def append_root_items(id: str):
             if self.hgraph.vertices[id].vertexKind in ["Item"]:
                 self.visual_root_vertices.append(id)
 
             else:
+                self.excluded_vertices.add(id)
                 for sub in self.hgraph.vertexNestingMap[id]:
                     append_root_items(sub)
 
@@ -145,7 +148,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
 
                     for index, (source, target) in enumerate(
                             itertools.pairwise([(e.sourceId, False)] +
-                                               [(n, True) for n in cross[e.edgeId]] +
+                                               [(n, True) for n in cross[e.edgeId] if n not in self.excluded_vertices] +
                                                [(e.targetId, False)])):
                         sourceId, sourcePortId = getCrossingConnection(
                             source[0], source[1])
