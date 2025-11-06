@@ -93,6 +93,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
     edge_no_crossings: Dict[str, Edge]
     fragmented_edge_map: Dict[str, HaxorgMMapEdgeCrossingSegment]
     node_crossing_ports: Dict[str, Dict[str, HaxorgMMapPortCrossing]]
+    visual_root_vertices: List[str]
 
     def __init__(self, igraph: ig.Graph, hgraph: Graph) -> None:
         super().__init__()
@@ -101,6 +102,19 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         self.edge_no_crossings = dict()
         self.fragmented_edge_map = dict()
         self.node_crossing_ports = dict()
+        self.visual_root_vertices = list()
+
+        def append_root_items(id: str):
+            if self.hgraph.vertices[id].vertexKind in ["Item"]:
+                self.visual_root_vertices.append(id)
+
+            else:
+                for sub in self.hgraph.vertexNestingMap[id]:
+                    append_root_items(sub)
+
+        for top in self.hgraph.rootVertexIDs:
+            append_root_items(top)
+            
 
         for _, cat in self.hgraph.edges.items():
             for e in cat.edges:
@@ -151,7 +165,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                             )
 
     def getTopVertices(self) -> List[str]:
-        return self.hgraph.rootVertexIDs
+        return self.visual_root_vertices
 
     def getEdges(self) -> List[str]:
         return sorted(k for k in self.edge_no_crossings) + sorted(
@@ -195,7 +209,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
 
         node_width = 150
 
-        if data.vertexDescription:
+        if data.vertexDescription or self.getNestedVertices(vertex_id):
             result = elk_schema.Node(
                 id=data.vertexId,
                 height=elk_converter.get_node_height_for_text(

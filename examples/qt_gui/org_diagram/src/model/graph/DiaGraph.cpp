@@ -165,6 +165,17 @@ hstd::Vec<org::graph::VertexID> DiaSubtreeIdTracker::getVertices(
     return res;
 }
 
+namespace {
+bool isAttachedList(org::imm::ImmAdapter const& n) {
+    if (auto list = n.asOpt<org::imm::ImmList>(); list) {
+        auto attached = list->getListAttrs("attached");
+        return attached.has(0) && attached.at(0).getString() == "subtree";
+    } else {
+        return false;
+    }
+}
+} // namespace
+
 hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
     addAllOutgoing(const org::graph::VertexID& vert) {
     auto ad  = graph->getAdapter(vert);
@@ -175,38 +186,48 @@ hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
     auto                          tree = imm.as<org::imm::ImmSubtree>();
 
     for (auto const& sub : tree.sub(true)) {
-        if (!org::graph::isAttachedDescriptionList(sub)) { continue; }
+        if (!isAttachedList(sub)) { continue; }
         HSLOG_DEBUG("Found attached description list");
 
         HSLOG_DEBUG("{}", sub.treeReprString());
 
         for (auto const& item : sub.subAs<org::imm::ImmListItem>(true)) {
-            if (!org::graph::isDescriptionItem(item)) { continue; }
-            HSLOG_DEBUG("Found description list item");
+            auto add_link =
+                [&](org::imm::ImmAdapterT<org::imm::ImmLink> const& link) {
+                    HSLOG_DEBUG(
+                        "Found link in item header, link kind {}",
+                        link->target.getKind());
+                    if (!link->target.isId()) { return; }
+                    HSLOG_DEBUG(
+                        "Link is targeting ID {}",
+                        link->target.getId().text);
 
-            for (auto const& link : item.pass(item->header->value())
-                                        .subAs<org::imm::ImmLink>()) {
-                HSLOG_DEBUG(
-                    "Found link in item header, link kind {}",
-                    link->target.getKind());
-                if (!link->target.isId()) { continue; }
-                HSLOG_DEBUG(
-                    "Link is targeting ID {}", link->target.getId().text);
+                    auto targets = tracker->getVertices(
+                        DiaSubtreeIdProperty(link->target.getId().text));
 
-                auto targets = tracker->getVertices(
-                    DiaSubtreeIdProperty(link->target.getId().text));
-
-                if (targets.empty()) {
-                    HSLOG_WARNING("Could not find matching targets");
-                } else {
-                    for (auto const& v : targets) {
-                        HSLOG_TRACE("Found target {}", v);
-                        auto res_id = store.add(
-                            DiaDescriptionListEdge{vert, v},
-                            getCategory().t);
-                        trackEdge(res_id);
-                        res.push_back(res_id);
+                    if (targets.empty()) {
+                        HSLOG_WARNING("Could not find matching targets");
+                    } else {
+                        for (auto const& v : targets) {
+                            HSLOG_TRACE("Found target {}", v);
+                            auto res_id = store.add(
+                                DiaDescriptionListEdge{vert, v},
+                                getCategory().t);
+                            trackEdge(res_id);
+                            res.push_back(res_id);
+                        }
                     }
+                };
+
+            if (org::graph::isDescriptionItem(item)) {
+                for (auto const& link : item.pass(item->header->value())
+                                            .subAs<org::imm::ImmLink>()) {
+                    add_link(link);
+                }
+            } else {
+                for (auto const& link :
+                     item.at(0).subAs<org::imm::ImmLink>()) {
+                    add_link(link);
                 }
             }
         }
