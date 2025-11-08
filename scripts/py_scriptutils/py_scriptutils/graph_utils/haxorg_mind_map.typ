@@ -374,31 +374,40 @@
   )
 }
 
-#let get_note_color(node) = {
-  if "todoState" in node.extra.haxorg_vertex.extra {
-    let state = node.extra.haxorg_vertex.extra.todoState
-
-    if state == "TODO" {
-      yellow
-    } else if state == "DONE" or state == "COMPLETED" {
-      green
-    } else if state == "WIP" {
-      orange
-    } else if state == "FAILED" {
-      red
+#let get_node_color(node) = {
+  if "haxorg_vertex" in node.extra {
+    if "todoState" in node.extra.haxorg_vertex.extra {
+      let state = node.extra.haxorg_vertex.extra.todoState
+      if state == "TODO" {
+        yellow
+      } else if state == "DONE" or state == "COMPLETED" {
+        green
+      } else if state == "WIP" {
+        orange
+      } else if state == "FAILED" {
+        red
+      } else {
+        blue
+      }
     } else {
       blue
     }
+  } else if "haxorg_label_edge" in node.extra {
+    purple
   } else {
     blue
   }
 }
 
 #let get_depth_lighten_percent(node) = {
-  if "nestingLevel" in node.extra.haxorg_vertex.extra {
-    90% - node.extra.haxorg_vertex.extra.nestingLevel * 10%
+  if "haxorg_vertex" in node.extra {
+    if "nestingLevel" in node.extra.haxorg_vertex.extra {
+      90% - node.extra.haxorg_vertex.extra.nestingLevel * 10%
+    } else {
+      80%
+    }
   } else {
-    80%
+    90%
   }
 }
 
@@ -407,35 +416,54 @@
     node,
     draw_node_base(
       node,
-      get_note_color(node).lighten(get_depth_lighten_percent(node)),
+      get_node_color(node).lighten(get_depth_lighten_percent(node)),
     ),
     0,
     0,
   )
-  // node.extra.data is `DiaGraph::SerialSchema`
-  let data = node.extra.haxorg_vertex
-  let extra = data.extra
-  if (
-    "structuredDescription" in extra and extra.structuredDescription != none
-  ) {
-    draw_node_description(node, render_org(
-      extra.structuredDescription,
-    ))
-  } else if "vertexDescription" in data {
-    draw_node_description(node, text(
-      size: 8pt,
-      data.vertexDescription,
-    ))
-  } else if "structuredName" in extra and extra.structuredName != none {
-    draw_node_description(node, render_org(
-      extra.structuredName,
-    ))
-  } else if "vertexName" in data {
-    draw_node_description(node, text(
-      size: 8pt,
-      data.vertexName,
-    ))
+
+  if "haxorg_vertex" in node.extra {
+    // node.extra.data is `DiaGraph::SerialSchema`
+    let data = node.extra.haxorg_vertex
+    let extra = data.extra
+    if (
+      "structuredDescription" in extra and extra.structuredDescription != none
+    ) {
+      draw_node_description(node, render_org(
+        extra.structuredDescription,
+      ))
+    } else if "vertexDescription" in data {
+      draw_node_description(node, text(
+        size: 8pt,
+        data.vertexDescription,
+      ))
+    } else if "structuredName" in extra and extra.structuredName != none {
+      draw_node_description(node, render_org(
+        extra.structuredName,
+      ))
+    } else if "vertexName" in data {
+      draw_node_description(node, text(
+        size: 8pt,
+        data.vertexName,
+      ))
+    }
+  } else if "haxorg_label_edge" in node.extra {
+    let original_edge_data = node.extra.haxorg_label_edge
+    let edge_extra = original_edge_data.extra
+    text(size: 8pt, draw_node_description(node, stack(
+      if "structuredEdgeBrief" in edge_extra {
+        render_org(edge_extra.structuredEdgeBrief)
+      } else if "edgeBrief" in edge_extra {
+        text(edge_extra.edgeBrief)
+      },
+      if "structuredEdgeDetailed" in edge_extra {
+        render_org(edge_extra.structuredEdgeDetailed)
+      } else if "edgeDetailed" in edge_extra {
+        text(edge_extra.edgeDetailed)
+      },
+    )))
   }
+
 
   if "children" in node {
     for subnode in node.children {

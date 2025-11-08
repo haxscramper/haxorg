@@ -104,6 +104,27 @@ class HaxorgMMapEdgeCrossingSegment():
 class HaxorgMMapPortCrossing():
     portId: str
 
+@beartype
+@dataclass
+class HaxorgMMapLabelNode():
+    originalEdgeId: str
+
+    def getLabelNodeId(self) -> str:
+        return f"{self.originalEdgeId}-label-node"
+
+    def getHeadSegmentId(self) -> str:
+        return f"{self.originalEdgeId}-head-segment"
+
+    def getTailSegmentId(self) -> str:
+        return f"{self.originalEdgeId}-tail-segment"
+
+    def getHeadSegmentPortId(self) -> str:
+        return f"{self.getHeadSegmentId()}-port"
+
+    def getTailSegmentPortId(self) -> str:
+        return f"{self.getTailSegmentId()}-port"
+
+from collections import defaultdict
 
 @beartype
 class HaxorgMMapWalker(elk_converter.GraphWalker):
@@ -113,17 +134,110 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
     node_crossing_ports: Dict[str, Dict[str, HaxorgMMapPortCrossing]]
     visual_root_vertices: List[str]
     excluded_vertices: Set[str]
+    # Parent node ID (or None if this is a root node) mapped to the list of edge label nodes
+    label_node_nesting: defaultdict[Optional[str], Set[str]]
+    label_nodes: Dict[str, HaxorgMMapLabelNode]
 
-    def __init__(self, igraph: ig.Graph, hgraph: Graph) -> None:
-        super().__init__()
-        self.igraph = igraph
-        self.hgraph = hgraph
-        self.edge_no_crossings = dict()
-        self.fragmented_edge_map = dict()
-        self.node_crossing_ports = dict()
-        self.visual_root_vertices = list()
-        self.excluded_vertices = set()
-        self.all_edges = dict()
+    def hasEdgeLabel(self, e: Edge) -> bool:
+        return bool(e.extra and (e.extra.edgeBrief or e.extra.edgeDetailed))
+
+    def addCrossingConnection(self, vertexID: str, isCrossing: bool,
+                              e: Edge) -> tuple[str, Optional[str]]:
+        if isCrossing:
+            portId = f"{vertexID}-crossed-by-{e.edgeId}"
+
+            if vertexID not in self.node_crossing_ports:
+                self.node_crossing_ports[vertexID] = dict()
+
+            if portId not in self.node_crossing_ports[vertexID]:
+                self.node_crossing_ports[vertexID][portId] = HaxorgMMapPortCrossing(
+                    portId=portId,)
+
+            return (vertexID, portId)
+
+        else:
+            return (vertexID, None)
+
+    def addSegmentedEdge(self, e: Edge, cross: Dict[str, List[str]]):
+        import itertools
+        edge_segmentation = [(e.sourceId, False)] + [
+            (n, True) for n in cross[e.edgeId] if n not in self.excluded_vertices
+        ] + [(e.targetId, False)]
+
+        for index, (source, target) in enumerate(itertools.pairwise(edge_segmentation)):
+            sourceId, sourcePortId = self.addCrossingConnection(source[0], source[1], e)
+            targetId, targetPortId = self.addCrossingConnection(target[0], target[1], e)
+            crossingEdgeID = f"{e.edgeId}-segment-{index}"
+
+            self.fragmented_edge_map[crossingEdgeID] = HaxorgMMapEdgeCrossingSegment(
+                edgeId=crossingEdgeID,
+                source=sourceId,
+                target=targetId,
+                sourcePortId=sourcePortId,
+                targetPortId=targetPortId,
+                originalEdgeId=e.edgeId,
+                crossingIdx=index,
+                segmentCount=len(edge_segmentation) - 1,
+            )
+
+    def isParent(self, parent: str, vertex: str) -> bool:
+        return parent in self.hgraph.vertexNestingMap and vertex in self.hgraph.vertexNestingMap[parent]
+
+    def getParent(self, vertex: str) -> Optional[str]:
+        return self.hgraph.vertexParentMap.get(vertex, None)
+
+
+    def addDirectEdge(self, e: Edge):
+        if self.hasEdgeLabel(e):
+            label_node = HaxorgMMapLabelNode(originalEdgeId=e.edgeId)
+            self.fragmented_edge_map[label_node.getHeadSegmentId()] = HaxorgMMapEdgeCrossingSegment(
+                edgeId=label_node.getHeadSegmentId(),
+                source=label_node.getLabelNodeId(),
+                sourcePortId=label_node.getHeadSegmentPortId(),
+                target=e.targetId,
+                targetPortId=e.targetPortId,
+                originalEdgeId=e.edgeId,
+                crossingIdx=1,
+                segmentCount=2,
+            )
+
+            self.fragmented_edge_map[label_node.getTailSegmentId()] = HaxorgMMapEdgeCrossingSegment(
+                edgeId=label_node.getTailSegmentId(),
+                target=label_node.getLabelNodeId(),
+                targetPortId=label_node.getTailSegmentPortId(),
+                source=e.sourceId,
+                sourcePortId=e.sourcePortId,
+                originalEdgeId=e.edgeId,
+                crossingIdx=0,
+                segmentCount=2,
+            )
+
+            self.label_nodes[label_node.getLabelNodeId()] = label_node
+
+            if self.isParent(parent=e.sourceId, vertex=e.targetId):
+                self.label_node_nesting[e.sourceId].add(label_node.getLabelNodeId())
+
+            elif self.isParent(parent=e.targetId, vertex=e.sourceId):
+                self.label_node_nesting[e.targetId].add(label_node.getLabelNodeId())
+
+            else:
+                self.label_node_nesting[self.getParent(e.targetId)].add(label_node.getLabelNodeId())
+
+        else:
+            self.edge_no_crossings[e.edgeId] = e
+
+    def addHGraphEdges(self):
+        for _, cat in self.hgraph.edges.items():
+            for e in cat.edges:
+                self.all_edges[e.edgeId] = e
+                cross = cat.hierarchyEdgeCrossings
+                if e.edgeId not in cross or not cross[e.edgeId]:
+                    self.addDirectEdge(e)
+
+                else:
+                    self.addSegmentedEdge(e, cross)
+
+    def addHGraphRootVertices(self):
 
         def append_root_items(id: str):
             if self.hgraph.vertices[id].vertexKind in ["Item"]:
@@ -137,93 +251,30 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         for top in self.hgraph.rootVertexIDs:
             append_root_items(top)
 
-        for _, cat in self.hgraph.edges.items():
-            for e in cat.edges:
-                self.all_edges[e.edgeId] = e
-                cross = cat.hierarchyEdgeCrossings
-                if e.edgeId not in cross or not cross[e.edgeId]:
-                    self.edge_no_crossings[e.edgeId] = e
+    def __init__(self, igraph: ig.Graph, hgraph: Graph) -> None:
+        super().__init__()
+        self.igraph = igraph
+        self.hgraph = hgraph
+        self.edge_no_crossings = dict()
+        self.fragmented_edge_map = dict()
+        self.node_crossing_ports = dict()
+        self.visual_root_vertices = list()
+        self.excluded_vertices = set()
+        self.all_edges = dict()
+        self.label_node_nesting = defaultdict(lambda: set())
+        self.label_nodes = dict()
 
-                else:
-                    import itertools
-
-                    @beartype
-                    def getCrossingConnection(
-                            vertexID: str, isCrossing: bool) -> tuple[str, Optional[str]]:
-                        if isCrossing:
-                            portId = f"{vertexID}-crossed-by-{e.edgeId}"
-
-                            if vertexID not in self.node_crossing_ports:
-                                self.node_crossing_ports[vertexID] = dict()
-
-                            if portId not in self.node_crossing_ports[vertexID]:
-                                self.node_crossing_ports[vertexID][
-                                    portId] = HaxorgMMapPortCrossing(portId=portId,)
-
-                            return (vertexID, portId)
-
-                        else:
-                            return (vertexID, None)
-
-                    edge_segmentation = [(e.sourceId, False)] + [
-                        (n, True)
-                        for n in cross[e.edgeId]
-                        if n not in self.excluded_vertices
-                    ] + [(e.targetId, False)]
-
-                    for index, (source, target) in enumerate(
-                            itertools.pairwise(edge_segmentation)):
-                        sourceId, sourcePortId = getCrossingConnection(
-                            source[0], source[1])
-                        targetId, targetPortId = getCrossingConnection(
-                            target[0], target[1])
-                        crossingEdgeID = f"{e.edgeId}-segment-{index}"
-
-                        self.fragmented_edge_map[
-                            crossingEdgeID] = HaxorgMMapEdgeCrossingSegment(
-                                edgeId=crossingEdgeID,
-                                source=sourceId,
-                                target=targetId,
-                                sourcePortId=sourcePortId,
-                                targetPortId=targetPortId,
-                                originalEdgeId=e.edgeId,
-                                crossingIdx=index,
-                                segmentCount=len(edge_segmentation) - 1,
-                            )
+        self.addHGraphRootVertices()
+        self.addHGraphEdges()
 
     def getTopVertices(self) -> List[str]:
-        return self.visual_root_vertices
+        return self.visual_root_vertices + sorted(self.label_node_nesting.get(None, []))
 
     def getEdges(self) -> List[str]:
         return sorted(k for k in self.edge_no_crossings) + sorted(
             k for k in self.fragmented_edge_map)
 
     def getELKEdge(self, edge_id: str) -> elk_schema.Edge:
-        label_width = 150
-
-        @beartype
-        def get_label_for_extra(extra: EdgeExtra) -> elk_schema.Label:
-            geometry = elk_converter.LabelGeometry(
-                expected_height=elk_converter.get_node_height_for_text(
-                    text=extra.edgeBrief or "" + extra.edgeDetailed or "",
-                    expected_width=label_width,
-                    font_size=8,
-                    size_step=25,
-                ),
-                expected_width=label_width,
-                font_size=8,
-            )
-
-            return elk_schema.Label(
-                id=f"{edge_id}-main-label",
-                width=geometry.expected_width,
-                height=geometry.expected_height,
-                extra=dict(
-                    haxorg_edge_extra=extra,
-                    label_geometry=geometry,
-                ),
-            )
-
         if edge_id in self.edge_no_crossings:
             haxorg_edge: Edge = self.edge_no_crossings[edge_id]
             assert isinstance(haxorg_edge, Edge)
@@ -239,11 +290,6 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     "edgeLabels.placement": "CENTER",
                 },
             )
-
-            if haxorg_edge.extra:
-                result.labels = [get_label_for_extra(haxorg_edge.extra)]
-
-            return result
 
         else:
             crossing_edge: HaxorgMMapEdgeCrossingSegment = self.fragmented_edge_map[
@@ -263,27 +309,22 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                 },
             )
 
-            if haxorg_edge.extra and crossing_edge.crossingIdx == int(
-                    crossing_edge.segmentCount / 2):
-                result.labels = [get_label_for_extra(haxorg_edge.extra)]
-
-            return result
-
         return result
 
     def getNestedVertices(self, vertex_id: str) -> List[str]:
+        result = []
         if vertex_id in self.hgraph.vertexNestingMap:
-            return self.hgraph.vertexNestingMap[vertex_id]
+            result.extend(self.hgraph.vertexNestingMap[vertex_id])
 
-        else:
-            return []
+        if vertex_id in self.label_node_nesting:
+            result.extend(self.label_node_nesting[vertex_id])
 
-    def getELKNodeNonRec(self, vertex_id: str) -> elk_schema.Node:
+        return result
+
+    def getHGraphNode(self, vertex_id: str) -> elk_schema.Node:
+        node_width = 150
         data: Vertex = self.hgraph.vertices[vertex_id]
         assert isinstance(data, Vertex)
-
-        node_width = 150
-
         if data.vertexDescription or self.getNestedVertices(vertex_id):
             result = elk_schema.Node(
                 id=data.vertexId,
@@ -335,3 +376,39 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                 ))
 
         return result
+
+
+    def getLabelNode(self, vertex_id: str) -> elk_schema.Node:
+        label_node = self.label_nodes[vertex_id]
+        label_edge = self.all_edges[label_node.originalEdgeId]
+        return elk_schema.Node(
+            id=label_node.getLabelNodeId(),
+            width=100,
+            height=elk_converter.get_node_height_for_text(
+                label_edge.extra.edgeBrief or "" + label_edge.extra.edgeDetailed or "",
+                expected_width=100,
+                font_size=8,
+            ),
+            ports=[
+                elk_schema.Port(
+                    id=label_node.getHeadSegmentPortId(),
+                    width=10,
+                    height=10,
+                ),
+                elk_schema.Port(
+                    id=label_node.getTailSegmentPortId(),
+                    width=10,
+                    height=10,
+                )
+            ],
+            extra=dict(
+                haxorg_label_edge=label_edge,
+            )
+        )
+
+    def getELKNodeNonRec(self, vertex_id: str) -> elk_schema.Node:
+        if vertex_id in self.label_nodes:
+            return self.getLabelNode(vertex_id)
+        
+        else:
+            return self.getHGraphNode(vertex_id)
