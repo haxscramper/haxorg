@@ -833,23 +833,33 @@ def extract_extra_data(graph: Graph) -> Dict[str, Dict[str, Any]]:
             if isinstance(obj, Port):
                 get_property("properties")
 
+    def traverse_edge(edge: Edge) -> None:
+        collect_extra(edge)
+
+        if edge.labels:
+            for label in edge.labels:
+                collect_extra(label)
+
     def traverse_node(node: Node) -> None:
         collect_extra(node)
         if node.children:
             for child in node.children:
                 traverse_node(child)
+
         if node.ports:
             for port in node.ports:
                 collect_extra(port)
                 if port.labels:
                     for label in port.labels:
                         traverse_label(label)
+
         if node.labels:
             for label in node.labels:
                 traverse_label(label)
+
         if node.edges:
             for edge in node.edges:
-                collect_extra(edge)
+                traverse_edge(edge)
 
     def traverse_label(label: Label) -> None:
         if label.id is not None:
@@ -859,17 +869,22 @@ def extract_extra_data(graph: Graph) -> Dict[str, Dict[str, Any]]:
                 traverse_label(sub_label)
 
     collect_extra(graph)
+
     for child in graph.children:
         traverse_node(child)
+
     if graph.edges:
         for edge in graph.edges:
-            collect_extra(edge)
+            traverse_edge(edge)
+
+
     if graph.ports:
         for port in graph.ports:
             collect_extra(port)
             if port.labels:
                 for label in port.labels:
                     traverse_label(label)
+
     if graph.labels:
         for label in graph.labels:
             traverse_label(label)
@@ -896,6 +911,13 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str,
                 transfer_property("properties")
                         
 
+    def traverse_edge(edge: Node) -> None:
+        restore_extra(edge)
+
+        if edge.labels:
+            for label in edge.labels:
+                restore_extra(label)
+
     def traverse_node(node: Node) -> None:
         restore_extra(node)
         if node.children:
@@ -910,9 +932,10 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str,
         if node.labels:
             for label in node.labels:
                 traverse_label(label)
+
         if node.edges:
             for edge in node.edges:
-                restore_extra(edge)
+                traverse_edge(edge)
 
     def traverse_label(label: Label) -> None:
         if label.id is not None:
@@ -922,23 +945,29 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str,
                 traverse_label(sub_label)
 
     restore_extra(graph)
+
     for child in graph.children:
         traverse_node(child)
+
     if graph.edges:
         for edge in graph.edges:
-            restore_extra(edge)
+            traverse_edge(edge)
+
+
     if graph.ports:
         for port in graph.ports:
             restore_extra(port)
             if port.labels:
                 for label in port.labels:
                     traverse_label(label)
+
     if graph.labels:
         for label in graph.labels:
             traverse_label(label)
 
     return graph
 
+from py_scriptutils.script_logging import to_debug_json, pprint_to_file
 
 def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
     validate_graph_structure(graph) 
@@ -949,6 +978,8 @@ def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
         validated_path = dir / f"result_validated.json"
         extra_metadata = extract_extra_data(graph)
         GraphSerializer.save_to_file(graph, validated_path, use_dotted=True)
+
+        pprint_to_file(extra_metadata, "/tmp/extra_metadata.py")
 
         layout_path = dir / f"result_layout.json"
 
@@ -963,6 +994,8 @@ def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
 
             LAYOUT_VALIDATION_DEBUG_PATH.write_text(
                 "LAYOUT_VALIDATION_DEBUG_PATH OK")
+
+            pprint_to_file(result, "/tmp/layout_result_model.py")
 
             return result
 

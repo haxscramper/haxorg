@@ -164,31 +164,48 @@
   let label_y = if "y" in label { label.y * 1pt } else { 0pt }
   let label_width = if "width" in label { label.width * 1pt } else { auto }
   let label_height = if "height" in label { label.height * 1pt } else { auto }
-  let label_text = if "text" in label { label.text } else { "" }
 
   let breakable-text(str) = str.clusters().join("\u{200B}")
 
-  let fill-res = rgb("#F5F5DC")
-
-  place(
-    dx: label_x,
-    dy: label_y,
-    rect(
-      width: label_width,
-      height: label_height,
-      fill: fill-res,
-      radius: 2pt,
-      inset: 2pt,
-      place(
-        center + horizon,
-        text(
-          size: label.extra.font_size * 1pt,
-          fill: black,
-          breakable-text(label_text),
+  let draw_label(fill-res, body) = {
+    place(
+      dx: label_x,
+      dy: label_y,
+      rect(
+        width: label_width,
+        height: label_height,
+        fill: fill-res,
+        radius: 2pt,
+        inset: 2pt,
+        place(
+          center + horizon,
+          text(
+            size: label.extra.label_geometry.font_size * 1pt,
+            fill: black,
+            body,
+          ),
         ),
       ),
-    ),
-  )
+    )
+  }
+
+  if "haxorg_edge_extra" in label.extra {
+    let extra = label.extra.haxorg_edge_extra
+    draw_label(red.lighten(60%), stack(
+      if "structuredEdgeDetailed" in extra {
+        render_org(extra.structuredEdgeDetailed)
+      } else if "edgeDetailed" in extra {
+        text(extra.edgeDetailed)
+      },
+      if "structuredEdgeBrief" in extra {
+        render_org(extra.structuredEdgeBrief)
+      } else if "edgeBrief" in extra {
+        text(extra.edgeBrief)
+      },
+    ))
+  } else if "text" in label {
+    draw_label(rgb("#F5F5DC"), breakable-text(label.text))
+  }
 
   // Handle nested labels if they exist
   if "labels" in label and label.labels != none {
@@ -282,6 +299,18 @@
 }
 
 #let draw_edge_with_sections(edge_data) = {
+  if "labels" in edge_data {
+    let section0 = edge_data.sections.at(0)
+    for label in edge_data.labels {
+      place(
+        dx: section0.startPoint.x * 1pt,
+        dy: section0.startPoint.y * 1pt,
+        draw_label(label),
+      )
+    }
+  }
+
+
   for section in edge_data.sections {
     let start = section.at("startPoint")
     let end = section.at("endPoint")

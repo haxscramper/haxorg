@@ -308,6 +308,15 @@ def get_node_height_for_text(text: str,
     return result
 
 
+from pydantic import BaseModel
+
+
+class LabelGeometry(BaseModel, extra="forbid"):
+    expected_width: int | float
+    expected_height: int | float
+    font_size: int | float
+
+
 @beartype
 def single_line_label(
         id: str,
@@ -328,9 +337,11 @@ def single_line_label(
         width=expected_width,
         height=expected_height,
         extra=dict(
-            expected_width=expected_width,
-            expected_height=expected_height,
-            font_size=font_size,
+            label_geometry=LabelGeometry(
+                expected_width=expected_width,
+                expected_height=expected_height,
+                font_size=font_size,
+            ),
             **extra_extra,
         ),
     )
@@ -488,11 +499,9 @@ class GraphWalker(ABC):
     def getNestedVertices(self, vertex_id: str) -> List[str]:
         ...
 
-
     @abstractmethod
     def getEdges(self) -> List[str]:
         ...
-
 
     def getELKNodeRec(self, vertex_id: str) -> elk.Node:
         result = self.getELKNodeNonRec(vertex_id)
