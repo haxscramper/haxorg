@@ -125,6 +125,7 @@ class HaxorgMMapLabelNode():
         return f"{self.getTailSegmentId()}-port"
 
 from collections import defaultdict
+from rich.tree import Tree
 
 @beartype
 class HaxorgMMapWalker(elk_converter.GraphWalker):
@@ -158,6 +159,57 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         else:
             return (vertexID, None)
 
+    def getRepr(self) -> Tree:
+        result = Tree("graph")
+
+        import re
+        def auxVertex(v: str) -> Tree:
+            label = f"{v}"
+            if v in self.hgraph.vertices:
+                vert = self.hgraph.vertices[v]
+                label += " '" + re.sub(r"\s{2,}", " ", vert.vertexName) + "'"
+
+            elif v in self.label_nodes:
+                vert = self.label_nodes[v];
+                edge = self.all_edges[vert.originalEdgeId]
+                label += " '" + re.sub(r"\s{2,}", " ", edge.extra.edgeBrief or "") + "'"
+
+            result = Tree(label)
+
+            if v in self.label_nodes:
+                vert = self.label_nodes[v];
+                edge = self.all_edges[vert.originalEdgeId]
+                result.add(f"source:{edge.sourceId} source-parent:{self.getParent(edge.sourceId)}")
+                result.add(f"target:{edge.targetId} target-parent:{self.getParent(edge.targetId)}")
+                result.add(f"head:{vert.getHeadSegmentId()}")
+                result.add(f"tail:{vert.getTailSegmentId()}")
+
+            for nested in self.getNestedVertices(v):
+                result.add(auxVertex(nested))
+
+            return result
+
+        vertices = Tree("vertices")
+        for v in self.getTopVertices():
+            vertices.add(auxVertex(v))
+        result.add(vertices)
+
+        edges = Tree("edges")
+        for e in self.getEdges():
+            if e in self.fragmented_edge_map:
+                edge = self.fragmented_edge_map[e]
+                label = f"{edge.edgeId}"
+                edges.add(Tree(label))
+
+            else:
+                edge = self.edge_no_crossings[e]
+                label = f"{edge.edgeId} {edge.sourceId} -> {edge.targetId}"
+                edges.add(Tree(label))
+
+
+        result.add(edges)
+        return result
+
     def addSegmentedEdge(self, e: Edge, cross: Dict[str, List[str]]):
         import itertools
         edge_segmentation = [(e.sourceId, False)] + [
@@ -184,7 +236,12 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         return parent in self.hgraph.vertexNestingMap and vertex in self.hgraph.vertexNestingMap[parent]
 
     def getParent(self, vertex: str) -> Optional[str]:
-        return self.hgraph.vertexParentMap.get(vertex, None)
+        result = self.hgraph.vertexParentMap.get(vertex, None)
+        if result in self.excluded_vertices:
+            return None
+
+        else:
+            return result
 
 
     def addDirectEdge(self, e: Edge):
@@ -221,7 +278,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                 self.label_node_nesting[e.targetId].add(label_node.getLabelNodeId())
 
             else:
-                self.label_node_nesting[self.getParent(e.targetId)].add(label_node.getLabelNodeId())
+                self.label_node_nesting[self.getParent(e.targetId) or self.getParent(e.sourceId)].add(label_node.getLabelNodeId())
 
         else:
             self.edge_no_crossings[e.edgeId] = e
@@ -392,13 +449,13 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             ports=[
                 elk_schema.Port(
                     id=label_node.getHeadSegmentPortId(),
-                    width=10,
-                    height=10,
+                    width=5,
+                    height=5,
                 ),
                 elk_schema.Port(
                     id=label_node.getTailSegmentPortId(),
-                    width=10,
-                    height=10,
+                    width=5,
+                    height=5,
                 )
             ],
             extra=dict(

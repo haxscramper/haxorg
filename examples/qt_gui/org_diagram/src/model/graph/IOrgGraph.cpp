@@ -387,7 +387,7 @@ json IGraph::getGraphSerial() const {
     }
 
     for (auto const& [nested, parent] : parentMap) {
-        res.vertexParentMap[getVertex(parent).getStableId()] //
+        res.vertexParentMap[getVertex(nested).getStableId()] //
             = getVertex(parent).getStableId();
     }
 

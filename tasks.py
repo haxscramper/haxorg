@@ -1144,6 +1144,8 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
     mmap_igraph = mmap_igraph.induced_subgraph(filter(lambda vertex: vertex["data"].vertexKind == "Item", mmap_igraph.vs))
 
     mmap_walker = haxorg_mind_map.HaxorgMMapWalker(mmap_igraph, mmap_model)
+    from py_scriptutils.rich_utils import render_rich
+    Path("/tmp/mmap_walker_repr.txt").write_text(render_rich(mmap_walker.getRepr()))
     pprint_to_file(to_debug_json(mmap_walker), "/tmp/mmap_walker.py")
     mmap_elk = mmap_walker.getELKGraph()
 

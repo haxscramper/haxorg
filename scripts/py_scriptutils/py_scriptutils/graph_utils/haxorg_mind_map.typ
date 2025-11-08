@@ -219,7 +219,7 @@
   rect(
     width: 100%,
     height: 100%,
-    stroke: black + 2pt,
+    stroke: (paint: black.lighten(80%), thickness: 1.5pt, dash: "dashed"),
     fill: fill_color,
     radius: 5pt,
     stack(
@@ -368,7 +368,15 @@
 #let draw_node_description(node, body) = {
   node_box(
     node,
-    box(width: 100%, height: 100%, inset: 4pt, text(size: 8pt, body)),
+    box(width: 100%, height: 100%, inset: 4pt, box(
+      width: 100%,
+      height: 100%,
+      clip: true,
+      text(
+        size: 8pt,
+        body,
+      ),
+    )),
     0,
     0,
   )
