@@ -7,6 +7,11 @@ import igraph as ig
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 
+class EdgeExtra(BaseModel, extra="forbid"):
+    structuredEdgeBrief: Optional[Dict[str, Any]] = None
+    edgeBrief: Optional[str] = None
+    structuredEdgeDetailed: Optional[Dict[str, Any]] = None
+    edgeDetailed: Optional[str] = None
 
 class Edge(BaseModel, extra="forbid"):
     edgeId: str
@@ -15,7 +20,8 @@ class Edge(BaseModel, extra="forbid"):
     sourcePortId: Optional[str] = None
     targetPortId: Optional[str] = None
     bundleIndex: Optional[int] = None
-    extra: Optional[Dict[str, Any]] = None
+    extra: Optional[EdgeExtra] = None
+    extra_type: Optional[str] = None
 
 
 class EdgeCategory(BaseModel, extra="forbid"):
@@ -23,13 +29,18 @@ class EdgeCategory(BaseModel, extra="forbid"):
     categoryName: str
     hierarchyEdgeCrossings: Dict[str, List[str]] = Field(default_factory=list)
 
+class VertexExtra(BaseModel, extra="forbid"):
+    structuredName: Optional[Dict[str, Any]] = None
+    structuredDescription: Optional[Dict[str, Any]] = None
+    todoState: Optional[str] = None
+    nestingLevel: Optional[int] = None
 
 class Vertex(BaseModel, extra="forbid"):
     vertexId: str
     vertexName: Optional[str] = None
     vertexDescription: Optional[str] = None
     vertexKind: Optional[str] = None
-    extra: Optional[Dict[str, Any]] = None
+    extra: Optional[VertexExtra] = None
     extra_type: Optional[str] = None
 
 
@@ -79,6 +90,7 @@ class HaxorgMMapEdgeCrossingSegment():
     edgeId: str
     crossingIdx: int
     originalEdgeId: str
+    segmentCount: int
     sourcePortId: Optional[str] = None
     targetPortId: Optional[str] = None
 
@@ -147,10 +159,10 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                         else:
                             return (vertexID, None)
 
+                    edge_segmentation = [(e.sourceId, False)] + [(n, True) for n in cross[e.edgeId] if n not in self.excluded_vertices] + [(e.targetId, False)]
+
                     for index, (source, target) in enumerate(
-                            itertools.pairwise([(e.sourceId, False)] +
-                                               [(n, True) for n in cross[e.edgeId] if n not in self.excluded_vertices] +
-                                               [(e.targetId, False)])):
+                            itertools.pairwise(edge_segmentation)):
                         sourceId, sourcePortId = getCrossingConnection(
                             source[0], source[1])
                         targetId, targetPortId = getCrossingConnection(
@@ -166,6 +178,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                                 targetPortId=targetPortId,
                                 originalEdgeId=e.edgeId,
                                 crossingIdx=index,
+                                segmentCount=len(edge_segmentation) - 1,
                             )
 
     def getTopVertices(self) -> List[str]:
@@ -176,10 +189,14 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             k for k in self.fragmented_edge_map)
 
     def getELKEdge(self, edge_id: str) -> elk_schema.Edge:
+        label: Optional[elk_schema.Label] = None
         if edge_id in self.edge_no_crossings:
             haxorg_edge: Edge = self.edge_no_crossings[edge_id]
             assert isinstance(haxorg_edge, Edge)
-            return elk_schema.Edge(
+
+            # if haxorg_edge.extra.
+
+            result = elk_schema.Edge(
                 id=haxorg_edge.edgeId,
                 source=haxorg_edge.sourceId,
                 target=haxorg_edge.targetId,
@@ -191,7 +208,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         else:
             crossing_edge: HaxorgMMapEdgeCrossingSegment = self.fragmented_edge_map[
                 edge_id]
-            return elk_schema.Edge(
+            result = elk_schema.Edge(
                 id=crossing_edge.edgeId,
                 extra=dict(crossing_edge=crossing_edge),
                 source=crossing_edge.source,
@@ -199,6 +216,11 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                 sourcePort=crossing_edge.sourcePortId,
                 targetPort=crossing_edge.targetPortId,
             )
+
+        if label:
+            result.labels = [label]
+
+        return result
 
     def getNestedVertices(self, vertex_id: str) -> List[str]:
         if vertex_id in self.hgraph.vertexNestingMap:

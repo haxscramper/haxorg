@@ -173,6 +173,37 @@ class DiaSubtreeIdTracker : public org::graph::IPropertyTracker {
 
 class DiaDescriptionListEdge : public org::graph::IEdge {
     using IEdge::IEdge;
+
+  public:
+    org::imm::ImmAdapterT<org::imm::ImmListItem> item;
+    hstd::Opt<org::imm::ImmAdapter>              edgeBrief;
+    hstd::Vec<org::imm::ImmAdapter>              edgeDetailed;
+
+    struct SerialSchema : public org::graph::IEdge::SerialSchema {
+        struct Extra {
+            hstd::Opt<std::string> edgeBrief;
+            hstd::Opt<std::string> edgeDetailed;
+            hstd::Opt<json>        structuredEdgeBrief;
+            hstd::Opt<json>        structuredEdgeDetailed;
+            DESC_FIELDS(
+                Extra,
+                (edgeBrief,
+                 edgeDetailed,
+                 structuredEdgeBrief,
+                 structuredEdgeDetailed));
+        };
+
+        BOOST_DESCRIBE_CLASS(
+            SerialSchema,
+            (org::graph::IEdge::SerialSchema),
+            (),
+            (),
+            ());
+    };
+
+    virtual json getSerialNonRecursive(
+        const org::graph::IGraph* graph,
+        const org::graph::EdgeID& id) const override;
 };
 
 class DiaDescriptionListEdgeCollection

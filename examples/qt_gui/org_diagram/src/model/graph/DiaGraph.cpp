@@ -34,6 +34,17 @@ org::graph::VertexID DiaGraph::delVertex(const DiaUniqId& id) {
     return result;
 }
 
+namespace {
+json toJson(org::sem::SemId<org::sem::Org> const& id) {
+    auto exp           = org::algo::ExporterJson{};
+    exp.skipEmptyLists = true;
+    exp.skipLocation   = true;
+    exp.skipId         = true;
+    exp.skipNullFields = true;
+    return exp.eval(id);
+}
+} // namespace
+
 json DiaGraphVertex::getSerialNonRecursive(
     org::graph::IGraph const*   graph_,
     const org::graph::VertexID& id) const {
@@ -105,14 +116,9 @@ json DiaGraphVertex::getSerialNonRecursive(
         }
 
         {
-            auto exp      = org::algo::ExporterJson{};
             auto par      = org::sem::SemId<org::sem::Paragraph>::New();
             par->subnodes = directTitle;
-            exp.skipEmptyLists       = true;
-            exp.skipLocation         = true;
-            exp.skipId               = true;
-            exp.skipNullFields       = true;
-            res.extra.structuredName = exp.eval(par);
+            res.extra.structuredName = toJson(par);
         }
 
         res.vertexName = hstd::join(" ", title);
@@ -121,13 +127,8 @@ json DiaGraphVertex::getSerialNonRecursive(
 
         for (auto const& desc :
              subtree->subAs<org::imm::ImmBlockDynamicFallback>()) {
-            auto exp           = org::algo::ExporterJson{};
-            exp.skipEmptyLists = true;
-            exp.skipLocation   = true;
-            exp.skipId         = true;
-            exp.skipNullFields = true;
             auto sem = org::imm::sem_from_immer(desc.id, *desc.ctx.lock());
-            res.extra.structuredDescription = exp.evalTop(sem);
+            res.extra.structuredDescription = toJson(sem);
 
             res.vertexDescription = org::algo::ExporterUltraplain::toStr(
                 sem);
@@ -198,7 +199,9 @@ hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
 
         for (auto const& item : sub.subAs<org::imm::ImmListItem>(true)) {
             auto add_link =
-                [&](org::imm::ImmAdapterT<org::imm::ImmLink> const& link) {
+                [&](org::imm::ImmAdapterT<org::imm::ImmLink> const& link,
+                    hstd::Opt<org::imm::ImmAdapter> const&          brief,
+                    hstd::Vec<org::imm::ImmAdapter> const& detailed) {
                     HSLOG_DEBUG(
                         "Found link in item header, link kind {}",
                         link->target.getKind());
@@ -215,9 +218,10 @@ hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
                     } else {
                         for (auto const& v : targets) {
                             HSLOG_TRACE("Found target {}", v);
-                            auto res_id = store.add(
-                                DiaDescriptionListEdge{vert, v},
-                                getCategory().t);
+                            DiaDescriptionListEdge edge{vert, v};
+                            edge.edgeBrief    = brief;
+                            edge.edgeDetailed = detailed;
+                            auto res_id = store.add(edge, getCategory().t);
                             trackEdge(res_id);
                             res.push_back(res_id);
                         }
@@ -227,12 +231,41 @@ hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
             if (org::graph::isDescriptionItem(item)) {
                 for (auto const& link : item.pass(item->header->value())
                                             .subAs<org::imm::ImmLink>()) {
-                    add_link(link);
+                    hstd::Opt<org::imm::ImmAdapter> brief;
+                    hstd::Vec<org::imm::ImmAdapter> detailed;
+                    if (0 < item->size()) { brief = item.at(0); }
+                    if (1 < item.size()) {
+                        hstd::Slice<int> rng = hstd::slice1(
+                            1, item.size() - 1);
+                        SemSet skip{OrgSemKind::Newline};
+
+                        while (skip.contains(item.at(rng.first).getKind())
+                               && rng.first < rng.last) {
+                            ++rng.first;
+                        }
+
+
+                        while (skip.contains(item.at(rng.last).getKind())
+                               && rng.first < rng.last) {
+                            --rng.last;
+                        }
+
+                        if (rng.first != rng.last
+                            || !skip.contains(
+                                item.at(rng.first).getKind())) {
+                            for (int i = 1; i < item.size(); ++i) {
+                                detailed.push_back(item.at(i));
+                            }
+                        }
+                    }
+
+
+                    add_link(link, brief, detailed);
                 }
             } else {
                 for (auto const& link :
                      item.at(0).subAs<org::imm::ImmLink>()) {
-                    add_link(link);
+                    add_link(link, std::nullopt, {});
                 }
             }
         }
@@ -258,3 +291,32 @@ bool DiaGraphVertex::isEqual(const IGraphObjectBase* other) const {
 }
 
 std::string DiaGraphVertex::getRepr() const { return hstd::fmt1(uniq); }
+
+json DiaDescriptionListEdge::getSerialNonRecursive(
+    const org::graph::IGraph* graph,
+    const org::graph::EdgeID& id) const {
+    json result = org::graph::IEdge::getSerialNonRecursive(graph, id);
+    result["extra_type"] = hstd::value_metadata<SerialSchema>::typeName();
+    auto& extra          = result["extra"];
+    if (edgeBrief) {
+        auto briefSem = org::imm::sem_from_immer(
+            edgeBrief.value().id, *edgeBrief.value().ctx.lock());
+        extra["edgeBrief"] = org::algo::ExporterUltraplain::toStr(
+            briefSem);
+        extra["structuredEdgeBrief"] = toJson(briefSem);
+    }
+
+    if (!edgeDetailed.empty()) {
+        auto detailedSem = org::sem::SemId<org::sem::StmtList>::New();
+        for (auto const& det : edgeDetailed) {
+            detailedSem->push_back(
+                org::imm::sem_from_immer(det.id, *det.ctx.lock()));
+        }
+
+        extra["edgeBrief"] = org::algo::ExporterUltraplain::toStr(
+            detailedSem);
+        extra["structuredEdgeBrief"] = toJson(detailedSem);
+    }
+
+    return result;
+}

@@ -48,6 +48,8 @@
 - [[id:eb2da0e7-a5dd-4aca-a452-e9eb352d2502][common leaf]] :: Linking to subtree description
 - [[id:160d1172-f0c7-4658-8937-794f0c7a3f43][shared item]] :: other subtree
 
+  Additional text and description for the edge
+
 
 **** new shared
     :properties:
