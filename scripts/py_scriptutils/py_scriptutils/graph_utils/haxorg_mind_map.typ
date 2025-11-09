@@ -512,7 +512,7 @@
         )
       },
       if "nestedSubtrees" in extra {
-        draw_nested_subtrees(extra.nestedSubtrees)
+        pad(top: 2pt, draw_nested_subtrees(extra.nestedSubtrees))
       },
     ))
   } else if "haxorg_label_edge" in node.extra {
