@@ -135,6 +135,8 @@ json DiaGraphVertex::getSerialNonRecursive(
                     subtree.value()->treeId,
                     geometry);
                 res.extra.geometry = geometry.assume_value();
+            } else {
+                HSLOG_WARNING("No geometry: {}", geometry.assume_error());
             }
         }
 

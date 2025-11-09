@@ -43,7 +43,9 @@ struct JsonSerde<Point> {
     }
 
     static Point from_json(json const& j) {
-        return Point(j["x"].get<int>(), j["y"].get<int>());
+        return Point(
+            j.contains("x") ? j["x"].get<int>() : -1,
+            j.contains("y") ? j["y"].get<int>() : -1);
     }
 };
 
@@ -55,7 +57,9 @@ struct JsonSerde<Size> {
     }
 
     static Size from_json(json const& j) {
-        return Size(j["width"].get<int>(), j["height"].get<int>());
+        return Size(
+            j.contains("width") ? j["width"].get<int>() : -1,
+            j.contains("height") ? j["height"].get<int>() : -1);
     }
 };
 } // namespace hstd

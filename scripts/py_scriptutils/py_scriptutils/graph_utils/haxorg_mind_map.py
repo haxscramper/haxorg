@@ -6,8 +6,11 @@ from py_scriptutils.graph_utils import elk_schema
 import igraph as ig
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from glom import glom
+import glom
 from py_scriptutils.json_utils import Json
+from py_scriptutils.script_logging import log, to_debug_json, pprint_to_string
+
+CAT = __name__
 
 
 class EdgeExtra(BaseModel, extra="forbid"):
@@ -65,6 +68,7 @@ class TodoSubtree(BaseModel, extra="forbid"):
     structuredName: Optional[Json] = None
     todoState: Optional[str] = None
     structuredDescription: Optional[Json] = None
+
 
 class VertexExtra(BaseModel, extra="forbid"):
     structuredName: Optional[Json] = None
@@ -427,22 +431,37 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
 
     def getHGraphNode(self, vertex_id: str) -> elk_schema.Node:
         data: Vertex = self.hgraph.vertices[vertex_id]
-        node_width = glom(data, "data.extra.geometry.size.width", default=150)
 
+        def get_dimension(name: str, fallback):
+            size = glom.glom(
+                data,
+                (
+                    glom.Path("extra", "geometry", "size", name),
+                    glom.Check(lambda x: x not in [None, -1, 0] and x > 0),
+                ),
+                default=fallback,
+            )
+
+            assert isinstance(size, (float, int)), type(size)
+            assert size not in [-1, 0, None
+                               ] and 0 < size, f"size:{size} fallback:{fallback}"
+            return size
+
+        node_width = get_dimension("width", 150)
         assert isinstance(data, Vertex)
         if data.vertexDescription or self.getNestedVertices(vertex_id):
+            height = get_dimension(
+                "height",
+                elk_converter.get_node_height_for_text(
+                    data.vertexName,
+                    expected_width=node_width,
+                    font_size=12,
+                    size_step=50,
+                ),
+            )
             result = elk_schema.Node(
                 id=data.vertexId,
-                height=glom(
-                    data,
-                    "extra.geometry.size.height",
-                    default=elk_converter.get_node_height_for_text(
-                        data.vertexName,
-                        expected_width=node_width,
-                        font_size=12,
-                        size_step=50,
-                    ),
-                ),
+                height=height,
                 width=node_width,
                 extra=dict(haxorg_vertex=data),
                 labels=[],
@@ -450,6 +469,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     "nodeLabels.placement": "[H_CENTER, V_TOP, OUTSIDE]",
                     "portLabels.placement": "NEXT_TO_PORT_OF_POSSIBLE",
                     "edgeLabels.placement": "CENTER",
+                    "elk.nodeSize.constraints": "MINIMUM_SIZE",
+                    "elk.nodeSize.minimum": f"({node_width}, {height})",
                 },
             )
 
@@ -465,10 +486,9 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             result = elk_schema.Node(
                 id=data.vertexId,
                 width=node_width,
-                height=glom(
-                    data,
-                    "extra.geometry.size.width",
-                    default=elk_converter.get_node_height_for_text(
+                height=get_dimension(
+                    "width",
+                    elk_converter.get_node_height_for_text(
                         data.vertexName,
                         expected_width=node_width,
                         font_size=12,
