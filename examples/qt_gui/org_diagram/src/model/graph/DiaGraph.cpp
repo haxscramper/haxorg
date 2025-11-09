@@ -62,6 +62,17 @@ json DiaGraphVertex::getSerialNonRecursive(
 
         res.extra.nestingLevel = graph->getParentChain(id).size();
 
+        if (ad.getKind() == DiaNodeKind::Item) {
+            auto geometry = ad->as<DiaNodeItem>()->getGeometry();
+            if (geometry) {
+                HSLOG_DEBUG(
+                    "Get node item {} geometry {}",
+                    subtree.value()->treeId,
+                    geometry);
+                res.extra.geometry = geometry.assume_value();
+            }
+        }
+
         org::imm::ImmAdapter::TreeReprConf conf;
 
         conf.withAuxFields = true;
@@ -193,22 +204,19 @@ hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
 
     for (auto const& sub : tree.sub(true)) {
         if (!isAttachedList(sub)) { continue; }
-        HSLOG_DEBUG("Found attached description list");
-
-        HSLOG_DEBUG("{}", sub.treeReprString());
-
+        // HSLOG_DEBUG("Found attached description list");
         for (auto const& item : sub.subAs<org::imm::ImmListItem>(true)) {
             auto add_link =
                 [&](org::imm::ImmAdapterT<org::imm::ImmLink> const& link,
                     hstd::Opt<org::imm::ImmAdapter> const&          brief,
                     hstd::Vec<org::imm::ImmAdapter> const& detailed) {
-                    HSLOG_DEBUG(
-                        "Found link in item header, link kind {}",
-                        link->target.getKind());
+                    // HSLOG_DEBUG(
+                    //     "Found link in item header, link kind {}",
+                    //     link->target.getKind());
                     if (!link->target.isId()) { return; }
-                    HSLOG_DEBUG(
-                        "Link is targeting ID {}",
-                        link->target.getId().text);
+                    // HSLOG_DEBUG(
+                    //     "Link is targeting ID {}",
+                    //     link->target.getId().text);
 
                     auto targets = tracker->getVertices(
                         DiaSubtreeIdProperty(link->target.getId().text));
@@ -217,7 +225,7 @@ hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
                         HSLOG_WARNING("Could not find matching targets");
                     } else {
                         for (auto const& v : targets) {
-                            HSLOG_TRACE("Found target {}", v);
+                            // HSLOG_TRACE("Found target {}", v);
                             DiaDescriptionListEdge edge{vert, v};
                             edge.edgeBrief    = brief;
                             edge.edgeDetailed = detailed;

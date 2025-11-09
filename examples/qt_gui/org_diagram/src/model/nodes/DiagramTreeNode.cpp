@@ -70,7 +70,7 @@ hstd::Vec<DiaId> FromSubtreeItemRec(
         }
 
         if (isSubtreeItem(node)) {
-            HSLOG_TRACE("Found diagram subtree");
+            // HSLOG_TRACE("Found diagram subtree");
             auto result     = FromSubtreeItem(context, node);
             result.subnodes = hstd::ext::ImmVec<DiaId>{
                 tmp.begin(), tmp.end()};

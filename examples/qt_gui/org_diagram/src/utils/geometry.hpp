@@ -15,6 +15,26 @@ struct Size : public Point {
     int height() const { return this->y(); }
 };
 
+template <>
+struct std::formatter<Size> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Size& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(
+            hstd::fmt("Size(width={}, height={}", p.width(), p.height()),
+            ctx);
+    }
+};
+
+template <>
+struct std::formatter<Point> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Point& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(
+            hstd::fmt("Point(x={}, y={}", p.x(), p.y()), ctx);
+    }
+};
+
+
 namespace hstd {
 template <>
 struct JsonSerde<Point> {

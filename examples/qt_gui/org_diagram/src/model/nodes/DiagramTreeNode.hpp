@@ -353,15 +353,36 @@ struct DiaNodeItem : DiaNode {
 
     inline static const DiaNodeKind staticKind = DiaNodeKind::Item;
 
+    struct RectSpacing {
+        hstd::Opt<int> top;
+        hstd::Opt<int> left;
+        hstd::Opt<int> bottom;
+        hstd::Opt<int> right;
+        DESC_FIELDS(RectSpacing, (top, left, bottom, right));
+    };
+
     struct Geometry {
         hstd::Opt<Size>  size;
         hstd::Opt<Point> pos;
-        DESC_FIELDS(Geometry, (size, pos));
+        /// \brief Minimal space between node item and the inner elements
+        hstd::Opt<RectSpacing> padding;
+        /// \brief Minimal space between node item and the surrounding
+        /// elements
+        hstd::Opt<RectSpacing> margin;
+        DESC_FIELDS(Geometry, (size, pos, padding, margin));
     };
 
 
     org::imm::ImmAdapterT<org::imm::ImmSubtree> getSubtree() const {
         return id.as<org::imm::ImmSubtree>();
+    }
+
+    hstd::Result<Geometry, std::string> getGeometry() const {
+        BOOST_OUTCOME_TRY(
+            auto geometry,
+            getStructuredProperty<Geometry>(
+                getSubtree(), DiaPropertyNames::diagramGeometry));
+        return geometry;
     }
 
     hstd::Result<Point, std::string> getPos() const {

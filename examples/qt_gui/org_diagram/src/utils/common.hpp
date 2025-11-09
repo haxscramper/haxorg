@@ -280,3 +280,18 @@ struct Pos {
     int y;
     DESC_FIELDS(Pos, (x, y));
 };
+
+template <typename V, typename E>
+struct std::formatter<hstd::Result<V, E>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const hstd::Result<V, E>& p, FormatContext& ctx) const {
+        if (p) {
+            hstd::fmt_ctx("Ok(", ctx);
+            hstd::fmt_ctx(p.assume_value(), ctx);
+        } else {
+            hstd::fmt_ctx("Err(", ctx);
+            hstd::fmt_ctx(p.assume_error(), ctx);
+        }
+        return hstd::fmt_ctx(")", ctx);
+    }
+};

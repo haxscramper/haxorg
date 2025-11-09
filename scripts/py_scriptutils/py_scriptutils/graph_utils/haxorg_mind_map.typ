@@ -256,8 +256,8 @@
 
 #let node_box(node, body, x_offset, y_offset) = {
   place(
-    dx: (node.x + x_offset) * 1pt,
-    dy: (node.y + y_offset) * 1pt,
+    dx: (node.at("x", default: 0) + x_offset) * 1pt,
+    dy: (node.at("y", default: 0) + y_offset) * 1pt,
     box(
       width: node.width * 1pt,
       height: node.height * 1pt,

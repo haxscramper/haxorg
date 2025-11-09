@@ -19,16 +19,18 @@ struct DiaGraphVertex : public org::graph::IVertex {
         hstd::Opt<std::string> vertexDescription;
 
         struct Extra {
-            json                   structuredDescription;
-            json                   structuredName;
-            hstd::Opt<std::string> todoState;
-            int                    nestingLevel;
+            json                             structuredDescription;
+            json                             structuredName;
+            hstd::Opt<std::string>           todoState;
+            int                              nestingLevel;
+            hstd::Opt<DiaNodeItem::Geometry> geometry;
             DESC_FIELDS(
                 Extra,
                 (structuredDescription,
                  structuredName,
                  todoState,
-                 nestingLevel));
+                 nestingLevel,
+                 geometry));
         };
 
         std::string extra_type;
