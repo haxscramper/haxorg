@@ -7,6 +7,7 @@ import igraph as ig
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from glom import glom
+from py_scriptutils.json_utils import Json
 
 
 class EdgeExtra(BaseModel, extra="forbid"):
@@ -57,12 +58,21 @@ class VertexGeometry(BaseModel, extra="forbid"):
     margin: Optional[RectSpacing] = None
 
 
+class TodoSubtree(BaseModel, extra="forbid"):
+    name: str
+    description: Optional[str] = None
+    nested: List["TodoSubtree"] = Field(default_factory=list)
+    structuredName: Optional[Json] = None
+    todoState: Optional[str] = None
+    structuredDescription: Optional[Json] = None
+
 class VertexExtra(BaseModel, extra="forbid"):
-    structuredName: Optional[Dict[str, Any]] = None
-    structuredDescription: Optional[Dict[str, Any]] = None
+    structuredName: Optional[Json] = None
+    structuredDescription: Optional[Json] = None
     todoState: Optional[str] = None
     nestingLevel: Optional[int] = None
     geometry: Optional[VertexGeometry] = None
+    nestedSubtrees: List[TodoSubtree] = Field(default_factory=list)
 
 
 class Vertex(BaseModel, extra="forbid"):

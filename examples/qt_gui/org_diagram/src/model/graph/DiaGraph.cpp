@@ -43,6 +43,72 @@ json toJson(org::sem::SemId<org::sem::Org> const& id) {
     exp.skipNullFields = true;
     return exp.eval(id);
 }
+
+struct SplitTitle {
+    hstd::Vec<org::sem::SemId<org::sem::Org>> directTitle;
+    hstd::Vec<org::imm::ImmAdapter>           title_seq;
+    hstd::Opt<std::string>                    todoState;
+    std::string                               name;
+    json                                      structuredName;
+    hstd::Opt<std::string>                    description;
+    hstd::Opt<json>                           structuredDescription;
+};
+
+SplitTitle getSplitTitle(
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree) {
+    SplitTitle res;
+    auto       todo_kwds = hstd::Vec<hstd::Str>{
+        "TODO", "DONE", "COMPLETED", "FAILED", "NEXT", "WIP", "CANCELLED"};
+
+
+    for (auto const& it : subtree.getTitle()) {
+        res.title_seq.push_back(it);
+    }
+
+    int i = 0;
+
+
+    for (; i < res.title_seq.size(); ++i) {
+        auto const& node = res.title_seq.at(i);
+        if (auto big = node.asOpt<org::imm::ImmBigIdent>();
+            big && todo_kwds.contains(big->getText())) {
+            res.todoState = big.value()->text;
+            if (res.title_seq.has(i + 1)
+                && res.title_seq.at(i + 1).getKind()
+                       == OrgSemKind::Space) {
+                ++i;
+            }
+            continue;
+        } else {
+            break;
+        }
+    }
+
+
+    hstd::Vec<std::string> name;
+    for (; i < res.title_seq.size(); ++i) {
+        auto const& node = res.title_seq.at(i);
+        name.push_back(org::getCleanText(node));
+        res.directTitle.push_back(
+            org::imm::sem_from_immer(node.id, *subtree.ctx.lock()));
+    }
+
+    res.name = hstd::join(" ", name);
+
+    auto par           = org::sem::SemId<org::sem::Paragraph>::New();
+    par->subnodes      = res.directTitle;
+    res.structuredName = toJson(par);
+
+    for (auto const& desc :
+         subtree.subAs<org::imm::ImmBlockDynamicFallback>()) {
+        auto sem = org::imm::sem_from_immer(desc.id, *desc.ctx.lock());
+        res.structuredDescription = toJson(sem);
+        res.description = org::algo::ExporterUltraplain::toStr(sem);
+    }
+
+    return res;
+}
+
 } // namespace
 
 json DiaGraphVertex::getSerialNonRecursive(
@@ -55,7 +121,6 @@ json DiaGraphVertex::getSerialNonRecursive(
         .vertexId   = getStableId(),
         .vertexKind = hstd::fmt1(ad.getKind()),
     };
-
 
     if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
         subtree) {
@@ -73,76 +138,52 @@ json DiaGraphVertex::getSerialNonRecursive(
             }
         }
 
-        org::imm::ImmAdapter::TreeReprConf conf;
+        auto aux_nested_todo =
+            [](org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree,
+               auto&&                                             self)
+            -> hstd::Opt<SerialSchema::Extra::TodoSubtree> {
+            if (isSubtreeItem(subtree)) { return std::nullopt; }
+            SerialSchema::Extra::TodoSubtree res;
+            auto split         = getSplitTitle(subtree);
+            res.todoState      = split.todoState;
+            res.name           = split.name;
+            res.structuredName = split.structuredName;
+            if (split.structuredDescription) {
+                res.structuredDescription = split.structuredDescription;
+            }
 
-        conf.withAuxFields = true;
+            if (split.description) { res.description = split.description; }
 
-        // HSLOG_TRACE(
-        //     "Get vertex serial for subtree:\n{}",
-        //     subtree->treeRepr(conf).toString(false));
+            for (auto const& sub : subtree.subAs<org::imm::ImmSubtree>()) {
+                auto sub_res = self(sub, self);
+                if (sub_res) { res.nested.push_back(sub_res.value()); }
+            }
 
-        hstd::Vec<std::string> title;
+            return res;
+        };
 
-        auto todo_kwds = hstd::Vec<hstd::Str>{
-            "TODO",
-            "DONE",
-            "COMPLETED",
-            "FAILED",
-            "NEXT",
-            "WIP",
-            "CANCELLED"};
-
-        hstd::Vec<org::sem::SemId<org::sem::Org>> directTitle;
-
-        hstd::Vec<org::imm::ImmAdapter> title_seq;
-        for (auto const& it : subtree->getTitle()) {
-            title_seq.push_back(it);
-        }
-
-        int i = 0;
-
-
-        for (; i < title_seq.size(); ++i) {
-            auto const& node = title_seq.at(i);
-            if (auto big = node.asOpt<org::imm::ImmBigIdent>();
-                big && todo_kwds.contains(big->getText())) {
-                res.extra.todoState = big.value()->text;
-                if (title_seq.has(i + 1)
-                    && title_seq.at(i + 1).getKind()
-                           == OrgSemKind::Space) {
-                    ++i;
-                }
-                continue;
-            } else {
-                break;
+        for (auto const& sub : subtree->subAs<org::imm::ImmSubtree>()) {
+            auto sub_res = aux_nested_todo(sub, aux_nested_todo);
+            if (sub_res) {
+                res.extra.nestedSubtrees.push_back(sub_res.value());
             }
         }
 
+        auto split = getSplitTitle(subtree.value());
 
-        for (; i < title_seq.size(); ++i) {
-            auto const& node = title_seq.at(i);
-            title.push_back(org::getCleanText(node));
-            directTitle.push_back(
-                org::imm::sem_from_immer(node.id, *subtree->ctx.lock()));
-        }
-
-        {
-            auto par      = org::sem::SemId<org::sem::Paragraph>::New();
-            par->subnodes = directTitle;
-            res.extra.structuredName = toJson(par);
-        }
-
-        res.vertexName = hstd::join(" ", title);
-
+        res.vertexName           = split.name;
+        res.extra.structuredName = split.structuredName;
         res.extra_type = hstd::value_metadata<SerialSchema>::typeName();
+        res.extra.todoState      = split.todoState;
+        res.extra.structuredName = split.structuredName;
 
-        for (auto const& desc :
-             subtree->subAs<org::imm::ImmBlockDynamicFallback>()) {
-            auto sem = org::imm::sem_from_immer(desc.id, *desc.ctx.lock());
-            res.extra.structuredDescription = toJson(sem);
+        if (split.description) {
+            res.vertexDescription = split.description;
+        }
 
-            res.vertexDescription = org::algo::ExporterUltraplain::toStr(
-                sem);
+        if (split.structuredDescription) {
+            res.extra.structuredDescription = split.structuredDescription
+                                                  .value();
         }
     }
 

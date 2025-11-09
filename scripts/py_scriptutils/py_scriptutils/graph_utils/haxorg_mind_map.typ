@@ -419,6 +419,59 @@
   }
 }
 
+#let draw_nested_subtrees(nested_subtrees) = {
+  if nested_subtrees.len() == 0 {
+    return none
+  }
+
+  let process_subtree(subtree) = {
+    let rows = ()
+
+    // First column: just asterisk (no indentation)
+    let col1 = "*"
+
+    // Second column: todo state or empty
+    let col2 = if subtree.at("todoState", default: none) != none {
+      subtree.todoState
+    } else {
+      ""
+    }
+
+    // Third column: structured name or regular name
+    let col3 = if subtree.at("structuredName", default: none) != none {
+      render_org(subtree.structuredName)
+    } else {
+      text(size: 8pt, subtree.name)
+    }
+
+    rows.push((col1, col2, col3))
+
+    // Process nested subtrees recursively
+    if subtree.at("nested", default: ()).len() > 0 {
+      for nested in subtree.nested {
+        rows = rows + process_subtree(nested)
+      }
+    }
+
+    return rows
+  }
+
+  // Collect all rows
+  let all_rows = ()
+  for subtree in nested_subtrees {
+    all_rows = all_rows + process_subtree(subtree)
+  }
+
+  // Create and return the table
+  table(
+    columns: 3,
+    // stroke: none,
+    align: (left, center, left),
+    ..all_rows.flatten()
+  )
+}
+
+
 #let draw_node(node) = {
   node_box(
     node,
@@ -434,27 +487,34 @@
     // node.extra.data is `DiaGraph::SerialSchema`
     let data = node.extra.haxorg_vertex
     let extra = data.extra
-    if (
-      "structuredDescription" in extra and extra.structuredDescription != none
-    ) {
-      draw_node_description(node, render_org(
-        extra.structuredDescription,
-      ))
-    } else if "vertexDescription" in data {
-      draw_node_description(node, text(
-        size: 8pt,
-        data.vertexDescription,
-      ))
-    } else if "structuredName" in extra and extra.structuredName != none {
-      draw_node_description(node, render_org(
-        extra.structuredName,
-      ))
-    } else if "vertexName" in data {
-      draw_node_description(node, text(
-        size: 8pt,
-        data.vertexName,
-      ))
-    }
+
+
+    draw_node_description(node, stack(
+      if (
+        "structuredDescription" in extra and extra.structuredDescription != none
+      ) {
+        render_org(
+          extra.structuredDescription,
+        )
+      } else if "vertexDescription" in data {
+        text(
+          size: 8pt,
+          data.vertexDescription,
+        )
+      } else if "structuredName" in extra and extra.structuredName != none {
+        render_org(
+          extra.structuredName,
+        )
+      } else if "vertexName" in data {
+        text(
+          size: 8pt,
+          data.vertexName,
+        )
+      },
+      if "nestedSubtrees" in extra {
+        draw_nested_subtrees(extra.nestedSubtrees)
+      },
+    ))
   } else if "haxorg_label_edge" in node.extra {
     let original_edge_data = node.extra.haxorg_label_edge
     let edge_extra = original_edge_data.extra

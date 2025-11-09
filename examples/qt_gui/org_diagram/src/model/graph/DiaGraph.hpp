@@ -24,13 +24,34 @@ struct DiaGraphVertex : public org::graph::IVertex {
             hstd::Opt<std::string>           todoState;
             int                              nestingLevel;
             hstd::Opt<DiaNodeItem::Geometry> geometry;
+
+            struct TodoSubtree {
+                json                   structuredName;
+                hstd::Opt<json>        structuredDescription;
+                std::string            name;
+                hstd::Opt<std::string> description;
+                hstd::Vec<TodoSubtree> nested;
+                hstd::Opt<std::string> todoState;
+                DESC_FIELDS(
+                    TodoSubtree,
+                    (nested,
+                     structuredName,
+                     structuredDescription,
+                     name,
+                     description,
+                     todoState));
+            };
+
+            hstd::Vec<TodoSubtree> nestedSubtrees;
+
             DESC_FIELDS(
                 Extra,
                 (structuredDescription,
                  structuredName,
                  todoState,
                  nestingLevel,
-                 geometry));
+                 geometry,
+                 nestedSubtrees));
         };
 
         std::string extra_type;
