@@ -21,17 +21,15 @@ from py_scriptutils.script_logging import log
 CAT = __name__
 
 
-class HyperEdgeData(BaseModel):
+class HyperEdgeData(BaseModel, extra="forbid"):
     merged_edge_ids: List[str]
-    pattern: Optional[Dict[str, Any]] = None
+    polygon: List[Tuple[float, float]]
     merged_edge_extra: Optional[Dict[str, Any]] = None
-    hyperedge_extra: Optional[Dict[str, Any]] = None
 
 
 @beartype
 class ElkExtra(BaseModel, extra="forbid"):
-    data: Any
-    kind: str
+    hyperedge: Optional[HyperEdgeData] = None
 
 
 def graph_to_typst(
@@ -87,9 +85,10 @@ def _collect_all_edges(node: elk.Graph, all_edges: List[elk.Edge]) -> None:
 from collections import defaultdict
 
 
-def get_edge_groups_by_shared_ports(graph: elk.Graph) -> List[List[elk.Edge]]:
+@beartype
+def get_edge_groups_by_shared_ports(target: elk.Graph | elk.Node) -> List[List[elk.Edge]]:
     port_to_edges = defaultdict(list)
-    for edge in graph.edges:
+    for edge in target.edges:
         source_ports = []
         target_ports = []
 
@@ -398,9 +397,6 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge]) -> elk.Edge:
     if not edges:
         raise ValueError("Cannot merge empty list of edges")
 
-    if len(edges) == 1:
-        return edges[0]
-
     all_sources = set()
     all_targets = set()
     all_source_ports = set()
@@ -444,40 +440,54 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge]) -> elk.Edge:
             assert isinstance(edge.extra, dict)
             merged_extra[edge.id] = edge.extra
 
-    merged_edge = elk.Edge(
-        id=f"merged_{hash(tuple(e.id for e in edges))}",
-        sources=list(all_sources) if len(all_sources) > 1 else None,
-        targets=list(all_targets) if len(all_targets) > 1 else None,
-        source=list(all_sources)[0] if len(all_sources) == 1 else None,
-        target=list(all_targets)[0] if len(all_targets) == 1 else None,
-        sections=all_sections,
-        junctionPoints=all_junction_points if all_junction_points else None,
-        labels=all_labels if all_labels else None,
-        extra=dict(elk_extra=ElkExtra(
-            data=HyperEdgeData(
+    if len(edges) == 1:
+        merged_edge = edges[0].model_copy(update=dict(extra=dict(elk_extra=ElkExtra(
+            hyperedge=HyperEdgeData(
                 polygon=compute_hyperedge_polygon(all_sections, width=4.0),
                 merged_edge_extra=merged_extra,
-                merged_edge_ids=merged_edge,
-            ),
-            kind="hyperedge",
-        )),
-    )
+                merged_edge_ids=edge_order,
+            )))))
+
+    else:
+        merged_edge = elk.Edge(
+            id=f"merged_{hash(tuple(e.id for e in edges))}",
+            sources=list(all_sources) if len(all_sources) > 1 else None,
+            targets=list(all_targets) if len(all_targets) > 1 else None,
+            source=list(all_sources)[0] if len(all_sources) == 1 else None,
+            target=list(all_targets)[0] if len(all_targets) == 1 else None,
+            sections=all_sections,
+            junctionPoints=all_junction_points if all_junction_points else None,
+            labels=all_labels if all_labels else None,
+            extra=dict(elk_extra=ElkExtra(hyperedge=HyperEdgeData(
+                polygon=compute_hyperedge_polygon(all_sections, width=4.0),
+                merged_edge_extra=merged_extra,
+                merged_edge_ids=edge_order,
+            ))),
+        )
 
     return merged_edge
 
 
 @beartype
-def group_multi_layout(graph: elk.Graph):
-    grouped_multi_edges: List[elk.Edge] = []
+def group_multi_layout(target: elk.Graph | elk.Node, single_item_hyperedge: bool = False):
+    if target.edges:
+        grouped_multi_edges: List[elk.Edge] = []
+        for group in get_edge_groups_by_shared_ports(target):
+            if len(group) == 1:
+                if single_item_hyperedge:
+                    grouped_multi_edges.append(merge_edges_into_hyperedge(group))
 
-    for group in get_edge_groups_by_shared_ports(graph):
-        if len(group) == 1:
-            grouped_multi_edges.append(group[0])
+                else:
+                    grouped_multi_edges.append(group[0])
 
-        else:
-            grouped_multi_edges.append(merge_edges_into_hyperedge(group))
+            else:
+                grouped_multi_edges.append(merge_edges_into_hyperedge(group))
 
-    graph.edges = grouped_multi_edges
+        target.edges = grouped_multi_edges
+
+    if target.children:
+        for node in target.children:
+            group_multi_layout(node, single_item_hyperedge=single_item_hyperedge)
 
 
 @beartype

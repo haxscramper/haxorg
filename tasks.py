@@ -1155,6 +1155,8 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
         "build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
     assert layout_script.exists()
     mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))
+    elk_converter.group_multi_layout(mmap_elk_layout, single_item_hyperedge=True)
+    pprint_to_file(to_debug_json(mmap_elk_layout), "/tmp/mmap_elk_layout_post_hyperedge.py")
     doc = elk_converter.graph_to_typst(mmap_elk_layout)
 
     doc.subnodes.insert(

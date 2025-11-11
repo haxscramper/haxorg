@@ -268,7 +268,8 @@
 
 
 #let draw_edge_with_polygon(edge_data) = {
-  let polygon_points = edge_data.extra.elk_extra.data.polygon
+  let hyperedge = edge_data.extra.elk_extra.hyperedge
+  let polygon_points = hyperedge.polygon
   let typst_points = ()
 
   for point in polygon_points {
@@ -277,8 +278,8 @@
 
   let fill_style = gray.lighten(80%)
 
-  if "pattern" in edge_data.extra.elk_extra.data {
-    let palette = edge_data.extra.elk_extra.data.pattern.palette
+  if "pattern" in hyperedge {
+    let palette = hyperedge.pattern.palette
     if palette.len() > 0 {
       let colors = palette.map(c => rgb(c.r, c.g, c.b))
       fill_style = if colors.len() == 1 {
@@ -355,8 +356,7 @@
   if (
     "extra" in edge_data
       and "elk_extra" in edge_data.extra
-      and "data" in edge_data.extra.elk_extra
-      and "polygon" in edge_data.extra.elk_extra.data
+      and "hyperedge" in edge_data.extra.elk_extra
   ) {
     draw_edge_with_polygon(edge_data)
   } else if "sections" in edge_data {
