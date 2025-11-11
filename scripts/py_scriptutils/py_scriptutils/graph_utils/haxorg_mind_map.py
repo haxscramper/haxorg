@@ -171,6 +171,15 @@ from rich.tree import Tree
 from numbers import Number
 from beartype.typing import Tuple
 
+class MMapDiagramConfig(BaseModel, extra="forbid"):
+    label_node_port_dimensions: Tuple[float, float] = (2, 4)
+    diagram_node_port_dimensions: Tuple[float, float] = (2, 8)
+    default_inner_padding: float = 5.0
+    diagram_node_title_label_font_size: float = 8.0
+    diagram_node_font_size: float = 12.0
+    diagram_node_height_step: float = 50.0
+    diagram_node_default_width: float = 150.0
+
 
 @beartype
 class HaxorgMMapWalker(elk_converter.GraphWalker):
@@ -183,18 +192,10 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
     # Parent node ID (or None if this is a root node) mapped to the list of edge label nodes
     label_node_nesting: defaultdict[Optional[str], Set[str]]
     label_nodes: Dict[str, HaxorgMMapLabelNode]
+    conf: MMapDiagramConfig
 
     def hasEdgeLabel(self, e: Edge) -> bool:
         return bool(e.extra and (e.extra.edgeBrief or e.extra.edgeDetailed))
-        
-
-    @property
-    def LABEL_NODE_PORT_DIMENSION(self) -> Tuple[Number, Number]:
-        return (2, 6)
-
-    @property
-    def DIAGRAM_NODE_PORT_DIMENSIONS(self) -> Tuple[Number, Number]:
-        return (4, 8)
 
     def addCrossingConnection(self, vertexID: str, isCrossing: bool,
                               e: Edge) -> tuple[str, Optional[str]]:
@@ -382,6 +383,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         self.all_edges = dict()
         self.label_node_nesting = defaultdict(lambda: set())
         self.label_nodes = dict()
+        self.conf = MMapDiagramConfig()
 
         self.addHGraphRootVertices()
         self.addHGraphEdges()
@@ -458,7 +460,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                                ] and 0 < size, f"size:{size} fallback:{fallback}"
             return size
 
-        node_width = get_dimension("width", 150)
+        node_width = get_dimension("width", self.conf.diagram_node_default_width)
         assert isinstance(data, Vertex)
         if data.vertexDescription or self.getNestedVertices(vertex_id):
             height = get_dimension(
@@ -466,8 +468,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                 elk_converter.get_node_height_for_text(
                     data.vertexName,
                     expected_width=node_width,
-                    font_size=12,
-                    size_step=50,
+                    font_size=self.conf.diagram_node_font_size,
+                    size_step=self.conf.diagram_node_height_step,
                 ),
             )
             result = elk_schema.Node(
@@ -491,7 +493,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     elk_converter.single_line_label(
                         id=f"{data.vertexId}-title-label",
                         text=data.vertexName,
-                        font_size=8.0,
+                        font_size=self.conf.diagram_node_title_label_font_size,
                     ))
 
         else:
@@ -503,7 +505,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     elk_converter.get_node_height_for_text(
                         data.vertexName,
                         expected_width=node_width,
-                        font_size=12,
+                        font_size=self.conf.diagram_node_font_size,
+                        size_step=self.conf.diagram_node_height_step,
                     ),
                 ),
                 extra=dict(haxorg_vertex=data),
@@ -518,7 +521,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                 geom = extra.geometry
                 if geom.padding:
                     padding = []
-                    default_padding = 5.0
+                    default_padding = self.conf.default_inner_padding
                     for attr in ["left", "right", "top", "bottom"]:
                         padding.append(
                             f"{attr}={getattr(geom.padding, attr) or default_padding}")
@@ -534,8 +537,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             for _, port in self.node_crossing_ports[data.vertexId].items():
                 result.ports.append(elk_schema.Port(
                     id=port.portId,
-                    width=self.DIAGRAM_NODE_PORT_DIMENSIONS[0],
-                    height=self.DIAGRAM_NODE_PORT_DIMENSIONS[1],
+                    width=self.conf.diagram_node_port_dimensions[0],
+                    height=self.conf.diagram_node_port_dimensions[1],
                 ))
 
         return result
@@ -554,13 +557,13 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             ports=[
                 elk_schema.Port(
                     id=label_node.getHeadSegmentPortId(),
-                    width=self.LABEL_NODE_PORT_DIMENSION[0],
-                    height=self.LABEL_NODE_PORT_DIMENSION[1],
+                    width=self.conf.label_node_port_dimensions[0],
+                    height=self.conf.label_node_port_dimensions[1],
                 ),
                 elk_schema.Port(
                     id=label_node.getTailSegmentPortId(),
-                    width=self.LABEL_NODE_PORT_DIMENSION[0],
-                    height=self.LABEL_NODE_PORT_DIMENSION[1],
+                    width=self.conf.label_node_port_dimensions[0],
+                    height=self.conf.label_node_port_dimensions[1],
                 )
             ],
             extra=dict(haxorg_label_edge=label_edge,),

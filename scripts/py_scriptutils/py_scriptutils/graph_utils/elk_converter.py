@@ -393,7 +393,8 @@ def extract_color_palette(texture_path: str, n_colors: int = 3) -> dict:
 
 
 @beartype
-def merge_edges_into_hyperedge(edges: List[elk.Edge]) -> elk.Edge:
+def merge_edges_into_hyperedge(edges: List[elk.Edge],
+                               hyperedge_polygon_width: float) -> elk.Edge:
     if not edges:
         raise ValueError("Cannot merge empty list of edges")
 
@@ -443,7 +444,8 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge]) -> elk.Edge:
     if len(edges) == 1:
         merged_edge = edges[0].model_copy(update=dict(extra=dict(elk_extra=ElkExtra(
             hyperedge=HyperEdgeData(
-                polygon=compute_hyperedge_polygon(all_sections, width=4.0),
+                polygon=compute_hyperedge_polygon(all_sections,
+                                                  width=hyperedge_polygon_width),
                 merged_edge_extra=merged_extra,
                 merged_edge_ids=edge_order,
             )))))
@@ -459,7 +461,8 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge]) -> elk.Edge:
             junctionPoints=all_junction_points if all_junction_points else None,
             labels=all_labels if all_labels else None,
             extra=dict(elk_extra=ElkExtra(hyperedge=HyperEdgeData(
-                polygon=compute_hyperedge_polygon(all_sections, width=4.0),
+                polygon=compute_hyperedge_polygon(all_sections,
+                                                  width=hyperedge_polygon_width),
                 merged_edge_extra=merged_extra,
                 merged_edge_ids=edge_order,
             ))),
@@ -469,25 +472,37 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge]) -> elk.Edge:
 
 
 @beartype
-def group_multi_layout(target: elk.Graph | elk.Node, single_item_hyperedge: bool = False):
+def group_multi_layout(target: elk.Graph | elk.Node,
+                       hyperedge_polygon_width: float,
+                       single_item_hyperedge: bool = False):
     if target.edges:
         grouped_multi_edges: List[elk.Edge] = []
         for group in get_edge_groups_by_shared_ports(target):
             if len(group) == 1:
                 if single_item_hyperedge:
-                    grouped_multi_edges.append(merge_edges_into_hyperedge(group))
+                    grouped_multi_edges.append(
+                        merge_edges_into_hyperedge(
+                            group,
+                            hyperedge_polygon_width=hyperedge_polygon_width,
+                        ))
 
                 else:
                     grouped_multi_edges.append(group[0])
 
             else:
-                grouped_multi_edges.append(merge_edges_into_hyperedge(group))
+                grouped_multi_edges.append(
+                    merge_edges_into_hyperedge(
+                        group, hyperedge_polygon_width=hyperedge_polygon_width))
 
         target.edges = grouped_multi_edges
 
     if target.children:
         for node in target.children:
-            group_multi_layout(node, single_item_hyperedge=single_item_hyperedge)
+            group_multi_layout(
+                node,
+                single_item_hyperedge=single_item_hyperedge,
+                hyperedge_polygon_width=hyperedge_polygon_width,
+            )
 
 
 @beartype

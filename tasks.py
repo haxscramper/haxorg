@@ -1103,8 +1103,6 @@ def build_example_qt_gui_org_diagram(ctx: Context):
     )
 
 
-
-
 @org_task(pre=[build_example_qt_gui_org_diagram])
 def run_example_org_elk_diagram(ctx: Context, infile: str):
     from py_scriptutils.graph_utils import haxorg_mind_map
@@ -1112,8 +1110,6 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
     from py_scriptutils.graph_utils import elk_schema
     from py_scriptutils.graph_utils import typst_schema
     import igraph as ig
-
-
 
     wrapper_dir = "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"
     run_command(ctx,
@@ -1141,7 +1137,8 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
         json.loads(Path(mman_initial_path).read_text()))
     mmap_igraph = haxorg_mind_map.convert_to_igraph(mmap_model)
 
-    mmap_igraph = mmap_igraph.induced_subgraph(filter(lambda vertex: vertex["data"].vertexKind == "Item", mmap_igraph.vs))
+    mmap_igraph = mmap_igraph.induced_subgraph(
+        filter(lambda vertex: vertex["data"].vertexKind == "Item", mmap_igraph.vs))
 
     mmap_walker = haxorg_mind_map.HaxorgMMapWalker(mmap_igraph, mmap_model)
     from py_scriptutils.rich_utils import render_rich
@@ -1155,8 +1152,15 @@ def run_example_org_elk_diagram(ctx: Context, infile: str):
         "build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
     assert layout_script.exists()
     mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))
-    elk_converter.group_multi_layout(mmap_elk_layout, single_item_hyperedge=True)
-    pprint_to_file(to_debug_json(mmap_elk_layout), "/tmp/mmap_elk_layout_post_hyperedge.py")
+    
+    elk_converter.group_multi_layout(
+        mmap_elk_layout,
+        single_item_hyperedge=True,
+        hyperedge_polygon_width=2.0,
+    )
+
+    pprint_to_file(to_debug_json(mmap_elk_layout),
+                   "/tmp/mmap_elk_layout_post_hyperedge.py")
     doc = elk_converter.graph_to_typst(mmap_elk_layout)
 
     doc.subnodes.insert(
