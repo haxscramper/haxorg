@@ -20,7 +20,7 @@
     dy: 0pt,
     circle(radius: 0.5pt, fill: color),
   )
-  debug_text(repr((x, y)), color)
+  debug_text(repr((x, y)), blue)
 }
 
 #let debug_abs_point(x, y, color) = {
@@ -43,56 +43,23 @@
     .at("properties", default: (:))
     .at("port_side", default: "")
 
-  let port_width = 8
-  let port_height = 8
-  let rect_x = 0
-  let rect_y = 0
+  let port_width = port.at("width", default: 8)
+  let port_height = port.at("height", default: 8)
+  let rect_x = port_x
+  let rect_y = port_y
 
-  // If the port has explicit width and height it is going to be properly offset
-  // relative to the parent node. But if the port originally had no dimensions,
-  // the ELK layout treats it as a zero-sized point.
-  if "width" in port and "height" in port {
-    port_width = port.at("width")
-    port_height = port.at("height")
-    rect_x = port_x - port_width / 2
-    rect_y = port_y - port_height / 2
-  } else {
-    // Determine the placement of the port rectangle based on the port side
-    if port_side == "WEST" {
-      rect_x = port_x - port_width
-      rect_y = port_y - port_height / 2
-    } else if port_side == "EAST" {
-      rect_x = port_x
-      rect_y = port_y - port_height / 2
-    } else if port_side == "NORTH" {
-      rect_x = port_x - port_width / 2
-      rect_y = port_y - port_height
-    } else if port_side == "SOUTH" {
-      rect_x = port_x - port_width / 2
-      rect_y = port_y
-    } else {
-      // Default: center the rectangle
-      rect_x = port_x - port_width / 2
-      rect_y = port_y - port_height / 2
-    }
-  }
-
-  // Draw the port rectangle
   place(
-    dx: rect_x * 1pt - 1pt,
-    dy: rect_y * 1pt - 1pt,
+    dx: port_x * 1pt,
+    dy: port_y * 1pt,
     stack(
       rect(
         width: port_width * 1pt,
         height: port_height * 1pt,
         stroke: black + 1pt,
         fill: white,
-        // draw_arrow(direction, port_width, port_height),
       ),
-      // Draw direction arrow inside the rectangle
     ),
   )
-
 
   if "labels" in port {
     for label in port.labels {
@@ -138,7 +105,7 @@
   } else if kind == "Bold" {
     strong(node.subnodes.map(render_org).join())
   } else if kind == "Verbatim" {
-    stack(node.subnodes.map(render_org).join(), dir: ltr)
+    raw(node.subnodes.map(it => it.text).join())
   } else if kind == "Monospace" {
     raw(node.subnodes.map(it => it.text).join())
   } else if kind == "Paragraph" {
@@ -215,28 +182,6 @@
   }
 }
 
-#let draw_node_base(node, fill_color) = {
-  rect(
-    width: 100%,
-    height: 100%,
-    stroke: (paint: black.lighten(80%), thickness: 1.5pt, dash: "dashed"),
-    fill: fill_color,
-    radius: 5pt,
-    stack(
-      // Place ports inside this rectangle
-      if "ports" in node {
-        for port in node.ports {
-          draw_port(port)
-        }
-      },
-      if "labels" in node {
-        for label in node.labels {
-          draw_label(label)
-        }
-      },
-    ),
-  )
-}
 
 #let box_at(..args) = {
   place(
@@ -264,6 +209,42 @@
       body,
     ),
   )
+}
+
+#let node_place(node, body, x_offset, y_offset) = {
+  place(
+    dx: (node.at("x", default: 0) + x_offset) * 1pt,
+    dy: (node.at("y", default: 0) + y_offset) * 1pt,
+    body,
+  )
+}
+
+
+#let draw_node_base(node, fill_color) = {
+  node_box(
+    node,
+    rect(
+      width: 100%,
+      height: 100%,
+      stroke: (paint: black.lighten(80%), thickness: 1.5pt, dash: "dashed"),
+      fill: fill_color,
+      radius: 5pt,
+    ),
+    0,
+    0,
+  )
+
+
+  if "ports" in node {
+    for port in node.ports {
+      node_place(node, draw_port(port), 0, 0)
+    }
+  }
+  if "labels" in node {
+    for label in node.labels {
+      node_place(node, draw_label(label), 0, 0)
+    }
+  }
 }
 
 
@@ -473,14 +454,9 @@
 
 
 #let draw_node(node) = {
-  node_box(
+  draw_node_base(
     node,
-    draw_node_base(
-      node,
-      get_node_color(node).lighten(get_depth_lighten_percent(node)),
-    ),
-    0,
-    0,
+    get_node_color(node).lighten(get_depth_lighten_percent(node)),
   )
 
   if "haxorg_vertex" in node.extra {
@@ -535,13 +511,13 @@
 
   if "children" in node {
     for subnode in node.children {
-      node_box(node, draw_node(subnode), 0, 0)
+      node_place(node, draw_node(subnode), 0, 0)
     }
   }
 
   if "edges" in node {
     for edge in node.edges {
-      node_box(node, draw_edge(edge), 0, 0)
+      node_place(node, draw_edge(edge), 0, 0)
     }
   }
 }

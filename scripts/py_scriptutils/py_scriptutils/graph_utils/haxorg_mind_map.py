@@ -168,6 +168,8 @@ class HaxorgMMapLabelNode():
 
 from collections import defaultdict
 from rich.tree import Tree
+from numbers import Number
+from beartype.typing import Tuple
 
 
 @beartype
@@ -184,6 +186,15 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
 
     def hasEdgeLabel(self, e: Edge) -> bool:
         return bool(e.extra and (e.extra.edgeBrief or e.extra.edgeDetailed))
+        
+
+    @property
+    def LABEL_NODE_PORT_DIMENSION(self) -> Tuple[Number, Number]:
+        return (2, 6)
+
+    @property
+    def DIAGRAM_NODE_PORT_DIMENSIONS(self) -> Tuple[Number, Number]:
+        return (4, 8)
 
     def addCrossingConnection(self, vertexID: str, isCrossing: bool,
                               e: Edge) -> tuple[str, Optional[str]]:
@@ -471,6 +482,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     "edgeLabels.placement": "CENTER",
                     "elk.nodeSize.constraints": "MINIMUM_SIZE",
                     "elk.nodeSize.minimum": f"({node_width}, {height})",
+                    "elk.margins": 0,
                 },
             )
 
@@ -522,8 +534,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             for _, port in self.node_crossing_ports[data.vertexId].items():
                 result.ports.append(elk_schema.Port(
                     id=port.portId,
-                    width=10,
-                    height=10,
+                    width=self.DIAGRAM_NODE_PORT_DIMENSIONS[0],
+                    height=self.DIAGRAM_NODE_PORT_DIMENSIONS[1],
                 ))
 
         return result
@@ -542,16 +554,19 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             ports=[
                 elk_schema.Port(
                     id=label_node.getHeadSegmentPortId(),
-                    width=5,
-                    height=5,
+                    width=self.LABEL_NODE_PORT_DIMENSION[0],
+                    height=self.LABEL_NODE_PORT_DIMENSION[1],
                 ),
                 elk_schema.Port(
                     id=label_node.getTailSegmentPortId(),
-                    width=5,
-                    height=5,
+                    width=self.LABEL_NODE_PORT_DIMENSION[0],
+                    height=self.LABEL_NODE_PORT_DIMENSION[1],
                 )
             ],
             extra=dict(haxorg_label_edge=label_edge,),
+            layoutOptions={
+                "elk.margins": 0,
+            },
         )
 
     def getELKNodeNonRec(self, vertex_id: str) -> elk_schema.Node:
