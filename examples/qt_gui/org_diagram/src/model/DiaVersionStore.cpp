@@ -355,7 +355,30 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
 }
 
 int DiaVersionStore::addDocument(const std::string& document) {
-    auto version = imm_context->addRoot(parseString(document, "<text>"));
+    hstd::ext::StrCache cache;
+
+    cache.getFileSource = [&](std::string const& path) -> std::string {
+        LOGIC_ASSERTION_CHECK(path == "<text>", "{}", path);
+        return document;
+    };
+
+    auto node    = parseString(document, "<text>");
+    auto reports = org::collectDiagnostics(cache, node);
+
+    if (!reports.empty()) {
+        HSLOG_WARNING("Input document was parsed with diagnostics");
+        for (auto const& report : reports) {
+            try {
+                HSLOG_ERROR("{}", report.to_string(cache, false));
+            } catch (std::exception& e) {
+                HSLOG_ERROR(
+                    "Failed to format report {}\n{}", e.what(), report);
+            }
+        }
+    }
+
+
+    auto version = imm_context->addRoot(node);
     return addHistory(version);
 }
 

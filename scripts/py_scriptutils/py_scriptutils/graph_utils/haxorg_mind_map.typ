@@ -228,36 +228,36 @@
 }
 
 
-
+#let map_draw_command(cmd) = {
+  if cmd.type == "line" {
+    curve.line((cmd.x * 1pt, cmd.y * 1pt))
+  } else if cmd.type == "move" {
+    curve.move((cmd.x * 1pt, cmd.y * 1pt))
+  } else if cmd.type == "close" {
+    curve.close()
+  } else if cmd.type == "quad" {
+    curve.quad(
+      (cmd.control_x * 1pt, cmd.control_y * 1pt),
+      (cmd.x * 1pt, cmd.y * 1pt),
+    )
+  } else {
+    curve.cubic(
+      (cmd.control_start_x * 1pt, cmd.control_start_y * 1pt),
+      (cmd.control_end_x * 1pt, cmd.control_end_y * 1pt),
+      (cmd.x * 1pt, cmd.y * 1pt),
+    )
+  }
+}
 
 #let draw_edge_with_polygon(edge_data) = {
   let hyperedge = edge_data.extra.elk_extra.hyperedge
-  let polygon_points = hyperedge.polygon
-  let typst_points = ()
-
-  for point in polygon_points {
-    typst_points.push((point.at(0) * 1pt, point.at(1) * 1pt))
-  }
-
   let fill_style = gray.lighten(50%)
 
-  if "pattern" in hyperedge {
-    let palette = hyperedge.pattern.palette
-    if palette.len() > 0 {
-      let colors = palette.map(c => rgb(c.r, c.g, c.b))
-      fill_style = if colors.len() == 1 {
-        colors.at(0)
-      } else {
-        gradient.linear(..colors)
-      }
-    }
-  }
-
   place(
-    polygon(
+    curve(
       fill: fill_style,
       // stroke: black + 1pt,
-      ..typst_points,
+      ..hyperedge.drawing.map(p => map_draw_command(p)),
     ),
   )
 }
@@ -428,7 +428,7 @@
   // Create and return the table
   table(
     columns: 3,
-    // stroke: none,
+    stroke: none,
     align: (left, center, left),
     ..all_rows.flatten()
   )

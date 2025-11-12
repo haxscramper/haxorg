@@ -21,9 +21,41 @@ from py_scriptutils.script_logging import log
 CAT = __name__
 
 
+class MoveCommand(BaseModel, extra="forbid"):
+    type: str = "move"
+    x: float
+    y: float
+
+class LineCommand(BaseModel, extra="forbid"):
+    type: str = "line"
+    x: float
+    y: float
+
+class QuadCommand(BaseModel, extra="forbid"):
+    type: str = "quad"
+    control_x: float
+    control_y: float
+    x: float
+    y: float
+
+class CubicCommand(BaseModel, extra="forbid"):
+    type: str = "cubic"
+    control_start_x: float
+    control_start_y: float
+    control_end_x: float
+    control_end_y: float
+    x: float
+    y: float
+
+class CloseCommand(BaseModel, extra="forbid"):
+    type: str = "close"
+
+DrawCommand = Union[MoveCommand, LineCommand, QuadCommand, CubicCommand, CloseCommand]
+
+
 class HyperEdgeData(BaseModel, extra="forbid"):
     merged_edge_ids: List[str]
-    polygon: List[Tuple[float, float]]
+    drawing: List[DrawCommand]
     merged_edge_extra: Optional[Dict[str, Any]] = None
 
 
@@ -346,9 +378,10 @@ def single_line_label(
     )
 
 
+
 @beartype
-def compute_hyperedge_polygon(sections: List[elk.EdgeSection],
-                              width: float) -> List[Tuple[float, float]]:
+def compute_hyperedge_drawing(sections: List[elk.EdgeSection],
+                              width: float) -> List[DrawCommand]:
     buffered_lines = []
 
     for section in sections:
@@ -367,10 +400,23 @@ def compute_hyperedge_polygon(sections: List[elk.EdgeSection],
 
     combined_polygon = unary_union(buffered_lines)
 
-    if hasattr(combined_polygon, 'exterior'):
-        return list(combined_polygon.exterior.coords)
+    if hasattr(combined_polygon, "exterior"):
+        coords = list(combined_polygon.exterior.coords)
+        commands = []
+        
+        if coords:
+            commands.append(MoveCommand(x=coords[0][0], y=coords[0][1]))
+            
+            for i in range(1, len(coords) - 1):
+                commands.append(LineCommand(x=coords[i][0], y=coords[i][1]))
+            
+            commands.append(CloseCommand())
+        
+        return commands
     else:
         return []
+
+
 
 
 def extract_color_palette(texture_path: str, n_colors: int = 3) -> dict:
@@ -444,7 +490,7 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge],
     if len(edges) == 1:
         merged_edge = edges[0].model_copy(update=dict(extra=dict(elk_extra=ElkExtra(
             hyperedge=HyperEdgeData(
-                polygon=compute_hyperedge_polygon(all_sections,
+                drawing=compute_hyperedge_drawing(all_sections,
                                                   width=hyperedge_polygon_width),
                 merged_edge_extra=merged_extra,
                 merged_edge_ids=edge_order,
@@ -461,7 +507,7 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge],
             junctionPoints=all_junction_points if all_junction_points else None,
             labels=all_labels if all_labels else None,
             extra=dict(elk_extra=ElkExtra(hyperedge=HyperEdgeData(
-                polygon=compute_hyperedge_polygon(all_sections,
+                drawing=compute_hyperedge_drawing(all_sections,
                                                   width=hyperedge_polygon_width),
                 merged_edge_extra=merged_extra,
                 merged_edge_ids=edge_order,
