@@ -55,8 +55,8 @@
       rect(
         width: port_width * 1pt,
         height: port_height * 1pt,
-        stroke: black + 1pt,
-        fill: white,
+        // stroke: black + 1pt,
+        fill: gray.lighten(50%),
       ),
     ),
   )
@@ -219,33 +219,15 @@
   )
 }
 
-
-#let draw_node_base(node, fill_color) = {
-  node_box(
-    node,
-    rect(
-      width: 100%,
-      height: 100%,
-      stroke: (paint: black.lighten(80%), thickness: 1.5pt, dash: "dashed"),
-      fill: fill_color,
-      radius: 5pt,
-    ),
-    0,
-    0,
-  )
-
-
+#let draw_node_ports(node) = {
   if "ports" in node {
     for port in node.ports {
       node_place(node, draw_port(port), 0, 0)
     }
   }
-  if "labels" in node {
-    for label in node.labels {
-      node_place(node, draw_label(label), 0, 0)
-    }
-  }
 }
+
+
 
 
 #let draw_edge_with_polygon(edge_data) = {
@@ -257,7 +239,7 @@
     typst_points.push((point.at(0) * 1pt, point.at(1) * 1pt))
   }
 
-  let fill_style = gray.lighten(80%)
+  let fill_style = gray.lighten(50%)
 
   if "pattern" in hyperedge {
     let palette = hyperedge.pattern.palette
@@ -274,7 +256,7 @@
   place(
     polygon(
       fill: fill_style,
-      stroke: black + 1pt,
+      // stroke: black + 1pt,
       ..typst_points,
     ),
   )
@@ -324,7 +306,7 @@
 
     place(
       curve(
-        stroke: black + 1pt,
+        stroke: black + 0.5pt,
         curve.move((start.x * 1pt, start.y * 1pt)),
         ..curve_elements,
       ),
@@ -346,7 +328,7 @@
 }
 
 
-#let draw_node_description(node, body) = {
+#let draw_node_description_body(node, body) = {
   node_box(
     node,
     box(width: 100%, height: 100%, inset: 4pt, box(
@@ -452,20 +434,35 @@
   )
 }
 
-
-#let draw_node(node) = {
-  draw_node_base(
+#let draw_node_base(node, fill_color) = {
+  node_box(
     node,
-    get_node_color(node).lighten(get_depth_lighten_percent(node)),
+    rect(
+      width: 100%,
+      height: 100%,
+      stroke: (paint: gray.lighten(50%), thickness: 1.5pt, dash: "dashed"),
+      fill: fill_color,
+      radius: 5pt,
+    ),
+    0,
+    0,
   )
 
+  if "labels" in node {
+    for label in node.labels {
+      node_place(node, draw_label(label), 0, 0)
+    }
+  }
+}
+
+#let draw_node_description(node) = {
   if "haxorg_vertex" in node.extra {
     // node.extra.data is `DiaGraph::SerialSchema`
     let data = node.extra.haxorg_vertex
     let extra = data.extra
 
 
-    draw_node_description(node, stack(
+    draw_node_description_body(node, stack(
       if (
         "structuredDescription" in extra and extra.structuredDescription != none
       ) {
@@ -494,7 +491,7 @@
   } else if "haxorg_label_edge" in node.extra {
     let original_edge_data = node.extra.haxorg_label_edge
     let edge_extra = original_edge_data.extra
-    text(size: 8pt, draw_node_description(node, stack(
+    text(size: 8pt, draw_node_description_body(node, stack(
       if "structuredEdgeBrief" in edge_extra {
         render_org(edge_extra.structuredEdgeBrief)
       } else if "edgeBrief" in edge_extra {
@@ -507,7 +504,23 @@
       },
     )))
   }
+}
 
+#let draw_node_nested_edges(node) = {
+  if "edges" in node {
+    for edge in node.edges {
+      node_place(node, draw_edge(edge), 0, 0)
+    }
+  }
+}
+
+#let draw_node(node) = {
+  draw_node_base(
+    node,
+    get_node_color(node).lighten(get_depth_lighten_percent(node)),
+  )
+
+  draw_node_description(node)
 
   if "children" in node {
     for subnode in node.children {
@@ -515,11 +528,8 @@
     }
   }
 
-  if "edges" in node {
-    for edge in node.edges {
-      node_place(node, draw_edge(edge), 0, 0)
-    }
-  }
+  draw_node_nested_edges(node)
+  draw_node_ports(node)
 }
 
 

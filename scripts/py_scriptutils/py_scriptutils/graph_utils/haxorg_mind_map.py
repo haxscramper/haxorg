@@ -172,8 +172,8 @@ from numbers import Number
 from beartype.typing import Tuple
 
 class MMapDiagramConfig(BaseModel, extra="forbid"):
-    label_node_port_dimensions: Tuple[float, float] = (2, 4)
-    diagram_node_port_dimensions: Tuple[float, float] = (2, 8)
+    label_node_port_dimensions: Tuple[float, float] = (4, 8)
+    diagram_node_port_dimensions: Tuple[float, float] = (4, 12)
     default_inner_padding: float = 5.0
     diagram_node_title_label_font_size: float = 8.0
     diagram_node_font_size: float = 12.0
