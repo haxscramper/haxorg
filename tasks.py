@@ -2036,7 +2036,7 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
         [
             "run",
             "python",
-            "scripts/py_repository/py_repository/gen_coverage_cxx.py",
+            "scripts/py_repository/py_repository/coverage_collection/gen_coverage_cxx.py",
         ],
         env=get_py_env(ctx),
     )
