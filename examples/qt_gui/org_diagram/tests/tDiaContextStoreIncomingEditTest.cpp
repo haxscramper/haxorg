@@ -125,7 +125,7 @@ class DiaContextStoreIncomingEditTest : public QObject {
                                .as<org::sem::Subtree>();
 
         org::sem::SemId<org::sem::Org> tmpDocument = org::parseString(
-            "item updated");
+            "item updated", "<test>");
 
         org::sem::SemId<org::sem::Paragraph>
             tmpTitle = tmpDocument.at(0).as<org::sem::Paragraph>();

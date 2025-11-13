@@ -916,3 +916,7 @@ items:
       #+end_something
       #+end_details
 
+  - name: "Link with file path"
+    source: |
+      - [2025-11-12 Wed 14:29:32 +04] [[https://github.com/N-Coder/syncplan/blob/d2020a04c4b2c13b5900ef5bbe4181fb833ceafe/src/exec/cplan.cpp#L4][syncplan/src/exec/cplan.cpp at d2020a04c4b2c13b5900ef5bbe4181fb833ceafe · N-Coder/syncplan · GitHub]]
+

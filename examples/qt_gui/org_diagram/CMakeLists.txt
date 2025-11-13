@@ -31,17 +31,23 @@ endif()
 file(GLOB_RECURSE LIB_SOURCES "${PROJ_ROOT}/src/*.?pp")
 qt_add_library(org_diagram_lib STATIC ${LIB_SOURCES})
 
+add_subdirectory(jni_elk)
+target_link_libraries(org_diagram_lib PUBLIC jni_elk_lib)
+
 set_target_properties(
   org_diagram_lib
   PROPERTIES AUTOMOC ON
              AUTOUIC ON
              AUTORCC ON)
 
+target_compile_definitions(org_diagram_lib PUBLIC IMMER_TAGGED_NODE=0)
+target_compile_definitions(org_diagram_lib PUBLIC IMMER_ENABLE_DEBUG_SIZE_HEAP=0)
 target_compile_definitions(org_diagram_lib PUBLIC ORG_USE_QT=1)
 target_compile_options(org_diagram_lib PUBLIC "-ftemplate-backtrace-limit=0")
 target_compile_options(org_diagram_lib PUBLIC "-Werror=implicit-fallthrough")
 target_compile_options(org_diagram_lib PUBLIC "-fsanitize=undefined,address")
 target_compile_options(org_diagram_lib PUBLIC "-Wno-deprecated-declarations")
+target_compile_options(org_diagram_lib PUBLIC "-Wno-ambiguous-reversed-operator")
 target_compile_options(org_diagram_lib PUBLIC "-shared-libasan")
 target_compile_options(org_diagram_lib PUBLIC "-Werror=sometimes-uninitialized")
 target_compile_options(org_diagram_lib PUBLIC "-Werror=conditional-uninitialized")
@@ -126,3 +132,4 @@ add_qt_test("tDiaNodeTreeModel_Standalone.cpp" "DiaNodeTreeModel_StandaloneTest"
 add_qt_test("tDiaNodeTest.cpp" "DiaNodeTest")
 add_qt_test("tDiaSceneItemModelTest.cpp" "DiaSceneItemModelTest")
 add_qt_test("tDiaContextStoreIncomingEditTest.cpp" "DiaContextStoreIncomingEditTest")
+add_qt_test("tDiaNodeLayout.cpp" "DiaNodeLayout")

@@ -126,6 +126,9 @@ def pprint_to_file(value, path: str, width: int = 120):
         from py_scriptutils.rich_utils import render_rich_pprint
         print(render_rich_pprint(value, width=width, color=False), file=file)
 
+def pprint_to_string(value, width: int = 120):
+    from py_scriptutils.rich_utils import render_rich_pprint
+    return render_rich_pprint(value, width=width, color=False)
 
 class NoTTYFormatter(logging.Formatter):
 

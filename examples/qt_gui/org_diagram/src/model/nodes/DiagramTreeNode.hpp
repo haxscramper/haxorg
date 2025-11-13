@@ -5,6 +5,7 @@
 #include <QObject>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/ext/graphviz.hpp>
+#include <src/utils/geometry.hpp>
 
 #define _cat "model.diagram"
 
@@ -15,10 +16,16 @@ struct hstd::ReflVisitor<unsigned long long, Tag>
     : hstd::ReflVisitorLeafType<unsigned long long, Tag> {};
 
 
-DECL_DESCRIBED_ENUM_STANDALONE(DiaNodeKind, Layer, Canvas, Group, Item);
+DECL_DESCRIBED_ENUM_STANDALONE(
+    DiaNodeKind,
+    Layer,
+    Canvas,
+    Group,
+    Item,
+    Edge);
 
 #define EACH_DIAGRAM_KIND(__impl)                                         \
-    __impl(Layer) __impl(Canvas) __impl(Group) __impl(Item)
+    __impl(Layer) __impl(Canvas) __impl(Group) __impl(Item) __impl(Edge)
 
 #define SKIP_FIRST_ARG_AUX(op, ...) __VA_ARGS__
 #define SKIP_FIRST_ARG(op, ...) SKIP_FIRST_ARG_AUX(op)
@@ -37,8 +44,8 @@ using DiaIdBase                        = hstd::dod::Id<
                            std::integral_constant<hstd::u64, DiaIdMaskSize>>;
 
 struct DiaPropertyNames {
-    inline static const std::string diagramPosition
-        = "HAXORG_DIAGRAM_POSITION";
+    inline static const std::string diagramGeometry
+        = "HAXORG_DIAGRAM_GEOMETRY";
 
     inline static const std::string isDiagramNode = "HAXORG_DIAGRAM_NODE";
 };
@@ -260,6 +267,7 @@ struct std::hash<DiaUniqId> {
 struct DiaNode {
     virtual DiaNodeKind      getKind() const = 0;
     hstd::ext::ImmVec<DiaId> subnodes;
+    hstd::ext::ImmVec<DiaId> edges;
     org::imm::ImmAdapter     id;
 
     bool operator==(DiaNode const& other) const {
@@ -292,6 +300,15 @@ struct DiaNode {
     DESC_FIELDS(DiaNode, (subnodes));
 };
 
+struct DiaEdge : DiaNode {
+    bool operator==(DiaEdge const& other) const {
+        return DiaNode::operator==(other);
+    }
+    inline static const DiaNodeKind staticKind = DiaNodeKind::Edge;
+    DiaNodeKind getKind() const override { return staticKind; }
+    BOOST_DESCRIBE_CLASS(DiaEdge, (DiaNode), (), (), ());
+};
+
 struct DiaNodeLayer : DiaNode {
     bool operator==(DiaNodeLayer const& other) const {
         return DiaNode::operator==(other);
@@ -319,6 +336,16 @@ struct DiaNodeGroup : DiaNode {
     BOOST_DESCRIBE_CLASS(DiaNodeGroup, (DiaNode), (), (), ());
 };
 
+struct DiaNodeEdge : DiaNode {
+    bool operator==(DiaNodeEdge const& other) const {
+        return DiaNode::operator==(other);
+    }
+    inline static const DiaNodeKind staticKind = DiaNodeKind::Group;
+    DiaNodeKind getKind() const override { return staticKind; }
+    BOOST_DESCRIBE_CLASS(DiaNodeEdge, (DiaNode), (), (), ());
+};
+
+
 struct DiaNodeItem : DiaNode {
     bool operator==(DiaNodeItem const& other) const {
         return DiaNode::operator==(other);
@@ -326,10 +353,23 @@ struct DiaNodeItem : DiaNode {
 
     inline static const DiaNodeKind staticKind = DiaNodeKind::Item;
 
-    struct Pos {
-        int x;
-        int y;
-        DESC_FIELDS(Pos, (x, y));
+    struct RectSpacing {
+        hstd::Opt<int> top;
+        hstd::Opt<int> left;
+        hstd::Opt<int> bottom;
+        hstd::Opt<int> right;
+        DESC_FIELDS(RectSpacing, (top, left, bottom, right));
+    };
+
+    struct Geometry {
+        hstd::Opt<Size>  size;
+        hstd::Opt<Point> pos;
+        /// \brief Minimal space between node item and the inner elements
+        hstd::Opt<RectSpacing> padding;
+        /// \brief Minimal space between node item and the surrounding
+        /// elements
+        hstd::Opt<RectSpacing> margin;
+        DESC_FIELDS(Geometry, (size, pos, padding, margin));
     };
 
 
@@ -337,10 +377,24 @@ struct DiaNodeItem : DiaNode {
         return id.as<org::imm::ImmSubtree>();
     }
 
-    Pos getPos() const {
-        return getStructuredProperty<Pos>(
-                   getSubtree(), DiaPropertyNames::diagramPosition)
-            .value();
+    hstd::Result<Geometry, std::string> getGeometry() const {
+        BOOST_OUTCOME_TRY(
+            auto geometry,
+            getStructuredProperty<Geometry>(
+                getSubtree(), DiaPropertyNames::diagramGeometry));
+        return geometry;
+    }
+
+    hstd::Result<Point, std::string> getPos() const {
+        BOOST_OUTCOME_TRY(
+            auto geometry,
+            getStructuredProperty<Geometry>(
+                getSubtree(), DiaPropertyNames::diagramGeometry));
+
+        BOOST_OUTCOME_TRY_OPTIONAL(
+            pos, geometry.pos, "geometry has no position");
+
+        return pos;
     }
 
 
@@ -403,6 +457,11 @@ struct std::hash<DiaNodeItem> {
 template <>
 struct std::hash<DiaNode> {
     std::size_t operator()(DiaNode const& it) const noexcept;
+};
+
+template <>
+struct std::hash<DiaNodeEdge> {
+    std::size_t operator()(DiaNodeEdge const& it) const noexcept;
 };
 
 template <typename T>
@@ -517,6 +576,17 @@ struct DiaAdapter {
         return id.getSelfPathFromRoot();
     }
 
+    template <typename T>
+    hstd::Result<T, std::string> getStructuredSubtreeProperty(
+        std::string const& name) const {
+        BOOST_OUTCOME_TRY(
+            auto res,
+            getStructuredProperty<T>(
+                getImmAdapter().as<org::imm::ImmSubtree>(), name));
+
+        return res;
+    }
+
     int getSelfIndex() const;
 
     bool hasParent() const { return 0 < id.path.path.size(); }
@@ -584,6 +654,12 @@ struct std::formatter<DiaAdapter> : std::formatter<std::string> {
 DiaAdapter FromDocument(
     hstd::SPtr<DiaContext> const&                       context,
     org::imm::ImmAdapterT<org::imm::ImmDocument> const& root);
+
+hstd::described_predicate_result isSubtreeItem(
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree);
+
+hstd::described_predicate_result isSubtreeLayer(
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree);
 
 
 /// \brief Single edit operation on the path to transform the source

@@ -124,6 +124,8 @@ function(set_target_flags_impl)
                           "-fxray-attr-list=${BASE}/scripts/cxx_repository/xray_list.txt")
     endif()
 
+    add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS IMMER_TAGGED_NODE=0)
+
     if(${ORG_USE_PERFETTO})
       add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_PERFETTO)
     endif()

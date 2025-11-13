@@ -37,9 +37,108 @@
 #include <src/utils/common.hpp>
 #include <src/utils/file_watcher.hpp>
 #include <QFileSystemWatcher>
+#include <src/model/graph/IOrgGraph.hpp>
+#include <src/model/graph/DiaGraph.hpp>
 
-#pragma clang diagnostic ignored "-Wmacro-redefined"
-#define _cat "main"
+class CliApplication : public QCoreApplication {
+    Q_OBJECT
+  public:
+    StartupArgc conf;
+
+    org::imm::ImmAstContext::Ptr imm_context;
+    DiaContext::Ptr              dia_context;
+    DiaVersionStore::Ptr         version_store;
+    hstd::SPtr<DiaGraph>         dia_graph;
+
+    hstd::SPtr<DiaHierarchyEdgeCollection> hierarchy_collection;
+    hstd::SPtr<DiaSubtreeIdTracker>        subtree_id_tracker;
+    hstd::SPtr<DiaDescriptionListEdgeCollection>
+        description_list_collection;
+
+    CliApplication(int argc, char* argv[], StartupArgc const& conf)
+        : QCoreApplication{argc, argv}
+        , conf{conf}
+        , imm_context{org::imm::ImmAstContext::init_start_context()}
+        , dia_context{DiaContext::shared()}
+        , version_store{DiaVersionStore::shared(imm_context, dia_context)}
+        , dia_graph{std::make_shared<DiaGraph>(dia_context)}
+        , hierarchy_collection{std::make_shared<
+              DiaHierarchyEdgeCollection>(dia_context, dia_graph)}
+        , subtree_id_tracker(
+              std::make_shared<DiaSubtreeIdTracker>(dia_graph))
+        , description_list_collection(
+              std::make_shared<DiaDescriptionListEdgeCollection>(
+                  dia_graph,
+                  subtree_id_tracker)) {
+
+        // dia_graph->addCollection(hierarchy_collection);
+        dia_graph->addTracker(subtree_id_tracker);
+        dia_graph->addCollection(description_list_collection);
+
+        connect(
+            version_store.get(),
+            &DiaVersionStore::diaRootChanged,
+            this,
+            &CliApplication::diaRootChanged);
+    }
+
+    void loadFile(std::string const& path) {
+        version_store->addDocument(hstd::readFile(path));
+
+        HSLOG_DEBUG(
+            "Constructed tree:\n{}",
+            version_store->getActiveDiaRoot().format().toString(false));
+    }
+
+  public slots:
+    void diaRootChanged(DiaVersionStore::DiaRootChange const& change) {
+        TRACKED_SLOT("diaRootChanged", change);
+        hstd::Vec<org::graph::VertexID> added;
+        hstd::Vec<org::graph::VertexID> removed;
+        for (auto const& edit : change.edits) {
+            switch (edit.getKind()) {
+                case DiaEdit::Kind::Delete: {
+                    auto aux = [&](DiaAdapter const& a,
+                                   auto&&            self) -> void {
+                        removed.push_back(dia_graph->delVertex(a.uniq()));
+                        for (auto const& sub : a.sub(true)) {
+                            self(sub, self);
+                        }
+                    };
+                    aux(edit.getSrc(), aux);
+                    break;
+                }
+
+                case DiaEdit::Kind::Insert: {
+                    auto aux = [&](DiaAdapter const& a,
+                                   auto&& self) -> org::graph::VertexID {
+                        auto added_vertex = dia_graph->addVertex(a.uniq());
+                        added.push_back(added_vertex);
+                        for (auto const& sub : a.sub(true)) {
+                            auto sub_vertex = self(sub, self);
+                            dia_graph->trackSubVertexRelation(
+                                added_vertex, sub_vertex);
+                        }
+
+                        return added_vertex;
+                    };
+                    // Discarding root vertices in the graph as there are
+                    // no super-vertices to attach them to.
+                    std::ignore = aux(edit.getDst(), aux);
+                    break;
+                }
+
+                case DiaEdit::Kind::Update:
+                case DiaEdit::Kind::Move: {
+                    // discard operations
+                }
+            }
+        }
+
+        dia_graph->untrackVertexList(removed);
+        dia_graph->trackVertexList(added);
+    }
+};
 
 int main(int argc, char* argv[]) {
     hstd::log::push_sink(
@@ -48,32 +147,39 @@ int main(int argc, char* argv[]) {
     get_tracker()->start_tracing();
 
     auto conf = hstd::from_json_eval<StartupArgc>(json::parse(argv[1]));
-    QFileSystemWatcher watcher;
+
+    if (conf.mode == StartupArgc::Mode::Gui) {
+        QApplication       app{argc, argv};
+        QFileSystemWatcher watcher;
 
 
-    qInstallMessageHandler(customMessageHandler);
-    QApplication app{argc, argv};
-    QLoggingCategory::setFilterRules("qt.qpa.painting.debug=true");
+        qInstallMessageHandler(customMessageHandler);
+        QLoggingCategory::setFilterRules("qt.qpa.painting.debug=true");
 
-    auto window = std::make_shared<MainWindow>(conf);
+        auto window = std::make_shared<MainWindow>(conf);
 
-    QObject::connect(
-        &watcher,
-        &QFileSystemWatcher::fileChanged,
-        [&](QString const& event) {
-            HSLOG_TRACE(
-                _cat, "File changed:{}", event.toStdString());
-            window->loadFile(event);
-        });
+        QObject::connect(
+            &watcher,
+            &QFileSystemWatcher::fileChanged,
+            [&](QString const& event) {
+                HSLOG_TRACE("File changed:{}", event.toStdString());
+                window->loadFile(event);
+            });
 
-    watcher.addPath(QString::fromStdString(conf.documentPath));
+        watcher.addPath(QString::fromStdString(conf.documentPath));
 
 
-    window->show();
+        window->show();
 
-    int result = app.exec();
-    get_tracker()->end_tracing();
-    return result;
+        int result = app.exec();
+        get_tracker()->end_tracing();
+        return result;
+    } else if (conf.mode == StartupArgc::Mode::MindMapDump) {
+        CliApplication app{argc, argv, conf};
+        app.loadFile(conf.documentPath);
+        auto serial = app.dia_graph->getGraphSerial();
+        hstd::writeFile(conf.outputPath, serial.dump(2));
+    }
 }
 
 #include "main.moc"

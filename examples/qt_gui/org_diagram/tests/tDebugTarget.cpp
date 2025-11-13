@@ -7,58 +7,62 @@
 #include <QSignalSpy>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/exporters/exportertree.hpp>
+#include <src/model/layout/ElkLayoutManager.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
-#define _cat "test.history"
 
 using namespace test;
 
 using S  = DiaVersionStore;
 using EC = S::EditCmd;
 
+using namespace dia::layout;
+
 class DebugTarget : public QObject {
   public slots:
-    void run_thing() {
-        auto __scope = trackTestExecution(this);
 
-        ScopeDiaContextEdits scope;
+    void testDirectStringLayout() {
+        auto             __scope = trackTestExecution(this);
+        ElkLayoutManager layoutManager{JNI_ELK_LIB_JAR_PATH};
 
-        scope.imm_context->debug->setTraceFile(
-            getDebugFile(this, "imm_context_trace.log"));
+        // Example JSON input (you would construct this based on your
+        // diagram data)
+        std::string inputJson = R"({
+        "id": "root",
+        "children": [
+            {"id": "node1", "width": 100, "height": 50},
+            {"id": "node2", "width": 100, "height": 50}
+        ],
+        "edges": [
+            {"id": "edge1", "sources": ["node1"], "targets": ["node2"]}
+        ]
+    })";
 
-        auto res = scope.setText(makeLayerText(
-            DiaNodeLayerParams{},
-            hstd::Vec{
-                ditem(2, "item 1"),
-                ditem(2, "item 2"),
-                ditem(3, "item 3-0"),
-                ditem(3, "item 3-1"),
-            }));
-
-
-        {
-            auto root = scope.getRoot();
-            QCOMPARE_EQ2(root.size(), 1);
-            QCOMPARE_EQ2(root.at(0, true).size(), 1);
-            QCOMPARE_EQ2(root.at(0, true).at(0, true).size(), 2);
+        // Perform multiple layouts
+        for (int i = 0; i < 5; ++i) {
+            std::string result = layoutManager.layoutDiagram(inputJson);
         }
+    }
 
-        QSignalSpy updateSpy{
-            scope.version_store.get(), &DiaVersionStore::diaRootChanged};
+    void testSerializedGraphLayout() {
+        auto             __scope = trackTestExecution(this);
+        ElkLayoutManager layoutManager{JNI_ELK_LIB_JAR_PATH};
 
-        DiaAdapter target = res.dia.atPath({0, 0}, true);
-        LOGIC_ASSERTION_CHECK(target.getKind() == DiaNodeKind::Item, "");
+        layoutManager.layoutDiagram(elk::Graph{
+            .id       = "root",
+            .children = hstd::Vec<
+                elk::
+                    Node>{elk::Node{.id = "node1", .width = 100, .height = 100}, elk::Node{.id = "node2", .width = 100, .height = 100}},
+            .edges = hstd::Vec<elk::Edge>{elk::Edge{
+                .id      = "edge1",
+                .sources = hstd::Vec<hstd::Str>{"node1"},
+                .targets = hstd::Vec<hstd::Str>{"node2"} //
+            }}});
+    }
 
-        scope.version_store->applyDiaEdits(
-            S::EditGroup::MoveNodesUnderExisting(
-                target.uniq(),
-                hstd::Vec<DiaUniqId>{
-                    res.dia.atPath({0, 1, 0}, true).uniq(),
-                    res.dia.atPath({0, 1, 1}, true).uniq(),
-                },
-                0));
-
-        QCOMPARE_EQ(updateSpy.count(), 1);
+    void run_thing() {
+        testDirectStringLayout();
+        testSerializedGraphLayout();
         QApplication::quit();
     }
 };
@@ -66,6 +70,8 @@ class DebugTarget : public QObject {
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
     DebugTarget  dt;
+    hstd::log::push_sink(
+        hstd::log::init_file_sink(getDebugFile(&dt, "main.log").native()));
     QTimer::singleShot(0, &dt, &DebugTarget::run_thing);
     return app.exec();
 }

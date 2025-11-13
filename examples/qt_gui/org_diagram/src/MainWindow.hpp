@@ -16,8 +16,11 @@
 #include <src/model/DiaVersionStore.hpp>
 
 struct StartupArgc {
+    DECL_DESCRIBED_ENUM(Mode, Gui, MindMapDump);
     std::string documentPath;
-    DESC_FIELDS(StartupArgc, (documentPath));
+    std::string outputPath;
+    Mode        mode;
+    DESC_FIELDS(StartupArgc, (documentPath, mode, outputPath));
 };
 
 class DiaSelectionManager : public QObject {

@@ -11,11 +11,28 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <boost/outcome.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Outcome.hpp>
 
 namespace hstd {
 
 
+/// \brief Map 32-bit value to 16-bit
+inline std::uint16_t hash_to_uint16(std::size_t value) {
 
+    // Use golden ratio approximation for good distribution
+    constexpr std::size_t golden_ratio //
+        = sizeof(std::size_t) == 8
+            // 64-bit golden ratio * 2^64
+            ? 0x9e3779b97f4a7c15ULL
+            // 32-bit golden ratio * 2^32
+            : 0x9e3779b9UL;
+
+    value *= golden_ratio;
+
+    // Take upper bits for better distribution
+    return static_cast<std::uint16_t>(
+        value >> (sizeof(std::size_t) * 8 - 16));
+}
 
 template <typename T>
 struct WPtr_safe : std::weak_ptr<T> {
@@ -103,10 +120,6 @@ std::string qdebug_to_str(T const& index) {
     return output.toStdString();
 }
 
-namespace hstd {
-hstd::Vec<ColText> split(ColText const& text, Str const& delimiter);
-} // namespace hstd
-
 hstd::finally_std trackTestExecution(
     QObject*         testClas,
     hstd::Str const& suffix   = "",
@@ -159,8 +172,7 @@ bool haxorg_qCompareOp(
     const char* file,
     int         line) {
     using Comparator = QTest::Internal::Compare<op>;
-    bool success     = Comparator::compare(
-        std::forward<T1>(qt_lhs_arg), std::forward<T2>(qt_lhs_arg));
+    bool success     = Comparator::compare(qt_lhs_arg, qt_lhs_arg);
     return QTest::reportResult(
         success,
         [&qt_lhs_arg] {
@@ -198,9 +210,8 @@ bool haxorg_qCompareOp(
     QCOMPARE_OP_IMPL(computed, baseline, >=, GreaterThanOrEqual)
 
 
-
 template <typename T>
-outcome::result<T, std::string> getStructuredProperty(
+hstd::outcome::result<T, std::string> getStructuredProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
     std::string const&                                 kind) {
     BOOST_OUTCOME_TRY_OPTIONAL(
@@ -209,11 +220,22 @@ outcome::result<T, std::string> getStructuredProperty(
         hstd::fmt("Property :prop_json:{}: not found", kind));
 
     BOOST_OUTCOME_TRY_SUB_VARIANT(json_data, property, CustomSubtreeJson);
-    return hstd::from_json_eval<T>(json_data.value.getRef());
+    try {
+        return hstd::from_json_eval<T>(json_data.value.getRef());
+    } catch (json::type_error& err) {
+        return hstd::fmt(
+            "Property :prop_json:{}: JSON did not match the expected "
+            "structure. While reading type {}, got error: {}. JSON syntax "
+            "is valid, the value is {}",
+            kind,
+            hstd::value_metadata<T>::typeName(),
+            err.what(),
+            json_data.value.getRef().dump());
+    }
 }
 
 
-outcome::result<org::sem::AttrGroup const*, std::string> getFlagProperty(
+hstd::outcome::result<org::sem::AttrGroup const*, std::string> getFlagProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
     std::string const&                                 kind);
 
@@ -230,3 +252,46 @@ bool hasArgsProperty(
     std::string const&                                 kind);
 
 void q_register_metatypes();
+
+
+template <typename T, typename Field>
+auto get_optional_field(const std::optional<T>& opt, Field T::*field_ptr)
+    -> std::conditional_t<
+        std::is_same_v<Field, std::optional<typename Field::value_type>>,
+        std::optional<typename Field::value_type>,
+        std::optional<Field>> {
+    if (!opt) { return std::nullopt; }
+
+    if constexpr (requires { typename Field::value_type; }) {
+        if constexpr (std::is_same_v<
+                          Field,
+                          std::optional<typename Field::value_type>>) {
+            return opt.value().*field_ptr;
+        } else {
+            return opt.value().*field_ptr;
+        }
+    } else {
+        return opt.value().*field_ptr;
+    }
+}
+
+struct Pos {
+    int x;
+    int y;
+    DESC_FIELDS(Pos, (x, y));
+};
+
+template <typename V, typename E>
+struct std::formatter<hstd::Result<V, E>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const hstd::Result<V, E>& p, FormatContext& ctx) const {
+        if (p) {
+            hstd::fmt_ctx("Ok(", ctx);
+            hstd::fmt_ctx(p.assume_value(), ctx);
+        } else {
+            hstd::fmt_ctx("Err(", ctx);
+            hstd::fmt_ctx(p.assume_error(), ctx);
+        }
+        return hstd::fmt_ctx(")", ctx);
+    }
+};

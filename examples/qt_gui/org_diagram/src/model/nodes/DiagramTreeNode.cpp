@@ -24,27 +24,24 @@ HSTD_REGISTER_TYPE_FIELD_NAMES(DiaNodeItem);
 
 hstd::described_predicate_result isSubtreeItem(
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
-    auto position = getStructuredProperty<DiaNodeItem::Pos>(
-        subtree, DiaPropertyNames::diagramPosition);
-
-    if (position.has_value()
-        && hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)) {
+    if (hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)) {
         return true;
     } else {
         return hstd::described_predicate_error::init(hstd::fmt(
             "{} (title: {}) does not meet the criteria: top-level "
-            "subtree "
-            "for subtree item must have :prop_json:{} and "
-            ":prop_args:{} "
-            "properties. has position:{} has diagram node:{}",
+            "subtree for subtree item must have :prop_json:{} ",
             subtree.uniq(),
             subtree.getCleanTitle(),
-            DiaPropertyNames::diagramPosition,
-            DiaPropertyNames::isDiagramNode,
-            position.has_value() ? "true" : position.error(),
-            hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)));
+            DiaPropertyNames::isDiagramNode));
     }
 }
+
+hstd::described_predicate_result isSubtreeLayer(
+    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
+    return hstd::described_predicate_error::init(
+        "placeholder predicate temporary");
+}
+
 
 DiaNodeItem FromSubtreeItem(
     hstd::SPtr<DiaContext> const&                      context,
@@ -57,31 +54,33 @@ DiaNodeItem FromSubtreeItem(
 }
 
 
-DiaId FromSubtreeItemRec(
+hstd::Vec<DiaId> FromSubtreeItemRec(
     hstd::SPtr<DiaContext> const&                      context,
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
-    HSLOG_INFO("Subtree item {}", subtree.uniq());
-    HSLOG_DEPTH_SCOPE_ANON();
-    LOGIC_ASSERTION_CHECK_DESCRIBED(isSubtreeItem(subtree));
+    auto aux = [&context](
+                   const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
+                   auto&& self) -> hstd::Vec<DiaId> {
+        // HSLOG_TRACE(
+        //     "Subtree item '{}' {}", node.getCleanTitle(), node.uniq());
+        // HSLOG_DEPTH_SCOPE_ANON();
 
-    auto result = FromSubtreeItem(context, subtree);
-
-    auto tmp = result.subnodes.transient();
-
-    hstd::Vec<org::imm::ImmAdapterT<org::imm::ImmSubtree>>
-        subnodes = subtree.subAs<org::imm::ImmSubtree>();
-
-    if (hstd::rs::any_of(subnodes, [](auto const& it) -> bool {
-            return isSubtreeItem(it).has_value();
-        })) {
-        for (auto const& sub : subnodes) {
-            tmp.push_back(FromSubtreeItemRec(context, sub));
+        hstd::Vec<DiaId> tmp;
+        for (auto const& sub : node.subAs<org::imm::ImmSubtree>()) {
+            tmp.append(self(sub, self));
         }
-    }
 
+        if (isSubtreeItem(node)) {
+            // HSLOG_TRACE("Found diagram subtree");
+            auto result     = FromSubtreeItem(context, node);
+            result.subnodes = hstd::ext::ImmVec<DiaId>{
+                tmp.begin(), tmp.end()};
+            return {context->add(result)};
+        } else {
+            return tmp;
+        }
+    };
 
-    result.subnodes = tmp.persistent();
-    return context->add(result);
+    return aux(subtree, aux);
 }
 
 
@@ -93,20 +92,50 @@ DiaAdapter FromDocument(
     auto canvas = DiaNodeCanvas{};
     canvas.id   = root;
 
-    auto canvas_tmp = canvas.subnodes.transient();
+    bool has_layers = false;
     for (auto const& layerNode : root.subAs<org::imm::ImmSubtree>()) {
-        auto layer = DiaNodeLayer{};
-        layer.id   = layerNode;
-        auto tmp   = layer.subnodes.transient();
-        for (auto const& subtreeNode :
-             layerNode.subAs<org::imm::ImmSubtree>()) {
-            tmp.push_back(FromSubtreeItemRec(context, subtreeNode));
-        }
-        layer.subnodes = tmp.persistent();
-        canvas_tmp.push_back(context->add(layer));
+        if (isSubtreeLayer(layerNode)) { has_layers = true; }
     }
 
-    canvas.subnodes = canvas_tmp.persistent();
+    if (has_layers) {
+        HSLOG_TRACE(
+            "Found layer nodes in the document, using top-level subtrees "
+            "as layer config");
+        auto canvas_tmp = canvas.subnodes.transient();
+        for (auto const& layerNode : root.subAs<org::imm::ImmSubtree>()) {
+            auto layer = DiaNodeLayer{};
+            layer.id   = layerNode;
+            auto tmp   = layer.subnodes.transient();
+            for (auto const& subtreeNode :
+                 layerNode.subAs<org::imm::ImmSubtree>()) {
+                for (auto const& n :
+                     FromSubtreeItemRec(context, subtreeNode)) {
+                    tmp.push_back(n);
+                }
+            }
+            layer.subnodes = tmp.persistent();
+            canvas_tmp.push_back(context->add(layer));
+        }
+
+        canvas.subnodes = canvas_tmp.persistent();
+    } else {
+        HSLOG_TRACE(
+            "No layer found in the document, using document as a single "
+            "layer");
+        auto layer = DiaNodeLayer{};
+        layer.id   = root;
+        auto tmp   = layer.subnodes.transient();
+        for (auto const& subtreeNode :
+             root.subAs<org::imm::ImmSubtree>()) {
+            auto items = FromSubtreeItemRec(context, subtreeNode);
+            for (auto const& n : items) { tmp.push_back(n); }
+        }
+
+        layer.subnodes  = tmp.persistent();
+        canvas.subnodes = canvas.subnodes.push_back(context->add(layer));
+    }
+
+
     return DiaAdapter::Root(context->add(canvas), context);
 }
 
@@ -530,10 +559,10 @@ int DiaAdapter::getSelfIndex() const {
 
 hstd::Opt<DiaAdapter> DiaAdapter::getParent() const {
     if (hasParent()) {
-        HSLOG_FMT1(id);
-        HSLOG_FMT1(id.path);
+        HSLOG_DEBUG_FMT1(id);
+        HSLOG_DEBUG_FMT1(id.path);
         org::imm::ImmPath parentPath = id.path.pop();
-        HSLOG_FMT1(parentPath);
+        HSLOG_DEBUG_FMT1(parentPath);
         return DiaAdapter{
             DiaUniqId{ctx->at(id.root, parentPath), id.root, parentPath},
             ctx};
@@ -788,11 +817,11 @@ DiaId DiaContext::at(DiaId node, const org::imm::ImmPathStep& item) const {
 
 DiaId DiaContext::at(DiaId root, const org::imm::ImmPath& path) const {
     DiaId result = root;
-    HSLOG_FMT1(result);
+    HSLOG_DEBUG_FMT1(result);
     for (auto const& step : path.path) {
-        HSLOG_FMT1(step);
+        HSLOG_DEBUG_FMT1(step);
         result = at(result, step);
-        HSLOG_FMT1(result);
+        HSLOG_DEBUG_FMT1(result);
     }
     return result;
 }
@@ -940,5 +969,10 @@ std::size_t std::hash<DiaNodeGroup>::operator()(
 
 std::size_t std::hash<DiaNodeItem>::operator()(
     const DiaNodeItem& it) const noexcept {
+    return dia_hash_build(it);
+}
+
+std::size_t std::hash<DiaNodeEdge>::operator()(
+    const DiaNodeEdge& it) const noexcept {
     return dia_hash_build(it);
 }

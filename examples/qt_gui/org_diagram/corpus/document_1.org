@@ -2,69 +2,79 @@
 
 ** root
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":0,"y":0}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
     :end:
 
+#+attr_list: :attached subtree
+- [[id:eb2da0e7-a5dd-4aca-a452-e9eb352d2502][common leaf]] :: in group A
 
 *** group A
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":10,"y":10}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
     :end:
 
 
 **** common leaf
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":11,"y":11}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
+    :ID:       eb2da0e7-a5dd-4aca-a452-e9eb352d2502
     :end:
 
 
 **** new shared
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":14,"y":14}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
     :end:
 
 
 *** group B
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":20,"y":10}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
     :end:
 
 
 **** leaf B2
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":22,"y":12}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
     :end:
+
+#+attr_list: :attached subtree
+- [[id:eb2da0e7-a5dd-4aca-a452-e9eb352d2502][common leaf]] :: Linking to subtree description
+- [[id:160d1172-f0c7-4658-8937-794f0c7a3f43][shared item]] :: other subtree
+
+  Additional text and description for the edge
 
 
 **** new shared
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":23,"y":13}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
     :end:
 
 
 *** group C
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":30,"y":10}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
     :end:
 
 
 **** common leaf
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":32,"y":12}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
     :end:
 
 
 **** shared item
     :properties:
-    :prop_json:haxorg_diagram_position: {"x":31,"y":11}
+    :prop_json:HAXORG_DIAGRAM_GEOMETRY: {"size": {"width": 200, "height": 100}}
     :prop_args:haxorg_diagram_node:
+    :ID:       160d1172-f0c7-4658-8937-794f0c7a3f43
     :end:

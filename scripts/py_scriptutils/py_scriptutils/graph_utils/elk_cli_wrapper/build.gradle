@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.eclipse.elk:org.eclipse.elk.core:0.11.0'
+    implementation 'org.eclipse.elk:org.eclipse.elk.graph.json:0.11.0'
+    implementation 'org.eclipse.elk:org.eclipse.elk.alg.layered:0.11.0'
+    implementation 'org.eclipse.elk:org.eclipse.elk.alg.force:0.11.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+}
+
+application {
+    mainClass = 'com.example.elk.ElkLayoutCli'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.example.elk.ElkLayoutCli'
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

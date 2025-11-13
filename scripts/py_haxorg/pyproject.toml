@@ -6,5 +6,5 @@ authors = ["haxscramper <haxscramper@gmail.com>"]
 readme = "README.org"
 
 [tool.poetry.dependencies]
-python = "^3.9.0 <3.14"
+python = "^3.10.0 <3.14"
 beartype = "^0.20.0"

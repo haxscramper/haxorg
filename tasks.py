@@ -1,4 +1,4 @@
-from plumbum import local, ProcessExecutionError, FG, BG, NOHUP
+from plumbum import local, ProcessExecutionError, FG, BG, NOHUP, CommandNotFound
 import plumbum
 import re
 from py_scriptutils.script_logging import log
@@ -21,14 +21,17 @@ import json
 import sys
 import traceback
 import itertools
-from py_scriptutils.repo_files import HaxorgConfig
-from py_repository.gen_coverage_cookies import ProfdataParams, ProfdataFullProfile, ProfdataCookie
+from py_repository.repo_tasks.config import (
+    HaxorgConfig,
+    HaxorgCoverageCookiePattern,
+    HaxorgCoverageAggregateFilter,
+    get_config,
+)
+
+from py_repository.coverage_collection.gen_coverage_cookies import ProfdataParams, ProfdataFullProfile, ProfdataCookie
 from py_scriptutils.algorithm import remove_ansi, maybe_splice, cond
 from py_scriptutils.toml_config_profiler import merge_dicts
 from py_scriptutils import os_utils
-import typing
-import inspect
-import copy
 import shutil
 import signal
 import psutil
@@ -44,11 +47,8 @@ from py_ci.data_build import (
     CmakeOptConfig,
     ExternalDep,
 )
-from py_scriptutils.repo_files import (
-    HaxorgConfig,
-    HaxorgCoverageCookiePattern,
-    HaxorgCoverageAggregateFilter,
-)
+
+from py_repository.repo_tasks.common import *
 
 from tempfile import TemporaryDirectory
 
@@ -84,33 +84,6 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
 
 # Register the custom traceback handler
 sys.excepthook = custom_traceback_handler
-
-
-@beartype
-def ensure_clean_dir(dir: Path):
-    if dir.exists():
-        shutil.rmtree(str(dir))
-
-    dir.mkdir(parents=True, exist_ok=True)
-
-
-@beartype
-def ensure_existing_dir(dir: Path):
-    dir.mkdir(parents=True, exist_ok=True)
-
-
-@beartype
-def ensure_clean_file(file: Path):
-    ensure_existing_dir(file.parent)
-    file.write_text("")
-
-
-def get_script_root(relative: Optional[str] = None) -> Path:
-    current_script_path = os.path.abspath(__file__)
-    value = Path(os.path.dirname(current_script_path)).resolve()
-    if relative:
-        value = value.joinpath(relative)
-    return value
 
 
 @beartype
@@ -156,45 +129,6 @@ def matches_pattern(cookie: ProfdataCookie, pattern: HaxorgCoverageCookiePattern
 
 
 @beartype
-def get_real_build_basename(ctx: Context, component: str) -> str:
-    """
-    Get basename of the binary output directory for component
-    """
-    result = component + "_" + ("debug" if get_config(ctx).debug else "release")
-    if get_config(ctx).emscripten.build:
-        result += "_emscripten"
-
-    if get_config(ctx).instrument.coverage:
-        result += "_instrumented"
-
-    return result
-
-
-@beartype
-def get_component_build_dir(ctx: Context, component: str) -> Path:
-    result = get_build_root(get_real_build_basename(ctx, component))
-    result.mkdir(parents=True, exist_ok=True)
-    return result
-
-
-@beartype
-def get_build_root(relative: Optional[str] = None) -> Path:
-    value = get_script_root().joinpath("build")
-    if relative:
-        value = value.joinpath(relative)
-
-    return value
-
-
-@beartype
-def get_build_tmpdir(ctx: Context, component: str) -> Path:
-    result = get_build_root().joinpath("tmp").joinpath(
-        get_real_build_basename(ctx, component))
-    ensure_existing_dir(result)
-    return result
-
-
-@beartype
 def get_tmpdir(*name: str) -> str:
     return str(Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name))
 
@@ -212,45 +146,6 @@ def get_llvm_root(relative: Optional[str] = None) -> Path:
 
 
 from py_scriptutils.script_logging import pprint_to_file, to_debug_json
-
-CONFIG_CACHE: Optional[HaxorgConfig] = None
-
-
-def get_config(ctx: Context) -> HaxorgConfig:
-    global CONFIG_CACHE
-    if CONFIG_CACHE:
-        return CONFIG_CACHE
-
-    else:
-        res_dict = dict()
-
-        def aux(it):
-            match it:
-                case bool() | None | str() | type():
-                    return it
-
-                case list():
-                    return [aux(i) for i in it]
-
-                case _:
-                    out = dict()
-                    for key in it:
-                        out[key] = aux(it[key])
-
-                    return out
-
-        ctx_dict = aux(ctx.config)
-
-        env_dict = parse_haxorg_env()
-        log(CAT).info(f"Parsed haxorg env variables")
-        print(json.dumps(to_debug_json(env_dict), indent=2))
-        res_dict = merge_dicts([ctx_dict, env_dict])
-        log(CAT).info(f"Final parsed dictionary")
-        print(json.dumps(to_debug_json(res_dict), indent=2))
-
-        CONFIG_CACHE = HaxorgConfig(**res_dict)
-
-        return CONFIG_CACHE
 
 
 def is_instrumented_coverage(ctx: Context) -> bool:
@@ -302,18 +197,6 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
 
     else:
         return {}
-
-
-@beartype
-def get_log_dir() -> Path:
-    res = get_build_root().joinpath("logs")
-    ensure_existing_dir(res)
-    return res
-
-
-@beartype
-def get_cmd_debug_file(kind: str):
-    return get_log_dir().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
 
 
 class RunCommandKwargs(TypedDict, total=False):
@@ -530,11 +413,13 @@ def run_cmake_configure_component(
             get_component_build_dir(ctx, component),
             "-S",
             get_script_root(script_path),
+            # "--fresh",
             cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
             cmake_opt("ORG_USE_COVERAGE",
                       get_config(ctx).instrument.coverage),
             "-G",
             "Ninja",
+            "-Wno-dev",
         ] + args,
         **kwargs,
     )
@@ -560,108 +445,6 @@ def run_cmake_build_component(
     )
 
 
-@beartype
-def ui_notify(message: str, is_ok: bool = True):
-    try:
-        cmd = local["notify-send"]
-        cmd.run(
-            [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
-
-    except Exception:
-        if is_ok:
-            log(CAT).info(message)
-
-        else:
-            log(CAT).error(message)
-
-
-TASK_DEPS: Dict[Callable, List[Callable]] = {}
-TASK_STACK: List[str] = []
-
-
-@beartype
-def org_task(
-        task_name: Optional[str] = None,
-        pre: List[Callable] = [],
-        force_notify: bool = False,
-        pre_optional: List[Callable] = [],
-        help=dict(),
-        **kwargs,
-) -> Callable:
-
-    help_base = copy.copy(help)
-
-    def org_inner(func: Callable) -> Callable:
-        TASK_DEPS[func] = pre
-
-        signature = inspect.signature(func)
-        params = signature.parameters
-        arg_names = [param.name for param in params.values()]
-        type_annotations = typing.get_type_hints(func)
-
-        updated_help = dict()
-
-        for arg in arg_names:
-            if arg in ["ctx"]:
-                continue
-
-            cli = arg.replace("_", "-")
-            if arg in type_annotations:
-                T = type_annotations[arg]
-                if isinstance(T, (type(bool), type(int), type(float))):
-                    description = ""
-
-                else:
-                    description = f"{str(T)}"
-
-            else:
-                description = ""
-
-            if cli in help_base:
-                if description:
-                    description += " "
-
-                description += f"{help_base[cli]}"
-
-            updated_help[cli] = description
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            name = task_name or func.__name__
-            log(CAT).info(f"Running [yellow]{name}[/yellow] ...")
-            run_ok = False
-            try:
-                with GlobCompleteEvent(f"task {name}", "build") as last:
-                    assert os.getcwd() == str(get_script_root(
-                    )), "Invoke tasks must be executed from the root directory"
-                    TASK_STACK.append(name)
-                    result = func(*args, **kwargs)
-                    TASK_STACK.pop()
-
-                run_ok = True
-
-            finally:
-                log(CAT).info(
-                    f"Completed [green]{name}[/green] in [blue]{last.dur / 10e2:5.1f}[/blue]ms"
-                )
-
-                color = "green"
-                name_format = f"<span color='#{color}'>{name:^40}</span>"
-                if 100000 < last.dur or force_notify:
-                    ui_notify(
-                        f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
-                        is_ok=run_ok,
-                    )
-
-                GlobExportJson(get_build_root("task_build_time.json"))
-
-            return result
-
-        return task(wrapper, pre=pre, help=copy.copy(updated_help), **kwargs)
-
-    return org_inner
-
-
 def get_toolchain_path(ctx: Context) -> Path:
     if get_config(ctx).emscripten.build:
         result = Path(get_config(ctx).emscripten.toolchain)
@@ -682,6 +465,7 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
     result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
     result.append(cmake_opt("ORG_USE_QT", conf.use.qt))
+    # result.append(cmake_opt("CMAKE_CXX_INCLUDE_WHAT_YOU_USE", "/home/haxscramper/software/include-what-you-use/build/bin/include-what-you-use;--verbose=7"))
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
 
@@ -1067,7 +851,7 @@ def run_cmake_haxorg_clean(ctx: Context):
         stamp_path.unlink()
 
     os_utils.rmdir_quiet(get_build_root().joinpath("deps_build"))
-    os_utils.rmdir_quiet(get_deps_install_dir())
+    os_utils.rmdir_quiet(get_deps_install_dir(ctx))
 
 
 @org_task(iterable=["build_whitelist"])
@@ -1300,20 +1084,115 @@ def build_example_qt_gui_org_viewer(ctx: Context):
         "example_qt_gui_org_viewer",
     )
 
+
 @org_task(pre=[validate_dependencies_install])
 def configure_example_qt_gui_org_diagram(ctx: Context):
     run_cmake_configure_component(
         ctx,
         "example_qt_gui_org_diagram",
         "examples/qt_gui/org_diagram",
+        args=[cmake_opt("JAVA_HOME", "/usr/lib/jvm/default")],
     )
+
 
 @org_task(pre=[configure_example_qt_gui_org_diagram])
 def build_example_qt_gui_org_diagram(ctx: Context):
     run_cmake_build_component(
         ctx,
-        "example_qt_gui_org_viewer",
+        "example_qt_gui_org_diagram",
     )
+
+
+@org_task(pre=[build_example_qt_gui_org_diagram])
+def run_example_org_elk_diagram(ctx: Context, infile: str):
+    from py_scriptutils.graph_utils import haxorg_mind_map
+    from py_scriptutils.graph_utils import elk_converter
+    from py_scriptutils.graph_utils import elk_schema
+    from py_scriptutils.graph_utils import typst_schema
+    import igraph as ig
+
+    wrapper_dir = "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"
+    run_command(ctx,
+                "gradle",
+                args=["build"],
+                cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
+    run_command(ctx,
+                "gradle",
+                args=["install"],
+                cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
+    diagram_build_dir = get_component_build_dir(ctx, "example_qt_gui_org_diagram")
+    mman_initial_path = "/tmp/mind-map-dump.json"
+    run_command(ctx,
+                diagram_build_dir.joinpath("org_diagram"),
+                args=[
+                    json.dumps(
+                        dict(
+                            documentPath=infile,
+                            mode="MindMapDump",
+                            outputPath=mman_initial_path,
+                        ))
+                ])
+
+    mmap_model = haxorg_mind_map.Graph.model_validate(
+        json.loads(Path(mman_initial_path).read_text()))
+    mmap_igraph = haxorg_mind_map.convert_to_igraph(mmap_model)
+
+    mmap_igraph = mmap_igraph.induced_subgraph(
+        filter(lambda vertex: vertex["data"].vertexKind == "Item", mmap_igraph.vs))
+
+    mmap_walker = haxorg_mind_map.HaxorgMMapWalker(mmap_igraph, mmap_model)
+    from py_scriptutils.rich_utils import render_rich
+    Path("/tmp/mmap_walker_repr.txt").write_text(render_rich(mmap_walker.getRepr()))
+    pprint_to_file(to_debug_json(mmap_walker), "/tmp/mmap_walker.py")
+    mmap_elk = mmap_walker.getELKGraph()
+
+    pprint_to_file(mmap_elk, "/tmp/mmap_elk.py")
+
+    layout_script = Path(wrapper_dir).joinpath(
+        "build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
+    assert layout_script.exists()
+    mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))
+    
+    elk_converter.group_multi_layout(
+        mmap_elk_layout,
+        single_item_hyperedge=True,
+        hyperedge_polygon_width=2.0,
+    )
+
+    pprint_to_file(to_debug_json(mmap_elk_layout),
+                   "/tmp/mmap_elk_layout_post_hyperedge.py")
+    doc = elk_converter.graph_to_typst(mmap_elk_layout)
+
+    doc.subnodes.insert(
+        0,
+        typst_schema.Import(
+            path=str(get_haxorg_repo_root_path().joinpath(
+                "scripts/py_scriptutils/py_scriptutils/graph_utils/haxorg_mind_map.typ")),
+            items=["*"],
+        ))
+
+    final = typst_schema.generate_typst(doc)
+    final_path = Path("/tmp/result.typ")
+    log(CAT).info(f"Write final text to {final_path}")
+    final_path.write_text(final)
+
+    try:
+        fmt = local["typstyle"]
+        fmt.run(["--inplace", str(final_path)])
+
+    except CommandNotFound:
+        log.warning(
+            f"Could not find commands `typstyle` -- install it for auto-formatting `.typ` file after creation"
+        )
+
+    compile_cmd = local["typst"]
+    compile_cmd.run([
+        "compile",
+        str(final_path),
+        "--root",
+        "/",
+    ])
+
 
 @org_task(pre=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
 def build_example_qt_gui(ctx: Context):
@@ -1521,7 +1400,7 @@ def run_docker_release_test(
 
                 else:
                     return get_script_root()
-                    
+
             else:
                 if source_prefix:
                     assert source_prefix.is_absolute(), source_prefix
@@ -1548,7 +1427,7 @@ def run_docker_release_test(
                 "-e",
                 "PYTHONPATH=/haxorg/src/scripts/py_ci",
                 "-e",
-                f"HAXORG_THIRD_PARTY_DIR_PATH={docker_path("thirdparty")}",
+                f"HAXORG_THIRD_PARTY_DIR_PATH={docker_path('thirdparty')}",
                 CPACK_TEST_IMAGE,
                 *(["bash"] if interactive else [
                     # "ls",
@@ -2157,7 +2036,7 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
         [
             "run",
             "python",
-            "scripts/py_repository/py_repository/gen_coverage_cxx.py",
+            "scripts/py_repository/py_repository/coverage_collection/gen_coverage_cxx.py",
         ],
         env=get_py_env(ctx),
     )
@@ -2188,10 +2067,11 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
         exit(1)
 
 
-@org_task(pre=[
-    # build_haxorg, generate_python_protobuf_files, symlink_build,
+@org_task(
+    pre=[
+        # build_haxorg, generate_python_protobuf_files, symlink_build,
     ],
-          iterable=["arg"])
+    iterable=["arg"])
 def run_py_script(ctx: Context, script: str, arg: List[str] = []):
     """
     Run script with arguments with all environment variables set.

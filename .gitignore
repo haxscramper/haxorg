@@ -538,3 +538,10 @@ adaptagrams_debug.*
 libavoid-diagram.*
 thirdparty/scintilla
 _CPack_Packages
+
+gradle
+gradlew
+gradlew.bat
+!build.gradle
+!examples/qt_gui/org_diagram/jni_elk/build.gradle
+.gradle

@@ -185,7 +185,7 @@ struct DiaVersionStore
     org::imm::ImmAstContext::Ptr                        imm_context;
     DiaContext::Ptr                                     dia_context;
     hstd::Vec<org::imm::ImmAstVersion>                  history;
-    int                                                 active = 0;
+    int                                                 active = -1;
     hstd::UnorderedMap<org::imm::ImmUniqId, DiaAdapter> dia_trees;
 
     org::imm::ImmAstVersion getEditVersion(
@@ -218,11 +218,11 @@ struct DiaVersionStore
     DiaAdapter getDiaRoot(int index);
 
     struct DiaRootChange {
-        hstd::Vec<DiaEdit> edits;
-        DiaAdapter         newRoot;
-        DiaAdapter         oldRoot;
-        int                newIndex;
-        int                oldIndex;
+        hstd::Vec<DiaEdit>    edits;
+        DiaAdapter            newRoot;
+        hstd::Opt<DiaAdapter> oldRoot;
+        int                   newIndex;
+        int                   oldIndex;
         DESC_FIELDS(
             DiaRootChange,
             (edits, newRoot, oldRoot, newIndex, oldIndex));

@@ -130,7 +130,7 @@ struct ScopeDiagramTree {
     hstd::SPtr<DiaContext>       dia_context;
 
     org::imm::ImmAstVersion getAdapter(std::string const& text) {
-        auto parsed = org::parseString(text);
+        auto parsed = org::parseString(text, "<scope>");
         return imm_context->addRoot(parsed);
     }
 
@@ -141,9 +141,9 @@ struct ScopeDiagramTree {
 };
 
 struct DiaNodeItemParams {
-    int              level    = 2;
-    std::string      itemName = "item N";
-    DiaNodeItem::Pos pos;
+    int         level    = 2;
+    std::string itemName = "item N";
+    Point       pos;
 };
 
 struct DiaNodeLayerParams {
@@ -236,15 +236,15 @@ std::string makeLayerText(
     hstd::Vec<DiaNodeItemParams> const& items);
 
 inline DiaNodeItemParams ditem(
-    std::string const&      itemName,
-    DiaNodeItem::Pos const& pos = DiaNodeItem::Pos{}) {
+    std::string const& itemName,
+    Point const&       pos = Point{}) {
     return DiaNodeItemParams{.itemName = itemName, .pos = pos};
 }
 
 inline DiaNodeItemParams ditem(
-    int                     level,
-    std::string const&      itemName,
-    DiaNodeItem::Pos const& pos = DiaNodeItem::Pos{}) {
+    int                level,
+    std::string const& itemName,
+    Point const&       pos = Point{}) {
     return DiaNodeItemParams{
         .level = level, .itemName = itemName, .pos = pos};
 }

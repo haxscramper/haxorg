@@ -50,7 +50,15 @@ hstd::Vec<DiaEdit> DiaVersionStore::getDiaEdits(
     int                lhsVer,
     int                rhsVer,
     DiaEditConf const& conf) {
-    return ::getEdits(getDiaRoot(lhsVer), getDiaRoot(rhsVer), conf);
+    if (lhsVer == -1) {
+        return {DiaEdit{
+            .data = DiaEdit::Insert{
+                .dstNode  = getDiaRoot(rhsVer),
+                .dstIndex = rhsVer,
+            }}};
+    } else {
+        return ::getEdits(getDiaRoot(lhsVer), getDiaRoot(rhsVer), conf);
+    }
 }
 
 DiaAdapter DiaVersionStore::buildTree(imm::ImmAdapter const& adapter) {
@@ -264,9 +272,9 @@ void DiaVersionStore::stepEditForward(
                         sem::NamedProperty>{
                         sem::NamedProperty{
                             sem::NamedProperty::CustomSubtreeJson{
-                                .name  = DiaPropertyNames::diagramPosition,
+                                .name  = DiaPropertyNames::diagramGeometry,
                                 .value = hstd::to_json_eval(
-                                    DiaNodeItem::Pos{})}},
+                                    DiaNodeItem::Geometry{})}},
                         sem::NamedProperty{
                             sem::NamedProperty::CustomSubtreeFlags{
                                 .name = DiaPropertyNames::isDiagramNode,
@@ -336,8 +344,8 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
     change.edits    = getDiaEdits(oldActive, active, DiaEditConf{});
     change.oldIndex = oldActive;
     change.newIndex = active;
-    change.oldRoot  = getDiaRoot(oldActive);
-    change.newRoot  = getDiaRoot(active);
+    if (oldActive != -1) { change.oldRoot = getDiaRoot(oldActive); }
+    change.newRoot = getDiaRoot(active);
     TRACKED_EMIT(diaRootChanged, change);
 
     hstd::log::log_sequential_collection(change.edits).as_trace().end();
@@ -347,7 +355,30 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
 }
 
 int DiaVersionStore::addDocument(const std::string& document) {
-    auto version = imm_context->addRoot(parseString(document));
+    hstd::ext::StrCache cache;
+
+    cache.getFileSource = [&](std::string const& path) -> std::string {
+        LOGIC_ASSERTION_CHECK(path == "<text>", "{}", path);
+        return document;
+    };
+
+    auto node    = parseString(document, "<text>");
+    auto reports = org::collectDiagnostics(cache, node);
+
+    if (!reports.empty()) {
+        HSLOG_WARNING("Input document was parsed with diagnostics");
+        for (auto const& report : reports) {
+            try {
+                HSLOG_ERROR("{}", report.to_string(cache, false));
+            } catch (std::exception& e) {
+                HSLOG_ERROR(
+                    "Failed to format report {}\n{}", e.what(), report);
+            }
+        }
+    }
+
+
+    auto version = imm_context->addRoot(node);
     return addHistory(version);
 }
 

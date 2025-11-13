@@ -168,6 +168,7 @@ def get_external_deps_list(
         configure_args=[
             opt("BUILD_SHARED_LIBS", True),
             opt("TRACY_STATIC", False),
+            opt("CCACHE", "OFF"),
             # opt("CMAKE_CXX_FLAGS", "-fPIC"),
         ])
 

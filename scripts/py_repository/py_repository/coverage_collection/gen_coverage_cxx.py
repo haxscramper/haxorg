@@ -19,12 +19,12 @@ from py_scriptutils.sqlalchemy_utils import open_sqlite_session, NumericEnum
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file, ExceptionContextNote
 from py_scriptutils.rich_utils import render_rich_pprint
-import py_repository.gen_documentation_data as docdata
+import py_repository.repo_docgen.gen_documentation_data as docdata
 import dominate.tags as tags
 from pygments import lex
 from pygments.lexers import CppLexer
 from pygments.token import Token, _TokenType, Whitespace
-from py_repository.gen_coverage_cookies import *
+from py_repository.coverage_collection.gen_coverage_cookies import *
 from collections import defaultdict
 from dataclasses import dataclass, field
 from dominate import document
