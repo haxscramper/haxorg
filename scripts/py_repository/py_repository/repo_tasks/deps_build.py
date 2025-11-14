@@ -1,24 +1,34 @@
+import itertools
+from beartype import beartype
+from beartype.typing import List, Optional
+
+from py_ci.data_build import CmakeOptConfig, ExternalDep
+from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.common import ensure_existing_dir, get_cmd_debug_file, get_script_root
+from py_repository.repo_tasks.config import get_config
+from py_repository.repo_tasks.haxorg_base import generate_develop_deps_install_paths, get_deps_build_dir, get_deps_install_dir
+from py_repository.repo_tasks.haxorg_build import build_release_archive
+
 
 @haxorg_task()
-def validate_dependencies_install(ctx: Context):
-    install_dir = get_deps_install_dir(ctx).joinpath("paths.cmake")
+def validate_dependencies_install():
+    install_dir = get_deps_install_dir().joinpath("paths.cmake")
     assert install_dir.exists(), f"No dependency paths found at '{install_dir}'"
 
 
 
-@haxorg_task(iterable=["build_whitelist"])
+@haxorg_task()
 def build_develop_deps(
-    ctx: Context,
     rebuild: bool = False,
     force: bool = False,
     build_whitelist: List[str] = [],
     configure: bool = True,
 ):
     "Install dependencies for cmake project development"
-    conf = get_config(ctx)
-    build_dir = get_deps_build_dir(ctx)
+    conf = get_config()
+    build_dir = get_deps_build_dir()
     ensure_existing_dir(build_dir)
-    install_dir = get_deps_install_dir(ctx)
+    install_dir = get_deps_install_dir()
     ensure_existing_dir(install_dir)
     deps_dir = get_script_root().joinpath("thirdparty")
 
@@ -59,7 +69,7 @@ def build_develop_deps(
                     cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(
                         item.build_name)),
                     cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
-                    *([cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx))]
+                    *([cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path())]
                       if item.is_bundled_toolchain else []),
                     *configure_args,
                     *maybe_splice(force, "--fresh"),
@@ -99,12 +109,12 @@ def build_develop_deps(
 
     for item in get_external_deps_list(
             install_dir,
-            is_emcc=get_config(ctx).emscripten.build,
+            is_emcc=get_config().emscripten.build,
     ):
         dep(item)
 
     log(CAT).info(f"Finished develop dependencies installation, {debug_conf}")
-    generate_develop_deps_install_paths(ctx)
+    generate_develop_deps_install_paths()
     log(CAT).info(f"Installed into {install_dir}")
 
 
@@ -112,7 +122,6 @@ def build_develop_deps(
 
 @haxorg_task(dependencies=[build_release_archive])
 def build_release_deps(
-    ctx: Context,
     testdir: Optional[str] = None,
     deps_install_dir: Optional[str] = None,
 ):

@@ -1,15 +1,17 @@
 
 import itertools
+from tempfile import TemporaryDirectory
 from beartype import beartype
 from pathlib import Path
-from beartype.typing import List
+from beartype.typing import List, Literal, Optional
+import shutil
 
 
 
 from py_ci.util_scripting import get_docker_cap_flags
 from py_repository.repo_tasks.airflow_utils import haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import get_script_root
+from py_repository.repo_tasks.common import clone_repo_with_uncommitted_changes, ensure_clean_file, get_cmd_debug_file, get_script_root, get_tmpdir
 from py_repository.repo_tasks.config import get_config
 from py_scriptutils.script_logging import log
 
@@ -173,7 +175,6 @@ def run_docker_release_test(
             if clone_dir.exists():
                 shutil.rmtree(clone_dir)
             clone_repo_with_uncommitted_changes(
-                ctx=ctx,
                 src_repo=get_script_root(),
                 dst_repo=clone_dir,
             )
@@ -184,7 +185,6 @@ def run_docker_release_test(
             if clone_dir.exists():
                 shutil.rmtree(clone_dir)
             run_command(
-                ctx,
                 "git",
                 ["clone", get_script_root(), clone_dir],
                 **debug_conf,
@@ -212,7 +212,6 @@ def run_docker_release_test(
                     return get_script_root(path)
 
         run_command(
-            ctx,
             "docker",
             [
                 "run",

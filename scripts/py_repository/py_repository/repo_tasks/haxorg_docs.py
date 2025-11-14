@@ -1,7 +1,16 @@
+from beartype.typing import List
 
+from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.common import get_build_root, get_script_root, get_tmpdir
+from py_scriptutils.script_logging import log
+from pathlib import Path
+
+
+CAT = __name__
 
 @haxorg_task()
-def docs_doxygen(ctx: Context):
+def docs_doxygen():
     "Build docunentation for the project using doxygen"
     out_dir = get_script_root("/tmp/doxygen")
     # if out_dir.exists():
@@ -10,7 +19,6 @@ def docs_doxygen(ctx: Context):
     out_dir.mkdir(parents=True, exist_ok=True)
 
     run_command(
-        ctx,
         "doxygen",
         [str(get_script_root("docs/Doxyfile"))],
         stdout_debug=get_build_root().joinpath("doxygen_stdout.log"),
@@ -22,13 +30,8 @@ def docs_doxygen(ctx: Context):
 
 
 @haxorg_task(
-    iterable=["file_blacklist", "file_whitelist"],
-    help={
-        **HELP_coverage_file,
-    },
 )
 def build_custom_docs(
-        ctx: Context,
         coverage_file_whitelist: List[str] = [".*"],
         coverage_file_blacklist: List[str] = [],
         out_dir: str = get_tmpdir("docs_out"),

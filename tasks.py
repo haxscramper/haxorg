@@ -91,16 +91,6 @@ def generate_org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
 
 
 
-@beartype
-def docker_user() -> List[str]:
-    return ["--user", f"{os.getuid()}:{os.getgid()}"]
-
-
-
-
-
-
-
 
 
 

@@ -1,3 +1,4 @@
+import tempfile
 from beartype.typing import Dict, Callable, List, Optional
 from beartype import beartype
 from functools import wraps
@@ -203,4 +204,16 @@ def get_lldb_source_on_crash() -> List[str]:
         "--source-on-crash",
         str(get_script_root("scripts/cxx_repository/lldb-script.txt"))
     ]
+
+
+
+@beartype
+def docker_user() -> List[str]:
+    return ["--user", f"{os.getuid()}:{os.getgid()}"]
+
+
+
+
+
+
 

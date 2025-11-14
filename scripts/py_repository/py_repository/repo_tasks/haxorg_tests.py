@@ -1,8 +1,13 @@
+from beartype.typing import List
+
+from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.haxorg_base import symlink_build
+from py_repository.repo_tasks.haxorg_build import build_haxorg
+from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
 
 
-@haxorg_task(dependencies=[build_haxorg, symlink_build, generate_python_protobuf_files],
-          iterable=["arg"])
-def run_py_tests(ctx: Context, arg: List[str] = []):
+@haxorg_task(dependencies=[build_haxorg, symlink_build, generate_python_protobuf_files])
+def run_py_tests(arg: List[str] = []):
     """
     Execute the whole python test suite or run a single test file in non-interactive
     LLDB debugger to work on compiled component issues. 
@@ -52,12 +57,12 @@ def run_py_tests(ctx: Context, arg: List[str] = []):
         exit(1)
 
 
-@haxorg_task(
-    pre=[
-        # build_haxorg, generate_python_protobuf_files, symlink_build,
-    ],
-    iterable=["arg"])
-def run_py_script(ctx: Context, script: str, arg: List[str] = []):
+@haxorg_task(dependencies=[
+    build_haxorg,
+    generate_python_protobuf_files,
+    symlink_build,
+])
+def run_py_script(script: str, arg: List[str] = []):
     """
     Run script with arguments with all environment variables set.
     Debug task. 
@@ -75,7 +80,7 @@ def run_py_script(ctx: Context, script: str, arg: List[str] = []):
 
 
 @haxorg_task(dependencies=[run_py_tests])
-def run_py_tests_ci(ctx: Context):
+def run_py_tests_ci():
     """
     CI task that builds base lexer codegen before running the build 
     """

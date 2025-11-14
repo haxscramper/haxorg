@@ -73,7 +73,7 @@ def binary_coverage(test: Path):
     run_command(test, [], allow_fail=True, cwd=str(dir))
 
 
-@haxorg_task(dependencies=[build_haxorg], iterable=["arg"])
+@haxorg_task(dependencies=[build_haxorg])
 def run_profdata_coverrage(
     binary: str,
     arg: List[str] = [],
@@ -275,17 +275,9 @@ def configure_cxx_merge(coverage_mapping_dump: Optional[str] = None,):
         profile_path.write_text(model.model_dump_json(indent=2))
 
 
-@haxorg_task(
-    pre=[build_haxorg],
-    help={
-        **HELP_profdata_file,
-        **HELP_coverage_mapping_dump,
-    },
-)
+@haxorg_task(dependencies=[build_haxorg])
 def run_cxx_coverage_merge(coverage_mapping_dump: Optional[str] = None,):
-    configure_cxx_merge(
-        coverage_mapping_dump,
-    )
+    configure_cxx_merge(coverage_mapping_dump,)
     coverage_dir = get_cxx_coverage_dir()
 
     profile_path = get_cxx_profdata_params_path()
@@ -299,17 +291,7 @@ def run_cxx_coverage_merge(coverage_mapping_dump: Optional[str] = None,):
     )
 
 
-@haxorg_task(
-    iterable=[
-        "file_whitelist",
-        "file_blacklist",
-    ],
-    help={
-        **HELP_profdata_file,
-        **HELP_coverage_mapping_dump,
-        **HELP_coverage_file,
-    },
-)
+@haxorg_task()
 def cxx_target_coverage(
     pytest_filter: Optional[str] = None,
     coverage_file_whitelist: List[str] = [".*"],

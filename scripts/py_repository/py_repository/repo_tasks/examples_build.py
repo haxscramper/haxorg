@@ -10,11 +10,13 @@ from py_repository.repo_tasks.command_execution import RunCommandKwargs, run_cma
 from py_repository.repo_tasks.common import get_component_build_dir, get_script_root
 from py_repository.repo_tasks.config import get_config
 from py_repository.repo_tasks.deps_build import validate_dependencies_install
-from py_repository.repo_tasks.haxorg_base import get_toolchain_path
+from py_repository.repo_tasks.haxorg_base import get_toolchain_path, symlink_build
+from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
 CAT = __name__
+
 
 @beartype
 def run_cmake_configure_component(
@@ -187,7 +189,8 @@ def run_example_org_elk_diagram(infile: str):
     ])
 
 
-@haxorg_task(dependencies=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
+@haxorg_task(
+    dependencies=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
 def build_example_qt_gui():
     pass
 
@@ -197,22 +200,20 @@ def build_examples():
     pass
 
 
-
 @haxorg_task(dependencies=[build_haxorg])
-def build_d3_example(ctx: Context):
+def build_d3_example():
     """
     Build d3.js visualization example
     """
 
     dir = get_script_root().joinpath("examples/d3_visuals")
     ensure_clean_dir(dir.joinpath("dist"))
-    run_command(ctx, "deno", ["task", "build"], cwd=dir)
+    run_command("deno", ["task", "build"], cwd=dir)
 
 
 @haxorg_task(dependencies=[build_d3_example])
-def run_d3_example(ctx: Context, sync: bool = False):
-    assert get_config(
-        ctx).emscripten.build, "D3 example requires emscripten to be enabled"
+def run_d3_example(sync: bool = False):
+    assert get_config().emscripten.build, "D3 example requires emscripten to be enabled"
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
 
@@ -226,7 +227,6 @@ def run_d3_example(ctx: Context, sync: bool = False):
 
     else:
         run_command(
-            ctx,
             "deno",
             ["task", "run-gui"],
             cwd=d3_example_dir,
@@ -237,13 +237,11 @@ def run_d3_example(ctx: Context, sync: bool = False):
 
 
 @haxorg_task(dependencies=[symlink_build])
-def run_js_test_example(ctx: Context):
-    assert get_config(
-        ctx).emscripten.build, "JS example requires emscripten to be enabled"
+def run_js_test_example():
+    assert get_config().emscripten.build, "JS example requires emscripten to be enabled"
     js_example_dir = get_script_root().joinpath("examples/js_test")
 
     run_command(
-        ctx,
         "node",
         ["js_test.js"],
         cwd=js_example_dir,

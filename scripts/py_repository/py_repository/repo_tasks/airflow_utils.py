@@ -5,16 +5,39 @@ import inspect
 from datetime import timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+from py_scriptutils.script_logging import log
+from dataclasses import dataclass
+
+CAT = __name__
+
 
 @beartype
-def get_task_metadata(func: Callable) -> Dict[str, Any]:
-    return {
-        "dependencies": getattr(func, "_haxorg_dependencies", []),
-        "task_id": getattr(func, "_haxorg_task_id", func.__name__),
-        "signature": getattr(func, "_haxorg_signature", None),
-        "type_hints": getattr(func, "_haxorg_type_hints", {}),
-        "as_dag": getattr(func, "_haxorg_as_dag", True)
-    }
+@dataclass
+class TaskMetadata():
+    dependencies: List[Callable]
+    task_id: str
+    signature: inspect.Signature
+    type_hints: dict
+    as_dag: bool
+
+
+@beartype
+def get_task_metadata(func: Callable) -> TaskMetadata:
+    return TaskMetadata(
+        dependencies=getattr(func, "_haxorg_dependencies", []),
+        task_id=getattr(func, "_haxorg_task_id", func.__name__),
+        signature=getattr(func, "_haxorg_signature", None),
+        type_hints=getattr(func, "_haxorg_type_hints", {}),
+        as_dag=getattr(func, "_haxorg_as_dag", True),
+    )
+
+
+__airflow_task_list = []
+
+
+@beartype
+def get_haxorg_tasks() -> List[Callable]:
+    return __airflow_task_list
 
 
 @beartype
@@ -70,17 +93,17 @@ def haxorg_task(dependencies: List[Callable] = None, as_dag: bool = True):
 
             return func(**kwargs)
 
-        wrapper._haxorg_dependencies = [
-            dep.__name__.replace("_task", "") for dep in (dependencies or [])
-        ]
+        wrapper._haxorg_dependencies = [dep for dep in (dependencies or [])]
         wrapper._haxorg_task_id = func.__name__.replace("_task", "")
         wrapper._haxorg_signature = inspect.signature(func)
         wrapper._haxorg_type_hints = get_type_hints(func)
         wrapper._haxorg_as_dag = as_dag
 
+        __airflow_task_list.append(wrapper)
         return wrapper
 
     return decorator
+
 
 default_args = {
     "owner": "haxorg",
@@ -93,14 +116,20 @@ default_args = {
 
 
 @beartype
-def create_python_operator(task_id: str,
-                           python_callable: Any,
-                           dag: DAG,
-                           params: Optional[Dict[str, Any]] = None) -> PythonOperator:
-    return PythonOperator(task_id=task_id,
-                          python_callable=python_callable,
-                          dag=dag,
-                          params=params or {})
+def create_python_operator(
+    python_callable: Any,
+    dag: DAG,
+    params: Optional[Dict[str, Any]] = None,
+) -> PythonOperator:
+    metadata = get_task_metadata(python_callable)
+    task_id = metadata.task_id
+
+    return PythonOperator(
+        task_id=task_id,
+        python_callable=python_callable,
+        dag=dag,
+        params=params or {},
+    )
 
 
 @beartype
@@ -114,26 +143,32 @@ def create_dag(dag_id: str, description: str) -> DAG:
     )
 
 @beartype
-def create_dag_from_tasks(task_functions: List[Callable], dag_id: str,
-                          description: str) -> DAG:
+def get_create_python_operator(func: Callable, operators: Dict[str, PythonOperator], dag: DAG) -> PythonOperator:
+    metadata = get_task_metadata(func)
+    task_id = metadata.task_id
+    if task_id not in operators:
+        operators[task_id] = create_python_operator(func, dag)
+
+    return operators[task_id]
+
+@beartype
+def create_dag_from_tasks(
+    task_functions: List[Callable],
+    dag_id: str,
+    description: str,
+) -> DAG:
     dag = create_dag(dag_id, description)
     operators = {}
 
     for func in task_functions:
         metadata = get_task_metadata(func)
-        task_id = metadata["task_id"]
-        operators[task_id] = create_python_operator(task_id, func, dag)
+        current_op = get_create_python_operator(func, operators, dag)
 
-    for func in task_functions:
-        metadata = get_task_metadata(func)
-        task_id = metadata["task_id"]
-        current_op = operators[task_id]
-
-        for dep in metadata["dependencies"]:
-            if dep in operators:
-                operators[dep] >> current_op
+        for dep in metadata.dependencies:
+            get_create_python_operator(dep, operators, dag) >> current_op
 
     return dag
+
 
 @beartype
 def create_individual_dags(task_functions: List[Callable]) -> List[DAG]:
@@ -141,11 +176,21 @@ def create_individual_dags(task_functions: List[Callable]) -> List[DAG]:
 
     for func in task_functions:
         metadata = get_task_metadata(func)
-        if metadata["as_dag"]:
-            task_id = metadata["task_id"]
-            logging.info(f"haxorg_{task_id}, {func}, {metadata}")
-            dag = create_dag(f"haxorg_{task_id}", f"Individual task: {task_id}")
-            create_python_operator(task_id, func, dag)
+        if metadata.as_dag:
+            task_id = metadata.task_id
+            dag = create_dag(f"{task_id}_dag", f"Individual task: {task_id}")
+            operators = {}
+            get_create_python_operator(func, operators, dag)
             individual_dags.append(dag)
+
+            def dfs_deps(func: Callable):
+                metadata = get_task_metadata(func)
+                for dep in metadata.dependencies:
+                    current_task = get_create_python_operator(func, operators, dag)
+                    get_create_python_operator(dep, operators, dag) >> current_task
+
+                    dfs_deps(dep)
+
+            dfs_deps(func)
 
     return individual_dags
