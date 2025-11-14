@@ -4,7 +4,8 @@ from beartype.typing import List, Optional
 
 from py_ci.data_build import CmakeOptConfig, ExternalDep
 from py_repository.repo_tasks.airflow_utils import haxorg_task
-from py_repository.repo_tasks.common import ensure_existing_dir, get_cmd_debug_file, get_script_root
+from py_repository.repo_tasks.command_execution import get_cmd_debug_file
+from py_repository.repo_tasks.common import ensure_existing_dir, get_script_root
 from py_repository.repo_tasks.config import get_config
 from py_repository.repo_tasks.haxorg_base import generate_develop_deps_install_paths, get_deps_build_dir, get_deps_install_dir
 from py_repository.repo_tasks.haxorg_build import build_release_archive

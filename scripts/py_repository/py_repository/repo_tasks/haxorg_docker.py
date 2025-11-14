@@ -11,7 +11,7 @@ import shutil
 from py_ci.util_scripting import get_docker_cap_flags
 from py_repository.repo_tasks.airflow_utils import haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import clone_repo_with_uncommitted_changes, ensure_clean_file, get_cmd_debug_file, get_script_root, get_tmpdir
+from py_repository.repo_tasks.common import clone_repo_with_uncommitted_changes, ensure_clean_file, get_script_root, get_tmpdir
 from py_repository.repo_tasks.config import get_config
 from py_scriptutils.script_logging import log
 

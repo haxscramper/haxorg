@@ -9,10 +9,6 @@ import typing
 import inspect
 import shutil
 
-from invoke import task, Failure
-from invoke.context import Context
-from invoke.tasks import Task
-
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_repository.repo_tasks.config import get_config
@@ -56,15 +52,15 @@ def ensure_clean_file(file: Path):
 
 
 @beartype
-def get_real_build_basename(ctx: Context, component: str) -> str:
+def get_real_build_basename(component: str) -> str:
     """
     Get basename of the binary output directory for component
     """
-    result = component + "_" + ("debug" if get_config(ctx).debug else "release")
-    if get_config(ctx).emscripten.build:
+    result = component + "_" + ("debug" if get_config().debug else "release")
+    if get_config().emscripten.build:
         result += "_emscripten"
 
-    if get_config(ctx).instrument.coverage:
+    if get_config().instrument.coverage:
         result += "_instrumented"
 
     return result
@@ -72,8 +68,8 @@ def get_real_build_basename(ctx: Context, component: str) -> str:
 
 
 @beartype
-def get_component_build_dir(ctx: Context, component: str) -> Path:
-    result = get_build_root(get_real_build_basename(ctx, component))
+def get_component_build_dir(component: str) -> Path:
+    result = get_build_root(get_real_build_basename(component))
     result.mkdir(parents=True, exist_ok=True)
     return result
 
@@ -96,9 +92,9 @@ def get_log_dir() -> Path:
 
 
 @beartype
-def get_build_tmpdir(ctx: Context, component: str) -> Path:
+def get_build_tmpdir(component: str) -> Path:
     result = get_build_root().joinpath("tmp").joinpath(
-        get_real_build_basename(ctx, component))
+        get_real_build_basename(component))
     ensure_existing_dir(result)
     return result
 
@@ -117,10 +113,6 @@ def ui_notify(message: str, is_ok: bool = True):
         else:
             log(CAT).error(message)
 
-
-@beartype
-def get_cmd_debug_file(kind: str):
-    assert False, "?????"
 
 
 @beartype
@@ -167,13 +159,12 @@ def find_process(
 
 
 def clone_repo_with_uncommitted_changes(
-    ctx: Context,
     src_repo: Path,
     dst_repo: Path,
 ):
-    run_command(ctx, "git", ["clone", src_repo, dst_repo])
+    run_command("git", ["clone", src_repo, dst_repo])
 
-    code, stdout, stderr = run_command(ctx, "git", [
+    code, stdout, stderr = run_command("git", [
         "-C",
         src_repo,
         "ls-files",

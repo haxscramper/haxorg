@@ -5,13 +5,17 @@ import plumbum
 import subprocess
 
 from py_repository.repo_tasks.config import get_config
-from py_repository.repo_tasks.common import get_cmd_debug_file
 from py_scriptutils.script_logging import log
 from py_scriptutils.algorithm import remove_ansi
 
 
 
+
 CAT = __name__
+
+@beartype
+def get_cmd_debug_file(kind: str):
+    return Path(f"/tmp/debug_{kind}.log")
 
 class RunCommandKwargs(TypedDict, total=False):
     capture: bool
