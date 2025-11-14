@@ -1,0 +1,148 @@
+from pathlib import Path
+from beartype import beartype
+from beartype.typing import List, Optional
+import os
+
+from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_scriptutils.script_logging import log
+from py_repository.repo_tasks.common import create_symlink, get_component_build_dir, get_script_root, ensure_existing_dir, get_build_root
+from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.config import get_config
+from py_ci.data_build import get_external_deps_list, get_deps_install_config, get_emscripten_cmake_flags
+from py_ci.util_scripting import cmake_opt
+
+CAT = __name__
+
+@beartype
+def get_deps_tmp_dir() -> Path:
+    return get_build_root().joinpath(
+        "deps_emcc" if get_config().emscripten.build else "deps_bin")
+
+
+@beartype
+def get_deps_install_dir() -> Path:
+    return get_deps_tmp_dir().joinpath("install")
+
+
+@beartype
+def get_deps_build_dir() -> Path:
+    return get_deps_tmp_dir().joinpath("build")
+
+
+@haxorg_task()
+def git_init_submodules():
+    """Init submodules if missing"""
+    if get_script_root().joinpath("thirdparty/mp11").exists():
+        log(CAT).info("Submodules were checked out")
+    else:
+        log(CAT).info("Submodules were not checked out, running update")
+        run_command("git",
+                    ["submodule", "update", "--init", "--recursive", "--progress"])
+
+
+@haxorg_task()
+def download_llvm():
+    """Download LLVM toolchain if missing"""
+    llvm_dir = get_script_root("toolchain/llvm")
+    if not os.path.isdir(llvm_dir):
+        log(CAT).info("LLVM not found. Downloading...")
+    else:
+        log(CAT).info("LLVM already exists. Skipping download.")
+
+
+@haxorg_task(dependencies=[git_init_submodules, download_llvm])
+def base_environment():
+    """Ensure base dependencies are installed"""
+    pass
+
+@haxorg_task()
+def generate_develop_deps_install_paths():
+    install_dir = get_deps_install_dir()
+    ensure_existing_dir(install_dir)
+    install_dir.joinpath("paths.cmake").write_text(
+        get_deps_install_config(
+            deps=get_external_deps_list(
+                install_dir=install_dir,
+                is_emcc=get_config().emscripten.build,
+            ),
+            install_dir=install_dir,
+        ))
+
+
+def get_llvm_root(relative: Optional[str] = None) -> Path:
+    value = get_script_root().joinpath("toolchain/llvm")
+    if relative:
+        value = value.joinpath(relative)
+
+    return value
+
+def get_toolchain_path() -> Path:
+    if get_config().emscripten.build:
+        result = Path(get_config().emscripten.toolchain)
+        assert result.exists(), f"EMCC toolchain path does not exist {result}"
+        log(CAT).info(f"Using EMCC toolchain path {result}")
+        return result
+
+    else:
+        return get_script_root().joinpath("toolchain.cmake")
+
+
+
+def get_cmake_defines() -> List[str]:
+    result: List[str] = []
+    conf = get_config()
+
+    result.append(cmake_opt("ORG_USE_COVERAGE", conf.instrument.coverage))
+    result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
+    result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
+    result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
+    result.append(cmake_opt("ORG_USE_QT", conf.use.qt))
+    # result.append(cmake_opt("CMAKE_CXX_INCLUDE_WHAT_YOU_USE", "/home/haxscramper/software/include-what-you-use/build/bin/include-what-you-use;--verbose=7"))
+    result.append(
+        cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
+
+    result.append(cmake_opt("SQLITECPP_RUN_CPPLINT", False))
+
+    result.append(cmake_opt("ORG_FORCE_ADAPTAGRAMS_BUILD", False))
+    result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()))
+    result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
+
+    if conf.emscripten.build:
+        result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path()))
+        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", False))
+        result.append(cmake_opt("ORG_EMCC_BUILD", True))
+        # result.append(cmake_opt("CMAKE_SIZEOF_VOID_P", "4"))
+        # result.append(cmake_opt("CMAKE_SYSTEM_PROCESSOR", "wasm32"))
+
+        for flag in get_emscripten_cmake_flags():
+            result.append(cmake_opt(flag.name, flag.value))
+
+    else:
+        result.append(cmake_opt("ORG_EMCC_BUILD", False))
+        result.append(cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")))
+        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", True))
+
+    debug = False
+    if debug:
+        result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", True))
+        result.append("--trace")
+        result.append("--trace-expand")
+
+    else:
+        result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", False))
+
+    return result
+
+
+
+@haxorg_task()
+def symlink_build():
+    """
+    Create proxy symbolic links around the build directory
+    """
+
+    create_symlink(
+        real_path=get_component_build_dir("haxorg"),
+        link_path=get_build_root("haxorg"),
+        is_dir=True,
+    )

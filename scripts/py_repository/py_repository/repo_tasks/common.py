@@ -1,6 +1,7 @@
 from beartype.typing import Dict, Callable, List, Optional
 from beartype import beartype
 from functools import wraps
+import psutil
 from py_scriptutils.script_logging import log
 import copy
 import typing
@@ -116,93 +117,90 @@ def ui_notify(message: str, is_ok: bool = True):
             log(CAT).error(message)
 
 
-
-
-TASK_DEPS: Dict[Callable, List[Callable]] = {}
-TASK_STACK: List[str] = []
-
 @beartype
 def get_cmd_debug_file(kind: str):
-    return get_log_dir().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
+    assert False, "?????"
+
 
 @beartype
-def org_task(
-        task_name: Optional[str] = None,
-        pre: List[Callable] = [],
-        force_notify: bool = False,
-        pre_optional: List[Callable] = [],
-        help=dict(),
-        **kwargs,
-) -> Callable:
+def get_tmpdir(*name: str) -> str:
+    return str(Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name))
 
-    help_base = copy.copy(help)
+@beartype
+def create_symlink(link_path: Path, real_path: Path, is_dir: bool):
+    if link_path.exists():
+        assert link_path.is_symlink(), link_path
+        link_path.unlink()
+        log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+        assert not link_path.exists(), link_path
 
-    def org_inner(func: Callable) -> Callable:
-        TASK_DEPS[func] = pre
+    log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
 
-        signature = inspect.signature(func)
-        params = signature.parameters
-        arg_names = [param.name for param in params.values()]
-        type_annotations = typing.get_type_hints(func)
+    assert not link_path.exists(), link_path
+    assert real_path.exists(), real_path
 
-        updated_help = dict()
+    link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
-        for arg in arg_names:
-            if arg in ["ctx"]:
-                continue
 
-            cli = arg.replace("_", "-")
-            if arg in type_annotations:
-                T = type_annotations[arg]
-                if isinstance(T, (type(bool), type(int), type(float))):
-                    description = ""
 
-                else:
-                    description = f"{str(T)}"
+@beartype
+def get_example_build(example_name: str) -> Path:
+    return get_build_root().joinpath(f"example_build_{example_name}")
 
-            else:
-                description = ""
 
-            if cli in help_base:
-                if description:
-                    description += " "
+@beartype
+def find_process(
+    name: str,
+    root_dir: Optional[Path] = None,
+    args: Optional[list[str]] = None,
+) -> Optional[psutil.Process]:
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'cwd']):
+        try:
+            if ((proc.name() == name) and
+                (root_dir is None or proc.cwd() == str(root_dir)) and
+                (args is None or all(arg in proc.cmdline() for arg in args))):
+                return proc
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return None
 
-                description += f"{help_base[cli]}"
 
-            updated_help[cli] = description
+def clone_repo_with_uncommitted_changes(
+    ctx: Context,
+    src_repo: Path,
+    dst_repo: Path,
+):
+    run_command(ctx, "git", ["clone", src_repo, dst_repo])
 
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            name = task_name or func.__name__
-            log(CAT).info(f"Running [yellow]{name}[/yellow] ...")
-            run_ok = False
-            try:
-                with GlobCompleteEvent(f"task {name}", "build") as last:
-                    assert os.getcwd() == str(get_script_root(
-                    )), "Invoke tasks must be executed from the root directory"
-                    TASK_STACK.append(name)
-                    result = func(*args, **kwargs)
-                    TASK_STACK.pop()
+    code, stdout, stderr = run_command(ctx, "git", [
+        "-C",
+        src_repo,
+        "ls-files",
+        "--modified",
+        "--others",
+        "--exclude-standard",
+    ])
 
-                run_ok = True
+    if stdout.strip():
+        file_list = stdout.strip().split('\n')
+        for file in file_list:
+            src_file = Path(f"{src_repo}/{file}")
+            dst_file = Path(f"{dst_repo}/{os.path.dirname(file)}")
+            log(CAT).info(f"Copying uncomitted changes {src_file} -> {dst_file}")
+            dst_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(src=src_file, dst=dst_file)
 
-            finally:
-                log(CAT).info(
-                    f"Completed [green]{name}[/green] in [blue]{last.dur / 10e2:5.1f}[/blue]ms"
-                )
 
-                color = "green"
-                name_format = f"<span color='#{color}'>{name:^40}</span>"
-                if 100000 < last.dur or force_notify:
-                    ui_notify(
-                        f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
-                        is_ok=run_ok,
-                    )
+def get_lldb_py_import() -> List[str]:
+    return [
+        "-o",
+        f"command script import {get_script_root('scripts/cxx_repository/lldb_script.py')}"
+    ]
 
-                GlobExportJson(get_build_root("task_build_time.json"))
 
-            return result
+def get_lldb_source_on_crash() -> List[str]:
+    return [
+        "--source-on-crash",
+        str(get_script_root("scripts/cxx_repository/lldb-script.txt"))
+    ]
 
-        return task(wrapper, pre=pre, help=copy.copy(updated_help), **kwargs)
-
-    return org_inner

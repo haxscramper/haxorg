@@ -1,13 +1,9 @@
-import yaml
 from pydantic import BaseModel, Field
 from beartype.typing import List, Optional
-from invoke.context import Context
-from py_ci.util_scripting import parse_haxorg_env
-from py_scriptutils.script_logging import log, to_debug_json
-from py_scriptutils.toml_config_profiler import merge_dicts
-import json
+from airflow.models import Variable
 
-CAT = __name__ 
+CAT = __name__
+
 
 class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
     coverage: bool = Field(default=False)
@@ -15,7 +11,8 @@ class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
     asan: bool = Field(default=False)
     perfetto: bool = Field(default=False)
 
-class HaxorgUseConfig(BaseModel, extra="forbid"): 
+
+class HaxorgUseConfig(BaseModel, extra="forbid"):
     qt: bool = Field(default=False)
 
 
@@ -77,43 +74,21 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     timeouts: dict = Field(default_factory=dict)
     run: dict = Field(default_factory=dict)
 
+    # Major version of the LLVM toolchain used for the project. This is not a configuration
+    # value, only as constant to avoid typing the same thing all over.
+    LLVM_MAJOR: str = "18"
+    LLVM_VERSION: str = "18.1.4"
+    CAT: str = "tasks"
+    HAXORG_VERSION: str = "1.0.0"
+    HAXORG_NAME: str = "haxorg"
+    in_ci: bool = False
+    HAXORG_DOCKER_IMAGE: str = "docker-haxorg"
 
 
-CONFIG_CACHE: Optional[HaxorgConfig] = None
+
+def get_config() -> HaxorgConfig:
+    raw_config = Variable.get("haxorg_config", deserialize_json=True)
+    return HaxorgConfig(**raw_config)
 
 
-def get_config(ctx: Context) -> HaxorgConfig:
-    global CONFIG_CACHE
-    if CONFIG_CACHE:
-        return CONFIG_CACHE
-
-    else:
-        res_dict = dict()
-
-        def aux(it):
-            match it:
-                case bool() | None | str() | type():
-                    return it
-
-                case list():
-                    return [aux(i) for i in it]
-
-                case _:
-                    out = dict()
-                    for key in it:
-                        out[key] = aux(it[key])
-
-                    return out
-
-        ctx_dict = aux(ctx.config)
-
-        env_dict = parse_haxorg_env()
-        log(CAT).info(f"Parsed haxorg env variables")
-        print(json.dumps(to_debug_json(env_dict), indent=2))
-        res_dict = merge_dicts([ctx_dict, env_dict])
-        log(CAT).info(f"Final parsed dictionary")
-        print(json.dumps(to_debug_json(res_dict), indent=2))
-
-        CONFIG_CACHE = HaxorgConfig(**res_dict)
-
-        return CONFIG_CACHE
+Variable.set("haxorg_config", HaxorgConfig().model_dump(), serialize_json=True)
