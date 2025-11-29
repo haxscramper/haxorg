@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from beartype.typing import List, Optional
-from airflow.models import Variable
 
 CAT = __name__
 
@@ -87,8 +86,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
 
 def get_config() -> HaxorgConfig:
-    raw_config = Variable.get("haxorg_config", deserialize_json=True)
-    return HaxorgConfig(**raw_config)
+    # raw_config = Variable.get("haxorg_config", deserialize_json=True)
+    return HaxorgConfig()
 
 
-Variable.set("haxorg_config", HaxorgConfig().model_dump(), serialize_json=True)
+
+# Variable.set("haxorg_config", HaxorgConfig().model_dump(), serialize_json=True)

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from py_ci.data_build import get_deps_install_config
-from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import get_script_root
 from py_repository.repo_tasks.haxorg_base import symlink_build

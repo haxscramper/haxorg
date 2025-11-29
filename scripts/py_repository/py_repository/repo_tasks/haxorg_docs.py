@@ -1,6 +1,6 @@
 from beartype.typing import List
 
-from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import get_build_root, get_script_root, get_tmpdir
 from py_scriptutils.script_logging import log

@@ -9,11 +9,12 @@ import shutil
 
 
 from py_ci.util_scripting import get_docker_cap_flags
-from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import clone_repo_with_uncommitted_changes, ensure_clean_file, get_script_root, get_tmpdir
 from py_repository.repo_tasks.config import get_config
 from py_scriptutils.script_logging import log
+from py_scriptutils.toml_config_profiler import merge_dicts
 
 CAT = __name__
 
@@ -285,23 +286,23 @@ def run_develop_ci(
     emscripten_test: bool = True,
 ):
     "Execute all CI tasks"
-    env = merge_dicts([
-        haxorg_env(["ci"], True),
-        haxorg_env(["forceall"], True),
-        haxorg_env(["use", "qt"], False),
-    ])
+    # env = merge_dicts([
+    #     haxorg_env(["ci"], True),
+    #     haxorg_env(["forceall"], True),
+    #     haxorg_env(["use", "qt"], False),
+    # ])
 
-    if coverage:
-        env = merge_dicts([
-            env,
-            haxorg_env(["instrument", "coverage"], True),
-        ])
+    # if coverage:
+        # env = merge_dicts([
+        #     env,
+        #     haxorg_env(["instrument", "coverage"], True),
+        # ])
 
-    emscripten_env = merge_dicts([
-        env,
-        haxorg_env(["emscripten", "build"], True),
-        haxorg_env(["instrument", "coverage"], False),
-    ])
+    # emscripten_env = merge_dicts([
+    #     env,
+    #     haxorg_env(["emscripten", "build"], True),
+    #     haxorg_env(["instrument", "coverage"], False),
+    # ])
 
     if deps:
         log(CAT).info("Running CI dependency installation")

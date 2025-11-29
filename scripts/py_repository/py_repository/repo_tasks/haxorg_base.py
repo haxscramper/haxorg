@@ -3,7 +3,7 @@ from beartype import beartype
 from beartype.typing import List, Optional
 import os
 
-from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 from py_repository.repo_tasks.common import create_symlink, get_component_build_dir, get_script_root, ensure_existing_dir, get_build_root
 from py_repository.repo_tasks.command_execution import run_command
@@ -30,7 +30,7 @@ def get_deps_build_dir() -> Path:
 
 
 @haxorg_task()
-def git_init_submodules():
+def git_init_submodules(ctx: TaskContext):
     """Init submodules if missing"""
     if get_script_root().joinpath("thirdparty/mp11").exists():
         log(CAT).info("Submodules were checked out")
@@ -41,7 +41,7 @@ def git_init_submodules():
 
 
 @haxorg_task()
-def download_llvm():
+def download_llvm(ctx: TaskContext):
     """Download LLVM toolchain if missing"""
     llvm_dir = get_script_root("toolchain/llvm")
     if not os.path.isdir(llvm_dir):
@@ -51,12 +51,12 @@ def download_llvm():
 
 
 @haxorg_task(dependencies=[git_init_submodules, download_llvm])
-def base_environment():
+def base_environment(ctx: TaskContext):
     """Ensure base dependencies are installed"""
     pass
 
 @haxorg_task()
-def generate_develop_deps_install_paths():
+def generate_develop_deps_install_paths(ctx: TaskContext):
     install_dir = get_deps_install_dir()
     ensure_existing_dir(install_dir)
     install_dir.joinpath("paths.cmake").write_text(
@@ -136,7 +136,7 @@ def get_cmake_defines() -> List[str]:
 
 
 @haxorg_task()
-def symlink_build():
+def symlink_build(ctx: TaskContext):
     """
     Create proxy symbolic links around the build directory
     """

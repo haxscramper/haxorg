@@ -3,7 +3,7 @@ from beartype import beartype
 from beartype.typing import List, Optional
 
 from py_ci.data_build import CmakeOptConfig, ExternalDep
-from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import get_cmd_debug_file
 from py_repository.repo_tasks.common import ensure_existing_dir, get_script_root
 from py_repository.repo_tasks.config import get_config
@@ -12,7 +12,7 @@ from py_repository.repo_tasks.haxorg_build import build_release_archive
 
 
 @haxorg_task()
-def validate_dependencies_install():
+def validate_dependencies_install(ctx: TaskContext):
     install_dir = get_deps_install_dir().joinpath("paths.cmake")
     assert install_dir.exists(), f"No dependency paths found at '{install_dir}'"
 
@@ -20,6 +20,7 @@ def validate_dependencies_install():
 
 @haxorg_task()
 def build_develop_deps(
+    ctx: TaskContext,
     rebuild: bool = False,
     force: bool = False,
     build_whitelist: List[str] = [],
@@ -123,6 +124,7 @@ def build_develop_deps(
 
 @haxorg_task(dependencies=[build_release_archive])
 def build_release_deps(
+    ctx: TaskContext,
     testdir: Optional[str] = None,
     deps_install_dir: Optional[str] = None,
 ):

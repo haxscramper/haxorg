@@ -5,7 +5,7 @@ from beartype import beartype
 
 import plumbum
 from py_ci.util_scripting import cmake_opt
-from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import RunCommandKwargs, run_cmake, run_command
 from py_repository.repo_tasks.common import get_component_build_dir, get_script_root
 from py_repository.repo_tasks.config import get_config
@@ -62,7 +62,7 @@ def run_cmake_build_component(
 
 
 @haxorg_task(dependencies=[validate_dependencies_install])
-def configure_example_imgui_gui():
+def configure_example_imgui_gui(ctx: TaskContext):
     run_cmake_configure_component(
         "example_imgui_gui",
         "examples/imgui_gui",
@@ -70,12 +70,12 @@ def configure_example_imgui_gui():
 
 
 @haxorg_task(dependencies=[configure_example_imgui_gui])
-def build_example_imgui_gui():
+def build_example_imgui_gui(ctx: TaskContext):
     run_cmake_build_component("example_imgui_gui",)
 
 
 @haxorg_task(dependencies=[validate_dependencies_install])
-def configure_example_qt_gui_org_viewer():
+def configure_example_qt_gui_org_viewer(ctx: TaskContext):
     run_cmake_configure_component(
         "example_qt_gui_org_viewer",
         "examples/qt_gui/org_viewer",
@@ -83,12 +83,12 @@ def configure_example_qt_gui_org_viewer():
 
 
 @haxorg_task(dependencies=[configure_example_qt_gui_org_viewer])
-def build_example_qt_gui_org_viewer():
+def build_example_qt_gui_org_viewer(ctx: TaskContext):
     run_cmake_build_component("example_qt_gui_org_viewer",)
 
 
 @haxorg_task(dependencies=[validate_dependencies_install])
-def configure_example_qt_gui_org_diagram():
+def configure_example_qt_gui_org_diagram(ctx: TaskContext):
     run_cmake_configure_component(
         "example_qt_gui_org_diagram",
         "examples/qt_gui/org_diagram",
@@ -97,12 +97,12 @@ def configure_example_qt_gui_org_diagram():
 
 
 @haxorg_task(dependencies=[configure_example_qt_gui_org_diagram])
-def build_example_qt_gui_org_diagram():
+def build_example_qt_gui_org_diagram(ctx: TaskContext):
     run_cmake_build_component("example_qt_gui_org_diagram",)
 
 
 @haxorg_task(dependencies=[build_example_qt_gui_org_diagram])
-def run_example_org_elk_diagram(infile: str):
+def run_example_org_elk_diagram(ctx: TaskContext, infile: str):
     from py_scriptutils.graph_utils import haxorg_mind_map
     from py_scriptutils.graph_utils import elk_converter
     from py_scriptutils.graph_utils import elk_schema
@@ -191,17 +191,17 @@ def run_example_org_elk_diagram(infile: str):
 
 @haxorg_task(
     dependencies=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
-def build_example_qt_gui():
+def build_example_qt_gui(ctx: TaskContext):
     pass
 
 
 @haxorg_task(dependencies=[build_example_qt_gui, build_example_imgui_gui])
-def build_examples():
+def build_examples(ctx: TaskContext):
     pass
 
 
 @haxorg_task(dependencies=[build_haxorg])
-def build_d3_example():
+def build_d3_example(ctx: TaskContext):
     """
     Build d3.js visualization example
     """
@@ -212,7 +212,7 @@ def build_d3_example():
 
 
 @haxorg_task(dependencies=[build_d3_example])
-def run_d3_example(sync: bool = False):
+def run_d3_example(ctx: TaskContext, sync: bool = False):
     assert get_config().emscripten.build, "D3 example requires emscripten to be enabled"
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
@@ -237,7 +237,7 @@ def run_d3_example(sync: bool = False):
 
 
 @haxorg_task(dependencies=[symlink_build])
-def run_js_test_example():
+def run_js_test_example(ctx: TaskContext):
     assert get_config().emscripten.build, "JS example requires emscripten to be enabled"
     js_example_dir = get_script_root().joinpath("examples/js_test")
 

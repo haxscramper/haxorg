@@ -8,7 +8,7 @@ import os
 import plumbum
 from py_ci.util_scripting import get_threading_count
 from py_repository.coverage_collection.gen_coverage_cookies import ProfdataCookie, ProfdataFullProfile, ProfdataParams
-from py_repository.repo_tasks.airflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import get_build_root, get_component_build_dir
 from py_repository.repo_tasks.config import HaxorgCoverageAggregateFilter, HaxorgCoverageCookiePattern, get_config
