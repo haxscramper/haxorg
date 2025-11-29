@@ -1,8 +1,15 @@
 from pydantic import BaseModel, Field
-from beartype.typing import List, Optional
+from beartype.typing import List, Optional, Generator
+from contextlib import contextmanager
+import tempfile
+from pathlib import Path
+from beartype import beartype
 
 CAT = __name__
 
+@beartype
+def get_tmpdir(*name: str) -> str:
+    return str(Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name))
 
 class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
     coverage: bool = Field(default=False)
@@ -43,6 +50,45 @@ class HaxorgEmscriptenConfig(BaseModel, extra="forbid"):
     toolchain: str = "/usr/lib/emscripten/cmake/Modules/Platform/Emscripten.cmake"
 
 
+class HaxorgBuildConfig(BaseModel, extra="forbid"):
+    target: List[str] = Field(default_factory=lambda: list(["all"]))
+    force: bool = False
+
+
+class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
+    tmp: bool = False
+    standalone: bool = False
+
+class HaxorgCustomDocsConfig(BaseModel, extra="forbid"): 
+    coverage_file_whitelist: List[str] = [".*"]
+    coverage_file_blacklist: List[str] = []
+    out_dir: str = get_tmpdir("docs_out")
+
+class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
+    deps: bool = True
+    build: bool = True
+    test: bool = True
+    docs: bool = True
+    coverage: bool = True
+    reflection: bool = True
+    install: bool = True
+    example: bool = True
+    emscripten_deps: bool = True
+    emscripten_build: bool = True
+    emscripten_test: bool = True
+
+
+class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
+    extra_pytest_args: List[str] = Field(default_factory=list)
+
+
+class HaxorgBuildDevelopDepsConfig(BaseModel, extra="forbid"):
+    rebuild: bool = False
+    force: bool = False
+    build_whitelist: List[str] = []
+    configure: bool = True
+
+
 class HaxorgConfig(BaseModel, extra="forbid"):
     quiet: bool = Field(default=False)
     debug: bool = Field(default=False)
@@ -81,14 +127,37 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     HAXORG_VERSION: str = "1.0.0"
     HAXORG_NAME: str = "haxorg"
     in_ci: bool = False
+    verbose: bool = False
     HAXORG_DOCKER_IMAGE: str = "docker-haxorg"
+    develop_ci_conf: HaxorgDevelopCiConfig = Field(default_factory=HaxorgDevelopCiConfig)
+    py_test_conf: HaxorgPyTestsConfig = Field(default_factory=HaxorgPyTestsConfig)
+    build_develop_deps_conf: HaxorgBuildDevelopDepsConfig = Field(
+        default_factory=HaxorgBuildDevelopDepsConfig)
+    build_conf: HaxorgBuildConfig = Field(default_factory=HaxorgBuildConfig)
+    generate_sources_conf: HaxorgGenerateSourcesConfig = Field(
+        default_factory=HaxorgGenerateSourcesConfig)
+
+    custom_docs_conf: HaxorgCustomDocsConfig = Field(default_factory=HaxorgCustomDocsConfig)
 
 
+@contextmanager
+def scoped_config_change() -> Generator[None, None, None]:
+    """Temporarily change the working directory."""
+    old_config = get_config().model_copy()
+    try:
+        yield
+    finally:
+        set_config(old_config)
+
+
+__global_conf = HaxorgConfig()
 
 def get_config() -> HaxorgConfig:
-    # raw_config = Variable.get("haxorg_config", deserialize_json=True)
-    return HaxorgConfig()
+    return __global_conf
 
+
+def set_config(conf: HaxorgConfig):
+    __global_conf = conf
 
 
 # Variable.set("haxorg_config", HaxorgConfig().model_dump(), serialize_json=True)

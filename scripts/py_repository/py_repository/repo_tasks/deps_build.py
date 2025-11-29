@@ -2,13 +2,18 @@ import itertools
 from beartype import beartype
 from beartype.typing import List, Optional
 
-from py_ci.data_build import CmakeOptConfig, ExternalDep
+from py_ci.data_build import CmakeFlagConfig, CmakeOptConfig, ExternalDep, get_external_deps_list
+from py_ci.util_scripting import cmake_opt, get_j_cap
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
-from py_repository.repo_tasks.command_execution import get_cmd_debug_file
+from py_repository.repo_tasks.command_execution import get_cmd_debug_file, run_command
 from py_repository.repo_tasks.common import ensure_existing_dir, get_script_root
 from py_repository.repo_tasks.config import get_config
-from py_repository.repo_tasks.haxorg_base import generate_develop_deps_install_paths, get_deps_build_dir, get_deps_install_dir
+from py_repository.repo_tasks.haxorg_base import generate_develop_deps_install_paths, get_deps_build_dir, get_deps_install_dir, get_toolchain_path
 from py_repository.repo_tasks.haxorg_build import build_release_archive
+from py_scriptutils.algorithm import maybe_splice
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @haxorg_task()
@@ -17,15 +22,8 @@ def validate_dependencies_install(ctx: TaskContext):
     assert install_dir.exists(), f"No dependency paths found at '{install_dir}'"
 
 
-
 @haxorg_task()
-def build_develop_deps(
-    ctx: TaskContext,
-    rebuild: bool = False,
-    force: bool = False,
-    build_whitelist: List[str] = [],
-    configure: bool = True,
-):
+def build_develop_deps(ctx: TaskContext):
     "Install dependencies for cmake project development"
     conf = get_config()
     build_dir = get_deps_build_dir()
@@ -46,7 +44,7 @@ def build_develop_deps(
 
     @beartype
     def dep(item: ExternalDep):
-        if 0 < len(build_whitelist) and item.build_name not in build_whitelist:
+        if 0 < len(conf.build_develop_deps_conf.build_whitelist) and item.build_name not in conf.build_develop_deps_conf.build_whitelist:
             return
 
         configure_args = list(
@@ -57,9 +55,8 @@ def build_develop_deps(
             ]))
 
         log(CAT).info(f"Running build name='{item.build_name}' deps='{item.deps_name}'")
-        if configure:
+        if conf.build_develop_deps_conf.configure:
             run_command(
-                ctx,
                 "cmake",
                 [
                     "-B",
@@ -74,7 +71,7 @@ def build_develop_deps(
                     *([cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path())]
                       if item.is_bundled_toolchain else []),
                     *configure_args,
-                    *maybe_splice(force, "--fresh"),
+                    *maybe_splice(conf.build_develop_deps_conf.force, "--fresh"),
                 ],
                 **debug_conf,
             )
@@ -87,7 +84,6 @@ def build_develop_deps(
             ]))
 
         run_command(
-            ctx,
             "cmake",
             [
                 "--build",
@@ -100,8 +96,8 @@ def build_develop_deps(
             **debug_conf,
         )
 
-    if is_ci():
-        run_command(ctx, "git", [
+    if conf.in_ci:
+        run_command("git", [
             "config",
             "--global",
             "--add",
@@ -118,8 +114,6 @@ def build_develop_deps(
     log(CAT).info(f"Finished develop dependencies installation, {debug_conf}")
     generate_develop_deps_install_paths()
     log(CAT).info(f"Installed into {install_dir}")
-
-
 
 
 @haxorg_task(dependencies=[build_release_archive])
@@ -202,4 +196,3 @@ def build_release_deps(
             stderr_debug=get_log_dir().joinpath("cpack_build_stderr.log"),
             stdout_debug=get_log_dir().joinpath("cpack_build_stdout.log"),
         )
-

@@ -1,5 +1,5 @@
 import tempfile
-from beartype.typing import Dict, Callable, List, Optional
+from beartype.typing import Dict, Callable, List, Optional, Iterable
 from beartype import beartype
 from functools import wraps
 import psutil
@@ -32,22 +32,24 @@ def get_script_root(relative: Optional[str] = None) -> Path:
 
 
 @beartype
-def ensure_clean_dir(dir: Path):
+def ensure_clean_dir(dir: Path) -> Path:
     if dir.exists():
         shutil.rmtree(str(dir))
 
     dir.mkdir(parents=True, exist_ok=True)
+    return dir
 
 
 @beartype
-def ensure_existing_dir(dir: Path):
+def ensure_existing_dir(dir: Path) -> Path:
     dir.mkdir(parents=True, exist_ok=True)
-
+    return dir
 
 @beartype
-def ensure_clean_file(file: Path):
+def ensure_clean_file(file: Path) -> Path:
     ensure_existing_dir(file.parent)
     file.write_text("")
+    return file
 
 
 
@@ -64,6 +66,12 @@ def get_real_build_basename(component: str) -> str:
         result += "_instrumented"
 
     return result
+
+
+@beartype
+def get_list_cli_pass(list_name: str, args: Iterable[str]) -> List[str]:
+    return [f"--{list_name}={arg}" for arg in args]
+
 
 
 
@@ -115,9 +123,6 @@ def ui_notify(message: str, is_ok: bool = True):
 
 
 
-@beartype
-def get_tmpdir(*name: str) -> str:
-    return str(Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name))
 
 @beartype
 def create_symlink(link_path: Path, real_path: Path, is_dir: bool):

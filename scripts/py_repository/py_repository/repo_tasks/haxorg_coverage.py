@@ -10,7 +10,7 @@ from py_ci.util_scripting import get_threading_count
 from py_repository.coverage_collection.gen_coverage_cookies import ProfdataCookie, ProfdataFullProfile, ProfdataParams
 from py_repository.repo_tasks.workflow_utils import haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import get_build_root, get_component_build_dir
+from py_repository.repo_tasks.common import ensure_clean_file, get_build_root, get_component_build_dir
 from py_repository.repo_tasks.config import HaxorgCoverageAggregateFilter, HaxorgCoverageCookiePattern, get_config
 from py_repository.repo_tasks.haxorg_base import get_llvm_root
 from py_repository.repo_tasks.haxorg_build import build_haxorg
@@ -286,8 +286,8 @@ def run_cxx_coverage_merge(coverage_mapping_dump: Optional[str] = None,):
         [
             profile_path,
         ],
-        stderr_debug=coverage_dir.joinpath("profdata_merger_stderr.txt"),
-        stdout_debug=coverage_dir.joinpath("profdata_merger_stdout.txt"),
+        stderr_debug=ensure_clean_file(coverage_dir.joinpath("profdata_merger_stderr.txt")),
+        stdout_debug=ensure_clean_file(coverage_dir.joinpath("profdata_merger_stdout.txt")),
     )
 
 

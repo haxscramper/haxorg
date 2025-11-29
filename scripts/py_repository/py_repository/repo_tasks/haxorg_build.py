@@ -12,7 +12,7 @@ from py_repository.repo_tasks.haxorg_base import (
     get_cmake_defines,
     get_deps_install_dir,
 )
-from py_repository.repo_tasks.workflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import get_component_build_dir, get_script_root, get_build_root
 from py_repository.repo_tasks.config import get_config
@@ -52,11 +52,12 @@ def configure_cmake_haxorg(force: bool = False):
 
 
 @haxorg_task(dependencies=[configure_cmake_haxorg])
-def build_haxorg(target: List[str] = ["all"], force: bool = False):
+def build_haxorg(ctx: TaskContext):
     """Compile main set of libraries and binaries for org-mode parser"""
     log(CAT).info(f"Using dependency dir {get_deps_install_dir()}")
     log(CAT).info(f"Building with\n{' '.join(get_cmake_defines())}")
     build_dir = get_component_build_dir("haxorg")
+    conf = get_config()
 
     run_command(
         "cmake",
@@ -64,7 +65,7 @@ def build_haxorg(target: List[str] = ["all"], force: bool = False):
             "--build",
             build_dir,
             "--target",
-            *cond(0 < len(target), target, ["all"]),
+            *cond(0 < len(conf.build_conf.target), conf.build_conf.target, ["all"]),
             *get_j_cap(),
             *([
                 "--",

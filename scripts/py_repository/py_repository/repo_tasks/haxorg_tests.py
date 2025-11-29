@@ -1,5 +1,8 @@
 from beartype.typing import List
 
+from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.config import get_config
+from py_repository.repo_tasks.haxorg_coverage import get_cxx_coverage_dir
 from py_repository.repo_tasks.workflow_utils import haxorg_task
 from py_repository.repo_tasks.haxorg_base import symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
@@ -14,25 +17,25 @@ def run_py_tests(arg: List[str] = []):
     """
 
     args = arg
+    conf = get_config()
 
-    env = get_py_env(ctx)
-    if is_instrumented_coverage(ctx):
+    env = dict()
+
+    # env = get_py_env(ctx)
+    if conf.instrument.coverage:
         coverage_dir = get_cxx_coverage_dir()
         env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
 
     run_command(
-        ctx,
         "poetry",
         [
             "run",
             "python",
             "scripts/py_repository/py_repository/coverage_collection/gen_coverage_cxx.py",
         ],
-        env=get_py_env(ctx),
     )
 
     retcode, _, _ = run_command(
-        ctx,
         "poetry",
         [
             "run",
@@ -68,14 +71,12 @@ def run_py_script(script: str, arg: List[str] = []):
     Debug task. 
     """
     run_command(
-        ctx,
         "poetry",
         [
             "run",
             script,
             *arg,
         ],
-        env=get_py_env(ctx),
     )
 
 

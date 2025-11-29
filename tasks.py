@@ -178,8 +178,3 @@ def get_poetry_import_paths(ctx: Context) -> List[Path]:
 
 
 
-@beartype
-def get_list_cli_pass(list_name: str, args: Iterable[str]) -> List[str]:
-    return [f"--{list_name}={arg}" for arg in args]
-
-

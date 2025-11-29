@@ -1,4 +1,3 @@
-
 import itertools
 from tempfile import TemporaryDirectory
 from beartype import beartype
@@ -6,24 +5,29 @@ from pathlib import Path
 from beartype.typing import List, Literal, Optional
 import shutil
 
-
-
 from py_ci.util_scripting import get_docker_cap_flags
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import clone_repo_with_uncommitted_changes, ensure_clean_file, get_script_root, get_tmpdir
-from py_repository.repo_tasks.config import get_config
+from py_repository.repo_tasks.deps_build import build_develop_deps
+from py_repository.repo_tasks.examples_build import build_examples, run_js_test_example
+from py_repository.repo_tasks.haxorg_build import build_haxorg, install_haxorg_develop
+from py_repository.repo_tasks.haxorg_codegen import generate_haxorg_sources, generate_python_protobuf_files
+from py_repository.repo_tasks.haxorg_coverage import run_cxx_coverage_merge
+from py_repository.repo_tasks.haxorg_docs import build_custom_docs
+from py_repository.repo_tasks.haxorg_tests import run_py_tests
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.command_execution import get_cmd_debug_file, run_command
+from py_repository.repo_tasks.common import clone_repo_with_uncommitted_changes, docker_user, ensure_clean_file, get_script_root
+from py_repository.repo_tasks.config import get_config, get_tmpdir, set_config
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import merge_dicts
 
 CAT = __name__
+
 
 @beartype
 def docker_mnt(src: Path, dst: Path) -> List[str]:
     assert src.exists(), f"'{src}'"
     log(CAT).debug(f"Mounting docker '{src}' to '{dst}'")
     return ["--mount", f"type=bind,src={src},dst={dst}"]
-
 
 
 @haxorg_task()
@@ -37,8 +41,6 @@ def build_docker_develop_image():
         get_script_root("scripts/py_repository/Dockerfile"),
         ".",
     ])
-
-
 
 
 @haxorg_task(dependencies=[build_docker_develop_image])
@@ -114,8 +116,6 @@ def run_docker_develop_test(
                 invoke_opt("emscripten-test", emscripten_test),
             ]),
         ])
-
-
 
 
 @haxorg_task(dependencies=[])
@@ -268,24 +268,10 @@ def run_docker_release_test(
             run_with_build_dir(build_dir=Path(dir))
 
 
-
-
-
 @haxorg_task()
-def run_develop_ci(
-    deps: bool = True,
-    build: bool = True,
-    test: bool = True,
-    docs: bool = True,
-    coverage: bool = True,
-    reflection: bool = True,
-    install: bool = True,
-    example: bool = True,
-    emscripten_deps: bool = True,
-    emscripten_build: bool = True,
-    emscripten_test: bool = True,
-):
+def run_develop_ci(ctx: TaskContext):
     "Execute all CI tasks"
+    conf = get_config()
     # env = merge_dicts([
     #     haxorg_env(["ci"], True),
     #     haxorg_env(["forceall"], True),
@@ -293,10 +279,10 @@ def run_develop_ci(
     # ])
 
     # if coverage:
-        # env = merge_dicts([
-        #     env,
-        #     haxorg_env(["instrument", "coverage"], True),
-        # ])
+    # env = merge_dicts([
+    #     env,
+    #     haxorg_env(["instrument", "coverage"], True),
+    # ])
 
     # emscripten_env = merge_dicts([
     #     env,
@@ -304,60 +290,49 @@ def run_develop_ci(
     #     haxorg_env(["instrument", "coverage"], False),
     # ])
 
-    if deps:
+    old_config = conf.model_copy()
+
+    if conf.develop_ci_conf.deps:
         log(CAT).info("Running CI dependency installation")
-        run_self([build_develop_deps], env=env)
+        build_develop_deps(ctx=ctx)
 
-    if install:
+    if conf.develop_ci_conf.install:
         log(CAT).info("Running install")
-        run_self(
-            ctx,
-            [install_haxorg_develop],
-            env=env,
-        )
+        install_haxorg_develop(ctx=ctx)
 
-    if build:
+    if conf.develop_ci_conf.build:
         log(CAT).info("Running CI cmake")
-        run_self([build_haxorg], env=env)
+        build_haxorg(ctx=ctx)
 
-    if reflection:
+    if conf.develop_ci_conf.reflection:
         log(CAT).info("Running CI reflection")
-        run_self(
-            ctx,
-            [generate_haxorg_sources],
-            env=env,
-        )
+        generate_haxorg_sources(ctx=ctx)
 
-    if test:
+    if conf.develop_ci_conf.test:
         log(CAT).info("Running CI tests")
-        generate_python_protobuf_files(ctx)
-        run_self(
-            ctx,
-            [
-                run_py_tests,
-                "--arg=-m",
-                "--arg=not (unstable or x11)",
-            ],
-            env=env,
-        )
+        generate_python_protobuf_files(ctx=ctx)
+        run_py_tests(ctx=ctx)
 
-    if example:
+
+    if conf.develop_ci_conf.example:
         log(CAT).info("Running CI cmake")
-        run_self([build_examples], env=env)
+        build_examples(ctx=ctx)
 
-    if coverage:
+    if conf.develop_ci_conf.coverage and conf.instrument.coverage:
         log(CAT).info("Running CI coverage merge")
-        run_self([run_cxx_coverage_merge], env=env)
+        run_cxx_coverage_merge(ctx=ctx)
 
-    if docs:
+    if conf.develop_ci_conf.docs:
         log(CAT).info("Running CI docs")
-        run_self([build_custom_docs], env=env)
+        build_custom_docs(ctx=ctx)
 
-    if emscripten_deps:
-        run_self([build_develop_deps], env=emscripten_env)
+    if conf.develop_ci_conf.emscripten_deps:
+        build_develop_deps(ctx=ctx)
 
-    if emscripten_build:
-        run_self([build_haxorg], env=emscripten_env)
+    if conf.develop_ci_conf.emscripten_build:
+        build_haxorg(ctx=ctx)
 
-    if emscripten_test:
-        run_self([run_js_test_example], env=emscripten_env)
+    if conf.develop_ci_conf.emscripten_test:
+        run_js_test_example(ctx=ctx)
+
+    set_config(old_config)
