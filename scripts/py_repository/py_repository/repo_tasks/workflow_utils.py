@@ -67,7 +67,7 @@ def haxorg_task(
 
             for param_name, param in sig.parameters.items():
                 if param_name == "ctx":
-                    kwargs[param_name] = context
+                    kwargs[param_name] = context["ctx"]
                     continue
 
                 # Get value from context params or use default
@@ -79,20 +79,6 @@ def haxorg_task(
                     raise ValueError(
                         f"Required parameter '{param_name}' not found in context for task {func.__name__}"
                     )
-
-                # Type conversion if type hint is available
-                if param_name in type_hints:
-                    expected_type = type_hints[param_name]
-                    # Handle Optional types and basic type conversion
-                    if hasattr(expected_type, "__origin__"):
-                        if expected_type.__origin__ is list and isinstance(value, str):
-                            value = [value] if value else []
-                    elif expected_type == bool and isinstance(value, str):
-                        value = value.lower() in ("true", "1", "yes", "on")
-                    elif expected_type == int and isinstance(value, str):
-                        value = int(value)
-                    elif expected_type == float and isinstance(value, str):
-                        value = float(value)
 
                 kwargs[param_name] = value
 
@@ -134,12 +120,6 @@ class PythonOperator():
         return get_task_metadata(self.python_callable)
 
 
-
-@beartype
-class TaskContext():
-    pass
-
-
 @beartype
 @dataclass
 class TaskGraph:
@@ -165,7 +145,7 @@ class TaskGraph:
     def get_create_python_operator(self, func: Callable) -> PythonOperator:
         metadata = get_task_metadata(func)
         task_id = metadata.task_id
-        
+
         if task_id not in self.tasks:
             self.tasks[task_id] = self.create_python_operator(func)
             self.graph.add_vertex(name=task_id)
@@ -175,22 +155,27 @@ class TaskGraph:
     def add_edge(self, source: PythonOperator, target: PythonOperator):
         self.graph.add_edge(source.task_id, target.task_id)
 
-
     def get_tasks(self) -> List[str]:
         return [self.graph.vs[n]["name"] for n in self.graph.topological_sorting()]
 
 
-    def run(self, ctx: TaskContext, target_name: str):
-        target_id = self.graph.vs.find(name=target_name).index
+@beartype
+@dataclass
+class TaskContext():
+    graph: TaskGraph
 
-        dependent_indices = self.graph.subcomponent(target_id, mode="in")
-        sub_graph = self.graph.induced_subgraph(dependent_indices)
-        
+    def run(self, target_name: str | Callable):
+        target_name = target_name if isinstance(target_name, str) else target_name.__name__
+        target_id = self.graph.graph.vs.find(name=target_name).index
+
+        dependent_indices = self.graph.graph.subcomponent(target_id, mode="in")
+        sub_graph = self.graph.graph.induced_subgraph(dependent_indices)
+
         sorted_indices = sub_graph.topological_sorting()
         execution_order = sub_graph.vs[sorted_indices]["name"]
 
         for task_id in execution_order:
-            self.tasks[task_id].python_callable(ctx=ctx)
+            self.graph.tasks[task_id].python_callable(ctx=self)
 
 
 @beartype
@@ -205,6 +190,7 @@ def create_dag_from_tasks(task_functions: List[Callable]) -> TaskGraph:
             dag.add_edge(source=dep_op, target=current_op)
 
     return dag
+
 
 # @beartype
 # def create_individual_dags(task_functions: List[Callable]) -> List[DAG]:

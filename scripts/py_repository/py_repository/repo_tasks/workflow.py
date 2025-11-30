@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from pathlib import Path
+from py_repository.repo_tasks.config import get_config
 import py_repository.repo_tasks.workflow_utils as workflow_utils
 from py_repository.repo_tasks import (
     haxorg_base,
@@ -17,7 +18,7 @@ from py_scriptutils.toml_config_profiler import apply_options, options_from_mode
 from pydantic import BaseModel, Field
 from beartype.typing import Optional
 import rich_click as click
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import log, setup_multi_file_logging
 
 CAT = __name__
 
@@ -40,11 +41,14 @@ def cli(ctx: click.Context, cmd: str, config: str, **kwargs) -> None:
     opts: WorkflowOptions = ctx.obj["root"]
 
     graph = workflow_utils.create_dag_from_tasks(workflow_utils.get_haxorg_tasks())
-    context = workflow_utils.TaskContext()
+    context = workflow_utils.TaskContext(graph=graph)
+
+    conf = get_config()
+    setup_multi_file_logging(conf.workflow_log_dir)
 
     match cmd:
         case "run":
-            graph.run(context, opts.task)
+            context.run(opts.task)
             log(CAT).info("Done")
 
         case "list_tasks":

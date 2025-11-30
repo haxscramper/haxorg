@@ -7,9 +7,11 @@ from beartype import beartype
 
 CAT = __name__
 
+
 @beartype
 def get_tmpdir(*name: str) -> str:
     return str(Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name))
+
 
 class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
     coverage: bool = Field(default=False)
@@ -59,10 +61,12 @@ class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
     tmp: bool = False
     standalone: bool = False
 
-class HaxorgCustomDocsConfig(BaseModel, extra="forbid"): 
+
+class HaxorgCustomDocsConfig(BaseModel, extra="forbid"):
     coverage_file_whitelist: List[str] = [".*"]
     coverage_file_blacklist: List[str] = []
     out_dir: str = get_tmpdir("docs_out")
+
 
 class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     deps: bool = True
@@ -103,6 +107,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
         description="Always execute task",
     )
 
+    workflow_log_dir: Path = Field(
+        default_factory=lambda: Path("/tmp/haxorg_workflow_log"))
+
     forceall: bool = Field(default=False)
     ci: bool = Field(default=False)
     dryrun: bool = Field(default=False)
@@ -137,7 +144,8 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     generate_sources_conf: HaxorgGenerateSourcesConfig = Field(
         default_factory=HaxorgGenerateSourcesConfig)
 
-    custom_docs_conf: HaxorgCustomDocsConfig = Field(default_factory=HaxorgCustomDocsConfig)
+    custom_docs_conf: HaxorgCustomDocsConfig = Field(
+        default_factory=HaxorgCustomDocsConfig)
 
 
 @contextmanager
@@ -151,6 +159,7 @@ def scoped_config_change() -> Generator[None, None, None]:
 
 
 __global_conf = HaxorgConfig()
+
 
 def get_config() -> HaxorgConfig:
     return __global_conf

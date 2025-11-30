@@ -16,7 +16,7 @@ from py_repository.repo_tasks.haxorg_tests import run_py_tests
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import get_cmd_debug_file, run_command
 from py_repository.repo_tasks.common import clone_repo_with_uncommitted_changes, docker_user, ensure_clean_file, get_script_root
-from py_repository.repo_tasks.config import get_config, get_tmpdir, set_config
+from py_repository.repo_tasks.config import get_config, get_tmpdir, scoped_config_change, set_config
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import merge_dicts
 
@@ -269,70 +269,59 @@ def run_docker_release_test(
 
 
 @haxorg_task()
+@beartype
 def run_develop_ci(ctx: TaskContext):
     "Execute all CI tasks"
     conf = get_config()
-    # env = merge_dicts([
-    #     haxorg_env(["ci"], True),
-    #     haxorg_env(["forceall"], True),
-    #     haxorg_env(["use", "qt"], False),
-    # ])
-
-    # if coverage:
-    # env = merge_dicts([
-    #     env,
-    #     haxorg_env(["instrument", "coverage"], True),
-    # ])
-
-    # emscripten_env = merge_dicts([
-    #     env,
-    #     haxorg_env(["emscripten", "build"], True),
-    #     haxorg_env(["instrument", "coverage"], False),
-    # ])
-
     old_config = conf.model_copy()
 
     if conf.develop_ci_conf.deps:
         log(CAT).info("Running CI dependency installation")
-        build_develop_deps(ctx=ctx)
+        ctx.run(build_develop_deps)
 
     if conf.develop_ci_conf.install:
         log(CAT).info("Running install")
-        install_haxorg_develop(ctx=ctx)
+        ctx.run(install_haxorg_develop)
 
     if conf.develop_ci_conf.build:
         log(CAT).info("Running CI cmake")
-        build_haxorg(ctx=ctx)
+        ctx.run(build_haxorg)
 
     if conf.develop_ci_conf.reflection:
         log(CAT).info("Running CI reflection")
-        generate_haxorg_sources(ctx=ctx)
+        ctx.run(generate_haxorg_sources)
 
     if conf.develop_ci_conf.test:
         log(CAT).info("Running CI tests")
-        generate_python_protobuf_files(ctx=ctx)
-        run_py_tests(ctx=ctx)
+        ctx.run(generate_python_protobuf_files)
+        ctx.run(run_py_tests)
 
 
     if conf.develop_ci_conf.example:
         log(CAT).info("Running CI cmake")
-        build_examples(ctx=ctx)
+        ctx.run(build_examples)
 
     if conf.develop_ci_conf.coverage and conf.instrument.coverage:
         log(CAT).info("Running CI coverage merge")
-        run_cxx_coverage_merge(ctx=ctx)
+        ctx.run(run_cxx_coverage_merge)
 
     if conf.develop_ci_conf.docs:
         log(CAT).info("Running CI docs")
-        build_custom_docs(ctx=ctx)
+        ctx.run(build_custom_docs)
 
-    if conf.develop_ci_conf.emscripten_deps:
-        build_develop_deps(ctx=ctx)
+    with scoped_config_change():
+        emcc_conf = conf.model_copy()
+        emcc_conf.emscripten.build = True
+        emcc_conf.instrument.coverage = False
 
-    if conf.develop_ci_conf.emscripten_build:
-        build_haxorg(ctx=ctx)
+        set_config(emcc_conf)
+        if conf.develop_ci_conf.emscripten_deps:
+            ctx.run(build_develop_deps)
 
-    if conf.develop_ci_conf.emscripten_test:
-        run_js_test_example(ctx=ctx)
+        if conf.develop_ci_conf.emscripten_build:
+            ctx.run(build_haxorg)
+
+        if conf.develop_ci_conf.emscripten_test:
+            ctx.run(run_js_test_example)
 
     set_config(old_config)

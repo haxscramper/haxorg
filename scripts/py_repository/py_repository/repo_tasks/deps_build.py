@@ -112,7 +112,7 @@ def build_develop_deps(ctx: TaskContext):
         dep(item)
 
     log(CAT).info(f"Finished develop dependencies installation, {debug_conf}")
-    generate_develop_deps_install_paths()
+    generate_develop_deps_install_paths(ctx=ctx)
     log(CAT).info(f"Installed into {install_dir}")
 
 

@@ -231,3 +231,57 @@ sys.excepthook = custom_traceback_handler
 log("graphviz").setLevel(logging.ERROR)
 log("asyncio").setLevel(logging.ERROR)
 log("matplotlib").setLevel(logging.WARNING)
+
+
+import logging
+from pathlib import Path
+from beartype import beartype
+from typing import Dict
+
+
+class MultiFileHandler(logging.Handler):
+    @beartype
+    def __init__(self, base_dir: Path):
+        super().__init__()
+        self.base_dir = base_dir
+        self.base_dir.mkdir(parents=True, exist_ok=True)
+        self.logger_handlers: Dict[str, logging.FileHandler] = {}
+        self.main_handler = logging.FileHandler(self.base_dir / "main.log")
+        self.main_handler.setFormatter(
+            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        )
+
+    @beartype
+    def _get_logger_handler(self, logger_name: str) -> logging.FileHandler:
+        if logger_name not in self.logger_handlers:
+            safe_name = logger_name.replace("/", "_").replace("\\", "_")
+            log_file = self.base_dir / f"{safe_name}.log"
+            handler = logging.FileHandler(log_file)
+            handler.setFormatter(
+                logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+            )
+            self.logger_handlers[logger_name] = handler
+        return self.logger_handlers[logger_name]
+
+    @beartype
+    def emit(self, record: logging.LogRecord) -> None:
+        self.main_handler.emit(record)
+        logger_handler = self._get_logger_handler(record.name)
+        logger_handler.emit(record)
+
+    @beartype
+    def close(self) -> None:
+        self.main_handler.close()
+        for handler in self.logger_handlers.values():
+            handler.close()
+        super().close()
+
+
+@beartype
+def setup_multi_file_logging(base_dir: Path) -> MultiFileHandler:
+    handler = MultiFileHandler(base_dir)
+    handler.setLevel(logging.DEBUG)
+    root_logger = logging.getLogger()
+    root_logger.addHandler(handler)
+    root_logger.setLevel(logging.DEBUG)
+    return handler
