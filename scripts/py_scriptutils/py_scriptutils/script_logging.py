@@ -239,6 +239,8 @@ import logging
 from pathlib import Path
 from beartype import beartype
 from typing import Dict
+from rich.text import Text
+
 
 
 class MultiFileHandler(logging.Handler):
@@ -248,17 +250,31 @@ class MultiFileHandler(logging.Handler):
         self.base_dir = base_dir
         self.base_dir.mkdir(parents=True, exist_ok=True)
         self.logger_handlers: Dict[str, logging.FileHandler] = {}
-        self.main_handler = logging.FileHandler(self.base_dir / "main.log")
+        self.main_handler = logging.FileHandler(self.base_dir / "main.log", mode="w")
         self.main_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
+        self.plain_console = Console(
+            color_system=None,
+            legacy_windows=False,
+            force_terminal=False,
+            no_color=True,
+            width=999999
+        )
+
+    @beartype
+    def _strip_rich_formatting(self, message: str) -> str:
+        text = Text.from_markup(message)
+        with self.plain_console.capture() as capture:
+            self.plain_console.print(text, end="")
+        return capture.get()
 
     @beartype
     def _get_logger_handler(self, logger_name: str) -> logging.FileHandler:
         if logger_name not in self.logger_handlers:
             safe_name = logger_name.replace("/", "_").replace("\\", "_")
             log_file = self.base_dir / f"{safe_name}.log"
-            handler = logging.FileHandler(log_file)
+            handler = logging.FileHandler(log_file, mode="w")
             handler.setFormatter(
                 logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
             )
@@ -267,6 +283,13 @@ class MultiFileHandler(logging.Handler):
 
     @beartype
     def emit(self, record: logging.LogRecord) -> None:
+        record.msg = self._strip_rich_formatting(str(record.msg))
+        if hasattr(record, "args") and record.args:
+            record.args = tuple(
+                self._strip_rich_formatting(str(arg)) if isinstance(arg, str) else arg
+                for arg in record.args
+            )
+        
         self.main_handler.emit(record)
         logger_handler = self._get_logger_handler(record.name)
         logger_handler.emit(record)

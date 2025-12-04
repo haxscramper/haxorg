@@ -66,9 +66,11 @@ def haxorg_task(
             # Extract parameters from context based on function signature
             kwargs = {}
 
+            context_obj: TaskContext = None
             for param_name, param in sig.parameters.items():
                 if param_name == "ctx":
                     kwargs[param_name] = context["ctx"]
+                    context_obj = context["ctx"]
                     continue
 
                 # Get value from context params or use default
@@ -83,7 +85,15 @@ def haxorg_task(
 
                 kwargs[param_name] = value
 
-            return func(**kwargs)
+            if context_obj:
+                context_obj.current_task = wrapper
+
+            result = func(**kwargs)
+
+            if context_obj:
+                context_obj.current_task = None
+
+            return result
 
         wrapper._haxorg_metadata = TaskMetadata(
             dependencies=[dep for dep in (dependencies or [])],
@@ -164,13 +174,13 @@ class TaskGraph:
 @dataclass
 class TaskContext():
     graph: TaskGraph
-    current_task: Optional[PythonOperator] = None
+    current_task: Optional[Callable] = None
 
     def get_task_debug_suffix(self, cmd: str = "") -> str:
         result = ""
 
         if self.current_task:
-            result += self.current_task.get_metadata().task_id
+            result += get_task_metadata(self.current_task).task_id
 
         if cmd:
             result += "_" + cmd
@@ -184,9 +194,12 @@ class TaskContext():
         import hashlib
         digest = hashlib.md5(f"{cmd} {args}".encode()).hexdigest()[:8]
         result = (
-            Path(f"/tmp/{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"),
-            Path(f"/tmp/{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"),
+            Path(f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"),
+            Path(f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"),
         )
+
+        result[0].parent.mkdir(parents=True, exist_ok=True)
+        result[1].parent.mkdir(parents=True, exist_ok=True)
 
         header = f"""
 cmd:  {cmd}
@@ -210,9 +223,7 @@ args: {args}
         execution_order = sub_graph.vs[sorted_indices]["name"]
 
         for task_id in execution_order:
-            self.current_task = self.graph.tasks[task_id]
             self.graph.tasks[task_id].python_callable(ctx=self)
-            self.current_task = None
 
 
 @beartype

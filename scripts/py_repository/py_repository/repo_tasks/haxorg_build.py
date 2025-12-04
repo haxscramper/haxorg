@@ -21,7 +21,7 @@ CAT = __name__
 
 
 @haxorg_task(dependencies=[base_environment, generate_develop_deps_install_paths])
-def configure_cmake_haxorg(force: bool = False):
+def configure_cmake_haxorg(ctx: TaskContext, force: bool = False):
     """Execute cmake configuration step for haxorg"""
 
     cfg = get_config()
@@ -48,7 +48,7 @@ def configure_cmake_haxorg(force: bool = False):
     import shlex
     Path("/tmp/cmake_configure_haxorg_flags.txt").write_text(
         shlex.join([str(s) for s in pass_flags[6:]]))
-    run_command("cmake", pass_flags)
+    run_command(ctx, "cmake", pass_flags)
 
 
 @haxorg_task(dependencies=[configure_cmake_haxorg])
@@ -79,7 +79,7 @@ def build_haxorg(ctx: TaskContext):
 
 
 @haxorg_task(dependencies=[build_haxorg])
-def install_haxorg_develop(perfetto: bool = False):
+def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False):
     """Install haxorg targets in the build directory"""
     install_dir = get_build_root().joinpath("install")
     if install_dir.exists():
@@ -100,7 +100,7 @@ def install_haxorg_develop(perfetto: bool = False):
 
 
 @haxorg_task(dependencies=[configure_cmake_haxorg])
-def build_release_archive(force: bool = False):
+def build_release_archive(ctx: TaskContext, force: bool = False):
     "Generate source archive"
 
     pack_res = get_script_root().joinpath("_CPack_Packages")

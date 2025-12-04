@@ -18,7 +18,7 @@ def generate_python_protobuf_files(ctx: TaskContext):
     proto_config = get_script_root(
         "scripts/cxx_codegen/reflection_tool/reflection_defs.proto")
 
-    _, stdout, _ = run_command("poetry", ["env", "info", "--path"], capture=True)
+    _, stdout, _ = run_command(ctx, "poetry", ["env", "info", "--path"], capture=True)
     stdout = stdout.strip()
     log(CAT).info(f"Using protoc plugin path '{stdout}'")
     protoc_plugin = Path(stdout).joinpath("bin/protoc-gen-python_betterproto")

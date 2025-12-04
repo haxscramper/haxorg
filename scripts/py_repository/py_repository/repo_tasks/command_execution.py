@@ -192,7 +192,8 @@ cmd:  {cmd}
 
 @beartype
 def run_cmake(
+    ctx: TaskContext,
     args: List[str | Path],
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
-    return run_command("cmake", args, **kwargs)
+    return run_command(ctx, "cmake", args, **kwargs)

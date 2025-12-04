@@ -21,12 +21,14 @@ CAT = __name__
 
 @beartype
 def run_cmake_configure_component(
+    ctx: TaskContext,
     component: str,
     script_path: str,
     args: List[str | Path] = [],
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
     return run_cmake(
+        ctx,
         [
             "-B",
             get_component_build_dir(component),
@@ -46,12 +48,14 @@ def run_cmake_configure_component(
 
 @beartype
 def run_cmake_build_component(
+    ctx: TaskContext,
     component: str,
     targets: List[str] = ["all"],
     args: List[str | Path] = [],
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
     return run_cmake(
+        ctx,
         [
             "--build",
             get_component_build_dir(component),
@@ -65,6 +69,7 @@ def run_cmake_build_component(
 @haxorg_task(dependencies=[validate_dependencies_install])
 def configure_example_imgui_gui(ctx: TaskContext):
     run_cmake_configure_component(
+        ctx,
         "example_imgui_gui",
         "examples/imgui_gui",
     )
@@ -72,13 +77,14 @@ def configure_example_imgui_gui(ctx: TaskContext):
 
 @haxorg_task(dependencies=[configure_example_imgui_gui])
 def build_example_imgui_gui(ctx: TaskContext):
-    run_cmake_build_component("example_imgui_gui",)
+    run_cmake_build_component(ctx, "example_imgui_gui",)
 
 
 @haxorg_task(dependencies=[validate_dependencies_install])
 def configure_example_qt_gui_org_viewer(ctx: TaskContext):
     assert get_config().use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
     run_cmake_configure_component(
+        ctx,
         "example_qt_gui_org_viewer",
         "examples/qt_gui/org_viewer",
     )
@@ -87,13 +93,14 @@ def configure_example_qt_gui_org_viewer(ctx: TaskContext):
 @haxorg_task(dependencies=[configure_example_qt_gui_org_viewer])
 def build_example_qt_gui_org_viewer(ctx: TaskContext):
     assert get_config().use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
-    run_cmake_build_component("example_qt_gui_org_viewer",)
+    run_cmake_build_component(ctx, "example_qt_gui_org_viewer",)
 
 
 @haxorg_task(dependencies=[validate_dependencies_install])
 def configure_example_qt_gui_org_diagram(ctx: TaskContext):
     assert get_config().use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
     run_cmake_configure_component(
+        ctx,
         "example_qt_gui_org_diagram",
         "examples/qt_gui/org_diagram",
         args=[cmake_opt("JAVA_HOME", "/usr/lib/jvm/default")],
@@ -103,7 +110,7 @@ def configure_example_qt_gui_org_diagram(ctx: TaskContext):
 @haxorg_task(dependencies=[configure_example_qt_gui_org_diagram])
 def build_example_qt_gui_org_diagram(ctx: TaskContext):
     assert get_config().use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
-    run_cmake_build_component("example_qt_gui_org_diagram",)
+    run_cmake_build_component(ctx, "example_qt_gui_org_diagram",)
 
 
 @haxorg_task(dependencies=[build_example_qt_gui_org_diagram])

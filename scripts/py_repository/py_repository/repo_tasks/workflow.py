@@ -27,6 +27,7 @@ logging.getLogger("plumbum.local").setLevel(logging.WARNING)
 
 class WorkflowOptions(BaseModel):
     task: Optional[str] = Field(default=None)
+    workflow_log_dir: str = "/tmp/haxorg/workflow_log"
 
 def workflow_options(f):
     return apply_options(f, options_from_model(WorkflowOptions))
@@ -42,12 +43,13 @@ def workflow_options(f):
 def cli(ctx: click.Context, cmd: str, config: str, **kwargs) -> None:
     pack_context(ctx, "root", WorkflowOptions, config=config, kwargs=kwargs)
     opts: WorkflowOptions = ctx.obj["root"]
+    setup_multi_file_logging(Path(opts.workflow_log_dir))
 
     graph = workflow_utils.create_dag_from_tasks(workflow_utils.get_haxorg_tasks())
     context = workflow_utils.TaskContext(graph=graph)
 
     conf = get_config()
-    setup_multi_file_logging(conf.workflow_log_dir)
+    log(CAT).info(f"{conf.model_dump_json(indent=2)}")
 
     match cmd:
         case "run":

@@ -108,7 +108,7 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     )
 
     workflow_log_dir: Path = Field(
-        default_factory=lambda: Path("/tmp/haxorg_workflow_log"))
+        default_factory=lambda: Path("/tmp/haxorg/workflow_log"))
 
     forceall: bool = Field(default=False)
     ci: bool = Field(default=False)
