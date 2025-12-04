@@ -129,7 +129,6 @@ def run_docker_release_test(
     interactive: bool = False,
 ):
     CPACK_TEST_IMAGE = "docker-haxorg-cpack"
-
     dep_debug_stdout = get_cmd_debug_file("stdout")
     dep_debug_stderr = get_cmd_debug_file("stderr")
 

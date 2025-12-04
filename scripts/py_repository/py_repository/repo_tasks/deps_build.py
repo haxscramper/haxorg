@@ -32,14 +32,9 @@ def build_develop_deps(ctx: TaskContext):
     ensure_existing_dir(install_dir)
     deps_dir = get_script_root().joinpath("thirdparty")
 
-    dep_debug_stdout = get_cmd_debug_file("stdout")
-    dep_debug_stderr = get_cmd_debug_file("stderr")
-
     debug_conf = dict(
         append_stderr_debug=True,
         append_stdout_debug=True,
-        stdout_debug=dep_debug_stdout,
-        stderr_debug=dep_debug_stderr,
     )
 
     @beartype
@@ -57,6 +52,7 @@ def build_develop_deps(ctx: TaskContext):
         log(CAT).info(f"Running build name='{item.build_name}' deps='{item.deps_name}'")
         if conf.build_develop_deps_conf.configure:
             run_command(
+                ctx,
                 "cmake",
                 [
                     "-B",
@@ -84,6 +80,7 @@ def build_develop_deps(ctx: TaskContext):
             ]))
 
         run_command(
+            ctx,
             "cmake",
             [
                 "--build",

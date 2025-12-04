@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import signal
 from beartype.typing import List, Unpack
 from beartype import beartype
 
@@ -7,7 +8,7 @@ import plumbum
 from py_ci.util_scripting import cmake_opt
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import RunCommandKwargs, run_cmake, run_command
-from py_repository.repo_tasks.common import get_component_build_dir, get_script_root
+from py_repository.repo_tasks.common import ensure_clean_dir, get_component_build_dir, get_script_root
 from py_repository.repo_tasks.config import get_config
 from py_repository.repo_tasks.deps_build import validate_dependencies_install
 from py_repository.repo_tasks.haxorg_base import get_toolchain_path, symlink_build
@@ -76,6 +77,7 @@ def build_example_imgui_gui(ctx: TaskContext):
 
 @haxorg_task(dependencies=[validate_dependencies_install])
 def configure_example_qt_gui_org_viewer(ctx: TaskContext):
+    assert get_config().use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
     run_cmake_configure_component(
         "example_qt_gui_org_viewer",
         "examples/qt_gui/org_viewer",
@@ -84,11 +86,13 @@ def configure_example_qt_gui_org_viewer(ctx: TaskContext):
 
 @haxorg_task(dependencies=[configure_example_qt_gui_org_viewer])
 def build_example_qt_gui_org_viewer(ctx: TaskContext):
+    assert get_config().use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
     run_cmake_build_component("example_qt_gui_org_viewer",)
 
 
 @haxorg_task(dependencies=[validate_dependencies_install])
 def configure_example_qt_gui_org_diagram(ctx: TaskContext):
+    assert get_config().use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
     run_cmake_configure_component(
         "example_qt_gui_org_diagram",
         "examples/qt_gui/org_diagram",
@@ -98,6 +102,7 @@ def configure_example_qt_gui_org_diagram(ctx: TaskContext):
 
 @haxorg_task(dependencies=[configure_example_qt_gui_org_diagram])
 def build_example_qt_gui_org_diagram(ctx: TaskContext):
+    assert get_config().use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
     run_cmake_build_component("example_qt_gui_org_diagram",)
 
 

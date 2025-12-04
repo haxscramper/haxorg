@@ -19,8 +19,11 @@ from pydantic import BaseModel, Field
 from beartype.typing import Optional
 import rich_click as click
 from py_scriptutils.script_logging import log, setup_multi_file_logging
+import logging
 
 CAT = __name__
+
+logging.getLogger("plumbum.local").setLevel(logging.WARNING)
 
 class WorkflowOptions(BaseModel):
     task: Optional[str] = Field(default=None)

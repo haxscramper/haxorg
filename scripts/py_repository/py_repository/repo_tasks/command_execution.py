@@ -5,17 +5,17 @@ import plumbum
 import subprocess
 
 from py_repository.repo_tasks.config import get_config
+from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 from py_scriptutils.algorithm import remove_ansi
 
-
-
-
 CAT = __name__
+
 
 @beartype
 def get_cmd_debug_file(kind: str):
     return Path(f"/tmp/debug_{kind}.log")
+
 
 class RunCommandKwargs(TypedDict, total=False):
     capture: bool
@@ -27,10 +27,12 @@ class RunCommandKwargs(TypedDict, total=False):
     append_stdout_debug: bool
     append_stderr_debug: bool
     run_mode: Literal["nohup", "bg", "fg"]
+    print_output: bool
 
 
 @beartype
 def run_command(
+    ctx: TaskContext,
     cmd: Union[str, Path],
     args: List[Union[str, Path, Callable]],
     capture: bool = False,
@@ -42,9 +44,15 @@ def run_command(
     append_stdout_debug: bool = False,
     append_stderr_debug: bool = False,
     run_mode: Literal["nohup", "bg", "fg"] = "fg",
+    print_output: bool = False,
 ) -> tuple[int, str, str]:
-    stderr_debug = stderr_debug or get_cmd_debug_file("stderr")
-    stdout_debug = stdout_debug or get_cmd_debug_file("stdout")
+    debug_override = ctx.get_task_debug_streams(
+        str(cmd).split("/")[-1] if "/" in str(cmd) else cmd,
+        args,
+    )
+
+    stderr_debug = stderr_debug or debug_override[0]
+    stdout_debug = stdout_debug or debug_override[1]
     conf = get_config()
     if isinstance(cmd, Path):
         assert cmd.exists(), cmd
@@ -84,8 +92,7 @@ cmd:  {cmd}
         append_to_log(stdout_debug)
 
     import shlex
-    print("command args")
-    print(shlex.join(args))
+    # print(shlex.join(args))
 
     log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
                    (f" in [green]{cwd}[/green]" if cwd else "") +
@@ -144,7 +151,7 @@ cmd:  {cmd}
         return (0, "", "")
 
     else:
-        if get_config().quiet:
+        if get_config().quiet or not print_output:
             retcode, stdout, stderr = run.run(list(args), retcode=None)
 
         else:
@@ -164,11 +171,11 @@ cmd:  {cmd}
                 path.write_text(remove_ansi(text))
 
         if stdout_debug and stdout:
-            log(CAT).info(f"Wrote stdout to {stdout_debug}")
+            # log(CAT).info(f"Wrote stdout to {stdout_debug}")
             write_file(stdout_debug, append_stdout_debug, stdout)
 
         if stderr_debug and stderr:
-            log(CAT).info(f"Wrote stderr to {stderr_debug}")
+            # log(CAT).info(f"Wrote stderr to {stderr_debug}")
             write_file(stderr_debug, append_stderr_debug, stderr)
 
         if allow_fail or retcode == 0:
@@ -181,6 +188,7 @@ cmd:  {cmd}
                 f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
                 f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
             )) from None
+
 
 @beartype
 def run_cmake(

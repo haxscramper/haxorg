@@ -60,6 +60,7 @@ def build_haxorg(ctx: TaskContext):
     conf = get_config()
 
     run_command(
+        ctx,
         "cmake",
         [
             "--build",
@@ -85,6 +86,7 @@ def install_haxorg_develop(perfetto: bool = False):
         shutil.rmtree(install_dir)
 
     run_command(
+        ctx,
         "cmake",
         [
             "--install",
@@ -107,6 +109,7 @@ def build_release_archive(force: bool = False):
         shutil.rmtree(str(pack_res))
 
     run_command(
+        ctx,
         "cpack",
         [
             "--debug",
@@ -123,9 +126,9 @@ def build_release_archive(force: bool = False):
 @haxorg_task()
 def run_cmake_haxorg_clean():
     """Clean build directory for the current configuration"""
-    build_dir = get_component_build_dir( "haxorg")
+    build_dir = get_component_build_dir("haxorg")
     if build_dir.joinpath("CMakeCache.txt").exists():
-        run_command( "cmake", [
+        run_command(ctx, "cmake", [
             "--build",
             build_dir,
             "--target",
@@ -137,7 +140,5 @@ def run_cmake_haxorg_clean():
     if adaptagrams_dir.exists():
         shutil.rmtree(str(adaptagrams_dir))
 
-
     os_utils.rmdir_quiet(get_build_root().joinpath("deps_build"))
     os_utils.rmdir_quiet(get_deps_install_dir())
-

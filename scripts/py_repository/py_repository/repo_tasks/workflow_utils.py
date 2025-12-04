@@ -1,5 +1,6 @@
 from collections import defaultdict
 from graphlib import TopologicalSorter
+from pathlib import Path
 from beartype import beartype
 from beartype.typing import List, Callable, get_type_hints, Dict, Any, Optional
 from functools import wraps
@@ -163,9 +164,43 @@ class TaskGraph:
 @dataclass
 class TaskContext():
     graph: TaskGraph
+    current_task: Optional[PythonOperator] = None
+
+    def get_task_debug_suffix(self, cmd: str = "") -> str:
+        result = ""
+
+        if self.current_task:
+            result += self.current_task.get_metadata().task_id
+
+        if cmd:
+            result += "_" + cmd
+
+        if not result:
+            result = "default"
+
+        return result
+
+    def get_task_debug_streams(self, cmd: str, args) -> tuple[Path, Path]:
+        import hashlib
+        digest = hashlib.md5(f"{cmd} {args}".encode()).hexdigest()[:8]
+        result = (
+            Path(f"/tmp/{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"),
+            Path(f"/tmp/{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"),
+        )
+
+        header = f"""
+cmd:  {cmd}
+args: {args}
+        """
+
+        result[0].write_text(header)
+        result[1].write_text(header)
+
+        return result
 
     def run(self, target_name: str | Callable):
-        target_name = target_name if isinstance(target_name, str) else target_name.__name__
+        target_name = target_name if isinstance(target_name,
+                                                str) else target_name.__name__
         target_id = self.graph.graph.vs.find(name=target_name).index
 
         dependent_indices = self.graph.graph.subcomponent(target_id, mode="in")
@@ -175,7 +210,9 @@ class TaskContext():
         execution_order = sub_graph.vs[sorted_indices]["name"]
 
         for task_id in execution_order:
+            self.current_task = self.graph.tasks[task_id]
             self.graph.tasks[task_id].python_callable(ctx=self)
+            self.current_task = None
 
 
 @beartype

@@ -13,7 +13,7 @@ CAT = __name__
 
 
 @haxorg_task(dependencies=[symlink_build])
-def generate_python_protobuf_files():
+def generate_python_protobuf_files(ctx: TaskContext):
     """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root(
         "scripts/cxx_codegen/reflection_tool/reflection_defs.proto")
@@ -34,6 +34,7 @@ def generate_python_protobuf_files():
         proto_lib.mkdir()
 
     run_command(
+        ctx,
         get_deps_install_dir().joinpath("protobuf/bin/protoc"),
         [
             f"--plugin={protoc_plugin}",
@@ -82,6 +83,7 @@ def generate_reflection_snapshot(ctx: TaskContext):
                     "src/py_libs/py_adaptagrams/adaptagrams_ir_refl_target.cpp")
 
         run_command(
+            ctx,
             "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
             [
                 "-p",
@@ -121,6 +123,7 @@ def generate_haxorg_sources(ctx: TaskContext):
 
     for task in CODEGEN_TASKS:
         run_command(
+            ctx,
             "poetry",
             [
                 "run",
