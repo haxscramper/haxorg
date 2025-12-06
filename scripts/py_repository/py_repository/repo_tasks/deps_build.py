@@ -1,6 +1,7 @@
 import itertools
+import json
 from beartype import beartype
-from beartype.typing import List, Optional
+from beartype.typing import List, Optional, Any
 
 from py_ci.data_build import CmakeFlagConfig, CmakeOptConfig, ExternalDep, get_external_deps_list
 from py_ci.util_scripting import cmake_opt, get_j_cap
@@ -11,7 +12,8 @@ from py_repository.repo_tasks.config import get_config
 from py_repository.repo_tasks.haxorg_base import generate_develop_deps_install_paths, get_deps_build_dir, get_deps_install_dir, get_toolchain_path
 from py_repository.repo_tasks.haxorg_build import build_release_archive
 from py_scriptutils.algorithm import maybe_splice
-from py_scriptutils.script_logging import log
+from py_scriptutils.files import FileOperation
+from py_scriptutils.script_logging import log, to_debug_json
 
 CAT = __name__
 
@@ -22,7 +24,18 @@ def validate_dependencies_install(ctx: TaskContext):
     assert install_dir.exists(), f"No dependency paths found at '{install_dir}'"
 
 
-@haxorg_task()
+@beartype
+def get_develop_deps_stamp() -> Any:
+    return get_external_deps_list(
+        get_deps_install_dir(),
+        is_emcc=get_config().emscripten.build,
+    )
+
+
+@haxorg_task(file_operation=FileOperation.OnlyStamp(
+    "build_develop_deps",
+    get_develop_deps_stamp,
+))
 def build_develop_deps(ctx: TaskContext):
     "Install dependencies for cmake project development"
     conf = get_config()
@@ -39,7 +52,9 @@ def build_develop_deps(ctx: TaskContext):
 
     @beartype
     def dep(item: ExternalDep):
-        if 0 < len(conf.build_develop_deps_conf.build_whitelist) and item.build_name not in conf.build_develop_deps_conf.build_whitelist:
+        if 0 < len(
+                conf.build_develop_deps_conf.build_whitelist
+        ) and item.build_name not in conf.build_develop_deps_conf.build_whitelist:
             return
 
         configure_args = list(

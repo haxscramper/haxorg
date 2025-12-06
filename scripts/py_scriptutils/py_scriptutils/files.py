@@ -1,3 +1,4 @@
+import json
 import os
 from beartype.typing import (
     Callable,
@@ -10,6 +11,7 @@ from beartype.typing import (
     Type,
     Iterable,
     Dict,
+    Any,
 )
 
 from functools import wraps
@@ -22,8 +24,11 @@ from types import GeneratorType
 from dataclasses import dataclass, field
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from datetime import datetime
+import difflib
 
-T = TypeVar('T')
+from py_scriptutils.script_logging import to_debug_json
+
+T = TypeVar("T")
 
 SomePath: TypeAlias = Union[str, Path, GeneratorType, map]
 SomePaths: TypeAlias = Union[SomePath, List[SomePath]]
@@ -84,6 +89,8 @@ def any_missing(input_paths: List[Path]) -> bool:
 
 @beartype
 def IsNewInput(input_path: SomePaths, output_path: SomePaths) -> bool:
+    assert 0 < len(input_path)
+    assert 0 < len(output_path)
     input_path = normalize_paths(input_path)
     output_path = normalize_paths(output_path)
     if any_missing(output_path):
@@ -98,8 +105,32 @@ def IsNewInput(input_path: SomePaths, output_path: SomePaths) -> bool:
 class FileOperation:
     input: List[Path]
     output: Optional[List[Path]] = None
-    stamp_path: Optional[Path] = None
-    stamp_content: Optional[str] = None
+    stamp_name: Optional[str] = None
+    stamp_content: Optional[str | Callable] = None
+
+    def get_stamp_content(self) -> Optional[str]:
+        if self.stamp_content:
+            if isinstance(self.stamp_content, str):
+                return self.stamp_content
+
+            else:
+                return json.dumps(
+                    to_debug_json(
+                        self.stamp_content(),
+                        with_stable_formatting=True,
+                    ),
+                    indent=2,
+                    sort_keys=True,
+                )
+
+    @staticmethod
+    def OnlyStamp(name: str, content: str | Callable) -> "FileOperation":
+        return FileOperation(
+            input=[],
+            output=[],
+            stamp_name=name,
+            stamp_content=content,
+        )
 
     @classmethod
     def InOut(
@@ -108,7 +139,7 @@ class FileOperation:
         output: SomePaths,
         stamp_path: Optional[Path] = None,
         stamp_content: Optional[str] = None,
-    ) -> 'FileOperation':
+    ) -> "FileOperation":
         return FileOperation(
             normalize_paths(input),
             output=normalize_paths(output),
@@ -123,7 +154,7 @@ class FileOperation:
         stamp_path: Path,
         stamp_content: Optional[str] = None,
         output: List[Path] = [],
-    ) -> 'FileOperation':
+    ) -> "FileOperation":
         return FileOperation(
             normalize_paths(input),
             stamp_path=stamp_path,
@@ -131,33 +162,45 @@ class FileOperation:
             stamp_content=stamp_content,
         )
 
-    def stamp_content_is_new(self) -> bool:
-        return bool(self.stamp_path.exists() and self.stamp_content and
-                    self.stamp_path.read_text() != self.stamp_content)
+    def get_stamp_path(self, root: Path) -> Optional[Path]:
+        if self.stamp_name:
+            return root.joinpath(self.stamp_name)
 
-    def get_output_files(self) -> List[Path]:
-        return (self.output or []) + ([self.stamp_path] if self.stamp_path else [])
+    def stamp_content_is_new(self, root: Path) -> bool:
+        return bool(
+            self.get_stamp_path(root).exists() and self.get_stamp_content() and
+            self.get_stamp_path(root).read_text() != self.get_stamp_content())
 
-    def should_run(self) -> bool:
-        return IsNewInput(self.input, self.get_output_files()) or bool(
-            self.stamp_path and self.stamp_content_is_new())
+    def get_output_files(self, root: Path) -> List[Path]:
+        return (self.output or
+                []) + ([self.get_stamp_path(root)] if self.get_stamp_path(root) else [])
 
-    def explain(self, name: str) -> str:
-        if self.should_run():
+    def should_run(self, root: Path) -> bool:
+        return (self.input and
+                IsNewInput(self.input, self.get_output_files(root))) or bool(
+                    self.get_stamp_path(root) and self.stamp_content_is_new(root))
+
+    def explain(self, name: str, root: Path) -> str:
+        if self.should_run(root):
 
             def mtime_str(time: float) -> str:
                 return datetime.fromtimestamp(time).strftime("%Y-%m-%d %H:%M:%S")
 
             why = f"[red]{name}[/red] needs rebuild,"
-            if self.stamp_path and not self.stamp_path.exists():
+            if self.get_stamp_path(root) and not self.get_stamp_path(root).exists():
                 why += " output stamp file is missing "
 
-            if self.stamp_path and self.stamp_content_is_new():
-                why += (
-                    f" stamp content value changed, was [red]{self.stamp_path.read_text()}[/red], "
-                    + f"now [green]{self.stamp_content}[/green]")
+            if self.get_stamp_path(root) and self.stamp_content_is_new(root):
+                why += f" stamp content value changed\n"
+                for line in difflib.context_diff(
+                        self.get_stamp_path(root).read_text().splitlines(),
+                        self.get_stamp_content().splitlines(),
+                        fromfile="before",
+                        tofile="after",
+                ):
+                    why += f"\n{line}"
 
-            min_time = min_mtime(self.get_output_files())
+            min_time = min_mtime(self.get_output_files(root))
             newer = [p for p in self.input if p.exists() and min_time < p.stat().st_mtime]
 
             def format_files(files: Iterable[Path]) -> str:
@@ -169,7 +212,7 @@ class FileOperation:
             if newer:
                 why += " {} files were changed since last creation of {}: {}".format(
                     len(newer),
-                    format_files(self.get_output_files()),
+                    format_files(self.get_output_files(root)),
                     format_files(newer),
                 )
 
@@ -178,26 +221,27 @@ class FileOperation:
         else:
             return f"[green]{name}[/green] task is [green]up to date[/green]"
 
-    def __enter__(self):
-        return self
+    @contextmanager
+    def scoped_operation(self, root: Path):
+        yield
 
-    def __exit__(self, exc_type: Optional[Type[BaseException]],
-                 exc_value: Optional[BaseException], traceback) -> Optional[bool]:
-        if exc_type is None and exc_value is None and self.stamp_path is not None:
-            if not self.stamp_path.parent.exists():
-                self.stamp_path.parent.mkdir(parents=True)
+        stamp = self.get_stamp_path(root)
+        if not stamp.parent.exists():
+            stamp.parent.mkdir(parents=True)
 
-            with open(str(self.stamp_path), "w") as file:
-                if self.stamp_content:
-                    file.write(self.stamp_content)
+        with open(str(stamp), "w") as file:
+            if self.get_stamp_content():
+                file.write(self.get_stamp_content())
 
-                else:
-                    file.write("xx")
+            else:
+                file.write("xx")
+
 
 def cache_file_processing_result(input_arg_names: List[str]):
     cache: Dict[str, Dict[str, any]] = {}
 
     def decorator(func: Callable):
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             cache_key = func.__name__
@@ -210,18 +254,21 @@ def cache_file_processing_result(input_arg_names: List[str]):
                     arg_index = func.__code__.co_varnames.index(arg_name)
                     file_path = Path(args[arg_index])
                     mod_times.append((file_path, file_path.stat().st_mtime))
-            
+
             if cache_key in cache:
-                cached_mod_times, cached_result = cache[cache_key]["mod_times"], cache[cache_key]["result"]
-                if all(mod_time == cached_mod_times[i][1] for i, (file_path, mod_time) in enumerate(mod_times)):
+                cached_mod_times, cached_result = cache[cache_key]["mod_times"], cache[
+                    cache_key]["result"]
+                if all(mod_time == cached_mod_times[i][1]
+                       for i, (file_path, mod_time) in enumerate(mod_times)):
                     return cached_result
-            
+
             result = func(*args, **kwargs)
             cache[cache_key] = {"mod_times": mod_times, "result": result}
             return result
-        return wrapper
-    return decorator
 
+        return wrapper
+
+    return decorator
 
 
 def pickle_or_new(input_path: str, output_path: str, builder_cb: Callable[[str], T]) -> T:
@@ -247,7 +294,7 @@ def file_relpath(base: Path, target: Path) -> str:
         # Compute the relative path
         relative_path = os.path.relpath(target.resolve(), dir_source)
 
-        # Ensure the path starts with "./" if it doesn't go up in the hierarchy
+        # Ensure the path starts with "./" if it doesn"t go up in the hierarchy
         if not relative_path.startswith(("..", "/")):
             relative_path = f"./{relative_path}"
 

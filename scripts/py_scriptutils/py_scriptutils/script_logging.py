@@ -20,6 +20,7 @@ def to_debug_json(
     include_double_underscore_attrs: bool = False,
     skip_cyclic_data: bool = True,
     override_callback: callable = None,
+    with_stable_formatting: bool = True, 
 ):
     visited = set()
 
@@ -36,7 +37,11 @@ def to_debug_json(
             return str(obj)
 
         if skip_cyclic_data and id(obj) in visited:
-            return f"cycle {type(obj)} {id(obj)}"
+            if with_stable_formatting:
+                return f"cycle {type(obj)}"
+
+            else:
+                return f"cycle {type(obj)} {id(obj)}"
 
         visited.add(id(obj))
 

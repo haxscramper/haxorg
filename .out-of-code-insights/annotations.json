@@ -6,6 +6,7 @@
     "message": "Old file with obsolete implementation",
     "author": "Anonymous",
     "timestamp": "2025-11-01T16:25:47.577Z",
-    "thread": []
+    "thread": [],
+    "kanbanColumn": "todo"
   }
 ]

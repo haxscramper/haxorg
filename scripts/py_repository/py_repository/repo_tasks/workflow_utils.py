@@ -6,6 +6,7 @@ from beartype.typing import List, Callable, get_type_hints, Dict, Any, Optional
 from functools import wraps
 import inspect
 from datetime import timedelta
+from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
 from dataclasses import dataclass, field
 import igraph as ig
@@ -22,6 +23,7 @@ class TaskMetadata():
     type_hints: dict
     as_dag: bool
     branching: bool
+    file_operation: Optional[FileOperation] = None
 
 
 @beartype
@@ -47,6 +49,7 @@ def haxorg_task(
     dependencies: List[Callable] = None,
     as_dag: bool = True,
     branching: bool = False,
+    file_operation: Optional[FileOperation] = None, 
 ):
 
     def decorator(func: Callable) -> Callable:
@@ -102,6 +105,7 @@ def haxorg_task(
             type_hints=get_type_hints(func),
             as_dag=as_dag,
             branching=branching,
+            file_operation=file_operation,
         )
 
         __airflow_task_list.append(wrapper)
@@ -174,7 +178,11 @@ class TaskGraph:
 @dataclass
 class TaskContext():
     graph: TaskGraph
+    stamp_root: Path
     current_task: Optional[Callable] = None
+
+
+
 
     def get_task_debug_suffix(self, cmd: str = "") -> str:
         result = ""
@@ -223,7 +231,18 @@ args: {args}
         execution_order = sub_graph.vs[sorted_indices]["name"]
 
         for task_id in execution_order:
-            self.graph.tasks[task_id].python_callable(ctx=self)
+            op = self.graph.tasks[task_id]
+            operation = op.get_metadata().file_operation
+            if operation:
+                if operation.should_run(self.stamp_root):
+                    log(CAT).info(operation.explain(task_id, self.stamp_root))
+
+                with operation.scoped_operation(self.stamp_root):
+                    if operation.should_run(self.stamp_root):
+                        op.python_callable(ctx=self)
+
+            else:
+                op.python_callable(ctx=self)
 
 
 @beartype
