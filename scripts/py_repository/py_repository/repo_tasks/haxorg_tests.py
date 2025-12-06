@@ -16,12 +16,10 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []):
     """
 
     args = arg
-    conf = get_config()
-
     env = dict()
 
     # env = get_py_env(ctx)
-    if conf.instrument.coverage:
+    if ctx.config.instrument.coverage:
         coverage_dir = get_cxx_coverage_dir()
         env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
 
@@ -55,6 +53,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []):
         ],
         allow_fail=True,
         env=env,
+        print_output=True,
     )
 
     if retcode != 0:

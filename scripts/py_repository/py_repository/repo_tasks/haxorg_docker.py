@@ -32,12 +32,12 @@ def docker_mnt(src: Path, dst: Path) -> List[str]:
 
 
 @haxorg_task()
-def build_docker_develop_image():
-    run_command("docker", ["rm", get_config().HAXORG_DOCKER_IMAGE], allow_fail=True)
+def build_docker_develop_image(ctx: TaskContext):
+    run_command("docker", ["rm", ctx.config.HAXORG_DOCKER_IMAGE], allow_fail=True)
     run_command("docker", [
         "build",
         "-t",
-        get_config().HAXORG_DOCKER_IMAGE,
+        ctx.config.HAXORG_DOCKER_IMAGE,
         "-f",
         get_script_root("scripts/py_repository/Dockerfile"),
         ".",
@@ -276,37 +276,28 @@ def run_develop_ci(ctx: TaskContext):
     old_config = conf.model_copy()
 
     if conf.develop_ci_conf.deps:
-        log(CAT).info("Running CI dependency installation")
         ctx.run(build_develop_deps, ctx=ctx)
 
     if conf.develop_ci_conf.install:
-        log(CAT).info("Running install")
         ctx.run(install_haxorg_develop, ctx=ctx)
 
     if conf.develop_ci_conf.build:
-        log(CAT).info("Running CI cmake")
         ctx.run(build_haxorg, ctx=ctx)
 
     if conf.develop_ci_conf.reflection:
-        log(CAT).info("Running CI reflection")
         ctx.run(generate_haxorg_sources, ctx=ctx)
 
     if conf.develop_ci_conf.test:
-        log(CAT).info("Running CI tests")
         ctx.run(generate_python_protobuf_files, ctx=ctx)
         ctx.run(run_py_tests, ctx=ctx)
 
-
     if conf.develop_ci_conf.example:
-        log(CAT).info("Running CI cmake")
         ctx.run(build_examples, ctx=ctx)
 
     if conf.develop_ci_conf.coverage and conf.instrument.coverage:
-        log(CAT).info("Running CI coverage merge")
         ctx.run(run_cxx_coverage_merge, ctx=ctx)
 
     if conf.develop_ci_conf.docs:
-        log(CAT).info("Running CI docs")
         ctx.run(build_custom_docs, ctx=ctx)
 
 

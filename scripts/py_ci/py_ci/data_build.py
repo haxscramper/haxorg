@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Any
 from pathlib import Path
 from py_ci.util_scripting import cmake_opt
 import shlex
@@ -57,7 +57,7 @@ class ExternalDep():
     is_bundled_toolchain: bool = field(default=True)
 
     def get_install_prefix(self, install_dir: Path) -> str:
-        dirs = []
+        dirs: List[str] = []
         for (name, dirs) in self.cmake_dirs:
             dirs.extend(dirs)
 
@@ -93,7 +93,7 @@ def get_external_deps_list(
 ) -> List[ExternalDep]:
     result: List[ExternalDep] = []
 
-    def opt(name: str, value: any) -> CmakeOptConfig:
+    def opt(name: str, value: Any) -> CmakeOptConfig:
         return CmakeOptConfig(name=name, value=value)
 
     def flag(name: str,
@@ -110,11 +110,11 @@ def get_external_deps_list(
     def dep(
             build_name: str,
             deps_name: str,
-            cmake_dirs: List[tuple[str, str]],
-            configure_args: List[str] = list(),
+            cmake_dirs: List[tuple[str, List[str]]],
+            configure_args: List[CmakeCLIConfig] = list(),
             is_emcc_ready: bool = False,
-            **kwargs,
-    ):
+            **kwargs: Any,
+    ) -> ExternalDep:
         ext = ExternalDep(
             build_name=build_name,
             deps_name=deps_name,

@@ -32,11 +32,10 @@ def docs_doxygen():
 @haxorg_task()
 def build_custom_docs(ctx: TaskContext):
     """Build documentation for the project using custom script"""
-    conf = get_config()
-    out_dir = Path(conf.custom_docs_conf.out_dir)
+    out_dir = Path(ctx.config.custom_docs_conf.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if conf.instrument.coverage:
+    if ctx.config.instrument.coverage:
         args = [
             "run",
             get_script_root("scripts/py_repository/py_repository/gen_documentation.py"),
@@ -47,8 +46,8 @@ def build_custom_docs(ctx: TaskContext):
             f"--py_coverage_path={get_script_root('.coverage')}",
             f"--test_path={get_script_root('tests')}",
             f"--profile_out_path={out_dir.joinpath('profile.json')}",
-            *get_list_cli_pass("coverage_file_whitelist", conf.custom_docs_conf.coverage_file_whitelist),
-            *get_list_cli_pass("coverage_file_blacklist", conf.custom_docs_conf.coverage_file_blacklist),
+            *get_list_cli_pass("coverage_file_whitelist", ctx.config.custom_docs_conf.coverage_file_whitelist),
+            *get_list_cli_pass("coverage_file_blacklist", ctx.config.custom_docs_conf.coverage_file_blacklist),
         ]
 
         prof_params = get_cxx_profdata_params()

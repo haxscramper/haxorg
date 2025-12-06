@@ -1,30 +1,34 @@
-from rich.logging import RichHandler
-import logging
-from rich.console import Console
 import traceback
-from rich.pretty import pprint
+import logging
 import sys
-from types import MethodType
+
+from rich.logging import RichHandler
+from rich.console import Console
+from rich.pretty import pprint
 from rich.text import Text
 from rich.console import Console
+
+from types import MethodType
 import enum
 import os
+from beartype.typing import Any, Set, Callable, Optional, Literal
+
 
 def is_ci() -> bool:
     return bool(os.getenv("INVOKE_CI"))
 
 
 def to_debug_json(
-    obj,
+    obj: Any,
     include_single_underscore_attrs: bool = False,
     include_double_underscore_attrs: bool = False,
     skip_cyclic_data: bool = True,
-    override_callback: callable = None,
-    with_stable_formatting: bool = True, 
-):
-    visited = set()
+    override_callback: Optional[Callable] = None,
+    with_stable_formatting: bool = True,
+) -> Any:
+    visited: Set[Any] = set()
 
-    def aux(obj):   
+    def aux(obj: Any) -> Any:
         if override_callback:
             override_result = override_callback(obj)
             if override_result:
@@ -112,7 +116,7 @@ def to_debug_json(
 
             elif hasattr(obj, "__str__") or hasattr(obj, "__repr__"):
                 return f"{type(obj)} = {obj}"
-            
+
             elif hasattr(obj, "__int__"):
                 return f"{type(obj)} = {int(obj)}"
 
@@ -122,7 +126,7 @@ def to_debug_json(
     return aux(obj)
 
 
-def pprint_to_file(value, path: str, width: int = 120):
+def pprint_to_file(value: Any, path: str, width: int = 120) -> None:
     # Built-in python pprint is too broken for regular uses -- output is not
     # always rendered to the max column limit is the biggest problem and I could
     # not find any way to print converted translation unit safely.
@@ -131,17 +135,19 @@ def pprint_to_file(value, path: str, width: int = 120):
         from py_scriptutils.rich_utils import render_rich_pprint
         print(render_rich_pprint(value, width=width, color=False), file=file)
 
-def pprint_to_string(value, width: int = 120):
+
+def pprint_to_string(value: Any, width: int = 120) -> str:
     from py_scriptutils.rich_utils import render_rich_pprint
     return render_rich_pprint(value, width=width, color=False)
 
+
 class NoTTYFormatter(logging.Formatter):
 
-    def __init__(self, fmt, datefmt=None):
+    def __init__(self, fmt: Any, datefmt: Any=None) -> None:
         super().__init__(fmt, datefmt)
         self.console = Console()
 
-    def format(self, record):
+    def format(self, record: Any) -> str:
         record.msg = self.console.render_str(record.getMessage(), highlight=False)
         return super().format(record)
 
@@ -153,7 +159,7 @@ if sys.stdout.isatty():
         datefmt="[%X]",
         handlers=[
             RichHandler(
-                console = Console(width=None),
+                console=Console(width=None),
                 rich_tracebacks=True,
                 markup=True,
                 enable_link_path=False,
@@ -173,33 +179,36 @@ for name in logging.root.manager.loggerDict:
     logger.setLevel(logging.WARNING)
 
 
-def log(category="rich") -> logging.Logger:
+def log(category: str = "rich") -> logging.Logger:
     log = logging.getLogger(category)
     return log
 
+
 def ci_log() -> logging.Logger:
     return log("ci")
+
 
 class ExceptionContextNote:
     """
     If context body raises an exception, add a note to it.
     """
 
-    def __init__(self, note: str):
+    def __init__(self, note: str) -> None:
         self.note = note
 
-    def __enter__(self):
+    def __enter__(self) -> "ExceptionContextNote":
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> Literal[False]:
         if exc_value is not None:
             if not hasattr(exc_value, '__notes__'):
                 exc_value.__notes__ = []
             exc_value.__notes__.append(self.note)
+
         return False
 
 
-def custom_traceback_handler(exc_type, exc_value, exc_traceback):
+def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) -> None:
     """
     Custom traceback handler that filters out frames with '<@beartype' and formats
     the output using 'rich' library, with the decision on one-line or two-line format
@@ -239,7 +248,6 @@ log("graphviz").setLevel(logging.ERROR)
 log("asyncio").setLevel(logging.ERROR)
 log("matplotlib").setLevel(logging.WARNING)
 
-
 import logging
 from pathlib import Path
 from beartype import beartype
@@ -247,8 +255,8 @@ from typing import Dict
 from rich.text import Text
 
 
-
 class MultiFileHandler(logging.Handler):
+
     @beartype
     def __init__(self, base_dir: Path):
         super().__init__()
@@ -257,15 +265,12 @@ class MultiFileHandler(logging.Handler):
         self.logger_handlers: Dict[str, logging.FileHandler] = {}
         self.main_handler = logging.FileHandler(self.base_dir / "main.log", mode="w")
         self.main_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        )
-        self.plain_console = Console(
-            color_system=None,
-            legacy_windows=False,
-            force_terminal=False,
-            no_color=True,
-            width=999999
-        )
+            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+        self.plain_console = Console(color_system=None,
+                                     legacy_windows=False,
+                                     force_terminal=False,
+                                     no_color=True,
+                                     width=999999)
 
     @beartype
     def _strip_rich_formatting(self, message: str) -> str:
@@ -281,8 +286,7 @@ class MultiFileHandler(logging.Handler):
             log_file = self.base_dir / f"{safe_name}.log"
             handler = logging.FileHandler(log_file, mode="w")
             handler.setFormatter(
-                logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-            )
+                logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
             self.logger_handlers[logger_name] = handler
         return self.logger_handlers[logger_name]
 
@@ -292,9 +296,8 @@ class MultiFileHandler(logging.Handler):
         if hasattr(record, "args") and record.args:
             record.args = tuple(
                 self._strip_rich_formatting(str(arg)) if isinstance(arg, str) else arg
-                for arg in record.args
-            )
-        
+                for arg in record.args)
+
         self.main_handler.emit(record)
         logger_handler = self._get_logger_handler(record.name)
         logger_handler.emit(record)

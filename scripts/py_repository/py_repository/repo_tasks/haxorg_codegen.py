@@ -12,7 +12,7 @@ CAT = __name__
 
 
 @haxorg_task(dependencies=[symlink_build])
-def generate_python_protobuf_files(ctx: TaskContext):
+def generate_python_protobuf_files(ctx: TaskContext) -> None:
     """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root(
         "scripts/cxx_codegen/reflection_tool/reflection_defs.proto")
@@ -34,7 +34,7 @@ def generate_python_protobuf_files(ctx: TaskContext):
 
     run_command(
         ctx,
-        get_deps_install_dir().joinpath("protobuf/bin/protoc"),
+        get_deps_install_dir(ctx.config).joinpath("protobuf/bin/protoc"),
         [
             f"--plugin={protoc_plugin}",
             "-I",
@@ -58,7 +58,7 @@ CODEGEN_TASKS = [
     generate_python_protobuf_files,
     build_haxorg,
 ])
-def generate_reflection_snapshot(ctx: TaskContext):
+def generate_reflection_snapshot(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     toolchain_include = get_script_root(
@@ -106,18 +106,19 @@ def generate_reflection_snapshot(ctx: TaskContext):
 @haxorg_task()
 def generate_haxorg_sources(ctx: TaskContext):
     """Update auto-generated source files"""
+    assert not ctx.config.emscripten.build, "Codegen is not supported for the EMCC build"
+
     # TODO source file generation should optionally overwrite the target OR
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
-    log(CAT).info("Executing haxorg code generation step.")
     if not ctx.config.generate_sources_conf.standalone:
         from dataclasses import replace
         config_copy = ctx.config.model_copy()
         config_copy.build_conf.target = ["py_textlayout_cpp"]
         ctx_copy = replace(ctx, config=config_copy)
-        build_haxorg(ctx=ctx_copy)
-        generate_reflection_snapshot(ctx=ctx_copy)
-        symlink_build(ctx=ctx_copy)
+        ctx_copy.run(build_haxorg, ctx=ctx_copy)
+        ctx_copy.run(generate_reflection_snapshot, ctx=ctx_copy)
+        ctx_copy.run(symlink_build, ctx=ctx_copy)
 
     for task in CODEGEN_TASKS:
         run_command(
@@ -128,7 +129,7 @@ def generate_haxorg_sources(ctx: TaskContext):
                 get_script_root("scripts/py_codegen/py_codegen/codegen.py"),
                 "--reflection_path={}".format(get_build_root().joinpath(f"{task}.pb")),
                 f"--codegen_task={task}",
-                f"--tmp={conf.generate_sources_conf.tmp}",
+                f"--tmp={ctx.config.generate_sources_conf.tmp}",
             ],
             # env=get_py_env(),
         )

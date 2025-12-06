@@ -46,8 +46,6 @@ def download_llvm(ctx: TaskContext):
     llvm_dir = get_script_root("toolchain/llvm")
     if not os.path.isdir(llvm_dir):
         log(CAT).info("LLVM not found. Downloading...")
-    else:
-        log(CAT).info("LLVM already exists. Skipping download.")
 
 
 @haxorg_task(dependencies=[git_init_submodules, download_llvm])
@@ -143,7 +141,7 @@ def symlink_build(ctx: TaskContext):
     """
 
     create_symlink(
-        real_path=get_component_build_dir("haxorg"),
+        real_path=get_component_build_dir(ctx.config, "haxorg"),
         link_path=get_build_root("haxorg"),
         is_dir=True,
     )

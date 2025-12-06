@@ -14,15 +14,12 @@ from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from plumbum import local
 
-
 from pathlib import Path
 
 import os
 
-
-
-
 CAT = __name__
+
 
 def get_script_root(relative: Optional[str] = None) -> Path:
     value = get_haxorg_repo_root_path()
@@ -45,12 +42,12 @@ def ensure_existing_dir(dir: Path) -> Path:
     dir.mkdir(parents=True, exist_ok=True)
     return dir
 
+
 @beartype
 def ensure_clean_file(file: Path) -> Path:
     ensure_existing_dir(file.parent)
     file.write_text("")
     return file
-
 
 
 @beartype
@@ -73,8 +70,6 @@ def get_list_cli_pass(list_name: str, args: Iterable[str]) -> List[str]:
     return [f"--{list_name}={arg}" for arg in args]
 
 
-
-
 @beartype
 def get_component_build_dir(config: HaxorgConfig, component: str) -> Path:
     result = get_build_root(get_real_build_basename(config, component))
@@ -91,7 +86,6 @@ def get_build_root(relative: Optional[str] = None) -> Path:
     return value
 
 
-
 @beartype
 def get_log_dir() -> Path:
     res = get_build_root().joinpath("logs")
@@ -100,15 +94,15 @@ def get_log_dir() -> Path:
 
 
 @beartype
-def get_build_tmpdir(component: str) -> Path:
+def get_build_tmpdir(config: HaxorgConfig, component: str) -> Path:
     result = get_build_root().joinpath("tmp").joinpath(
-        get_real_build_basename(component))
+        get_real_build_basename(config, component))
     ensure_existing_dir(result)
     return result
 
 
 @beartype
-def ui_notify(message: str, is_ok: bool = True):
+def ui_notify(message: str, is_ok: bool = True) -> None:
     try:
         cmd = local["notify-send"]
         cmd.run(
@@ -122,10 +116,8 @@ def ui_notify(message: str, is_ok: bool = True):
             log(CAT).error(message)
 
 
-
-
 @beartype
-def create_symlink(link_path: Path, real_path: Path, is_dir: bool):
+def create_symlink(link_path: Path, real_path: Path, is_dir: bool) -> None:
     if link_path.exists():
         assert link_path.is_symlink(), link_path
         link_path.unlink()
@@ -138,7 +130,6 @@ def create_symlink(link_path: Path, real_path: Path, is_dir: bool):
     assert real_path.exists(), real_path
 
     link_path.symlink_to(target=real_path, target_is_directory=is_dir)
-
 
 
 @beartype
@@ -166,7 +157,7 @@ def find_process(
 def clone_repo_with_uncommitted_changes(
     src_repo: Path,
     dst_repo: Path,
-):
+) -> None:
     run_command("git", ["clone", src_repo, dst_repo])
 
     code, stdout, stderr = run_command("git", [
@@ -202,14 +193,6 @@ def get_lldb_source_on_crash() -> List[str]:
     ]
 
 
-
 @beartype
 def docker_user() -> List[str]:
     return ["--user", f"{os.getuid()}:{os.getgid()}"]
-
-
-
-
-
-
-

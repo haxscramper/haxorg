@@ -20,7 +20,7 @@ CAT = __name__
 
 @haxorg_task()
 def validate_dependencies_install(ctx: TaskContext):
-    install_dir = get_deps_install_dir().joinpath("paths.cmake")
+    install_dir = get_deps_install_dir(ctx.config).joinpath("paths.cmake")
     assert install_dir.exists(), f"No dependency paths found at '{install_dir}'"
 
 

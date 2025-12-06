@@ -2,7 +2,7 @@ from collections import defaultdict
 from graphlib import TopologicalSorter
 from pathlib import Path
 from beartype import beartype
-from beartype.typing import List, Callable, get_type_hints, Dict, Any, Optional
+from beartype.typing import List, Callable, get_type_hints, Dict, Any, Optional, Set
 from functools import wraps
 import inspect
 from datetime import timedelta
@@ -182,9 +182,21 @@ class TaskContext():
     stamp_root: Path
     config: HaxorgConfig
     current_task: Optional[Callable] = None
+    run_cache: Set[tuple[str, str]] = field(default_factory=set)
 
     def with_temp_config(self, config: HaxorgConfig) -> "TaskContext":
         return replace(self, config=config)
+
+    def get_config_hash(self) -> str:
+        import hashlib
+        return hashlib.md5(self.config.model_dump_json().encode()).hexdigest()
+
+    def track_task_completion(self, task: str):
+        self.run_cache.add((task, self.get_config_hash()))
+
+    def is_already_executed_task(self, task: str) -> bool:
+        return (task, self.get_config_hash()) in self.run_cache
+
 
     def get_task_debug_suffix(self, cmd: str = "") -> str:
         result = ""
@@ -235,16 +247,28 @@ args: {args}
         for task_id in execution_order:
             op = self.graph.tasks[task_id]
             operation = op.get_metadata().file_operation
+
+            if self.is_already_executed_task(task_id):
+                log(CAT).info(f"Skipping [cyan]{task_id}[/cyan], already executed")
+                continue
+
             if operation:
                 if operation.should_run(self.stamp_root, *args, **kwargs):
                     log(CAT).info(operation.explain(task_id, self.stamp_root, *args, **kwargs))
 
                 with operation.scoped_operation(self.stamp_root, *args, **kwargs):
                     if operation.should_run(self.stamp_root, *args, **kwargs):
+                        log(CAT).info(f"Running [green]{task_id}[/green], should run")
                         op.python_callable(ctx=self)
 
+                    else:
+                        log(CAT).info(f"Skipping [red]{task_id}[/red], no run needed")
+
             else:
+                log(CAT).info(f"Running [yellow]{task_id}[/yellow]")
                 op.python_callable(ctx=self)
+
+            self.track_task_completion(task_id)
 
 
 @beartype

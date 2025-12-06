@@ -8,7 +8,7 @@ import os
 import plumbum
 from py_ci.util_scripting import get_threading_count
 from py_repository.coverage_collection.gen_coverage_cookies import ProfdataCookie, ProfdataFullProfile, ProfdataParams
-from py_repository.repo_tasks.workflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import ensure_clean_file, get_build_root, get_component_build_dir
 from py_repository.repo_tasks.config import HaxorgCoverageAggregateFilter, HaxorgCoverageCookiePattern
@@ -62,7 +62,7 @@ def matches_pattern(cookie: ProfdataCookie, pattern: HaxorgCoverageCookiePattern
 
 
 @beartype
-def binary_coverage(test: Path):
+def binary_coverage(ctx: TaskContext, test: Path) -> None:
     dir = test.parent
     tools = get_llvm_root() / "bin"
     # Remove `.profdata` files
@@ -70,22 +70,23 @@ def binary_coverage(test: Path):
         file.unlink()
 
     assert dir.exists()
-    run_command(test, [], allow_fail=True, cwd=str(dir))
+    run_command(ctx, test, [], allow_fail=True, cwd=str(dir))
 
 
 @haxorg_task(dependencies=[build_haxorg])
 def run_profdata_coverrage(
+    ctx: TaskContext,
     binary: str,
     arg: List[str] = [],
     report_path: Optional[str] = None,
-):
+) -> None:
     "Generate profdata coverage information for binary @arg binary"
     tools = get_llvm_root("bin")
     if Path(binary).is_absolute():
         bin_path = Path(binary)
 
     else:
-        bin_path = get_component_build_dir("haxorg").joinpath(binary)
+        bin_path = get_component_build_dir(ctx.config, "haxorg").joinpath(binary)
 
     for file in bin_path.parent.glob("*.profdata"):
         file.unlink()
@@ -97,7 +98,7 @@ def run_profdata_coverrage(
     dir.mkdir(parents=True, exist_ok=True)
     current = Path().cwd()
 
-    run_command(bin_path, args=arg)
+    run_command(ctx, bin_path, args=arg)
     print(bin_path.parent)
 
     default_profraw = current / "default.profraw"
@@ -105,7 +106,7 @@ def run_profdata_coverrage(
 
     assert default_profraw.exists()
 
-    run_command(tools / "llvm-profdata", [
+    run_command(ctx, tools / "llvm-profdata", [
         "merge",
         "-output=" + str(result_profdata),
         default_profraw,
@@ -122,7 +123,7 @@ def run_profdata_coverrage(
 
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    run_command(tools / "llvm-cov", [
+    run_command(ctx, tools / "llvm-cov", [
         "show",
         bin_path,
         "-instr-profile=" + str(result_profdata),
@@ -132,7 +133,7 @@ def run_profdata_coverrage(
 
 
 @beartype
-def xray_coverage(test: Path):
+def xray_coverage(ctx: TaskContext, test: Path) -> None:
     dir = test.parent
     tools = get_llvm_root("bin")
 
@@ -145,6 +146,7 @@ def xray_coverage(test: Path):
 
     log(CAT).info(f"Running XRAY log agregation for directory {dir}")
     run_command(
+        ctx,
         test, [],
         env={"XRAY_OPTIONS": "patch_premain=true xray_mode=xray-basic verbosity=1"},
         allow_fail=True,
@@ -160,7 +162,7 @@ def xray_coverage(test: Path):
         logfile = log_files[0]
 
         # Process log file with llvm-xray and llvm-profdata
-        run_command(tools / "llvm-xray", [
+        run_command(ctx, tools / "llvm-xray", [
             "convert",
             "--symbolize",
             "--instr_map=" + str(test),
@@ -169,20 +171,20 @@ def xray_coverage(test: Path):
             logfile,
         ])
 
-        run_command(tools / "llvm-xray", [
+        run_command(ctx, tools / "llvm-xray", [
             "graph",
             "--instr_map=" + str(test),
             "--output=" + str(dir / "trace_events.dot"),
             logfile,
         ])
 
-        run_command(tools / "llvm-profdata", [
+        run_command(ctx, tools / "llvm-profdata", [
             "merge",
             "-output=" + str(dir / "bench.profdata"),
             dir / "default.profraw",
         ])
 
-        run_command(tools / "llvm-cov", [
+        run_command(ctx, tools / "llvm-cov", [
             "show",
             test,
             "-instr-profile=" + str(dir / "bench.profdata"),
@@ -191,12 +193,12 @@ def xray_coverage(test: Path):
         ])
     else:
         raise RuntimeError(
-            f"No XRay log files found in '{dir}', xray coverage enabled in settings {get_config().instrument.xray}"
+            f"No XRay log files found in '{dir}', xray coverage enabled in settings {ctx.config.instrument.xray}"
         )
 
 
 @haxorg_task(dependencies=[build_haxorg])
-def run_org_test_performance():
+def run_org_test_performance() -> None:
     """Generate performance sampling profile for tests"""
 
     tests = str(get_build_root("haxorg") / "tests_org")
@@ -232,14 +234,13 @@ HELP_coverage_file = {
 
 
 @beartype
-def get_cxx_profdata_params() -> ProfdataParams:
+def get_cxx_profdata_params(ctx: TaskContext) -> ProfdataParams:
     coverage_dir = get_cxx_coverage_dir()
     stored_summary_collection = coverage_dir.joinpath("test-summary.json")
     summary_data: ProfdataFullProfile = ProfdataFullProfile.model_validate_json(
         stored_summary_collection.read_text())
     filtered_summary = ProfdataFullProfile(
-        runs=filter_cookies(summary_data.runs,
-                            get_config().aggregate_filters))
+        runs=filter_cookies(summary_data.runs, ctx.config.aggregate_filters))
     filtered_summary_collection = coverage_dir.joinpath("test-summary-filtered.json")
     filtered_summary_collection.write_text(filtered_summary.model_dump_json(indent=2))
     return ProfdataParams(
@@ -247,8 +248,8 @@ def get_cxx_profdata_params() -> ProfdataParams:
         coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
         # perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
         debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
-        file_whitelist=get_config().profdata_file_whitelist,
-        file_blacklist=get_config().profdata_file_blacklist,
+        file_whitelist=ctx.config.profdata_file_whitelist,
+        file_blacklist=ctx.config.profdata_file_blacklist,
         run_group_batch_size=get_threading_count(),
     )
 
@@ -260,8 +261,11 @@ HELP_coverage_mapping_dump = {
 
 
 @beartype
-def configure_cxx_merge(coverage_mapping_dump: Optional[str] = None,):
-    if get_config().instrument.coverage:
+def configure_cxx_merge(
+    ctx: TaskContext,
+    coverage_mapping_dump: Optional[str] = None,
+):
+    if ctx.config.instrument.coverage:
         profile_path = get_cxx_profdata_params_path()
         log(CAT).info(
             f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
@@ -276,18 +280,21 @@ def configure_cxx_merge(coverage_mapping_dump: Optional[str] = None,):
 
 
 @haxorg_task(dependencies=[build_haxorg])
-def run_cxx_coverage_merge(coverage_mapping_dump: Optional[str] = None,):
+def run_cxx_coverage_merge(ctx: TaskContext, coverage_mapping_dump: Optional[str] = None,) -> None:
     configure_cxx_merge(coverage_mapping_dump,)
     coverage_dir = get_cxx_coverage_dir()
 
     profile_path = get_cxx_profdata_params_path()
     run_command(
+        ctx,
         "build/haxorg/profdata_merger",
         [
             profile_path,
         ],
-        stderr_debug=ensure_clean_file(coverage_dir.joinpath("profdata_merger_stderr.txt")),
-        stdout_debug=ensure_clean_file(coverage_dir.joinpath("profdata_merger_stdout.txt")),
+        stderr_debug=ensure_clean_file(
+            coverage_dir.joinpath("profdata_merger_stderr.txt")),
+        stdout_debug=ensure_clean_file(
+            coverage_dir.joinpath("profdata_merger_stdout.txt")),
     )
 
 

@@ -12,6 +12,7 @@ from py_repository.repo_tasks.haxorg_base import (
     generate_develop_deps_install_paths,
     get_cmake_defines,
     get_deps_install_dir,
+    symlink_build,
 )
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
@@ -29,10 +30,8 @@ CAT = __name__
 )
 def configure_cmake_haxorg(ctx: TaskContext, force: bool = False):
     """Execute cmake configuration step for haxorg"""
-
-    cfg = get_config()
-
     log(CAT).info("running haxorg cmake configuration")
+    
     pass_flags = [
         "-B",
         get_component_build_dir("haxorg"),
@@ -41,12 +40,12 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False):
         "-G",
         "Ninja",
         *get_cmake_defines(),
-        cmake_opt("ORG_CPACK_PACKAGE_VERSION", cfg.HAXORG_VERSION),
-        cmake_opt("ORG_CPACK_PACKAGE_NAME", cfg.HAXORG_NAME),
+        cmake_opt("ORG_CPACK_PACKAGE_VERSION", ctx.config.HAXORG_VERSION),
+        cmake_opt("ORG_CPACK_PACKAGE_NAME", ctx.config.HAXORG_NAME),
         cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()),
         *cond(
-            cfg.python_version,
-            [cmake_opt("ORG_DEPS_USE_PYTHON_VERSION", cfg.python_version)],
+            ctx.config.python_version,
+            [cmake_opt("ORG_DEPS_USE_PYTHON_VERSION", ctx.config.python_version)],
             [],
         ),
     ]
@@ -58,7 +57,7 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False):
 
 
 @haxorg_task(
-    dependencies=[configure_cmake_haxorg],
+    dependencies=[symlink_build, configure_cmake_haxorg],
     file_operation=FileOperation.InTmp(
         input=[
             get_script_root().joinpath("src").rglob("*.?pp"),
