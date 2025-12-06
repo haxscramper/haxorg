@@ -176,10 +176,10 @@ class FileOperation:
 
     def stamp_content_is_new(self, root: Path, *args: Any, **kwargs: Any) -> bool:
         stamp_path = self.get_stamp_path(root)
-        if stamp_path is not None:
-            return bool(stamp_path.exists() and
-                        self.get_stamp_content(*args, **kwargs) and
-                        stamp_path.read_text() != self.get_stamp_content(*args, **kwargs))
+        if stamp_path is not None and stamp_path.exists():
+            return bool(
+                stamp_path.exists() and self.get_stamp_content(*args, **kwargs) and
+                stamp_path.read_text() != self.get_stamp_content(*args, **kwargs),)
 
         else:
             return True
@@ -212,8 +212,7 @@ class FileOperation:
                 why += f" stamp content value changed\n"
                 for line in difflib.context_diff(
                         stamp_path.read_text().splitlines(),
-                        self.get_stamp_content(*args,
-                                               **kwargs).splitlines(), 
+                        self.get_stamp_content(*args, **kwargs).splitlines(),
                         fromfile="before",
                         tofile="after",
                 ):
@@ -238,7 +237,12 @@ class FileOperation:
             return why
 
         else:
-            return f"[green]{name}[/green] task is [green]up to date[/green]"
+            result = f"[green]{name}[/green] task is [green]up to date[/green]"
+
+            if not self.stamp_content_is_new(root, *args, **kwargs):
+                result += "\nstamp content is not new"
+
+            return result
 
     @contextmanager
     def scoped_operation(self, root: Path, *args: Any,

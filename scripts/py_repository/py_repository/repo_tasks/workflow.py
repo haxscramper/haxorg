@@ -65,8 +65,8 @@ def cli(ctx: click.Context, cmd: str, config: str, **kwargs: Any) -> None:
     )
 
     
-
     log(CAT).info(f"{context.config.model_dump_json(indent=2)}")
+    log(CAT).info(opts.config_override)
 
     match cmd:
         case "run":

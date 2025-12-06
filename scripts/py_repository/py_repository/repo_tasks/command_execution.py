@@ -6,6 +6,7 @@ from pathlib import Path
 import plumbum
 import subprocess
 
+from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 from py_scriptutils.algorithm import remove_ansi
@@ -151,7 +152,8 @@ cmd:  {cmd}
         return (0, "", "")
 
     else:
-        if ctx.config.quiet or not print_output:
+        if ctx.config.log_level == HaxorgLogLevel.QUIET or (
+                not print_output and ctx.config.log_level == HaxorgLogLevel.NORMAL):
             retcode, stdout, stderr = run.run(list(str_args), retcode=None)
 
         else:
@@ -199,7 +201,6 @@ def run_cmake(
     return run_command(ctx, "cmake", args, **kwargs)
 
 
-
 def clone_repo_with_uncommitted_changes(
     ctx: TaskContext,
     src_repo: Path,
@@ -224,4 +225,3 @@ def clone_repo_with_uncommitted_changes(
             log(CAT).info(f"Copying uncomitted changes {src_file} -> {dst_file}")
             dst_file.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(src=src_file, dst=dst_file)
-

@@ -251,10 +251,7 @@ args: {args}
                 log(CAT).info(f"Skipping [cyan]{task_id}[/cyan], already executed")
                 continue
 
-            if operation:
-                if operation.should_run(self.stamp_root, *args, **kwargs):
-                    log(CAT).info(operation.explain(task_id, self.stamp_root, *args, **kwargs))
-
+            if operation and not self.config.use_unchanged_tasks:
                 with operation.scoped_operation(self.stamp_root, *args, **kwargs):
                     if operation.should_run(self.stamp_root, *args, **kwargs):
                         log(CAT).info(f"Running [green]{task_id}[/green], should run")
@@ -262,6 +259,7 @@ args: {args}
 
                     else:
                         log(CAT).info(f"Skipping [red]{task_id}[/red], no run needed")
+                        log(CAT).info(operation.explain(task_id, self.stamp_root, *args, **kwargs))
 
             else:
                 log(CAT).info(f"Running [yellow]{task_id}[/yellow]")

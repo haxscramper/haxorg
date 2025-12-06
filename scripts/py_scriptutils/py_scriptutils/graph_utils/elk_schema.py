@@ -195,13 +195,6 @@ class FixedAlignment(str, Enum):
     RIGHTDOWN = "RIGHTDOWN"
     BALANCED = "BALANCED"
 
-
-class NodeFlexibility(str, Enum):
-    NONE = "NONE"
-    NODE_SIZE = "NODE_SIZE"
-    PORT_POSITION = "PORT_POSITION"
-
-
 class PortProperties(BaseModel, extra="forbid"):
     port: Optional[Dict[str, Any]] = None
     portConstraints: Optional[PortConstraints] = None

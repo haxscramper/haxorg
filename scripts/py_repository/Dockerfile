@@ -50,8 +50,6 @@ RUN dnf install -y gcc gcc-c++ autoconf automake libtool pkg-config
 RUN dnf install -y glfw glfw-devel dbus-devel
 RUN dnf install -y pcre-devel capstone-devel freetype-devel patch libgit2 libgit2-devel stb-devel libatomic nodejs npm nodejs-npm
 
-COPY invoke-ci.yaml invoke.yaml
-
 ENV EMSDK=/opt/emsdk
 
 RUN git clone https://github.com/emscripten-core/emsdk.git $EMSDK && \

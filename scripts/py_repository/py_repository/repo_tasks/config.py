@@ -77,7 +77,7 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     reflection: bool = True
     install: bool = True
     example: bool = True
-    
+
     emscripten_deps: bool = True
     emscripten_build: bool = True
     emscripten_test: bool = True
@@ -94,20 +94,26 @@ class HaxorgBuildDevelopDepsConfig(BaseModel, extra="forbid"):
     configure: bool = True
 
 
+import enum
+
+
+class HaxorgLogLevel(str, enum.Enum):
+    NORMAL = "NORMAL"
+    QUIET = "QUIET"
+    VERBOSE = "VERBOSE"
+
+
 class HaxorgConfig(BaseModel, extra="forbid"):
-    quiet: bool = Field(default=False)
+    log_level: HaxorgLogLevel = Field(default=HaxorgLogLevel.NORMAL)
     debug: bool = Field(default=False)
+
     use: HaxorgUseConfig = Field(default_factory=lambda: HaxorgUseConfig())
+    use_unchanged_tasks: bool = Field(default=False)
     emscripten: HaxorgEmscriptenConfig = Field(
         default_factory=lambda: HaxorgEmscriptenConfig())
     instrument: HaxorgInstrumentConfig = Field(
         default_factory=lambda: HaxorgInstrumentConfig())
     tasks: HaxorgTasksConfig = Field(default_factory=lambda: HaxorgTasksConfig())
-    force_task: List[str] = Field(
-        default_factory=list,
-        description="Always execute task",
-    )
-
     workflow_log_dir: Path = Field(
         default_factory=lambda: Path("/tmp/haxorg/workflow_log"))
 

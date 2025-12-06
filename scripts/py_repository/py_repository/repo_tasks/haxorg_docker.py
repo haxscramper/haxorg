@@ -14,8 +14,8 @@ from py_repository.repo_tasks.haxorg_coverage import run_cxx_coverage_merge
 from py_repository.repo_tasks.haxorg_docs import build_custom_docs
 from py_repository.repo_tasks.haxorg_tests import run_py_tests
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
-from py_repository.repo_tasks.command_execution import get_cmd_debug_file, run_command
-from py_repository.repo_tasks.common import clone_repo_with_uncommitted_changes, docker_user, ensure_clean_file, get_script_root
+from py_repository.repo_tasks.command_execution import clone_repo_with_uncommitted_changes, get_cmd_debug_file, run_command
+from py_repository.repo_tasks.common import docker_user, ensure_clean_file, get_script_root
 from py_repository.repo_tasks.config import get_tmpdir
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import merge_dicts
@@ -34,32 +34,26 @@ def docker_mnt(src: Path, dst: Path) -> List[str]:
 @haxorg_task()
 def build_docker_develop_image(ctx: TaskContext) -> None:
     run_command(ctx, "docker", ["rm", ctx.config.HAXORG_DOCKER_IMAGE], allow_fail=True)
-    run_command(ctx, "docker", [
-        "build",
-        "-t",
-        ctx.config.HAXORG_DOCKER_IMAGE,
-        "-f",
-        get_script_root("scripts/py_repository/Dockerfile"),
-        ".",
-    ])
+    run_command(
+        ctx,
+        "docker",
+        [
+            "build",
+            "-t",
+            ctx.config.HAXORG_DOCKER_IMAGE,
+            "-f",
+            get_script_root("scripts/py_repository/Dockerfile"),
+            ".",
+        ],
+        print_output=True,
+    )
 
 
 @haxorg_task(dependencies=[build_docker_develop_image])
 def run_docker_develop_test(
-    ctx: TaskContext,
-    interactive: bool = False,
-    build: bool = True,
-    test: bool = True,
-    docs: bool = True,
-    coverage: bool = True,
-    reflection: bool = True,
-    deps: bool = True,
-    build_dir: str = get_tmpdir("docker_develop", "build"),
-    example: bool = True,
-    install: bool = True,
-    emscripten_deps: bool = True,
-    emscripten_build: bool = True,
-    emscripten_test: bool = True,
+        ctx: TaskContext,
+        interactive: bool = False,
+        build_dir: str = get_tmpdir("docker_develop", "build"),
 ) -> None:
     """Run docker"""
 
@@ -104,21 +98,16 @@ def run_docker_develop_test(
             ctx.config.HAXORG_DOCKER_IMAGE,
             "./scripts/py_repository/poetry_with_deps.sh",
             *(["bash"] if interactive else [
-                "invoke",
-                "run-develop-ci",
-                invoke_opt("build", build),
-                invoke_opt("test", test),
-                invoke_opt("docs", docs),
-                invoke_opt("coverage", coverage),
-                invoke_opt("reflection", reflection),
-                invoke_opt("deps", deps),
-                invoke_opt("install", install),
-                invoke_opt("example", example),
-                invoke_opt("emscripten-deps", emscripten_deps),
-                invoke_opt("emscripten-build", emscripten_build),
-                invoke_opt("emscripten-test", emscripten_test),
+                "./scripts/py_repository/py_repository/repo_tasks/workflow.py",
+                "run",
+                "--task",
+                "run_develop_ci",
+                "--config_override",
+                "scripts/py_repository/py_repository/repo_tasks/haxorg_conf_develop_docker_ci.json",
             ]),
-        ])
+        ],
+        print_output=True,
+    )
 
 
 @haxorg_task(dependencies=[])
@@ -155,7 +144,7 @@ def run_docker_release_test(
         "docker",
         ["rm", CPACK_TEST_IMAGE],
         allow_fail=True,
-        **debug_conf,
+        **debug_conf,  # type: ignore
     )
 
     run_command(
@@ -169,7 +158,7 @@ def run_docker_release_test(
             get_script_root("scripts/py_repository/cpack_build_in_fedora.dockerfile"),
             ".",
         ],
-        **debug_conf,
+        **debug_conf,  # type: ignore
     )
 
     @beartype
@@ -179,6 +168,7 @@ def run_docker_release_test(
             if clone_dir.exists():
                 shutil.rmtree(clone_dir)
             clone_repo_with_uncommitted_changes(
+                ctx,
                 src_repo=get_script_root(),
                 dst_repo=clone_dir,
             )
@@ -192,7 +182,7 @@ def run_docker_release_test(
                 ctx,
                 "git",
                 ["clone", get_script_root(), clone_dir],
-                **debug_conf,
+                **debug_conf,  # type: ignore
             )
             source_prefix = clone_dir
 
