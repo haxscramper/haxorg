@@ -33,8 +33,8 @@ def docker_mnt(src: Path, dst: Path) -> List[str]:
 
 @haxorg_task()
 def build_docker_develop_image(ctx: TaskContext) -> None:
-    run_command("docker", ["rm", ctx.config.HAXORG_DOCKER_IMAGE], allow_fail=True)
-    run_command("docker", [
+    run_command(ctx, "docker", ["rm", ctx.config.HAXORG_DOCKER_IMAGE], allow_fail=True)
+    run_command(ctx, "docker", [
         "build",
         "-t",
         ctx.config.HAXORG_DOCKER_IMAGE,
@@ -46,6 +46,7 @@ def build_docker_develop_image(ctx: TaskContext) -> None:
 
 @haxorg_task(dependencies=[build_docker_develop_image])
 def run_docker_develop_test(
+    ctx: TaskContext,
     interactive: bool = False,
     build: bool = True,
     test: bool = True,
@@ -71,6 +72,7 @@ def run_docker_develop_test(
         return Path("/haxorg").joinpath(path)
 
     run_command(
+        ctx,
         "docker",
         [
             "run",
@@ -99,7 +101,7 @@ def run_docker_develop_test(
             *(["-it"] if interactive else []),
             *get_docker_cap_flags(),
             "--rm",
-            HAXORG_DOCKER_IMAGE,
+            ctx.config.HAXORG_DOCKER_IMAGE,
             "./scripts/py_repository/poetry_with_deps.sh",
             *(["bash"] if interactive else [
                 "invoke",
@@ -121,6 +123,7 @@ def run_docker_develop_test(
 
 @haxorg_task(dependencies=[])
 def run_docker_release_test(
+    ctx: TaskContext,
     build_dir: str = get_tmpdir("docker_release", "build"),
     clone_dir: str = get_tmpdir("docker_release", "clone"),
     clone_code: Literal["none", "comitted", "all"] = "all",
@@ -170,7 +173,7 @@ def run_docker_release_test(
     )
 
     @beartype
-    def run_docker(clone_dir: Path, build_dir: Path):
+    def run_docker(clone_dir: Path, build_dir: Path) -> None:
         source_prefix: Optional[Path] = None
         if clone_code == "all":
             if clone_dir.exists():
@@ -186,6 +189,7 @@ def run_docker_release_test(
             if clone_dir.exists():
                 shutil.rmtree(clone_dir)
             run_command(
+                ctx,
                 "git",
                 ["clone", get_script_root(), clone_dir],
                 **debug_conf,
@@ -213,6 +217,7 @@ def run_docker_release_test(
                     return get_script_root(path)
 
         run_command(
+            ctx,
             "docker",
             [
                 "run",
@@ -300,7 +305,6 @@ def run_develop_ci(ctx: TaskContext) -> None:
     if conf.develop_ci_conf.docs:
         ctx.run(build_custom_docs, ctx=ctx)
 
-
     emcc_conf = conf.model_copy()
     emcc_conf.emscripten.build = True
     emcc_conf.instrument.coverage = False
@@ -315,4 +319,3 @@ def run_develop_ci(ctx: TaskContext) -> None:
 
     if conf.develop_ci_conf.emscripten_test:
         emcc_context.run(run_js_test_example, ctx=emcc_context)
-

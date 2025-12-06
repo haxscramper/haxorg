@@ -13,6 +13,7 @@ from py_ci.util_scripting import cmake_opt
 
 CAT = __name__
 
+
 @beartype
 def get_deps_tmp_dir(config: HaxorgConfig) -> Path:
     return get_build_root().joinpath(
@@ -30,18 +31,18 @@ def get_deps_build_dir(config: HaxorgConfig) -> Path:
 
 
 @haxorg_task()
-def git_init_submodules(ctx: TaskContext):
+def git_init_submodules(ctx: TaskContext) -> None:
     """Init submodules if missing"""
     if get_script_root().joinpath("thirdparty/mp11").exists():
         log(CAT).info("Submodules were checked out")
     else:
         log(CAT).info("Submodules were not checked out, running update")
-        run_command("git",
+        run_command(ctx, "git",
                     ["submodule", "update", "--init", "--recursive", "--progress"])
 
 
 @haxorg_task()
-def download_llvm(ctx: TaskContext):
+def download_llvm(ctx: TaskContext) -> None:
     """Download LLVM toolchain if missing"""
     llvm_dir = get_script_root("toolchain/llvm")
     if not os.path.isdir(llvm_dir):
@@ -49,12 +50,13 @@ def download_llvm(ctx: TaskContext):
 
 
 @haxorg_task(dependencies=[git_init_submodules, download_llvm])
-def base_environment(ctx: TaskContext):
+def base_environment(ctx: TaskContext) -> None:
     """Ensure base dependencies are installed"""
     pass
 
+
 @haxorg_task()
-def generate_develop_deps_install_paths(ctx: TaskContext):
+def generate_develop_deps_install_paths(ctx: TaskContext) -> None:
     install_dir = get_deps_install_dir(ctx.config)
     ensure_existing_dir(install_dir)
     install_dir.joinpath("paths.cmake").write_text(
@@ -74,6 +76,7 @@ def get_llvm_root(relative: Optional[str] = None) -> Path:
 
     return value
 
+
 def get_toolchain_path(config: HaxorgConfig) -> Path:
     if config.emscripten.build:
         result = Path(config.emscripten.toolchain)
@@ -85,11 +88,11 @@ def get_toolchain_path(config: HaxorgConfig) -> Path:
         return get_script_root().joinpath("toolchain.cmake")
 
 
-
 def get_cmake_defines(conf: HaxorgConfig) -> List[str]:
     result: List[str] = []
 
-    assert not (conf.use.qt and conf.emscripten.build), "Qt cannot be used in the emcc build"
+    assert not (conf.use.qt and
+                conf.emscripten.build), "Qt cannot be used in the emcc build"
 
     result.append(cmake_opt("ORG_USE_COVERAGE", conf.instrument.coverage))
     result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
@@ -133,9 +136,8 @@ def get_cmake_defines(conf: HaxorgConfig) -> List[str]:
     return result
 
 
-
 @haxorg_task()
-def symlink_build(ctx: TaskContext):
+def symlink_build(ctx: TaskContext) -> None:
     """
     Create proxy symbolic links around the build directory
     """

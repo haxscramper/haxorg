@@ -59,7 +59,7 @@ def run_cmake_build_component(
             get_component_build_dir(ctx.config, component),
             "--target",
             *targets,
-        ] + args,
+        ] + args, # type: ignore
         **kwargs,
     )
 
@@ -244,6 +244,7 @@ def run_d3_example(ctx: TaskContext, sync: bool = False) -> None:
     if not sync and deno_run:
         log(CAT).info("Sending user signal to electron")
         electron = find_process("electron", d3_example_dir)
+        assert electron is not None
         electron.send_signal(signal.SIGUSR1)
 
     else:

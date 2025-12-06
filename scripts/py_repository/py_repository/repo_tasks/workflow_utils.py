@@ -32,12 +32,12 @@ def get_task_metadata(func: Callable) -> TaskMetadata:
     return getattr(func, "_haxorg_metadata")
 
 
-__airflow_task_list = []
+__haxorg_task_list: List[Callable] = []
 
 
 @beartype
 def get_haxorg_tasks() -> List[Callable]:
-    return __airflow_task_list
+    return __haxorg_task_list
 
 
 @beartype
@@ -67,9 +67,9 @@ def haxorg_task(
             type_hints = get_type_hints(func)
 
             # Extract parameters from context based on function signature
-            kwargs = {}
+            kwargs: Dict[Any, Any] = {}
 
-            context_obj: TaskContext = None
+            context_obj: Optional[TaskContext] = None
             for param_name, param in sig.parameters.items():
                 if param_name == "ctx":
                     kwargs[param_name] = context["ctx"]
@@ -98,7 +98,7 @@ def haxorg_task(
 
             return result
 
-        wrapper._haxorg_metadata = TaskMetadata(
+        wrapper._haxorg_metadata = TaskMetadata(  # type: ignore[attr-defined]
             dependencies=[dep for dep in (dependencies or [])],
             task_id=get_task_id(func),
             signature=inspect.signature(func),
@@ -108,7 +108,7 @@ def haxorg_task(
             file_operation=file_operation,
         )
 
-        __airflow_task_list.append(wrapper)
+        __haxorg_task_list.append(wrapper)
         return wrapper
 
     return decorator

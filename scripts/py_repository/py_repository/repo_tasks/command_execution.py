@@ -1,5 +1,7 @@
+import os
+import shutil
 from beartype import beartype
-from beartype.typing import Optional, Union, List, Callable, TypedDict, Literal, Unpack
+from beartype.typing import Optional, Union, List, Callable, TypedDict, Literal, Unpack, Any, Sequence
 from pathlib import Path
 import plumbum
 import subprocess
@@ -12,7 +14,7 @@ CAT = __name__
 
 
 @beartype
-def get_cmd_debug_file(kind: str):
+def get_cmd_debug_file(kind: str) -> Path:
     return Path(f"/tmp/debug_{kind}.log")
 
 
@@ -33,7 +35,7 @@ class RunCommandKwargs(TypedDict, total=False):
 def run_command(
     ctx: TaskContext,
     cmd: Union[str, Path],
-    args: List[Union[str, Path, Callable]],
+    args: Sequence[Union[str, Path, Callable]],
     capture: bool = False,
     allow_fail: bool = False,
     env: dict[str, str] = {},
@@ -46,7 +48,7 @@ def run_command(
     print_output: bool = False,
 ) -> tuple[int, str, str]:
     debug_override = ctx.get_task_debug_streams(
-        str(cmd).split("/")[-1] if "/" in str(cmd) else cmd,
+        str(str(cmd).split("/")[-1] if "/" in str(cmd) else cmd),
         args,
     )
 
@@ -56,7 +58,7 @@ def run_command(
         assert cmd.exists(), f"{cmd} does not exist"
         cmd = str(cmd.resolve())
 
-    def conv_arg(arg) -> str:
+    def conv_arg(arg: Any) -> str:
         if isinstance(arg, Callable):
             return arg.name.replace("_", "-")
 
@@ -66,11 +68,11 @@ def run_command(
         else:
             return arg
 
-    args: List[str] = [conv_arg(it) for it in args]
+    str_args: List[str] = [conv_arg(it) for it in args]
 
-    args_repr = " ".join((f"\"[cyan]{s}[/cyan]\"" for s in args))
+    args_repr = " ".join((f"\"[cyan]{s}[/cyan]\"" for s in str_args))
 
-    def append_to_log(path: Path):
+    def append_to_log(path: Path) -> None:
         with path.open("a") as file:
             file.write(f"""
 {'*' * 120}
@@ -132,7 +134,7 @@ cmd:  {cmd}
 
         try:
             subprocess.Popen(
-                [str(cmd), *args],
+                [str(cmd), *str_args],
                 cwd=str(cwd) if cwd else None,
                 start_new_session=run_mode == "nohup",
                 stdout=stdout_stream if stdout_stream else subprocess.DEVNULL,
@@ -150,13 +152,13 @@ cmd:  {cmd}
 
     else:
         if ctx.config.quiet or not print_output:
-            retcode, stdout, stderr = run.run(list(args), retcode=None)
+            retcode, stdout, stderr = run.run(list(str_args), retcode=None)
 
         else:
-            retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
+            retcode, stdout, stderr = run[*str_args] & plumbum.TEE(retcode=None)
 
         @beartype
-        def write_file(path: Path, append: bool, text: str):
+        def write_file(path: Path, append: bool, text: str) -> None:
             if append:
                 if not path.exists():
                     path.write_text("")
@@ -195,3 +197,31 @@ def run_cmake(
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
     return run_command(ctx, "cmake", args, **kwargs)
+
+
+
+def clone_repo_with_uncommitted_changes(
+    ctx: TaskContext,
+    src_repo: Path,
+    dst_repo: Path,
+) -> None:
+    run_command(ctx, "git", ["clone", src_repo, dst_repo])
+
+    code, stdout, stderr = run_command(ctx, "git", [
+        "-C",
+        src_repo,
+        "ls-files",
+        "--modified",
+        "--others",
+        "--exclude-standard",
+    ])
+
+    if stdout.strip():
+        file_list = stdout.strip().split('\n')
+        for file in file_list:
+            src_file = Path(f"{src_repo}/{file}")
+            dst_file = Path(f"{dst_repo}/{os.path.dirname(file)}")
+            log(CAT).info(f"Copying uncomitted changes {src_file} -> {dst_file}")
+            dst_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(src=src_file, dst=dst_file)
+

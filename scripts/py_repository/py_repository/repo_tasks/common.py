@@ -3,6 +3,7 @@ from beartype.typing import Dict, Callable, List, Optional, Iterable
 from beartype import beartype
 from functools import wraps
 import psutil
+from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.config import HaxorgConfig
 from py_scriptutils.script_logging import log
 import copy
@@ -152,31 +153,6 @@ def find_process(
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
     return None
-
-
-def clone_repo_with_uncommitted_changes(
-    src_repo: Path,
-    dst_repo: Path,
-) -> None:
-    run_command("git", ["clone", src_repo, dst_repo])
-
-    code, stdout, stderr = run_command("git", [
-        "-C",
-        src_repo,
-        "ls-files",
-        "--modified",
-        "--others",
-        "--exclude-standard",
-    ])
-
-    if stdout.strip():
-        file_list = stdout.strip().split('\n')
-        for file in file_list:
-            src_file = Path(f"{src_repo}/{file}")
-            dst_file = Path(f"{dst_repo}/{os.path.dirname(file)}")
-            log(CAT).info(f"Copying uncomitted changes {src_file} -> {dst_file}")
-            dst_file.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy(src=src_file, dst=dst_file)
 
 
 def get_lldb_py_import() -> List[str]:

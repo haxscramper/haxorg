@@ -16,10 +16,10 @@ BUILD_TESTS: bool = True
 DEPS_BUILD: Path = WORKDIR / "deps_build"
 
 if os.getenv("HAXORG_THIRD_PARTY_DIR_PATH"):
-    DEPS_SRC: Path = Path(os.getenv("HAXORG_THIRD_PARTY_DIR_PATH"))
+    DEPS_SRC: Path = Path(os.getenv("HAXORG_THIRD_PARTY_DIR_PATH"))  # type: ignore
 else:
-    DEPS_SRC: Path = SRC_DIR / "thirdparty"
-    
+    DEPS_SRC: Path = SRC_DIR / "thirdparty"  # type: ignore
+
 DEPS_INSTALL: Path = WORKDIR / "deps_install"
 ASSUME_CPACK_PRESENT = False
 UNPACK_PARENT = WORKDIR / "target.d"
@@ -28,7 +28,7 @@ BUILD_DIR: Path = UNPACK_DIR / "build"
 PY_HAXORG_DIR: Path = SRC_DIR.joinpath("scripts/py_haxorg")
 
 
-def prepare_env():
+def prepare_env() -> None:
     if not WORKDIR.exists():
         WORKDIR.mkdir(parents=True)
 
@@ -36,8 +36,8 @@ def prepare_env():
     os.chdir(WORKDIR)
 
     logger.info(f"Listing contents of source directory {SRC_DIR}")
-    run_cmd(["ls", "-al", SRC_DIR])
-    run_cmd(["ls", "-al", WORKDIR])
+    run_cmd(["ls", "-al", str(SRC_DIR)])
+    run_cmd(["ls", "-al", str(WORKDIR)])
 
 
 def install_dep(dep: data_build.ExternalDep) -> None:
@@ -118,7 +118,7 @@ def install_all_deps() -> List[str]:
     return cmake_config
 
 
-def update_cpack_archive(cmake_config: List[str]):
+def update_cpack_archive(cmake_config: List[str]) -> None:
     build_dir: Path = WORKDIR / "build" / "fedora_res"
     run_cmd([
         "cmake",
@@ -148,12 +148,12 @@ def update_cpack_archive(cmake_config: List[str]):
     if UNPACK_DIR.exists():
         shutil.rmtree(UNPACK_DIR)
 
-    run_cmd(["unzip", target_zip, "-d", str(UNPACK_PARENT,)])
+    run_cmd(["unzip", str(target_zip), "-d", str(UNPACK_PARENT,)])
 
 
-def build_cpack_archive(cmake_config: List[str], unpack_build_dir: Path):
+def build_cpack_archive(cmake_config: List[str], unpack_build_dir: Path) -> None:
     logger.info(f"Listing contents of {UNPACK_DIR}")
-    run_cmd(["ls", UNPACK_DIR])
+    run_cmd(["ls", str(UNPACK_DIR)])
 
     logger.info("Configuring build from source package")
     run_cmd([
@@ -184,7 +184,7 @@ def test_cpack_archive(
     unpack_build_dir: Path,
     test_cxx: bool,
     test_python: bool,
-):
+) -> None:
     if test_python:
         os.chdir(SRC_DIR)
         env = os.environ.copy()
@@ -199,8 +199,8 @@ def test_cpack_archive(
             "POETRY_REPOSITORIES_CACHE_DIR": os.path.join(cache_dir, "repositories"),
             "POETRY_HTTP_CACHE_DIR": os.path.join(cache_dir, "http"),
             "POETRY_VIRTUALENVS_IN_PROJECT": "true",
-            "HAXORG_PYHAXORG_SO_PATH": BUILD_DIR.joinpath("pyhaxorg.so"),
-            "HAXORG_PYTEXTLAYOUT_SO_PATH": BUILD_DIR.joinpath("py_textlayout_cpp.so"),
+            "HAXORG_PYHAXORG_SO_PATH": str(BUILD_DIR.joinpath("pyhaxorg.so")),
+            "HAXORG_PYTEXTLAYOUT_SO_PATH": str(BUILD_DIR.joinpath("py_textlayout_cpp.so")),
             "HAXORG_REDUCED_RELEASE_TEST": "1",
             "HAXORG_REPO_HAXORG_ROOT_BUILD_PATH": str(BUILD_DIR),
         })
@@ -261,15 +261,15 @@ def test_cpack_archive(
                 "build",
                 "--wheel",
                 "--outdir",
-                PY_HAXORG_DIR.joinpath("dist"),
-                SRC_DIR.joinpath("scripts/py_haxorg"),
+                str(PY_HAXORG_DIR.joinpath("dist")),
+                str(SRC_DIR.joinpath("scripts/py_haxorg")),
             ],
             env=env,
-            cwd=SRC_DIR,
+            cwd=str(SRC_DIR),
         )
 
-        run_cmd(["ls", "-alR", "build"], cwd=PY_HAXORG_DIR)
-        run_cmd(["ls", "-alR", "dist"], cwd=PY_HAXORG_DIR)
+        run_cmd(["ls", "-alR", "build"], cwd=str(PY_HAXORG_DIR))
+        run_cmd(["ls", "-alR", "dist"], cwd=str(PY_HAXORG_DIR))
 
         assert len(find_whl()) == 1, str(find_whl())
 
@@ -315,7 +315,7 @@ def test_cpack_archive(
         run_cmd([unpack_build_dir.joinpath("tests_org")])
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Script with boolean flags and choice arguments")
 

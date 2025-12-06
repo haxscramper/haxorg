@@ -264,14 +264,14 @@ HELP_coverage_mapping_dump = {
 def configure_cxx_merge(
     ctx: TaskContext,
     coverage_mapping_dump: Optional[str] = None,
-):
+) -> None:
     if ctx.config.instrument.coverage:
         profile_path = get_cxx_profdata_params_path()
         log(CAT).info(
             f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
         )
         profile_path.parent.mkdir(parents=True, exist_ok=True)
-        model = get_cxx_profdata_params()
+        model = get_cxx_profdata_params(ctx)
         if coverage_mapping_dump:
             Path(coverage_mapping_dump).mkdir(exist_ok=True)
             model.coverage_mapping_dump = coverage_mapping_dump
@@ -281,7 +281,7 @@ def configure_cxx_merge(
 
 @haxorg_task(dependencies=[build_haxorg])
 def run_cxx_coverage_merge(ctx: TaskContext, coverage_mapping_dump: Optional[str] = None,) -> None:
-    configure_cxx_merge(coverage_mapping_dump,)
+    configure_cxx_merge(ctx, coverage_mapping_dump,)
     coverage_dir = get_cxx_coverage_dir()
 
     profile_path = get_cxx_profdata_params_path()
@@ -309,7 +309,7 @@ def cxx_target_coverage(
     run_docgen: bool = True,
     coverage_mapping_dump: Optional[str] = None,
     allow_test_fail: bool = False,
-):
+) -> None:
     """
     Run full cycle of the code coverage generation. 
     """

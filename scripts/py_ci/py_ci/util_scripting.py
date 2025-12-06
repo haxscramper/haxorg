@@ -1,4 +1,4 @@
-from typing import Union, List, Generator, Tuple, Dict, Any, Optional
+from typing import Union, List, Generator, Tuple, Dict, Any, Optional, Sequence
 import json
 from pathlib import Path
 import logging
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_threading_count() -> int:
-    return int(os.cpu_count() * 0.6)
+    return int((os.cpu_count() or 6) * 0.6)
 
 
 def get_j_cap() -> List[str]:
@@ -26,7 +26,7 @@ def get_j_cap() -> List[str]:
     return ["-j", str(get_threading_count())]
 
 def get_docker_cap_flags() -> List[str]:
-    return ["--memory=20G", f"--cpus={int(os.cpu_count() * 0.9)}"]
+    return ["--memory=20G", f"--cpus={int((os.cpu_count() or 6) * 0.9)}"]
 
 
 @contextmanager
@@ -51,7 +51,7 @@ def get_caller_info() -> Tuple[str, int]:
 
 
 def run_cmd(
-    cmd: List[str],
+    cmd: Sequence[str | Path],
     env: Dict[str, str] | None = None,
     cwd: Optional[str] = None,
     check: bool = True,
@@ -102,7 +102,7 @@ def haxorg_env(path: List[str], value: Union[str, bool, Path, None]) -> dict[str
             return {result: str(value)}
 
 
-def parse_haxorg_env_value(value: str, type_hint: str = None) -> Any:
+def parse_haxorg_env_value(value: str, type_hint: Optional[str] = None) -> Any:
     """Parse environment variable value based on type hint or CMake-like rules."""
 
     if type_hint:
@@ -167,7 +167,7 @@ def set_nested_dict(d: Dict[str, Any], keys: List[str], value: Any) -> None:
 
 def parse_haxorg_env() -> Dict[str, Any]:
     """Parse HAXORG_ENV_* environment variables into a nested dictionary."""
-    result = {}
+    result: Dict[str, Any] = {}
 
     for env_var, env_value in os.environ.items():
         if not env_var.startswith("HAXORG_ENV_"):
