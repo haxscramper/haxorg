@@ -9,7 +9,6 @@ from py_ci.util_scripting import cmake_opt
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import RunCommandKwargs, run_cmake, run_command
 from py_repository.repo_tasks.common import ensure_clean_dir, get_component_build_dir, get_script_root
-from py_repository.repo_tasks.config import get_config
 from py_repository.repo_tasks.deps_build import validate_dependencies_install
 from py_repository.repo_tasks.haxorg_base import get_toolchain_path, symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
@@ -258,7 +257,7 @@ def run_js_test_example(ctx: TaskContext):
         ["js_test.js"],
         cwd=js_example_dir,
         env=dict(
-            NODE_PATH=str(get_component_build_dir(ctx, "haxorg")),
+            NODE_PATH=str(get_component_build_dir("haxorg")),
             TMPDIR=str(get_build_tmpdir(ctx, "haxorg")),
         ),
     )

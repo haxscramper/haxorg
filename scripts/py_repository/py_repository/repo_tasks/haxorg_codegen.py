@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from py_ci.data_build import get_deps_install_config
-from py_repository.repo_tasks.config import get_config, scoped_config_change
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import get_build_root, get_log_dir, get_script_root
@@ -61,15 +60,14 @@ CODEGEN_TASKS = [
 ])
 def generate_reflection_snapshot(ctx: TaskContext):
     """Generate new source code reflection file for the python source code wrapper"""
-    conf = get_config()
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     toolchain_include = get_script_root(
-        f"toolchain/llvm/lib/clang/{conf.LLVM_MAJOR}/include")
+        f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
 
-    with scoped_config_change():
-        conf.build_conf.target = ["reflection_lib", "reflection_tool"]
-        conf.build_conf.force = True
-        build_haxorg(ctx=ctx)
+    conf_copy = ctx.config.model_copy()
+    conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
+    conf_copy.build_conf.force = True
+    build_haxorg(ctx=ctx.with_temp_config(conf_copy))
 
     for task in CODEGEN_TASKS:
         out_file = get_build_root(f"{task}.pb")
@@ -84,7 +82,7 @@ def generate_reflection_snapshot(ctx: TaskContext):
 
         run_command(
             ctx,
-            "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
+            get_build_root("haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool"),
             [
                 "-p",
                 compile_commands,
@@ -92,7 +90,7 @@ def generate_reflection_snapshot(ctx: TaskContext):
                 compile_commands,
                 "--toolchain-include",
                 toolchain_include,
-                *(["--verbose"] if conf.verbose else []),
+                *(["--verbose"] if ctx.config.verbose else []),
                 "--out",
                 out_file,
                 src_file,
@@ -112,14 +110,14 @@ def generate_haxorg_sources(ctx: TaskContext):
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     log(CAT).info("Executing haxorg code generation step.")
-    conf = get_config()
-    if not conf.generate_sources_conf.standalone:
-        with scoped_config_change():
-            conf.build_conf.target = ["py_textlayout_cpp"]
-            build_haxorg(ctx=ctx)
-
-        generate_reflection_snapshot(ctx=ctx)
-        symlink_build(ctx=ctx)
+    if not ctx.config.generate_sources_conf.standalone:
+        from dataclasses import replace
+        config_copy = ctx.config.model_copy()
+        config_copy.build_conf.target = ["py_textlayout_cpp"]
+        ctx_copy = replace(ctx, config=config_copy)
+        build_haxorg(ctx=ctx_copy)
+        generate_reflection_snapshot(ctx=ctx_copy)
+        symlink_build(ctx=ctx_copy)
 
     for task in CODEGEN_TASKS:
         run_command(

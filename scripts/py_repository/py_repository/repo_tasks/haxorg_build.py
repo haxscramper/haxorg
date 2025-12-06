@@ -5,6 +5,7 @@ import shutil
 from py_ci.util_scripting import cmake_opt, get_j_cap
 from py_scriptutils import os_utils
 from py_scriptutils.algorithm import cond
+from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
 from py_repository.repo_tasks.haxorg_base import (
     base_environment,
@@ -15,12 +16,17 @@ from py_repository.repo_tasks.haxorg_base import (
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import get_component_build_dir, get_script_root, get_build_root
-from py_repository.repo_tasks.config import get_config
 
 CAT = __name__
 
 
-@haxorg_task(dependencies=[base_environment, generate_develop_deps_install_paths])
+@haxorg_task(
+    dependencies=[base_environment, generate_develop_deps_install_paths],
+    file_operation=FileOperation.InTmp(
+        input=[get_script_root("src").rglob("*.cmake")],
+        stamp_name="configure_cmake_haxorg",
+    ),
+)
 def configure_cmake_haxorg(ctx: TaskContext, force: bool = False):
     """Execute cmake configuration step for haxorg"""
 
@@ -51,13 +57,20 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False):
     run_command(ctx, "cmake", pass_flags)
 
 
-@haxorg_task(dependencies=[configure_cmake_haxorg])
+@haxorg_task(
+    dependencies=[configure_cmake_haxorg],
+    file_operation=FileOperation.InTmp(
+        input=[
+            get_script_root().joinpath("src").rglob("*.?pp"),
+        ],
+        stamp_name="build_haxorg",
+    ),
+)
 def build_haxorg(ctx: TaskContext):
     """Compile main set of libraries and binaries for org-mode parser"""
-    log(CAT).info(f"Using dependency dir {get_deps_install_dir()}")
-    log(CAT).info(f"Building with\n{' '.join(get_cmake_defines())}")
-    build_dir = get_component_build_dir("haxorg")
-    conf = get_config()
+    log(CAT).info(f"Using dependency dir {get_deps_install_dir(ctx.config)}")
+    log(CAT).info(f"Building with\n{' '.join(get_cmake_defines(ctx.config))}")
+    build_dir = get_component_build_dir(ctx.config, "haxorg")
 
     run_command(
         ctx,
@@ -66,13 +79,14 @@ def build_haxorg(ctx: TaskContext):
             "--build",
             build_dir,
             "--target",
-            *cond(0 < len(conf.build_conf.target), conf.build_conf.target, ["all"]),
+            *cond(0 < len(ctx.config.build_conf.target), ctx.config.build_conf.target,
+                  ["all"]),
             *get_j_cap(),
             *([
                 "--",
                 "-d",
                 "explain",
-            ] if get_config().in_ci else []),
+            ] if ctx.config.in_ci else []),
         ],
         env={'NINJA_FORCE_COLOR': '1'},
     )
@@ -90,7 +104,7 @@ def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False):
         "cmake",
         [
             "--install",
-            get_component_build_dir("haxorg"),
+            get_component_build_dir(ctx.config, "haxorg"),
             "--prefix",
             install_dir,
             # cmake_opt("ORG_USE_PERFETTO", perfetto),

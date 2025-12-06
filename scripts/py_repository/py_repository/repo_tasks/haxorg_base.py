@@ -3,30 +3,30 @@ from beartype import beartype
 from beartype.typing import List, Optional
 import os
 
+from py_repository.repo_tasks.config import HaxorgConfig
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 from py_repository.repo_tasks.common import create_symlink, get_component_build_dir, get_script_root, ensure_existing_dir, get_build_root
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.config import get_config
 from py_ci.data_build import get_external_deps_list, get_deps_install_config, get_emscripten_cmake_flags
 from py_ci.util_scripting import cmake_opt
 
 CAT = __name__
 
 @beartype
-def get_deps_tmp_dir() -> Path:
+def get_deps_tmp_dir(config: HaxorgConfig) -> Path:
     return get_build_root().joinpath(
-        "deps_emcc" if get_config().emscripten.build else "deps_bin")
+        "deps_emcc" if config.emscripten.build else "deps_bin")
 
 
 @beartype
-def get_deps_install_dir() -> Path:
-    return get_deps_tmp_dir().joinpath("install")
+def get_deps_install_dir(config: HaxorgConfig) -> Path:
+    return get_deps_tmp_dir(config).joinpath("install")
 
 
 @beartype
-def get_deps_build_dir() -> Path:
-    return get_deps_tmp_dir().joinpath("build")
+def get_deps_build_dir(config: HaxorgConfig) -> Path:
+    return get_deps_tmp_dir(config).joinpath("build")
 
 
 @haxorg_task()
@@ -57,13 +57,13 @@ def base_environment(ctx: TaskContext):
 
 @haxorg_task()
 def generate_develop_deps_install_paths(ctx: TaskContext):
-    install_dir = get_deps_install_dir()
+    install_dir = get_deps_install_dir(ctx.config)
     ensure_existing_dir(install_dir)
     install_dir.joinpath("paths.cmake").write_text(
         get_deps_install_config(
             deps=get_external_deps_list(
                 install_dir=install_dir,
-                is_emcc=get_config().emscripten.build,
+                is_emcc=ctx.config.emscripten.build,
             ),
             install_dir=install_dir,
         ))
@@ -76,9 +76,9 @@ def get_llvm_root(relative: Optional[str] = None) -> Path:
 
     return value
 
-def get_toolchain_path() -> Path:
-    if get_config().emscripten.build:
-        result = Path(get_config().emscripten.toolchain)
+def get_toolchain_path(config: HaxorgConfig) -> Path:
+    if config.emscripten.build:
+        result = Path(config.emscripten.toolchain)
         assert result.exists(), f"EMCC toolchain path does not exist {result}"
         log(CAT).info(f"Using EMCC toolchain path {result}")
         return result
@@ -88,9 +88,8 @@ def get_toolchain_path() -> Path:
 
 
 
-def get_cmake_defines() -> List[str]:
+def get_cmake_defines(conf: HaxorgConfig) -> List[str]:
     result: List[str] = []
-    conf = get_config()
 
     assert not (conf.use.qt and conf.emscripten.build), "Qt cannot be used in the emcc build"
 
@@ -106,11 +105,11 @@ def get_cmake_defines() -> List[str]:
     result.append(cmake_opt("SQLITECPP_RUN_CPPLINT", False))
 
     result.append(cmake_opt("ORG_FORCE_ADAPTAGRAMS_BUILD", False))
-    result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir()))
+    result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(conf)))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
     if conf.emscripten.build:
-        result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path()))
+        result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(conf)))
         result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", False))
         result.append(cmake_opt("ORG_EMCC_BUILD", True))
         # result.append(cmake_opt("CMAKE_SIZEOF_VOID_P", "4"))

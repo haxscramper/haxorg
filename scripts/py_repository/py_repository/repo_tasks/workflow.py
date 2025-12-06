@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.config import get_config
+from py_repository.repo_tasks.config import HaxorgConfig
 import py_repository.repo_tasks.workflow_utils as workflow_utils
 from py_repository.repo_tasks import (
     haxorg_base,
@@ -26,13 +26,16 @@ CAT = __name__
 
 logging.getLogger("plumbum.local").setLevel(logging.WARNING)
 
+
 class WorkflowOptions(BaseModel):
     task: Optional[str] = Field(default=None)
     workflow_log_dir: str = "/tmp/haxorg/workflow_log"
     stamp_root: str = str(get_build_root().joinpath("workflow_stamps"))
 
+
 def workflow_options(f):
     return apply_options(f, options_from_model(WorkflowOptions))
+
 
 @click.command()
 @click.argument("cmd")
@@ -48,10 +51,13 @@ def cli(ctx: click.Context, cmd: str, config: str, **kwargs) -> None:
     setup_multi_file_logging(Path(opts.workflow_log_dir))
 
     graph = workflow_utils.create_dag_from_tasks(workflow_utils.get_haxorg_tasks())
-    context = workflow_utils.TaskContext(graph=graph, stamp_root=Path(opts.stamp_root))
+    context = workflow_utils.TaskContext(
+        graph=graph,
+        stamp_root=Path(opts.stamp_root),
+        config=HaxorgConfig(),
+    )
 
-    conf = get_config()
-    log(CAT).info(f"{conf.model_dump_json(indent=2)}")
+    log(CAT).info(f"{context.config.model_dump_json(indent=2)}")
 
     match cmd:
         case "run":
@@ -66,9 +72,7 @@ def cli(ctx: click.Context, cmd: str, config: str, **kwargs) -> None:
             raise ValueError(f"Unknown command {cmd}")
 
 
-
-
-if __name__ ==  "__main__":
+if __name__ == "__main__":
     cli()
 
 # main_pipeline = workflow_utils.create_dag_from_tasks(workflow_utils.get_haxorg_tasks(),

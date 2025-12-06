@@ -108,7 +108,7 @@ class FileOperation:
     stamp_name: Optional[str] = None
     stamp_content: Optional[str | Callable] = None
 
-    def get_stamp_content(self) -> Optional[str]:
+    def get_stamp_content(self, *args, **kwargs) -> Optional[str]:
         if self.stamp_content:
             if isinstance(self.stamp_content, str):
                 return self.stamp_content
@@ -116,7 +116,7 @@ class FileOperation:
             else:
                 return json.dumps(
                     to_debug_json(
-                        self.stamp_content(),
+                        self.stamp_content(*args, **kwargs),
                         with_stable_formatting=True,
                     ),
                     indent=2,
@@ -137,13 +137,13 @@ class FileOperation:
         self,
         input: SomePaths,
         output: SomePaths,
-        stamp_path: Optional[Path] = None,
+        stamp_name: Optional[str] = None,
         stamp_content: Optional[str] = None,
     ) -> "FileOperation":
         return FileOperation(
-            normalize_paths(input),
+            input=normalize_paths(input),
             output=normalize_paths(output),
-            stamp_path=stamp_path,
+            stamp_name=stamp_name,
             stamp_content=stamp_content,
         )
 
@@ -151,13 +151,13 @@ class FileOperation:
     def InTmp(
         self,
         input: SomePaths,
-        stamp_path: Path,
+        stamp_name: str,
         stamp_content: Optional[str] = None,
         output: List[Path] = [],
     ) -> "FileOperation":
         return FileOperation(
             normalize_paths(input),
-            stamp_path=stamp_path,
+            stamp_name=stamp_name,
             output=output,
             stamp_content=stamp_content,
         )
@@ -166,22 +166,23 @@ class FileOperation:
         if self.stamp_name:
             return root.joinpath(self.stamp_name)
 
-    def stamp_content_is_new(self, root: Path) -> bool:
+    def stamp_content_is_new(self, root: Path, *args, **kwargs) -> bool:
         return bool(
-            self.get_stamp_path(root).exists() and self.get_stamp_content() and
-            self.get_stamp_path(root).read_text() != self.get_stamp_content())
+            self.get_stamp_path(root).exists() and self.get_stamp_content(*args, **kwargs) and
+            self.get_stamp_path(root).read_text() != self.get_stamp_content(*args, **kwargs))
 
     def get_output_files(self, root: Path) -> List[Path]:
         return (self.output or
                 []) + ([self.get_stamp_path(root)] if self.get_stamp_path(root) else [])
 
-    def should_run(self, root: Path) -> bool:
-        return (self.input and
-                IsNewInput(self.input, self.get_output_files(root))) or bool(
-                    self.get_stamp_path(root) and self.stamp_content_is_new(root))
+    def should_run(self, root: Path, *args, **kwargs) -> bool:
+        return (self.input and IsNewInput(
+            self.input,
+            self.get_output_files(root) or [self.get_stamp_path(root)])) or bool(
+                self.get_stamp_path(root) and self.stamp_content_is_new(root, *args, **kwargs))
 
-    def explain(self, name: str, root: Path) -> str:
-        if self.should_run(root):
+    def explain(self, name: str, root: Path, *args, **kwargs) -> str:
+        if self.should_run(root, *args, **kwargs):
 
             def mtime_str(time: float) -> str:
                 return datetime.fromtimestamp(time).strftime("%Y-%m-%d %H:%M:%S")
@@ -190,11 +191,11 @@ class FileOperation:
             if self.get_stamp_path(root) and not self.get_stamp_path(root).exists():
                 why += " output stamp file is missing "
 
-            if self.get_stamp_path(root) and self.stamp_content_is_new(root):
+            if self.get_stamp_path(root) and self.stamp_content_is_new(root, *args, **kwargs):
                 why += f" stamp content value changed\n"
                 for line in difflib.context_diff(
                         self.get_stamp_path(root).read_text().splitlines(),
-                        self.get_stamp_content().splitlines(),
+                        self.get_stamp_content(*args, **kwargs).splitlines(),
                         fromfile="before",
                         tofile="after",
                 ):
@@ -222,7 +223,7 @@ class FileOperation:
             return f"[green]{name}[/green] task is [green]up to date[/green]"
 
     @contextmanager
-    def scoped_operation(self, root: Path):
+    def scoped_operation(self, root: Path, *args, **kwargs):
         yield
 
         stamp = self.get_stamp_path(root)
@@ -230,8 +231,8 @@ class FileOperation:
             stamp.parent.mkdir(parents=True)
 
         with open(str(stamp), "w") as file:
-            if self.get_stamp_content():
-                file.write(self.get_stamp_content())
+            if self.get_stamp_content(*args, **kwargs):
+                file.write(self.get_stamp_content(*args, **kwargs))
 
             else:
                 file.write("xx")

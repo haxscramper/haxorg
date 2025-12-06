@@ -5,10 +5,10 @@ from beartype.typing import List, Optional, Any
 
 from py_ci.data_build import CmakeFlagConfig, CmakeOptConfig, ExternalDep, get_external_deps_list
 from py_ci.util_scripting import cmake_opt, get_j_cap
+from py_repository.repo_tasks.config import HaxorgConfig
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import get_cmd_debug_file, run_command
 from py_repository.repo_tasks.common import ensure_existing_dir, get_script_root
-from py_repository.repo_tasks.config import get_config
 from py_repository.repo_tasks.haxorg_base import generate_develop_deps_install_paths, get_deps_build_dir, get_deps_install_dir, get_toolchain_path
 from py_repository.repo_tasks.haxorg_build import build_release_archive
 from py_scriptutils.algorithm import maybe_splice
@@ -25,10 +25,10 @@ def validate_dependencies_install(ctx: TaskContext):
 
 
 @beartype
-def get_develop_deps_stamp() -> Any:
+def get_develop_deps_stamp(ctx: TaskContext) -> Any:
     return get_external_deps_list(
-        get_deps_install_dir(),
-        is_emcc=get_config().emscripten.build,
+        get_deps_install_dir(ctx.config),
+        is_emcc=ctx.config.emscripten.build,
     )
 
 
@@ -38,10 +38,10 @@ def get_develop_deps_stamp() -> Any:
 ))
 def build_develop_deps(ctx: TaskContext):
     "Install dependencies for cmake project development"
-    conf = get_config()
-    build_dir = get_deps_build_dir()
+    conf = ctx.config
+    build_dir = get_deps_build_dir(ctx.config)
     ensure_existing_dir(build_dir)
-    install_dir = get_deps_install_dir()
+    install_dir = get_deps_install_dir(ctx.config)
     ensure_existing_dir(install_dir)
     deps_dir = get_script_root().joinpath("thirdparty")
 
@@ -79,7 +79,7 @@ def build_develop_deps(ctx: TaskContext):
                     cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(
                         item.build_name)),
                     cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
-                    *([cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path())]
+                    *([cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx.config))]
                       if item.is_bundled_toolchain else []),
                     *configure_args,
                     *maybe_splice(conf.build_develop_deps_conf.force, "--fresh"),
@@ -119,7 +119,7 @@ def build_develop_deps(ctx: TaskContext):
 
     for item in get_external_deps_list(
             install_dir,
-            is_emcc=get_config().emscripten.build,
+            is_emcc=ctx.config.emscripten.build,
     ):
         dep(item)
 

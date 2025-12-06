@@ -1,6 +1,5 @@
 from beartype.typing import List
 
-from py_repository.repo_tasks.config import get_config
 from py_repository.repo_tasks.haxorg_coverage import get_cxx_profdata_params
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command

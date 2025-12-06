@@ -11,7 +11,7 @@ from py_repository.coverage_collection.gen_coverage_cookies import ProfdataCooki
 from py_repository.repo_tasks.workflow_utils import haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import ensure_clean_file, get_build_root, get_component_build_dir
-from py_repository.repo_tasks.config import HaxorgCoverageAggregateFilter, HaxorgCoverageCookiePattern, get_config
+from py_repository.repo_tasks.config import HaxorgCoverageAggregateFilter, HaxorgCoverageCookiePattern
 from py_repository.repo_tasks.haxorg_base import get_llvm_root
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_scriptutils.script_logging import log

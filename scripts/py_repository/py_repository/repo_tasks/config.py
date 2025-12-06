@@ -148,25 +148,4 @@ class HaxorgConfig(BaseModel, extra="forbid"):
         default_factory=HaxorgCustomDocsConfig)
 
 
-@contextmanager
-def scoped_config_change() -> Generator[None, None, None]:
-    """Temporarily change the working directory."""
-    old_config = get_config().model_copy()
-    try:
-        yield
-    finally:
-        set_config(old_config)
-
-
-__global_conf = HaxorgConfig()
-
-
-def get_config() -> HaxorgConfig:
-    return __global_conf
-
-
-def set_config(conf: HaxorgConfig):
-    __global_conf = conf
-
-
 # Variable.set("haxorg_config", HaxorgConfig().model_dump(), serialize_json=True)

@@ -6,9 +6,10 @@ from beartype.typing import List, Callable, get_type_hints, Dict, Any, Optional
 from functools import wraps
 import inspect
 from datetime import timedelta
+from py_repository.repo_tasks.config import HaxorgConfig
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import igraph as ig
 
 CAT = __name__
@@ -179,10 +180,11 @@ class TaskGraph:
 class TaskContext():
     graph: TaskGraph
     stamp_root: Path
+    config: HaxorgConfig
     current_task: Optional[Callable] = None
 
-
-
+    def with_temp_config(self, config: HaxorgConfig) -> "TaskContext":
+        return replace(self, config=config)
 
     def get_task_debug_suffix(self, cmd: str = "") -> str:
         result = ""
@@ -219,7 +221,7 @@ args: {args}
 
         return result
 
-    def run(self, target_name: str | Callable):
+    def run(self, target_name: str | Callable, *args, **kwargs):
         target_name = target_name if isinstance(target_name,
                                                 str) else target_name.__name__
         target_id = self.graph.graph.vs.find(name=target_name).index
@@ -234,11 +236,11 @@ args: {args}
             op = self.graph.tasks[task_id]
             operation = op.get_metadata().file_operation
             if operation:
-                if operation.should_run(self.stamp_root):
-                    log(CAT).info(operation.explain(task_id, self.stamp_root))
+                if operation.should_run(self.stamp_root, *args, **kwargs):
+                    log(CAT).info(operation.explain(task_id, self.stamp_root, *args, **kwargs))
 
-                with operation.scoped_operation(self.stamp_root):
-                    if operation.should_run(self.stamp_root):
+                with operation.scoped_operation(self.stamp_root, *args, **kwargs):
+                    if operation.should_run(self.stamp_root, *args, **kwargs):
                         op.python_callable(ctx=self)
 
             else:

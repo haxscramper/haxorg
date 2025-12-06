@@ -4,7 +4,6 @@ from pathlib import Path
 import plumbum
 import subprocess
 
-from py_repository.repo_tasks.config import get_config
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 from py_scriptutils.algorithm import remove_ansi
@@ -53,9 +52,8 @@ def run_command(
 
     stderr_debug = stderr_debug or debug_override[0]
     stdout_debug = stdout_debug or debug_override[1]
-    conf = get_config()
     if isinstance(cmd, Path):
-        assert cmd.exists(), cmd
+        assert cmd.exists(), f"{cmd} does not exist"
         cmd = str(cmd.resolve())
 
     def conv_arg(arg) -> str:
@@ -98,7 +96,7 @@ cmd:  {cmd}
                    (f" in [green]{cwd}[/green]" if cwd else "") +
                    (f" with [purple]{env}[/purple]" if env else ""))
 
-    if conf.dryrun:
+    if ctx.config.dryrun:
         log(CAT).warning("Dry run, early exit")
         return (0, "", "")
 
@@ -151,7 +149,7 @@ cmd:  {cmd}
         return (0, "", "")
 
     else:
-        if get_config().quiet or not print_output:
+        if ctx.config.quiet or not print_output:
             retcode, stdout, stderr = run.run(list(args), retcode=None)
 
         else:

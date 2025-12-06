@@ -3,6 +3,7 @@ from beartype.typing import Dict, Callable, List, Optional, Iterable
 from beartype import beartype
 from functools import wraps
 import psutil
+from py_repository.repo_tasks.config import HaxorgConfig
 from py_scriptutils.script_logging import log
 import copy
 import typing
@@ -11,7 +12,6 @@ import shutil
 
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_repository.repo_tasks.config import get_config
 from plumbum import local
 
 
@@ -54,15 +54,15 @@ def ensure_clean_file(file: Path) -> Path:
 
 
 @beartype
-def get_real_build_basename(component: str) -> str:
+def get_real_build_basename(config: HaxorgConfig, component: str) -> str:
     """
     Get basename of the binary output directory for component
     """
-    result = component + "_" + ("debug" if get_config().debug else "release")
-    if get_config().emscripten.build:
+    result = component + "_" + ("debug" if config.debug else "release")
+    if config.emscripten.build:
         result += "_emscripten"
 
-    if get_config().instrument.coverage:
+    if config.instrument.coverage:
         result += "_instrumented"
 
     return result
@@ -76,8 +76,8 @@ def get_list_cli_pass(list_name: str, args: Iterable[str]) -> List[str]:
 
 
 @beartype
-def get_component_build_dir(component: str) -> Path:
-    result = get_build_root(get_real_build_basename(component))
+def get_component_build_dir(config: HaxorgConfig, component: str) -> Path:
+    result = get_build_root(get_real_build_basename(config, component))
     result.mkdir(parents=True, exist_ok=True)
     return result
 
