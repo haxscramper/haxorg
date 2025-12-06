@@ -77,6 +77,7 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     reflection: bool = True
     install: bool = True
     example: bool = True
+    
     emscripten_deps: bool = True
     emscripten_build: bool = True
     emscripten_test: bool = True

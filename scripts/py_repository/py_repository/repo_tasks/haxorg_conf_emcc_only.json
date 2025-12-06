@@ -1,0 +1,15 @@
+{
+  "develop_ci_conf": {
+    "deps": false,
+    "build": false,
+    "test": false,
+    "docs": false,
+    "coverage": false,
+    "reflection": false,
+    "install": false,
+    "example": false,
+    "emscripten_deps": true,
+    "emscripten_build": true,
+    "emscripten_test": true
+  }
+}

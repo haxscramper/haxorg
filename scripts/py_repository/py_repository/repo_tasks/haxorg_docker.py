@@ -32,7 +32,7 @@ def docker_mnt(src: Path, dst: Path) -> List[str]:
 
 
 @haxorg_task()
-def build_docker_develop_image(ctx: TaskContext):
+def build_docker_develop_image(ctx: TaskContext) -> None:
     run_command("docker", ["rm", ctx.config.HAXORG_DOCKER_IMAGE], allow_fail=True)
     run_command("docker", [
         "build",
@@ -59,7 +59,7 @@ def run_docker_develop_test(
     emscripten_deps: bool = True,
     emscripten_build: bool = True,
     emscripten_test: bool = True,
-):
+) -> None:
     """Run docker"""
 
     HAXORG_BUILD_TMP = Path(build_dir)
@@ -128,7 +128,7 @@ def run_docker_release_test(
     test: str = "python",
     build: bool = True,
     interactive: bool = False,
-):
+) -> None:
     CPACK_TEST_IMAGE = "docker-haxorg-cpack"
     dep_debug_stdout = get_cmd_debug_file("stdout")
     dep_debug_stderr = get_cmd_debug_file("stderr")
@@ -246,7 +246,7 @@ def run_docker_release_test(
             **debug_conf,
         )
 
-    def run_with_build_dir(build_dir: Path):
+    def run_with_build_dir(build_dir: Path) -> None:
         if clone_dir:
             log(CAT).info(f"Specified clone directory, using it for docker")
             run_docker(clone_dir=Path(clone_dir), build_dir=build_dir)
@@ -270,7 +270,7 @@ def run_docker_release_test(
 
 @haxorg_task()
 @beartype
-def run_develop_ci(ctx: TaskContext):
+def run_develop_ci(ctx: TaskContext) -> None:
     "Execute all CI tasks"
     conf = ctx.config
     old_config = conf.model_copy()
@@ -304,14 +304,15 @@ def run_develop_ci(ctx: TaskContext):
     emcc_conf = conf.model_copy()
     emcc_conf.emscripten.build = True
     emcc_conf.instrument.coverage = False
+    emcc_conf.use.qt = False
     emcc_context = replace(ctx, config=emcc_conf)
 
     if conf.develop_ci_conf.emscripten_deps:
-        emcc_context.run(build_develop_deps, ctx=ctx)
+        emcc_context.run(build_develop_deps, ctx=emcc_context)
 
     if conf.develop_ci_conf.emscripten_build:
-        emcc_context.run(build_haxorg, ctx=ctx)
+        emcc_context.run(build_haxorg, ctx=emcc_context)
 
     if conf.develop_ci_conf.emscripten_test:
-        emcc_context.run(run_js_test_example, ctx=ctx)
+        emcc_context.run(run_js_test_example, ctx=emcc_context)
 

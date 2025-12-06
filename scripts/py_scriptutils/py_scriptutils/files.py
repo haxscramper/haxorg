@@ -89,10 +89,10 @@ def any_missing(input_paths: List[Path]) -> bool:
 
 @beartype
 def IsNewInput(input_path: SomePaths, output_path: SomePaths) -> bool:
-    assert 0 < len(input_path)
-    assert 0 < len(output_path)
     input_path = normalize_paths(input_path)
     output_path = normalize_paths(output_path)
+    assert 0 < len(input_path)
+    assert 0 < len(output_path)
     if any_missing(output_path):
         return True
 
@@ -123,6 +123,9 @@ class FileOperation:
                     sort_keys=True,
                 )
 
+        else:
+            return None
+
     @staticmethod
     def OnlyStamp(name: str, content: str | Callable) -> "FileOperation":
         return FileOperation(
@@ -152,7 +155,7 @@ class FileOperation:
         self,
         input: SomePaths,
         stamp_name: str,
-        stamp_content: Optional[str] = None,
+        stamp_content: Optional[str | Callable] = None,
         output: List[Path] = [],
     ) -> "FileOperation":
         return FileOperation(
@@ -166,6 +169,9 @@ class FileOperation:
         if self.stamp_name:
             return root.joinpath(self.stamp_name)
 
+        else:
+            return None
+
     def stamp_content_is_new(self, root: Path, *args, **kwargs) -> bool:
         return bool(
             self.get_stamp_path(root).exists() and self.get_stamp_content(*args, **kwargs) and
@@ -173,7 +179,7 @@ class FileOperation:
 
     def get_output_files(self, root: Path) -> List[Path]:
         return (self.output or
-                []) + ([self.get_stamp_path(root)] if self.get_stamp_path(root) else [])
+                []) + ([self.get_stamp_path(root)] if self.get_stamp_path(root) is not None else [])
 
     def should_run(self, root: Path, *args, **kwargs) -> bool:
         return (self.input and IsNewInput(

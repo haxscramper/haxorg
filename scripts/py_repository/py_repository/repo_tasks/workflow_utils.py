@@ -47,12 +47,11 @@ def get_task_id(func: Callable) -> str:
 
 @beartype
 def haxorg_task(
-    dependencies: List[Callable] = None,
+    dependencies: List[Callable] = [],
     as_dag: bool = True,
     branching: bool = False,
     file_operation: Optional[FileOperation] = None, 
-):
-
+) -> Any:
     def decorator(func: Callable) -> Callable:
         # Validate dependencies are also haxorg_task decorated
         if dependencies:
@@ -62,7 +61,7 @@ def haxorg_task(
                         f"Dependency {dep.__name__} must be decorated with @haxorg_task")
 
         @wraps(func)
-        def wrapper(**context):
+        def wrapper(**context: Any) -> None:
             # Get function signature and type hints
             sig = inspect.signature(func)
             type_hints = get_type_hints(func)
@@ -168,7 +167,7 @@ class TaskGraph:
 
         return self.tasks[task_id]
 
-    def add_edge(self, source: PythonOperator, target: PythonOperator):
+    def add_edge(self, source: PythonOperator, target: PythonOperator) -> None:
         self.graph.add_edge(source.task_id, target.task_id)
 
     def get_tasks(self) -> List[str]:
@@ -191,7 +190,7 @@ class TaskContext():
         import hashlib
         return hashlib.md5(self.config.model_dump_json().encode()).hexdigest()
 
-    def track_task_completion(self, task: str):
+    def track_task_completion(self, task: str) -> None:
         self.run_cache.add((task, self.get_config_hash()))
 
     def is_already_executed_task(self, task: str) -> bool:
@@ -212,7 +211,7 @@ class TaskContext():
 
         return result
 
-    def get_task_debug_streams(self, cmd: str, args) -> tuple[Path, Path]:
+    def get_task_debug_streams(self, cmd: str, args: Any) -> tuple[Path, Path]:
         import hashlib
         digest = hashlib.md5(f"{cmd} {args}".encode()).hexdigest()[:8]
         result = (
@@ -233,7 +232,7 @@ args: {args}
 
         return result
 
-    def run(self, target_name: str | Callable, *args, **kwargs):
+    def run(self, target_name: str | Callable, *args: Any, **kwargs: Any) -> None:
         target_name = target_name if isinstance(target_name,
                                                 str) else target_name.__name__
         target_id = self.graph.graph.vs.find(name=target_name).index
