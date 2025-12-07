@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from py_ci.data_build import get_deps_install_config
+from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import check_is_file, ensure_existing_dir, get_build_root, get_log_dir, get_script_root
@@ -54,10 +55,7 @@ CODEGEN_TASKS = [
 ]
 
 
-@haxorg_task(dependencies=[
-    generate_python_protobuf_files,
-    build_haxorg,
-])
+@haxorg_task(dependencies=[generate_python_protobuf_files])
 def generate_reflection_snapshot(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
@@ -91,13 +89,12 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
                 compile_commands,
                 "--toolchain-include",
                 toolchain_include,
-                *(["--verbose"] if ctx.config.verbose else []),
+                *(["--verbose"]
+                  if ctx.config.log_level == HaxorgLogLevel.VERBOSE else []),
                 "--out",
                 out_file,
                 src_file,
             ],
-            stderr_debug=get_log_dir().joinpath(f"debug_reflection_{task}_stderr.txt"),
-            stdout_debug=get_log_dir().joinpath(f"debug_reflection_{task}_stdout.txt"),
         )
 
         log(CAT).info("Updated reflection")
@@ -113,10 +110,9 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     if not ctx.config.generate_sources_conf.standalone:
-        from dataclasses import replace
         config_copy = ctx.config.model_copy()
         config_copy.build_conf.target = ["py_textlayout_cpp"]
-        ctx_copy = replace(ctx, config=config_copy)
+        ctx_copy = ctx.with_temp_config(config_copy)
         ctx_copy.run(build_haxorg, ctx=ctx_copy)
         ctx_copy.run(generate_reflection_snapshot, ctx=ctx_copy)
         ctx_copy.run(symlink_build, ctx=ctx_copy)
@@ -127,8 +123,8 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
             "poetry",
             [
                 "run",
-                get_script_root("scripts/py_codegen/py_codegen/codegen.py"),
-                "--reflection_path={}".format(get_build_root().joinpath(f"{task}.pb")),
+                get_script_root(ctx, "scripts/py_codegen/py_codegen/codegen.py"),
+                "--reflection_path={}".format(get_build_root(ctx).joinpath(f"{task}.pb")),
                 f"--codegen_task={task}",
                 f"--tmp={ctx.config.generate_sources_conf.tmp}",
             ],

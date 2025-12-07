@@ -151,7 +151,7 @@ def run_docker_develop_test(
 
     dctx = replace(ctx, docker_container=container, run_cache=set())
     dctx.config.use_unchanged_tasks = True
-    dctx.config.log_level = HaxorgLogLevel.VERBOSE
+    # dctx.config.log_level = HaxorgLogLevel.VERBOSE
     dctx.repo_root = Path("/haxorg")
     dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
 
@@ -370,8 +370,8 @@ def run_docker_release_test(
 def run_develop_ci(ctx: TaskContext) -> None:
     "Execute all CI tasks"
     conf = ctx.config
-    old_config = conf.model_copy()
 
+    log(CAT).info("Running binary task set")
     if conf.develop_ci_conf.deps:
         ctx.run(build_develop_deps, ctx=ctx)
 
@@ -397,11 +397,12 @@ def run_develop_ci(ctx: TaskContext) -> None:
     if conf.develop_ci_conf.docs:
         ctx.run(build_custom_docs, ctx=ctx)
 
+    log(CAT).info("Running EMCC task set")
     emcc_conf = conf.model_copy()
     emcc_conf.emscripten.build = True
     emcc_conf.instrument.coverage = False
     emcc_conf.use.qt = False
-    emcc_context = replace(ctx, config=emcc_conf)
+    emcc_context = ctx.with_temp_config(emcc_conf)
 
     if conf.develop_ci_conf.emscripten_deps:
         emcc_context.run(build_develop_deps, ctx=emcc_context)

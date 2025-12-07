@@ -1,3 +1,5 @@
+# mypy: ignore-errors
+
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
 import graphviz

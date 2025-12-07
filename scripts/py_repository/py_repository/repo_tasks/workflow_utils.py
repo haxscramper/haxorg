@@ -1,6 +1,6 @@
 from collections import defaultdict
 from graphlib import TopologicalSorter
-import docker.models.containers 
+import docker.models.containers
 import docker
 from pathlib import Path
 from beartype import beartype
@@ -53,8 +53,9 @@ def haxorg_task(
     dependencies: List[Callable] = [],
     as_dag: bool = True,
     branching: bool = False,
-    file_operation: Optional[FileOperation] = None, 
+    file_operation: Optional[FileOperation] = None,
 ) -> Any:
+
     def decorator(func: Callable) -> Callable:
         # Validate dependencies are also haxorg_task decorated
         if dependencies:
@@ -201,7 +202,6 @@ class TaskContext():
     def is_already_executed_task(self, task: str) -> bool:
         return (task, self.get_config_hash()) in self.run_cache
 
-
     def get_task_debug_suffix(self, cmd: str = "") -> str:
         result = ""
 
@@ -220,8 +220,12 @@ class TaskContext():
         import hashlib
         digest = hashlib.md5(f"{cmd} {args}".encode()).hexdigest()[:8]
         result = (
-            Path(f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"),
-            Path(f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"),
+            Path(
+                f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"
+            ),
+            Path(
+                f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"
+            ),
         )
 
         result[0].parent.mkdir(parents=True, exist_ok=True)
@@ -240,6 +244,8 @@ args: {args}
     def run(self, target_name: str | Callable, *args: Any, **kwargs: Any) -> None:
         target_name = target_name if isinstance(target_name,
                                                 str) else target_name.__name__
+
+        log(CAT).info(f"Starting with target {target_name}")
         target_id = self.graph.graph.vs.find(name=target_name).index
 
         dependent_indices = self.graph.graph.subcomponent(target_id, mode="in")
@@ -261,14 +267,17 @@ args: {args}
                     if operation.should_run(self.stamp_root, *args, **kwargs):
                         log(CAT).info(f"Running [green]{task_id}[/green], should run")
                         op.python_callable(ctx=self)
+                        log(CAT).info(f"Done {task_id}")
 
                     else:
                         log(CAT).info(f"Skipping [red]{task_id}[/red], no run needed")
-                        log(CAT).info(operation.explain(task_id, self.stamp_root, *args, **kwargs))
+                        log(CAT).info(
+                            operation.explain(task_id, self.stamp_root, *args, **kwargs))
 
             else:
                 log(CAT).info(f"Running [yellow]{task_id}[/yellow]")
                 op.python_callable(ctx=self)
+                log(CAT).info(f"Done {task_id}")
 
             self.track_task_completion(task_id)
 

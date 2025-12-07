@@ -30,11 +30,11 @@ def run_cmake_configure_component(
         ctx,
         [
             "-B",
-            get_component_build_dir(ctx.config, component),
+            get_component_build_dir(ctx, component),
             "-S",
-            get_script_root(script_path),
+            get_script_root(ctx, script_path),
             # "--fresh",
-            cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx.config)),
+            cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
             cmake_opt("ORG_USE_COVERAGE", ctx.config.instrument.coverage),
             "-G",
             "Ninja",
@@ -56,10 +56,10 @@ def run_cmake_build_component(
         ctx,
         [
             "--build",
-            get_component_build_dir(ctx.config, component),
+            get_component_build_dir(ctx, component),
             "--target",
             *targets,
-        ] + args, # type: ignore
+        ] + args,  # type: ignore
         **kwargs,
     )
 
@@ -137,9 +137,10 @@ def run_example_org_elk_diagram(ctx: TaskContext, infile: str) -> None:
                 "gradle",
                 args=["install"],
                 cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
-    diagram_build_dir = get_component_build_dir(ctx.config, "example_qt_gui_org_diagram")
+    diagram_build_dir = get_component_build_dir(ctx, "example_qt_gui_org_diagram")
     mman_initial_path = "/tmp/mind-map-dump.json"
-    run_command(ctx, diagram_build_dir.joinpath("org_diagram"),
+    run_command(ctx,
+                diagram_build_dir.joinpath("org_diagram"),
                 args=[
                     json.dumps(
                         dict(
@@ -227,15 +228,15 @@ def build_d3_example(ctx: TaskContext) -> None:
     Build d3.js visualization example
     """
 
-    dir = get_script_root().joinpath("examples/d3_visuals")
-    ensure_clean_dir(dir.joinpath("dist"))
+    dir = get_script_root(ctx).joinpath("examples/d3_visuals")
+    ensure_clean_dir(ctx, dir.joinpath("dist"))
     run_command(ctx, "deno", ["task", "build"], cwd=dir)
 
 
 @haxorg_task(dependencies=[build_d3_example])
 def run_d3_example(ctx: TaskContext, sync: bool = False) -> None:
     assert ctx.config.emscripten.build, "D3 example requires emscripten to be enabled"
-    d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
+    d3_example_dir = get_script_root(ctx).joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
 
     import time
@@ -254,23 +255,21 @@ def run_d3_example(ctx: TaskContext, sync: bool = False) -> None:
             ["task", "run-gui"],
             cwd=d3_example_dir,
             run_mode="fg" if sync else "nohup",
-            stderr_debug=get_log_dir().joinpath("electron_stderr.log"),
-            stdout_debug=get_log_dir().joinpath("electron_stdout.log"),
         )
 
 
 @haxorg_task(dependencies=[symlink_build])
 def run_js_test_example(ctx: TaskContext) -> None:
     assert ctx.config.emscripten.build, "JS example requires emscripten to be enabled"
-    js_example_dir = get_script_root().joinpath("examples/js_test")
+    js_example_dir = get_script_root(ctx).joinpath("examples/js_test")
 
     run_command(
-        ctx, 
+        ctx,
         "node",
         ["js_test.js"],
         cwd=js_example_dir,
         env=dict(
-            NODE_PATH=str(get_component_build_dir(ctx.config, "haxorg")),
-            TMPDIR=str(get_build_tmpdir(ctx.config, "haxorg")),
+            NODE_PATH=str(get_component_build_dir(ctx, "haxorg")),
+            TMPDIR=str(get_build_tmpdir(ctx, "haxorg")),
         ),
     )

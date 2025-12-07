@@ -67,6 +67,7 @@ RUN echo 'source /opt/emsdk/emsdk_env.sh' >> /etc/bash.bashrc
 ENV EMSDK=/opt/emsdk
 ENV EMSCRIPTEN=/opt/emsdk/upstream/emscripten
 ENV HAXORG_ENV_EMSCRIPTEN_TOOLCHAIN=/opt/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+RUN dnf install -y java-17-openjdk java-17-openjdk-devel
 
 WORKDIR /haxorg
 SHELL ["/bin/bash", "-c", "source /opt/emsdk/emsdk_env.sh && exec bash"]

@@ -1,4 +1,4 @@
 {
-  "log_level": "VERBOSE",
+  "log_level": "NORMAL",
   "use_unchanged_tasks": true
 }

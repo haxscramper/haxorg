@@ -9,6 +9,7 @@ from pathlib import Path
 import plumbum
 import subprocess
 
+
 from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
@@ -120,7 +121,7 @@ def run_command_in_docker(
     stdout = output[0].decode("utf-8") if output[0] else ""
     stderr = output[1].decode("utf-8") if output[1] else ""
 
-    if not _capture_all(log_level, print_output):
+    if log_level == HaxorgLogLevel.VERBOSE or print_output:
         if stdout:
             print(stdout, end="")
         if stderr:
@@ -220,10 +221,12 @@ def run_command(
         args,
     )
 
+    from py_repository.repo_tasks.common import check_path_exists
+
     stderr_debug = stderr_debug or debug_override[0]
     stdout_debug = stdout_debug or debug_override[1]
     if isinstance(cmd, Path):
-        assert cmd.exists(), f"{cmd} does not exist"
+        assert check_path_exists(ctx, cmd), f"{cmd} does not exist"
         cmd = str(cmd.resolve())
 
     def conv_arg(arg: Any) -> str:

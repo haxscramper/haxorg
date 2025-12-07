@@ -88,6 +88,11 @@ def build_haxorg(ctx: TaskContext) -> None:
     log(CAT).info(f"Building with\n{' '.join(get_cmake_defines(ctx))}")
     build_dir = get_component_build_dir(ctx, "haxorg")
 
+    targets = cond(0 < len(ctx.config.build_conf.target), ctx.config.build_conf.target,
+                   ["all"])
+
+    log(CAT).debug(f"Building targets {targets}")
+
     run_command(
         ctx,
         "cmake",
@@ -95,8 +100,7 @@ def build_haxorg(ctx: TaskContext) -> None:
             "--build",
             build_dir,
             "--target",
-            *cond(0 < len(ctx.config.build_conf.target), ctx.config.build_conf.target,
-                  ["all"]),
+            *targets,
             *get_j_cap(),
             *([
                 "--",
@@ -106,6 +110,9 @@ def build_haxorg(ctx: TaskContext) -> None:
         ],
         env={'NINJA_FORCE_COLOR': '1'},
     )
+
+    if "all" in targets or "pyhaxorg" in targets:
+        run_command(ctx, "poetry", ["install", "--no-root", "--only", "haxorg"])
 
 
 @haxorg_task(dependencies=[build_haxorg])

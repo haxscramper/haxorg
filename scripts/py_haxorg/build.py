@@ -64,7 +64,7 @@ def build_shared_library(setup_kwargs: Any) -> None:
         soname="py_textlayout_cpp.so",
         envname="HAXORG_PYTEXTLAYOUT_SO_PATH",
         package_so_file=base_dir / "py_haxorg" / "py_textlayout_cpp.so",
-        rel_path=(base_dir / "../../build/hstd/py_textlayout_cpp.so").resolve().absolute(),
+        rel_path=(base_dir / "../../build/haxorg/py_textlayout_cpp.so").resolve().absolute(),
     )
 
 
