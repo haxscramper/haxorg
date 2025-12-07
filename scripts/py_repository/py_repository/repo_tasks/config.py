@@ -141,7 +141,6 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     HAXORG_VERSION: str = "1.0.0"
     HAXORG_NAME: str = "haxorg"
     in_ci: bool = False
-    verbose: bool = False
     HAXORG_DOCKER_IMAGE: str = "docker-haxorg"
     develop_ci_conf: HaxorgDevelopCiConfig = Field(default_factory=HaxorgDevelopCiConfig)
     py_test_conf: HaxorgPyTestsConfig = Field(default_factory=HaxorgPyTestsConfig)

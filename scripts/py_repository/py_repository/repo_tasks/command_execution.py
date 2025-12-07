@@ -1,5 +1,8 @@
 import os
 import shutil
+import docker
+import docker.models.containers
+from dataclasses import dataclass
 from beartype import beartype
 from beartype.typing import Optional, Union, List, Callable, TypedDict, Literal, Unpack, Any, Sequence
 from pathlib import Path
@@ -32,6 +35,170 @@ class RunCommandKwargs(TypedDict, total=False):
     print_output: bool
 
 
+@dataclass
+class CommandResult:
+    retcode: int
+    stdout: str
+    stderr: str
+
+
+@beartype
+def write_debug_file(path: Path, append: bool, text: str) -> None:
+    if append:
+        if not path.exists():
+            path.write_text("")
+
+        with path.open("a") as file:
+            file.write(remove_ansi(text))
+            file.flush()
+
+    else:
+        path.write_text(remove_ansi(text))
+
+
+@beartype
+def write_debug_outputs(
+    result: CommandResult,
+    stdout_debug: Optional[Path],
+    stderr_debug: Optional[Path],
+    append_stdout_debug: bool,
+    append_stderr_debug: bool,
+) -> None:
+    if stdout_debug and result.stdout:
+        write_debug_file(stdout_debug, append_stdout_debug, result.stdout)
+
+    if stderr_debug and result.stderr:
+        write_debug_file(stderr_debug, append_stderr_debug, result.stderr)
+
+
+@beartype
+def raise_command_error(
+    cmd: str,
+    args: List[str],
+    stdout_debug: Optional[Path],
+    stderr_debug: Optional[Path],
+    stdout: str,
+    stderr: str,
+) -> None:
+    raise RuntimeError("Failed to execute the command {} {}{}{}".format(
+        cmd,
+        " ".join((f"\"{s}\"" for s in args)),
+        f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
+        f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
+    )) from None
+
+
+@beartype
+def _capture_all(log_level: HaxorgLogLevel, print_output: bool) -> bool:
+    return log_level == HaxorgLogLevel.QUIET or (not print_output and
+                                                 log_level == HaxorgLogLevel.NORMAL)
+
+
+@beartype
+def run_command_in_docker(
+    container: docker.models.containers.Container,
+    cmd: str,
+    args: List[str],
+    env: dict[str, str],
+    cwd: Optional[str],
+    print_output: bool,
+    log_level: HaxorgLogLevel,
+) -> CommandResult:
+    full_command = [cmd] + args
+
+    if env:
+        env_prefix = [f"{k}={v}" for k, v in env.items()]
+        full_command = ["env"] + env_prefix + full_command
+
+    exit_code, output = container.exec_run(
+        cmd=full_command,
+        workdir=cwd,
+        stream=False,
+        demux=True,
+    )
+
+    stdout = output[0].decode("utf-8") if output[0] else ""
+    stderr = output[1].decode("utf-8") if output[1] else ""
+
+    if not _capture_all(log_level, print_output):
+        if stdout:
+            print(stdout, end="")
+        if stderr:
+            print(stderr, end="")
+
+    return CommandResult(retcode=exit_code, stdout=stdout, stderr=stderr)
+
+
+@beartype
+def run_command_on_host(
+    cmd: str,
+    args: List[str],
+    env: dict[str, str],
+    cwd: Optional[str],
+    run_mode: Literal["nohup", "bg", "fg"],
+    print_output: bool,
+    log_level: HaxorgLogLevel,
+    stdout_debug: Optional[Path],
+    stderr_debug: Optional[Path],
+) -> CommandResult:
+    try:
+        run = plumbum.local[cmd]
+
+    except plumbum.CommandNotFound as e:
+        log(CAT).error(e)
+        for path in e.path:
+            log(CAT).info(path)
+            dir = Path(path)
+            if "haxorg" in str(dir):
+                if not dir.exists():
+                    log(CAT).error("Dir does not exist")
+
+                for file in dir.glob("*"):
+                    log(CAT).debug(f"  - {file}")
+
+            else:
+                log(CAT).debug(f"- is a system dir")
+
+        raise e
+
+    if env:
+        run = run.with_env(**env)
+
+    if cwd is not None:
+        run = run.with_cwd(cwd)
+
+    if run_mode == "nohup" or run_mode == "bg":
+        stderr_stream = open(stderr_debug, "w") if stderr_debug else None
+        stdout_stream = open(stdout_debug, "w") if stdout_debug else None
+
+        try:
+            subprocess.Popen(
+                [cmd, *args],
+                cwd=cwd,
+                start_new_session=run_mode == "nohup",
+                stdout=stdout_stream if stdout_stream else subprocess.DEVNULL,
+                stderr=stderr_stream if stderr_stream else subprocess.DEVNULL,
+            )
+
+        finally:
+            if stdout_stream:
+                stdout_stream.close()
+
+            if stderr_stream:
+                stderr_stream.close()
+
+        return CommandResult(retcode=0, stdout="", stderr="")
+
+    else:
+        if _capture_all(log_level, print_output):
+            retcode, stdout, stderr = run.run(list(args), retcode=None)
+
+        else:
+            retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
+
+        return CommandResult(retcode=retcode, stdout=stdout, stderr=stderr)
+
+
 @beartype
 def run_command(
     ctx: TaskContext,
@@ -60,7 +227,7 @@ def run_command(
         cmd = str(cmd.resolve())
 
     def conv_arg(arg: Any) -> str:
-        if isinstance(arg, Callable):
+        if isinstance(arg, Callable): # type: ignore
             return arg.name.replace("_", "-")
 
         elif isinstance(arg, Path):
@@ -92,9 +259,6 @@ cmd:  {cmd}
     if append_stdout_debug:
         append_to_log(stdout_debug)
 
-    import shlex
-    # print(shlex.join(args))
-
     log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
                    (f" in [green]{cwd}[/green]" if cwd else "") +
                    (f" with [purple]{env}[/purple]" if env else ""))
@@ -103,93 +267,54 @@ cmd:  {cmd}
         log(CAT).warning("Dry run, early exit")
         return (0, "", "")
 
-    try:
-        run = plumbum.local[cmd]
+    str_cwd = str(cwd) if cwd else None
 
-    except plumbum.CommandNotFound as e:
-        log(CAT).error(e)
-        for path in e.path:
-            log(CAT).info(path)
-            dir = Path(path)
-            if "haxorg" in str(dir):
-                if not dir.exists():
-                    log(CAT).error("Dir does not exist")
-
-                for file in dir.glob("*"):
-                    log(CAT).debug(f"  - {file}")
-
-            else:
-                log(CAT).debug(f"- is a system dir")
-
-        raise e
-
-    if env:
-        run = run.with_env(**env)
-
-    if cwd is not None:
-        run = run.with_cwd(str(cwd))
-
-    if run_mode == "nohup" or run_mode == "bg":
-        stderr_stream = open(stderr_debug, "w") if stderr_debug else None
-        stdout_stream = open(stdout_debug, "w") if stdout_debug else None
-
-        try:
-            subprocess.Popen(
-                [str(cmd), *str_args],
-                cwd=str(cwd) if cwd else None,
-                start_new_session=run_mode == "nohup",
-                stdout=stdout_stream if stdout_stream else subprocess.DEVNULL,
-                stderr=stderr_stream if stderr_stream else subprocess.DEVNULL,
-            )
-
-        finally:
-            if stdout_stream:
-                stdout_stream.close()
-
-            if stderr_stream:
-                stderr_stream.close()
-
-        return (0, "", "")
+    if ctx.docker_container is not None:
+        result = run_command_in_docker(
+            container=ctx.docker_container,
+            cmd=str(cmd),
+            args=str_args,
+            env=env,
+            cwd=str_cwd,
+            print_output=print_output,
+            log_level=ctx.config.log_level,
+        )
 
     else:
-        if ctx.config.log_level == HaxorgLogLevel.QUIET or (
-                not print_output and ctx.config.log_level == HaxorgLogLevel.NORMAL):
-            retcode, stdout, stderr = run.run(list(str_args), retcode=None)
+        result = run_command_on_host(
+            cmd=str(cmd),
+            args=str_args,
+            env=env,
+            cwd=str_cwd,
+            run_mode=run_mode,
+            print_output=print_output,
+            log_level=ctx.config.log_level,
+            stdout_debug=stdout_debug,
+            stderr_debug=stderr_debug,
+        )
 
-        else:
-            retcode, stdout, stderr = run[*str_args] & plumbum.TEE(retcode=None)
+    write_debug_outputs(
+        result=result,
+        stdout_debug=stdout_debug,
+        stderr_debug=stderr_debug,
+        append_stdout_debug=append_stdout_debug,
+        append_stderr_debug=append_stderr_debug,
+    )
 
-        @beartype
-        def write_file(path: Path, append: bool, text: str) -> None:
-            if append:
-                if not path.exists():
-                    path.write_text("")
+    if allow_fail or result.retcode == 0:
+        return (result.retcode, result.stdout, result.stderr)
 
-                with path.open("a") as file:
-                    file.write(remove_ansi(text))
-                    file.flush()
+    else:
+        raise_command_error(
+            cmd=str(cmd),
+            args=str_args,
+            stdout_debug=stdout_debug,
+            stderr_debug=stderr_debug,
+            stdout=result.stdout,
+            stderr=result.stderr,
+        )
 
-            else:
-                path.write_text(remove_ansi(text))
-
-        if stdout_debug and stdout:
-            # log(CAT).info(f"Wrote stdout to {stdout_debug}")
-            write_file(stdout_debug, append_stdout_debug, stdout)
-
-        if stderr_debug and stderr:
-            # log(CAT).info(f"Wrote stderr to {stderr_debug}")
-            write_file(stderr_debug, append_stderr_debug, stderr)
-
-        if allow_fail or retcode == 0:
-            return (retcode, stdout, stderr)
-
-        else:
-            raise RuntimeError("Failed to execute the command {} {}{}{}".format(
-                cmd,
-                " ".join((f"\"{s}\"" for s in args)),
-                f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
-                f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
-            )) from None
+        return (0, "", "")
 
 
 @beartype

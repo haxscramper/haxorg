@@ -103,6 +103,7 @@ def install_all_deps() -> List[str]:
     cmake_paths = data_build.get_deps_install_config(
         deps=deps_list,
         install_dir=DEPS_INSTALL,
+        exists_check=lambda path: path.exists(),
     )
 
     DEPS_INSTALL.mkdir(parents=True, exist_ok=True)

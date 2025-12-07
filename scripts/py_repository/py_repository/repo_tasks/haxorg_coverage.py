@@ -64,7 +64,7 @@ def matches_pattern(cookie: ProfdataCookie, pattern: HaxorgCoverageCookiePattern
 @beartype
 def binary_coverage(ctx: TaskContext, test: Path) -> None:
     dir = test.parent
-    tools = get_llvm_root() / "bin"
+    tools = get_llvm_root(ctx) / "bin"
     # Remove `.profdata` files
     for file in dir.glob("*.profdata"):
         file.unlink()
@@ -81,12 +81,12 @@ def run_profdata_coverrage(
     report_path: Optional[str] = None,
 ) -> None:
     "Generate profdata coverage information for binary @arg binary"
-    tools = get_llvm_root("bin")
+    tools = get_llvm_root(ctx, "bin")
     if Path(binary).is_absolute():
         bin_path = Path(binary)
 
     else:
-        bin_path = get_component_build_dir(ctx.config, "haxorg").joinpath(binary)
+        bin_path = get_component_build_dir(ctx, "haxorg").joinpath(binary)
 
     for file in bin_path.parent.glob("*.profdata"):
         file.unlink()
@@ -94,7 +94,7 @@ def run_profdata_coverrage(
     for file in bin_path.parent.rglob("*.gcda"):
         file.unlink()
 
-    dir = get_build_root().joinpath("profile")
+    dir = get_build_root(ctx).joinpath("profile")
     dir.mkdir(parents=True, exist_ok=True)
     current = Path().cwd()
 
@@ -135,7 +135,7 @@ def run_profdata_coverrage(
 @beartype
 def xray_coverage(ctx: TaskContext, test: Path) -> None:
     dir = test.parent
-    tools = get_llvm_root("bin")
+    tools = get_llvm_root(ctx, "bin")
 
     # Remove existing XRay log and profdata files
     for file in dir.glob(f"xray-log.{test.stem}.*"):
@@ -280,8 +280,14 @@ def configure_cxx_merge(
 
 
 @haxorg_task(dependencies=[build_haxorg])
-def run_cxx_coverage_merge(ctx: TaskContext, coverage_mapping_dump: Optional[str] = None,) -> None:
-    configure_cxx_merge(ctx, coverage_mapping_dump,)
+def run_cxx_coverage_merge(
+    ctx: TaskContext,
+    coverage_mapping_dump: Optional[str] = None,
+) -> None:
+    configure_cxx_merge(
+        ctx,
+        coverage_mapping_dump,
+    )
     coverage_dir = get_cxx_coverage_dir()
 
     profile_path = get_cxx_profdata_params_path()

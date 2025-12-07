@@ -24,14 +24,14 @@ CAT = __name__
 
 @haxorg_task()
 def validate_dependencies_install(ctx: TaskContext) -> None:
-    install_dir = get_deps_install_dir(ctx.config).joinpath("paths.cmake")
+    install_dir = get_deps_install_dir(ctx).joinpath("paths.cmake")
     assert install_dir.exists(), f"No dependency paths found at '{install_dir}'"
 
 
 @beartype
 def get_develop_deps_stamp(ctx: TaskContext) -> Any:
     return get_external_deps_list(
-        get_deps_install_dir(ctx.config),
+        get_deps_install_dir(ctx),
         is_emcc=ctx.config.emscripten.build,
     )
 
@@ -43,11 +43,11 @@ def get_develop_deps_stamp(ctx: TaskContext) -> Any:
 def build_develop_deps(ctx: TaskContext) -> None:
     "Install dependencies for cmake project development"
     conf = ctx.config
-    build_dir = get_deps_build_dir(ctx.config)
-    ensure_existing_dir(build_dir)
-    install_dir = get_deps_install_dir(ctx.config)
-    ensure_existing_dir(install_dir)
-    deps_dir = get_script_root().joinpath("thirdparty")
+    build_dir = get_deps_build_dir(ctx)
+    ensure_existing_dir(ctx, build_dir)
+    install_dir = get_deps_install_dir(ctx)
+    ensure_existing_dir(ctx, install_dir)
+    deps_dir = get_script_root(ctx).joinpath("thirdparty")
 
     debug_conf = dict(
         append_stderr_debug=True,
@@ -83,7 +83,7 @@ def build_develop_deps(ctx: TaskContext) -> None:
                     cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(
                         item.build_name)),
                     cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
-                    *([cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx.config))]
+                    *([cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx))]
                       if item.is_bundled_toolchain else []),
                     *configure_args,
                     *maybe_splice(conf.build_develop_deps_conf.force, "--fresh"),
@@ -140,7 +140,7 @@ def build_release_deps(
 ) -> None:
     "Test cpack-provided build"
 
-    package_archive = get_script_root().joinpath(
+    package_archive = get_script_root(ctx).joinpath(
         f"{ctx.config.HAXORG_NAME}-{ctx.config.HAXORG_VERSION}-Source.zip")
 
     with TemporaryDirectory() as tmpdir:
@@ -168,7 +168,7 @@ def build_release_deps(
         src_root = build_dir.joinpath(f"{ctx.config.HAXORG_NAME}-{ctx.config.HAXORG_VERSION}-Source")
         src_build = build_dir.joinpath("build")
 
-        install_dir = get_build_root().joinpath("deps_install")
+        install_dir = get_build_root(ctx).joinpath("deps_install")
 
         run_command(ctx, "cmake", [
             "-B",
@@ -209,6 +209,6 @@ def build_release_deps(
                 "all",
                 *get_j_cap(),
             ],
-            stderr_debug=get_log_dir().joinpath("cpack_build_stderr.log"),
-            stdout_debug=get_log_dir().joinpath("cpack_build_stdout.log"),
+            stderr_debug=get_log_dir(ctx).joinpath("cpack_build_stderr.log"),
+            stdout_debug=get_log_dir(ctx).joinpath("cpack_build_stdout.log"),
         )

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Any
+from typing import Callable, List, Optional, Any
 from pathlib import Path
 from py_ci.util_scripting import cmake_opt
 import shlex
@@ -108,12 +108,12 @@ def get_external_deps_list(
         ]
 
     def dep(
-            build_name: str,
-            deps_name: str,
-            cmake_dirs: List[tuple[str, List[str]]],
-            configure_args: List[CmakeCLIConfig] = list(),
-            is_emcc_ready: bool = False,
-            **kwargs: Any,
+        build_name: str,
+        deps_name: str,
+        cmake_dirs: List[tuple[str, List[str]]],
+        configure_args: List[CmakeCLIConfig] = list(),
+        is_emcc_ready: bool = False,
+        **kwargs: Any,
     ) -> ExternalDep:
         ext = ExternalDep(
             build_name=build_name,
@@ -149,9 +149,7 @@ def get_external_deps_list(
         build_name="benchmark",
         deps_name="benchmark",
         is_emcc_ready=False,
-        cmake_dirs=[
-            ("benchmark", make_lib("benchmark/{}/cmake/benchmark"))
-        ], 
+        cmake_dirs=[("benchmark", make_lib("benchmark/{}/cmake/benchmark"))],
         configure_args=[
             opt("BENCHMARK_ENABLE_TESTING", False),
             opt("BENCHMARK_ENABLE_GTEST_TESTS", False),
@@ -445,7 +443,11 @@ def get_external_deps_list(
     return result
 
 
-def get_deps_install_config(deps: List[ExternalDep], install_dir: Path) -> str:
+def get_deps_install_config(
+    deps: List[ExternalDep],
+    install_dir: Path,
+    exists_check: Callable,
+) -> str:
     cmake_paths = []
     for item in deps:
         if item.is_binary:
@@ -457,7 +459,7 @@ def get_deps_install_config(deps: List[ExternalDep], install_dir: Path) -> str:
             for possible_install in dir[1]:
                 possible_path = install_dir.joinpath(possible_install)
                 tried_paths.append(possible_path)
-                if possible_path.exists():
+                if exists_check(possible_path):
                     assert possible_path != Path(
                         "/"
                     ), f"install_dir = {install_dir}, possible_install = {possible_install}"

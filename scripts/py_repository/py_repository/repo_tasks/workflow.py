@@ -16,6 +16,7 @@ from py_repository.repo_tasks import (
     examples_build,
 )
 
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.toml_config_profiler import apply_options, merge_dicts, options_from_model, pack_context
 from pydantic import BaseModel, Field
 from beartype.typing import Optional, Any
@@ -31,7 +32,7 @@ logging.getLogger("plumbum.local").setLevel(logging.WARNING)
 class WorkflowOptions(BaseModel):
     task: Optional[str] = Field(default=None)
     workflow_log_dir: str = "/tmp/haxorg/workflow_log"
-    stamp_root: str = str(get_build_root().joinpath("workflow_stamps"))
+    stamp_root: str = str(get_haxorg_repo_root_path().joinpath("build").joinpath("workflow_stamps"))
     config_override: Optional[Path] = None
 
 
@@ -56,7 +57,8 @@ def cli(ctx: click.Context, cmd: str, config: str, **kwargs: Any) -> None:
     config_json = HaxorgConfig().model_dump()
 
     if opts.config_override:
-        config_json = merge_dicts([config_json, json.loads(opts.config_override.read_text())])
+        config_json = merge_dicts(
+            [config_json, json.loads(opts.config_override.read_text())])
 
     context = workflow_utils.TaskContext(
         graph=graph,
@@ -64,7 +66,6 @@ def cli(ctx: click.Context, cmd: str, config: str, **kwargs: Any) -> None:
         config=HaxorgConfig(**config_json),
     )
 
-    
     log(CAT).info(f"{context.config.model_dump_json(indent=2)}")
     log(CAT).info(opts.config_override)
 

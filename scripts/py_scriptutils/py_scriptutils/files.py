@@ -32,12 +32,12 @@ from py_scriptutils.script_logging import to_debug_json
 
 T = TypeVar("T")
 
-SomePath: TypeAlias = Union[str, Path, GeneratorType, map]
+SomePath: TypeAlias = Union[str, Path, GeneratorType, map, Callable]
 SomePaths: TypeAlias = Union[SomePath, Sequence[SomePath]]
 
 
 @beartype
-def normalize_paths(input_paths: SomePaths) -> List[Path]:
+def normalize_paths(input_paths: SomePaths, **kwargs: Any) -> List[Path]:
     result: List[Path] = []
 
     def add(item: SomePaths) -> None:
@@ -51,6 +51,10 @@ def normalize_paths(input_paths: SomePaths) -> List[Path]:
 
             case GeneratorType():
                 for it in item:
+                    add(it)
+
+            case Callable():  # type: ignore
+                for it in item(**kwargs):
                     add(it)
 
             case List():
@@ -90,9 +94,9 @@ def any_missing(input_paths: List[Path]) -> bool:
 
 
 @beartype
-def IsNewInput(input_path: SomePaths, output_path: SomePaths) -> bool:
-    normalized_input_path = normalize_paths(input_path)
-    normalized_output_path = normalize_paths(output_path)
+def IsNewInput(input_path: SomePaths, output_path: SomePaths, **kwargs: Any) -> bool:
+    normalized_input_path = normalize_paths(input_path, **kwargs)
+    normalized_output_path = normalize_paths(output_path, **kwargs)
     assert 0 < len(normalized_input_path)
     assert 0 < len(normalized_output_path)
     if any_missing(normalized_output_path):
@@ -105,12 +109,12 @@ def IsNewInput(input_path: SomePaths, output_path: SomePaths) -> bool:
 @beartype
 @dataclass
 class FileOperation:
-    input: List[Path]
-    output: Optional[List[Path]] = None
+    input: SomePaths
+    output: Optional[SomePaths] = None
     stamp_name: Optional[str] = None
     stamp_content: Optional[str | Callable] = None
 
-    def get_stamp_content(self, *args: Any, **kwargs: Any) -> str:
+    def get_stamp_content(self, **kwargs: Any) -> str:
         if self.stamp_content:
             if isinstance(self.stamp_content, str):
                 return self.stamp_content
@@ -118,7 +122,7 @@ class FileOperation:
             else:
                 return json.dumps(
                     to_debug_json(
-                        self.stamp_content(*args, **kwargs),
+                        self.stamp_content(**kwargs),
                         with_stable_formatting=True,
                     ),
                     indent=2,
@@ -127,6 +131,12 @@ class FileOperation:
 
         else:
             return "xx"
+
+    def get_input(self, **kwargs: Any) -> List[Path]:
+        return normalize_paths(self.input, **kwargs)
+
+    def get_output(self, **kwargs: Any) -> List[Path]:
+        return normalize_paths(self.output, **kwargs)
 
     @staticmethod
     def OnlyStamp(name: str, content: str | Callable) -> "FileOperation":
@@ -146,8 +156,8 @@ class FileOperation:
         stamp_content: Optional[str] = None,
     ) -> "FileOperation":
         return FileOperation(
-            input=normalize_paths(input),
-            output=normalize_paths(output),
+            input=input,
+            output=output,
             stamp_name=stamp_name,
             stamp_content=stamp_content,
         )
@@ -161,7 +171,7 @@ class FileOperation:
         output: List[Path] = [],
     ) -> "FileOperation":
         return FileOperation(
-            normalize_paths(input),
+            input=input,
             stamp_name=stamp_name,
             output=output,
             stamp_content=stamp_content,
@@ -174,30 +184,31 @@ class FileOperation:
         else:
             return None
 
-    def stamp_content_is_new(self, root: Path, *args: Any, **kwargs: Any) -> bool:
+    def stamp_content_is_new(self, root: Path, **kwargs: Any) -> bool:
         stamp_path = self.get_stamp_path(root)
         if stamp_path is not None and stamp_path.exists():
             return bool(
-                stamp_path.exists() and self.get_stamp_content(*args, **kwargs) and
-                stamp_path.read_text() != self.get_stamp_content(*args, **kwargs),)
+                stamp_path.exists() and self.get_stamp_content(**kwargs) and
+                stamp_path.read_text() != self.get_stamp_content(**kwargs),)
 
         else:
             return True
 
-    def get_output_files(self, root: Path) -> List[Path]:
+    def get_output_files(self, root: Path, **kwargs: Any) -> List[Path]:
         stamp_path = self.get_stamp_path(root)
-        return (self.output or []) + ([stamp_path] if stamp_path is not None else [])
+        return (self.get_output(**kwargs) or
+                []) + ([stamp_path] if stamp_path is not None else [])
 
-    def should_run(self, root: Path, *args: Any, **kwargs: Any) -> bool:
+    def should_run(self, root: Path, **kwargs: Any) -> bool:
         stamp_path = self.get_stamp_path(root)
         return (self.input and IsNewInput(
             self.input,
             self.get_output_files(root) or
-            ([stamp_path] if stamp_path is not None else []))) or bool(
-                stamp_path and self.stamp_content_is_new(root, *args, **kwargs))
+            ([stamp_path] if stamp_path is not None else []), **kwargs)) or bool(
+                stamp_path and self.stamp_content_is_new(root, **kwargs))
 
-    def explain(self, name: str, root: Path, *args: Any, **kwargs: Any) -> str:
-        if self.should_run(root, *args, **kwargs):
+    def explain(self, name: str, root: Path, **kwargs: Any) -> str:
+        if self.should_run(root, **kwargs):
             stamp_path = self.get_stamp_path(root)
 
             def mtime_str(time: float) -> str:
@@ -207,19 +218,21 @@ class FileOperation:
             if stamp_path is not None and not stamp_path.exists():
                 why += " output stamp file is missing "
 
-            if stamp_path is not None and self.stamp_content_is_new(
-                    root, *args, **kwargs):
+            if stamp_path is not None and self.stamp_content_is_new(root, **kwargs):
                 why += f" stamp content value changed\n"
                 for line in difflib.context_diff(
                         stamp_path.read_text().splitlines(),
-                        self.get_stamp_content(*args, **kwargs).splitlines(),
+                        self.get_stamp_content(**kwargs).splitlines(),
                         fromfile="before",
                         tofile="after",
                 ):
                     why += f"\n{line}"
 
             min_time = min_mtime(self.get_output_files(root))
-            newer = [p for p in self.input if p.exists() and min_time < p.stat().st_mtime]
+            newer = [
+                p for p in self.get_input(**kwargs)
+                if p.exists() and min_time < p.stat().st_mtime
+            ]
 
             def format_files(files: Iterable[Path]) -> str:
                 return ", ".join(("{} ({})".format(
@@ -239,14 +252,13 @@ class FileOperation:
         else:
             result = f"[green]{name}[/green] task is [green]up to date[/green]"
 
-            if not self.stamp_content_is_new(root, *args, **kwargs):
+            if not self.stamp_content_is_new(root, **kwargs):
                 result += "\nstamp content is not new"
 
             return result
 
     @contextmanager
-    def scoped_operation(self, root: Path, *args: Any,
-                         **kwargs: Any) -> Generator[Any, Any, Any]:
+    def scoped_operation(self, root: Path, **kwargs: Any) -> Generator[Any, Any, Any]:
         yield
 
         stamp = self.get_stamp_path(root)
@@ -254,7 +266,7 @@ class FileOperation:
             stamp.parent.mkdir(parents=True)
 
         with open(str(stamp), "w") as file:
-            file.write(self.get_stamp_content(*args, **kwargs))
+            file.write(self.get_stamp_content(**kwargs))
 
 
 def cache_file_processing_result(input_arg_names: List[str]) -> Callable:

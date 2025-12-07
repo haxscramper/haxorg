@@ -1,5 +1,7 @@
 from collections import defaultdict
 from graphlib import TopologicalSorter
+import docker.models.containers 
+import docker
 from pathlib import Path
 from beartype import beartype
 from beartype.typing import List, Callable, get_type_hints, Dict, Any, Optional, Set
@@ -8,6 +10,7 @@ import inspect
 from datetime import timedelta
 from py_repository.repo_tasks.config import HaxorgConfig
 from py_scriptutils.files import FileOperation
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 from dataclasses import dataclass, field, replace
 import igraph as ig
@@ -182,6 +185,8 @@ class TaskContext():
     config: HaxorgConfig
     current_task: Optional[Callable] = None
     run_cache: Set[tuple[str, str]] = field(default_factory=set)
+    docker_container: Optional[docker.models.containers.Container] = None
+    repo_root: Path = field(default_factory=lambda: get_haxorg_repo_root_path())
 
     def with_temp_config(self, config: HaxorgConfig) -> "TaskContext":
         return replace(self, config=config)

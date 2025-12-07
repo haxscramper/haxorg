@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Generator
 from beartype import beartype
 from beartype.typing import List, Any
 import shutil
@@ -24,13 +25,18 @@ CAT = __name__
 
 @beartype
 def get_build_haxorg_stamps(ctx: TaskContext) -> Any:
-    return get_cmake_defines(ctx.config)
+    return get_cmake_defines(ctx)
+
+
+@beartype
+def get_configure_cmake_haxorg_input(ctx: TaskContext) -> Generator[Path]:
+    return get_script_root(ctx, "src").rglob("*.cmake")
 
 
 @haxorg_task(
     dependencies=[base_environment, generate_develop_deps_install_paths],
     file_operation=FileOperation.InTmp(
-        input=[get_script_root("src").rglob("*.cmake")],
+        input=[get_configure_cmake_haxorg_input],
         stamp_name="configure_cmake_haxorg",
         stamp_content=get_build_haxorg_stamps,
     ),
@@ -41,15 +47,15 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False) -> None:
 
     pass_flags = [
         "-B",
-        get_component_build_dir(ctx.config, "haxorg"),
+        get_component_build_dir(ctx, "haxorg"),
         "-S",
-        get_script_root(),
+        get_script_root(ctx),
         "-G",
         "Ninja",
-        *get_cmake_defines(ctx.config),
+        *get_cmake_defines(ctx),
         cmake_opt("ORG_CPACK_PACKAGE_VERSION", ctx.config.HAXORG_VERSION),
         cmake_opt("ORG_CPACK_PACKAGE_NAME", ctx.config.HAXORG_NAME),
-        cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx.config)),
+        cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)),
         *cond(
             ctx.config.python_version,
             [cmake_opt("ORG_DEPS_USE_PYTHON_VERSION", ctx.config.python_version)],
@@ -63,21 +69,24 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False) -> None:
     run_command(ctx, "cmake", pass_flags)
 
 
+@beartype
+def get_build_haxorg_input(ctx: TaskContext) -> Any:
+    return get_script_root(ctx).joinpath("src").rglob("*.?pp")
+
+
 @haxorg_task(
     dependencies=[symlink_build, configure_cmake_haxorg],
     file_operation=FileOperation.InTmp(
-        input=[
-            get_script_root().joinpath("src").rglob("*.?pp"),
-        ],
+        input=[get_build_haxorg_input],
         stamp_name="build_haxorg",
         stamp_content=get_build_haxorg_stamps,
     ),
 )
 def build_haxorg(ctx: TaskContext) -> None:
     """Compile main set of libraries and binaries for org-mode parser"""
-    log(CAT).info(f"Using dependency dir {get_deps_install_dir(ctx.config)}")
-    log(CAT).info(f"Building with\n{' '.join(get_cmake_defines(ctx.config))}")
-    build_dir = get_component_build_dir(ctx.config, "haxorg")
+    log(CAT).info(f"Using dependency dir {get_deps_install_dir(ctx)}")
+    log(CAT).info(f"Building with\n{' '.join(get_cmake_defines(ctx))}")
+    build_dir = get_component_build_dir(ctx, "haxorg")
 
     run_command(
         ctx,
@@ -102,7 +111,7 @@ def build_haxorg(ctx: TaskContext) -> None:
 @haxorg_task(dependencies=[build_haxorg])
 def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:
     """Install haxorg targets in the build directory"""
-    install_dir = get_build_root().joinpath("install")
+    install_dir = get_build_root(ctx).joinpath("install")
     if install_dir.exists():
         shutil.rmtree(install_dir)
 
@@ -111,7 +120,7 @@ def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:
         "cmake",
         [
             "--install",
-            get_component_build_dir(ctx.config, "haxorg"),
+            get_component_build_dir(ctx, "haxorg"),
             "--prefix",
             install_dir,
             # cmake_opt("ORG_USE_PERFETTO", perfetto),
@@ -124,7 +133,7 @@ def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:
 def build_release_archive(ctx: TaskContext, force: bool = False) -> None:
     "Generate source archive"
 
-    pack_res = get_script_root().joinpath("_CPack_Packages")
+    pack_res = get_script_root(ctx).joinpath("_CPack_Packages")
     log(CAT).info(f"Package tmp directory {pack_res}")
     if pack_res.exists():
         shutil.rmtree(str(pack_res))
@@ -137,7 +146,7 @@ def build_release_archive(ctx: TaskContext, force: bool = False) -> None:
             # "--verbose",
             "--config",
             str(
-                get_component_build_dir(ctx.config,
+                get_component_build_dir(ctx,
                                         "haxorg").joinpath("CPackSourceConfig.cmake")),
         ],
     )
@@ -149,7 +158,7 @@ def build_release_archive(ctx: TaskContext, force: bool = False) -> None:
 @haxorg_task()
 def run_cmake_haxorg_clean(ctx: TaskContext) -> None:
     """Clean build directory for the current configuration"""
-    build_dir = get_component_build_dir(ctx.config, "haxorg")
+    build_dir = get_component_build_dir(ctx, "haxorg")
     if build_dir.joinpath("CMakeCache.txt").exists():
         run_command(ctx, "cmake", [
             "--build",
@@ -163,5 +172,5 @@ def run_cmake_haxorg_clean(ctx: TaskContext) -> None:
     if adaptagrams_dir.exists():
         shutil.rmtree(str(adaptagrams_dir))
 
-    os_utils.rmdir_quiet(get_build_root().joinpath("deps_build"))
+    os_utils.rmdir_quiet(get_build_root(ctx).joinpath("deps_build"))
     os_utils.rmdir_quiet(get_deps_install_dir(ctx.config))

@@ -4,6 +4,10 @@ from beartype import beartype
 from pathlib import Path
 from beartype.typing import List, Literal, Optional
 import shutil
+import docker
+import docker.models.containers
+import docker.types
+import os
 
 from py_ci.util_scripting import get_docker_cap_flags
 from py_repository.repo_tasks.deps_build import build_develop_deps
@@ -16,7 +20,7 @@ from py_repository.repo_tasks.haxorg_tests import run_py_tests
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import clone_repo_with_uncommitted_changes, get_cmd_debug_file, run_command
 from py_repository.repo_tasks.common import docker_user, ensure_clean_file, get_script_root
-from py_repository.repo_tasks.config import get_tmpdir
+from py_repository.repo_tasks.config import HaxorgLogLevel, get_tmpdir
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import merge_dicts
 from dataclasses import replace
@@ -42,11 +46,57 @@ def build_docker_develop_image(ctx: TaskContext) -> None:
             "-t",
             ctx.config.HAXORG_DOCKER_IMAGE,
             "-f",
-            get_script_root("scripts/py_repository/Dockerfile"),
+            get_script_root(ctx, "scripts/py_repository/Dockerfile"),
             ".",
         ],
         print_output=True,
     )
+
+
+@beartype
+def stop_containers_from_image(image_name: str) -> None:
+    client = docker.from_env()
+    containers = client.containers.list(filters={"ancestor": image_name})
+    for container in containers:
+        container.stop()
+
+
+@beartype
+def get_docker_mounts(ctx: TaskContext, items: List[str], build_tmp: Path) -> List[docker.types.Mount]:
+    mounts: List[docker.types.Mount] = []
+
+    @beartype
+    def docker_path(path: str) -> Path:
+        return Path("/haxorg").joinpath(path)
+
+    for it in items:
+        mounts.append(
+            docker.types.Mount(
+                target=str(docker_path(it)),
+                source=str(get_script_root(ctx, it)),
+                type="bind",
+            ))
+
+    mounts.append(
+        docker.types.Mount(
+            target=str(docker_path("build")),
+            source=str(build_tmp),
+            type="bind",
+        ))
+
+    return mounts
+
+
+@beartype
+def get_container_var(container: docker.models.containers.Container, varname: str) -> str:
+    exit_code, output = container.exec_run(
+        cmd=["printenv", varname],
+        demux=True,
+    )
+    assert output, f"No output from printenv, the variable {varname} is not defined in container"
+    stdout, stderr = output
+    value = stdout.decode("utf-8").strip() if stdout else ""
+    return value
 
 
 @haxorg_task(dependencies=[build_docker_develop_image])
@@ -61,53 +111,105 @@ def run_docker_develop_test(
     if not HAXORG_BUILD_TMP.exists():
         HAXORG_BUILD_TMP.mkdir(parents=True)
 
-    @beartype
-    def docker_path(path: str) -> Path:
-        return Path("/haxorg").joinpath(path)
+    stop_containers_from_image(ctx.config.HAXORG_DOCKER_IMAGE)
 
-    run_command(
-        ctx,
-        "docker",
-        [
-            "run",
-            *itertools.chain(*(docker_mnt(
-                src=get_script_root(it),
-                dst=docker_path(it),
-            ) for it in [
-                "src",
-                "scripts",
-                "tests",
-                "benchmark",
-                "tasks.py",
-                "examples",
-                "docs",
-                "pyproject.toml",
-                "poetry.lock",
-                "ignorelist.txt",
-                ".git",
-                "thirdparty",
-                "CMakeLists.txt",
-                "toolchain.cmake",
-                "HaxorgConfig.cmake.in",
-            ])),
-            # Scratch directory for simplified local debugging and rebuilds if needed.
-            *docker_mnt(HAXORG_BUILD_TMP, docker_path("build")),
-            *(["-it"] if interactive else []),
-            *get_docker_cap_flags(),
-            "--rm",
-            ctx.config.HAXORG_DOCKER_IMAGE,
-            "./scripts/py_repository/poetry_with_deps.sh",
-            *(["bash"] if interactive else [
-                "./scripts/py_repository/py_repository/repo_tasks/workflow.py",
-                "run",
-                "--task",
-                "run_develop_ci",
-                "--config_override",
-                "scripts/py_repository/py_repository/repo_tasks/haxorg_conf_develop_docker_ci.json",
-            ]),
-        ],
-        print_output=True,
+    client = docker.from_env()
+
+    mount_items: List[str] = [
+        "src",
+        "scripts",
+        "tests",
+        "benchmark",
+        "tasks.py",
+        "examples",
+        "docs",
+        "pyproject.toml",
+        "poetry.lock",
+        "ignorelist.txt",
+        ".git",
+        "thirdparty",
+        "CMakeLists.txt",
+        "toolchain.cmake",
+        "HaxorgConfig.cmake.in",
+    ]
+
+    mounts = get_docker_mounts(ctx, mount_items, Path(build_dir))
+
+    cpu_count = os.cpu_count() or 6
+    nano_cpus = int(cpu_count * 0.9 * 1e9)
+    mem_limit = "20g"
+
+    container: docker.models.containers.Container = client.containers.run(
+        image=ctx.config.HAXORG_DOCKER_IMAGE,
+        command="sleep infinity",
+        mounts=mounts,
+        detach=True,
+        mem_limit=mem_limit,
+        nano_cpus=nano_cpus,
+        remove=False,
     )
+
+    dctx = replace(ctx, docker_container=container, run_cache=set())
+    dctx.config.use_unchanged_tasks = True
+    dctx.config.log_level = HaxorgLogLevel.VERBOSE
+    dctx.repo_root = Path("/haxorg")
+    dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
+
+    TOOL = "/haxorg/toolchain"
+
+    run_command(dctx, "ln", ["-sf", "/docker_toolchain", TOOL])
+    run_command(dctx, "ls", ["-al", TOOL])
+    container_path = get_container_var(container, "PATH")
+    run_command(dctx, "poetry", ["install", "--no-root", "--without", "haxorg"])
+    run_command(dctx, "git", ["config", "--global", "--add", "safe.directory", "/haxorg"])
+    run_command(dctx, "git", ["config", "--global", "user.email", "you@example.com"])
+    run_command(dctx, "git", ["config", "--global", "user.name", "Your Name"])
+
+    dctx.run(run_develop_ci, ctx=dctx)
+
+    # run_command(
+    #     ctx,
+    #     "docker",
+    #     [
+    #         "run",
+    #         *itertools.chain(*(docker_mnt(
+    #             src=get_script_root(it),
+    #             dst=docker_path(it),
+    #         ) for it in [
+    #             "src",
+    #             "scripts",
+    #             "tests",
+    #             "benchmark",
+    #             "tasks.py",
+    #             "examples",
+    #             "docs",
+    #             "pyproject.toml",
+    #             "poetry.lock",
+    #             "ignorelist.txt",
+    #             ".git",
+    #             "thirdparty",
+    #             "CMakeLists.txt",
+    #             "toolchain.cmake",
+    #             "HaxorgConfig.cmake.in",
+    #         ])),
+    #         # Scratch directory for simplified local debugging and rebuilds if needed.
+    #         *docker_mnt(HAXORG_BUILD_TMP, docker_path("build")),
+    #         *(["-it"] if interactive else []),
+    #         *get_docker_cap_flags(),
+    #         "--rm",
+    #         ctx.config.HAXORG_DOCKER_IMAGE,
+    #         "./scripts/py_repository/poetry_with_deps.sh",
+    #         *(["bash"] if interactive else [
+    #             "./scripts/py_repository/py_repository/repo_tasks/workflow.py",
+    #             "run",
+    #             "--task",
+    #             "run_develop_ci",
+    #             "--config_override",
+    #             "scripts/py_repository/py_repository/repo_tasks/haxorg_conf_develop_docker_ci.json",
+    #         ]),
+    #     ],
+    #     print_output=True,
+    # )
 
 
 @haxorg_task(dependencies=[])
@@ -125,8 +227,8 @@ def run_docker_release_test(
     dep_debug_stdout = get_cmd_debug_file("stdout")
     dep_debug_stderr = get_cmd_debug_file("stderr")
 
-    ensure_clean_file(dep_debug_stderr)
-    ensure_clean_file(dep_debug_stdout)
+    ensure_clean_file(ctx, dep_debug_stderr)
+    ensure_clean_file(ctx, dep_debug_stdout)
 
     debug_conf = dict(
         append_stderr_debug=True,
@@ -155,7 +257,7 @@ def run_docker_release_test(
             "-t",
             CPACK_TEST_IMAGE,
             "-f",
-            get_script_root("scripts/py_repository/cpack_build_in_fedora.dockerfile"),
+            get_script_root(ctx, "scripts/py_repository/cpack_build_in_fedora.dockerfile"),
             ".",
         ],
         **debug_conf,  # type: ignore
@@ -169,7 +271,7 @@ def run_docker_release_test(
                 shutil.rmtree(clone_dir)
             clone_repo_with_uncommitted_changes(
                 ctx,
-                src_repo=get_script_root(),
+                src_repo=get_script_root(ctx),
                 dst_repo=clone_dir,
             )
 
@@ -181,7 +283,7 @@ def run_docker_release_test(
             run_command(
                 ctx,
                 "git",
-                ["clone", get_script_root(), clone_dir],
+                ["clone", get_script_root(ctx), clone_dir],
                 **debug_conf,  # type: ignore
             )
             source_prefix = clone_dir
@@ -196,7 +298,7 @@ def run_docker_release_test(
                     return source_prefix
 
                 else:
-                    return get_script_root()
+                    return get_script_root(ctx)
 
             else:
                 if source_prefix:
@@ -204,7 +306,7 @@ def run_docker_release_test(
                     return source_prefix.joinpath(path)
 
                 else:
-                    return get_script_root(path)
+                    return get_script_root(ctx, path)
 
         run_command(
             ctx,
@@ -212,7 +314,7 @@ def run_docker_release_test(
             [
                 "run",
                 *docker_mnt(
-                    src=get_script_root("thirdparty"),
+                    src=get_script_root(ctx, "thirdparty"),
                     dst=docker_path("thirdparty"),
                 ),
                 *(["-it"] if interactive else []),

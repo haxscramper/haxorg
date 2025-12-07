@@ -5,11 +5,13 @@ from functools import wraps
 import psutil
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.config import HaxorgConfig
+from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 import copy
 import typing
 import inspect
 import shutil
+import docker.models.containers
 
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
@@ -22,45 +24,118 @@ import os
 CAT = __name__
 
 
-def get_script_root(relative: Optional[str] = None) -> Path:
-    value = get_haxorg_repo_root_path()
+@beartype
+def get_script_root(ctx: TaskContext, relative: Optional[str] = None) -> Path:
+    value = ctx.repo_root
     if relative:
         value = value.joinpath(relative)
     return value
 
 
 @beartype
-def ensure_clean_dir(dir: Path) -> Path:
-    if dir.exists():
-        shutil.rmtree(str(dir))
-
-    dir.mkdir(parents=True, exist_ok=True)
+def ensure_clean_dir(ctx: TaskContext, dir: Path) -> Path:
+    if ctx.docker_container is not None:
+        ctx.docker_container.exec_run(
+            cmd=["bash", "-c", f"rm -rf {dir} && mkdir -p {dir}"],)
+    else:
+        if dir.exists():
+            shutil.rmtree(str(dir))
+        dir.mkdir(parents=True, exist_ok=True)
     return dir
 
 
 @beartype
-def ensure_existing_dir(dir: Path) -> Path:
-    dir.mkdir(parents=True, exist_ok=True)
+def ensure_existing_dir(ctx: TaskContext, dir: Path) -> Path:
+    if ctx.docker_container is not None:
+        ctx.docker_container.exec_run(cmd=["mkdir", "-p", str(dir)],)
+    else:
+        dir.mkdir(parents=True, exist_ok=True)
     return dir
 
 
 @beartype
-def ensure_clean_file(file: Path) -> Path:
-    ensure_existing_dir(file.parent)
-    file.write_text("")
+def ensure_clean_file(ctx: TaskContext, file: Path) -> Path:
+    ensure_existing_dir(ctx, file.parent)
+    if ctx.docker_container is not None:
+        ctx.docker_container.exec_run(cmd=["bash", "-c", f"truncate -s 0 {file}"],)
+    else:
+        file.write_text("")
     return file
 
 
 @beartype
-def get_real_build_basename(config: HaxorgConfig, component: str) -> str:
+def path_exists_in_container(container: docker.models.containers.Container,
+                             path: Path) -> bool:
+    exit_code, _ = container.exec_run(cmd=["test", "-e", str(path)],)
+    return exit_code == 0
+
+
+@beartype
+def is_file_in_container(container: docker.models.containers.Container,
+                         path: Path) -> bool:
+    exit_code, _ = container.exec_run(cmd=["test", "-f", str(path)],)
+    return exit_code == 0
+
+
+@beartype
+def is_dir_in_container(container: docker.models.containers.Container,
+                        path: Path) -> bool:
+    exit_code, _ = container.exec_run(cmd=["test", "-d", str(path)],)
+    return exit_code == 0
+
+
+@beartype
+def check_path_exists(ctx: TaskContext, path: Path) -> bool:
+    if ctx.docker_container is not None:
+        return path_exists_in_container(ctx.docker_container, path)
+    else:
+        return path.exists()
+
+
+@beartype
+def check_is_file(ctx: TaskContext, path: Path) -> bool:
+    if ctx.docker_container is not None:
+        return is_file_in_container(ctx.docker_container, path)
+    else:
+        return path.is_file()
+
+
+@beartype
+def check_is_dir(ctx: TaskContext, path: Path) -> bool:
+    if ctx.docker_container is not None:
+        return is_dir_in_container(ctx.docker_container, path)
+    else:
+        return path.is_dir()
+
+
+@beartype
+def ctx_write_text(ctx: TaskContext, path: Path, content: str) -> None:
+    if ctx.docker_container is not None:
+        import base64
+        encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+        exit_code, output = ctx.docker_container.exec_run(
+            cmd=["bash", "-c", f"echo {encoded} | base64 -d > {path}"],
+            demux=True,
+        )
+        if exit_code != 0:
+            _, stderr = output
+            raise RuntimeError(
+                f"Failed to write file {path}: {stderr.decode('utf-8') if stderr else 'unknown error'}"
+            )
+    else:
+        path.write_text(content)
+
+
+@beartype
+def get_real_build_basename(ctx: TaskContext, component: str) -> str:
     """
     Get basename of the binary output directory for component
     """
-    result = component + "_" + ("debug" if config.debug else "release")
-    if config.emscripten.build:
+    result = component + "_" + ("debug" if ctx.config.debug else "release")
+    if ctx.config.emscripten.build:
         result += "_emscripten"
 
-    if config.instrument.coverage:
+    if ctx.config.instrument.coverage:
         result += "_instrumented"
 
     return result
@@ -72,15 +147,15 @@ def get_list_cli_pass(list_name: str, args: Iterable[str]) -> List[str]:
 
 
 @beartype
-def get_component_build_dir(config: HaxorgConfig, component: str) -> Path:
-    result = get_build_root(get_real_build_basename(config, component))
-    result.mkdir(parents=True, exist_ok=True)
+def get_component_build_dir(ctx: TaskContext, component: str) -> Path:
+    result = get_build_root(ctx, get_real_build_basename(ctx, component))
+    ensure_existing_dir(ctx, result)
     return result
 
 
 @beartype
-def get_build_root(relative: Optional[str] = None) -> Path:
-    value = get_script_root().joinpath("build")
+def get_build_root(ctx: TaskContext, relative: Optional[str] = None) -> Path:
+    value = get_script_root(ctx).joinpath("build")
     if relative:
         value = value.joinpath(relative)
 
@@ -88,17 +163,17 @@ def get_build_root(relative: Optional[str] = None) -> Path:
 
 
 @beartype
-def get_log_dir() -> Path:
-    res = get_build_root().joinpath("logs")
-    ensure_existing_dir(res)
+def get_log_dir(ctx: TaskContext) -> Path:
+    res = get_build_root(ctx).joinpath("logs")
+    ensure_existing_dir(ctx, res)
     return res
 
 
 @beartype
-def get_build_tmpdir(config: HaxorgConfig, component: str) -> Path:
-    result = get_build_root().joinpath("tmp").joinpath(
-        get_real_build_basename(config, component))
-    ensure_existing_dir(result)
+def get_build_tmpdir(ctx: TaskContext, component: str) -> Path:
+    result = get_build_root(ctx).joinpath("tmp").joinpath(
+        get_real_build_basename(ctx, component))
+    ensure_existing_dir(ctx, result)
     return result
 
 
@@ -118,19 +193,54 @@ def ui_notify(message: str, is_ok: bool = True) -> None:
 
 
 @beartype
-def create_symlink(link_path: Path, real_path: Path, is_dir: bool) -> None:
-    if link_path.exists():
-        assert link_path.is_symlink(), link_path
-        link_path.unlink()
-        log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+def create_symlink(ctx: TaskContext, link_path: Path, real_path: Path,
+                   is_dir: bool) -> None:
+    if ctx.docker_container is not None:
+        exit_code, output = ctx.docker_container.exec_run(
+            cmd=["test", "-L", str(link_path)],)
+        link_exists_and_is_symlink = exit_code == 0
+
+        exit_code, _ = ctx.docker_container.exec_run(cmd=["test", "-e", str(link_path)],)
+        link_exists = exit_code == 0
+
+        if link_exists:
+            assert link_exists_and_is_symlink, link_path
+            ctx.docker_container.exec_run(cmd=["rm", str(link_path)])
+            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+            exit_code, _ = ctx.docker_container.exec_run(
+                cmd=["test", "-e", str(link_path)],)
+            assert exit_code != 0, link_path
+
+        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+
+        exit_code, _ = ctx.docker_container.exec_run(cmd=["test", "-e", str(link_path)],)
+        assert exit_code != 0, link_path
+
+        exit_code, _ = ctx.docker_container.exec_run(cmd=["test", "-e", str(real_path)],)
+        assert exit_code == 0, real_path
+
+        exit_code, output = ctx.docker_container.exec_run(
+            cmd=["ln", "-s", str(real_path), str(link_path)],
+            demux=True,
+        )
+        if exit_code != 0:
+            _, stderr = output
+            raise RuntimeError(
+                f"Failed to create symlink: {stderr.decode('utf-8') if stderr else 'unknown error'}"
+            )
+    else:
+        if link_path.exists():
+            assert link_path.is_symlink(), link_path
+            link_path.unlink()
+            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+            assert not link_path.exists(), link_path
+
+        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+
         assert not link_path.exists(), link_path
+        assert real_path.exists(), real_path
 
-    log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
-
-    assert not link_path.exists(), link_path
-    assert real_path.exists(), real_path
-
-    link_path.symlink_to(target=real_path, target_is_directory=is_dir)
+        link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
 
 @beartype

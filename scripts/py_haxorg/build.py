@@ -4,21 +4,22 @@
 import os
 import shutil
 from pathlib import Path
+from typing import Any
 
 
 def build_shared_library_conf(
-    setup_kwargs,
+    setup_kwargs: Any,
     name: str,
     soname: str,
     envname: str,
     package_so_file: Path,
     rel_path: Path,
-):
+) -> None:
     package_so_file.parent.mkdir(parents=True, exist_ok=True)
 
     # Source location of the shared library
     if os.getenv(envname):
-        so_file = Path(os.getenv(envname)).resolve().absolute()
+        so_file = Path(os.getenv(envname)).resolve().absolute() # type: ignore
         print(f"Using shared library from environment variable {envname}: {so_file}")
     else:
         so_file = rel_path
@@ -44,7 +45,7 @@ def build_shared_library_conf(
             f"Could not find {soname} at {so_file} to include in the package")
 
 
-def build_shared_library(setup_kwargs):
+def build_shared_library(setup_kwargs: Any) -> None:
     """Copy or build the shared library during package installation"""
     base_dir = Path(__file__).parent
     # Target location in the package
@@ -67,7 +68,7 @@ def build_shared_library(setup_kwargs):
     )
 
 
-def build(setup_kwargs):
+def build(setup_kwargs: Any) -> None:
     """Main build function called by setup.py"""
     try:
         print("Building shared library component...")
