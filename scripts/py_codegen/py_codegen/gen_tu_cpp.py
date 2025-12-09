@@ -198,6 +198,7 @@ class GenTuFunction:
 class GenTuInclude:
     what: str
     isSystem: bool = False
+    absolutePath: Optional[str] = None
 
 
 @beartype
@@ -330,6 +331,9 @@ class GenTypeMap:
         if decl and isinstance(decl, GenTuTypedef):
             return decl.base
 
+        else:
+            return None
+
     def get_types_for_name(self, name: str) -> List[GenTuUnion]:
         return [self.entries[i] for i in self.name_to_index.get(name, [])]
 
@@ -348,6 +352,9 @@ class GenTypeMap:
 
             else:
                 return None
+
+        else:
+            return None
 
     def get_wrapper_type(self, t: QualType) -> Optional[str]:
         struct = self.get_struct_for_qual_name(t)
@@ -376,7 +383,7 @@ class GenTypeMap:
         else:
             return None
 
-    def add_type(self, typ: GenTuUnion):
+    def add_type(self, typ: GenTuUnion) -> None:
         qual_name = None
 
         match typ:

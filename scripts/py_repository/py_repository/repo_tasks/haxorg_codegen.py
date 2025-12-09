@@ -1,6 +1,10 @@
 from pathlib import Path
 
+from beartype import beartype
+from beartype.typing import List, Optional
+import igraph
 from py_ci.data_build import get_deps_install_config
+from py_codegen.refl_read import ConvTu, conv_proto_file
 from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
@@ -132,3 +136,130 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
         )
 
         log(CAT).info("Updated code definitions")
+
+
+@beartype
+def create_include_graph(translation_units: List[ConvTu],
+                         filter_directory: Optional[str] = None) -> igraph.Graph:
+    g = igraph.Graph(directed=True)
+
+    file_to_vertex = {}
+
+    for tu in translation_units:
+        if tu.absoluteOriginal is None:
+            continue
+
+        tu_path = Path(tu.absoluteOriginal).resolve()
+
+        if filter_directory is not None:
+            if not str(tu_path).startswith(filter_directory):
+                continue
+
+        if tu.absoluteOriginal not in file_to_vertex:
+            vertex_id = g.add_vertex(name=tu.absoluteOriginal, path=str(tu_path))
+            file_to_vertex[tu.absoluteOriginal] = vertex_id
+
+        for include in tu.includes:
+            if include.absolutePath is None or include.isSystem:
+                continue
+
+            include_path = Path(include.absolutePath).resolve()
+
+            if filter_directory is not None:
+                if not str(include_path).startswith(filter_directory):
+                    continue
+
+            if include.absolutePath not in file_to_vertex:
+                vertex_id = g.add_vertex(name=include.absolutePath,
+                                         path=str(include_path))
+                file_to_vertex[include.absolutePath] = vertex_id
+
+            g.add_edge(file_to_vertex[tu.absoluteOriginal],
+                       file_to_vertex[include.absolutePath])
+
+    return g
+
+
+@beartype
+def igraph_to_graphviz(graph: igraph.Graph) -> str:
+    lines = ["digraph includes {"]
+
+    for vertex in graph.vs:
+        vertex_name = Path(vertex["name"]).name
+        lines.append(f'  "{vertex.index}" [label="{vertex_name}"];')
+
+    for edge in graph.es:
+        lines.append(f'  "{edge.source}" -> "{edge.target}";')
+
+    lines.append("}")
+
+    return "\n".join(lines)
+
+
+@haxorg_task(dependencies=[generate_python_protobuf_files])
+def generate_full_code_reflection(ctx: TaskContext) -> None:
+    """Generate new source code reflection file for the python source code wrapper"""
+    compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
+    toolchain_include = get_script_root(
+        ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
+
+    conf_copy = ctx.config.model_copy(deep=True)
+    conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
+    conf_copy.build_conf.force = True
+    build_haxorg(ctx=ctx.with_temp_config(conf_copy))
+    ok_files: List[Path] = []
+
+    for file in get_script_root(ctx, "src").rglob("*.cpp"):
+        out_file = get_build_root(ctx, f"{file}_translation.pb")
+        log(CAT).info(f"Analysing TU for {file}")
+        if out_file.exists() and file.stat().st_mtime <= out_file.stat().st_mtime:
+            log(CAT).info("TU file already exists")
+            ok_files.append(out_file)
+            continue
+
+        continue
+
+        cmd_code, cmd_stdout, cmd_stderr = run_command(
+            ctx,
+            get_build_root(ctx,
+                           "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool"),
+            [
+                "-p",
+                compile_commands,
+                "--compilation-database",
+                compile_commands,
+                "--toolchain-include",
+                toolchain_include,
+                "--main-tu-analysis",
+                *(["--verbose"]
+                  if ctx.config.log_level == HaxorgLogLevel.VERBOSE else []),
+                "--out",
+                out_file,
+                file,
+            ],
+            capture=True,
+            allow_fail=True,
+        )
+
+        if "Compile command not found" in cmd_stderr:
+            continue
+
+        elif cmd_code != 0:
+            log(CAT).info(cmd_stdout)
+            log(CAT).error(cmd_stderr)
+            # raise RuntimeError("Failed to execute")
+
+        else:
+            ok_files.append(out_file)
+
+    conv_tus = [conv_proto_file(f) for f in ok_files]
+    igraph_tus = create_include_graph(conv_tus,
+                                    #   filter_directory=str(get_script_root(ctx))
+                                      )
+    for tu in conv_tus:
+        log(CAT).info(f"{tu.absoluteOriginal} includes size {len(tu.includes)}")
+        for inc in tu.includes:
+            log(CAT).info(f"  {inc.absolutePath}")
+
+    graphviz_tus = igraph_to_graphviz(igraph_tus)
+    Path("/tmp/result.dot").write_text(graphviz_tus)

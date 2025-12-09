@@ -9,7 +9,7 @@ from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_fil
 
 
 @haxorg_task(dependencies=[build_haxorg, symlink_build, generate_python_protobuf_files])
-def run_py_tests(ctx: TaskContext, arg: List[str] = []):
+def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
     """
     Execute the whole python test suite or run a single test file in non-interactive
     LLDB debugger to work on compiled component issues. 
@@ -65,7 +65,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []):
     generate_python_protobuf_files,
     symlink_build,
 ])
-def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []):
+def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []) -> None:
     """
     Run script with arguments with all environment variables set.
     Debug task. 
@@ -82,7 +82,7 @@ def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []):
 
 
 @haxorg_task(dependencies=[run_py_tests])
-def run_py_tests_ci():
+def run_py_tests_ci() -> None:
     """
     CI task that builds base lexer codegen before running the build 
     """

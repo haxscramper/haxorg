@@ -284,12 +284,22 @@ def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypede
 
 
 @beartype
+def conv_proto_include(rec: pb.Include, original: Optional[Path]) -> GenTuInclude:
+    return GenTuInclude(
+        what=rec.relative_path,
+        absolutePath=rec.absolute_path,
+    )
+
+
+@beartype
 @dataclass
 class ConvTu:
     structs: List[GenTuStruct] = field(default_factory=list)
     functions: List[GenTuFunction] = field(default_factory=list)
     enums: List[GenTuEnum] = field(default_factory=list)
     typedefs: List[GenTuTypedef] = field(default_factory=list)
+    includes: List[GenTuInclude] = field(default_factory=list)
+    absoluteOriginal: Optional[str] = None
 
     def get_all(self) -> List[GenTuUnion]:
         return self.enums + self.typedefs + self.structs + self.functions
@@ -310,8 +320,10 @@ def open_proto_file(path: Path) -> pb.TU:
 def conv_proto_file(path: Path, original: Optional[Path] = None) -> ConvTu:
     unit = open_proto_file(path)
     return ConvTu(
+        absoluteOriginal=unit.absolute_path,
         structs=[conv_proto_record(rec, original) for rec in unit.records],
         enums=[conv_proto_enum(rec, original) for rec in unit.enums],
         typedefs=[conv_proto_typedef(rec, original) for rec in unit.typedefs],
         functions=[conv_proto_function(rec, original) for rec in unit.functions],
+        includes=[conv_proto_include(rec, original) for rec in unit.includes],
     )
