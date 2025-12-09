@@ -62,7 +62,7 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
     toolchain_include = get_script_root(
         ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
 
-    conf_copy = ctx.config.model_copy()
+    conf_copy = ctx.config.model_copy(deep=True)
     conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
     conf_copy.build_conf.force = True
     build_haxorg(ctx=ctx.with_temp_config(conf_copy))
@@ -110,7 +110,7 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     if not ctx.config.generate_sources_conf.standalone:
-        config_copy = ctx.config.model_copy()
+        config_copy = ctx.config.model_copy(deep=True)
         config_copy.build_conf.target = ["py_textlayout_cpp"]
         ctx_copy = ctx.with_temp_config(config_copy)
         ctx_copy.run(build_haxorg, ctx=ctx_copy)
