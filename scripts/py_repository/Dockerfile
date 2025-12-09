@@ -67,7 +67,15 @@ RUN echo 'source /opt/emsdk/emsdk_env.sh' >> /etc/bash.bashrc
 ENV EMSDK=/opt/emsdk
 ENV EMSCRIPTEN=/opt/emsdk/upstream/emscripten
 ENV HAXORG_ENV_EMSCRIPTEN_TOOLCHAIN=/opt/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
-RUN dnf install -y java-17-openjdk java-17-openjdk-devel
+RUN dnf install -y java-17-openjdk java-17-openjdk-devel unzip
 
+RUN wget https://services.gradle.org/distributions/gradle-8.5-bin.zip -P /tmp
+RUN unzip /tmp/gradle-8.5-bin.zip -d /opt
+RUN ln -s /opt/gradle-8.5 /opt/gradle
+ENV GRADLE_HOME=/opt/gradle
+ENV PATH=${GRADLE_HOME}/bin:${PATH}
+RUN rm /tmp/gradle-8.5-bin.zip
+
+RUN dnf clean all
 WORKDIR /haxorg
 SHELL ["/bin/bash", "-c", "source /opt/emsdk/emsdk_env.sh && exec bash"]

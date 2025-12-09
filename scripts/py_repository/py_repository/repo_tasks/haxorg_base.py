@@ -86,7 +86,7 @@ def get_llvm_root(ctx: TaskContext, relative: Optional[str] = None) -> Path:
 def get_toolchain_path(ctx: TaskContext) -> Path:
     if ctx.config.emscripten.build:
         result = Path(ctx.config.emscripten.toolchain)
-        assert result.exists(), f"EMCC toolchain path does not exist {result}"
+        assert check_path_exists(ctx, result), f"EMCC toolchain path does not exist {result}"
         log(CAT).info(f"Using EMCC toolchain path {result}")
         return result
 

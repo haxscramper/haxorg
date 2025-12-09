@@ -154,6 +154,7 @@ def run_docker_develop_test(
     # dctx.config.log_level = HaxorgLogLevel.VERBOSE
     dctx.repo_root = Path("/haxorg")
     dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
+    dctx.config.emscripten.toolchain = "/opt/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
 
     TOOL = "/haxorg/toolchain"
 
@@ -166,51 +167,6 @@ def run_docker_develop_test(
     run_command(dctx, "git", ["config", "--global", "user.name", "Your Name"])
 
     dctx.run(run_develop_ci, ctx=dctx)
-
-    # run_command(
-    #     ctx,
-    #     "docker",
-    #     [
-    #         "run",
-    #         *itertools.chain(*(docker_mnt(
-    #             src=get_script_root(it),
-    #             dst=docker_path(it),
-    #         ) for it in [
-    #             "src",
-    #             "scripts",
-    #             "tests",
-    #             "benchmark",
-    #             "tasks.py",
-    #             "examples",
-    #             "docs",
-    #             "pyproject.toml",
-    #             "poetry.lock",
-    #             "ignorelist.txt",
-    #             ".git",
-    #             "thirdparty",
-    #             "CMakeLists.txt",
-    #             "toolchain.cmake",
-    #             "HaxorgConfig.cmake.in",
-    #         ])),
-    #         # Scratch directory for simplified local debugging and rebuilds if needed.
-    #         *docker_mnt(HAXORG_BUILD_TMP, docker_path("build")),
-    #         *(["-it"] if interactive else []),
-    #         *get_docker_cap_flags(),
-    #         "--rm",
-    #         ctx.config.HAXORG_DOCKER_IMAGE,
-    #         "./scripts/py_repository/poetry_with_deps.sh",
-    #         *(["bash"] if interactive else [
-    #             "./scripts/py_repository/py_repository/repo_tasks/workflow.py",
-    #             "run",
-    #             "--task",
-    #             "run_develop_ci",
-    #             "--config_override",
-    #             "scripts/py_repository/py_repository/repo_tasks/haxorg_conf_develop_docker_ci.json",
-    #         ]),
-    #     ],
-    #     print_output=True,
-    # )
-
 
 @haxorg_task(dependencies=[])
 def run_docker_release_test(
