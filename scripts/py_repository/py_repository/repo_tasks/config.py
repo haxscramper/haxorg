@@ -142,6 +142,7 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     HAXORG_NAME: str = "haxorg"
     in_ci: bool = False
     HAXORG_DOCKER_IMAGE: str = "docker-haxorg"
+    CPACK_TEST_IMAGE: str = "docker-haxorg-cpack"
     develop_ci_conf: HaxorgDevelopCiConfig = Field(default_factory=HaxorgDevelopCiConfig)
     py_test_conf: HaxorgPyTestsConfig = Field(default_factory=HaxorgPyTestsConfig)
     build_develop_deps_conf: HaxorgBuildDevelopDepsConfig = Field(

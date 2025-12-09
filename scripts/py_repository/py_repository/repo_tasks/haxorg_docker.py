@@ -7,6 +7,7 @@ import shutil
 import docker
 import docker.models.containers
 import docker.types
+import docker.errors
 import os
 
 from py_ci.util_scripting import get_docker_cap_flags
@@ -62,7 +63,8 @@ def stop_containers_from_image(image_name: str) -> None:
 
 
 @beartype
-def get_docker_mounts(ctx: TaskContext, items: List[str], build_tmp: Path) -> List[docker.types.Mount]:
+def get_docker_mounts(ctx: TaskContext, items: List[str],
+                      build_tmp: Path) -> List[docker.types.Mount]:
     mounts: List[docker.types.Mount] = []
 
     @beartype
@@ -102,7 +104,6 @@ def get_container_var(container: docker.models.containers.Container, varname: st
 @haxorg_task(dependencies=[build_docker_develop_image])
 def run_docker_develop_test(
         ctx: TaskContext,
-        interactive: bool = False,
         build_dir: str = get_tmpdir("docker_develop", "build"),
 ) -> None:
     """Run docker"""
@@ -168,157 +169,196 @@ def run_docker_develop_test(
 
     dctx.run(run_develop_ci, ctx=dctx)
 
+
+@beartype
+def run_docker_release_test_impl(
+    ctx: TaskContext,
+    clone_dir_path: Path,
+    build_dir_path: Path,
+    clone_code: str,
+) -> None:
+
+    @beartype
+    def docker_path(path: str) -> Path:
+        return Path("/haxorg/src").joinpath(path)
+
+    source_prefix: Optional[Path] = None
+    if clone_code == "all":
+        if clone_dir_path.exists():
+            shutil.rmtree(clone_dir_path)
+        clone_repo_with_uncommitted_changes(
+            ctx,
+            src_repo=get_script_root(ctx),
+            dst_repo=clone_dir_path,
+        )
+        source_prefix = clone_dir_path
+
+    elif clone_code == "comitted":
+        if clone_dir_path.exists():
+            shutil.rmtree(clone_dir_path)
+        client_low = docker.APIClient()
+        import subprocess
+        subprocess.run(
+            ["git", "clone",
+             str(get_script_root(ctx)),
+             str(clone_dir_path)],
+            check=True,
+        )
+        source_prefix = clone_dir_path
+
+    else:
+        source_prefix = clone_dir_path
+
+    @beartype
+    def pass_mnt(path: Optional[str] = None) -> Path:
+        if path is None:
+            if source_prefix:
+                return source_prefix
+            else:
+                return Path(get_script_root(ctx))
+        else:
+            if source_prefix:
+                assert source_prefix.is_absolute(), source_prefix
+                return source_prefix.joinpath(path)
+            else:
+                return Path(get_script_root(ctx, path))
+
+    volumes = {
+        str(Path(get_script_root(ctx, "thirdparty"))): {
+            "bind": str(docker_path("thirdparty")),
+            "mode": "rw",
+        },
+        str(pass_mnt()): {
+            "bind": "/haxorg/src",
+            "mode": "rw",
+        },
+        str(build_dir_path): {
+            "bind": "/haxorg/wip",
+            "mode": "rw",
+        },
+    }
+
+    environment = {
+        "PYTHONPATH": "/haxorg/src/scripts/py_ci",
+        "HAXORG_THIRD_PARTY_DIR_PATH": str(docker_path("thirdparty")),
+    }
+
+    cap_add = ["SYS_PTRACE"]
+
+    # command = [
+    #     "python",
+    #     "-m",
+    #     "py_ci.test_cpack_build",
+    #     invoke_opt("build", build),
+    #     invoke_opt("deps", deps),
+    #     f"--test={test}",
+    # ]
+
+    client = docker.from_env()
+
+    container = client.containers.run(
+        ctx.config.CPACK_TEST_IMAGE,
+        command="sleep infinity",
+        volumes=volumes,
+        environment=environment,
+        cap_add=cap_add,
+        remove=True,
+        detach=True,
+        user=f"{os.getuid()}:{os.getgid()}",
+    )
+
+    dctx = replace(ctx, docker_container=container, run_cache=set())
+    dctx.config.use_unchanged_tasks = True
+    dctx.repo_root = Path("/haxorg")
+    dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
+
+    # ctx.run(test_cpack_build, )
+
+    run_command(
+        dctx,
+        "python",
+        [
+            "-m",
+            "py_ci.test_cpack_build",
+            "--build",
+            "--deps",
+            "--test=cxx",
+            "--test=python",
+        ],
+        print_output=True,
+    )
+
+
 @haxorg_task(dependencies=[])
 def run_docker_release_test(
     ctx: TaskContext,
     build_dir: str = get_tmpdir("docker_release", "build"),
     clone_dir: str = get_tmpdir("docker_release", "clone"),
     clone_code: Literal["none", "comitted", "all"] = "all",
-    deps: bool = True,
-    test: str = "python",
-    build: bool = True,
-    interactive: bool = False,
 ) -> None:
-    CPACK_TEST_IMAGE = "docker-haxorg-cpack"
+
     dep_debug_stdout = get_cmd_debug_file("stdout")
     dep_debug_stderr = get_cmd_debug_file("stderr")
 
     ensure_clean_file(ctx, dep_debug_stderr)
     ensure_clean_file(ctx, dep_debug_stdout)
 
-    debug_conf = dict(
-        append_stderr_debug=True,
-        append_stdout_debug=True,
-        stdout_debug=dep_debug_stdout,
-        stderr_debug=dep_debug_stderr,
+    client = docker.from_env()
+
+    @beartype
+    def write_logs(container: docker.models.containers.Container) -> None:
+        logs = container.logs(stdout=True, stderr=False)
+        with open(dep_debug_stdout, "ab") as f:
+            f.write(logs)
+        logs = container.logs(stdout=False, stderr=True)
+        with open(dep_debug_stderr, "ab") as f:
+            f.write(logs)
+
+    try:
+        old_container = client.containers.get(ctx.config.CPACK_TEST_IMAGE)
+        old_container.remove(force=True)
+    except docker.errors.NotFound:
+        pass
+
+    dockerfile_path = Path(
+        get_script_root(ctx, "scripts/py_repository/cpack_build_in_fedora.dockerfile"))
+    build_context_path = Path(get_script_root(ctx))
+
+    client.images.build(
+        path=str(build_context_path),
+        dockerfile=str(dockerfile_path),
+        tag=ctx.config.CPACK_TEST_IMAGE,
     )
 
     @beartype
-    def docker_path(path: str) -> Path:
-        return Path("/haxorg/src").joinpath(path)
-
-    run_command(
-        ctx,
-        "docker",
-        ["rm", CPACK_TEST_IMAGE],
-        allow_fail=True,
-        **debug_conf,  # type: ignore
-    )
-
-    run_command(
-        ctx,
-        "docker",
-        [
-            "build",
-            "-t",
-            CPACK_TEST_IMAGE,
-            "-f",
-            get_script_root(ctx, "scripts/py_repository/cpack_build_in_fedora.dockerfile"),
-            ".",
-        ],
-        **debug_conf,  # type: ignore
-    )
-
-    @beartype
-    def run_docker(clone_dir: Path, build_dir: Path) -> None:
-        source_prefix: Optional[Path] = None
-        if clone_code == "all":
-            if clone_dir.exists():
-                shutil.rmtree(clone_dir)
-            clone_repo_with_uncommitted_changes(
-                ctx,
-                src_repo=get_script_root(ctx),
-                dst_repo=clone_dir,
-            )
-
-            source_prefix = clone_dir
-
-        elif clone_code == "comitted":
-            if clone_dir.exists():
-                shutil.rmtree(clone_dir)
-            run_command(
-                ctx,
-                "git",
-                ["clone", get_script_root(ctx), clone_dir],
-                **debug_conf,  # type: ignore
-            )
-            source_prefix = clone_dir
-
-        else:
-            source_prefix = clone_dir
-
-        @beartype
-        def pass_mnt(path: Optional[str] = None) -> Path:
-            if path is None:
-                if source_prefix:
-                    return source_prefix
-
-                else:
-                    return get_script_root(ctx)
-
-            else:
-                if source_prefix:
-                    assert source_prefix.is_absolute(), source_prefix
-                    return source_prefix.joinpath(path)
-
-                else:
-                    return get_script_root(ctx, path)
-
-        run_command(
-            ctx,
-            "docker",
-            [
-                "run",
-                *docker_mnt(
-                    src=get_script_root(ctx, "thirdparty"),
-                    dst=docker_path("thirdparty"),
-                ),
-                *(["-it"] if interactive else []),
-                *get_docker_cap_flags(),
-                "--rm",
-                *docker_user(),
-                *docker_mnt(pass_mnt(), Path("/haxorg/src")),
-                *docker_mnt(build_dir, Path("/haxorg/wip")),
-                "-e",
-                "PYTHONPATH=/haxorg/src/scripts/py_ci",
-                "-e",
-                f"HAXORG_THIRD_PARTY_DIR_PATH={docker_path('thirdparty')}",
-                CPACK_TEST_IMAGE,
-                *(["bash"] if interactive else [
-                    # "ls",
-                    # "-a",
-                    # "/haxorg_wip",
-                    "python",
-                    "-m",
-                    "py_ci.test_cpack_build",
-                    invoke_opt("build", build),
-                    invoke_opt("deps", deps),
-                    f"--test={test}",
-                ])
-            ],
-            **debug_conf,
-        )
-
-    def run_with_build_dir(build_dir: Path) -> None:
+    def run_with_build_dir(build_dir_path: Path) -> None:
         if clone_dir:
             log(CAT).info(f"Specified clone directory, using it for docker")
-            run_docker(clone_dir=Path(clone_dir), build_dir=build_dir)
-
+            run_docker_release_test_impl(
+                ctx,
+                clone_dir_path=Path(clone_dir),
+                build_dir_path=build_dir_path,
+                clone_code=clone_code,
+            )
         else:
             with TemporaryDirectory() as dir:
                 log(CAT).info(
                     f"No docker clone directory specified, using temporary {dir}")
-                run_docker(clone_dir=Path(dir), build_dir=build_dir)
+                run_docker_release_test_impl(
+                    ctx,
+                    clone_dir_path=Path(dir),
+                    build_dir_path=build_dir_path,
+                    clone_code=clone_code,
+                )
 
     if build_dir:
-        if not Path(build_dir).exists():
-            Path(build_dir).mkdir(parents=True)
-
-        run_with_build_dir(build_dir=Path(build_dir))
-
+        build_dir_path = Path(build_dir)
+        if not build_dir_path.exists():
+            build_dir_path.mkdir(parents=True)
+        run_with_build_dir(build_dir_path=build_dir_path)
     else:
         with TemporaryDirectory() as dir:
-            run_with_build_dir(build_dir=Path(dir))
+            run_with_build_dir(build_dir_path=Path(dir))
 
 
 @haxorg_task()
