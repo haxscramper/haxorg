@@ -1,108 +1,184 @@
-from beartype.typing import Dict, Callable, List, Optional
+import tempfile
+from beartype.typing import Dict, Callable, List, Optional, Iterable
 from beartype import beartype
 from functools import wraps
+import psutil
+from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.config import HaxorgConfig
+from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 import copy
 import typing
 import inspect
 import shutil
-
-from invoke import task, Failure
-from invoke.context import Context
-from invoke.tasks import Task
+import docker.models.containers
 
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_repository.repo_tasks.config import get_config
 from plumbum import local
-
 
 from pathlib import Path
 
 import os
 
-
-
-
 CAT = __name__
 
-def get_script_root(relative: Optional[str] = None) -> Path:
-    value = get_haxorg_repo_root_path()
+
+@beartype
+def get_script_root(ctx: TaskContext, relative: Optional[str] = None) -> Path:
+    value = ctx.repo_root
     if relative:
         value = value.joinpath(relative)
     return value
 
 
 @beartype
-def ensure_clean_dir(dir: Path):
-    if dir.exists():
-        shutil.rmtree(str(dir))
-
-    dir.mkdir(parents=True, exist_ok=True)
-
-
-@beartype
-def ensure_existing_dir(dir: Path):
-    dir.mkdir(parents=True, exist_ok=True)
-
-
-@beartype
-def ensure_clean_file(file: Path):
-    ensure_existing_dir(file.parent)
-    file.write_text("")
-
+def ensure_clean_dir(ctx: TaskContext, dir: Path) -> Path:
+    if ctx.docker_container is not None:
+        ctx.docker_container.exec_run(
+            cmd=["bash", "-c", f"rm -rf {dir} && mkdir -p {dir}"],)
+    else:
+        if dir.exists():
+            shutil.rmtree(str(dir))
+        dir.mkdir(parents=True, exist_ok=True)
+    return dir
 
 
 @beartype
-def get_real_build_basename(ctx: Context, component: str) -> str:
+def ensure_existing_dir(ctx: TaskContext, dir: Path) -> Path:
+    if ctx.docker_container is not None:
+        ctx.docker_container.exec_run(cmd=["mkdir", "-p", str(dir)],)
+    else:
+        dir.mkdir(parents=True, exist_ok=True)
+    return dir
+
+
+@beartype
+def ensure_clean_file(ctx: TaskContext, file: Path) -> Path:
+    ensure_existing_dir(ctx, file.parent)
+    if ctx.docker_container is not None:
+        ctx.docker_container.exec_run(cmd=["bash", "-c", f"truncate -s 0 {file}"],)
+    else:
+        file.write_text("")
+    return file
+
+
+@beartype
+def path_exists_in_container(container: docker.models.containers.Container,
+                             path: Path) -> bool:
+    exit_code, _ = container.exec_run(cmd=["test", "-e", str(path)],)
+    return exit_code == 0
+
+
+@beartype
+def is_file_in_container(container: docker.models.containers.Container,
+                         path: Path) -> bool:
+    exit_code, _ = container.exec_run(cmd=["test", "-f", str(path)],)
+    return exit_code == 0
+
+
+@beartype
+def is_dir_in_container(container: docker.models.containers.Container,
+                        path: Path) -> bool:
+    exit_code, _ = container.exec_run(cmd=["test", "-d", str(path)],)
+    return exit_code == 0
+
+
+@beartype
+def check_path_exists(ctx: TaskContext, path: Path) -> bool:
+    if ctx.docker_container is not None:
+        return path_exists_in_container(ctx.docker_container, path)
+    else:
+        return path.exists()
+
+
+@beartype
+def check_is_file(ctx: TaskContext, path: Path) -> bool:
+    if ctx.docker_container is not None:
+        return is_file_in_container(ctx.docker_container, path)
+    else:
+        return path.is_file()
+
+
+@beartype
+def check_is_dir(ctx: TaskContext, path: Path) -> bool:
+    if ctx.docker_container is not None:
+        return is_dir_in_container(ctx.docker_container, path)
+    else:
+        return path.is_dir()
+
+
+@beartype
+def ctx_write_text(ctx: TaskContext, path: Path, content: str) -> None:
+    if ctx.docker_container is not None:
+        import base64
+        encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+        exit_code, output = ctx.docker_container.exec_run(
+            cmd=["bash", "-c", f"echo {encoded} | base64 -d > {path}"],
+            demux=True,
+        )
+        if exit_code != 0:
+            _, stderr = output
+            raise RuntimeError(
+                f"Failed to write file {path}: {stderr.decode('utf-8') if stderr else 'unknown error'}"
+            )
+    else:
+        path.write_text(content)
+
+
+@beartype
+def get_real_build_basename(ctx: TaskContext, component: str) -> str:
     """
     Get basename of the binary output directory for component
     """
-    result = component + "_" + ("debug" if get_config(ctx).debug else "release")
-    if get_config(ctx).emscripten.build:
+    result = component + "_" + ("debug" if ctx.config.debug else "release")
+    if ctx.config.emscripten.build:
         result += "_emscripten"
 
-    if get_config(ctx).instrument.coverage:
+    if ctx.config.instrument.coverage:
         result += "_instrumented"
 
     return result
 
 
+@beartype
+def get_list_cli_pass(list_name: str, args: Iterable[str]) -> List[str]:
+    return [f"--{list_name}={arg}" for arg in args]
+
 
 @beartype
-def get_component_build_dir(ctx: Context, component: str) -> Path:
-    result = get_build_root(get_real_build_basename(ctx, component))
-    result.mkdir(parents=True, exist_ok=True)
+def get_component_build_dir(ctx: TaskContext, component: str) -> Path:
+    result = get_build_root(ctx, get_real_build_basename(ctx, component))
+    ensure_existing_dir(ctx, result)
     return result
 
 
 @beartype
-def get_build_root(relative: Optional[str] = None) -> Path:
-    value = get_script_root().joinpath("build")
+def get_build_root(ctx: TaskContext, relative: Optional[str] = None) -> Path:
+    value = get_script_root(ctx).joinpath("build")
     if relative:
         value = value.joinpath(relative)
 
     return value
 
 
-
 @beartype
-def get_log_dir() -> Path:
-    res = get_build_root().joinpath("logs")
-    ensure_existing_dir(res)
+def get_log_dir(ctx: TaskContext) -> Path:
+    res = get_build_root(ctx).joinpath("logs")
+    ensure_existing_dir(ctx, res)
     return res
 
 
 @beartype
-def get_build_tmpdir(ctx: Context, component: str) -> Path:
-    result = get_build_root().joinpath("tmp").joinpath(
+def get_build_tmpdir(ctx: TaskContext, component: str) -> Path:
+    result = get_build_root(ctx).joinpath("tmp").joinpath(
         get_real_build_basename(ctx, component))
-    ensure_existing_dir(result)
+    ensure_existing_dir(ctx, result)
     return result
 
 
 @beartype
-def ui_notify(message: str, is_ok: bool = True):
+def ui_notify(message: str, is_ok: bool = True) -> None:
     try:
         cmd = local["notify-send"]
         cmd.run(
@@ -116,93 +192,93 @@ def ui_notify(message: str, is_ok: bool = True):
             log(CAT).error(message)
 
 
+@beartype
+def create_symlink(ctx: TaskContext, link_path: Path, real_path: Path,
+                   is_dir: bool) -> None:
+    if ctx.docker_container is not None:
+        exit_code, output = ctx.docker_container.exec_run(
+            cmd=["test", "-L", str(link_path)],)
+        link_exists_and_is_symlink = exit_code == 0
 
+        exit_code, _ = ctx.docker_container.exec_run(cmd=["test", "-e", str(link_path)],)
+        link_exists = exit_code == 0
 
-TASK_DEPS: Dict[Callable, List[Callable]] = {}
-TASK_STACK: List[str] = []
+        if link_exists:
+            assert link_exists_and_is_symlink, link_path
+            ctx.docker_container.exec_run(cmd=["rm", str(link_path)])
+            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+            exit_code, _ = ctx.docker_container.exec_run(
+                cmd=["test", "-e", str(link_path)],)
+            assert exit_code != 0, link_path
+
+        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+
+        exit_code, _ = ctx.docker_container.exec_run(cmd=["test", "-e", str(link_path)],)
+        assert exit_code != 0, link_path
+
+        exit_code, _ = ctx.docker_container.exec_run(cmd=["test", "-e", str(real_path)],)
+        assert exit_code == 0, real_path
+
+        exit_code, output = ctx.docker_container.exec_run(
+            cmd=["ln", "-s", str(real_path), str(link_path)],
+            demux=True,
+        )
+        if exit_code != 0:
+            _, stderr = output
+            raise RuntimeError(
+                f"Failed to create symlink: {stderr.decode('utf-8') if stderr else 'unknown error'}"
+            )
+    else:
+        if link_path.exists():
+            assert link_path.is_symlink(), link_path
+            link_path.unlink()
+            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+            assert not link_path.exists(), link_path
+
+        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+
+        assert not link_path.exists(), link_path
+        assert real_path.exists(), real_path
+
+        link_path.symlink_to(target=real_path, target_is_directory=is_dir)
+
 
 @beartype
-def get_cmd_debug_file(kind: str):
-    return get_log_dir().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
+def get_example_build(example_name: str) -> Path:
+    return get_build_root().joinpath(f"example_build_{example_name}")
+
 
 @beartype
-def org_task(
-        task_name: Optional[str] = None,
-        pre: List[Callable] = [],
-        force_notify: bool = False,
-        pre_optional: List[Callable] = [],
-        help=dict(),
-        **kwargs,
-) -> Callable:
+def find_process(
+    name: str,
+    root_dir: Optional[Path] = None,
+    args: Optional[list[str]] = None,
+) -> Optional[psutil.Process]:
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'cwd']):
+        try:
+            if ((proc.name() == name) and
+                (root_dir is None or proc.cwd() == str(root_dir)) and
+                (args is None or all(arg in proc.cmdline() for arg in args))):
+                return proc
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return None
 
-    help_base = copy.copy(help)
 
-    def org_inner(func: Callable) -> Callable:
-        TASK_DEPS[func] = pre
+def get_lldb_py_import() -> List[str]:
+    return [
+        "-o",
+        f"command script import {get_script_root('scripts/cxx_repository/lldb_script.py')}"
+    ]
 
-        signature = inspect.signature(func)
-        params = signature.parameters
-        arg_names = [param.name for param in params.values()]
-        type_annotations = typing.get_type_hints(func)
 
-        updated_help = dict()
+def get_lldb_source_on_crash() -> List[str]:
+    return [
+        "--source-on-crash",
+        str(get_script_root("scripts/cxx_repository/lldb-script.txt"))
+    ]
 
-        for arg in arg_names:
-            if arg in ["ctx"]:
-                continue
 
-            cli = arg.replace("_", "-")
-            if arg in type_annotations:
-                T = type_annotations[arg]
-                if isinstance(T, (type(bool), type(int), type(float))):
-                    description = ""
-
-                else:
-                    description = f"{str(T)}"
-
-            else:
-                description = ""
-
-            if cli in help_base:
-                if description:
-                    description += " "
-
-                description += f"{help_base[cli]}"
-
-            updated_help[cli] = description
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            name = task_name or func.__name__
-            log(CAT).info(f"Running [yellow]{name}[/yellow] ...")
-            run_ok = False
-            try:
-                with GlobCompleteEvent(f"task {name}", "build") as last:
-                    assert os.getcwd() == str(get_script_root(
-                    )), "Invoke tasks must be executed from the root directory"
-                    TASK_STACK.append(name)
-                    result = func(*args, **kwargs)
-                    TASK_STACK.pop()
-
-                run_ok = True
-
-            finally:
-                log(CAT).info(
-                    f"Completed [green]{name}[/green] in [blue]{last.dur / 10e2:5.1f}[/blue]ms"
-                )
-
-                color = "green"
-                name_format = f"<span color='#{color}'>{name:^40}</span>"
-                if 100000 < last.dur or force_notify:
-                    ui_notify(
-                        f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
-                        is_ok=run_ok,
-                    )
-
-                GlobExportJson(get_build_root("task_build_time.json"))
-
-            return result
-
-        return task(wrapper, pre=pre, help=copy.copy(updated_help), **kwargs)
-
-    return org_inner
+@beartype
+def docker_user() -> List[str]:
+    return ["--user", f"{os.getuid()}:{os.getgid()}"]

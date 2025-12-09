@@ -195,14 +195,6 @@ class FixedAlignment(str, Enum):
     RIGHTDOWN = "RIGHTDOWN"
     BALANCED = "BALANCED"
 
-
-class NodeFlexibility(str, Enum):
-    NONE = "NONE"
-    NODE_SIZE = "NODE_SIZE"
-    PORT_POSITION = "PORT_POSITION"
-
-
-
 class PortProperties(BaseModel, extra="forbid"):
     port: Optional[Dict[str, Any]] = None
     portConstraints: Optional[PortConstraints] = None
@@ -212,13 +204,15 @@ class PortProperties(BaseModel, extra="forbid"):
 
     @model_validator(mode="before")
     @classmethod
-    def unflatten_port_properties(cls, values: Dict[str,
-                                                    Any]) -> Dict[str, Any]:
+    def unflatten_port_properties(
+        cls,
+        values: Dict[str, Any],
+    ) -> Dict[str, Any]:
         if not isinstance(values, dict):
             return values
 
         result = {}
-        port_data = {}
+        port_data: Dict[str, Any] = {}
 
         for key, value in values.items():
             if key.startswith("port."):
@@ -235,15 +229,14 @@ class PortProperties(BaseModel, extra="forbid"):
 
     @model_serializer(mode='plain')
     def serialize_model(self) -> Dict[str, Any]:
-        data = {}
+        data: Dict[str, Any] = {}
 
         if self.portConstraints is not None:
             data["portConstraints"] = self.portConstraints
         if self.portAlignment is not None:
             data["portAlignment"] = self.portAlignment
         if self.allowNonFlowPortsToSwitchSides is not None:
-            data[
-                "allowNonFlowPortsToSwitchSides"] = self.allowNonFlowPortsToSwitchSides
+            data["allowNonFlowPortsToSwitchSides"] = self.allowNonFlowPortsToSwitchSides
 
         if self.side is not None:
             data["port.side"] = self.side.name
@@ -263,6 +256,7 @@ class PortProperties(BaseModel, extra="forbid"):
 class Point(BaseModel, extra="forbid"):
     x: float
     y: float
+
 
 class Label(BaseModel, extra="forbid"):
     id: str
@@ -298,6 +292,7 @@ class EdgeSection(BaseModel, extra="forbid"):
     incomingSections: Optional[List[str]] = None
     outgoingSections: Optional[List[str]] = None
 
+
 class Edge(BaseModel, extra="forbid"):
     id: str
     source: Optional[str] = None
@@ -315,10 +310,10 @@ class Edge(BaseModel, extra="forbid"):
     layoutOptions: Optional[Dict[str, Any]] = None
     extra: Optional[Dict[str, Any]] = None
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)
-    
-    def __eq__(self, other):
+
+    def __eq__(self, other: Any) -> bool:
         return isinstance(other, Edge) and self.id == other.id
 
 
@@ -344,7 +339,7 @@ class Graph(BaseModel, extra="forbid"):
     y: Optional[float] = None
     width: Optional[float] = None
     height: Optional[float] = None
-    layoutOptions: Dict[str, Any] = None
+    layoutOptions: Dict[str, Any] = Field(default_factory=dict)
     children: List[Node] = Field(default_factory=list)
     edges: Optional[List[Edge]] = None
     ports: Optional[List[Port]] = None
@@ -361,6 +356,7 @@ from typing import Any, Dict, Optional
 
 
 class GraphSerializer:
+
     @staticmethod
     def to_nested_json(graph: Graph) -> Dict[str, Any]:
         return graph.model_dump(exclude_none=True)
@@ -370,9 +366,7 @@ class GraphSerializer:
         return Graph(**data)
 
     @staticmethod
-    def save_to_file(graph: Graph,
-                     filepath: Path,
-                     use_dotted: bool = True) -> None:
+    def save_to_file(graph: Graph, filepath: Path, use_dotted: bool = True) -> None:
         data = GraphSerializer.to_nested_json(graph)
 
         with open(filepath, "w") as f:
@@ -391,7 +385,7 @@ def validate_graph_structure(graph: Graph) -> bool:
     edge_ids = set()
     label_ids = set()
 
-    def validate_label(label: Label): 
+    def validate_label(label: Label) -> None:
         if label.extra and not label.id:
             raise ValueError(f"Label {label} has 'extra' field, but not ID")
 
@@ -404,8 +398,6 @@ def validate_graph_structure(graph: Graph) -> bool:
         if node.id in node_ids:
             raise ValueError(f"Duplicate node id: {node.id}")
         node_ids.add(node.id)
-
-
 
         if node.labels:
             for l in node.labels:
@@ -424,8 +416,6 @@ def validate_graph_structure(graph: Graph) -> bool:
         if node.children:
             for child in node.children:
                 validate_nodes(child)
-
-
 
     if graph.children:
         for node in graph.children:
@@ -453,14 +443,12 @@ def validate_graph_structure(graph: Graph) -> bool:
             if edge.source is not None:
                 if edge.source not in node_ids and edge.source not in port_ids:
                     raise ValueError(
-                        f"Edge {edge.id} references unknown source: {edge.source}"
-                    )
+                        f"Edge {edge.id} references unknown source: {edge.source}")
 
             if edge.target is not None:
                 if edge.target not in node_ids and edge.target not in port_ids:
                     raise ValueError(
-                        f"Edge {edge.id} references unknown target: {edge.target}"
-                    )
+                        f"Edge {edge.id} references unknown target: {edge.target}")
 
             if edge.sourcePort is not None:
                 if edge.sourcePort not in port_ids:
@@ -478,15 +466,13 @@ def validate_graph_structure(graph: Graph) -> bool:
                 for source in edge.sources:
                     if source not in node_ids and source not in port_ids:
                         raise ValueError(
-                            f"Edge {edge.id} references unknown source: {source}"
-                        )
+                            f"Edge {edge.id} references unknown source: {source}")
 
             if edge.targets:
                 for target in edge.targets:
                     if target not in node_ids and target not in port_ids:
                         raise ValueError(
-                            f"Edge {edge.id} references unknown target: {target}"
-                        )
+                            f"Edge {edge.id} references unknown target: {target}")
 
     validate_edges(graph.edges)
 
@@ -521,9 +507,7 @@ def compute_absolute_positions(
     nodes = []
     edges_coords = []
 
-    def process_node(node: Node,
-                     parent_x: float = 0,
-                     parent_y: float = 0) -> None:
+    def process_node(node: Node, parent_x: float = 0, parent_y: float = 0) -> None:
         abs_x = parent_x + (node.x or 0)
         abs_y = parent_y + (node.y or 0)
 
@@ -560,8 +544,7 @@ def compute_absolute_positions(
                     if section.bendPoints:
                         for bend in section.bendPoints:
                             bends.append(
-                                Point(x=container_x + bend.x,
-                                      y=container_y + bend.y))
+                                Point(x=container_x + bend.x, y=container_y + bend.y))
                     edges_coords.append((start, bends, end))
             elif edge.sourcePoint and edge.targetPoint:
                 start = Point(x=container_x + edge.sourcePoint.x,
@@ -571,16 +554,13 @@ def compute_absolute_positions(
                 bends = []
                 if edge.bendPoints:
                     for bend in edge.bendPoints:
-                        bends.append(
-                            Point(x=container_x + bend.x,
-                                  y=container_y + bend.y))
+                        bends.append(Point(x=container_x + bend.x,
+                                           y=container_y + bend.y))
                 edges_coords.append((start, bends, end))
 
     process_edges(graph.edges)
 
-    def process_node_edges(node: Node,
-                           parent_x: float = 0,
-                           parent_y: float = 0) -> None:
+    def process_node_edges(node: Node, parent_x: float = 0, parent_y: float = 0) -> None:
         abs_x = parent_x + (node.x or 0)
         abs_y = parent_y + (node.y or 0)
 
@@ -638,8 +618,7 @@ def compute_graph_bounding_box(graph: Graph,
     def process_label(label: Label, abs_x: float, abs_y: float) -> None:
         label_x = abs_x + (label.x or 0.0)
         label_y = abs_y + (label.y or 0.0)
-        update_bounds(label_x, label_y, label.width or 0.0, label.height
-                      or 0.0)
+        update_bounds(label_x, label_y, label.width or 0.0, label.height or 0.0)
 
         if label.labels:
             for sub_label in label.labels:
@@ -722,9 +701,9 @@ def compute_graph_bounding_box(graph: Graph,
     return BoundingBox(min_x, min_y, max_x, max_y)
 
 
-def render_to_png(nodes: List[AbsolutePosition],
-                  edges: List[Tuple[Point, List[Point],
-                                    Point]], output_file: Path) -> None:
+def render_to_png(nodes: List[AbsolutePosition], edges: List[Tuple[Point, List[Point],
+                                                                   Point]],
+                  output_file: Path) -> None:
     fig, ax = plt.subplots(1, 1, figsize=(16, 10))
 
     max_x = max((n.x + n.width for n in nodes), default=100)
@@ -756,12 +735,11 @@ def render_to_png(nodes: List[AbsolutePosition],
                                              linewidth=1.5)
             ax.add_patch(diamond)
         elif node.type == "start":
-            circle = patches.Circle(
-                (node.x + node.width / 2, node.y + node.height / 2),
-                min(node.width, node.height) / 2,
-                facecolor=color,
-                edgecolor="black",
-                linewidth=1.5)
+            circle = patches.Circle((node.x + node.width / 2, node.y + node.height / 2),
+                                    min(node.width, node.height) / 2,
+                                    facecolor=color,
+                                    edgecolor="black",
+                                    linewidth=1.5)
             ax.add_patch(circle)
         else:
             rect = patches.Rectangle((node.x, node.y),
@@ -784,8 +762,7 @@ def render_to_png(nodes: List[AbsolutePosition],
         points = [start] + bends + [end]
 
         for i in range(len(points) - 1):
-            ax.plot([points[i].x, points[i + 1].x],
-                    [points[i].y, points[i + 1].y],
+            ax.plot([points[i].x, points[i + 1].x], [points[i].y, points[i + 1].y],
                     "k-",
                     linewidth=1.5)
 
@@ -817,13 +794,15 @@ def render_to_png(nodes: List[AbsolutePosition],
 
 from collections import defaultdict
 
+
 @beartype
 def extract_extra_data(graph: Graph) -> Dict[str, Dict[str, Any]]:
     extra_map: Dict[str, Dict[str, Any]] = defaultdict(lambda: dict())
 
     def collect_extra(obj: Any) -> None:
         if hasattr(obj, "id"):
-            def get_property(name: str):
+
+            def get_property(name: str) -> None:
                 if hasattr(obj, name) and getattr(obj, name) is not None:
                     extra_map[obj.id][name] = getattr(obj, name)
                     delattr(obj, name)
@@ -877,7 +856,6 @@ def extract_extra_data(graph: Graph) -> Dict[str, Dict[str, Any]]:
         for edge in graph.edges:
             traverse_edge(edge)
 
-
     if graph.ports:
         for port in graph.ports:
             collect_extra(port)
@@ -893,25 +871,22 @@ def extract_extra_data(graph: Graph) -> Dict[str, Dict[str, Any]]:
 
 
 @beartype
-def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str,
-                                                               Any]]) -> Graph:
+def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str, Any]]) -> Graph:
 
     def restore_extra(obj: Any) -> None:
         if hasattr(obj, "id"):
-            def transfer_property(name: str): 
+            def transfer_property(name: str) -> None:
                 if hasattr(obj, name):
                     obj_id = str(obj.id)
                     if obj_id in extra_map and name in extra_map[obj_id]:
                         setattr(obj, name, extra_map[obj_id][name])
 
-
             transfer_property("extra")
 
             if isinstance(obj, Port):
                 transfer_property("properties")
-                        
 
-    def traverse_edge(edge: Node) -> None:
+    def traverse_edge(edge: Edge) -> None:
         restore_extra(edge)
 
         if edge.labels:
@@ -953,7 +928,6 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str,
         for edge in graph.edges:
             traverse_edge(edge)
 
-
     if graph.ports:
         for port in graph.ports:
             restore_extra(port)
@@ -967,10 +941,12 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str,
 
     return graph
 
+
 from py_scriptutils.script_logging import to_debug_json, pprint_to_file
 
+
 def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
-    validate_graph_structure(graph) 
+    validate_graph_structure(graph)
 
     with TemporaryDirectory() as output_subdir:
         dir = Path(output_subdir)
@@ -986,14 +962,12 @@ def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
         cmd = local[str(layout_script_path)]
         cmd.run([f"--input={validated_path}", f"--output={layout_path}"])
 
-        LAYOUT_VALIDATION_DEBUG_PATH = Path(
-            "/tmp/layout-result-validation.txt")
+        LAYOUT_VALIDATION_DEBUG_PATH = Path("/tmp/layout-result-validation.txt")
         try:
             result = GraphSerializer.load_from_file(layout_path)
             restore_extra_data(result, extra_metadata)
 
-            LAYOUT_VALIDATION_DEBUG_PATH.write_text(
-                "LAYOUT_VALIDATION_DEBUG_PATH OK")
+            LAYOUT_VALIDATION_DEBUG_PATH.write_text("LAYOUT_VALIDATION_DEBUG_PATH OK")
 
             pprint_to_file(result, "/tmp/layout_result_model.py")
 
@@ -1001,6 +975,4 @@ def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:
 
         except ValidationError as err:
             LAYOUT_VALIDATION_DEBUG_PATH.write_text(str(err))
-            raise ValueError(
-                "Failed to validate resulting graph layout") from None
-
+            raise ValueError("Failed to validate resulting graph layout") from None

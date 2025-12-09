@@ -7,4 +7,4 @@ readme = "README.org"
 
 [tool.poetry.dependencies]
 python = "^3.10.0 <3.14"
-beartype = "^0.20.0"
+beartype = "^0.22.0"

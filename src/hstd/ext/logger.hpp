@@ -818,9 +818,6 @@ struct std::hash<hstd::log::log_record::log_data> {
     }
 };
 
-#endif
-
-
 template <>
 struct std::hash<hstd::log::log_category> {
     std::size_t operator()(
@@ -830,3 +827,8 @@ struct std::hash<hstd::log::log_category> {
         return result;
     }
 };
+
+
+#endif
+
+

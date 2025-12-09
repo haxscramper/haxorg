@@ -1,26 +1,28 @@
 #pragma once
 
-#if ORG_USE_QT
-#    include <QObject>
-#endif
+#if !ORG_EMCC_BUILD
 
-#include <vector>
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <stack>
-#include <hstd/ext/graphviz.hpp>
-#include <hstd/ext/logger.hpp>
+#    if ORG_USE_QT
+#        include <QObject>
+#    endif
 
-#if ORG_USE_QT
-#    include <QDebug>
-#    include <QBuffer>
-#endif
+#    include <vector>
+#    include <memory>
+#    include <string>
+#    include <unordered_map>
+#    include <stack>
+#    include <hstd/ext/graphviz.hpp>
+#    include <hstd/ext/logger.hpp>
+
+#    if ORG_USE_QT
+#        include <QDebug>
+#        include <QBuffer>
+#    endif
 
 namespace hstd {
-#if ORG_USE_QT
+#    if ORG_USE_QT
 std::string descObjectPtr(QObject* obj);
-#endif
+#    endif
 
 template <typename T>
     requires std::is_class_v<T>
@@ -104,7 +106,7 @@ struct log_graph_processor {
             : tracked_info{loc}, name{name}, args{args} {}
     };
 
-#if ORG_USE_QT
+#    if ORG_USE_QT
     struct signal_emit_info : public function_info {
         QObject const* sender;
         BOOST_DESCRIBE_STRUCT(
@@ -133,7 +135,7 @@ struct log_graph_processor {
             , sender{sender}
             , receiver{receiver} {}
     };
-#endif
+#    endif
 
 
     struct scope_info : public tracked_info {
@@ -170,7 +172,7 @@ struct log_graph_processor {
     };
 
 
-#if ORG_USE_QT
+#    if ORG_USE_QT
     struct qobject_info : public tracked_info {
         QObject const* object;
         BOOST_DESCRIBE_STRUCT(qobject_info, (tracked_info), (object));
@@ -200,7 +202,7 @@ struct log_graph_processor {
             , receiver{receiver}
             , slot{slot} {}
     };
-#endif
+#    endif
 
     virtual void track_function_start(function_info const& info) = 0;
     virtual void track_function_end(function_info const& info)   = 0;
@@ -212,12 +214,12 @@ struct log_graph_processor {
     virtual void track_named_text(named_text_info const& info) = 0;
     virtual void track_named_jump(named_jump_info const& info) = 0;
 
-#if ORG_USE_QT
+#    if ORG_USE_QT
     virtual void track_signal_emit(signal_emit_info const& info)   = 0;
     virtual void track_slot_trigger(slot_trigger_info const& info) = 0;
     virtual void track_qobject(qobject_info const& info)           = 0;
     virtual void track_connect(connect_info const& info)           = 0;
-#endif
+#    endif
 };
 
 struct log_graph_tracker {
@@ -308,7 +310,7 @@ struct log_graph_tracker {
     }
 
 
-#if ORG_USE_QT
+#    if ORG_USE_QT
 
     void notify_signal_emit(
         log_graph_processor::signal_emit_info const& info);
@@ -343,7 +345,7 @@ struct log_graph_tracker {
     hstd::finally_std track_slot(
         log_graph_processor::slot_trigger_info const& info);
 
-#endif
+#    endif
 
 
     hstd::finally_std track_function(
@@ -358,80 +360,81 @@ struct log_graph_tracker {
     std::vector<std::shared_ptr<log_graph_processor>> processors{};
 };
 
-#define HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, ...)                      \
-    __tracker->format_args_with_vars(                                     \
-        {__VA_OPT__(#__VA_ARGS__)} __VA_OPT__(, ) __VA_ARGS__)
+#    define HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, ...)                  \
+        __tracker->format_args_with_vars(                                 \
+            {__VA_OPT__(#__VA_ARGS__)} __VA_OPT__(, ) __VA_ARGS__)
 
-#define HSLOG_TRACKED_EMIT(__tracker, method, ...)                        \
-    __tracker->notify_signal_emit(                                        \
-        ::hstd::log::log_graph_processor::signal_emit_info(               \
-            this,                                                         \
-            ::hstd::log::log_graph_processor::function_info(              \
-                #method,                                                  \
-                HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),     \
+#    define HSLOG_TRACKED_EMIT(__tracker, method, ...)                    \
+        __tracker->notify_signal_emit(                                    \
+            ::hstd::log::log_graph_processor::signal_emit_info(           \
+                this,                                                     \
+                ::hstd::log::log_graph_processor::function_info(          \
+                    #method,                                              \
+                    HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__), \
+                    ::hstd::log::log_graph_processor::callsite::          \
+                        this_callsite())));                               \
+        emit method(__VA_ARGS__);
+
+#    define HSLOG_TRACKED_SLOT(__tracker, method, ...)                    \
+        auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_slot(  \
+            ::hstd::log::log_graph_processor::slot_trigger_info(          \
+                sender(),                                                 \
+                this,                                                     \
+                ::hstd::log::log_graph_processor::function_info(          \
+                    #method,                                              \
+                    HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__), \
+                    ::hstd::log::log_graph_processor::callsite::          \
+                        this_callsite())));
+
+
+#    define HSLOG_TRACKED_FUNCTION(__tracker, method, ...)                   \
+        auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_function( \
+            ::hstd::log::log_graph_processor::function_info(                 \
+                #method,                                                     \
+                HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),        \
+                ::hstd::log::log_graph_processor::callsite::                 \
+                    this_callsite()));
+
+#    define HSLOG_TRACKED_SCOPE(__tracker, description)                   \
+        auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_scope( \
+            ::hstd::log::log_graph_processor::scope_info(                 \
+                description,                                              \
                 ::hstd::log::log_graph_processor::callsite::              \
-                    this_callsite())));                                   \
-    emit method(__VA_ARGS__);
+                    this_callsite()));
 
-#define HSLOG_TRACKED_SLOT(__tracker, method, ...)                        \
-    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_slot(      \
-        ::hstd::log::log_graph_processor::slot_trigger_info(              \
-            sender(),                                                     \
-            this,                                                         \
-            ::hstd::log::log_graph_processor::function_info(              \
-                #method,                                                  \
-                HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),     \
+#    define HSLOG_TRACKED_JUMP(__tracker, description)                    \
+        __tracker->notify_named_jump(                                     \
+            ::hstd::log::log_graph_processor::named_jump_info(            \
+                description,                                              \
                 ::hstd::log::log_graph_processor::callsite::              \
-                    this_callsite())));
+                    this_callsite()));
 
 
-#define HSLOG_TRACKED_FUNCTION(__tracker, method, ...)                    \
-    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_function(  \
-        ::hstd::log::log_graph_processor::function_info(                  \
-            #method,                                                      \
-            HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),         \
-            ::hstd::log::log_graph_processor::callsite::                  \
-                this_callsite()));
+#    if ORG_USE_QT
 
-#define HSLOG_TRACKED_SCOPE(__tracker, description)                       \
-    auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_scope(     \
-        ::hstd::log::log_graph_processor::scope_info(                     \
-            description,                                                  \
-            ::hstd::log::log_graph_processor::callsite::                  \
-                this_callsite()));
-
-#define HSLOG_TRACKED_JUMP(__tracker, description)                        \
-    __tracker->notify_named_jump(                                         \
-        ::hstd::log::log_graph_processor::named_jump_info(                \
-            description,                                                  \
-            ::hstd::log::log_graph_processor::callsite::                  \
-                this_callsite()));
-
-
-#if ORG_USE_QT
-
-#    define HSLOG_TRACKED_CONNECT(                                        \
-        _tracker, _sender, _signal, _receiver, _slot, ...)                \
-        _tracker->notify_connect(                                         \
-            ::hstd::log::log_graph_processor::connect_info(               \
+#        define HSLOG_TRACKED_CONNECT(                                    \
+            _tracker, _sender, _signal, _receiver, _slot, ...)            \
+            _tracker->notify_connect(                                     \
+                ::hstd::log::log_graph_processor::connect_info(           \
+                    _sender,                                              \
+                    #_signal,                                             \
+                    _receiver,                                            \
+                    #_slot,                                               \
+                    ::hstd::log::log_graph_processor::callsite::          \
+                        this_callsite()));                                \
+            QObject::connect(                                             \
                 _sender,                                                  \
-                #_signal,                                                 \
+                _signal,                                                  \
                 _receiver,                                                \
-                #_slot,                                                   \
+                _slot __VA_OPT__(, ) __VA_ARGS__);
+
+#        define HSLOG_TRACKED_OBJECT(_tracker, _object)                   \
+            _tracker->track_qobject_pass(                                 \
+                _object,                                                  \
                 ::hstd::log::log_graph_processor::callsite::              \
-                    this_callsite()));                                    \
-        QObject::connect(                                                 \
-            _sender,                                                      \
-            _signal,                                                      \
-            _receiver,                                                    \
-            _slot __VA_OPT__(, ) __VA_ARGS__);
+                    this_callsite());
 
-#    define HSLOG_TRACKED_OBJECT(_tracker, _object)                       \
-        _tracker->track_qobject_pass(                                     \
-            _object,                                                      \
-            ::hstd::log::log_graph_processor::callsite::this_callsite());
-
-#endif
+#    endif
 
 struct graphviz_processor : public log_graph_processor {
     struct call_info {
@@ -457,12 +460,12 @@ struct graphviz_processor : public log_graph_processor {
     void track_named_text(named_text_info const& info) override {}
     void track_named_jump(named_jump_info const& info) override;
 
-#if ORG_USE_QT
+#    if ORG_USE_QT
     void track_signal_emit(signal_emit_info const& info) override;
     void track_slot_trigger(slot_trigger_info const& info) override;
     void track_qobject(qobject_info const& info) override {}
     void track_connect(connect_info const& info) override {}
-#endif
+#    endif
 
     hstd::ext::Graphviz::Graph get_graphviz();
 
@@ -487,15 +490,15 @@ struct logger_processor : public log_graph_processor {
     void track_named_text(named_text_info const& info) override;
     void track_named_jump(named_jump_info const& info) override;
 
-#if ORG_USE_QT
+#    if ORG_USE_QT
     void track_signal_emit(signal_emit_info const& info) override;
     void track_slot_trigger(slot_trigger_info const& info) override;
     void track_qobject(qobject_info const& info) override;
     void track_connect(connect_info const& info) override;
-#endif
+#    endif
 };
 
-#if ORG_USE_QT
+#    if ORG_USE_QT
 
 struct SignalDebugger : public QObject {
     Q_OBJECT
@@ -536,9 +539,10 @@ struct SignalDebugger : public QObject {
     }
 };
 
-#endif
+#    endif
 
 
 } // namespace hstd::log
 
 
+#endif

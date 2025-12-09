@@ -26,10 +26,12 @@ class MoveCommand(BaseModel, extra="forbid"):
     x: float
     y: float
 
+
 class LineCommand(BaseModel, extra="forbid"):
     type: str = "line"
     x: float
     y: float
+
 
 class QuadCommand(BaseModel, extra="forbid"):
     type: str = "quad"
@@ -37,6 +39,7 @@ class QuadCommand(BaseModel, extra="forbid"):
     control_y: float
     x: float
     y: float
+
 
 class CubicCommand(BaseModel, extra="forbid"):
     type: str = "cubic"
@@ -47,8 +50,10 @@ class CubicCommand(BaseModel, extra="forbid"):
     x: float
     y: float
 
+
 class CloseCommand(BaseModel, extra="forbid"):
     type: str = "close"
+
 
 DrawCommand = Union[MoveCommand, LineCommand, QuadCommand, CubicCommand, CloseCommand]
 
@@ -105,7 +110,7 @@ def graph_to_typst(
     return typ.Document(subnodes=subnodes)
 
 
-def _collect_all_edges(node: elk.Graph, all_edges: List[elk.Edge]) -> None:
+def _collect_all_edges(node: elk.Graph | elk.Node, all_edges: List[elk.Edge]) -> None:
     if hasattr(node, 'edges') and node.edges:
         all_edges.extend(node.edges)
 
@@ -120,9 +125,10 @@ from collections import defaultdict
 @beartype
 def get_edge_groups_by_shared_ports(target: elk.Graph | elk.Node) -> List[List[elk.Edge]]:
     port_to_edges = defaultdict(list)
+    assert target.edges is not None
     for edge in target.edges:
-        source_ports = []
-        target_ports = []
+        source_ports: List[tuple[Optional[str], Optional[str]]] = []
+        target_ports: List[tuple[Optional[str], Optional[str]]] = []
 
         if edge.sourcePort:
             source_ports.append((edge.source, edge.sourcePort))
@@ -137,8 +143,8 @@ def get_edge_groups_by_shared_ports(target: elk.Graph | elk.Node) -> List[List[e
         elif edge.target:
             target_ports.append((edge.target, None))
         elif edge.targets:
-            for target in edge.targets:
-                target_ports.append((target, None))
+            for edge_target in edge.targets:
+                target_ports.append((edge_target, None))
 
         for port_key in source_ports + target_ports:
             port_to_edges[port_key].append(edge)
@@ -176,17 +182,17 @@ from fontTools.pens.boundsPen import BoundsPen
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-_font_cache = {}
+_font_cache: Any = {}
 
 
 @dataclass
 class SplitResult:
     lines: List[str]
-    height: Number
+    height: float
 
 
 @beartype
-def get_font_metrics(font_path: str) -> Tuple[TTFont, Number]:
+def get_font_metrics(font_path: str) -> Tuple[TTFont, float]:
     if font_path in _font_cache:
         return _font_cache[font_path]
 
@@ -197,7 +203,7 @@ def get_font_metrics(font_path: str) -> Tuple[TTFont, Number]:
 
 
 @beartype
-def get_text_width(text: str, font_path: str, font_size: Number) -> Number:
+def get_text_width(text: str, font_path: str, font_size: float) -> float:
     ttfont, units_per_em = get_font_metrics(font_path)
     cmap = ttfont.getBestCmap()
     hmtx = ttfont["hmtx"]
@@ -213,7 +219,7 @@ def get_text_width(text: str, font_path: str, font_size: Number) -> Number:
 
 
 @beartype
-def get_line_height(font_path: str, font_size: Number) -> Number:
+def get_line_height(font_path: str, font_size: float) -> float:
     ttfont, units_per_em = get_font_metrics(font_path)
     hhea = ttfont["hhea"]
     line_height = hhea.ascent - hhea.descent + hhea.lineGap
@@ -235,13 +241,13 @@ def get_break_priority(char: str) -> int:
 
 
 @beartype
-def split_text_to_fit(text: str, expected_width: Number, font_path: str,
-                      font_size: Number) -> SplitResult:
+def split_text_to_fit(text: str, expected_width: float, font_path: str,
+                      font_size: float) -> SplitResult:
     if not text:
         return SplitResult(lines=[], height=0.0)
 
     n = len(text)
-    char_widths = []
+    char_widths: List[float] = []
     for char in text:
         char_widths.append(get_text_width(char, font_path, font_size))
 
@@ -253,7 +259,7 @@ def split_text_to_fit(text: str, expected_width: Number, font_path: str,
         if dp[i] == float("inf"):
             continue
 
-        current_width = 0
+        current_width = 0.0
         for j in range(i, n):
             current_width += char_widths[j]
             if current_width > expected_width:
@@ -308,7 +314,8 @@ def get_resource_port_id(id: str, side: Direction) -> str:
     return f"{id}-{side.name}"
 
 
-def round_to_multiple(number, multiple):
+@beartype
+def round_to_multiple(number: float, multiple: float) -> float:
     if round(number / multiple) == 0:
         return multiple
 
@@ -317,10 +324,12 @@ def round_to_multiple(number, multiple):
 
 
 @beartype
-def get_node_height_for_text(text: str,
-                             expected_width: Number,
-                             font_size: Number,
-                             size_step: Number = 25) -> Number:
+def get_node_height_for_text(
+    text: str,
+    expected_width: float,
+    font_size: float,
+    size_step: float = 25.0,
+) -> float:
     font_path = fm.findfont(fm.FontProperties(family="DejaVu Sans"))
     split_fit = split_text_to_fit(
         text,
@@ -352,9 +361,9 @@ class LabelGeometry(BaseModel, extra="forbid"):
 def single_line_label(
         id: str,
         text: str,
-        font_size: Number,
+        font_size: float,
         extra_extra: Dict[str, Any] = dict(),
-        size_step: Number = 25,
+        size_step: float = 25.0,
 ) -> elk.Label:
     font_path = fm.findfont(fm.FontProperties(family="DejaVu Sans"))
     expected_width = round_to_multiple(
@@ -376,7 +385,6 @@ def single_line_label(
             **extra_extra,
         ),
     )
-
 
 
 @beartype
@@ -402,21 +410,19 @@ def compute_hyperedge_drawing(sections: List[elk.EdgeSection],
 
     if hasattr(combined_polygon, "exterior"):
         coords = list(combined_polygon.exterior.coords)
-        commands = []
-        
+        commands: List[DrawCommand] = []
+
         if coords:
             commands.append(MoveCommand(x=coords[0][0], y=coords[0][1]))
-            
+
             for i in range(1, len(coords) - 1):
                 commands.append(LineCommand(x=coords[i][0], y=coords[i][1]))
-            
+
             commands.append(CloseCommand())
-        
+
         return commands
     else:
         return []
-
-
 
 
 def extract_color_palette(texture_path: str, n_colors: int = 3) -> dict:
@@ -518,9 +524,11 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge],
 
 
 @beartype
-def group_multi_layout(target: elk.Graph | elk.Node,
-                       hyperedge_polygon_width: float,
-                       single_item_hyperedge: bool = False):
+def group_multi_layout(
+    target: elk.Graph | elk.Node,
+    hyperedge_polygon_width: float,
+    single_item_hyperedge: bool = False,
+) -> None:
     if target.edges:
         grouped_multi_edges: List[elk.Edge] = []
         for group in get_edge_groups_by_shared_ports(target):
@@ -606,6 +614,6 @@ class GraphWalker(ABC):
             result.children.append(self.getELKNodeRec(v))
 
         for e in self.getEdges():
-            result.edges.append(self.getELKEdge(e))
+            result.edges.append(self.getELKEdge(e)) # type: ignore[union-attr]
 
         return result
