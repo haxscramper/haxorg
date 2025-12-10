@@ -1299,7 +1299,7 @@ def gen_description_files(
     builder: ASTBuilder,
     t: TextLayout,
     tmp: bool,
-):
+) -> None:
     for tu in description.files:
         for i in range(2):
             if i == 1 and not tu.source:
@@ -1364,14 +1364,14 @@ def codegen_options(f):
 @click.command()
 @codegen_options
 @click.pass_context
-def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
+def impl(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
     opts: CodegenOptions = get_context(ctx, CodegenOptions, config=config, kwargs=kwargs)
 
     t = TextLayout()
     pyast = pya.ASTBuilder(t)
     builder = ASTBuilder(t)
 
-    def write_files_group(impl: GenFiles):
+    def write_files_group(impl: GenFiles) -> None:
         gen_description_files(
             description=impl,
             builder=builder,

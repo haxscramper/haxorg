@@ -184,7 +184,7 @@ class GenGraph:
             case _:
                 assert False
 
-    def use_type(self, _id: int, Type: QualType, dbg_from: str = ""):
+    def use_type(self, _id: int, Type: QualType, dbg_from: str = "") -> None:
         _type = self.id_from_hash(hash_qual_type(Type))
         if _type == len(self.graph.vs):
             self.graph.add_vertex()

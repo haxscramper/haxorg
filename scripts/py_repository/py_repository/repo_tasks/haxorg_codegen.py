@@ -1,10 +1,12 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import List, Optional
+from beartype.typing import List, Optional, Any
 import igraph
 from py_ci.data_build import get_deps_install_config
+from py_codegen.gen_tu_cpp import GenTuInclude
 from py_codegen.refl_read import ConvTu, conv_proto_file
 from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
@@ -13,6 +15,10 @@ from py_repository.repo_tasks.common import check_is_file, ensure_existing_dir, 
 from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_scriptutils.script_logging import log
+import py_codegen.proto_lib.reflection_tool.reflection_defs as pb
+import dominate
+import graphviz
+import dominate.tags
 
 CAT = __name__
 
@@ -140,8 +146,17 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
 
 
 @beartype
-def create_include_graph(translation_units: List[ConvTu],
-                         filter_directory: Optional[str] = None) -> igraph.Graph:
+@dataclass
+class IncludeVertexData():
+    name: str
+    path: str
+    isProjectFile: bool
+    fileIncludes: List[GenTuInclude] = field(default_factory=list)
+
+
+@beartype
+def create_include_graph(ctx: TaskContext,
+                         translation_units: List[ConvTu]) -> igraph.Graph:
     g = igraph.Graph(directed=True)
 
     file_to_vertex = {}
@@ -152,13 +167,27 @@ def create_include_graph(translation_units: List[ConvTu],
 
         tu_path = Path(tu.absoluteOriginal).resolve()
 
-        if filter_directory is not None:
-            if not str(tu_path).startswith(filter_directory):
-                continue
+        @beartype
+        def get_vertex_id_for_path(path: Path) -> igraph.Vertex:
+            resolved = path.resolve()
 
-        if tu.absoluteOriginal not in file_to_vertex:
-            vertex_id = g.add_vertex(name=tu.absoluteOriginal, path=str(tu_path))
-            file_to_vertex[tu.absoluteOriginal] = vertex_id
+            if resolved not in file_to_vertex:
+                vertex_id = g.add_vertex(include_data=IncludeVertexData(
+                    name=path.name,
+                    path=str(path),
+                    isProjectFile=path.is_relative_to(get_script_root(ctx)),
+                ))
+
+                file_to_vertex[resolved] = vertex_id
+
+            return file_to_vertex[resolved]
+
+        @beartype
+        def get_vertex_data(path: Path) -> IncludeVertexData:
+            vertex_id = get_vertex_id_for_path(path)
+            return g.vs[vertex_id.index]["include_data"]
+
+        get_vertex_data(tu_path).fileIncludes = tu.includes
 
         for include in tu.includes:
             if include.absolutePath is None or include.isSystem:
@@ -166,40 +195,66 @@ def create_include_graph(translation_units: List[ConvTu],
 
             include_path = Path(include.absolutePath).resolve()
 
-            if filter_directory is not None:
-                if not str(include_path).startswith(filter_directory):
-                    continue
-
-            if include.absolutePath not in file_to_vertex:
-                vertex_id = g.add_vertex(name=include.absolutePath,
-                                         path=str(include_path))
-                file_to_vertex[include.absolutePath] = vertex_id
-
             g.add_edge(
-                file_to_vertex[include.absolutePath],
-                file_to_vertex[tu.absoluteOriginal],
+                get_vertex_id_for_path(include_path),
+                get_vertex_id_for_path(tu_path),
             )
 
     return g
 
 
 @beartype
-def igraph_to_graphviz(graph: igraph.Graph) -> str:
-    lines = ["digraph includes {"]
+def igraph_to_graphviz(graph: igraph.Graph) -> graphviz.Digraph:
+    dot = graphviz.Digraph("includes")
+    dot.attr("node", shape="plaintext")
 
-    lines.append("node[shape=rect];")
-    # lines.append("splines=ortho;")
+    def get_transitive_incoming_count(vertex_index: int) -> int:
+        reachable = graph.subcomponent(vertex_index, mode="in")
+        return len(reachable) - 1
+
+    def get_transitive_outgoing_count(vertex_index: int) -> int:
+        reachable = graph.subcomponent(vertex_index, mode="out")
+        return len(reachable) - 1
 
     for vertex in graph.vs:
-        vertex_name = Path(vertex["name"]).name
-        lines.append(f'  "{vertex.index}" [label="{vertex_name}"];')
+        incd: IncludeVertexData = vertex["include_data"]
+
+        if incd.isProjectFile:
+            doc = dominate.tags.table(border="1",
+                                      cellborder="0",
+                                      cellspacing="0",
+                                      bgcolor="mistyrose")
+            with doc:
+                with dominate.tags.tr():
+                    dominate.tags.td(incd.name, colspan="2", align="center")
+                with dominate.tags.tr():
+                    dominate.tags.td("File Includes:")
+                    dominate.tags.td(str(len(incd.fileIncludes)))
+                with dominate.tags.tr():
+                    dominate.tags.td("Direct Incoming:")
+                    dominate.tags.td(str(vertex.indegree()))
+                with dominate.tags.tr():
+                    dominate.tags.td("Transitive Incoming:")
+                    dominate.tags.td(str(get_transitive_incoming_count(vertex.index)))
+                with dominate.tags.tr():
+                    dominate.tags.td("Transitive Outgoing:")
+                    dominate.tags.td(str(get_transitive_outgoing_count(vertex.index)))
+
+            label = "<" + doc.render() + ">"
+            dot.node(str(vertex.index), label=label)
+        else:
+            doc = dominate.tags.table(border="1", cellborder="0", cellspacing="0")
+            with doc:
+                with dominate.tags.tr():
+                    dominate.tags.td(incd.name)
+
+            label = "<" + doc.render() + ">"
+            dot.node(str(vertex.index), label=label)
 
     for edge in graph.es:
-        lines.append(f'  "{edge.source}" -> "{edge.target}" [headport=n, tailport=s];')
+        dot.edge(str(edge.source), str(edge.target), headport="n", tailport="s")
 
-    lines.append("}")
-
-    return "\n".join(lines)
+    return dot
 
 
 @beartype
@@ -213,6 +268,8 @@ def process_reflection_file(
     relative = file.relative_to(get_script_root(ctx))
     out_file = get_build_root(ctx, f"{relative}_translation.pb")
     log(CAT).info(f"Analysing TU for {relative}")
+
+    ensure_existing_dir(ctx, out_file.parent)
 
     if out_file.exists() and file.stat().st_mtime <= out_file.stat().st_mtime:
         log(CAT).info("TU file already exists")
@@ -245,6 +302,7 @@ def process_reflection_file(
         log(CAT).error(cmd_stderr)
         return None
     else:
+        assert out_file.exists(), f"{relative}"
         return out_file
 
 
@@ -309,14 +367,18 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
             if result is not None:
                 ok_files.append(result)
 
-    conv_tus = [
-        tu for tu in (conv_proto_file(f) for f in ok_files)
-        if tu.absoluteOriginal.endswith("hpp")
-    ]
+    conv_tus = []
 
-    igraph_tus = create_include_graph(conv_tus,
-                                      filter_directory=str(get_script_root(ctx)))
+    for f in ok_files:
+        tu = conv_proto_file(f)
+        tu_unit = pb.TU.FromString(f.read_bytes())
+        tu_json = f.with_suffix(".json")
+        tu_json.write_text(tu_unit.to_json(indent=2))
+        log(CAT).debug(f"tu_json debug {tu_json}")
+        if tu.absoluteOriginal.endswith("hpp"):
+            conv_tus.append(tu)
 
+    igraph_tus = create_include_graph(ctx, conv_tus)
     igraph_tus = remove_redundant_edges(igraph_tus)
 
     # for tu in conv_tus:
@@ -325,12 +387,4 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
     #         log(CAT).info(f"  {inc.absolutePath}")
 
     graphviz_tus = igraph_to_graphviz(igraph_tus)
-    gv_path = Path("/tmp/result.dot")
-    gv_path.write_text(graphviz_tus)
-    run_command(ctx, "dot", [
-        "-Tpng",
-        "-Kdot",
-        "-o",
-        gv_path.with_suffix(".png"),
-        gv_path,
-    ])
+    graphviz_tus.render("/tmp/result", format="png")
