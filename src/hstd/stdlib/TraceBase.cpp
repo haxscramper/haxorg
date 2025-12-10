@@ -3,6 +3,8 @@
 #include <fstream>
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+
 #if !ORG_EMCC_BUILD
 #    include <cpptrace.hpp>
 #endif

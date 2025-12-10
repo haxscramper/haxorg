@@ -3,6 +3,7 @@
 #include <concepts>
 #include <format>
 #include <haxorg/exporters/exportertree.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 using namespace hstd;
 using namespace org::sem;

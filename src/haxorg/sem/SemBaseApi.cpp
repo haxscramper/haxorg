@@ -12,6 +12,8 @@
 #include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #    include <SemOrgProto.pb.h>
 #endif

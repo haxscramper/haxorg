@@ -1,4 +1,6 @@
 #include "tOrgTestCommon.hpp"
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/MapSerde.hpp>
 
 template <typename T>
 struct JsonSerde<sem::SemId<T>> {

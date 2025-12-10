@@ -1,9 +1,10 @@
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import List, Optional, Any, Tuple
+from beartype.typing import List, Optional, Any, Tuple, Dict
 import igraph
 from py_ci.data_build import get_deps_install_config
 from py_codegen.gen_tu_cpp import GenTuInclude
@@ -19,6 +20,8 @@ import py_codegen.proto_lib.reflection_tool.reflection_defs as pb
 import dominate
 import graphviz
 import dominate.tags
+from pydantic import BaseModel, Field
+import statistics
 
 CAT = __name__
 
@@ -152,11 +155,15 @@ class IncludeVertexData():
     path: str
     isProjectFile: bool
     fileIncludes: List[GenTuInclude] = field(default_factory=list)
+    averageSourceTime: Optional[float] = None
 
 
 @beartype
-def create_include_graph(ctx: TaskContext,
-                         translation_units: List[ConvTu]) -> igraph.Graph:
+def create_include_graph(
+    ctx: TaskContext,
+    translation_units: List[ConvTu],
+    source_averages: defaultdict[Path, List[int]],
+) -> igraph.Graph:
     g = igraph.Graph(directed=True)
 
     file_to_vertex = {}
@@ -172,11 +179,16 @@ def create_include_graph(ctx: TaskContext,
             resolved = path.resolve()
 
             if resolved not in file_to_vertex:
-                vertex_id = g.add_vertex(include_data=IncludeVertexData(
+                icd = IncludeVertexData(
                     name=path.name,
                     path=str(path),
                     isProjectFile=path.is_relative_to(get_script_root(ctx)),
-                ))
+                )
+
+                if resolved in source_averages:
+                    icd.averageSourceTime = statistics.mean(source_averages[resolved])
+
+                vertex_id = g.add_vertex(include_data=icd)
 
                 file_to_vertex[resolved] = vertex_id
 
@@ -245,6 +257,11 @@ def igraph_to_graphviz(
                 with dominate.tags.tr():
                     dominate.tags.td("Transitive Outgoing:")
                     dominate.tags.td(str(get_transitive_outgoing_count(vertex.index)))
+
+                if incd.averageSourceTime:
+                    with dominate.tags.tr():
+                        dominate.tags.td("Average source:")
+                        dominate.tags.td(f"{incd.averageSourceTime/1E3:.3f}")
 
             label = "<" + doc.render() + ">"
             dot.node(str(vertex.index), label=label)
@@ -357,6 +374,29 @@ def create_project_file_subgraphs(
     return result
 
 
+class TraceEvent(BaseModel, extra="forbid"):
+    pid: int = 0
+    tid: int = 0
+    ph: str = ""
+    ts: int = 0
+    dur: int = 0
+    name: str = ""
+    cat: Optional[str] = None
+    args: Dict[str, Any] = Field(default_factory=dict)
+
+
+class TraceEventNode(BaseModel, extra="forbid"):
+    event: TraceEvent
+    children: List["TraceEventNode"]
+
+
+class TraceFile(BaseModel, extra="forbid"):
+    traceEvents: List[TraceEvent] = field(default_factory=list)
+    tree: Optional[TraceEventNode] = None
+    path: str = ""
+    beginningOfTime: int = 0
+
+
 @haxorg_task(dependencies=[generate_python_protobuf_files])
 def generate_full_code_reflection(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
@@ -410,15 +450,40 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
         if tu.absoluteOriginal.endswith("hpp"):
             conv_tus.append(tu)
 
-    igraph_tus = create_include_graph(ctx, conv_tus)
-    igraph_tus = remove_redundant_edges(igraph_tus)
-    graphviz_tus = igraph_to_graphviz(igraph_tus)
-    graphviz_tus.render("/tmp/result", format="png")
+    flamegraph_files: List[TraceFile] = list()
+    source_averages: defaultdict[Path, List[int]] = defaultdict(lambda: list())
 
-    for subgraph, sub_vertex in create_project_file_subgraphs(igraph_tus):
-        incd: IncludeVertexData = subgraph.vs[sub_vertex.index]["include_data"]
-        sub_file = get_build_root(
-            ctx, f"reflect/individual_include_graphs/{incd.name}").with_suffix("")
-        ensure_existing_dir(ctx, sub_file.parent)
-        log(CAT).info(f"sub_file = {sub_file}.png")
-        igraph_to_graphviz(subgraph, target=sub_vertex).render(sub_file, format="png")
+    for file in get_build_root(ctx, "haxorg/src/haxorg/CMakeFiles/").rglob("*.cpp.json"):
+        log(CAT).debug(file)
+        read_file = TraceFile.model_validate_json(file.read_text())
+        read_file.path = str(file)
+        for event in read_file.traceEvents:
+            if event.name == "Source":
+                source_averages[Path(event.args["detail"]).resolve()].append(event.dur)
+
+    igraph_tus = create_include_graph(
+        ctx,
+        conv_tus,
+        source_averages=source_averages,
+    )
+
+    def generate_transitive_subgraph(suffix: str) -> None:
+        for subgraph, sub_vertex in create_project_file_subgraphs(igraph_tus):
+            incd: IncludeVertexData = subgraph.vs[sub_vertex.index]["include_data"]
+            sub_file = Path(
+                str(
+                    get_build_root(ctx, f"reflect/individual_include_graphs/{incd.name}").
+                    with_suffix("")) + suffix)
+
+            ensure_existing_dir(ctx, sub_file.parent)
+            log(CAT).info(f"sub_file.{suffix} = {sub_file}.png")
+            igraph_to_graphviz(subgraph, target=sub_vertex).render(sub_file, format="png")
+
+    # generate_transitive_subgraph("_base")
+    igraph_tus = remove_redundant_edges(igraph_tus)
+    # generate_transitive_subgraph("_reduced")
+
+    graphviz_tus = igraph_to_graphviz(igraph_tus)
+    graphviz_file = get_build_root(ctx, "reflect/include_graph.png").with_suffix("")
+    graphviz_tus.render(graphviz_file, format="png")
+    log(CAT).info(f"Final grouped graph {graphviz_file}.png")

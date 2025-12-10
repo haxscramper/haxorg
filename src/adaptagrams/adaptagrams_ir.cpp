@@ -10,6 +10,7 @@
 #include <libavoid/libavoid.h>
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 using namespace hstd;
 using namespace hstd::ext;

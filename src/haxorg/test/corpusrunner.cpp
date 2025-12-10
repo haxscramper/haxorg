@@ -15,7 +15,13 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/ext/logger.hpp>
-
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/YamlSerde.hpp>
+#include <hstd/stdlib/ColTextSerde.hpp>
+#include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/stdlib/IntSetSerde.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/MapSerde.hpp>
 
 using namespace org::test;
 using namespace hstd;
