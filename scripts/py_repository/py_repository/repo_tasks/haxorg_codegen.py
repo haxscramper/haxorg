@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from beartype import beartype
@@ -174,8 +175,10 @@ def create_include_graph(translation_units: List[ConvTu],
                                          path=str(include_path))
                 file_to_vertex[include.absolutePath] = vertex_id
 
-            g.add_edge(file_to_vertex[tu.absoluteOriginal],
-                       file_to_vertex[include.absolutePath])
+            g.add_edge(
+                file_to_vertex[include.absolutePath],
+                file_to_vertex[tu.absoluteOriginal],
+            )
 
     return g
 
@@ -184,22 +187,92 @@ def create_include_graph(translation_units: List[ConvTu],
 def igraph_to_graphviz(graph: igraph.Graph) -> str:
     lines = ["digraph includes {"]
 
+    lines.append("node[shape=rect];")
+    # lines.append("splines=ortho;")
+
     for vertex in graph.vs:
         vertex_name = Path(vertex["name"]).name
         lines.append(f'  "{vertex.index}" [label="{vertex_name}"];')
 
     for edge in graph.es:
-        lines.append(f'  "{edge.source}" -> "{edge.target}";')
+        lines.append(f'  "{edge.source}" -> "{edge.target}" [headport=n, tailport=s];')
 
     lines.append("}")
 
     return "\n".join(lines)
 
 
+@beartype
+def process_reflection_file(
+    ctx: TaskContext,
+    file: Path,
+    compile_commands: Path,
+    header_commands: Path,
+    toolchain_include: Path,
+) -> Optional[Path]:
+    relative = file.relative_to(get_script_root(ctx))
+    out_file = get_build_root(ctx, f"{relative}_translation.pb")
+    log(CAT).info(f"Analysing TU for {relative}")
+
+    if out_file.exists() and file.stat().st_mtime <= out_file.stat().st_mtime:
+        log(CAT).info("TU file already exists")
+        return out_file
+
+    cmd_code, cmd_stdout, cmd_stderr = run_command(
+        ctx,
+        get_build_root(ctx, "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool"),
+        [
+            "-p",
+            compile_commands,
+            "--compilation-database",
+            header_commands,
+            "--toolchain-include",
+            toolchain_include,
+            "--main-tu-analysis",
+            *(["--verbose"] if ctx.config.log_level == HaxorgLogLevel.VERBOSE else []),
+            "--out",
+            out_file,
+            file,
+        ],
+        capture=True,
+        allow_fail=True,
+    )
+
+    if "Compile command not found" in cmd_stderr:
+        return None
+    elif cmd_code != 0:
+        log(CAT).info(cmd_stdout)
+        log(CAT).error(cmd_stderr)
+        return None
+    else:
+        return out_file
+
+
+@beartype
+def remove_redundant_edges(igraph_tus: igraph.Graph) -> igraph.Graph:
+    edges_to_remove = []
+
+    for edge in igraph_tus.es:
+        source = edge.source
+        target = edge.target
+
+        paths = igraph_tus.get_all_simple_paths(source, target, cutoff=len(igraph_tus.vs))
+
+        for path in paths:
+            if len(path) > 2:
+                edges_to_remove.append(edge.index)
+                break
+
+    igraph_tus.delete_edges(edges_to_remove)
+    return igraph_tus
+
+
 @haxorg_task(dependencies=[generate_python_protobuf_files])
 def generate_full_code_reflection(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
+    header_commands = get_script_root(ctx,
+                                      "build/haxorg/compile_commands_with_headers.json")
     toolchain_include = get_script_root(
         ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
 
@@ -207,59 +280,57 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
     conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
     conf_copy.build_conf.force = True
     build_haxorg(ctx=ctx.with_temp_config(conf_copy))
+
+    header_compdb_content = run_command(
+        ctx,
+        "compdb",
+        [
+            "-p",
+            compile_commands.parent,
+            "list",
+        ],
+        capture=True,
+    )
+
+    header_commands.write_text(header_compdb_content[1])
+    log(CAT).info(f"Wrote extended compilation database to {header_commands}")
+
     ok_files: List[Path] = []
+    files = list(get_script_root(ctx, "src").rglob("*.?pp"))
 
-    for file in get_script_root(ctx, "src").rglob("*.cpp"):
-        out_file = get_build_root(ctx, f"{file}_translation.pb")
-        log(CAT).info(f"Analysing TU for {file}")
-        if out_file.exists() and file.stat().st_mtime <= out_file.stat().st_mtime:
-            log(CAT).info("TU file already exists")
-            ok_files.append(out_file)
-            continue
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        futures = [
+            executor.submit(process_reflection_file, ctx, file, compile_commands,
+                            header_commands, toolchain_include) for file in files
+        ]
 
-        continue
+        for future in as_completed(futures):
+            result = future.result()
+            if result is not None:
+                ok_files.append(result)
 
-        cmd_code, cmd_stdout, cmd_stderr = run_command(
-            ctx,
-            get_build_root(ctx,
-                           "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool"),
-            [
-                "-p",
-                compile_commands,
-                "--compilation-database",
-                compile_commands,
-                "--toolchain-include",
-                toolchain_include,
-                "--main-tu-analysis",
-                *(["--verbose"]
-                  if ctx.config.log_level == HaxorgLogLevel.VERBOSE else []),
-                "--out",
-                out_file,
-                file,
-            ],
-            capture=True,
-            allow_fail=True,
-        )
+    conv_tus = [
+        tu for tu in (conv_proto_file(f) for f in ok_files)
+        if tu.absoluteOriginal.endswith("hpp")
+    ]
 
-        if "Compile command not found" in cmd_stderr:
-            continue
-
-        elif cmd_code != 0:
-            log(CAT).info(cmd_stdout)
-            log(CAT).error(cmd_stderr)
-            # raise RuntimeError("Failed to execute")
-
-        else:
-            ok_files.append(out_file)
-
-    conv_tus = [conv_proto_file(f) for f in ok_files]
     igraph_tus = create_include_graph(conv_tus,
-                                    #   filter_directory=str(get_script_root(ctx))
-                                      )
-    for tu in conv_tus:
-        log(CAT).info(f"{tu.absoluteOriginal} includes size {len(tu.includes)}")
-        for inc in tu.includes:
-            log(CAT).info(f"  {inc.absolutePath}")
+                                      filter_directory=str(get_script_root(ctx)))
+
+    igraph_tus = remove_redundant_edges(igraph_tus)
+
+    # for tu in conv_tus:
+    #     log(CAT).info(f"{tu.absoluteOriginal} includes size {len(tu.includes)}")
+    #     for inc in tu.includes:
+    #         log(CAT).info(f"  {inc.absolutePath}")
 
     graphviz_tus = igraph_to_graphviz(igraph_tus)
-    Path("/tmp/result.dot").write_text(graphviz_tus)
+    gv_path = Path("/tmp/result.dot")
+    gv_path.write_text(graphviz_tus)
+    run_command(ctx, "dot", [
+        "-Tpng",
+        "-Kdot",
+        "-o",
+        gv_path.with_suffix(".png"),
+        gv_path,
+    ])
