@@ -7,7 +7,6 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/TraceBase.hpp>
 
 #include <hstd/system/reflection.hpp>

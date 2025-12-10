@@ -13,6 +13,7 @@
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <haxorg/base_lexer/base_token_tokenize.hpp>
 
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #    include <SemOrgProto.pb.h>

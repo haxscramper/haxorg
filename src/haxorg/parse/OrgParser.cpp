@@ -2604,6 +2604,13 @@ OrgId OrgParser::parseFull(OrgLexer& lex) {
     return result.assume_value().result.value();
 }
 
+std::string OrgParser::printLexerToString(OrgLexer& lex) const {
+    return lex.printToString([](hstd::ColStream& os, OrgToken const& t) {
+        os << os.yellow() << escape_for_write(t.value.text) << os.end()
+           << hstd::fmt1(t.value);
+    });
+}
+
 
 bool OrgParser::at(CR<OrgLexer> lex, CR<OrgExpectable> item) {
     if (item.index() == 0 && lex.at(std::get<0>(item))) {

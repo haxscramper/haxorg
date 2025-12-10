@@ -11,6 +11,8 @@
 #include <haxorg/parse/OrgTypes.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>
+#include <haxorg/lexbase/Lexer.hpp>
+#include <haxorg/parse/OrgParserTypes.hpp>
 
 namespace org::parse {
 

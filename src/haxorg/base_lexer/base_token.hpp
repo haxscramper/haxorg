@@ -17,21 +17,8 @@ struct OrgFill {
     DESC_FIELDS(OrgFill, (text, line, col, pos));
 };
 
-using OrgToken      = Token<OrgTokenKind, OrgFill>;
-using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
-using OrgTokenId    = TokenId<OrgTokenKind, OrgFill>;
-
-struct LexerParams : hstd::OperationsTracer {
-    struct Loc {
-        int line;
-        int col;
-    };
-};
-
-
-OrgTokenGroup tokenize(std::string const& text, LexerParams const& p);
-
-
+using OrgToken   = Token<OrgTokenKind, OrgFill>;
+using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;
 } // namespace org::parse
 
 

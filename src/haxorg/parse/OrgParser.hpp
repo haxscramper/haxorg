@@ -11,6 +11,10 @@
 
 namespace org::parse {
 
+template <typename K, typename V>
+struct LexerCommon;
+using OrgLexer = LexerCommon<OrgTokenKind, OrgFill>;
+
 struct parse_error : hstd::CRTP_hexception<parse_error> {};
 
 using ParseCb = std::function<OrgId(OrgLexer&)>;
@@ -142,13 +146,7 @@ struct OrgParser : public hstd::OperationsTracer {
 
     bool at(OrgLexer const& lex, OrgParser::OrgExpectable const& item);
 
-    std::string printLexerToString(OrgLexer& lex) const {
-        return lex.printToString(
-            [](hstd::ColStream& os, OrgToken const& t) {
-                os << os.yellow() << escape_for_write(t.value.text)
-                   << os.end() << hstd::fmt1(t.value);
-            });
-    }
+    std::string printLexerToString(OrgLexer& lex) const;
 
     OrgId token(
         OrgNode const& node,

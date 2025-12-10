@@ -1,4 +1,5 @@
 #include "Node.hpp"
+#include "NodeStore.hpp"
 
 using namespace org::parse;
 using namespace hstd;

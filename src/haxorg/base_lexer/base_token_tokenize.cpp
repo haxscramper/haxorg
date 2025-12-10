@@ -1,4 +1,4 @@
-#include "base_token.hpp"
+#include "base_token_tokenize.hpp"
 #include <haxorg/lexbase/TraceStructured.hpp>
 #include <cctype>
 
@@ -397,7 +397,7 @@ struct Cursor {
         tok->col  = this->col;
         tok->line = this->line;
         tok->pos  = start;
-        tok.kind = kind;
+        tok.kind  = kind;
 
         tok.value.text = std::string{
             text.begin() + start,
