@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import List, Optional, Any
+from beartype.typing import List, Optional, Any, Tuple
 import igraph
 from py_ci.data_build import get_deps_install_config
 from py_codegen.gen_tu_cpp import GenTuInclude
@@ -204,7 +204,10 @@ def create_include_graph(ctx: TaskContext,
 
 
 @beartype
-def igraph_to_graphviz(graph: igraph.Graph) -> graphviz.Digraph:
+def igraph_to_graphviz(
+    graph: igraph.Graph,
+    target: Optional[igraph.Vertex] = None,
+) -> graphviz.Digraph:
     dot = graphviz.Digraph("includes")
     dot.attr("node", shape="plaintext")
 
@@ -220,10 +223,13 @@ def igraph_to_graphviz(graph: igraph.Graph) -> graphviz.Digraph:
         incd: IncludeVertexData = vertex["include_data"]
 
         if incd.isProjectFile:
-            doc = dominate.tags.table(border="1",
-                                      cellborder="0",
-                                      cellspacing="0",
-                                      bgcolor="mistyrose")
+            doc = dominate.tags.table(
+                border="1",
+                cellborder="0",
+                cellspacing="0",
+                bgcolor="lightskyblue1" if vertex == target else "mistyrose",
+            )
+
             with doc:
                 with dominate.tags.tr():
                     dominate.tags.td(incd.name, colspan="2", align="center")
@@ -325,6 +331,32 @@ def remove_redundant_edges(igraph_tus: igraph.Graph) -> igraph.Graph:
     return igraph_tus
 
 
+@beartype
+def create_project_file_subgraphs(
+        graph: igraph.Graph) -> List[Tuple[igraph.Graph, igraph.Vertex]]:
+    result: List[Tuple[igraph.Graph, igraph.Vertex]] = []
+
+    for vertex in graph.vs:
+        incd: IncludeVertexData = vertex["include_data"]
+
+        if incd.isProjectFile:
+            reachable_from = set(graph.subcomponent(vertex.index, mode="in"))
+            reachable_to = set(graph.subcomponent(vertex.index, mode="out"))
+            all_reachable = reachable_from.union(reachable_to)
+
+            subgraph = graph.subgraph(list(all_reachable))
+
+            new_vertex_index = None
+            for v in subgraph.vs:
+                if v["include_data"].path == incd.path:
+                    new_vertex_index = v.index
+                    break
+
+            result.append((subgraph, subgraph.vs[new_vertex_index]))
+
+    return result
+
+
 @haxorg_task(dependencies=[generate_python_protobuf_files])
 def generate_full_code_reflection(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
@@ -380,11 +412,13 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
 
     igraph_tus = create_include_graph(ctx, conv_tus)
     igraph_tus = remove_redundant_edges(igraph_tus)
-
-    # for tu in conv_tus:
-    #     log(CAT).info(f"{tu.absoluteOriginal} includes size {len(tu.includes)}")
-    #     for inc in tu.includes:
-    #         log(CAT).info(f"  {inc.absolutePath}")
-
     graphviz_tus = igraph_to_graphviz(igraph_tus)
     graphviz_tus.render("/tmp/result", format="png")
+
+    for subgraph, sub_vertex in create_project_file_subgraphs(igraph_tus):
+        incd: IncludeVertexData = subgraph.vs[sub_vertex.index]["include_data"]
+        sub_file = get_build_root(
+            ctx, f"reflect/individual_include_graphs/{incd.name}").with_suffix("")
+        ensure_existing_dir(ctx, sub_file.parent)
+        log(CAT).info(f"sub_file = {sub_file}.png")
+        igraph_to_graphviz(subgraph, target=sub_vertex).render(sub_file, format="png")
