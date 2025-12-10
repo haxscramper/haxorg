@@ -11,6 +11,7 @@
 #include <immer/flex_vector.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 using namespace org;
 using namespace org::imm;

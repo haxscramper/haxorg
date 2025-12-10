@@ -2,13 +2,10 @@
 
 #include <hstd/stdlib/dod_base.hpp>
 
-#include <haxorg/lexbase/Token.hpp>
-#include <haxorg/lexbase/Node.hpp>
-#include <haxorg/lexbase/NodeAdapter.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
-#include <haxorg/base_lexer/base_token.hpp>
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrgSharedTypes.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
 
 
 template <>
@@ -29,8 +26,6 @@ std::string fieldname_to_code(std::string_view str);
 
 namespace org::parse {
 
-
-using OrgToken = Token<OrgTokenKind, OrgFill>;
 
 struct OrgNodeMono {
     struct None {
@@ -69,30 +64,8 @@ struct OrgNodeMono {
     DESC_FIELDS(OrgNodeMono, (data));
 };
 
-
-using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;
-
-using OrgNode = Node<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
-using OrgId   = NodeId<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
-using OrgNodeGroup = NodeGroup<
-    OrgNodeKind,
-    OrgTokenKind,
-    OrgFill,
-    OrgNodeMono>;
-
-
-using OrgAdapter = NodeAdapter<
-    OrgNodeKind,
-    OrgTokenKind,
-    OrgFill,
-    OrgNodeMono>;
 using OrgSet = hstd::IntSet<OrgNodeKind>;
 
-extern template class NodeGroup<
-    OrgNodeKind,
-    OrgTokenKind,
-    OrgFill,
-    OrgNodeMono>;
 
 } // namespace org::parse
 

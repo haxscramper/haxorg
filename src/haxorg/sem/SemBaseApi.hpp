@@ -253,12 +253,7 @@ struct [[refl]] AstTrackingAlternatives {
     DESC_FIELDS(AstTrackingAlternatives, (alternatives));
 
     /// \brief Return final nodes for all tracking alternatives.
-    [[refl]] hstd::Vec<sem::SemId<sem::Org>> getAllNodes() const {
-        return alternatives //
-             | hstd::rv::transform(
-                   [](AstTrackingPath const& p) { return p.getNode(); })
-             | hstd::rs::to<hstd::Vec>();
-    }
+    [[refl]] hstd::Vec<sem::SemId<sem::Org>> getAllNodes() const;
 
     /// \brief Return first node from the alternatives.
     [[refl]] sem::SemId<sem::Org> getNode() const {

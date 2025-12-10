@@ -49,7 +49,6 @@ sem::OrgPtrVariant asVariant(Org* in) {
 } // namespace org::sem
 
 Org::Org() : subnodes({}) {}
-Org::Org(parse::OrgAdapter original) : original(original), subnodes({}) {}
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
 Vec<org::sem::AttrValue> AttrGroup::getFlatArgs() const {

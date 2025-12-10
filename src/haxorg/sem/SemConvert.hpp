@@ -261,7 +261,7 @@ struct OrgConverter : public hstd::OperationsTracer {
 
     template <typename T>
     SemId<T> Sem(In adapter) {
-        SemId<T> res = SemId<T>::New(adapter);
+        SemId<T> res = SemId<T>::New();
         res->loc     = getLoc(adapter);
         return res;
     }

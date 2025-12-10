@@ -1852,3 +1852,10 @@ hstd::Vec<sem::SemId<ErrorGroup>> org::collectErrorNodes(
     });
     return res;
 }
+
+hstd::Vec<sem::SemId<Org>> AstTrackingAlternatives::getAllNodes() const {
+    return alternatives //
+         | hstd::rv::transform(
+               [](AstTrackingPath const& p) { return p.getNode(); })
+         | hstd::rs::to<hstd::Vec>();
+}

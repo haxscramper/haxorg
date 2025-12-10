@@ -18,9 +18,6 @@ json ExporterJson::newRes(sem::SemId<sem::Org> org) {
             json loc    = json::object();
             loc["line"] = org->loc ? json(org->loc->line) : json();
             loc["col"]  = org->loc ? json(org->loc->column) : json();
-            loc["id"]   = org->original.id.isNil()
-                            ? json()
-                            : json(org->original.id.getValue());
             res["loc"]  = loc;
         }
 

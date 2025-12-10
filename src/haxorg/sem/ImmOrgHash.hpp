@@ -1,5 +1,6 @@
 #pragma once
 #include <haxorg/sem/ImmOrg.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 template <typename T>
 std::size_t get_std_hash(T const& it) {

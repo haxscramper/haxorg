@@ -29,9 +29,6 @@ yaml ExporterYaml::newRes(sem::SemId<sem::Org> org) {
         loc.SetStyle(YAML::EmitterStyle::Flow);
         loc["line"] = org->loc ? yaml(org->loc->line) : yaml();
         loc["col"]  = org->loc ? yaml(org->loc->column) : yaml();
-        loc["id"]   = org->original.id.isNil()
-                        ? yaml()
-                        : yaml(org->original.id.getValue());
         res["loc"]  = loc;
     }
 

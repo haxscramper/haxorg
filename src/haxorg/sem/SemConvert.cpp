@@ -2952,7 +2952,6 @@ hstd::Vec<parse::OrgAdapter> OrgConverter::many(
 void OrgConverter::convertDocumentOptions(
     SemId<DocumentOptions> opts,
     org::parse::OrgAdapter a) {
-    if (opts->isGenerated()) { opts->original = a; }
     auto item      = a.at(0);
     auto parseBool = [](CR<Str> value) {
         return value == "t" || value == "T";

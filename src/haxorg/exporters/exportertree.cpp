@@ -85,10 +85,6 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
         os << " [" << ctx.subnodeIdx << "]";
     }
 
-    if (conf.withOriginalId) {
-        os << " OID:" << fmt1(org->original.id.getUnmasked());
-    }
-
     if (conf.withLineCol) {
         if (org->loc.has_value()) {
             auto& [line, col, pos] = org->loc.value();
