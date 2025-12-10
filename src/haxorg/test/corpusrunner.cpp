@@ -22,6 +22,7 @@
 #include <hstd/stdlib/IntSetSerde.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
 #include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/ext/bimap_wrap_serde.hpp>
 
 using namespace org::test;
 using namespace hstd;

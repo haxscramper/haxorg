@@ -14,7 +14,7 @@ from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import check_is_file, ensure_existing_dir, get_build_root, get_log_dir, get_script_root
 from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
-from py_repository.repo_tasks.haxorg_build import build_haxorg
+from py_repository.repo_tasks.haxorg_build import build_haxorg, configure_cmake_haxorg
 from py_scriptutils.script_logging import log
 import py_codegen.proto_lib.reflection_tool.reflection_defs as pb
 import dominate
@@ -75,6 +75,7 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
     toolchain_include = get_script_root(
         ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
+
 
     conf_copy = ctx.config.model_copy(deep=True)
     conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
@@ -406,6 +407,10 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
     toolchain_include = get_script_root(
         ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
 
+
+    # re-configure the whole project to generate new compilation database. 
+    configure_cmake_haxorg(ctx=ctx)
+
     conf_copy = ctx.config.model_copy(deep=True)
     conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
     conf_copy.build_conf.force = True
@@ -450,16 +455,18 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
         if tu.absoluteOriginal.endswith("hpp"):
             conv_tus.append(tu)
 
-    flamegraph_files: List[TraceFile] = list()
     source_averages: defaultdict[Path, List[int]] = defaultdict(lambda: list())
 
-    for file in get_build_root(ctx, "haxorg/src/haxorg/CMakeFiles/").rglob("*.cpp.json"):
-        log(CAT).debug(file)
-        read_file = TraceFile.model_validate_json(file.read_text())
-        read_file.path = str(file)
-        for event in read_file.traceEvents:
-            if event.name == "Source":
-                source_averages[Path(event.args["detail"]).resolve()].append(event.dur)
+    if False: 
+        flamegraph_files: List[TraceFile] = list()
+
+        for file in get_build_root(ctx, "haxorg/src/haxorg/CMakeFiles/").rglob("*.cpp.json"):
+            log(CAT).debug(file)
+            read_file = TraceFile.model_validate_json(file.read_text())
+            read_file.path = str(file)
+            for event in read_file.traceEvents:
+                if event.name == "Source":
+                    source_averages[Path(event.args["detail"]).resolve()].append(event.dur)
 
     igraph_tus = create_include_graph(
         ctx,
@@ -481,7 +488,7 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
 
     # generate_transitive_subgraph("_base")
     igraph_tus = remove_redundant_edges(igraph_tus)
-    # generate_transitive_subgraph("_reduced")
+    generate_transitive_subgraph("_reduced")
 
     graphviz_tus = igraph_to_graphviz(igraph_tus)
     graphviz_file = get_build_root(ctx, "reflect/include_graph.png").with_suffix("")
