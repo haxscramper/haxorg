@@ -2770,15 +2770,4 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Symlink)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdInclude)
 BOOST_DESCRIBE_ENUM_END(OrgSemKind)
-
-template <>
-struct std::formatter<OrgSemKind> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(OrgSemKind const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        return fmt.format(::hstd::enum_serde<OrgSemKind>::to_string(p), ctx);
-    }
-};
-
 /* clang-format on */

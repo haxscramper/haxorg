@@ -1225,19 +1225,7 @@ def gen_pyhaxorg_source(
                     base_map=groups.base_map,
                     ast=ast,
                     macro_namespace="IMM",
-                ) + groups.full_enums + ([
-                    GenTuPass("""
-template <>
-struct std::formatter<OrgSemKind> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(OrgSemKind const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        return fmt.format(::hstd::enum_serde<OrgSemKind>::to_string(p), ctx);
-    }
-};
-                    """)
-                ]),
+                ) + groups.full_enums,
             ),
             GenTu(
                 "{base}/sem/SemOrgEnums.cpp",
