@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Generator
 from beartype import beartype
-from beartype.typing import List, Any
+from beartype.typing import List, Any, Iterable
 import shutil
 
 from py_ci.util_scripting import cmake_opt, get_j_cap
@@ -29,7 +29,7 @@ def get_build_haxorg_stamps(ctx: TaskContext) -> Any:
 
 
 @beartype
-def get_configure_cmake_haxorg_input(ctx: TaskContext) -> Generator[Path]:
+def get_configure_cmake_haxorg_input(ctx: TaskContext) -> Iterable[Path]:
     return get_script_root(ctx, "src").rglob("*.cmake")
 
 
