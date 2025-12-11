@@ -10,12 +10,8 @@
 
 #include <boost/describe.hpp>
 #include <hstd/system/macros.hpp>
-#include <functional>
-
 
 #include <haxorg/sem/SemOrgBase.hpp>
-
-//#include <haxorg/sem/SemOrgTypes_old.hpp>
 #include <haxorg/sem/SemOrgTypes.hpp>
 
 namespace org::sem {

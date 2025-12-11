@@ -1,8 +1,6 @@
 #pragma once
 
 #include <hstd/stdlib/dod_base.hpp>
-
-#include <haxorg/sem/SemOrgEnums.hpp>
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrgSharedTypes.hpp>
 #include <hstd/stdlib/Ptrs.hpp>

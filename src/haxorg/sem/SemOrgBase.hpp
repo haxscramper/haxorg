@@ -3,7 +3,6 @@
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include <hstd/system/basic_typedefs.hpp>
-#include <haxorg/sem/SemOrgEnums.hpp>
 
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>

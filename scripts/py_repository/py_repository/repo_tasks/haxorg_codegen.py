@@ -1,6 +1,7 @@
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
+import itertools
 from pathlib import Path
 
 from beartype import beartype
@@ -76,7 +77,6 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
     toolchain_include = get_script_root(
         ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
 
-
     conf_copy = ctx.config.model_copy(deep=True)
     conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
     conf_copy.build_conf.force = True
@@ -147,6 +147,24 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
         )
 
         log(CAT).info("Updated code definitions")
+
+
+@haxorg_task()
+def merge_build_times(ctx: TaskContext) -> None:
+    out_merge = TraceFile()
+    for file in itertools.chain(
+            get_build_root(ctx, "haxorg/src/haxorg/CMakeFiles/").rglob("*.cpp.json"),
+            get_build_root(ctx, "haxorg/").rglob("*.time-trace"),
+    ):
+        log(CAT).debug(file)
+        read_file = TraceFile.model_validate_json(file.read_text())
+        read_file.path = str(file)
+        out_merge.traceEvents.extend(read_file.traceEvents)
+
+    get_build_root(ctx, "haxorg/full-profile-merge.json").write_text(
+        out_merge.model_dump_json(indent=2))
+
+    log(CAT).info("Done")
 
 
 @beartype
@@ -407,8 +425,7 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
     toolchain_include = get_script_root(
         ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
 
-
-    # re-configure the whole project to generate new compilation database. 
+    # re-configure the whole project to generate new compilation database.
     configure_cmake_haxorg(ctx=ctx)
 
     conf_copy = ctx.config.model_copy(deep=True)
@@ -455,24 +472,7 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
         if tu.absoluteOriginal.endswith("hpp"):
             conv_tus.append(tu)
 
-    source_averages: defaultdict[Path, List[int]] = defaultdict(lambda: list())
-
-    if False: 
-        flamegraph_files: List[TraceFile] = list()
-
-        for file in get_build_root(ctx, "haxorg/src/haxorg/CMakeFiles/").rglob("*.cpp.json"):
-            log(CAT).debug(file)
-            read_file = TraceFile.model_validate_json(file.read_text())
-            read_file.path = str(file)
-            for event in read_file.traceEvents:
-                if event.name == "Source":
-                    source_averages[Path(event.args["detail"]).resolve()].append(event.dur)
-
-    igraph_tus = create_include_graph(
-        ctx,
-        conv_tus,
-        source_averages=source_averages,
-    )
+    igraph_tus = create_include_graph(ctx, conv_tus)
 
     def generate_transitive_subgraph(suffix: str) -> None:
         for subgraph, sub_vertex in create_project_file_subgraphs(igraph_tus):

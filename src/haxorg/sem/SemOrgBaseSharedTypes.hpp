@@ -87,3 +87,11 @@ struct [[refl]] OrgJson {
     }
 };
 } // namespace org::sem
+
+
+template <>
+struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
+    std::format_context::iterator format(
+        OrgTokenKind const&,
+        std::format_context&) const;
+};
