@@ -1,4 +1,5 @@
 #include <haxorg/parse/OrgTypes.hpp>
+#include <haxorg/parse/OrgParserTypes.hpp>
 
 #include <haxorg/lexbase/Node.cpp>
 

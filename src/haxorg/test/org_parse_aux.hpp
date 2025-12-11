@@ -4,6 +4,7 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/parse/OrgSpec.hpp>
 #include <haxorg/lexbase/NodeIO.hpp>
+#include <haxorg/base_lexer/base_token_tokenize.hpp>
 
 namespace org::test {
 

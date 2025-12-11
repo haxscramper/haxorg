@@ -5,7 +5,7 @@ from py_scriptutils.script_logging import log
 
 CAT = __name__
 
-def test_immutable_ast_conversion():
+def test_immutable_ast_conversion() -> None:
     node = org.parseString("random paragraph", "<test>")
     context = org.initImmutableAstContext()
     version = context.addRoot(node)
@@ -15,7 +15,7 @@ def test_immutable_ast_conversion():
     assert paragraph0.getKind() == org.OrgSemKind.Paragraph
 
 
-def test_immutable_ast_mind_map():
+def test_immutable_ast_mind_map() -> None:
     node = org.parseString("""Paragraph [[id:subtree-id]]
 
 * Subtree
@@ -60,7 +60,7 @@ def test_immutable_ast_mind_map():
 corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
 
 
-def test_mind_map_from_directory():
+def test_mind_map_from_directory() -> None:
     dir = corpus_dir.joinpath("mind_map_directory")
     dir_opts = org.OrgDirectoryParseParameters()
     node = org.parseDirectoryOpts(str(dir), dir_opts)

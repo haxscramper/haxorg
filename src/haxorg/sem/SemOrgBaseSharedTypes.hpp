@@ -87,3 +87,34 @@ struct [[refl]] OrgJson {
     }
 };
 } // namespace org::sem
+
+// Explicitly instantiating the formatters for large enums can save up to
+// several minutes of the build time. Token kind takes 17s to instantiate
+// and used at least 15 times, OrgSemKind and OrgNodeKind both take around
+// 800-900ms and are instantiated in about 20 translation units.
+
+
+// clang-format off
+
+namespace hstd {
+using back_inserter_string_format_context = std::basic_format_context<std::back_insert_iterator<std::basic_string<char>>, char>;
+}
+
+template <>
+struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
+    std::format_context::iterator format(OrgTokenKind const&, std::format_context&) const;
+    hstd::back_inserter_string_format_context::iterator format(OrgTokenKind const&, hstd::back_inserter_string_format_context&) const;
+};
+
+template <>
+struct std::formatter<OrgSemKind> : std::formatter<std::string> {
+    std::format_context::iterator format(OrgSemKind const&, std::format_context&) const;
+    hstd::back_inserter_string_format_context::iterator format(OrgSemKind const&, hstd::back_inserter_string_format_context&) const;
+};
+
+template <>
+struct std::formatter<OrgNodeKind> : std::formatter<std::string> {
+    std::format_context::iterator format(OrgNodeKind const&, std::format_context&) const;
+    hstd::back_inserter_string_format_context::iterator format(OrgNodeKind const&, hstd::back_inserter_string_format_context&) const;
+};
+// clang-format on

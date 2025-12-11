@@ -3,10 +3,10 @@ import * as haxorg_wasm from "./haxorg_utility_types";
 export interface haxorg_wasm_module_auto {
   UserTimeBreakdown: UserTimeBreakdownConstructor;
   UserTime: UserTimeConstructor;
-  ParseLineCol: ParseLineColConstructor;
-  OperationsTracer: OperationsTracerConstructor;
   OrgJson: OrgJsonConstructor;
+  ParseLineCol: ParseLineColConstructor;
   Org: OrgConstructor;
+  OperationsTracer: OperationsTracerConstructor;
   ImmId: ImmIdConstructor;
   ImmOrg: ImmOrgConstructor;
   ImmPathStep: ImmPathStepConstructor;
@@ -1689,24 +1689,6 @@ export interface UserTime {
   getTimeDeltaSeconds(other: UserTime): Int64_t;
   toUnixTimestamp(): Int64_t;
 }
-export interface ParseLineColConstructor { new(): ParseLineCol; }
-export interface ParseLineCol {
-  line: number
-  column: number
-  pos: number
-}
-export interface OperationsTracerConstructor { new(): OperationsTracer; }
-export interface OperationsTracer {
-  setTraceFileStr(outfile: string, overwrite: boolean): void;
-  sendMessage(value: string, function_: string, line: number, file: string): void;
-  TraceState: boolean
-  traceToFile: boolean
-  traceToBuffer: boolean
-  traceStructured: boolean
-  traceColored: boolean
-  activeLevel: number
-  traceBuffer: string
-}
 export interface OrgJsonConstructor { new(): OrgJson; }
 export interface OrgJson {
   getKind(): OrgJsonKind;
@@ -1720,10 +1702,15 @@ export interface OrgJson {
   getBool(): boolean;
   getArray(): haxorg_wasm.Vec<OrgJson>;
 }
+export interface ParseLineColConstructor { new(): ParseLineCol; }
+export interface ParseLineCol {
+  line: number
+  column: number
+  pos: number
+}
 export interface OrgConstructor { new(): Org; }
 export interface Org {
   getKind(): OrgSemKind;
-  isGenerated(): boolean;
   push_back(sub: Org): void;
   size(): number;
   insert(pos: number, node: Org): void;
@@ -1731,6 +1718,18 @@ export interface Org {
   is(kind: OrgSemKind): boolean;
   loc: haxorg_wasm.Optional<ParseLineCol>
   subnodes: haxorg_wasm.Vec<Org>
+}
+export interface OperationsTracerConstructor { new(): OperationsTracer; }
+export interface OperationsTracer {
+  setTraceFileStr(outfile: string, overwrite: boolean): void;
+  sendMessage(value: string, function_: string, line: number, file: string): void;
+  TraceState: boolean
+  traceToFile: boolean
+  traceToBuffer: boolean
+  traceStructured: boolean
+  traceColored: boolean
+  activeLevel: number
+  traceBuffer: string
 }
 export interface ImmIdConstructor { new(): ImmId; }
 export interface ImmId {

@@ -15,6 +15,7 @@
 #include <boost/mp11/list.hpp>
 #include <boost/mp11/algorithm.hpp>
 #include <type_traits>
+#include <hstd/stdlib/Debug.hpp>
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 

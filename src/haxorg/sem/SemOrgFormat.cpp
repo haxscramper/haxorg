@@ -1,5 +1,6 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 using namespace org::sem;
 using namespace hstd;

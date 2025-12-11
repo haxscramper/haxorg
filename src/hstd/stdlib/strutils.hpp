@@ -4,7 +4,6 @@
 #include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Vec.hpp>
-#include <sstream>
 
 namespace hstd {
 

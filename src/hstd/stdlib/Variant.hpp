@@ -4,9 +4,9 @@
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/Formatter.hpp>
-#include <hstd/stdlib/Json.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/exceptions.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 namespace hstd {
 
@@ -119,32 +119,8 @@ auto variant_from_index(size_t index) -> V {
 template <IsVariant V>
 struct resolve_variant_index {};
 
-template <IsVariant V>
-struct JsonSerde<V> {
-    static json to_json(V const& it) {
-        auto result     = json::object();
-        result["index"] = JsonSerde<int>::to_json(it.index());
-        std::visit(
-            [&]<typename T>(T const& value) {
-                result["value"] = JsonSerde<T>::to_json(value);
-            },
-            it);
-
-        return result;
-    }
-    static V from_json(json const& j) {
-        V result = variant_from_index<V>(j["index"].get<int>());
-        std::visit(
-            [&]<typename T>(T& value) {
-                value = JsonSerde<T>::from_json(j["value"]);
-            },
-            result);
-    }
-};
-
 
 } // namespace hstd
-
 
 template <hstd::IsVariant V>
 struct std::hash<V> {

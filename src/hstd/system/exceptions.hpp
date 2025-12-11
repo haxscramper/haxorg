@@ -10,6 +10,8 @@
 #    include <cpptrace.hpp>
 #endif
 
+
+
 namespace hstd {
 
 template <typename Derived>
@@ -92,5 +94,7 @@ struct KeyError : CRTP_hexception<KeyError> {};
 struct LogicError : CRTP_hexception<LogicError> {};
 struct UnexpectedKindError : CRTP_hexception<UnexpectedKindError> {};
 struct RangeError : CRTP_hexception<RangeError> {};
+
+
 
 } // namespace hstd

@@ -12,6 +12,7 @@
 #include <boost/outcome.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Outcome.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 namespace hstd {
 

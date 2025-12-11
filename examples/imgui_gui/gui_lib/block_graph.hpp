@@ -7,6 +7,7 @@
 #include "imgui_internal.h"
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 struct LaneNodePos {
     int  lane;

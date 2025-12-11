@@ -1,6 +1,7 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/ColTextSerde.hpp>
 
 using namespace hstd;
 

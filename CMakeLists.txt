@@ -26,6 +26,7 @@ set(SCRIPT_DIR "${BASE}/src/scripts")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-attributes")
+set(CMAKE_LINKER "ld.lld")
 
 # Describe relative paths to the shared and header libraries packaged with LLVM in order for the
 # code to compile, link and execute correctly. Note that runtime execution will use these library

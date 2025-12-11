@@ -14,6 +14,7 @@
 #include <haxorg/sem/SemOrgTypes.hpp>
 #include <hstd/stdlib/Array.hpp>
 #include <hstd/stdlib/ContainerAPI.hpp>
+#include <hstd/stdlib/Exception.hpp>
 
 
 namespace hstd::ext {

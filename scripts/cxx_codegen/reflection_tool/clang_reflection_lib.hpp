@@ -186,6 +186,9 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         AllAnnotated,
         /// All declarations contained in explicitly allowed target files.
         AllTargeted,
+        /// All declarations if they were placed in the main file of the
+        /// translation unit.
+        AllMainTranslationUnit,
     };
 
     VisitMode visitMode = VisitMode::AllAnnotated;
@@ -194,6 +197,27 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     clang::ASTContext* Ctx;
 };
 
+struct IncludeCollectorCallback : public clang::PPCallbacks {
+    clang::SourceManager* sourceManager;
+    TU*                   out;
+
+    IncludeCollectorCallback(TU* tu, clang::SourceManager* sourceManager)
+        : out(tu), sourceManager(sourceManager) {}
+
+    void InclusionDirective(
+        clang::SourceLocation             HashLoc,
+        clang::Token const&               IncludeTok,
+        llvm::StringRef                   FileName,
+        bool                              IsAngled,
+        clang::CharSourceRange            FilenameRange,
+        clang::OptionalFileEntryRef       File,
+        llvm::StringRef                   SearchPath,
+        llvm::StringRef                   RelativePath,
+        clang::Module const*              Imported,
+        clang::SrcMgr::CharacteristicKind FileType) override;
+};
+
+
 class ReflASTConsumer : public clang::ASTConsumer {
   public:
     std::unique_ptr<TU>      out;
@@ -201,10 +225,7 @@ class ReflASTConsumer : public clang::ASTConsumer {
     clang::CompilerInstance& CI;
 
     std::optional<std::string> outputPathOverride;
-    explicit ReflASTConsumer(clang::CompilerInstance& CI, bool verbose)
-        : out(std::make_unique<TU>())
-        , Visitor(&CI.getASTContext(), out.get(), verbose)
-        , CI(CI) {}
+    explicit ReflASTConsumer(clang::CompilerInstance& CI, bool verbose);
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context);
 };

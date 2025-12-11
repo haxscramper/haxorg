@@ -3,6 +3,8 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
 
 /// \brief Structured org-mode processing report types.
 namespace org::report {

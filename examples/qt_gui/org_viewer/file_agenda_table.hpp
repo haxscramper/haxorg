@@ -19,6 +19,7 @@
 #include <QLineEdit>
 #include <QKeyEvent>
 #include <hstd/stdlib/diffs.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 #include <vector>
 #include <string>

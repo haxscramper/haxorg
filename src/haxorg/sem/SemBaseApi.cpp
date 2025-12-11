@@ -12,6 +12,9 @@
 #include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <haxorg/base_lexer/base_token_tokenize.hpp>
+
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #    include <SemOrgProto.pb.h>
 #endif
@@ -1848,4 +1851,11 @@ hstd::Vec<sem::SemId<ErrorGroup>> org::collectErrorNodes(
         }
     });
     return res;
+}
+
+hstd::Vec<sem::SemId<Org>> AstTrackingAlternatives::getAllNodes() const {
+    return alternatives //
+         | hstd::rv::transform(
+               [](AstTrackingPath const& p) { return p.getNode(); })
+         | hstd::rs::to<hstd::Vec>();
 }

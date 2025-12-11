@@ -1,5 +1,6 @@
 #include "shared_org_logic.hpp"
 #include <haxorg/sem/SemOrgCereal.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 const std::unordered_set<std::string> COMPLETED_TASK_SET = {
     "DONE",

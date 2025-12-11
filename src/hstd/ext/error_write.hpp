@@ -15,7 +15,6 @@
 #include <hstd/stdlib/Map.hpp>
 
 #include <boost/describe.hpp>
-#include <hstd/stdlib/Debug.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Ptrs.hpp>

@@ -11,6 +11,11 @@ message Expr {
     repeated Expr Sub = 3;
 }
 
+message Include {
+    string RelativePath = 1;
+    string AbsolutePath = 2;
+}
+
 enum TypeKind {
     RegularType = 0;
     // Pointer to standalone function -- not pointer to member.
@@ -223,5 +228,7 @@ message TU {
     repeated Enum enums = 2;
     repeated Function functions = 3;
     repeated Typedef typedefs = 4;
-    string Doc = 5;
+    repeated Include includes = 5;
+    string AbsolutePath = 6;
+    string Doc = 7;
 }

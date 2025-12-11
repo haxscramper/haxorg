@@ -6,6 +6,7 @@
 #include <immer/vector_transient.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 using namespace org::graph;
 using namespace hstd;

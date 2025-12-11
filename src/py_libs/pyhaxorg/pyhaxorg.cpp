@@ -252,57 +252,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::parse::LineCol>(m, "parseLineCol")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::parse::LineCol {
-                        org::parse::LineCol result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("line", &org::parse::LineCol::line)
-    .def_readwrite("column", &org::parse::LineCol::column)
-    .def_readwrite("pos", &org::parse::LineCol::pos)
-    .def("__repr__", [](org::parse::LineCol const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::parse::LineCol const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<hstd::OperationsTracer>(m, "OperationsTracer")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::OperationsTracer {
-                        hstd::OperationsTracer result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("TraceState", &hstd::OperationsTracer::TraceState)
-    .def_readwrite("traceToFile", &hstd::OperationsTracer::traceToFile)
-    .def_readwrite("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
-    .def_readwrite("traceStructured", &hstd::OperationsTracer::traceStructured)
-    .def_readwrite("traceColored", &hstd::OperationsTracer::traceColored)
-    .def_readwrite("activeLevel", &hstd::OperationsTracer::activeLevel)
-    .def_readwrite("traceBuffer", &hstd::OperationsTracer::traceBuffer)
-    .def("setTraceFileStr",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
-         pybind11::arg("outfile"),
-         pybind11::arg("overwrite"),
-         R"RAW(\brief Helper method for reflection)RAW")
-    .def("sendMessage",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
-         pybind11::arg("value"),
-         pybind11::arg("function"),
-         pybind11::arg("line"),
-         pybind11::arg("file"))
-    .def("__repr__", [](hstd::OperationsTracer const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::OperationsTracer const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<org::sem::OrgJson>(m, "OrgJson")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgJson {
                         org::sem::OrgJson result{};
@@ -336,6 +285,24 @@ PYBIND11_MODULE(pyhaxorg, m) {
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::parse::LineCol>(m, "parseLineCol")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::parse::LineCol {
+                        org::parse::LineCol result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("line", &org::parse::LineCol::line)
+    .def_readwrite("column", &org::parse::LineCol::column)
+    .def_readwrite("pos", &org::parse::LineCol::pos)
+    .def("__repr__", [](org::parse::LineCol const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::LineCol const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::Org, org::sem::SemId<org::sem::Org>>(m, "Org")
     .def_readwrite("loc", &org::sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_readwrite("subnodes", &org::sem::Org::subnodes, R"RAW(\brief List of subnodes.
@@ -345,7 +312,6 @@ Some of the derived nodes don't make the use of subnode list
 hierarchy for conveinience purposes. It is not expected that 'any'
 node can have subnodes.)RAW")
     .def("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
-    .def("isGenerated", static_cast<bool(org::sem::Org::*)() const>(&org::sem::Org::isGenerated), R"RAW(\brief Whether original node adapter is missing)RAW")
     .def("push_back",
          static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back),
          pybind11::arg("sub"))
@@ -368,6 +334,39 @@ node can have subnodes.)RAW")
          return pybind11::make_iterator(node.begin(), node.end());
          },
          pybind11::keep_alive<0, 1>())
+    ;
+  pybind11::class_<hstd::OperationsTracer>(m, "OperationsTracer")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::OperationsTracer {
+                        hstd::OperationsTracer result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("TraceState", &hstd::OperationsTracer::TraceState)
+    .def_readwrite("traceToFile", &hstd::OperationsTracer::traceToFile)
+    .def_readwrite("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
+    .def_readwrite("traceStructured", &hstd::OperationsTracer::traceStructured)
+    .def_readwrite("traceColored", &hstd::OperationsTracer::traceColored)
+    .def_readwrite("activeLevel", &hstd::OperationsTracer::activeLevel)
+    .def_readwrite("traceBuffer", &hstd::OperationsTracer::traceBuffer)
+    .def("setTraceFileStr",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
+         pybind11::arg("outfile"),
+         pybind11::arg("overwrite"),
+         R"RAW(\brief Helper method for reflection)RAW")
+    .def("sendMessage",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
+         pybind11::arg("value"),
+         pybind11::arg("function"),
+         pybind11::arg("line"),
+         pybind11::arg("file"))
+    .def("__repr__", [](hstd::OperationsTracer const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::OperationsTracer const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmId>(m, "ImmId")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmId {

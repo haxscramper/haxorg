@@ -22,6 +22,7 @@
 #include "repo_profile.hpp"
 
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 using namespace hstd;
 

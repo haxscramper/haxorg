@@ -1,8 +1,8 @@
 #pragma once
+#include "haxorg/lexbase/Errors.hpp"
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include <hstd/system/basic_typedefs.hpp>
-#include <haxorg/sem/SemOrgEnums.hpp>
 
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
@@ -226,19 +226,13 @@ struct [[refl(R"({
     ///
     /// Set by the conversion functions from linearized representation,
     /// will be missing for all generated node kinds.
-    org::parse::OrgAdapter original;
 
     Org(hstd::CVec<SemId<Org>> subnodes);
     Org();
-    Org(parse::OrgAdapter original);
     virtual ~Org() = default;
 
-    /// \brief Get get kind of the original node.
-    OrgNodeKind getOriginalKind() const { return original.getKind(); }
     /// \brief Get kind of this sem node
     [[refl]] virtual OrgSemKind getKind() const = 0;
-    /// \brief Whether original node adapter is missing
-    [[refl]] bool isGenerated() const { return original.isNil(); }
     /// \brief Location of the node in the original source file
     [[refl]] hstd::Opt<parse::LineCol> loc = std::nullopt;
     /// \brief List of subnodes.

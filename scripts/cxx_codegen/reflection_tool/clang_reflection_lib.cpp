@@ -1108,6 +1108,11 @@ bool ReflASTVisitor::shouldVisit(c::Decl const* Decl) {
             return !DeclLoc.empty()
                 && targetFiles.find(DeclLoc) != targetFiles.end();
         }
+        case VisitMode::AllMainTranslationUnit: {
+            const c::ASTContext& astContext = Decl->getASTContext();
+            return astContext.getSourceManager().isInMainFile(
+                Decl->getLocation());
+        }
     }
 }
 
@@ -1489,6 +1494,26 @@ bool SaveProtobufToJsonFile(
     return true;
 }
 
+std::string getMainFileAbsolutePath(
+    const clang::CompilerInstance& compilerInstance) {
+    const clang::SourceManager& sourceManager = compilerInstance
+                                                    .getSourceManager();
+    clang::FileID           mainFileID = sourceManager.getMainFileID();
+    const clang::FileEntry* fileEntry  = sourceManager.getFileEntryForID(
+        mainFileID);
+    return std::string{fileEntry->getName()};
+}
+
+ReflASTConsumer::ReflASTConsumer(clang::CompilerInstance& CI, bool verbose)
+    : out(std::make_unique<TU>())
+    , Visitor(&CI.getASTContext(), out.get(), verbose)
+    , CI(CI) {
+    auto callback = std::make_unique<IncludeCollectorCallback>(
+        out.get(), &CI.getSourceManager());
+    out->set_absolutepath(getMainFileAbsolutePath(CI));
+    CI.getPreprocessor().addPPCallbacks(std::move(callback));
+}
+
 void ReflASTConsumer::HandleTranslationUnit(c::ASTContext& Context) {
     // When executed with -ftime-trace plugin execution time will be
     // reported in the constructed flame graph.
@@ -1578,4 +1603,23 @@ c::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
 
     D->addAttr(created);
     return AttributeApplied;
+}
+
+void IncludeCollectorCallback::InclusionDirective(
+    clang::SourceLocation             HashLoc,
+    const clang::Token&               IncludeTok,
+    llvm::StringRef                   FileName,
+    bool                              IsAngled,
+    clang::CharSourceRange            FilenameRange,
+    clang::OptionalFileEntryRef       File,
+    llvm::StringRef                   SearchPath,
+    llvm::StringRef                   RelativePath,
+    const clang::Module*              Imported,
+    clang::SrcMgr::CharacteristicKind FileType) {
+
+    if (File && sourceManager->isInMainFile(HashLoc)) {
+        auto incl = out->add_includes();
+        incl->set_absolutepath(File->getName().str());
+        incl->set_relativepath(FileName.str());
+    }
 }

@@ -4,10 +4,6 @@
 #include <llvm/Support/JSON.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/CommandLine.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <filesystem>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IRReader/IRReader.h>
@@ -19,20 +15,19 @@
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/Demangle/ItaniumDemangle.h>
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <unordered_map>
 #include <boost/describe.hpp>
 #include <llvm/ADT/Hashing.h>
 #include <hstd/system/Formatter.hpp>
-#include <algorithm>
 #include <absl/hash/hash.h>
-#include <fstream>
 #include <hstd/system/aux_utils.hpp>
-#include <execution>
 #include <llvm/ADT/SmallBitVector.h>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <fstream>
+#include <execution>
 
 #include <hstd/ext/perfetto_aux.hpp>
 #include <absl/log/log.h>
@@ -1579,12 +1574,10 @@ NO_COVERAGE llvm::MD5::MD5Result getMD5Digest(
     const std::string& str1,
     const std::string& str2) {
     llvm::MD5 hash;
-    hash.update(
-        llvm::ArrayRef<uint8_t>(
-            reinterpret_cast<const uint8_t*>(str1.data()), str1.size()));
-    hash.update(
-        llvm::ArrayRef<uint8_t>(
-            reinterpret_cast<const uint8_t*>(str2.data()), str2.size()));
+    hash.update(llvm::ArrayRef<uint8_t>(
+        reinterpret_cast<const uint8_t*>(str1.data()), str1.size()));
+    hash.update(llvm::ArrayRef<uint8_t>(
+        reinterpret_cast<const uint8_t*>(str2.data()), str2.size()));
     llvm::MD5::MD5Result result;
     hash.final(result);
     return result;
@@ -1621,10 +1614,8 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
         llvm::raw_fd_ostream Output(tmp_path, EC, llvm::sys::fs::OF_None);
 
         if (EC) {
-            throw std::domain_error(
-                std::format(
-                    "Error while creating output stream {}",
-                    EC.message()));
+            throw std::domain_error(std::format(
+                "Error while creating output stream {}", EC.message()));
         }
 
         if (llvm::Error E = Writer.write(Output)) {
@@ -1643,11 +1634,10 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
                 ObjectFilenames, tmp_path, *FS);
 
         if (llvm::Error E = mapping_or_err.takeError()) {
-            throw std::domain_error(
-                std::format(
-                    "Failed to load profdata {} from {}",
-                    toString(std::move(E)),
-                    tmp_path));
+            throw std::domain_error(std::format(
+                "Failed to load profdata {} from {}",
+                toString(std::move(E)),
+                tmp_path));
         }
 
         fs::remove(tmp_path);
@@ -1779,11 +1769,10 @@ void process_runs(
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
                     std::string debug;
                     if (!ctx.file_matches(file.str(), debug)) {
-                        j_files["skipped"].push_back(
-                            json::object({
-                                {"file", file.str()},
-                                {"reason", debug},
-                            }));
+                        j_files["skipped"].push_back(json::object({
+                            {"file", file.str()},
+                            {"reason", debug},
+                        }));
                         continue;
                     }
                     __perf_trace("sql", "Add file", "File", file.str());
@@ -1814,10 +1803,8 @@ NO_COVERAGE int main(int argc, char** argv) {
     std::string json_parameters;
     if (std::string{argv[1]}.starts_with("/")) {
         if (!fs::exists(argv[1])) {
-            throw std::logic_error(
-                std::format(
-                    "Input configuration file '{}' does not exist",
-                    argv[1]));
+            throw std::logic_error(std::format(
+                "Input configuration file '{}' does not exist", argv[1]));
         }
         json_parameters = read_file(argv[1]);
     } else {
@@ -1898,11 +1885,10 @@ NO_COVERAGE int main(int argc, char** argv) {
             runGroups.push_back({});
         }
 
-        runGroups.back().push_back(
-            ProfdataRun{
-                .index = run_idx,
-                .run   = run,
-            });
+        runGroups.back().push_back(ProfdataRun{
+            .index = run_idx,
+            .run   = run,
+        });
     }
 
     for (auto const& group : runGroups) {

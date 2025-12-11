@@ -41,6 +41,12 @@ llvm::cl::opt<bool> VerboseRun(
     llvm::cl::desc("Run compilation in verbose mode"),
     llvm::cl::cat(ToolingSampleCategory));
 
+llvm::cl::opt<bool> MainTuAnalysis(
+    "main-tu-analysis",
+    llvm::cl::desc(
+        "Analyze all files references in the compilation database"),
+    llvm::cl::cat(ToolingSampleCategory));
+
 
 llvm::cl::opt<bool> NoStdInc(
     "nostdinc",
@@ -107,9 +113,15 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
         if (!outputPathOverride.empty()) {
             consumer->outputPathOverride = outputPathOverride;
         }
+
         if (TargetFiles.empty()) {
-            consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
-                AllAnnotated;
+            if (MainTuAnalysis) {
+                consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
+                    AllMainTranslationUnit;
+            } else {
+                consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
+                    AllAnnotated;
+            }
         } else {
             std::vector files = parseTargetFiles(TargetFiles.getValue());
             for (auto const& file : files) {
@@ -117,6 +129,7 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
             }
             consumer->Visitor.targetFiles.insert(
                 files.begin(), files.end());
+
             consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
                 AllTargeted;
         }

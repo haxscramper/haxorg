@@ -1,8 +1,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <boost/mp11.hpp>
-#include <concepts>
-#include <format>
 #include <haxorg/exporters/exportertree.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 using namespace hstd;
 using namespace org::sem;
@@ -48,7 +47,6 @@ sem::OrgPtrVariant asVariant(Org* in) {
 } // namespace org::sem
 
 Org::Org() : subnodes({}) {}
-Org::Org(parse::OrgAdapter original) : original(original), subnodes({}) {}
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
 Vec<org::sem::AttrValue> AttrGroup::getFlatArgs() const {
