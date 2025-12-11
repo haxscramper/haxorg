@@ -152,6 +152,7 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
 @haxorg_task()
 def merge_build_times(ctx: TaskContext) -> None:
     out_merge = TraceFile()
+
     for file in itertools.chain(
             get_build_root(ctx, "haxorg/src/haxorg/CMakeFiles/").rglob("*.cpp.json"),
             get_build_root(ctx, "haxorg/").rglob("*.time-trace"),
@@ -159,12 +160,17 @@ def merge_build_times(ctx: TaskContext) -> None:
         log(CAT).debug(file)
         read_file = TraceFile.model_validate_json(file.read_text())
         read_file.path = str(file)
+
+        file_stem = Path(file).stem
+
+        for event in read_file.traceEvents:
+            if event.ph == "M" and event.name == "process_name" and "name" in event.args:
+                event.args["name"] = f"{event.args['name']} {file_stem}"
+
         out_merge.traceEvents.extend(read_file.traceEvents)
 
     get_build_root(ctx, "haxorg/full-profile-merge.json").write_text(
         out_merge.model_dump_json(indent=2))
-
-    log(CAT).info("Done")
 
 
 @beartype
