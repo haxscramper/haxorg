@@ -16,6 +16,9 @@
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include <hstd/ext/logger.hpp>
 #include <boost/range/iterator_range.hpp>
+#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/MapSerde.hpp>
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include <gui_lib/im_org_ui_common.hpp>

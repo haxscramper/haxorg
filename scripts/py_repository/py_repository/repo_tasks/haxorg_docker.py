@@ -377,15 +377,15 @@ def run_develop_ci(ctx: TaskContext) -> None:
     if conf.develop_ci_conf.build:
         ctx.run(build_haxorg, ctx=ctx)
 
+    if conf.develop_ci_conf.example:
+        ctx.run(build_examples, ctx=ctx)
+
     if conf.develop_ci_conf.reflection:
         ctx.run(generate_haxorg_sources, ctx=ctx)
 
     if conf.develop_ci_conf.test:
         ctx.run(generate_python_protobuf_files, ctx=ctx)
         ctx.run(run_py_tests, ctx=ctx)
-
-    if conf.develop_ci_conf.example:
-        ctx.run(build_examples, ctx=ctx)
 
     if conf.develop_ci_conf.coverage and conf.instrument.coverage:
         ctx.run(run_cxx_coverage_merge, ctx=ctx)

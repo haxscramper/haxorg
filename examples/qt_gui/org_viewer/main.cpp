@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include "shared_org_logic.hpp"
 #include "file_agenda_table.hpp"
+#include <hstd/stdlib/JsonSerde.hpp>
 
 struct MainArgs {
     std::string infile;

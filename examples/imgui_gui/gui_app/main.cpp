@@ -8,6 +8,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <hstd/stdlib/Set.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 #include <gui_lib/sem_tree_render.hpp>
 #include <gui_lib/story_grid.hpp>

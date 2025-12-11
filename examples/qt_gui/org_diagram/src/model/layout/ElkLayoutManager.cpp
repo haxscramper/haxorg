@@ -1,6 +1,7 @@
 #include "ElkLayoutManager.hpp"
 
 #include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 std::string ElkLayoutManager::layoutDiagram(const std::string& graphJson) {
     LOGIC_ASSERTION_CHECK(

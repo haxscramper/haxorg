@@ -8,6 +8,7 @@
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/ext/graphviz.hpp>
 #include <hstd/stdlib/Set.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 namespace hstd {
 template <typename ID, typename T>
