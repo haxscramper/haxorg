@@ -1281,12 +1281,10 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 }
                 case P::Kind::CustomSubtreeJson: {
                     add(head,
-                        str(
-                            fmt(":prop_json:{}: {}",
-                                prop.getCustomSubtreeJson().name,
-                                prop.getCustomSubtreeJson()
-                                    .value.getRef()
-                                    .dump())));
+                        str(fmt(
+                            ":prop_json:{}: {}",
+                            prop.getCustomSubtreeJson().name,
+                            prop.getCustomSubtreeJson().value.dump(0))));
                     break;
                 }
                 case P::Kind::ExportLatexCompiler: {

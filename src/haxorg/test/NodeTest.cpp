@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/system/reflection.hpp>
 #include <boost/mp11.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 using namespace hstd;
 

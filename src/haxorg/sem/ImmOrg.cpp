@@ -1557,3 +1557,45 @@ void set_value(ImmBox<T>& target, ImmBox<T> const& other) {
 
 
 EACH_SEM_ORG_KIND(__DEFINE_VALUE_READ_TYPE)
+
+std::size_t std::hash<org::imm::ImmReflPathItemBase>::operator()(
+    const org::imm::ImmReflPathItemBase& it) const noexcept {
+    hstd::AnyHasher<hstd::Str> hasher;
+    std::size_t                result = 0;
+    hstd::hax_hash_combine(result, it.getKind());
+    using K = org::imm::ImmReflPathItemBase::Kind;
+    switch (it.getKind()) {
+        case K::Index:
+            hstd::hax_hash_combine(result, it.getIndex().index);
+            break;
+        case K::FieldName:
+            hstd::hax_hash_combine(result, it.getFieldName().name);
+            break;
+        case K::AnyKey:
+            hstd::hax_hash_combine(result, hasher(it.getAnyKey().key));
+            break;
+        case K::Deref: break;
+    }
+
+    return result;
+}
+
+std::size_t std::hash<org::imm::ImmPathStep>::operator()(
+    const org::imm::ImmPathStep& step) const noexcept {
+    hstd::AnyHasher<hstd::Str> hasher;
+    std::size_t                result = 0;
+    for (int i = 0; i < step.path.path.size(); ++i) {
+        org::imm::ImmReflPathItemBase const& it = step.path.path.at(i);
+        hstd::hax_hash_combine(result, i);
+        hstd::hax_hash_combine(result, it);
+    }
+    return result;
+}
+
+std::size_t std::hash<org::imm::ImmPath>::operator()(
+    const org::imm::ImmPath& it) const noexcept {
+    std::size_t result = 0;
+    hstd::hax_hash_combine(result, it.root);
+    hstd::hax_hash_combine(result, it.path);
+    return result;
+}

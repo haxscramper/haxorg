@@ -1730,75 +1730,20 @@ struct std::formatter<org::imm::ImmAdapterT<T>>
 
 
 template <>
-struct hstd::JsonSerde<org::imm::ImmAdapter> {
-    static json to_json(org::imm::ImmAdapter const& it) {
-        return json(it.id.getReadableId());
-    }
-    static org::imm::ImmAdapter from_json(json const& j) {
-        throw logic_assertion_error::init(
-            "org::ImmAdapter does not support deserialization.");
-    }
-};
-
-template <typename T>
-struct hstd::JsonSerde<org::imm::ImmAdapterT<T>> {
-    static json to_json(org::imm::ImmAdapterT<T> const& it) {
-        return json(it.id.getReadableId());
-    }
-    static org::imm::ImmAdapterT<T> from_json(json const& j) {
-        throw logic_assertion_error::init(
-            "org::ImmAdapterT<T> does not support deserialization.");
-    }
-};
-
-template <>
 struct std::hash<org::imm::ImmReflPathItemBase> {
     std::size_t operator()(
-        org::imm::ImmReflPathItemBase const& it) const noexcept {
-        hstd::AnyHasher<hstd::Str> hasher;
-        std::size_t                result = 0;
-        hstd::hax_hash_combine(result, it.getKind());
-        using K = org::imm::ImmReflPathItemBase::Kind;
-        switch (it.getKind()) {
-            case K::Index:
-                hstd::hax_hash_combine(result, it.getIndex().index);
-                break;
-            case K::FieldName:
-                hstd::hax_hash_combine(result, it.getFieldName().name);
-                break;
-            case K::AnyKey:
-                hstd::hax_hash_combine(result, hasher(it.getAnyKey().key));
-                break;
-            case K::Deref: break;
-        }
-
-        return result;
-    }
+        org::imm::ImmReflPathItemBase const& it) const noexcept;
 };
 
 template <>
 struct std::hash<org::imm::ImmPathStep> {
     std::size_t operator()(
-        org::imm::ImmPathStep const& step) const noexcept {
-        hstd::AnyHasher<hstd::Str> hasher;
-        std::size_t                result = 0;
-        for (int i = 0; i < step.path.path.size(); ++i) {
-            org::imm::ImmReflPathItemBase const& it = step.path.path.at(i);
-            hstd::hax_hash_combine(result, i);
-            hstd::hax_hash_combine(result, it);
-        }
-        return result;
-    }
+        org::imm::ImmPathStep const& step) const noexcept;
 };
 
 template <>
 struct std::hash<org::imm::ImmPath> {
-    std::size_t operator()(org::imm::ImmPath const& it) const noexcept {
-        std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.root);
-        hstd::hax_hash_combine(result, it.path);
-        return result;
-    }
+    std::size_t operator()(org::imm::ImmPath const& it) const noexcept;
 };
 
 

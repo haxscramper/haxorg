@@ -205,16 +205,16 @@ struct log_category {
 
 struct log_record {
     struct log_data {
-        hstd::Str            message;
-        int                  line = 0;
-        char const*          file = nullptr;
-        log_category         category;
-        severity_level       severity     = severity_level::trace;
-        char const*          function     = nullptr;
-        hstd::Opt<int>       depth        = std::nullopt;
-        hstd::Vec<hstd::Str> source_scope = {};
-        hstd::Opt<hstd::Str> source_id    = std::nullopt;
-        hstd::Opt<json>      metadata     = std::nullopt;
+        hstd::Str             message;
+        int                   line = 0;
+        char const*           file = nullptr;
+        log_category          category;
+        severity_level        severity     = severity_level::trace;
+        char const*           function     = nullptr;
+        hstd::Opt<int>        depth        = std::nullopt;
+        hstd::Vec<hstd::Str>  source_scope = {};
+        hstd::Opt<hstd::Str>  source_id    = std::nullopt;
+        std::shared_ptr<json> metadata     = nullptr;
         DESC_FIELDS(
             log_data,
             (message,
@@ -225,8 +225,7 @@ struct log_record {
              function,
              depth,
              source_scope,
-             source_id,
-             metadata));
+             source_id));
 
         std::size_t hash() const;
         // log_data();
@@ -320,8 +319,8 @@ struct log_record {
     log_record& source_scope(hstd::Vec<hstd::Str> const& scope);
     log_record& source_scope_add(hstd::Str const& scope);
     log_record& source_id(hstd::Str const& id);
-    log_record& metadata(json const& metadata);
-    log_record& metadata(hstd::Str const& field, json const& value);
+    log_record& metadata(std::shared_ptr<json> const& metadata);
+    log_record& metadata(hstd::Str const& field, const json& value);
     log_record& maybe_space();
 
     log_record& as_trace();
@@ -830,5 +829,3 @@ struct std::hash<hstd::log::log_category> {
 
 
 #endif
-
-

@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/system/macros.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 struct TestProfiler {
     std::string xray_path;

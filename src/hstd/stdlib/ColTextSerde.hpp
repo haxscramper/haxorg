@@ -2,6 +2,7 @@
 
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 namespace hstd {
 

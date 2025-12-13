@@ -180,15 +180,11 @@ class IncludeVertexData():
     path: str
     isProjectFile: bool
     fileIncludes: List[GenTuInclude] = field(default_factory=list)
-    averageSourceTime: Optional[float] = None
 
 
 @beartype
-def create_include_graph(
-    ctx: TaskContext,
-    translation_units: List[ConvTu],
-    source_averages: defaultdict[Path, List[int]],
-) -> igraph.Graph:
+def create_include_graph(ctx: TaskContext,
+                         translation_units: List[ConvTu]) -> igraph.Graph:
     g = igraph.Graph(directed=True)
 
     file_to_vertex = {}
@@ -209,9 +205,6 @@ def create_include_graph(
                     path=str(path),
                     isProjectFile=path.is_relative_to(get_script_root(ctx)),
                 )
-
-                if resolved in source_averages:
-                    icd.averageSourceTime = statistics.mean(source_averages[resolved])
 
                 vertex_id = g.add_vertex(include_data=icd)
 
@@ -282,11 +275,6 @@ def igraph_to_graphviz(
                 with dominate.tags.tr():
                     dominate.tags.td("Transitive Outgoing:")
                     dominate.tags.td(str(get_transitive_outgoing_count(vertex.index)))
-
-                if incd.averageSourceTime:
-                    with dominate.tags.tr():
-                        dominate.tags.td("Average source:")
-                        dominate.tags.td(f"{incd.averageSourceTime/1E3:.3f}")
 
             label = "<" + doc.render() + ">"
             dot.node(str(vertex.index), label=label)

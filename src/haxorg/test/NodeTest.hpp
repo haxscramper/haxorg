@@ -2,6 +2,7 @@
 
 #include <haxorg/lexbase/Node.hpp>
 #include <haxorg/lexbase/Token.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Yaml.hpp>

@@ -11,13 +11,13 @@
 namespace hstd {
 
 struct OperationsMsg {
-    Opt<std::string> msg;
-    char const*      file     = nullptr;
-    char const*      function = nullptr;
-    int              line     = 0;
-    int              column   = 0;
-    int              level    = 0;
-    json             metadata = json{};
+    Opt<std::string>      msg;
+    char const*           file     = nullptr;
+    char const*           function = nullptr;
+    int                   line     = 0;
+    int                   column   = 0;
+    int                   level    = 0;
+    std::shared_ptr<json> metadata = nullptr;
 
     void use_stacktrace_as_msg();
 

@@ -7,8 +7,7 @@
 #include <hstd/ext/logger.hpp>
 
 #include <hstd/stdlib/reflection_visitor.hpp>
-
-
+#include <hstd/stdlib/JsonUse.hpp>
 
 FILE* trace_out;
 

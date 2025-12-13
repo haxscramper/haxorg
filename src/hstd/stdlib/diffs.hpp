@@ -8,6 +8,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/TraceBase.hpp>
+#include <math.h>
 
 #include <hstd/system/reflection.hpp>
 

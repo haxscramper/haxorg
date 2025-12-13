@@ -2,6 +2,7 @@
 
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/OptSerde.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 
 namespace hstd {
