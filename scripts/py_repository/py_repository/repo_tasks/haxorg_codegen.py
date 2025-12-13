@@ -8,8 +8,10 @@ from beartype import beartype
 from beartype.typing import List, Optional, Any, Tuple, Dict
 import igraph
 from py_ci.data_build import get_deps_install_config
+from py_codegen.astbuilder_cpp import QualType
 from py_codegen.gen_tu_cpp import GenTuInclude
 from py_codegen.refl_read import ConvTu, conv_proto_file
+from py_codegen.refl_wrapper_graph import get_declared_types_rec, get_used_types_rec, hash_qual_type
 from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
@@ -21,6 +23,7 @@ import py_codegen.proto_lib.reflection_tool.reflection_defs as pb
 import dominate
 import graphviz
 import dominate.tags
+import dominate.util
 from pydantic import BaseModel, Field
 import statistics
 
@@ -180,20 +183,30 @@ class IncludeVertexData():
     path: str
     isProjectFile: bool
     fileIncludes: List[GenTuInclude] = field(default_factory=list)
+    declaredTypes: List[QualType] = field(default_factory=list)
+    usedTypes: List[QualType] = field(default_factory=list)
+
+
+@dataclass
+@beartype
+class ReflectionFile():
+    tu: ConvTu
+    declaredTypes: List[QualType] = field(default_factory=list)
+    usedTypes: List[QualType] = field(default_factory=list)
 
 
 @beartype
 def create_include_graph(ctx: TaskContext,
-                         translation_units: List[ConvTu]) -> igraph.Graph:
+                         translation_units: List[ReflectionFile]) -> igraph.Graph:
     g = igraph.Graph(directed=True)
 
     file_to_vertex = {}
 
     for tu in translation_units:
-        if tu.absoluteOriginal is None:
+        if tu.tu.absoluteOriginal is None:
             continue
 
-        tu_path = Path(tu.absoluteOriginal).resolve()
+        tu_path = Path(tu.tu.absoluteOriginal).resolve()
 
         @beartype
         def get_vertex_id_for_path(path: Path) -> igraph.Vertex:
@@ -204,6 +217,8 @@ def create_include_graph(ctx: TaskContext,
                     name=path.name,
                     path=str(path),
                     isProjectFile=path.is_relative_to(get_script_root(ctx)),
+                    declaredTypes=tu.declaredTypes,
+                    usedTypes=tu.usedTypes,
                 )
 
                 vertex_id = g.add_vertex(include_data=icd)
@@ -217,9 +232,9 @@ def create_include_graph(ctx: TaskContext,
             vertex_id = get_vertex_id_for_path(path)
             return g.vs[vertex_id.index]["include_data"]
 
-        get_vertex_data(tu_path).fileIncludes = tu.includes
+        get_vertex_data(tu_path).fileIncludes = tu.tu.includes
 
-        for include in tu.includes:
+        for include in tu.tu.includes:
             if include.absolutePath is None or include.isSystem:
                 continue
 
@@ -253,11 +268,12 @@ def igraph_to_graphviz(
         incd: IncludeVertexData = vertex["include_data"]
 
         if incd.isProjectFile:
+            is_target = vertex == target
             doc = dominate.tags.table(
                 border="1",
                 cellborder="0",
                 cellspacing="0",
-                bgcolor="lightskyblue1" if vertex == target else "mistyrose",
+                bgcolor="lightskyblue1" if is_target else "mistyrose",
             )
 
             with doc:
@@ -275,6 +291,21 @@ def igraph_to_graphviz(
                 with dominate.tags.tr():
                     dominate.tags.td("Transitive Outgoing:")
                     dominate.tags.td(str(get_transitive_outgoing_count(vertex.index)))
+
+                with dominate.tags.tr():
+                    dominate.tags.td("Declared type:" if is_target else "Used Types:")
+                    with dominate.tags.td():
+                        target_types = incd.declaredTypes if is_target else incd.usedTypes
+                        if target_types:
+                            with dominate.tags.table(
+                                    border="1",
+                                    cellborder="0",
+                                    cellspacing="0",
+                            ):
+                                for ty in target_types:
+                                    with dominate.tags.tr():
+                                        dominate.tags.td(
+                                            dominate.util.text(ty.format_native()))
 
             label = "<" + doc.render() + ">"
             dot.node(str(vertex.index), label=label)
@@ -362,12 +393,37 @@ def remove_redundant_edges(igraph_tus: igraph.Graph) -> igraph.Graph:
 
 
 @beartype
+def _is_type_declared_in_target(qual_type: QualType,
+                                target_declared_types: List[QualType]) -> bool:
+    for target_type in target_declared_types:
+        if _types_match(qual_type, target_type):
+            return True
+
+    for param in qual_type.Parameters:
+        if _is_type_declared_in_target(param, target_declared_types):
+            return True
+
+    for space in qual_type.Spaces:
+        if _is_type_declared_in_target(space, target_declared_types):
+            return True
+
+    return False
+
+
+@beartype
+def _types_match(type1: QualType, type2: QualType) -> bool:
+    return (type1.name == type2.name and type1.Spaces == type2.Spaces and
+            type1.isNamespace == type2.isNamespace)
+
+
+@beartype
 def create_project_file_subgraphs(
-        graph: igraph.Graph) -> List[Tuple[igraph.Graph, igraph.Vertex]]:
+        in_graph: igraph.Graph) -> List[Tuple[igraph.Graph, igraph.Vertex]]:
     result: List[Tuple[igraph.Graph, igraph.Vertex]] = []
 
-    for vertex in graph.vs:
+    for vertex in in_graph.vs:
         incd: IncludeVertexData = vertex["include_data"]
+        graph = in_graph.copy()
 
         if incd.isProjectFile:
             reachable_from = set(graph.subcomponent(vertex.index, mode="in"))
@@ -376,13 +432,65 @@ def create_project_file_subgraphs(
 
             subgraph = graph.subgraph(list(all_reachable))
 
-            new_vertex_index = None
+            target_vertex_index = None
             for v in subgraph.vs:
                 if v["include_data"].path == incd.path:
-                    new_vertex_index = v.index
+                    target_vertex_index = v.index
                     break
 
-            result.append((subgraph, subgraph.vs[new_vertex_index]))
+            target_declared_types = incd.declaredTypes or []
+
+            outgoing_vertices = set()
+            for edge in graph.es.select(_source=vertex.index):
+                outgoing_vertices.add(edge.target)
+
+            for v in subgraph.vs:
+                original_data: IncludeVertexData = v["include_data"]
+                log(CAT).info(f"Original {original_data.path}")
+
+                if v.index == target_vertex_index:
+                    new_data = IncludeVertexData(
+                        name=original_data.name,
+                        path=original_data.path,
+                        isProjectFile=original_data.isProjectFile,
+                        fileIncludes=original_data.fileIncludes[:],
+                        declaredTypes=original_data.declaredTypes,
+                        usedTypes=original_data.usedTypes,
+                    )
+                else:
+                    original_vertex_index = None
+                    for orig_v in graph.vs:
+                        if orig_v["include_data"].path == original_data.path:
+                            original_vertex_index = orig_v.index
+                            break
+
+                    filtered_declared_types = list()
+                    filtered_used_types = list()
+
+                    if original_vertex_index in outgoing_vertices:
+                        filtered_declared_types = original_data.declaredTypes
+                        if original_data.usedTypes:
+                            for qt in original_data.usedTypes:
+                                if _is_type_declared_in_target(qt, target_declared_types):
+                                    filtered_used_types.append(qt)
+                                    log(CAT).debug(f"  {qt.format_native()}")
+
+                    else:
+                        filtered_declared_types = original_data.declaredTypes
+                        filtered_used_types = original_data.usedTypes
+
+                    new_data = IncludeVertexData(
+                        name=original_data.name,
+                        path=original_data.path,
+                        isProjectFile=original_data.isProjectFile,
+                        fileIncludes=original_data.fileIncludes,
+                        declaredTypes=filtered_declared_types,
+                        usedTypes=filtered_used_types,
+                    )
+
+                v["include_data"] = new_data
+
+            result.append((subgraph, subgraph.vs[target_vertex_index]))
 
     return result
 
@@ -444,6 +552,8 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
     ok_files: List[Path] = []
     files = list(get_script_root(ctx, "src").rglob("*.?pp"))
 
+    files = files[:10]
+
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [
             executor.submit(process_reflection_file, ctx, file, compile_commands,
@@ -455,7 +565,7 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
             if result is not None:
                 ok_files.append(result)
 
-    conv_tus = []
+    conv_tus: List[ReflectionFile] = []
 
     for f in ok_files:
         tu = conv_proto_file(f)
@@ -464,7 +574,27 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
         tu_json.write_text(tu_unit.to_json(indent=2))
         log(CAT).debug(f"tu_json debug {tu_json}")
         if tu.absoluteOriginal.endswith("hpp"):
-            conv_tus.append(tu)
+            used_types: List[QualType] = list()
+            used_types_set = set()
+            for t in get_used_types_rec(tu, expanded_use=False):
+                thash = hash_qual_type(t, with_namespace=True)
+                if thash in used_types_set:
+                    continue
+                else:
+                    used_types_set.add(thash)
+
+                if "describe" not in t.flatQualName():
+                    used_types.append(t)
+
+            conv_tus.append(
+                ReflectionFile(
+                    tu=tu,
+                    declaredTypes=get_declared_types_rec(
+                        tu,
+                        expanded_use=False,
+                    ),
+                    usedTypes=used_types,
+                ))
 
     igraph_tus = create_include_graph(ctx, conv_tus)
 
@@ -477,7 +607,6 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
                     with_suffix("")) + suffix)
 
             ensure_existing_dir(ctx, sub_file.parent)
-            log(CAT).info(f"sub_file.{suffix} = {sub_file}.png")
             igraph_to_graphviz(subgraph, target=sub_vertex).render(sub_file, format="png")
 
     # generate_transitive_subgraph("_base")
