@@ -11,7 +11,6 @@
 #include <gtest/gtest.h>
 #include <hstd/system/aux_utils.hpp>
 #include <iostream>
-#include <hstd/system/string_convert.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <fstream>
 

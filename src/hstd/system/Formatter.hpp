@@ -2,6 +2,7 @@
 
 #include <format>
 #include <hstd/system/reflection.hpp>
+#include <hstd/system/string_convert.hpp>
 
 namespace hstd {
 

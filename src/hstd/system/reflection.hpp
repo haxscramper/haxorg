@@ -7,7 +7,6 @@
 
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
-#include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/system/basic_templates.hpp>
 #include <typeindex>
