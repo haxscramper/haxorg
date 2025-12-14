@@ -199,8 +199,15 @@ class ReflectionFile():
 def create_include_graph(ctx: TaskContext,
                          translation_units: List[ReflectionFile]) -> igraph.Graph:
     g = igraph.Graph(directed=True)
-
     file_to_vertex = {}
+
+    # Create a mapping from path to translation unit data
+    path_to_tu: Dict[Path, ReflectionFile] = {}
+    for tu in translation_units:
+        if tu.tu.absoluteOriginal is None:
+            continue
+        tu_path = Path(tu.tu.absoluteOriginal).resolve()
+        path_to_tu[tu_path] = tu
 
     for tu in translation_units:
         if tu.tu.absoluteOriginal is None:
@@ -213,16 +220,26 @@ def create_include_graph(ctx: TaskContext,
             resolved = path.resolve()
 
             if resolved not in file_to_vertex:
+                # Find the correct TU data for this specific path
+                tu_data = path_to_tu.get(resolved)
+                if tu_data is None:
+                    # Handle case where we don't have TU data for this file -- 
+                    # if the included file was outside of the project
+                    declared_types = []
+                    used_types = []
+                else:
+                    declared_types = tu_data.declaredTypes
+                    used_types = tu_data.usedTypes
+
                 icd = IncludeVertexData(
                     name=path.name,
                     path=str(path),
                     isProjectFile=path.is_relative_to(get_script_root(ctx)),
-                    declaredTypes=tu.declaredTypes,
-                    usedTypes=tu.usedTypes,
+                    declaredTypes=declared_types,
+                    usedTypes=used_types,
                 )
 
                 vertex_id = g.add_vertex(include_data=icd)
-
                 file_to_vertex[resolved] = vertex_id
 
             return file_to_vertex[resolved]
@@ -293,9 +310,16 @@ def igraph_to_graphviz(
                     dominate.tags.td(str(get_transitive_outgoing_count(vertex.index)))
 
                 with dominate.tags.tr():
-                    dominate.tags.td("Declared type:" if is_target else "Used Types:")
+                    dominate.tags.td(
+                        "Declared type:" if not target or is_target else "Used Types:")
+
                     with dominate.tags.td():
-                        target_types = incd.declaredTypes if is_target else incd.usedTypes
+                        if target:
+                            target_types = incd.declaredTypes if is_target else incd.usedTypes
+
+                        else:
+                            target_types = incd.declaredTypes
+
                         if target_types:
                             with dominate.tags.table(
                                     border="1",
@@ -303,9 +327,14 @@ def igraph_to_graphviz(
                                     cellspacing="0",
                             ):
                                 for ty in target_types:
+                                    type_name = ty.format_native(
+                                        with_cvref=False,
+                                        max_depth=1,
+                                        max_params=4,
+                                        max_param_size=12,
+                                    )
                                     with dominate.tags.tr():
-                                        dominate.tags.td(
-                                            dominate.util.text(ty.format_native()))
+                                        dominate.tags.td(dominate.util.text(type_name))
 
             label = "<" + doc.render() + ">"
             dot.node(str(vertex.index), label=label)
@@ -342,18 +371,21 @@ def process_reflection_file(
         log(CAT).info("TU file already exists")
         return out_file
 
+    else:
+        return None
+
     cmd_code, cmd_stdout, cmd_stderr = run_command(
         ctx,
         get_build_root(ctx, "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool"),
         [
             "-p",
-            compile_commands,
+            compile_commands.resolve(),
             "--compilation-database",
-            header_commands,
+            header_commands.resolve(),
             "--toolchain-include",
-            toolchain_include,
+            toolchain_include.resolve(),
             "--main-tu-analysis",
-            *(["--verbose"] if ctx.config.log_level == HaxorgLogLevel.VERBOSE else []),
+            "--verbose",
             "--out",
             out_file,
             file,
@@ -362,11 +394,19 @@ def process_reflection_file(
         allow_fail=True,
     )
 
+    out_stderr_path = out_file.with_suffix(".stderr.log")
+    out_stdout_path = out_file.with_suffix(".stdout.log")
+
+    out_stderr_path.write_text(cmd_stderr)
+    out_stdout_path.write_text(cmd_stdout)
+
     if "Compile command not found" in cmd_stderr:
         return None
     elif cmd_code != 0:
-        log(CAT).info(cmd_stdout)
-        log(CAT).error(cmd_stderr)
+        if cmd_stdout:
+            log(CAT).info(f"Execution failed, wrote stdout to {out_stdout_path}")
+        if cmd_stderr:
+            log(CAT).error(f"Execution failed, wroute stderr to {out_stderr_path}")
         return None
     else:
         assert out_file.exists(), f"{relative}"
@@ -418,19 +458,17 @@ def _types_match(type1: QualType, type2: QualType) -> bool:
 
 @beartype
 def create_project_file_subgraphs(
-        in_graph: igraph.Graph) -> List[Tuple[igraph.Graph, igraph.Vertex]]:
+        graph: igraph.Graph) -> List[Tuple[igraph.Graph, igraph.Vertex]]:
     result: List[Tuple[igraph.Graph, igraph.Vertex]] = []
 
-    for vertex in in_graph.vs:
+    for vertex in graph.vs:
         incd: IncludeVertexData = vertex["include_data"]
-        graph = in_graph.copy()
-
         if incd.isProjectFile:
             reachable_from = set(graph.subcomponent(vertex.index, mode="in"))
             reachable_to = set(graph.subcomponent(vertex.index, mode="out"))
             all_reachable = reachable_from.union(reachable_to)
 
-            subgraph = graph.subgraph(list(all_reachable))
+            subgraph = graph.subgraph(list(all_reachable)).copy()
 
             target_vertex_index = None
             for v in subgraph.vs:
@@ -446,17 +484,17 @@ def create_project_file_subgraphs(
 
             for v in subgraph.vs:
                 original_data: IncludeVertexData = v["include_data"]
-                log(CAT).info(f"Original {original_data.path}")
 
                 if v.index == target_vertex_index:
                     new_data = IncludeVertexData(
                         name=original_data.name,
                         path=original_data.path,
                         isProjectFile=original_data.isProjectFile,
-                        fileIncludes=original_data.fileIncludes[:],
+                        fileIncludes=original_data.fileIncludes,
                         declaredTypes=original_data.declaredTypes,
                         usedTypes=original_data.usedTypes,
                     )
+
                 else:
                     original_vertex_index = None
                     for orig_v in graph.vs:
@@ -473,11 +511,10 @@ def create_project_file_subgraphs(
                             for qt in original_data.usedTypes:
                                 if _is_type_declared_in_target(qt, target_declared_types):
                                     filtered_used_types.append(qt)
-                                    log(CAT).debug(f"  {qt.format_native()}")
 
                     else:
-                        filtered_declared_types = original_data.declaredTypes
-                        filtered_used_types = original_data.usedTypes
+                        filtered_declared_types = list()
+                        filtered_used_types = list()
 
                     new_data = IncludeVertexData(
                         name=original_data.name,
@@ -552,7 +589,7 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
     ok_files: List[Path] = []
     files = list(get_script_root(ctx, "src").rglob("*.?pp"))
 
-    files = files[:10]
+    # files = files[:10]
 
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [
@@ -586,17 +623,24 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
                 if "describe" not in t.flatQualName():
                     used_types.append(t)
 
+            declared_types = get_declared_types_rec(
+                tu,
+                expanded_use=False,
+            )
+
             conv_tus.append(
                 ReflectionFile(
                     tu=tu,
-                    declaredTypes=get_declared_types_rec(
-                        tu,
-                        expanded_use=False,
-                    ),
+                    declaredTypes=declared_types,
                     usedTypes=used_types,
                 ))
 
     igraph_tus = create_include_graph(ctx, conv_tus)
+
+    graphviz_tus = igraph_to_graphviz(igraph_tus)
+    graphviz_file = get_build_root(ctx, "reflect/include_graph.png").with_suffix("")
+    graphviz_tus.render(graphviz_file, format="png")
+    log(CAT).info(f"Final grouped graph {graphviz_file}.png")
 
     def generate_transitive_subgraph(suffix: str) -> None:
         for subgraph, sub_vertex in create_project_file_subgraphs(igraph_tus):
@@ -612,8 +656,3 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
     # generate_transitive_subgraph("_base")
     igraph_tus = remove_redundant_edges(igraph_tus)
     generate_transitive_subgraph("_reduced")
-
-    graphviz_tus = igraph_to_graphviz(igraph_tus)
-    graphviz_file = get_build_root(ctx, "reflect/include_graph.png").with_suffix("")
-    graphviz_tus.render(graphviz_file, format="png")
-    log(CAT).info(f"Final grouped graph {graphviz_file}.png")

@@ -94,13 +94,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     }
 
 
-    std::string dump(clang::Decl const* Decl) {
-        std::string              tree;
-        llvm::raw_string_ostream rso(tree);
-        Decl->dump(rso);
-        rso.flush();
-        return tree;
-    }
+    std::string dump(clang::Decl const* Decl, int head = -1);
 
     /// Fill in information about namespaces used in elaborated type
     std::vector<QualType> getNamespaces(

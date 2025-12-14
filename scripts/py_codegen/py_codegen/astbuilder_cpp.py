@@ -306,41 +306,68 @@ class QualType(BaseModel, extra="forbid"):
     def __str__(self) -> str:
         return self.format()
 
-    def format_native(self) -> str:
+    def format_native(
+        self,
+        with_cvref: bool = True,
+        max_depth: Optional[int] = None,
+        max_params: Optional[int] = None,
+        max_param_size: Optional[int] = None,
+    ) -> str:
 
-        def aux(Typ: QualType) -> str:
-            cvref = "{const}{ptr}{ref}".format(
-                const=" const" if Typ.isConst else "",
-                ptr=("*" * Typ.ptrCount),
-                ref={
-                    ReferenceKind.LValue: "&",
-                    ReferenceKind.RValue: "&&",
-                    ReferenceKind.NotRef: ""
-                }[Typ.RefKind],
-            )
+        def aux(Typ: QualType, depth: int) -> str:
+            if max_depth and max_depth < depth:
+                return ""
 
-            spaces = "".join([f"{aux(S)}::" for S in Typ.Spaces])
+            if with_cvref:
+                cvref = "{const}{ptr}{ref}".format(
+                    const=" const" if Typ.isConst else "",
+                    ptr=("*" * Typ.ptrCount),
+                    ref={
+                        ReferenceKind.LValue: "&",
+                        ReferenceKind.RValue: "&&",
+                        ReferenceKind.NotRef: ""
+                    }[Typ.RefKind],
+                )
+            else:
+                cvref = ""
+
+            spaces = "".join([f"{aux(S, depth=depth + 1)}::" for S in Typ.Spaces])
 
             match Typ.Kind:
                 case QualTypeKind.FunctionPtr:
                     assert Typ.func
                     result = "{result}({args})(*)".format(
-                        result=aux(Typ.func.ReturnTy or QualType.ForName("void")),
-                        args=", ".join([aux(T) for T in Typ.func.Args]),
+                        result=aux(Typ.func.ReturnTy or QualType.ForName("void"),
+                                   depth=depth + 1),
+                        args=", ".join([aux(T, depth=depth + 1) for T in Typ.func.Args]),
                     )
 
                 case QualTypeKind.Array:
                     result = "{first}[{expr}]{cvref}".format(
-                        first=aux(Typ.Parameters[0]),
-                        expr=aux(Typ.Parameters[1]) if 1 < len(Typ.Parameters) else "",
+                        first=aux(Typ.Parameters[0], depth=depth + 1),
+                        expr=aux(Typ.Parameters[1], depth=depth +
+                                 1) if 1 < len(Typ.Parameters) else "",
                         cvref=cvref,
                     )
 
                 case QualTypeKind.RegularType:
+                    if max_params:
+                        params_list = Typ.Parameters[:min(len(Typ.Parameters), max_params
+                                                         )]
+
+                    else:
+                        params_list = Typ.Parameters
+
+                    params_format = [aux(T, depth=depth + 1) for T in params_list]
+                    if max_param_size:
+                        params_format = [
+                            p[:min(len(p), max_param_size)] for p in params_format
+                        ]
+
                     result = "{spaces}{name}{args}{cvref}".format(
                         name=Typ.name or "?",
-                        args="<{}>".format(", ".join([aux(T) for T in Typ.Parameters]))
-                        if Typ.Parameters else "",
+                        args="<{}>".format(", ".join(params_format))
+                        if params_format else "",
                         cvref=cvref,
                         spaces=spaces,
                     )
@@ -354,7 +381,7 @@ class QualType(BaseModel, extra="forbid"):
             return result
 
         # return self.model_dump_json() + "  --- " + aux(self)
-        return aux(self)
+        return aux(self, depth=0)
         # return str(self.flat_repr_flatten())
 
     def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN) -> str:

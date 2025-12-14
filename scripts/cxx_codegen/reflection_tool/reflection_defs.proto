@@ -173,6 +173,7 @@ message Record {
         Destructor = 5;
         DefaultConstructor = 6;
         ConvertingConstructor =  7;
+        Constructor = 8;  
     }
 
     message Method {

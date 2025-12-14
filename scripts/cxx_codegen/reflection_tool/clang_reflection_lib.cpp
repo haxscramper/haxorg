@@ -194,6 +194,28 @@ std::optional<std::string> ReflASTVisitor::get_refl_params(
     return std::nullopt;
 }
 
+std::string ReflASTVisitor::dump(const clang::Decl* Decl, int head) {
+    std::string              tree;
+    llvm::raw_string_ostream rso(tree);
+    Decl->dump(rso);
+    rso.flush();
+
+    if (head == -1) { return tree; }
+
+    std::istringstream iss{tree};
+    std::string        line;
+    std::string        result;
+    int                count{0};
+
+    while (std::getline(iss, line) && count < head) {
+        if (count > 0) { result += "\n"; }
+        result += line;
+        count++;
+    }
+
+    return result;
+}
+
 c::TypedefDecl* findTypedefForDecl(c::Decl* Decl, c::ASTContext* Ctx) {
     c::DeclContext* Context = Decl->getDeclContext();
     for (auto D : Context->decls()) {
@@ -521,13 +543,13 @@ void ReflASTVisitor::log_visit(
                 "\n--------------------------------------------------\n{}"
                 "\n---"
                 "\n{}\n"
-                "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+                "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
                 std::format(
                     "line:{} function:{} msg:{}", line, function, msg),
-                (Decl ? "\n" + dump(Decl) : ""));
+                (Decl ? "\n" + dump(Decl, 5) : ""));
         } else {
             LOG(INFO) << std::format(
-                "line:{} function:{} msg:{}\n", line, function, msg);
+                "line:{} function:{} msg:{}", line, function, msg);
         }
     }
 }
@@ -690,6 +712,7 @@ void ReflASTVisitor::fillType(
             add_debug(Out, " T-reference");
         }
 
+        Out->set_name(In->getTypeClassName());
         Out->set_isbuiltin(In->isBuiltinType());
 
         if (In->isReferenceType() || In->isPointerType()) {
@@ -774,17 +797,44 @@ void ReflASTVisitor::fillType(
                 In.getTypePtr());
             Out->set_kind(TypeKind::Array);
             fillType(Out->add_parameters(), ARRT->getElementType(), Loc);
-
+        } else if (
+            auto const* parm = dyn_cast<c::TemplateTypeParmType>(
+                In.getTypePtr())) {
+            Out->set_kind(TypeKind::RegularType);
+            if (parm->getIdentifier()) {
+                Out->set_name(parm->getIdentifier()->getName());
+            }
+        } else if (
+            auto const* inj = dyn_cast<c::InjectedClassNameType>(
+                In.getTypePtr())) {
+            Out->set_kind(TypeKind::RegularType);
+            if (inj->getDecl()) {
+                Out->set_name(inj->getDecl()->getNameAsString());
+            }
+        } else if (
+            auto const* at = dyn_cast<c::AutoType>(In.getTypePtr())) {
+            Out->set_kind(TypeKind::RegularType);
+            Out->set_name("auto");
         } else {
             Diag(
                 DiagKind::Warning,
-                "Unhandled serialization for a type %0 (%1)",
+                "Unhandled serialization for a type '%0' (%1 %2)",
                 Loc)
                 << In << dump(In);
         }
 
         if (const auto* TST = dyn_cast<c::TemplateSpecializationType>(
                 In.getTypePtr())) {
+            for (c::TemplateArgument const& Arg :
+                 TST->template_arguments()) {
+                auto param = Out->add_parameters();
+                add_debug(param, "Type parameter");
+                fillType(param, Arg, Loc);
+            }
+        } else if (
+            const auto* INJ = dyn_cast<c::InjectedClassNameType>(
+                In.getTypePtr())) {
+            auto const* TST = INJ->getInjectedTST();
             for (c::TemplateArgument const& Arg :
                  TST->template_arguments()) {
                 auto param = Out->add_parameters();
@@ -983,7 +1033,7 @@ void ReflASTVisitor::fillMethodDecl(
         } else if (constr->isDefaultConstructor()) {
             sub->set_kind(Record_MethodKind_DefaultConstructor);
         } else {
-            LOG(FATAL) << "Unknown constructor kind";
+            sub->set_kind(Record_MethodKind_Constructor);
         }
     } else {
         sub->set_kind(Record_MethodKind_Base);
@@ -1267,13 +1317,11 @@ bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
          && isRefl(Decl)                      //
          && isToplevelDecl)                   //
         ||                                    //
-        (visitMode == VisitMode::AllTargeted  //
-         && shouldVisit(Decl)                 //
+        ((visitMode == VisitMode::AllTargeted
+          || visitMode == VisitMode::AllMainTranslationUnit) //
+         && shouldVisit(Decl)                                //
          && isToplevelDecl)) {
         log_visit(Decl);
-
-        // LOG(INFO) << std::format(
-        //     "Explicitly visiting {}", Decl->getQualifiedNameAsString());
 
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Decl->getNameAsString()};
