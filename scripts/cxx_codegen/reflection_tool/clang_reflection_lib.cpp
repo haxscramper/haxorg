@@ -478,7 +478,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
     } else {
         Diag(
             DiagKind::Warning,
-            "Unhandled namespace expansion for %0 (%1)",
+            "Unhandled namespace expansion for %0 (%1 %2)",
             Loc)
             << In << dump(In);
     }
@@ -620,7 +620,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
                 default: {
                     Diag(
                         DiagKind::Warning,
-                        "Unhadled namespace filler kind '%0'",
+                        "Unhadled namespace filler %0 kind '%1'",
                         Loc)
                         << kind;
                 }
@@ -800,6 +800,7 @@ void ReflASTVisitor::fillType(
         } else if (
             auto const* parm = dyn_cast<c::TemplateTypeParmType>(
                 In.getTypePtr())) {
+            add_debug(Out, " >templatetypeparmtype");
             Out->set_kind(TypeKind::RegularType);
             if (parm->getIdentifier()) {
                 Out->set_name(parm->getIdentifier()->getName());
@@ -807,14 +808,21 @@ void ReflASTVisitor::fillType(
         } else if (
             auto const* inj = dyn_cast<c::InjectedClassNameType>(
                 In.getTypePtr())) {
+            add_debug(Out, " >injectedclassname");
             Out->set_kind(TypeKind::RegularType);
             if (inj->getDecl()) {
                 Out->set_name(inj->getDecl()->getNameAsString());
             }
         } else if (
             auto const* at = dyn_cast<c::AutoType>(In.getTypePtr())) {
+            add_debug(Out, " >autotype");
             Out->set_kind(TypeKind::RegularType);
             Out->set_name("auto");
+        } else if (
+            auto const* PET = dyn_cast<c::PackExpansionType>(
+                In.getTypePtr())) {
+            add_debug(Out, " >pack-expansion");
+            fillType(Out, PET->getPattern(), Loc);
         } else {
             Diag(
                 DiagKind::Warning,
@@ -876,7 +884,7 @@ void ReflASTVisitor::fillType(
         case c::TemplateArgument::Pack: {
             Diag(
                 DiagKind::Warning,
-                "Unhandled template argument type '%0'",
+                "Unhandled template argument %0 type '%1'",
                 Loc)
                 << Arg.getKind();
         }
@@ -933,7 +941,7 @@ void ReflASTVisitor::fillExpr(
             Diag(
                 DiagKind::Warning,
                 "Unhandled expression with failed 'get expr as string' "
-                "serialization",
+                "serialization %0",
                 Loc);
         }
     }
@@ -1268,6 +1276,23 @@ void ReflASTVisitor::fillCxxRecordDecl(
                 fillFieldDecl(rec->add_fields(), sub);
             }
 
+        } else if (c::FunctionTemplateDecl const* templ = dyn_cast<
+                       c::FunctionTemplateDecl>(SubDecl);
+                   templ != nullptr) {
+
+            auto* sub = rec->add_methods();
+
+            if (auto args = get_refl_params(templ)) {
+                sub->set_reflectionparams(args.value());
+            }
+
+            clang::Decl const* templatedDecl = templ->getTemplatedDecl();
+            auto const*        method = llvm::cast<clang::CXXMethodDecl>(
+                templatedDecl);
+            fillMethodDecl(sub, method);
+
+            if (auto doc = getDoc(templ)) { sub->set_doc(*doc); }
+
         } else if (c::CXXMethodDecl const* sub = dyn_cast<
                        c::CXXMethodDecl>(SubDecl);
                    sub != nullptr) {
@@ -1278,12 +1303,14 @@ void ReflASTVisitor::fillCxxRecordDecl(
             llvm::isa<c::IndirectFieldDecl>(SubDecl)
             || llvm::isa<c::UsingDecl>(SubDecl)
             || llvm::isa<c::EnumDecl>(SubDecl)
+            || llvm::isa<c::AccessSpecDecl>(SubDecl)
+            || llvm::isa<c::FriendDecl>(SubDecl)
             || llvm::isa<c::UsingShadowDecl>(SubDecl)) {
             // pass
         } else {
             Diag(
                 DiagKind::Warning,
-                "Unknown nested serialization content for %0",
+                "Unknown nested serialization content for %0 %1",
                 SubDecl->getLocation())
                 << dump(SubDecl);
         }

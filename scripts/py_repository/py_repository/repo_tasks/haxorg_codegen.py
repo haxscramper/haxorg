@@ -8,7 +8,7 @@ from beartype import beartype
 from beartype.typing import List, Optional, Any, Tuple, Dict
 import igraph
 from py_ci.data_build import get_deps_install_config
-from py_codegen.astbuilder_cpp import QualType
+from py_codegen.astbuilder_cpp import QualType, QualTypeKind
 from py_codegen.gen_tu_cpp import GenTuInclude
 from py_codegen.refl_read import ConvTu, conv_proto_file
 from py_codegen.refl_wrapper_graph import get_declared_types_rec, get_used_types_rec, hash_qual_type
@@ -223,7 +223,7 @@ def create_include_graph(ctx: TaskContext,
                 # Find the correct TU data for this specific path
                 tu_data = path_to_tu.get(resolved)
                 if tu_data is None:
-                    # Handle case where we don't have TU data for this file -- 
+                    # Handle case where we don't have TU data for this file --
                     # if the included file was outside of the project
                     declared_types = []
                     used_types = []
@@ -363,20 +363,18 @@ def process_reflection_file(
 ) -> Optional[Path]:
     relative = file.relative_to(get_script_root(ctx))
     out_file = get_build_root(ctx, f"{relative}_translation.pb")
-    log(CAT).info(f"Analysing TU for {relative}")
-
     ensure_existing_dir(ctx, out_file.parent)
 
-    if out_file.exists() and file.stat().st_mtime <= out_file.stat().st_mtime:
-        log(CAT).info("TU file already exists")
-        return out_file
+    refl_tool = get_build_root(
+        ctx, "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool")
 
-    else:
-        return None
+    if False and out_file.exists() and file.stat().st_mtime <= out_file.stat(
+    ).st_mtime and refl_tool.stat().st_mtime < out_file.stat().st_mtime:
+        return out_file
 
     cmd_code, cmd_stdout, cmd_stderr = run_command(
         ctx,
-        get_build_root(ctx, "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool"),
+        refl_tool,
         [
             "-p",
             compile_commands.resolve(),
@@ -385,7 +383,7 @@ def process_reflection_file(
             "--toolchain-include",
             toolchain_include.resolve(),
             "--main-tu-analysis",
-            "--verbose",
+            # "--verbose",
             "--out",
             out_file,
             file,
@@ -433,27 +431,61 @@ def remove_redundant_edges(igraph_tus: igraph.Graph) -> igraph.Graph:
 
 
 @beartype
-def _is_type_declared_in_target(qual_type: QualType,
-                                target_declared_types: List[QualType]) -> bool:
-    for target_type in target_declared_types:
-        if _types_match(qual_type, target_type):
+def _types_match(type1: QualType, type2: QualType, verbose: bool = False) -> bool:
+    if verbose:
+        log(CAT).debug(
+            f"MATCH {type1.format_native(False)} <> {type2.format_native(False)}")
+
+    if type1.Kind != type2.Kind:
+        if verbose:
+            log(CAT).debug(f"  {type1.Kind} != {type2.Kind}")
+        return False
+
+    match type1.Kind:
+        case QualTypeKind.RegularType:
+            if type1.name != type2.name:
+                if verbose:
+                    log(CAT).debug(f"  {type1.name} != {type2.name}")
+
+                return False
+
+            if len(type1.Spaces) != len(type2.Spaces):
+                if verbose:
+                    log(CAT).debug(
+                        f"  Spaces len mismatch {len(type1.Spaces)} != {len(type2.Spaces)}"
+                    )
+
+                return False
+
+            if any(not _types_match(s1, s2)
+                   for s1, s2 in zip(type1.Spaces, type2.Spaces)):
+                return False
+
             return True
 
-    for param in qual_type.Parameters:
-        if _is_type_declared_in_target(param, target_declared_types):
-            return True
-
-    for space in qual_type.Spaces:
-        if _is_type_declared_in_target(space, target_declared_types):
-            return True
-
-    return False
+        case _:
+            return False
 
 
 @beartype
-def _types_match(type1: QualType, type2: QualType) -> bool:
-    return (type1.name == type2.name and type1.Spaces == type2.Spaces and
-            type1.isNamespace == type2.isNamespace)
+def _is_type_declared_in_target(
+    qual_type: QualType,
+    target_declared_types: List[QualType],
+    verbose: bool = False,
+) -> bool:
+    for target_type in target_declared_types:
+        if _types_match(qual_type, target_type, verbose=verbose):
+            return True
+
+    for param in qual_type.Parameters:
+        if _is_type_declared_in_target(param, target_declared_types, verbose=verbose):
+            return True
+
+    for space in qual_type.Spaces:
+        if _is_type_declared_in_target(space, target_declared_types, verbose=verbose):
+            return True
+
+    return False
 
 
 @beartype
@@ -508,8 +540,20 @@ def create_project_file_subgraphs(
                     if original_vertex_index in outgoing_vertices:
                         filtered_declared_types = original_data.declaredTypes
                         if original_data.usedTypes:
+                            dbg_t = incd.path.endswith("/Set.hpp")
                             for qt in original_data.usedTypes:
-                                if _is_type_declared_in_target(qt, target_declared_types):
+                                decl_check = _is_type_declared_in_target(
+                                    qt,
+                                    target_declared_types,
+                                    verbose=dbg_t,
+                                )
+
+                                if dbg_t:
+                                    log(CAT).info(
+                                        f"Is {qt.format_native(with_cvref=False)} declared in Set.hpp: {decl_check}"
+                                    )
+
+                                if decl_check:
                                     filtered_used_types.append(qt)
 
                     else:
@@ -609,7 +653,6 @@ def generate_full_code_reflection(ctx: TaskContext) -> None:
         tu_unit = pb.TU.FromString(f.read_bytes())
         tu_json = f.with_suffix(".json")
         tu_json.write_text(tu_unit.to_json(indent=2))
-        log(CAT).debug(f"tu_json debug {tu_json}")
         if tu.absoluteOriginal.endswith("hpp"):
             used_types: List[QualType] = list()
             used_types_set = set()
