@@ -2,6 +2,7 @@
 #pragma clang diagnostic ignored "-Wunused-result"
 #pragma clang diagnostic ignored "-Wformat-security"
 #include <haxorg/sem/perfetto_org.hpp>
+#include <boost/preprocessor.hpp>
 
 #pragma clang diagnostic error "-Wunused-result"
 

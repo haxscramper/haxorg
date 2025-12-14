@@ -6,7 +6,7 @@
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/reflection_visitor.hpp>
+
 
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
@@ -56,15 +56,6 @@ struct [[refl]] UserTime {
     [[refl]] int64_t getTimeDeltaSeconds(UserTime const& other) const;
     [[refl]] int64_t toUnixTimestamp() const;
 };
-
-
-template <typename Tag>
-struct ReflVisitor<cctz::civil_second, Tag>
-    : ReflVisitorLeafType<cctz::civil_second, Tag> {};
-
-template <typename Tag>
-struct ReflVisitor<cctz::time_zone, Tag>
-    : ReflVisitorLeafType<cctz::time_zone, Tag> {};
 
 } // namespace hstd
 

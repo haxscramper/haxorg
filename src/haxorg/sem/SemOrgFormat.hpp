@@ -36,14 +36,7 @@ struct Formatter {
     Res toString(sem::AttrGroup const& args, Context const& ctx);
     Res toString(sem::HashTagText const& args, Context const& ctx);
     Res toString(sem::LinkTarget const& args, Context const& ctx);
-    Res toString(sem::AttrList const& args, Context const& ctx) {
-        Res res = b.stack();
-        for (auto const& it : enumerator(args.items)) {
-            if (!it.is_first()) { b.add_at(res, str(" ")); }
-            b.add_at(res, toString(it.value(), ctx));
-        }
-        return res;
-    }
+    Res toString(sem::AttrList const& args, Context const& ctx);
 
     Res toString(
         hstd::Opt<sem::AttrGroup> const& args,

@@ -802,16 +802,36 @@ void ReflASTVisitor::fillType(
                 In.getTypePtr())) {
             add_debug(Out, " >templatetypeparmtype");
             Out->set_kind(TypeKind::RegularType);
-            if (parm->getIdentifier()) {
+            const clang::TemplateTypeParmDecl* D = parm->getDecl();
+            if (D != nullptr) {
+                Out->set_name(D->getNameAsString());
+            } else if (parm->getIdentifier()) {
                 Out->set_name(parm->getIdentifier()->getName());
+            } else {
+                unsigned Depth = parm->getDepth();
+                unsigned Index = parm->getIndex();
+                Out->set_name(std::format("unnamed_{}_{}", Depth, Index));
             }
+
         } else if (
             auto const* inj = dyn_cast<c::InjectedClassNameType>(
                 In.getTypePtr())) {
             add_debug(Out, " >injectedclassname");
+            c::CXXRecordDecl* injDecl = inj->getDecl();
+            applyNamespaces(Out, getNamespaces(injDecl, Loc));
             Out->set_kind(TypeKind::RegularType);
             if (inj->getDecl()) {
                 Out->set_name(inj->getDecl()->getNameAsString());
+            } else {
+                Out->set_name("INJ_NO_IDENT");
+            }
+
+            auto const* TST = inj->getInjectedTST();
+            for (c::TemplateArgument const& Arg :
+                 TST->template_arguments()) {
+                auto param = Out->add_parameters();
+                add_debug(param, "Type parameter");
+                fillType(param, Arg, Loc);
             }
         } else if (
             auto const* at = dyn_cast<c::AutoType>(In.getTypePtr())) {
@@ -823,26 +843,21 @@ void ReflASTVisitor::fillType(
                 In.getTypePtr())) {
             add_debug(Out, " >pack-expansion");
             fillType(Out, PET->getPattern(), Loc);
-        } else {
-            Diag(
-                DiagKind::Warning,
-                "Unhandled serialization for a type '%0' (%1 %2)",
-                Loc)
-                << In << dump(In);
-        }
-
-        if (const auto* TST = dyn_cast<c::TemplateSpecializationType>(
-                In.getTypePtr())) {
-            for (c::TemplateArgument const& Arg :
-                 TST->template_arguments()) {
-                auto param = Out->add_parameters();
-                add_debug(param, "Type parameter");
-                fillType(param, Arg, Loc);
-            }
         } else if (
-            const auto* INJ = dyn_cast<c::InjectedClassNameType>(
+            const auto* TST = dyn_cast<c::TemplateSpecializationType>(
                 In.getTypePtr())) {
-            auto const* TST = INJ->getInjectedTST();
+            add_debug(Out, " >template-spec-type");
+            Out->set_kind(TypeKind::RegularType);
+
+            clang::TemplateName TN = TST->getTemplateName();
+
+            if (clang::TemplateDecl* TD = TN.getAsTemplateDecl()) {
+                Out->set_name(TD->getNameAsString());
+                applyNamespaces(Out, getNamespaces(TD, Loc));
+            } else {
+                Out->set_name("TST_NON_TEMPLATE_DECL");
+            }
+
             for (c::TemplateArgument const& Arg :
                  TST->template_arguments()) {
                 auto param = Out->add_parameters();
@@ -858,6 +873,11 @@ void ReflASTVisitor::fillType(
         } else {
             add_debug(
                 Out, std::format("typeclass={}", In->getTypeClassName()));
+            Diag(
+                DiagKind::Warning,
+                "Unhandled serialization for a type '%0' (%1 %2)",
+                Loc)
+                << In << dump(In);
         }
     }
 }

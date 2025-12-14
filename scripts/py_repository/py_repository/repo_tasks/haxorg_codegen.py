@@ -368,7 +368,7 @@ def process_reflection_file(
     refl_tool = get_build_root(
         ctx, "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool")
 
-    if False and out_file.exists() and file.stat().st_mtime <= out_file.stat(
+    if out_file.exists() and file.stat().st_mtime <= out_file.stat(
     ).st_mtime and refl_tool.stat().st_mtime < out_file.stat().st_mtime:
         return out_file
 
@@ -540,7 +540,7 @@ def create_project_file_subgraphs(
                     if original_vertex_index in outgoing_vertices:
                         filtered_declared_types = original_data.declaredTypes
                         if original_data.usedTypes:
-                            dbg_t = incd.path.endswith("/Set.hpp")
+                            dbg_t = False  # incd.path.endswith("/Set.hpp")
                             for qt in original_data.usedTypes:
                                 decl_check = _is_type_declared_in_target(
                                     qt,
@@ -548,9 +548,9 @@ def create_project_file_subgraphs(
                                     verbose=dbg_t,
                                 )
 
-                                if dbg_t:
+                                if decl_check:
                                     log(CAT).info(
-                                        f"Is {qt.format_native(with_cvref=False)} declared in Set.hpp: {decl_check}"
+                                        f"{qt.format_native(with_cvref=False)} used in {original_data.path}"
                                     )
 
                                 if decl_check:

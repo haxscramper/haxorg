@@ -16,6 +16,7 @@
 #include <boost/mp11/algorithm.hpp>
 #include <type_traits>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/TimeReflVisitor.hpp>
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 

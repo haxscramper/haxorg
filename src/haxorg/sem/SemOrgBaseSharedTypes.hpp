@@ -14,6 +14,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 namespace org::sem {
 struct [[refl]] OrgJson {
