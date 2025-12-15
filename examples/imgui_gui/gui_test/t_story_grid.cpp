@@ -2,6 +2,7 @@
 #include <gui_lib/story_grid.hpp>
 #include <haxorg/sem/ImmOrgBase.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 #define TEST_GRP_NAME "story_grid"
 

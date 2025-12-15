@@ -7,6 +7,20 @@ using namespace org::algo;
 using namespace org;
 using namespace hstd;
 
+
+void proto_serde<::orgproto::OrgJson, org::sem::OrgJson>::read(
+    const orgproto::OrgJson&           out,
+    proto_write_accessor<sem::OrgJson> in) {
+    in.get() = org::sem::OrgJson(json::parse(out.raw()));
+}
+
+void proto_serde<::orgproto::OrgJson, org::sem::OrgJson>::write(
+    orgproto::OrgJson*  out,
+    const sem::OrgJson& in) {
+    out->set_raw(in.getRef().dump());
+}
+
+
 void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(
     orgproto::AnyNode*          out,
     const sem::SemId<sem::Org>& in) {
@@ -123,15 +137,3 @@ template class proto_serde<::orgproto::CmdExport, sem::Cmd>;
 
 } // namespace org::algo
 #endif
-
-void proto_serde<::orgproto::OrgJson, org::sem::OrgJson>::read(
-    const orgproto::OrgJson&           out,
-    proto_write_accessor<sem::OrgJson> in) {
-    in.get() = org::sem::OrgJson(json::parse(out.raw()));
-}
-
-void proto_serde<::orgproto::OrgJson, org::sem::OrgJson>::write(
-    orgproto::OrgJson*  out,
-    const sem::OrgJson& in) {
-    out->set_raw(in.getRef().dump());
-}
