@@ -10,8 +10,8 @@ import py_repository.repo_docgen.gen_documentation_cxx as cxx
 import py_repository.repo_docgen.gen_documentation_data as docdata
 import py_repository.repo_docgen.gen_documentation_python as py
 import py_repository.repo_docgen.gen_documentation_utils as docutils
-import py_repository.coverage_collection.gen_coverage_python as cov_docpy
-import py_repository.coverage_collection.gen_coverage_cxx as cov_docxx
+import py_repository.code_analysis.gen_coverage_python as cov_docpy
+import py_repository.code_analysis.gen_coverage_cxx as cov_docxx
 from sqlalchemy.orm import Session
 import rich_click as click
 from beartype import beartype

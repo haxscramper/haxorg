@@ -1,4 +1,4 @@
-from py_repository.coverage_collection.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile
+from py_repository.code_analysis.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile
 from beartype import beartype
 from pathlib import Path
 from beartype.typing import List, Optional
