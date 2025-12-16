@@ -336,7 +336,7 @@ class Py11Method(Py11Function):
         super().__init__(Func, Body, PyName, DefParams=DefParams)
         self.ExplicitClassParam = ExplicitClassParam
 
-    def build_typedef(
+    def build_typedef( # type: ignore[override]
         self,
         ast: pya.ASTBuilder,
         base_map: GenTypeMap,
@@ -355,7 +355,7 @@ class Py11Method(Py11Function):
                 *maybe_splice(is_overload, pya.DecoratorParams("overload")),
             ]))
 
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId: # type: ignore[override]
         b = ast.b
 
         Args: List[GenTuIdent] = []
@@ -610,7 +610,7 @@ class Py11Class:
 
         self.InitMagicMethods(ast=ast)
 
-    def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
+    def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]) -> None:
         if self.Struct.IsDescribedRecord:
             body_impl = []
 
@@ -672,7 +672,7 @@ class Py11Class:
                     ExplicitClassParam=True,
                 ))
 
-    def InitMagicMethods(self, ast: ASTBuilder):
+    def InitMagicMethods(self, ast: ASTBuilder) -> None:
         str_type = QualType.ForName("string", Spaces=[QualType.ForName("std")])
         pyobj_type = QualType.ForName("object", Spaces=[QualType.ForName("pybind11")])
 
@@ -875,7 +875,7 @@ class Py11Module:
 
     nameTrack: Dict[str, QualType] = field(default_factory=dict)
 
-    def add_all(self, decls: List[GenTuUnion], ast: ASTBuilder, base_map: GenTypeMap):
+    def add_all(self, decls: List[GenTuUnion], ast: ASTBuilder, base_map: GenTypeMap) -> None:
         for decl in decls:
             self.add_decl(decl, ast=ast, base_map=base_map)
 
@@ -883,7 +883,7 @@ class Py11Module:
         self,
         ast: ASTBuilder,
         specializations: List[TypeSpecialization],
-    ):
+    ) -> None:
 
         opaque_declarations: List[BlockId] = []
         specialization_calls: List[BlockId] = [
@@ -918,9 +918,9 @@ class Py11Module:
 
         self.Decls = [Py11BindPass(D) for D in specialization_calls] + self.Decls
 
-    def add_decl(self, decl: GenTuUnion, ast: ASTBuilder, base_map: GenTypeMap):
+    def add_decl(self, decl: GenTuUnion, ast: ASTBuilder, base_map: GenTypeMap) -> None:
 
-        def append_decl(d: Py11Entry):
+        def append_decl(d: Py11Entry) -> None:
             name = None
             match d:
                 case Py11Class():
@@ -943,7 +943,7 @@ class Py11Module:
 
         match decl:
             case GenTuStruct():
-                visit_context = []
+                visit_context: List[Any] = []
 
                 def codegenConstructCallback(value: Any) -> None:
                     if isinstance(value, GenTuStruct):

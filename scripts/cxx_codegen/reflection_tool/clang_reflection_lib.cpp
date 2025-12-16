@@ -659,10 +659,10 @@ bool isTypedefOrUsingType(
     return false;
 }
 
-void ReflASTVisitor::fillType(
+void ReflASTVisitor::fillTypeRec(
     QualType*                               Out,
-    const c::QualType&                      In,
-    const std::optional<c::SourceLocation>& Loc) {
+    c::QualType const&                      In,
+    std::optional<c::SourceLocation> const& Loc) {
     auto __scope = scope_debug(Out, "(", ")");
 
     if (isTypedefOrUsingType(Ctx, In)) { Out->set_istypedef(true); }
@@ -717,7 +717,7 @@ void ReflASTVisitor::fillType(
 
         if (In->isReferenceType() || In->isPointerType()) {
             add_debug(Out, " >ref/ptr");
-            fillType(Out, In->getPointeeType(), Loc);
+            fillTypeRec(Out, In->getPointeeType(), Loc);
         } else if (In->isBooleanType()) {
             add_debug(Out, " >bool");
             Out->set_name("bool");
@@ -744,7 +744,7 @@ void ReflASTVisitor::fillType(
                                             c::ElaboratedType>()) {
             add_debug(Out, " >elaborated");
             // applyNamespaces(Out, getNamespaces(elab, Loc));
-            fillType(Out, elab->getNamedType(), Loc);
+            fillTypeRec(Out, elab->getNamedType(), Loc);
 
         } else if (In->isRecordType()) {
             applyNamespaces(Out, getNamespaces(In, Loc));
@@ -765,9 +765,9 @@ void ReflASTVisitor::fillType(
             Out->set_kind(TypeKind::FunctionPtr);
             const c::FunctionProtoType* FPT = In->getAs<
                 c::FunctionProtoType>();
-            fillType(Out->add_parameters(), FPT->getReturnType(), Loc);
+            fillTypeRec(Out->add_parameters(), FPT->getReturnType(), Loc);
             for (c::QualType const& param : FPT->param_types()) {
-                fillType(Out->add_parameters(), param, Loc);
+                fillTypeRec(Out->add_parameters(), param, Loc);
             }
 
 
@@ -780,7 +780,8 @@ void ReflASTVisitor::fillType(
                 c::ConstantArrayType>(ARRT);
 
             Out->set_kind(TypeKind::Array);
-            fillType(Out->add_parameters(), C_ARRT->getElementType(), Loc);
+            fillTypeRec(
+                Out->add_parameters(), C_ARRT->getElementType(), Loc);
             auto expr_param = Out->add_parameters();
             expr_param->set_kind(TypeKind::TypeExpr);
             if (auto size = C_ARRT->getSizeExpr()) {
@@ -796,7 +797,8 @@ void ReflASTVisitor::fillType(
             c::ArrayType const* ARRT = dyn_cast<c::ArrayType>(
                 In.getTypePtr());
             Out->set_kind(TypeKind::Array);
-            fillType(Out->add_parameters(), ARRT->getElementType(), Loc);
+            fillTypeRec(
+                Out->add_parameters(), ARRT->getElementType(), Loc);
         } else if (
             auto const* parm = dyn_cast<c::TemplateTypeParmType>(
                 In.getTypePtr())) {
@@ -831,7 +833,7 @@ void ReflASTVisitor::fillType(
                  TST->template_arguments()) {
                 auto param = Out->add_parameters();
                 add_debug(param, "Type parameter");
-                fillType(param, Arg, Loc);
+                fillTypeRec(param, Arg, Loc);
             }
         } else if (
             auto const* at = dyn_cast<c::AutoType>(In.getTypePtr())) {
@@ -842,7 +844,7 @@ void ReflASTVisitor::fillType(
             auto const* PET = dyn_cast<c::PackExpansionType>(
                 In.getTypePtr())) {
             add_debug(Out, " >pack-expansion");
-            fillType(Out, PET->getPattern(), Loc);
+            fillTypeRec(Out, PET->getPattern(), Loc);
         } else if (
             const auto* TST = dyn_cast<c::TemplateSpecializationType>(
                 In.getTypePtr())) {
@@ -862,14 +864,14 @@ void ReflASTVisitor::fillType(
                  TST->template_arguments()) {
                 auto param = Out->add_parameters();
                 add_debug(param, "Type parameter");
-                fillType(param, Arg, Loc);
+                fillTypeRec(param, Arg, Loc);
             }
         } else if (
             const auto* STTP = dyn_cast<clang::SubstTemplateTypeParmType>(
                 In.getTypePtr())) {
             auto param = Out->add_parameters();
             add_debug(param, "SubstTemplateTypeParmType");
-            fillType(param, STTP->getReplacementType(), Loc);
+            fillTypeRec(param, STTP->getReplacementType(), Loc);
         } else {
             add_debug(
                 Out, std::format("typeclass={}", In->getTypeClassName()));
@@ -883,6 +885,19 @@ void ReflASTVisitor::fillType(
 }
 
 void ReflASTVisitor::fillType(
+    QualType*                               Out,
+    const c::QualType&                      In,
+    const std::optional<c::SourceLocation>& Loc) {
+    if (Loc) {
+        add_debug(
+            Out,
+            formatSourceLocation(Loc.value(), Ctx->getSourceManager()));
+    }
+
+    fillTypeRec(Out, In, Loc);
+}
+
+void ReflASTVisitor::fillTypeRec(
     QualType*                               Out,
     const c::TemplateArgument&              Arg,
     const std::optional<c::SourceLocation>& Loc) {
@@ -1351,7 +1366,7 @@ void ReflASTVisitor::fillSharedRecordData(
 
         for (unsigned i = 0; i < args.size(); ++i) {
             auto param = rec->add_explicittemplateparams();
-            fillType(param, args[i], std::nullopt);
+            fillTypeRec(param, args[i], std::nullopt);
         }
     }
 }

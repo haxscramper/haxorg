@@ -5,58 +5,16 @@
 #include <py_libs/pybind11_utils.hpp>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphPoint>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPoint>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align::Spec>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align::Spec>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::pair<int, int>>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<std::pair<int, int>>)
-PYBIND11_MAKE_OPAQUE(std::vector<int>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
-PYBIND11_MAKE_OPAQUE(std::vector<vpsc::Rectangle>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphSize>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphSize>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphEdge>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphEdge>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Subgraph>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Subgraph>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
-PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
-PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphPath>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPath>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphRect>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphRect>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
-PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Result::Subgraph>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Result::Subgraph>)
-PYBIND11_MAKE_OPAQUE(std::vector<hstd::Vec<int>>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::Vec<int>>)
+PYBIND11_MAKE_OPAQUE(std::vector)
+PYBIND11_MAKE_OPAQUE(hstd::Vec)
+PYBIND11_MAKE_OPAQUE(std::vector)
+PYBIND11_MAKE_OPAQUE(std::unordered_map)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap)
 PYBIND11_MODULE(py_adaptagrams, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
-  bind_hstdVec<hstd::ext::GraphPoint>(m, "VecOfGraphPoint", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "VecOfGraphNodeConstraintAlignSpec", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphNodeConstraint::Align>(m, "VecOfGraphNodeConstraintAlign", type_registry_guard);
-  bind_hstdVec<std::pair<int, int>>(m, "VecOfStdPairOfIntInt", type_registry_guard);
-  bind_hstdVec<int>(m, "VecOfInt", type_registry_guard);
-  bind_stdvector<vpsc::Rectangle>(m, "StdVectorOfVpscRectangle", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphSize>(m, "VecOfGraphSize", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphEdge>(m, "VecOfGraphEdge", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphNodeConstraint>(m, "VecOfGraphNodeConstraint", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphLayoutIR::Subgraph>(m, "VecOfGraphLayoutIRSubgraph", type_registry_guard);
-  bind_hstdUnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphSize>(m, "UnorderedMapOfGraphEdgeGraphSize", type_registry_guard);
-  bind_hstdUnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>(m, "UnorderedMapOfGraphEdgeGraphEdgeConstraint", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphPath>(m, "VecOfGraphPath", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphRect>(m, "VecOfGraphRect", type_registry_guard);
-  bind_hstdUnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>(m, "UnorderedMapOfGraphEdgeGraphLayoutIREdge", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "VecOfGraphLayoutIRResultSubgraph", type_registry_guard);
-  bind_hstdVec<hstd::Vec<int>>(m, "VecOfVecOfInt", type_registry_guard);
+  bind_hstdVec<>(m, "Vec", type_registry_guard);
+  bind_stdvector<>(m, "StdVector", type_registry_guard);
+  bind_hstdUnorderedMap<>(m, "UnorderedMap", type_registry_guard);
   bind_enum_iterator<hstd::ext::GraphDimension>(m, "GraphDimension", type_registry_guard);
   pybind11::enum_<hstd::ext::GraphDimension>(m, "GraphDimension")
     .value("XDIM", hstd::ext::GraphDimension::XDIM)
@@ -326,7 +284,7 @@ nodes)RAW")
     .def_readwrite("weight", &hstd::ext::GraphNodeConstraint::PageBoundary::weight)
     .def_readwrite("nodes", &hstd::ext::GraphNodeConstraint::PageBoundary::nodes)
     .def("toColaString",
-         static_cast<std::string(hstd::ext::GraphNodeConstraint::PageBoundary::*)(std::vector<vpsc::Rectangle*> const&) const>(&hstd::ext::GraphNodeConstraint::PageBoundary::toColaString),
+         static_cast<std::string(hstd::ext::GraphNodeConstraint::PageBoundary::*)(std::vector const&) const>(&hstd::ext::GraphNodeConstraint::PageBoundary::toColaString),
          pybind11::arg("allRects"))
     .def("__repr__", [](hstd::ext::GraphNodeConstraint::PageBoundary const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);

@@ -119,6 +119,11 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         int                          line     = __builtin_LINE(),
         char const*                  function = __builtin_FUNCTION());
 
+    void fillTypeRec(
+        QualType*                                   Out,
+        clang::QualType const&                      In,
+        std::optional<clang::SourceLocation> const& Loc);
+
     /// This function 'fills' the type in both directions (adding parent
     /// namespaces to the 'left' and parameters to the 'right') around the
     /// type name as needed. Target output type will be assigned with
@@ -128,7 +133,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         clang::QualType const&                      In,
         std::optional<clang::SourceLocation> const& Loc);
 
-    void fillType(
+    void fillTypeRec(
         QualType*                                   Out,
         clang::TemplateArgument const&              Arg,
         std::optional<clang::SourceLocation> const& Loc);

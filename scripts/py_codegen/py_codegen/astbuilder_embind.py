@@ -35,11 +35,17 @@ def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
 
     wrapper_override = base_map.get_wrapper_type(Typ)
 
+    par0 = Typ.par0()
+
+    if flat == ["std", "shared_ptr"]:
+        assert par0, Typ
+
     if flat == ["std", "shared_ptr"] and 1 == len(
             Typ.Parameters) and base_map.is_known_type(
-                Typ.par0()) and base_map.get_one_type_for_qual_name(
-                    Typ.par0()).reflectionParams.backend.wasm.holder_type == "shared":
-        return ts_type(Typ.par0(), base_map=base_map)
+                par0) and base_map.get_one_type_for_qual_name( # type: ignore
+                    par0).reflectionParams.backend.wasm.holder_type == "shared":  # type: ignore
+        assert par0
+        return ts_type(par0, base_map=base_map)
 
     elif wrapper_override:
         name = wrapper_override
@@ -63,7 +69,8 @@ def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
                 name = flat[0]
 
             case ["SemId"]:
-                return ts_type(Typ.par0(), base_map)
+                assert par0
+                return ts_type(par0, base_map)
 
             case ["Opt"] | ["std", "optional"]:
                 name = GEN + ".Optional"
@@ -307,7 +314,7 @@ class WasmMethod(WasmFunction):
         super().__init__(Func)
         self.ExplicitClassParam = ExplicitClassParam
 
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId: # type: ignore
         b = ast.b
 
         Args: List[GenTuIdent] = []
@@ -509,7 +516,7 @@ class WasmModule():
         self,
         b: cpp.ASTBuilder,
         specializations: List[TypeSpecialization],
-    ):
+    ) -> None:
         for spec in specializations:
             self.items.append(
                 WasmBindPass(
@@ -523,7 +530,7 @@ class WasmModule():
                         Stmt=True,
                     )))
 
-    def add_decl(self, item: GenTuUnion | WasmBindPass):
+    def add_decl(self, item: GenTuUnion | WasmBindPass) -> None:
         match item:
             case GenTuStruct():
                 self.items.append(WasmClass(item))
@@ -578,7 +585,7 @@ class WasmModule():
         SubdivideBody = []
         subivide_count = 0
 
-        def add_subdivide_body():
+        def add_subdivide_body() -> None:
             nonlocal SubdivideBody
             nonlocal subivide_count
             Body.append(
@@ -607,7 +614,7 @@ class WasmModule():
             subivide_count += 1
             SubdivideBody = []
 
-        def add_binding_statement(stmt: BlockId):
+        def add_binding_statement(stmt: BlockId) -> None:
             SubdivideBody.append(stmt)
 
             if 100 < len(SubdivideBody):

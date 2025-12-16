@@ -117,18 +117,13 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
         ctx_copy.run(generate_reflection_snapshot, ctx=ctx_copy)
         ctx_copy.run(symlink_build, ctx=ctx_copy)
 
+    from py_codegen.codegen import run_codegen_task
+
     for task in CODEGEN_TASKS:
-        run_command(
-            ctx,
-            "poetry",
-            [
-                "run",
-                get_script_root(ctx, "scripts/py_codegen/py_codegen/codegen.py"),
-                "--reflection_path={}".format(get_build_root(ctx).joinpath(f"{task}.pb")),
-                f"--codegen_task={task}",
-                f"--tmp={ctx.config.generate_sources_conf.tmp}",
-            ],
-            # env=get_py_env(),
+        run_codegen_task(
+            task=task,
+            reflection_path=get_build_root(ctx).joinpath(f"{task}.pb"),
+            is_tmp_codegen=ctx.config.generate_sources_conf.tmp,
         )
 
         log(CAT).info("Updated code definitions")

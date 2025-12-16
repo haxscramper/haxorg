@@ -38,7 +38,7 @@ class GenTuBackendWasmParams(BaseModel, extra="forbid"):
 class GenTuBackendParams(BaseModel, extra="forbid"):
     python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
     wasm: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
-    target_backends: List[str] = Field(
+    target_backends: List[str] = Field(  # type: ignore
         default_factory=list,
         description="Which backends should generate wrappers for the entry?",
         alias=AliasChoices("target_backends", "target-backends"),
@@ -47,7 +47,7 @@ class GenTuBackendParams(BaseModel, extra="forbid"):
 
 @beartype
 class GenTuTypeApiTraits(BaseModel, extra="forbid"):
-    has_begin_end_iteration: bool = Field(
+    has_begin_end_iteration: bool = Field(  # type: ignore
         alias=AliasChoices("has-begin-end-iteration", "has_begin_end_iteration"),
         default=False,
         description="Type provides `begin()` and `end()` method to construct iterator pair"
@@ -58,7 +58,7 @@ class GenTuTypeApiTraits(BaseModel, extra="forbid"):
 
 @beartype
 class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
-    is_get_item: bool = Field(
+    is_get_item: bool = Field(  # type: ignore
         alias=AliasChoices("is-getitem", "is_getitem"),
         default=False,
         description="This method can provide __getitem__ implementation")
@@ -66,23 +66,22 @@ class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
 
 @beartype
 class GenTuReflParams(BaseModel, extra="forbid"):
-    default_constructor: bool = Field(default=True,
-                                      alias=AliasChoices("default-constructor",
-                                                         "default_constructor"))
-    wrapper_name: Optional[str] = Field(default=None,
-                                        alias=AliasChoices("wrapper-name",
-                                                           "wrapper_name"))
-    wrapper_has_params: bool = Field(default=True,
-                                     alias=AliasChoices("wrapper-has-params",
-                                                        "wrapper_has_params"))
-    unique_name: Optional[str] = Field(
+    default_constructor: bool = Field(  # type: ignore
+        default=True,
+        alias=AliasChoices("default-constructor", "default_constructor"))
+    wrapper_name: Optional[str] = Field(  # type: ignore
+        default=None, alias=AliasChoices("wrapper-name", "wrapper_name"))
+    wrapper_has_params: bool = Field(  # type: ignore 
+        default=True,
+        alias=AliasChoices("wrapper-has-params", "wrapper_has_params"))
+    unique_name: Optional[str] = Field(  # type: ignore
         default=None,
         alias=AliasChoices("unique-name", "unique_name"),
         description=
         "Reflection entry name unique in the scope of the class/namespace -- for wrapper backends that don't support overloading"
     )
     backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
-    function_api: Optional[GenTuFunctionApiTraits] = Field(
+    function_api: Optional[GenTuFunctionApiTraits] = Field(  # type: ignore
         default=None,
         alias=AliasChoices("function-api", "function_api"),
         description="Reflection entity has a function/method API")
@@ -415,7 +414,7 @@ class GenTypeMap:
         self.entries.append(typ)
 
     @staticmethod
-    def FromTypes(types: List[GenTuUnion]) -> "GenTypeMap":
+    def FromTypes(types: Sequence[GenTuUnion]) -> "GenTypeMap":
         # log(CAT).info("Called `fromType`", stack_info=True)
         result = GenTypeMap()
 
@@ -854,12 +853,12 @@ def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
 
 
 @beartype
-def get_base_map(expanded: List[GenTuUnion]) -> GenTypeMap:
+def get_base_map(expanded: Sequence[GenTuUnion]) -> GenTypeMap:
     return GenTypeMap.FromTypes(expanded)
 
 
 @beartype
-def filter_walk_scope(iterate_context) -> List[QualType]:
+def filter_walk_scope(iterate_context: List[Any]) -> List[QualType]:
     scope: List[QualType] = []
 
     for s in iterate_context:
@@ -1062,13 +1061,13 @@ def collect_type_specializations(entries: List[GenTuUnion],
         )
 
     type_use_context: List[Any] = []
-    seen_types: Set[QualType] = set()
+    seen_types: Set[int] = set()
 
-    def record_specializations(value: Any):
+    def record_specializations(value: Any) -> None:
         nonlocal type_use_context
         if isinstance(value, QualType):
 
-            def rec_type(T: QualType):
+            def rec_type(T: QualType) -> None:
 
                 def rec_drop(T: QualType) -> QualType:
                     return T.model_copy(update=dict(
@@ -1100,7 +1099,7 @@ def collect_type_specializations(entries: List[GenTuUnion],
                         "Opt",
                         "optional",
                 ]:
-                    std_type: str = {
+                    std_type: Optional[str] = {
                         "Vec": "vector",
                         "UnorderedMap": "unordered_map",
                         "IntSet": "int_set",
@@ -1111,6 +1110,13 @@ def collect_type_specializations(entries: List[GenTuUnion],
                     }.get(T.name, None)
 
                     if T.name in ["Vec", "UnorderedMap"]:
+                        assert std_type
+                        if T.name in ["Vec", "vector", "box", "flex_vector", "IntSet"]:
+                            assert len(T.Parameters) == 1, T.format(dbgOrigin=True)
+
+                        elif T.name in ["UnorderedMap", "map"]:
+                            assert len(T.Parameters) == 2, T.format(dbgOrigin=True)
+
                         stdvec_t = QualType.ForName(
                             std_type,
                             Spaces=[QualType.ForName("std")],
