@@ -1701,6 +1701,7 @@ export interface OrgJson {
   getInt(): number;
   getBool(): boolean;
   getArray(): haxorg_wasm.Vec<OrgJson>;
+  dump(indent: number): string;
 }
 export interface ParseLineColConstructor { new(): ParseLineCol; }
 export interface ParseLineCol {

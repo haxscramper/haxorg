@@ -276,6 +276,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def("getInt", static_cast<int(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getInt))
     .def("getBool", static_cast<bool(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getBool))
     .def("getArray", static_cast<hstd::Vec<org::sem::OrgJson>(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getArray))
+    .def("dump",
+         static_cast<std::string(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::dump),
+         pybind11::arg("indent"))
     .def("__repr__", [](org::sem::OrgJson const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })

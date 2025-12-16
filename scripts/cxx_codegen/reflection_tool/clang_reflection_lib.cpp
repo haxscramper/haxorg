@@ -659,6 +659,68 @@ bool isTypedefOrUsingType(
     return false;
 }
 
+void ReflASTVisitor::fillTypeTemplates(
+    QualType*                               Out,
+    c::QualType const&                      In,
+    std::optional<c::SourceLocation> const& Loc) {
+    auto __scope = scope_debug(Out, "<", ">");
+
+    auto fillArgs = [&](llvm::ArrayRef<c::TemplateArgument> Args) -> void {
+        for (c::TemplateArgument const& Arg : Args) {
+            auto param = Out->add_parameters();
+            add_debug(param, "Type parameter");
+            fillTypeRec(param, Arg, Loc);
+        }
+    };
+
+    c::Type const* type = In.getTypePtr();
+
+    if (auto const* inj = dyn_cast<c::InjectedClassNameType>(type)) {
+        auto const* TST = inj->getInjectedTST();
+        if (TST != nullptr) {
+            add_debug(Out, " templates: injected-class-name");
+            fillArgs(TST->template_arguments());
+        }
+        return;
+    }
+
+    if (auto const* TST = dyn_cast<c::TemplateSpecializationType>(type)) {
+        add_debug(Out, " templates: template-specialization-type");
+        fillArgs(TST->template_arguments());
+        return;
+    }
+
+    if (auto const* DTST = dyn_cast<
+            c::DependentTemplateSpecializationType>(type)) {
+        add_debug(
+            Out, " templates: dependent-template-specialization-type");
+        fillArgs(DTST->template_arguments());
+        return;
+    }
+
+    if (auto const* RT = dyn_cast<c::RecordType>(type)) {
+        if (auto const* spec = dyn_cast<
+                c::ClassTemplateSpecializationDecl>(RT->getDecl())) {
+            add_debug(
+                Out, " templates: class-template-specialization-decl");
+            fillArgs(spec->getTemplateArgs().asArray());
+        }
+        return;
+    }
+
+    if (auto const* ET = dyn_cast<c::EnumType>(type)) {
+        if (auto const* spec = dyn_cast<
+                c::ClassTemplateSpecializationDecl>(
+                ET->getDecl()->getDeclContext())) {
+            add_debug(
+                Out,
+                " templates: enum-in-template-specialization-context");
+            fillArgs(spec->getTemplateArgs().asArray());
+        }
+        return;
+    }
+}
+
 void ReflASTVisitor::fillTypeRec(
     QualType*                               Out,
     c::QualType const&                      In,
@@ -743,9 +805,7 @@ void ReflASTVisitor::fillTypeRec(
             c::ElaboratedType const* elab = In->getAs<
                                             c::ElaboratedType>()) {
             add_debug(Out, " >elaborated");
-            // applyNamespaces(Out, getNamespaces(elab, Loc));
             fillTypeRec(Out, elab->getNamedType(), Loc);
-
         } else if (In->isRecordType()) {
             applyNamespaces(Out, getNamespaces(In, Loc));
             auto const name //
@@ -769,13 +829,10 @@ void ReflASTVisitor::fillTypeRec(
             for (c::QualType const& param : FPT->param_types()) {
                 fillTypeRec(Out->add_parameters(), param, Loc);
             }
-
-
         } else if (In->isConstantArrayType()) {
             add_debug(Out, " >constarray");
             c::ArrayType const* ARRT = dyn_cast<c::ArrayType>(
                 In.getTypePtr());
-
             c::ConstantArrayType const* C_ARRT = dyn_cast<
                 c::ConstantArrayType>(ARRT);
 
@@ -788,10 +845,9 @@ void ReflASTVisitor::fillTypeRec(
                 fillExpr(expr_param->mutable_typevalue(), size, Loc);
             } else {
                 expr_param->mutable_typevalue()->set_value(
-                    std::to_string(C_ARRT->getSize().getSExtValue()));
+                    std::format("{}", C_ARRT->getSize().getSExtValue()));
                 add_debug(expr_param, " >int value");
             }
-
         } else if (In->isArrayType()) {
             add_debug(Out, " >array");
             c::ArrayType const* ARRT = dyn_cast<c::ArrayType>(
@@ -804,7 +860,7 @@ void ReflASTVisitor::fillTypeRec(
                 In.getTypePtr())) {
             add_debug(Out, " >templatetypeparmtype");
             Out->set_kind(TypeKind::RegularType);
-            const clang::TemplateTypeParmDecl* D = parm->getDecl();
+            const c::TemplateTypeParmDecl* D = parm->getDecl();
             if (D != nullptr) {
                 Out->set_name(D->getNameAsString());
             } else if (parm->getIdentifier()) {
@@ -828,13 +884,6 @@ void ReflASTVisitor::fillTypeRec(
                 Out->set_name("INJ_NO_IDENT");
             }
 
-            auto const* TST = inj->getInjectedTST();
-            for (c::TemplateArgument const& Arg :
-                 TST->template_arguments()) {
-                auto param = Out->add_parameters();
-                add_debug(param, "Type parameter");
-                fillTypeRec(param, Arg, Loc);
-            }
         } else if (
             auto const* at = dyn_cast<c::AutoType>(In.getTypePtr())) {
             add_debug(Out, " >autotype");
@@ -851,23 +900,18 @@ void ReflASTVisitor::fillTypeRec(
             add_debug(Out, " >template-spec-type");
             Out->set_kind(TypeKind::RegularType);
 
-            clang::TemplateName TN = TST->getTemplateName();
+            c::TemplateName TN = TST->getTemplateName();
 
-            if (clang::TemplateDecl* TD = TN.getAsTemplateDecl()) {
+            if (c::TemplateDecl* TD = TN.getAsTemplateDecl()) {
                 Out->set_name(TD->getNameAsString());
                 applyNamespaces(Out, getNamespaces(TD, Loc));
             } else {
                 Out->set_name("TST_NON_TEMPLATE_DECL");
             }
 
-            for (c::TemplateArgument const& Arg :
-                 TST->template_arguments()) {
-                auto param = Out->add_parameters();
-                add_debug(param, "Type parameter");
-                fillTypeRec(param, Arg, Loc);
-            }
+
         } else if (
-            const auto* STTP = dyn_cast<clang::SubstTemplateTypeParmType>(
+            const auto* STTP = dyn_cast<c::SubstTemplateTypeParmType>(
                 In.getTypePtr())) {
             auto param = Out->add_parameters();
             add_debug(param, "SubstTemplateTypeParmType");
@@ -881,6 +925,8 @@ void ReflASTVisitor::fillTypeRec(
                 Loc)
                 << In << dump(In);
         }
+
+        fillTypeTemplates(Out, In, Loc);
     }
 }
 

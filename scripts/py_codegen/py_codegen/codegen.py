@@ -710,7 +710,7 @@ def gen_adaptagrams_wrappers(
     log(CAT).debug(f"Debug reflection data to '{reflection_debug}'")
 
     with ExceptionContextNote(f"reflection_debug:{reflection_debug}"):
-        base_map = get_base_map(tu.enums + tu.structs + tu.typedefs) # type: ignore
+        base_map = get_base_map(tu.enums + tu.structs + tu.typedefs)  # type: ignore
         res = Py11Module("py_adaptagrams")
         res.add_all(tu.get_all(), ast=ast, base_map=base_map)
         specializations = collect_type_specializations(tu.get_all(), base_map=base_map)
@@ -1355,6 +1355,7 @@ def _write_files_group(
     impl: GenFiles,
     builder: ASTBuilder,
     is_tmp_codegen: bool,
+    t: TextLayout,
 ) -> None:
     gen_description_files(
         description=impl,
@@ -1370,6 +1371,7 @@ def run_codegen_adaptagrams(
     builder: ASTBuilder,
     pyast: pya.ASTBuilder,
     reflection_path: Path,
+    t: TextLayout,
 ) -> None:
     _write_files_group(
         gen_adaptagrams_wrappers(
@@ -1379,12 +1381,18 @@ def run_codegen_adaptagrams(
         ),
         is_tmp_codegen=is_tmp_codegen,
         builder=builder,
+        t=t,
     )
 
 
 @beartype
-def run_codegen_pyhaxorg(is_tmp_codegen: bool, builder: ASTBuilder, pyast: pya.ASTBuilder,
-                         reflection_path: Path) -> None:
+def run_codegen_pyhaxorg(
+    is_tmp_codegen: bool,
+    builder: ASTBuilder,
+    pyast: pya.ASTBuilder,
+    reflection_path: Path,
+    t: TextLayout,
+) -> None:
     groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
         ast=builder,
         reflection_path=Path(reflection_path),
@@ -1405,6 +1413,7 @@ def run_codegen_pyhaxorg(is_tmp_codegen: bool, builder: ASTBuilder, pyast: pya.A
         ),
         is_tmp_codegen=is_tmp_codegen,
         builder=builder,
+        t=t,
     )
 
     _write_files_group(
@@ -1415,6 +1424,7 @@ def run_codegen_pyhaxorg(is_tmp_codegen: bool, builder: ASTBuilder, pyast: pya.A
         ),
         is_tmp_codegen=is_tmp_codegen,
         builder=builder,
+        t=t,
     )
 
     _write_files_group(
@@ -1424,6 +1434,7 @@ def run_codegen_pyhaxorg(is_tmp_codegen: bool, builder: ASTBuilder, pyast: pya.A
         ),
         is_tmp_codegen=is_tmp_codegen,
         builder=builder,
+        t=t,
     )
 
 
@@ -1442,6 +1453,7 @@ def run_codegen_task(task: Literal["adaptagrams", "pyhaxorg"], reflection_path: 
                     reflection_path=reflection_path,
                     builder=builder,
                     pyast=pyast,
+                    t=t,
                 )
 
             case "pyhaxorg":
@@ -1450,6 +1462,7 @@ def run_codegen_task(task: Literal["adaptagrams", "pyhaxorg"], reflection_path: 
                     reflection_path=reflection_path,
                     builder=builder,
                     pyast=pyast,
+                    t=t,
                 )
 
 
