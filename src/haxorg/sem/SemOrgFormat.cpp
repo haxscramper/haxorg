@@ -1,6 +1,7 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
 
 using namespace org::sem;
 using namespace hstd;
@@ -52,6 +53,17 @@ void Formatter::add(Res id, Res other) {
     } else {
         b.add_at(id, other);
     }
+}
+
+Formatter::Res Formatter::toString(
+    const sem::AttrList& args,
+    const Context&       ctx) {
+    Res res = b.stack();
+    for (auto const& it : enumerator(args.items)) {
+        if (!it.is_first()) { b.add_at(res, str(" ")); }
+        b.add_at(res, toString(it.value(), ctx));
+    }
+    return res;
 }
 
 Formatter::Res Formatter::toString(
@@ -1281,12 +1293,10 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 }
                 case P::Kind::CustomSubtreeJson: {
                     add(head,
-                        str(
-                            fmt(":prop_json:{}: {}",
-                                prop.getCustomSubtreeJson().name,
-                                prop.getCustomSubtreeJson()
-                                    .value.getRef()
-                                    .dump())));
+                        str(fmt(
+                            ":prop_json:{}: {}",
+                            prop.getCustomSubtreeJson().name,
+                            prop.getCustomSubtreeJson().value.dump(0))));
                     break;
                 }
                 case P::Kind::ExportLatexCompiler: {

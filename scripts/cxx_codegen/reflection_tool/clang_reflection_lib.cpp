@@ -194,6 +194,28 @@ std::optional<std::string> ReflASTVisitor::get_refl_params(
     return std::nullopt;
 }
 
+std::string ReflASTVisitor::dump(const clang::Decl* Decl, int head) {
+    std::string              tree;
+    llvm::raw_string_ostream rso(tree);
+    Decl->dump(rso);
+    rso.flush();
+
+    if (head == -1) { return tree; }
+
+    std::istringstream iss{tree};
+    std::string        line;
+    std::string        result;
+    int                count{0};
+
+    while (std::getline(iss, line) && count < head) {
+        if (count > 0) { result += "\n"; }
+        result += line;
+        count++;
+    }
+
+    return result;
+}
+
 c::TypedefDecl* findTypedefForDecl(c::Decl* Decl, c::ASTContext* Ctx) {
     c::DeclContext* Context = Decl->getDeclContext();
     for (auto D : Context->decls()) {
@@ -456,7 +478,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
     } else {
         Diag(
             DiagKind::Warning,
-            "Unhandled namespace expansion for %0 (%1)",
+            "Unhandled namespace expansion for %0 (%1 %2)",
             Loc)
             << In << dump(In);
     }
@@ -521,13 +543,13 @@ void ReflASTVisitor::log_visit(
                 "\n--------------------------------------------------\n{}"
                 "\n---"
                 "\n{}\n"
-                "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+                "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
                 std::format(
                     "line:{} function:{} msg:{}", line, function, msg),
-                (Decl ? "\n" + dump(Decl) : ""));
+                (Decl ? "\n" + dump(Decl, 5) : ""));
         } else {
             LOG(INFO) << std::format(
-                "line:{} function:{} msg:{}\n", line, function, msg);
+                "line:{} function:{} msg:{}", line, function, msg);
         }
     }
 }
@@ -598,7 +620,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
                 default: {
                     Diag(
                         DiagKind::Warning,
-                        "Unhadled namespace filler kind '%0'",
+                        "Unhadled namespace filler %0 kind '%1'",
                         Loc)
                         << kind;
                 }
@@ -637,10 +659,72 @@ bool isTypedefOrUsingType(
     return false;
 }
 
-void ReflASTVisitor::fillType(
+void ReflASTVisitor::fillTypeTemplates(
     QualType*                               Out,
-    const c::QualType&                      In,
-    const std::optional<c::SourceLocation>& Loc) {
+    c::QualType const&                      In,
+    std::optional<c::SourceLocation> const& Loc) {
+    auto __scope = scope_debug(Out, "<", ">");
+
+    auto fillArgs = [&](llvm::ArrayRef<c::TemplateArgument> Args) -> void {
+        for (c::TemplateArgument const& Arg : Args) {
+            auto param = Out->add_parameters();
+            add_debug(param, "Type parameter");
+            fillTypeRec(param, Arg, Loc);
+        }
+    };
+
+    c::Type const* type = In.getTypePtr();
+
+    if (auto const* inj = dyn_cast<c::InjectedClassNameType>(type)) {
+        auto const* TST = inj->getInjectedTST();
+        if (TST != nullptr) {
+            add_debug(Out, " templates: injected-class-name");
+            fillArgs(TST->template_arguments());
+        }
+        return;
+    }
+
+    if (auto const* TST = dyn_cast<c::TemplateSpecializationType>(type)) {
+        add_debug(Out, " templates: template-specialization-type");
+        fillArgs(TST->template_arguments());
+        return;
+    }
+
+    if (auto const* DTST = dyn_cast<
+            c::DependentTemplateSpecializationType>(type)) {
+        add_debug(
+            Out, " templates: dependent-template-specialization-type");
+        fillArgs(DTST->template_arguments());
+        return;
+    }
+
+    if (auto const* RT = dyn_cast<c::RecordType>(type)) {
+        if (auto const* spec = dyn_cast<
+                c::ClassTemplateSpecializationDecl>(RT->getDecl())) {
+            add_debug(
+                Out, " templates: class-template-specialization-decl");
+            fillArgs(spec->getTemplateArgs().asArray());
+        }
+        return;
+    }
+
+    if (auto const* ET = dyn_cast<c::EnumType>(type)) {
+        if (auto const* spec = dyn_cast<
+                c::ClassTemplateSpecializationDecl>(
+                ET->getDecl()->getDeclContext())) {
+            add_debug(
+                Out,
+                " templates: enum-in-template-specialization-context");
+            fillArgs(spec->getTemplateArgs().asArray());
+        }
+        return;
+    }
+}
+
+void ReflASTVisitor::fillTypeRec(
+    QualType*                               Out,
+    c::QualType const&                      In,
+    std::optional<c::SourceLocation> const& Loc) {
     auto __scope = scope_debug(Out, "(", ")");
 
     if (isTypedefOrUsingType(Ctx, In)) { Out->set_istypedef(true); }
@@ -690,11 +774,12 @@ void ReflASTVisitor::fillType(
             add_debug(Out, " T-reference");
         }
 
+        Out->set_name(In->getTypeClassName());
         Out->set_isbuiltin(In->isBuiltinType());
 
         if (In->isReferenceType() || In->isPointerType()) {
             add_debug(Out, " >ref/ptr");
-            fillType(Out, In->getPointeeType(), Loc);
+            fillTypeRec(Out, In->getPointeeType(), Loc);
         } else if (In->isBooleanType()) {
             add_debug(Out, " >bool");
             Out->set_name("bool");
@@ -720,9 +805,7 @@ void ReflASTVisitor::fillType(
             c::ElaboratedType const* elab = In->getAs<
                                             c::ElaboratedType>()) {
             add_debug(Out, " >elaborated");
-            // applyNamespaces(Out, getNamespaces(elab, Loc));
-            fillType(Out, elab->getNamedType(), Loc);
-
+            fillTypeRec(Out, elab->getNamedType(), Loc);
         } else if (In->isRecordType()) {
             applyNamespaces(Out, getNamespaces(In, Loc));
             auto const name //
@@ -742,69 +825,125 @@ void ReflASTVisitor::fillType(
             Out->set_kind(TypeKind::FunctionPtr);
             const c::FunctionProtoType* FPT = In->getAs<
                 c::FunctionProtoType>();
-            fillType(Out->add_parameters(), FPT->getReturnType(), Loc);
+            fillTypeRec(Out->add_parameters(), FPT->getReturnType(), Loc);
             for (c::QualType const& param : FPT->param_types()) {
-                fillType(Out->add_parameters(), param, Loc);
+                fillTypeRec(Out->add_parameters(), param, Loc);
             }
-
-
         } else if (In->isConstantArrayType()) {
             add_debug(Out, " >constarray");
             c::ArrayType const* ARRT = dyn_cast<c::ArrayType>(
                 In.getTypePtr());
-
             c::ConstantArrayType const* C_ARRT = dyn_cast<
                 c::ConstantArrayType>(ARRT);
 
             Out->set_kind(TypeKind::Array);
-            fillType(Out->add_parameters(), C_ARRT->getElementType(), Loc);
+            fillTypeRec(
+                Out->add_parameters(), C_ARRT->getElementType(), Loc);
             auto expr_param = Out->add_parameters();
             expr_param->set_kind(TypeKind::TypeExpr);
             if (auto size = C_ARRT->getSizeExpr()) {
                 fillExpr(expr_param->mutable_typevalue(), size, Loc);
             } else {
                 expr_param->mutable_typevalue()->set_value(
-                    std::to_string(C_ARRT->getSize().getSExtValue()));
+                    std::format("{}", C_ARRT->getSize().getSExtValue()));
                 add_debug(expr_param, " >int value");
             }
-
         } else if (In->isArrayType()) {
             add_debug(Out, " >array");
             c::ArrayType const* ARRT = dyn_cast<c::ArrayType>(
                 In.getTypePtr());
             Out->set_kind(TypeKind::Array);
-            fillType(Out->add_parameters(), ARRT->getElementType(), Loc);
+            fillTypeRec(
+                Out->add_parameters(), ARRT->getElementType(), Loc);
+        } else if (
+            auto const* parm = dyn_cast<c::TemplateTypeParmType>(
+                In.getTypePtr())) {
+            add_debug(Out, " >templatetypeparmtype");
+            Out->set_kind(TypeKind::RegularType);
+            const c::TemplateTypeParmDecl* D = parm->getDecl();
+            if (D != nullptr) {
+                Out->set_name(D->getNameAsString());
+            } else if (parm->getIdentifier()) {
+                Out->set_name(parm->getIdentifier()->getName());
+            } else {
+                unsigned Depth = parm->getDepth();
+                unsigned Index = parm->getIndex();
+                Out->set_name(std::format("unnamed_{}_{}", Depth, Index));
+            }
 
+        } else if (
+            auto const* inj = dyn_cast<c::InjectedClassNameType>(
+                In.getTypePtr())) {
+            add_debug(Out, " >injectedclassname");
+            c::CXXRecordDecl* injDecl = inj->getDecl();
+            applyNamespaces(Out, getNamespaces(injDecl, Loc));
+            Out->set_kind(TypeKind::RegularType);
+            if (inj->getDecl()) {
+                Out->set_name(inj->getDecl()->getNameAsString());
+            } else {
+                Out->set_name("INJ_NO_IDENT");
+            }
+
+        } else if (
+            auto const* at = dyn_cast<c::AutoType>(In.getTypePtr())) {
+            add_debug(Out, " >autotype");
+            Out->set_kind(TypeKind::RegularType);
+            Out->set_name("auto");
+        } else if (
+            auto const* PET = dyn_cast<c::PackExpansionType>(
+                In.getTypePtr())) {
+            add_debug(Out, " >pack-expansion");
+            fillTypeRec(Out, PET->getPattern(), Loc);
+        } else if (
+            const auto* TST = dyn_cast<c::TemplateSpecializationType>(
+                In.getTypePtr())) {
+            add_debug(Out, " >template-spec-type");
+            Out->set_kind(TypeKind::RegularType);
+
+            c::TemplateName TN = TST->getTemplateName();
+
+            if (c::TemplateDecl* TD = TN.getAsTemplateDecl()) {
+                Out->set_name(TD->getNameAsString());
+                applyNamespaces(Out, getNamespaces(TD, Loc));
+            } else {
+                Out->set_name("TST_NON_TEMPLATE_DECL");
+            }
+
+
+        } else if (
+            const auto* STTP = dyn_cast<c::SubstTemplateTypeParmType>(
+                In.getTypePtr())) {
+            auto param = Out->add_parameters();
+            add_debug(param, "SubstTemplateTypeParmType");
+            fillTypeRec(param, STTP->getReplacementType(), Loc);
         } else {
+            add_debug(
+                Out, std::format("typeclass={}", In->getTypeClassName()));
             Diag(
                 DiagKind::Warning,
-                "Unhandled serialization for a type %0 (%1)",
+                "Unhandled serialization for a type '%0' (%1 %2)",
                 Loc)
                 << In << dump(In);
         }
 
-        if (const auto* TST = dyn_cast<c::TemplateSpecializationType>(
-                In.getTypePtr())) {
-            for (c::TemplateArgument const& Arg :
-                 TST->template_arguments()) {
-                auto param = Out->add_parameters();
-                add_debug(param, "Type parameter");
-                fillType(param, Arg, Loc);
-            }
-        } else if (
-            const auto* STTP = dyn_cast<clang::SubstTemplateTypeParmType>(
-                In.getTypePtr())) {
-            auto param = Out->add_parameters();
-            add_debug(param, "SubstTemplateTypeParmType");
-            fillType(param, STTP->getReplacementType(), Loc);
-        } else {
-            add_debug(
-                Out, std::format("typeclass={}", In->getTypeClassName()));
-        }
+        fillTypeTemplates(Out, In, Loc);
     }
 }
 
 void ReflASTVisitor::fillType(
+    QualType*                               Out,
+    const c::QualType&                      In,
+    const std::optional<c::SourceLocation>& Loc) {
+    if (Loc) {
+        add_debug(
+            Out,
+            formatSourceLocation(Loc.value(), Ctx->getSourceManager()));
+    }
+
+    fillTypeRec(Out, In, Loc);
+}
+
+void ReflASTVisitor::fillTypeRec(
     QualType*                               Out,
     const c::TemplateArgument&              Arg,
     const std::optional<c::SourceLocation>& Loc) {
@@ -826,7 +965,7 @@ void ReflASTVisitor::fillType(
         case c::TemplateArgument::Pack: {
             Diag(
                 DiagKind::Warning,
-                "Unhandled template argument type '%0'",
+                "Unhandled template argument %0 type '%1'",
                 Loc)
                 << Arg.getKind();
         }
@@ -883,7 +1022,7 @@ void ReflASTVisitor::fillExpr(
             Diag(
                 DiagKind::Warning,
                 "Unhandled expression with failed 'get expr as string' "
-                "serialization",
+                "serialization %0",
                 Loc);
         }
     }
@@ -983,7 +1122,7 @@ void ReflASTVisitor::fillMethodDecl(
         } else if (constr->isDefaultConstructor()) {
             sub->set_kind(Record_MethodKind_DefaultConstructor);
         } else {
-            LOG(FATAL) << "Unknown constructor kind";
+            sub->set_kind(Record_MethodKind_Constructor);
         }
     } else {
         sub->set_kind(Record_MethodKind_Base);
@@ -1218,6 +1357,23 @@ void ReflASTVisitor::fillCxxRecordDecl(
                 fillFieldDecl(rec->add_fields(), sub);
             }
 
+        } else if (c::FunctionTemplateDecl const* templ = dyn_cast<
+                       c::FunctionTemplateDecl>(SubDecl);
+                   templ != nullptr) {
+
+            auto* sub = rec->add_methods();
+
+            if (auto args = get_refl_params(templ)) {
+                sub->set_reflectionparams(args.value());
+            }
+
+            clang::Decl const* templatedDecl = templ->getTemplatedDecl();
+            auto const*        method = llvm::cast<clang::CXXMethodDecl>(
+                templatedDecl);
+            fillMethodDecl(sub, method);
+
+            if (auto doc = getDoc(templ)) { sub->set_doc(*doc); }
+
         } else if (c::CXXMethodDecl const* sub = dyn_cast<
                        c::CXXMethodDecl>(SubDecl);
                    sub != nullptr) {
@@ -1228,12 +1384,14 @@ void ReflASTVisitor::fillCxxRecordDecl(
             llvm::isa<c::IndirectFieldDecl>(SubDecl)
             || llvm::isa<c::UsingDecl>(SubDecl)
             || llvm::isa<c::EnumDecl>(SubDecl)
+            || llvm::isa<c::AccessSpecDecl>(SubDecl)
+            || llvm::isa<c::FriendDecl>(SubDecl)
             || llvm::isa<c::UsingShadowDecl>(SubDecl)) {
             // pass
         } else {
             Diag(
                 DiagKind::Warning,
-                "Unknown nested serialization content for %0",
+                "Unknown nested serialization content for %0 %1",
                 SubDecl->getLocation())
                 << dump(SubDecl);
         }
@@ -1254,7 +1412,7 @@ void ReflASTVisitor::fillSharedRecordData(
 
         for (unsigned i = 0; i < args.size(); ++i) {
             auto param = rec->add_explicittemplateparams();
-            fillType(param, args[i], std::nullopt);
+            fillTypeRec(param, args[i], std::nullopt);
         }
     }
 }
@@ -1267,13 +1425,11 @@ bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
          && isRefl(Decl)                      //
          && isToplevelDecl)                   //
         ||                                    //
-        (visitMode == VisitMode::AllTargeted  //
-         && shouldVisit(Decl)                 //
+        ((visitMode == VisitMode::AllTargeted
+          || visitMode == VisitMode::AllMainTranslationUnit) //
+         && shouldVisit(Decl)                                //
          && isToplevelDecl)) {
         log_visit(Decl);
-
-        // LOG(INFO) << std::format(
-        //     "Explicitly visiting {}", Decl->getQualifiedNameAsString());
 
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Decl->getNameAsString()};

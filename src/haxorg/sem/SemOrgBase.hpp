@@ -372,17 +372,14 @@ struct std::formatter<org::sem::SemId<T>> : std::formatter<std::string> {
 
 template <>
 struct std::hash<org::sem::OrgJson> {
-    std::size_t operator()(org::sem::OrgJson const& it) const noexcept {
-        std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.getRef());
-        return result;
-    }
+    std::size_t operator()(org::sem::OrgJson const& it) const;
 };
 
 template <>
 struct std::formatter<org::sem::OrgJson> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::sem::OrgJson& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx(p.getRef().dump(), ctx);
+        return hstd::fmt_ctx(p.dump(0), ctx);
     }
 };
+

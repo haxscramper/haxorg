@@ -1,6 +1,5 @@
 #pragma once
 
-#include <hstd/system/string_convert.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <boost/preprocessor.hpp>
 #include <hstd/system/exceptions.hpp>

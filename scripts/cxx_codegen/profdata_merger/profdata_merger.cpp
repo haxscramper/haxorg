@@ -1647,6 +1647,10 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
 }
 
 struct ProfdataCLIConfig {
+    DECL_DESCRIBED_ENUM(Mode, RunProfileMerge, BuildProfileMerge);
+
+
+    Mode                       mode = Mode::RunProfileMerge;
     std::string                coverage;
     std::string                coverage_db;
     std::optional<std::string> perf_trace     = std::nullopt;
@@ -1658,7 +1662,8 @@ struct ProfdataCLIConfig {
 
     DESC_FIELDS(
         ProfdataCLIConfig,
-        (coverage,
+        (mode,
+         coverage,
          coverage_db,
          perf_trace,
          file_whitelist,
@@ -1790,30 +1795,145 @@ void process_runs(
     }
 }
 
-NO_COVERAGE int main(int argc, char** argv) {
-    json debug = json::object();
+struct BuildProfileEvent {
+    int                  pid{};
+    int                  tid{};
+    hstd::Str            ph{};
+    int                  ts{};
+    int                  dur{};
+    hstd::Str            name{};
+    hstd::Opt<hstd::Str> cat{};
+    json                 args{};
 
-    if (argc != 2) {
-        throw std::logic_error(
-            "Expected single positional argument -- JSON literal "
-            "with parameters or absolute path to the JSON "
-            "configuration file.");
-    }
+    DESC_FIELDS(
+        BuildProfileEvent,
+        (pid, tid, ph, ts, dur, name, cat, args));
+};
 
-    std::string json_parameters;
-    if (std::string{argv[1]}.starts_with("/")) {
-        if (!fs::exists(argv[1])) {
-            throw std::logic_error(std::format(
-                "Input configuration file '{}' does not exist", argv[1]));
+struct BuildProfileFile {
+    hstd::Vec<BuildProfileEvent> traceEvents;
+    hstd::Str                    path;
+    hstd::u64                    beginningOfTime;
+    DESC_FIELDS(BuildProfileFile, (traceEvents, path, beginningOfTime));
+};
+
+struct BuildProfileCollection {
+    hstd::Vec<BuildProfileFile> files;
+    DESC_FIELDS(BuildProfileCollection, (files));
+};
+
+std::string generateInstantiateFunctionReport(
+    const BuildProfileCollection& collection) {
+    __perf_trace("main", "generateInstantiateFunctionReport");
+    std::map<std::string, std::vector<BuildProfileEvent>> groupEvents;
+
+    for (const auto& file : collection.files) {
+        for (const auto& event : file.traceEvents) {
+            if (event.name == "InstantiateFunction"
+                && event.args.contains("detail")) {
+                std::string detail = event.args.at("detail")
+                                         .get<std::string>();
+                // if (detail.length() > 120) {
+                //     detail = detail.substr(0, 120) + "...";
+                // }
+                groupEvents[detail].push_back(event);
+            }
         }
-        json_parameters = read_file(argv[1]);
-    } else {
-        json_parameters = std::string{argv[1]};
     }
 
-    auto config = JsonSerde<ProfdataCLIConfig>::from_json(
-        json::parse(json_parameters));
+    std::vector<std::pair<std::string, std::vector<BuildProfileEvent>>>
+        sortedGroups;
+    for (const auto& [detail, events] : groupEvents) {
+        sortedGroups.push_back({detail, events});
+    }
 
+    std::sort(
+        sortedGroups.begin(),
+        sortedGroups.end(),
+        [](const auto& a, const auto& b) {
+            int totalDurA = 0;
+            int totalDurB = 0;
+            for (const auto& event : a.second) { totalDurA += event.dur; }
+            for (const auto& event : b.second) { totalDurB += event.dur; }
+            return totalDurB < totalDurA;
+        });
+
+    auto formatDuration = [](int microseconds) -> std::string {
+        if (microseconds < 1000) {
+            return std::format("{}µs", microseconds);
+        }
+        int ms          = microseconds / 1000;
+        int remainingUs = microseconds % 1000;
+        if (ms < 1000) {
+            if (remainingUs == 0) { return std::format("{}ms", ms); }
+            return std::format("{}ms {}µs", ms, remainingUs);
+        }
+        int s           = ms / 1000;
+        int remainingMs = ms % 1000;
+        if (remainingMs == 0 && remainingUs == 0) {
+            return std::format("{}s", s);
+        }
+        if (remainingUs == 0) {
+            return std::format("{}s {}ms", s, remainingMs);
+        }
+        if (remainingMs == 0) {
+            return std::format("{}s {}µs", s, remainingUs);
+        }
+        return std::format("{}s {}ms {}µs", s, remainingMs, remainingUs);
+    };
+
+    std::string report;
+    // int limit = std::min(40, static_cast<int>(sortedGroups.size()));
+    for (int i = 0; i < sortedGroups.size(); ++i) {
+        const auto& [detail, events] = sortedGroups.at(i);
+        int totalDur                 = 0;
+        for (const auto& event : events) { totalDur += event.dur; }
+        int count  = static_cast<int>(events.size());
+        int avgDur = totalDur / count;
+
+        report += std::format(
+            "{} = {} * {}: {}\n",
+            formatDuration(totalDur),
+            count,
+            formatDuration(avgDur),
+            detail);
+    }
+
+    return report;
+}
+
+NO_COVERAGE void build_build_coverage_merge(
+    ProfdataCLIConfig const& config) {
+
+    BuildProfileCollection collection;
+
+    {
+        __perf_trace("main", "Parse JSON files");
+        int count = 0;
+        for (const auto& entry :
+             std::filesystem::recursive_directory_iterator{
+                 config.coverage}) {
+            if (entry.is_regular_file()
+                && entry.path().extension() == ".json"
+                && entry.path().stem().extension() == ".cpp") {
+                // if (30 < ++count) { continue; }
+                auto file = hstd::from_json_eval<BuildProfileFile>(
+                    json::parse(hstd::readFile(entry.path())));
+                file.path = entry.path().native();
+                collection.files.push_back(file);
+                LOG(INFO) << file.path << " OK";
+            }
+        }
+    }
+
+    auto report = generateInstantiateFunctionReport(collection);
+    LOG(INFO) << "\n" << report;
+    hstd::writeFile(config.coverage_db, report);
+}
+
+NO_COVERAGE void build_run_coverage_merge(
+    ProfdataCLIConfig const& config) {
+    json debug = json::object();
 
     auto flush_debug = [&]() {
         if (config.debug_file) {
@@ -1839,12 +1959,6 @@ NO_COVERAGE int main(int argc, char** argv) {
 
     fs::path db_file{config.coverage_db};
 
-#ifdef ORG_USE_PERFETTO
-    std::unique_ptr<perfetto::TracingSession> perfetto_session;
-    if (config.perf_trace) {
-        perfetto_session = StartProcessTracing("profdata_merger");
-    }
-#endif
 
     if (fs::exists(db_file)) { fs::remove(db_file); }
 
@@ -1902,6 +2016,42 @@ NO_COVERAGE int main(int argc, char** argv) {
             debug,
             db);
     }
+}
+
+NO_COVERAGE int main(int argc, char** argv) {
+    if (argc != 2) {
+        throw std::logic_error(
+            "Expected single positional argument -- JSON literal "
+            "with parameters or absolute path to the JSON "
+            "configuration file.");
+    }
+
+    std::string json_parameters;
+    if (std::string{argv[1]}.starts_with("/")) {
+        if (!fs::exists(argv[1])) {
+            throw std::logic_error(std::format(
+                "Input configuration file '{}' does not exist", argv[1]));
+        }
+        json_parameters = read_file(argv[1]);
+    } else {
+        json_parameters = std::string{argv[1]};
+    }
+
+    auto config = JsonSerde<ProfdataCLIConfig>::from_json(
+        json::parse(json_parameters));
+
+#ifdef ORG_USE_PERFETTO
+    std::unique_ptr<perfetto::TracingSession> perfetto_session;
+    if (config.perf_trace) {
+        perfetto_session = StartProcessTracing("profdata_merger");
+    }
+#endif
+
+    if (config.mode == ProfdataCLIConfig::Mode::RunProfileMerge) {
+        build_run_coverage_merge(config);
+    } else {
+        build_build_coverage_merge(config);
+    }
 
     if (config.perf_trace) {
         fs::path out_path{config.perf_trace.value()};
@@ -1909,4 +2059,6 @@ NO_COVERAGE int main(int argc, char** argv) {
         StopTracing(std::move(perfetto_session), out_path);
 #endif
     }
+
+    return 0;
 }

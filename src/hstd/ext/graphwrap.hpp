@@ -6,6 +6,8 @@
 #    include <hstd/stdlib/Json.hpp>
 #    include <boost/graph/breadth_first_search.hpp>
 #    include <boost/graph/depth_first_search.hpp>
+#    include <hstd/system/aux_utils.hpp>
+#    include <hstd/system/aux_templates.hpp>
 
 namespace hstd::ext {
 

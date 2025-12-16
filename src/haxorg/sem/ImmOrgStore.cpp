@@ -12,6 +12,7 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/TimeReflVisitor.hpp>
 
 using namespace org;
 using namespace org::imm;

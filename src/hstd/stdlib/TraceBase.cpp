@@ -102,18 +102,19 @@ void OperationsTracer::message(const OperationsMsg& value) const {
             if (value.msg) {
                 if (value.msg.value().find('\n') == -1) {
                     os << " " << value.msg.value();
-                    if (!value.metadata.is_null()) {
-                        os << " " << value.metadata.dump();
+                    if (value.metadata) {
+                        os << " " << value.metadata->dump();
                     }
                 } else {
                     bool isFirst = true;
                     for (auto const& line : split(*value.msg, '\n')) {
                         if (isFirst) {
-                            if (value.metadata.is_null()) {
+                            if (!value.metadata
+                                || value.metadata->is_null()) {
                                 os << " " << line;
                             } else {
                                 os << " "                              //
-                                   << value.metadata.dump()            //
+                                   << value.metadata->dump()           //
                                    << "\n"                             //
                                    << Str(" ").repeated(prefix.size()) //
                                    << " "                              //

@@ -836,7 +836,7 @@ struct convert<org::sem::OrgJson> {
         msgpack::object_kv* p(o.via.map.ptr);
         json                value;
         convert_field(p, value);
-        v.value = value;
+        v = org::sem::OrgJson(value);
         return o;
     }
 };

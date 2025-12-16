@@ -5,6 +5,8 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 
 namespace hstd {

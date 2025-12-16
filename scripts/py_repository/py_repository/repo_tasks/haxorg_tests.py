@@ -29,7 +29,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         [
             "run",
             "python",
-            "scripts/py_repository/py_repository/coverage_collection/gen_coverage_cxx.py",
+            "scripts/py_repository/py_repository/code_analysis/gen_coverage_cxx.py",
         ],
     )
 
@@ -57,8 +57,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
     )
 
     if retcode != 0:
-        exit(1)
-
+        raise RuntimeError("running py tests failed")
 
 @haxorg_task(dependencies=[
     build_haxorg,

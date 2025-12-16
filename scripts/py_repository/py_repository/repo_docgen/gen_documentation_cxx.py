@@ -14,7 +14,7 @@ from py_codegen.refl_read import strip_comment_prefixes
 
 import py_haxorg.pyhaxorg_wrap as org
 from sqlalchemy.orm import Session
-import py_repository.coverage_collection.gen_coverage_cxx as cov
+import py_repository.code_analysis.gen_coverage_cxx as cov
 from py_scriptutils.script_logging import log
 
 CAT = "docgen"

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 #include <boost/log/sinks.hpp>
 #include <boost/log/expressions.hpp>

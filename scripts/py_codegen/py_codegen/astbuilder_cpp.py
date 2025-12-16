@@ -95,9 +95,15 @@ class QualType(BaseModel, extra="forbid"):
         if 0 < len(self.Parameters):
             return self.Parameters[0]
 
+        else:
+            return None
+
     def par1(self) -> Optional["QualType"]:
         if 1 < len(self.Parameters):
             return self.Parameters[1]
+
+        else:
+            return None
 
     def test(self, met: bool) -> bool:
         return self.meta.get(met, False)
@@ -149,7 +155,8 @@ class QualType(BaseModel, extra="forbid"):
 
     def flatSpaceNames(self) -> List[str]:
         "Get flat list of names for fully qualified type"
-        def aux(Typ: QualType):
+
+        def aux(Typ: QualType) -> List[str]:
             res: List[str] = []
             for S in Typ.Spaces:
                 res += aux(S)
@@ -241,7 +248,7 @@ class QualType(BaseModel, extra="forbid"):
         ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked.
         result = []
 
-        def aux(T: QualType):
+        def aux(T: QualType) -> None:
             for S in T.Spaces:
                 aux(S)
 
@@ -262,6 +269,31 @@ class QualType(BaseModel, extra="forbid"):
         aux(self)
         return tuple(result)
 
+    def get_recursive_uses(self) -> List["QualType"]:
+        result: List[QualType] = []
+        match self.Kind:
+            case QualTypeKind.RegularType:
+                result.append(self)
+                for p in self.Parameters:
+                    result.extend(p.get_recursive_uses())
+
+            case QualTypeKind.FunctionPtr:
+                assert self.func
+                for arg in self.func.Args:
+                    result.extend(arg.get_recursive_uses())
+
+            case QualTypeKind.Array:
+                for p in self.Parameters:
+                    result.extend(p.get_recursive_uses())
+
+            case QualTypeKind.TypeExpr:
+                pass
+
+            case _:
+                assert False, self.Kind
+
+        return result
+
     def qual_hash(self) -> int:
         return hash(self.flat_repr_flatten(with_modifiers=False))
 
@@ -273,6 +305,84 @@ class QualType(BaseModel, extra="forbid"):
 
     def __str__(self) -> str:
         return self.format()
+
+    def format_native(
+        self,
+        with_cvref: bool = True,
+        max_depth: Optional[int] = None,
+        max_params: Optional[int] = None,
+        max_param_size: Optional[int] = None,
+    ) -> str:
+
+        def aux(Typ: QualType, depth: int) -> str:
+            if max_depth and max_depth < depth:
+                return ""
+
+            if with_cvref:
+                cvref = "{const}{ptr}{ref}".format(
+                    const=" const" if Typ.isConst else "",
+                    ptr=("*" * Typ.ptrCount),
+                    ref={
+                        ReferenceKind.LValue: "&",
+                        ReferenceKind.RValue: "&&",
+                        ReferenceKind.NotRef: ""
+                    }[Typ.RefKind],
+                )
+            else:
+                cvref = ""
+
+            spaces = "".join([f"{aux(S, depth=depth + 1)}::" for S in Typ.Spaces])
+
+            match Typ.Kind:
+                case QualTypeKind.FunctionPtr:
+                    assert Typ.func
+                    result = "{result}({args})(*)".format(
+                        result=aux(Typ.func.ReturnTy or QualType.ForName("void"),
+                                   depth=depth + 1),
+                        args=", ".join([aux(T, depth=depth + 1) for T in Typ.func.Args]),
+                    )
+
+                case QualTypeKind.Array:
+                    result = "{first}[{expr}]{cvref}".format(
+                        first=aux(Typ.Parameters[0], depth=depth + 1),
+                        expr=aux(Typ.Parameters[1], depth=depth +
+                                 1) if 1 < len(Typ.Parameters) else "",
+                        cvref=cvref,
+                    )
+
+                case QualTypeKind.RegularType:
+                    if max_params:
+                        params_list = Typ.Parameters[:min(len(Typ.Parameters), max_params
+                                                         )]
+
+                    else:
+                        params_list = Typ.Parameters
+
+                    params_format = [aux(T, depth=depth + 1) for T in params_list]
+                    if max_param_size:
+                        params_format = [
+                            p[:min(len(p), max_param_size)] for p in params_format
+                        ]
+
+                    result = "{spaces}{name}{args}{cvref}".format(
+                        name=Typ.name or "?",
+                        args="<{}>".format(", ".join(params_format))
+                        if params_format else "",
+                        cvref=cvref,
+                        spaces=spaces,
+                    )
+
+                case QualTypeKind.TypeExpr:
+                    result = f"{Typ.expr}"
+
+                case _:
+                    assert False, Typ.Kind
+
+            return result
+
+        # return self.model_dump_json() + "  --- " + aux(self)
+        return aux(self, depth=0)
+        # return str(self.flat_repr_flatten())
 
     def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN) -> str:
 
@@ -333,24 +443,25 @@ class QualType(BaseModel, extra="forbid"):
         return aux(self)
         # return str(self.flat_repr_flatten())
 
-    def asNamespace(self, is_namespace=True):
+    def asNamespace(self, is_namespace=True) -> "QualType":
         self.isNamespace = is_namespace
         return self
 
-    def withVerticalParams(self, params=True):
+    def withVerticalParams(self, params=True) -> "QualType":
         self.verticalParamList = params
         return self
 
     @classmethod
-    def from_name(cls, name: str):
+    def from_name(cls, name: str) -> "QualType":
         return cls(name=name)
 
     @classmethod
-    def from_name_and_parameters(cls, name: str, parameters: List['QualType']):
+    def from_name_and_parameters(cls, name: str,
+                                 parameters: List['QualType']) -> "QualType":
         return cls(name=name, Parameters=parameters)
 
     @classmethod
-    def from_spaces_and_name(cls, spaces: List[str], name: str):
+    def from_spaces_and_name(cls, spaces: List[str], name: str) -> "QualType":
         return cls(name=name, Spaces=[cls.from_name(space) for space in spaces])
 
 

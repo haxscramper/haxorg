@@ -3,7 +3,7 @@ import json
 from plumbum import local, ProcessExecutionError
 from beartype import beartype
 from dataclasses import dataclass
-from beartype.typing import Optional, Tuple, List, Any
+from beartype.typing import Optional, Tuple, List, Any, Generator, Dict
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pathlib import Path
 import subprocess
@@ -54,20 +54,20 @@ class GTestParams():
         else:
             return None
 
-    def group_name(self):
+    def group_name(self) -> str:
         return self.class_name
 
-    def item_name(self):
+    def item_name(self) -> str:
         return self.parameter_name or self.test_name
 
-    def gtest_params(self):
+    def gtest_params(self) -> List[str]:
         result = [f"--gtest_filter={self.gtest_run_name}"]
         result.append("--gtest_brief=1")
         result.append("--hax_vscode_run")
 
         return result
 
-    def fullname(self):
+    def fullname(self) -> str:
         if self.parameter_name:
             return f"{self.class_name}/{self.test_name}.{self.parameter_name}"
         else:
@@ -148,16 +148,16 @@ def parse_google_tests(binary_path: Path) -> list[GTestParams]:
 
 class GTestClass(pytest.Class):
 
-    def __init__(self, coverage_out_dir: Path, name, parent):
+    def __init__(self, coverage_out_dir: Path, name: str, parent: Any) -> None:
         super().__init__(name, parent)
         self.tests: list[GTestParams] = []
         self.coverage_out_dir = coverage_out_dir
         self.add_marker(pytest.mark.test_gtest_class(name, []))
 
-    def add_test(self, test: GTestParams):
+    def add_test(self, test: GTestParams) -> None:
         self.tests.append(test)
 
-    def collect(self):
+    def collect(self) -> Generator["GTestItem"]:
         for test in self.tests:
             yield GTestItem.from_parent(
                 self,
@@ -167,7 +167,7 @@ class GTestClass(pytest.Class):
                 coverage_out_dir=self.coverage_out_dir,
             )
 
-    def _getobj(self):
+    def _getobj(self) -> Any:
         # Return a dummy class object
         return type(self.name, (object,), {})
 
@@ -177,7 +177,7 @@ class GTestRunError(Exception):
     shell_error: ProcessExecutionError
     item: 'GTestItem'
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = []
         result.append("error message: " + " ".join(self.item.gtest.gtest_params()))
         if self.shell_error.stdout:
@@ -191,7 +191,7 @@ class GTestRunError(Exception):
 
 class GTestItem(pytest.Function):
 
-    def __init__(self, gtest: GTestParams, coverage_out_dir: Path, *args, **kwargs):
+    def __init__(self, gtest: GTestParams, coverage_out_dir: Path, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.gtest = gtest
         self.coverage_out_dir = coverage_out_dir
@@ -201,7 +201,7 @@ class GTestItem(pytest.Function):
             for tag in gtest.get_test_kwargs()["tags"]:
                 self.add_marker(pytest.mark.test_gtest_tag(tag))
 
-    def runtest(self):
+    def runtest(self) -> None:
         test = Path(self.gtest.binary_path)
 
         try:
@@ -216,19 +216,21 @@ class GTestItem(pytest.Function):
             )
 
         except plumbum.ProcessExecutionError as e:
-            raise GTestRunError(e, self)
+            fail = GTestRunError(e, self)
+            fail.add_note(f"Running test with {self.gtest.test_params}")
+            raise fail from None
 
-    def _getobj(self):
+    def _getobj(self) -> Any:
         # Return a dummy function
         return lambda: None
 
 
 class GTestFile(pytest.Module):
 
-    def __init__(self, binary_path: Path, coverage_out_dir: Path, *args, **kwargs):
+    def __init__(self, binary_path: Path, coverage_out_dir: Path, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.test_classes: List[GTestClass] = []
-        class_tests = {}
+        class_tests: Dict[str, List[GTestParams]] = {}
         for test in parse_google_tests(binary_path):
             class_tests.setdefault(test.group_name(), []).append(test)
 
@@ -243,6 +245,6 @@ class GTestFile(pytest.Module):
 
             self.test_classes.append(gtest_class)
 
-    def collect(self):
+    def collect(self) -> Generator["GTestClass"]:
         for it in self.test_classes:
             yield it

@@ -24,7 +24,7 @@ import dominate.tags as tags
 from pygments import lex
 from pygments.lexers import CppLexer
 from pygments.token import Token, _TokenType, Whitespace
-from py_repository.coverage_collection.gen_coverage_cookies import *
+from py_repository.code_analysis.gen_coverage_cookies import *
 from collections import defaultdict
 from dataclasses import dataclass, field
 from dominate import document

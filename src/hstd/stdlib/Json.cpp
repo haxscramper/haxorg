@@ -1,4 +1,7 @@
 #include "Json.hpp"
+#include "JsonUse.hpp"
+#include <hstd/stdlib/Pair.hpp>
+#include <hstd/stdlib/Vec.hpp>
 
 #include <string>
 #include <hstd/stdlib/Func.hpp>

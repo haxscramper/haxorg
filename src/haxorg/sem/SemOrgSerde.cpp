@@ -1,10 +1,25 @@
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 
 using namespace org::algo;
 using namespace org;
 using namespace hstd;
+
+
+void proto_serde<::orgproto::OrgJson, org::sem::OrgJson>::read(
+    const orgproto::OrgJson&           out,
+    proto_write_accessor<sem::OrgJson> in) {
+    in.get() = org::sem::OrgJson(json::parse(out.raw()));
+}
+
+void proto_serde<::orgproto::OrgJson, org::sem::OrgJson>::write(
+    orgproto::OrgJson*  out,
+    const sem::OrgJson& in) {
+    out->set_raw(in.getRef().dump());
+}
+
 
 void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(
     orgproto::AnyNode*          out,

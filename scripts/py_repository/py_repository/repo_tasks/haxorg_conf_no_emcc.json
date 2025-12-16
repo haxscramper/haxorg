@@ -1,0 +1,7 @@
+{
+  "develop_ci_conf": {
+    "emscripten_deps": false,
+    "emscripten_build": false,
+    "emscripten_test": false
+  }
+}

@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.config import HaxorgConfig
+from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
 import py_repository.repo_tasks.workflow_utils as workflow_utils
 from py_repository.repo_tasks import (
     haxorg_base,
@@ -34,6 +34,7 @@ class WorkflowOptions(BaseModel):
     workflow_log_dir: str = "/tmp/haxorg/workflow_log"
     stamp_root: str = str(get_haxorg_repo_root_path().joinpath("build").joinpath("workflow_stamps"))
     config_override: Optional[Path] = None
+    verbose: bool = False
 
 
 def workflow_options(f: Any) -> Any:
@@ -60,10 +61,14 @@ def cli(ctx: click.Context, cmd: str, config: str, **kwargs: Any) -> None:
         config_json = merge_dicts(
             [config_json, json.loads(opts.config_override.read_text())])
 
+    config_obj = HaxorgConfig(**config_json)
+    if opts.verbose:
+        config_obj.log_level = HaxorgLogLevel.VERBOSE
+
     context = workflow_utils.TaskContext(
         graph=graph,
         stamp_root=Path(opts.stamp_root),
-        config=HaxorgConfig(**config_json),
+        config=config_obj,
     )
 
     log(CAT).info(f"{context.config.model_dump_json(indent=2)}")
@@ -72,7 +77,7 @@ def cli(ctx: click.Context, cmd: str, config: str, **kwargs: Any) -> None:
     match cmd:
         case "run":
             assert opts.task is not None
-            context.run(opts.task)
+            context.run(opts.task, ctx=context)
             log(CAT).info("Done")
 
         case "list_tasks":

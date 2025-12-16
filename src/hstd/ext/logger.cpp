@@ -30,6 +30,7 @@
 #    include <boost/thread/locks.hpp>
 #    include <fstream>
 #    include <cpptrace.hpp>
+#    include <hstd/stdlib/JsonUse.hpp>
 
 
 using namespace hstd;
@@ -376,7 +377,7 @@ log_record log_record::from_operations(const OperationsMsg& msg) {
     if (msg.function) { res.function(msg.function); }
     res.line(msg.line);
     res.depth(msg.level);
-    if (!msg.metadata.is_null()) { res.metadata(msg.metadata); }
+    if (msg.metadata) { res.metadata(msg.metadata); }
     return res;
 }
 
@@ -395,19 +396,19 @@ log_record& log_record::source_id(const Str& id) {
     return *this;
 }
 
-log_record& log_record::metadata(const json& id) {
+log_record& log_record::metadata(const std::shared_ptr<json>& id) {
     data.metadata = id;
     return *this;
 }
 
 log_record& log_record::metadata(const Str& field, const json& value) {
-    if (!data.metadata.has_value()) {
-        data.metadata = json::object();
+    if (!data.metadata) {
+        data.metadata = std::make_shared<json>(json::object());
     } else if (!data.metadata->is_object()) {
         throw std::domain_error(
             "Log record medata is already set, but it is not an object");
     } else {
-        data.metadata.value()[field.toBase()] = value;
+        (*data.metadata)[field.toBase()] = value;
     }
 
     return *this;

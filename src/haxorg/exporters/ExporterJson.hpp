@@ -3,6 +3,7 @@
 #include <haxorg/exporters/Exporter.hpp>
 #include <hstd/stdlib/Time.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 namespace org::algo {
 

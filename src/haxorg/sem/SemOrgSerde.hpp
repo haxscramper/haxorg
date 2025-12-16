@@ -568,13 +568,9 @@ template <>
 struct proto_serde<::orgproto::OrgJson, org::sem::OrgJson> {
     static void read(
         ::orgproto::OrgJson const&         out,
-        proto_write_accessor<sem::OrgJson> in) {
-        in.get().value = json::parse(out.raw());
-    }
+        proto_write_accessor<sem::OrgJson> in);
 
-    static void write(::orgproto::OrgJson* out, sem::OrgJson const& in) {
-        out->set_raw(in.getRef().dump());
-    }
+    static void write(::orgproto::OrgJson* out, sem::OrgJson const& in);
 };
 
 template <>

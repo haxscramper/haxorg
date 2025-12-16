@@ -2,6 +2,7 @@
 
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 namespace hstd {
 template <typename T>

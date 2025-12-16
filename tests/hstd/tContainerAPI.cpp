@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <hstd/ext/immer.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 
 using namespace hstd;

@@ -11,7 +11,7 @@ import py_codegen.astbuilder_cpp as cpp
 from py_codegen.org_codegen_data import *
 from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import ExceptionContextNote, log
 import py_codegen.astbuilder_proto as pb
 from py_scriptutils.algorithm import cond
 from py_scriptutils.script_logging import pprint_to_file
@@ -51,9 +51,9 @@ def get_exporter_methods(
     forward: bool,
     expanded: List[GenTuStruct],
     base_map: GenTypeMap,
-) -> Sequence[GenTuFunction]:
+) -> List[GenTuFunction]:
     methods: List[GenTuFunction] = []
-    iterate_tree_context = []
+    iterate_tree_context: List[Any] = []
 
     def callback(value: Any) -> None:
         nonlocal methods
@@ -663,9 +663,9 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
     return result
 
 
-def to_base_types(obj):
+def to_base_types(obj: Any) -> Any:
 
-    def aux(obj, seen):
+    def aux(obj: Any, seen: Any) -> Any:
         if isinstance(obj, Enum):
             return obj.name
 
@@ -704,40 +704,42 @@ def gen_adaptagrams_wrappers(
     reflection_path: Path,
 ) -> GenFiles:
     tu: ConvTu = conv_proto_file(reflection_path)
-    base_map = get_base_map(tu.enums + tu.structs + tu.typedefs)
-    res = Py11Module("py_adaptagrams")
-    res.add_all(tu.get_all(), ast=ast, base_map=base_map)
-    specializations = collect_type_specializations(tu.get_all(), base_map=base_map)
-    res.add_type_specializations(
-        ast=ast,
-        specializations=specializations,
-    )
 
-    with open("/tmp/adaptagrams_reflection.json", "w") as file:
-        log(CAT).debug(f"Debug reflection data to {file.name}")
-        file.write(open_proto_file(reflection_path).to_json(2))
+    reflection_debug = Path("/tmp/haxorg/adaptagrams_reflection.json")
+    reflection_debug.write_text(open_proto_file(reflection_path).to_json(2))
+    log(CAT).debug(f"Debug reflection data to '{reflection_debug}'")
 
-    return GenFiles([
-        GenUnit(
-            GenTu(
-                "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
-                [GenTuPass(res.build_typedef(pyast, base_map=base_map))],
-                clangFormatGuard=False,
-            )),
-        GenUnit(
-            GenTu(
-                "{root}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp",
-                [
-                    GenTuPass("#undef slots"),
-                    GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
-                    GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
-                    GenTuInclude("py_libs/pybind11_utils.hpp", True),
-                    GenTuInclude("pybind11/pybind11.h", True),
-                    GenTuInclude("pybind11/stl.h", True),
-                    GenTuPass(res.build_bind(ast, base_map=base_map)),
-                ],
-            )),
-    ])
+    with ExceptionContextNote(f"reflection_debug:{reflection_debug}"):
+        base_map = get_base_map(tu.enums + tu.structs + tu.typedefs)  # type: ignore
+        res = Py11Module("py_adaptagrams")
+        res.add_all(tu.get_all(), ast=ast, base_map=base_map)
+        specializations = collect_type_specializations(tu.get_all(), base_map=base_map)
+        res.add_type_specializations(
+            ast=ast,
+            specializations=specializations,
+        )
+
+        return GenFiles([
+            GenUnit(
+                GenTu(
+                    "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
+                    [GenTuPass(res.build_typedef(pyast, base_map=base_map))],
+                    clangFormatGuard=False,
+                )),
+            GenUnit(
+                GenTu(
+                    "{root}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp",
+                    [
+                        GenTuPass("#undef slots"),
+                        GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
+                        GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
+                        GenTuInclude("py_libs/pybind11_utils.hpp", True),
+                        GenTuInclude("pybind11/pybind11.h", True),
+                        GenTuInclude("pybind11/stl.h", True),
+                        GenTuPass(res.build_bind(ast, base_map=base_map)),
+                    ],
+                )),
+        ])
 
 
 @beartype
@@ -1232,7 +1234,7 @@ def gen_pyhaxorg_source(
                 [GenTuPass('#include "SemOrgEnums.hpp"')] + groups.full_enums,
             ),
         ),
-                GenUnit(
+        GenUnit(
             GenTu(
                 "{base}/sem/SemOrgSharedTypes.hpp",
                 [
@@ -1247,7 +1249,7 @@ def gen_pyhaxorg_source(
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgBaseSharedTypes.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace(n_sem(), groups.shared_types ),
+                    GenTuNamespace(n_sem(), groups.shared_types),
                 ],
             )),
         GenUnit(
@@ -1345,8 +1347,123 @@ class CodegenOptions(BaseModel):
     tmp: bool = False
 
 
-def codegen_options(f):
+def codegen_options(f: Any) -> Any:
     return apply_options(f, options_from_model(CodegenOptions))
+
+
+def _write_files_group(
+    impl: GenFiles,
+    builder: ASTBuilder,
+    is_tmp_codegen: bool,
+    t: TextLayout,
+) -> None:
+    gen_description_files(
+        description=impl,
+        builder=builder,
+        t=t,
+        tmp=is_tmp_codegen,
+    )
+
+
+@beartype
+def run_codegen_adaptagrams(
+    is_tmp_codegen: bool,
+    builder: ASTBuilder,
+    pyast: pya.ASTBuilder,
+    reflection_path: Path,
+    t: TextLayout,
+) -> None:
+    _write_files_group(
+        gen_adaptagrams_wrappers(
+            builder,
+            pyast,
+            reflection_path=Path(reflection_path),
+        ),
+        is_tmp_codegen=is_tmp_codegen,
+        builder=builder,
+        t=t,
+    )
+
+
+@beartype
+def run_codegen_pyhaxorg(
+    is_tmp_codegen: bool,
+    builder: ASTBuilder,
+    pyast: pya.ASTBuilder,
+    reflection_path: Path,
+    t: TextLayout,
+) -> None:
+    groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
+        ast=builder,
+        reflection_path=Path(reflection_path),
+    )
+
+    with open("/tmp/pyhaxorg_reflection_data.yaml", "w") as file:
+        yaml.safe_dump(to_base_types(groups.tu), stream=file)
+
+    with open("/tmp/pyhaxorg_reflection_data.json", "w") as file:
+        log(CAT).debug(f"Debug reflection data to {file.name}")
+        file.write(open_proto_file(reflection_path).to_json(2))
+
+    _write_files_group(
+        gen_pyhaxorg_napi_wrappers(
+            groups=groups,
+            ast=builder,
+            base_map=groups.base_map,
+        ),
+        is_tmp_codegen=is_tmp_codegen,
+        builder=builder,
+        t=t,
+    )
+
+    _write_files_group(
+        gen_pyhaxorg_python_wrappers(
+            groups=groups,
+            ast=builder,
+            pyast=pyast,
+        ),
+        is_tmp_codegen=is_tmp_codegen,
+        builder=builder,
+        t=t,
+    )
+
+    _write_files_group(
+        gen_pyhaxorg_source(
+            ast=builder,
+            groups=groups,
+        ),
+        is_tmp_codegen=is_tmp_codegen,
+        builder=builder,
+        t=t,
+    )
+
+
+@beartype
+def run_codegen_task(task: Literal["adaptagrams", "pyhaxorg"], reflection_path: Path,
+                     is_tmp_codegen: bool) -> None:
+    t = TextLayout()
+    pyast = pya.ASTBuilder(t)
+    builder = ASTBuilder(t)
+
+    with ExceptionContextNote(f"reflection_path:{reflection_path}, task: {task}"):
+        match task:
+            case "adaptagrams":
+                run_codegen_adaptagrams(
+                    is_tmp_codegen=is_tmp_codegen,
+                    reflection_path=reflection_path,
+                    builder=builder,
+                    pyast=pyast,
+                    t=t,
+                )
+
+            case "pyhaxorg":
+                run_codegen_pyhaxorg(
+                    is_tmp_codegen=is_tmp_codegen,
+                    reflection_path=reflection_path,
+                    builder=builder,
+                    pyast=pyast,
+                    t=t,
+                )
 
 
 @click.command()
@@ -1354,60 +1471,11 @@ def codegen_options(f):
 @click.pass_context
 def impl(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
     opts: CodegenOptions = get_context(ctx, CodegenOptions, config=config, kwargs=kwargs)
-
-    t = TextLayout()
-    pyast = pya.ASTBuilder(t)
-    builder = ASTBuilder(t)
-
-    def write_files_group(impl: GenFiles) -> None:
-        gen_description_files(
-            description=impl,
-            builder=builder,
-            t=t,
-            tmp=opts.tmp,
-        )
-
-    match opts.codegen_task:
-        case "adaptagrams":
-            write_files_group(
-                gen_adaptagrams_wrappers(
-                    builder,
-                    pyast,
-                    reflection_path=Path(opts.reflection_path),
-                ))
-
-        case "pyhaxorg":
-            groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
-                ast=builder,
-                reflection_path=Path(opts.reflection_path),
-            )
-
-            with open("/tmp/pyhaxorg_reflection_data.yaml", "w") as file:
-                yaml.safe_dump(to_base_types(groups.tu), stream=file)
-
-            with open("/tmp/pyhaxorg_reflection_data.json", "w") as file:
-                log(CAT).debug(f"Debug reflection data to {file.name}")
-                file.write(open_proto_file(Path(opts.reflection_path)).to_json(2))
-
-
-            write_files_group(
-                gen_pyhaxorg_napi_wrappers(
-                    groups=groups,
-                    ast=builder,
-                    base_map=groups.base_map,
-                ))
-
-            write_files_group(
-                gen_pyhaxorg_python_wrappers(
-                    groups=groups,
-                    ast=builder,
-                    pyast=pyast,
-                ))
-
-            write_files_group(gen_pyhaxorg_source(
-                ast=builder,
-                groups=groups,
-            ))
+    run_codegen_task(
+        is_tmp_codegen=opts.tmp,
+        reflection_path=Path(opts.reflection_path),
+        task=opts.codegen_task,
+    )
 
 
 if __name__ == "__main__":

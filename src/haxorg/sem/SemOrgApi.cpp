@@ -2,6 +2,8 @@
 #include <boost/mp11.hpp>
 #include <haxorg/exporters/exportertree.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Set.hpp>
 
 using namespace hstd;
 using namespace org::sem;

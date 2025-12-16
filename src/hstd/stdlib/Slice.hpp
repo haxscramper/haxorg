@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hstd/system/basic_templates.hpp>
-#include <hstd/system/string_convert.hpp>
 
 #include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/Pair.hpp>

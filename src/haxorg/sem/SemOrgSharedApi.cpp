@@ -6,9 +6,18 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 
 using namespace org;
 using namespace hstd;
+
+std::size_t std::hash<org::sem::OrgJson>::operator()(
+    const org::sem::OrgJson& it) const {
+    std::size_t result = 0;
+    hstd::hax_hash_combine(result, it.getRef());
+    return result;
+}
+
 
 template <class E>
 Opt<E> string_to_enum_insensitive(std::string const& name) {
