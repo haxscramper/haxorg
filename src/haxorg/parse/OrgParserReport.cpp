@@ -3,6 +3,8 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <haxorg/lexbase/TraceStructured.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 using namespace hstd;
 using namespace org::parse;

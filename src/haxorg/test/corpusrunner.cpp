@@ -23,6 +23,7 @@
 #include <hstd/stdlib/VariantSerde.hpp>
 #include <hstd/stdlib/MapSerde.hpp>
 #include <hstd/ext/bimap_wrap_serde.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 using namespace org::test;
 using namespace hstd;
@@ -1136,7 +1137,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
         hstd::ext::StrCache cache;
 
         cache.getFileSource = [&](std::string const& path) -> std::string {
-            LOGIC_ASSERTION_CHECK(path == "<mock>", "{}", path);
+            LOGIC_ASSERTION_CHECK_FMT(path == "<mock>", "{}", path);
             return spec.source.toBase();
         };
 

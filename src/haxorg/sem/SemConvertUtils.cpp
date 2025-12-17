@@ -1,6 +1,7 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <haxorg/lexbase/TraceStructured.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 
 using namespace org::sem;

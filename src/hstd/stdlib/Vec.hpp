@@ -555,21 +555,6 @@ static_assert(
     sizeof(Vec<int>) == sizeof(std::vector<int>),
     "Vector size must be identical");
 
-template <typename T, typename Container>
-struct std_item_iterator_formatter : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(Container const& p, FormatContext& ctx)
-        const {
-        fmt_ctx("[", ctx);
-        bool first = true;
-        for (const auto& value : p) {
-            if (!first) { fmt_ctx(", ", ctx); }
-            first = false;
-            fmt_ctx(value, ctx);
-        }
-        return fmt_ctx("]", ctx);
-    }
-};
 
 
 template <typename Indexable>
@@ -601,20 +586,6 @@ struct value_metadata<Vec<T>> {
 
 
 } // namespace hstd
-
-/// \brief Vector formatting operator
-template <typename T>
-struct std::formatter<hstd::Vec<T>>
-    : hstd::std_item_iterator_formatter<T, hstd::Vec<T>> {};
-
-template <typename T>
-struct std::formatter<std::vector<T>>
-    : hstd::std_item_iterator_formatter<T, std::vector<T>> {};
-
-template <typename T, int Size>
-struct std::formatter<hstd::SmallVec<T, Size>>
-    : hstd::std_item_iterator_formatter<T, hstd::SmallVec<T, Size>> {};
-
 
 template <typename T>
 struct std::hash<hstd::Vec<T>> : hstd::std_indexable_hash<hstd::Vec<T>> {};

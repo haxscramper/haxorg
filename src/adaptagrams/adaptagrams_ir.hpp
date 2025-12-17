@@ -7,6 +7,7 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/ext/graphviz.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 #ifdef ORG_DEPS_USE_ADAPTAGRAMS
 #    pragma warning(push, 0)

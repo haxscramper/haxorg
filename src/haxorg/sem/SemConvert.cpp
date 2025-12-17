@@ -22,6 +22,8 @@
 #include <lexy/action/trace.hpp>
 #include <stack>
 #include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 
 namespace {
@@ -126,7 +128,7 @@ struct ErrorTable {
 template <typename T>
 org::sem::SemId<T> org::sem::OrgConverter::SemLeaf(In adapter) {
     auto res = Sem<T>(adapter);
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         adapter.isTerminal(), "{}", adapter.treeRepr(false));
     res->text = adapter.val().text;
     return res;
@@ -437,7 +439,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             | rs::to<Vec>();
 
         auto clock = Log::Clock{};
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             !times.empty(),
             "{}{}",
             a.treeRepr(),
@@ -504,7 +506,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             Vec<SemId<Time>> times   = filter_subnodes<Time>(par0, limit);
             Vec<SemId<Link>> link    = filter_subnodes<Link>(par0, limit);
             auto             refile  = Log::Refile{};
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 !times.empty(),
                 "{} {}",
                 a.treeRepr(),
@@ -621,7 +623,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 }
             }
 
-            LOGIC_ASSERTION_CHECK(!desc.isNil(), "");
+            LOGIC_ASSERTION_CHECK_FMT(!desc.isNil(), "");
             log->setDescription(desc);
         }
     }
@@ -1039,7 +1041,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Times, a);
         for (auto const& it : one(a, N::Times)) {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 (parse::OrgSet{onk::BigIdent, onk::Word}.contains(
                     it.at(0).kind())),
                 "{}",
@@ -1098,7 +1100,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
                   }
                      .contains(a.kind());
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         cond, "convert subtree {} at {}", a.kind(), a.treeRepr(false));
 
     auto time      = Sem<Time>(a);
@@ -1978,7 +1980,7 @@ OrgConverter::ConvResult<ErrorItem> OrgConverter::convertErrorItem(
     __args) {
     auto __trace = trace(a);
     auto mono    = a.getMono().getError();
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         mono.box, "Mono error for node should have box data");
     if (mono.box->isParseFail()) {
         return SemErrorItem(
@@ -2406,7 +2408,7 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
             push_argument(convertAttr(it)); //
         }
     } else {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             a.getKind() == onk::Empty, "{}", a.treeRepr());
     }
 
@@ -2818,7 +2820,7 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::
 
 SemId<Org> OrgConverter::convert(__args) {
     auto __trace = trace(a);
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         a.isValid(),
         "Invalid node encountered during conversion {}",
         a.id);
@@ -2931,7 +2933,7 @@ SemId<Org> OrgConverter::convert(__args) {
 parse::OrgAdapter OrgConverter::one(
     parse::OrgAdapter node,
     OrgSpecName       name) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !ErrorKinds.contains(node.getKind()),
         "Attempting to index into a named field of the error info "
         "token");
@@ -2941,7 +2943,7 @@ parse::OrgAdapter OrgConverter::one(
 hstd::Vec<parse::OrgAdapter> OrgConverter::many(
     parse::OrgAdapter node,
     OrgSpecName       name) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !ErrorKinds.contains(node.getKind()),
         "Attempting to index into a named field of the error info "
         "token");

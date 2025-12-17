@@ -12,7 +12,6 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Set.hpp>
-#include <hstd/system/Formatter.hpp>
 
 #include <unordered_set>
 #include <unordered_map>

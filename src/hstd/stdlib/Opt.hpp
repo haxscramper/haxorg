@@ -1,7 +1,6 @@
 #pragma once
 
 #include <optional>
-#include <hstd/system/Formatter.hpp>
 #include <hstd/stdlib/Exception.hpp>
 
 namespace hstd {

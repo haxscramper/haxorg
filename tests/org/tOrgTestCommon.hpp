@@ -42,7 +42,6 @@ GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 #include <gtest/gtest.h>
 
 
-
 void enable_full_trace_on_cli();
 bool is_full_trace_on_cli_enabled();
 
@@ -58,7 +57,6 @@ void writeTreeRepr(sem::SemId<sem::Org> node, const fs::path& full);
 
 GTEST_ADL_PRINT_TYPE(OrgSemKind);
 GTEST_ADL_PRINT_TYPE(imm::ImmId);
-
 
 
 struct compare_context {
@@ -471,7 +469,7 @@ sem::SemId<T> parseOne(
     } else {
         auto one = org::asOneNode(node);
         while (T::staticKind != one->getKind()) {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 one->subnodes.has(0),
                 "Parsed node does not have item at index 0: {}",
                 org::exportToTreeString(

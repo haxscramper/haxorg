@@ -2,6 +2,8 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 using namespace org::sem;
 using namespace hstd;
@@ -1634,7 +1636,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
 
             if (log->desc) {
                 add(log_head, str(" \\\\"));
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     !log->desc.value().isNil(),
                     "{}",
                     log->head.getLogKind());

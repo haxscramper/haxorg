@@ -9,7 +9,6 @@
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <boost/mp11.hpp>
-#include <hstd/system/Formatter.hpp>
 
 using yaml = YAML::Node;
 

@@ -1,5 +1,6 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 using namespace hstd;
 using namespace org::parse;

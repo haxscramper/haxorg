@@ -100,6 +100,23 @@ struct std_format_ptr_as_hex_and_value : std::formatter<std::string> {
     }
 };
 
+template <typename T, typename Container>
+struct std_item_iterator_formatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(Container const& p, FormatContext& ctx)
+        const {
+        fmt_ctx("[", ctx);
+        bool first = true;
+        for (const auto& value : p) {
+            if (!first) { fmt_ctx(", ", ctx); }
+            first = false;
+            fmt_ctx(value, ctx);
+        }
+        return fmt_ctx("]", ctx);
+    }
+};
+
+
 } // namespace hstd
 
 template <>

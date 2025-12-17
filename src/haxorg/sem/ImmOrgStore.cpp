@@ -13,6 +13,8 @@
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/TimeReflVisitor.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace org;
 using namespace org::imm;
@@ -37,7 +39,7 @@ ImmAstReplace org::imm::setSubnodes(
     ImmAdapter         target,
     ImmVec<ImmId>      subnodes,
     ImmAstEditContext& ctx) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !target.isNil(), "cannot set subnodes to nil node");
     Opt<ImmAstReplace> result;
     switch_node_value(
@@ -64,7 +66,7 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
     ImmId     result_node = getStore<T>()->add(value, ctx);
     ImmUniqId replaced    = target.uniq().update(result_node);
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !result_node.isNil(), "added node must not be nil");
     result_node.assertValid();
 
@@ -187,7 +189,7 @@ Opt<ImmAstReplace> setNewSubnodes(
         [&]<typename K>(K node /* <<input_node_for_mut_cast>> */) {
             for (SubnodeVecAssignPair const& fieldGroup : grouped) {
                 auto field = fieldGroup.first.first();
-                LOGIC_ASSERTION_CHECK(field.isFieldName(), "");
+                LOGIC_ASSERTION_CHECK_FMT(field.isFieldName(), "");
                 auto fail_field =
                     [&](int         line     = __builtin_LINE(),
                         char const* function = __builtin_FUNCTION()) {
@@ -249,14 +251,14 @@ Opt<ImmAstReplace> setNewSubnodes(
                         [&]<typename FK>(
                             ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const&
                                 f) {
-                            LOGIC_ASSERTION_CHECK(
+                            LOGIC_ASSERTION_CHECK_FMT(
                                 fieldGroup.second.size() == 1,
                                 "Assignment to single field cannot have "
                                 "multiple values");
                             mut_cast(f) = fieldGroup.second.at(0).second;
                         },
                         [&]<typename FK>(org::imm::ImmIdT<FK> const& f) {
-                            LOGIC_ASSERTION_CHECK(
+                            LOGIC_ASSERTION_CHECK_FMT(
                                 fieldGroup.second.size() == 1,
                                 "Assignment to single field cannot have "
                                 "multiple values");
@@ -377,7 +379,7 @@ Pair<Vec<SubnodeAssignTarget>, Vec<ImmId>> getUpdatedSubnodes(
     for (auto const& sub :
          updateTarget.getAllSubnodes(updateTarget.path)) {
         auto relativePath = sub.flatPath().dropPrefix(flatTargetPath);
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             relativePath.first().isFieldName(),
             "relative path for subnode update must target a field "
             "of the node");
@@ -520,7 +522,7 @@ sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {
 const ImmOrg* ImmAstContext::at(ImmId id) const {
     id.assertValid();
     ImmOrg const* res = store->at(id);
-    LOGIC_ASSERTION_CHECK(res->getKind() == id.getKind(), "");
+    LOGIC_ASSERTION_CHECK_FMT(res->getKind() == id.getKind(), "");
     return res;
 }
 
@@ -542,7 +544,7 @@ ImmId ImmAstContext::at(ImmId node, const ImmPathStep& item) const {
                             result = id.toId();
                         },
                         [&](auto const& other) {
-                            LOGIC_ASSERTION_CHECK(
+                            LOGIC_ASSERTION_CHECK_FMT(
                                 false,
                                 "Path {} does not point to a field with "
                                 "ID, "
@@ -972,7 +974,7 @@ ImmId_t imm::ImmAstKindStore<ImmType>::add(
     ImmType value = ImmSemSerde<SemType, ImmType>::to_immer(
         *data.as<SemType>(), ctx);
 
-    LOGIC_ASSERTION_CHECK(data->getKind() == ImmType::staticKind, "");
+    LOGIC_ASSERTION_CHECK_FMT(data->getKind() == ImmType::staticKind, "");
     return add(value, ctx);
 }
 
@@ -983,7 +985,7 @@ ImmId ImmAstKindStore<T>::add(const T& value, ImmAstEditContext& ctx) {
     // HSLOG_TRACE(_cat, fmt("Insert value to kind store, {}", value));
     // HSLOG_TRACE(_cat, fmt("Result ID {}", result));
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         result.getKind() == value.getKind(),
         R"(
 result.getValue(): {:064b}

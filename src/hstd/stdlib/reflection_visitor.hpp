@@ -13,6 +13,7 @@
 #include <any>
 #include <hstd/stdlib/algorithms.hpp>
 #include <boost/preprocessor.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 template <>
 struct std::formatter<std::any> : std::formatter<std::string> {
@@ -245,7 +246,7 @@ struct ReflPathItem {
     char const* sub_variant_get_name() const { return "data"; }
 
     void expectKind(Kind k) const {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             kind == k, "Expected kind {} but got {}", k, kind);
     }
 
@@ -369,7 +370,8 @@ struct ReflPath {
         auto begin = path.begin();
         for (int i = 0; i < path.size(); ++i) {
             if (i < other.path.size()) {
-                LOGIC_ASSERTION_CHECK(other.path.at(i) == path.at(i), "");
+                LOGIC_ASSERTION_CHECK_FMT(
+                    other.path.at(i) == path.at(i), "");
                 ++begin;
             }
         }
@@ -519,7 +521,8 @@ struct ReflVisitor<T, Tag> {
         T const&                 value,
         ReflPathItem<Tag> const& step,
         Func const&              cb) {
-        LOGIC_ASSERTION_CHECK(step.isFieldName(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(
+            step.isFieldName(), "{}", step.getKind());
         for_each_field_with_base_value<T>(
             value, [&]<typename B>(B const& base, auto const& ptr) {
                 if (ReflTypeTraits<Tag>::InitFieldName(base, ptr)
@@ -551,7 +554,7 @@ struct ReflVisitorKeyValue {
         Map const&               value,
         ReflPathItem<Tag> const& step,
         Func const&              cb) {
-        LOGIC_ASSERTION_CHECK(step.isAnyKey(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(step.isAnyKey(), "{}", step.getKind());
         cb(value.at(step.getAnyKey().template get<K>()));
     }
 
@@ -586,7 +589,7 @@ struct ReflVisitorIndexed {
         Indexed const&           value,
         ReflPathItem<Tag> const& step,
         Func const&              cb) {
-        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(step.isIndex(), "{}", step.getKind());
         cb(value.at(step.getIndex().index));
     }
 
@@ -616,7 +619,7 @@ struct ReflVisitorUnorderedIndexed {
         Unordered const&         value,
         ReflPathItem<Tag> const& step,
         Func const&              cb) {
-        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(step.isIndex(), "{}", step.getKind());
         cb(getSorted(value).at(step.getIndex().index).get());
     }
 
@@ -641,7 +644,7 @@ struct ReflVisitor<Opt<T>, Tag> {
         Opt<T> const&            value,
         ReflPathItem<Tag> const& step,
         Func const&              cb) {
-        LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(step.isDeref(), "{}", step.getKind());
         cb(value.value());
     }
 
@@ -665,8 +668,8 @@ struct ReflVisitor<std::shared_ptr<T>, Tag> {
         std::shared_ptr<T> const& value,
         ReflPathItem<Tag> const&  step,
         Func const&               cb) {
-        LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
-        LOGIC_ASSERTION_CHECK(value.get() != nullptr, "");
+        LOGIC_ASSERTION_CHECK_FMT(step.isDeref(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(value.get() != nullptr, "");
         cb(*value.get());
     }
 
@@ -691,8 +694,8 @@ struct ReflVisitor<std::unique_ptr<T>, Tag> {
         std::unique_ptr<T> const& value,
         ReflPathItem<Tag> const&  step,
         Func const&               cb) {
-        LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
-        LOGIC_ASSERTION_CHECK(value.get() != nullptr, "");
+        LOGIC_ASSERTION_CHECK_FMT(step.isDeref(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(value.get() != nullptr, "");
         cb(*value.get());
     }
 
@@ -737,7 +740,7 @@ struct ReflVisitor<std::tuple<Args...>, Tag> {
         std::tuple<Args...> const& value,
         ReflPathItem<Tag> const&   step,
         Func const&                cb) {
-        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(step.isIndex(), "{}", step.getKind());
         apply_to_tuple(value, step.getIndex().index, cb);
     }
 
@@ -761,8 +764,8 @@ struct ReflVisitor<Pair<T1, T2>, Tag> {
         Pair<T1, T2> const&      value,
         ReflPathItem<Tag> const& step,
         Func const&              cb) {
-        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(step.isIndex(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(
             (0 <= step.getIndex().index && step.getIndex().index <= 1),
             "{}",
             step.getIndex().index);
@@ -791,8 +794,8 @@ struct ReflVisitor<T, Tag> {
         T const&                 value,
         ReflPathItem<Tag> const& step,
         Func const&              cb) {
-        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(step.isIndex(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK_FMT(
             value.index() == step.getIndex().index, "{}", value.index());
         std::visit([&](auto const& it) { cb(it); }, value);
     }

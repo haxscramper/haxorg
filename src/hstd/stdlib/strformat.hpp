@@ -6,6 +6,7 @@
 
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/system/all.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd {
 

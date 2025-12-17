@@ -10,7 +10,6 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Opt.hpp>
 
-#include <hstd/system/Formatter.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
 #include <format>
 #include <hstd/system/reflection.hpp>

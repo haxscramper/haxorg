@@ -5,12 +5,9 @@
 #include <stdexcept>
 #include <string>
 #include <hstd/system/aux_utils.hpp>
-#include <format>
 #if !ORG_EMCC_BUILD
 #    include <cpptrace.hpp>
 #endif
-
-
 
 namespace hstd {
 
@@ -49,11 +46,20 @@ struct CRTP_hexception
 
 
   public:
+    const char* get_fmt_message() const noexcept {
+        std::string result = msg;
+        result += " at ";
+        result += file;
+        result += ":";
+        result += std::to_string(line);
+        result += " in ";
+        result += function;
+        return strdup(result.c_str());
+    }
+
 #if ORG_EMCC_BUILD
     virtual const char* what() const noexcept override {
-        return strdup(
-            std::format("{} at {}:{} in {}", msg, file, line, function)
-                .c_str());
+        return get_fmt_message();
     }
 #else
     virtual cpptrace::stacktrace const& trace() const noexcept override {
@@ -61,9 +67,7 @@ struct CRTP_hexception
     }
 
     virtual const char* message() const noexcept override {
-        return strdup(
-            std::format("{} at {}:{} in {}", msg, file, line, function)
-                .c_str());
+        return get_fmt_message();
     }
 #endif
 };
@@ -73,13 +77,18 @@ struct logic_assertion_error : CRTP_hexception<logic_assertion_error> {};
 struct logic_unreachable_error : CRTP_hexception<logic_assertion_error> {};
 struct out_of_range_error : CRTP_hexception<out_of_range_error> {};
 
-
-#define LOGIC_ASSERTION_CHECK(expr, message_fmt, ...)                     \
+#define LOGIC_ASSERTION_CHECK_FMT(expr, message_fmt, ...)                 \
     if (!(expr)) {                                                        \
         throw ::hstd::logic_assertion_error::init(::hstd::fmt(            \
             "{}: {}",                                                     \
             #expr,                                                        \
             ::hstd::fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));        \
+    }
+
+#define LOGIC_ASSERTION_CHECK(expr, __message)                            \
+    if (!(expr)) {                                                        \
+        throw ::hstd::logic_assertion_error::init(                        \
+            std::string{#expr ": "} + std::string{__message});            \
     }
 
 #define logic_todo_impl() throw hstd::logic_assertion_error::init("TODO");
@@ -94,7 +103,6 @@ struct KeyError : CRTP_hexception<KeyError> {};
 struct LogicError : CRTP_hexception<LogicError> {};
 struct UnexpectedKindError : CRTP_hexception<UnexpectedKindError> {};
 struct RangeError : CRTP_hexception<RangeError> {};
-
 
 
 } // namespace hstd

@@ -2,10 +2,11 @@
 
 #include <variant>
 #include <hstd/system/basic_templates.hpp>
-#include <hstd/system/Formatter.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+
 
 namespace hstd {
 
@@ -132,45 +133,6 @@ struct std::hash<V> {
     }
 };
 
-template <hstd::DescribedSubVariantType V>
-struct std::formatter<V> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const V& p, FormatContext& ctx) const {
-        ::hstd::fmt_ctx(p.sub_variant_get_kind(), ctx);
-        ::hstd::fmt_ctx("(", ctx);
-        std::visit(
-            [&](auto const& t) { ::hstd::fmt_ctx(t, ctx); },
-            p.sub_variant_get_data());
-        ::hstd::for_each_field_value_with_bases(
-            p, [&](char const* name, auto const& value) {
-                if (std::string{name}
-                    != std::string{p.sub_variant_get_name()}) {
-                    ::hstd::fmt_ctx(", ", ctx);
-                    ::hstd::fmt_ctx(".", ctx);
-                    ::hstd::fmt_ctx(name, ctx);
-                    ::hstd::fmt_ctx(" = ", ctx);
-                    ::hstd::fmt_ctx(value, ctx);
-                }
-            });
-        return ::hstd::fmt_ctx(")", ctx);
-    }
-};
-
-
-template <hstd::IsVariant V>
-struct std::formatter<V> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(const V& p, FormatContext& ctx) const {
-        std::string res;
-        ::hstd::fmt_ctx("Var(", ctx);
-        ::hstd::fmt_ctx(p.index(), ctx);
-        ::hstd::fmt_ctx(": ", ctx);
-        std::visit(
-            [&ctx](const auto& value) { ::hstd::fmt_ctx(value, ctx); }, p);
-        return ::hstd::fmt_ctx(")", ctx);
-    }
-};
-
 template <typename... Args>
 struct hstd::value_metadata<hstd::Variant<Args...>> {
     static bool isEmpty(hstd::Variant<Args...> const& value) {
@@ -182,10 +144,9 @@ struct hstd::value_metadata<hstd::Variant<Args...>> {
     }
 
     static std::string typeName() {
-        return std::string{"Variant<"}
-             + join(
-                   ", ",
-                   Vec<Str>{hstd::value_metadata<Args>::typeName()...})
-             + std::string{">"};
+        return Str{"Variant<"}
+             + Str{", "}.join(
+                 Vec<Str>{hstd::value_metadata<Args>::typeName()...})
+             + Str{">"};
     }
 };

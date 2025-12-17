@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd {
 

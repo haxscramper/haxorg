@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <hstd/system/aux_utils.hpp>
-#include <hstd/system/Formatter.hpp>
 #include <hstd/stdlib/Exception.hpp>
 
 namespace hstd {

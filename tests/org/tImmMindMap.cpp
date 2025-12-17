@@ -2,6 +2,8 @@
 
 
 #include "tOrgTestCommon.hpp"
+#include <hstd/stdlib/VariantFormatter.hpp>
+
 
 
 struct ImmMapApi : ImmOrgApiTestBase {

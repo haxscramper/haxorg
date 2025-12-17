@@ -51,7 +51,7 @@ struct Str : public std::string {
         return find(ch) != std::string::npos;
     }
 
-
+    Str join(Vec<Str> const& items) const;
     Str repeated(int N) const;
 
     template <typename A, typename B>

@@ -1,12 +1,13 @@
 #include <gtest/gtest.h>
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
-#include <hstd/system/Formatter.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include "hstd_tests_common.hpp"
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 
 using namespace hstd;

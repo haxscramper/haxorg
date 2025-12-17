@@ -4,7 +4,6 @@
 #include <map>
 #include <optional>
 
-#include <hstd/system/Formatter.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Vec.hpp>

@@ -10,6 +10,8 @@
 #include "../common.hpp"
 #include "tOrgTestCommon.hpp"
 #include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+
 
 using namespace hstd::ext::diff;
 using namespace hstd;

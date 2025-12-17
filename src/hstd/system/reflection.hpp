@@ -164,6 +164,11 @@ struct enum_serde<E> {
     }
 };
 
+template <DescribedEnum E>
+std::string enum_to_string(E const& value) {
+    return enum_serde<E>::to_string(value);
+}
+
 template <class E, template <class... T> class L, class... T>
 constexpr std::array<E, sizeof...(T)> describe_enumerators_list(L<T...>) {
     return {{T::value...}};
