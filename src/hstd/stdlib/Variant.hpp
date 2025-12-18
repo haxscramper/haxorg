@@ -5,7 +5,7 @@
 #include <hstd/system/macros.hpp>
 #include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/system/reflection.hpp>
 
 
 namespace hstd {
@@ -32,15 +32,22 @@ struct bad_variant_access : CRTP_hexception<bad_variant_access> {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
         char const* file     = __builtin_FILE()) {
+        std::string msg = "Variant access mismatch, expected ";
+        msg += value_metadata<E>::typeName();
+        if constexpr (hstd::IsEnum<E>) {
+            msg += "::" + hstd::enum_to_string(expected);
+        } else {
+            msg += "::" + std::to_string(expected);
+        }
+        msg += " but got ";
+        msg += value_metadata<E>::typeName();
+        if constexpr (hstd::IsEnum<E>) {
+            msg += "::" + hstd::enum_to_string(given);
+        } else {
+            msg += "::" + std::to_string(given);
+        }
         return CRTP_hexception<bad_variant_access>::init(
-            fmt("Variant access mismatch, expected {}::{}, but got {}::{}",
-                value_metadata<E>::typeName(),
-                expected,
-                value_metadata<E>::typeName(),
-                given),
-            line,
-            function,
-            file);
+            msg, line, function, file);
     }
 };
 

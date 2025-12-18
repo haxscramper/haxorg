@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 using namespace hstd::ext::diff;
 using namespace hstd;
