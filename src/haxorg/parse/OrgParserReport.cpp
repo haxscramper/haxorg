@@ -105,7 +105,7 @@ void OrgParser::report(CR<Report> in) {
             if (in.lex != nullptr) {
                 Opt<LineCol> loc = this->getLoc(*in.lex);
                 if (loc.has_value()) {
-                    res = "$#:$# " % to_string_vec(loc->line, loc->column);
+                    res = hstd::fmt("{}:{} ", loc->line, loc->column);
                 }
             }
             return res;

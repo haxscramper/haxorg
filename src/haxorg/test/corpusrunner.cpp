@@ -407,13 +407,7 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                         hshow1(get_token_text(tok), opts).toString(false));
 
                     std::string result = //
-                        "${index} ${kind} ${text}"
-                        % fold_format_pairs({
-                            {"index", fmt1(line.index().value())},
-                            {"kind", fmt1(tok.kind)},
-                            {"text", text},
-                            {"size", fmt1(rune_length(text))},
-                        });
+                        hstd::fmt("{0} {1} {2}", fmt1(line.index().value()), fmt1(tok.kind), text);
 
                     return result;
                 }}};
@@ -779,63 +773,62 @@ CorpusRunner::RunResult CorpusRunner::runSpecFormatted(
         || spec.debug.printSem) {
 
         auto read = [](char c) { return visibleName(c).first; };
-
-        auto reformatFail = R"(
-
+        
+        Str const split = Str("-").repeated(60);
+        Str const blocks = formatter.store.toTreeRepr(fmt_result);
+        Str const source = spec.source;
+        Str const formatted = rerun.source;
+        Str const sourcearray = fmt1(spec.source | rv::transform(read) | rs::to<std::vector>());
+        Str const formattedarray = fmt1(rerun.source | rv::transform(read) | rs::to<std::vector>());
+        Str const fail = reformat_result.failDescribe.toString(false);
+        
+        auto reformatFail = hstd::fmt(R"(
+            
 source:
 
-${split}
-${source}
-${split}
+{0}
+{1}
+{0}
 
 formatted:
 
-${split}
-${formatted}
-${split}
+{0}
+{2}
+{0}
 
 sourcearray:
 
-${split}
-${sourcearray}
-${split}
+{0}
+{3}
+{0}
 
 formattedarray:
 
-${split}
-${formattedarray}
-${split}
+{0}
+{4}
+{0}
 
 blocks:
 
-${split}
-${blocks}
-${split}
+{0}
+{5}
+{0}
 
 fail:
 
-${split}
-${fail}
-${split}
-)"
-                          % fold_format_pairs({
-                              {"split", Str("-").repeated(60)},
-                              {"blocks",
-                               formatter.store.toTreeRepr(fmt_result)},
-                              {"source", spec.source},
-                              {"formatted", rerun.source},
-                              {"formattedarray",
-                               fmt1(
-                                   rerun.source | rv::transform(read)
-                                   | rs::to<std::vector>())},
-                              {"sourcearray",
-                               fmt1(
-                                   spec.source | rv::transform(read)
-                                   | rs::to<std::vector>())},
-                              {"fail",
-                               reformat_result.failDescribe.toString(
-                                   false)},
-                          });
+{0}
+{6}
+{0}
+            
+)", 
+            split, // 0
+            source, // 1
+            formatted, // 2
+            sourcearray, // 3
+            formattedarray, // 4
+            blocks, // 5
+            fail // 6
+        );
 
         writeFile(
             rerun, "sem2_expected.yaml", fmt1(toTestYaml(p.node)), dbg);
@@ -1294,7 +1287,7 @@ std::string TestParams::testName() const {
                                    : std::string("<spec>"),
              file.stem())) {
         if (std::isalnum(ch) || ch == '_') {
-            final.push_back(ch);
+            final.push_back(ch); 
         } else {
             final.push_back('_');
         }
@@ -1304,13 +1297,12 @@ std::string TestParams::testName() const {
 }
 
 std::string TestParams::fullName() const {
-    return "$# at $#:$#:$#"
-         % to_string_vec(
-               spec.name.has_value() ? spec.name.value()
-                                     : std::string("<spec>"),
-               file.stem(),
-               spec.specLocation.line,
-               spec.specLocation.column);
+    return hstd::fmt(
+        "{} at {}:{}:{}",
+        spec.name.has_value() ? spec.name.value() : std::string("<spec>"),
+        file.stem(),
+        spec.specLocation.line,
+        spec.specLocation.column);
 }
 
 void TestParams::PrintToImpl(std::ostream* os) const {
@@ -1343,8 +1335,9 @@ hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org
                     if (mono.isError()) {
                         isError = true;
                         par.os << " "
-                               << hstd::to_compact_json(hstd::to_json_eval(
-                                      *mono.getError().box));
+                               << hstd::to_compact_json(
+                                      hstd::to_json_eval(
+                                          *mono.getError().box));
                     }
                 }
 
@@ -1393,10 +1386,11 @@ void CorpusRunner::writeFile(
     hstd::CR<hstd::Str> name,
     hstd::CR<hstd::Str> content,
     hstd::CR<hstd::Str> relDebug) {
-    files.push_back(TestResult::File{
-        .path  = name,
-        .rerun = inRerun,
-    });
+    files.push_back(
+        TestResult::File{
+            .path  = name,
+            .rerun = inRerun,
+        });
     auto patht = spec.debugFile(name, relDebug);
     HSLOG_TRACE("Wrote file to {}", patht.native());
     hstd::writeFile(patht, content);

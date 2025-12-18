@@ -99,13 +99,13 @@ std::string OrgConverter::getLocMsg(CR<parse::OrgAdapter> adapter) {
     Opt<parse::OrgTokenId> tok;
     if (adapter.get().isTerminal()) { tok = adapter.get().getToken(); }
 
-    return "$#:$# (node $#, token $#, pos $#)"
-         % to_string_vec(
-               loc ? loc->line : -1,
-               loc ? loc->column : -1,
-               adapter.id.getIndex(),
-               tok ? fmt1(tok->getIndex()) : fmt1("<none>"),
-               loc ? loc->pos : -1);
+    return hstd::fmt(
+        "{}:{} (node {}, token {}, pos {})",
+        loc ? loc->line : -1,
+        loc ? loc->column : -1,
+        adapter.id.getIndex(),
+        tok ? fmt1(tok->getIndex()) : fmt1("<none>"),
+        loc ? loc->pos : -1);
 }
 
 void OrgConverter::report(CR<OrgConverter::Report> in) {
@@ -118,7 +118,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         if (in.node.has_value()) {
             Opt<parse::LineCol> loc = this->getLoc(in.node.value());
             if (loc.has_value()) {
-                res = "$#:$# " % to_string_vec(loc->line, loc->column);
+                res = hstd::fmt("{}:{} ", loc->line, loc->column);
             }
         }
         return res;

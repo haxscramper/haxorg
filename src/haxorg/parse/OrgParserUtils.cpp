@@ -10,10 +10,9 @@ std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
     std::string pos = lex.pos.isNil() ? "<nil>" : fmt1(lex.pos.getIndex());
 
     if (auto loc = getLoc(lex)) {
-        result = "$#:$# (tok $#, pos $#)"
-               % to_string_vec(loc->line, loc->column, pos, loc->pos);
+        result = hstd::fmt("{}:{} (tok {}, pos {})", loc->line, loc->column, pos, loc->pos);
     } else {
-        result = "(tok $#)" % to_string_vec(pos);
+        result = hstd::fmt("(tok {})", pos);
     }
 
     return result;

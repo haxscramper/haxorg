@@ -632,8 +632,7 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
     textFold(lex);
     int treeEnd = treeDepth();
     print(
-        "Trace levels after text fold start:$#, end:$#"
-        % to_string_vec(treeStart, treeEnd));
+        hstd::fmt("Trace levels after text fold start:{} end:{}", treeStart, treeEnd));
 
     if (treeStart != treeEnd) {
         auto msg = fmt(
