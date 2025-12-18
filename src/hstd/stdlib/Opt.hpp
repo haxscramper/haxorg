@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <hstd/stdlib/Exception.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd {
 

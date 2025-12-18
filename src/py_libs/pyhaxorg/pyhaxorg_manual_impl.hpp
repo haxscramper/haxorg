@@ -17,6 +17,7 @@
 #include <haxorg/exporters/Exporter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/PtrsFormatter.hpp>
 
 
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD

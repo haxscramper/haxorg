@@ -1,6 +1,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <fstream>
 #include <sstream>
+#include <hstd/stdlib/Formatter.hpp>
 
 using namespace hstd;
 

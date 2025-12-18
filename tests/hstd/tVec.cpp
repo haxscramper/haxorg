@@ -1,6 +1,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd;
 

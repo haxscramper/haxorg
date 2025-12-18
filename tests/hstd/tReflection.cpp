@@ -8,6 +8,7 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include "hstd_tests_common.hpp"
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/PtrsFormatter.hpp>
 
 
 using namespace hstd;

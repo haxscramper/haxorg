@@ -9,6 +9,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 
 /// \brief Data-oriented design primitives
