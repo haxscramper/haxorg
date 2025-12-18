@@ -24,6 +24,7 @@
 #include <hstd/stdlib/JsonUse.hpp>
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 
 namespace {

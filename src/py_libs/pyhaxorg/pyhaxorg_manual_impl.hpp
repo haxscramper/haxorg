@@ -15,6 +15,8 @@
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
 #include <haxorg/exporters/Exporter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD

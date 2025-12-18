@@ -461,7 +461,7 @@ class WasmClass():
                 continue
 
             else:
-                sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast))
+                sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast)) # type: ignore
 
         if not has_constructor and not self.Record.IsAbstract:
             # If the type has non-default holder type, `new` in JS will still create a raw pointer
@@ -582,7 +582,7 @@ class WasmModule():
         Result = b.b.stack()
 
         Body = []
-        SubdivideBody = []
+        SubdivideBody: List[BlockId] = []
         subivide_count = 0
 
         def add_subdivide_body() -> None:

@@ -1,6 +1,7 @@
 #include "tOrgTestCommon.hpp"
 #include <hstd/stdlib/TimeReflVisitor.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 struct ImmOrgApi : ImmOrgApiTestBase {};
 

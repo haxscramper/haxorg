@@ -1,4 +1,6 @@
 #include "tOrgTestCommon.hpp"
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace org;
 using namespace hstd;

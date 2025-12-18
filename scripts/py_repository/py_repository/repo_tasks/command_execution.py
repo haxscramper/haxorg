@@ -9,7 +9,7 @@ from pathlib import Path
 import plumbum
 import subprocess
 
-
+from py_ci.util_scripting import get_j_cap
 from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
@@ -230,7 +230,7 @@ def run_command(
         cmd = str(cmd.resolve())
 
     def conv_arg(arg: Any) -> str:
-        if isinstance(arg, Callable): # type: ignore
+        if isinstance(arg, Callable):  # type: ignore
             return arg.name.replace("_", "-")
 
         elif isinstance(arg, Path):
@@ -327,6 +327,48 @@ def run_cmake(
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
     return run_command(ctx, "cmake", args, **kwargs)
+
+
+@beartype
+def run_cmake_build(
+    ctx: TaskContext,
+    build_dir: Path,
+    targets: List[str],
+    args: List[str | Path] = [],
+    build_tool_args: List[str | Path] = [],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+
+
+    build_args: List[str | Path] = build_tool_args[:]
+
+    if ctx.config.in_ci:
+        build_args.extend(["-d", "explain"])
+
+    if ctx.config.force_full_build:
+        build_args.extend(["-k0"])
+
+    if 0 < len(build_args):
+        build_args.insert(0, "--")
+
+    return run_command(  # type: ignore
+        ctx,
+        "cmake",
+        [
+            "--build",
+            build_dir,
+            "--target",
+            *targets,
+            *args,
+            *get_j_cap(),
+            *build_args,
+        ],
+        env={
+            'NINJA_FORCE_COLOR': '1',
+            **kwargs.get('env', {})
+        },
+        **kwargs,
+    )
 
 
 def clone_repo_with_uncommitted_changes(

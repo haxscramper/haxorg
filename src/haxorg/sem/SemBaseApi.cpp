@@ -3,7 +3,6 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
-#include <fstream>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
@@ -16,6 +15,8 @@
 #include <haxorg/base_lexer/base_token_tokenize.hpp>
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <fstream>
 
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #    include <SemOrgProto.pb.h>

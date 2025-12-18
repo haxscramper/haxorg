@@ -16,6 +16,7 @@
 #include "hstd/ext/logger.hpp"
 #include "tOrgTestCommon.hpp"
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 
 using namespace hstd;

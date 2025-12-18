@@ -90,10 +90,3 @@ def cli(ctx: click.Context, cmd: str, config: str, **kwargs: Any) -> None:
 
 if __name__ == "__main__":
     cli()
-
-# main_pipeline = workflow_utils.create_dag_from_tasks(workflow_utils.get_haxorg_tasks(),
-#                                                     "haxorg_main_pipeline",
-#                                                     "Main haxorg build pipeline")
-
-# for dag in workflow_utils.create_individual_dags(workflow_utils.get_haxorg_tasks()):
-#     globals()[f"airflow_dag_id_{dag.dag_id}"] = dag

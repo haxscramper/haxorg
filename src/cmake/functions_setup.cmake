@@ -41,6 +41,11 @@ function(set_target_flags_impl)
     endif()
   endif()
 
+  if (${ORG_USE_SARIF})
+    # Specify output file for the sarif report
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fdiagnostics-format=sarif")
+  endif()
+
   if(${ORG_BUILD_ASSUME_CLANG})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
