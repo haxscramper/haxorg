@@ -5,6 +5,7 @@
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 #pragma clang diagnostic error "-Wunused-result"
 

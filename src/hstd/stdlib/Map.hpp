@@ -8,6 +8,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/ContainerAPI.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd {
 
@@ -312,4 +313,3 @@ struct std::hash<hstd::UnorderedMap<K, V>>
 template <typename K, typename V>
 struct std::hash<hstd::SortedMap<K, V>>
     : hstd::std_kv_tuple_iterator_hash<K, V, hstd::SortedMap<K, V>> {};
-

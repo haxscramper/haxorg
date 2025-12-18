@@ -24,6 +24,7 @@
 #include <hstd/stdlib/MapSerde.hpp>
 #include <hstd/ext/bimap_wrap_serde.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 using namespace org::test;
 using namespace hstd;

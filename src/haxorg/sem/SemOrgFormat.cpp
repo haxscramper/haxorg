@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 using namespace org::sem;
 using namespace hstd;

@@ -19,6 +19,7 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/TimeReflVisitor.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 

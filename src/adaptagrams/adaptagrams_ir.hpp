@@ -10,6 +10,7 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/PairFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 #ifdef ORG_DEPS_USE_ADAPTAGRAMS
 #    pragma warning(push, 0)

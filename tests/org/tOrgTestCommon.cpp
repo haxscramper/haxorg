@@ -3,6 +3,7 @@
 #include <haxorg/test/corpusrunner.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 bool enableFullTraceOnCli = false;
 void enable_full_trace_on_cli() { enableFullTraceOnCli = true; }

@@ -9,6 +9,7 @@
 #include "hstd_tests_common.hpp"
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 
 using namespace hstd;

@@ -8,6 +8,7 @@
 #include "hstd/stdlib/Enumerate.hpp"
 #include <hstd/ext/logger.hpp>
 #include <boost/preprocessor/seq.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 using namespace hstd::ext;
 using namespace hstd;

@@ -4,6 +4,7 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 
 #include <haxorg/lexbase/Node.cpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 namespace org::parse {
 template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;

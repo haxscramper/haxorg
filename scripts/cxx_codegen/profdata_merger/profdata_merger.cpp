@@ -32,6 +32,8 @@
 #include <hstd/ext/perfetto_aux.hpp>
 #include <absl/log/log.h>
 
+#include <hstd/stdlib/OptFormatter.hpp>
+
 #ifdef ORG_USE_PERFETTO
 
 PERFETTO_DEFINE_CATEGORIES(

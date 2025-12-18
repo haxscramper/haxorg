@@ -16,6 +16,7 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 #include <fstream>
 
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD

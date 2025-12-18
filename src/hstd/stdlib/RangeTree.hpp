@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <algorithm>
 
 #include <hstd/stdlib/Opt.hpp>
@@ -9,6 +8,7 @@
 
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd {
 
@@ -128,7 +128,8 @@ class RangeTree {
     }
 
     Vec<Node*> getNodes(CR<T> point) const {
-        LOGIC_ASSERTION_CHECK(root.get() != nullptr, "Root must not be nil");
+        LOGIC_ASSERTION_CHECK(
+            root.get() != nullptr, "Root must not be nil");
         return root->getAllNodes(point);
     }
 

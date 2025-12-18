@@ -12,6 +12,7 @@
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 
 using namespace hstd::ext::diff;

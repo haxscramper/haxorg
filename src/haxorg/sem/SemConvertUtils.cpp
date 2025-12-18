@@ -2,6 +2,7 @@
 #include <hstd/stdlib/Func.hpp>
 #include <haxorg/lexbase/TraceStructured.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 
 using namespace org::sem;
