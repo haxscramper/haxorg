@@ -2,6 +2,7 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColTextSerde.hpp>
+#include <hstd/stdlib/ColTextHShow.hpp>
 
 using namespace hstd;
 

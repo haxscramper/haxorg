@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Vec.hpp>
-#include <hstd/system/Formatter.hpp>
 
 
 namespace hstd::ext {

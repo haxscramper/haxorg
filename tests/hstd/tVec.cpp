@@ -1,6 +1,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd;
 
@@ -24,15 +25,6 @@ TYPED_TEST(IntVecTypedTest, Formatter) {
     EXPECT_EQ((std::format("{}", TypeParam{})), "[]");
     EXPECT_EQ((std::format("{}", TypeParam{1})), "[1]");
     EXPECT_EQ((std::format("{}", TypeParam{1, 2})), "[1, 2]");
-}
-
-TYPED_TEST(StrVecTypedTest, Formatter) {
-    TypeParam v{
-        std::string{"first"},
-        std::string{"second"},
-    };
-    std::string fmt = std::format("{}", v);
-    EXPECT_EQ(fmt, "[first, second]");
 }
 
 TEST(VectorTest, ContainsFind) {

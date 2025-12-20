@@ -4,6 +4,7 @@
 #include <haxorg/sem/ImmOrgEdit.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include <hstd/stdlib/PtrsFormatter.hpp>
 
 using namespace hstd;
 
@@ -35,7 +36,7 @@ hstd::log::log_builder gr_log(
 
 
 int EditableOrgTextEntry::getHeight() const {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         assignedWidth != 0,
         "Cannot get editable text height without assigned width");
     return computedHeight + (text.is_editing ? edit_button_offset : 0);
@@ -231,7 +232,7 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
     const org::imm::ImmAdapter&         origin,
     Vec<org::sem::SemId<org::sem::Org>> replace) {
     // gr_log(hstd::log::l_trace).message(origin.treeRepr().toString(false));
-    LOGIC_ASSERTION_CHECK(!origin.isNil(), "Cannot replace nil node");
+    LOGIC_ASSERTION_CHECK_FMT(!origin.isNil(), "Cannot replace nil node");
     org::imm::ImmAstVersion vNext = getCurrentHistory().ast->getEditVersion(
         [&](org::imm::ImmAstContext::Ptr ast,
             org::imm::ImmAstEditContext& ast_ctx)
@@ -258,7 +259,7 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
                 }
             } else {
                 auto opt_parent = origin.getParent();
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     opt_parent.has_value(),
                     "Attempting to replace origin node {} with {} items, "
                     "but the origin node does not have a proper parent.",
@@ -266,7 +267,7 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
                     replace.size());
 
                 auto parent = opt_parent.value();
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     parent.isDirectParentOf(origin),
                     "Origin node is {}, computed parent is {}",
                     origin,
@@ -275,7 +276,7 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
                 int index = origin.getSelfIndex();
 
 
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     index != -1,
                     "Failed to compute self-index for origin node {}",
                     origin);
@@ -361,7 +362,7 @@ Pair<EditableOrgDocGroup::History, int> EditableOrgDocGroup::History::
 }
 
 void EditableOrgDocGroup::RootGroup::add(DocRootId id) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         id.getMask() == historyIndex,
         "Trying to add ID {} with history index {}, which does "
         "not match the current document group history index of "
@@ -382,7 +383,7 @@ EditableOrgDocGroup::RootGroup::RootGroup(
         = roots | rv::transform(get_getter_get(&DocRootId::getMask))
         | rs::to<Vec>();
     UnorderedSet<u64> unique{versions.begin(), versions.end()};
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         unique.size() <= 1,
         "Document root group must have all document IDs from the "
         "same version, but the list contains IDs with different "
@@ -390,7 +391,7 @@ EditableOrgDocGroup::RootGroup::RootGroup(
         unique,
         roots);
     if (!unique.empty()) {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             *unique.begin() == history,
             "Document group history index must match with the "
             "provided explicit history index {}. History index "

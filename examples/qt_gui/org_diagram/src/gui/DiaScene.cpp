@@ -1,4 +1,5 @@
 #include "DiaScene.hpp"
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 void DiaScene::logSceneRoot() {
     if (rootNode == nullptr) {
@@ -149,7 +150,7 @@ void DiaScene::applyPartialEditStep(
         auto parentPath = adapter.getParentPathFromRoot();
         hstd::Opt<DiaSceneItem*> parentItem = getItemForPath(parentPath);
 
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             parentItem.has_value(),
             "No node found at path {}, cannot execute insert "
             "operation",
@@ -169,7 +170,7 @@ void DiaScene::applyPartialEditStep(
             auto const& del = edit.getDelete();
             int         src = getIndex(del.srcIndex, parentPath);
 
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 parentItem->at(src)->getDiaId() == del.srcNode.getDiaId(),
                 "Delete of item at index {} should have removed the "
                 "scene item with ID {}, but the parent {} {} has item "
@@ -213,7 +214,7 @@ void DiaScene::applyPartialEditStep(
             int         dstIndex          = m.dstIndex;
             int         srcIndex = getIndex(m.srcIndex, parentPath);
 
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 srcParent == dstParent,
                 "Destination node and source node have different "
                 "parent paths. SRC node parent is at path {}, while "
@@ -253,7 +254,7 @@ void DiaScene::applyPartialEditStep(
                 auto [parentPath, parentItem] = getParent(edit.getSrc());
                 auto const& upd               = edit.getUpdate();
                 int         srcIndex = getIndex(upd.srcIndex, parentPath);
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     srcIndex == upd.dstIndex,
                     "Update position mismatch. Source index for the edit "
                     "operation was:{}, adjusted for preceding edits:{}, "
@@ -313,7 +314,7 @@ DiaSceneItem* DiaScene::resetRootAdapter(const hstd::Vec<DiaEdit>& edits) {
         HSLOG_INFO("{}", rootNode->treeRepr().toString(false));
     }
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         originalRoot != rootNode.get(),
         "Non-empty set of edits is guaranteed to change the root node to "
         "a new structure, but the root update has not happened.");

@@ -77,6 +77,16 @@ Vec<Str> hstd::Str::split(const Str& delimiter) const {
     return tokens;
 }
 
+Str Str::join(const Vec<Str>& items) const {
+    Str res;
+    for (int i = 0; i < items.size(); ++i) {
+        if (0 < i) { res += ", "; }
+        res += items.at(i);
+    }
+
+    return res;
+}
+
 Str hstd::Str::repeated(int N) const {
     Str result;
     result.reserve(size() * N);

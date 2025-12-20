@@ -4,6 +4,7 @@
 #include <src/utils/common.hpp>
 #include <src/utils/test_utils.hpp>
 #include <src/model/nodes/DiagramTreeNode.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "test.history"

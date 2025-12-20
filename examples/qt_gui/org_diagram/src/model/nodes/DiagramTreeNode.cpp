@@ -2,6 +2,7 @@
 #include <src/utils/common.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <range/v3/algorithm/any_of.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 #pragma clang diagnostic ignored "-Wmacro-redefined"
 #define _cat "model.tree"
@@ -552,8 +553,8 @@ hstd::Vec<DiaEdit> getEdits(
 }
 
 int DiaAdapter::getSelfIndex() const {
-    LOGIC_ASSERTION_CHECK(!id.path.path.empty(), "{}", *this);
-    LOGIC_ASSERTION_CHECK(!id.path.path.back().path.empty(), "{}", *this);
+    LOGIC_ASSERTION_CHECK_FMT(!id.path.path.empty(), "{}", *this);
+    LOGIC_ASSERTION_CHECK_FMT(!id.path.path.back().path.empty(), "{}", *this);
     return id.path.path.back().path.last().getIndex().index;
 }
 
@@ -573,7 +574,7 @@ hstd::Opt<DiaAdapter> DiaAdapter::getParent() const {
 
 bool DiaAdapter::isAncestorOf(DiaAdapter const& other) const {
     if (other.hasParent()) {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             getRootId() == other.getRootId(),
             "Ancestor checks can only be performed between diagram "
             "adapters from the same root, but this:{} root is {} while "
@@ -771,14 +772,14 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
 hstd::Vec<int> asIndexPath(const org::imm::ImmPath& path) {
     hstd::Vec<int> result;
     for (auto const& it : path.path) {
-        LOGIC_ASSERTION_CHECK(it.path.at(0).isFieldName(), "");
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(it.path.at(0).isFieldName(), "");
+        LOGIC_ASSERTION_CHECK_FMT(
             it.path.at(0).getFieldName().name
                 == org::imm::ImmReflFieldId::FromTypeField(
                     &DiaNode::subnodes),
             "");
 
-        LOGIC_ASSERTION_CHECK(it.path.at(1).isIndex(), "");
+        LOGIC_ASSERTION_CHECK_FMT(it.path.at(1).isIndex(), "");
         result.push_back(it.path.at(1).getIndex().index);
     }
     return result;
@@ -802,7 +803,7 @@ DiaId DiaContext::at(DiaId node, const org::imm::ImmPathStep& item) const {
                         result = id.toId();
                     },
                     [&](auto const& other) {
-                        LOGIC_ASSERTION_CHECK(
+                        LOGIC_ASSERTION_CHECK_FMT(
                             false,
                             "Path {} does not point to a field "
                             "with ID, resolved to {}",
@@ -906,7 +907,7 @@ const DiaNode* DiaNodeStore::at(const DiaId& id) const {
     DiaNode const* res = nullptr;
     switch_dia_id(id, [&]<typename K>(DiaIdT<K> id) {
         res = getStore<K>()->at(id);
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             res->getKind() == id.getKind(),
             "id kind {} does not match result node kind {}",
             id.getKind(),

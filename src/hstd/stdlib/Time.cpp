@@ -1,5 +1,5 @@
 #include "Time.hpp"
-#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 using namespace hstd;
 

@@ -1023,7 +1023,8 @@ Str hstd::strip(
     CR<CharSet> trailing) {
     if (0 < string.size()) {
         Span<char> view = string.toSpan();
-        LOGIC_ASSERTION_CHECK(view.data() != nullptr, "");
+        LOGIC_ASSERTION_CHECK(
+            view.data() != nullptr, "View data cannot be nullptr");
         char* end = view.data() + string.size();
 
         while (0 < view.size() && leading.contains(view.at(0))) {
@@ -1137,7 +1138,7 @@ Str hstd::indent(CR<Str> str, int spaces, char space, Str prefix) {
     for (auto& line : lines) {
         line = prefix + repeat(Str(space), spaces) + line;
     }
-    return join("\n", lines);
+    return Str{"\n"}.join(lines);
 }
 
 Str hstd::normalize(CR<Str> in) {

@@ -2,6 +2,7 @@
 
 #include "Node.hpp"
 #include "TokenStore.hpp"
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace org::parse {
 
@@ -19,8 +20,8 @@ struct NodeGroup {
     int size() const { return nodes.size(); }
 
     V const& val(Id id) const {
-        LOGIC_ASSERTION_CHECK(tokens != nullptr, "");
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(tokens != nullptr, "");
+        LOGIC_ASSERTION_CHECK_FMT(
             at(id).isTerminal(),
             "ID:{} {}({})",
             id.getUnmasked(),
@@ -117,7 +118,7 @@ struct NodeGroup {
         }
 
         void check() const {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 !id.isNil() && id.getIndex() < group->size(),
                 "CHeck node id iterator {} < {}",
                 id.getIndex(),

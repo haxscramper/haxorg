@@ -928,7 +928,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         }
 
         void check() const {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 idx < it->size(),
                 "Check node id iterator {} < {}",
                 idx,
@@ -1174,7 +1174,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     template <typename T>
     ImmAdapterT<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 T::staticKind == id.getKind(),
                 "static kind:{} id kind:{}",
                 T::staticKind,
@@ -1566,7 +1566,7 @@ struct [[refl]] ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
         USE_IMM_ADAPTER_BASE(org::imm::Imm##Derived);                     \
         [[refl]] ImmAdapterT(org::imm::ImmAdapter const& other)           \
             : ImmAdapterTBase<Imm##Derived>{other} {                      \
-            LOGIC_ASSERTION_CHECK(                                        \
+            LOGIC_ASSERTION_CHECK_FMT(                                    \
                 other.getKind() == OrgSemKind::Derived,                   \
                 "Adapter type mismatch, creating {} from generic "        \
                 "adapter of type {}",                                     \

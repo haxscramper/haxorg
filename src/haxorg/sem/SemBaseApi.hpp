@@ -231,7 +231,7 @@ struct [[refl]] AstTrackingPath {
     [[refl]] org::sem::SemId<org::sem::Org> getParent(
         int offset = 0) const {
         int pos = path.high() - 1 - offset;
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             path.has(pos),
             "Trying to get parent with offset {}, target index is {} but "
             "path only has {} items",

@@ -7,6 +7,8 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+
 
 using namespace org;
 using namespace hstd;
@@ -801,7 +803,7 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
             requires std::derived_from<Kind, CastType>
         {
             auto dyn = cast.template dyn_cast<CastType>();
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 dyn != nullptr,
                 "Statement adapter must hold an ID for the value type "
                 "derived from `{}`, but got {}",
@@ -810,7 +812,7 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
             std::invoke(func, cast, std::forward<Args>(args)...);
         },
         [&]<typename Kind>(imm::ImmAdapterT<Kind> const& cast) {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 false,
                 "Statement adapter must hold an ID for the value type "
                 "derived from `{}`, but got {}",
@@ -1044,7 +1046,7 @@ Opt<sem::NamedProperty> Org_combinePropertyStack(
         using K                = NP::Kind;
 
         for (auto const& prop : stack.at(slice(1, 1_B))) {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 res.getKind() == prop.getKind(),
                 "Property combine expects items of the same kind, "
                 "but got properties with two different kinds {} "
@@ -1055,7 +1057,7 @@ Opt<sem::NamedProperty> Org_combinePropertyStack(
                 case K::CustomArgs: {
                     auto&       res_args = res.getCustomArgs();
                     auto const& in_args  = prop.getCustomArgs();
-                    LOGIC_ASSERTION_CHECK(
+                    LOGIC_ASSERTION_CHECK_FMT(
                         res_args.name == in_args.name,
                         "expected identical property name for custom args "
                         "property, {} != {}",

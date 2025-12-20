@@ -3,6 +3,11 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <haxorg/lexbase/TraceStructured.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/PtrsFormatter.hpp>
+#include <haxorg/parse/OrgTypesFormatter.hpp>
 
 using namespace hstd;
 using namespace org::parse;
@@ -103,7 +108,7 @@ void OrgParser::report(CR<Report> in) {
             if (in.lex != nullptr) {
                 Opt<LineCol> loc = this->getLoc(*in.lex);
                 if (loc.has_value()) {
-                    res = "$#:$# " % to_string_vec(loc->line, loc->column);
+                    res = hstd::fmt("{}:{} ", loc->line, loc->column);
                 }
             }
             return res;

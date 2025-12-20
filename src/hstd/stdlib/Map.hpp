@@ -4,7 +4,6 @@
 #include <map>
 #include <optional>
 
-#include <hstd/system/Formatter.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Vec.hpp>
@@ -84,49 +83,10 @@ struct SortedMap
 };
 
 
-template <typename K, typename V, typename Type>
-struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(Type const& p, FormatContext& ctx)
-        const {
-        fmt_ctx("{", ctx);
-        bool first = true;
-        for (const auto& [key, value] : p) {
-            if (!first) { fmt_ctx(", ", ctx); }
-            first = false;
-            fmt_ctx(key, ctx);
-            fmt_ctx(": ", ctx);
-            fmt_ctx(value, ctx);
-        }
-        return fmt_ctx("}", ctx);
-    }
-};
+
 
 } // namespace hstd
 
-template <typename K, typename V>
-struct std::formatter<std::unordered_map<K, V>>
-    : hstd::
-          std_kv_tuple_iterator_formatter<K, V, std::unordered_map<K, V>> {
-};
-
-template <typename K, typename V>
-struct std::formatter<std::map<K, V>>
-    : hstd::std_kv_tuple_iterator_formatter<K, V, std::map<K, V>> {};
-
-
-template <typename K, typename V>
-struct std::formatter<hstd::UnorderedMap<K, V>>
-    : hstd::
-          std_kv_tuple_iterator_formatter<K, V, hstd::UnorderedMap<K, V>> {
-};
-
-template <typename K, typename V, typename _Compare>
-struct std::formatter<hstd::SortedMap<K, V, _Compare>>
-    : hstd::std_kv_tuple_iterator_formatter<
-          K,
-          V,
-          hstd::SortedMap<K, V, _Compare>> {};
 
 namespace hstd {
 template <typename K, typename V>
@@ -313,4 +273,3 @@ struct std::hash<hstd::UnorderedMap<K, V>>
 template <typename K, typename V>
 struct std::hash<hstd::SortedMap<K, V>>
     : hstd::std_kv_tuple_iterator_hash<K, V, hstd::SortedMap<K, V>> {};
-

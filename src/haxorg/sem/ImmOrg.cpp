@@ -11,12 +11,17 @@
 #include <haxorg/sem/ImmOrgHash.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/ImmOrgBase.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 #include <boost/mp11/list.hpp>
 #include <boost/mp11/algorithm.hpp>
 #include <type_traits>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/TimeReflVisitor.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/ColTextHShow.hpp>
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 
@@ -42,7 +47,7 @@ ImmId::IdType ImmId::combineMask(OrgSemKind kind) {
     auto res = (u64(kind) << NodeKindOffset) & NodeKindMask;
 
     auto t = ImmId{ImmId::FromMaskedIdx(0, res >> ImmIdMaskOffset)};
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         t.getKind() == kind,
         R"(
 kind:    {0:016X} {0:064b} {1}
@@ -92,7 +97,7 @@ void ImmId::assertValid() const {
     u64 kindLow  = static_cast<u64>(value_domain<OrgSemKind>::low());
     u64 kindHigh = static_cast<u64>(value_domain<OrgSemKind>::high());
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         kindLow <= kind && kind <= kindHigh,
         "ID kind value out of range: ID int value is: {} (bin: {:032b}, "
         "hex: {:032X}), low {} high {}",
@@ -103,7 +108,7 @@ void ImmId::assertValid() const {
         kindHigh);
 
     if (!isNil()) {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             getKind() != OrgSemKind::None,
             "Valid ID must have a kind different from 'None'");
     }
@@ -136,7 +141,7 @@ const ImmOrg* ImmAstStore::at(ImmId index) const {
     ImmOrg const* res;
     switch_node_kind(index, [&, index]<typename K>(ImmIdT<K> id) {
         res = getStore<K>()->at(index);
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             res->getKind() == index.getKind(),
             "index kind {} does not match result node kind {}",
             index.getKind(),
@@ -475,7 +480,7 @@ Vec<ImmPathStep> ImmAdapter::getRelativeSubnodePaths(
     const ImmId& subnode) const {
     Vec<ImmPathStep> result;
     for (auto const& sub : getAllSubnodes(std::nullopt)) {
-        LOGIC_ASSERTION_CHECK(sub.path.path.size() == 1, "");
+        LOGIC_ASSERTION_CHECK_FMT(sub.path.path.size() == 1, "");
         if (sub.id == subnode) { result.push_back(sub.path.path.at(0)); }
     }
 
@@ -593,7 +598,7 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
         auto&             rt    = transientTrack.radioTargets;
         auto              word  = words.at(0);
         Vec<ImmId> const* items = rt.find(word);
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             items != nullptr || add,
             "Cannot remove radio target from transient lookup map. "
             "The first radio target subnode word is {}, but the "
@@ -608,7 +613,7 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
             }
         } else {
             int index = items->indexOf(target);
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 index != -1,
                 "Target ID {} first node {} is mapped to a vector in "
                 "transient lookup map, but the vector itself does not "
@@ -1079,13 +1084,13 @@ ImmAstVersion ImmAstVersion::getEditVersion(
 }
 
 void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
-    LOGIC_ASSERTION_CHECK(replace.original.has_value(), "");
+    LOGIC_ASSERTION_CHECK_FMT(replace.original.has_value(), "");
     for (auto const& it :
          Vec<ImmUniqId>{replace.original.value(), replace.replaced}) {
         bool check = it.id.is(OrgSemKind::Document)
                   || it.id.is(OrgSemKind::DocumentGroup)
                   || !it.path.empty();
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             check,
             "Replace group origina/replaced ID must either be a tree root "
             "-- document or a document group -- or have a non-empty path, "
@@ -1096,7 +1101,7 @@ void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
             it.id.getKind(),
             it.path);
     }
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         replace.original != replace.replaced,
         "Identical original and replaced node: {}",
         replace);
@@ -1109,7 +1114,7 @@ void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
 }
 
 void ImmAstReplaceGroup::incl(const ImmAstReplace& replace) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !map.contains(replace.original.value()),
         "replacement group cannot contain duplicate nodes. {0} -> {1} "
         "is already added, {0} -> {2} cannot be included",
@@ -1427,7 +1432,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
                         }
 
                     } else {
-                        LOGIC_ASSERTION_CHECK(
+                        LOGIC_ASSERTION_CHECK_FMT(
                             false,
                             "Expected radio target tracking for radio "
                             "target nodes or subtrees but got {}",
@@ -1501,7 +1506,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
             it.data);
     }
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         totalNodes == sub.size(),
         "Missing nodes from result {}",
         _dfmt_expr(totalNodes, sub.size()));

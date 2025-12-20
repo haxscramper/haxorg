@@ -4,7 +4,6 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <span>
 #include <optional>
-#include <hstd/system/Formatter.hpp>
 
 
 namespace hstd {
@@ -53,9 +52,16 @@ class Span : public std::span<T> {
 
 
     int clampSize(int size, T const* data, T const* end) const {
-        LOGIC_ASSERTION_CHECK(data <= end, "");
-        LOGIC_ASSERTION_CHECK(data != nullptr, "");
-        LOGIC_ASSERTION_CHECK(end != nullptr, "");
+        if (end < data) {
+            throw std::range_error{"check failed: data <= end"};
+        }
+        if (data == nullptr) {
+            throw std::invalid_argument{"Data pointer cannot be null"};
+        }
+        if (end == nullptr) {
+            throw std::invalid_argument{"End pointer cannot be null"};
+        }
+
         auto d_raw    = std::distance(data, end);
         int  distance = static_cast<int>(d_raw + 1);
         return std::clamp<int>(size, 0, distance);
@@ -202,19 +208,3 @@ static auto IteratorSpan(Iter begin, Iter end)
 
 
 } // namespace hstd
-
-template <typename T>
-struct std::formatter<hstd::Span<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        const hstd::Span<T>& p,
-        FormatContext&       ctx) const {
-        hstd::fmt_ctx("[", ctx);
-        for (int i = 0; i < p.size(); ++i) {
-            if (0 < i) { hstd::fmt_ctx(", ", ctx); }
-            hstd::fmt_ctx(p.at(i), ctx);
-        }
-
-        return hstd::fmt_ctx("]", ctx);
-    }
-};

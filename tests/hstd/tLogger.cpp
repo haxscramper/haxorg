@@ -11,6 +11,8 @@
 #include <hstd/ext/log_graph_tracker.hpp>
 #include "../common.hpp"
 
+#include <hstd/stdlib/OptFormatter.hpp>
+
 #if ORG_USE_QT
 #    include <QString>
 #endif

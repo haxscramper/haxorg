@@ -173,6 +173,8 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
             drop();
         } else if (Args[i].find("-fplugin=") != std::string::npos) {
             drop();
+        } else if (Args[i].find("sarif") != std::string::npos) {
+            drop();
         } else if (
             Args[i].starts_with("@")
             || Args[i].starts_with("-vectorize")) {

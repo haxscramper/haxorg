@@ -3,6 +3,10 @@
 #pragma clang diagnostic ignored "-Wformat-security"
 #include <haxorg/sem/perfetto_org.hpp>
 #include <boost/preprocessor.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <haxorg/parse/OrgTypesFormatter.hpp>
 
 #pragma clang diagnostic error "-Wunused-result"
 
@@ -212,12 +216,12 @@ OrgParser::ParseResult OrgParser::parseMacro(OrgLexer& lex) {
         if (lex.at(otk::CurlyEnd)) {
             std::ignore = skip(lex, otk::CurlyEnd);
         } else {
-            LOGIC_ASSERTION_CHECK(!hasClose, "");
+            LOGIC_ASSERTION_CHECK_FMT(!hasClose, "");
             return error_end(ErrorTable::MissingMacroClose, lex);
         }
     }
 
-    LOGIC_ASSERTION_CHECK(hasClose, "");
+    LOGIC_ASSERTION_CHECK_FMT(hasClose, "");
     return macroGuard->end();
 }
 
@@ -630,8 +634,7 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
     textFold(lex);
     int treeEnd = treeDepth();
     print(
-        "Trace levels after text fold start:$#, end:$#"
-        % to_string_vec(treeStart, treeEnd));
+        hstd::fmt("Trace levels after text fold start:{} end:{}", treeStart, treeEnd));
 
     if (treeStart != treeEnd) {
         auto msg = fmt(
@@ -2637,13 +2640,13 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
     Func<void(Id)> aux;
     aux = [&](Id top) {
         auto& g = *group;
-        LOGIC_ASSERTION_CHECK(g.nodes.contains(top), "");
+        LOGIC_ASSERTION_CHECK_FMT(g.nodes.contains(top), "");
         auto fmt_id = [&](CR<Id> id) {
             return fmt("{} {}", id.format(), g.at(id).kind);
         };
         if (g.at(top).isTerminal() || g.at(top).isMono()) { return; }
 
-        LOGIC_ASSERTION_CHECK(g.at(top).kind != onk::Empty, "");
+        LOGIC_ASSERTION_CHECK_FMT(g.at(top).kind != onk::Empty, "");
 
         Id start = top + 1;
         Id id    = start;
@@ -2651,8 +2654,8 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
 
         if (Opt<Slice<Id>> extentOpt = g.allSubnodesOf(top)) {
             Slice<Id> extent = extentOpt.value();
-            LOGIC_ASSERTION_CHECK(g.nodes.contains(extent.first), "");
-            LOGIC_ASSERTION_CHECK(g.nodes.contains(extent.last), "");
+            LOGIC_ASSERTION_CHECK_FMT(g.nodes.contains(extent.first), "");
+            LOGIC_ASSERTION_CHECK_FMT(g.nodes.contains(extent.last), "");
 
             Opt<OrgToken> first_token;
             for (auto const& id : extent) {
@@ -2664,12 +2667,12 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
             int     index = 0;
             Vec<Id> visited;
             while (extent.contains(id)) {
-                LOGIC_ASSERTION_CHECK(g.nodes.contains(id), "");
+                LOGIC_ASSERTION_CHECK_FMT(g.nodes.contains(id), "");
                 aux(id);
                 visited.push_back(id);
 
                 id = id + g.at(id).getExtent();
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     g.nodes.contains(id),
                     "next subnode"
                     "Step over the subnode of {} with extent {} "
@@ -2691,7 +2694,7 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
                 ++index;
             }
 
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 extent.last + 1 == id,
                 "range end Iteration over subnode ranges for {} did not "
                 "end at the {} -- combined subnode extent strides summed "
@@ -2735,14 +2738,14 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
             int   sub   = g.val(subId).text.size();
             if (level < sub) {
                 OrgId stmt = g.subnode(tree, 8);
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     g.at(stmt).kind == onk::StmtList
                         || g.at(stmt).kind == onk::ErrorSkipGroup,
                     "{}",
                     g.at(stmt));
 
                 id = extendSubtreeTrailsImpl(parser, stmt + 1, sub);
-                LOGIC_ASSERTION_CHECK(stmt + 1 <= id, "");
+                LOGIC_ASSERTION_CHECK_FMT(stmt + 1 <= id, "");
                 // AUX returns next position to start looping from, so
                 // the tree size is 'end - start - 1' to account for
                 // the offset.
@@ -2770,16 +2773,16 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
                 // debugging of the implementation, malformed incoming
                 // data is not expected.
                 assertValidStructure(parser->group, tree);
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     treeSlice.last <= g.nodes.back(), "");
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     stmtSlice.last <= g.nodes.back(), "");
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     treeSlice.last == stmtSlice.last,
                     "extend tree {} -- {}",
                     treeSlice,
                     stmtSlice);
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     treeSlice.contains(stmtSlice),
                     "statement containment {} -- {}",
                     treeSlice,
@@ -2816,12 +2819,13 @@ OrgParser::ParseOk OrgParser::NodeGuard::end(
     const std::string& desc,
     int                line,
     const char*        function) {
-    LOGIC_ASSERTION_CHECK(!startId.isNil(), "Trying to close nil tree");
+    LOGIC_ASSERTION_CHECK_FMT(
+        !startId.isNil(), "Trying to close nil tree");
     auto result = parser->end_impl(
         desc + (debug.empty() ? "" : " for guard '" + debug + "'"),
         line,
         function);
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         parser->treeDepth() == startingDepth,
         "{} != {} at {}:{}",
         startingDepth,

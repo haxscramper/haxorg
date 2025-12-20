@@ -105,7 +105,7 @@ DiaSceneItem* DiaSceneItem::getParent() const {
         LOGIC_ASSERTION_CHECK(this != nullptr, "calling on null object");
 
 
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             parent != nullptr,
             "Non-root node must have the parent assigned. The node {} "
             "with adapter {}",

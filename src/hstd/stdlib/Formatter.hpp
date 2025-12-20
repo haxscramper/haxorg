@@ -100,6 +100,58 @@ struct std_format_ptr_as_hex_and_value : std::formatter<std::string> {
     }
 };
 
+template <typename T, typename Container>
+struct std_item_iterator_formatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(Container const& p, FormatContext& ctx)
+        const {
+        fmt_ctx("[", ctx);
+        bool first = true;
+        for (const auto& value : p) {
+            if (!first) { fmt_ctx(", ", ctx); }
+            first = false;
+            fmt_ctx(value, ctx);
+        }
+        return fmt_ctx("]", ctx);
+    }
+};
+
+template <typename K, typename V, typename Type>
+struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(Type const& p, FormatContext& ctx)
+        const {
+        fmt_ctx("{", ctx);
+        bool first = true;
+        for (const auto& [key, value] : p) {
+            if (!first) { fmt_ctx(", ", ctx); }
+            first = false;
+            fmt_ctx(key, ctx);
+            fmt_ctx(": ", ctx);
+            fmt_ctx(value, ctx);
+        }
+        return fmt_ctx("}", ctx);
+    }
+};
+
+
+template <typename T, typename Set>
+struct std_unordered_sequence_formatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(Set const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("{", ctx);
+        bool first = true;
+        for (const auto& it : p) {
+            if (!first) { fmt.format(", ", ctx); }
+            first = false;
+            fmt_ctx(it, ctx);
+        }
+        return fmt.format("}", ctx);
+    }
+};
+
 } // namespace hstd
 
 template <>

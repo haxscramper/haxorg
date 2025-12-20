@@ -23,6 +23,7 @@
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <hstd/stdlib/PtrsFormatter.hpp>
 
 using namespace hstd;
 
@@ -414,7 +415,7 @@ StoryGridGraph::FlatNodeStore::Ptr StoryGridGraph::FlatNodeStore::
     for (org::graph::MapNode const& node :
          boost::make_iterator_range(boost::vertices(*semGraph.graph))) {
         Opt<StoryNodeId> id = prev->getStoryNodeId(node.id);
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             id.has_value(),
             "Subgraph map node {} does not have a corresponding story "
             "node ID mapping in the provided flat node store. (full node: "
@@ -467,17 +468,17 @@ LaneNodePos StoryGridGraph::BlockGraphStore::addToLane(
     FlatNodeStore::Ptr const& nodes) {
     BlockNodeId block    = BlockGraphStore::toInitialBlockId(id);
     auto [iter, success] = irMapping.insert({id, block});
-    LOGIC_ASSERTION_CHECK(success, "cannot insert");
+    LOGIC_ASSERTION_CHECK_FMT(success, "cannot insert");
     {
         auto back_story = toStory(block);
         auto back_block = toBlock(id);
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             back_story == id,
             "Insertion mapping failed, back story {} != story {}",
             back_story,
             id);
 
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             back_block == block,
             "Insertion mapping failed, back block {} != block {}",
             back_block,
@@ -510,7 +511,7 @@ void StoryGridGraph::BlockGraphStore::setPartition(
 
     auto getPos = [&](StoryNodeId id) -> LaneNodePos {
         auto pos = getBlockPos(id);
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             pos, "Story node {} is not added to block layout wtf", id);
         return pos.value();
     };
@@ -841,7 +842,7 @@ StoryGridGraph::FlatNodeStore::Partition StoryGridGraph::FlatNodeStore::
 
     STORY_GRID_MSG_SCOPE(ctx, "Partition flat node");
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !initial_nodes.empty(),
         "Cannot partition graph with no initial nodes");
 
@@ -1277,7 +1278,7 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     Vec<org::imm::ImmAdapter> const& root,
     StoryGridConfig const&           conf,
     StoryGridContext&                ctx) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !root.empty(),
         "Cannot update story grid graph with empty list of nodes");
     STORY_GRID_MSG_SCOPE(ctx, "Semantic graph init store");
@@ -1519,7 +1520,7 @@ StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
     StoryGridConfig const&    conf) {
     STORY_GRID_MSG_SCOPE(ctx, "Init node position store");
     NodePositionStore res;
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !blockGraph.ir.idToPos.empty(),
         "Block graph has empty ID to position mapping, nothing to "
         "position on the graph");
@@ -1548,7 +1549,7 @@ StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
             CTX_MSG(fmt(
                 "Node {} block {} position {}", id, rect.blockId, rect));
             if (mask) {
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     id.getMask() == mask->getMask(),
                     "All node positions must have identical masks, but "
                     "story ID {} for block {} has mask '{}', while "
@@ -1890,7 +1891,7 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
         initial                                       //
             | rv::transform(&MapNode::id)             //
             | rv::transform(&org::imm::ImmUniqId::id) //
-            | rv_transform_fmt1                       //
+            | rv::transform(&hstd::fmt1<org::imm::ImmId>)              //
             | rs::to<Vec>()                           //
         ));
 
@@ -1971,13 +1972,13 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
 void StoryGridGraph::FlatNodeStore::Proxy::add(
     const StoryNodeId& underlying,
     const StoryNodeId& proxy) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         underlying.getMask() + 1 == proxy.getMask(),
         "Underlying ID and proxy ID must have mask exactly "
         "one step apart. Underlying {}, proxy {}",
         underlying.getMask(),
         proxy.getMask());
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !hasUnderlying(underlying) && !hasProxy(proxy),
         "Cannot add ID mapping {}<->{} underlying/proxy node already "
         "exists.",
@@ -1985,6 +1986,6 @@ void StoryGridGraph::FlatNodeStore::Proxy::add(
         proxy);
 
     auto [iter, success] = map.insert({underlying, proxy});
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         success, "Failed to insert mapping {}<->{}", underlying, proxy);
 }

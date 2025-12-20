@@ -11,6 +11,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <immer/flex_vector.hpp>
 #include <absl/log/log.h>
+#include <hstd/stdlib/Formatter.hpp>
 
 template <hstd::dod::IsIdType T>
 auto operator<<(std::ostream& stream, T id) -> std::ostream& {
@@ -206,9 +207,9 @@ struct content_manager {
         auto result = add(
             ir::FilePath{.path = add(String{file.native()})});
 
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             !at(at(result).path).text.starts_with(" "), "");
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             !result.isNil(), "ID:{} PATH:{}", result, file, "");
 
         return result;

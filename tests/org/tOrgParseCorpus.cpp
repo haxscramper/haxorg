@@ -19,6 +19,11 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include "tOrgTestCommon.hpp"
 
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
+
 using namespace hstd;
 using namespace org::test;
 
@@ -62,7 +67,7 @@ Vec<TestParams> generateTestRuns() {
                                         + spec.testName();
         }
 
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             !nameCounts.contains(spec.testName()),
             "Found test with duplicate name: '{}', name comes from "
             "'{}' "

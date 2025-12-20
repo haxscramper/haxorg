@@ -3,7 +3,7 @@
 #include <hstd/ext/immer.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
-
+#include <hstd/stdlib/Formatter.hpp>
 
 using namespace hstd;
 

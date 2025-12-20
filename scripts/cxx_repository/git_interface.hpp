@@ -5,7 +5,6 @@
 #include <hstd/stdlib/Str.hpp>
 #include <array>
 #include <hstd/stdlib/Func.hpp>
-#include <expected>
 #include <boost/outcome.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Variant.hpp>

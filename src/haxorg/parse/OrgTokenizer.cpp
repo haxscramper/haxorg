@@ -7,9 +7,10 @@
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/system/Formatter.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 using namespace hstd;
 using namespace org::parse;
@@ -592,7 +593,7 @@ struct RecombineState {
 
             map_interpreted_token();
 
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 (lex.pos != start),
                 "Non-terminating token conversion case, got kind '{}' "
                 "text '{}' at id {} with no movement. This is a bug in "
@@ -1022,7 +1023,7 @@ struct TokenVisitor {
             auto start = it;
             auto rec   = rec_group(it);
             if (rec) {
-                LOGIC_ASSERTION_CHECK(start != it, "");
+                LOGIC_ASSERTION_CHECK_FMT(start != it, "");
                 root.push_back(rec.value());
             }
         }

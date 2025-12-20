@@ -155,8 +155,7 @@ def merge_build_times(ctx: TaskContext) -> None:
 
 
 @haxorg_task(dependencies=[generate_python_protobuf_files])
-def generate_full_code_reflection(ctx: TaskContext) -> None:
-    """Generate new source code reflection file for the python source code wrapper"""
+def generate_include_graph(ctx: TaskContext) -> None:
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
     header_commands = get_script_root(ctx,
                                       "build/haxorg/compile_commands_with_headers.json")

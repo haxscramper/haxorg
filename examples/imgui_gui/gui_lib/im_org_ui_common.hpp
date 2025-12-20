@@ -5,6 +5,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/system/reflection.hpp>
 #include <imgui/imgui.h>
+#include <hstd/system/exceptions.hpp>
 
 /// \brief Store current value of the editable text and the current edit
 /// buffer.
@@ -216,7 +217,7 @@ struct EditableOrgDocGroup {
     }
 
     org::imm::ImmAdapter getCurrentRoot(DocRootId id) const {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             isLatest(id),
             "Provided doc root ID {} does not come from the latest "
             "history.",

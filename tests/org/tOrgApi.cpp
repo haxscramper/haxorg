@@ -1,6 +1,10 @@
 #include "tOrgTestCommon.hpp"
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
 
 template <typename T>
 struct JsonSerde<sem::SemId<T>> {

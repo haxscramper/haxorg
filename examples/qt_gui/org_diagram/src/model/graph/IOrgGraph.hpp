@@ -18,7 +18,7 @@ struct UnorderedStore {
     ID add(
         T const&                                 value,
         std::optional<typename ID::id_mask_type> mask = std::nullopt) {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             !store.contains_right(value),
             "Store already contains value {}",
             hstd::fmt1_maybe(value));

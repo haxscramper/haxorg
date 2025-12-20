@@ -11,6 +11,7 @@
 #include <haxorg/sem/SemOrgTypes.hpp>
 #include <hstd/stdlib/Array.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/ColTextHShow.hpp>
 
 namespace org::imm {
 struct ImmReflFieldId;
@@ -146,7 +147,8 @@ struct hstd::ReflVisitor<hstd::ext::ImmBox<T>, Tag> {
         hstd::ext::ImmBox<T> const& value,
         ReflPathItem<Tag> const&    step,
         Func const&                 cb) {
-        LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK(
+            step.isDeref(), hstd::enum_to_string(step.getKind()));
         cb(value.get());
     }
 

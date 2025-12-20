@@ -17,7 +17,7 @@ from py_repository.repo_tasks.haxorg_base import (
     symlink_build,
 )
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
-from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.command_execution import run_cmake_build, run_command
 from py_repository.repo_tasks.common import get_component_build_dir, get_script_root, get_build_root
 
 CAT = __name__
@@ -93,22 +93,10 @@ def build_haxorg(ctx: TaskContext) -> None:
 
     log(CAT).debug(f"Building targets {targets}")
 
-    run_command(
+    run_cmake_build(
         ctx,
-        "cmake",
-        [
-            "--build",
-            build_dir,
-            "--target",
-            *targets,
-            *get_j_cap(),
-            *([
-                "--",
-                "-d",
-                "explain",
-            ] if ctx.config.in_ci else []),
-        ],
-        env={'NINJA_FORCE_COLOR': '1'},
+        build_dir=build_dir,
+        targets=targets,
     )
 
     if "all" in targets or "pyhaxorg" in targets:

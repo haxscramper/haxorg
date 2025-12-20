@@ -156,7 +156,7 @@ void DiaSceneItemModel::beginEditApply(
         auto parentPath = adapter.getParentPathFromRoot();
         hstd::Opt<QModelIndex> parentItem = indexAtPath(parentPath);
 
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             parentItem.has_value(),
             "No node found at path {}, cannot execute insert "
             "operation",
@@ -181,7 +181,7 @@ void DiaSceneItemModel::beginEditApply(
 
         case DiaEdit::Kind::Move: {
             auto [parentPath, parentIndex] = getParent(edit.getSrc());
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 parentIndex == getIdParentIndex(edit.getDst()),
                 "Dia edit moves should happen under the same parent");
 
@@ -193,7 +193,7 @@ void DiaSceneItemModel::beginEditApply(
             bool isValid = beginMoveRows(
                 parentIndex, src, src, parentIndex, dst);
 
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 isValid,
                 "Move src={} dst={} under parent={} is not valid.",
                 src,
@@ -247,7 +247,7 @@ void DiaSceneItemModel::endEditApply(
 
         case DiaEdit::Kind::Update: {
             auto item = indexAtPath(edit.getDst().getSelfPathFromRoot());
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 item.has_value(),
                 "No index associated from the DST item {} at path {}",
                 edit.getDst().id,

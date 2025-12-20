@@ -17,7 +17,7 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <boost/describe.hpp>
 #include <llvm/ADT/Hashing.h>
-#include <hstd/system/Formatter.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 #include <absl/hash/hash.h>
 #include <hstd/system/aux_utils.hpp>
 #include <llvm/ADT/SmallBitVector.h>
@@ -31,6 +31,8 @@
 
 #include <hstd/ext/perfetto_aux.hpp>
 #include <absl/log/log.h>
+
+#include <hstd/stdlib/OptFormatter.hpp>
 
 #ifdef ORG_USE_PERFETTO
 
@@ -1624,7 +1626,7 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
         }
     }
 
-    LOGIC_ASSERTION_CHECK(fs::exists(tmp_path), "{}", tmp_path);
+    LOGIC_ASSERTION_CHECK_FMT(fs::exists(tmp_path), "{}", tmp_path);
 
     {
         __perf_trace("llvm", "Load coverage profile data");

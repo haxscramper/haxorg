@@ -2,6 +2,7 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include "common.hpp"
 #include <haxorg/sem/ImmOrg.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 std::string test::makeItemText(const DiaNodeItemParams& conf) {
     return hstd::fmt(

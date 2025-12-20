@@ -19,6 +19,7 @@
 
 #include <gui_lib/gui_perfetto.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
+#include <hstd/stdlib/PtrsFormatter.hpp>
 
 
 struct Config {
@@ -372,7 +373,7 @@ void outline_tree_loop(
 
 int main(int argc, char** argv) {
     auto conf_file = hstd::fs::path{argv[1]};
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         hstd::fs::is_regular_file(conf_file), "{}", conf_file);
     auto conf_text = hstd::readFile(conf_file);
     auto conf_json = json::parse(conf_text);

@@ -11,7 +11,7 @@ from py_ci.data_build import CmakeFlagConfig, CmakeOptConfig, ExternalDep, get_e
 from py_ci.util_scripting import cmake_opt, get_j_cap
 from py_repository.repo_tasks.config import HaxorgConfig
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
-from py_repository.repo_tasks.command_execution import get_cmd_debug_file, run_command
+from py_repository.repo_tasks.command_execution import get_cmd_debug_file, run_cmake_build, run_command
 from py_repository.repo_tasks.common import check_path_exists, ensure_existing_dir, get_build_root, get_log_dir, get_script_root
 from py_repository.repo_tasks.haxorg_base import generate_develop_deps_install_paths, get_deps_build_dir, get_deps_install_dir, get_toolchain_path
 from py_repository.repo_tasks.haxorg_build import build_release_archive
@@ -98,17 +98,11 @@ def build_develop_deps(ctx: TaskContext) -> None:
                 if isinstance(it, CmakeFlagConfig) and it.isBuild
             ]))
 
-        run_command(
+        run_cmake_build(
             ctx,
-            "cmake",
-            [
-                "--build",
-                build_dir.joinpath(item.build_name),
-                "--target",
-                "install",
-                *get_j_cap(),
-                *(["--", *build_args] if 0 < len(build_args) else []),
-            ],
+            build_dir=build_dir.joinpath(item.build_name),
+            targets=["install"],
+            build_tool_args=build_args,
             **debug_conf,  # type: ignore
         )
 
@@ -199,16 +193,10 @@ def build_release_deps(
 
         log(CAT).info("Completed cpack build configuration")
 
-        run_command(
+        run_cmake_build(
             ctx,
-            "cmake",
-            [
-                "--build",
-                str(src_build),
-                "--target",
-                "all",
-                *get_j_cap(),
-            ],
+            build_dir=src_build,
+            targets=["all"],
             stderr_debug=get_log_dir(ctx).joinpath("cpack_build_stderr.log"),
             stdout_debug=get_log_dir(ctx).joinpath("cpack_build_stdout.log"),
         )

@@ -15,6 +15,7 @@
 #include <lexy/callback/container.hpp>
 #include <lexy/action/trace.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 
 #pragma clang diagnostic error "-Wswitch"
@@ -42,7 +43,7 @@ struct Cursor {
     }
 
     char get(int offset = 0) const {
-        LOGIC_ASSERTION_CHECK(has_pos(offset), "{}", format());
+        LOGIC_ASSERTION_CHECK_FMT(has_pos(offset), "{}", format());
         return text[pos + offset];
     }
 
@@ -54,7 +55,7 @@ struct Cursor {
         char        c,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
-        LOGIC_ASSERTION_CHECK(get() == c, "{}", c);
+        LOGIC_ASSERTION_CHECK_FMT(get() == c, "{}", c);
         if (p.TraceState) {
             p.message(
                 fmt("skip {} at {}",
@@ -371,7 +372,7 @@ struct Cursor {
     void unhandled(
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) const {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             false, "unhandled {} at {}:{}", format(), function, line);
     }
 
@@ -492,7 +493,7 @@ struct Cursor {
                 }
             }
 
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 start_pos != this->pos,
                 "No movement around pos {}: {}, advance guard failed at "
                 "{}:{}",

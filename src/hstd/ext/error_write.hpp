@@ -21,6 +21,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 
 namespace hstd::ext {
@@ -38,8 +39,8 @@ struct CodeSpan {
 
     CodeSpan() = default;
     CodeSpan(Id id, Slice<int> const& range) : id{id}, range{range} {
-        LOGIC_ASSERTION_CHECK(0 <= range.first, "{}", range.first);
-        LOGIC_ASSERTION_CHECK(range.first <= range.last, "{}", range);
+        LOGIC_ASSERTION_CHECK_FMT(0 <= range.first, "{}", range.first);
+        LOGIC_ASSERTION_CHECK_FMT(range.first <= range.last, "{}", range);
     }
 
     /// \brief Get the identifier of the source that this Codespan refers

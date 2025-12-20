@@ -1,5 +1,9 @@
 #include "tOrgTestCommon.hpp"
 #include <hstd/stdlib/TimeReflVisitor.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
 
 struct ImmOrgApi : ImmOrgApiTestBase {};
 
@@ -38,7 +42,7 @@ TEST_F(ImmOrgApi, RountripImmutableAst) {
 
 TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/mind_map_directory");
-    LOGIC_ASSERTION_CHECK(fs::exists(file), "{}", file);
+    LOGIC_ASSERTION_CHECK_FMT(fs::exists(file), "{}", file);
     auto store = imm::ImmAstContext::init_start_context();
     auto node  = org::parseDirectoryOpts(
         file, org::OrgDirectoryParseParameters::shared());

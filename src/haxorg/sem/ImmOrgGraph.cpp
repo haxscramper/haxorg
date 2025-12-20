@@ -7,6 +7,9 @@
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 using namespace org::graph;
 using namespace hstd;
@@ -152,7 +155,7 @@ void updateUnresolvedNodeTracking(
             state->unresolved.erase(newNode);
         }
     } else {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             !state->unresolved.contains(newNode),
             "Duplicate unresolved boxes are not expected: {}",
             newNode);
@@ -182,7 +185,7 @@ void updateResolvedEdges(
     std::shared_ptr<MapConfig>  conf) {
     for (auto const& op : resolved_node.resolved) {
         for (auto const& target : s->graph->adjList.at(op.source)) {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 op.target != target,
                 "There is already a link between {} and {}, graph cannot "
                 "contain duplicate edges op:{}",
@@ -425,7 +428,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
         auto add_edge = [&](imm::ImmId const& target) {
             auto adapters = s->ast->getAdaptersFor(target);
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 !adapters.empty(),
                 "Target node {} does not have any parent adapters tracked",
                 target);
@@ -538,7 +541,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     result.node.unresolved.clear();
     GRAPH_MSG(fmt("Get unresolved for node {}", node.id));
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         s->unresolved.find(MapNode{node.id}) == s->unresolved.end(),
         "Node {} is already marked as unresolved in the graph",
         node.id);
@@ -590,7 +593,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                             found_radio_target_node(radio);
                         }
                     } else {
-                        LOGIC_ASSERTION_CHECK(
+                        LOGIC_ASSERTION_CHECK_FMT(
                             false,
                             "Unexpected subnode group target kind {}",
                             groupTarget.getKind())
@@ -630,7 +633,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     {
         auto __scope = conf->dbg.scopeLevel();
         for (MapNode const& nodeWithUnresolved : s->unresolved) {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 nodeWithUnresolved.id != node.id,
                 "cannot resolve already inserted node {} == {} ({}) is "
                 "recorded in s.unresolved",
@@ -677,7 +680,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                 }
             }
 
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 count <= 1,
                 "Resolved link target contains duplicate edges: {}-{}",
                 r1.source,
@@ -715,13 +718,13 @@ void org::graph::MapGraphState::addNode(
 }
 
 void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         adjList.contains(edge.target),
         "Edge target {} is missing from the graph definition (source {})",
         edge.target,
         edge.source);
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         adjList.contains(edge.source),
         "Edge source {} is missing from the graph definition (target {})",
         edge.source,

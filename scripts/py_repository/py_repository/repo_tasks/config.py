@@ -117,6 +117,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     workflow_log_dir: Path = Field(
         default_factory=lambda: Path("/tmp/haxorg/workflow_log"))
 
+    use_sarif: bool = Field(default=False)
+    force_full_build: bool = Field(default=False, description="Don't stop the build of the cmake targets on the first error")
+
     forceall: bool = Field(default=False)
     ci: bool = Field(default=False)
     dryrun: bool = Field(default=False)

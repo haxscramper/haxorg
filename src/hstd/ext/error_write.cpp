@@ -8,6 +8,7 @@
 #include "hstd/stdlib/Enumerate.hpp"
 #include <hstd/ext/logger.hpp>
 #include <boost/preprocessor/seq.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 using namespace hstd::ext;
 using namespace hstd;
@@ -928,12 +929,12 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
         std::shared_ptr<Source> src = cache->fetch(label.span.source());
         if (!src) { continue; }
 
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             label.span.start() <= label.span.end(),
             "Label start is after its end");
 
         auto const start_line = src->get_offset_line(label.span.start());
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             start_line.has_value(),
             "Could not get line for offset {} from label span {}. Source "
             "len is {}",
@@ -946,7 +947,7 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
         int const offset = std::max(
             label.span.end() - 1, label.span.start());
         auto const offset_line = src->get_offset_line(offset);
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             offset_line.has_value(),
             "Could not get line for offset {} from label span {}. Source "
             "len is {}",
@@ -1413,7 +1414,7 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
         int idx = std::distance(lines.begin(), it);
         if (lines.has(idx)) {
             const Line& line = lines[idx];
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 line.offset <= offset,
                 "line.offset = {} <= offset = {}",
                 line.offset,
@@ -1465,7 +1466,7 @@ void StrCache::add(
     const std::string& source,
     const std::string& name) {
     auto knownName = names.get_right(id);
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !knownName.has_value() || knownName == name,
         "Attempting to add source with name '{}' as ID {}. This ID is "
         "already used for source name '{}'",

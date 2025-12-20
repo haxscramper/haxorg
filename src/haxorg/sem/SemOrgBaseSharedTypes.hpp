@@ -10,7 +10,6 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Opt.hpp>
 
-#include <hstd/system/Formatter.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Json.hpp>

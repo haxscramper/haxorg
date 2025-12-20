@@ -5,7 +5,7 @@
 #    include <graphviz/gvc.h>
 #    include <graphviz/cgraph.h>
 #    include <hstd/ext/logger.hpp>
-#    include <hstd/system/Formatter.hpp>
+#    include <hstd/stdlib/Formatter.hpp>
 #    include <hstd/ext/graphviz.hpp>
 
 #    if ORG_USE_QT
@@ -329,9 +329,8 @@ void hstd::log::log_graph_tracker::notify_slot_trigger(
 hstd::finally_std hstd::log::log_graph_tracker::track_slot(
     const log_graph_processor::slot_trigger_info& info) {
     notify_slot_trigger(info);
-    return track_function(
-        hstd::log::log_graph_processor::function_info(
-            info.name, info.args, info.loc));
+    return track_function(hstd::log::log_graph_processor::function_info(
+        info.name, info.args, info.loc));
 }
 
 void hstd::log::log_graph_tracker::notify_qobject(

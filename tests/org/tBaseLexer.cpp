@@ -15,6 +15,11 @@
 #include "../common.hpp"
 #include "hstd/ext/logger.hpp"
 #include "tOrgTestCommon.hpp"
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
+
 
 using namespace hstd;
 using namespace org::test;
@@ -175,7 +180,7 @@ TEST(ManualFileRun, TestMain1) {
 
 
 void test_dir_parsing(fs::path const& dir, bool trace) {
-    LOGIC_ASSERTION_CHECK(fs::exists(dir), "{}", fs::absolute(dir));
+    LOGIC_ASSERTION_CHECK_FMT(fs::exists(dir), "{}", fs::absolute(dir));
 
     auto opts = org::OrgDirectoryParseParameters::shared();
 

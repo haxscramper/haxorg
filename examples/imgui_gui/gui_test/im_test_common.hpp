@@ -159,7 +159,7 @@ ImFuncPtr(ImGuiTestGuiFunc) ImWrapTestFuncT(
     return [params, cb](ImGuiTestContext* ctx) {
         T&   vars = ctx->GetVars<T>();
         auto wref = GetWindowByName(params.windowName);
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             wref, "Cannot find window with name {}", params.windowName);
         ctx->SetRef(wref);
         cb(ctx, vars);

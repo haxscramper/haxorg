@@ -1,6 +1,6 @@
 #include "ImmOrgEdit.hpp"
 #include <immer/flex_vector_transient.hpp>
-
+#include <hstd/stdlib/OptFormatter.hpp>
 
 using namespace org;
 using namespace org::imm;
@@ -33,7 +33,7 @@ ImmAstReplace org::imm::insertSubnodes(
     ImmAstEditContext& ctx) {
     AST_EDIT_MSG(fmt("Insert {} at {} in {}b", add, position, node));
     Vec<ImmId> u;
-    LOGIC_ASSERTION_CHECK(0 <= position, "{}", position);
+    LOGIC_ASSERTION_CHECK_FMT(0 <= position, "{}", position);
 
 
     auto tmp = node->subnodes;
@@ -64,7 +64,7 @@ ImmAstReplace org::imm::dropSubnode(
     ImmId              subnode,
     ImmAstEditContext& ctx) {
     int idx = node->indexOf(subnode);
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         idx != -1, "Cannot remove subnode {} from {}", node, subnode);
     return dropSubnode(node, idx, ctx);
 }
@@ -83,7 +83,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
     CR<ImmAdapter>     node,
     SubtreeMove        move,
     ImmAstEditContext& ctx) {
-    LOGIC_ASSERTION_CHECK(node.is(OrgSemKind::Subtree), "");
+    LOGIC_ASSERTION_CHECK_FMT(node.is(OrgSemKind::Subtree), "");
     ImmAstReplaceGroup edits;
 
     if (move == SubtreeMove::EnsureLevels
@@ -220,14 +220,14 @@ Opt<ImmAstReplace> org::imm::moveSubnode(
     bool               bounded) {
     int targetPosition = position + offset;
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         0 <= position && position < node.size(),
         "Node {} has no subnode at position {}",
         node,
         position);
 
     if (bounded) {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             0 <= targetPosition && targetPosition < node.size(),
             "Cannot move subnode {} of node {} to offset {} (position {} "
             "is out of subnode bounds)",
@@ -264,7 +264,7 @@ ImmAstReplace org::imm::swapSubnode(
     int                from,
     int                to,
     ImmAstEditContext& ctx) {
-    LOGIC_ASSERTION_CHECK(from != to, "{}", from);
+    LOGIC_ASSERTION_CHECK_FMT(from != to, "{}", from);
     auto subnodes = node->subnodes;
     auto tmp      = subnodes.transient();
     tmp.set(from, node->subnodes.at(to));
@@ -382,7 +382,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
             ctx.sel->message("last condition in path, match ok");
             isMatch = true;
         } else {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 condition->link,
                 "Selector path element is not the last in the "
                 "list, but does not have the subnode search link "

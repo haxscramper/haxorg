@@ -2,7 +2,7 @@
 
 #include <haxorg/exporters/Exporter.hpp>
 #include <hstd/ext/textlayouter.hpp>
-#include <concepts>
+#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
 namespace org::algo {

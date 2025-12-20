@@ -10,7 +10,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
-#include <hstd/system/Formatter.hpp>
 
 #include "git_ir.hpp"
 #include <hstd/system/reflection.hpp>

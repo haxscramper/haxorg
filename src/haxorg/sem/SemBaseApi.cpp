@@ -3,7 +3,6 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
-#include <fstream>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
@@ -14,6 +13,11 @@
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <haxorg/base_lexer/base_token_tokenize.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <fstream>
 
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #    include <SemOrgProto.pb.h>
@@ -350,7 +354,7 @@ Opt<sem::SemId<sem::File>> parseFileAux(
     fs::path const&                                     activeRoot,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts,
     DirectoryParseState&                                state) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         opts->isRegularFile(path),
         "'{}' should be a regular text file",
         path);
@@ -439,7 +443,7 @@ Opt<fs::path> resolvePath(
     fs::path const&                                     workdir,
     CR<Str>                                             target,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         opts->isDirectory(workdir),
         "Workdir must be a directory, but got '{}'",
         workdir);
@@ -480,7 +484,7 @@ void postProcessInclude(
                 break;
             }
             case sem::CmdInclude::Kind::Src: {
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     incl.at(0)->is(OrgSemKind::BlockCode), "");
 
                 auto code   = incl.as<sem::BlockCode>();
@@ -494,7 +498,7 @@ void postProcessInclude(
                 break;
             }
             case sem::CmdInclude::Kind::Example: {
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     incl.at(0)->is(OrgSemKind::BlockExample), "");
 
                 auto code   = incl.as<sem::BlockExample>();
@@ -507,7 +511,7 @@ void postProcessInclude(
                 break;
             }
             case sem::CmdInclude::Kind::Export: {
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     incl.at(0)->is(OrgSemKind::BlockExport), "");
 
                 auto code     = incl.as<sem::BlockExport>();
@@ -880,7 +884,7 @@ sem::SemId<Org> org::asOneNode(org::sem::SemId<org::sem::Org> const& arg) {
     switch (arg->getKind()) {
         case osk::StmtList:
         case osk::Document:
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 arg.size() == 1,
                 "`asOneNode` expects a node with a single nested element");
             return org::asOneNode(arg->at(0));
@@ -1323,7 +1327,7 @@ struct EvalContext {
             return std::nullopt;
         }
         auto paths = getContext()->getPathsFor(node.value());
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             !paths.empty(), "Logic block {} has no paths", node.value());
         Opt<json> result = getTargetValue(paths.front().id, true);
 
@@ -1359,7 +1363,7 @@ struct EvalContext {
                 }
 
                 auto paths = getContext()->getPathsFor(opt_block.value());
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     !paths.empty(),
                     "Logic block {} has no paths",
                     opt_block.value());

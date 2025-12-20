@@ -284,7 +284,7 @@ struct StoryNode {
             auto iter = hstd::rs::find_if(items, [&](Item const& i) {
                 return i.node.uniq() == row;
             });
-            LOGIC_ASSERTION_CHECK(iter != items.end(), "{}", row);
+            LOGIC_ASSERTION_CHECK_FMT(iter != items.end(), "{}", row);
             return std::distance(items.begin(), iter);
         }
 
@@ -394,7 +394,7 @@ struct StoryGridGraph {
         org::imm::ImmUniqId getRoot(
             org::imm::ImmUniqId const& nested) const {
             auto res = annotationParents.get(nested).value_or(nested);
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 graphGroupRoots.contains(res),
                 "Node {} mapped to {}, but this node was not added as an "
                 "explicit story node root in the sem graph",
@@ -481,7 +481,7 @@ struct StoryGridGraph {
             void setOrgNodeOrigin(
                 org::imm::ImmUniqId const& id,
                 StoryNodeId                flatIdx) {
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     !id.id.isNil(), "Cannot map NIL node to node");
                 orgToFlatIdx.insert_or_assign(id, flatIdx);
             }
@@ -588,7 +588,7 @@ struct StoryGridGraph {
 
             StoryNodeId getProxy(StoryNodeId const& underlying) const {
                 auto it = map.left.find(underlying);
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     it != map.left.end(),
                     "No mapped proxy for underlying node {}",
                     underlying);
@@ -598,7 +598,7 @@ struct StoryGridGraph {
 
             StoryNodeId getUnderlying(StoryNodeId const& proxy) const {
                 auto it = map.right.find(proxy);
-                LOGIC_ASSERTION_CHECK(
+                LOGIC_ASSERTION_CHECK_FMT(
                     it != map.right.end(),
                     "No underlying node for proxy {}",
                     proxy);
@@ -709,7 +709,7 @@ struct StoryGridGraph {
 
         StoryNodeId toStory(BlockNodeId id) const {
             auto it = irMapping.right.find(id);
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 it != irMapping.right.end(),
                 "No mapping to block from {}",
                 id);
@@ -726,7 +726,7 @@ struct StoryGridGraph {
 
         BlockNodeId toBlock(StoryNodeId id) const {
             auto it = irMapping.left.find(id);
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 it != irMapping.left.end(),
                 "No mapping to block from {}",
                 id);

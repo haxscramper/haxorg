@@ -73,6 +73,7 @@ option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" ON)
 option(ORG_DEPS_USE_PYTHON_VERSION "" "3.13")
 option(ORG_BUILD_USE_NAPI_WRAPPER "" ON)
+option(ORG_USE_SARIF "Enable SARIF reporting for build" OFF)
 
 if(${ORG_USE_TRACY} AND ${ORG_USE_PERFETTO})
   message(

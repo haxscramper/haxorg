@@ -114,7 +114,7 @@ struct Node {
     /// returning empty list directly and instead outputs a nullopt value.
     hstd::Opt<hstd::Slice<NodeId<N, K, V, M>>> nestedNodes(
         NodeId<N, K, V, M> selfId) const {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             isNonTerminal(),
             "Node {} of kind {} does not have nested nodes",
             selfId,

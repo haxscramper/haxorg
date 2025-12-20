@@ -7,12 +7,7 @@ from contextlib import contextmanager
 import os
 import inspect
 
-logging.basicConfig()
 logging.root.setLevel(logging.NOTSET)
-logging.basicConfig(
-    level=logging.NOTSET,
-    format="%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s")
-
 logger = logging.getLogger(__name__)
 
 

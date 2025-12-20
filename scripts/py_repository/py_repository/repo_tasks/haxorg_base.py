@@ -102,6 +102,9 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     assert not (conf.use.qt and
                 conf.emscripten.build), "Qt cannot be used in the emcc build"
 
+    if ctx.config.use_sarif:
+        result.append(cmake_opt("ORG_USE_SARIF", True))
+
     result.append(cmake_opt("ORG_USE_COVERAGE", conf.instrument.coverage))
     result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))

@@ -120,12 +120,12 @@ struct FileModifyAction {
 
 struct NameAction {
     NameAction(ir::FilePathId path) : path(path) {
-        LOGIC_ASSERTION_CHECK(!path.isNil(), "");
+        LOGIC_ASSERTION_CHECK_FMT(!path.isNil(), "");
     }
 
     BOOST_DESCRIBE_CLASS(NameAction, (), (path), (), ());
     ir::FilePathId getPath() const {
-        LOGIC_ASSERTION_CHECK(!path.isNil(), "");
+        LOGIC_ASSERTION_CHECK_FMT(!path.isNil(), "");
         return path;
     }
 
@@ -279,7 +279,7 @@ void file_name_actions(walker_state* state, CommitActions& result) {
 
                 auto  track   = state->content->getFilePath(path);
                 auto& actions = result.actions[track];
-                LOGIC_ASSERTION_CHECK(!actions.leading_name, "");
+                LOGIC_ASSERTION_CHECK_FMT(!actions.leading_name, "");
                 actions.leading_name = NameAction{
                     state->content->getFilePath(path)};
             } else if (
@@ -355,12 +355,12 @@ CommitActions get_commit_actions(
         ir::FilePathId path_id = state->content->getFilePath(path);
 
         if (delta->status == GIT_DELTA_DELETED) {
-            LOGIC_ASSERTION_CHECK(!result.actions.contains(path_id), "");
+            LOGIC_ASSERTION_CHECK_FMT(!result.actions.contains(path_id), "");
             result.actions[state->content->getFilePath(path)].leading_name = NameAction{
                 state->content->getFilePath(path)};
         }
 
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             result.actions.contains(path_id),
             "Missing action group for path '{}' path_id {} for commit {}, "
             "delta kind {}. The path is a known directory: {}",
@@ -536,7 +536,7 @@ struct ChangeIterationState {
             << std::format(" on track:{}", track)
             << format_section_lines(section_id);
 
-        LOGIC_ASSERTION_CHECK(to_add <= section.lines.size(), "");
+        LOGIC_ASSERTION_CHECK_FMT(to_add <= section.lines.size(), "");
 
         section.added_lines.push_back(to_add);
         section.lines = section.lines.insert(to_add, add.id);
@@ -557,7 +557,7 @@ struct ChangeIterationState {
         int to_remove  = remove.removed;
         int lines_size = section.lines.size();
 
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             to_remove < lines_size,
             "[apply] Cannot remove line index {} from section version {} "
             "path '{}' commit {} {}  on track:{} {}",
@@ -588,7 +588,7 @@ struct ChangeIterationState {
             << std::format(" on track:{}", track)
             << format_section_lines(section_id);
 
-        LOGIC_ASSERTION_CHECK(remove_content == remove.id, "");
+        LOGIC_ASSERTION_CHECK_FMT(remove_content == remove.id, "");
 
         section.removed_lines.push_back(to_remove);
         section.lines = section.lines.erase(to_remove);
@@ -596,7 +596,7 @@ struct ChangeIterationState {
 
     auto apply(ir::CommitId commit_id, CR<NameAction> name)
         -> Pair<ir::FileTrackId, ir::FileTrackSectionId> {
-        LOGIC_ASSERTION_CHECK(!name.getPath().isNil(), "");
+        LOGIC_ASSERTION_CHECK_FMT(!name.getPath().isNil(), "");
         ir::FileTrackId track = which_track(name.getPath());
 
         if (state->should_debug()
@@ -620,12 +620,12 @@ struct ChangeIterationState {
 
         tmp_track.sections.push_back(section_id);
 
-        LOGIC_ASSERTION_CHECK(!section.path.isNil(), "");
+        LOGIC_ASSERTION_CHECK_FMT(!section.path.isNil(), "");
         if (1 < tmp_track.sections.size()) {
             ir::FileTrackSectionId prev_section = tmp_track.sections.at(
                 tmp_track.sections.size() - 2);
             section.lines = state->at(prev_section).lines;
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 state->at(prev_section).track
                     == state->at(section_id).track,
                 "[apply] New track section copied lines from the "
@@ -758,7 +758,7 @@ void check_tree_entry_consistency(
                where,
                concat_content);
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         content_lines.size() == section.lines.size(), "");
 
     for (auto const& [idx, pair] :
@@ -778,7 +778,7 @@ void check_tree_entry_consistency(
             path,
             where,
             concat_content);
-        LOGIC_ASSERTION_CHECK(section_line == content_line, "");
+        LOGIC_ASSERTION_CHECK_FMT(section_line == content_line, "");
     }
 
     LOG(INFO) << std::format(
@@ -850,7 +850,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
              // a file in this particular commit -- list of events that
              // state machine will respond to.
              | rv::transform([&state](CR<CommitTask> task) {
-                   LOGIC_ASSERTION_CHECK(
+                   LOGIC_ASSERTION_CHECK_FMT(
                        !task.id.isNil(), "commit task ID cannot be nil");
                    return get_commit_actions(state, task);
                })) {

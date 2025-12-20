@@ -1,4 +1,5 @@
 #include "astdiff.hpp"
+#include <hstd/stdlib/Formatter.hpp>
 
 using namespace hstd::ext::diff;
 using namespace hstd;
