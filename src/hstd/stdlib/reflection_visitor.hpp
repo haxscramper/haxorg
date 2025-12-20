@@ -11,6 +11,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <any>
+#include <set>
 #include <hstd/stdlib/algorithms.hpp>
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/Formatter.hpp>

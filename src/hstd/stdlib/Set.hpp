@@ -3,7 +3,6 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/SetCommon.hpp>
 #include <unordered_set>
-#include <set>
 
 namespace hstd {
 
@@ -42,36 +41,9 @@ struct UnorderedSet
     }
 };
 
-template <typename T, typename Set>
-struct std_format_set_type : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(Set const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        fmt.format("{", ctx);
-        bool first = true;
-        for (const auto& it : p) {
-            if (!first) { fmt.format(", ", ctx); }
-            first = false;
-            fmt_ctx(it, ctx);
-        }
-        return fmt.format("}", ctx);
-    }
-};
 
 } // namespace hstd
 
-template <typename T>
-struct std::formatter<hstd::UnorderedSet<T>>
-    : hstd::std_format_set_type<T, hstd::UnorderedSet<T>> {};
-
-template <typename T>
-struct std::formatter<std::unordered_set<T>>
-    : hstd::std_format_set_type<T, std::unordered_set<T>> {};
-
-template <typename T>
-struct std::formatter<std::set<T>>
-    : hstd::std_format_set_type<T, std::set<T>> {};
 
 namespace hstd {
 template <typename T>

@@ -134,6 +134,24 @@ struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
     }
 };
 
+
+template <typename T, typename Set>
+struct std_unordered_sequence_formatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(Set const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("{", ctx);
+        bool first = true;
+        for (const auto& it : p) {
+            if (!first) { fmt.format(", ", ctx); }
+            first = false;
+            fmt_ctx(it, ctx);
+        }
+        return fmt.format("}", ctx);
+    }
+};
+
 } // namespace hstd
 
 template <>
