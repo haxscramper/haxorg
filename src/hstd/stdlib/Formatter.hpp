@@ -116,6 +116,23 @@ struct std_item_iterator_formatter : std::formatter<std::string> {
     }
 };
 
+template <typename K, typename V, typename Type>
+struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(Type const& p, FormatContext& ctx)
+        const {
+        fmt_ctx("{", ctx);
+        bool first = true;
+        for (const auto& [key, value] : p) {
+            if (!first) { fmt_ctx(", ", ctx); }
+            first = false;
+            fmt_ctx(key, ctx);
+            fmt_ctx(": ", ctx);
+            fmt_ctx(value, ctx);
+        }
+        return fmt_ctx("}", ctx);
+    }
+};
 
 } // namespace hstd
 

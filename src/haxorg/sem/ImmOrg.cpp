@@ -20,6 +20,7 @@
 #include <hstd/stdlib/TimeReflVisitor.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 

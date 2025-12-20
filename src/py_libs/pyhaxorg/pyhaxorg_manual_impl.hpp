@@ -19,6 +19,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
 
 
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
