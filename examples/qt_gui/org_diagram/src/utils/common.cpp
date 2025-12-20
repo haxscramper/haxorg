@@ -140,7 +140,7 @@ QModelIndex mapToNestedSource(const QModelIndex& index) {
         index.model());
 
     while (currentProxyModel) {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             currentIndex.model() == currentProxyModel,
             "Index to wrong model passed to mapToSource: index is {}, "
             "model is {}",

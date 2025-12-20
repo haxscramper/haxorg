@@ -3,5 +3,6 @@
     "emscripten_deps": false,
     "emscripten_build": false,
     "emscripten_test": false
-  }
+  },
+  "use_unchanged_tasks": true
 }

@@ -4,6 +4,7 @@
 #include "doc_editor.hpp"
 #include "block_graph.hpp"
 #include "node_grid_graph.hpp"
+#include <hstd/stdlib/PtrsFormatter.hpp>
 
 using namespace hstd;
 
@@ -127,7 +128,7 @@ Opt<DocBlock::Ptr> to_doc_block(
             }
 
             ImVec2 size = result->getSize();
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 size.x != 0 && size.y != 0,
                 "Cannot create block with no size from {}",
                 it);
@@ -299,7 +300,7 @@ void DocBlockModel::syncLayout(const DocBlockConfig& conf) {
     for (LaneBlockLayout::RectSpec const& rect : lyt.getRectangles(g)) {
         DocBlock::Ptr node = flatGrid.at(rect.blockId.getIndex());
         if (rect.isVisible) {
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 rect.size.x != 0 && rect.size.y != 0,
                 "Rect is visible but has no size {}. Size of the "
                 "original rectangle at position {} is {}",

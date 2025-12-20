@@ -128,7 +128,7 @@ OrgAgendaNode::OrgAgendaNode(
     OrgAgendaNode::WPtr            parent,
     hstd::Vec<OrgAgendaNode::Ptr>  children)
     : data{data}, parent{parent}, children{children} {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         AGENDA_NODE_TYPES.contains(data->getKind()),
         "{}",
         data->getKind());

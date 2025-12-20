@@ -181,7 +181,7 @@ void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
                     if (target.targetOffset) {
                         auto full   = g.at(target.target).height;
                         auto offset = target.targetOffset.value();
-                        LOGIC_ASSERTION_CHECK(
+                        LOGIC_ASSERTION_CHECK_FMT(
                             offset <= full, "{} !<= {}", offset, full);
                         ec.targetOffset     = float(offset) / float(full);
                         ec.targetCheckpoint = base + step * inLaneEdge;
@@ -190,7 +190,7 @@ void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
                     if (target.sourceOffset) {
                         auto full   = g.at(source).height;
                         auto offset = target.sourceOffset.value();
-                        LOGIC_ASSERTION_CHECK(
+                        LOGIC_ASSERTION_CHECK_FMT(
                             offset <= full, "{} !<= {}", offset, full);
                         ec.sourceOffset     = float(offset) / float(full);
                         ec.sourceCheckpoint = base + step * inLaneEdge;
@@ -371,7 +371,7 @@ int LaneBlockStack::addBlock(
     const ImVec2&               size,
     const LaneBlockGraphConfig& conf) {
 
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         size.x != 0 && size.y != 0, "Cannot create block with no size");
 
     auto [top, bottom] = conf.getDefaultBlockMargin(LaneNodePos{
@@ -632,7 +632,7 @@ Vec<Slice<int>> LaneBlockGraph::getLaneSpans() const {
 
 
 LaneBlockLayout LaneBlockGraph::getLayout() const {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         int(visible.h) != 0 && int(visible.w) != 0, "{}", visible);
     gr_log(hstd::log::l_info)
         .fmt_message("Create block layout, {} lanes", lanes.size());
@@ -646,7 +646,7 @@ LaneBlockLayout LaneBlockGraph::getLayout() const {
     }
 
     for (auto const& [idx, lane] : enumerate(lanes)) {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             !lane.blocks.empty(),
             "lane {} has 0 blocks, not supported for layout",
             idx);
@@ -655,7 +655,7 @@ LaneBlockLayout LaneBlockGraph::getLayout() const {
     HSLOG_DEPTH_SCOPE_ANON();
 
     for (auto const& [pos, block] : getBlocks()) {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             block.width != 0 && block.height != 0,
             "Cannot compute layout size with block size of 0. Block node "
             "at position {} has dimensions {}x{}",

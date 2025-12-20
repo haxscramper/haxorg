@@ -6,6 +6,7 @@
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 hstd::Vec<org::graph::EdgeID> DiaHierarchyEdgeCollection::addAllOutgoing(
     const org::graph::VertexID& vert) {

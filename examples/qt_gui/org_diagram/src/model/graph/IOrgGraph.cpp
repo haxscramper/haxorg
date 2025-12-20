@@ -1,6 +1,7 @@
 #include "IOrgGraph.hpp"
 #include <hstd/stdlib/algorithms.hpp>
 #include <stack>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 using namespace org::graph;
 
@@ -146,14 +147,14 @@ void IGraph::delTracker(hstd::SPtr<IPropertyTracker> const& tracker) {
 }
 
 void IGraph::addCollection(hstd::SPtr<IEdgeCollection> const& collection) {
-    LOGIC_ASSERTION_CHECK(
+    LOGIC_ASSERTION_CHECK_FMT(
         !collections.contains(collection->getCategory()),
         "Collection with category ID {} already exists in the graph "
         "tracker",
         collection->getCategory().t);
 
     for (auto const& coll : collections) {
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             (coll.second->getStableID() != collection->getStableID()),
             "Collection with stable {} ID already existsin in the graph "
             "tracker",

@@ -39,6 +39,8 @@
 #include <QFileSystemWatcher>
 #include <src/model/graph/IOrgGraph.hpp>
 #include <src/model/graph/DiaGraph.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 class CliApplication : public QCoreApplication {
     Q_OBJECT

@@ -7,6 +7,9 @@
 #include <vector>
 #include <haxorg/sem/ImmOrgEdit.hpp>
 #include <algorithm>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <haxorg/sem/SemOrgTypesFormatter.hpp>
 
 using namespace hstd;
 using namespace org;
@@ -94,7 +97,7 @@ void DiaVersionStore::stepEditForward(
                 edit.getRemoveDiaNode().target);
 
             hstd::Opt<imm::ImmAdapter> parent = adapter.getParent();
-            LOGIC_ASSERTION_CHECK(
+            LOGIC_ASSERTION_CHECK_FMT(
                 parent.has_value(),
                 "Cannot remove node without parent: the adapter {} "
                 "targets node with no parent",
@@ -358,7 +361,7 @@ int DiaVersionStore::addDocument(const std::string& document) {
     hstd::ext::StrCache cache;
 
     cache.getFileSource = [&](std::string const& path) -> std::string {
-        LOGIC_ASSERTION_CHECK(path == "<text>", "{}", path);
+        LOGIC_ASSERTION_CHECK_FMT(path == "<text>", "{}", path);
         return document;
     };
 

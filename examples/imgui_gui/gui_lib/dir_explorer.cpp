@@ -191,7 +191,7 @@ struct DirNode : public SharedPtrApi<DirNode> {
     static DirNode::Ptr from_dir(DirContext& ctx, fs::path const& dir) {
         auto res      = DirNode::shared();
         res->relative = fs::relative(dir, ctx.root).native();
-        LOGIC_ASSERTION_CHECK(
+        LOGIC_ASSERTION_CHECK_FMT(
             !res->relative.empty(),
             "Relative directory is empty, root {} is not a parent of {}",
             escape_literal(ctx.root.native()),
