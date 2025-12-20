@@ -13,6 +13,7 @@
 #include <haxorg/parse/OrgTypes.hpp>
 #include <format>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 
 using SemSet = hstd::IntSet<OrgSemKind>;

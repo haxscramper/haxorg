@@ -4,12 +4,12 @@
 
 #include <hstd/system/all.hpp>
 #include <hstd/system/generator.hpp>
+#include <hstd/system/string_base.hpp>
 #include <hstd/stdlib/Exception.hpp>
 
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 
 
 /// \brief Data-oriented design primitives
@@ -118,14 +118,18 @@ struct [[nodiscard]] Id {
     inline void setMask(MaskType mask) {
         uint64_t mask_check = (1ULL << mask_size) - 1;
         if ((mask & ~mask_check) != 0) {
-            throw std::logic_error(fmt(
-                R"(ID Mask must have bits set in range [{0}..0], but provided value {1:016X} {1:064b} has higher bits set:
-mask:  {1:064b}
-check: {2:064b}
-)",
-                mask_size,
-                mask,
-                mask_check));
+            std::string msg = "ID Mask must have buts set in range [";
+            msg += std::to_string(mask_size);
+            msg += "..0], but provided value ";
+            msg += format_string_to_hex(mask);
+            msg += " ";
+            msg += format_string_to_bin(mask);
+            msg += " has higher bits set:";
+            msg += "mask: ";
+            msg += format_string_to_bin(mask);
+            msg += "check: ";
+            msg += format_string_to_bin(mask_check);
+            throw std::logic_error(msg);
         }
 
         LOGIC_ASSERTION_CHECK(
@@ -655,14 +659,3 @@ template <typename T>
 concept IsDescribedDodIdType = hstd::dod::IsIdType<T>
                             && hstd::DescribedRecord<T>;
 }
-
-template <hstd::dod::IsDescribedDodIdType Id>
-struct std::formatter<Id> : std::formatter<std::string> {
-    using FmtType = Id;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        return fmt.format(p.format(), ctx);
-    }
-};

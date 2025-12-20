@@ -4,6 +4,7 @@
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrgSharedTypes.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 
 template <>
