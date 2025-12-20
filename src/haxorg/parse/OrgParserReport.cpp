@@ -6,6 +6,8 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/PtrsFormatter.hpp>
+#include <haxorg/parse/OrgTypesFormatter.hpp>
 
 using namespace hstd;
 using namespace org::parse;

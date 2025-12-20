@@ -8,6 +8,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <boost/mp11.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 using yaml = YAML::Node;
 

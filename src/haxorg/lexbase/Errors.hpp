@@ -1,9 +1,7 @@
 #pragma once
 
 #include <variant>
-#include <format>
-#include <hstd/stdlib/Formatter.hpp>
-
+#include <hstd/system/reflection.hpp>
 namespace org::parse {
 
 struct [[refl]] LineCol {
@@ -77,19 +75,6 @@ struct MalformedTokenError : public LexerError {};
 } // namespace org::parse
 
 
-template <>
-struct std::formatter<org::parse::LineCol> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        const org::parse::LineCol& p,
-        FormatContext&             ctx) const {
-        hstd::fmt_ctx(p.line, ctx);
-        hstd::fmt_ctx(":", ctx);
-        hstd::fmt_ctx(p.column, ctx);
-        hstd::fmt_ctx(":", ctx);
-        return hstd::fmt_ctx(p.pos, ctx);
-    }
-};
 
 template <>
 struct std::hash<org::parse::LineCol> {

@@ -2,6 +2,7 @@
 
 #include "Node.hpp"
 #include "TokenStore.hpp"
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace org::parse {
 

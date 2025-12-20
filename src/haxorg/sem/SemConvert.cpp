@@ -26,6 +26,8 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <haxorg/parse/OrgTypesFormatter.hpp>
+#include <haxorg/sem/SemOrgTypesFormatter.hpp>
 
 
 namespace {
