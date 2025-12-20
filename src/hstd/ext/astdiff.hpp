@@ -17,6 +17,7 @@
 #include <unordered_set>
 #include <limits>
 #include <functional>
+#include <hstd/stdlib/Formatter.hpp>
 
 
 #define COUT std::cout << "[\033[33m" << __LINE__ << "\033[0m] "

@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/ColTextHShow.hpp>
 
 #include "../common.hpp"
 

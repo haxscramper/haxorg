@@ -11,6 +11,7 @@
 #include <haxorg/sem/SemOrgTypes.hpp>
 #include <hstd/stdlib/Array.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/ColTextHShow.hpp>
 
 namespace org::imm {
 struct ImmReflFieldId;

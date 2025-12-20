@@ -29,6 +29,7 @@
 #    include <boost/log/sinks/sink.hpp>
 #    include <hstd/stdlib/TraceBase.hpp>
 #    include <hstd/stdlib/ContainerAPI.hpp>
+#    include <hstd/stdlib/Formatter.hpp>
 
 #    if ORG_USE_QT
 #        include <QDebug>

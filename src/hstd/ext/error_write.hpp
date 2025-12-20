@@ -21,6 +21,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 
 namespace hstd::ext {
