@@ -18,13 +18,14 @@ protobuf_generate(
 # Shared logic for reflection collector implementation
 
 add_library(
-  reflection_lib STATIC "${REFL_DIR}/clang_reflection_lib.cpp"
-                        "${REFL_DIR}/clang_reflection_lib.hpp" ${ORG_PROTO_GENERATED_FILES})
+  reflection_lib STATIC
+  "${REFL_DIR}/clang_reflection_lib.cpp" "${REFL_DIR}/clang_reflection_demangler.cpp"
+  "${REFL_DIR}/clang_reflection_lib.hpp" ${ORG_PROTO_GENERATED_FILES})
 
 target_include_directories(
   reflection_lib
   PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "${DEPS_DIR}/protobuf/src" "${DEPS_DIR}/abseil-cpp"
-         "${BASE}/build/haxorg/scripts/cxx_codegen/reflection_tool")
+         "${BASE}/src" "${BASE}/build/haxorg/scripts/cxx_codegen/reflection_tool")
 
 llvm_map_components_to_libnames(
   reflection_lib_llvm_libs
@@ -39,6 +40,7 @@ llvm_map_components_to_libnames(
   AsmPrinter
   native)
 
+target_link_libraries(reflection_lib PUBLIC hstd)
 target_link_libraries(reflection_lib PRIVATE ${reflection_lib_llvm_libs})
 
 target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
