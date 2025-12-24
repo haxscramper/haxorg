@@ -26,6 +26,21 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "${DEPS_DIR}/protobuf/src" "${DEPS_DIR}/abseil-cpp"
          "${BASE}/build/haxorg/scripts/cxx_codegen/reflection_tool")
 
+llvm_map_components_to_libnames(
+  reflection_lib_llvm_libs
+  Core
+  Support
+  Object
+  Demangle
+  DebugInfoDWARF
+  Target
+  MC
+  AsmParser
+  AsmPrinter
+  native)
+
+target_link_libraries(reflection_lib PRIVATE ${reflection_lib_llvm_libs})
+
 target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
 target_compile_options(reflection_lib PRIVATE "-fPIC")
 set_target_properties(reflection_lib PROPERTIES CXX_STANDARD 20)

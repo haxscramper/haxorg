@@ -7,6 +7,19 @@
 #include <google/protobuf/util/json_util.h>
 #include <google/protobuf/message.h>
 
+#include <llvm/Object/ObjectFile.h>
+#include <llvm/Object/ELFObjectFile.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/CommandLine.h>
+#include <llvm/Support/InitLLVM.h>
+#include <llvm/Demangle/Demangle.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Error.h>
+#include <llvm/Support/raw_ostream.h>
+#include <fstream>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Object/SymbolSize.h>
+
 namespace c = clang;
 using llvm::dyn_cast;
 
@@ -1778,4 +1791,72 @@ void IncludeCollectorCallback::InclusionDirective(
         incl->set_absolutepath(File->getName().str());
         incl->set_relativepath(FileName.str());
     }
+}
+
+std::vector<SectionInfo> getSymbolsInBinary(const std::string& path) {
+    llvm::InitializeNativeTarget();
+    llvm::InitializeNativeTargetAsmParser();
+    llvm::InitializeNativeTargetAsmPrinter();
+    llvm::InitializeNativeTargetDisassembler();
+
+    auto binaryOrErr = llvm::object::createBinary(path);
+    if (!binaryOrErr) { throw std::logic_error("Binary loading error"); }
+
+    llvm::object::OwningBinary<llvm::object::Binary> binary = std::move(
+        *binaryOrErr);
+    llvm::object::ObjectFile* obj = dyn_cast<llvm::object::ObjectFile>(
+        binary.getBinary());
+    if (!obj) {
+        errs() << "Not an object file\n";
+        return {};
+    }
+
+    std::map<std::string, std::vector<SymbolInfo>> sectionSymbols;
+
+    for (const auto& symAndSize : llvm::object::computeSymbolSizes(*obj)) {
+        const llvm::object::SymbolRef& symbol = symAndSize.first;
+        uint64_t                       size   = symAndSize.second;
+        if (size == 0) { continue; }
+        llvm::Expected<llvm::StringRef> nameOrErr = symbol.getName();
+        if (!nameOrErr) {
+            consumeError(nameOrErr.takeError());
+            continue;
+        }
+        std::string name = nameOrErr->str();
+
+        llvm::Expected<uint64_t> addressOrErr = symbol.getAddress();
+        if (!addressOrErr) {
+            consumeError(addressOrErr.takeError());
+            continue;
+        }
+        uint64_t address = *addressOrErr;
+
+        llvm::Expected<llvm::object::section_iterator>
+            sectionOrErr = symbol.getSection();
+        if (!sectionOrErr) {
+            consumeError(sectionOrErr.takeError());
+            continue;
+        }
+        llvm::object::section_iterator section = *sectionOrErr;
+        std::string                    sectionName;
+        if (section != obj->section_end()) {
+            llvm::Expected<llvm::StringRef>
+                sectionNameOrErr = section->getName();
+            if (sectionNameOrErr) {
+                sectionName = sectionNameOrErr->str();
+            }
+        }
+
+        std::string demangled = llvm::demangle(name);
+
+        SymbolInfo info{name, demangled, size, address};
+        sectionSymbols[sectionName].push_back(info);
+    }
+
+    std::vector<SectionInfo> sections;
+    for (const auto& [sectionName, symbols] : sectionSymbols) {
+        sections.push_back({sectionName, symbols});
+    }
+
+    return sections;
 }

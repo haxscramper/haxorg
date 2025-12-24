@@ -9,6 +9,8 @@
 #include <filesystem>
 #include <format>
 #include <llvm/Support/JSON.h>
+#include <fstream>
+#include <format>
 
 namespace fs = std::filesystem;
 
@@ -22,7 +24,12 @@ static llvm::cl::OptionCategory ToolingSampleCategory(
 llvm::cl::opt<std::string> CompilationDB(
     "compilation-database",
     llvm::cl::desc("Compilation database"),
-    llvm::cl::Required,
+    llvm::cl::cat(ToolingSampleCategory));
+
+llvm::cl::opt<std::string> RunMode(
+    "run-mode",
+    llvm::cl::desc("Specify tool execution mode"),
+    llvm::cl::value_desc("Run mode: TranslationUnit, BinarySymbols"),
     llvm::cl::cat(ToolingSampleCategory));
 
 llvm::cl::opt<std::string> outputPathOverride(
@@ -55,7 +62,8 @@ llvm::cl::opt<bool> NoStdInc(
 
 llvm::cl::opt<std::string> TargetFiles(
     "target-files",
-    llvm::cl::desc("File with json array, list of absolute paths whose "
+    llvm::cl::desc("Single input file or file with json array, list of "
+                   "absolute paths whose "
                    "declarations will be included into TU dump."),
     llvm::cl::cat(ToolingSampleCategory));
 
@@ -67,6 +75,8 @@ std::vector<std::string> parseTargetFiles(std::string path) {
             path,
             std::strerror(errno)));
     }
+
+    if (!path.ends_with("json")) { return {path}; }
 
     std::string jsonContent(
         (std::istreambuf_iterator<char>(ifs)),
@@ -262,7 +272,7 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
 
 int main(int argc, const char** argv) {
     auto cli = clang::tooling::CommonOptionsParser::create(
-        argc, argv, ToolingSampleCategory);
+        argc, argv, ToolingSampleCategory, llvm::cl::ZeroOrMore);
 
     if (!cli) {
         LOG_CERR() << "CLI is invalid" << std::endl;
@@ -270,51 +280,80 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
-    clang::tooling::CommonOptionsParser& OptionsParser = cli.get();
-    std::string                          ErrorMessage;
 
-    auto JSONDB = clang::tooling::JSONCompilationDatabase::loadFromFile(
-        CompilationDB,
-        ErrorMessage,
-        clang::tooling::JSONCommandLineSyntax::AutoDetect);
+    if (RunMode == "TranslationUnit") {
+        clang::tooling::CommonOptionsParser& OptionsParser = cli.get();
+        std::string                          ErrorMessage;
 
-    if (!JSONDB) {
-        LOG_CERR() << "Failed to process provided JSON DB, failure was:"
-                   << std::endl;
-        LOG_CERR() << ErrorMessage << std::endl;
-        LOG_CERR() << "CompilationDB = " << CompilationDB << std::endl;
-        return 1;
-    } else {
-        LOG_CERR() << "Using compilation database " << CompilationDB
-                   << "\n";
-    }
+        auto JSONDB = clang::tooling::JSONCompilationDatabase::
+            loadFromFile(
+                CompilationDB,
+                ErrorMessage,
+                clang::tooling::JSONCommandLineSyntax::AutoDetect);
 
-    clang::tooling::ArgumentsAdjustingCompilations adjustedCompilations(
-        std::move(JSONDB));
-
-    adjustedCompilations.appendArgumentsAdjuster(dropReflectionPLugin);
-
-    clang::tooling::ClangTool tool(
-        adjustedCompilations, OptionsParser.getSourcePathList());
-
-    if (!ToolchainInclude.empty()) {
-        if (!fs::is_directory(std::string(ToolchainInclude))) {
-            LOG_CERR() << "Toolchain include is not a directory or does "
-                          "not exist '"
-                       << ToolchainInclude << "'\n";
+        if (!JSONDB) {
+            LOG_CERR()
+                << "Failed to process provided JSON DB, failure was:"
+                << std::endl;
+            LOG_CERR() << ErrorMessage << std::endl;
+            LOG_CERR() << "CompilationDB = " << CompilationDB << std::endl;
             return 1;
+        } else {
+            LOG_CERR() << "Using compilation database " << CompilationDB
+                       << "\n";
         }
+
+        clang::tooling::ArgumentsAdjustingCompilations
+            adjustedCompilations(std::move(JSONDB));
+
+        adjustedCompilations.appendArgumentsAdjuster(dropReflectionPLugin);
+
+        clang::tooling::ClangTool tool(
+            adjustedCompilations, OptionsParser.getSourcePathList());
+
+        if (!ToolchainInclude.empty()) {
+            if (!fs::is_directory(std::string(ToolchainInclude))) {
+                LOG_CERR()
+                    << "Toolchain include is not a directory or does "
+                       "not exist '"
+                    << ToolchainInclude << "'\n";
+                return 1;
+            }
+        }
+
+        if (VerboseRun) {
+            LOG_CERR() << "Using toolchain include " << ToolchainInclude
+                       << std::endl;
+
+            LOG_CERR() << "Configuration parse OK, running tool\n";
+        }
+        int result = tool.run(
+            clang::tooling::newFrontendActionFactory<ReflFrontendAction>()
+                .get());
+
+        return result;
+    } else if (RunMode == "BinarySymbols") {
+        auto sections = getSymbolsInBinary(
+            parseTargetFiles(TargetFiles).at(0));
+
+        for (auto const& section : sections) {
+            std::cout << std::format("Section: {}\n", section.name);
+            for (const auto& symbol : section.symbols) {
+                std::cout << std::format("  Name: {}\n", symbol.name);
+                std::cout << std::format(
+                    "    Demangled: {}\n", symbol.demangled);
+                std::cout << std::format("    Size: {}\n", symbol.size);
+                std::cout << std::format(
+                    "    Address: {}\n", symbol.address);
+            }
+        }
+
+        return 0;
+
+    } else {
+        throw std::invalid_argument(std::format(
+            "Run mode is expected to be 'TranslationUnit' or "
+            "'BinarySymbols', but found '{}'",
+            RunMode.getValue()));
     }
-
-    if (VerboseRun) {
-        LOG_CERR() << "Using toolchain include " << ToolchainInclude
-                   << std::endl;
-
-        LOG_CERR() << "Configuration parse OK, running tool\n";
-    }
-    int result = tool.run(
-        clang::tooling::newFrontendActionFactory<ReflFrontendAction>()
-            .get());
-
-    return result;
 }

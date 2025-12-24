@@ -1,7 +1,4 @@
 #pragma once
-
-#include <iostream>
-#include <fstream>
 #include <optional>
 
 #include <clang/AST/ASTConsumer.h>
@@ -233,3 +230,17 @@ class ReflASTConsumer : public clang::ASTConsumer {
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context);
 };
+
+struct SymbolInfo {
+    std::string name;
+    std::string demangled;
+    uint64_t    size;
+    uint64_t    address;
+};
+
+struct SectionInfo {
+    std::string             name;
+    std::vector<SymbolInfo> symbols;
+};
+
+std::vector<SectionInfo> getSymbolsInBinary(const std::string& path);
