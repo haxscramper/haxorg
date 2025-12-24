@@ -1793,7 +1793,7 @@ void IncludeCollectorCallback::InclusionDirective(
     }
 }
 
-std::vector<SectionInfo> getSymbolsInBinary(const std::string& path) {
+BinaryFileInfo getSymbolsInBinary(const std::string& path) {
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmParser();
     llvm::InitializeNativeTargetAsmPrinter();
@@ -1811,7 +1811,7 @@ std::vector<SectionInfo> getSymbolsInBinary(const std::string& path) {
         return {};
     }
 
-    std::map<std::string, std::vector<SymbolInfo>> sectionSymbols;
+    std::map<std::string, std::vector<BinarySymbolInfo>> sectionSymbols;
 
     for (const auto& symAndSize : llvm::object::computeSymbolSizes(*obj)) {
         const llvm::object::SymbolRef& symbol = symAndSize.first;
@@ -1849,14 +1849,21 @@ std::vector<SectionInfo> getSymbolsInBinary(const std::string& path) {
 
         std::string demangled = llvm::demangle(name);
 
-        SymbolInfo info{name, demangled, size, address};
+        BinarySymbolInfo info{
+            .name            = name,
+            .demangled       = demangled,
+            .demangled_parse = json::parse(parseBinarySymbolName(name)),
+            .size            = size,
+            .address         = address,
+        };
+
         sectionSymbols[sectionName].push_back(info);
     }
 
-    std::vector<SectionInfo> sections;
+    std::vector<BinarySectionInfo> sections;
     for (const auto& [sectionName, symbols] : sectionSymbols) {
         sections.push_back({sectionName, symbols});
     }
 
-    return sections;
+    return BinaryFileInfo{.sections = sections};
 }

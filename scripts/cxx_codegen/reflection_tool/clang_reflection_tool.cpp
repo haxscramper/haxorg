@@ -1,4 +1,6 @@
 #include "clang_reflection_lib.hpp"
+#include "hstd/stdlib/Filesystem.hpp"
+#include "hstd/stdlib/JsonSerde.hpp"
 
 #include <clang/Tooling/ArgumentsAdjusters.h>
 #include <clang/Frontend/FrontendActions.h>
@@ -333,20 +335,18 @@ int main(int argc, const char** argv) {
 
         return result;
     } else if (RunMode == "BinarySymbols") {
+
+        if (outputPathOverride.empty()) {
+            throw std::invalid_argument(
+                std::format("Missing output path, specify with --out"));
+        }
+
         auto sections = getSymbolsInBinary(
             parseTargetFiles(TargetFiles).at(0));
 
-        for (auto const& section : sections) {
-            std::cout << std::format("Section: {}\n", section.name);
-            for (const auto& symbol : section.symbols) {
-                std::cout << std::format("  Name: {}\n", symbol.name);
-                std::cout << std::format(
-                    "    Demangled: {}\n", symbol.demangled);
-                std::cout << std::format("    Size: {}\n", symbol.size);
-                std::cout << std::format(
-                    "    Address: {}\n", symbol.address);
-            }
-        }
+        hstd::writeFile(
+            outputPathOverride.getValue(),
+            hstd::to_json_eval(sections).dump(2));
 
         return 0;
 

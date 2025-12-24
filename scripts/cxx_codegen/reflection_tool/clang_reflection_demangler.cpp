@@ -670,8 +670,24 @@ NO_COVERAGE llvm::json::Value treeRepr(Node const* node) {
 return result;
 }
 
-ParsedBinaryName parseBinary(std::string const& name) {
+std::string parseBinarySymbolName(std::string const& name) {
     Demangler         Parser(name.data(), name.data() + name.size());
     Node*             AST  = Parser.parse();
     llvm::json::Value repr = treeRepr(AST);
+
+    // In some cases LLVM fails to demangle itanium names for
+    // lambdas and some other symbols, like
+    // `SemOrgApi.cpp:_ZZNK3sem7Subtree14getTimePeriodsE6IntSetINS0_6Period4KindEEENK3$_0clINS0_8Property17ExportLatexHeaderEEEDaRKT_`
+    // so this heuristics is used to give more information on the
+    // failure -- `cxx-filt` also fails to process this, so it
+    // seems to be a LLVM issue.
+    if (AST == nullptr && name.contains("$_") && name.contains("cl")
+        && name.contains('K')) {
+        llvm::json::Object repr;
+        repr["NodeKind"] = "LambdaDemangleFail";
+        return llvm::formatv("{0}", llvm::json::Value{std::move(repr)});
+    } else {
+        llvm::json::Value repr = treeRepr(AST);
+        return llvm::formatv("{0}", repr);
+    }
 }

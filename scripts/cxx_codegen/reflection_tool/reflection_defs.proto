@@ -234,22 +234,3 @@ message TU {
     string Doc = 7;
 }
 
-message ParsedBinaryName {
-
-}
-
-message BinarySymbol {
-    string name = 1;
-    string demangled_name = 2;
-    ParsedBinaryName parsed_name = 3;
-    int64 size = 4;
-}
-
-message BinarySection {
-    string name = 1; 
-    repeated BinarySymbol symbols = 2;
-}
-
-message BinaryFile {
-    repeated BinarySection sections = 1;
-}

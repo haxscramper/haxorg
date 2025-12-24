@@ -10,7 +10,11 @@
 #include <unordered_set>
 
 // Auto-generated protobuf definition, provided by cmake run
+#include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 #include "reflection_defs.pb.h"
+#include <hstd/system/reflection.hpp>
+#include <hstd/system/macros.hpp>
 
 #define REFL_NAME "refl"
 
@@ -231,16 +235,27 @@ class ReflASTConsumer : public clang::ASTConsumer {
     virtual void HandleTranslationUnit(clang::ASTContext& Context);
 };
 
-struct SymbolInfo {
+struct BinarySymbolInfo {
     std::string name;
     std::string demangled;
+    json        demangled_parse;
     uint64_t    size;
     uint64_t    address;
+    DESC_FIELDS(
+        BinarySymbolInfo,
+        (name, demangled, demangled_parse, size, address));
 };
 
-struct SectionInfo {
-    std::string             name;
-    std::vector<SymbolInfo> symbols;
+struct BinarySectionInfo {
+    std::string                   name;
+    std::vector<BinarySymbolInfo> symbols;
+    DESC_FIELDS(BinarySectionInfo, (name, symbols));
 };
 
-std::vector<SectionInfo> getSymbolsInBinary(const std::string& path);
+struct BinaryFileInfo {
+    std::vector<BinarySectionInfo> sections;
+    DESC_FIELDS(BinaryFileInfo, (sections));
+};
+
+BinaryFileInfo getSymbolsInBinary(const std::string& path);
+std::string    parseBinarySymbolName(std::string const& name);

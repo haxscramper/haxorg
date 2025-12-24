@@ -549,8 +549,7 @@ struct db_build_ctx {
     int region_counter{};
 
     /// \brief Cache for the JSON value demangling.
-    std::unordered_map<std::string, llvm::json::Value>
-        demangled_json_dumps{};
+    std::unordered_map<std::string, std::string> demangled_json_dumps{};
 
     /// \brief List of regexps to filter out from the input file coverage.
     /// Has secondary check order compared to blacklist. For a file to pass
@@ -562,36 +561,14 @@ struct db_build_ctx {
 
     /// \brief Get JSON dump of the demangled function record name.
     NO_COVERAGE std::string getDemangledJson(FunctionRecord const& f) {
-        if (demangled_json_dumps.contains(f.Name)) {
-            return llvm::formatv("{0}", demangled_json_dumps.at(f.Name));
-        } else {
-            return "{}";
-#if false
-            int         offset = findSymbolNamePosition(f.Name);
-            std::string name   = f.Name.substr(offset);
-            Demangler   Parser(name.data(), name.data() + name.length());
+        return "{}";
 
-            Node* AST = Parser.parse();
-
-            // In some cases LLVM fails to demangle itanium names for
-            // lambdas and some other symbols, like
-            // `SemOrgApi.cpp:_ZZNK3sem7Subtree14getTimePeriodsE6IntSetINS0_6Period4KindEEENK3$_0clINS0_8Property17ExportLatexHeaderEEEDaRKT_`
-            // so this heuristics is used to give more information on the
-            // failure -- `cxx-filt` also fails to process this, so it
-            // seems to be a LLVM issue.
-            if (AST == nullptr && name.contains("$_")
-                && name.contains("cl") && name.contains('K')) {
-                llvm::json::Object repr;
-                repr["NodeKind"] = "LambdaDemangleFail";
-                return llvm::formatv(
-                    "{0}", llvm::json::Value{std::move(repr)});
-            } else {
-                llvm::json::Value repr = treeRepr(AST);
-                demangled_json_dumps.insert({f.Name, repr});
-                return llvm::formatv("{0}", repr);
-            }
-#endif
+        // TODO: Get fully demangled JSON
+        if (!demangled_json_dumps.contains(f.Name)) {
+            // demangled_json_dumps.insert_or_assign({f.Name, });
         }
+
+        return llvm::formatv("{0}", demangled_json_dumps.at(f.Name));
     }
 
 
