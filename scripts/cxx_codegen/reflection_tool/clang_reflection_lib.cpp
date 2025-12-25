@@ -1823,6 +1823,8 @@ BinaryFileInfo getSymbolsInBinary(const std::string& path) {
     auto sym_max = std::getenv("REFLECTION_TOOL_SYM_MAX");
     if (sym_max) { max_counter = std::atoi(sym_max); }
 
+    BinarySymbolVisitContext ctx;
+
     for (const auto& symAndSize : llvm::object::computeSymbolSizes(*obj)) {
         ++counter;
         if (counter < min_counter) { continue; }
@@ -1867,7 +1869,7 @@ BinaryFileInfo getSymbolsInBinary(const std::string& path) {
         BinarySymbolInfo info{
             .name            = name,
             .demangled       = demangled,
-            .demangled_parse = parseBinarySymbolName(name),
+            .demangled_parse = parseBinarySymbolName(name, ctx),
             .size            = size,
             .address         = address,
         };
@@ -1880,5 +1882,8 @@ BinaryFileInfo getSymbolsInBinary(const std::string& path) {
         sections.push_back({sectionName, symbols});
     }
 
-    return BinaryFileInfo{.sections = sections};
+    return BinaryFileInfo{
+        .sections      = sections,
+        .visit_context = std::move(ctx),
+    };
 }

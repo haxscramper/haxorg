@@ -253,10 +253,47 @@ struct BinarySectionInfo {
     DESC_FIELDS(BinarySectionInfo, (name, symbols));
 };
 
+struct SmallVectorComparator {
+    bool operator()(
+        const llvm::SmallVector<char, 32>& lhs,
+        const llvm::SmallVector<char, 32>& rhs) const {
+        return std::lexicographical_compare(
+            lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+    }
+};
+
+struct SmallVectorHasher {
+    std::size_t operator()(const llvm::SmallVector<char, 32>& vec) const {
+        return std::hash<std::string_view>{}(std::string_view{
+            vec.data(), static_cast<std::size_t>(vec.size())});
+    }
+};
+
+struct BinarySymbolVisitContext {
+    std::unordered_map<
+        llvm::SmallVector<char, 32>,
+        llvm::json::Value,
+        SmallVectorHasher,
+        SmallVectorComparator>
+        digest_parts;
+
+    std::unordered_map<
+        llvm::SmallVector<char, 32>,
+        int,
+        SmallVectorHasher,
+        SmallVectorComparator>
+        digest_counter;
+};
+
+
 struct BinaryFileInfo {
     std::vector<BinarySectionInfo> sections;
+    BinarySymbolVisitContext       visit_context;
     DESC_FIELDS(BinaryFileInfo, (sections));
 };
 
+
 BinaryFileInfo     getSymbolsInBinary(const std::string& path);
-llvm::json::Object parseBinarySymbolName(std::string const& name);
+llvm::json::Object parseBinarySymbolName(
+    std::string const&        name,
+    BinarySymbolVisitContext& ctx);

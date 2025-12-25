@@ -366,7 +366,16 @@ int main(int argc, const char** argv) {
             sections.push_back(std::move(j_section));
         }
 
+        llvm::json::Object symbol_interning;
+        for (auto const& sym : file.visit_context.digest_parts) {
+            llvm::json::Object j_sym;
+            j_sym["Repr"]  = sym.second;
+            j_sym["Count"] = file.visit_context.digest_counter[sym.first];
+            symbol_interning[sym.first] = std::move(j_sym);
+        }
+
         repr["sections"] = std::move(sections);
+        repr["intern"]   = std::move(symbol_interning);
 
 
         hstd::writeFile(
