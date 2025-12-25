@@ -1,6 +1,5 @@
 #include "clang_reflection_lib.hpp"
 #include "hstd/stdlib/Filesystem.hpp"
-#include "hstd/stdlib/JsonSerde.hpp"
 
 #include <clang/Tooling/ArgumentsAdjusters.h>
 #include <clang/Frontend/FrontendActions.h>
@@ -13,6 +12,10 @@
 #include <llvm/Support/JSON.h>
 #include <fstream>
 #include <format>
+
+#include "clang_reflection_perf.hpp"
+
+#include <hstd/ext/perfetto_aux_impl_template.hpp>
 
 namespace fs = std::filesystem;
 
@@ -48,6 +51,12 @@ llvm::cl::opt<std::string> ToolchainInclude(
 llvm::cl::opt<bool> VerboseRun(
     "verbose",
     llvm::cl::desc("Run compilation in verbose mode"),
+    llvm::cl::cat(ToolingSampleCategory));
+
+llvm::cl::opt<std::string> PerfRun(
+    "perf",
+    llvm::cl::desc(
+        "Run compilation with performance analysis, write result to file"),
     llvm::cl::cat(ToolingSampleCategory));
 
 llvm::cl::opt<bool> MainTuAnalysis(
@@ -282,6 +291,13 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
+#ifdef ORG_USE_PERFETTO
+    std::unique_ptr<perfetto::TracingSession> perfetto_session;
+    if (!PerfRun.empty()) {
+        perfetto_session = StartProcessTracing("profdata_merger");
+    }
+#endif
+
 
     if (RunMode == "TranslationUnit") {
         clang::tooling::CommonOptionsParser& OptionsParser = cli.get();
@@ -333,9 +349,11 @@ int main(int argc, const char** argv) {
             clang::tooling::newFrontendActionFactory<ReflFrontendAction>()
                 .get());
 
-        return result;
+        if (result != 0) {
+            throw std::runtime_error("Reflection tool execution failed");
+        }
     } else if (RunMode == "BinarySymbols") {
-
+        __perf_trace("main", "Process binary symbols");
         if (outputPathOverride.empty()) {
             throw std::invalid_argument(
                 std::format("Missing output path, specify with --out"));
@@ -346,43 +364,50 @@ int main(int argc, const char** argv) {
 
         llvm::json::Object repr;
 
-        llvm::json::Array sections;
-        for (auto& section : file.sections) {
-            llvm::json::Object j_section;
-            j_section["name"] = section.name;
-            llvm::json::Array j_symbols;
-            for (auto& sym : section.symbols) {
-                llvm::json::Object j_sym;
-                j_sym["address"]         = sym.address;
-                j_sym["demangled"]       = sym.demangled;
-                j_sym["demangled_parse"] = std::move(sym.demangled_parse);
-                j_sym["size"]            = sym.size;
-                j_sym["address"]         = sym.address;
+        {
+            __perf_trace("sym", "Convert symbol repr to JSON");
+            llvm::json::Array sections;
+            for (auto& section : file.sections) {
+                llvm::json::Object j_section;
+                j_section["name"] = section.name;
+                llvm::json::Array j_symbols;
+                for (auto& sym : section.symbols) {
+                    llvm::json::Object j_sym;
+                    j_sym["address"]         = sym.address;
+                    j_sym["demangled"]       = sym.demangled;
+                    j_sym["demangled_parse"] = std::move(
+                        sym.demangled_parse);
+                    j_sym["size"]    = sym.size;
+                    j_sym["address"] = sym.address;
 
-                j_symbols.push_back(std::move(j_sym));
+                    j_symbols.push_back(std::move(j_sym));
+                }
+                j_section["symbols"] = std::move(j_symbols);
+
+                sections.push_back(std::move(j_section));
             }
-            j_section["symbols"] = std::move(j_symbols);
 
-            sections.push_back(std::move(j_section));
+            llvm::json::Object symbol_interning;
+            for (auto const& sym : file.visit_context.digest_parts) {
+                llvm::json::Object j_sym;
+                j_sym["Repr"]  = sym.second;
+                j_sym["Count"] = file.visit_context
+                                     .digest_counter[sym.first()];
+                symbol_interning[sym.first()] = std::move(j_sym);
+            }
+
+            repr["sections"] = std::move(sections);
+            repr["intern"]   = std::move(symbol_interning);
         }
 
-        llvm::json::Object symbol_interning;
-        for (auto const& sym : file.visit_context.digest_parts) {
-            llvm::json::Object j_sym;
-            j_sym["Repr"]  = sym.second;
-            j_sym["Count"] = file.visit_context.digest_counter[sym.first];
-            symbol_interning[sym.first] = std::move(j_sym);
+
+        {
+            __perf_trace("sym", "Convert JSON to file");
+            hstd::writeFile(
+                outputPathOverride.getValue(),
+                llvm::formatv("{0}", llvm::json::Value{std::move(repr)}));
         }
 
-        repr["sections"] = std::move(sections);
-        repr["intern"]   = std::move(symbol_interning);
-
-
-        hstd::writeFile(
-            outputPathOverride.getValue(),
-            llvm::formatv("{0}", llvm::json::Value{std::move(repr)}));
-
-        return 0;
 
     } else {
         throw std::invalid_argument(std::format(
@@ -390,4 +415,13 @@ int main(int argc, const char** argv) {
             "'BinarySymbols', but found '{}'",
             RunMode.getValue()));
     }
+
+    if (!PerfRun.empty()) {
+        fs::path out_path{PerfRun.getValue()};
+#ifdef ORG_USE_PERFETTO
+        StopTracing(std::move(perfetto_session), out_path);
+#endif
+    }
+
+    return 0;
 }

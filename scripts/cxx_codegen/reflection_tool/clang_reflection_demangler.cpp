@@ -33,6 +33,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 
 #include "clang_reflection_lib.hpp"
+#include "clang_reflection_perf.hpp"
 
 using namespace llvm::itanium_demangle;
 
@@ -333,16 +334,33 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
             result[field] = value;
         },
         [&result, &ctx](std::string const& field, Node const* value) {
-            auto                        digest = demangle_digest(value);
             llvm::SmallVector<char, 32> Str;
-            llvm::MD5::stringifyResult(digest, Str);
+            {
+                __perf_trace("sym", "Top demangle digest");
+                auto digest = demangle_digest(value);
+                llvm::MD5::stringifyResult(digest, Str);
+            }
+            llvm::StringRef StrRef{
+                Str.data(),
+                static_cast<size_t>(static_cast<int>(Str.size()))};
 
-            if (!ctx.digest_parts.contains(Str)) {
-                auto json_conv = demangle_to_json(value, ctx);
-                ctx.digest_parts.insert_or_assign(Str, json_conv);
+            {
+                __perf_trace("sym", "Insert to digest parts");
+                if (!ctx.digest_parts.contains(StrRef)) {
+                    llvm::json::Value json_conv = nullptr;
+                    json_conv = demangle_to_json(value, ctx);
+                    {
+                        __perf_trace("sym", "Value insert");
+                        ctx.digest_parts.insert_or_assign(
+                            StrRef, std::move(json_conv));
+                    }
+                }
+                {
+                    __perf_trace("sym", "Increment counter");
+                    ++ctx.digest_counter[StrRef];
+                }
             }
 
-            ++ctx.digest_counter[Str];
 
             llvm::json::Object md_placeholder;
             md_placeholder["kind"]  = "MD5Placeholder";
@@ -463,7 +481,12 @@ llvm::json::Object parseBinarySymbolName(
     BinarySymbolVisitContext& ctx) {
     Demangler         Parser(name.data(), name.data() + name.size());
     Node*             AST  = Parser.parse();
-    llvm::json::Value repr = demangle_to_json(AST, ctx);
+    llvm::json::Value repr = nullptr;
+    __perf_trace("sym", "Parse binary symbol");
+    {
+        __perf_trace("sym", "Demangle to JSON", "name", name);
+        repr = demangle_to_json(AST, ctx);
+    }
 
     // In some cases LLVM fails to demangle itanium names for
     // lambdas and some other symbols, like

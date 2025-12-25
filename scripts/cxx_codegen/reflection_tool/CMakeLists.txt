@@ -20,7 +20,15 @@ protobuf_generate(
 add_library(
   reflection_lib STATIC
   "${REFL_DIR}/clang_reflection_lib.cpp" "${REFL_DIR}/clang_reflection_demangler.cpp"
-  "${REFL_DIR}/clang_reflection_lib.hpp" ${ORG_PROTO_GENERATED_FILES})
+  "${REFL_DIR}/clang_reflection_lib.hpp" ${ORG_PROTO_GENERATED_FILES} clang_reflection_perf.hpp)
+
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(reflection_lib PUBLIC Perfetto::perfetto)
+endif()
+
+if(${ORG_USE_PERFETTO})
+  target_compile_definitions(reflection_lib PUBLIC ORG_USE_PERFETTO)
+endif()
 
 target_include_directories(
   reflection_lib

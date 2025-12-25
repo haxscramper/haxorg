@@ -14,6 +14,7 @@
 #include <hstd/stdlib/JsonUse.hpp>
 #include "reflection_defs.pb.h"
 #include <llvm/Support/JSON.h>
+#include <llvm/ADT/StringMap.h>
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
 
@@ -270,19 +271,8 @@ struct SmallVectorHasher {
 };
 
 struct BinarySymbolVisitContext {
-    std::unordered_map<
-        llvm::SmallVector<char, 32>,
-        llvm::json::Value,
-        SmallVectorHasher,
-        SmallVectorComparator>
-        digest_parts;
-
-    std::unordered_map<
-        llvm::SmallVector<char, 32>,
-        int,
-        SmallVectorHasher,
-        SmallVectorComparator>
-        digest_counter;
+    llvm::StringMap<llvm::json::Value> digest_parts;
+    llvm::StringMap<int> digest_counter;
 };
 
 
