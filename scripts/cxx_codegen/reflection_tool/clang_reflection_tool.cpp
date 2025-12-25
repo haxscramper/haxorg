@@ -341,12 +341,37 @@ int main(int argc, const char** argv) {
                 std::format("Missing output path, specify with --out"));
         }
 
-        auto sections = getSymbolsInBinary(
+        auto file = getSymbolsInBinary(
             parseTargetFiles(TargetFiles).at(0));
+
+        llvm::json::Object repr;
+
+        llvm::json::Array sections;
+        for (auto& section : file.sections) {
+            llvm::json::Object j_section;
+            j_section["name"] = section.name;
+            llvm::json::Array j_symbols;
+            for (auto& sym : section.symbols) {
+                llvm::json::Object j_sym;
+                j_sym["address"]         = sym.address;
+                j_sym["demangled"]       = sym.demangled;
+                j_sym["demangled_parse"] = std::move(sym.demangled_parse);
+                j_sym["size"]            = sym.size;
+                j_sym["address"]         = sym.address;
+
+                j_symbols.push_back(std::move(j_sym));
+            }
+            j_section["symbols"] = std::move(j_symbols);
+
+            sections.push_back(std::move(j_section));
+        }
+
+        repr["sections"] = std::move(sections);
+
 
         hstd::writeFile(
             outputPathOverride.getValue(),
-            hstd::to_json_eval(sections).dump(2));
+            llvm::formatv("{0}", llvm::json::Value{std::move(repr)}));
 
         return 0;
 

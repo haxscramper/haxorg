@@ -1813,7 +1813,21 @@ BinaryFileInfo getSymbolsInBinary(const std::string& path) {
 
     std::map<std::string, std::vector<BinarySymbolInfo>> sectionSymbols;
 
+    int counter     = 0;
+    int min_counter = 0;
+    int max_counter = INT_MAX;
+
+    auto sym_min = std::getenv("REFLECTION_TOOL_SYM_MIN");
+    if (sym_min) { min_counter = std::atoi(sym_min); }
+
+    auto sym_max = std::getenv("REFLECTION_TOOL_SYM_MAX");
+    if (sym_max) { max_counter = std::atoi(sym_max); }
+
     for (const auto& symAndSize : llvm::object::computeSymbolSizes(*obj)) {
+        ++counter;
+        if (counter < min_counter) { continue; }
+        if (max_counter < counter) { break; }
+
         const llvm::object::SymbolRef& symbol = symAndSize.first;
         uint64_t                       size   = symAndSize.second;
         if (size == 0) { continue; }
@@ -1823,6 +1837,7 @@ BinaryFileInfo getSymbolsInBinary(const std::string& path) {
             continue;
         }
         std::string name = nameOrErr->str();
+        std::cout << std::format("[]>>> {} {}\n", counter, name);
 
         llvm::Expected<uint64_t> addressOrErr = symbol.getAddress();
         if (!addressOrErr) {
@@ -1852,7 +1867,7 @@ BinaryFileInfo getSymbolsInBinary(const std::string& path) {
         BinarySymbolInfo info{
             .name            = name,
             .demangled       = demangled,
-            .demangled_parse = json::parse(parseBinarySymbolName(name)),
+            .demangled_parse = parseBinarySymbolName(name),
             .size            = size,
             .address         = address,
         };

@@ -13,6 +13,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
 #include "reflection_defs.pb.h"
+#include <llvm/Support/JSON.h>
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
 
@@ -236,11 +237,11 @@ class ReflASTConsumer : public clang::ASTConsumer {
 };
 
 struct BinarySymbolInfo {
-    std::string name;
-    std::string demangled;
-    json        demangled_parse;
-    uint64_t    size;
-    uint64_t    address;
+    std::string        name;
+    std::string        demangled;
+    llvm::json::Object demangled_parse;
+    uint64_t           size;
+    uint64_t           address;
     DESC_FIELDS(
         BinarySymbolInfo,
         (name, demangled, demangled_parse, size, address));
@@ -257,5 +258,5 @@ struct BinaryFileInfo {
     DESC_FIELDS(BinaryFileInfo, (sections));
 };
 
-BinaryFileInfo getSymbolsInBinary(const std::string& path);
-std::string    parseBinarySymbolName(std::string const& name);
+BinaryFileInfo     getSymbolsInBinary(const std::string& path);
+llvm::json::Object parseBinarySymbolName(std::string const& name);
