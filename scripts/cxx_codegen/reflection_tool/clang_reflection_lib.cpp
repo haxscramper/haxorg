@@ -17,8 +17,7 @@
 #include <llvm/Support/Error.h>
 #include <llvm/Support/raw_ostream.h>
 #include <fstream>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Object/SymbolSize.h>
+
 
 namespace c = clang;
 using llvm::dyn_cast;
@@ -1791,99 +1790,4 @@ void IncludeCollectorCallback::InclusionDirective(
         incl->set_absolutepath(File->getName().str());
         incl->set_relativepath(FileName.str());
     }
-}
-
-BinaryFileInfo getSymbolsInBinary(const std::string& path) {
-    llvm::InitializeNativeTarget();
-    llvm::InitializeNativeTargetAsmParser();
-    llvm::InitializeNativeTargetAsmPrinter();
-    llvm::InitializeNativeTargetDisassembler();
-
-    auto binaryOrErr = llvm::object::createBinary(path);
-    if (!binaryOrErr) { throw std::logic_error("Binary loading error"); }
-
-    llvm::object::OwningBinary<llvm::object::Binary> binary = std::move(
-        *binaryOrErr);
-    llvm::object::ObjectFile* obj = dyn_cast<llvm::object::ObjectFile>(
-        binary.getBinary());
-    if (!obj) {
-        errs() << "Not an object file\n";
-        return {};
-    }
-
-    std::map<std::string, std::vector<BinarySymbolInfo>> sectionSymbols;
-
-    int counter     = 0;
-    int min_counter = 0;
-    int max_counter = INT_MAX;
-
-    auto sym_min = std::getenv("REFLECTION_TOOL_SYM_MIN");
-    if (sym_min) { min_counter = std::atoi(sym_min); }
-
-    auto sym_max = std::getenv("REFLECTION_TOOL_SYM_MAX");
-    if (sym_max) { max_counter = std::atoi(sym_max); }
-
-    BinarySymbolVisitContext ctx;
-
-    for (const auto& symAndSize : llvm::object::computeSymbolSizes(*obj)) {
-        ++counter;
-        if (counter < min_counter) { continue; }
-        if (max_counter < counter) { break; }
-
-        const llvm::object::SymbolRef& symbol = symAndSize.first;
-        uint64_t                       size   = symAndSize.second;
-        if (size == 0) { continue; }
-        llvm::Expected<llvm::StringRef> nameOrErr = symbol.getName();
-        if (!nameOrErr) {
-            consumeError(nameOrErr.takeError());
-            continue;
-        }
-        std::string name = nameOrErr->str();
-        std::cout << std::format("[]>>> {} {}\n", counter, name);
-
-        llvm::Expected<uint64_t> addressOrErr = symbol.getAddress();
-        if (!addressOrErr) {
-            consumeError(addressOrErr.takeError());
-            continue;
-        }
-        uint64_t address = *addressOrErr;
-
-        llvm::Expected<llvm::object::section_iterator>
-            sectionOrErr = symbol.getSection();
-        if (!sectionOrErr) {
-            consumeError(sectionOrErr.takeError());
-            continue;
-        }
-        llvm::object::section_iterator section = *sectionOrErr;
-        std::string                    sectionName;
-        if (section != obj->section_end()) {
-            llvm::Expected<llvm::StringRef>
-                sectionNameOrErr = section->getName();
-            if (sectionNameOrErr) {
-                sectionName = sectionNameOrErr->str();
-            }
-        }
-
-        std::string demangled = llvm::demangle(name);
-
-        BinarySymbolInfo info{
-            .name            = name,
-            .demangled       = demangled,
-            .demangled_parse = parseBinarySymbolName(name, ctx),
-            .size            = size,
-            .address         = address,
-        };
-
-        sectionSymbols[sectionName].push_back(info);
-    }
-
-    std::vector<BinarySectionInfo> sections;
-    for (const auto& [sectionName, symbols] : sectionSymbols) {
-        sections.push_back({sectionName, symbols});
-    }
-
-    return BinaryFileInfo{
-        .sections      = sections,
-        .visit_context = std::move(ctx),
-    };
 }

@@ -14,9 +14,9 @@
 #include <hstd/stdlib/JsonUse.hpp>
 #include "reflection_defs.pb.h"
 #include <llvm/Support/JSON.h>
-#include <llvm/ADT/StringMap.h>
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
+
 
 #define REFL_NAME "refl"
 
@@ -236,54 +236,3 @@ class ReflASTConsumer : public clang::ASTConsumer {
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context);
 };
-
-struct BinarySymbolInfo {
-    std::string        name;
-    std::string        demangled;
-    llvm::json::Object demangled_parse;
-    uint64_t           size;
-    uint64_t           address;
-    DESC_FIELDS(
-        BinarySymbolInfo,
-        (name, demangled, demangled_parse, size, address));
-};
-
-struct BinarySectionInfo {
-    std::string                   name;
-    std::vector<BinarySymbolInfo> symbols;
-    DESC_FIELDS(BinarySectionInfo, (name, symbols));
-};
-
-struct SmallVectorComparator {
-    bool operator()(
-        const llvm::SmallVector<char, 32>& lhs,
-        const llvm::SmallVector<char, 32>& rhs) const {
-        return std::lexicographical_compare(
-            lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
-    }
-};
-
-struct SmallVectorHasher {
-    std::size_t operator()(const llvm::SmallVector<char, 32>& vec) const {
-        return std::hash<std::string_view>{}(std::string_view{
-            vec.data(), static_cast<std::size_t>(vec.size())});
-    }
-};
-
-struct BinarySymbolVisitContext {
-    llvm::StringMap<llvm::json::Value> digest_parts;
-    llvm::StringMap<int> digest_counter;
-};
-
-
-struct BinaryFileInfo {
-    std::vector<BinarySectionInfo> sections;
-    BinarySymbolVisitContext       visit_context;
-    DESC_FIELDS(BinaryFileInfo, (sections));
-};
-
-
-BinaryFileInfo     getSymbolsInBinary(const std::string& path);
-llvm::json::Object parseBinarySymbolName(
-    std::string const&        name,
-    BinarySymbolVisitContext& ctx);

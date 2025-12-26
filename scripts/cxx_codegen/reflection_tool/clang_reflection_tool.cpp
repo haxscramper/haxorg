@@ -13,7 +13,9 @@
 #include <fstream>
 #include <format>
 
+
 #include "clang_reflection_perf.hpp"
+#include "clang_reflection_demangler.hpp"
 
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 
@@ -363,43 +365,6 @@ int main(int argc, const char** argv) {
             parseTargetFiles(TargetFiles).at(0));
 
         llvm::json::Object repr;
-
-        {
-            __perf_trace("sym", "Convert symbol repr to JSON");
-            llvm::json::Array sections;
-            for (auto& section : file.sections) {
-                llvm::json::Object j_section;
-                j_section["name"] = section.name;
-                llvm::json::Array j_symbols;
-                for (auto& sym : section.symbols) {
-                    llvm::json::Object j_sym;
-                    j_sym["address"]         = sym.address;
-                    j_sym["demangled"]       = sym.demangled;
-                    j_sym["demangled_parse"] = std::move(
-                        sym.demangled_parse);
-                    j_sym["size"]    = sym.size;
-                    j_sym["address"] = sym.address;
-
-                    j_symbols.push_back(std::move(j_sym));
-                }
-                j_section["symbols"] = std::move(j_symbols);
-
-                sections.push_back(std::move(j_section));
-            }
-
-            llvm::json::Object symbol_interning;
-            for (auto const& sym : file.visit_context.digest_parts) {
-                llvm::json::Object j_sym;
-                j_sym["Repr"]  = sym.second;
-                j_sym["Count"] = file.visit_context
-                                     .digest_counter[sym.first()];
-                symbol_interning[sym.first()] = std::move(j_sym);
-            }
-
-            repr["sections"] = std::move(sections);
-            repr["intern"]   = std::move(symbol_interning);
-        }
-
 
         {
             __perf_trace("sym", "Convert JSON to file");

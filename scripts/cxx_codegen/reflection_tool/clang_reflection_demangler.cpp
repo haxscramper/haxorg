@@ -31,8 +31,12 @@
 #include <absl/log/log.h>
 
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Object/SymbolSize.h>
+#include <llvm/Support/Error.h>
+#include <llvm/Support/raw_ostream.h>
 
-#include "clang_reflection_lib.hpp"
+#include "clang_reflection_demangler.hpp"
 #include "clang_reflection_perf.hpp"
 
 using namespace llvm::itanium_demangle;
@@ -50,6 +54,59 @@ BOOST_DESCRIBE_ENUM_BEGIN(KindProxy)
 #define NODE(NodeKind) BOOST_DESCRIBE_ENUM_ENTRY(KindProxy, NodeKind)
 #include <llvm/Demangle/ItaniumNodes.def>
 BOOST_DESCRIBE_ENUM_END()
+
+BOOST_DESCRIBE_ENUM(
+    llvm::itanium_demangle::Node::Prec,
+    Primary,
+    Postfix,
+    Unary,
+    Cast,
+    PtrMem,
+    Multiplicative,
+    Additive,
+    Shift,
+    Spaceship,
+    Relational,
+    Equality,
+    And,
+    Xor,
+    Ior,
+    AndIf,
+    OrIf,
+    Conditional,
+    Assign,
+    Comma,
+    Default);
+
+BOOST_DESCRIBE_ENUM(
+    llvm::itanium_demangle::TemplateParamKind,
+    Type,
+    NonType,
+    Template);
+
+BOOST_DESCRIBE_ENUM(
+    llvm::itanium_demangle::FunctionRefQual,
+    FrefQualNone,
+    FrefQualLValue,
+    FrefQualRValue);
+
+BOOST_DESCRIBE_ENUM(
+    llvm::itanium_demangle::Qualifiers,
+    QualNone,
+    QualConst,
+    QualVolatile,
+    QualRestrict);
+
+BOOST_DESCRIBE_ENUM(
+    llvm::itanium_demangle::SpecialSubKind,
+    allocator,
+    basic_string,
+    string,
+    istream,
+    ostream,
+    iostream);
+
+BOOST_DESCRIBE_ENUM(llvm::itanium_demangle::ReferenceKind, LValue, RValue);
 
 
 namespace {
@@ -323,58 +380,45 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
 
     result["NodeKind"] = Kind;
 
+    auto should_skip = hstd::overloaded{
+        [](std::string const& view) { return view.empty(); },
+        [](std::string_view view) { return view.empty(); },
+        [](llvm::json::Value const& value) {
+            switch (value.kind()) {
+                case llvm::json::Value::Kind::Array:
+                    value.getAsArray()->empty();
+                case llvm::json::Value::Kind::Null: return true;
+                default: return false;
+            }
+        },
+        [](auto const&) { return false; },
+    };
+
     auto sub = hstd::overloaded{
-        [&result](std::string const& field, llvm::json::Value value) {
-            result[field] = value;
+        [&](std::string const& field, llvm::json::Value const& value) {
+            if (!should_skip(value)) { result[field] = value; }
         },
-        [&result](std::string const& field, std::string_view value) {
-            result[field] = std::string{value.begin(), value.end()};
-        },
-        [&result](std::string const& field, std::string value) {
-            result[field] = value;
-        },
-        [&result, &ctx](std::string const& field, Node const* value) {
-            llvm::SmallVector<char, 32> Str;
-            {
-                __perf_trace("sym", "Top demangle digest");
-                auto digest = demangle_digest(value);
-                llvm::MD5::stringifyResult(digest, Str);
+        [&](std::string const& field, std::string_view value) {
+            if (!should_skip(value)) {
+                result[field] = std::string{value.begin(), value.end()};
             }
-            llvm::StringRef StrRef{
-                Str.data(),
-                static_cast<size_t>(static_cast<int>(Str.size()))};
-
-            {
-                __perf_trace("sym", "Insert to digest parts");
-                if (!ctx.digest_parts.contains(StrRef)) {
-                    llvm::json::Value json_conv = nullptr;
-                    json_conv = demangle_to_json(value, ctx);
-                    {
-                        __perf_trace("sym", "Value insert");
-                        ctx.digest_parts.insert_or_assign(
-                            StrRef, std::move(json_conv));
-                    }
-                }
-                {
-                    __perf_trace("sym", "Increment counter");
-                    ++ctx.digest_counter[StrRef];
-                }
-            }
-
-
-            llvm::json::Object md_placeholder;
-            md_placeholder["kind"]  = "MD5Placeholder";
-            md_placeholder["Value"] = Str;
-            result[field]           = std::move(md_placeholder);
         },
-        [&result, &ctx](std::string const& field, NodeArray const& value) {
+        [&](std::string const& field, std::string value) {
+            if (!should_skip(value)) { result[field] = value; }
+        },
+        [&](std::string const& field, Node const* value) {
+            auto tmp = demangle_to_json(value, ctx);
+            if (!should_skip(tmp)) { result[field] = std::move(tmp); }
+        },
+        [&](std::string const& field, NodeArray const& value) {
             llvm::json::Array array;
             for (auto const& it : value) {
-                array.push_back(demangle_to_json(it, ctx));
+                auto tmp = demangle_to_json(it, ctx);
+                if (!should_skip(tmp)) { array.push_back(std::move(tmp)); }
             }
             if (!array.empty()) { result[field] = std::move(array); }
         },
-        [&result](std::string const& field, Qualifiers const& value) {
+        [&](std::string const& field, Qualifiers const& value) {
             llvm::json::Array array;
             if (value & Qualifiers::QualConst) {
                 array.push_back("QualConst");
@@ -390,84 +434,21 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
 
             if (!array.empty()) { result[field] = std::move(array); }
         },
-        [&result](std::string const& field, FunctionRefQual const& value) {
-            switch (value) {
-                case FunctionRefQual::FrefQualNone: break;
-                case FunctionRefQual::FrefQualLValue:
-                    result[field] = "FrefQualLValue";
-                    break;
-                case FunctionRefQual::FrefQualRValue:
-                    result[field] = "FrefQualRValue";
-                    break;
-                default: llvm_unreachable("unreacahable default");
-            }
+        [&](std::string const& field, FunctionRefQual const& value) {
+            result[field] = hstd::fmt1(value);
         },
-        [&result](std::string const& field, Node::Prec const& value) {
-            switch (value) {
-                    // clang-format off
-                case Node::Prec::Primary: result[field] = "Primary"; break;
-                case Node::Prec::Postfix: result[field] = "Postfix"; break;
-                case Node::Prec::Unary: result[field] = "Unary"; break;
-                case Node::Prec::Cast: result[field] = "Cast"; break;
-                case Node::Prec::PtrMem: result[field] = "PtrMem"; break;
-                case Node::Prec::Multiplicative: result[field] = "Multiplicative"; break;
-                case Node::Prec::Additive: result[field] = "Additive"; break;
-                case Node::Prec::Shift: result[field] = "Shift"; break;
-                case Node::Prec::Spaceship: result[field] = "Spaceship"; break;
-                case Node::Prec::Relational: result[field] = "Relational"; break;
-                case Node::Prec::Equality: result[field] = "Equality"; break;
-                case Node::Prec::And: result[field] = "And"; break;
-                case Node::Prec::Xor: result[field] = "Xor"; break;
-                case Node::Prec::Ior: result[field] = "Ior"; break;
-                case Node::Prec::AndIf: result[field] = "AndIf"; break;
-                case Node::Prec::OrIf: result[field] = "OrIf"; break;
-                case Node::Prec::Conditional: result[field] = "Conditional"; break;
-                case Node::Prec::Assign: result[field] = "Assign"; break;
-                case Node::Prec::Comma: result[field] = "Comma"; break;
-                    // clang-format on
-                default: llvm_unreachable("unreacahable default");
-            }
+        [&](std::string const& field, Node::Prec const& value) {
+            result[field] = hstd::fmt1(value);
         },
-        [&result](
-            std::string const& field, TemplateParamKind const& value) {
-            switch (value) {
-                case TemplateParamKind::Type:
-                    result[field] = "Type";
-                    break;
-                case TemplateParamKind::NonType:
-                    result[field] = "NonType";
-                    break;
-                case TemplateParamKind::Template:
-                    result[field] = "Template";
-                    break;
-                default: llvm_unreachable("unreacahable default");
-            }
+        [&](std::string const& field, TemplateParamKind const& value) {
+            result[field] = hstd::fmt1(value);
         },
-        [&result](std::string const& field, SpecialSubKind const& value) {
-            switch (value) {
-                    // clang-format off
-                case SpecialSubKind::allocator: result[field] = "allocator"; break;
-                case SpecialSubKind::basic_string: result[field] = "basic_string"; break;
-                case SpecialSubKind::string: result[field] = "string"; break;
-                case SpecialSubKind::istream: result[field] = "istream"; break;
-                case SpecialSubKind::ostream: result[field] = "ostream"; break;
-                case SpecialSubKind::iostream: result[field] = "iostream"; break;
-                    // clang-format on
-                default: llvm_unreachable("unreacahable default");
-            }
+        [&](std::string const& field, SpecialSubKind const& value) {
+            result[field] = hstd::fmt1(value);
         },
-        [&result](
-            std::string const&                           field,
-            llvm::itanium_demangle::ReferenceKind const& RK) {
-            switch (RK) {
-                case llvm::itanium_demangle::ReferenceKind::LValue:
-                    result[field] = "LValue";
-                    break;
-                case llvm::itanium_demangle::ReferenceKind::RValue:
-                    result[field] = "RValue";
-                    break;
-                default: llvm_unreachable("unreacahable default");
-            }
+        [&](std::string const&                           field,
+            llvm::itanium_demangle::ReferenceKind const& value) {
+            result[field] = hstd::fmt1(value);
         },
     };
 
@@ -476,16 +457,83 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
     return result;
 }
 
-llvm::json::Object parseBinarySymbolName(
+BinarySymComponentId demangle_to_db(
+    Node const*               node,
+    BinarySymbolVisitContext& ctx,
+    BinaryFileDB&             db) {
+    if (node == nullptr) { return BinarySymComponentId::Nil(); }
+
+    std::string Kind = std::string{boost::describe::enum_to_string(
+        static_cast<KindProxy>(node->getKind()), "<none>")};
+
+    BinarySymComponent              comp;
+    hstd::Vec<BinarySymComponentId> nested;
+
+    using BSF = BinarySymField;
+    using Res = std::optional<BinarySymField>;
+
+    auto visit_value = hstd::overloaded{
+        [&](std::string_view value) -> Res {
+            return BSF{std::string{value.begin(), value.end()}};
+        },
+        [&](std::string value) -> Res { return BSF{value}; },
+        [&](bool const& value) -> Res { return BSF{hstd::fmt1(value)}; },
+        [&](Node const* value) -> Res {
+            nested.push_back(demangle_to_db(value, ctx, db));
+            return std::nullopt;
+        },
+        [&](NodeArray const& value) -> Res {
+            for (auto const& it : value) {
+                nested.push_back(demangle_to_db(it, ctx, db));
+            }
+            return std::nullopt;
+        },
+        [&](Qualifiers const& value) -> Res {
+            return BSF{hstd::fmt1(value)};
+        },
+        [&](FunctionRefQual const& value) -> Res {
+            return BSF{hstd::fmt1(value)};
+        },
+        [&](Node::Prec const& value) -> Res {
+            return BSF{hstd::fmt1(value)};
+        },
+        [&](TemplateParamKind const& value) -> Res {
+            return BSF{hstd::fmt1(value)};
+        },
+        [&](SpecialSubKind const& value) -> Res {
+            return BSF{hstd::fmt1(value)};
+        },
+        [&](llvm::itanium_demangle::ReferenceKind const& value) -> Res {
+            return BSF{hstd::fmt1(value)};
+        },
+    };
+
+    auto sub = [&](std::string const& field, auto const& value) {
+        auto info = visit_value(value);
+        if (info) {
+            comp.head_direct_fields.insert_or_assign(field, info.value());
+        }
+    };
+
+    visit_node_fields(node, sub);
+    auto res = db.symbol_components.add(comp);
+    if (!nested.empty()) {
+        db.nested_symbols.insert_or_assign(res, nested);
+    }
+    return res;
+}
+
+BinarySymComponentId parseBinarySymbolName(
     std::string const&        name,
+    BinaryFileDB&             db,
     BinarySymbolVisitContext& ctx) {
-    Demangler         Parser(name.data(), name.data() + name.size());
-    Node*             AST  = Parser.parse();
-    llvm::json::Value repr = nullptr;
+    Demangler Parser(name.data(), name.data() + name.size());
+    Node*     AST = Parser.parse();
     __perf_trace("sym", "Parse binary symbol");
+    BinarySymComponentId res = BinarySymComponentId::Nil();
     {
         __perf_trace("sym", "Demangle to JSON", "name", name);
-        repr = demangle_to_json(AST, ctx);
+        res = demangle_to_db(AST, ctx, db);
     }
 
     // In some cases LLVM fails to demangle itanium names for
@@ -496,16 +544,170 @@ llvm::json::Object parseBinarySymbolName(
     // seems to be a LLVM issue.
     if (AST == nullptr && name.contains("$_") && name.contains("cl")
         && name.contains('K')) {
-        llvm::json::Object repr;
-        repr["NodeKind"] = "LambdaDemangleFail";
-        repr["Name"]     = name;
-        return repr;
+        // pass
     } else if (AST == nullptr) {
-        llvm::json::Object repr;
-        repr["NodeKind"] = "GeneralDemangleFail";
-        repr["Name"]     = name;
-        return repr;
-    } else {
-        return std::move(*repr.getAsObject());
+        // pass
     }
+
+    return res;
+}
+
+
+std::size_t std::hash<BinarySymComponent>::operator()(
+    const BinarySymComponent& it) const noexcept {
+    std::size_t result = 0;
+    hstd::hax_hash_combine(result, it.binary_sym_kind);
+
+    std::vector<std::string> sorted_keys;
+    for (auto const& [key, value] : it.head_direct_fields) {
+        sorted_keys.emplace_back(key);
+    }
+    std::sort(sorted_keys.begin(), sorted_keys.end());
+
+    for (auto const& key : sorted_keys) {
+        hstd::hax_hash_combine(result, key);
+        hstd::hax_hash_combine(result, it.head_direct_fields.at(key));
+    }
+
+    return result;
+}
+
+
+std::size_t std::hash<BinarySymField>::operator()(
+    const BinarySymField& it) const noexcept {
+    return std::visit(
+        [](auto const& val) {
+            return std::hash<std::decay_t<decltype(val)>>{}(val);
+        },
+        it.value);
+}
+
+bool BinarySymComponent::operator==(
+    const BinarySymComponent& other) const noexcept {
+    if (binary_sym_kind != other.binary_sym_kind) { return false; }
+
+    if (head_direct_fields.size() != other.head_direct_fields.size()) {
+        return false;
+    }
+
+    std::vector<std::string> lhs_keys;
+    for (auto const& [key, value] : head_direct_fields) {
+        lhs_keys.emplace_back(key);
+    }
+    std::sort(lhs_keys.begin(), lhs_keys.end());
+
+    std::vector<std::string> rhs_keys;
+    for (auto const& [key, value] : other.head_direct_fields) {
+        rhs_keys.emplace_back(key);
+    }
+    std::sort(rhs_keys.begin(), rhs_keys.end());
+
+    for (int i = 0; i < static_cast<int>(lhs_keys.size()); ++i) {
+        if (lhs_keys.at(i) != rhs_keys.at(i)) { return false; }
+        if (head_direct_fields.at(lhs_keys.at(i))
+            != other.head_direct_fields.at(rhs_keys.at(i))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+BinaryFileDB getSymbolsInBinary(const std::string& path) {
+    llvm::InitializeNativeTarget();
+    llvm::InitializeNativeTargetAsmParser();
+    llvm::InitializeNativeTargetAsmPrinter();
+    llvm::InitializeNativeTargetDisassembler();
+
+    BinaryFileDB db;
+
+    auto binaryOrErr = llvm::object::createBinary(path);
+    if (!binaryOrErr) { throw std::logic_error("Binary loading error"); }
+
+    llvm::object::OwningBinary<llvm::object::Binary> binary = std::move(
+        *binaryOrErr);
+    llvm::object::ObjectFile* obj = llvm::dyn_cast<
+        llvm::object::ObjectFile>(binary.getBinary());
+    if (!obj) { throw std::invalid_argument("Not an object file"); }
+
+    std::map<std::string, std::vector<BinarySymbolInfoId>> sectionSymbols;
+
+    int counter     = 0;
+    int min_counter = 0;
+    int max_counter = INT_MAX;
+
+    auto sym_min = std::getenv("REFLECTION_TOOL_SYM_MIN");
+    if (sym_min) { min_counter = std::atoi(sym_min); }
+
+    auto sym_max = std::getenv("REFLECTION_TOOL_SYM_MAX");
+    if (sym_max) { max_counter = std::atoi(sym_max); }
+
+    BinarySymbolVisitContext ctx;
+
+    for (const auto& symAndSize : llvm::object::computeSymbolSizes(*obj)) {
+        ++counter;
+        if (counter < min_counter) { continue; }
+        if (max_counter < counter) { break; }
+
+        const llvm::object::SymbolRef& symbol = symAndSize.first;
+        uint64_t                       size   = symAndSize.second;
+        if (size == 0) { continue; }
+        llvm::Expected<llvm::StringRef> nameOrErr = symbol.getName();
+        if (!nameOrErr) {
+            consumeError(nameOrErr.takeError());
+            continue;
+        }
+        std::string name = nameOrErr->str();
+
+
+        llvm::Expected<uint64_t> addressOrErr = symbol.getAddress();
+        if (!addressOrErr) {
+            consumeError(addressOrErr.takeError());
+            continue;
+        }
+        uint64_t address = *addressOrErr;
+
+        llvm::Expected<llvm::object::section_iterator>
+            sectionOrErr = symbol.getSection();
+        if (!sectionOrErr) {
+            consumeError(sectionOrErr.takeError());
+            continue;
+        }
+        llvm::object::section_iterator section = *sectionOrErr;
+        std::string                    sectionName;
+        if (section != obj->section_end()) {
+            llvm::Expected<llvm::StringRef>
+                sectionNameOrErr = section->getName();
+            if (sectionNameOrErr) {
+                sectionName = sectionNameOrErr->str();
+            }
+        }
+
+        std::string demangled = llvm::demangle(name);
+
+        BinarySymbolInfo info{
+            .name      = name,
+            .demangled = demangled,
+            .head      = parseBinarySymbolName(name, db, ctx),
+            .size      = size,
+            .address   = address,
+        };
+
+        // std::cout << llvm::formatv(
+        //                  "[]>>> {0} {1}\n{2:2}\n",
+        //                  counter,
+        //                  demangled,
+        //                  llvm::json::Value(
+        //                      llvm::json::Object(info.demangled_parse)))
+        //                  .str();
+
+        sectionSymbols[sectionName].push_back(db.symbols.add(info));
+    }
+
+    for (const auto& [sectionName, symbols] : sectionSymbols) {
+        db.sections.push_back({sectionName, symbols});
+    }
+
+    return db;
 }
