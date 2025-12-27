@@ -56,6 +56,10 @@ target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
 target_compile_options(reflection_lib PRIVATE "-fPIC")
 set_target_properties(reflection_lib PROPERTIES CXX_STANDARD 20)
 
+if(${ORG_DISABLE_WARNINGS})
+  target_compile_options(reflection_lib PUBLIC "-Wno-everything")
+endif()
+
 # Binary can be used as a separate tool
 add_executable(reflection_tool clang_reflection_tool.cpp)
 set_target_properties(reflection_tool PROPERTIES CXX_STANDARD 20)

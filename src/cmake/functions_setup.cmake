@@ -41,12 +41,14 @@ function(set_target_flags_impl)
     endif()
   endif()
 
-  if (${ORG_USE_SARIF})
+  if(${ORG_USE_SARIF})
     # Specify output file for the sarif report
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fdiagnostics-format=sarif")
   endif()
 
-  if(${ORG_BUILD_ASSUME_CLANG})
+  if(${ORG_DISABLE_WARNINGS})
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-everything")
+  elseif(${ORG_BUILD_ASSUME_CLANG})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")

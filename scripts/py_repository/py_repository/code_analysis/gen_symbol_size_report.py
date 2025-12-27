@@ -50,6 +50,10 @@ class BinarySymbol(Base):
     Size = IntColumn()
     Address = IntColumn()
     Section = ForeignId("BinarySection.Id")
+    File = StrColumn(nullable=True)
+    Line = IntColumn(nullable=True)
+    Column = IntColumn(nullable=True)
+    function = StrColumn(nullable=True)
 
 
 @beartype
@@ -107,8 +111,12 @@ def generate_symbol_size_report(ctx: TaskContext) -> None:
             grouped_symbols[head.Id] = []
         grouped_symbols[head.Id].append((symbol, head))
 
+    sorted_groups = sorted(grouped_symbols.items(),
+                           key=lambda item: sum(symbol.Size for symbol, _ in item[1]),
+                           reverse=True)
+
     with open(ctx.config.binary_size_conf.report_path, "w") as f:
-        for head_id, symbols_and_heads in grouped_symbols.items():
+        for head_id, symbols_and_heads in sorted_groups:
             head = symbols_and_heads[0][1]
             symbols = [s for s, _ in symbols_and_heads]
 
@@ -117,9 +125,14 @@ def generate_symbol_size_report(ctx: TaskContext) -> None:
 
             f.write(f"ID:{head_id} KIND:{head.Kind}\n")
             for line in json.dumps(head.Fields, indent=2).split("\n"):
-                f.write(f"  {line}\n")    
+                f.write(f"  {line}\n")
             f.write(f"  total_size = {total_size}\n")
             f.write(f"  average_size = {average_size}\n")
 
             for symbol in symbols:
-                f.write(f"  {symbol.Size} {symbol.Demangled}\n")
+                f.write(f"  {symbol.Size}")
+                if symbol.File and symbol.Line:
+                    f.write(f" \"{symbol.File}\":{symbol.Line}")
+
+                f.write(f" {symbol.Demangled}\n")
+                    

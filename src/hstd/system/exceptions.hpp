@@ -11,14 +11,16 @@
 
 namespace hstd {
 
-template <typename Derived>
-struct CRTP_hexception
-    :
+template <
+    typename Derived,
 #if ORG_EMCC_BUILD
-    std::exception
+    typename BaseException = std::exception
 #else
-    cpptrace::lazy_exception
+    typename BaseException = cpptrace::lazy_exception
 #endif
+    >
+struct CRTP_hexception
+    : BaseException
     , CRTP_this_method<Derived> {
     std::string msg;
     int         line;
@@ -72,10 +74,24 @@ struct CRTP_hexception
 #endif
 };
 
+struct invalid_argument : CRTP_hexception<invalid_argument> {};
 
-struct logic_assertion_error : CRTP_hexception<logic_assertion_error> {};
-struct logic_unreachable_error : CRTP_hexception<logic_assertion_error> {};
-struct out_of_range_error : CRTP_hexception<out_of_range_error> {};
+struct logic_error : CRTP_hexception<logic_error> {};
+struct logic_assertion_error
+    : CRTP_hexception<logic_assertion_error, logic_error> {};
+struct logic_unreachable_error
+    : CRTP_hexception<logic_unreachable_error, logic_error> {};
+
+struct range_error : CRTP_hexception<range_error> {};
+
+struct runtime_error : CRTP_hexception<runtime_error> {};
+
+struct domain_error : CRTP_hexception<domain_error> {};
+
+struct getter_error : CRTP_hexception<getter_error, invalid_argument> {};
+struct key_error : CRTP_hexception<key_error, invalid_argument> {};
+struct unexpected_kind_error
+    : CRTP_hexception<unexpected_kind_error, domain_error> {};
 
 #define LOGIC_ASSERTION_CHECK_FMT(expr, message_fmt, ...)                 \
     if (!(expr)) {                                                        \
@@ -97,12 +113,4 @@ struct out_of_range_error : CRTP_hexception<out_of_range_error> {};
 inline void assert_has_idx(int size, int wanted, std::string failure) {
     if (!(wanted < size)) { throw std::range_error(failure); }
 }
-
-struct GetterError : CRTP_hexception<GetterError> {};
-struct KeyError : CRTP_hexception<KeyError> {};
-struct LogicError : CRTP_hexception<LogicError> {};
-struct UnexpectedKindError : CRTP_hexception<UnexpectedKindError> {};
-struct RangeError : CRTP_hexception<RangeError> {};
-
-
 } // namespace hstd

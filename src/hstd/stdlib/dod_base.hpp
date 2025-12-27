@@ -156,7 +156,7 @@ struct [[nodiscard]] Id {
     /// from the `getValue()`
     auto getIndex() const -> IdType {
         if (isNil()) {
-            throw RangeError::init(
+            throw hstd::range_error::init(
                 "Cannot get index for nil value of DOD ID");
         } else {
             return (getUnmasked() - 1);

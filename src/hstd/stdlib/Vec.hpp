@@ -43,17 +43,17 @@ struct IndexedBase : public CRTP_this_method<Container> {
     /// \brief helper assertion to fail if the vector is empty.
     void failEmpty() const {
         if (_this()->empty()) {
-            throw out_of_range_error::init(
+            throw hstd::range_error::init(
                 "Operation does not work with an empty vector");
         }
     }
 
     void checkIdx(int idx) const {
         if (idx < 0) {
-            throw out_of_range_error::init(
+            throw hstd::range_error::init(
                 "Operation does not support negative indices");
         } else if (!(idx < _this()->size())) {
-            throw out_of_range_error::init(
+            throw hstd::range_error::init(
                 std::string("Value out of range. idx < size(): ")
                 + std::to_string(idx) + std::string(" !< ")
                 + std::to_string(_this()->size()));
@@ -556,7 +556,6 @@ static_assert(
     "Vector size must be identical");
 
 
-
 template <typename Indexable>
 struct std_indexable_hash {
     std::size_t operator()(Indexable const& it) const noexcept {
@@ -582,7 +581,6 @@ struct value_metadata<Vec<T>> {
              + std::string{">"};
     }
 };
-
 
 
 } // namespace hstd

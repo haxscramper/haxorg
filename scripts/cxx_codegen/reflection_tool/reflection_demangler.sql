@@ -6,6 +6,10 @@ CREATE TABLE "BinarySymbol" (
   "Size" INTEGER NOT NULL,
   "Address" INTEGER NOT NULL,
   "Section" INTEGER NOT NULL, 
+  "File" VARCHAR,
+  "Line" INTEGER,
+  "Column" INTEGER,
+  "Function" VARCHAR,
   PRIMARY KEY("Id"),
   FOREIGN KEY("DemangledHeadId") REFERENCES "DemangledHead" ("Id"),
   FOREIGN KEY("Section") REFERENCES "BinarySection" ("Id")

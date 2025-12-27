@@ -103,6 +103,13 @@ def build_haxorg(ctx: TaskContext) -> None:
         run_command(ctx, "poetry", ["install", "--no-root", "--only", "haxorg"])
 
 
+@haxorg_task()
+def build_reflection_tool(ctx: TaskContext) -> None:
+    conf_copy = ctx.config.model_copy(deep=True)
+    conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
+    conf_copy.build_conf.force = True
+    build_haxorg(ctx=ctx.with_temp_config(conf_copy))
+
 @haxorg_task(dependencies=[build_haxorg])
 def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:
     """Install haxorg targets in the build directory"""

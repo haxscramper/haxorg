@@ -1,45 +1,54 @@
-#include <llvm/Support/VirtualFileSystem.h>
-#include <llvm/ProfileData/InstrProfReader.h>
-#include <llvm/Support/Error.h>
-#include <llvm/Support/JSON.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/CommandLine.h>
+
+#include <llvm/ADT/Hashing.h>
+#include <llvm/ADT/SmallBitVector.h>
+#include <llvm/DebugInfo/DWARF/DWARFContext.h>
+#include <llvm/DebugInfo/Symbolize/Symbolize.h>
+#include <llvm/Demangle/Demangle.h>
+#include <llvm/Demangle/Demangle.h>
+#include <llvm/Demangle/ItaniumDemangle.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IRReader/IRReader.h>
-#include <llvm/Support/SourceMgr.h>
-#include <llvm/Support/Regex.h>
+#include <llvm/Object/Archive.h>
+#include <llvm/Object/Binary.h>
+#include <llvm/Object/ObjectFile.h>
+#include <llvm/Object/SymbolSize.h>
+#include <llvm/Object/SymbolSize.h>
+#include <llvm/ProfileData/Coverage/CoverageMappingReader.h>
+#include <llvm/ProfileData/InstrProfReader.h>
 #include <llvm/ProfileData/InstrProfReader.h>
 #include <llvm/ProfileData/InstrProfWriter.h>
-#include <llvm/ProfileData/Coverage/CoverageMappingReader.h>
-#include <boost/describe.hpp>
-#include <llvm/ADT/Hashing.h>
-#include <hstd/stdlib/Formatter.hpp>
-#include <absl/hash/hash.h>
-#include <hstd/system/aux_utils.hpp>
-#include <llvm/ADT/SmallBitVector.h>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <llvm/Demangle/Demangle.h>
-#include <llvm/Demangle/ItaniumDemangle.h>
+#include <llvm/Support/CommandLine.h>
+#include <llvm/Support/Error.h>
+#include <llvm/Support/Error.h>
+#include <llvm/Support/JSON.h>
 #include <llvm/Support/MD5.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Regex.h>
+#include <llvm/Support/SourceMgr.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/VirtualFileSystem.h>
+
+#include <absl/hash/hash.h>
+#include <absl/log/log.h>
+#include <boost/describe.hpp>
 
 #include <hstd/ext/perfetto_aux.hpp>
-#include <absl/log/log.h>
-
+#include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Object/SymbolSize.h>
-#include <llvm/Support/Error.h>
-#include <llvm/Support/raw_ostream.h>
+#include <hstd/system/aux_utils.hpp>
+#include <hstd/system/macros.hpp>
 
 #include "clang_reflection_demangler.hpp"
 #include "clang_reflection_perf.hpp"
-#include "hstd/stdlib/Enumerate.hpp"
-#include "hstd/stdlib/algorithms.hpp"
+
 
 using namespace llvm::itanium_demangle;
 
@@ -335,7 +344,6 @@ NO_COVERAGE void visit_node_fields(Node const* node, Func const& sub) {
         case K::KQualType: { K_CAST(QualType); K_FIELD(Child, 0, NPtr); K_FIELD(Quals, 1, Qualifiers); break; }
         case K::KReferenceType: { K_CAST(ReferenceType); K_FIELD(Pointee, 0, NPtr); K_FIELD(RK, 1, llvm::itanium_demangle::ReferenceKind); break; }
         case K::KIntegerLiteral: { K_CAST(IntegerLiteral); K_FIELD(Type, 0, std::string_view); K_FIELD(Value, 1, std::string_view); break; }
-        case K::KNameWithTemplateArgs: { K_CAST(NameWithTemplateArgs); K_FIELD(Name, 0, NPtr); K_FIELD(TemplateArgs, 1, NPtr); break; }
         case K::KCtorDtorName: { K_CAST(CtorDtorName); K_FIELD(Basename, 0, NPtr); K_FIELD(IsDtor, 1, bool); K_FIELD(Variant, 2, int); break; }
         case K::KInitListExpr: { K_CAST(InitListExpr); K_FIELD(Ty, 0, NPtr); K_FIELD(Inits, 1, NodeArray); break; }
         case K::KTemplateParamQualifiedArg: { K_CAST(TemplateParamQualifiedArg); K_FIELD(Param, 0, NPtr); K_FIELD(Arg, 1, NPtr); break; }
@@ -348,10 +356,16 @@ NO_COVERAGE void visit_node_fields(Node const* node, Func const& sub) {
         case K::KExprRequirement: { K_CAST(ExprRequirement); K_FIELD(Expr, 0, NPtr); K_FIELD(IsNoexcept, 1, bool); K_FIELD(TypeConstraint, 2, NPtr); break; }
         case K::KTransformedType: { K_CAST(TransformedType); K_FIELD(Transform, 0, std::string_view); K_FIELD(BaseType, 1, NPtr); break; }
             // clang-format on
+        case K::KNameWithTemplateArgs: {
+            K_CAST(NameWithTemplateArgs);
+            K_FIELD(Name, 0, NPtr, head_attached_rec.with_depth(2));
+            K_FIELD(TemplateArgs, 1, NPtr);
+            break;
+        }
         case K::KFunctionEncoding: {
             K_CAST(FunctionEncoding);
             K_FIELD(Ret, 0, NPtr);
-            K_FIELD(Name, 1, NPtr, head_attached_rec.with_depth(1));
+            K_FIELD(Name, 1, NPtr, head_attached_rec.with_depth(2));
             K_FIELD(Params, 2, NodeArray);
             K_FIELD(Attrs, 3, NPtr);
             K_FIELD(Requires, 4, NPtr);
@@ -361,8 +375,8 @@ NO_COVERAGE void visit_node_fields(Node const* node, Func const& sub) {
         }
         case K::KNestedName: {
             K_CAST(NestedName);
-            K_FIELD(Qual, 0, NPtr, head_attached_rec.with_depth(1));
-            K_FIELD(Name, 1, NPtr, head_attached_rec.with_depth(1));
+            K_FIELD(Qual, 0, NPtr, head_attached_rec.with_depth(2));
+            K_FIELD(Name, 1, NPtr, head_attached_rec.with_depth(2));
             break;
         }
     }
@@ -785,6 +799,119 @@ bool BinarySymComponent::operator==(
     return true;
 }
 
+namespace {
+
+struct BinaryFileCtx {
+    int counter     = 0;
+    int min_counter = 0;
+    int max_counter = INT_MAX;
+    // Aggregate sections across all processed object files (including
+    // archive members)
+    std::map<std::string, std::vector<BinarySymbolInfoId>> sectionSymbols;
+    BinaryFileDB                                           db;
+    BinarySymbolVisitContext                               ctx;
+};
+
+void processObjectFile(
+    llvm::object::ObjectFile&         obj,
+    const std::optional<std::string>& objectLabel,
+    BinaryFileCtx&                    ctx) {
+    // Create DWARF context once per object file (cheap enough, and
+    // avoids per-symbol reparse)
+    std::unique_ptr<llvm::DWARFContext> dwarf = llvm::DWARFContext::create(
+        obj);
+
+    llvm::DILineInfoSpecifier spec;
+    spec.FNKind = llvm::DILineInfoSpecifier::FunctionNameKind::LinkageName;
+    spec.FLIKind = llvm::DILineInfoSpecifier::FileLineInfoKind::
+        AbsoluteFilePath;
+
+    for (const auto& symAndSize : llvm::object::computeSymbolSizes(obj)) {
+        __perf_trace("sym", "Process symbol");
+        ++ctx.counter;
+        if (ctx.counter < ctx.min_counter) { continue; }
+        if (ctx.max_counter < ctx.counter) { break; }
+
+        const llvm::object::SymbolRef& symbol = symAndSize.first;
+        uint64_t                       size   = symAndSize.second;
+        if (size == 0) { continue; }
+
+        auto nameOrErr = symbol.getName();
+        if (!nameOrErr) {
+            consumeError(nameOrErr.takeError());
+            continue;
+        }
+        std::string name = nameOrErr->str();
+
+        auto addressOrErr = symbol.getAddress();
+        if (!addressOrErr) {
+            consumeError(addressOrErr.takeError());
+            continue;
+        }
+        uint64_t address = *addressOrErr;
+
+        // Section name (optional)
+        std::string sectionName;
+        auto        sectionOrErr = symbol.getSection();
+        if (sectionOrErr) {
+            llvm::object::section_iterator section = *sectionOrErr;
+            if (section != obj.section_end()) {
+                if (auto sectionNameOrErr = section->getName()) {
+                    sectionName = sectionNameOrErr->str();
+                } else {
+                    consumeError(sectionNameOrErr.takeError());
+                }
+            }
+        } else {
+            consumeError(sectionOrErr.takeError());
+        }
+
+        std::string demangled = llvm::demangle(name);
+
+        BinarySymbolInfo info{
+            .name      = name,
+            .demangled = demangled,
+            .head      = parseBinarySymbolName(name, ctx.db, ctx.ctx),
+            .size      = size,
+            .address   = address,
+        };
+
+
+        // Debug location (DWARF): best-effort. Mostly meaningful
+        // for code symbols. Skip undefined symbols or zero
+        // addresses to avoid junk lookups.
+        bool isUndef = false;
+        if (auto flagsOrErr = symbol.getFlags()) {
+            isUndef = ((*flagsOrErr)
+                       & llvm::object::SymbolRef::SF_Undefined)
+                   != 0;
+
+        } else {
+            consumeError(flagsOrErr.takeError());
+        }
+
+
+        if (!isUndef && address != 0) {
+            llvm::object::SectionedAddress sa;
+            sa.Address = address;
+
+
+            llvm::DILineInfo li = dwarf->getLineInfoForAddress(sa, spec);
+            if (li.Line != 0 && !li.FileName.empty()) {
+                BinarySymbolDebugLocation loc;
+                loc.file     = li.FileName;
+                loc.line     = li.Line;
+                loc.column   = li.Column;
+                loc.function = li.FunctionName;
+                info.debug   = std::move(loc);
+            }
+        }
+
+        ctx.sectionSymbols[sectionName].push_back(
+            ctx.db.symbols.add(info));
+    }
+}
+} // namespace
 
 BinaryFileDB getSymbolsInBinary(const std::string& path) {
     __perf_trace("sym", "Get symbols in binary");
@@ -793,91 +920,69 @@ BinaryFileDB getSymbolsInBinary(const std::string& path) {
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetDisassembler();
 
-    BinaryFileDB db;
-
     auto binaryOrErr = llvm::object::createBinary(path);
-    if (!binaryOrErr) { throw std::logic_error("Binary loading error"); }
+    if (!binaryOrErr) {
+        auto errorMsg = llvm::toString(binaryOrErr.takeError());
+        throw hstd::runtime_error::init(
+            std::format("Binary loading error: {}", errorMsg));
+    }
 
     llvm::object::OwningBinary<llvm::object::Binary> binary = std::move(
         *binaryOrErr);
-    llvm::object::ObjectFile* obj = llvm::dyn_cast<
-        llvm::object::ObjectFile>(binary.getBinary());
-    if (!obj) { throw std::invalid_argument("Not an object file"); }
+    llvm::object::Binary* bin = binary.getBinary();
 
-    std::map<std::string, std::vector<BinarySymbolInfoId>> sectionSymbols;
+    BinaryFileCtx ctx{};
 
-    int counter     = 0;
-    int min_counter = 0;
-    int max_counter = INT_MAX;
+    if (auto sym_min = std::getenv("REFLECTION_TOOL_SYM_MIN")) {
+        ctx.min_counter = std::atoi(sym_min);
+    }
+    if (auto sym_max = std::getenv("REFLECTION_TOOL_SYM_MAX")) {
+        ctx.max_counter = std::atoi(sym_max);
+    }
 
-    auto sym_min = std::getenv("REFLECTION_TOOL_SYM_MIN");
-    if (sym_min) { min_counter = std::atoi(sym_min); }
+    // Dispatch based on binary kind
+    if (auto* obj = llvm::dyn_cast<llvm::object::ObjectFile>(bin)) {
+        processObjectFile(*obj, /*objectLabel=*/path, ctx);
+    } else if (auto* arch = llvm::dyn_cast<llvm::object::Archive>(bin)) {
+        llvm::Error err = llvm::Error::success();
+        for (auto const& child : arch->children(err)) {
+            std::optional<std::string> memberLabel;
 
-    auto sym_max = std::getenv("REFLECTION_TOOL_SYM_MAX");
-    if (sym_max) { max_counter = std::atoi(sym_max); }
+            if (auto nameOrErr = child.getName()) {
+                // Label like: "libfoo.a(member.o)"
+                memberLabel = path + "(" + nameOrErr->str() + ")";
+            } else {
+                consumeError(nameOrErr.takeError());
+                memberLabel = path + "(<unknown-member>)";
+            }
 
-    BinarySymbolVisitContext ctx;
+            auto childBinOrErr = child.getAsBinary();
+            if (!childBinOrErr) {
+                consumeError(childBinOrErr.takeError());
+                continue;
+            }
 
-    for (const auto& symAndSize : llvm::object::computeSymbolSizes(*obj)) {
-        __perf_trace("sym", "Process symbol");
-        ++counter;
-        if (counter < min_counter) { continue; }
-        if (max_counter < counter) { break; }
-
-        const llvm::object::SymbolRef& symbol = symAndSize.first;
-        uint64_t                       size   = symAndSize.second;
-        if (size == 0) { continue; }
-        llvm::Expected<llvm::StringRef> nameOrErr = symbol.getName();
-        if (!nameOrErr) {
-            consumeError(nameOrErr.takeError());
-            continue;
-        }
-        std::string name = nameOrErr->str();
-
-
-        llvm::Expected<uint64_t> addressOrErr = symbol.getAddress();
-        if (!addressOrErr) {
-            consumeError(addressOrErr.takeError());
-            continue;
-        }
-        uint64_t address = *addressOrErr;
-
-        llvm::Expected<llvm::object::section_iterator>
-            sectionOrErr = symbol.getSection();
-        if (!sectionOrErr) {
-            consumeError(sectionOrErr.takeError());
-            continue;
-        }
-        llvm::object::section_iterator section = *sectionOrErr;
-        std::string                    sectionName;
-        if (section != obj->section_end()) {
-            llvm::Expected<llvm::StringRef>
-                sectionNameOrErr = section->getName();
-            if (sectionNameOrErr) {
-                sectionName = sectionNameOrErr->str();
+            llvm::object::Binary* childBin = childBinOrErr->get();
+            if (auto* childObj = llvm::dyn_cast<llvm::object::ObjectFile>(
+                    childBin)) {
+                processObjectFile(*childObj, memberLabel, ctx);
+            } else {
+                // else: skip non-object members
             }
         }
-
-        std::string demangled = llvm::demangle(name);
-
-        BinarySymbolInfo info{
-            .name      = name,
-            .demangled = demangled,
-            .head      = parseBinarySymbolName(name, db, ctx),
-            .size      = size,
-            .address   = address,
-        };
-
-        sectionSymbols[sectionName].push_back(db.symbols.add(info));
+        if (err) { consumeError(std::move(err)); }
+    } else {
+        throw hstd::invalid_argument::init(
+            "Unsupported binary type (not ObjectFile or Archive)");
     }
 
-    for (const auto& [sectionName, symbols] : sectionSymbols) {
-        db.sections.push_back({sectionName, symbols});
+    // Build db.sections from accumulated map
+    for (const auto& [sectionName, symbols] : ctx.sectionSymbols) {
+        ctx.db.sections.push_back({sectionName, symbols});
     }
 
-    return db;
+    return ctx.db;
 }
-
 
 NO_COVERAGE void CreateTables(SQLite::Database& db) {
     auto path = hstd::fs::path{__FILE__}.parent_path()
@@ -960,6 +1065,10 @@ struct queries {
                     "Size",            // 5
                     "Address",         // 6
                     "Section",         // 7
+                    "File",            // 8
+                    "Line",            // 9
+                    "Column",          // 10
+                    "Function",        // 11
                 }))
     //
     {};
@@ -1026,6 +1135,15 @@ NO_COVERAGE void BinaryFileDB::writeToFile(const std::string& path) {
             q.binary_symbol.bind(5, static_cast<int>(sym.size));
             q.binary_symbol.bind(6, static_cast<int>(sym.address));
             q.binary_symbol.bind(7, static_cast<int>(it.index()));
+            if (sym.debug) {
+                auto const& d = sym.debug.value();
+                q.binary_symbol.bind(8, d.file);
+                q.binary_symbol.bind(9, static_cast<int>(d.line));
+                q.binary_symbol.bind(10, static_cast<int>(d.column));
+                if (!d.function.empty()) {
+                    q.binary_symbol.bind(11, d.function);
+                }
+            }
             q.binary_symbol.exec();
             q.binary_symbol.reset();
         }

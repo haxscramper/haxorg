@@ -41,13 +41,25 @@ struct std::hash<BinarySymComponent> {
     std::size_t operator()(BinarySymComponent const& it) const noexcept;
 };
 
+struct BinarySymbolDebugLocation {
+    std::string file; // usually absolute path if available
+    uint32_t    line   = 0;
+    uint32_t    column = 0;
+    std::string function; // may be empty if unknown
+
+    DESC_FIELDS(BinarySymbolDebugLocation, (file, line, column, function));
+};
+
 struct BinarySymbolInfo {
-    std::string          name;
-    std::string          demangled;
-    BinarySymComponentId head;
-    uint64_t             size;
-    uint64_t             address;
-    DESC_FIELDS(BinarySymbolInfo, (name, demangled, head, size, address));
+    std::string                              name;
+    std::string                              demangled;
+    BinarySymComponentId                     head;
+    uint64_t                                 size;
+    uint64_t                                 address;
+    std::optional<BinarySymbolDebugLocation> debug;
+    DESC_FIELDS(
+        BinarySymbolInfo,
+        (name, demangled, head, size, address, debug));
 };
 
 DECL_ID_TYPE(BinarySymbolInfo, BinarySymbolInfoId, std::size_t);

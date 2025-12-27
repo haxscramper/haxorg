@@ -74,6 +74,7 @@ option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-par
 option(ORG_DEPS_USE_PYTHON_VERSION "" "3.13")
 option(ORG_BUILD_USE_NAPI_WRAPPER "" ON)
 option(ORG_USE_SARIF "Enable SARIF reporting for build" OFF)
+option(ORG_DISABLE_WARNINGS "Disable warnings in the build" OFF)
 
 if(${ORG_USE_TRACY} AND ${ORG_USE_PERFETTO})
   message(
