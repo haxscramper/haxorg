@@ -100,7 +100,6 @@ class HaxorgBinarySizeReportConfig(BaseModel, extra="forbid"):
     binary_path: Optional[str] = None
     output_db: Optional[str] = None
     perf_out: Optional[str] = None
-    report_path: Optional[str] = None
 
 
 import enum
@@ -125,6 +124,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     tasks: HaxorgTasksConfig = Field(default_factory=lambda: HaxorgTasksConfig())
     workflow_log_dir: Path = Field(
         default_factory=lambda: Path("/tmp/haxorg/workflow_log"))
+
+    workflow_out_dir: Path = Field(
+        default_factory=lambda: Path("/tmp/haxorg/workflow_out"))
 
     use_sarif: bool = Field(default=False)
     force_full_build: bool = Field(

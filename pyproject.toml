@@ -48,6 +48,7 @@ shapely = "^2.1.2"
 scikit-learn = "^1.7.2"
 glom = "^24.11.0"
 docker = "^7.1.0"
+squarify = "^0.4.4"
 
 [tool.poetry.group.local.dependencies]
 py_haxorg_gui = {path = "./scripts/py_haxorg_gui", develop = true}

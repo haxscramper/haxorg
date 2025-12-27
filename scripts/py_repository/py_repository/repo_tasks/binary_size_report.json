@@ -2,7 +2,6 @@
   "binary_size_conf": {
     "binary_path": "/home/haxscramper/workspace/haxorg/build/haxorg_debug_qt/tests_org",
     "output_db": "/tmp/haxorg/binary_sym.db",
-    "max_symbol_index": 500000,
-    "report_path": "/tmp/haxorg/binary_sym.txt"
+    "max_symbol_index": 5000
   }
 }
