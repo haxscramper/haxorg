@@ -174,12 +174,6 @@ class TreeNode:
     is_leaf: bool = False
 
 
-@dataclass
-class TreemapItem:
-    label: str
-    size: int
-
-
 @beartype
 def _normalize_and_collapse_path(path: str) -> list[str]:
     if not path:
@@ -257,62 +251,139 @@ def _collapse_single_child_nodes(tree: dict[str, TreeNode]) -> dict[str, TreeNod
     return collapsed
 
 
-@beartype
-def _generate_treemap_data(tree: dict[str, TreeNode]) -> list[TreemapItem]:
-    treemap_data: list[TreemapItem] = []
+@dataclass
+class TreemapRect:
+    label: str
+    size: int
+    depth: int
+    x: float
+    y: float
+    width: float
+    height: float
+    is_leaf: bool
+    has_children: bool
 
-    def traverse(nodes: dict[str, TreeNode], path: str = "") -> None:
-        for key, node in nodes.items():
+
+@beartype
+def _generate_treemap_data(tree: dict[str, TreeNode]) -> list[TreemapRect]:
+    treemap_rects: list[TreemapRect] = []
+
+    def compute_rects(nodes: dict[str, TreeNode],
+                      x: float,
+                      y: float,
+                      width: float,
+                      height: float,
+                      depth: int,
+                      path: str = "") -> None:
+        import squarify
+
+        if not nodes:
+            return
+
+        sizes = [node.size for node in nodes.values()]
+        total_size = sum(sizes)
+        if total_size == 0:
+            return
+
+        normalized_sizes = [s / total_size * width * height for s in sizes]
+        rects = squarify.squarify(normalized_sizes, x, y, width, height)
+
+        for (key, node), rect in zip(nodes.items(), rects):
             current_path = f"{path}/{key}" if path else key
             if key.startswith("line_"):
                 last_path = path.split("/")[-1]
                 current_label = f"{last_path}/{key[5:]}"
-
             else:
                 current_label = key
 
-            if node.is_leaf:
-                treemap_data.append(TreemapItem(label=current_label, size=node.size))
-            elif node.nested:
-                traverse(node.nested, current_path)
-            else:
-                treemap_data.append(TreemapItem(label=current_label, size=node.size))
+            treemap_rects.append(
+                TreemapRect(label=current_label,
+                            size=node.size,
+                            depth=depth,
+                            x=rect["x"],
+                            y=rect["y"],
+                            width=rect["dx"],
+                            height=rect["dy"],
+                            is_leaf=node.is_leaf,
+                            has_children=bool(node.nested)))
 
-    traverse(tree)
-    return treemap_data
+            if node.nested:
+                padding = 0.02 * min(rect["dx"], rect["dy"])
+                inner_x = rect["x"] + padding
+                inner_y = rect["y"] + padding
+                inner_width = rect["dx"] - 2 * padding
+                inner_height = rect["dy"] - 2 * padding
+
+                if 0 < inner_width and 0 < inner_height:
+                    compute_rects(node.nested, inner_x, inner_y, inner_width,
+                                  inner_height, depth + 1, current_path)
+
+    compute_rects(nodes=tree, x=0, y=0, width=100, height=100, depth=0)
+    return treemap_rects
 
 
 @beartype
-def _create_treemap_png(treemap_data: list[TreemapItem], output_path: Path) -> None:
+def _create_treemap_png(treemap_data: list[TreemapRect], output_path: Path) -> None:
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
-    import squarify
     import numpy as np
 
     if not treemap_data:
         return
 
-    total_size = sum(item.size for item in treemap_data)
-    if total_size == 0:
-        return
-
     plt.ioff()
     fig, ax = plt.subplots(figsize=(24, 16), dpi=150)
 
-    sizes = [item.size for item in treemap_data]
-    labels = [item.label for item in treemap_data]
+    max_depth = max(item.depth for item in treemap_data)
+    colormaps = [plt.cm.Set3, plt.cm.Pastel1, plt.cm.Pastel2, plt.cm.Set2, plt.cm.Accent]
 
-    colors = plt.cm.Set3(np.linspace(0, 1, len(treemap_data)))
+    depth_items: dict[int, list[TreemapRect]] = {}
+    for item in treemap_data:
+        if item.depth not in depth_items:
+            depth_items[item.depth] = []
+        depth_items[item.depth].append(item)
 
-    squarify.plot(
-        sizes=sizes,
-        label=labels,
-        color=colors,
-        alpha=0.7,
-        ax=ax,
-        pad=True,
-    )
+    sorted_rects = sorted(treemap_data, key=lambda r: r.depth)
 
+    for item in sorted_rects:
+        cmap = colormaps[item.depth % len(colormaps)]
+        items_at_depth = depth_items[item.depth]
+        idx = items_at_depth.index(item)
+        color = cmap(idx /
+                     max(1,
+                         len(items_at_depth) - 1) if 1 < len(items_at_depth) else 0.5)
+
+        alpha = 0.9 - (item.depth * 0.1)
+        alpha = max(0.3, alpha)
+
+        rect = patches.Rectangle((item.x, item.y),
+                                 item.width,
+                                 item.height,
+                                 linewidth=max(0.5, 2 - item.depth * 0.3),
+                                 edgecolor="black",
+                                 facecolor=color,
+                                 alpha=alpha)
+        ax.add_patch(rect)
+
+        min_dimension = min(item.width, item.height)
+        if 3 < min_dimension:
+            fontsize = max(4, min(10, min_dimension * 0.8))
+            label_text = item.label
+            if 8 < len(label_text) and min_dimension < 10:
+                label_text = label_text[:7] + "..."
+
+            text_y = item.y + item.height - fontsize * 0.15 if item.has_children else item.y + item.height / 2
+
+            ax.text(item.x + item.width / 2,
+                    text_y,
+                    label_text,
+                    ha="center",
+                    va="top" if item.has_children else "center",
+                    fontsize=fontsize,
+                    wrap=True)
+
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
     ax.set_title("Symbol Size Treemap", fontsize=14, pad=15)
     ax.axis("off")
 
