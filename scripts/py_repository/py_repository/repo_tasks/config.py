@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from beartype.typing import List, Optional, Generator
+from beartype.typing import List, Optional, Generator, Literal
 from contextlib import contextmanager
 import tempfile
 from pathlib import Path
