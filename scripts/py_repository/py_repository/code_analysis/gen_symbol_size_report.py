@@ -62,6 +62,7 @@ class BinarySymbol(Base):
 
 @beartype
 def generate_binary_size_db(ctx: TaskContext) -> None:
+    log(CAT).info("Updating database for symbol sizes")
     assert ctx.config.binary_size_conf.binary_path, "Missing input binary path for the binary size report"
     assert ctx.config.binary_size_conf.output_db, "Missing output DB for binary size conf"
 
@@ -172,6 +173,8 @@ class TreeNode:
     size: int
     nested: dict[str, "TreeNode"] = field(default_factory=dict)
     is_leaf: bool = False
+    path: Optional[str] = None
+    line: Optional[int] = None
 
 
 @beartype
@@ -212,7 +215,12 @@ def _build_tree_structure(
                 current[final_part] = TreeNode(size=0)
 
             line_key = f"line_{line}" if line > 0 else "line_unknown"
-            current[final_part].nested[line_key] = TreeNode(size=total_size, is_leaf=True)
+            current[final_part].nested[line_key] = TreeNode(
+                size=total_size,
+                is_leaf=True,
+                line=line,
+                path=file_path,
+            )
 
             node_dict = tree
             for part in path_parts:
@@ -252,145 +260,77 @@ def _collapse_single_child_nodes(tree: dict[str, TreeNode]) -> dict[str, TreeNod
 
 
 @dataclass
-class TreemapRect:
+class TreemapItem:
     label: str
+    parent: str
     size: int
-    depth: int
-    x: float
-    y: float
-    width: float
-    height: float
-    is_leaf: bool
-    has_children: bool
+
+    path: Optional[str]
+    line: Optional[int]
 
 
 @beartype
-def _generate_treemap_data(tree: dict[str, TreeNode]) -> list[TreemapRect]:
-    treemap_rects: list[TreemapRect] = []
+def _generate_treemap_data(tree: dict[str, TreeNode]) -> list[TreemapItem]:
+    treemap_data: list[TreemapItem] = []
 
-    def compute_rects(nodes: dict[str, TreeNode],
-                      x: float,
-                      y: float,
-                      width: float,
-                      height: float,
-                      depth: int,
-                      path: str = "") -> None:
-        import squarify
-
-        if not nodes:
-            return
-
-        sizes = [node.size for node in nodes.values()]
-        total_size = sum(sizes)
-        if total_size == 0:
-            return
-
-        normalized_sizes = [s / total_size * width * height for s in sizes]
-        rects = squarify.squarify(normalized_sizes, x, y, width, height)
-
-        for (key, node), rect in zip(nodes.items(), rects):
+    def traverse(nodes: dict[str, TreeNode], parent_label: str, path: str) -> None:
+        for key, node in nodes.items():
             current_path = f"{path}/{key}" if path else key
-            if key.startswith("line_"):
-                last_path = path.split("/")[-1]
-                current_label = f"{last_path}/{key[5:]}"
-            else:
-                current_label = key
 
-            treemap_rects.append(
-                TreemapRect(label=current_label,
-                            size=node.size,
-                            depth=depth,
-                            x=rect["x"],
-                            y=rect["y"],
-                            width=rect["dx"],
-                            height=rect["dy"],
-                            is_leaf=node.is_leaf,
-                            has_children=bool(node.nested)))
+            treemap_data.append(
+                TreemapItem(
+                    label=current_path,
+                    parent=parent_label,
+                    size=node.size,
+                    path=node.path,
+                    line=node.line,
+                ))
 
             if node.nested:
-                padding = 0.02 * min(rect["dx"], rect["dy"])
-                inner_x = rect["x"] + padding
-                inner_y = rect["y"] + padding
-                inner_width = rect["dx"] - 2 * padding
-                inner_height = rect["dy"] - 2 * padding
+                traverse(node.nested, current_path, current_path)
 
-                if 0 < inner_width and 0 < inner_height:
-                    compute_rects(node.nested, inner_x, inner_y, inner_width,
-                                  inner_height, depth + 1, current_path)
-
-    compute_rects(nodes=tree, x=0, y=0, width=100, height=100, depth=0)
-    return treemap_rects
+    treemap_data.append(TreemapItem(
+        label="",
+        parent="",
+        size=0,
+        path=None,
+        line=None,
+    ))
+    traverse(tree, "", "")
+    return treemap_data
 
 
 @beartype
-def _create_treemap_png(treemap_data: list[TreemapRect], output_path: Path) -> None:
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
-    import numpy as np
+def _create_treemap_html(treemap_data: list[TreemapItem], output_path: Path) -> None:
+    import plotly.graph_objects as go
 
     if not treemap_data:
         return
 
-    plt.ioff()
-    fig, ax = plt.subplots(figsize=(24, 16), dpi=150)
+    def get_text(item: TreemapItem) -> str:
+        if item.line and item.path:
+            res = f"{Path(item.path).stem}:{item.line}"
 
-    max_depth = max(item.depth for item in treemap_data)
-    colormaps = [plt.cm.Set3, plt.cm.Pastel1, plt.cm.Pastel2, plt.cm.Set2, plt.cm.Accent]
+        else:
+            res = Path(item.label).stem
 
-    depth_items: dict[int, list[TreemapRect]] = {}
-    for item in treemap_data:
-        if item.depth not in depth_items:
-            depth_items[item.depth] = []
-        depth_items[item.depth].append(item)
+        assert "/" not in res
+        return res
 
-    sorted_rects = sorted(treemap_data, key=lambda r: r.depth)
 
-    for item in sorted_rects:
-        cmap = colormaps[item.depth % len(colormaps)]
-        items_at_depth = depth_items[item.depth]
-        idx = items_at_depth.index(item)
-        color = cmap(idx /
-                     max(1,
-                         len(items_at_depth) - 1) if 1 < len(items_at_depth) else 0.5)
+    fig = go.Figure(
+        go.Treemap(labels=[item.label for item in treemap_data],
+                   parents=[item.parent for item in treemap_data],
+                   values=[item.size for item in treemap_data],
+                   text=[get_text(item) for item in treemap_data],
+                   branchvalues="total",
+                   textinfo="text+value",
+                   hovertemplate="<b>%{label}</b><br>Size: %{value}<extra></extra>",
+                   marker=dict(cornerradius=3)))
 
-        alpha = 0.9 - (item.depth * 0.1)
-        alpha = max(0.3, alpha)
+    fig.update_layout(title="Symbol Size Treemap", margin=dict(t=50, l=25, r=25, b=25))
 
-        rect = patches.Rectangle((item.x, item.y),
-                                 item.width,
-                                 item.height,
-                                 linewidth=max(0.5, 2 - item.depth * 0.3),
-                                 edgecolor="black",
-                                 facecolor=color,
-                                 alpha=alpha)
-        ax.add_patch(rect)
-
-        min_dimension = min(item.width, item.height)
-        if 3 < min_dimension:
-            fontsize = max(4, min(10, min_dimension * 0.8))
-            label_text = item.label
-            if 8 < len(label_text) and min_dimension < 10:
-                label_text = label_text[:7] + "..."
-
-            text_y = item.y + item.height - fontsize * 0.15 if item.has_children else item.y + item.height / 2
-
-            ax.text(item.x + item.width / 2,
-                    text_y,
-                    label_text,
-                    ha="center",
-                    va="top" if item.has_children else "center",
-                    fontsize=fontsize,
-                    wrap=True)
-
-    ax.set_xlim(0, 100)
-    ax.set_ylim(0, 100)
-    ax.set_title("Symbol Size Treemap", fontsize=14, pad=15)
-    ax.axis("off")
-
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=150, format="png")
-    plt.close(fig)
-    plt.ion()
+    fig.write_html(output_path)
 
 
 @beartype
@@ -428,6 +368,7 @@ def _create_tree_report(tree: dict[str, TreeNode], output_path: Path) -> None:
 
 @beartype
 def generate_symbol_size_report(ctx: TaskContext) -> None:
+    log(CAT).info("Generating binary symbol reports")
     assert ctx.config.binary_size_conf.output_db
     ensure_existing_dir(ctx, ctx.config.workflow_out_dir)
     session = open_sqlite_session(Path(ctx.config.binary_size_conf.output_db), Base)
@@ -448,6 +389,6 @@ def generate_symbol_size_report(ctx: TaskContext) -> None:
     _create_tree_report(collapsed_tree, report_path)
     log(CAT).info(f"Generated tree report: {report_path}")
 
-    treemap_path = ctx.config.workflow_out_dir / "symbol_treemap.png"
-    _create_treemap_png(treemap_data, treemap_path)
+    treemap_path = ctx.config.workflow_out_dir / "symbol_treemap.html"
+    _create_treemap_html(treemap_data, treemap_path)
     log(CAT).info(f"Generated treemap: {treemap_path}")

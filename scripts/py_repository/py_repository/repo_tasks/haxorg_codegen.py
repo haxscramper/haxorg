@@ -154,8 +154,9 @@ def merge_build_times(ctx: TaskContext) -> None:
 @haxorg_task()
 def generate_binary_size_report(ctx: TaskContext) -> None:
     from py_repository.code_analysis import gen_symbol_size_report as gsrs
-    build_reflection_tool(ctx=ctx)
-    gsrs.generate_binary_size_db(ctx)
+    if ctx.config.binary_size_conf.update_db:
+        build_reflection_tool(ctx=ctx)
+        gsrs.generate_binary_size_db(ctx)
     gsrs.generate_symbol_size_report(ctx)
 
 

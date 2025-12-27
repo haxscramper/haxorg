@@ -100,6 +100,7 @@ class HaxorgBinarySizeReportConfig(BaseModel, extra="forbid"):
     binary_path: Optional[str] = None
     output_db: Optional[str] = None
     perf_out: Optional[str] = None
+    update_db: bool = True
 
 
 import enum
