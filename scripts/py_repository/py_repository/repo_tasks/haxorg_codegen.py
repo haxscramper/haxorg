@@ -154,6 +154,13 @@ def merge_build_times(ctx: TaskContext) -> None:
         out_merge.model_dump_json(indent=2))
 
 
+@haxorg_task()
+def generate_binary_size_report(ctx: TaskContext) -> None:
+    from py_repository.code_analysis import gen_symbol_size_report as gsrs
+    gsrs.generate_binary_size_db(ctx)
+    gsrs.generate_symbol_size_report(ctx)
+
+
 @haxorg_task(dependencies=[generate_python_protobuf_files])
 def generate_include_graph(ctx: TaskContext) -> None:
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")

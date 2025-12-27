@@ -12,27 +12,27 @@ from datetime import datetime
 import py_scriptutils.json_utils as ju
 
 
-def IdColumn():
+def IdColumn() -> Column:
     return Column(Integer, primary_key=True, autoincrement=True)
 
 
-def ForeignId(name: str, nullable: bool = False):
+def ForeignId(name: str, nullable: bool = False) -> Column:
     return Column(Integer, ForeignKey(name), nullable=nullable)
 
 
-def IntColumn(nullable: bool = False):
+def IntColumn(nullable: bool = False) -> Column:
     return Column(Integer, nullable=nullable)
 
 
-def BoolColumn(nullable: bool = False):
+def BoolColumn(nullable: bool = False) -> Column:
     return Column(Boolean, nullable=nullable)
 
 
-def StrColumn(nullable: bool = False):
+def StrColumn(nullable: bool = False) -> Column:
     return Column(String, nullable=nullable)
 
 
-def DateTimeColumn(**kwargs):
+def DateTimeColumn(**kwargs: Any) -> Column:
     return Column(DateTime, **kwargs)
 
 
@@ -283,7 +283,7 @@ def dump_db_all(
 
 
 @beartype
-def open_sqlite(file: Path, base=None) -> Engine:
+def open_sqlite(file: Path, base: Any = None) -> Engine:
     engine = create_engine("sqlite:///" + str(file))
     if base:
         base.metadata.create_all(engine)
@@ -292,7 +292,7 @@ def open_sqlite(file: Path, base=None) -> Engine:
 
 
 @beartype
-def open_sqlite_session(file: Union[Path, Engine], base=None) -> Session:
+def open_sqlite_session(file: Union[Path, Engine], base: Any = None) -> Session:
     if isinstance(file, Engine):
         return sessionmaker()(bind=engine)
 

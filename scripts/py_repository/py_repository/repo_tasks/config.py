@@ -94,6 +94,15 @@ class HaxorgBuildDevelopDepsConfig(BaseModel, extra="forbid"):
     configure: bool = True
 
 
+class HaxorgBinarySizeReportConfig(BaseModel, extra="forbid"):
+    min_symbol_index: Optional[int] = None
+    max_symbol_index: Optional[int] = None
+    binary_path: Optional[str] = None
+    output_db: Optional[str] = None
+    perf_out: Optional[str] = None
+    report_path: Optional[str] = None
+
+
 import enum
 
 
@@ -118,7 +127,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
         default_factory=lambda: Path("/tmp/haxorg/workflow_log"))
 
     use_sarif: bool = Field(default=False)
-    force_full_build: bool = Field(default=False, description="Don't stop the build of the cmake targets on the first error")
+    force_full_build: bool = Field(
+        default=False,
+        description="Don't stop the build of the cmake targets on the first error")
 
     forceall: bool = Field(default=False)
     ci: bool = Field(default=False)
@@ -156,6 +167,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
     custom_docs_conf: HaxorgCustomDocsConfig = Field(
         default_factory=HaxorgCustomDocsConfig)
+
+    binary_size_conf: HaxorgBinarySizeReportConfig = Field(
+        default_factory=HaxorgBinarySizeReportConfig)
 
 
 # Variable.set("haxorg_config", HaxorgConfig().model_dump(), serialize_json=True)

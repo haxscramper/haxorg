@@ -154,7 +154,7 @@ def get_imm_serde(
 ) -> List[GenTuPass]:
     serde: List[GenTuStruct] = []
 
-    def aux(it):
+    def aux(it: Any)  -> None:
         match it:
             case GenTuStruct():
                 if it.IsAbstract:
@@ -200,7 +200,7 @@ def get_imm_serde(
                     )
                 ]
 
-                def field_aux(sub: GenTuStruct):
+                def field_aux(sub: GenTuStruct) -> None:
                     for field in sub.fields:
                         if not field.isStatic:
                             writer_body.append(
