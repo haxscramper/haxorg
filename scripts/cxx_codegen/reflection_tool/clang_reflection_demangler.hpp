@@ -16,7 +16,7 @@ struct BinarySymbolVisitContext {};
 DECL_ID_TYPE(BinarySymComponent, BinarySymComponentId, std::size_t);
 
 struct BinarySymField {
-    std::variant<int, std::string> value;
+    std::variant<int, std::string, llvm::json::Value> value;
 
     bool operator==(BinarySymField const& other) const noexcept {
         return value == other.value;

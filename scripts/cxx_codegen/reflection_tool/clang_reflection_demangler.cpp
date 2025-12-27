@@ -229,6 +229,16 @@ NO_COVERAGE T match(TNode const* node) {
     return result;
 }
 
+struct visit_meta {
+    bool               head_node  = false;
+    std::optional<int> head_depth = std::nullopt;
+
+    visit_meta with_depth(int depth) const {
+        auto tmp       = *this;
+        tmp.head_depth = depth;
+        return tmp;
+    }
+};
 
 template <typename Func>
 NO_COVERAGE void visit_node_fields(Node const* node, Func const& sub) {
@@ -240,7 +250,12 @@ NO_COVERAGE void visit_node_fields(Node const* node, Func const& sub) {
     auto cast = const_cast<llvm::itanium_demangle::Name*>(                \
         static_cast<llvm::itanium_demangle::Name const*>(node));
 
-#define K_FIELD(Name, Idx, Type) sub(#Name, match<Idx, Type>(cast));
+#define K_FIELD(Name, Idx, Type, ...)                                     \
+    sub(#Name, match<Idx, Type>(cast) __VA_OPT__(, ) __VA_ARGS__);
+
+    visit_meta head_attached_rec{
+        .head_node = true,
+    };
 
     using NPtr = Node const*;
 
@@ -316,9 +331,7 @@ NO_COVERAGE void visit_node_fields(Node const* node, Func const& sub) {
         case K::KBinaryExpr: { K_CAST(BinaryExpr); K_FIELD(LHS, 0, NPtr); K_FIELD(InfixOperator, 1, std::string_view); K_FIELD(RHS, 2, NPtr); break; }
         case K::KCallExpr: { K_CAST(CallExpr); K_FIELD(Callee, 0, NPtr); K_FIELD(Args, 1, NodeArray); break; }
         case K::KElaboratedTypeSpefType: { K_CAST(ElaboratedTypeSpefType); K_FIELD(Kind, 0, std::string_view); K_FIELD(Child, 1, NPtr); break; }
-        case K::KFunctionEncoding: { K_CAST(FunctionEncoding); K_FIELD(Ret, 0, NPtr); K_FIELD(Name, 1, NPtr); K_FIELD(Params, 2, NodeArray); K_FIELD(Attrs, 3, NPtr); K_FIELD(Requires, 4, NPtr); K_FIELD(CVQuals, 5, Qualifiers); K_FIELD(RefQual, 6, FunctionRefQual); break; }
         case K::KFunctionType: { K_CAST(FunctionType); K_FIELD(Ret, 0, NPtr); K_FIELD(Params, 1, NodeArray); K_FIELD(CVQuals, 2, Qualifiers); K_FIELD(RefQual, 3, FunctionRefQual); K_FIELD(ExpcetionSpec, 4, NPtr); break; }
-        case K::KNestedName: { K_CAST(NestedName); K_FIELD(Qual, 0, NPtr); K_FIELD(Name, 1, NPtr); break; }
         case K::KQualType: { K_CAST(QualType); K_FIELD(Child, 0, NPtr); K_FIELD(Quals, 1, Qualifiers); break; }
         case K::KReferenceType: { K_CAST(ReferenceType); K_FIELD(Pointee, 0, NPtr); K_FIELD(RK, 1, llvm::itanium_demangle::ReferenceKind); break; }
         case K::KIntegerLiteral: { K_CAST(IntegerLiteral); K_FIELD(Type, 0, std::string_view); K_FIELD(Value, 1, std::string_view); break; }
@@ -335,6 +348,23 @@ NO_COVERAGE void visit_node_fields(Node const* node, Func const& sub) {
         case K::KExprRequirement: { K_CAST(ExprRequirement); K_FIELD(Expr, 0, NPtr); K_FIELD(IsNoexcept, 1, bool); K_FIELD(TypeConstraint, 2, NPtr); break; }
         case K::KTransformedType: { K_CAST(TransformedType); K_FIELD(Transform, 0, std::string_view); K_FIELD(BaseType, 1, NPtr); break; }
             // clang-format on
+        case K::KFunctionEncoding: {
+            K_CAST(FunctionEncoding);
+            K_FIELD(Ret, 0, NPtr);
+            K_FIELD(Name, 1, NPtr, head_attached_rec.with_depth(1));
+            K_FIELD(Params, 2, NodeArray);
+            K_FIELD(Attrs, 3, NPtr);
+            K_FIELD(Requires, 4, NPtr);
+            K_FIELD(CVQuals, 5, Qualifiers);
+            K_FIELD(RefQual, 6, FunctionRefQual);
+            break;
+        }
+        case K::KNestedName: {
+            K_CAST(NestedName);
+            K_FIELD(Qual, 0, NPtr, head_attached_rec.with_depth(1));
+            K_FIELD(Name, 1, NPtr, head_attached_rec.with_depth(1));
+            break;
+        }
     }
 }
 
@@ -361,7 +391,9 @@ NO_COVERAGE llvm::MD5::MD5Result demangle_digest(Node const* node) {
         },
     };
 
-    auto sub = [&](std::string const& field, auto const& value) {
+    auto sub = [&](std::string const&               field,
+                   auto const&                      value,
+                   std::optional<visit_meta> const& meta = std::nullopt) {
         result.update(field);
         visit_field(value);
     };
@@ -373,9 +405,12 @@ NO_COVERAGE llvm::MD5::MD5Result demangle_digest(Node const* node) {
 
 NO_COVERAGE llvm::json::Value demangle_to_json(
     Node const*               node,
-    BinarySymbolVisitContext& ctx) {
+    BinarySymbolVisitContext& ctx,
+    int                       depth,
+    int                       max_depth) {
     llvm::json::Object result;
     if (node == nullptr) { return nullptr; }
+    if (max_depth < depth) { return nullptr; }
 
     std::string Kind = std::string{boost::describe::enum_to_string(
         static_cast<KindProxy>(node->getKind()), "<none>")};
@@ -409,13 +444,13 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
             if (!should_skip(value)) { result[field] = value; }
         },
         [&](std::string const& field, Node const* value) {
-            auto tmp = demangle_to_json(value, ctx);
+            auto tmp = demangle_to_json(value, ctx, depth + 1, max_depth);
             if (!should_skip(tmp)) { result[field] = std::move(tmp); }
         },
         [&](std::string const& field, NodeArray const& value) {
             llvm::json::Array array;
             for (auto const& it : value) {
-                auto tmp = demangle_to_json(it, ctx);
+                auto tmp = demangle_to_json(it, ctx, depth + 1, max_depth);
                 if (!should_skip(tmp)) { array.push_back(std::move(tmp)); }
             }
             if (!array.empty()) { result[field] = std::move(array); }
@@ -454,7 +489,14 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
         },
     };
 
-    visit_node_fields(node, sub);
+    auto sub_proxy =
+        [&](std::string const&               field,
+            auto const&                      value,
+            std::optional<visit_meta> const& meta = std::nullopt) {
+            sub(field, value);
+        };
+
+    visit_node_fields(node, sub_proxy);
 
     return result;
 }
@@ -465,57 +507,70 @@ BinarySymComponentId demangle_to_db(
     BinaryFileDB&             db) {
     if (node == nullptr) { return BinarySymComponentId::Nil(); }
 
-    std::string Kind = std::string{boost::describe::enum_to_string(
-        static_cast<KindProxy>(node->getKind()), "<none>")};
-
-    BinarySymComponent              comp;
+    BinarySymComponent comp;
+    comp.binary_sym_kind = static_cast<int>(node->getKind());
     hstd::Vec<BinarySymComponentId> nested;
 
     using BSF = BinarySymField;
     using Res = std::optional<BinarySymField>;
+    using Met = std::optional<visit_meta>;
 
     auto visit_value = hstd::overloaded{
-        [&](std::string_view value) -> Res {
+        [&](std::string_view value, Met const& meta) -> Res {
             return BSF{std::string{value.begin(), value.end()}};
         },
-        [&](std::string value) -> Res { return BSF{value}; },
-        [&](bool const& value) -> Res { return BSF{hstd::fmt1(value)}; },
-        [&](Node const* value) -> Res {
-            nested.push_back(demangle_to_db(value, ctx, db));
-            return std::nullopt;
+        [&](std::string value, Met const& meta) -> Res {
+            return BSF{value};
         },
-        [&](NodeArray const& value) -> Res {
+        [&](bool const& value, Met const& meta) -> Res {
+            return BSF{hstd::fmt1(value)};
+        },
+        [&](Node const* value, Met const& meta) -> Res {
+            nested.push_back(demangle_to_db(value, ctx, db));
+            if (meta && meta->head_node) {
+                return BSF{demangle_to_json(
+                    value, ctx, 0, meta->head_depth.value_or(1))};
+            } else {
+                return std::nullopt;
+            }
+        },
+        [&](NodeArray const& value, Met const& meta) -> Res {
             for (auto const& it : value) {
                 nested.push_back(demangle_to_db(it, ctx, db));
             }
             return std::nullopt;
         },
-        [&](Qualifiers const& value) -> Res {
+        [&](Qualifiers const& value, Met const& meta) -> Res {
             return BSF{hstd::fmt1(value)};
         },
-        [&](FunctionRefQual const& value) -> Res {
+        [&](FunctionRefQual const& value, Met const& meta) -> Res {
             return BSF{hstd::fmt1(value)};
         },
-        [&](Node::Prec const& value) -> Res {
+        [&](Node::Prec const& value, Met const& meta) -> Res {
             return BSF{hstd::fmt1(value)};
         },
-        [&](TemplateParamKind const& value) -> Res {
+        [&](TemplateParamKind const& value, Met const& meta) -> Res {
             return BSF{hstd::fmt1(value)};
         },
-        [&](SpecialSubKind const& value) -> Res {
+        [&](SpecialSubKind const& value, Met const& meta) -> Res {
             return BSF{hstd::fmt1(value)};
         },
-        [&](llvm::itanium_demangle::ReferenceKind const& value) -> Res {
-            return BSF{hstd::fmt1(value)};
-        },
+        [&](llvm::itanium_demangle::ReferenceKind const& value,
+            Met const& meta) -> Res { return BSF{hstd::fmt1(value)}; },
     };
 
-    auto sub = [&](std::string const& field, auto const& value) {
-        auto info = visit_value(value);
+    auto sub = [&](std::string const&               field,
+                   auto const&                      value,
+                   std::optional<visit_meta> const& meta = std::nullopt) {
+        auto info = visit_value(value, meta);
         if (info) {
             comp.head_direct_fields.insert_or_assign(field, info.value());
         }
     };
+
+    comp.head_direct_fields["Kind"] = BSF{
+        std::string{boost::describe::enum_to_string(
+            static_cast<KindProxy>(node->getKind()), "<none>")}};
 
     visit_node_fields(node, sub);
     auto res = db.symbol_components.add(comp);
@@ -554,6 +609,116 @@ BinarySymComponentId parseBinarySymbolName(
     return res;
 }
 
+std::size_t hash_json_value(const llvm::json::Value& value) {
+    std::size_t result = 0;
+
+    switch (value.kind()) {
+        case llvm::json::Value::Null:
+            hstd::hax_hash_combine(result, 0);
+            break;
+
+        case llvm::json::Value::Boolean:
+            hstd::hax_hash_combine(result, value.getAsBoolean().value());
+            break;
+
+        case llvm::json::Value::Number:
+            hstd::hax_hash_combine(result, value.getAsNumber().value());
+            break;
+
+        case llvm::json::Value::String:
+            hstd::hax_hash_combine(
+                result, llvm::hash_value(value.getAsString().value()));
+            break;
+
+        case llvm::json::Value::Array: {
+            const auto& array = *value.getAsArray();
+            hstd::hax_hash_combine(result, array.size());
+            for (const auto& element : array) {
+                hstd::hax_hash_combine(result, hash_json_value(element));
+            }
+            break;
+        }
+
+        case llvm::json::Value::Object: {
+            const auto& object = *value.getAsObject();
+            std::vector<std::pair<std::string, const llvm::json::Value*>>
+                sorted_fields;
+
+            for (const auto& pair : object) {
+                sorted_fields.emplace_back(pair.first.str(), &pair.second);
+            }
+
+            std::sort(
+                sorted_fields.begin(),
+                sorted_fields.end(),
+                [](const auto& a, const auto& b) {
+                    return a.first < b.first;
+                });
+
+            hstd::hax_hash_combine(result, sorted_fields.size());
+            for (const auto& field : sorted_fields) {
+                hstd::hax_hash_combine(result, field.first);
+                hstd::hax_hash_combine(
+                    result, hash_json_value(*field.second));
+            }
+            break;
+        }
+    }
+
+    return result;
+}
+
+bool json_values_equal(
+    const llvm::json::Value& lhs,
+    const llvm::json::Value& rhs) {
+    if (lhs.kind() != rhs.kind()) { return false; }
+
+    switch (lhs.kind()) {
+        case llvm::json::Value::Null: return true;
+
+        case llvm::json::Value::Boolean:
+            return lhs.getAsBoolean().value()
+                == rhs.getAsBoolean().value();
+
+        case llvm::json::Value::Number:
+            return lhs.getAsNumber().value() == rhs.getAsNumber().value();
+
+        case llvm::json::Value::String:
+            return lhs.getAsString().value() == rhs.getAsString().value();
+
+        case llvm::json::Value::Array: {
+            const auto& lhs_array = *lhs.getAsArray();
+            const auto& rhs_array = *rhs.getAsArray();
+
+            if (lhs_array.size() != rhs_array.size()) { return false; }
+
+            for (int i = 0; i < lhs_array.size(); ++i) {
+                if (!json_values_equal(lhs_array[i], rhs_array[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        case llvm::json::Value::Object: {
+            const auto& lhs_object = *lhs.getAsObject();
+            const auto& rhs_object = *rhs.getAsObject();
+
+            if (lhs_object.size() != rhs_object.size()) { return false; }
+
+            for (const auto& pair : lhs_object) {
+                auto rhs_it = rhs_object.find(pair.first);
+                if (rhs_it == rhs_object.end()) { return false; }
+                if (!json_values_equal(pair.second, rhs_it->second)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
 
 std::size_t std::hash<BinarySymComponent>::operator()(
     const BinarySymComponent& it) const noexcept {
@@ -578,8 +743,13 @@ std::size_t std::hash<BinarySymComponent>::operator()(
 std::size_t std::hash<BinarySymField>::operator()(
     const BinarySymField& it) const noexcept {
     return std::visit(
-        [](auto const& val) {
-            return std::hash<std::decay_t<decltype(val)>>{}(val);
+        hstd::overloaded{
+            [](llvm::json::Value const& value) {
+                return hash_json_value(value);
+            },
+            [](auto const& val) {
+                return std::hash<std::decay_t<decltype(val)>>{}(val);
+            },
         },
         it.value);
 }
@@ -617,6 +787,7 @@ bool BinarySymComponent::operator==(
 
 
 BinaryFileDB getSymbolsInBinary(const std::string& path) {
+    __perf_trace("sym", "Get symbols in binary");
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmParser();
     llvm::InitializeNativeTargetAsmPrinter();
@@ -648,6 +819,7 @@ BinaryFileDB getSymbolsInBinary(const std::string& path) {
     BinarySymbolVisitContext ctx;
 
     for (const auto& symAndSize : llvm::object::computeSymbolSizes(*obj)) {
+        __perf_trace("sym", "Process symbol");
         ++counter;
         if (counter < min_counter) { continue; }
         if (max_counter < counter) { break; }
@@ -695,9 +867,6 @@ BinaryFileDB getSymbolsInBinary(const std::string& path) {
             .size      = size,
             .address   = address,
         };
-
-        std::cout
-            << llvm::formatv("[]>>> {0} {1}\n", counter, demangled).str();
 
         sectionSymbols[sectionName].push_back(db.symbols.add(info));
     }
@@ -806,14 +975,18 @@ NO_COVERAGE void BinaryFileDB::writeToFile(const std::string& path) {
     CreateTables(db);
     queries q{db};
 
-    for (auto const& [id, value] : symbol_components.pairs()) {
+    __perf_trace_begin("sym", "Insert symbol components");
+    for (auto const& [id, cp_value] : symbol_components.pairs()) {
+        auto value = const_cast<BinarySymComponent*>(cp_value);
         q.demangled_head.bind(1, static_cast<int64_t>(id.getValue()));
         q.demangled_head.bind(2, static_cast<int>(value->binary_sym_kind));
         llvm::json::Object j_object;
-        for (auto const& [field_name, field_value] :
-             value->head_direct_fields) {
+        for (auto& [field_name, field_value] : value->head_direct_fields) {
             std::visit(
                 hstd::overloaded{
+                    [&](llvm::json::Value& value) {
+                        j_object[field_name] = std::move(value);
+                    },
                     [&](int const& value) {
                         j_object[field_name] = value;
                     },
@@ -824,14 +997,18 @@ NO_COVERAGE void BinaryFileDB::writeToFile(const std::string& path) {
                 field_value.value);
         }
 
-        q.demangled_head.bind(
-            3,
-            llvm::formatv("{0}", llvm::json::Value(std::move(j_object))));
+        auto j_format = llvm::formatv(
+            "{0}", llvm::json::Value(std::move(j_object)));
+
+        q.demangled_head.bind(3, j_format);
 
         q.demangled_head.exec();
         q.demangled_head.reset();
     }
+    __perf_trace_end("sym");
 
+
+    __perf_trace_begin("sym", "Insert sections");
     for (auto const& it : hstd::enumerator(sections)) {
         q.binary_sections.bind(1, it.index());
         q.binary_sections.bind(2, it.value().name);
@@ -853,7 +1030,9 @@ NO_COVERAGE void BinaryFileDB::writeToFile(const std::string& path) {
             q.binary_symbol.reset();
         }
     }
+    __perf_trace_end("sym");
 
+    __perf_trace_begin("sym", "Insert nested symbols");
     for (auto const& id : hstd::sorted(nested_symbols.keys())) {
         for (auto const& it : hstd::enumerator(nested_symbols.at(id))) {
             q.demangled_nested.bind(1, static_cast<int>(it.index()));
@@ -867,4 +1046,5 @@ NO_COVERAGE void BinaryFileDB::writeToFile(const std::string& path) {
             q.demangled_nested.reset();
         }
     }
+    __perf_trace_end("sym");
 }
