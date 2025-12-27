@@ -5,6 +5,7 @@
 #include <hstd/system/reflection.hpp>
 #include <llvm/Support/JSON.h>
 #include <llvm/ADT/StringMap.h>
+#include <SQLiteCpp/SQLiteCpp.h>
 
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/dod_base.hpp>
@@ -59,16 +60,17 @@ struct BinarySectionInfo {
 };
 
 struct BinaryFileDB {
-    std::unordered_map<
-        BinarySymComponentId,
-        hstd::Vec<BinarySymComponentId>>
-        nested_symbols;
+    hstd::
+        UnorderedMap<BinarySymComponentId, hstd::Vec<BinarySymComponentId>>
+            nested_symbols;
 
     hstd::dod::InternStore<BinarySymComponentId, BinarySymComponent>
         symbol_components;
 
     hstd::dod::Store<BinarySymbolInfoId, BinarySymbolInfo> symbols;
     std::vector<BinarySectionInfo>                         sections;
+
+    void writeToFile(std::string const& path);
 };
 
 

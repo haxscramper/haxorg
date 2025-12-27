@@ -361,19 +361,8 @@ int main(int argc, const char** argv) {
                 std::format("Missing output path, specify with --out"));
         }
 
-        auto file = getSymbolsInBinary(
-            parseTargetFiles(TargetFiles).at(0));
-
-        llvm::json::Object repr;
-
-        {
-            __perf_trace("sym", "Convert JSON to file");
-            hstd::writeFile(
-                outputPathOverride.getValue(),
-                llvm::formatv("{0}", llvm::json::Value{std::move(repr)}));
-        }
-
-
+        auto db = getSymbolsInBinary(parseTargetFiles(TargetFiles).at(0));
+        db.writeToFile(outputPathOverride.getValue());
     } else {
         throw std::invalid_argument(std::format(
             "Run mode is expected to be 'TranslationUnit' or "

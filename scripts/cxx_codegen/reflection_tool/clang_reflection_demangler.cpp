@@ -38,6 +38,8 @@
 
 #include "clang_reflection_demangler.hpp"
 #include "clang_reflection_perf.hpp"
+#include "hstd/stdlib/Enumerate.hpp"
+#include "hstd/stdlib/algorithms.hpp"
 
 using namespace llvm::itanium_demangle;
 
@@ -694,13 +696,8 @@ BinaryFileDB getSymbolsInBinary(const std::string& path) {
             .address   = address,
         };
 
-        // std::cout << llvm::formatv(
-        //                  "[]>>> {0} {1}\n{2:2}\n",
-        //                  counter,
-        //                  demangled,
-        //                  llvm::json::Value(
-        //                      llvm::json::Object(info.demangled_parse)))
-        //                  .str();
+        std::cout
+            << llvm::formatv("[]>>> {0} {1}\n", counter, demangled).str();
 
         sectionSymbols[sectionName].push_back(db.symbols.add(info));
     }
@@ -710,4 +707,164 @@ BinaryFileDB getSymbolsInBinary(const std::string& path) {
     }
 
     return db;
+}
+
+
+NO_COVERAGE void CreateTables(SQLite::Database& db) {
+    auto path = hstd::fs::path{__FILE__}.parent_path()
+              / "reflection_demangler.sql";
+    std::string sql = hstd::readFile(path);
+    db.exec(sql);
+}
+
+/// \brief Create a text for a `INSERT` statement with a given list of
+/// column names and identical number of coverage instantiation
+NO_COVERAGE std::string SqlInsert(
+    std::string const&              Table,
+    std::vector<std::string> const& Columns) {
+    std::string result = std::format("INSERT INTO {} (", Table);
+    for (auto it : llvm::enumerate(Columns)) {
+        if (it.index() != 0) { result += ", "; }
+        result += it.value();
+    }
+
+    result += ") VALUES (";
+
+    for (auto it : llvm::enumerate(Columns)) {
+        if (it.index() != 0) { result += ", "; }
+        result += "?";
+    }
+
+    result += ")";
+    return result;
+}
+
+struct queries {
+    SQLite::Statement demangled_head;
+    SQLite::Statement demangled_nested;
+    SQLite::Statement binary_sections;
+    SQLite::Statement binary_symbol;
+
+    queries(SQLite::Database& db)
+        : // ---
+        demangled_head(
+            db,
+            SqlInsert(
+                "DemangledHead",
+                {
+                    "Id",     // 1
+                    "Kind",   // 2
+                    "Fields", // 3
+                }))
+        ,
+        // ---
+        demangled_nested(
+            db,
+            SqlInsert(
+                "DemangledNested",
+                {
+                    "ComponentIndex", // 1
+                    "Parent",         // 2
+                    "Self",           // 3
+                }))
+        ,
+        // ---
+        binary_sections(
+            db,
+            SqlInsert(
+                "BinarySection",
+                {
+                    "Id",   // 1
+                    "Name", // 2
+                }))
+        ,
+        // ---
+        binary_symbol(
+            db,
+            SqlInsert(
+                "BinarySymbol",
+                {
+                    "Id",              // 1
+                    "Name",            // 2
+                    "Demangled",       // 3
+                    "DemangledHeadId", // 4
+                    "Size",            // 5
+                    "Address",         // 6
+                    "Section",         // 7
+                }))
+    //
+    {};
+};
+
+NO_COVERAGE void BinaryFileDB::writeToFile(const std::string& path) {
+    hstd::fs::path db_file{path};
+
+    if (hstd::fs::exists(db_file)) { hstd::fs::remove(db_file); }
+
+    SQLite::Database db{
+        db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE};
+    CreateTables(db);
+    queries q{db};
+
+    for (auto const& [id, value] : symbol_components.pairs()) {
+        q.demangled_head.bind(1, static_cast<int64_t>(id.getValue()));
+        q.demangled_head.bind(2, static_cast<int>(value->binary_sym_kind));
+        llvm::json::Object j_object;
+        for (auto const& [field_name, field_value] :
+             value->head_direct_fields) {
+            std::visit(
+                hstd::overloaded{
+                    [&](int const& value) {
+                        j_object[field_name] = value;
+                    },
+                    [&](std::string const& value) {
+                        j_object[field_name] = value;
+                    },
+                },
+                field_value.value);
+        }
+
+        q.demangled_head.bind(
+            3,
+            llvm::formatv("{0}", llvm::json::Value(std::move(j_object))));
+
+        q.demangled_head.exec();
+        q.demangled_head.reset();
+    }
+
+    for (auto const& it : hstd::enumerator(sections)) {
+        q.binary_sections.bind(1, it.index());
+        q.binary_sections.bind(2, it.value().name);
+        q.binary_sections.exec();
+        q.binary_sections.reset();
+
+        for (auto const& sym_id : it.value().symbols) {
+            q.binary_symbol.bind(
+                1, static_cast<int64_t>(sym_id.getValue()));
+            auto const& sym = symbols.at(sym_id);
+            q.binary_symbol.bind(2, sym.name);
+            q.binary_symbol.bind(3, sym.demangled);
+            q.binary_symbol.bind(
+                4, static_cast<int64_t>(sym.head.getValue()));
+            q.binary_symbol.bind(5, static_cast<int>(sym.size));
+            q.binary_symbol.bind(6, static_cast<int>(sym.address));
+            q.binary_symbol.bind(7, static_cast<int>(it.index()));
+            q.binary_symbol.exec();
+            q.binary_symbol.reset();
+        }
+    }
+
+    for (auto const& id : hstd::sorted(nested_symbols.keys())) {
+        for (auto const& it : hstd::enumerator(nested_symbols.at(id))) {
+            q.demangled_nested.bind(1, static_cast<int>(it.index()));
+            q.demangled_nested.bind(
+                2, static_cast<int64_t>(id.getValue()));
+            if (!it.value().isNil()) {
+                q.demangled_nested.bind(
+                    3, static_cast<int64_t>(it.value().getIndex()));
+            }
+            q.demangled_nested.exec();
+            q.demangled_nested.reset();
+        }
+    }
 }

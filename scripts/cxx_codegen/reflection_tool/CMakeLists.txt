@@ -49,7 +49,7 @@ llvm_map_components_to_libnames(
   AsmPrinter
   native)
 
-target_link_libraries(reflection_lib PUBLIC hstd)
+target_link_libraries(reflection_lib PUBLIC hstd SQLiteCpp sqlite3)
 target_link_libraries(reflection_lib PRIVATE ${reflection_lib_llvm_libs})
 
 target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
