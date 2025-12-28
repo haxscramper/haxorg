@@ -471,7 +471,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                 "height",
                 elk_converter.get_node_height_for_text(
                     data.vertexName,
-                    expected_width=node_width,
+                    expected_width=float(node_width),
                     font_size=self.conf.diagram_node_font_size,
                     size_step=self.conf.diagram_node_height_step,
                 ),
@@ -508,7 +508,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     "width",
                     elk_converter.get_node_height_for_text(
                         data.vertexName,
-                        expected_width=node_width,
+                        expected_width=float(node_width),
                         font_size=self.conf.diagram_node_font_size,
                         size_step=self.conf.diagram_node_height_step,
                     ),

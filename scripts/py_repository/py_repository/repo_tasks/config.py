@@ -78,11 +78,21 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     coverage: bool = True
     reflection: bool = True
     install: bool = True
-    example: bool = True
+    example_build: bool = True
+    example_run: bool = True
 
     emscripten_deps: bool = True
     emscripten_build: bool = True
     emscripten_test: bool = True
+
+
+class HaxorgExampleMindMapConfig(BaseModel, extra="forbid"):
+    infile: str = "examples/qt_gui/org_diagram/corpus/document_1.org"
+
+
+class HaxorgExampleConfig(BaseModel, extra="forbid"):
+    mind_map: HaxorgExampleMindMapConfig = Field(
+        default_factory=HaxorgExampleMindMapConfig)
 
 
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
@@ -181,6 +191,8 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
     binary_size_conf: HaxorgBinarySizeReportConfig = Field(
         default_factory=HaxorgBinarySizeReportConfig)
+
+    example_conf: HaxorgExampleConfig = Field(default_factory=HaxorgExampleConfig)
 
 
 # Variable.set("haxorg_config", HaxorgConfig().model_dump(), serialize_json=True)

@@ -8,7 +8,7 @@ import plumbum
 from py_ci.util_scripting import cmake_opt
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import RunCommandKwargs, run_cmake, run_command
-from py_repository.repo_tasks.common import ensure_clean_dir, find_process, get_build_tmpdir, get_component_build_dir, get_log_dir, get_script_root
+from py_repository.repo_tasks.common import ensure_clean_dir, find_process, get_build_tmpdir, get_component_build_dir, get_log_dir, get_script_root, get_workflow_out
 from py_repository.repo_tasks.deps_build import validate_dependencies_install
 from py_repository.repo_tasks.haxorg_base import get_toolchain_path, symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
@@ -121,94 +121,9 @@ def build_example_qt_gui_org_diagram(ctx: TaskContext) -> None:
 
 
 @haxorg_task(dependencies=[build_example_qt_gui_org_diagram])
-def run_example_org_elk_diagram(ctx: TaskContext, infile: str) -> None:
-    from py_scriptutils.graph_utils import haxorg_mind_map
-    from py_scriptutils.graph_utils import elk_converter
-    from py_scriptutils.graph_utils import elk_schema
-    from py_scriptutils.graph_utils import typst_schema
-    import igraph as ig
-
-    wrapper_dir = "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"
-    run_command(ctx,
-                "gradle",
-                args=["build"],
-                cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
-    run_command(ctx,
-                "gradle",
-                args=["install"],
-                cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
-    diagram_build_dir = get_component_build_dir(ctx, "example_qt_gui_org_diagram")
-    mman_initial_path = "/tmp/mind-map-dump.json"
-    run_command(ctx,
-                diagram_build_dir.joinpath("org_diagram"),
-                args=[
-                    json.dumps(
-                        dict(
-                            documentPath=infile,
-                            mode="MindMapDump",
-                            outputPath=mman_initial_path,
-                        ))
-                ])
-
-    mmap_model = haxorg_mind_map.Graph.model_validate(
-        json.loads(Path(mman_initial_path).read_text()))
-    mmap_igraph = haxorg_mind_map.convert_to_igraph(mmap_model)
-
-    mmap_igraph = mmap_igraph.induced_subgraph(
-        filter(lambda vertex: vertex["data"].vertexKind == "Item", mmap_igraph.vs))
-
-    mmap_walker = haxorg_mind_map.HaxorgMMapWalker(mmap_igraph, mmap_model)
-    from py_scriptutils.rich_utils import render_rich
-    Path("/tmp/mmap_walker_repr.txt").write_text(render_rich(mmap_walker.getRepr()))
-    pprint_to_file(to_debug_json(mmap_walker), "/tmp/mmap_walker.py")
-    mmap_elk = mmap_walker.getELKGraph()
-
-    pprint_to_file(mmap_elk, "/tmp/mmap_elk.py")
-
-    layout_script = Path(wrapper_dir).joinpath(
-        "build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
-    assert layout_script.exists()
-    mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))
-
-    elk_converter.group_multi_layout(
-        mmap_elk_layout,
-        single_item_hyperedge=True,
-        hyperedge_polygon_width=2.0,
-    )
-
-    pprint_to_file(to_debug_json(mmap_elk_layout),
-                   "/tmp/mmap_elk_layout_post_hyperedge.py")
-    doc = elk_converter.graph_to_typst(mmap_elk_layout)
-
-    doc.subnodes.insert(
-        0,
-        typst_schema.Import(
-            path=str(get_haxorg_repo_root_path().joinpath(
-                "scripts/py_scriptutils/py_scriptutils/graph_utils/haxorg_mind_map.typ")),
-            items=["*"],
-        ))
-
-    final = typst_schema.generate_typst(doc)
-    final_path = Path("/tmp/result.typ")
-    log(CAT).info(f"Write final text to {final_path}")
-    final_path.write_text(final)
-
-    try:
-        fmt = plumbum.local["typstyle"]
-        fmt.run(["--inplace", str(final_path)])
-
-    except plumbum.CommandNotFound:
-        log.warning(
-            f"Could not find commands `typstyle` -- install it for auto-formatting `.typ` file after creation"
-        )
-
-    compile_cmd = plumbum.local["typst"]
-    compile_cmd.run([
-        "compile",
-        str(final_path),
-        "--root",
-        "/",
-    ])
+def run_example_org_elk_diagram(ctx: TaskContext) -> None:
+    from py_repository.code_analysis.gen_mind_map_example import gen_mind_map
+    gen_mind_map(ctx)
 
 
 @haxorg_task(
@@ -219,6 +134,11 @@ def build_example_qt_gui(ctx: TaskContext) -> None:
 
 @haxorg_task(dependencies=[build_example_qt_gui, build_example_imgui_gui])
 def build_examples(ctx: TaskContext) -> None:
+    pass
+
+
+@haxorg_task(dependencies=[run_example_org_elk_diagram])
+def run_examples(ctx: TaskContext) -> None:
     pass
 
 
