@@ -1,0 +1,48 @@
+from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.common import get_script_root, get_workflow_out
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
+
+
+@haxorg_task()
+def run_mypy(ctx: TaskContext) -> None:
+    script_files = list(get_script_root(ctx, "scripts").rglob("*.py"))
+    script_files = [f for f in script_files if (".venv" not in str(f))]
+    all_outputs = []
+
+    had_fails = False
+    for py_file in script_files:
+        code, stdout, stderr = run_command(
+            ctx,
+            "poetry",
+            [
+                "run",
+                "mypy",
+                str(py_file),
+                "--show-error-codes",
+                "--show-error-context",
+            ],
+            allow_fail=True,
+            capture=True,
+        )
+
+        if code != 0:
+            had_fails = True
+
+        file_output = f"File: {py_file}\n"
+        file_output += f"Exit Code: {code}\n"
+        if stdout:
+            file_output += f"STDOUT:\n{stdout}\n"
+        if stderr:
+            file_output += f"STDERR:\n{stderr}\n"
+        file_output += "-" * 80 + "\n"
+
+        if code != 0: 
+            all_outputs.append(file_output)
+
+    report_content = "MyPy Analysis Report\n"
+    report_content += "=" * 80 + "\n"
+    report_content += "".join(all_outputs)
+
+    report_file = get_workflow_out(ctx, "mypy.txt")
+    report_file.write_text(report_content, encoding="utf-8")
+    assert not had_fails, f"Wrote full report to {report_file}"

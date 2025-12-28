@@ -223,6 +223,9 @@ def run_command(
     run_mode: Literal["nohup", "bg", "fg"] = "fg",
     print_output: bool = False,
 ) -> tuple[int, str, str]:
+    """
+    Return tuple: (code, stdout, stderr)
+    """
     debug_override = ctx.get_task_debug_streams(
         str(str(cmd).split("/")[-1] if "/" in str(cmd) else cmd),
         args,

@@ -1,15 +1,14 @@
 import py_haxorg.pyhaxorg_wrap as org
-import json
 from py_exporters.export_base import ExporterBase
 from beartype import beartype
 from dataclasses import dataclass, field
-from beartype.typing import Union, List, Dict, Set, Tuple
-from py_scriptutils.script_logging import log
+from beartype.typing import List, Set, Optional, Any
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 from py_scriptutils.json_utils import Json
 import itertools
 
 CAT = "export.pandoc"
+
 
 @beartype
 @dataclass
@@ -38,7 +37,7 @@ class PandocRes():
         return PandocRes(unpacked=value)
 
     @staticmethod
-    def Node(kind: str, content: Json, debug: str = None) -> 'PandocRes':
+    def Node(kind: str, content: Json, debug: Optional[str] = None) -> 'PandocRes':
         if debug:
             return PandocRes.Single({"t": kind, "c": content, "debug": debug})
 
@@ -56,8 +55,8 @@ NonTopLevel = set([osk.Newline, osk.Space])
 @beartype
 class ExporterPandoc(ExporterBase):
 
-    def __init__(self, CRTP_derived=None):
-        super().__init__(CRTP_derived or self)
+    def __init__(self, CRTP_derived: Any = None):
+        super().__init__(CRTP_derived or self)  # type: ignore
 
     def newOrg(self, node: org.Org) -> PandocRes:
         return PandocRes.Node("Str", "TODO " + str(node.getKind()))
@@ -115,14 +114,16 @@ class ExporterPandoc(ExporterBase):
         return PandocRes()
 
     def evalListItem(self, node: org.ListItem) -> PandocRes:
-        return PandocRes.Multiple(list(itertools.chain(*[
-            self.eval(it).unpacked for it in node if it.getKind() not in [osk.Newline]
-        ])))
+        return PandocRes.Multiple(
+            list(
+                itertools.chain(*[
+                    self.eval(it).unpacked
+                    for it in node
+                    if it.getKind() not in [osk.Newline]
+                ])))
 
     def evalList(self, node: org.List) -> PandocRes:
-        return PandocRes.Node("BulletList", [
-            self.content(node)
-        ])
+        return PandocRes.Node("BulletList", [self.content(node)])
 
     def evalTextSeparator(self, node: org.TextSeparator) -> PandocRes:
         return PandocRes.Node("HorizontalRule", "")

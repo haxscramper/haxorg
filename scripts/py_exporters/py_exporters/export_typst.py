@@ -1,22 +1,17 @@
 import py_haxorg.pyhaxorg_wrap as org
-from py_textlayout.py_textlayout_wrap import TextLayout, BlockId
+from py_textlayout.py_textlayout_wrap import BlockId
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 
-from beartype.typing import List, Optional, Dict
+from beartype.typing import List, Dict, Any
 from enum import Enum
 from beartype import beartype
 
 from py_exporters.export_base import ExporterBase, with_export_context
-from py_exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags
 from py_scriptutils.script_logging import log
-import itertools
-from py_scriptutils.json_utils import Json
-import copy
 from py_scriptutils import algorithm
 import toml
 from py_scriptutils import toml_config_profiler
-from py_scriptutils.algorithm import cond, maybe_splice
 import py_codegen.astbuilder_typst as typ
 
 CAT = "typst"
@@ -35,7 +30,7 @@ assert typst_toml.exists(), typst_toml
 assert typst_typ.exists(), typst_typ
 
 
-def refresh_typst_export_package():
+def refresh_typst_export_package() -> None:
     config = typ.get_typst_export_package(typst_toml)
     out_path = Path("~/.local/share/typst/packages/{namespace}/{name}/{version}".format(
         version=config.package.version,
@@ -79,21 +74,21 @@ class ExporterTypst(ExporterBase):
     t: typ.ASTBuilder
     c: ExporterTypstConfig
 
-    def applyExportConfig(self, config: org.BlockExport):
+    def applyExportConfig(self, config: org.BlockExport) -> None:
         new_config = toml.loads(config.content)
         old_config = self.c.model_dump()
         mix_config = toml_config_profiler.merge_dicts([old_config, new_config])
         self.c = ExporterTypstConfig.model_validate(mix_config)
 
-    def __init__(self, CRTP_derived=None):
-        super().__init__(CRTP_derived or self)
+    def __init__(self, CRTP_derived: Any = None):
+        super().__init__(CRTP_derived or self)  # type: ignore
         self.t = typ.ASTBuilder()
         self.c = ExporterTypstConfig()
 
-    def newOrg(self, node: org.Org):
+    def newOrg(self, node: org.Org) -> BlockId:
         return self.t.string("TODO" + str(node.getKind()))
 
-    def expr(self, value, isLine: bool = False) -> BlockId:
+    def expr(self, value: Any, isLine: bool = False) -> BlockId:
         match value:
             case org.Org():
                 return self.t.content(self.exp.eval(value))
@@ -391,7 +386,7 @@ class ExporterTypst(ExporterBase):
             self.exp.eval(node.to),
         ])
 
-    def getNodeAttrs(self, node: org.Org) -> Dict[str, List[any]]:
+    def getNodeAttrs(self, node: org.Org) -> Dict[str, List[Any]]:
         res: Dict[str, List] = dict()
         arg: org.AttrValue
         for arg in node.getAttrs():
@@ -427,7 +422,7 @@ class ExporterTypst(ExporterBase):
         if node.isDescriptionList() and node.getListFormattingMode(
         ) == org.ListFormattingMode.Table1D2Col:
             items = []
-            item: org.ListItem
+            item: org.ListItem = None
             for item in node:
                 items.append(
                     typ.RawBlock(
@@ -453,7 +448,7 @@ class ExporterTypst(ExporterBase):
 
         elif node.getListFormattingMode() == org.ListFormattingMode.Table2DRowFirst:
             items = []
-            item: org.ListItem
+            item: org.ListItem = None  # type: ignore[no-redef]
             column_count = 0
             for item in node:
                 for nested_list in item:

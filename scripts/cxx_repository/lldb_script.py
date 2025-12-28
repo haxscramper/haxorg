@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import lldb
+import lldb # type: ignore
 import re
 import os
+from typing import Any
 
 
 def simplify_name(name: str) -> str:
@@ -58,8 +59,8 @@ def align_on_sides(debugger: lldb.SBDebugger, text1: str, text2: str) -> str:
     return f"{text1}{padding}{text2}"
 
 
-def format_frame(frame, unused, **kwargs):
-    def fmt_color(value: int):
+def format_frame(frame: Any, unused: Any, **kwargs: Any) -> str:
+    def fmt_color(value: int) -> str:
         if "no_color" in kwargs:
             return ""
 
@@ -82,7 +83,7 @@ def format_frame(frame, unused, **kwargs):
     return align_on_sides(lldb.debugger, start, location)
 
 
-def should_skip_frame(frame):
+def should_skip_frame(frame: Any) -> bool:
     return any([
         "___lldb_unnamed_symbol" in frame.name,
         "Catch" in frame.name,
@@ -101,7 +102,7 @@ USE_STDOUT = False
 
 out_file = None
 
-def skip_backtrace(debugger, command, result, internal_dict):
+def skip_backtrace(debugger: Any, command: Any, result: Any, internal_dict: Any) -> None:
     thread = debugger.GetSelectedTarget().GetProcess().GetSelectedThread()
     filtered_frames = []
     columns = int(os.environ.get("LLDB_CUSTOM_TERM_WIDTH", 0))
@@ -113,7 +114,7 @@ def skip_backtrace(debugger, command, result, internal_dict):
     for frame in frames:
         filtered_frames.append(frame)
 
-    filtered_frames = reversed(filtered_frames)
+    filtered_frames = reversed(filtered_frames) # type: ignore
 
     for index, frame in enumerate(filtered_frames):
         if USE_NATIVE_TRACE:
@@ -131,7 +132,7 @@ def skip_backtrace(debugger, command, result, internal_dict):
 
 
 
-def stop_handler(frame, bp_loc, dict):
+def stop_handler(frame: Any, bp_loc: Any, dict: Any) -> bool:
     global out_file
     if USE_TRACE_FILE:
         out_file = open(USE_TRACE_FILE, "w")
@@ -155,7 +156,7 @@ def stop_handler(frame, bp_loc, dict):
     return True
 
 
-def __lldb_init_module(debugger, internal_dict):
+def __lldb_init_module(debugger: Any, internal_dict: Any) -> None:
     debugger.HandleCommand(
         f"command script add -f {__name__}.skip_backtrace skip_backtrace")
 

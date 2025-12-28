@@ -19,7 +19,7 @@ def build_shared_library_conf(
 
     # Source location of the shared library
     if os.getenv(envname):
-        so_file = Path(os.getenv(envname)).resolve().absolute() # type: ignore
+        so_file = Path(os.getenv(envname)).resolve().absolute()  # type: ignore
         print(f"Using shared library from environment variable {envname}: {so_file}")
     else:
         so_file = rel_path
@@ -64,7 +64,8 @@ def build_shared_library(setup_kwargs: Any) -> None:
         soname="py_textlayout_cpp.so",
         envname="HAXORG_PYTEXTLAYOUT_SO_PATH",
         package_so_file=base_dir / "py_haxorg" / "py_textlayout_cpp.so",
-        rel_path=(base_dir / "../../build/haxorg/py_textlayout_cpp.so").resolve().absolute(),
+        rel_path=(base_dir /
+                  "../../build/haxorg/py_textlayout_cpp.so").resolve().absolute(),
     )
 
 
