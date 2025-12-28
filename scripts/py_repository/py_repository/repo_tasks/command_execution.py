@@ -58,7 +58,7 @@ def write_debug_file(path: Path, append: bool, text: str) -> None:
 
 
 @beartype
-def write_debug_outputs(
+def _write_debug_outputs(
     result: CommandResult,
     stdout_debug: Optional[Path],
     stderr_debug: Optional[Path],
@@ -73,20 +73,27 @@ def write_debug_outputs(
 
 
 @beartype
-def raise_command_error(
+def _consume_execution_fail(
     cmd: str,
     args: List[str],
     stdout_debug: Optional[Path],
     stderr_debug: Optional[Path],
     stdout: str,
     stderr: str,
+    allow_fail: bool,
 ) -> None:
-    raise RuntimeError("Failed to execute the command {} {}{}{}".format(
+    message = "Failed to execute the command {} {}{}{}".format(
         cmd,
         " ".join((f"\"{s}\"" for s in args)),
         f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
         f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
-    )) from None
+    )
+
+    if allow_fail:
+        log(CAT).warning(message)
+
+    else:
+        raise RuntimeError(message) from None
 
 
 @beartype
@@ -296,7 +303,7 @@ cmd:  {cmd}
             stderr_debug=stderr_debug,
         )
 
-    write_debug_outputs(
+    _write_debug_outputs(
         result=result,
         stdout_debug=stdout_debug,
         stderr_debug=stderr_debug,
@@ -304,20 +311,19 @@ cmd:  {cmd}
         append_stderr_debug=append_stderr_debug,
     )
 
-    if allow_fail or result.retcode == 0:
-        return (result.retcode, result.stdout, result.stderr)
-
-    else:
-        raise_command_error(
+    if result.retcode != 0:
+        _consume_execution_fail(
             cmd=str(cmd),
             args=str_args,
             stdout_debug=stdout_debug,
             stderr_debug=stderr_debug,
             stdout=result.stdout,
             stderr=result.stderr,
+            allow_fail=allow_fail,
         )
 
-        return (0, "", "")
+    return (result.retcode, result.stdout, result.stderr)
+
 
 
 @beartype
@@ -338,7 +344,6 @@ def run_cmake_build(
     build_tool_args: List[str | Path] = [],
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
-
 
     build_args: List[str | Path] = build_tool_args[:]
 

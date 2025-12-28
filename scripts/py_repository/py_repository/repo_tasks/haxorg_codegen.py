@@ -86,6 +86,8 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
                 compile_commands,
                 "--toolchain-include",
                 toolchain_include,
+                "--run-mode",
+                "TranslationUnit",
                 *(["--verbose"]
                   if ctx.config.log_level == HaxorgLogLevel.VERBOSE else []),
                 "--out",

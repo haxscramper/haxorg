@@ -342,6 +342,7 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
                     depth=depth,
                 )
 
+                item.extra_hover.append(f"Symbols: {len(node.symbols)}")
                 for sym in node.symbols[:5]:
                     item.extra_hover.append(f"  {sym.Demangled[:200]}")
 
@@ -361,6 +362,7 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
                     depth=depth,
                 )
 
+                item.extra_hover.append(f"Symbols: {sum([len(node[1].symbols) for node in small_items] + [0])}")
                 for it in small_items[:20]:
                     item.extra_hover.append(f"line:{it[1].line} size:{it[1].size}")
                     for sym in it[1].symbols[:5]:

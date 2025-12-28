@@ -87,6 +87,7 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
 
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
     extra_pytest_args: List[str] = Field(default_factory=list)
+    real_time_output_print: bool = True
 
 
 class HaxorgBuildDevelopDepsConfig(BaseModel, extra="forbid"):

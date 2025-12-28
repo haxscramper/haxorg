@@ -49,7 +49,7 @@ add_custom_command(
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake-output/elk-wrapper.jar
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
   COMMAND ${CMAKE_COMMAND} -E env "JAVA_HOME=${JAVA_HOME}" "PATH=${JAVA_HOME}/bin:$ENV{PATH}"
-          ${GRADLE_WRAPPER} clean build
+          ${GRADLE_WRAPPER} --info clean build
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   DEPENDS gradle_wrapper ${CMAKE_CURRENT_SOURCE_DIR}/build.gradle
           ${CMAKE_CURRENT_SOURCE_DIR}/src/main/java/com/example/elk/ElkLayoutWrapper.java
