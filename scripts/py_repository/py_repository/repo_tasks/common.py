@@ -131,12 +131,16 @@ def get_real_build_basename(ctx: TaskContext, component: str) -> str:
     """
     Get basename of the binary output directory for component
     """
-    result = component + "_" + ("debug" if ctx.config.debug else "release")
-    if ctx.config.emscripten.build:
-        result += "_emscripten"
+    if ctx.config.build_base_override:
+        result = f"{component}_{ctx.config.build_base_override}"
 
-    if ctx.config.instrument.coverage:
-        result += "_instrumented"
+    else:
+        result = component + "_" + ("debug" if ctx.config.debug else "release")
+        if ctx.config.emscripten.build:
+            result += "_emscripten"
+
+        if ctx.config.instrument.coverage:
+            result += "_instrumented"
 
     return result
 

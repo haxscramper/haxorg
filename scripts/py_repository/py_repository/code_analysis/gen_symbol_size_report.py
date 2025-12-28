@@ -270,25 +270,71 @@ class TreemapItem:
 
 
 @beartype
-def _generate_treemap_data(tree: dict[str, TreeNode]) -> list[TreemapItem]:
+def _generate_treemap_data(tree: dict[str, TreeNode],
+                           top_percent: float) -> list[TreemapItem]:
     treemap_data: list[TreemapItem] = []
 
     def traverse(nodes: dict[str, TreeNode], parent_label: str, path: str) -> None:
-        for key, node in nodes.items():
-            current_path = f"{path}/{key}" if path else key
+        # Check if this node has only leaf children
+        has_non_leaf = any(node.nested for node in nodes.values())
 
-            treemap_data.append(
-                TreemapItem(
-                    label=current_path,
-                    parent=parent_label,
-                    size=node.size,
-                    path=node.path,
-                    line=node.line,
-                ))
+        if has_non_leaf:
+            # Has non-leaf subnodes, proceed without grouping
+            for key, node in nodes.items():
+                current_path = f"{path}/{key}" if path else key
 
-            if node.nested:
-                traverse(node.nested, current_path, current_path)
+                treemap_data.append(
+                    TreemapItem(
+                        label=current_path,
+                        parent=parent_label,
+                        size=node.size,
+                        path=node.path,
+                        line=node.line,
+                    ))
 
+                if node.nested:
+                    traverse(node.nested, current_path, current_path)
+        else:
+            # All children are leaf nodes, apply grouping to this specific node
+            leaf_items = list(nodes.items())
+
+            if not leaf_items:
+                return
+
+            # Calculate how many items to keep (top N percent)
+            num_items_to_keep = max(1, int(len(leaf_items) * (top_percent / 100)))
+
+            # Sort by size (descending) and take top N percent
+            sorted_items = sorted(leaf_items, key=lambda x: x[1].size, reverse=True)
+            top_items = sorted_items[:num_items_to_keep]
+            small_items = sorted_items[num_items_to_keep:]
+
+            # Add top items
+            for key, node in top_items:
+                current_path = f"{path}/{key}" if path else key
+                treemap_data.append(
+                    TreemapItem(
+                        label=current_path,
+                        parent=parent_label,
+                        size=node.size,
+                        path=node.path,
+                        line=node.line,
+                    ))
+
+            # Group small items if any
+            if small_items:
+                total_size = sum(node.size for _, node in small_items)
+                others_label = f"{parent_label}/Others ({len(small_items)} items)" if parent_label else f"Others ({len(small_items)} items)"
+                treemap_data.append(
+                    TreemapItem(
+                        label=others_label,
+                        parent=parent_label,
+                        size=total_size,
+                        path=None,
+                        line=None,
+                    ))
+
+    # Add root node
     treemap_data.append(TreemapItem(
         label="",
         parent="",
@@ -296,7 +342,10 @@ def _generate_treemap_data(tree: dict[str, TreeNode]) -> list[TreemapItem]:
         path=None,
         line=None,
     ))
+
+    # Start traversal
     traverse(tree, "", "")
+
     return treemap_data
 
 
@@ -316,7 +365,6 @@ def _create_treemap_html(treemap_data: list[TreemapItem], output_path: Path) -> 
 
         assert "/" not in res
         return res
-
 
     fig = go.Figure(
         go.Treemap(labels=[item.label for item in treemap_data],
@@ -373,17 +421,13 @@ def generate_symbol_size_report(ctx: TaskContext) -> None:
     ensure_existing_dir(ctx, ctx.config.workflow_out_dir)
     session = open_sqlite_session(Path(ctx.config.binary_size_conf.output_db), Base)
 
-    group_by_head = _get_grouped_symbols(session, by_head=True)
-    _write_groups(ctx.config.workflow_out_dir.joinpath("symbol_report_by_head.txt"),
-                  group_by_head, True)
-
     group_by_file = _get_grouped_symbols(session, by_head=False)
     _write_groups(ctx.config.workflow_out_dir.joinpath("symbol_report_by_file.txt"),
                   group_by_file, False)
 
     tree_structure = _build_tree_structure(group_by_file)
     collapsed_tree = _collapse_single_child_nodes(tree_structure)
-    treemap_data = _generate_treemap_data(collapsed_tree)
+    treemap_data = _generate_treemap_data(collapsed_tree, 10.0)
 
     report_path = ctx.config.workflow_out_dir / "symbol_tree_report.txt"
     _create_tree_report(collapsed_tree, report_path)
@@ -392,3 +436,7 @@ def generate_symbol_size_report(ctx: TaskContext) -> None:
     treemap_path = ctx.config.workflow_out_dir / "symbol_treemap.html"
     _create_treemap_html(treemap_data, treemap_path)
     log(CAT).info(f"Generated treemap: {treemap_path}")
+
+    group_by_head = _get_grouped_symbols(session, by_head=True)
+    _write_groups(ctx.config.workflow_out_dir.joinpath("symbol_report_by_head.txt"),
+                  group_by_head, True)

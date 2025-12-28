@@ -55,6 +55,8 @@ class HaxorgEmscriptenConfig(BaseModel, extra="forbid"):
 class HaxorgBuildConfig(BaseModel, extra="forbid"):
     target: List[str] = Field(default_factory=lambda: list(["all"]))
     force: bool = False
+    use_protobuf: bool = True
+    use_msgpack: bool = True
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
@@ -137,6 +139,11 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     forceall: bool = Field(default=False)
     ci: bool = Field(default=False)
     dryrun: bool = Field(default=False)
+    build_base_override: Optional[str] = Field(
+        default=None,
+        description="Overide the name of the sub-directory in the build/ output")
+
+    separate_debug_symbols: bool = False
 
     python_version: Optional[str] = None
     aggregate_filters: Optional[HaxorgCoverageAggregateFilter] = None

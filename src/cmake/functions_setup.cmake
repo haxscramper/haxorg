@@ -179,6 +179,20 @@ function(set_target_flags_impl)
   endif()
 endfunction()
 
+function(split_debug_info target)
+  if(${ORG_SEPARATE_DEBUG_SYMBOLS})
+    add_custom_command(
+      TARGET ${target}
+      POST_BUILD
+      COMMAND ${CMAKE_OBJCOPY} --only-keep-debug $<TARGET_FILE:${target}>
+              $<TARGET_FILE:${target}>.debug
+      COMMAND ${CMAKE_OBJCOPY} --strip-debug $<TARGET_FILE:${target}>
+      COMMAND ${CMAKE_OBJCOPY} --add-gnu-debuglink=$<TARGET_FILE:${target}>.debug
+              $<TARGET_FILE:${target}>
+      COMMENT "Splitting debug info for ${target}")
+  endif()
+endfunction()
+
 function(set_target_flags TARGET)
   set_target_flags_impl(TARGET "${TARGET}")
 endfunction()
