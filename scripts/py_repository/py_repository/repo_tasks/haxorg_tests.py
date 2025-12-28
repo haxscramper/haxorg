@@ -18,6 +18,9 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
     args = arg
     env = dict()
 
+    if ctx.config.py_test_conf.extra_pytest_args:
+        args.extend(ctx.config.py_test_conf.extra_pytest_args)
+
     # env = get_py_env(ctx)
     if ctx.config.instrument.coverage:
         coverage_dir = get_cxx_coverage_dir()
@@ -53,7 +56,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         ],
         allow_fail=True,
         env=env,
-        print_output=True,
+        print_output=ctx.config.py_test_conf.real_time_output_print,
     )
 
     if retcode != 0:

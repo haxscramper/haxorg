@@ -3,6 +3,7 @@
 ## @brief  Parse merged profile data and generate annotated files for CXX coverage
 ##
 ## Coverage generator uses database structure produced in the `profdata_merger.cpp`
+from typing import Type
 from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator, Mapping, Union, Set
 from pydantic import Field, BaseModel
 
@@ -37,7 +38,7 @@ import weakref
 
 CAT = "coverage"
 
-CoverageSchema = declarative_base()
+CoverageSchema: Type = declarative_base()
 
 
 class CovFunction(CoverageSchema):
@@ -93,11 +94,16 @@ class CovContext(CoverageSchema):
         if self.Params and "loc" in self.Params:
             return int(self.Params["loc"]["line"])
 
+        else:
+            return None
+
     @beartype
     def getContextRunCol(self) -> Optional[int]:
         "@brief see `getContextRunLine` but for column"
         if self.Params and "loc" in self.Params:
             return int(self.Params["loc"]["col"])
+        else:
+            return None
 
     @beartype
     def getContextRunFile(self) -> Optional[str]:
@@ -105,11 +111,17 @@ class CovContext(CoverageSchema):
         if self.Params and "loc" in self.Params:
             return self.Params["loc"]["path"]
 
+        else:
+            return None
+
     @beartype
     def getContextRunArgs(self) -> Optional[List[Any]]:
         "@brief Any extra parameters for the test run"
         if self.Params and "args" in self.Params:
             return [it for it in self.Params["args"]]
+
+        else:
+            return None
 
 
 class CovFile(CoverageSchema):

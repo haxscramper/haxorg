@@ -19,5 +19,4 @@ struct JsonSerde<hstd::ColText> {
     }
 };
 
-
 } // namespace hstd

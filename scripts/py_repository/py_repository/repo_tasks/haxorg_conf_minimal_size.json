@@ -1,0 +1,4 @@
+{
+  "separate_debug_symbols": true,
+  "build_base_override": "minimal_size"
+}

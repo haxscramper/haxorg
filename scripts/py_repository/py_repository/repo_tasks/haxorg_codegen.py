@@ -6,7 +6,7 @@ from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import check_is_file, ensure_existing_dir, get_build_root, get_log_dir, get_script_root
 from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
-from py_repository.repo_tasks.haxorg_build import build_haxorg, configure_cmake_haxorg
+from py_repository.repo_tasks.haxorg_build import build_haxorg, build_reflection_tool, configure_cmake_haxorg
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -62,10 +62,7 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
     toolchain_include = get_script_root(
         ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
 
-    conf_copy = ctx.config.model_copy(deep=True)
-    conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
-    conf_copy.build_conf.force = True
-    build_haxorg(ctx=ctx.with_temp_config(conf_copy))
+    build_reflection_tool(ctx=ctx)
 
     for task in CODEGEN_TASKS:
         out_file = get_build_root(ctx, f"{task}.pb")
@@ -89,6 +86,8 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
                 compile_commands,
                 "--toolchain-include",
                 toolchain_include,
+                "--run-mode",
+                "TranslationUnit",
                 *(["--verbose"]
                   if ctx.config.log_level == HaxorgLogLevel.VERBOSE else []),
                 "--out",
@@ -152,6 +151,15 @@ def merge_build_times(ctx: TaskContext) -> None:
 
     get_build_root(ctx, "haxorg/full-profile-merge.json").write_text(
         out_merge.model_dump_json(indent=2))
+
+
+@haxorg_task()
+def generate_binary_size_report(ctx: TaskContext) -> None:
+    from py_repository.code_analysis import gen_symbol_size_report as gsrs
+    if ctx.config.binary_size_conf.update_db:
+        build_reflection_tool(ctx=ctx)
+        gsrs.generate_binary_size_db(ctx)
+    gsrs.generate_symbol_size_report(ctx)
 
 
 @haxorg_task(dependencies=[generate_python_protobuf_files])

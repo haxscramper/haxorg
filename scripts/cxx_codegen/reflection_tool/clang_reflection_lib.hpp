@@ -1,7 +1,4 @@
 #pragma once
-
-#include <iostream>
-#include <fstream>
 #include <optional>
 
 #include <clang/AST/ASTConsumer.h>
@@ -13,7 +10,13 @@
 #include <unordered_set>
 
 // Auto-generated protobuf definition, provided by cmake run
+#include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 #include "reflection_defs.pb.h"
+#include <llvm/Support/JSON.h>
+#include <hstd/system/reflection.hpp>
+#include <hstd/system/macros.hpp>
+
 
 #define REFL_NAME "refl"
 

@@ -17,8 +17,11 @@ struct logic_unhandled_kind_error
 #endif
         result.msg = "Unexpected kind ";
         result.msg += hstd::enum_to_string(kind);
-        result.msg += " (" + std::to_string(static_cast<std::underlying_type_t<E>>(kind)) + ")";
-        
+        result.msg += " ("
+                    + std::to_string(
+                          static_cast<std::underlying_type_t<E>>(kind))
+                    + ")";
+
         result.line     = line;
         result.file     = file;
         result.function = function;
@@ -38,11 +41,7 @@ void logic_assertion_check_not_nil(
     if (hstd::value_metadata<T const*>::isNil(ptr)) {
         std::string msg = "Expected non-nullptr value for type ";
         msg += hstd::value_metadata<T>::typeName();
-        throw ::hstd::logic_assertion_error::init(
-            msg,
-            line,
-            function,
-            file);
+        throw ::hstd::logic_assertion_error::init(msg, line, function, file);
     }
 }
 
@@ -70,11 +69,7 @@ void logic_assertion_check_not_nil(
     if (hstd::value_metadata<T>::isNil(ptr)) {
         std::string msg = "Expected non-nil value for type ";
         msg += hstd::value_metadata<T>::typeName();
-        throw ::hstd::logic_assertion_error::init(
-            msg,
-            line,
-            function,
-            file);
+        throw ::hstd::logic_assertion_error::init(msg, line, function, file);
     }
 }
 } // namespace hstd

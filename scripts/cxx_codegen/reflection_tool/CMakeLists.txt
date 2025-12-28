@@ -18,17 +18,47 @@ protobuf_generate(
 # Shared logic for reflection collector implementation
 
 add_library(
-  reflection_lib STATIC "${REFL_DIR}/clang_reflection_lib.cpp"
-                        "${REFL_DIR}/clang_reflection_lib.hpp" ${ORG_PROTO_GENERATED_FILES})
+  reflection_lib STATIC
+  "${REFL_DIR}/clang_reflection_lib.cpp" "${REFL_DIR}/clang_reflection_demangler.cpp"
+  "${REFL_DIR}/clang_reflection_demangler.hpp" "${REFL_DIR}/clang_reflection_lib.hpp"
+  ${ORG_PROTO_GENERATED_FILES} clang_reflection_perf.hpp)
+
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(reflection_lib PUBLIC Perfetto::perfetto)
+endif()
+
+if(${ORG_USE_PERFETTO})
+  target_compile_definitions(reflection_lib PUBLIC ORG_USE_PERFETTO)
+endif()
 
 target_include_directories(
   reflection_lib
   PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "${DEPS_DIR}/protobuf/src" "${DEPS_DIR}/abseil-cpp"
-         "${BASE}/build/haxorg/scripts/cxx_codegen/reflection_tool")
+         "${BASE}/src" "${BASE}/build/haxorg/scripts/cxx_codegen/reflection_tool")
+
+llvm_map_components_to_libnames(
+  reflection_lib_llvm_libs
+  Core
+  Support
+  Object
+  Demangle
+  DebugInfoDWARF
+  Target
+  MC
+  AsmParser
+  AsmPrinter
+  native)
+
+target_link_libraries(reflection_lib PUBLIC hstd SQLiteCpp sqlite3)
+target_link_libraries(reflection_lib PRIVATE ${reflection_lib_llvm_libs})
 
 target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
 target_compile_options(reflection_lib PRIVATE "-fPIC")
 set_target_properties(reflection_lib PROPERTIES CXX_STANDARD 20)
+
+if(${ORG_DISABLE_WARNINGS})
+  target_compile_options(reflection_lib PUBLIC "-Wno-everything")
+endif()
 
 # Binary can be used as a separate tool
 add_executable(reflection_tool clang_reflection_tool.cpp)

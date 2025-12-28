@@ -58,8 +58,8 @@ TYPED_TEST(IntVecTypedTest, SliceAndIndexingOperators) {
     EXPECT_EQ(v[3_B], 7);
     EXPECT_EQ(v[v.size() - 3], 7);
 
-    EXPECT_THROW((void)v.at(10), out_of_range_error);
-    EXPECT_THROW(v.at(11_B), out_of_range_error);
+    EXPECT_THROW((void)v.at(10), hstd::range_error);
+    EXPECT_THROW(v.at(11_B), hstd::range_error);
 }
 
 TYPED_TEST(IntVecTypedTest, VectorAlloc) {
@@ -108,12 +108,12 @@ TYPED_TEST(IntVecTypedTest, SpanViews) {
 TYPED_TEST(IntVecTypedTest, Indexing) {
     using V = TypeParam;
     {
-        EXPECT_THROW(TypeParam{}.back(), out_of_range_error);
+        EXPECT_THROW(TypeParam{}.back(), hstd::range_error);
         EXPECT_EQ(TypeParam{1}.back(), 1);
         EXPECT_EQ((TypeParam{2, 1}.back()), 1);
 
-        EXPECT_THROW(TypeParam{}.pop_back(), out_of_range_error);
-        EXPECT_THROW(TypeParam{}.pop_back_v(), out_of_range_error);
+        EXPECT_THROW(TypeParam{}.pop_back(), hstd::range_error);
+        EXPECT_THROW(TypeParam{}.pop_back_v(), hstd::range_error);
     }
 
     auto v = V{1, 2};

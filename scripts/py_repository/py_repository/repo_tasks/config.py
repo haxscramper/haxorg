@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from beartype.typing import List, Optional, Generator
+from beartype.typing import List, Optional, Generator, Literal
 from contextlib import contextmanager
 import tempfile
 from pathlib import Path
@@ -55,6 +55,8 @@ class HaxorgEmscriptenConfig(BaseModel, extra="forbid"):
 class HaxorgBuildConfig(BaseModel, extra="forbid"):
     target: List[str] = Field(default_factory=lambda: list(["all"]))
     force: bool = False
+    use_protobuf: bool = True
+    use_msgpack: bool = True
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
@@ -85,6 +87,7 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
 
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
     extra_pytest_args: List[str] = Field(default_factory=list)
+    real_time_output_print: bool = True
 
 
 class HaxorgBuildDevelopDepsConfig(BaseModel, extra="forbid"):
@@ -92,6 +95,15 @@ class HaxorgBuildDevelopDepsConfig(BaseModel, extra="forbid"):
     force: bool = False
     build_whitelist: List[str] = []
     configure: bool = True
+
+
+class HaxorgBinarySizeReportConfig(BaseModel, extra="forbid"):
+    min_symbol_index: Optional[int] = None
+    max_symbol_index: Optional[int] = None
+    binary_path: Optional[str] = None
+    output_db: Optional[str] = None
+    perf_out: Optional[str] = None
+    update_db: bool = True
 
 
 import enum
@@ -117,12 +129,22 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     workflow_log_dir: Path = Field(
         default_factory=lambda: Path("/tmp/haxorg/workflow_log"))
 
+    workflow_out_dir: Path = Field(
+        default_factory=lambda: Path("/tmp/haxorg/workflow_out"))
+
     use_sarif: bool = Field(default=False)
-    force_full_build: bool = Field(default=False, description="Don't stop the build of the cmake targets on the first error")
+    force_full_build: bool = Field(
+        default=False,
+        description="Don't stop the build of the cmake targets on the first error")
 
     forceall: bool = Field(default=False)
     ci: bool = Field(default=False)
     dryrun: bool = Field(default=False)
+    build_base_override: Optional[str] = Field(
+        default=None,
+        description="Overide the name of the sub-directory in the build/ output")
+
+    separate_debug_symbols: bool = False
 
     python_version: Optional[str] = None
     aggregate_filters: Optional[HaxorgCoverageAggregateFilter] = None
@@ -156,6 +178,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
     custom_docs_conf: HaxorgCustomDocsConfig = Field(
         default_factory=HaxorgCustomDocsConfig)
+
+    binary_size_conf: HaxorgBinarySizeReportConfig = Field(
+        default_factory=HaxorgBinarySizeReportConfig)
 
 
 # Variable.set("haxorg_config", HaxorgConfig().model_dump(), serialize_json=True)

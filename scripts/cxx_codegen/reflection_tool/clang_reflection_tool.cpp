@@ -1,4 +1,5 @@
 #include "clang_reflection_lib.hpp"
+#include "hstd/stdlib/Filesystem.hpp"
 
 #include <clang/Tooling/ArgumentsAdjusters.h>
 #include <clang/Frontend/FrontendActions.h>
@@ -9,6 +10,14 @@
 #include <filesystem>
 #include <format>
 #include <llvm/Support/JSON.h>
+#include <fstream>
+#include <format>
+
+
+#include "clang_reflection_perf.hpp"
+#include "clang_reflection_demangler.hpp"
+
+#include <hstd/ext/perfetto_aux_impl_template.hpp>
 
 namespace fs = std::filesystem;
 
@@ -22,7 +31,12 @@ static llvm::cl::OptionCategory ToolingSampleCategory(
 llvm::cl::opt<std::string> CompilationDB(
     "compilation-database",
     llvm::cl::desc("Compilation database"),
-    llvm::cl::Required,
+    llvm::cl::cat(ToolingSampleCategory));
+
+llvm::cl::opt<std::string> RunMode(
+    "run-mode",
+    llvm::cl::desc("Specify tool execution mode"),
+    llvm::cl::value_desc("Run mode: TranslationUnit, BinarySymbols"),
     llvm::cl::cat(ToolingSampleCategory));
 
 llvm::cl::opt<std::string> outputPathOverride(
@@ -41,6 +55,12 @@ llvm::cl::opt<bool> VerboseRun(
     llvm::cl::desc("Run compilation in verbose mode"),
     llvm::cl::cat(ToolingSampleCategory));
 
+llvm::cl::opt<std::string> PerfRun(
+    "perf",
+    llvm::cl::desc(
+        "Run compilation with performance analysis, write result to file"),
+    llvm::cl::cat(ToolingSampleCategory));
+
 llvm::cl::opt<bool> MainTuAnalysis(
     "main-tu-analysis",
     llvm::cl::desc(
@@ -55,7 +75,8 @@ llvm::cl::opt<bool> NoStdInc(
 
 llvm::cl::opt<std::string> TargetFiles(
     "target-files",
-    llvm::cl::desc("File with json array, list of absolute paths whose "
+    llvm::cl::desc("Single input file or file with json array, list of "
+                   "absolute paths whose "
                    "declarations will be included into TU dump."),
     llvm::cl::cat(ToolingSampleCategory));
 
@@ -67,6 +88,8 @@ std::vector<std::string> parseTargetFiles(std::string path) {
             path,
             std::strerror(errno)));
     }
+
+    if (!path.ends_with("json")) { return {path}; }
 
     std::string jsonContent(
         (std::istreambuf_iterator<char>(ifs)),
@@ -262,7 +285,7 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
 
 int main(int argc, const char** argv) {
     auto cli = clang::tooling::CommonOptionsParser::create(
-        argc, argv, ToolingSampleCategory);
+        argc, argv, ToolingSampleCategory, llvm::cl::ZeroOrMore);
 
     if (!cli) {
         LOG_CERR() << "CLI is invalid" << std::endl;
@@ -270,51 +293,89 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
-    clang::tooling::CommonOptionsParser& OptionsParser = cli.get();
-    std::string                          ErrorMessage;
-
-    auto JSONDB = clang::tooling::JSONCompilationDatabase::loadFromFile(
-        CompilationDB,
-        ErrorMessage,
-        clang::tooling::JSONCommandLineSyntax::AutoDetect);
-
-    if (!JSONDB) {
-        LOG_CERR() << "Failed to process provided JSON DB, failure was:"
-                   << std::endl;
-        LOG_CERR() << ErrorMessage << std::endl;
-        LOG_CERR() << "CompilationDB = " << CompilationDB << std::endl;
-        return 1;
-    } else {
-        LOG_CERR() << "Using compilation database " << CompilationDB
-                   << "\n";
+#ifdef ORG_USE_PERFETTO
+    std::unique_ptr<perfetto::TracingSession> perfetto_session;
+    if (!PerfRun.empty()) {
+        perfetto_session = StartProcessTracing("profdata_merger");
     }
+#endif
 
-    clang::tooling::ArgumentsAdjustingCompilations adjustedCompilations(
-        std::move(JSONDB));
 
-    adjustedCompilations.appendArgumentsAdjuster(dropReflectionPLugin);
+    if (RunMode == "TranslationUnit") {
+        clang::tooling::CommonOptionsParser& OptionsParser = cli.get();
+        std::string                          ErrorMessage;
 
-    clang::tooling::ClangTool tool(
-        adjustedCompilations, OptionsParser.getSourcePathList());
+        auto JSONDB = clang::tooling::JSONCompilationDatabase::
+            loadFromFile(
+                CompilationDB,
+                ErrorMessage,
+                clang::tooling::JSONCommandLineSyntax::AutoDetect);
 
-    if (!ToolchainInclude.empty()) {
-        if (!fs::is_directory(std::string(ToolchainInclude))) {
-            LOG_CERR() << "Toolchain include is not a directory or does "
-                          "not exist '"
-                       << ToolchainInclude << "'\n";
+        if (!JSONDB) {
+            LOG_CERR()
+                << "Failed to process provided JSON DB, failure was:"
+                << std::endl;
+            LOG_CERR() << ErrorMessage << std::endl;
+            LOG_CERR() << "CompilationDB = " << CompilationDB << std::endl;
             return 1;
+        } else {
+            LOG_CERR() << "Using compilation database " << CompilationDB
+                       << "\n";
         }
+
+        clang::tooling::ArgumentsAdjustingCompilations
+            adjustedCompilations(std::move(JSONDB));
+
+        adjustedCompilations.appendArgumentsAdjuster(dropReflectionPLugin);
+
+        clang::tooling::ClangTool tool(
+            adjustedCompilations, OptionsParser.getSourcePathList());
+
+        if (!ToolchainInclude.empty()) {
+            if (!fs::is_directory(std::string(ToolchainInclude))) {
+                LOG_CERR()
+                    << "Toolchain include is not a directory or does "
+                       "not exist '"
+                    << ToolchainInclude << "'\n";
+                return 1;
+            }
+        }
+
+        if (VerboseRun) {
+            LOG_CERR() << "Using toolchain include " << ToolchainInclude
+                       << std::endl;
+
+            LOG_CERR() << "Configuration parse OK, running tool\n";
+        }
+        int result = tool.run(
+            clang::tooling::newFrontendActionFactory<ReflFrontendAction>()
+                .get());
+
+        if (result != 0) {
+            throw std::runtime_error("Reflection tool execution failed");
+        }
+    } else if (RunMode == "BinarySymbols") {
+        __perf_trace("main", "Process binary symbols");
+        if (outputPathOverride.empty()) {
+            throw std::invalid_argument(
+                std::format("Missing output path, specify with --out"));
+        }
+
+        auto db = getSymbolsInBinary(parseTargetFiles(TargetFiles).at(0));
+        db.writeToFile(outputPathOverride.getValue());
+    } else {
+        throw std::invalid_argument(std::format(
+            "Run mode is expected to be 'TranslationUnit' or "
+            "'BinarySymbols', but found '{}'",
+            RunMode.getValue()));
     }
 
-    if (VerboseRun) {
-        LOG_CERR() << "Using toolchain include " << ToolchainInclude
-                   << std::endl;
-
-        LOG_CERR() << "Configuration parse OK, running tool\n";
+    if (!PerfRun.empty()) {
+        fs::path out_path{PerfRun.getValue()};
+#ifdef ORG_USE_PERFETTO
+        StopTracing(std::move(perfetto_session), out_path);
+#endif
     }
-    int result = tool.run(
-        clang::tooling::newFrontendActionFactory<ReflFrontendAction>()
-            .get());
 
-    return result;
+    return 0;
 }

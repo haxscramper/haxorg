@@ -7,6 +7,18 @@
 #include <google/protobuf/util/json_util.h>
 #include <google/protobuf/message.h>
 
+#include <llvm/Object/ObjectFile.h>
+#include <llvm/Object/ELFObjectFile.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/CommandLine.h>
+#include <llvm/Support/InitLLVM.h>
+#include <llvm/Demangle/Demangle.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Error.h>
+#include <llvm/Support/raw_ostream.h>
+#include <fstream>
+
+
 namespace c = clang;
 using llvm::dyn_cast;
 

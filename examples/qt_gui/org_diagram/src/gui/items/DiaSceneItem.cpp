@@ -76,7 +76,7 @@ hstd::Opt<DiaSceneItem*> DiaSceneItem::getItemAtPath(
 void DiaSceneItem::moveSubnode(int srcIndex, int dstIndex) {
     if (srcIndex < 0 || subnodes.size() <= srcIndex || dstIndex < 0
         || subnodes.size() <= dstIndex) {
-        throw hstd::RangeError::init(std::format(
+        throw hstd::range_error::init(std::format(
             "Index out of bounds: src={}, dst={}, size={}",
             srcIndex,
             dstIndex,
@@ -122,8 +122,6 @@ DiaSceneItem* DiaSceneItem::getParent() const {
 
 void SelfRemDiaScene::operator()(DiaSceneItem* item) {
     item->scene()->removeItem(item);
-    HSLOG_TRACE(
-        _cat,
-        "Deleting scene item {}", hstd::descObjectPtr(item));
+    HSLOG_TRACE(_cat, "Deleting scene item {}", hstd::descObjectPtr(item));
     delete item;
 }

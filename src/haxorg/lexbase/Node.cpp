@@ -118,14 +118,14 @@ typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::subnode(
             if (i == index) { return *begin; }
         }
 
-        throw RangeError::init(
+        throw hstd::range_error::init(
             fmt("Could not get subnode with index {} for node with id {} "
                 "-- it contains only {} items",
                 index,
                 node.getUnmasked(),
                 i));
     } else {
-        throw RangeError::init(
+        throw hstd::range_error::init(
             fmt("Node {} of kind {} does not have subnode range",
                 node,
                 at(node).kind));

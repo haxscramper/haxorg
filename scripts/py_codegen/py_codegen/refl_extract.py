@@ -256,6 +256,7 @@ def run_collector(
         f"--out={str(tmp_output)}",
         f"--toolchain-include={conf.toolchain_include}",
         f"--target-files={target_files}",
+        "--run-mode=TranslationUnit",
         "--nostdinc",
         str(input),
     ]
@@ -325,7 +326,7 @@ def write_run_result_information(
     tu: CollectorRunResult,
     path: Path,
     commands: List[CompileCommand],
-):
+) -> None:
     debug_dir = Path(conf.convert_failure_log_dir)
     # if debug_dir.exists():
     #     shutil.rmtree(str(debug_dir))
@@ -339,7 +340,7 @@ def write_run_result_information(
                 f"{'Executed' if tu.success else 'Failed to run'} conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
             )
 
-    def write_reflection_stats(file: io.TextIOWrapper):
+    def write_reflection_stats(file: io.TextIOWrapper) -> None:
 
         def sep(name: str):
             file.write("\n\n" + name + "-" * 120 + "\n\n")
@@ -378,7 +379,7 @@ def write_run_result_information(
 @beartype
 def remove_dbgOrigin(json_str: str) -> str:
 
-    def remove_field(obj):
+    def remove_field(obj: Any) -> None:
         if isinstance(obj, dict):
             obj.pop("dbgOrigin", None)
             for key, value in list(obj.items()):
@@ -422,3 +423,4 @@ def run_collector_for_path(
 
     else:
         write_run_result_information(conf, tu, path, commands)
+        return None

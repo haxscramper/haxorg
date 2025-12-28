@@ -41,12 +41,14 @@ function(set_target_flags_impl)
     endif()
   endif()
 
-  if (${ORG_USE_SARIF})
+  if(${ORG_USE_SARIF})
     # Specify output file for the sarif report
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fdiagnostics-format=sarif")
   endif()
 
-  if(${ORG_BUILD_ASSUME_CLANG})
+  if(${ORG_DISABLE_WARNINGS})
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-everything")
+  elseif(${ORG_BUILD_ASSUME_CLANG})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
@@ -174,6 +176,20 @@ function(set_target_flags_impl)
                           -fcoverage-mapping)
 
     endif()
+  endif()
+endfunction()
+
+function(split_debug_info target)
+  if(${ORG_SEPARATE_DEBUG_SYMBOLS})
+    add_custom_command(
+      TARGET ${target}
+      POST_BUILD
+      COMMAND ${CMAKE_OBJCOPY} --only-keep-debug $<TARGET_FILE:${target}>
+              $<TARGET_FILE:${target}>.debug
+      COMMAND ${CMAKE_OBJCOPY} --strip-debug $<TARGET_FILE:${target}>
+      COMMAND ${CMAKE_OBJCOPY} --add-gnu-debuglink=$<TARGET_FILE:${target}>.debug
+              $<TARGET_FILE:${target}>
+      COMMENT "Splitting debug info for ${target}")
   endif()
 endfunction()
 
