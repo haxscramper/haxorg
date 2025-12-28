@@ -1,6 +1,6 @@
 from pathlib import Path
 from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Tuple, Type
+from beartype.typing import Any, Dict, List, Optional, Tuple, Type, Callable
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import ensure_existing_dir, get_build_root, get_script_root
 from py_repository.repo_tasks.workflow_utils import TaskContext
@@ -102,8 +102,10 @@ def generate_binary_size_db(ctx: TaskContext) -> None:
 
 @beartype
 def _get_grouped_symbols(
-        session: Session,
-        by_head: bool) -> list[tuple[Any, list[tuple[BinarySymbol, DemangledHead]]]]:
+    session: Session,
+    by_head: bool,
+    symbol_filter: Callable[[BinarySymbol], bool] = None,
+) -> list[tuple[Any, list[tuple[BinarySymbol, DemangledHead]]]]:
     query = (session.query(BinarySymbol, DemangledHead).join(
         DemangledHead, BinarySymbol.DemangledHeadId == DemangledHead.Id).order_by(
             DemangledHead.Id, BinarySymbol.Size.desc()))
@@ -111,6 +113,9 @@ def _get_grouped_symbols(
     # Group symbols based on the specified criteria
     grouped_symbols: dict[Any, List[tuple[BinarySymbol, DemangledHead]]] = {}
     for symbol, head in query:
+        if symbol_filter and not symbol_filter(symbol):
+            continue
+
         if by_head:
             key = head.Id
         else:  # file_line
@@ -171,6 +176,7 @@ def _write_groups(
 @dataclass
 class TreeNode:
     size: int
+    symbols: List[BinarySymbol]
     nested: dict[str, "TreeNode"] = field(default_factory=dict)
     is_leaf: bool = False
     path: Optional[str] = None
@@ -207,12 +213,12 @@ def _build_tree_structure(
             current = tree
             for part in path_parts[:-1]:
                 if part not in current:
-                    current[part] = TreeNode(size=0)
+                    current[part] = TreeNode(size=0, symbols=[])
                 current = current[part].nested
 
             final_part = path_parts[-1]
             if final_part not in current:
-                current[final_part] = TreeNode(size=0)
+                current[final_part] = TreeNode(size=0, symbols=[])
 
             line_key = f"line_{line}" if line > 0 else "line_unknown"
             current[final_part].nested[line_key] = TreeNode(
@@ -220,6 +226,7 @@ def _build_tree_structure(
                 is_leaf=True,
                 line=line,
                 path=file_path,
+                symbols=[it[0] for it in symbols],
             )
 
             node_dict = tree
@@ -248,12 +255,18 @@ def _collapse_single_child_nodes(tree: dict[str, TreeNode]) -> dict[str, TreeNod
                     size=node.size,
                     nested=node.nested,
                     is_leaf=node.is_leaf,
+                    path=node.path,
+                    line=node.line,
+                    symbols=node.symbols,
                 )
         else:
             collapsed[key] = TreeNode(
                 size=node.size,
                 nested=_collapse_single_child_nodes(node.nested),
                 is_leaf=node.is_leaf,
+                path=node.path,
+                line=node.line,
+                symbols=node.symbols,
             )
 
     return collapsed
@@ -267,6 +280,9 @@ class TreemapItem:
 
     path: Optional[str]
     line: Optional[int]
+    symbols: List[BinarySymbol]
+
+    extra_hover: List[str] = field(default_factory=list)
 
 
 @beartype
@@ -290,6 +306,7 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
                         size=node.size,
                         path=node.path,
                         line=node.line,
+                        symbols=node.symbols,
                     ))
 
                 if node.nested:
@@ -312,36 +329,50 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
             # Add top items
             for key, node in top_items:
                 current_path = f"{path}/{key}" if path else key
-                treemap_data.append(
-                    TreemapItem(
-                        label=current_path,
-                        parent=parent_label,
-                        size=node.size,
-                        path=node.path,
-                        line=node.line,
-                    ))
+                item = TreemapItem(
+                    label=current_path,
+                    parent=parent_label,
+                    size=node.size,
+                    path=node.path,
+                    line=node.line,
+                    symbols=node.symbols,
+                )
+
+                for sym in node.symbols[:5]:
+                    item.extra_hover.append(f"  {sym.Demangled[:200]}")
+
+                treemap_data.append(item)
 
             # Group small items if any
             if small_items:
                 total_size = sum(node.size for _, node in small_items)
                 others_label = f"{parent_label}/Others ({len(small_items)} items)" if parent_label else f"Others ({len(small_items)} items)"
-                treemap_data.append(
-                    TreemapItem(
-                        label=others_label,
-                        parent=parent_label,
-                        size=total_size,
-                        path=None,
-                        line=None,
-                    ))
+                item = TreemapItem(
+                    label=others_label,
+                    parent=parent_label,
+                    size=total_size,
+                    path=None,
+                    line=None,
+                    symbols=[node.symbols[0] for _, node in small_items if node.symbols],
+                )
+
+                for it in small_items[:20]:
+                    item.extra_hover.append(f"line:{it[1].line} size:{it[1].size}")
+                    for sym in it[1].symbols[:5]:
+                        item.extra_hover.append(f"  {sym.Demangled[:200]}")
+
+                treemap_data.append(item)
 
     # Add root node
-    treemap_data.append(TreemapItem(
-        label="",
-        parent="",
-        size=0,
-        path=None,
-        line=None,
-    ))
+    treemap_data.append(
+        TreemapItem(
+            label="",
+            parent="",
+            size=0,
+            path=None,
+            line=None,
+            symbols=[],
+        ))
 
     # Start traversal
     traverse(tree, "", "")
@@ -350,33 +381,99 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
 
 
 @beartype
-def _create_treemap_html(treemap_data: list[TreemapItem], output_path: Path) -> None:
+def _format_bytes(size: int) -> str:
+    units = ["B", "KB", "MB", "GB", "TB", "PB"]
+    unit_index = 0
+    size_float = float(size)
+
+    while size_float >= 1024 and unit_index < len(units) - 1:
+        size_float /= 1024
+        unit_index += 1
+
+    if unit_index == 0:
+        return f"{int(size_float)} {units[unit_index]}"
+    else:
+        return f"{size_float:.1f} {units[unit_index]}"
+
+
+@beartype
+def _create_treemap_html(treemap_data: list["TreemapItem"], output_path: Path) -> None:
     import plotly.graph_objects as go
 
     if not treemap_data:
         return
 
-    def get_text(item: TreemapItem) -> str:
-        if item.line and item.path:
-            res = f"{Path(item.path).stem}:{item.line}"
-
+    def get_visual_text(item: TreemapItem) -> str:
+        """Text displayed on the treemap rectangle."""
+        if item.line is not None and item.path is not None:
+            # Leaf node with line info - show filename:line
+            return f"{Path(item.path).stem}:{item.line}"
+        elif item.line is not None:
+            return f"{item.line}"
+        elif item.label:
+            # Show only the last part of the path (the key)
+            parts = item.label.split("/")
+            return parts[-1] if parts else item.label
         else:
-            res = Path(item.label).stem
+            return ""
 
-        assert "/" not in res
-        return res
+    def get_hover_text(item: TreemapItem) -> str:
+        """Full hover text for an item."""
+        parts = [f"<b>{item.label}</b>" if item.label else "<b>Root</b>"]
+        parts.append(f"Size: {_format_bytes(item.size)}")
+        if item.path:
+            parts.append(f"File: {item.path}")
+        if item.line is not None:
+            parts.append(f"Line: {item.line}")
+
+        parts.extend(item.extra_hover)
+
+        return "<br>".join(parts)
+
+    # IMPORTANT:
+    # - Use `ids` / `parents` for hierarchy (keep full paths there).
+    # - Use `labels` purely for what you want rendered visually (branches + leaves).
+
+    # full unique hierarchical id (e.g., "a/b/c")
+    ids = [item.label for item in treemap_data]
+    # parent id (must match an `id`; "" or None for root)
+    parents = [item.parent for item in treemap_data]
+    values = [item.size for item in treemap_data]
+
+    labels = [get_visual_text(item) for item in treemap_data]
+    hover_texts = [get_hover_text(item) for item in treemap_data]
 
     fig = go.Figure(
-        go.Treemap(labels=[item.label for item in treemap_data],
-                   parents=[item.parent for item in treemap_data],
-                   values=[item.size for item in treemap_data],
-                   text=[get_text(item) for item in treemap_data],
-                   branchvalues="total",
-                   textinfo="text+value",
-                   hovertemplate="<b>%{label}</b><br>Size: %{value}<extra></extra>",
-                   marker=dict(cornerradius=3)))
+        go.Treemap(
+            ids=ids,
+            parents=parents,
+            labels=labels,
+            values=values,
 
-    fig.update_layout(title="Symbol Size Treemap", margin=dict(t=50, l=25, r=25, b=25))
+            # Hover
+            customdata=hover_texts,
+            hovertemplate="%{customdata}<extra></extra>",
+            branchvalues="total",
+
+            # Text rendering (use label/value everywhere)
+            texttemplate="%{label}<br>%{value}",
+            textinfo="none",
+            marker=dict(cornerradius=3),
+        ))
+
+    fig.update_traces(
+        root_color="lightgrey",
+        tiling=dict(packing="squarify"),
+        pathbar=dict(
+            textfont=dict(size=12),
+            edgeshape=">",
+        ),
+    )
+
+    fig.update_layout(
+        title="Symbol Size Treemap",
+        margin=dict(t=50, l=25, r=25, b=25),
+    )
 
     fig.write_html(output_path)
 
@@ -421,13 +518,25 @@ def generate_symbol_size_report(ctx: TaskContext) -> None:
     ensure_existing_dir(ctx, ctx.config.workflow_out_dir)
     session = open_sqlite_session(Path(ctx.config.binary_size_conf.output_db), Base)
 
-    group_by_file = _get_grouped_symbols(session, by_head=False)
-    _write_groups(ctx.config.workflow_out_dir.joinpath("symbol_report_by_file.txt"),
-                  group_by_file, False)
+    def symbol_filter(sym: BinarySymbol) -> bool:
+        return sym.File and ("src/haxorg" in sym.File or
+                             "src/hstd" in sym.File) and "build" not in sym.File
+
+    group_by_file = _get_grouped_symbols(
+        session,
+        by_head=False,
+        symbol_filter=symbol_filter,
+    )
+
+    _write_groups(
+        ctx.config.workflow_out_dir.joinpath("symbol_report_by_file.txt"),
+        group_by_file,
+        False,
+    )
 
     tree_structure = _build_tree_structure(group_by_file)
     collapsed_tree = _collapse_single_child_nodes(tree_structure)
-    treemap_data = _generate_treemap_data(collapsed_tree, 10.0)
+    treemap_data = _generate_treemap_data(collapsed_tree, 30.0)
 
     report_path = ctx.config.workflow_out_dir / "symbol_tree_report.txt"
     _create_tree_report(collapsed_tree, report_path)
