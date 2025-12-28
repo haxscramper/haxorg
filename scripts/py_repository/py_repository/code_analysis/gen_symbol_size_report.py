@@ -277,6 +277,7 @@ class TreemapItem:
     label: str
     parent: str
     size: int
+    depth: int
 
     path: Optional[str]
     line: Optional[int]
@@ -290,7 +291,8 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
                            top_percent: float) -> list[TreemapItem]:
     treemap_data: list[TreemapItem] = []
 
-    def traverse(nodes: dict[str, TreeNode], parent_label: str, path: str) -> None:
+    def traverse(nodes: dict[str, TreeNode], parent_label: str, path: str,
+                 depth: int) -> None:
         # Check if this node has only leaf children
         has_non_leaf = any(node.nested for node in nodes.values())
 
@@ -307,10 +309,11 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
                         path=node.path,
                         line=node.line,
                         symbols=node.symbols,
+                        depth=depth,
                     ))
 
                 if node.nested:
-                    traverse(node.nested, current_path, current_path)
+                    traverse(node.nested, current_path, current_path, depth + 1)
         else:
             # All children are leaf nodes, apply grouping to this specific node
             leaf_items = list(nodes.items())
@@ -336,6 +339,7 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
                     path=node.path,
                     line=node.line,
                     symbols=node.symbols,
+                    depth=depth,
                 )
 
                 for sym in node.symbols[:5]:
@@ -354,6 +358,7 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
                     path=None,
                     line=None,
                     symbols=[node.symbols[0] for _, node in small_items if node.symbols],
+                    depth=depth,
                 )
 
                 for it in small_items[:20]:
@@ -372,10 +377,11 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
             path=None,
             line=None,
             symbols=[],
+            depth=0,
         ))
 
     # Start traversal
-    traverse(tree, "", "")
+    traverse(tree, "", "", 1)
 
     return treemap_data
 
@@ -397,38 +403,102 @@ def _format_bytes(size: int) -> str:
 
 
 @beartype
+def _get_visual_text(item: TreemapItem) -> str:
+    """Text displayed on the treemap rectangle."""
+    if item.line is not None and item.path is not None:
+        # Leaf node with line info - show filename:line
+        return f"{Path(item.path).stem}:{item.line}"
+    elif item.line is not None:
+        return f"{item.line}"
+    elif item.label:
+        # Show only the last part of the path (the key)
+        parts = item.label.split("/")
+        res = parts[-1] if parts else item.label
+        return f"{res} {_format_bytes(item.size)}"
+    else:
+        return ""
+
+
+@beartype
+def _get_hover_text(item: TreemapItem) -> str:
+    """Full hover text for an item."""
+    parts = [f"<b>{item.label}</b>" if item.label else "<b>Root</b>"]
+    parts.append(f"Size: {_format_bytes(item.size)}")
+    if item.path:
+        parts.append(f"File: {item.path}")
+    if item.line is not None:
+        parts.append(f"Line: {item.line}")
+
+    parts.extend(item.extra_hover)
+
+    return "<br>".join(parts)
+
+
+def _assign_colors(treemap_data: list[TreemapItem],
+                   max_color_depth: int = 3) -> dict[str, str]:
+    """Assign colors based on hierarchy depth and parent grouping."""
+    import plotly.colors as pc
+
+    colors = {}
+
+    # Available color palettes for different depths
+    color_palettes = [
+        pc.qualitative.Set1,
+        pc.qualitative.Set2,
+        pc.qualitative.Set3,
+        pc.qualitative.Pastel1,
+        pc.qualitative.Pastel2,
+        pc.qualitative.Dark2,
+    ]
+
+    # Group items by depth
+    items_by_depth: Dict[int, List[TreemapItem]] = {}
+    for item in treemap_data:
+        if item.depth not in items_by_depth:
+            items_by_depth[item.depth] = []
+        items_by_depth[item.depth].append(item)
+
+    # Assign colors for depths 1 to max_color_depth
+    for depth in range(1, max_color_depth + 1):
+        if depth not in items_by_depth:
+            continue
+
+        # Get color palette for this depth (cycle through available palettes)
+        palette_idx = (depth - 1) % len(color_palettes)
+        current_palette = color_palettes[palette_idx]
+
+        # Group items by parent at this depth
+        items_by_parent: Dict[str, List[TreemapItem]] = {}
+        for item in items_by_depth[depth]:
+            if item.parent not in items_by_parent:
+                items_by_parent[item.parent] = []
+            items_by_parent[item.parent].append(item)
+
+        # Assign colors to items at this depth
+        color_counter = 0
+        for parent, children in items_by_parent.items():
+            for child in children:
+                color_idx = color_counter % len(current_palette)
+                colors[child.label] = current_palette[color_idx]
+                color_counter += 1
+
+    # For depths beyond max_color_depth, inherit parent's color
+    for depth in sorted(items_by_depth.keys()):
+        if depth > max_color_depth:
+            for item in items_by_depth[depth]:
+                parent_color = colors.get(item.parent)
+                if parent_color:
+                    colors[item.label] = parent_color
+
+    return colors
+
+
+@beartype
 def _create_treemap_html(treemap_data: list["TreemapItem"], output_path: Path) -> None:
     import plotly.graph_objects as go
 
     if not treemap_data:
         return
-
-    def get_visual_text(item: TreemapItem) -> str:
-        """Text displayed on the treemap rectangle."""
-        if item.line is not None and item.path is not None:
-            # Leaf node with line info - show filename:line
-            return f"{Path(item.path).stem}:{item.line}"
-        elif item.line is not None:
-            return f"{item.line}"
-        elif item.label:
-            # Show only the last part of the path (the key)
-            parts = item.label.split("/")
-            return parts[-1] if parts else item.label
-        else:
-            return ""
-
-    def get_hover_text(item: TreemapItem) -> str:
-        """Full hover text for an item."""
-        parts = [f"<b>{item.label}</b>" if item.label else "<b>Root</b>"]
-        parts.append(f"Size: {_format_bytes(item.size)}")
-        if item.path:
-            parts.append(f"File: {item.path}")
-        if item.line is not None:
-            parts.append(f"Line: {item.line}")
-
-        parts.extend(item.extra_hover)
-
-        return "<br>".join(parts)
 
     # IMPORTANT:
     # - Use `ids` / `parents` for hierarchy (keep full paths there).
@@ -440,8 +510,12 @@ def _create_treemap_html(treemap_data: list["TreemapItem"], output_path: Path) -
     parents = [item.parent for item in treemap_data]
     values = [item.size for item in treemap_data]
 
-    labels = [get_visual_text(item) for item in treemap_data]
-    hover_texts = [get_hover_text(item) for item in treemap_data]
+    labels = [_get_visual_text(item) for item in treemap_data]
+    hover_texts = [_get_hover_text(item) for item in treemap_data]
+
+    # Assign colors
+    color_map = _assign_colors(treemap_data)
+    node_colors = [color_map.get(item.label, "lightgrey") for item in treemap_data]
 
     fig = go.Figure(
         go.Treemap(
@@ -458,7 +532,15 @@ def _create_treemap_html(treemap_data: list["TreemapItem"], output_path: Path) -
             # Text rendering (use label/value everywhere)
             texttemplate="%{label}<br>%{value}",
             textinfo="none",
-            marker=dict(cornerradius=3),
+            marker=dict(
+                cornerradius=3,
+                colors=node_colors,  # Apply our custom colors
+                colorscale=None,  # Disable automatic colorscale
+                line=dict(
+                    color="gray",  # Border color
+                    width=1  # Border width
+                ),
+            ),
         ))
 
     fig.update_traces(
