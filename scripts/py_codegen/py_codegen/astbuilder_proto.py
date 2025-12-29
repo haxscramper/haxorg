@@ -789,8 +789,6 @@ class ProtoBuilder():
             writer_types.append(item)
 
             for meth in item.methods():
-                assert isinstance(meth,
-                                  cpp.MethodDefParams), "Method must be MethodDefParams"
                 writer_methods.append(meth.asMethodDef(name)) # type: ignore
                 meth.Params.Body = None
 

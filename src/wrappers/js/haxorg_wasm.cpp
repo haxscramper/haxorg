@@ -215,7 +215,7 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAstReplaceEpoch>("ImmAstReplaceEpoch")
     .smart_ptr<std::shared_ptr<org::imm::ImmAstReplaceEpoch>>("ImmAstReplaceEpoch")
     ;
-  emscripten::class_<org::imm::ImmNoneValueRead>("ImmNoneValueRead")
+  emscripten::class_<org::imm::ImmNoNodeValueRead>("ImmNoNodeValueRead")
     ;
   emscripten::class_<org::imm::ImmErrorItemValueRead>("ImmErrorItemValueRead")
     .function("getDiag", static_cast<org::sem::OrgDiagnostics const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getDiag))
@@ -1716,10 +1716,10 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::OrgDiagnostics::Kind>("OrgSemOrgDiagnosticsKind");
-  emscripten::class_<org::sem::None, emscripten::base<org::sem::Org>>("None")
-    .smart_ptr<org::sem::SemId<org::sem::None>>("None")
-    .function("getKind", static_cast<OrgSemKind(org::sem::None::*)() const>(&org::sem::None::getKind))
-    .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::None>>)
+  emscripten::class_<org::sem::NoNode, emscripten::base<org::sem::Org>>("NoNode")
+    .smart_ptr<org::sem::SemId<org::sem::NoNode>>("NoNode")
+    .function("getKind", static_cast<OrgSemKind(org::sem::NoNode::*)() const>(&org::sem::NoNode::getKind))
+    .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::NoNode>>)
     ;
   emscripten::class_<org::sem::ErrorItem, emscripten::base<org::sem::Org>>("ErrorItem")
     .smart_ptr<org::sem::SemId<org::sem::ErrorItem>>("ErrorItem")
@@ -2080,7 +2080,7 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::CmdInclude::Kind>("OrgSemCmdIncludeKind");
-  emscripten::class_<org::imm::ImmIdT<org::imm::ImmNone>, emscripten::base<org::imm::ImmId>>("ImmIdTNone")
+  emscripten::class_<org::imm::ImmIdT<org::imm::ImmNoNode>, emscripten::base<org::imm::ImmId>>("ImmIdTNoNode")
     .constructor<>()
     ;
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmErrorItem>, emscripten::base<org::imm::ImmId>>("ImmIdTErrorItem")
@@ -2347,9 +2347,9 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmCmdInclude>, emscripten::base<org::imm::ImmId>>("ImmIdTCmdInclude")
     .constructor<>()
     ;
-  emscripten::class_<org::imm::ImmNone, emscripten::base<org::imm::ImmOrg>>("ImmNone")
-    .function("getKind", static_cast<OrgSemKind(org::imm::ImmNone::*)() const>(&org::imm::ImmNone::getKind))
-    .function("__eq__", static_cast<bool(org::imm::ImmNone::*)(org::imm::ImmNone const&) const>(&org::imm::ImmNone::operator==))
+  emscripten::class_<org::imm::ImmNoNode, emscripten::base<org::imm::ImmOrg>>("ImmNoNode")
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmNoNode::*)() const>(&org::imm::ImmNoNode::getKind))
+    .function("__eq__", static_cast<bool(org::imm::ImmNoNode::*)(org::imm::ImmNoNode const&) const>(&org::imm::ImmNoNode::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::imm::ImmErrorItem, emscripten::base<org::imm::ImmOrg>>("ImmErrorItem")
@@ -2686,7 +2686,7 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::imm::ImmCmdInclude::Kind>("OrgImmImmCmdIncludeKind");
-  emscripten::class_<org::imm::ImmNoneValue, emscripten::base<org::imm::ImmNoneValueRead>>("ImmNoneValue")
+  emscripten::class_<org::imm::ImmNoNodeValue, emscripten::base<org::imm::ImmNoNodeValueRead>>("ImmNoNodeValue")
     ;
   emscripten::class_<org::imm::ImmErrorItemValue, emscripten::base<org::imm::ImmErrorItemValueRead>>("ImmErrorItemValue")
     .function("setDiag", static_cast<void(org::imm::ImmErrorItemValue::*)(org::sem::OrgDiagnostics const&)>(&org::imm::ImmErrorItemValue::setDiag))
@@ -3310,7 +3310,7 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterSubtreeAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterSubtreeAPI")
     ;
-  emscripten::class_<org::imm::ImmAdapterNoneAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterNoneAPI")
+  emscripten::class_<org::imm::ImmAdapterNoNodeAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterNoNodeAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterAttrAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterAttrAPI")
     ;
@@ -3506,8 +3506,8 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSubtree>, emscripten::base<org::imm::ImmAdapterSubtreeAPI>>("ImmSubtreeAdapter")
     .function("getValue", static_cast<org::imm::ImmSubtreeValueRead(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getValue))
     ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmNone>, emscripten::base<org::imm::ImmAdapterNoneAPI>>("ImmNoneAdapter")
-    .function("getValue", static_cast<org::imm::ImmNoneValueRead(org::imm::ImmAdapterT<org::imm::ImmNone>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNone>::getValue))
+  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmNoNode>, emscripten::base<org::imm::ImmAdapterNoNodeAPI>>("ImmNoNodeAdapter")
+    .function("getValue", static_cast<org::imm::ImmNoNodeValueRead(org::imm::ImmAdapterT<org::imm::ImmNoNode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNoNode>::getValue))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmErrorItem>, emscripten::base<org::imm::ImmAdapterErrorItemAPI>>("ImmErrorItemAdapter")
     .function("getValue", static_cast<org::imm::ImmErrorItemValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorItem>::getValue))

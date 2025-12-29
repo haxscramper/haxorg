@@ -248,7 +248,7 @@
     __IMPL(File, Kind, (Kind)) \
     __IMPL(CmdInclude, Kind, (Kind))
 #define EACH_SEM_ORG_RECORD(__IMPL) \
-    __IMPL(None, (None)) \
+    __IMPL(NoNode, (NoNode)) \
     __IMPL(ErrorItem, (ErrorItem)) \
     __IMPL(ErrorGroup, (ErrorGroup)) \
     __IMPL(Stmt, (Stmt)) \
@@ -350,7 +350,7 @@
     __IMPL(CmdInclude::Src, (CmdInclude, Src)) \
     __IMPL(CmdInclude::OrgDocument, (CmdInclude, OrgDocument))
 #define EACH_SEM_ORG_KIND(__IMPL) \
-    __IMPL(None) \
+    __IMPL(NoNode) \
     __IMPL(ErrorItem) \
     __IMPL(ErrorGroup) \
     __IMPL(StmtList) \
@@ -431,7 +431,7 @@
     __IMPL(Symlink) \
     __IMPL(CmdInclude)
 #define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \
-    __IMPL(None, Org) \
+    __IMPL(NoNode, Org) \
     __IMPL(ErrorItem, Org) \
     __IMPL(ErrorGroup, Org) \
     __IMPL(StmtList, Org) \
@@ -512,7 +512,7 @@
     __IMPL(Symlink, Org) \
     __IMPL(CmdInclude, Org)
 #define EACH_SEM_ORG_TYPE_BASE(__IMPL) \
-    __IMPL(None, Org) \
+    __IMPL(NoNode, Org) \
     __IMPL(ErrorItem, Org) \
     __IMPL(ErrorGroup, Org) \
     __IMPL(Stmt, Org) \
@@ -600,9 +600,9 @@
     __IMPL(Directory, Org) \
     __IMPL(Symlink, Org) \
     __IMPL(CmdInclude, Org)
-#define EACH_SEM_ORG_None_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+#define EACH_SEM_ORG_NoNode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
-#define EACH_SEM_ORG_None_FIELD_WITH_BASES(__IMPL_BASE) \
+#define EACH_SEM_ORG_NoNode_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
 
 #define EACH_SEM_ORG_ErrorItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -1288,9 +1288,9 @@
     __IMPL_FIELD((hstd::Opt<int>), lastLine, Lastline, (org::sem::CmdInclude), CmdInclude) \
     __IMPL_FIELD((org::sem::CmdInclude::Data), data, Data, (org::sem::CmdInclude), CmdInclude) \
 
-#define EACH_IMM_ORG_ImmNone_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+#define EACH_IMM_ORG_ImmNoNode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
-#define EACH_IMM_ORG_ImmNone_FIELD_WITH_BASES(__IMPL_BASE) \
+#define EACH_IMM_ORG_ImmNoNode_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
 
 #define EACH_IMM_ORG_ImmErrorItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -2687,9 +2687,9 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgJsonKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Int)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Float)
 BOOST_DESCRIBE_ENUM_END(OrgJsonKind)
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdLanguage, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
+enum class OrgSemKind : short int { NoNode, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdLanguage, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, None)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, NoNode)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorItem)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorGroup)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, StmtList)

@@ -3,17 +3,17 @@
 #include <haxorg/sem/ImmOrgBase.hpp>
 namespace org::imm {
 /// \brief No node
-struct ImmNone : public org::imm::ImmOrg {
+struct ImmNoNode : public org::imm::ImmOrg {
   using ImmOrg::ImmOrg;
-  virtual ~ImmNone() = default;
-  BOOST_DESCRIBE_CLASS(ImmNone,
+  virtual ~ImmNoNode() = default;
+  BOOST_DESCRIBE_CLASS(ImmNoNode,
                        (ImmOrg),
                        (),
                        (),
                        (staticKind))
   static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::None; }
-  bool operator==(org::imm::ImmNone const& other) const;
+  virtual OrgSemKind getKind() const { return OrgSemKind::NoNode; }
+  bool operator==(org::imm::ImmNoNode const& other) const;
 };
 
 struct ImmErrorItem : public org::imm::ImmOrg {

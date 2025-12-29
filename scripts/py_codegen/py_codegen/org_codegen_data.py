@@ -2925,7 +2925,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
 
 def get_types() -> Sequence[GenTuStruct]:
     return [
-        d_org("None", GenTuDoc("No node"), bases=[t_nest(t_org("Org"))]),
+        d_org("NoNode", GenTuDoc("No node"), bases=[t_nest(t_org("Org"))]),
         *get_sem_bases(),
         *get_sem_commands(),
         *get_sem_text(),

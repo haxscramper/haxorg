@@ -59,7 +59,7 @@ TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
 TEST_F(ImmOrgApi, ImmAstFieldIteration) {
     auto store = imm::ImmAstContext::init_start_context();
     for (auto const& k : sliceT<OrgSemKind>()) {
-        if (k != OrgSemKind::None) {
+        if (k != OrgSemKind::NoNode) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
                 N                         tmp{};
                 ReflRecursiveVisitContext ctx;

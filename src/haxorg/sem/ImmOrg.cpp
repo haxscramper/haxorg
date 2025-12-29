@@ -109,8 +109,8 @@ void ImmId::assertValid() const {
 
     if (!isNil()) {
         LOGIC_ASSERTION_CHECK_FMT(
-            getKind() != OrgSemKind::None,
-            "Valid ID must have a kind different from 'None'");
+            getKind() != OrgSemKind::NoNode,
+            "Valid ID must have a kind different from 'NoNode'");
     }
 }
 

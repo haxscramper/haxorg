@@ -455,12 +455,12 @@ ImmPathStep documentation.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::imm::ImmNoneValueRead>(m, "ImmNoneValueRead")
-    .def("__repr__", [](org::imm::ImmNoneValueRead const& _self) -> std::string {
+  pybind11::class_<org::imm::ImmNoNodeValueRead>(m, "ImmNoNodeValueRead")
+    .def("__repr__", [](org::imm::ImmNoNodeValueRead const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmNoneValueRead const& _self, std::string const& name) -> pybind11::object {
+         [](org::imm::ImmNoNodeValueRead const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -5286,17 +5286,17 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::None, org::sem::SemId<org::sem::None>, org::sem::Org>(m, "None")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::None {
-                        org::sem::None result{};
+  pybind11::class_<org::sem::NoNode, org::sem::SemId<org::sem::NoNode>, org::sem::Org>(m, "NoNode")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::NoNode {
+                        org::sem::NoNode result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](org::sem::None const& _self) -> std::string {
+    .def("__repr__", [](org::sem::NoNode const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::None const& _self, std::string const& name) -> pybind11::object {
+         [](org::sem::NoNode const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -6260,7 +6260,7 @@ ingoing elements.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::imm::ImmIdT<org::imm::ImmNone>, org::imm::ImmId>(m, "ImmIdTNone")
+  pybind11::class_<org::imm::ImmIdT<org::imm::ImmNoNode>, org::imm::ImmId>(m, "ImmIdTNoNode")
     ;
   pybind11::class_<org::imm::ImmIdT<org::imm::ImmErrorItem>, org::imm::ImmId>(m, "ImmIdTErrorItem")
     ;
@@ -6813,12 +6813,12 @@ ingoing elements.)RAW")
          },
          pybind11::arg("it"))
     ;
-  pybind11::class_<org::imm::ImmNoneValue, org::imm::ImmNoneValueRead>(m, "ImmNoneValue")
-    .def("__repr__", [](org::imm::ImmNoneValue const& _self) -> std::string {
+  pybind11::class_<org::imm::ImmNoNodeValue, org::imm::ImmNoNodeValueRead>(m, "ImmNoNodeValue")
+    .def("__repr__", [](org::imm::ImmNoNodeValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmNoneValue const& _self, std::string const& name) -> pybind11::object {
+         [](org::imm::ImmNoNodeValue const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -8443,7 +8443,7 @@ ingoing elements.)RAW")
     ;
   pybind11::class_<org::imm::ImmAdapterSubtreeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSubtreeAPI")
     ;
-  pybind11::class_<org::imm::ImmAdapterNoneAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterNoneAPI")
+  pybind11::class_<org::imm::ImmAdapterNoNodeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterNoNodeAPI")
     ;
   pybind11::class_<org::imm::ImmAdapterAttrAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterAttrAPI")
     ;
@@ -8665,9 +8665,9 @@ ingoing elements.)RAW")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmSubtreeValueRead(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getValue))
     ;
-  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmNone>, org::imm::ImmAdapterNoneAPI>(m, "ImmNoneAdapter")
+  pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmNoNode>, org::imm::ImmAdapterNoNodeAPI>(m, "ImmNoNodeAdapter")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
-    .def("getValue", static_cast<org::imm::ImmNoneValueRead(org::imm::ImmAdapterT<org::imm::ImmNone>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNone>::getValue))
+    .def("getValue", static_cast<org::imm::ImmNoNodeValueRead(org::imm::ImmAdapterT<org::imm::ImmNoNode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNoNode>::getValue))
     ;
   pybind11::class_<org::imm::ImmAdapterT<org::imm::ImmErrorItem>, org::imm::ImmAdapterErrorItemAPI>(m, "ImmErrorItemAdapter")
     .def(pybind11::init<org::imm::ImmAdapter const&>())
@@ -9945,7 +9945,7 @@ ingoing elements.)RAW")
     ;
   bind_enum_iterator<OrgSemKind>(m, "OrgSemKind", type_registry_guard);
   pybind11::enum_<OrgSemKind>(m, "OrgSemKind")
-    .value("None", OrgSemKind::None)
+    .value("NoNode", OrgSemKind::NoNode)
     .value("ErrorItem", OrgSemKind::ErrorItem)
     .value("ErrorGroup", OrgSemKind::ErrorGroup)
     .value("StmtList", OrgSemKind::StmtList)

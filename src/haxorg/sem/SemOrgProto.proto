@@ -465,7 +465,7 @@ enum OrgJsonKind {
 }
 
 enum OrgSemKind {
-  OrgSemKind_None_f                                                                 = 0;
+  OrgSemKind_NoNode_f                                                               = 0;
   OrgSemKind_ErrorItem_f                                                            = 1;
   OrgSemKind_ErrorGroup_f                                                           = 2;
   OrgSemKind_StmtList_f                                                             = 3;
@@ -1446,7 +1446,7 @@ message OrgDiagnostics {
   string                                           debug                            = 1000;
 }
 
-message None {
+message NoNode {
   optional org.parse.LineCol                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
@@ -2366,7 +2366,7 @@ message CmdInclude {
 
 message AnyNode {
   oneof kind {
-    None                                             none                             = 1;
+    NoNode                                           nonode                           = 1;
     ErrorItem                                        erroritem                        = 2;
     ErrorGroup                                       errorgroup                       = 3;
     StmtList                                         stmtlist                         = 4;

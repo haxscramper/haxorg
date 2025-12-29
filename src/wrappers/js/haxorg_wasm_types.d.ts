@@ -13,7 +13,7 @@ export interface haxorg_wasm_module_auto {
   ImmPath: ImmPathConstructor;
   ImmUniqId: ImmUniqIdConstructor;
   ImmAstReplaceEpoch: ImmAstReplaceEpochConstructor;
-  ImmNoneValueRead: ImmNoneValueReadConstructor;
+  ImmNoNodeValueRead: ImmNoNodeValueReadConstructor;
   ImmErrorItemValueRead: ImmErrorItemValueReadConstructor;
   ImmErrorGroupValueRead: ImmErrorGroupValueReadConstructor;
   ImmStmtListValueRead: ImmStmtListValueReadConstructor;
@@ -456,7 +456,7 @@ export interface haxorg_wasm_module_auto {
     InternalError: OrgDiagnosticsKind,
   }
   format_OrgDiagnosticsKind(value: OrgDiagnosticsKind): string;
-  None: NoneConstructor;
+  NoNode: NoNodeConstructor;
   ErrorItem: ErrorItemConstructor;
   ErrorGroup: ErrorGroupConstructor;
   Stmt: StmtConstructor;
@@ -544,7 +544,7 @@ export interface haxorg_wasm_module_auto {
     OrgDocument: CmdIncludeKind,
   }
   format_CmdIncludeKind(value: CmdIncludeKind): string;
-  ImmIdTNone: ImmIdTNoneConstructor;
+  ImmIdTNoNode: ImmIdTNoNodeConstructor;
   ImmIdTErrorItem: ImmIdTErrorItemConstructor;
   ImmIdTErrorGroup: ImmIdTErrorGroupConstructor;
   ImmIdTStmt: ImmIdTStmtConstructor;
@@ -632,7 +632,7 @@ export interface haxorg_wasm_module_auto {
   ImmIdTDirectory: ImmIdTDirectoryConstructor;
   ImmIdTSymlink: ImmIdTSymlinkConstructor;
   ImmIdTCmdInclude: ImmIdTCmdIncludeConstructor;
-  ImmNone: ImmNoneConstructor;
+  ImmNoNode: ImmNoNodeConstructor;
   ImmErrorItem: ImmErrorItemConstructor;
   ImmErrorGroup: ImmErrorGroupConstructor;
   ImmStmt: ImmStmtConstructor;
@@ -720,7 +720,7 @@ export interface haxorg_wasm_module_auto {
     OrgDocument: ImmCmdIncludeKind,
   }
   format_ImmCmdIncludeKind(value: ImmCmdIncludeKind): string;
-  ImmNoneValue: ImmNoneValueConstructor;
+  ImmNoNodeValue: ImmNoNodeValueConstructor;
   ImmErrorItemValue: ImmErrorItemValueConstructor;
   ImmErrorGroupValue: ImmErrorGroupValueConstructor;
   ImmStmtListValue: ImmStmtListValueConstructor;
@@ -861,7 +861,7 @@ export interface haxorg_wasm_module_auto {
   ImmPar: ImmParConstructor;
   ImmAdapterStmtAPI: ImmAdapterStmtAPIConstructor;
   ImmAdapterSubtreeAPI: ImmAdapterSubtreeAPIConstructor;
-  ImmAdapterNoneAPI: ImmAdapterNoneAPIConstructor;
+  ImmAdapterNoNodeAPI: ImmAdapterNoNodeAPIConstructor;
   ImmAdapterAttrAPI: ImmAdapterAttrAPIConstructor;
   ImmAdapterAttrListAPI: ImmAdapterAttrListAPIConstructor;
   ImmAdapterAttrsAPI: ImmAdapterAttrsAPIConstructor;
@@ -922,7 +922,7 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterParagraphAPI: ImmAdapterParagraphAPIConstructor;
   ImmAdapterListAPI: ImmAdapterListAPIConstructor;
   ImmSubtreeAdapter: ImmSubtreeAdapterConstructor;
-  ImmNoneAdapter: ImmNoneAdapterConstructor;
+  ImmNoNodeAdapter: ImmNoNodeAdapterConstructor;
   ImmErrorItemAdapter: ImmErrorItemAdapterConstructor;
   ImmErrorGroupAdapter: ImmErrorGroupAdapterConstructor;
   ImmErrorSkipGroupAdapter: ImmErrorSkipGroupAdapterConstructor;
@@ -1549,7 +1549,7 @@ export interface haxorg_wasm_module_auto {
   }
   format_OrgJsonKind(value: OrgJsonKind): string;
   OrgSemKind: {
-    None: OrgSemKind,
+    NoNode: OrgSemKind,
     ErrorItem: OrgSemKind,
     ErrorGroup: OrgSemKind,
     StmtList: OrgSemKind,
@@ -1753,8 +1753,8 @@ export interface ImmUniqIdConstructor { new(): ImmUniqId; }
 export interface ImmUniqId {  }
 export interface ImmAstReplaceEpochConstructor { new(): ImmAstReplaceEpoch; }
 export interface ImmAstReplaceEpoch {  }
-export interface ImmNoneValueReadConstructor { new(): ImmNoneValueRead; }
-export interface ImmNoneValueRead {  }
+export interface ImmNoNodeValueReadConstructor { new(): ImmNoNodeValueRead; }
+export interface ImmNoNodeValueRead {  }
 export interface ImmErrorItemValueReadConstructor { new(): ImmErrorItemValueRead; }
 export interface ImmErrorItemValueRead { getDiag(): OrgDiagnostics; }
 export interface ImmErrorGroupValueReadConstructor { new(): ImmErrorGroupValueRead; }
@@ -3476,8 +3476,8 @@ export enum OrgDiagnosticsKind {
   ConvertError,
   InternalError,
 }
-export interface NoneConstructor { new(): None; }
-export interface None { getKind(): OrgSemKind; }
+export interface NoNodeConstructor { new(): NoNode; }
+export interface NoNode { getKind(): OrgSemKind; }
 export interface ErrorItemConstructor { new(): ErrorItem; }
 export interface ErrorItem {
   getKind(): OrgSemKind;
@@ -3838,8 +3838,8 @@ export enum CmdIncludeKind {
   Src,
   OrgDocument,
 }
-export interface ImmIdTNoneConstructor { new(): ImmIdTNone; }
-export interface ImmIdTNone {  }
+export interface ImmIdTNoNodeConstructor { new(): ImmIdTNoNode; }
+export interface ImmIdTNoNode {  }
 export interface ImmIdTErrorItemConstructor { new(): ImmIdTErrorItem; }
 export interface ImmIdTErrorItem {  }
 export interface ImmIdTErrorGroupConstructor { new(): ImmIdTErrorGroup; }
@@ -4014,10 +4014,10 @@ export interface ImmIdTSymlinkConstructor { new(): ImmIdTSymlink; }
 export interface ImmIdTSymlink {  }
 export interface ImmIdTCmdIncludeConstructor { new(): ImmIdTCmdInclude; }
 export interface ImmIdTCmdInclude {  }
-export interface ImmNoneConstructor { new(): ImmNone; }
-export interface ImmNone {
+export interface ImmNoNodeConstructor { new(): ImmNoNode; }
+export interface ImmNoNode {
   getKind(): OrgSemKind;
-  __eq__(other: ImmNone): boolean;
+  __eq__(other: ImmNoNode): boolean;
 }
 export interface ImmErrorItemConstructor { new(): ImmErrorItem; }
 export interface ImmErrorItem {
@@ -4399,8 +4399,8 @@ export enum ImmCmdIncludeKind {
   Src,
   OrgDocument,
 }
-export interface ImmNoneValueConstructor { new(): ImmNoneValue; }
-export interface ImmNoneValue {  }
+export interface ImmNoNodeValueConstructor { new(): ImmNoNodeValue; }
+export interface ImmNoNodeValue {  }
 export interface ImmErrorItemValueConstructor { new(): ImmErrorItemValue; }
 export interface ImmErrorItemValue { setDiag(value: OrgDiagnostics): void; }
 export interface ImmErrorGroupValueConstructor { new(): ImmErrorGroupValue; }
@@ -4962,8 +4962,8 @@ export interface ImmAdapterStmtAPIConstructor { new(): ImmAdapterStmtAPI; }
 export interface ImmAdapterStmtAPI {  }
 export interface ImmAdapterSubtreeAPIConstructor { new(): ImmAdapterSubtreeAPI; }
 export interface ImmAdapterSubtreeAPI {  }
-export interface ImmAdapterNoneAPIConstructor { new(): ImmAdapterNoneAPI; }
-export interface ImmAdapterNoneAPI {  }
+export interface ImmAdapterNoNodeAPIConstructor { new(): ImmAdapterNoNodeAPI; }
+export interface ImmAdapterNoNodeAPI {  }
 export interface ImmAdapterAttrAPIConstructor { new(): ImmAdapterAttrAPI; }
 export interface ImmAdapterAttrAPI {  }
 export interface ImmAdapterAttrListAPIConstructor { new(): ImmAdapterAttrListAPI; }
@@ -5147,10 +5147,10 @@ export interface ImmSubtreeAdapter {
   ImmAdapterT(other: ImmAdapter): ImmSubtreeAdapter;
   getValue(): ImmSubtreeValueRead;
 }
-export interface ImmNoneAdapterConstructor { new(): ImmNoneAdapter; }
-export interface ImmNoneAdapter {
-  ImmAdapterT(other: ImmAdapter): ImmNoneAdapter;
-  getValue(): ImmNoneValueRead;
+export interface ImmNoNodeAdapterConstructor { new(): ImmNoNodeAdapter; }
+export interface ImmNoNodeAdapter {
+  ImmAdapterT(other: ImmAdapter): ImmNoNodeAdapter;
+  getValue(): ImmNoNodeValueRead;
 }
 export interface ImmErrorItemAdapterConstructor { new(): ImmErrorItemAdapter; }
 export interface ImmErrorItemAdapter {
@@ -6285,7 +6285,7 @@ export enum OrgJsonKind {
   Float,
 }
 export enum OrgSemKind {
-  None,
+  NoNode,
   ErrorItem,
   ErrorGroup,
   StmtList,
