@@ -44,9 +44,13 @@ class TraceCollector:
         self.lock = threading.Lock()
 
     def get_last_event(self) -> Optional[TraceEvent]:
-        return self.traceEvents and self.traceEvents[-1]
+        if self.traceEvents:
+            return self.traceEvents[-1]
 
-    def addEvents(self, events: List[TraceEvent]):
+        else:
+            return None
+
+    def addEvents(self, events: List[TraceEvent]) -> None:
         with self.lock:
             self.traceEvents += events
 
@@ -115,6 +119,7 @@ class TraceCollector:
         with self.lock:
             new_event = self.eventStacks[tid].pop()
             end_time = int(time.time() * 1e6)
+            assert new_event.ts
             new_event.dur = end_time - new_event.ts
             self.traceEvents.append(new_event)
 
@@ -144,10 +149,10 @@ class TraceCollector:
         finally:
             self.pop_complete_event()
 
-    def set_metadata(self, key: str, value: Any):
+    def set_metadata(self, key: str, value: Any) -> None:
         self.metadata[key] = value
 
-    def export_to_json(self, filename: Path):
+    def export_to_json(self, filename: Path) -> None:
         data = {
             "traceEvents": [event.__dict__ for event in self.traceEvents],
             "otherData": self.metadata
@@ -181,7 +186,11 @@ def GlobCompleteEvent(
     line: Optional[int] = None,
     function: Optional[str] = None,
 ) -> Iterator[TraceEvent]:
-    frame = inspect.currentframe().f_back.f_back
+    frame_ = inspect.currentframe()
+    assert frame_
+    assert frame_.f_back
+    frame = frame_.f_back.f_back
+    assert frame
     info = inspect.getframeinfo(frame)
 
     with getGlobalTraceCollector().complete_event(
@@ -200,35 +209,35 @@ def GlobGetEvents() -> List[TraceEvent]:
 
 
 @beartype
-def GlobAddEvents(events: List[TraceEvent]):
+def GlobAddEvents(events: List[TraceEvent]) -> None:
     getGlobalTraceCollector().addEvents(events)
 
 
 @beartype
-def GlobRestart():
+def GlobRestart() -> None:
     getGlobalTraceCollector().traceEvents = []
 
 
 @beartype
-def GlobNameThisProcess(name: str):
+def GlobNameThisProcess(name: str) -> None:
     getGlobalTraceCollector().add_process_name_event(name)
 
 
 @beartype
-def GlobNameThisThread(name: str):
+def GlobNameThisThread(name: str) -> None:
     getGlobalTraceCollector().add_thread_name_event(name)
 
 
 @beartype
-def GlobIndexThisProcess(index: int):
+def GlobIndexThisProcess(index: int) -> None:
     getGlobalTraceCollector().add_process_index_event(index)
 
 
 @beartype
-def GlobIndexThisThread(index: int):
+def GlobIndexThisThread(index: int) -> None:
     getGlobalTraceCollector().add_thread_index_event(index)
 
 
 @beartype
-def GlobExportJson(file: Path):
+def GlobExportJson(file: Path) -> None:
     return getGlobalTraceCollector().export_to_json(file)

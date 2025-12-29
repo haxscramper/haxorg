@@ -1,5 +1,5 @@
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import get_script_root, get_workflow_out
+from py_repository.repo_tasks.common import ensure_existing_dir, get_script_root, get_workflow_out, get_workflow_tmp
 from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 
 
@@ -8,6 +8,9 @@ def run_mypy(ctx: TaskContext) -> None:
     script_files = list(get_script_root(ctx, "scripts").rglob("*.py"))
     script_files = [f for f in script_files if (".venv" not in str(f))]
     all_outputs = []
+
+    cache_dir = get_workflow_tmp(ctx, "mypy_cache")
+    ensure_existing_dir(ctx, cache_dir)
 
     had_fails = False
     for py_file in script_files:
@@ -20,6 +23,8 @@ def run_mypy(ctx: TaskContext) -> None:
                 str(py_file),
                 "--show-error-codes",
                 "--show-error-context",
+                "--cache-dir",
+                str(cache_dir),
             ],
             allow_fail=True,
             capture=True,
@@ -36,7 +41,7 @@ def run_mypy(ctx: TaskContext) -> None:
             file_output += f"STDERR:\n{stderr}\n"
         file_output += "-" * 80 + "\n"
 
-        if code != 0: 
+        if code != 0:
             all_outputs.append(file_output)
 
     report_content = "MyPy Analysis Report\n"

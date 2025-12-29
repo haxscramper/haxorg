@@ -4,10 +4,9 @@ Parser for LaTeX log files.
 """
 import re
 from collections import deque
-from beartype.typing import List, Literal, Optional, Tuple
+from beartype.typing import List, Iterable, Optional, Tuple, Any
 from beartype import beartype
 from dataclasses import dataclass, field
-from py_scriptutils.script_logging import log
 
 CAT = __name__
 
@@ -41,24 +40,24 @@ class _LineIterWrapper:
     without consuming the iterator.
     """
 
-    def __init__(self, iterable, ctx_lines):
+    def __init__(self, iterable: Iterable[Any], ctx_lines: int) -> None:
         self.iterable = iter(iterable)
-        self.cache = deque()
+        self.cache: deque[str] = deque()
         self.ctx_lines = ctx_lines
         self.current = None
 
-    def __next__(self):
+    def __next__(self) -> str:
         if self.cache:
-            self.current = current = self.cache.popleft()
+            self.current = current = self.cache.popleft() # type: ignore
         else:
             self.current = current = next(self.iterable)
         return current
 
-    def __iter__(self):
+    def __iter__(self) -> "_LineIterWrapper":
         return self
 
-    def get_context(self):
-        rv = [self.current] if self.current else []
+    def get_context(self) -> List[str]:
+        rv: List[str] = [self.current] if self.current else []
         for _ in range(self.ctx_lines + 1 - len(rv)):
             try:
                 next_val = next(self.iterable)
@@ -101,7 +100,7 @@ class LatexLogParser:
     badboxes: List[LogFileMessage] = field(default_factory=list)
     context_lines: int = 2
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (f"Errors: {len(self.errors)}, "
                 f"Warnings: {len(self.warnings)}, "
                 f"Badboxes: {len(self.badboxes)}")
@@ -109,7 +108,7 @@ class LatexLogParser:
     def get_context_lines(self) -> List[str]:
         return self.lines_iterable.get_context()
 
-    def process(self, lines):
+    def process(self, lines: Iterable[str]) -> None:
         """
         Process the lines of a logfile to produce a report.
 
@@ -128,7 +127,7 @@ class LatexLogParser:
                 continue
             err = process_line(line)
 
-    def process_line(self, line):
+    def process_line(self, line: str) -> Optional[LogFileMessage]:
         """
         Process a line in the log file and delegate to correct handler.
 
@@ -157,7 +156,7 @@ class LatexLogParser:
 
         return None
 
-    def process_badbox(self, match):
+    def process_badbox(self, match: re.Match) -> LogFileMessage:
         """
         Process a badbox regex match and return the log message object.
 
@@ -191,7 +190,7 @@ class LatexLogParser:
         self.badboxes.append(message)
         return message
 
-    def process_warning(self, match):
+    def process_warning(self, match: re.Match) -> LogFileMessage:
         """
         Process a warning regex match and return the log message object.
 
@@ -229,7 +228,7 @@ class LatexLogParser:
         self.warnings.append(message)
         return message
 
-    def process_error(self, match):
+    def process_error(self, match: re.Match) -> LogFileMessage:
         """
         Process a warning regex match and return the log message object.
 
@@ -270,7 +269,7 @@ class LatexLogParser:
             for line in message.context_lines:
                 undefined_control_line = re.match(r"l.(\d+).*?(\\\w+)", line)
                 if undefined_control_line:
-                    message.lines = int(undefined_control_line.group(1))
+                    message.lines = (undefined_control_line.group(1), "")
                     message.type_ = f"Undefined {undefined_control_line.group(2)}"
 
                 else:

@@ -142,7 +142,7 @@ def pprint_to_string(value: Any, width: int = 120) -> str:
 
 class NoTTYFormatter(logging.Formatter):
 
-    def __init__(self, fmt: Any, datefmt: Any=None) -> None:
+    def __init__(self, fmt: Any, datefmt: Any = None) -> None:
         super().__init__(fmt, datefmt)
         self.console = Console()
 

@@ -1,16 +1,16 @@
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn, DateTimeColumn
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import DateTime, Column, Enum, Engine, Boolean
+from sqlalchemy import Column, Enum, Engine, Boolean
 import enum
 from py_scriptutils.script_logging import log
-from beartype.typing import List, Optional
+from beartype.typing import List, Optional, Type
 from beartype import beartype
 from py_haxorg.pyhaxorg_utils import evalDateTime, formatHashTag
 from py_exporters.export_ultraplain import ExporterUltraplain
 from datetime import datetime
 
-Base = declarative_base()
+Base: Type = declarative_base()
 
 
 class Document(Base):
@@ -56,7 +56,7 @@ class BlockKind(enum.Enum):
 class Block(Base):
     __tablename__ = "Block"
     id = IdColumn()
-    kind = Column(Enum(BlockKind))
+    kind = Column(Enum(BlockKind)) # type: ignore[var-annotated]
     plaintext = StrColumn(nullable=True)
     timestamp = DateTimeColumn(nullable=True)
     parent = ForeignId(name="Block.id", nullable=True)
@@ -74,7 +74,7 @@ class PriorityModified(Base):
     __tablename__ = "PriorityModified"
     id = IdColumn()
     subtree = ForeignId(name="Subtree.id", nullable=False)
-    kind = Column(Enum(ValueEditOperation))
+    kind = Column(Enum(ValueEditOperation)) # type: ignore[var-annotated]
     old_priority = StrColumn(nullable=True)
     new_priority = StrColumn(nullable=True)
     timestamp = DateTimeColumn(nullable=True)
@@ -87,7 +87,7 @@ class StateModified(Base):
     subtree = ForeignId(name="Subtree.id", nullable=False)
     old_state = StrColumn(nullable=True)
     new_state = StrColumn(nullable=True)
-    kind = Column(Enum(ValueEditOperation))
+    kind = Column(Enum(ValueEditOperation)) # type: ignore[var-annotated]
     timestamp = DateTimeColumn(nullable=True)
     description = StrColumn(nullable=True)
 
@@ -129,7 +129,7 @@ subtree_count = 0
 
 
 @beartype
-def registerDocument(node: org.Org, engine: Engine, file: str):
+def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
     Base.metadata.bind = engine
     sesion_maker = sessionmaker(bind=engine)
     session = sesion_maker()
@@ -159,7 +159,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
         return result
 
     @beartype
-    def aux_subtree_log(node: org.SubtreeLog, subtree_id: int):
+    def aux_subtree_log(node: org.SubtreeLog, subtree_id: int) -> None:
         match node.head.getLogKind():
             case org.SubtreeLogHeadKind.Priority:
                 priority: org.SubtreeLogHeadPriority = node.head.getPriority()
@@ -272,8 +272,11 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
             case org.Paragraph() if node.hasTimestamp():
                 return evalDateTime(node.getTimestamps()[0])
 
+            case _:
+                return None
+
     @beartype
-    def aux(node: org.Org, parent: Optional[int] = None):
+    def aux(node: org.Org, parent: Optional[int] = None)  -> None:
         global subtree_count
         match node:
             case org.Subtree():

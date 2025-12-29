@@ -72,7 +72,7 @@ class CovContext(CoverageSchema):
     Name = StrColumn()
     Parent = StrColumn(nullable=True)
     Profile = StrColumn()
-    ## @brief Extra metadata about path, precise location of the test definition in the code etc. 
+    ## @brief Extra metadata about path, precise location of the test definition in the code etc.
     Params = Column(JSON)
     ## @brief Path to executable file with the test
     Binary = StrColumn()
@@ -109,7 +109,7 @@ class CovContext(CoverageSchema):
     def getContextRunFile(self) -> Optional[str]:
         "@brief see `getContextRunLine` but for path"
         if self.Params and "loc" in self.Params:
-            return self.Params["loc"]["path"]
+            return self.Params["loc"]["path"] #type: ignore
 
         else:
             return None
@@ -118,7 +118,7 @@ class CovContext(CoverageSchema):
     def getContextRunArgs(self) -> Optional[List[Any]]:
         "@brief Any extra parameters for the test run"
         if self.Params and "args" in self.Params:
-            return [it for it in self.Params["args"]]
+            return [it for it in self.Params["args"]] # type: ignore
 
         else:
             return None
@@ -160,7 +160,7 @@ class CovFileRegion(CoverageSchema):
     ColumnStart = IntColumn()
     LineEnd = IntColumn()
     ColumnEnd = IntColumn()
-    RegionKind = Column(NumericEnum(CovRegionKind))
+    RegionKind = Column(NumericEnum(CovRegionKind)) # type: ignore
     File = ForeignId(CovFile.Id)
     Function = ForeignId(CovFunction.Id, nullable=True)
     ExpandedFrom = ForeignId("CovFileRegion.Id", nullable=True)
@@ -203,6 +203,9 @@ class AnnotationSegment(BaseModel, extra="forbid"):
         "Get segment annotation for a specified group"
         if self.isGrouped(kind):
             return self.Annotations[kind]
+
+        else:
+            return None
 
 
 class AnnotatedLine(BaseModel, extra="forbid"):
@@ -1030,10 +1033,10 @@ def get_annotated_files_for_session(
                 target_id = get_file_coverage_id(session, abs_path)
                 for (original_seg, context) in session.execute(
                         select(CovFileRegion,
-                            CovContext).where(CovFileRegion.File == target_id).join(
-                                CovContext,
-                                CovFileRegion.Context == CovContext.Id,
-                            )):
+                               CovContext).where(CovFileRegion.File == target_id).join(
+                                   CovContext,
+                                   CovFileRegion.Context == CovContext.Id,
+                               )):
 
                     assert isinstance(context, CovContext)
                     assert isinstance(original_seg, CovFileRegion)
@@ -1049,7 +1052,8 @@ def get_annotated_files_for_session(
                         executed_in = session.execute(
                             select(CovFunction).where(
                                 CovFunction.Id == original_seg.Function)).fetchall()[0][0]
-                        assert isinstance(executed_in, CovFunction), f"{type(executed_in)}"
+                        assert isinstance(executed_in,
+                                          CovFunction), f"{type(executed_in)}"
                         run_functions[original_seg.Function] = executed_in
 
     else:

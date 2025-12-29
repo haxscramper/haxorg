@@ -1,20 +1,19 @@
 import py_haxorg.pyhaxorg_wrap as org
 from py_textlayout.py_textlayout_wrap import *
-from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import re
 from py_scriptutils.script_logging import log
 import inspect
-from beartype.typing import Set
-from types import TracebackType
+from beartype.typing import Set, Callable, Any, List
 import contextlib
 import functools
 from py_scriptutils import algorithm
+from beartype import beartype
 
 
-def with_export_context(func):
+def with_export_context(func: Callable) -> Callable:
 
     @functools.wraps(func)
-    def wrapper(self, node):
+    def wrapper(self: Any, node: Any) -> Any:
         with self.WithContext(node):
             result = func(self, node)
 
@@ -27,17 +26,18 @@ def with_export_context(func):
 class ExporterBase:
     context: List[org.Org]
 
-    def evalTop(self, node: org.Org):
+    def evalTop(self, node: org.Org) -> Any:
         return self.exp.evalTop(node)
 
-    def eval(self, node: org.Org):
+    def eval(self, node: org.Org) -> Any:
         return self.exp.eval(node)
 
-    def enableFileTrace(self, path: str, colored: bool = False):
+    def enableFileTrace(self, path: str, colored: bool = False) -> Any:
         self.exp.enableFileTrace(path, colored)
 
-    def printTrace(self, text: str):
-        frame = inspect.currentframe().f_back
+    def printTrace(self, text: str) -> Any:
+        frame = inspect.currentframe().f_back  # type: ignore
+        assert frame
         info = inspect.getframeinfo(frame)
         self.exp.print_trace(text, info.filename, info.function, info.lineno)
 
@@ -69,12 +69,12 @@ class ExporterBase:
         return node.level + compound_level
 
     @contextlib.contextmanager
-    def WithContext(self, node: org.Org):
+    def WithContext(self, node: org.Org) -> Any:
         self.context.append(node)
         yield
         self.context.pop()
 
-    def __init__(self, derived):
+    def __init__(self, derived: Any):
         self.exp = org.ExporterPython()
         self.context = []
         self.admonitionNames = [

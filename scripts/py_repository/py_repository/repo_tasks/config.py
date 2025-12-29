@@ -142,6 +142,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     workflow_out_dir: Path = Field(
         default_factory=lambda: Path("/tmp/haxorg/workflow_out"))
 
+    workflow_tmp_dir: Path = Field(
+        default_factory=lambda: Path("/tmp/haxorg/workflow_tmp"))
+
     use_sarif: bool = Field(default=False)
     force_full_build: bool = Field(
         default=False,

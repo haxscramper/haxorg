@@ -8,27 +8,27 @@ from beartype import beartype
 @beartype
 class ExporterUltraplain(ExporterBase):
 
-    def __init__(self):
+    def __init__(self): # type: ignore
         super().__init__(self)
         self.result = ""
 
-    def newOrg(self, node: org.Org):
+    def newOrg(self, node: org.Org) -> str:
         return ""
 
-    def visitWord(self, res: str, node: org.Word):
+    def visitWord(self, res: str, node: org.Word) -> None:
         self.result += node.text
 
-    def visitSpace(self, res: str, node: org.Space):
+    def visitSpace(self, res: str, node: org.Space) -> None:
         self.result += node.text
 
-    def visitRawText(self, res: str, node: org.RawText):
+    def visitRawText(self, res: str, node: org.RawText) -> None:
         self.result += node.text
 
-    def visitBigIdent(self, res: str, node: org.BigIdent):
+    def visitBigIdent(self, res: str, node: org.BigIdent) -> None:
         self.result += node.text
 
     @staticmethod
     def getStr(node: org.Org) -> str:
-        exp = ExporterUltraplain()
+        exp = ExporterUltraplain() # type: ignore
         exp.exp.evalTop(node)
         return exp.result

@@ -172,6 +172,12 @@ def get_workflow_out(ctx: TaskContext, path: str) -> Path:
     return result
 
 
+def get_workflow_tmp(ctx: TaskContext, path: str) -> Path:
+    result = ctx.config.workflow_tmp_dir.joinpath(path)
+    ensure_existing_dir(ctx, result.parent)
+    return result
+
+
 @beartype
 def get_log_dir(ctx: TaskContext) -> Path:
     res = get_build_root(ctx).joinpath("logs")
