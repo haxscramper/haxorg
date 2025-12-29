@@ -418,13 +418,13 @@ class GenTypeMap:
         # log(CAT).info("Called `fromType`", stack_info=True)
         result = GenTypeMap()
 
-        def callback(obj):
+        def callback(obj: Any) -> None:
             nonlocal result
             match obj:
                 case GenTuStruct() | GenTuTypedef():
                     result.add_type(obj)
 
-        context = []
+        context: List[Any] = []
         iterate_object_tree(types, context, pre_visit=callback)
         return result
 
@@ -456,11 +456,12 @@ class GenConverterWithContext:
     conv: "GenConverter"
     typ: QualType
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         self.conv.context.pop()
 
-    def __enter__(self):
+    def __enter__(self) -> "GenConverterWithContext":
         self.conv.context.append(self.typ)
+        return self
 
 
 @beartype
@@ -932,7 +933,7 @@ IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "im
 def sanitize_ident(
     name: str,
     lang_keywords: Set[str],
-    map_operator: Callable[[str], str] = None,
+    map_operator: Optional[Callable[[str], str]] = None,
 ) -> str:
 
     # Operator mappings from C++ to Python

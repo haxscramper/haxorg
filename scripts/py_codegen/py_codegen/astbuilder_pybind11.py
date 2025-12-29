@@ -207,7 +207,7 @@ class Py11Function:
                       base_map: GenTypeMap) -> pya.FunctionDefParams:
         return pya.FunctionDefParams(
             Name=py_ident(self.PyName),
-            ResultTy=self.Func.result and py_type(self.Func.result, base_map=base_map),
+            ResultTy=py_type(self.Func.result, base_map=base_map) if self.Func.result else None,
             Args=[
                 pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
                 for Arg in self.Func.arguments
@@ -539,6 +539,8 @@ class Py11Field:
         self.SetImpl = SetImpl
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.FieldParams:
+        if self.Field.type is None:
+            raise ValueError(f"Field {self.Field.name} has no type")
         return pya.FieldParams(py_type(self.Field.type, base_map=base_map),
                                self.getPyName())
 
