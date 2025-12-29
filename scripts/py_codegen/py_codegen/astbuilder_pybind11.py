@@ -345,7 +345,7 @@ class Py11Method(Py11Function):
     ) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
             Name="__init__" if self.Func.IsConstructor else py_ident(self.PyName),
-            ResultTy=self.Func.result and py_type(self.Func.result, base_map),
+            ResultTy=self.Func.result and py_type(self.Func.result, base_map), # type: ignore
             Args=[
                 pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
                 for Arg in self.Func.arguments
@@ -550,6 +550,7 @@ class Py11Field:
         b = ast.b
         _self = id_self(Class)
         if self.GetImpl and self.SetImpl:
+            assert self.Field.type
             return ast.XCall(
                 ".def_property",
                 [
@@ -769,7 +770,7 @@ class Py11Class:
                 result=QualType.ForName("None"),
                 arguments=[
                     GenTuIdent(name=it.getPyName(),
-                               type=it.Field.type,
+                               type=it.Field.type, # type: ignore
                                value=ast.b.text("None")) for it in self.Fields
                 ],
             ),
@@ -866,7 +867,7 @@ Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass, Py11Functi
 
 
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
-    return [F for F in Fields if F.Field.type.name not in ["SemId"]]
+    return [F for F in Fields if F.Field.type.name not in ["SemId"]] # type: ignore
 
 
 @beartype

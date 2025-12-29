@@ -25,6 +25,8 @@ def run_mypy(ctx: TaskContext) -> None:
                 "--show-error-context",
                 "--cache-dir",
                 str(cache_dir),
+                "--config-file",
+                get_script_root(ctx, "pyproject.toml"),
             ],
             allow_fail=True,
             capture=True,

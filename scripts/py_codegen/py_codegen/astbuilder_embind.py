@@ -531,7 +531,7 @@ class WasmModule():
 
                 for nested in item.nested:
                     if not isinstance(nested, GenTuPass):
-                        self.add_decl(nested)
+                        self.add_decl(nested) # type: ignore
 
             case GenTuEnum():
                 self.items.append(WasmEnum(item))

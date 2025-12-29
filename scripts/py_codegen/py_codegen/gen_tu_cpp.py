@@ -188,6 +188,7 @@ class GenTuFunction:
         )
 
     def format(self) -> str:
+        assert self.result, "Missing function return type"
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
             [Arg.name + " " + Arg.type.format() for Arg in self.arguments]))
 
@@ -357,7 +358,7 @@ class GenTypeMap:
 
     def get_wrapper_type(self, t: QualType) -> Optional[str]:
         struct = self.get_struct_for_qual_name(t)
-        return struct and struct.reflectionParams.wrapper_name
+        return struct and struct.reflectionParams.wrapper_name # type: ignore
 
     def is_known_type(self, t: QualType) -> bool:
         return t.qual_hash() in self.qual_hash_to_index
@@ -548,7 +549,7 @@ class GenConverter:
                 params.members.append(
                     RecordField(
                     params=ParmVarParams(
-                        type=member.type if member.type else QualType.ForName("void"),  # type: ignore[arg-type]
+                        type=member.type if member.type else QualType.ForName("void"),
                         name=member.name,
                         isConst=member.isConst,
                             defArg=(self.ast.string(member.value) if isinstance(
@@ -636,7 +637,7 @@ class GenConverter:
                     EnumParams.Field(
                         doc=DocParams(brief=_field.doc.brief, full=_field.doc.full),
                         name=_field.name,
-                        value=_field.value,
+                        value=str(_field.value) if _field.value else "None",
                     ))
 
             if isToplevel:
@@ -868,7 +869,7 @@ def filter_walk_scope(iterate_context: List[Any]) -> List[QualType]:
                 scope.append(s.name)
 
             case GenTuNamespace():
-                scope.append(QualType.ForName(s.name))
+                scope.append(QualType.ForName(s.name.name))
 
     return scope
 
@@ -880,7 +881,7 @@ def get_type_base_fields(
 ) -> List[GenTuField]:
     fields = []
     for base_sym in value.bases:
-        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(base_sym.name)
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(base_sym.name) # type: ignore
         if base:
             fields.extend(base.fields)
             fields.extend(get_type_base_fields(base, base_map))
@@ -897,7 +898,7 @@ def get_base_list(
 
     def aux(typ: QualType) -> List[QualType]:
         result: List[QualType] = [typ]
-        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(typ.name)
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(typ.name) # type: ignore
         if base:
             for it in base.bases:
                 result.extend(aux(it))
@@ -1143,7 +1144,7 @@ def collect_type_specializations(entries: List[GenTuUnion],
                         rec_type(P)
 
             if base_map.is_typedef(value):
-                rec_type(base_map.get_underlying_type(value))
+                rec_type(base_map.get_underlying_type(value)) # type: ignore
 
             else:
                 rec_type(value)

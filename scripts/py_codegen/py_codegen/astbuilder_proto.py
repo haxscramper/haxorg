@@ -112,7 +112,7 @@ class ProtoBuilder():
 
             return full_enumerator()
 
-        def aux_item(it: tu.GenTuUnion | tu.GenTuField, indent: int) -> Optional[BlockId]:
+        def aux_item(it: tu.GenTuEntry | tu.GenTuField, indent: int) -> Optional[BlockId]:
             match it:
                 case tu.GenTuStruct():
                     return braced(
@@ -310,7 +310,7 @@ class ProtoBuilder():
         dot_field: BlockId,
         is_read_getter: bool,
     ) -> Tuple[BlockId, tu.QualType, tu.QualType]:
-        assert  field.type
+        assert field.type
         if not is_read_getter and field.type.name in ["Opt"]:
             field_read = self.t.line([self.t.text("*"), dot_field])
             field_type = field.type.Parameters[0]
@@ -652,7 +652,9 @@ class ProtoBuilder():
                 reader_body: List[BlockId] = []
                 for base in tu.get_base_list(it, self.base_map):
                     base_type = self.base_map.get_one_type_for_name(base.name)
-                    assert base_type is None or isinstance(base_type, tu.GenTuStruct), "Base type must be GenTuStruct or None"
+                    assert base_type is None or isinstance(
+                        base_type,
+                        tu.GenTuStruct), "Base type must be GenTuStruct or None"
                     if base_type and len(base_type.fields) == 0:
                         continue
 
@@ -740,7 +742,11 @@ class ProtoBuilder():
                 )
 
                 for sub in it.nested:
-                    assert isinstance(sub, (tu.GenTuStruct, tu.GenTuEnum, tu.GenTuTypedef, tu.GenTuFunction, tu.GenTuPass)), "Sub must be a valid type for build_protobuf_serde_object"
+                    assert isinstance(
+                        sub,
+                        (tu.GenTuStruct, tu.GenTuEnum, tu.GenTuTypedef, tu.GenTuFunction,
+                         tu.GenTuPass
+                        )), "Sub must be a valid type for build_protobuf_serde_object"
                     result += self.build_protobuf_serde_object(sub)
 
                 writer_specialization = tu.QualType(
@@ -783,8 +789,9 @@ class ProtoBuilder():
             writer_types.append(item)
 
             for meth in item.methods():
-                assert isinstance(meth, cpp.MethodDefParams), "Method must be MethodDefParams"
-                writer_methods.append(meth.asMethodDef(name))
+                assert isinstance(meth,
+                                  cpp.MethodDefParams), "Method must be MethodDefParams"
+                writer_methods.append(meth.asMethodDef(name)) # type: ignore
                 meth.Params.Body = None
 
         return (writer_types, writer_methods)
