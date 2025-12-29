@@ -27,11 +27,11 @@ class TexExportOptions(BaseModel, extra="forbid"):
 CAT = "haxorg.export.tex"
 
 
-def export_tex_options(f):
+def export_tex_options(f: Any) -> Any:
     return apply_options(f, options_from_model(TexExportOptions))
 
 
-def run_lualatex(filename: Path):
+def run_lualatex(filename: Path) -> None:
     lualatex = local["lualatex"].with_cwd(str(filename.parent))
     code, stdout, stderr = lualatex.run(("-interaction=nonstopmode", filename),
                                         retcode=None)
@@ -62,7 +62,7 @@ from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
 
 class DerivedLatexExporter(ExporterLatex):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(self)
         self.paragraphCount = 0
 
@@ -94,7 +94,7 @@ class DerivedLatexExporter(ExporterLatex):
 @click.command("tex")
 @export_tex_options
 @click.pass_context
-def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
+def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
     pack_context(ctx, "tex", TexExportOptions, config=config, kwargs=kwargs)
     opts: TexExportOptions = ctx.obj["tex"]
     node = parseFile(ctx.obj["root"], Path(opts.infile))

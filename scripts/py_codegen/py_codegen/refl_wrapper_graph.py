@@ -42,6 +42,7 @@ def get_declared_types_rec(
             add(decl.name)
 
             for _nested in decl.nested:
+                assert isinstance(_nested, (GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction)):
                 result.extend(get_declared_types_rec(
                     _nested,
                     expanded_use=expanded_use,
@@ -134,12 +135,13 @@ def hash_qual_type(
     parts: List[str | int] = [hash(t.Kind)]
     match t.Kind:
         case QualTypeKind.FunctionPtr:
-            parts.append(hash_qual_type(
-                t.func.ReturnTy,
-                with_namespace=with_namespace,
-            ))
+                assert t.func
+                parts.append(hash_qual_type(
+                    t.func.ReturnTy,
+                    with_namespace=with_namespace,
+                ))
 
-            for T in t.func.Args:
+                for T in t.func.Args:
                 parts.append(hash_qual_type(
                     T,
                     with_namespace=with_namespace,
@@ -504,7 +506,7 @@ class GenGraph:
         }
 
         # Function to get the SCC index for a set of vertices
-        def get_scc_indices(sub: GenGraph.Sub):
+        def get_scc_indices(sub: GenGraph.Sub) -> set[int]:
             return {vertex_to_scc[v] for v in sub.nodes if v in vertex_to_scc}
 
         # Group vertex sets by their SCCs and directly pass subgraphs that are not

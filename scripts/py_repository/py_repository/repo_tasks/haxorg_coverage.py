@@ -198,10 +198,10 @@ def xray_coverage(ctx: TaskContext, test: Path) -> None:
 
 
 @haxorg_task(dependencies=[build_haxorg])
-def run_org_test_performance() -> None:
+def run_org_test_performance(ctx: TaskContext) -> None:
     """Generate performance sampling profile for tests"""
 
-    tests = str(get_build_root("haxorg") / "tests_org")
+    tests = str(get_build_root(ctx, "haxorg") / "tests_org")
     run = plumbum.local["perf"]
 
     try:
@@ -211,13 +211,13 @@ def run_org_test_performance() -> None:
 
 
 @beartype
-def get_cxx_coverage_dir() -> Path:
-    return get_build_root("coverage_artifacts")
+def get_cxx_coverage_dir(ctx: TaskContext) -> Path:
+    return get_build_root(ctx, "coverage_artifacts")
 
 
 @beartype
-def get_cxx_profdata_params_path() -> Path:
-    return get_cxx_coverage_dir().joinpath("profile-collect.json")
+def get_cxx_profdata_params_path(ctx: TaskContext) -> Path:
+    return get_cxx_coverage_dir(ctx).joinpath("profile-collect.json")
 
 
 HELP_profdata_file = {
@@ -235,7 +235,7 @@ HELP_coverage_file = {
 
 @beartype
 def get_cxx_profdata_params(ctx: TaskContext) -> ProfdataParams:
-    coverage_dir = get_cxx_coverage_dir()
+    coverage_dir = get_cxx_coverage_dir(ctx)
     stored_summary_collection = coverage_dir.joinpath("test-summary.json")
     summary_data: ProfdataFullProfile = ProfdataFullProfile.model_validate_json(
         stored_summary_collection.read_text())
@@ -266,7 +266,7 @@ def configure_cxx_merge(
     coverage_mapping_dump: Optional[str] = None,
 ) -> None:
     if ctx.config.instrument.coverage:
-        profile_path = get_cxx_profdata_params_path()
+        profile_path = get_cxx_profdata_params_path(ctx)
         log(CAT).info(
             f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
         )
@@ -288,24 +288,23 @@ def run_cxx_coverage_merge(
         ctx,
         coverage_mapping_dump,
     )
-    coverage_dir = get_cxx_coverage_dir()
+    coverage_dir = get_cxx_coverage_dir(ctx)
 
-    profile_path = get_cxx_profdata_params_path()
+    profile_path = get_cxx_profdata_params_path(ctx)
     run_command(
         ctx,
         "build/haxorg/profdata_merger",
         [
             profile_path,
         ],
-        stderr_debug=ensure_clean_file(
-            coverage_dir.joinpath("profdata_merger_stderr.txt")),
-        stdout_debug=ensure_clean_file(
-            coverage_dir.joinpath("profdata_merger_stdout.txt")),
+        stderr_debug=ensure_clean_file(ctx, coverage_dir.joinpath("profdata_merger_stderr.txt")),
+        stdout_debug=ensure_clean_file(ctx, coverage_dir.joinpath("profdata_merger_stdout.txt")),
     )
 
 
 @haxorg_task()
 def cxx_target_coverage(
+    ctx: TaskContext,
     pytest_filter: Optional[str] = None,
     coverage_file_whitelist: List[str] = [".*"],
     coverage_file_blacklist: List[str] = [],
@@ -319,38 +318,21 @@ def cxx_target_coverage(
     """
     Run full cycle of the code coverage generation. 
     """
+    from py_repository.repo_tasks.haxorg_tests import run_py_tests
+    from py_repository.repo_tasks.haxorg_docs import build_custom_docs
+
 
     if run_tests:
         if pytest_filter:
-            run_self(
-                [
-                    run_py_tests,
-                    f"--arg=--markfilter",
-                    f"--arg={pytest_filter}",
-                    "--arg=--markfilter-debug=True",
-                ],
-                allow_fail=allow_test_fail,
-            )
-
+            run_py_tests(ctx, arg=[f"--markfilter", pytest_filter, "--markfilter-debug=True"])
         else:
-            run_self(
-                [run_py_tests],
-                allow_fail=allow_test_fail,
-            )
+            run_py_tests(ctx)
 
     if run_merge:
         if coverage_mapping_dump:
-            run_self([
-                run_cxx_coverage_merge,
-                f"--coverage-mapping-dump={coverage_mapping_dump}",
-            ])
+            run_cxx_coverage_merge(ctx, coverage_mapping_dump=coverage_mapping_dump)
         else:
-            run_self([
-                run_cxx_coverage_merge,
-            ])
+            run_cxx_coverage_merge(ctx)
 
     if run_docgen:
-        run_self([
-            build_custom_docs,
-            f"--out-dir={out_dir}",
-        ])
+        build_custom_docs(ctx, out_dir=out_dir)

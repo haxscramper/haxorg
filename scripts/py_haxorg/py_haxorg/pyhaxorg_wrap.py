@@ -43,4 +43,4 @@ def org_ident_normalize(input_str: str) -> str:
 @beartype
 def treeRepr(node: Org, colored: bool = True, maxDepth: int = 50) -> str:
     return exportToTreeString(node, OrgTreeExportOpts(withColor=colored,
-                                                      maxDepth=maxDepth))
+        maxDepth=maxDepth))

@@ -104,7 +104,7 @@ def generate_binary_size_db(ctx: TaskContext) -> None:
 def _get_grouped_symbols(
     session: Session,
     by_head: bool,
-    symbol_filter: Callable[[BinarySymbol], bool] = None,
+    symbol_filter: Optional[Callable[[BinarySymbol], bool]] = None,
 ) -> list[tuple[Any, list[tuple[BinarySymbol, DemangledHead]]]]:
     query = (session.query(BinarySymbol, DemangledHead).join(
         DemangledHead, BinarySymbol.DemangledHeadId == DemangledHead.Id).order_by(

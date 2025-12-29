@@ -1,6 +1,6 @@
 import pandas as pd
 from rich.table import Table
-from beartype.typing import List, Dict, Union
+from beartype.typing import List, Dict, Union, Any
 import rich.box
 from beartype import beartype
 import py_scriptutils.json_utils as ju
@@ -43,7 +43,7 @@ def dataframe_to_rich_table(
 
 def dataframe_from_dict_list(
     column_names: Union[List[str], pd.DataFrame],
-    data_dicts: List[Dict[str, any]],
+    data_dicts: List[Dict[str, Any]],
 ) -> pd.DataFrame:
     if isinstance(column_names, pd.DataFrame):
         column_names = column_names.columns.tolist()
@@ -54,7 +54,7 @@ def dataframe_from_dict_list(
 
 
 @beartype
-def assert_frame(df: pd.DataFrame, subset: ju.Json):
+def assert_frame(df: pd.DataFrame, subset: ju.Json) -> None:
     given_dataframe = dataframe_to_rich_table(df)
     given_dataframe.box = rich.box.ASCII
     df2 = dataframe_from_dict_list(df, subset)

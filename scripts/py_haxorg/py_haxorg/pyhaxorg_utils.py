@@ -2,7 +2,7 @@ from datetime import datetime
 from py_haxorg.pyhaxorg_wrap import UserTime, UserTimeBreakdown
 import py_haxorg.pyhaxorg_wrap as org
 from beartype import beartype
-from beartype.typing import List, Union
+from beartype.typing import List, Union, Dict
 from py_exporters.export_ultraplain import ExporterUltraplain
 from beartype.typing import Dict
 from dataclasses import dataclass, field
@@ -17,8 +17,8 @@ CAT = "org"
 @beartype
 def evalDateTime(time: UserTime) -> datetime:
     brk: org.UserTimeBreakdown = time.getBreakdown()
-    kwargs = dict(
-        year=brk.year,
+    kwargs: Dict[str, int] = dict(
+        year=brk.year or 1970,
         month=brk.month or 1,
         day=brk.day or 1,
     )
@@ -64,8 +64,8 @@ def formatDateTime(time: UserTime) -> str:
 @beartype
 def getFlatTags(tag: Union[org.HashTag, org.HashTagText]) -> List[List[str]]:
 
-    def aux(parents: List[str], tag: org.HashTagText) -> List[str]:
-        result: List[str] = []
+    def aux(parents: List[str], tag: org.HashTagText) -> List[List[str]]:
+        result: List[List[str]] = []
         if len(tag.subtags) == 0:
             return [parents + [tag.head]]
 
@@ -117,7 +117,7 @@ def formatOrgWithoutTime(node: org.Org) -> str:
 def getAttachments(node: org.Org) -> List[org.Link]:
     result = []
 
-    def visit(it: org.Org):
+    def visit(it: org.Org) -> None:
         if isinstance(it, org.Link) and it.target.isAttachment():
             result.append(it)
 
@@ -132,7 +132,7 @@ def doExportAttachments(
     destination: Path,
     attachments: List[org.Link],
     backends: List[str],
-):
+) -> None:
     assert base.exists() and base.is_file(), base
     assert destination.exists() and destination.is_dir(), destination
     for item in attachments:

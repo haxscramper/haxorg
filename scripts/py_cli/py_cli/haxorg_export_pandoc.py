@@ -13,14 +13,14 @@ class ExportPandocOptions(BaseModel):
 CAT = "haxorg.export.pandoc"
 
 
-def export_pandoc_options(f):
+def export_pandoc_options(f: Any) -> Any:
     return apply_options(f, options_from_model(ExportPandocOptions))
 
 
 @click.command("pandoc")
 @export_pandoc_options
 @click.pass_context
-def export_pandoc(ctx: click.Context, config: Optional[str] = None, **kwargs):
+def export_pandoc(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
     pack_context(ctx, "pandoc", ExportPandocOptions, config=config, kwargs=kwargs)
     run = get_run(ctx)
     with run.event("Run pandoc export", CAT):

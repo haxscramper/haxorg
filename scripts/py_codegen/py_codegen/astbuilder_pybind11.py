@@ -207,7 +207,8 @@ class Py11Function:
                       base_map: GenTypeMap) -> pya.FunctionDefParams:
         return pya.FunctionDefParams(
             Name=py_ident(self.PyName),
-            ResultTy=py_type(self.Func.result, base_map=base_map) if self.Func.result else None,
+            ResultTy=py_type(self.Func.result, base_map=base_map)
+            if self.Func.result else None,
             Args=[
                 pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
                 for Arg in self.Func.arguments
@@ -336,7 +337,7 @@ class Py11Method(Py11Function):
         super().__init__(Func, Body, PyName, DefParams=DefParams)
         self.ExplicitClassParam = ExplicitClassParam
 
-    def build_typedef( # type: ignore[override]
+    def build_typedef(  # type: ignore[override]
         self,
         ast: pya.ASTBuilder,
         base_map: GenTypeMap,
@@ -355,7 +356,8 @@ class Py11Method(Py11Function):
                 *maybe_splice(is_overload, pya.DecoratorParams("overload")),
             ]))
 
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId: # type: ignore[override]
+    def build_bind(  # type: ignore
+            self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
 
         Args: List[GenTuIdent] = []

@@ -2,8 +2,16 @@ import py_codegen.gen_tu_cpp as tu
 import py_codegen.astbuilder_cpp as cpp
 from py_textlayout.py_textlayout_wrap import TextOptions, TextLayout, BlockId
 
-from beartype.typing import (List, Iterable, Generator, Dict, Tuple, Optional, Union,
-                             Final)
+from beartype.typing import (
+    List,
+    Iterable,
+    Generator,
+    Dict,
+    Tuple,
+    Optional,
+    Sequence,
+    Any,
+)
 
 from beartype import beartype
 import itertools
@@ -18,7 +26,7 @@ class ProtoBuilder():
 
     def __init__(
         self,
-        wrapped: List[tu.GenTuUnion],
+        wrapped: Sequence[tu.GenTuUnion],
         ast: cpp.ASTBuilder,
         base_map: tu.GenTypeMap,
     ):
@@ -30,9 +38,9 @@ class ProtoBuilder():
         self.variant_type_list: Dict[Tuple[str, ...], tu.GenTuTypedef] = {}
         self.types_list = wrapped
 
-        context = []
+        context: List[tu.QualType] = []
 
-        def find_enums(obj):
+        def find_enums(obj: Any) -> None:
             if isinstance(obj, tu.GenTuEnum):
                 filter = tu.filter_walk_scope(context)
                 self.enum_type_list.append(obj.name)
@@ -44,7 +52,7 @@ class ProtoBuilder():
         iterate_object_tree(self.types_list, context, pre_visit=find_enums)
 
     def oneof_field_name(self, it: tu.GenTuField) -> str:
-        if it.type.name == "Variant":
+        if it.type and it.type.name == "Variant":
             return it.name + "_kind"
 
         else:
@@ -64,6 +72,7 @@ class ProtoBuilder():
         enum_field_width = field_name_width + field_type_width
 
         def aux_field(it: tu.GenTuField, indexer: Generator[int], indent: int) -> BlockId:
+            assert it.type, "Missing type for the field"
             if it.type.name == "Variant":
                 return self.t.stack([
                     braced(
@@ -211,7 +220,9 @@ class ProtoBuilder():
                 )
 
             case "SemId":
-                if it.par0().name == "Org":
+                par0 = it.par0()
+                assert par0, "SemId template type must have a template parameter"
+                if par0.name == "Org":
                     return "AnyNode"
 
                 else:
@@ -227,7 +238,7 @@ class ProtoBuilder():
         typ: tu.QualType,
     ) -> tu.QualType:
 
-        def aux_parameters(typ) -> List[tu.QualType]:
+        def aux_parameters(typ: tu.QualType) -> List[tu.QualType]:
             return [self.rewrite_for_proto_serde(p) for p in typ.Parameters]
 
         match typ:
@@ -299,6 +310,7 @@ class ProtoBuilder():
         dot_field: BlockId,
         is_read_getter: bool,
     ) -> Tuple[BlockId, tu.QualType, tu.QualType]:
+        assert  field.type
         if not is_read_getter and field.type.name in ["Opt"]:
             field_read = self.t.line([self.t.text("*"), dot_field])
             field_type = field.type.Parameters[0]
@@ -381,8 +393,11 @@ class ProtoBuilder():
                 Stmt=True,
             )
 
+        assert field.type
         if field.type.name in ["Opt"]:
-            if field.type.par0().name not in ["Vec"]:
+            par0 = field.type.par0()
+            assert par0
+            if par0.name not in ["Vec"]:
                 read_op = self.ast.IfStmt(
                     cpp.IfStmtParams([
                         cpp.IfStmtParams.Branch(
@@ -436,6 +451,7 @@ class ProtoBuilder():
                 Stmt=True,
             )
 
+        assert field.type
         if field.type.name in ["Opt"]:
             write_op = self.ast.IfStmt(
                 cpp.IfStmtParams(
@@ -501,7 +517,8 @@ class ProtoBuilder():
                 Expr=t.line([dot_write, t.text(".index()")]))
 
             if is_typedef:
-                kind_type = proto_type.asSpaceFor(field.type.withoutAllScopeQualifiers())
+                kind_type = proto_type.asSpaceFor(
+                    field.type.withoutAllScopeQualifiers())  # type: ignore
 
             else:
                 kind_type = proto_type

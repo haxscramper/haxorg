@@ -56,7 +56,7 @@ NonTopLevel = set([osk.Newline, osk.Space])
 class ExporterPandoc(ExporterBase):
 
     def __init__(self, CRTP_derived: Any = None):
-        super().__init__(CRTP_derived or self)  # type: ignore
+        super().__init__(CRTP_derived or self)
 
     def newOrg(self, node: org.Org) -> PandocRes:
         return PandocRes.Node("Str", "TODO " + str(node.getKind()))
@@ -149,7 +149,7 @@ class ExporterPandoc(ExporterBase):
 
     def evalSubtree(self, node: org.Subtree) -> PandocRes:
 
-        attrs: AttrKv = []
+        attrs: List[AttrKv] = []
         if node.treeId:
             attrs.append(AttrKv("id", node.treeId))
 

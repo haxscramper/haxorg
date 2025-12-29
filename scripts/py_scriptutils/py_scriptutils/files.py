@@ -53,7 +53,7 @@ def normalize_paths(input_paths: SomePaths, **kwargs: Any) -> List[Path]:
                 for it in item:
                     add(it)
 
-            case Callable():  # type: ignore
+            case Callable():
                 for it in item(**kwargs):
                     add(it)
 
@@ -136,6 +136,8 @@ class FileOperation:
         return normalize_paths(self.input, **kwargs)
 
     def get_output(self, **kwargs: Any) -> List[Path]:
+        if self.output is None:
+            return []
         return normalize_paths(self.output, **kwargs)
 
     @staticmethod

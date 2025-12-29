@@ -419,7 +419,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             crossing_edge: HaxorgMMapEdgeCrossingSegment = self.fragmented_edge_map[
                 edge_id]
 
-            haxorg_edge: Edge = self.all_edges[crossing_edge.originalEdgeId]
+            haxorg_edge_crossing: Edge = self.all_edges[crossing_edge.originalEdgeId]
 
             result = elk_schema.Edge(
                 id=crossing_edge.edgeId,

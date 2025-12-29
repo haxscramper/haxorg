@@ -547,10 +547,10 @@ class GenConverter:
             for member in record.fields:
                 params.members.append(
                     RecordField(
-                        params=ParmVarParams(
-                            type=member.type,
-                            name=member.name,
-                            isConst=member.isConst,
+                    params=ParmVarParams(
+                        type=member.type if member.type else QualType.ForName("void"),  # type: ignore[arg-type]
+                        name=member.name,
+                        isConst=member.isConst,
                             defArg=(self.ast.string(member.value) if isinstance(
                                 member.value, str) else member.value)
                             if member.value else None,

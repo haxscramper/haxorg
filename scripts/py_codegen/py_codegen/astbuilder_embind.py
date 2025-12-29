@@ -15,7 +15,7 @@ def js_ident(name: str) -> str:
 
 
 @beartype
-def get_function_wasm_name(Func: GenTuFunction):
+def get_function_wasm_name(Func: GenTuFunction) -> str:
     if Func.reflectionParams.unique_name:
         return Func.reflectionParams.unique_name
 
@@ -117,7 +117,7 @@ class WasmField():
             ast.line([
                 ast.string(self.Field.name),
                 ast.string(": "),
-                ast.Type(ts_type(self.Field.type, base_map)),
+                ast.Type(ts_type(self.Field.type, base_map)) if self.Field.type else ast.string("any"), 
             ])
         ]
 
@@ -247,12 +247,6 @@ class WasmFunction():
             Stmt=True,
         )
 
-
-@beartype
-class WasmMethod():
-    Func: GenTuFunction
-
-
 @beartype
 class WasmEnum():
     Enum: GenTuEnum
@@ -376,7 +370,7 @@ class WasmClass():
         body = []
 
         for Meth in self.Record.methods:
-            body.extend(WasmMethod(Meth).get_typedef(ast, base_map=base_map))
+            body.extend(WasmMethod(Meth).get_typedef(ast, base_map=base_map))  # type: ignore[attr-defined]
 
         for Field in self.Record.fields:
             if Field.isStatic:
@@ -502,7 +496,7 @@ class WasmClass():
         ])
 
 
-WasmUnion = Union[WasmClass, WasmBindPass, WasmFunction]
+WasmUnion = Union[WasmClass, WasmBindPass, WasmFunction, WasmEnum, WasmTypedef]
 
 
 @beartype
@@ -530,7 +524,7 @@ class WasmModule():
                         Stmt=True,
                     )))
 
-    def add_decl(self, item: GenTuUnion | WasmBindPass) -> None:
+    def add_decl(self, item: GenTuUnion | WasmBindPass | GenTuEnum | GenTuTypedef | GenTuFunction | GenTuStruct) -> None:  # type: ignore[arg-type]
         match item:
             case GenTuStruct():
                 self.items.append(WasmClass(item))

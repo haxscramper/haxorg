@@ -9,14 +9,14 @@ import matplotlib.dates as mdates
 from datetime import datetime
 
 
-def format_epoch_to_date(epoch, date_format='%Y-%m-%d'):
+def format_epoch_to_date(epoch: float, date_format: str = '%Y-%m-%d') -> str:
     return datetime.utcfromtimestamp(epoch).strftime(date_format)
 
 
-def run_for(engine: Engine):
+def run_for(engine: Engine) -> None:
     trace = TraceCollector()
 
-    Base.metadata.bind = engine
+    Base.metadata.bind = engine  # type: ignore[attr-defined]
     sesion_maker = sessionmaker(bind=engine)
     session = sesion_maker()
 

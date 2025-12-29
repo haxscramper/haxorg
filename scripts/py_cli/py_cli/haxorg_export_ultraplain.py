@@ -9,13 +9,13 @@ class ExportUltraplainOptions(BaseModel):
         alias="export_trace_file"
     )
 
-def export_ultraplain_options(f):
+def export_ultraplain_options(f: Any) -> Any:
     return apply_options(f, options_from_model(ExportUltraplainOptions))
 
 @click.command("ultraplain")
 @export_ultraplain_options
 @click.pass_context
-def export_ultraplain(ctx: click.Context, config: Optional[str] = None, **kwargs):
+def export_ultraplain(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
     pack_context(ctx, "ultraplain", ExportUltraplainOptions, config=config, kwargs=kwargs)
     opts: ExportUltraplainOptions = ctx.obj["ultraplain"]
     node = parseFile(ctx.obj["root"], opts.infile)

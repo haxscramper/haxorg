@@ -1,9 +1,10 @@
 from dominate import tags
 from numbers import Number
 from beartype import beartype
+from beartype.typing import Dict, Any
 import copy
 
-def rename_kwargs_for_svg(kwargs):
+def rename_kwargs_for_svg(kwargs: Dict[str, Any]) -> Dict[str, Any]:
     result = {}
     for key, value in kwargs.items():
         result[key.replace("_", "-")] = value
@@ -13,7 +14,7 @@ def rename_kwargs_for_svg(kwargs):
 
 class svg(tags.html_tag):
 
-    def __init__(self, width: int, height: int, *args, **kwargs):
+    def __init__(self, width: int, height: int, *args: Any, **kwargs: Any) -> None:
         super().__init__(
             *args,
             width=width,
@@ -25,14 +26,14 @@ class svg(tags.html_tag):
 class svg_circle(tags.html_tag):
     tagname = "circle"
 
-    def __init__(self, x: int, y: int, r: int, *args, **kwargs):
+    def __init__(self, x: int, y: int, r: int, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, cx=x, cy=y, r=r, **rename_kwargs_for_svg(kwargs))
 
 
 class svg_rect(tags.html_tag):
     tagname = "rect"
 
-    def __init__(self, x: int, y: int, width: int, height: int, *args, **kwargs):
+    def __init__(self, x: int, y: int, width: int, height: int, *args: Any, **kwargs: Any) -> None:
         super().__init__(
             *args,
             x=x,
@@ -46,14 +47,14 @@ class svg_rect(tags.html_tag):
 class svg_text(tags.html_tag):
     tagname = "text"
 
-    def __init__(self, text: str, *args, **kwargs):
+    def __init__(self, text: str, *args: Any, **kwargs: Any) -> None:
         super().__init__(text, *args, **rename_kwargs_for_svg(kwargs))
 
 
 class svg_line(tags.html_tag):
     tagname = "line"
 
-    def __init__(self, x1: Number, y1: Number, x2: Number, y2: Number, *args, **kwargs):
+    def __init__(self, x1: Number, y1: Number, x2: Number, y2: Number, *args: Any, **kwargs: Any) -> None:
         super().__init__(
             x1=x1,
             x2=x2,
@@ -67,22 +68,22 @@ class svg_line(tags.html_tag):
 class svg_tspan(tags.html_tag):
     tagname = "tspan"
 
-    def __init__(self, text: str, *args, **kwargs):
+    def __init__(self, text: str, *args: Any, **kwargs: Any) -> None:
         super().__init__(text, *args, **rename_kwargs_for_svg(kwargs))
 
 
 class svg_g(tags.html_tag):
     tagname = "g"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **rename_kwargs_for_svg(kwargs))
 
 
 @beartype
 class SvgPathBuilder:
 
-    def __init__(self):
-        self.commands = []
+    def __init__(self) -> None:
+        self.commands: list[str] = []
 
     def move_to(self, x: Number, y: Number) -> 'SvgPathBuilder':
         self.commands.append(f"M {x:.3f} {y:.3f}")
@@ -114,7 +115,7 @@ def svg_path_cmd() -> SvgPathBuilder:
 class svg_path(tags.html_tag):
     tagname = "path"
 
-    def __init__(self, d: SvgPathBuilder, *args, **kwargs):
+    def __init__(self, d: SvgPathBuilder, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, d=str(d), **rename_kwargs_for_svg(kwargs))
 
 

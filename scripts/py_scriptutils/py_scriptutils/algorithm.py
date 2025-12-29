@@ -9,7 +9,7 @@ import re
 T = TypeVar('T')
 
 
-def cond(expr, ifTrue=None, ifFalse=None):
+def cond(expr: Any, ifTrue: Any = None, ifFalse: Any = None) -> Any:
     """
     Alternative for inline if expression for simpler syntax and better formatting. Also supports 
     multiple conditions, similar to the `cond` and `pcond` macro from lisp. Note: will evaluate
@@ -47,7 +47,7 @@ def cond(expr, ifTrue=None, ifFalse=None):
             return ifFalse
 
 
-def maybe_splice(expr, item):
+def maybe_splice(expr: Any, item: T) -> List[T]:
     """
     Return `[item]` if the expression evaluates to true, otherwise return an empty list. 
     
@@ -85,15 +85,16 @@ def first_if(items: Iterable[T], pred: Callable[[T], bool]) -> Optional[T]:
     for value in items:
         if pred(value):
             return value
+    return None
 
 
 def iterate_object_tree(
-    tree,
+    tree: Any,
     context: List[Any],
-    pre_visit=None,
-    post_visit=None,
+    pre_visit: Optional[Callable[[Any], None]] = None,
+    post_visit: Optional[Callable[[Any], None]] = None,
     item_visit_format: Optional[Callable[[Any, List[Any]], str]] = None,
-):
+) -> None:
     """
     Recursively iterate the data tree, irrespective of the types -- treat the whole object
     as an untyped dict/etc. 
@@ -112,7 +113,7 @@ def iterate_object_tree(
 
     recursion_guard: set[int] = set()
 
-    def aux(tree, context: List[Any], depth: int):
+    def aux(tree: Any, context: List[Any], depth: int) -> None:
         if pre_visit:
             pre_visit(tree)
 
@@ -192,7 +193,8 @@ def trim_left(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
 
 @beartype
 def trim_right(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
-    return list(dropwhile(predicate, lst[::-1]))[::-1]
+    lst_list = list(lst)
+    return list(dropwhile(predicate, lst_list[::-1]))[::-1]
 
 
 @beartype

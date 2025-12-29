@@ -4,14 +4,14 @@ class CliExportOptions(BaseModel, extra="forbid"):
     pass
 
 
-def export_cli_options(f):
+def export_cli_options(f: Any) -> Any:
     return apply_options(f, options_from_model(CliExportOptions))
 
 
 @click.group()
 @click.pass_context
 @export_cli_options
-def export(ctx: click.Context, config: Optional[str] = None, **kwargs):
+def export(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
     """Export command group."""
     pack_context(ctx, "export", CliExportOptions, config=config, kwargs=kwargs)
     pass

@@ -260,8 +260,8 @@ def create_symlink(ctx: TaskContext, link_path: Path, real_path: Path,
 
 
 @beartype
-def get_example_build(example_name: str) -> Path:
-    return get_build_root().joinpath(f"example_build_{example_name}")
+def get_example_build(ctx: TaskContext, example_name: str) -> Path:
+    return get_build_root(ctx).joinpath(f"example_build_{example_name}")
 
 
 @beartype
@@ -281,17 +281,17 @@ def find_process(
     return None
 
 
-def get_lldb_py_import() -> List[str]:
+def get_lldb_py_import(ctx: TaskContext) -> List[str]:
     return [
         "-o",
-        f"command script import {get_script_root('scripts/cxx_repository/lldb_script.py')}"
+        f"command script import {get_script_root(ctx, 'scripts/cxx_repository/lldb_script.py')}"
     ]
 
 
-def get_lldb_source_on_crash() -> List[str]:
+def get_lldb_source_on_crash(ctx: TaskContext) -> List[str]:
     return [
         "--source-on-crash",
-        str(get_script_root("scripts/cxx_repository/lldb-script.txt"))
+        str(get_script_root(ctx, "scripts/cxx_repository/lldb-script.txt"))
     ]
 
 

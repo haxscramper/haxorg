@@ -12,14 +12,14 @@ class ExportHtmlOptions(BaseModel):
 CAT = "haxorg.export.html"
 
 
-def export_html_options(f):
+def export_html_options(f: Any) -> Any:
     return apply_options(f, options_from_model(ExportHtmlOptions))
 
 
 @click.command("html")
 @export_html_options
 @click.pass_context
-def export_html(ctx: click.Context, config: Optional[str] = None, **kwargs):
+def export_html(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
     pack_context(ctx, "html", ExportHtmlOptions, config=config, kwargs=kwargs)
     run = get_run(ctx)
     with run.event("Run html export", CAT):

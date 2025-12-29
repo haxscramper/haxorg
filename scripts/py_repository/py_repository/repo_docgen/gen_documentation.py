@@ -15,13 +15,13 @@ import py_repository.code_analysis.gen_coverage_cxx as cov_docxx
 from sqlalchemy.orm import Session
 import rich_click as click
 from beartype import beartype
-from beartype.typing import (Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union)
+from beartype.typing import (Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Any)
 from dominate import document
 from py_scriptutils.files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import (BaseModel, apply_options, get_cli_model,
                                                  options_from_model)
-from pydantic import BaseModel, Field, SerializeAsAny
+from pydantic import BaseModel, Field, SerializeAsAny, ConfigDict
 import more_itertools
 from py_scriptutils.tracer import GlobExportJson, GlobCompleteEvent
 import py_scriptutils.tracer
@@ -135,7 +135,8 @@ css_path = get_haxorg_repo_root_path().joinpath(
     "scripts/py_repository/py_repository/gen_documentation.css")
 
 
-class DocGenerationOptions(BaseModel, extra="forbid"):
+class DocGenerationOptions(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     html_out_path: Path = Field(description="Root directory to output generated HTML to")
 
     profile_out_path: Optional[Path] = Field(
@@ -165,7 +166,7 @@ class DocGenerationOptions(BaseModel, extra="forbid"):
         default=None,
     )
 
-    cxx_coverage_path: Path = Field(
+    cxx_coverage_path: Optional[Path] = Field(
         description="Merged coverage data sqlite",
         default=None,
     )
@@ -183,7 +184,7 @@ class DocGenerationOptions(BaseModel, extra="forbid"):
     )
 
 
-def cli_options(f):
+def cli_options(f: Any) -> Any:
     return apply_options(f, options_from_model(DocGenerationOptions))
 
 
@@ -200,10 +201,10 @@ class FileGenResult():
     trace: List[py_scriptutils.tracer.TraceEvent]
 
 
-def worker_decorator(func):
+def worker_decorator(func: Any) -> Any:
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return func(*args, **kwargs)
         except Exception as e:
@@ -288,9 +289,9 @@ def generate_html_for_directory(
 
     @beartype
     def is_path_allowed(path: Path) -> bool:
-        path = str(path)
-        return any(it.match(path) for it in coverage_whitelist) and not any(
-            it.match(path) for it in coverage_blacklist)
+        path_str = str(path)
+        return any(it.match(path_str) for it in coverage_whitelist) and not any(
+            it.match(path_str) for it in coverage_blacklist)
 
     target_code_files: List[FileGenParams] = []
 
@@ -409,7 +410,7 @@ def parse_dir(
               help="Path to config file.")
 @cli_options
 @click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs) -> None:
+def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
     py_scriptutils.tracer.GlobNameThisProcess("Main")
     py_scriptutils.tracer.GlobIndexThisProcess(0)
     conf = get_cli_model(ctx, DocGenerationOptions, kwargs=kwargs, config=config)

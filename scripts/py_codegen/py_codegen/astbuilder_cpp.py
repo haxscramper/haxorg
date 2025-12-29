@@ -405,6 +405,8 @@ class QualType(BaseModel, extra="forbid"):
 
             match Typ.Kind:
                 case QualTypeKind.FunctionPtr:
+                    assert Typ.func
+                    assert Typ.func.ReturnTy, "Missing return type for function pointer"
                     result = "{spaces}FUNC:{origin}({args})".format(
                         spaces=spaces,
                         origin=aux(Typ.func.ReturnTy),

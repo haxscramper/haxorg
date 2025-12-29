@@ -175,10 +175,13 @@ class AstbuilderBase:
 
         return self.b.stack(res)
 
-    def csv(self,
-            items: Union[List[str], List[BlockId]],
-            isLine: bool = True,
-            isTrailing: bool = False) -> BlockId:
+    def csv(
+        self,
+        items: Union[List[str], List[BlockId]],
+        isLine: bool = True,
+        isTrailing: bool = False,
+        sep: str = ", ",
+    ) -> BlockId:
         if 0 < len(items):
             return self.b.join(
                 [self.string(Base) if isinstance(Base, str) else Base for Base in items],

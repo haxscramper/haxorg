@@ -160,7 +160,7 @@ class CovFileRegion(CoverageSchema):
     ColumnStart = IntColumn()
     LineEnd = IntColumn()
     ColumnEnd = IntColumn()
-    RegionKind = Column(NumericEnum(CovRegionKind)) # type: ignore
+    RegionKind = Column(NumericEnum(CovRegionKind))
     File = ForeignId(CovFile.Id)
     Function = ForeignId(CovFunction.Id, nullable=True)
     ExpandedFrom = ForeignId("CovFileRegion.Id", nullable=True)
@@ -265,7 +265,7 @@ class CovContextModel(BaseModel, extra="forbid"):
         description="Where test is executed, see run line",
         default=None,
     )
-    RunFile: Optional[int] = Field(
+    RunFile: Optional[str] = Field(
         description="Where test is executed, see run line",
         default=None,
     )
@@ -600,7 +600,10 @@ def get_coverage_of(session: Session,
                     path: Path) -> Optional[Select[Tuple[CovFileRegion]]]:
 
     target_id = get_file_coverage_id(session, path)
-    if target_id != None:
+    if target_id == None:
+        return None
+        
+    else:
         return select(CovFileRegion).where(CovFileRegion.File == target_id)
 
 
@@ -624,11 +627,11 @@ def extract_text(
     start_line, start_column = start
     end_line, end_column = end
 
-    def line_at(idx: int, end: Optional[int] = None) -> str:
+    def line_at(idx: int, end: Optional[int] = None) -> Union[str, List[str]]:
         if end != None:
-            result = []
+            result: List[str] = []
             for i in range(idx, end):
-                result.append(line_at(i))
+                result.append(line_at(i))  # type: ignore
 
             return result
 
@@ -643,10 +646,16 @@ def extract_text(
         return line_at(start_line - 1)[start_column - 1:end_column - 1]
 
     else:
+        first_line = line_at(start_line - 1)
+        assert isinstance(first_line, str)
+        middle_lines = line_at(start_line, end_line - 1)
+        assert isinstance(middle_lines, list)
+        last_line = line_at(end_line - 1)
+        assert isinstance(last_line, str)
         extracted_lines = [
-            line_at(start_line - 1)[start_column - 1:],
-            *line_at(start_line, end_line - 1),
-            line_at(end_line - 1)[:end_column - 1],
+            first_line[start_column - 1:],
+            *middle_lines,
+            last_line[:end_column - 1],
         ]
 
         return "\n".join(extracted_lines)
@@ -658,7 +667,7 @@ def pivot_strings(strings: List[str]) -> List[List[str]]:
     pivoted = [[padded_strings[row][col]
                 for row in range(len(padded_strings))]
                for col in range(max_len)]
-    return ["".join(it) for it in pivoted]
+    return pivoted
 
 
 @beartype
@@ -772,7 +781,7 @@ def read_code_file(RootPath: Path, AbsPath: Path) -> DocCodeCxxFile:
     )
 
 
-def esc(s):
+def esc(s: str) -> str:
     return s.replace("\n", "␤")
 
 
@@ -797,7 +806,7 @@ def get_flat_coverage(
             line.Text) + 1  # +1 to account for removed newline character
 
     SegmentRuns: Dict[  #
-        Tuple[int, int], List[Tuple[int, str]]] = defaultdict(lambda: list())
+        Tuple[int, int], List[Tuple[int, Optional[str]]]] = defaultdict(lambda: list())
 
     segment: CovFileRegion
     for (segment,) in session.execute(segments):
@@ -951,7 +960,7 @@ def get_annotated_files(
             file.Lines[line_idx].Segments.append(
                 AnnotationSegment(Text=text[last_segment_finish + 1:item.first]))
 
-        line_idx: int = None
+        line_idx: Optional[int] = None
         annotation: org.SequenceAnnotationTag
         for annotation in item.annotations:
             if annotation.groupKind == line_group_kind:
@@ -959,7 +968,7 @@ def get_annotated_files(
                 assert len(annotation.segmentKinds) == 1
                 line_idx = annotation.segmentKinds[0]
 
-        assert line_idx != None
+        assert line_idx is not None
 
         if line_idx != current_line:
             assert line_idx == len(
@@ -1068,7 +1077,7 @@ def get_annotated_files_for_session(
 
     if use_highlight:
         with GlobCompleteEvent("Get token group", "cov"):
-            token_dict = defaultdict(lambda: len(token_dict))
+            token_dict: Dict[str, int] = defaultdict(lambda: len(token_dict))
             token_group = get_token_group(file_full_content,
                                           token_to_int=lambda it: token_dict[it])
 
@@ -1096,13 +1105,18 @@ def get_annotated_files_for_session(
         elif coverage_group and it == coverage_group.kind:
             return "cov"
 
+        else:
+            return None
+
     def get_segment_name(group: int, segment: int) -> Optional[str]:
         if token_group and group == token_group.kind:
             return token_names[segment]
 
         elif coverage_group and group == coverage_group.kind:
-            if coverage_segments[segment].Dbg:
+            if coverage_segments and coverage_segments[segment].Dbg:
                 return str(coverage_segments[segment].Dbg)
+
+        return None
 
     if debug_format_segments:
         debug_format_segments.write_text(
@@ -1173,7 +1187,9 @@ def get_simple_function_name(func: CovFunction) -> str:
                     return "lambda"
 
                 else:
-                    return aux(j["Encoding"]) + "::" + aux(j["Entity"])
+                    enc = aux(j["Encoding"]) or ""
+                    ent = aux(j["Entity"]) or ""
+                    return enc + "::" + ent
 
             case "NameType":
                 match j["Name"]:
@@ -1205,7 +1221,7 @@ def get_simple_function_name(func: CovFunction) -> str:
                 return aux(j["Pointee"])
 
             case "ReferenceType":
-                result = aux(j["Pointee"])
+                result = aux(j["Pointee"]) or ""
                 match j["RK"]:
                     case "LValue":
                         return result + "&"
@@ -1218,13 +1234,12 @@ def get_simple_function_name(func: CovFunction) -> str:
 
             case "FunctionEncoding":
                 if "Params" in j:
-                    return "{}({})".format(
-                        aux(j["Name"]),
-                        ", ".join(aux(it) for it in j["Params"]),
-                    )
+                    name = aux(j["Name"]) or ""
+                    params = ", ".join(p for p in (aux(it) for it in j["Params"]) if p)
+                    return "{}({})".format(name, params)
 
                 else:
-                    return aux(j["Name"])
+                    return aux(j["Name"]) or ""
 
             case "NameWithTemplateArgs":
                 if try_get(j, ["Name", "Name", "Name"]) == "basic_string":
@@ -1380,6 +1395,7 @@ if __name__ == "__main__":
             CovFile,
             CovFileRegion,
     ]:
+        assert hasattr(table, "__table__")
         full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")
 
     get_haxorg_repo_root_path().joinpath(

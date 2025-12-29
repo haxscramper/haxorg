@@ -30,7 +30,7 @@ def strip_comment_prefixes(comment: str) -> List[str]:
 
     # Identify and strip comment markers, then delegate to process_content
     if comment.startswith("///") or comment.startswith("//!"):
-        return drop_leading("///?<?!?\\s*", comment)
+        return drop_leading(re.compile("///?<?!?\\s*"), comment)
     elif comment.startswith("/**") or comment.startswith("/*!"):
         # Removing the leading /** or /*! and trailing */
         content = comment[3:-2].strip()

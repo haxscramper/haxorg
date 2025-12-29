@@ -45,14 +45,15 @@ class CliRunContext:
         self.tracer = TraceCollector()
         self.opts = opts
 
-    def event(self, name: str, category: str, args: Dict[str, Any] = {}):
+    def event(self, name: str, category: str, args: Dict[str, Any] = {}) -> Any:
         return self.tracer.complete_event(name=name, category=category, args=args)
 
     def is_trace_enabled(self) -> bool:
         return bool(self.opts.trace_path)
 
-    def finalize(self):
+    def finalize(self) -> None:
         if self.is_trace_enabled():
+            assert self.opts.trace_path, "Missing trace path configuration"
             self.tracer.export_to_json(Path(self.opts.trace_path))
             log("haxorg.cli").info(f"Wrote execution trace to {self.opts.trace_path}")
 
@@ -70,13 +71,13 @@ def parseCachedFile(
 ) -> org.Org:
     cache_file = None if not cache else Path(cache).joinpath(file.name)
 
-    def aux():
+    def aux() -> org.Org:
         log(CAT).info(f"Processing {file}")
         if with_includes:
             opts = org.OrgDirectoryParseParameters()
             if parse_opts:
                 parse_opts.currentFile = str(file)
-                def parse_node_impl(path: str):
+                def parse_node_impl(path: str) -> org.Org:
                     return org.parseStringOpts(Path(path).read_text(), parse_opts)
 
                 org.setGetParsedNode(opts, parse_node_impl)
@@ -119,5 +120,5 @@ def parseFile(
     return parseCachedFile(file, root.cache, parse_opts=parse_opts)
 
 
-def base_cli_options(f):
+def base_cli_options(f: Any) -> Any:
     return apply_options(f, options_from_model(CliRootOptions))

@@ -30,7 +30,7 @@ class TextLayout(lyt.TextLayout):
     def pars(self, arg: BlockId, left: str = "(", right: str = ")") -> BlockId:
         return self.line([self.text(left), arg, self.text(right)])
 
-    def add_if_not_empty(self, arg: BlockId, other: BlockId): 
+    def add_if_not_empty(self, arg: BlockId, other: BlockId) -> None: 
         if (self.isLine(other) or self.isStack(other)) and self.size(other) == 0:
             pass
 
@@ -41,7 +41,7 @@ class TextLayout(lyt.TextLayout):
     def csv(
         self,
         items: Union[Iterable[str], Iterable[BlockId]],
-        isLine=True,
+        isLine: bool = True,
         isTrailing=False,
         sep: str = ", ",
     ) -> BlockId:

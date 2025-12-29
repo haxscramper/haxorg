@@ -9,7 +9,12 @@ from enum import Enum
 from datetime import datetime
 from pprint import pprint
 from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json, config, Undefined
+try:
+    from dataclasses_json import dataclass_json, config, Undefined  # type: ignore[import-not-found]
+except ImportError:
+    # Fallback if dataclasses_json is not available
+    def dataclass_json(cls):  # type: ignore
+        return cls
 import json
 from beartype.typing import *
 from pathlib import Path
@@ -126,7 +131,7 @@ if __name__ == "__main__":
         with open(path) as file:
             j = json.load(file)
             converted: TraceFile = TraceFile.from_dict(j)
-            converted.path = path
+            converted.path = str(path)
 
             converted.tree = build_flamegraph([
                 e for e in converted.traceEvents if e.tid == converted.traceEvents[0].tid
@@ -143,11 +148,11 @@ if __name__ == "__main__":
                 json.dump(flame.to_dict(), flame_file)
 
     for f in sorted(all_files, key=lambda f: -f.tree.event.dur):
-        print("{:10.5f}s {}".format(f.tree.event.dur / 1e6, f.path))
+            print("{:10.5f}s {}".format(f.tree.event.dur / 1e6, f.path))
 
-    def flatten_tracefiles(tracefiles):
+    def flatten_tracefiles(tracefiles: List[TraceFile]) -> List[Dict[str, Any]]:
         # Flatten the list of TraceFile objects
-        flattened = []
+        flattened: List[Dict[str, Any]] = []
         for tracefile in tracefiles:
             for event in tracefile.traceEvents:
                 flattened.append({
@@ -169,7 +174,7 @@ if __name__ == "__main__":
     pd.set_option("display.max_colwidth", 20)
 
     # This is our custom aggregation function
-    def custom_agg(group):
+    def custom_agg(group: pd.DataFrame) -> pd.Series:
         data = {
             "count": group["duration"].count(),
             "total_time": group["duration"].sum(),
