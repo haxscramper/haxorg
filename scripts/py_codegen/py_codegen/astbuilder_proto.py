@@ -496,12 +496,14 @@ class ProtoBuilder():
             [field_ptr],
         )
 
+        assert field.type is not None, "Field type must not be None"
         flat = tuple(field.type.flatQualName())
         if flat in self.variant_type_list or field.type.name in [
                 "variant", "Variant", "Var"
         ]:
             is_typedef = flat in self.variant_type_list
             variant = self.variant_type_list[flat].base if is_typedef else field.type
+            assert variant is not None, "Variant type must not be None"
             if is_typedef:
                 reader_switch = cpp.SwitchStmtParams(Expr=self.ast.XCallRef(
                     t.text(PROTO_VALUE_NAME),
@@ -517,6 +519,7 @@ class ProtoBuilder():
                 Expr=t.line([dot_write, t.text(".index()")]))
 
             if is_typedef:
+                assert field.type is not None, "Field type must not be None"
                 kind_type = proto_type.asSpaceFor(
                     field.type.withoutAllScopeQualifiers())  # type: ignore
 
@@ -649,6 +652,7 @@ class ProtoBuilder():
                 reader_body: List[BlockId] = []
                 for base in tu.get_base_list(it, self.base_map):
                     base_type = self.base_map.get_one_type_for_name(base.name)
+                    assert base_type is None or isinstance(base_type, tu.GenTuStruct), "Base type must be GenTuStruct or None"
                     if base_type and len(base_type.fields) == 0:
                         continue
 
@@ -736,6 +740,7 @@ class ProtoBuilder():
                 )
 
                 for sub in it.nested:
+                    assert isinstance(sub, (tu.GenTuStruct, tu.GenTuEnum, tu.GenTuTypedef, tu.GenTuFunction, tu.GenTuPass)), "Sub must be a valid type for build_protobuf_serde_object"
                     result += self.build_protobuf_serde_object(sub)
 
                 writer_specialization = tu.QualType(
@@ -778,6 +783,7 @@ class ProtoBuilder():
             writer_types.append(item)
 
             for meth in item.methods():
+                assert isinstance(meth, cpp.MethodDefParams), "Method must be MethodDefParams"
                 writer_methods.append(meth.asMethodDef(name))
                 meth.Params.Body = None
 

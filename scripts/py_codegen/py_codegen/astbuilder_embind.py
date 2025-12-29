@@ -370,7 +370,7 @@ class WasmClass():
         body = []
 
         for Meth in self.Record.methods:
-            body.extend(WasmMethod(Meth).get_typedef(ast, base_map=base_map))  # type: ignore[attr-defined]
+            body.extend(WasmMethod(Meth).get_typedef(ast, base_map=base_map))
 
         for Field in self.Record.fields:
             if Field.isStatic:
@@ -455,7 +455,7 @@ class WasmClass():
                 continue
 
             else:
-                sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast)) # type: ignore
+                sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast))
 
         if not has_constructor and not self.Record.IsAbstract:
             # If the type has non-default holder type, `new` in JS will still create a raw pointer
@@ -524,7 +524,7 @@ class WasmModule():
                         Stmt=True,
                     )))
 
-    def add_decl(self, item: GenTuUnion | WasmBindPass | GenTuEnum | GenTuTypedef | GenTuFunction | GenTuStruct) -> None:  # type: ignore[arg-type]
+    def add_decl(self, item: GenTuUnion | WasmBindPass | GenTuEnum | GenTuTypedef | GenTuFunction | GenTuStruct) -> None:
         match item:
             case GenTuStruct():
                 self.items.append(WasmClass(item))

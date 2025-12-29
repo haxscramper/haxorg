@@ -169,7 +169,7 @@ class ASTBuilder(base.AstbuilderBase):
         else:
             return RawBlock(value)
 
-    def add_at(self, target: BlockId, other: BlockId | List[BlockId]):
+    def add_at(self, target: BlockId, other: BlockId | List[BlockId]) -> None:
         self.b.add_at(target, other)
 
     def litPt(self, value: Number) -> RawStr:
@@ -186,8 +186,8 @@ class ASTBuilder(base.AstbuilderBase):
         isLine: bool = False,
         isFirst: bool = True,
     ) -> BlockId:
-        b: List[BlockId | RawBlock] = body if isinstance(body, list) else [body]
-        b: List[BlockId] = [(it.value if isinstance(it, RawBlock) else it) for it in b]
+        body_list: List[BlockId | RawBlock] = body if isinstance(body, list) else [body]
+        b: List[BlockId] = [(it.value if isinstance(it, RawBlock) else it) for it in body_list]
         arglist = []
 
         prefix = "#" if isFirst else ""

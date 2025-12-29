@@ -80,8 +80,8 @@ def run_for(engine: Engine) -> None:
     ax.set_ylabel('Count of Line Time Buckets')
 
     # Format the x-axis as date
-    ax.xaxis.set_major_formatter(
-        mdates.DateFormatter('%Y-%m-%d'))  # Adjust the format as needed
+    formatter: mdates.DateFormatter = mdates.DateFormatter('%Y-%m-%d') # type: ignore
+    ax.xaxis.set_major_formatter(formatter)  # Adjust the format as needed
 
     # Rotate x-ticks
     plt.xticks(rotation=45, ha='right')  # Rotate and align right

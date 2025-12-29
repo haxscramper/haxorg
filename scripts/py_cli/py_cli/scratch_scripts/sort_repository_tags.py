@@ -128,9 +128,9 @@ def build_tag_tree(target_count: Dict[OrgTagDesc, int]) -> Tree:
         current = tree_data
         for i, part in enumerate(tag_desc.tag):
             if part not in current:
-                current[part] = {"count": 0, "children": defaultdict(dict)}  # type: ignore[assignment]
-            current[part]["count"] = current[part]["count"] + count  # type: ignore[index,assignment]
-            current = current[part]["children"]  # type: ignore[assignment]
+                current[part] = {"count": 0, "children": defaultdict(dict)}
+            current[part]["count"] = current[part]["count"] + count
+            current = current[part]["children"]
 
     def create_tree_node(data: dict, name: str = "Tags") -> Tree:
         root = Tree(name)

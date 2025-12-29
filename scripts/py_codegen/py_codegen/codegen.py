@@ -93,7 +93,8 @@ def get_exporter_methods(
                                     QualType.ForName("R", RefKind=ReferenceKind.LValue),
                                     "res"),
                                 GenTuIdent(
-                                    t_cr(field.type) if field.type else QualType.ForName("void"),
+                                    t_cr(field.type)
+                                    if field.type else QualType.ForName("void"),
                                     "object",
                                 ),
                             ],
@@ -154,7 +155,7 @@ def get_imm_serde(
 ) -> List[GenTuPass]:
     serde: List[GenTuStruct] = []
 
-    def aux(it: Any)  -> None:
+    def aux(it: Any) -> None:
         match it:
             case GenTuStruct():
                 if it.IsAbstract:
@@ -356,7 +357,8 @@ def topological_sort_entries(entries: List[GenTuUnion]) -> List[GenTuUnion]:
 
 
 @beartype
-def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuEntry | GenTuField]:
+def expand_type_groups(ast: ASTBuilder,
+                       types: List[GenTuStruct]) -> List[GenTuEntry | GenTuField]:
 
     @beartype
     def rec_expand_group(record: GenTuTypeGroup,) -> List[GenTuEntry | GenTuField]:
@@ -622,7 +624,7 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
             case GenTuField(type=QualType(name="SemId")):
                 mutate_type_to_immutable(obj.type)
-                    obj.value = f"org::imm::ImmIdT<org::imm::Imm{obj.type.par0().name}>::Nil()"
+                obj.value = f"org::imm::ImmIdT<org::imm::Imm{obj.type.par0().name}>::Nil()"
 
             case GenTuField(type=QualType(name="Opt")):
                 obj.type = obj.type.par0().withWrapperType(
@@ -904,7 +906,8 @@ def gen_pyhaxorg_field_iteration_macros(
                             "__IMPL_FIELD",
                             [
                                 # Type of the field
-                                ast.pars(ast.Type(field.type)) if field.type else ast.string("void"),  # type: ignore[arg-type]
+                                ast.pars(ast.Type(field.type)) if field.type else
+                                ast.string("void"),  # type: ignore[arg-type]
                                 # field name without changes
                                 ast.string(field.name),
                                 # field name for `getField` etc.
@@ -974,7 +977,8 @@ class PyhaxorgTypeGroups():
     expanded: List[GenTuStruct] = field(default_factory=list)
     immutable: List[GenTuStruct] = field(default_factory=list)
     tu: ConvTu = field(default_factory=lambda: ConvTu())
-    base_map: GenTypeMap = field(default_factory=lambda: GenTypeMap())  # type: ignore[assignment]
+    base_map: GenTypeMap = field(
+        default_factory=lambda: GenTypeMap())  # type: ignore[assignment]
     full_enums: List[GenTuEnum] = field(default_factory=list)
     imm_id_specializations: List[GenTuStruct] = field(default_factory=list)
     specializations: List[TypeSpecialization] = field(default_factory=list)
