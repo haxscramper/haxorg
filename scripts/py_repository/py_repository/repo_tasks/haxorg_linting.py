@@ -1,3 +1,4 @@
+import itertools
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import ensure_existing_dir, get_script_root, get_workflow_out, get_workflow_tmp
 from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
@@ -5,7 +6,12 @@ from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 
 @haxorg_task()
 def run_mypy(ctx: TaskContext) -> None:
-    script_files = list(get_script_root(ctx, "scripts").rglob("*.py"))
+    script_files = list(
+        itertools.chain(
+            get_script_root(ctx, "scripts").rglob("*.py"),
+            get_script_root(ctx, "tests/python").rglob("*.py"),
+        ))
+
     script_files = [f for f in script_files if (".venv" not in str(f))]
     all_outputs = []
 
