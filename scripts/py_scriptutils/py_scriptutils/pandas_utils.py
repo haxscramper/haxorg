@@ -54,10 +54,10 @@ def dataframe_from_dict_list(
 
 
 @beartype
-def assert_frame(df: pd.DataFrame, subset: ju.Json) -> None:
+def assert_frame(df: pd.DataFrame, subset: Dict[str, Any]) -> None:
     given_dataframe = dataframe_to_rich_table(df)
     given_dataframe.box = rich.box.ASCII
-    df2 = dataframe_from_dict_list(df, subset)
+    df2 = dataframe_from_dict_list(df, [subset])
     expected_dataframe = dataframe_to_rich_table(df2)
     expected_dataframe.box = rich.box.ASCII
     ju.assert_subset(

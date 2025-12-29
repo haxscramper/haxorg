@@ -125,22 +125,29 @@ def format_rich_table(
 
     return rich_table
 
+@beartype
+def _map_engine_or_session(engine_or_session: Engine | Session) -> Engine:
+    if isinstance(engine_or_session, Session):
+        return engine_or_session.get_bind() # type: ignore
+
+    else:
+        return engine_or_session
+
 
 @beartype
 def format_rich_query(
-    engine: Union[Engine, Session],
+    engine_or_session: Union[Engine, Session],
     query: Executable,
     column_labels: List[str] = [],
 ) -> Table:
 
-    if isinstance(engine, Session):
-        engine = engine.get_bind()
+    engine = _map_engine_or_session(engine_or_session)
 
     rich_table = Table(show_header=True, header_style="bold blue")
     with engine.connect() as connection:
         result = connection.execute(query)
         if not column_labels:
-            column_labels = result.keys()
+            column_labels = result.keys() # type: ignore
         for label in column_labels:
             rich_table.add_column(label)
         for row in result:
@@ -164,16 +171,16 @@ def get_table_names(engine: Engine, excluded_tables: List[str] = []) -> List[str
 
 @beartype
 def format_db_all(
-    engine: Union[Engine, Session],
+    engine_or_session: Union[Engine, Session],
     excluded_tables: List[str] = [],
     ignored_columns: dict[str, List[str]] = {},
     style: bool = True,
 ) -> str:
 
-    if isinstance(engine, Session):
-        engine = engine.get_bind()
+    engine = _map_engine_or_session(engine_or_session)
 
-    def st(text: str, wrap: str):
+
+    def st(text: str, wrap: str) -> str:
         if style:
             return f"[{wrap}]{text}[/{wrap}]"
 
@@ -224,14 +231,13 @@ def format_db_all(
 
 @beartype
 def dump_flat_table(
-    engine: Union[Engine, Session],
+    engine_or_session: Union[Engine, Session],
     table_name: str,
     excluded_columns: List[str] = [],
     dict_primary_key: Optional[str] = None,
 ) -> ju.Json:
     metadata = MetaData()
-    if isinstance(engine, Session):
-        engine = engine.get_bind()
+    engine = _map_engine_or_session(engine_or_session)
 
     table = SATable(table_name, metadata, autoload_with=engine)
     columns_to_fetch = [c for c in table.columns if c.name not in excluded_columns]
@@ -267,12 +273,12 @@ def dump_flat_table(
 
 @beartype
 def dump_db_all(
-    engine: Union[Engine, Session],
+    engine_or_session: Union[Engine, Session],
     excluded_tables: List[str] = [],
     excluded_columns: Dict[str, List[str]] = {},
 ) -> ju.Json:
-    if isinstance(engine, Session):
-        engine = engine.get_bind()
+    engine = _map_engine_or_session(engine_or_session)
+    
 
     result = dict()
     for table_name in get_table_names(engine, excluded_tables):

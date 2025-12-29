@@ -37,7 +37,7 @@ def add_new(html: tags.html_tag, sub: Any) -> tags.html_tag:
 class ExporterHtml(ExporterBase):
 
     def __init__(self, get_break_tag: Optional[Callable[[org.Newline], Any]] = None):
-        super().__init__(self) # type: ignore
+        super().__init__(self)
         self.get_break_tag = get_break_tag
 
     def newOrg(self, node: org.Org) -> text:

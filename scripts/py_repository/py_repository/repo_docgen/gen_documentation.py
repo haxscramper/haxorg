@@ -21,15 +21,12 @@ from py_scriptutils.files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import (BaseModel, apply_options, get_cli_model,
                                                  options_from_model)
-from pydantic import BaseModel, Field, SerializeAsAny, ConfigDict
-import more_itertools
+from pydantic import BaseModel, Field, ConfigDict
 from py_scriptutils.tracer import GlobExportJson, GlobCompleteEvent
 import py_scriptutils.tracer
 import re
-import json
 import concurrent.futures
 import functools
-import traceback
 import multiprocessing
 import sys
 from py_ci.util_scripting import get_threading_count
@@ -224,6 +221,7 @@ def generate_code_file(
     opts: DocGenerationOptions,
 ) -> FileGenResult:
     py_scriptutils.tracer.GlobRestart()
+    assert opts.cxx_coverage_path
     cxx_coverage_session = cov_docxx.open_coverage(opts.cxx_coverage_path)
     path = docdata.get_html_path(gen.file, html_out_path=gen.html_out_path)
     with GlobCompleteEvent("Get annotated files",
@@ -321,7 +319,8 @@ def generate_html_for_directory(
 
     aux(directory, html_out_path)
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=get_threading_count()) as executor:
+    with concurrent.futures.ProcessPoolExecutor(
+            max_workers=get_threading_count()) as executor:
         futures = [
             executor.submit(
                 functools.partial(
@@ -352,7 +351,7 @@ def parse_code_file(
 
 @beartype
 def parse_text_file(file: Path) -> docdata.DocTextFile:
-    return docdata.DocTextFile(Text=file.read_text())
+    return docdata.DocTextFile(RelPath=file, Text=file.read_text())
 
 
 @beartype

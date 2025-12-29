@@ -81,7 +81,7 @@ class ExporterTypst(ExporterBase):
         self.c = ExporterTypstConfig.model_validate(mix_config)
 
     def __init__(self, CRTP_derived: Any = None):
-        super().__init__(CRTP_derived or self)  # type: ignore
+        super().__init__(CRTP_derived or self)
         self.t = typ.ASTBuilder()
         self.c = ExporterTypstConfig()
 

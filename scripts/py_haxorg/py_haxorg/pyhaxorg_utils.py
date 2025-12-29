@@ -32,7 +32,7 @@ def evalDateTime(time: UserTime) -> datetime:
     if brk.second:
         kwargs["second"] = brk.second
 
-    return datetime(**kwargs)
+    return datetime(**kwargs) # type: ignore
 
 
 @beartype

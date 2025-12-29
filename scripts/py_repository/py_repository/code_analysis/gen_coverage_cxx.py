@@ -109,7 +109,7 @@ class CovContext(CoverageSchema):
     def getContextRunFile(self) -> Optional[str]:
         "@brief see `getContextRunLine` but for path"
         if self.Params and "loc" in self.Params:
-            return self.Params["loc"]["path"] #type: ignore
+            return self.Params["loc"]["path"]  #type: ignore
 
         else:
             return None
@@ -118,7 +118,7 @@ class CovContext(CoverageSchema):
     def getContextRunArgs(self) -> Optional[List[Any]]:
         "@brief Any extra parameters for the test run"
         if self.Params and "args" in self.Params:
-            return [it for it in self.Params["args"]] # type: ignore
+            return [it for it in self.Params["args"]]  # type: ignore
 
         else:
             return None
@@ -160,7 +160,7 @@ class CovFileRegion(CoverageSchema):
     ColumnStart = IntColumn()
     LineEnd = IntColumn()
     ColumnEnd = IntColumn()
-    RegionKind = Column(NumericEnum(CovRegionKind))
+    RegionKind = Column(NumericEnum(CovRegionKind))  # type: ignore
     File = ForeignId(CovFile.Id)
     Function = ForeignId(CovFunction.Id, nullable=True)
     ExpandedFrom = ForeignId("CovFileRegion.Id", nullable=True)
@@ -449,11 +449,11 @@ class AnnotatedFile(BaseModel, extra="forbid"):
                 return ctx.Context.Id
 
             result = CovSegmentContextGroup(Grouped=[])
-            for _, context_group in itertools.groupby(
+            for _, _context_group in itertools.groupby(
                     sorted(contexts, key=key_func),
                     key=key_func,
             ):
-                context_group = list(context_group)
+                context_group = list(_context_group)
 
                 group = CovSegmentFunctionGroup(
                     # <<get_grouped_context>> grouping by segment ID and then de-duplicating
@@ -565,7 +565,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
 
                 for it in contexts.Grouped:
                     for segment in it.FunctionSegments:
-                        if segment.Function and segment.Function not in result:
+                        if segment.Function and segment.Function not in result.Functions:
                             result.Functions[segment.Function] = conv_function(
                                 self.SegmentFunctions[segment.Function])
 
@@ -602,7 +602,7 @@ def get_coverage_of(session: Session,
     target_id = get_file_coverage_id(session, path)
     if target_id == None:
         return None
-        
+
     else:
         return select(CovFileRegion).where(CovFileRegion.File == target_id)
 
@@ -636,14 +636,15 @@ def extract_text(
             return result
 
         else:
-            if isinstance(lines[idx], str):
-                return lines[idx]
+            line = lines[idx]
+            if isinstance(line, str):
+                return line
 
             else:
-                return lines[idx].Text
+                return line.Text
 
     if start_line == end_line:
-        return line_at(start_line - 1)[start_column - 1:end_column - 1]
+        return line_at(start_line - 1)[start_column - 1:end_column - 1] # type: ignore
 
     else:
         first_line = line_at(start_line - 1)
@@ -767,7 +768,7 @@ def format_sequence_segments(
 
             out_str.append("".join(out_line))
 
-    return "\n".join(pivot_strings(out_str))
+    return "\n".join(pivot_strings(out_str)) # type: ignore
 
 
 @beartype
@@ -847,7 +848,7 @@ def get_flat_coverage(
         # from different coverage runs. This place effectively does `GROUP BY <location>`
         SegmentRuns[(First, Last)].append((segment.Id, DbgAnnotations))
 
-    it: Tuple[Tuple[int, int], List[Tuple[int, str]]]
+    it: Tuple[Tuple[int, int], List[Tuple[int, str | None]]]
     for it in SegmentRuns.items():
         DbgAnnotations = [s[1] for s in it[1] if s[1]]
         flat = GenCovSegmentFlat(
@@ -957,6 +958,7 @@ def get_annotated_files(
 
     for item in annotations:
         if last_segment_finish and item.first != last_segment_finish + 1:
+            assert line_idx
             file.Lines[line_idx].Segments.append(
                 AnnotationSegment(Text=text[last_segment_finish + 1:item.first]))
 
