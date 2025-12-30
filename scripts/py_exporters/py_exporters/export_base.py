@@ -69,7 +69,7 @@ class ExporterBase:
         return node.level + compound_level
 
     @contextlib.contextmanager
-    def WithContext(self, node: org.Org) -> Any:
+    def WithContext(self, node: org.Org):
         self.context.append(node)
         yield
         self.context.pop()

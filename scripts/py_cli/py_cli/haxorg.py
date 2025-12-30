@@ -11,10 +11,6 @@ from py_cli.haxorg_cli import (
 
 
 @click.group()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
 @base_cli_options
 @click.pass_context
 def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
@@ -25,8 +21,12 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
     ctx.obj["run"] = CliRunContext(opts)
     pass
 
+
 from py_cli.haxorg_export import export
+from py_cli.haxorg_generate import generate
+
 cli.add_command(export)
+cli.add_command(generate)
 
 if __name__ == "__main__":
     cli()

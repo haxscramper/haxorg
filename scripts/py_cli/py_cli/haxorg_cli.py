@@ -21,21 +21,20 @@ from pydantic import BaseModel, Field
 CONFIG_FILE_NAME = "pyhaxorg.toml"
 CAT = __name__
 
+
 class CliRootOptions(BaseModel, extra="forbid"):
-    lex_traceDir: Optional[str] = None
-    lex_trace: bool = False
+    lex_traceDir: Optional[str] = Field(
+        description="Write lexer operation trace into the directory", default=None)
     parse_traceDir: Optional[str] = None
-    parse_trace: bool = False
     sem_traceDir: Optional[str] = None
-    sem_trace: bool = False
     config: Optional[str] = None
     cache: Optional[Path] = Field(
         description=
         "Optional directory to cache file parsing to speed up large corpus processing",
-        default=None,
-    )
+        default=None)
 
-    trace_path: Optional[str] = None
+    trace_path: Optional[str] = Field(
+        description="Trace execution of the CLI to the file", default=None)
 
 
 @beartype
@@ -77,6 +76,7 @@ def parseCachedFile(
             opts = org.OrgDirectoryParseParameters()
             if parse_opts:
                 parse_opts.currentFile = str(file)
+
                 def parse_node_impl(path: str) -> org.Org:
                     return org.parseStringOpts(Path(path).read_text(), parse_opts)
 

@@ -97,7 +97,11 @@ class HaxorgExampleConfig(BaseModel, extra="forbid"):
 
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
     extra_pytest_args: List[str] = Field(default_factory=list)
-    real_time_output_print: bool = True
+    real_time_output_print: bool = Field(
+        default=True,
+        description=
+        "Print the pytest output as it happens intead or capture the stdout/stderr and store it in a file."
+    )
 
 
 class HaxorgBuildDevelopDepsConfig(BaseModel, extra="forbid"):

@@ -21,8 +21,8 @@ add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${CLANG_INCLUDE_DIRS})
 
-add_subdirectory(profdata_merger)
 add_subdirectory(reflection_tool)
+add_subdirectory(profdata_merger)
 
 add_executable(convert_const_ref convert_const_ref.cpp)
 target_link_libraries(

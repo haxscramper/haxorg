@@ -514,7 +514,7 @@ def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) ->
 
 
 @beartype
-def conv_res_to_nim(builder: nim.ASTBuilder, decl: GenTuUnion, conf: NimOptions) -> None:
+def conv_res_to_nim(builder: nim.ASTBuilder, decl: GenTuUnion, conf: NimOptions) -> ConvRes:
     match decl:
         case GenTuEnum():
             return enum_to_nim(builder, decl)

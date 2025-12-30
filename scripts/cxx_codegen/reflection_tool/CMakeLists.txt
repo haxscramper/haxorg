@@ -34,7 +34,8 @@ endif()
 target_include_directories(
   reflection_lib
   PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "${DEPS_DIR}/protobuf/src" "${DEPS_DIR}/abseil-cpp"
-         "${BASE}/src" "${BASE}/build/haxorg/scripts/cxx_codegen/reflection_tool")
+         "${BASE}/src" "${BASE}/scripts/cxx_codegen/reflection_tool"
+         "${BASE}/build/haxorg/scripts/cxx_codegen/reflection_tool")
 
 llvm_map_components_to_libnames(
   reflection_lib_llvm_libs

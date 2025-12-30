@@ -594,6 +594,54 @@ BinarySymComponentId demangle_to_db(
     return res;
 }
 
+static std::vector<std::string> CompiledFileExtensions = {
+    ".cpp",
+    ".h",
+    ".hpp",
+    ".cc",
+    ".cxx",
+    ".c",
+    ".C",
+    ".java",
+    ".js",
+    ".ts",
+    ".go",
+    ".py",
+    ".rs",
+    ".swift",
+    ".m",
+    ".mm",
+};
+
+int findSymbolNamePosition(const std::string& input) {
+    int pos = input.find(':');
+    while (pos != std::string::npos) {
+        for (const auto& ext : CompiledFileExtensions) {
+            int extPos = input.rfind(ext, pos);
+            if (extPos != std::string::npos
+                && extPos + ext.length() == pos) {
+                return pos + 1;
+            }
+        }
+        pos = input.find(':', pos + 1);
+    }
+
+    return 0;
+}
+
+llvm::json::Value demangle_to_json(
+    const std::string&        name,
+    BinarySymbolVisitContext& ctx,
+    int                       depth,
+    int                       max_depth) {
+    int         offset = findSymbolNamePosition(name);
+    std::string name2  = name.substr(offset);
+    Demangler   Parser(name2.data(), name2.data() + name2.length());
+    Node*       AST = Parser.parse();
+    return demangle_to_json(AST, ctx, depth, max_depth);
+}
+
+
 BinarySymComponentId parseBinarySymbolName(
     std::string const&        name,
     BinaryFileDB&             db,
@@ -991,6 +1039,7 @@ NO_COVERAGE void CreateTables(SQLite::Database& db) {
     db.exec(sql);
 }
 
+namespace {
 /// \brief Create a text for a `INSERT` statement with a given list of
 /// column names and identical number of coverage instantiation
 NO_COVERAGE std::string SqlInsert(
@@ -1012,6 +1061,7 @@ NO_COVERAGE std::string SqlInsert(
     result += ")";
     return result;
 }
+} // namespace
 
 struct queries {
     SQLite::Statement demangled_head;

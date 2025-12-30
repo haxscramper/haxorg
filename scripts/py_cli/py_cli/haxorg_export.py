@@ -12,7 +12,7 @@ def export_cli_options(f: Any) -> Any:
 @click.pass_context
 @export_cli_options
 def export(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
-    """Export command group."""
+    """Convert org-mode document to some other markup/document format"""
     pack_context(ctx, "export", CliExportOptions, config=config, kwargs=kwargs)
     pass
 

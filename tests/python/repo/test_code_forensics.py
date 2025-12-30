@@ -174,7 +174,8 @@ def run_forensics(
         return code, stdout, stderr
 
     else:
-        return local[tool_path].with_env(LD_PRELOAD="").run((json.dumps(params, default=json_path_serializer)))
+        return local[tool_path].with_env(LD_PRELOAD="").run(
+            (json.dumps(params, default=json_path_serializer)))
 
 
 @beartype
@@ -537,7 +538,7 @@ class GitOpStrategy:
     branch_stack: List[str] = field(default_factory=list)
     used_branches: Set[str] = field(default_factory=set)
 
-    def file_ops(self, draw) -> None:
+    def file_ops(self, draw) -> GitOperation:
         if 10 < self.uncommited_ops_count:
             self.uncommited_ops_count = 0
             return GitOperation(operation=GitOperationKind.REPO_COMMIT)
@@ -689,7 +690,7 @@ def run_repo_operations_test(
         with_debugger: bool = False,
         fixed_dir: Optional[Path] = None,
         params: Dict[str, Any] = dict(),
-):
+) -> None:
     with GitTestRepository({"init": "init"}, fixed_dir=fixed_dir) as repo:
         run_repo_operations(repo, operations)
         git_commit(repo.git_dir(), "final commit", allow_fail=True)

@@ -42,7 +42,6 @@ def get_declared_types_rec(
             add(decl.name)
 
             for _nested in decl.nested:
-                assert isinstance(_nested, (GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction)):
                 result.extend(get_declared_types_rec(
                     _nested,
                     expanded_use=expanded_use,
@@ -142,10 +141,10 @@ def hash_qual_type(
                 ))
 
                 for T in t.func.Args:
-                parts.append(hash_qual_type(
-                    T,
-                    with_namespace=with_namespace,
-                ))
+                    parts.append(hash_qual_type(
+                        T,
+                        with_namespace=with_namespace,
+                    ))
 
         case QualTypeKind.Array:
             pass
