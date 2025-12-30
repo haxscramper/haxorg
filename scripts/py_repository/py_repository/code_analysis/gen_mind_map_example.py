@@ -10,7 +10,8 @@ from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
 CAT = __name__
 
-def gen_mind_map(ctx: TaskContext) -> None: 
+
+def gen_mind_map(ctx: TaskContext) -> None:
     from py_scriptutils.graph_utils import haxorg_mind_map
     from py_scriptutils.graph_utils import elk_converter
     from py_scriptutils.graph_utils import elk_schema

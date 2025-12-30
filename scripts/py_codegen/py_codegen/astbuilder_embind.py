@@ -109,7 +109,7 @@ def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
 class WasmField():
     Field: GenTuField
 
-    def __init__(self, Field: GenTuField):
+    def __init__(self, Field: GenTuField) -> None:
         self.Field = Field
 
     def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
@@ -141,7 +141,7 @@ class WasmBindPass:
 class WasmTypedef:
     Def: GenTuTypedef
 
-    def __init__(self, Def: GenTuTypedef):
+    def __init__(self, Def: GenTuTypedef) -> None:
         self.Def = Def
 
     def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
@@ -170,7 +170,7 @@ class WasmFunction():
     def getWasmName(self) -> str:
         return get_function_wasm_name(self.Func)
 
-    def __init__(self, Func: GenTuFunction, Body: List[BlockId] = []):
+    def __init__(self, Func: GenTuFunction, Body: List[BlockId] = []) -> None:
         self.Func = Func
         self.Body = Body
 
@@ -251,7 +251,7 @@ class WasmFunction():
 class WasmEnum():
     Enum: GenTuEnum
 
-    def __init__(self, Enum: GenTuEnum):
+    def __init__(self, Enum: GenTuEnum) -> None:
         self.Enum = Enum
 
     def getWasmName(self) -> str:
@@ -350,7 +350,7 @@ class WasmMethod(WasmFunction):
 @beartype
 class WasmClass():
 
-    def __init__(self, Record: GenTuStruct):
+    def __init__(self, Record: GenTuStruct) -> None:
         self.Record = Record
 
     def getWasmName(self) -> str:

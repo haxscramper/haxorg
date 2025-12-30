@@ -26,7 +26,7 @@ import pytest
 
 
 @pytest.mark.test_release
-def test_simple_structure_registration():
+def test_simple_structure_registration() -> None:
     struct = refl_test_driver.get_struct("struct Test {};")
     assert struct.name.name == "Test"
     assert len(struct.methods) == 0
@@ -34,7 +34,7 @@ def test_simple_structure_registration():
 
 
 @pytest.mark.test_release
-def test_structure_field_registration():
+def test_structure_field_registration() -> None:
     struct = refl_test_driver.get_struct("struct Test { int field; };")
     assert len(struct.fields) == 1
     field = struct.fields[0]
@@ -43,7 +43,7 @@ def test_structure_field_registration():
 
 
 @pytest.mark.test_release
-def test_anon_structure_fields():
+def test_anon_structure_fields() -> None:
     struct = refl_test_driver.get_struct(
         "struct Main { union { int int_field; char char_field; }; };")
     assert len(struct.nested) == 1
@@ -59,7 +59,7 @@ def test_anon_structure_fields():
 
 
 @pytest.mark.test_release
-def test_field_with_std_import():
+def test_field_with_std_import() -> None:
     with TemporaryDirectory() as dir:
         code_dir = Path(dir)
         tu = refl_test_driver.run_provider(
@@ -83,7 +83,7 @@ def test_field_with_std_import():
 
 
 @pytest.mark.test_release
-def test_anon_struct_for_field():
+def test_anon_struct_for_field() -> None:
     struct = refl_test_driver.get_struct(
         "struct Main { struct { int nested; } field; };",
         code_dir_override=Path(gettempdir()) / "code_dir_override",
@@ -101,7 +101,7 @@ def test_anon_struct_for_field():
 
 
 @pytest.mark.test_release
-def test_anon_struct_for_field_2():
+def test_anon_struct_for_field_2() -> None:
     struct = refl_test_driver.get_struct(
         "struct Main { struct Named { int nested; } field; };")
     assert struct.name.name == "Main"
@@ -117,7 +117,7 @@ def test_anon_struct_for_field_2():
 
 
 @pytest.mark.test_release
-def test_namespace_extraction_for_nested_struct():
+def test_namespace_extraction_for_nested_struct() -> None:
     struct = refl_test_driver.get_struct(
         "struct Main { struct Nested {}; Nested field; };",
         code_dir_override=Path(gettempdir()) /
@@ -128,7 +128,7 @@ def test_namespace_extraction_for_nested_struct():
 
 
 @pytest.mark.test_release
-def test_namespace_extraction():
+def test_namespace_extraction() -> None:
     entires = refl_test_driver.get_entires(
         "namespace Space { struct Nest {}; } struct Main { Space::Nest field; };")
     struct: refl_test_driver.GenTuStruct = entires[1]
@@ -139,7 +139,7 @@ def test_namespace_extraction():
 
 
 @pytest.mark.test_release
-def test_nim_record_conversion():
+def test_nim_record_conversion() -> None:
     conv = refl_test_driver.get_nim_code(refl_test_driver.get_struct("struct Main {};"))
     assert len(conv.procs) == 0
     assert len(conv.types) == 1
@@ -150,7 +150,7 @@ def test_nim_record_conversion():
 
 
 @pytest.mark.test_release
-def test_nim_record_field_conversion():
+def test_nim_record_field_conversion() -> None:
     conv = refl_test_driver.get_nim_code(
         refl_test_driver.get_struct("struct Main { int field; };"))
     assert len(conv.procs) == 0
@@ -164,7 +164,7 @@ def test_nim_record_field_conversion():
 
 
 @pytest.mark.test_release
-def test_nim_record_with_compile():
+def test_nim_record_with_compile() -> None:
     with TemporaryDirectory() as dir:
         code_dir = Path(dir)
         value = refl_test_driver.run_provider(
@@ -209,7 +209,7 @@ echo "method field", value.run_method()
 
 
 @pytest.mark.test_release
-def test_type_cross_dependency():
+def test_type_cross_dependency() -> None:
     with TemporaryDirectory() as dir:
         code_dir = Path(dir)
         value = refl_test_driver.run_provider(

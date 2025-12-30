@@ -553,12 +553,12 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         label_edge = self.all_edges[label_node.originalEdgeId]
         return elk_schema.Node(
             id=label_node.getLabelNodeId(),
-            width=100,
+            width=100.0,
             height=elk_converter.get_node_height_for_text(
                 (label_edge.extra and ((label_edge.extra.edgeBrief or "") +
                                        (label_edge.extra.edgeDetailed or ""))) or "",
-                expected_width=100,
-                font_size=8,
+                expected_width=100.0,
+                font_size=8.0,
             ),
             ports=[
                 elk_schema.Port(

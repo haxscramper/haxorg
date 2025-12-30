@@ -28,7 +28,7 @@ log("refl.nim").setLevel(logging.DEBUG)
 
 
 @pytest.mark.skip()
-def test_libgit2_conv():
+def test_libgit2_conv() -> None:
     with TemporaryDirectory() as dir:
         code_dir = Path(dir)
         code_dir = Path(gettempdir()) / "libgit_wrap_test_dir"

@@ -26,7 +26,7 @@ CAT = __name__
 from py_scriptutils.script_logging import log
 
 
-def check_cli(result: Result):
+def check_cli(result: Result) -> None:
     if result.exception:
         raise result.exception
 
@@ -34,7 +34,7 @@ def check_cli(result: Result):
 
 
 @pytest.mark.test_release
-def test_story_grid():
+def test_story_grid() -> None:
     from py_cli.scratch_scripts import story_grid
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
@@ -61,7 +61,7 @@ def test_story_grid():
         check_cli(result)
 
 
-def test_node_clouds():
+def test_node_clouds() -> None:
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
@@ -93,7 +93,7 @@ Word1 Word1 Word1
         assert list(tags["count"]) == [2, 2, 2]
 
 
-def test_subtree_clocking():
+def test_subtree_clocking() -> None:
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
@@ -135,7 +135,7 @@ def test_subtree_clocking():
         assert df["tags"][0] == "tag##sub1,tag2"
 
 
-def test_codex_tracking():
+def test_codex_tracking() -> None:
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
@@ -175,7 +175,7 @@ Sentence with Character name should trigger radio target detection
 
 
 @pytest.mark.unstable
-def test_base_activity_analysis():
+def test_base_activity_analysis() -> None:
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
@@ -233,7 +233,7 @@ def test_base_activity_analysis():
 
         session = sessionmaker(bind=engine)()
 
-        def get_t(T):
+        def get_t(T: Any) -> None:
             return [it for it in session.query(T).all()]
 
         blocks = get_t(export_sqlite.Block)
@@ -252,7 +252,8 @@ def test_base_activity_analysis():
 
         def get_subtree(title: str) -> export_sqlite.Subtree:
             log(CAT).info("get first subtree")
-            def pred(it: export_sqlite.Subtree):
+
+            def pred(it: export_sqlite.Subtree) -> None:
                 log(CAT).info(f"'{it.plaintext_title}'")
                 return it.plaintext_title == title
 

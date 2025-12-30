@@ -55,7 +55,7 @@ NonTopLevel = set([osk.Newline, osk.Space])
 @beartype
 class ExporterPandoc(ExporterBase):
 
-    def __init__(self, CRTP_derived: Any = None):
+    def __init__(self, CRTP_derived: Any = None) -> None:
         super().__init__(CRTP_derived or self)
 
     def newOrg(self, node: org.Org) -> PandocRes:

@@ -143,7 +143,7 @@ def sanitize_name(name: str) -> str:
 @beartype
 class ASTBuilder(base.AstbuilderBase):
 
-    def __init__(self, in_b: TextLayout):
+    def __init__(self, in_b: TextLayout) -> None:
         super().__init__(in_b)
 
     def safename(self, name: str) -> str:

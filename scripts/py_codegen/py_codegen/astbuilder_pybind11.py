@@ -435,7 +435,7 @@ class Py11Enum:
     Enum: GenTuEnum
     Fields: List[Py11EnumField]
 
-    def __init__(self, Enum: GenTuEnum):
+    def __init__(self, Enum: GenTuEnum) -> None:
         self.Enum = Enum
         self.Fields = [Py11EnumField(F) for F in Enum.fields]
 
@@ -596,7 +596,7 @@ class Py11Class:
     def getCxxName(self) -> QualType:
         return self.Struct.declarationQualName()
 
-    def __init__(self, ast: ASTBuilder, value: GenTuStruct):
+    def __init__(self, ast: ASTBuilder, value: GenTuStruct) -> None:
         self.Struct = value
         self.Fields = []
         self.Methods = []
@@ -858,7 +858,7 @@ class Py11TypedefPass:
     name: pya.PyType
     base: pya.PyType
 
-    def __init__(self, typedef: GenTuTypedef, base_map: GenTypeMap):
+    def __init__(self, typedef: GenTuTypedef, base_map: GenTypeMap) -> None:
         self.name = py_type(typedef.name, base_map)
         self.base = py_type(typedef.base, base_map)
 

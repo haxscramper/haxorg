@@ -80,7 +80,7 @@ class ExporterTypst(ExporterBase):
         mix_config = toml_config_profiler.merge_dicts([old_config, new_config])
         self.c = ExporterTypstConfig.model_validate(mix_config)
 
-    def __init__(self, CRTP_derived: Any = None):
+    def __init__(self, CRTP_derived: Any = None) -> None:
         super().__init__(CRTP_derived or self)
         self.t = typ.ASTBuilder()
         self.c = ExporterTypstConfig()

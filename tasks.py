@@ -6,7 +6,7 @@ import graphviz
 
 
 
-def custom_traceback_handler(exc_type, exc_value, exc_traceback):
+def custom_traceback_handler(exc_type, exc_value, exc_traceback) -> None:
     """
     Custom traceback handler that filters and prints stack traces
     only for frames that originate from 'tasks.py'.
@@ -78,7 +78,7 @@ def create_graph(call_map: Dict[Callable, List[Callable]]) -> graphviz.Digraph:
 
 
 @haxorg_task()
-def generate_org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
+def generate_org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot") -> None:
     """Generate graphviz for task graph"""
     graph = create_graph(TASK_DEPS)
     file = Path(dot_file)
@@ -139,7 +139,7 @@ def get_poetry_lldb(test: str) -> list[str]:
 
 
 @haxorg_task(iterable=["arg"])
-def run_py_debug_script(ctx: Context, arg):
+def run_py_debug_script(ctx: Context, arg) -> None:
     run_command(
         ctx,
         "poetry",
@@ -150,7 +150,7 @@ def run_py_debug_script(ctx: Context, arg):
 
 
 @haxorg_task(dependencies=[build_haxorg, generate_python_protobuf_files])
-def run_py_test_debug(ctx: Context, test: str):
+def run_py_test_debug(ctx: Context, test: str) -> None:
     log(CAT).info(get_py_env(ctx))
     test: Path = Path(test)
     if not test.is_absolute():

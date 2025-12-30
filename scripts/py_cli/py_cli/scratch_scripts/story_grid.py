@@ -49,7 +49,7 @@ class StoryGridOpts(BaseModel, extra="forbid"):
 import rich_click as click
 
 
-def cli_options(f):
+def cli_options(f) -> None:
     return apply_options(f, options_from_model(StoryGridOpts))
 
 
@@ -133,7 +133,7 @@ def rec_node(node: org.Org) -> List[Header]:
             for tag in node.tags:
                 header.tags.append(tag)
 
-            def count_words(node: org.Org):
+            def count_words(node: org.Org) -> None:
                 count = 0
 
                 if node.getKind() in [osk.Word, osk.RawText]:
@@ -217,7 +217,7 @@ def rec_node(node: org.Org) -> List[Header]:
 
 
 @beartype
-def to_html(node: org.Org | List[org.Org] | str | int):
+def to_html(node: org.Org | List[org.Org] | str | int) -> None:
     if isinstance(node, list):
         html = []
         for item in node:
@@ -279,7 +279,7 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
     headers: List[Header] = []
 
     @beartype
-    def aux(h: Header):
+    def aux(h: Header) -> None:
         headers.append(h)
         for sub in h.nested:
             aux(sub)
@@ -323,7 +323,7 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                 else:
                     offset += 1
 
-        def opt(it, **kwargs):
+        def opt(it, **kwargs) -> None:
             if it:
                 row.add(add_new(tags.td(**kwargs), to_html(it)))
 
@@ -420,11 +420,11 @@ class Cell():
 TYP_SKIP_FIELDS = SKIP_FIELDS + ["title", "words"]
 
 
-def get_typ_content(h: Header):
+def get_typ_content(h: Header) -> None:
     return [f for f in fields(h) if f.name not in TYP_SKIP_FIELDS]
 
 
-def get_typ_cols(t: Header):
+def get_typ_cols(t: Header) -> None:
     subs = [get_typ_cols(s) for s in t.nested]
     content = get_typ_content(t)
     if len(subs) == 1:
@@ -437,7 +437,7 @@ def get_typ_cols(t: Header):
         return len(content)
 
 
-def get_typ_rows(t: Header):
+def get_typ_rows(t: Header) -> None:
     res = sum(get_typ_rows(s) for s in t.nested) + 1
     content = get_typ_content(t)
     # res += 1
@@ -458,7 +458,7 @@ def init_grid(
     grid: List[List[Optional[Cell]]] = [[None] * col_count for _ in range(0, row_count)]
     dfs_row: int = 0
 
-    def debug_grid():
+    def debug_grid() -> None:
 
         def fmt_cell(cell: Optional[Cell]) -> str:
             if cell == None:
@@ -480,7 +480,7 @@ def init_grid(
     rect_inset = 5
     rect_width = 40
 
-    def aux(h: Header, level: int):
+    def aux(h: Header, level: int) -> None:
         nonlocal dfs_row
         this_row = dfs_row
 
@@ -495,7 +495,7 @@ def init_grid(
 
         title_text = "".join([ExporterUltraplain.getStr(it) for it in h.title])
 
-        def set_cell(row: int, col: int, text: str, **kwargs):
+        def set_cell(row: int, col: int, text: str, **kwargs) -> None:
             rect = rect_for_content(text)
             grid[row][col] = Cell(
                 content=text,
@@ -726,7 +726,7 @@ def add_typ_nodes(
             rect_idx = cell.rect_idx
             rect = conv.fixed[rect_idx]
 
-            def get_field_name_rect():
+            def get_field_name_rect() -> None:
                 return ast.litRaw(
                     ast.place(
                         anchor="top + left",
@@ -815,11 +815,11 @@ def add_typ_edges(
 
 
 @beartype
-def get_typst_story_grid(headers: List[Header]):
+def get_typst_story_grid(headers: List[Header]) -> None:
     root = Header([], 0)
     root.nested = headers
 
-    def get_depth(t: Header):
+    def get_depth(t: Header) -> None:
         subs = [get_depth(s) for s in t.nested]
         if 1 < len(subs):
             return max(*subs) + 1

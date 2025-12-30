@@ -739,7 +739,7 @@ class SwitchStmtParams:
 @dataclass
 class ASTBuilder(base.AstbuilderBase):
 
-    def __init__(self, in_b: TextLayout):
+    def __init__(self, in_b: TextLayout) -> None:
         self.b = in_b
 
     def __repr__(self) -> str:

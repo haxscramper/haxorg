@@ -33,7 +33,7 @@ CAT = "conftest"
 trace_collector: TraceCollector = None
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     warnings.filterwarnings("ignore",
                             category=DeprecationWarning,
                             module="pydantic._internal._config")
@@ -48,7 +48,7 @@ def pytest_configure(config):
                             module="dominate.dom_tag")
 
 
-def get_trace_collector():
+def get_trace_collector() -> None:
     global trace_collector
     if not trace_collector:
         trace_collector = TraceCollector()
@@ -56,7 +56,7 @@ def get_trace_collector():
     return trace_collector
 
 
-def check_gui_application_on_display(app_command: str, display: str):
+def check_gui_application_on_display(app_command: str, display: str) -> None:
     env = os.environ.copy()
     env['DISPLAY'] = display
 
@@ -86,7 +86,7 @@ def is_ci() -> bool:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def trace_session():
+def trace_session() -> None:
     get_trace_collector().push_complete_event("session", "test-session")
 
     yield
@@ -103,7 +103,7 @@ def trace_session():
 
 
 @pytest.fixture(scope="module", autouse=True)
-def trace_module(request):
+def trace_module(request) -> None:
     module_name = request.module.__name__
     get_trace_collector().push_complete_event(module_name, "test-file")
     yield
@@ -111,17 +111,17 @@ def trace_module(request):
 
 
 @pytest.fixture(autouse=True)
-def trace_test(request):
+def trace_test(request) -> None:
     test_name = request.node.name
     get_trace_collector().push_complete_event(test_name, "test")
     yield
     get_trace_collector().pop_complete_event()
 
 
-def pytest_collect_file(parent: Module, path: str):
+def pytest_collect_file(parent: Module, path: str) -> None:
     test = Path(path)
 
-    def debug(it, file):
+    def debug(it, file) -> None:
         pprint_to_file(to_debug_json(it), file + ".json")
 
     coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
@@ -170,10 +170,10 @@ def pytest_runtest_makereport(item: Item, call: CallInfo) -> pytest.TestReport:
 
 class FunctionNameExtractor(ast.NodeVisitor):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.function_names = []
 
-    def visit_Call(self, node: ast.Call):
+    def visit_Call(self, node: ast.Call) -> None:
         if isinstance(node.func, ast.Name):
             self.function_names.append(node.func.id)
         self.generic_visit(node)
@@ -204,7 +204,7 @@ def pytest_collection_modifyitems(config: pytest.Config,
 
         aeval = Interpreter()
 
-        def dbg(msg: str):
+        def dbg(msg: str) -> None:
             if debug:
                 print(msg, file=dbg_file)
 
@@ -266,13 +266,13 @@ def pytest_collection_modifyitems(config: pytest.Config,
                 def __init__(self, name: str) -> None:
                     self.name = copy.deepcopy(name)
 
-                def __call__(self, *args, **kwargs):
+                def __call__(self, *args, **kwargs) -> None:
                     dbg(f"  >> {self.name}({args}, {kwargs}) has marker ...")
                     result = has_marker_impl(self.name, *args, **kwargs)
                     dbg(f"  >> {self.name} -> {result}")
                     return result
 
-            def test_first_n(max_count):
+            def test_first_n(max_count) -> None:
                 """
                 Limit the number of filtered tests to N max. All calls after N calls to this function
                 will return `False`, so it is best put as `cond() and cond() and test_first_n()` as

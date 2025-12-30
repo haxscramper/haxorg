@@ -29,7 +29,7 @@ import json
 CONFIG_FILE_NAME = "tu_collector.toml"
 
 
-def model_options(f):
+def model_options(f) -> None:
     return conf_provider.apply_options(f, conf_provider.options_from_model(TuOptions))
 
 
@@ -86,7 +86,7 @@ def run_wrap_for_config(
 
     graph.graph.write_graphml("/tmp/output.graphml")
 
-    def get_out_path(path: Path):
+    def get_out_path(path: Path) -> None:
         return out_map[path]
 
     def get_header_path(path: Path) -> str:
@@ -139,7 +139,7 @@ def run_wrap_for_config(
               help="Path to config file.")
 @model_options
 @click.pass_context
-def run(ctx: click.Context, config: str, **kwargs):
+def run(ctx: click.Context, config: str, **kwargs) -> None:
     assert Path(config).exists()
     config = str(Path(config).resolve())
     config_base = conf_provider.run_config_provider(

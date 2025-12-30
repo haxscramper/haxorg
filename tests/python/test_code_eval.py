@@ -7,7 +7,7 @@ import pytest
 
 CAT = __name__
 
-def test_trivial_code_eval():
+def test_trivial_code_eval() -> None:
     node = org.parseString("""#+begin_src test :results value raw
 content
 #+end_src""", "<test>")
@@ -45,7 +45,7 @@ content
     assert w.text == "bold"
 
 @pytest.mark.skip()
-def test_babel_eval_trivial():
+def test_babel_eval_trivial() -> None:
     node = org.parseString("""#+begin_src plantuml
 @startuml
 Alice -> Bob: Authentication Request

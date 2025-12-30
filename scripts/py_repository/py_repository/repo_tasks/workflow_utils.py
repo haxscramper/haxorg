@@ -309,7 +309,7 @@ def create_dag_from_tasks(task_functions: List[Callable]) -> TaskGraph:
 #             get_create_python_operator(func, operators, dag)
 #             individual_dags.append(dag)
 
-#             def dfs_deps(func: Callable):
+#             def dfs_deps(func: Callable) -> None:
 #                 metadata = get_task_metadata(func)
 #                 for dep in metadata.dependencies:
 #                     current_task = get_create_python_operator(func, operators, dag)

@@ -78,19 +78,19 @@ def print_df_rich(
 
 
 @beartype
-def get_git(dir: Path):
+def get_git(dir: Path) -> None:
     assert dir.exists()
     git = local["git"].with_cwd(dir)
     return git
 
 
 @beartype
-def git_init_repo(dir: Path):
+def git_init_repo(dir: Path) -> None:
     get_git(dir).run(("init",))
 
 
 @beartype
-def git_write_files(dir: Path, files: Dict[str, str]):
+def git_write_files(dir: Path, files: Dict[str, str]) -> None:
     for path, content in files.items():
         path = Path(dir).joinpath(path)
         if not path.parent.exists():
@@ -101,17 +101,17 @@ def git_write_files(dir: Path, files: Dict[str, str]):
 
 
 @beartype
-def git_move_files(dir: Path, source: str, target: str):
+def git_move_files(dir: Path, source: str, target: str) -> None:
     dir.joinpath(source).rename(dir.joinpath(target))
 
 
 @beartype
-def git_remove_files(dir: Path, file: str):
+def git_remove_files(dir: Path, file: str) -> None:
     dir.joinpath(file).unlink()
 
 
 @beartype
-def git_add(dir: Path):
+def git_add(dir: Path) -> None:
     get_git(dir).run(("add", "."))
 
 
@@ -187,7 +187,7 @@ class GitTestRepository:
     fixed_dir: Optional[Path] = None
     fixed_db: Optional[Path] = None
 
-    def cmd(self):
+    def cmd(self) -> None:
         return get_git(self.git_dir())
 
     def git_dir(self) -> Path:
@@ -196,7 +196,7 @@ class GitTestRepository:
     def get_engine(self) -> Engine:
         return create_engine("sqlite:///" + str(self.db))
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         if self.fixed_dir:
             self.dir = self.fixed_dir
             if self.dir.exists():
@@ -251,7 +251,7 @@ def print_connection_tables(
 
 
 @pytest.mark.test_release
-def test_can_run_dir():
+def test_can_run_dir() -> None:
     with GitTestRepository({"a": "fixed_line\ninit_commit_content"},
                            fixed_dir=gettempdir("fixed_git_dir_1"),
                            fixed_db=gettempdir("result.sqlite")) as repo:
@@ -318,7 +318,7 @@ def test_can_run_dir():
 
 
 @pytest.mark.test_release
-def test_file_move():
+def test_file_move() -> None:
     with GitTestRepository({"original_path": "content"}) as repo:
         git_move_files(repo.git_dir(), "original_path", "new_path")
         git_commit(repo.git_dir(), "move1")
@@ -326,7 +326,7 @@ def test_file_move():
 
 
 @pytest.mark.test_release
-def test_file_move_and_edit():
+def test_file_move_and_edit() -> None:
     with GitTestRepository({"original_path": "\n".join(["original"] * 100)}) as repo:
         git_move_files(repo.git_dir(), "original_path", "new_path")
         git_write_files(repo.git_dir(),
@@ -336,7 +336,7 @@ def test_file_move_and_edit():
 
 
 @pytest.mark.test_release
-def test_file_delete():
+def test_file_delete() -> None:
     with GitTestRepository({"base": "content"}) as repo:
         git_remove_files(repo.git_dir(), "base")
         git_commit(repo.git_dir(), "deleted")
@@ -344,7 +344,7 @@ def test_file_delete():
 
 
 @pytest.mark.test_release
-def test_file_delete_and_recreate():
+def test_file_delete_and_recreate() -> None:
     with GitTestRepository({"base": "content"}) as repo:
         git_remove_files(repo.git_dir(), "base")
         git_commit(repo.git_dir(), "deleted-base")
@@ -356,7 +356,7 @@ def test_file_delete_and_recreate():
 
 
 @pytest.mark.test_release
-def test_fast_forward_merge():
+def test_fast_forward_merge() -> None:
     with GitTestRepository({"base": "content"}) as repo:
         git_write_files(repo.git_dir(), {"file-1": "content-1"})
         git_commit(repo.git_dir(), "on-master")
@@ -374,7 +374,7 @@ HAXORG_OUT_DB = gettempdir("test_haxorg_forensics.sqlite")
 
 
 @pytest.mark.skip()
-def test_haxorg_forensics():
+def test_haxorg_forensics() -> None:
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {
             "out": {
@@ -386,7 +386,7 @@ def test_haxorg_forensics():
 
 
 @pytest.mark.skip()
-def test_haxorg_repo_burndown():
+def test_haxorg_repo_burndown() -> None:
     engine = create_engine("sqlite:///" + HAXORG_OUT_DB)
     burndown.run_for(engine)
 
@@ -404,7 +404,7 @@ file_names = st.text(
 
 
 @st.composite
-def line_content(draw):
+def line_content(draw) -> None:
     is_empty = draw(st.booleans())
     if is_empty:
         return ""
@@ -452,10 +452,10 @@ class GitFileEdit:
 
 class GitFileEditStrategy:
 
-    def __init__(self, lines: List[str]):
+    def __init__(self, lines: List[str]) -> None:
         self.lines = ["" for _ in lines]
 
-    def get_ops(self, draw):
+    def get_ops(self, draw) -> None:
         if not self.lines:
             operation = GitFileEdit(kind=GitFileEditKind.INSERT_LINE,
                                     line_index=0,
@@ -501,7 +501,7 @@ class GitOperation:
 
 
 @beartype
-def edit_file_content_1(edit: GitFileEdit, content: List[str]):
+def edit_file_content_1(edit: GitFileEdit, content: List[str]) -> None:
     match edit:
         case GitFileEdit(kind=GitFileEditKind.REMOVE_LINE, line_index=index):
             content.pop(index)
@@ -524,7 +524,7 @@ def edit_file_content_1(edit: GitFileEdit, content: List[str]):
 
 
 @beartype
-def edit_file_content(modifications: List[GitFileEdit], content: List[str]):
+def edit_file_content(modifications: List[GitFileEdit], content: List[str]) -> None:
     for edit in modifications:
         edit_file_content_1(edit, content)
 
@@ -537,7 +537,7 @@ class GitOpStrategy:
     branch_stack: List[str] = field(default_factory=list)
     used_branches: Set[str] = field(default_factory=set)
 
-    def file_ops(self, draw):
+    def file_ops(self, draw) -> None:
         if 10 < self.uncommited_ops_count:
             self.uncommited_ops_count = 0
             return GitOperation(operation=GitOperationKind.REPO_COMMIT)
@@ -606,7 +606,7 @@ class GitOpStrategy:
                 state = GitFileEditStrategy(self.files[name])
 
                 @st.composite
-                def get_operations(draw: st.DrawFn):
+                def get_operations(draw: st.DrawFn) -> None:
                     return state.get_ops(draw)
 
                 modifications = draw(st.lists(get_operations(), min_size=5))
@@ -621,17 +621,17 @@ class GitOpStrategy:
 
 
 @st.composite
-def multiple_files_strategy(draw):
+def multiple_files_strategy(draw) -> None:
     state = GitOpStrategy()
 
     @st.composite
-    def sub_strategy(draw: st.DrawFn):
+    def sub_strategy(draw: st.DrawFn) -> None:
         return state.file_ops(draw)
 
     return draw(st.lists(sub_strategy(), min_size=10, max_size=90))
 
 
-def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation]):
+def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation]) -> None:
     BRANCH_CANARY_FILE = "branch-canary"
     for idx, action in enumerate(operations):
         match action:
@@ -705,7 +705,7 @@ def run_repo_operations_test(
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_1():
+def test_repo_operations_example_1() -> None:
     # yapf:disable
     run_repo_operations_test([
         GitOperation(operation=GitOperationKind.CREATE_FILE, filename='00000', file_content=['000000000000000']),
@@ -723,7 +723,7 @@ def test_repo_operations_example_1():
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_2():
+def test_repo_operations_example_2() -> None:
     # yapf:disable
     run_repo_operations_test(
         [
@@ -749,7 +749,7 @@ def test_repo_operations_example_2():
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_3():
+def test_repo_operations_example_3() -> None:
     run_repo_operations_test([
         GitOperation(GitOperationKind.CREATE_FILE,
                      filename="manual_wrap.hpp",
@@ -773,7 +773,7 @@ def test_repo_operations_example_3():
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_4():
+def test_repo_operations_example_4() -> None:
     file_1 = "manual_impl.cpp"
     file_2 = "manual_wrap.hpp"
     content_1 = [
@@ -823,5 +823,5 @@ def test_repo_operations_example_4():
     verbosity=Verbosity.normal,
     # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
     phases=[Phase.explicit, Phase.reuse, Phase.generate])
-def test_strategic_repo_edits(operations):
+def test_strategic_repo_edits(operations) -> None:
     run_repo_operations_test(operations)

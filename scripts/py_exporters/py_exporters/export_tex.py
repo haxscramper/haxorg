@@ -25,7 +25,7 @@ class TexCommand(Enum):
 class ExporterLatex(ExporterBase):
     t: TextLayout
 
-    def __init__(self, CRTP_derived: Any = None):
+    def __init__(self, CRTP_derived: Any = None) -> None:
         super().__init__(CRTP_derived or self)
         self.t = TextLayout()
 

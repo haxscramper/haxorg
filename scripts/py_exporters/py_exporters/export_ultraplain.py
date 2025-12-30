@@ -8,7 +8,7 @@ from beartype import beartype
 @beartype
 class ExporterUltraplain(ExporterBase):
 
-    def __init__(self): # type: ignore
+    def __init__(self) -> None: # type: ignore
         super().__init__(self)
         self.result = ""
 

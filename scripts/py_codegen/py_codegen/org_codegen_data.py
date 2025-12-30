@@ -277,7 +277,7 @@ def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
 
 
 @beartype
-def d_simple_enum(name: QualType, doc: AnyDoc, *args):
+def d_simple_enum(name: QualType, doc: AnyDoc, *args) -> None:
     return GenTuEnum(
         name,
         org_doc(doc),

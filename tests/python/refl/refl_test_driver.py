@@ -278,13 +278,13 @@ def has_nim_installed() -> bool:
         return False
 
 @beartype
-def compile_nim_path(file: Path, binary: Path):
+def compile_nim_path(file: Path, binary: Path) -> None:
     cmd = local["nim"]
     cmd.run(["cpp", f"-o={binary}", str(file)])
 
 
 @beartype
-def compile_nim_code(code_dir: Path, files: Dict[str, str]):
+def compile_nim_code(code_dir: Path, files: Dict[str, str]) -> None:
     for file, content in files.items():
         code_dir.joinpath(file).write_text(content)
 

@@ -71,13 +71,13 @@ class GraphLayout():
         self.ir.nodeConstraints.append(
             GraphNodeConstraint.InitAlignStatic(self.newAlign(specs, dimension)))
 
-    def alignXDimN(self, specs: List[GraphNodeConstraintAlignSpec]):
+    def alignXDimN(self, specs: List[GraphNodeConstraintAlignSpec]) -> None:
         self.alignDimN(specs, GraphDimension.XDIM)
 
-    def alignYDimN(self, specs: List[GraphNodeConstraintAlignSpec]):
+    def alignYDimN(self, specs: List[GraphNodeConstraintAlignSpec]) -> None:
         self.alignDimN(specs, GraphDimension.YDIM)
 
-    def alignDim2(self, source: int, target: int, dimension: GraphDimension):
+    def alignDim2(self, source: int, target: int, dimension: GraphDimension) -> None:
         self.ir.nodeConstraints.append(
             GraphNodeConstraint.InitAlignStatic(
                 GraphNodeConstraintAlign(
@@ -88,10 +88,10 @@ class GraphLayout():
                     dimension=dimension,
                 )))
 
-    def alignXDim2(self, source: int, target: int):
+    def alignXDim2(self, source: int, target: int) -> None:
         self.alignDim2(source, target, dimension=GraphDimension.XDIM)
 
-    def alignYDim2(self, source: int, target: int):
+    def alignYDim2(self, source: int, target: int) -> None:
         self.alignDim2(source, target, dimension=GraphDimension.YDIM)
 
     def edgePorts(self, source: int, target: int, sourcePort: GraphEdgeConstraintPort,
@@ -205,7 +205,7 @@ class GraphLayout():
             isExactSeparation=isExactSeparation,
         )
 
-    def edge(self, source: int, target: int):
+    def edge(self, source: int, target: int) -> None:
         self.ir.edges.append(GraphEdge(source=source, target=target))
 
     def rect(self, width: int, height: int) -> int:

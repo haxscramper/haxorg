@@ -74,7 +74,7 @@ class ExporterBase:
         yield
         self.context.pop()
 
-    def __init__(self, derived: Any):
+    def __init__(self, derived: Any) -> None:
         self.exp = org.ExporterPython()
         self.context = []
         self.admonitionNames = [

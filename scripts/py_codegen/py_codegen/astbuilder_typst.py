@@ -58,7 +58,7 @@ AnySingleValue: TypeAlias = BlockId | str | RawBlock | RawStr | RawLiteral
 @beartype
 class ASTBuilder(base.AstbuilderBase):
 
-    def __init__(self, in_b: Optional[TextLayout] = None):
+    def __init__(self, in_b: Optional[TextLayout] = None) -> None:
         b = in_b if in_b else TextLayout()
         super().__init__(b)
 
