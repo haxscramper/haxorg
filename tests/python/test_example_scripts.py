@@ -1,6 +1,6 @@
 import pytest
 import os
-from beartype.typing import TYPE_CHECKING
+from beartype.typing import TYPE_CHECKING, Any, List
 
 from py_cli.scratch_scripts import activity_analysis
 from py_cli.scratch_scripts import subtree_clocking
@@ -233,7 +233,7 @@ def test_base_activity_analysis() -> None:
 
         session = sessionmaker(bind=engine)()
 
-        def get_t(T: Any) -> None:
+        def get_t(T: Any) -> List[Any]:
             return [it for it in session.query(T).all()]
 
         blocks = get_t(export_sqlite.Block)
@@ -241,14 +241,11 @@ def test_base_activity_analysis() -> None:
                 "Nested logging", "Message 3", "Some more nested logging",
                 "More logging in the text", "Test list item with message"
         ]:
-            assert (
-                first_true(
-                    iterable=blocks,
-                    pred=lambda it: it.plaintext == expected_text,
-                    default=None,
-                ),
-                "{} {}".format(expected_text, dbg),
-            )
+            assert first_true(
+                iterable=blocks,
+                pred=lambda it: it.plaintext == expected_text,
+                default=None,
+            ), "{} {}".format(expected_text, dbg)
 
         def get_subtree(title: str) -> export_sqlite.Subtree:
             log(CAT).info("get first subtree")
@@ -266,11 +263,8 @@ def test_base_activity_analysis() -> None:
         subtree1 = get_subtree("TODO Report aggregated cxx code coverage")
         assert subtree1, dbg
 
-        assert (
-            first_true(
-                iterable=get_t(export_sqlite.NoteModified),
-                pred=lambda it: it.plaintext == "Back to todo",
-                default=None,
-            ),
-            dbg,
-        )
+        assert first_true(
+            iterable=get_t(export_sqlite.NoteModified),
+            pred=lambda it: it.plaintext == "Back to todo",
+            default=None,
+        ), dbg

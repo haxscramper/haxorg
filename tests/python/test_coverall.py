@@ -1,5 +1,6 @@
 import py_haxorg.pyhaxorg_wrap as org
 from dataclasses import dataclass, replace, field
+import dataclasses
 from beartype import beartype
 from beartype.typing import List, Optional, Union, Iterable, Callable, Any, Tuple, Mapping, Set, Generator
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
@@ -130,12 +131,12 @@ class FieldCheckResult():
     value_check: Optional[ValueCheckResult]
     field_predicate_id: str
     msg: Optional[Tree] = None
-    sub_failed: List["FieldCheckResult"] = field(default_factory=list)
+    sub_failed: List["FieldCheckResult"] = dataclasses.field(default_factory=list)
 
     def is_matching(self) -> bool:
         return bool(self.value_check and self.value_check.is_ok)
 
-    def format(self, format_if_ok: bool) -> Tree:
+    def format(self, format_if_ok: bool) -> Optional[Tree]:
         if self.is_matching():
             if format_if_ok:
                 return Tree(f"Field '[green]{self.field}[/green]' OK")
@@ -219,6 +220,8 @@ class FieldAlternatives():
         if final_res:
             return final_res
 
+        return None
+
 
 @beartype
 @dataclass
@@ -226,7 +229,7 @@ class NodeCheckResult():
     is_ok: bool
     on_fail: Optional[Tree] = None
 
-    def format(self, format_if_ok) -> Optional[Tree]:
+    def format(self, format_if_ok: bool) -> Optional[Tree]:
         if self.is_ok:
             if format_if_ok:
                 return None
@@ -247,7 +250,7 @@ class ClassCheckResult():
     unknown_fields: List[str] = field(default_factory=list)
     node_check_result: Optional[NodeCheckResult] = None
 
-    def is_matching(self) -> None:
+    def is_matching(self) -> bool:
         return all(
             f.is_matching() for f in self.fields) and (self.node_check_result is None or
                                                        self.node_check_result.is_ok)
@@ -279,8 +282,8 @@ class ClassCheckResult():
 
             if self.unknown_fields:
                 sub_fields = Tree("Unknown fields")
-                for field in self.unknown_fields:
-                    sub_fields.add(Tree(f"[red]{field}[/red]"))
+                for u_field in self.unknown_fields:
+                    sub_fields.add(Tree(f"[red]{u_field}[/red]"))
 
                 res.add(sub_fields)
 
@@ -346,6 +349,8 @@ class ClassAlternatives():
             if it.class_predicate_id == name:
                 return it
 
+        return None
+
     def visit_type(self, value: org.Org) -> List[ClassCheckResult]:
         res_list: List[ClassCheckResult] = []
         visited: Set[str] = set()
@@ -403,7 +408,7 @@ class OrgSpecification:
 @beartype
 def get_regex_field_check(field: str, regex: str, predicate_id: str) -> FieldPredicate:
 
-    def regex_check_impl(regex, value) -> None:
+    def regex_check_impl(regex: re.Pattern, value: str) -> ValueCheckResult:
         if re.match(regex, value):
             return ValueCheckResult(is_ok=True)
 
@@ -414,8 +419,8 @@ def get_regex_field_check(field: str, regex: str, predicate_id: str) -> FieldPre
 
     return FieldPredicate(
         name=field,
-        check=ValuePredicate(
-            func=functools.partial(regex_check_impl, copy.deepcopy(regex))),
+        check=ValuePredicate(func=functools.partial(regex_check_impl, copy.deepcopy(
+            regex))),  # type: ignore
         field_predicate_id=predicate_id,
     )
 
@@ -435,7 +440,7 @@ def altCls(*args: ClassPrediate) -> ClassAlternatives:
 @beartype
 def valueFnBoolOrText(func: Callable[[Any], Union[Tree, bool]]) -> ValuePredicateFunc:
 
-    def impl(func, value) -> None:
+    def impl(func: Callable, value: bool | Tree) -> ValueCheckResult:
         res = func(value)
         if isinstance(res, bool) and res == True:
             return ValueCheckResult(is_ok=True)
@@ -455,7 +460,7 @@ def boolableField(field_name: str, expected: bool) -> Tuple[str, ValuePredicateF
     (empty string vs non-empty string, option with value vs without one etc)
     """
 
-    def impl(val: bool, it) -> None:
+    def impl(val: bool, it: Any) -> ValueCheckResult:
         if bool(it) == val:
             return ValueCheckResult(is_ok=True)
 
@@ -489,7 +494,7 @@ def nodeFnBoolOrText(
     match, and `Tree` type for a failure description. 
     """
 
-    def impl(func, value) -> None:
+    def impl(func: Callable, value: bool | Tree) -> NodeCheckResult:
         res = func(value)
         if isinstance(res, bool) and res == True:
             return NodeCheckResult(is_ok=True)
@@ -519,13 +524,13 @@ def get_regex_field_alternatives(
 
 
 @beartype
-def make_check_node_has_subnode_of_kind(kind: org.OrgSemKind) -> None:
+def make_check_node_has_subnode_of_kind(kind: org.OrgSemKind) -> Callable:
     """
     Get callable node predicate function that would check that a provided
     node has a direct subnode of kind `kind`
     """
 
-    def impl(kind: org.OrgSemKind, node: org.Org) -> None:
+    def impl(kind: org.OrgSemKind, node: org.Org) -> NodeCheckResult:
         if any(sub.getKind() == kind for sub in node):
             return NodeCheckResult(is_ok=True)
 
@@ -578,7 +583,8 @@ def altFieldsCheckN(
 
 
 @beartype
-def clsField1Check(predicate_name: str, field_name: str, mapping) -> ClassPrediate:
+def clsField1Check(predicate_name: str, field_name: str,
+                   mapping: dict | list | Callable) -> ClassPrediate:
     if isinstance(mapping, dict):
         return ClassPrediate(
             class_predicate_id=predicate_name,
@@ -680,7 +686,7 @@ def get_subtree_logbook_head_spec() -> List[ClassPrediate]:
 def get_block_spec(kind: org.OrgSemKind) -> List[ClassPrediate]:
     Block_alternatives: List[ClassPrediate] = []
 
-    def impl_expect(kind: org.OrgSemKind, attached: List[org.Org]) -> None:
+    def impl_expect(kind: org.OrgSemKind, attached: List[org.Org]) -> ValueCheckResult:
         if any(at.getKind() == kind for at in attached):
             return ValueCheckResult(is_ok=True)
 
@@ -695,7 +701,7 @@ def get_block_spec(kind: org.OrgSemKind) -> List[ClassPrediate]:
                 [(f"{attached_kind}", functools.partial(impl_expect, attached_kind))],
             ))
 
-    def impl_not_expect(attached: List[org.Org]) -> None:
+    def impl_not_expect(attached: List[org.Org]) -> ValueCheckResult:
         if len(attached) == 0:
             return ValueCheckResult(is_ok=True)
 
@@ -715,7 +721,7 @@ def get_block_spec(kind: org.OrgSemKind) -> List[ClassPrediate]:
 @beartype
 def get_subtree_spec() -> ClassAlternatives:
 
-    def check_closed_value(it: org.UserTime) -> None:
+    def check_closed_value(it: org.UserTime) -> bool | Tree:
         if isinstance(it, org.Time) and it.getStaticTime().getBreakdown().year < 1970:
             return True
 
@@ -747,7 +753,7 @@ def get_subtree_spec() -> ClassAlternatives:
 def get_time_spec() -> ClassAlternatives:
     Time_alternatives: List[ClassPrediate] = []
 
-    def breakdown_cutoff(field_list: List[str], node: org.Time) -> None:
+    def breakdown_cutoff(field_list: List[str], node: org.Time) -> NodeCheckResult:
         for field_name, value in node.getStaticTime().getBreakdown().__dict__.items():
             if field_name in field_list:
                 if not isinstance(value, int) or value == 0:
@@ -799,7 +805,8 @@ def get_spec() -> OrgSpecification:
     markup_node_kind = [osk.Bold, osk.Italic, osk.Underline, osk.Strike]
     for kind in markup_node_kind:
 
-        def has_different_nested_markup_kind(kind: org.OrgSemKind, node: org.Org) -> None:
+        def has_different_nested_markup_kind(kind: org.OrgSemKind,
+                                             node: org.Org) -> NodeCheckResult:
             if any(sub.getKind() in markup_node_kind for sub in node):
                 return NodeCheckResult(is_ok=True)
 
@@ -860,7 +867,7 @@ def get_spec() -> OrgSpecification:
         result: List[ClassPrediate] = []
         for kind in subkind:
 
-            def impl(kind, target) -> None:
+            def impl(kind, target) -> NodeCheckResult:
                 if is_expected_kind(kind, target):
                     return NodeCheckResult(is_ok=True)
 
@@ -879,7 +886,7 @@ def get_spec() -> OrgSpecification:
         result: List[ClassPrediate] = []
         for kind in subkind:
 
-            def impl(kind, target) -> None:
+            def impl(kind, target) -> ValueCheckResult:
                 if is_expected_kind(kind, target):
                     return ValueCheckResult(is_ok=True)
 
@@ -989,7 +996,8 @@ def get_type_definition_lines(cls_type: type) -> TypeDefinitionRanges:
 
 
 @contextmanager
-def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
+def verify_full_coverage(cov: Optional[Coverage], cls: Any,
+                         report_path: str) -> Generator:
     """
     Verify that all lines in the class methods are covered.
     Raises AssertionError with coverage report if not fully covered.
@@ -1231,8 +1239,8 @@ def test_total_representation() -> None:
 
     for kind in sorted(final_mapping, key=lambda it: int(it)):
         kind_tree = Tree(f"{kind}")
-        for item in final_mapping[kind]:
-            kind_tree.add(item)
+        for final_item in final_mapping[kind]:
+            kind_tree.add(final_item)
 
         final.add(kind_tree)
 
@@ -1243,8 +1251,8 @@ def test_total_representation() -> None:
         missing_trigger_repr = Tree(
             "Some spec checks are not triggered by the test document")
 
-        for item in missing_trigger:
-            missing_trigger_repr.add(item.format(format_if_ok=True))
+        for missing_item in missing_trigger:
+            missing_trigger_repr.add(missing_item.format(format_if_ok=True))
 
         pytest.fail(render_rich(
             missing_trigger_repr,
@@ -1266,7 +1274,7 @@ def get_test_node_from_file() -> org.Org:
     return org.parseFileWithIncludes(str(file), opts)
 
 
-def test_run_typst_exporter(cov) -> None:
+def test_run_typst_exporter(cov: Coverage) -> None:
     node = get_test_node_from_file()
     from py_exporters.export_typst import ExporterTypst, refresh_typst_export_package
 
@@ -1293,7 +1301,8 @@ def test_run_typst_exporter(cov) -> None:
 
         with pytest.raises(ValueError) as ex:
             ExporterTypst().evalTop(
-                org.parseString("""
+                org.parseString(
+                    """
             - header :: body
             - mixed
             """, "<test>"))
@@ -1302,7 +1311,8 @@ def test_run_typst_exporter(cov) -> None:
 
         with pytest.raises(ValueError) as ex:
             ExporterTypst().evalTop(
-                org.parseString("""
+                org.parseString(
+                    """
 #+begin_export typst :edit-config
 
 #+end_export
@@ -1311,7 +1321,7 @@ def test_run_typst_exporter(cov) -> None:
             assert "edit-config parameter" in str(ex.value)
 
 
-def test_run_html_exporter(cov) -> None:
+def test_run_html_exporter(cov: Coverage) -> None:
     node = get_test_node_from_file()
     from py_exporters.export_html import ExporterHtml
 
@@ -1328,7 +1338,7 @@ def test_run_html_exporter(cov) -> None:
         with_custom_break_tag.eval(node)
 
 
-def test_run_pandoc_exporter(cov) -> None:
+def test_run_pandoc_exporter(cov: Coverage) -> None:
     node = get_test_node_from_text()
     from py_exporters.export_pandoc import ExporterPandoc
 
@@ -1339,7 +1349,7 @@ def test_run_pandoc_exporter(cov) -> None:
         ExporterPandoc().evalNewline(org.Newline())
 
 
-def test_run_tex_exporter(cov=None) -> None:
+def test_run_tex_exporter(cov: Optional[Coverage] = None) -> None:
     from py_exporters.export_tex import ExporterLatex
     with verify_full_coverage(cov, ExporterLatex, gettempdir()):
         ExporterLatex().eval(get_test_node_from_text())

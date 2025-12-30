@@ -7,7 +7,8 @@ from pprint import pprint
 import pytest
 import json
 from tempfile import NamedTemporaryFile, TemporaryDirectory, mktemp
-from plumbum import local
+import plumbum
+import plumbum.commands.base
 from py_scriptutils.files import get_haxorg_repo_root_path
 from beartype import beartype
 from beartype.typing import Dict, Optional, Type, List
@@ -42,7 +43,7 @@ def print_df_rich(
     df: pd.DataFrame,
     title: str,
     file: Optional[io.TextIOWrapper] = None,
-):
+) -> None:
     console = Console(file=file, force_terminal=False,
                       color_system=None) if file else Console()
 
@@ -78,9 +79,9 @@ def print_df_rich(
 
 
 @beartype
-def get_git(dir: Path) -> None:
+def get_git(dir: Path) -> plumbum.commands.base.BoundEnvCommand:
     assert dir.exists()
-    git = local["git"].with_cwd(dir)
+    git = plumbum.local["git"].with_cwd(dir)
     return git
 
 
@@ -92,11 +93,11 @@ def git_init_repo(dir: Path) -> None:
 @beartype
 def git_write_files(dir: Path, files: Dict[str, str]) -> None:
     for path, content in files.items():
-        path = Path(dir).joinpath(path)
-        if not path.parent.exists():
-            path.parent.mkdir(parents=True)
+        path_path = Path(dir).joinpath(path)
+        if not path_path.parent.exists():
+            path_path.parent.mkdir(parents=True)
 
-        with open(path, "w") as file:
+        with open(path_path, "w") as file:
             file.write(content)
 
 
@@ -121,9 +122,9 @@ def git_commit(
     message: str,
     date: datetime = datetime.now(),
     author: str = "haxorg-test-author",
-    email="haxorg-test-email@email.com",
-    allow_fail=False,
-):
+    email: str = "haxorg-test-email@email.com",
+    allow_fail: bool = False,
+) -> None:
     git_add(dir)
     git = get_git(dir)
     git = git.with_env(GIT_AUTHOR_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
@@ -163,7 +164,7 @@ def run_forensics(
 
     if with_debugger:
         run_parameters = [tool_path, *get_lldb_params(), "--", json.dumps(params)]
-        code, stdout, stderr = local["lldb"].with_env(LD_PRELOAD="").run(
+        code, stdout, stderr = plumbum.local["lldb"].with_env(LD_PRELOAD="").run(
             tuple(run_parameters))
         print(run_parameters)
         if code != 0:
@@ -174,7 +175,7 @@ def run_forensics(
         return code, stdout, stderr
 
     else:
-        return local[tool_path].with_env(LD_PRELOAD="").run(
+        return plumbum.local[tool_path].with_env(LD_PRELOAD="").run(
             (json.dumps(params, default=json_path_serializer)))
 
 
@@ -182,22 +183,22 @@ def run_forensics(
 @dataclass
 class GitTestRepository:
     start_files: Dict[str, str]
-    db: Optional[Path] = ""
+    db: Optional[Path] = None
     dir: Optional[TemporaryDirectory | Path] = None
     init_message: str = "init"
     fixed_dir: Optional[Path] = None
     fixed_db: Optional[Path] = None
 
-    def cmd(self) -> None:
+    def cmd(self) -> plumbum.commands.base.BoundEnvCommand:
         return get_git(self.git_dir())
 
     def git_dir(self) -> Path:
-        return self.dir if isinstance(self.dir, Path) else Path(self.dir.name)
+        return self.dir if isinstance(self.dir, Path) else Path(self.dir.name) # type: ignore
 
     def get_engine(self) -> Engine:
         return create_engine("sqlite:///" + str(self.db))
 
-    def __enter__(self) -> None:
+    def __enter__(self):
         if self.fixed_dir:
             self.dir = self.fixed_dir
             if self.dir.exists():
@@ -240,7 +241,7 @@ def print_connection_tables(
         engine: Engine,
         exclude: List[str] = list(),
         file: Optional[io.TextIOWrapper] = None,
-):
+) -> None:
     tables = pd.read_sql_query(
         "SELECT name FROM sqlite_master WHERE type='table' OR type='view';", engine)
 
@@ -453,10 +454,10 @@ class GitFileEdit:
 
 class GitFileEditStrategy:
 
-    def __init__(self, lines: List[str]) -> None:
+    def __init__(self, lines: List[str]):
         self.lines = ["" for _ in lines]
 
-    def get_ops(self, draw) -> None:
+    def get_ops(self, draw):
         if not self.lines:
             operation = GitFileEdit(kind=GitFileEditKind.INSERT_LINE,
                                     line_index=0,
@@ -502,7 +503,7 @@ class GitOperation:
 
 
 @beartype
-def edit_file_content_1(edit: GitFileEdit, content: List[str]) -> None:
+def edit_file_content_1(edit: GitFileEdit, content: List[str]):
     match edit:
         case GitFileEdit(kind=GitFileEditKind.REMOVE_LINE, line_index=index):
             content.pop(index)
@@ -525,7 +526,7 @@ def edit_file_content_1(edit: GitFileEdit, content: List[str]) -> None:
 
 
 @beartype
-def edit_file_content(modifications: List[GitFileEdit], content: List[str]) -> None:
+def edit_file_content(modifications: List[GitFileEdit], content: List[str]):
     for edit in modifications:
         edit_file_content_1(edit, content)
 
@@ -538,7 +539,7 @@ class GitOpStrategy:
     branch_stack: List[str] = field(default_factory=list)
     used_branches: Set[str] = field(default_factory=set)
 
-    def file_ops(self, draw) -> GitOperation:
+    def file_ops(self, draw):
         if 10 < self.uncommited_ops_count:
             self.uncommited_ops_count = 0
             return GitOperation(operation=GitOperationKind.REPO_COMMIT)
@@ -607,7 +608,7 @@ class GitOpStrategy:
                 state = GitFileEditStrategy(self.files[name])
 
                 @st.composite
-                def get_operations(draw: st.DrawFn) -> None:
+                def get_operations(draw: st.DrawFn):
                     return state.get_ops(draw)
 
                 modifications = draw(st.lists(get_operations(), min_size=5))
@@ -622,17 +623,17 @@ class GitOpStrategy:
 
 
 @st.composite
-def multiple_files_strategy(draw) -> None:
+def multiple_files_strategy(draw):
     state = GitOpStrategy()
 
     @st.composite
-    def sub_strategy(draw: st.DrawFn) -> None:
+    def sub_strategy(draw: st.DrawFn):
         return state.file_ops(draw)
 
     return draw(st.lists(sub_strategy(), min_size=10, max_size=90))
 
 
-def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation]) -> None:
+def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation]):
     BRANCH_CANARY_FILE = "branch-canary"
     for idx, action in enumerate(operations):
         match action:
@@ -690,7 +691,7 @@ def run_repo_operations_test(
         with_debugger: bool = False,
         fixed_dir: Optional[Path] = None,
         params: Dict[str, Any] = dict(),
-) -> None:
+):
     with GitTestRepository({"init": "init"}, fixed_dir=fixed_dir) as repo:
         run_repo_operations(repo, operations)
         git_commit(repo.git_dir(), "final commit", allow_fail=True)
@@ -706,7 +707,7 @@ def run_repo_operations_test(
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_1() -> None:
+def test_repo_operations_example_1():
     # yapf:disable
     run_repo_operations_test([
         GitOperation(operation=GitOperationKind.CREATE_FILE, filename='00000', file_content=['000000000000000']),
@@ -724,7 +725,7 @@ def test_repo_operations_example_1() -> None:
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_2() -> None:
+def test_repo_operations_example_2():
     # yapf:disable
     run_repo_operations_test(
         [
@@ -750,7 +751,7 @@ def test_repo_operations_example_2() -> None:
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_3() -> None:
+def test_repo_operations_example_3():
     run_repo_operations_test([
         GitOperation(GitOperationKind.CREATE_FILE,
                      filename="manual_wrap.hpp",
@@ -774,7 +775,7 @@ def test_repo_operations_example_3() -> None:
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_4() -> None:
+def test_repo_operations_example_4():
     file_1 = "manual_impl.cpp"
     file_2 = "manual_wrap.hpp"
     content_1 = [
@@ -824,5 +825,5 @@ def test_repo_operations_example_4() -> None:
     verbosity=Verbosity.normal,
     # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
     phases=[Phase.explicit, Phase.reuse, Phase.generate])
-def test_strategic_repo_edits(operations) -> None:
+def test_strategic_repo_edits(operations):
     run_repo_operations_test(operations)
