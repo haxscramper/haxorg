@@ -644,7 +644,7 @@ def extract_text(
                 return line.Text
 
     if start_line == end_line:
-        return line_at(start_line - 1)[start_column - 1:end_column - 1] # type: ignore
+        return line_at(start_line - 1)[start_column - 1:end_column - 1]  # type: ignore
 
     else:
         first_line = line_at(start_line - 1)
@@ -662,13 +662,13 @@ def extract_text(
         return "\n".join(extracted_lines)
 
 
-def pivot_strings(strings: List[str]) -> List[List[str]]:
+def pivot_strings(strings: List[str]) -> List[str]:
     max_len = max(len(s) for s in strings)
     padded_strings = [s.ljust(max_len) for s in strings]
     pivoted = [[padded_strings[row][col]
                 for row in range(len(padded_strings))]
                for col in range(max_len)]
-    return pivoted
+    return ["".join(it) for it in pivoted]
 
 
 @beartype
@@ -768,7 +768,7 @@ def format_sequence_segments(
 
             out_str.append("".join(out_line))
 
-    return "\n".join(pivot_strings(out_str)) # type: ignore
+    return "\n".join(pivot_strings(out_str))  # type: ignore
 
 
 @beartype

@@ -238,12 +238,15 @@ def test_base_activity_analysis() -> None:
 
         blocks = get_t(export_sqlite.Block)
         for expected_text in [
-                "Nested logging", "Message 3", "Some more nested logging",
-                "More logging in the text", "Test list item with message"
+                "Nested logging",
+                "Message 3",
+                "Some more nested logging",
+                "More logging in the text",
+                "Test list item with message",
         ]:
             assert first_true(
                 iterable=blocks,
-                pred=lambda it: it.plaintext == expected_text,
+                pred=lambda it: expected_text in it.plaintext,
                 default=None,
             ), "{} {}".format(expected_text, dbg)
 

@@ -217,9 +217,9 @@ def rec_node(node: org.Org) -> List[Header]:
 
 
 @beartype
-def to_html(node: org.Org | List[org.Org] | str | int) -> None:
+def to_html(node: org.Org | List[org.Org] | str | int) -> Any:
     if isinstance(node, list):
-        html = []
+        html: List[tags.html_tag] = []
         for item in node:
             add_html(html, to_html(item))
 
@@ -229,8 +229,8 @@ def to_html(node: org.Org | List[org.Org] | str | int) -> None:
         return text(str(node))
 
     else:
-        html = ExporterHtml()
-        return html.exp.evalTop(node)
+        html_exp = ExporterHtml()
+        return html_exp.exp.evalTop(node)
 
 
 @beartype
@@ -248,8 +248,8 @@ def format_time_difference(delta: timedelta) -> List[str]:
     diff_seconds = int(delta.total_seconds())
 
     # Calculate years, months, days, hours, minutes, and seconds
-    years, diff_seconds = divmod(diff_seconds, seconds_per_year)
-    months, diff_seconds = divmod(diff_seconds, seconds_per_month)
+    years, diff_seconds = divmod(diff_seconds, int(seconds_per_year))
+    months, diff_seconds = divmod(diff_seconds, int(seconds_per_month))
     days, diff_seconds = divmod(diff_seconds, seconds_per_day)
     hours, diff_seconds = divmod(diff_seconds, seconds_per_hour)
     minutes, seconds = divmod(diff_seconds, seconds_per_minute)
@@ -323,7 +323,9 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                 else:
                     offset += 1
 
-        def opt(it, **kwargs) -> None:
+            return None
+
+        def opt(it: Any, **kwargs: Any) -> None:
             if it:
                 row.add(add_new(tags.td(**kwargs), to_html(it)))
 
@@ -413,18 +415,20 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
 class Cell():
     content: str
     rect_idx: int = -1
-    debug: Dict[str, Any] = field(default_factory=list)
+    debug: Dict[str, Any] = field(default_factory=dict)
     field: Optional[dataclasses.Field] = None
 
 
 TYP_SKIP_FIELDS = SKIP_FIELDS + ["title", "words"]
 
 
-def get_typ_content(h: Header) -> None:
+@beartype
+def get_typ_content(h: Header) -> List[dataclasses.Field[Any]]:
     return [f for f in fields(h) if f.name not in TYP_SKIP_FIELDS]
 
 
-def get_typ_cols(t: Header) -> None:
+@beartype
+def get_typ_cols(t: Header) -> int:
     subs = [get_typ_cols(s) for s in t.nested]
     content = get_typ_content(t)
     if len(subs) == 1:
@@ -437,7 +441,8 @@ def get_typ_cols(t: Header) -> None:
         return len(content)
 
 
-def get_typ_rows(t: Header) -> None:
+@beartype
+def get_typ_rows(t: Header) -> int:
     res = sum(get_typ_rows(s) for s in t.nested) + 1
     content = get_typ_content(t)
     # res += 1
@@ -451,7 +456,7 @@ def init_grid(
     max_depth: int,
     root: Header,
     ir: cola.GraphLayout,
-    mult: Number,
+    mult: float,
 ) -> List[List[Optional[Cell]]]:
 
     #[row][col]
@@ -489,13 +494,13 @@ def init_grid(
 
         def rect_for_content(fmt_field: str) -> int:
             return ir.rect(
-                width=rect_width * mult,
+                width=int(rect_width * mult),
                 height=int(rect_textsize(fmt_field)) + (rect_inset * 2),
             )
 
         title_text = "".join([ExporterUltraplain.getStr(it) for it in h.title])
 
-        def set_cell(row: int, col: int, text: str, **kwargs) -> None:
+        def set_cell(row: int, col: int, text: str, **kwargs: Any) -> None:
             rect = rect_for_content(text)
             grid[row][col] = Cell(
                 content=text,
@@ -834,7 +839,7 @@ def get_typst_story_grid(headers: List[Header]) -> None:
     col_count = max_depth + get_typ_cols(root)
     row_count = get_typ_rows(root) + 1
     ir = cola.GraphLayout()
-    mult = 5
+    mult = 5.0
 
     grid = init_grid(
         row_count=row_count,

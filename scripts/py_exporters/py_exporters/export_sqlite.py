@@ -56,7 +56,7 @@ class BlockKind(enum.Enum):
 class Block(Base):
     __tablename__ = "Block"
     id = IdColumn()
-    kind = Column(Enum(BlockKind)) # type: ignore[var-annotated]
+    kind = Column(Enum(BlockKind))  # type: ignore[var-annotated]
     plaintext = StrColumn(nullable=True)
     timestamp = DateTimeColumn(nullable=True)
     parent = ForeignId(name="Block.id", nullable=True)
@@ -74,7 +74,7 @@ class PriorityModified(Base):
     __tablename__ = "PriorityModified"
     id = IdColumn()
     subtree = ForeignId(name="Subtree.id", nullable=False)
-    kind = Column(Enum(ValueEditOperation)) # type: ignore[var-annotated]
+    kind = Column(Enum(ValueEditOperation))  # type: ignore[var-annotated]
     old_priority = StrColumn(nullable=True)
     new_priority = StrColumn(nullable=True)
     timestamp = DateTimeColumn(nullable=True)
@@ -87,7 +87,7 @@ class StateModified(Base):
     subtree = ForeignId(name="Subtree.id", nullable=False)
     old_state = StrColumn(nullable=True)
     new_state = StrColumn(nullable=True)
-    kind = Column(Enum(ValueEditOperation)) # type: ignore[var-annotated]
+    kind = Column(Enum(ValueEditOperation))  # type: ignore[var-annotated]
     timestamp = DateTimeColumn(nullable=True)
     description = StrColumn(nullable=True)
 
@@ -276,7 +276,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                 return None
 
     @beartype
-    def aux(node: org.Org, parent: Optional[int] = None)  -> None:
+    def aux(node: org.Org, parent: Optional[int] = None) -> None:
         global subtree_count
         match node:
             case org.Subtree():
@@ -316,7 +316,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                         created=getCreationTime(node),
                         scheduled=getSubtreeTime(node, org.SubtreePeriodKind.Scheduled),
                         level=node.level,
-                        plaintext_title=node.getCleanTitle(),
+                        plaintext_title=node.getCleanTitle().strip(),
                         location=get_location(node),
                         wordcount=count,
                     ))
@@ -355,7 +355,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                             kind=BlockKind.Paragraph,
                             wordcount=wordcount,
                             timestamp=getCreationTime(node),
-                            plaintext=ExporterUltraplain.getStr(node),
+                            plaintext=ExporterUltraplain.getStr(node).strip(),
                             location=get_location(node),
                         ))
 
