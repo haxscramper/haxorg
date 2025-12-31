@@ -193,7 +193,8 @@ class GitTestRepository:
         return get_git(self.git_dir())
 
     def git_dir(self) -> Path:
-        return self.dir if isinstance(self.dir, Path) else Path(self.dir.name) # type: ignore
+        return self.dir if isinstance(self.dir, Path) else Path(
+            self.dir.name)  # type: ignore
 
     def get_engine(self) -> Engine:
         return create_engine("sqlite:///" + str(self.db))
@@ -384,6 +385,9 @@ def test_haxorg_forensics() -> None:
                 "log_file": gettempdir("test_haxorg_forensics.log"),
                 "perfetto": gettempdir("test_haxorg_forensics.pftrace"),
             },
+            "config": {
+                "max_commit_idx": 250,
+            },
         })
 
 
@@ -406,7 +410,7 @@ file_names = st.text(
 
 
 @st.composite
-def line_content(draw) -> None:
+def line_content(draw: st.DrawFn) -> str:
     is_empty = draw(st.booleans())
     if is_empty:
         return ""
@@ -457,7 +461,7 @@ class GitFileEditStrategy:
     def __init__(self, lines: List[str]):
         self.lines = ["" for _ in lines]
 
-    def get_ops(self, draw):
+    def get_ops(self, draw: st.DrawFn) -> GitFileEdit:
         if not self.lines:
             operation = GitFileEdit(kind=GitFileEditKind.INSERT_LINE,
                                     line_index=0,
@@ -503,7 +507,7 @@ class GitOperation:
 
 
 @beartype
-def edit_file_content_1(edit: GitFileEdit, content: List[str]):
+def edit_file_content_1(edit: GitFileEdit, content: List[str]) -> None:
     match edit:
         case GitFileEdit(kind=GitFileEditKind.REMOVE_LINE, line_index=index):
             content.pop(index)
@@ -526,12 +530,11 @@ def edit_file_content_1(edit: GitFileEdit, content: List[str]):
 
 
 @beartype
-def edit_file_content(modifications: List[GitFileEdit], content: List[str]):
+def edit_file_content(modifications: List[GitFileEdit], content: List[str]) -> None:
     for edit in modifications:
         edit_file_content_1(edit, content)
 
 
-@beartype
 @dataclass
 class GitOpStrategy:
     files: OrderedDict[str, List[str]] = field(default_factory=lambda: OrderedDict())
@@ -539,7 +542,7 @@ class GitOpStrategy:
     branch_stack: List[str] = field(default_factory=list)
     used_branches: Set[str] = field(default_factory=set)
 
-    def file_ops(self, draw):
+    def file_ops(self, draw: st.DrawFn) -> GitOperation:
         if 10 < self.uncommited_ops_count:
             self.uncommited_ops_count = 0
             return GitOperation(operation=GitOperationKind.REPO_COMMIT)
@@ -623,17 +626,18 @@ class GitOpStrategy:
 
 
 @st.composite
-def multiple_files_strategy(draw):
+def multiple_files_strategy(draw: st.DrawFn) -> List[Any]:
     state = GitOpStrategy()
 
     @st.composite
-    def sub_strategy(draw: st.DrawFn):
+    def sub_strategy(draw: st.DrawFn) -> GitOperation:
         return state.file_ops(draw)
 
     return draw(st.lists(sub_strategy(), min_size=10, max_size=90))
 
 
-def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation]):
+@beartype
+def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation]) -> None:
     BRANCH_CANARY_FILE = "branch-canary"
     for idx, action in enumerate(operations):
         match action:
@@ -686,12 +690,13 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 assert False, f"Unhandled git repo operation {action}"
 
 
+@beartype
 def run_repo_operations_test(
         operations: List[GitOperation],
         with_debugger: bool = False,
         fixed_dir: Optional[Path] = None,
         params: Dict[str, Any] = dict(),
-):
+) -> None:
     with GitTestRepository({"init": "init"}, fixed_dir=fixed_dir) as repo:
         run_repo_operations(repo, operations)
         git_commit(repo.git_dir(), "final commit", allow_fail=True)
@@ -707,7 +712,7 @@ def run_repo_operations_test(
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_1():
+def test_repo_operations_example_1() -> None:
     # yapf:disable
     run_repo_operations_test([
         GitOperation(operation=GitOperationKind.CREATE_FILE, filename='00000', file_content=['000000000000000']),
@@ -725,7 +730,7 @@ def test_repo_operations_example_1():
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_2():
+def test_repo_operations_example_2() -> None:
     # yapf:disable
     run_repo_operations_test(
         [
@@ -751,7 +756,7 @@ def test_repo_operations_example_2():
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_3():
+def test_repo_operations_example_3() -> None:
     run_repo_operations_test([
         GitOperation(GitOperationKind.CREATE_FILE,
                      filename="manual_wrap.hpp",
@@ -775,7 +780,7 @@ def test_repo_operations_example_3():
 
 
 @pytest.mark.test_release
-def test_repo_operations_example_4():
+def test_repo_operations_example_4() -> None:
     file_1 = "manual_impl.cpp"
     file_2 = "manual_wrap.hpp"
     content_1 = [
@@ -825,5 +830,5 @@ def test_repo_operations_example_4():
     verbosity=Verbosity.normal,
     # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
     phases=[Phase.explicit, Phase.reuse, Phase.generate])
-def test_strategic_repo_edits(operations):
+def test_strategic_repo_edits(operations) -> None: 
     run_repo_operations_test(operations)

@@ -135,10 +135,10 @@ def org_function(result: QualType, name: str, *args: Any, **kwargs: Any) -> GenT
 
 @beartype
 def org_field(
-        typ: QualType,
-        name: str,
-        doc: AnyDoc = GenTuDoc(""),
-        value: Optional[Union[BlockId, str]] = None,
+    typ: QualType,
+    name: str,
+    doc: AnyDoc = GenTuDoc(""),
+    value: Optional[Union[BlockId, str]] = None,
 ) -> GenTuField:
     return GenTuField(type=typ, name=name, doc=org_doc(doc), value=value)
 
@@ -277,7 +277,7 @@ def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
 
 
 @beartype
-def d_simple_enum(name: QualType, doc: AnyDoc, *args) -> None:
+def d_simple_enum(name: QualType, doc: AnyDoc, *args) -> GenTuEnum:
     return GenTuEnum(
         name,
         org_doc(doc),
@@ -838,17 +838,13 @@ def get_sem_commands() -> List[GenTuStruct]:
             "CmdEmail",
             GenTuDoc(""),
             bases=[t_nest(t_org("Cmd"))],
-            fields=[
-                GenTuField(t_str(), "text", GenTuDoc(""))
-            ],
+            fields=[GenTuField(t_str(), "text", GenTuDoc(""))],
         ),
         d_org(
             "CmdLanguage",
             GenTuDoc(""),
             bases=[t_nest(t_org("Cmd"))],
-            fields=[
-                GenTuField(t_str(), "text", GenTuDoc(""))
-            ],
+            fields=[GenTuField(t_str(), "text", GenTuDoc(""))],
         ),
         d_org(
             "CmdColumns",
