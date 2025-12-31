@@ -37,7 +37,7 @@ def test_word() -> None:
     assert node[0][0][0].getKind() == org.OrgSemKind.Word
 
 
-def test_attached_property_list():
+def test_attached_property_list() -> None:
     node = org.parseString("""#+attr_list: :export nil
 - =some_property= :: Value
     """, "<test>")
@@ -52,7 +52,7 @@ def test_attached_property_list():
     assert exp0.getBool() == False
 
 
-def test_attached_property_link():
+def test_attached_property_link() -> None:
     node = org.parseString("""#+attr_link: :attach-method copy :attach-on-export t
 [[attachment:image 1.jpg]]
     """, "<test>")
@@ -70,7 +70,7 @@ def test_attached_property_link():
     assert onExport0.getBool() == True
 
 
-def test_subnode_visitor():
+def test_subnode_visitor() -> None:
     node = org.parseString("Word", "<test>")
     kinds = []
     org.eachSubnodeRec(node, lambda it: kinds.append(it.getKind()))
@@ -121,7 +121,7 @@ def as_multiline(txt: str) -> List[util.text]:
 borders = dict(border=1, style='border-collapse: collapse; width: 100%;')
 
 
-def test_unexpected_field_passed():
+def test_unexpected_field_passed() -> None:
     try:
         tree = org.Subtree(askldfjaslkdfjaksdjfaksdjfaksdjf="12222")
         assert False, "No error triggered with unknown field"
@@ -130,7 +130,7 @@ def test_unexpected_field_passed():
         pass
 
 
-def test_sem_parser_expected():
+def test_sem_parser_expected() -> None:
     corpus_root = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
     corpus_files = corpus_root.rglob("*.yaml")
     corpus_data = [CorpusFile.model_validate(load_yaml(file)) for file in corpus_files]
@@ -207,7 +207,7 @@ def test_sem_parser_expected():
     Path("/tmp/test_sem_parser_expected.html").write_text(str(doc))
 
 
-def test_segment_tree():
+def test_segment_tree() -> None:
     segments = [
         org.SequenceSegmentGroup(
             kind=1,
@@ -226,7 +226,7 @@ def test_segment_tree():
     assert annotations[0].isAnnotatedWith(1, 2)
 
 
-def test_doc1():
+def test_doc1() -> None:
     file = Path("~/tmp/doc1.org").expanduser()
     if not file.exists():
         return

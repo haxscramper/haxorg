@@ -355,7 +355,8 @@ CommitActions get_commit_actions(
         ir::FilePathId path_id = state->content->getFilePath(path);
 
         if (delta->status == GIT_DELTA_DELETED) {
-            LOGIC_ASSERTION_CHECK_FMT(!result.actions.contains(path_id), "");
+            LOGIC_ASSERTION_CHECK_FMT(
+                !result.actions.contains(path_id), "");
             result.actions[state->content->getFilePath(path)].leading_name = NameAction{
                 state->content->getFilePath(path)};
         }

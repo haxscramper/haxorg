@@ -8,8 +8,8 @@ from py_scriptutils.script_logging import log
 CAT = __name__
 
 
-def babel_eval(input: org.OrgCodeEvalInput) -> org.VecOfOrgCodeEvalOutputVec:
-    res = org.VecOfOrgCodeEvalOutputVec()
+def babel_eval(input: org.OrgCodeEvalInput) -> org.VecOfOrgCodeEvalOutputVec:  # type: ignore
+    res = org.VecOfOrgCodeEvalOutputVec()  # type: ignore
 
     try:
         cmd = local["plantuml"]

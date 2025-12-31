@@ -33,6 +33,8 @@
 
 #include <hstd/stdlib/OptFormatter.hpp>
 
+#include "clang_reflection_demangler.hpp"
+
 #ifdef ORG_USE_PERFETTO
 
 PERFETTO_DEFINE_CATEGORIES(
@@ -125,11 +127,13 @@ NO_COVERAGE void llvm_unreachable_f(std::string const& msg) {
 }
 
 
+namespace {
 NO_COVERAGE void CreateTables(SQLite::Database& db) {
     auto path = fs::path{__FILE__}.parent_path() / "profdata_merger.sql";
     std::string sql = read_file(path);
     db.exec(sql);
 }
+} // namespace
 
 // std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
 //     return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
@@ -351,6 +355,7 @@ NO_COVERAGE static llvm::SmallBitVector gatherFileIDs(
     return FilenameEquivalence;
 }
 
+namespace {
 /// \brief Create a text for a `INSERT` statement with a given list of
 /// column names and identical number of coverage instantiation
 NO_COVERAGE std::string SqlInsert(
@@ -372,6 +377,7 @@ NO_COVERAGE std::string SqlInsert(
     result += ")";
     return result;
 }
+} // namespace
 
 struct queries {
     SQLite::Statement file_region;
@@ -493,40 +499,6 @@ struct FileSpanComparator {
     }
 };
 
-static std::vector<std::string> CompiledFileExtensions = {
-    ".cpp",
-    ".h",
-    ".hpp",
-    ".cc",
-    ".cxx",
-    ".c",
-    ".C",
-    ".java",
-    ".js",
-    ".ts",
-    ".go",
-    ".py",
-    ".rs",
-    ".swift",
-    ".m",
-    ".mm",
-};
-
-int findSymbolNamePosition(const std::string& input) {
-    int pos = input.find(':');
-    while (pos != std::string::npos) {
-        for (const auto& ext : CompiledFileExtensions) {
-            int extPos = input.rfind(ext, pos);
-            if (extPos != std::string::npos
-                && extPos + ext.length() == pos) {
-                return pos + 1;
-            }
-        }
-        pos = input.find(':', pos + 1);
-    }
-
-    return 0;
-}
 
 struct db_build_ctx {
     /// \brief DB ID generator for individual coverage contexts from the
@@ -561,14 +533,16 @@ struct db_build_ctx {
 
     /// \brief Get JSON dump of the demangled function record name.
     NO_COVERAGE std::string getDemangledJson(FunctionRecord const& f) {
-        return "{}";
-
         // TODO: Get fully demangled JSON
         if (!demangled_json_dumps.contains(f.Name)) {
-            // demangled_json_dumps.insert_or_assign({f.Name, });
+            BinarySymbolVisitContext ctx;
+            demangled_json_dumps.insert_or_assign(
+                f.Name,
+                llvm::formatv("{0}", demangle_to_json(f.Name, ctx, 0, 200))
+                    .str());
         }
 
-        return llvm::formatv("{0}", demangled_json_dumps.at(f.Name));
+        return demangled_json_dumps.at(f.Name);
     }
 
 

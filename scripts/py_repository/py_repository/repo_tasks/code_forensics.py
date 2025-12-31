@@ -9,10 +9,10 @@ from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 @haxorg_task(dependencies=[build_haxorg])
 def haxorg_code_forensics(ctx: TaskContext, debug: bool = False) -> None:
     "Generate code forensics dump for the repository"
-    tool = get_build_root("haxorg/code_forensics")
+    tool = get_build_root(ctx, "haxorg/code_forensics")
     config = {
         "repo": {
-            "path": str(get_script_root()),
+            "path": str(get_script_root(ctx)),
             "branch": "master"
         },
         "out": {
@@ -23,10 +23,10 @@ def haxorg_code_forensics(ctx: TaskContext, debug: bool = False) -> None:
         run_command(ctx, "lldb", [
             str(tool),
             "--batch",
-            *get_lldb_py_import(),
+            *get_lldb_py_import(ctx),
             "-o",
             "run",
-            *get_lldb_source_on_crash(),
+            *get_lldb_source_on_crash(ctx),
             json.dumps(config),
         ])
     else:

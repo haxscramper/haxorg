@@ -9,14 +9,14 @@ import matplotlib.dates as mdates
 from datetime import datetime
 
 
-def format_epoch_to_date(epoch, date_format='%Y-%m-%d'):
+def format_epoch_to_date(epoch: float, date_format: str = '%Y-%m-%d') -> str:
     return datetime.utcfromtimestamp(epoch).strftime(date_format)
 
 
-def run_for(engine: Engine):
+def run_for(engine: Engine) -> None:
     trace = TraceCollector()
 
-    Base.metadata.bind = engine
+    Base.metadata.bind = engine  # type: ignore[attr-defined]
     sesion_maker = sessionmaker(bind=engine)
     session = sesion_maker()
 
@@ -80,8 +80,8 @@ def run_for(engine: Engine):
     ax.set_ylabel('Count of Line Time Buckets')
 
     # Format the x-axis as date
-    ax.xaxis.set_major_formatter(
-        mdates.DateFormatter('%Y-%m-%d'))  # Adjust the format as needed
+    formatter: mdates.DateFormatter = mdates.DateFormatter('%Y-%m-%d') # type: ignore
+    ax.xaxis.set_major_formatter(formatter)  # Adjust the format as needed
 
     # Rotate x-ticks
     plt.xticks(rotation=45, ha='right')  # Rotate and align right

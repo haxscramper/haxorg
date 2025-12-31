@@ -106,7 +106,7 @@ class BenchmarkParser:
 
 class BenchmarkVisualizer:
 
-    def __init__(self):
+    def __init__(self) -> None:
         plt.style.use("seaborn-v0_8")
         sns.set_palette("husl")
 

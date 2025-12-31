@@ -15,7 +15,7 @@ def js_ident(name: str) -> str:
 
 
 @beartype
-def get_function_wasm_name(Func: GenTuFunction):
+def get_function_wasm_name(Func: GenTuFunction) -> str:
     if Func.reflectionParams.unique_name:
         return Func.reflectionParams.unique_name
 
@@ -109,7 +109,7 @@ def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
 class WasmField():
     Field: GenTuField
 
-    def __init__(self, Field: GenTuField):
+    def __init__(self, Field: GenTuField) -> None:
         self.Field = Field
 
     def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
@@ -117,7 +117,7 @@ class WasmField():
             ast.line([
                 ast.string(self.Field.name),
                 ast.string(": "),
-                ast.Type(ts_type(self.Field.type, base_map)),
+                ast.Type(ts_type(self.Field.type, base_map)) if self.Field.type else ast.string("any"), 
             ])
         ]
 
@@ -141,7 +141,7 @@ class WasmBindPass:
 class WasmTypedef:
     Def: GenTuTypedef
 
-    def __init__(self, Def: GenTuTypedef):
+    def __init__(self, Def: GenTuTypedef) -> None:
         self.Def = Def
 
     def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
@@ -170,7 +170,7 @@ class WasmFunction():
     def getWasmName(self) -> str:
         return get_function_wasm_name(self.Func)
 
-    def __init__(self, Func: GenTuFunction, Body: List[BlockId] = []):
+    def __init__(self, Func: GenTuFunction, Body: List[BlockId] = []) -> None:
         self.Func = Func
         self.Body = Body
 
@@ -247,17 +247,11 @@ class WasmFunction():
             Stmt=True,
         )
 
-
-@beartype
-class WasmMethod():
-    Func: GenTuFunction
-
-
 @beartype
 class WasmEnum():
     Enum: GenTuEnum
 
-    def __init__(self, Enum: GenTuEnum):
+    def __init__(self, Enum: GenTuEnum) -> None:
         self.Enum = Enum
 
     def getWasmName(self) -> str:
@@ -356,7 +350,7 @@ class WasmMethod(WasmFunction):
 @beartype
 class WasmClass():
 
-    def __init__(self, Record: GenTuStruct):
+    def __init__(self, Record: GenTuStruct) -> None:
         self.Record = Record
 
     def getWasmName(self) -> str:
@@ -461,7 +455,7 @@ class WasmClass():
                 continue
 
             else:
-                sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast)) # type: ignore
+                sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast))
 
         if not has_constructor and not self.Record.IsAbstract:
             # If the type has non-default holder type, `new` in JS will still create a raw pointer
@@ -502,7 +496,7 @@ class WasmClass():
         ])
 
 
-WasmUnion = Union[WasmClass, WasmBindPass, WasmFunction]
+WasmUnion = Union[WasmClass, WasmBindPass, WasmFunction, WasmEnum, WasmTypedef]
 
 
 @beartype
@@ -530,14 +524,14 @@ class WasmModule():
                         Stmt=True,
                     )))
 
-    def add_decl(self, item: GenTuUnion | WasmBindPass) -> None:
+    def add_decl(self, item: GenTuUnion | WasmBindPass | GenTuEnum | GenTuTypedef | GenTuFunction | GenTuStruct) -> None:
         match item:
             case GenTuStruct():
                 self.items.append(WasmClass(item))
 
                 for nested in item.nested:
                     if not isinstance(nested, GenTuPass):
-                        self.add_decl(nested)
+                        self.add_decl(nested) # type: ignore
 
             case GenTuEnum():
                 self.items.append(WasmEnum(item))

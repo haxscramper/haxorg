@@ -21,21 +21,20 @@ from pydantic import BaseModel, Field
 CONFIG_FILE_NAME = "pyhaxorg.toml"
 CAT = __name__
 
+
 class CliRootOptions(BaseModel, extra="forbid"):
-    lex_traceDir: Optional[str] = None
-    lex_trace: bool = False
+    lex_traceDir: Optional[str] = Field(
+        description="Write lexer operation trace into the directory", default=None)
     parse_traceDir: Optional[str] = None
-    parse_trace: bool = False
     sem_traceDir: Optional[str] = None
-    sem_trace: bool = False
     config: Optional[str] = None
     cache: Optional[Path] = Field(
         description=
         "Optional directory to cache file parsing to speed up large corpus processing",
-        default=None,
-    )
+        default=None)
 
-    trace_path: Optional[str] = None
+    trace_path: Optional[str] = Field(
+        description="Trace execution of the CLI to the file", default=None)
 
 
 @beartype
@@ -45,14 +44,15 @@ class CliRunContext:
         self.tracer = TraceCollector()
         self.opts = opts
 
-    def event(self, name: str, category: str, args: Dict[str, Any] = {}):
+    def event(self, name: str, category: str, args: Dict[str, Any] = {}) -> Any:
         return self.tracer.complete_event(name=name, category=category, args=args)
 
     def is_trace_enabled(self) -> bool:
         return bool(self.opts.trace_path)
 
-    def finalize(self):
+    def finalize(self) -> None:
         if self.is_trace_enabled():
+            assert self.opts.trace_path, "Missing trace path configuration"
             self.tracer.export_to_json(Path(self.opts.trace_path))
             log("haxorg.cli").info(f"Wrote execution trace to {self.opts.trace_path}")
 
@@ -70,13 +70,14 @@ def parseCachedFile(
 ) -> org.Org:
     cache_file = None if not cache else Path(cache).joinpath(file.name)
 
-    def aux():
+    def aux() -> org.Org:
         log(CAT).info(f"Processing {file}")
         if with_includes:
             opts = org.OrgDirectoryParseParameters()
             if parse_opts:
                 parse_opts.currentFile = str(file)
-                def parse_node_impl(path: str):
+
+                def parse_node_impl(path: str) -> org.Org:
                     return org.parseStringOpts(Path(path).read_text(), parse_opts)
 
                 org.setGetParsedNode(opts, parse_node_impl)
@@ -119,5 +120,5 @@ def parseFile(
     return parseCachedFile(file, root.cache, parse_opts=parse_opts)
 
 
-def base_cli_options(f):
+def base_cli_options(f: Any) -> Any:
     return apply_options(f, options_from_model(CliRootOptions))

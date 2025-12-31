@@ -850,7 +850,7 @@ hstd::Vec<ImmId> allSubnodes(
 
 template <typename Func>
 void switch_node_kind(org::imm::ImmId id, Func const& cb) {
-    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
+    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::NoNode, "");
     switch (id.getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
@@ -871,7 +871,7 @@ void switch_node_value(
     org::imm::ImmId           id,
     ImmAstContext::Ptr const& ctx,
     Func const&               cb) {
-    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
+    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::NoNode, "");
     switch_node_kind(id, [&]<typename K>(org::imm::ImmIdT<K> id) {
         cb(ctx->value<K>(id));
     });
@@ -882,7 +882,7 @@ void switch_node_fields(
     org::imm::ImmId           id,
     ImmAstContext::Ptr const& ctx,
     Func const&               cb) {
-    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
+    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::NoNode, "");
     switch_node_value(id, ctx, [&]<typename T>(T const& node) {
         hstd::for_each_field_value_with_bases(node, cb);
     });
@@ -1401,7 +1401,7 @@ struct [[refl]] ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
     hstd::Str getCleanTitle() const;
 };
 
-struct [[refl]] ImmAdapterNoneAPI : ImmAdapterOrgAPI {};
+struct [[refl]] ImmAdapterNoNodeAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterAttrAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterAttrListAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterAttrsAPI : ImmAdapterOrgAPI {};

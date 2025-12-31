@@ -175,4 +175,4 @@ def run_cmake_haxorg_clean(ctx: TaskContext) -> None:
         shutil.rmtree(str(adaptagrams_dir))
 
     os_utils.rmdir_quiet(get_build_root(ctx).joinpath("deps_build"))
-    os_utils.rmdir_quiet(get_deps_install_dir(ctx.config))
+    os_utils.rmdir_quiet(get_deps_install_dir(ctx))

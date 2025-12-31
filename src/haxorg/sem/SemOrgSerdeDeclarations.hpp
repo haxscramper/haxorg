@@ -3,7 +3,7 @@
 #pragma once
 #include <haxorg/sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
-        __MAP(kNone, none, None)  \
+        __MAP(kNonode, nonode, NoNode)  \
         __MAP(kErroritem, erroritem, ErrorItem)  \
         __MAP(kErrorgroup, errorgroup, ErrorGroup)  \
         __MAP(kStmtlist, stmtlist, StmtList)  \
@@ -841,9 +841,9 @@ struct org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnosti
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::None, org::sem::None> {
-  static void write(::orgproto::None* out, org::sem::None const& in);
-  static void read(::orgproto::None const& out, proto_write_accessor<org::sem::None> in);
+struct org::algo::proto_serde<::orgproto::NoNode, org::sem::NoNode> {
+  static void write(::orgproto::NoNode* out, org::sem::NoNode const& in);
+  static void read(::orgproto::NoNode const& out, proto_write_accessor<org::sem::NoNode> in);
 };
 
 

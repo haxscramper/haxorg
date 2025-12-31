@@ -2,8 +2,16 @@ import py_codegen.gen_tu_cpp as tu
 import py_codegen.astbuilder_cpp as cpp
 from py_textlayout.py_textlayout_wrap import TextOptions, TextLayout, BlockId
 
-from beartype.typing import (List, Iterable, Generator, Dict, Tuple, Optional, Union,
-                             Final)
+from beartype.typing import (
+    List,
+    Iterable,
+    Generator,
+    Dict,
+    Tuple,
+    Optional,
+    Sequence,
+    Any,
+)
 
 from beartype import beartype
 import itertools
@@ -18,7 +26,7 @@ class ProtoBuilder():
 
     def __init__(
         self,
-        wrapped: List[tu.GenTuUnion],
+        wrapped: Sequence[tu.GenTuUnion],
         ast: cpp.ASTBuilder,
         base_map: tu.GenTypeMap,
     ):
@@ -30,9 +38,9 @@ class ProtoBuilder():
         self.variant_type_list: Dict[Tuple[str, ...], tu.GenTuTypedef] = {}
         self.types_list = wrapped
 
-        context = []
+        context: List[tu.QualType] = []
 
-        def find_enums(obj):
+        def find_enums(obj: Any) -> None:
             if isinstance(obj, tu.GenTuEnum):
                 filter = tu.filter_walk_scope(context)
                 self.enum_type_list.append(obj.name)
@@ -44,7 +52,7 @@ class ProtoBuilder():
         iterate_object_tree(self.types_list, context, pre_visit=find_enums)
 
     def oneof_field_name(self, it: tu.GenTuField) -> str:
-        if it.type.name == "Variant":
+        if it.type and it.type.name == "Variant":
             return it.name + "_kind"
 
         else:
@@ -64,6 +72,7 @@ class ProtoBuilder():
         enum_field_width = field_name_width + field_type_width
 
         def aux_field(it: tu.GenTuField, indexer: Generator[int], indent: int) -> BlockId:
+            assert it.type, "Missing type for the field"
             if it.type.name == "Variant":
                 return self.t.stack([
                     braced(
@@ -103,7 +112,7 @@ class ProtoBuilder():
 
             return full_enumerator()
 
-        def aux_item(it: tu.GenTuUnion | tu.GenTuField, indent: int) -> Optional[BlockId]:
+        def aux_item(it: tu.GenTuEntry | tu.GenTuField, indent: int) -> Optional[BlockId]:
             match it:
                 case tu.GenTuStruct():
                     return braced(
@@ -211,7 +220,9 @@ class ProtoBuilder():
                 )
 
             case "SemId":
-                if it.par0().name == "Org":
+                par0 = it.par0()
+                assert par0, "SemId template type must have a template parameter"
+                if par0.name == "Org":
                     return "AnyNode"
 
                 else:
@@ -227,7 +238,7 @@ class ProtoBuilder():
         typ: tu.QualType,
     ) -> tu.QualType:
 
-        def aux_parameters(typ) -> List[tu.QualType]:
+        def aux_parameters(typ: tu.QualType) -> List[tu.QualType]:
             return [self.rewrite_for_proto_serde(p) for p in typ.Parameters]
 
         match typ:
@@ -299,6 +310,7 @@ class ProtoBuilder():
         dot_field: BlockId,
         is_read_getter: bool,
     ) -> Tuple[BlockId, tu.QualType, tu.QualType]:
+        assert field.type
         if not is_read_getter and field.type.name in ["Opt"]:
             field_read = self.t.line([self.t.text("*"), dot_field])
             field_type = field.type.Parameters[0]
@@ -381,8 +393,11 @@ class ProtoBuilder():
                 Stmt=True,
             )
 
+        assert field.type
         if field.type.name in ["Opt"]:
-            if field.type.par0().name not in ["Vec"]:
+            par0 = field.type.par0()
+            assert par0
+            if par0.name not in ["Vec"]:
                 read_op = self.ast.IfStmt(
                     cpp.IfStmtParams([
                         cpp.IfStmtParams.Branch(
@@ -436,6 +451,7 @@ class ProtoBuilder():
                 Stmt=True,
             )
 
+        assert field.type
         if field.type.name in ["Opt"]:
             write_op = self.ast.IfStmt(
                 cpp.IfStmtParams(
@@ -480,12 +496,14 @@ class ProtoBuilder():
             [field_ptr],
         )
 
+        assert field.type is not None, "Field type must not be None"
         flat = tuple(field.type.flatQualName())
         if flat in self.variant_type_list or field.type.name in [
                 "variant", "Variant", "Var"
         ]:
             is_typedef = flat in self.variant_type_list
             variant = self.variant_type_list[flat].base if is_typedef else field.type
+            assert variant is not None, "Variant type must not be None"
             if is_typedef:
                 reader_switch = cpp.SwitchStmtParams(Expr=self.ast.XCallRef(
                     t.text(PROTO_VALUE_NAME),
@@ -501,7 +519,9 @@ class ProtoBuilder():
                 Expr=t.line([dot_write, t.text(".index()")]))
 
             if is_typedef:
-                kind_type = proto_type.asSpaceFor(field.type.withoutAllScopeQualifiers())
+                assert field.type is not None, "Field type must not be None"
+                kind_type = proto_type.asSpaceFor(
+                    field.type.withoutAllScopeQualifiers())  # type: ignore
 
             else:
                 kind_type = proto_type
@@ -632,6 +652,9 @@ class ProtoBuilder():
                 reader_body: List[BlockId] = []
                 for base in tu.get_base_list(it, self.base_map):
                     base_type = self.base_map.get_one_type_for_name(base.name)
+                    assert base_type is None or isinstance(
+                        base_type,
+                        tu.GenTuStruct), "Base type must be GenTuStruct or None"
                     if base_type and len(base_type.fields) == 0:
                         continue
 
@@ -719,6 +742,11 @@ class ProtoBuilder():
                 )
 
                 for sub in it.nested:
+                    assert isinstance(
+                        sub,
+                        (tu.GenTuStruct, tu.GenTuEnum, tu.GenTuTypedef, tu.GenTuFunction,
+                         tu.GenTuPass
+                        )), "Sub must be a valid type for build_protobuf_serde_object"
                     result += self.build_protobuf_serde_object(sub)
 
                 writer_specialization = tu.QualType(
@@ -761,7 +789,7 @@ class ProtoBuilder():
             writer_types.append(item)
 
             for meth in item.methods():
-                writer_methods.append(meth.asMethodDef(name))
+                writer_methods.append(meth.asMethodDef(name)) # type: ignore
                 meth.Params.Body = None
 
         return (writer_types, writer_methods)

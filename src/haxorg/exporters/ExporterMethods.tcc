@@ -118,7 +118,7 @@ void visit(R& res, sem::OrgDiagnostics::ParseError const& object);
 void visit(R& res, sem::OrgDiagnostics::IncludeError const& object);
 void visit(R& res, sem::OrgDiagnostics::ConvertError const& object);
 void visit(R& res, sem::OrgDiagnostics::InternalError const& object);
-void visitNone(R& res, In<sem::None> object);
+void visitNoNode(R& res, In<sem::NoNode> object);
 void visitErrorItem(R& res, In<sem::ErrorItem> object);
 void visitErrorGroup(R& res, In<sem::ErrorGroup> object);
 void visitStmt(R& res, In<sem::Stmt> object);

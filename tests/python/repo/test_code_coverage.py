@@ -105,7 +105,7 @@ class ProfileRunParams():
     def get_params(self) -> Path:
         return self.dir.joinpath("test-params.json")
 
-    def run_compile(self):
+    def run_compile(self) -> None:
         cmd = local[tool_dir.joinpath("clang++")]
         for name, text in self.files.items():
             self.get_code(name).write_text(text)
@@ -118,14 +118,14 @@ class ProfileRunParams():
             self.get_binary(),
         ])
 
-    def run_binary(self):
+    def run_binary(self) -> None:
         for context, run_params in self.run_contexts.items():
             cmd = local[self.get_binary()].with_env(
                 LLVM_PROFILE_FILE=str(self.get_profraw(context)))
             self.run_results[context] = cmd.run(run_params)
             assert self.get_profraw(context).exists()
 
-    def run_profmerge(self):
+    def run_profmerge(self) -> None:
         self.get_summary().write_text(
             cov.ProfdataFullProfile(runs=[
                 cov.ProfdataCookie(
@@ -172,7 +172,7 @@ class ProfileRunParams():
             if isinstance(self.show_merger_run, Path):
                 outfile.close()
 
-    def run(self):
+    def run(self) -> None:
         self.dir.mkdir(exist_ok=True, parents=True)
         self.run_compile()
         self.run_binary()
@@ -180,7 +180,7 @@ class ProfileRunParams():
 
 
 @pytest.mark.test_release
-def test_base_run():
+def test_base_run() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         cmd = ProfileRunParams(
@@ -202,7 +202,7 @@ int main() {
 
 
 @pytest.mark.test_release
-def test_coverage_regions_multiple_contexts():
+def test_coverage_regions_multiple_contexts() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         cmd = ProfileRunParams(
@@ -266,7 +266,7 @@ def test_coverage_regions_multiple_contexts():
 
 
 @pytest.mark.test_release
-def test_region_types():
+def test_region_types() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         cmd = ProfileRunParams(
@@ -282,7 +282,7 @@ def test_region_types():
 
 
 @pytest.mark.test_release
-def test_region_types():
+def test_region_types() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         cmd = ProfileRunParams(
@@ -298,7 +298,7 @@ def test_region_types():
 
 
 @pytest.mark.test_release
-def test_file_coverage_filter():
+def test_file_coverage_filter() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         cmd = ProfileRunParams(
@@ -347,9 +347,9 @@ def cleanup_test_code(code: str) -> str:
 
 
 @beartype
-def add_cov_segment_text(df: pd.DataFrame, lines: List[str], for_test: bool = True):
+def add_cov_segment_text(df: pd.DataFrame, lines: List[str], for_test: bool = True) -> None:
 
-    def get_row(row):
+    def get_row(row) -> None:
         code = cov.extract_text(
             lines,
             start=(row["LineStart"], row["ColumnStart"]),
@@ -365,7 +365,7 @@ def add_cov_segment_text(df: pd.DataFrame, lines: List[str], for_test: bool = Tr
 
 
 @pytest.mark.test_release
-def test_file_segmentation_1():
+def test_file_segmentation_1() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         code = corpus_base.joinpath("test_file_segmentation_1.cpp").read_text()
@@ -384,7 +384,7 @@ def test_file_segmentation_1():
 
 
 @pytest.mark.test_release
-def test_file_segmentation_2():
+def test_file_segmentation_2() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         code = corpus_base.joinpath("test_file_segmentation_2.cpp").read_text()
@@ -443,7 +443,7 @@ def test_file_segmentation_2():
 
 @pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
-def test_coverage_annotation_single_run():
+def test_coverage_annotation_single_run() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         code = "\n".join([
@@ -598,7 +598,7 @@ def test_coverage_annotation_single_run():
 
 @pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
-def test_coverage_annotation_multiple_run_single_segment():
+def test_coverage_annotation_multiple_run_single_segment() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         code = "\n".join([
@@ -647,7 +647,7 @@ js_path = get_haxorg_repo_root_path().joinpath(
 
 @pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
-def test_coverage_annotation_multiple_run_multiple_segment():
+def test_coverage_annotation_multiple_run_multiple_segment() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         code = corpus_base.joinpath("test_coverage_regions_2.cpp").read_text()
@@ -801,7 +801,7 @@ def run_common(
 
 @pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
-def test_template_coverage_annotations():
+def test_template_coverage_annotations() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         code = corpus_base.joinpath("test_template_coverage1.hpp").read_text()
@@ -818,7 +818,7 @@ def test_template_coverage_annotations():
 
 @pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
-def test_macro_coverage1():
+def test_macro_coverage1() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         code = corpus_base.joinpath("test_macro_coverage.hpp").read_text()
@@ -835,7 +835,7 @@ def test_macro_coverage1():
 
 @pytest.mark.test_release
 @pytest.mark.test_coverage_annotation_file_cxx
-def test_exporter_tcc_coverage():
+def test_exporter_tcc_coverage() -> None:
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         cmd = ProfileRunParams(dir=dir,

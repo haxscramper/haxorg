@@ -342,7 +342,7 @@ def write_run_result_information(
 
     def write_reflection_stats(file: io.TextIOWrapper) -> None:
 
-        def sep(name: str):
+        def sep(name: str) -> None:
             file.write("\n\n" + name + "-" * 120 + "\n\n")
 
         sep("Failure stdout:")

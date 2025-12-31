@@ -1,14 +1,14 @@
 /* clang-format off */
 template <>
-struct ImmSemSerde<org::sem::None, org::imm::ImmNone> {
-  static org::imm::ImmNone to_immer(org::sem::None const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmNone result = hstd::SerdeDefaultProvider<org::imm::ImmNone>::get();
+struct ImmSemSerde<org::sem::NoNode, org::imm::ImmNoNode> {
+  static org::imm::ImmNoNode to_immer(org::sem::NoNode const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmNoNode result = hstd::SerdeDefaultProvider<org::imm::ImmNoNode>::get();
     assign_immer_field(result.loc, value.loc, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
-  static org::sem::None from_immer(org::imm::ImmNone const& value, ImmAstContext const& ctx) {
-    org::sem::None result = hstd::SerdeDefaultProvider<org::sem::None>::get();
+  static org::sem::NoNode from_immer(org::imm::ImmNoNode const& value, ImmAstContext const& ctx) {
+    org::sem::NoNode result = hstd::SerdeDefaultProvider<org::sem::NoNode>::get();
     assign_sem_field(result.loc, value.loc, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;

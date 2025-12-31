@@ -142,7 +142,7 @@ def pprint_to_string(value: Any, width: int = 120) -> str:
 
 class NoTTYFormatter(logging.Formatter):
 
-    def __init__(self, fmt: Any, datefmt: Any=None) -> None:
+    def __init__(self, fmt: Any, datefmt: Any = None) -> None:
         super().__init__(fmt, datefmt)
         self.console = Console()
 
@@ -257,7 +257,7 @@ from rich.text import Text
 class MultiFileHandler(logging.Handler):
 
     @beartype
-    def __init__(self, base_dir: Path):
+    def __init__(self, base_dir: Path) -> None:
         super().__init__()
         self.base_dir = base_dir
         self.base_dir.mkdir(parents=True, exist_ok=True)

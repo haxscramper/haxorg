@@ -2,9 +2,8 @@ import py_haxorg.pyhaxorg_wrap as org
 from py_textlayout.py_textlayout_wrap import TextLayout, BlockId
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 
-from beartype.typing import List, Optional
+from beartype.typing import List, Optional, Any
 from enum import Enum
-from beartype import beartype
 
 from py_exporters.export_base import ExporterBase
 from py_exporters.export_ultraplain import ExporterUltraplain
@@ -26,11 +25,11 @@ class TexCommand(Enum):
 class ExporterLatex(ExporterBase):
     t: TextLayout
 
-    def __init__(self, CRTP_derived=None):
+    def __init__(self, CRTP_derived: Any = None) -> None:
         super().__init__(CRTP_derived or self)
         self.t = TextLayout()
 
-    def newOrg(self, node: org.Org):
+    def newOrg(self, node: org.Org) -> Any:
         return self.t.text("TODO" + str(node.getKind()))
 
     def string(self, node: str | BlockId) -> BlockId:
@@ -295,6 +294,8 @@ class ExporterLatex(ExporterBase):
                         return "sec:"
                     case TexCommand.part:
                         return "part:"
+
+        return None
 
     def evalSubtree(self, node: org.Subtree) -> BlockId:
         res = self.t.stack([])

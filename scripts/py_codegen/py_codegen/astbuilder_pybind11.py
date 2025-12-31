@@ -207,7 +207,8 @@ class Py11Function:
                       base_map: GenTypeMap) -> pya.FunctionDefParams:
         return pya.FunctionDefParams(
             Name=py_ident(self.PyName),
-            ResultTy=self.Func.result and py_type(self.Func.result, base_map=base_map),
+            ResultTy=py_type(self.Func.result, base_map=base_map)
+            if self.Func.result else None,
             Args=[
                 pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
                 for Arg in self.Func.arguments
@@ -336,7 +337,7 @@ class Py11Method(Py11Function):
         super().__init__(Func, Body, PyName, DefParams=DefParams)
         self.ExplicitClassParam = ExplicitClassParam
 
-    def build_typedef( # type: ignore[override]
+    def build_typedef(  # type: ignore[override]
         self,
         ast: pya.ASTBuilder,
         base_map: GenTypeMap,
@@ -344,7 +345,7 @@ class Py11Method(Py11Function):
     ) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
             Name="__init__" if self.Func.IsConstructor else py_ident(self.PyName),
-            ResultTy=self.Func.result and py_type(self.Func.result, base_map),
+            ResultTy=self.Func.result and py_type(self.Func.result, base_map), # type: ignore
             Args=[
                 pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
                 for Arg in self.Func.arguments
@@ -355,7 +356,8 @@ class Py11Method(Py11Function):
                 *maybe_splice(is_overload, pya.DecoratorParams("overload")),
             ]))
 
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId: # type: ignore[override]
+    def build_bind(  # type: ignore
+            self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
 
         Args: List[GenTuIdent] = []
@@ -433,7 +435,7 @@ class Py11Enum:
     Enum: GenTuEnum
     Fields: List[Py11EnumField]
 
-    def __init__(self, Enum: GenTuEnum):
+    def __init__(self, Enum: GenTuEnum) -> None:
         self.Enum = Enum
         self.Fields = [Py11EnumField(F) for F in Enum.fields]
 
@@ -539,6 +541,8 @@ class Py11Field:
         self.SetImpl = SetImpl
 
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.FieldParams:
+        if self.Field.type is None:
+            raise ValueError(f"Field {self.Field.name} has no type")
         return pya.FieldParams(py_type(self.Field.type, base_map=base_map),
                                self.getPyName())
 
@@ -546,6 +550,7 @@ class Py11Field:
         b = ast.b
         _self = id_self(Class)
         if self.GetImpl and self.SetImpl:
+            assert self.Field.type
             return ast.XCall(
                 ".def_property",
                 [
@@ -591,7 +596,7 @@ class Py11Class:
     def getCxxName(self) -> QualType:
         return self.Struct.declarationQualName()
 
-    def __init__(self, ast: ASTBuilder, value: GenTuStruct):
+    def __init__(self, ast: ASTBuilder, value: GenTuStruct) -> None:
         self.Struct = value
         self.Fields = []
         self.Methods = []
@@ -765,7 +770,7 @@ class Py11Class:
                 result=QualType.ForName("None"),
                 arguments=[
                     GenTuIdent(name=it.getPyName(),
-                               type=it.Field.type,
+                               type=it.Field.type, # type: ignore
                                value=ast.b.text("None")) for it in self.Fields
                 ],
             ),
@@ -853,7 +858,7 @@ class Py11TypedefPass:
     name: pya.PyType
     base: pya.PyType
 
-    def __init__(self, typedef: GenTuTypedef, base_map: GenTypeMap):
+    def __init__(self, typedef: GenTuTypedef, base_map: GenTypeMap) -> None:
         self.name = py_type(typedef.name, base_map)
         self.base = py_type(typedef.base, base_map)
 
@@ -862,7 +867,7 @@ Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass, Py11Functi
 
 
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
-    return [F for F in Fields if F.Field.type.name not in ["SemId"]]
+    return [F for F in Fields if F.Field.type.name not in ["SemId"]] # type: ignore
 
 
 @beartype

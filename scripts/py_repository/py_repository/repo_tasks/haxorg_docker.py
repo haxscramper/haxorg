@@ -12,7 +12,7 @@ import os
 
 from py_ci.util_scripting import get_docker_cap_flags
 from py_repository.repo_tasks.deps_build import build_develop_deps
-from py_repository.repo_tasks.examples_build import build_examples, run_js_test_example
+from py_repository.repo_tasks.examples_build import build_examples, run_examples, run_js_test_example
 from py_repository.repo_tasks.haxorg_build import build_haxorg, install_haxorg_develop
 from py_repository.repo_tasks.haxorg_codegen import generate_haxorg_sources, generate_python_protobuf_files
 from py_repository.repo_tasks.haxorg_coverage import run_cxx_coverage_merge
@@ -377,7 +377,7 @@ def run_develop_ci(ctx: TaskContext) -> None:
     if conf.develop_ci_conf.build:
         ctx.run(build_haxorg, ctx=ctx)
 
-    if conf.develop_ci_conf.example:
+    if conf.develop_ci_conf.example_build:
         ctx.run(build_examples, ctx=ctx)
 
     if conf.develop_ci_conf.reflection:
@@ -386,6 +386,9 @@ def run_develop_ci(ctx: TaskContext) -> None:
     if conf.develop_ci_conf.test:
         ctx.run(generate_python_protobuf_files, ctx=ctx)
         ctx.run(run_py_tests, ctx=ctx)
+
+    if conf.develop_ci_conf.example_run:
+        ctx.run(run_examples, ctx=ctx)
 
     if conf.develop_ci_conf.coverage and conf.instrument.coverage:
         ctx.run(run_cxx_coverage_merge, ctx=ctx)

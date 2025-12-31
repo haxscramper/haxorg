@@ -20,7 +20,7 @@ else:
 
 
 @pytest.mark.test_release
-def test_enum_field_extract():
+def test_enum_field_extract() -> None:
     enum = refl_test_driver.get_enum("enum CEnum { Member1, Member2 };")
     assert enum.name.name == "CEnum"
     assert len(enum.fields) == 2
@@ -29,7 +29,7 @@ def test_enum_field_extract():
 
 
 @pytest.mark.test_release
-def test_namespaced_enum_extract():
+def test_namespaced_enum_extract() -> None:
     enum = refl_test_driver.get_enum("namespace Space { enum Enum { member1 }; }")
     assert enum.name.name == "Enum"
     assert len(enum.name.Spaces) == 1
@@ -37,7 +37,7 @@ def test_namespaced_enum_extract():
 
 
 @pytest.mark.test_release
-def test_nim_enum_conversion():
+def test_nim_enum_conversion() -> None:
     con = refl_test_driver.get_nim_code(refl_test_driver.get_enum("enum En { Field1, Field2 };"))
     with open("/tmp/a.py", "w") as file:
         pprint(con, stream=file)

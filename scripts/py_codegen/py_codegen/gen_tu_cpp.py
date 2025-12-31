@@ -188,6 +188,7 @@ class GenTuFunction:
         )
 
     def format(self) -> str:
+        assert self.result, "Missing function return type"
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
             [Arg.name + " " + Arg.type.format() for Arg in self.arguments]))
 
@@ -357,7 +358,7 @@ class GenTypeMap:
 
     def get_wrapper_type(self, t: QualType) -> Optional[str]:
         struct = self.get_struct_for_qual_name(t)
-        return struct and struct.reflectionParams.wrapper_name
+        return struct and struct.reflectionParams.wrapper_name # type: ignore
 
     def is_known_type(self, t: QualType) -> bool:
         return t.qual_hash() in self.qual_hash_to_index
@@ -418,13 +419,13 @@ class GenTypeMap:
         # log(CAT).info("Called `fromType`", stack_info=True)
         result = GenTypeMap()
 
-        def callback(obj):
+        def callback(obj: Any) -> None:
             nonlocal result
             match obj:
                 case GenTuStruct() | GenTuTypedef():
                     result.add_type(obj)
 
-        context = []
+        context: List[Any] = []
         iterate_object_tree(types, context, pre_visit=callback)
         return result
 
@@ -456,11 +457,12 @@ class GenConverterWithContext:
     conv: "GenConverter"
     typ: QualType
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         self.conv.context.pop()
 
-    def __enter__(self):
+    def __enter__(self) -> "GenConverterWithContext":
         self.conv.context.append(self.typ)
+        return self
 
 
 @beartype
@@ -546,10 +548,10 @@ class GenConverter:
             for member in record.fields:
                 params.members.append(
                     RecordField(
-                        params=ParmVarParams(
-                            type=member.type,
-                            name=member.name,
-                            isConst=member.isConst,
+                    params=ParmVarParams(
+                        type=member.type if member.type else QualType.ForName("void"),
+                        name=member.name,
+                        isConst=member.isConst,
                             defArg=(self.ast.string(member.value) if isinstance(
                                 member.value, str) else member.value)
                             if member.value else None,
@@ -635,7 +637,7 @@ class GenConverter:
                     EnumParams.Field(
                         doc=DocParams(brief=_field.doc.brief, full=_field.doc.full),
                         name=_field.name,
-                        value=_field.value,
+                        value=str(_field.value) if _field.value else "None",
                     ))
 
             if isToplevel:
@@ -867,7 +869,7 @@ def filter_walk_scope(iterate_context: List[Any]) -> List[QualType]:
                 scope.append(s.name)
 
             case GenTuNamespace():
-                scope.append(QualType.ForName(s.name))
+                scope.append(QualType.ForName(s.name.name))
 
     return scope
 
@@ -879,7 +881,7 @@ def get_type_base_fields(
 ) -> List[GenTuField]:
     fields = []
     for base_sym in value.bases:
-        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(base_sym.name)
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(base_sym.name) # type: ignore
         if base:
             fields.extend(base.fields)
             fields.extend(get_type_base_fields(base, base_map))
@@ -896,7 +898,7 @@ def get_base_list(
 
     def aux(typ: QualType) -> List[QualType]:
         result: List[QualType] = [typ]
-        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(typ.name)
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(typ.name) # type: ignore
         if base:
             for it in base.bases:
                 result.extend(aux(it))
@@ -932,7 +934,7 @@ IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "im
 def sanitize_ident(
     name: str,
     lang_keywords: Set[str],
-    map_operator: Callable[[str], str] = None,
+    map_operator: Optional[Callable[[str], str]] = None,
 ) -> str:
 
     # Operator mappings from C++ to Python
@@ -1142,7 +1144,7 @@ def collect_type_specializations(entries: List[GenTuUnion],
                         rec_type(P)
 
             if base_map.is_typedef(value):
-                rec_type(base_map.get_underlying_type(value))
+                rec_type(base_map.get_underlying_type(value)) # type: ignore
 
             else:
                 rec_type(value)

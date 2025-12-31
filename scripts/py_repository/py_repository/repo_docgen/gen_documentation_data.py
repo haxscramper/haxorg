@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from beartype import beartype
-from beartype.typing import Tuple, Dict, Optional, List, Union, Callable, Any
+from beartype.typing import Tuple, Dict, Optional, List, Union, Callable, Any, Sequence, TypeVar
 from pathlib import Path
 import dominate.tags as tags
 import dominate.util as util
@@ -51,6 +51,9 @@ class DocCodeLine(BaseModel, extra="forbid"):
     Text: str
 
 
+T_CodeLine = TypeVar("T_CodeLine", bound=DocCodeLine)
+
+
 @beartype
 def get_html_path(entry: Union[DocDirectory, DocCodeFile, DocTextFile],
                   html_out_path: Path) -> Path:
@@ -63,11 +66,14 @@ def get_html_path(entry: Union[DocDirectory, DocCodeFile, DocTextFile],
                 entry.RelPath.stem +
                 entry.RelPath.suffix.replace(".", "_")).with_suffix(".html")
 
+        case DocTextFile():
+            return html_out_path.joinpath(entry.RelPath).with_suffix(".html")
+
 
 @beartype
 def get_code_line_span(
     line: DocCodeLine,
-    highilght_lexer,
+    highilght_lexer: Any,
 ) -> Tuple[tags.span, tags.span]:
     tokens = tags.span(_class="code-line-text")
     column = 0
@@ -85,8 +91,8 @@ def get_code_line_span(
 
 @beartype
 def get_html_code_div_base(
-    Lines: List[DocCodeLine],
-    get_line_spans: Callable[[DocCodeLine], List[tags.span]],
+    Lines: Sequence[T_CodeLine],
+    get_line_spans: Callable[[T_CodeLine], List[tags.span]],
 ) -> tags.div:
     div = tags.div(_class="page-tab-content", id="page-code")
 

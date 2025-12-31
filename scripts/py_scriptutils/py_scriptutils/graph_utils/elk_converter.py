@@ -198,8 +198,8 @@ def get_font_metrics(font_path: str) -> Tuple[TTFont, float]:
 
     ttfont = TTFont(font_path)
     units_per_em = ttfont["head"].unitsPerEm
-    _font_cache[font_path] = (ttfont, units_per_em)
-    return ttfont, units_per_em
+    _font_cache[font_path] = (ttfont, float(units_per_em))
+    return ttfont, float(units_per_em)
 
 
 @beartype

@@ -14,7 +14,8 @@ target_link_libraries(
          absl::base
          absl::log
          nlohmann_json::nlohmann_json
-         hstd)
+         hstd
+         reflection_lib)
 
 if(${ORG_USE_PERFETTO})
   target_link_libraries(profdata_merger PRIVATE Perfetto::perfetto)

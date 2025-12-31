@@ -31,7 +31,7 @@ def json_diff(
     path: jsonpath.JSONPath = jsonpath.Root(),
     ignore: Callable[[Json], bool] = lambda x: False,
 ) -> List[DiffItem]:
-    result = []
+    result: List[DiffItem] = []
 
     if ignore(target):
         return result
@@ -44,6 +44,7 @@ def json_diff(
 
     if isinstance(source, (list, tuple)):
         i = 0
+        assert isinstance(target, (list, tuple))
         while i < len(source) and i < len(target):
             assert isinstance(i, int), f"{type(i)} {i}"
             temp_diff = json_diff(source[i], target[i], path.child(Index(i)), ignore)
@@ -64,6 +65,7 @@ def json_diff(
         assert i == max(len(target), len(source))
 
     elif isinstance(source, dict):
+        assert isinstance(target, dict)
         for key in source:
             assert isinstance(key, str), f"{type(key)} {key}"
             if key in target:
@@ -125,8 +127,8 @@ def describe_diff(
     description += f" on path '{path}' "
 
     def get_path(value: Json) -> Json:
-        value: DatumInContext = [item for item in path.find(value)][0]
-        return value.value
+        value_: DatumInContext = [item for item in path.find(value)][0]
+        return value_.value
 
     if it.op == Op.Remove:
         description += f"    {json.dumps(get_path(source), indent=2)}"
@@ -163,7 +165,7 @@ def describe_diff(
 
 
 @beartype
-def assert_subset(main: Json, subset: Json, message: Optional[str] = None):
+def assert_subset(main: Json, subset: Json, message: Optional[str] = None) -> None:
     diff = get_subset_diff(main_set=main, expected_subset=subset)
 
     compare = "Could not find expected subset of values in the main set\n\n"

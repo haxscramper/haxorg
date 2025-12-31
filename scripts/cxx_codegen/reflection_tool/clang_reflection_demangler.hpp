@@ -91,3 +91,19 @@ BinarySymComponentId parseBinarySymbolName(
     std::string const&        name,
     BinaryFileDB&             db,
     BinarySymbolVisitContext& ctx);
+
+namespace llvm::itanium_demangle {
+class Node;
+}
+
+llvm::json::Value demangle_to_json(
+    std::string const&        name,
+    BinarySymbolVisitContext& ctx,
+    int                       depth,
+    int                       max_depth);
+
+llvm::json::Value demangle_to_json(
+    llvm::itanium_demangle::Node const* node,
+    BinarySymbolVisitContext&           ctx,
+    int                                 depth,
+    int                                 max_depth);

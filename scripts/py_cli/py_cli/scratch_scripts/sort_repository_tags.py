@@ -3,7 +3,7 @@
 import pandas as pd
 from py_cli.haxorg_cli import *
 from beartype import beartype
-from beartype.typing import List, Tuple, Set
+from beartype.typing import List, Tuple, Set, Dict, Any, Optional
 from py_haxorg.pyhaxorg_utils import getFlatTags
 from py_scriptutils.script_logging import log
 import py_haxorg.pyhaxorg_wrap as org
@@ -28,8 +28,8 @@ class TagSortingOptions(BaseModel):
         "org-mode file describing the tags. The structure of the file is not important, just that it uses tags in some way"
     )
 
-    output_dir: Path = Field("Directory for all output files")
-    autocomplete_file: Path = Field(default=None, description="Optional file with one tag per line for autocomplete purposes")
+    output_dir: Optional[Path] = Field(default=None, description="Directory for all output files")
+    autocomplete_file: Optional[Path] = Field(default=None, description="Optional file with one tag per line for autocomplete purposes")
 
     cachedir: Optional[Path] = None
 
@@ -40,7 +40,7 @@ class OrgTagDesc():
     tag: tuple[str, ...]
 
 
-def analysis_options(f):
+def analysis_options(f: Any) -> Any:
     return apply_options(f, options_from_model(TagSortingOptions))
 
 
@@ -122,14 +122,14 @@ def find_duplicate_tags(target_count: Dict[OrgTagDesc, int],
 
 @beartype
 def build_tag_tree(target_count: Dict[OrgTagDesc, int]) -> Tree:
-    tree_data = defaultdict(lambda: {"count": 0, "children": defaultdict(dict)})
+    tree_data: Dict[str, Any] = defaultdict(lambda: {"count": 0, "children": defaultdict(dict)})
 
     for tag_desc, count in target_count.items():
         current = tree_data
         for i, part in enumerate(tag_desc.tag):
             if part not in current:
                 current[part] = {"count": 0, "children": defaultdict(dict)}
-            current[part]["count"] += count
+            current[part]["count"] = current[part]["count"] + count
             current = current[part]["children"]
 
     def create_tree_node(data: dict, name: str = "Tags") -> Tree:
@@ -153,6 +153,7 @@ def build_tag_tree(target_count: Dict[OrgTagDesc, int]) -> Tree:
 @beartype
 def generate_tag_files(target_count: Dict[OrgTagDesc, int],
                        glossary_usage: Set[OrgTagDesc], opts: TagSortingOptions) -> None:
+    assert opts.output_dir, "Missing output directory configuration in tag sorting options"
     opts.output_dir.mkdir(parents=True, exist_ok=True)
 
     stats_output = opts.output_dir / "tag_statistics.csv"
@@ -233,14 +234,14 @@ def generate_tag_files(target_count: Dict[OrgTagDesc, int],
               help="Path to config file.")
 @analysis_options
 @click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs) -> None:
+def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
     pack_context(ctx, "root", TagSortingOptions, config=config, kwargs=kwargs)
     opts: TagSortingOptions = ctx.obj["root"]
     parse_opts = org.OrgParseParameters()
 
     dir_opts = org.OrgDirectoryParseParameters()
 
-    def parse_node_impl(path: str):
+    def parse_node_impl(path: str) -> org.Org:
         try:
             log(CAT).info(f"Parsing file {path}")
             result = parseCachedFile(Path(path), opts.cachedir)
@@ -257,9 +258,9 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     target = org.parseDirectoryOpts(str(opts.target_path), dir_opts)
     log(CAT).info("Directory parse complete")
 
-    target_count = defaultdict(lambda: 0)
+    target_count: Dict[OrgTagDesc, int] = defaultdict(lambda: 0)
 
-    def visit_target(node: org.Org):
+    def visit_target(node: org.Org) -> None:
         if isinstance(node, org.HashTag):
             for tag in getFlatTags(node):
                 target_count[OrgTagDesc(tuple(tag))] += 1
@@ -270,7 +271,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
     glossary_usage = set()
 
-    def visit_glossary(node: org.Org):
+    def visit_glossary(node: org.Org) -> None:
         if isinstance(node, org.HashTag):
             for tag in getFlatTags(node):
                 glossary_usage.add(OrgTagDesc(tuple(tag)))

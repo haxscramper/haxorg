@@ -93,7 +93,8 @@ def get_exporter_methods(
                                     QualType.ForName("R", RefKind=ReferenceKind.LValue),
                                     "res"),
                                 GenTuIdent(
-                                    t_cr(field.type),
+                                    t_cr(field.type)
+                                    if field.type else QualType.ForName("void"),
                                     "object",
                                 ),
                             ],
@@ -154,7 +155,7 @@ def get_imm_serde(
 ) -> List[GenTuPass]:
     serde: List[GenTuStruct] = []
 
-    def aux(it: Any)  -> None:
+    def aux(it: Any) -> None:
         match it:
             case GenTuStruct():
                 if it.IsAbstract:
@@ -356,11 +357,12 @@ def topological_sort_entries(entries: List[GenTuUnion]) -> List[GenTuUnion]:
 
 
 @beartype
-def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuStruct]:
+def expand_type_groups(ast: ASTBuilder,
+                       types: List[GenTuStruct]) -> List[GenTuEntry | GenTuField]:
 
     @beartype
     def rec_expand_group(record: GenTuTypeGroup,) -> List[GenTuEntry | GenTuField]:
-        result = []
+        result: List[GenTuEntry | GenTuField] = []
         typeNames: List[QualType] = []
 
         for item in record.types:
@@ -562,10 +564,10 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
 
 @beartype
-def mutate_type_to_immutable(obj: QualType):
+def mutate_type_to_immutable(obj: QualType) -> None:
     obj.dbg_origin += "imm_write"
     match obj:
-        case QualType(name="SemId", parameters=[]):
+        case QualType(name="SemId", Parameters=[]):
             obj.name = "ImmId"
             obj.Spaces = [n_imm()]
 
@@ -611,7 +613,7 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
     IMM_BOX = t("ImmBox", [n_hstd_ext()])
     ORG_SPACE = n_imm()
 
-    def impl(obj: Any):
+    def impl(obj: Any) -> None:
         match obj:
             case QualType():
                 mutate_type_to_immutable(obj)
@@ -693,7 +695,7 @@ def to_base_types(obj: Any) -> Any:
         else:
             return 'Type({}) - {}'.format(type(obj).__name__, str(obj))
 
-    seen = set()
+    seen: set[Any] = set()
     return aux(obj, seen)
 
 
@@ -802,7 +804,7 @@ def collect_type_field_groups(types: List[GenTuStruct],
 def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypenameGroups:
     res = PyhaxorgTypenameGroups()
 
-    def aux(it):
+    def aux(it: GenTuStruct | GenTuEnum | GenTuTypedef | GenTuFunction) -> None:
         match it:
             case GenTuStruct() | GenTuEnum():
                 flat = it.name.flatQualScope() + [it.name.withoutAllScopeQualifiers()]
@@ -895,7 +897,7 @@ def gen_pyhaxorg_field_iteration_macros(
                         f"#define EACH_{macro_namespace}_ORG_{group.name}_FIELD_WITH_BASES(__IMPL_BASE) \\"
                     ))
 
-            def impl_field(field: GenTuField):
+            def impl_field(field: GenTuField) -> None:
                 ast.b.add_at(
                     def_stack,
                     ast.b.line([
@@ -904,7 +906,8 @@ def gen_pyhaxorg_field_iteration_macros(
                             "__IMPL_FIELD",
                             [
                                 # Type of the field
-                                ast.pars(ast.Type(field.type)),
+                                ast.pars(ast.Type(field.type)) if field.type else
+                                ast.string("void"),  # type: ignore[arg-type]
                                 # field name without changes
                                 ast.string(field.name),
                                 # field name for `getField` etc.
@@ -974,14 +977,15 @@ class PyhaxorgTypeGroups():
     expanded: List[GenTuStruct] = field(default_factory=list)
     immutable: List[GenTuStruct] = field(default_factory=list)
     tu: ConvTu = field(default_factory=lambda: ConvTu())
-    base_map: GenTypeMap = field(default_factory=lambda: GenTypeMap)
+    base_map: GenTypeMap = field(
+        default_factory=lambda: GenTypeMap())  # type: ignore[assignment]
     full_enums: List[GenTuEnum] = field(default_factory=list)
     imm_id_specializations: List[GenTuStruct] = field(default_factory=list)
     specializations: List[TypeSpecialization] = field(default_factory=list)
 
     def get_entries_for_wrapping(self) -> List[GenTuUnion]:
 
-        def aux(e: GenTuEntry, ind: int):
+        def aux(e: GenTuEntry, ind: int) -> None:
             match e:
                 case GenTuStruct():
                     log(CAT).info(

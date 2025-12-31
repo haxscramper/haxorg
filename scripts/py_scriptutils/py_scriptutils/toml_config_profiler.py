@@ -19,10 +19,10 @@ from py_scriptutils.script_logging import log
 class DefaultWrapper(click.ParamType):
     name = "DefaultWrapper"
 
-    def __init__(self, base_type):
+    def __init__(self, base_type: Any) -> None:
         self.base_type = base_type
 
-    def convert(self, value, param, ctx):
+    def convert(self, value: Any, param: Any, ctx: Any) -> Any:
         if isinstance(value, DefaultWrapperValue):
             return value
 
@@ -33,11 +33,11 @@ class DefaultWrapper(click.ParamType):
 
 class DefaultWrapperValue:
     # Your custom type logic here
-    def __init__(self, value, is_provided: bool = True):
+    def __init__(self, value: Any, is_provided: bool = True) -> None:
         self.value = value
         self.is_provided = is_provided
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"DefaultWrapperValue({self.value}, {self.is_provided})"
 
 
@@ -72,12 +72,15 @@ def merge_cli_model(
 
     final_data = merge_dicts([on_default, file_config, on_cli])
     # trunk-ignore(mypy/attr-defined)
-    return ModelT.model_validate(final_data)
+    return ModelT.model_validate(final_data)  # type: ignore[attr-defined]
+
 
 T = TypeVar("T")
 
+
 @beartype
-def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict, config: Optional[str]) -> T:
+def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict,
+                  config: Optional[str]) -> T:
     """
     Convert the provided CLI parameters into the object of type `T` for
     more typesafe usage
@@ -88,7 +91,7 @@ def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict, config: 
     return conf
 
 
-def py_type_to_click(T):
+def py_type_to_click(T: Any) -> Any:
     if T is str:
         return click.STRING
 
@@ -99,8 +102,8 @@ def py_type_to_click(T):
         return click.STRING
 
 
-def options_from_model(model: BaseModel) -> List[click.option]:
-    result: List[click.option] = []
+def options_from_model(model: BaseModel) -> List[Any]:
+    result: List[Any] = []
     for name, field in model.model_fields.items():
         has_default = field.default is not None and field.default != PydanticUndefined
         is_multiple = get_origin(field.annotation) is list
@@ -111,7 +114,7 @@ def options_from_model(model: BaseModel) -> List[click.option]:
                 type=DefaultWrapper(py_type_to_click(field.annotation)),
                 help=field.description,
                 expose_value=True,
-                **({
+                **({  # type: ignore
                     "default": [DefaultWrapperValue(it, False) for it in field.default] if
                                is_multiple else DefaultWrapperValue(field.default, False)
                 } if has_default else {}),
@@ -123,6 +126,7 @@ def options_from_model(model: BaseModel) -> List[click.option]:
 
 @beartype
 def merge_dicts(dicts: List[Dict]) -> Dict:
+
     def recursive_merge(base: Dict, new: Dict) -> None:
         for key, value in new.items():
             if (isinstance(value, dict) and key in base and isinstance(base[key], dict)):
@@ -137,7 +141,7 @@ def merge_dicts(dicts: List[Dict]) -> Dict:
     return result
 
 
-def apply_options(f, options):
+def apply_options(f: Any, options: Any) -> Any:
     return functools.reduce(lambda x, opt: opt(x), options, f)
 
 
@@ -192,7 +196,7 @@ def find_config_files(with_trace: bool, potential_paths: List[str]) -> List[str]
 
 class SafeDict(dict):
 
-    def __missing__(self, key):
+    def __missing__(self, key: str) -> str:
         return '{' + key + '}'
 
 
@@ -270,21 +274,23 @@ def run_config_provider(
 
 
 @beartype
-def make_config_provider(config_file_name: str, with_trace: bool = False):
+def make_config_provider(config_file_name: str, with_trace: bool = False) -> Any:
 
-    def implementation(file_path: str, cmd_name: str):
+    def implementation(file_path: str, cmd_name: str) -> Dict:
         D = run_config_provider([file_path], with_trace=with_trace)
         return D
 
     return implementation
 
+
 @beartype
 def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict,
-                 config: Optional[str]):
+                 config: Optional[str]) -> None:
     ctx.ensure_object(dict)
     ctx.obj[name] = get_cli_model(ctx, T, kwargs, config)
 
+
 @beartype
-def get_context(ctx: click.Context, T: type, kwargs: dict, config: Optional[str]):
+def get_context(ctx: click.Context, T: type, kwargs: dict, config: Optional[str]) -> Any:
     pack_context(ctx, "tmp", T, kwargs=kwargs, config=config)
     return ctx.obj["tmp"]

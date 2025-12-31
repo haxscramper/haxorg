@@ -3,7 +3,7 @@
 import pandas as pd
 from py_cli.haxorg_cli import *
 from beartype import beartype
-from beartype.typing import List
+from beartype.typing import List, Any
 from collections import defaultdict
 from py_haxorg.pyhaxorg_utils import getFlatTags
 from py_scriptutils.script_logging import log
@@ -17,8 +17,8 @@ class NodeCloudOptions(BaseModel):
     cachedir: Optional[Path] = None
 
 
-def analysis_options(f):
-    return apply_options(f, options_from_model(NodeCloudOptions))
+def analysis_options(f: Any) -> Any: 
+    return apply_options(f, options_from_model(NodeCloudOptions)) 
 
 
 @click.command()
@@ -28,12 +28,12 @@ def analysis_options(f):
               help="Path to config file.")
 @analysis_options
 @click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs) -> None:
+def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
     pack_context(ctx, "root", NodeCloudOptions, config=config, kwargs=kwargs)
     opts: NodeCloudOptions = ctx.obj["root"]
-    count: defaultdict[str, int] = defaultdict(lambda: 0)
+    count: defaultdict[tuple[str, str], int] = defaultdict(lambda: 0)
 
-    def visit(node: org.Org):
+    def visit(node: org.Org) -> None:
         if isinstance(node, org.Word):
             count[("word", node.text)] += 1
 

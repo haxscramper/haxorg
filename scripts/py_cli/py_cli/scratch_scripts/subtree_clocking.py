@@ -3,7 +3,7 @@
 import pandas as pd
 from py_cli.haxorg_cli import *
 from beartype import beartype
-from beartype.typing import List, Tuple
+from beartype.typing import List, Tuple, Any
 from py_scriptutils.script_logging import log
 from datetime import datetime, timedelta
 from py_exporters.export_ultraplain import ExporterUltraplain
@@ -42,7 +42,7 @@ class ClockTimeAnalysisOptions(BaseModel):
     cachedir: Optional[Path] = None
 
 
-def analysis_options(f):
+def analysis_options(f: Any) -> Any:
     return apply_options(f, options_from_model(ClockTimeAnalysisOptions))
 
 
@@ -105,7 +105,7 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
               help="Path to config file.")
 @analysis_options
 @click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs) -> None:
+def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
     pack_context(ctx, "root", ClockTimeAnalysisOptions, config=config, kwargs=kwargs)
     opts: ClockTimeAnalysisOptions = ctx.obj["root"]
     subtrees: List[SubtreeInfo] = []
@@ -116,7 +116,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     df = pd.DataFrame([model.model_dump() for model in subtrees])
     df['tags'] = df['tags'].apply(lambda x: ','.join(x))
 
-    def to_seconds(it: Optional[timedelta | datetime]):
+    def to_seconds(it: Optional[timedelta | datetime]) -> Optional[float]:
         if not it or pd.isna(it):
             return None
 

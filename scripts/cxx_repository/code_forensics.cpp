@@ -27,11 +27,13 @@
 using namespace hstd;
 
 
+namespace {
 void CreateTables(SQLite::Database& db) {
     auto        path = __CURRENT_FILE_DIR__ / "code_forensics.sql";
     std::string sql  = readFile(path);
     db.exec(sql);
 }
+} // namespace
 
 
 i64 idcast(u64 value) { return static_cast<i64>(value); }

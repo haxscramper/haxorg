@@ -10,14 +10,14 @@ class ExportSQliteOptions(BaseModel):
 CAT = "haxorg.export.sqlite"
 
 
-def export_sqlite_options(f):
+def export_sqlite_options(f: Any) -> Any:
     return apply_options(f, options_from_model(ExportSQliteOptions))
 
 
 @click.command("sqlite")
 @export_sqlite_options
 @click.pass_context
-def export_sqlite(ctx: click.Context, config: Optional[str] = None, **kwargs):
+def export_sqlite(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
     pack_context(ctx, "sqlite", ExportSQliteOptions, config=config, kwargs=kwargs)
     run = get_run(ctx)
     with run.event("Run sqlite export", CAT):
@@ -41,8 +41,8 @@ def export_sqlite(ctx: click.Context, config: Optional[str] = None, **kwargs):
         engine: Engine = create_engine("sqlite:///" + str(opts.outfile))
         Base.metadata.create_all(engine)
         with run.event("Register all documents", CAT):
-            for node, file in nodes:
-                with run.event("Register document", CAT, dict(path=str(file))):
-                    registerDocument(node, engine, file)
+            for node, file_path in nodes:
+                with run.event("Register document", CAT, dict(path=file_path)):
+                    registerDocument(node, engine, file_path)
 
     run.finalize()

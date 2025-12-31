@@ -64,7 +64,7 @@ def is_empty(line: DocCodePyLine) -> bool:
 
 @beartype
 def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
-    unique_coverage_context_spans: List[Tuple[range[int], cov_docpy.LineCoverage]] = []
+    unique_coverage_context_spans: List[Tuple[range, cov_docpy.LineCoverage]] = []
     for key, group in itertools.groupby(
         (pair for pair in enumerate(code_file.Lines) if not is_empty(pair[1])),
             lambda it: it[1].TestCoverage and it[1].TestCoverage.CoveredBy,

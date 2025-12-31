@@ -1970,12 +1970,12 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics
   }
 }
 
-void org::algo::proto_serde<::orgproto::None, org::sem::None>::write(::orgproto::None* out, org::sem::None const& in) {
-  org::algo::proto_serde<::orgproto::None, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::NoNode, org::sem::NoNode>::write(::orgproto::NoNode* out, org::sem::NoNode const& in) {
+  org::algo::proto_serde<::orgproto::NoNode, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::None, org::sem::None>::read(::orgproto::None const& out, proto_write_accessor<org::sem::None> in) {
-  org::algo::proto_serde<::orgproto::None, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::NoNode, org::sem::NoNode>::read(::orgproto::NoNode const& out, proto_write_accessor<org::sem::NoNode> in) {
+  org::algo::proto_serde<::orgproto::NoNode, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
 void org::algo::proto_serde<::orgproto::ErrorItem, org::sem::ErrorItem>::write(::orgproto::ErrorItem* out, org::sem::ErrorItem const& in) {

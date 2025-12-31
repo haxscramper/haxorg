@@ -23,7 +23,7 @@ class QualTypeKind(str, Enum):
     Array = "Array"
     TypeExpr = "TypeExpr"
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Any:
         yield self.name
 
 
@@ -32,10 +32,10 @@ class ReferenceKind(str, Enum):
     LValue = "LValue"
     RValue = "RValue"
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Any:
         yield self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
 
@@ -105,18 +105,18 @@ class QualType(BaseModel, extra="forbid"):
         else:
             return None
 
-    def test(self, met: bool) -> bool:
-        return self.meta.get(met, False)
+    def test(self, met: str) -> bool:
+        return bool(self.meta.get(met, False))
 
     def isOrgType(self) -> bool:
         return self.meta.get("isOrgType", False)
 
     @staticmethod
-    def ForName(name: str, **args) -> 'QualType':
+    def ForName(name: str, **args: Any) -> "QualType":
         return QualType(name=name, **args)
 
     @staticmethod
-    def ForExpr(expr: str, **args) -> 'QualType':
+    def ForExpr(expr: str, **args: Any) -> "QualType":
         return QualType(expr=expr, Kind=QualTypeKind.TypeExpr, **args)
 
     def flatten(self) -> "QualType":
@@ -125,10 +125,10 @@ class QualType(BaseModel, extra="forbid"):
     def withDbgOrigin(self, msg: str) -> "QualType":
         return self.model_copy(update=dict(dbg_origin=self.dbg_origin + msg))
 
-    def asConstRef(self) -> 'QualType':
+    def asConstRef(self) -> "QualType":
         return self.model_copy(update=dict(isConst=True, RefKind=ReferenceKind.LValue))
 
-    def asRef(self) -> 'QualType':
+    def asRef(self) -> "QualType":
         return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
 
     def flatQualScope(self) -> List["QualType"]:
@@ -147,10 +147,10 @@ class QualType(BaseModel, extra="forbid"):
         "Return qualified name for the type, dropping all namespace parents (but leaving non-namespaces)"
         return [it for it in self.flatQualScope() if not it.isNamespace]
 
-    def asPtr(self, ptrCount: int = 1) -> 'QualType':
+    def asPtr(self, ptrCount: int = 1) -> "QualType":
         return self.model_copy(update=dict(ptrCount=ptrCount))
 
-    def withGlobalSpace(self) -> 'QualType':
+    def withGlobalSpace(self) -> "QualType":
         return self.model_copy(update=dict(isGlobalNamespace=True))
 
     def flatSpaceNames(self) -> List[str]:
@@ -264,7 +264,7 @@ class QualType(BaseModel, extra="forbid"):
                 ))
 
             else:
-                result.append((T.name,))
+                result.append((T.name,))  # type: ignore[arg-type]
 
         aux(self)
         return tuple(result)
@@ -405,6 +405,8 @@ class QualType(BaseModel, extra="forbid"):
 
             match Typ.Kind:
                 case QualTypeKind.FunctionPtr:
+                    assert Typ.func
+                    assert Typ.func.ReturnTy, "Missing return type for function pointer"
                     result = "{spaces}FUNC:{origin}({args})".format(
                         spaces=spaces,
                         origin=aux(Typ.func.ReturnTy),
@@ -443,11 +445,11 @@ class QualType(BaseModel, extra="forbid"):
         return aux(self)
         # return str(self.flat_repr_flatten())
 
-    def asNamespace(self, is_namespace=True) -> "QualType":
+    def asNamespace(self, is_namespace: bool = True) -> "QualType":
         self.isNamespace = is_namespace
         return self
 
-    def withVerticalParams(self, params=True) -> "QualType":
+    def withVerticalParams(self, params: bool = True) -> "QualType":
         self.verticalParamList = params
         return self
 
@@ -487,7 +489,7 @@ class TemplateParams:
     Stacks: List[TemplateGroup] = field(default_factory=list)
 
     @staticmethod
-    def FinalSpecialization():
+    def FinalSpecialization() -> "TemplateParams":
         return TemplateParams(Stacks=[TemplateGroup()])
 
 
@@ -737,10 +739,10 @@ class SwitchStmtParams:
 @dataclass
 class ASTBuilder(base.AstbuilderBase):
 
-    def __init__(self, in_b: TextLayout):
+    def __init__(self, in_b: TextLayout) -> None:
         self.b = in_b
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "cpp.ASTBuilder()"
 
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
@@ -779,7 +781,7 @@ class ASTBuilder(base.AstbuilderBase):
         Stmt: bool = False,
         Line: bool = True,
         LineParameters: bool = True,
-    ):
+    ) -> BlockId:
         result = self.b.line([func])
         if Params is not None:
             self.b.add_at(result, self.string("<"))
@@ -1038,7 +1040,7 @@ class ASTBuilder(base.AstbuilderBase):
     def Addr(self, expr: BlockId) -> BlockId:
         return self.b.line([self.string("&"), expr])
 
-    def Scoped(self, scope: QualType, expr: BlockId):
+    def Scoped(self, scope: QualType, expr: BlockId) -> BlockId:
         return self.b.line([self.Type(scope, noQualifiers=True), self.string("::"), expr])
 
     def Throw(self, expr: BlockId) -> BlockId:
@@ -1485,6 +1487,7 @@ class ASTBuilder(base.AstbuilderBase):
 
         match type_.Kind:
             case QualTypeKind.FunctionPtr:
+                assert type_.func
                 pointer_type = [self.Type(type_.func.Class),
                                 self.string("::")] if type_.func.Class else []
 
@@ -1498,6 +1501,7 @@ class ASTBuilder(base.AstbuilderBase):
                 ])
 
             case QualTypeKind.TypeExpr:
+                assert type_.expr
                 return self.string(type_.expr + get_dbg_str())
 
             case QualTypeKind.Array:

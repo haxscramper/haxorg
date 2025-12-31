@@ -12,13 +12,20 @@ from sqlalchemy.orm import Session
 from pathlib import Path
 from beartype import beartype
 from pydantic import BaseModel, Field
-from beartype.typing import List, Dict, Optional
+from beartype.typing import List, Dict, Optional, Type, Any
 from py_scriptutils.script_logging import log
 import coverage.numbits
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.declarative import DeclarativeMeta
+    BaseType: Type[DeclarativeMeta]
+else:
+    BaseType = declarative_base()
 
 CAT = "docgen"
 
-Base = declarative_base()
+Base: Type[Any] = declarative_base()
 
 
 class CoverageSchema(Base):
@@ -106,13 +113,14 @@ def parse_test_name(text: str) -> Optional[TestName]:
             
             case _:
                 raise ValueError(text)
+    return None
 
 
 class LineCoverage(BaseModel, extra="forbid"):
     CoveredBy: List[TestName] = Field(default_factory=list)
 
 
-def as_dict(row):
+def as_dict(row: Any) -> Dict[str, Any]:
     if row:
         return {column.name: getattr(row, column.name) for column in row.__table__.columns}
     return {}
@@ -133,7 +141,8 @@ def get_coverage(session: Session, path: Path) -> Dict[int, LineCoverage]:
                 ).all():
             test_name = parse_test_name(context.context)
             if test_name and test_name.subname == "run":
-                line_numbers = coverage.numbits.numbits_to_nums(row.numbits)
+                numbits_bytes = row.numbits if isinstance(row.numbits, bytes) else bytes(row.numbits)
+                line_numbers = coverage.numbits.numbits_to_nums(numbits_bytes)
                 for line in line_numbers:
                     result.setdefault(line - 1,
                                       LineCoverage()).CoveredBy.append(test_name)

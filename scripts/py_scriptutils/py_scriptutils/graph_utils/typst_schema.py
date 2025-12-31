@@ -107,7 +107,7 @@ from typing import Any, List, Union
 class TypstGenerator:
     """Generates Typst document from schema"""
 
-    def __init__(self, indent_size: int = 2):
+    def __init__(self, indent_size: int = 2) -> None:
         self.indent_size = indent_size
 
     def generate(self, node: TypstNode, indent: int = 0) -> str:

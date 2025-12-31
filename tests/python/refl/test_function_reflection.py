@@ -17,7 +17,7 @@ import py_codegen.astbuilder_cpp as cpp
 
 
 @pytest.mark.test_release
-def test_function_extract_0_args():
+def test_function_extract_0_args() -> None:
     func = refl_test_driver.get_function("int get_something();")
     assert func.name == "get_something"
     assert len(func.arguments) == 0
@@ -25,7 +25,7 @@ def test_function_extract_0_args():
 
 
 @pytest.mark.test_release
-def test_function_extract_args():
+def test_function_extract_args() -> None:
     func = refl_test_driver.get_function("int do_something(int first, char second);")
     assert func.name == "do_something"
     assert len(func.arguments) == 2
@@ -37,7 +37,7 @@ def test_function_extract_args():
 
 
 @pytest.mark.test_release
-def test_function_const_ref():
+def test_function_const_ref() -> None:
     func = refl_test_driver.get_function("void enable_file_trace(int const&);")
     assert func.name == "enable_file_trace"
     t = func.arguments[0].type
@@ -46,7 +46,7 @@ def test_function_const_ref():
     assert t.RefKind == ReferenceKind.LValue
 
 @pytest.mark.test_release
-def test_method_const_ref():
+def test_method_const_ref() -> None:
     struct = refl_test_driver.get_struct("struct S { void enable_file_trace(int const&); };")
     assert len(struct.methods) == 1
     func = struct.methods[0]

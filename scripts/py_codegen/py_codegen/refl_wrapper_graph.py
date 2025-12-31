@@ -134,16 +134,17 @@ def hash_qual_type(
     parts: List[str | int] = [hash(t.Kind)]
     match t.Kind:
         case QualTypeKind.FunctionPtr:
-            parts.append(hash_qual_type(
-                t.func.ReturnTy,
-                with_namespace=with_namespace,
-            ))
-
-            for T in t.func.Args:
+                assert t.func
                 parts.append(hash_qual_type(
-                    T,
+                    t.func.ReturnTy,
                     with_namespace=with_namespace,
                 ))
+
+                for T in t.func.Args:
+                    parts.append(hash_qual_type(
+                        T,
+                        with_namespace=with_namespace,
+                    ))
 
         case QualTypeKind.Array:
             pass
@@ -504,7 +505,7 @@ class GenGraph:
         }
 
         # Function to get the SCC index for a set of vertices
-        def get_scc_indices(sub: GenGraph.Sub):
+        def get_scc_indices(sub: GenGraph.Sub) -> set[int]:
             return {vertex_to_scc[v] for v in sub.nodes if v in vertex_to_scc}
 
         # Group vertex sets by their SCCs and directly pass subgraphs that are not

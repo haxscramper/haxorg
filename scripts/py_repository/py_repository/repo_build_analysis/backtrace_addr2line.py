@@ -10,8 +10,9 @@
 import re
 import subprocess
 from collections import defaultdict
+from typing import List, Optional, Dict
 
-def get_source_locations(binary_path, addresses):
+def get_source_locations(binary_path: str, addresses: List[str]) -> Optional[List[str]]:
     try:
         # Call addr2line to get the source location
         print(binary_path)
@@ -22,7 +23,7 @@ def get_source_locations(binary_path, addresses):
         print(f"Error calling addr2line: {e}")
         return None
 
-def process_backtrace(backtrace):
+def process_backtrace(backtrace: List[str]) -> List[str]:
     # Regex pattern to match lines with binary path and address
     pattern = r"(\/\S+)\+0x([a-fA-F0-9]+)"
     binary_addresses = defaultdict(list)
@@ -34,10 +35,11 @@ def process_backtrace(backtrace):
             binary_addresses[binary_path].append(address)
 
     # Call addr2line for each binary
-    source_locations = {}
+    source_locations: Dict[str, str] = {}
     for binary, addresses in binary_addresses.items():
         locations = get_source_locations(binary, addresses)
-        source_locations.update(dict(zip(addresses, locations)))
+        if locations:
+            source_locations.update(dict(zip(addresses, locations)))
 
     # Second pass: replace addresses with source locations in backtrace
     processed_backtrace = []
@@ -54,7 +56,7 @@ def process_backtrace(backtrace):
 
     return processed_backtrace
 
-def main():
+def main() -> None:
     with open("/tmp/org_stderr.txt", "r") as file:
         backtrace = file.readlines()
 

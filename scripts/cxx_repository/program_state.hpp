@@ -96,13 +96,16 @@ struct cli_config_config {
     /// paths in this list.
     hstd::Vec<std::string> debug_paths = {};
     cli_diff_config        diffopts    = cli_diff_config{};
+    /// Only generate database for the first N commits.
+    hstd::Opt<int> max_commit_idx = std::nullopt;
 
     DESC_FIELDS(
         cli_config_config,
         (verbose_consistency_checks,
          debug_commits,
          debug_paths,
-         diffopts));
+         diffopts,
+         max_commit_idx));
 };
 
 struct cli_config {

@@ -1,8 +1,13 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import declarative_base
 from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn
+from typing import TYPE_CHECKING, Type
 
-Base = declarative_base()
+if TYPE_CHECKING:
+    from sqlalchemy.orm.decl_api import DeclarativeMeta
+    Base: Type[DeclarativeMeta]
+else:
+    Base = declarative_base()
 
 
 

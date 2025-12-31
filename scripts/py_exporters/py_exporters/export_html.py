@@ -7,12 +7,12 @@ import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 from dataclasses import dataclass
-from beartype.typing import Literal, Optional, Callable, Any
+from beartype.typing import Literal, Optional, Callable, Any, List
 
 CAT = "haxorg.export.html"
 
 
-def add_html(html, sub):
+def add_html(html: tags.html_tag | List[tags.html_tag], sub: Any) -> None:
     if isinstance(sub, list):
         if isinstance(html, list):
             html.append(sub)
@@ -29,17 +29,14 @@ def add_html(html, sub):
             html.add(sub)
 
 
-def add_new(html, sub):
+def add_new(html: tags.html_tag, sub: Any) -> tags.html_tag:
     add_html(html, sub)
     return html
 
 
 class ExporterHtml(ExporterBase):
 
-    def __init__(
-        self,
-        get_break_tag: Optional[Callable[[org.Newline], Any]] = None
-    ):
+    def __init__(self, get_break_tag: Optional[Callable[[org.Newline], Any]] = None) -> None:
         super().__init__(self)
         self.get_break_tag = get_break_tag
 
@@ -52,7 +49,6 @@ class ExporterHtml(ExporterBase):
 
         else:
             return self.get_break_tag(node)
-            
 
     def evalBigIdent(self, node: org.BigIdent) -> text:
         return text(node.text)
@@ -111,14 +107,14 @@ class ExporterHtml(ExporterBase):
 
         return res
 
-    def evalParagraph(self, node: org.Paragraph):
-        par = []
+    def evalParagraph(self, node: org.Paragraph) -> List[tags.html_tag]:
+        par: List[tags.html_tag] = []
         for sub in node:
             add_html(par, self.eval(sub))
 
         return par
 
-    def evalSubtree(self, node: org.Subtree):
+    def evalSubtree(self, node: org.Subtree) -> List[tags.html_tag]:
         tree = None
 
         match node.level:

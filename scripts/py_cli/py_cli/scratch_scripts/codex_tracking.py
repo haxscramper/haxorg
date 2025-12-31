@@ -3,7 +3,7 @@
 import pandas as pd
 from py_cli.haxorg_cli import *
 from beartype import beartype
-from beartype.typing import List, Tuple
+from beartype.typing import List, Tuple, Any
 from py_haxorg.pyhaxorg_utils import getFlatTags
 from py_scriptutils.script_logging import log
 import py_haxorg.pyhaxorg_wrap as org
@@ -30,8 +30,8 @@ class RadioEntry:
     post_context: List[org.Org] = field(default_factory=list)
 
 
-def analysis_options(f):
-    return apply_options(f, options_from_model(CodexTrackingOptions))
+def analysis_options(f: Any) -> Any:
+    return apply_options(f, options_from_model(CodexTrackingOptions)) 
 
 
 def format_dataframe_for_file(df: pd.DataFrame) -> str:
@@ -60,7 +60,7 @@ def format_dataframe_for_file(df: pd.DataFrame) -> str:
               help="Path to config file.")
 @analysis_options
 @click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs) -> None:
+def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
     pack_context(ctx, "root", CodexTrackingOptions, config=config, kwargs=kwargs)
     opts: CodexTrackingOptions = ctx.obj["root"]
     target_node = parseCachedFile(opts.target_file, opts.cachedir)
@@ -72,12 +72,12 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     radio_entries: List[RadioEntry] = list()
 
     @beartype
-    def visit_node(node: org.Org, path):
+    def visit_node(node: org.Org, path: Any) -> Any:
         match node:
             case org.Paragraph():
                 groups: List[org.AstTrackingGroup] = org.getSubnodeGroups(node, tracking)
 
-                def clamp(value: int, min: int, max: int) -> max:
+                def clamp(value: int, min: int, max: int) -> int:
                     if value < min:
                         return min
 

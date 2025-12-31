@@ -33,7 +33,7 @@ class TypstExportOptions(BaseModel, extra="forbid"):
 CAT = "haxorg.export.typst"
 
 
-def export_typst_options(f):
+def export_typst_options(f: Any) -> Any:
     return apply_options(f, options_from_model(TypstExportOptions))
 
 
@@ -44,7 +44,7 @@ from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
 @click.command("typst")
 @export_typst_options
 @click.pass_context
-def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
+def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
     pack_context(ctx, "typst", TypstExportOptions, config=config, kwargs=kwargs)
     opts: TypstExportOptions = ctx.obj["typst"]
     parse_opts = org.OrgParseParameters()

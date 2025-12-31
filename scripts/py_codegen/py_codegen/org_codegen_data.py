@@ -52,7 +52,7 @@ def t_nest_shared(name: Union[str, QualType], Spaces: List[QualType] = []) -> Qu
 
 
 @beartype
-def k_args(obj: Any, **kwargs) -> Any:
+def k_args(obj: Any, **kwargs: Any) -> Any:
     for key, value in kwargs.items():
         obj.__setattr__(key, value)
 
@@ -69,7 +69,7 @@ def t_cr(arg: QualType) -> QualType:
     return arg.model_copy(update=dict(RefKind=ReferenceKind.LValue, isConst=True))
 
 
-def t_var(*args) -> QualType:
+def t_var(*args: QualType) -> QualType:
     return QualType(name="Variant", Parameters=[*args], Spaces=[n_hstd()])
 
 
@@ -114,12 +114,12 @@ def id_field(id: str, name: str, doc: AnyDoc = GenTuDoc("")) -> GenTuField:
 
 
 @beartype
-def vec_field(typ: QualType, name: str, doc: AnyDoc = GenTuDoc("")):
+def vec_field(typ: QualType, name: str, doc: AnyDoc = GenTuDoc("")) -> GenTuField:
     return GenTuField(t_vec(typ), name, org_doc(doc), value="{}")
 
 
 @beartype
-def opt_field(typ: QualType, name: str, doc: AnyDoc = GenTuDoc("")):
+def opt_field(typ: QualType, name: str, doc: AnyDoc = GenTuDoc("")) -> GenTuField:
     return GenTuField(
         type=t_opt(typ),
         name=name,
@@ -129,17 +129,17 @@ def opt_field(typ: QualType, name: str, doc: AnyDoc = GenTuDoc("")):
 
 
 @beartype
-def org_function(result: QualType, name: str, *args, **kwargs) -> GenTuFunction:
+def org_function(result: QualType, name: str, *args: Any, **kwargs: Any) -> GenTuFunction:
     return GenTuFunction(result, name, *args, **kwargs)
 
 
 @beartype
 def org_field(
-        typ: QualType,
-        name: str,
-        doc: AnyDoc = GenTuDoc(""),
-        value: Optional[Union[BlockId, str]] = None,
-):
+    typ: QualType,
+    name: str,
+    doc: AnyDoc = GenTuDoc(""),
+    value: Optional[Union[BlockId, str]] = None,
+) -> GenTuField:
     return GenTuField(type=typ, name=name, doc=org_doc(doc), value=value)
 
 
@@ -206,7 +206,7 @@ def default_constructor_method(name: str) -> GenTuFunction:
 #endregion
 
 
-def d_org(name: str, *args, **kwargs) -> GenTuStruct:
+def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
     res = GenTuStruct(
         QualType(
             name=name,
@@ -277,7 +277,7 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
 
 
 @beartype
-def d_simple_enum(name: QualType, doc: AnyDoc, *args):
+def d_simple_enum(name: QualType, doc: AnyDoc, *args) -> GenTuEnum:
     return GenTuEnum(
         name,
         org_doc(doc),
@@ -615,7 +615,7 @@ def get_subtree_property_types() -> List[GenTuStruct]:
 #region org-types
 
 
-def get_sem_bases():
+def get_sem_bases() -> List[GenTuStruct]:
     return [
         d_org(
             "ErrorItem",
@@ -814,7 +814,7 @@ def get_sem_bases():
     ]
 
 
-def get_sem_commands():
+def get_sem_commands() -> List[GenTuStruct]:
     return [
         d_org(
             "CmdCaption",
@@ -838,17 +838,13 @@ def get_sem_commands():
             "CmdEmail",
             GenTuDoc(""),
             bases=[t_nest(t_org("Cmd"))],
-            fields=[
-                GenTuField(t_str(), "text", GenTuDoc(""))
-            ],
+            fields=[GenTuField(t_str(), "text", GenTuDoc(""))],
         ),
         d_org(
             "CmdLanguage",
             GenTuDoc(""),
             bases=[t_nest(t_org("Cmd"))],
-            fields=[
-                GenTuField(t_str(), "text", GenTuDoc(""))
-            ],
+            fields=[GenTuField(t_str(), "text", GenTuDoc(""))],
         ),
         d_org(
             "CmdColumns",
@@ -926,7 +922,7 @@ def get_sem_commands():
     ]
 
 
-def get_sem_block():
+def get_sem_block() -> List[GenTuStruct]:
     return [
         d_org("BlockCenter",
               GenTuDoc("Center nested content in export"),
@@ -1017,7 +1013,7 @@ def get_sem_block():
     ]
 
 
-def get_sem_text():
+def get_sem_text() -> List[GenTuStruct]:
     return [
         d_org("HashTag",
               bases=[t_nest(t_org("Inline"))],
@@ -1270,7 +1266,7 @@ def get_sem_text():
     ]
 
 
-def get_sem_subtree():
+def get_sem_subtree() -> List[GenTuStruct]:
     return [
         d_org("SubtreeLog",
               GenTuDoc("Single subtree log entry"),
@@ -2925,7 +2921,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
 
 def get_types() -> Sequence[GenTuStruct]:
     return [
-        d_org("None", GenTuDoc("No node"), bases=[t_nest(t_org("Org"))]),
+        d_org("NoNode", GenTuDoc("No node"), bases=[t_nest(t_org("Org"))]),
         *get_sem_bases(),
         *get_sem_commands(),
         *get_sem_text(),
@@ -3359,7 +3355,7 @@ def get_types() -> Sequence[GenTuStruct]:
 
 
 #region OrgNodeKind
-def get_org_node_kind_text():
+def get_org_node_kind_text() -> List[GenTuEnumField]:
     return [
         efield("BigIdent", "full-uppsercase identifier such as `MUST` or `TODO`"),
         efield(
@@ -3473,7 +3469,7 @@ def get_org_node_kind_text():
     ]
 
 
-def get_org_node_kind_blocks():
+def get_org_node_kind_blocks() -> List[GenTuEnumField]:
     return [
         efield(
             "BlockVerbatimMultiline",
@@ -3496,7 +3492,7 @@ def get_org_node_kind_blocks():
     ]
 
 
-def get_org_node_kind_commands():
+def get_org_node_kind_commands() -> List[GenTuEnumField]:
     return [
         efield(
             "Cmd",
@@ -3549,7 +3545,7 @@ def get_org_node_kind_commands():
     ]
 
 
-def get_org_node_kind_subtree():
+def get_org_node_kind_subtree() -> List[GenTuEnumField]:
     return [
         efield("SubtreeDescription", "`:description:` entry"),
         efield("SubtreeUrgency"),
@@ -3574,7 +3570,7 @@ def get_org_node_kind_subtree():
     ]
 
 
-def get_org_token_kind():
+def get_org_token_kind() -> List[GenTuEnumField]:
     return [
         efield("Ampersand", ""),
         efield("AngleBegin", ""),
@@ -3806,7 +3802,7 @@ def get_org_token_kind():
     ]
 
 
-def get_org_node_kind():
+def get_org_node_kind() -> List[GenTuEnumField]:
     return [
         #tag org-structural
         efield("None", "Default valye for node - invalid state"),
@@ -3866,7 +3862,7 @@ def get_org_node_kind():
 #endregion
 
 
-def get_enums():
+def get_enums() -> List[GenTuEnum]:
     return [
         #tag Org spec name
         GenTuEnum(

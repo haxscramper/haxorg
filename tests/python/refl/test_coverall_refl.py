@@ -16,14 +16,14 @@ INPUT = Path(__file__).parent.joinpath("test_coverall_input.cpp")
 
 
 @pytest.mark.test_release
-def test_coverall_extract():
+def test_coverall_extract() -> None:
     value = refl_test_driver.run_provider({str(INPUT): INPUT.read_text()}, code_dir=INPUT.parent)
     formatted = refl_test_driver.format_nim_code(value)
     assert len(formatted) == 1
 
 
 @pytest.mark.test_release
-def test_coverall_nim():
+def test_coverall_nim() -> None:
     value = refl_test_driver.run_provider({
         str(INPUT): INPUT.read_text()
     }, code_dir=INPUT.parent).wraps[0].tu

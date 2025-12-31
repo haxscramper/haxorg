@@ -18,15 +18,15 @@ def pascal_case(s: str) -> str:
 
 class AstLineCtx:
 
-    def __init__(self, builder):
+    def __init__(self, builder: 'AstbuilderBase') -> None:
         self.builder = builder
-        self.block_ids = []
+        self.block_ids: List[BlockId] = []
 
-    def __enter__(self):
+    def __enter__(self) -> 'AstLineCtx':
         self.builder.context_stack.append(self)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         line_id = self.builder.b.line(self.block_ids)
         self.builder.last_result = line_id
         self.builder.context_stack.pop()
@@ -36,16 +36,16 @@ class AstLineCtx:
 
 class AstIndentCtx:
 
-    def __init__(self, builder, indent):
+    def __init__(self, builder: "AstbuilderBase", indent: int) -> None:
         self.builder = builder
         self.indent_size = indent
-        self.block_ids = []
+        self.block_ids: List[BlockId] = []
 
-    def __enter__(self):
+    def __enter__(self) -> "AstIndentCtx":
         self.builder.context_stack.append(self)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         Indent_id = self.builder.b.indent(self.indent_size,
                                           self.builder.b.stack(self.block_ids))
         self.builder.last_result = Indent_id
@@ -56,15 +56,15 @@ class AstIndentCtx:
 
 class AstStackCtx:
 
-    def __init__(self, builder):
+    def __init__(self, builder: "AstbuilderBase") -> None:
         self.builder = builder
-        self.block_ids = []
+        self.block_ids: List[BlockId] = []
 
-    def __enter__(self):
+    def __enter__(self) -> "AstStackCtx":
         self.builder.context_stack.append(self)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         stack_id = self.builder.b.stack(self.block_ids)
         self.builder.last_result = stack_id
         self.builder.context_stack.pop()
@@ -83,11 +83,11 @@ class AstbuilderBase:
     def toString(self, block: BlockId) -> str:
         return self.b.toString(block, TextOptions())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         # Beartype cannot run default repr because it fails with missing context state value.
         return "astbuilder-base"
 
-    def Spatial(self, stack: bool):
+    def Spatial(self, stack: bool) -> Union["AstLineCtx", "AstStackCtx"]:
         if stack:
             return self.Stack()
 
@@ -104,16 +104,16 @@ class AstbuilderBase:
         else:
             return value
 
-    def Line(self):
+    def Line(self) -> AstLineCtx:
         return AstLineCtx(self)
 
-    def Stack(self):
+    def Stack(self) -> AstStackCtx:
         return AstStackCtx(self)
 
-    def Indent(self, indent: int):
+    def Indent(self, indent: int) -> AstIndentCtx:
         return AstIndentCtx(self, indent)
 
-    def Item(self, value: Union[str, BlockId]):
+    def Item(self, value: Union[str, BlockId]) -> None:
         match value:
             case str():
                 block_id = self.b.text(value)
@@ -175,10 +175,13 @@ class AstbuilderBase:
 
         return self.b.stack(res)
 
-    def csv(self,
-            items: Union[List[str], List[BlockId]],
-            isLine=True,
-            isTrailing=False) -> BlockId:
+    def csv(
+        self,
+        items: Union[List[str], List[BlockId]],
+        isLine: bool = True,
+        isTrailing: bool = False,
+        sep: str = ", ",
+    ) -> BlockId:
         if 0 < len(items):
             return self.b.join(
                 [self.string(Base) if isinstance(Base, str) else Base for Base in items],

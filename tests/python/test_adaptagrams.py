@@ -59,7 +59,7 @@ class ConvTest():
         dump = to_debug_json(self.conv, skip_cyclic_data=False)
         pre_fmt = pformat(dump, width=120)
 
-        def aux(it):
+        def aux(it) -> None:
             match it:
                 case dict():
                     if "x" in it:
@@ -102,7 +102,7 @@ class ConvTest():
 
 
 @pytest.mark.test_release
-def test_ir_align_two():
+def test_ir_align_two() -> None:
     ir = wrap.GraphLayoutIR()
     ir.edges.append(wrap.GraphEdge(source=0, target=1))
     ir.edges.append(wrap.GraphEdge(source=1, target=2))
@@ -138,7 +138,7 @@ def test_ir_align_two():
 
 
 @pytest.mark.test_release
-def test_py_util_align_two():
+def test_py_util_align_two() -> None:
     ir = wrap.GraphLayout()
     ir.edge(0, 1)
     ir.edge(1, 2)
@@ -156,7 +156,7 @@ def test_py_util_align_two():
 
 
 @pytest.mark.test_release
-def test_py_util_align_many():
+def test_py_util_align_many() -> None:
     ir = wrap.GraphLayout()
     ir.edge(0, 1)
     ir.edge(1, 2)
@@ -195,7 +195,7 @@ def test_py_util_align_many():
 
 
 @pytest.mark.test_release
-def test_align_axis_separation():
+def test_align_axis_separation() -> None:
     ir = wrap.GraphLayout()
     mult = 5
     ir.edge(0, 1)
@@ -238,7 +238,7 @@ def test_align_axis_separation():
 
 
 @pytest.mark.test_release
-def test_align_axis_separate_2():
+def test_align_axis_separate_2() -> None:
     mult = 5
     ir = make_chain_graph(6, mult)
 
@@ -263,7 +263,7 @@ def test_align_axis_separate_2():
     t = ConvTest(ir)
 
 @pytest.mark.test_release
-def test_align_axis_multi_separate_equal_sizes():
+def test_align_axis_multi_separate_equal_sizes() -> None:
     mult = 5
     ir = make_disconnected_graph(9, mult)
 
@@ -313,7 +313,7 @@ def test_align_axis_multi_separate_equal_sizes():
     t.debug()
 
 @pytest.mark.test_release
-def test_align_axis_multi_separate_different_sizes():
+def test_align_axis_multi_separate_different_sizes() -> None:
     mult = 5
     ir = wrap.GraphLayout()
 
@@ -369,7 +369,7 @@ def test_align_axis_multi_separate_different_sizes():
     t.debug()
 
 @pytest.mark.test_release
-def test_node_pin_connections():
+def test_node_pin_connections() -> None:
     mult = 5
     ir = wrap.GraphLayout()
     shape1 = ir.rect(20 * mult, 20 * mult)
@@ -422,7 +422,7 @@ class Cell():
 
 
 @pytest.mark.test_release
-def test_tree_sheet_constraint():
+def test_tree_sheet_constraint() -> None:
     mult = 5
     ir = wrap.GraphLayout()
 
@@ -439,7 +439,7 @@ def test_tree_sheet_constraint():
         ]),
     ])
 
-    def get_depth(t: Tree):
+    def get_depth(t: Tree) -> None:
         subs = [get_depth(s) for s in t.sub]
         if 1 < len(subs):
             return max(*subs) + 1
@@ -450,7 +450,7 @@ def test_tree_sheet_constraint():
         else:
             return 1
 
-    def get_cols(t: Tree):
+    def get_cols(t: Tree) -> None:
         subs = [get_cols(s) for s in t.sub]
         if len(subs) == 1:
             return max(subs[0], len(t.content))
@@ -461,7 +461,7 @@ def test_tree_sheet_constraint():
         else:
             return len(t.content)
 
-    def get_rows(t: Tree):
+    def get_rows(t: Tree) -> None:
         res = sum(get_rows(s) for s in t.sub) + 1
         if 0 < len(t.content):
             res += 1
@@ -478,7 +478,7 @@ def test_tree_sheet_constraint():
 
     rect_debug_map: Dict[int, Dict[str, Any]] = dict()
 
-    def aux(t: Tree, level: int):
+    def aux(t: Tree, level: int) -> None:
         nonlocal dfs_row
         this_row = dfs_row
         rect = ir.rect(width=20 * mult, height=10 * mult)
@@ -589,7 +589,7 @@ def test_tree_sheet_constraint():
 
 
 @pytest.mark.test_release
-def test_page_boundary():
+def test_page_boundary() -> None:
     mult = 5
     ir = wrap.GraphLayout()
     ir.ir.width = 150 * mult

@@ -1,6 +1,6 @@
 from py_textlayout.py_textlayout_wrap import TextLayout
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, NewType
+from typing import TYPE_CHECKING, NewType, TypeAlias
 from beartype.typing import List, Optional, Dict, Any
 from beartype import beartype
 import py_codegen.astbuilder_base as base
@@ -52,13 +52,13 @@ class RawBlock():
 class RawLiteral():
     value: str
 
-AnyBlock = BlockId | List[BlockId] | RawBlock | List[RawBlock]
-AnySingleValue = BlockId | str | RawBlock | RawStr | RawLiteral
+AnyBlock: TypeAlias = BlockId | List[BlockId] | RawBlock | List[RawBlock]
+AnySingleValue: TypeAlias = BlockId | str | RawBlock | RawStr | RawLiteral
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
 
-    def __init__(self, in_b: Optional[TextLayout] = None):
+    def __init__(self, in_b: Optional[TextLayout] = None) -> None:
         b = in_b if in_b else TextLayout()
         super().__init__(b)
 
@@ -169,7 +169,7 @@ class ASTBuilder(base.AstbuilderBase):
         else:
             return RawBlock(value)
 
-    def add_at(self, target: BlockId, other: BlockId | List[BlockId]):
+    def add_at(self, target: BlockId, other: BlockId | List[BlockId]) -> None:
         self.b.add_at(target, other)
 
     def litPt(self, value: Number) -> RawStr:
@@ -186,13 +186,13 @@ class ASTBuilder(base.AstbuilderBase):
         isLine: bool = False,
         isFirst: bool = True,
     ) -> BlockId:
-        b: List[BlockId | RawBlock] = body if isinstance(body, list) else [body]
-        b: List[BlockId] = [(it.value if isinstance(it, RawBlock) else it) for it in b]
+        body_list: List[BlockId | RawBlock] = body if isinstance(body, list) else [body]
+        b: List[BlockId] = [(it.value if isinstance(it, RawBlock) else it) for it in body_list]
         arglist = []
 
         prefix = "#" if isFirst else ""
 
-        def add_direct_arglist(values):
+        def add_direct_arglist(values: List[AnySingleValue] | AnySingleValue) -> None:
             if isinstance(values, list):
                 for it in values:
                     arglist.append(
@@ -252,7 +252,7 @@ class ASTBuilder(base.AstbuilderBase):
         else:
             return result
 
-    def expr(self, value, isLine: bool = False) -> BlockId:
+    def expr(self, value: Any, isLine: bool = False) -> BlockId:
         match value:
             case bool():
                 return self.string("true" if value else "false")

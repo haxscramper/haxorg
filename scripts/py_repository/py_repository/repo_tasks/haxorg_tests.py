@@ -23,7 +23,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
 
     # env = get_py_env(ctx)
     if ctx.config.instrument.coverage:
-        coverage_dir = get_cxx_coverage_dir()
+        coverage_dir = get_cxx_coverage_dir(ctx)
         env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
 
     run_command(

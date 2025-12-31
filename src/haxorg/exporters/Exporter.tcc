@@ -571,7 +571,7 @@ void Exporter<V, R>::visit(R& res, sem::OrgDiagnostics::InternalError const& obj
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
+void Exporter<V, R>::visitNoNode(R& res, In<sem::NoNode> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, loc);
   __org_field(res, object, subnodes);

@@ -32,7 +32,7 @@ class ActivityAnalysisOptions(BaseModel):
         description="Path to the generated SQLite DB, defaults to outdir/db.sqlite")
 
 
-def analysis_options(f):
+def analysis_options(f) -> None:
     return apply_options(f, options_from_model(ActivityAnalysisOptions))
 
 
@@ -181,7 +181,7 @@ def plot_timestamped_events_with_pandas(
               help="Path to config file.")
 @analysis_options
 @click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs) -> None:
+def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
     pack_context(ctx, "root", ActivityAnalysisOptions, config=config, kwargs=kwargs)
     opts: ActivityAnalysisOptions = ctx.obj["root"]
     sql_db = opts.db_path if opts.db_path else opts.outdir.joinpath("db.sqlite")

@@ -10,7 +10,7 @@ from plumbum import CommandNotFound
 import py_haxorg.pyhaxorg_wrap as org
 
 
-def test_help():
+def test_help() -> None:
     runner = CliRunner()
     click_run_test(cli, ["--help"])
 
@@ -20,7 +20,7 @@ all_org_file = org_corpus_dir.joinpath("all.org")
 all_org = all_org_file.read_text()
 
 
-def test_tex_export():
+def test_tex_export() -> None:
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
@@ -37,7 +37,7 @@ def test_tex_export():
         ])
 
 
-def test_html_export():
+def test_html_export() -> None:
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
@@ -50,7 +50,7 @@ def test_html_export():
         ])
 
 
-def test_sqlite_export():
+def test_sqlite_export() -> None:
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
         out_file = dir.joinpath("out_file.sqlite")
@@ -70,7 +70,7 @@ def has_cmd(cmd: str) -> bool:
         return False
 
 
-def test_pandoc_export():
+def test_pandoc_export() -> None:
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
         dir = Path("/tmp/pandoc_export")
@@ -102,7 +102,7 @@ def test_pandoc_export():
             ])
 
 
-def test_typst_export_1():
+def test_typst_export_1() -> None:
     with TemporaryDirectory() as dst_dir_tmp, TemporaryDirectory() as src_dir_tmp:
         dst_dir = Path(dst_dir_tmp)
         dst_dir = Path("/tmp/test_typst_export_1")
@@ -177,7 +177,7 @@ def test_typst_export_1():
         assert attach_dst.read_text() == attach_src.read_text()
 
 
-def test_typst_export_2():
+def test_typst_export_2() -> None:
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
         dir = Path("/tmp/test_typst_export_2")
@@ -215,7 +215,7 @@ subtree = "changeSubtree"
         assert "changeSubtree" in text
 
 
-def test_typst_export_doc1():
+def test_typst_export_doc1() -> None:
     file = Path("~/tmp/doc1.org").expanduser()
     if not file.exists():
         return

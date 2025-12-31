@@ -1,12 +1,12 @@
-#import "@preview/gentle-clues:1.1.0": *
+#import "@preview/gentle-clues:1.2.0": *
 
 #let orgSubtree(
-    level: 1, 
-    tags: (),
-    title,
-  ) = {
+  level: 1,
+  tags: (),
+  title,
+) = {
   heading(
-    level: level
+    level: level,
   )[#title]
 }
 
@@ -15,7 +15,7 @@
   isDescription: false,
 ) = {
   if isDescription {
-    terms(..items);
+    terms(..items)
   } else {
     list(..items)
   }
@@ -41,7 +41,7 @@
   }
 }
 
-#let orgDynamicBlock(body: (), name: "", org_attrs:()) = {
+#let orgDynamicBlock(body: (), name: "", org_attrs: ()) = {
   [#name]
   box(stroke: red, inset: 1em)[
     #for value in body {
@@ -55,7 +55,7 @@
   timestamp: "",
   footnote: "",
   kind: "none",
-  body
+  body,
 ) = {
   if kind == "none" {
     body

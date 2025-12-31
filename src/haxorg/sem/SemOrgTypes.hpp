@@ -14,16 +14,16 @@
 #include <haxorg/sem/SemOrgSharedTypes.hpp>
 namespace org::sem {
 /// \brief No node
-struct None : public org::sem::Org {
+struct NoNode : public org::sem::Org {
   using Org::Org;
-  virtual ~None() = default;
-  BOOST_DESCRIBE_CLASS(None,
+  virtual ~NoNode() = default;
+  BOOST_DESCRIBE_CLASS(NoNode,
                        (Org),
                        (),
                        (),
                        (staticKind))
   static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::None; }
+  virtual OrgSemKind getKind() const { return OrgSemKind::NoNode; }
 };
 
 struct ErrorItem : public org::sem::Org {

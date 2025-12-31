@@ -78,16 +78,30 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     coverage: bool = True
     reflection: bool = True
     install: bool = True
-    example: bool = True
+    example_build: bool = True
+    example_run: bool = True
 
     emscripten_deps: bool = True
     emscripten_build: bool = True
     emscripten_test: bool = True
 
 
+class HaxorgExampleMindMapConfig(BaseModel, extra="forbid"):
+    infile: str = "examples/qt_gui/org_diagram/corpus/document_1.org"
+
+
+class HaxorgExampleConfig(BaseModel, extra="forbid"):
+    mind_map: HaxorgExampleMindMapConfig = Field(
+        default_factory=HaxorgExampleMindMapConfig)
+
+
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
     extra_pytest_args: List[str] = Field(default_factory=list)
-    real_time_output_print: bool = True
+    real_time_output_print: bool = Field(
+        default=True,
+        description=
+        "Print the pytest output as it happens intead or capture the stdout/stderr and store it in a file."
+    )
 
 
 class HaxorgBuildDevelopDepsConfig(BaseModel, extra="forbid"):
@@ -131,6 +145,9 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
     workflow_out_dir: Path = Field(
         default_factory=lambda: Path("/tmp/haxorg/workflow_out"))
+
+    workflow_tmp_dir: Path = Field(
+        default_factory=lambda: Path("/tmp/haxorg/workflow_tmp"))
 
     use_sarif: bool = Field(default=False)
     force_full_build: bool = Field(
@@ -181,6 +198,8 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
     binary_size_conf: HaxorgBinarySizeReportConfig = Field(
         default_factory=HaxorgBinarySizeReportConfig)
+
+    example_conf: HaxorgExampleConfig = Field(default_factory=HaxorgExampleConfig)
 
 
 # Variable.set("haxorg_config", HaxorgConfig().model_dump(), serialize_json=True)

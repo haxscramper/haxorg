@@ -635,7 +635,7 @@ auto Formatter::toString(SemId<Empty> id, CR<Context> ctx) -> Res {
     return str("");
 }
 
-auto Formatter::toString(SemId<None> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<NoNode> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("");
 }

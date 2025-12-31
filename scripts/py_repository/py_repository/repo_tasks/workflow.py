@@ -14,6 +14,7 @@ from py_repository.repo_tasks import (
     haxorg_docs,
     haxorg_tests,
     examples_build,
+    haxorg_linting,
 )
 
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
