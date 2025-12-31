@@ -32,6 +32,7 @@
 #include <absl/log/log.h>
 
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
 
 #include "clang_reflection_demangler.hpp"
 
@@ -59,6 +60,20 @@ PERFETTO_DEFINE_CATEGORIES(
 namespace fs = std::filesystem;
 using namespace llvm::coverage;
 using namespace hstd;
+
+namespace hstd {
+template <>
+struct JsonSerde<std::monostate> {
+    static json to_json(std::monostate const& point) {
+        return json::object();
+    }
+
+    static std::monostate from_json(json const& j) {
+        return std::monostate{};
+    }
+};
+
+} // namespace hstd
 
 
 namespace llvm::coverage {
@@ -94,12 +109,13 @@ BOOST_DESCRIBE_STRUCT(
 BOOST_DESCRIBE_STRUCT(
     CountedRegion,
     (CounterMappingRegion),
-    (ExecutionCount, FalseExecutionCount, Folded));
+    (ExecutionCount, FalseExecutionCount, TrueFolded, FalseFolded));
 
+BOOST_DESCRIBE_STRUCT(mcdc::BranchParameters, (), (ID, Conds));
 BOOST_DESCRIBE_STRUCT(
-    CounterMappingRegion::MCDCParameters,
+    mcdc::DecisionParameters,
     (),
-    (BitmapIdx, NumConditions, ID, TrueID, FalseID));
+    (BitmapIdx, NumConditions));
 
 BOOST_DESCRIBE_ENUM(
     CounterMappingRegion::RegionKind,
@@ -146,9 +162,15 @@ struct JsonSerde<Counter> {
 };
 
 template <>
-struct JsonSerde<CountedRegion::MCDCParameters> {
-    NO_COVERAGE static json to_json(
-        CountedRegion::MCDCParameters const& cnt) {
+struct JsonSerde<mcdc::DecisionParameters> {
+    NO_COVERAGE static json to_json(mcdc::DecisionParameters const& cnt) {
+        return json();
+    }
+};
+
+template <>
+struct JsonSerde<mcdc::BranchParameters> {
+    NO_COVERAGE static json to_json(mcdc::BranchParameters const& cnt) {
         return json();
     }
 };
@@ -297,6 +319,7 @@ struct CoverageMappingLyt {
     llvm::DenseMap<size_t, llvm::SmallVector<unsigned, 0>>
         FilenameHash2RecordIndices;
     std::vector<std::pair<std::string, uint64_t>> FuncHashMismatches;
+    std::optional<bool>                           SingleByteCoverage;
 };
 
 static_assert(sizeof(CoverageMappingLyt) == sizeof(CoverageMapping));
@@ -396,15 +419,16 @@ struct queries {
                     "Context",             // 2
                     "ExecutionCount",      // 3
                     "FalseExecutionCount", // 4
-                    "Folded",              // 5
-                    "LineStart",           // 6
-                    "ColumnStart",         // 7
-                    "LineEnd",             // 8
-                    "ColumnEnd",           // 9
-                    "RegionKind",          // 10
-                    "File",                // 11
-                    "Function",            // 12
-                    "ExpandedFrom",        // 13
+                    "TrueFolded",          // 5
+                    "FalseFolded",         // 6
+                    "LineStart",           // 7
+                    "ColumnStart",         // 8
+                    "LineEnd",             // 9
+                    "ColumnEnd",           // 10
+                    "RegionKind",          // 11
+                    "File",                // 12
+                    "Function",            // 13
+                    "ExpandedFrom",        // 14
                 }))
         ,
         // ---
@@ -780,21 +804,22 @@ NO_COVERAGE void add_file_regions(
             q.file_region.bind(2, ctx.context_id);
             q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
             q.file_region.bind(4, static_cast<int>(r.FalseExecutionCount));
-            q.file_region.bind(5, r.Folded);
-            q.file_region.bind(6, static_cast<int>(r.LineStart));
-            q.file_region.bind(7, static_cast<int>(r.ColumnStart));
-            q.file_region.bind(8, static_cast<int>(r.LineEnd));
-            q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
-            q.file_region.bind(10, r.Kind);
+            q.file_region.bind(5, r.TrueFolded);
+            q.file_region.bind(6, r.FalseFolded);
+            q.file_region.bind(7, static_cast<int>(r.LineStart));
+            q.file_region.bind(8, static_cast<int>(r.ColumnStart));
+            q.file_region.bind(9, static_cast<int>(r.LineEnd));
+            q.file_region.bind(10, static_cast<int>(r.ColumnEnd));
+            q.file_region.bind(11, r.Kind);
             q.file_region.bind(
-                11, ctx.get_file_id(Function.Filenames.at(r.FileID), q));
+                12, ctx.get_file_id(Function.Filenames.at(r.FileID), q));
             // Addition to the LLVM info -- the function which contains the
             // segment
-            q.file_region.bind(12, get_function_id(Function, q, ctx));
+            q.file_region.bind(13, get_function_id(Function, q, ctx));
             // And optionally a location that was expanded to this segment
             // (for macro body).
             if (expanded_from_id) {
-                q.file_region.bind(13, *expanded_from_id);
+                q.file_region.bind(14, *expanded_from_id);
             }
 
             q.file_region.exec();
@@ -894,10 +919,12 @@ NO_COVERAGE llvm::MD5::MD5Result getMD5Digest(
     const std::string& str1,
     const std::string& str2) {
     llvm::MD5 hash;
-    hash.update(llvm::ArrayRef<uint8_t>(
-        reinterpret_cast<const uint8_t*>(str1.data()), str1.size()));
-    hash.update(llvm::ArrayRef<uint8_t>(
-        reinterpret_cast<const uint8_t*>(str2.data()), str2.size()));
+    hash.update(
+        llvm::ArrayRef<uint8_t>(
+            reinterpret_cast<const uint8_t*>(str1.data()), str1.size()));
+    hash.update(
+        llvm::ArrayRef<uint8_t>(
+            reinterpret_cast<const uint8_t*>(str2.data()), str2.size()));
     llvm::MD5::MD5Result result;
     hash.final(result);
     return result;
@@ -934,8 +961,10 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
         llvm::raw_fd_ostream Output(tmp_path, EC, llvm::sys::fs::OF_None);
 
         if (EC) {
-            throw std::domain_error(std::format(
-                "Error while creating output stream {}", EC.message()));
+            throw std::domain_error(
+                std::format(
+                    "Error while creating output stream {}",
+                    EC.message()));
         }
 
         if (llvm::Error E = Writer.write(Output)) {
@@ -954,10 +983,11 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
                 ObjectFilenames, tmp_path, *FS);
 
         if (llvm::Error E = mapping_or_err.takeError()) {
-            throw std::domain_error(std::format(
-                "Failed to load profdata {} from {}",
-                toString(std::move(E)),
-                tmp_path));
+            throw std::domain_error(
+                std::format(
+                    "Failed to load profdata {} from {}",
+                    toString(std::move(E)),
+                    tmp_path));
         }
 
         fs::remove(tmp_path);
@@ -1094,10 +1124,11 @@ void process_runs(
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
                     std::string debug;
                     if (!ctx.file_matches(file.str(), debug)) {
-                        j_files["skipped"].push_back(json::object({
-                            {"file", file.str()},
-                            {"reason", debug},
-                        }));
+                        j_files["skipped"].push_back(
+                            json::object({
+                                {"file", file.str()},
+                                {"reason", debug},
+                            }));
                         continue;
                     }
                     __perf_trace("sql", "Add file", "File", file.str());
@@ -1319,10 +1350,11 @@ NO_COVERAGE void build_run_coverage_merge(
             runGroups.push_back({});
         }
 
-        runGroups.back().push_back(ProfdataRun{
-            .index = run_idx,
-            .run   = run,
-        });
+        runGroups.back().push_back(
+            ProfdataRun{
+                .index = run_idx,
+                .run   = run,
+            });
     }
 
     for (auto const& group : runGroups) {
@@ -1349,8 +1381,10 @@ NO_COVERAGE int main(int argc, char** argv) {
     std::string json_parameters;
     if (std::string{argv[1]}.starts_with("/")) {
         if (!fs::exists(argv[1])) {
-            throw std::logic_error(std::format(
-                "Input configuration file '{}' does not exist", argv[1]));
+            throw std::logic_error(
+                std::format(
+                    "Input configuration file '{}' does not exist",
+                    argv[1]));
         }
         json_parameters = read_file(argv[1]);
     } else {

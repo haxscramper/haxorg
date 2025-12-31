@@ -1,8 +1,5 @@
 # Create the executable target
 
-# Link against LLVM libraries
-llvm_map_components_to_libnames(llvm_libs support core)
-
 set(REFL_DIR "${BASE}/scripts/cxx_codegen/reflection_tool")
 
 protobuf_generate(
@@ -37,21 +34,7 @@ target_include_directories(
          "${BASE}/src" "${BASE}/scripts/cxx_codegen/reflection_tool"
          "${BASE}/build/haxorg/scripts/cxx_codegen/reflection_tool")
 
-llvm_map_components_to_libnames(
-  reflection_lib_llvm_libs
-  Core
-  Support
-  Object
-  Demangle
-  DebugInfoDWARF
-  Target
-  MC
-  AsmParser
-  AsmPrinter
-  native)
-
-target_link_libraries(reflection_lib PUBLIC hstd SQLiteCpp sqlite3)
-target_link_libraries(reflection_lib PRIVATE ${reflection_lib_llvm_libs})
+target_link_libraries(reflection_lib PUBLIC hstd SQLiteCpp sqlite3 LLVM clang-cpp)
 
 target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
 target_compile_options(reflection_lib PRIVATE "-fPIC")
@@ -78,9 +61,6 @@ target_link_libraries(
   reflection_tool
   PRIVATE reflection_lib
           ${llvm_libs}
-          clangBasic
-          clangASTMatchers
-          clangTooling
           absl::base
           protobuf::libprotobuf
           protobuf::libprotoc)

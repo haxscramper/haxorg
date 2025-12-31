@@ -944,13 +944,13 @@ void processObjectFile(
             sa.Address = address;
 
 
-            llvm::DILineInfo li = dwarf->getLineInfoForAddress(sa, spec);
-            if (li.Line != 0 && !li.FileName.empty()) {
+            std::optional<llvm::DILineInfo> li = dwarf->getLineInfoForAddress(sa, spec);
+            if (li && li->Line != 0 && !li->FileName.empty()) {
                 BinarySymbolDebugLocation loc;
-                loc.file     = li.FileName;
-                loc.line     = li.Line;
-                loc.column   = li.Column;
-                loc.function = li.FunctionName;
+                loc.file     = li->FileName;
+                loc.line     = li->Line;
+                loc.column   = li->Column;
+                loc.function = li->FunctionName;
                 info.debug   = std::move(loc);
             }
         }

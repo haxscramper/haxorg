@@ -125,6 +125,7 @@ if(${ORG_BUILD_IS_DEVELOP} AND NOT ${ORG_EMCC_BUILD})
 endif()
 
 find_package(cctz REQUIRED)
+find_package(zstd REQUIRED CONFIG)
 
 if(NOT ${ORG_EMCC_BUILD})
   if(${ORG_DEPS_USE_PYTHON_VERSION})

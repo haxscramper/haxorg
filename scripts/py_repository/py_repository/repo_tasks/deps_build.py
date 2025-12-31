@@ -83,8 +83,8 @@ def build_develop_deps(ctx: TaskContext) -> None:
                     cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(
                         item.build_name)),
                     cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
-                    *([cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx))]
-                      if item.is_bundled_toolchain else []),
+                    cmake_opt("CMAKE_CXX_COMPILER", conf.build_conf.cxx_compiler),
+                    cmake_opt("CMAKE_C_COMPILER", conf.build_conf.c_compiler),
                     *configure_args,
                     *maybe_splice(conf.build_develop_deps_conf.force, "--fresh"),
                 ],

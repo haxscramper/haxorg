@@ -1666,10 +1666,14 @@ std::string getMainFileAbsolutePath(
     const clang::CompilerInstance& compilerInstance) {
     const clang::SourceManager& sourceManager = compilerInstance
                                                     .getSourceManager();
-    clang::FileID           mainFileID = sourceManager.getMainFileID();
-    const clang::FileEntry* fileEntry  = sourceManager.getFileEntryForID(
-        mainFileID);
-    return std::string{fileEntry->getName()};
+    clang::FileID mainFileID = sourceManager.getMainFileID();
+
+    auto fileEntryRef = sourceManager.getFileEntryRefForID(mainFileID);
+    if (fileEntryRef) {
+        return std::string{fileEntryRef->getName()};
+    } else {
+        return "";
+    }
 }
 
 ReflASTConsumer::ReflASTConsumer(clang::CompilerInstance& CI, bool verbose)
@@ -1753,20 +1757,22 @@ c::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
         std::vector<c::Expr*> exprs{Attr.getArgAsExpr(0)};
 
         // Create attribute with the string argument
-        D->addAttr(c::AnnotateAttr::Create(
-            S.Context,
-            Attr.getAttrName()->deuglifiedName(),
-            &(*exprs.begin()),
-            exprs.size(),
-            Attr.getRange()));
+        D->addAttr(
+            c::AnnotateAttr::Create(
+                S.Context,
+                Attr.getAttrName()->deuglifiedName(),
+                &(*exprs.begin()),
+                exprs.size(),
+                Attr.getRange()));
     } else {
         // Create attribute with no arguments
-        D->addAttr(c::AnnotateAttr::Create(
-            S.Context,
-            Attr.getAttrName()->deuglifiedName(),
-            nullptr,
-            0,
-            Attr.getRange()));
+        D->addAttr(
+            c::AnnotateAttr::Create(
+                S.Context,
+                Attr.getAttrName()->deuglifiedName(),
+                nullptr,
+                0,
+                Attr.getRange()));
     }
 
     D->addAttr(created);
@@ -1775,14 +1781,15 @@ c::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
 
 void IncludeCollectorCallback::InclusionDirective(
     clang::SourceLocation             HashLoc,
-    const clang::Token&               IncludeTok,
+    clang::Token const&               IncludeTok,
     llvm::StringRef                   FileName,
     bool                              IsAngled,
     clang::CharSourceRange            FilenameRange,
     clang::OptionalFileEntryRef       File,
     llvm::StringRef                   SearchPath,
     llvm::StringRef                   RelativePath,
-    const clang::Module*              Imported,
+    clang::Module const*              SuggestedModule,
+    bool                              ModuleImported,
     clang::SrcMgr::CharacteristicKind FileType) {
 
     if (File && sourceManager->isInMainFile(HashLoc)) {

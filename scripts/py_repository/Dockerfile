@@ -13,21 +13,7 @@ RUN poetry install --no-root --without local --without haxorg --no-interaction -
 
 WORKDIR /docker_toolchain
 
-RUN wget -q "https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.tar.gz"
-RUN tar -xf "cmake-3.28.3-linux-x86_64.tar.gz" 
-RUN mv "cmake-3.28.3-linux-x86_64" "cmake"
-RUN rm "cmake-3.28.3-linux-x86_64.tar.gz" 
-
-RUN echo "1"
-
-RUN wget "https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.4/clang+llvm-18.1.4-x86_64-linux-gnu-ubuntu-18.04.tar.xz" 
-RUN tar -xf "clang+llvm-18.1.4-x86_64-linux-gnu-ubuntu-18.04.tar.xz"
-RUN mv "clang+llvm-18.1.4-x86_64-linux-gnu-ubuntu-18.04" "llvm"
-RUN rm "clang+llvm-18.1.4-x86_64-linux-gnu-ubuntu-18.04.tar.xz"
-
 WORKDIR /haxorg
-
-RUN echo "1"
 
 RUN dnf update -y
 RUN dnf install -y qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtquick3d-devel
