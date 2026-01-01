@@ -34,7 +34,6 @@ CAT = "test_code_coverage"
 
 profdata_merger = get_haxorg_repo_root_path().joinpath("build/haxorg/profdata_merger")
 
-tool_dir = get_haxorg_repo_root_path().joinpath("toolchain/llvm/bin")
 corpus_base = get_haxorg_repo_root_path().joinpath("tests/python/repo/coverage_corpus")
 
 
@@ -44,7 +43,7 @@ def assert_subtable(
     subset: ju.Json,
     table: Union[str, ju.Json],
     dict_key: Optional[str] = None,
-):
+) -> None:
     if isinstance(table, (dict, list)):
         value = table
 
@@ -106,7 +105,7 @@ class ProfileRunParams():
         return self.dir.joinpath("test-params.json")
 
     def run_compile(self) -> None:
-        cmd = local[tool_dir.joinpath("clang++")]
+        cmd = local["clang++"]
         for name, text in self.files.items():
             self.get_code(name).write_text(text)
 
@@ -750,7 +749,7 @@ def run_common(
         path_merger_run: Optional[Path] = Path("show_merger_run.txt"),
         path_coverage_mapping_dump: Optional[Path] = Path("mapping_dump"),
         filename: Path = Path("main.cpp"),
-):
+) -> None:
 
     def pass_path(path: Path) -> Path:
         if path.is_absolute():

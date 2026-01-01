@@ -133,7 +133,6 @@ def run_provider(
             input=[str(file) for file in text.keys()],
             indexing_tool="{haxorg_root}/build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
             compilation_database=compile_commands.name,
-            toolchain_include="{haxorg_root}/toolchain/llvm/lib/clang/18/include",
             output_directory=str(code_dir),
             directory_root=str(code_dir),
             header_root=str(code_dir),
@@ -144,12 +143,6 @@ def run_provider(
                                    {"haxorg_root": str(get_haxorg_repo_root_path())}),)
 
         BASE = get_haxorg_repo_root_path()
-        # reflection wrapper does not use implicit standard library include locations
-        # so the setup part of the main cmake file needs to be duplicated here
-        # in order to allow includes like <vector> etc.
-        LLVM_DIR = BASE.joinpath("toolchain/llvm")
-        LLVM_GNU_INCLUDE = LLVM_DIR.joinpath("include/x86_64-unknown-linux-gnu/c++/v1")
-        LLVM_STD_INCLUDE = LLVM_DIR.joinpath("include/c++/v1")
 
         conf.cache_collector_runs = False
         conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
@@ -159,7 +152,7 @@ def run_provider(
         compile_commands_content = [
             ex.CompileCommand(
                 directory=conf.header_root,
-                command=f"clang++ {file} -I{LLVM_GNU_INCLUDE} -I{LLVM_STD_INCLUDE}",
+                command=f"clang++ {file}",
                 file=file,
                 output=str(Path(file).with_suffix(".o")),
             ) for file in text.keys()

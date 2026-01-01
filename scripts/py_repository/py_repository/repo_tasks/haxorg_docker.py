@@ -2,7 +2,7 @@ import itertools
 from tempfile import TemporaryDirectory
 from beartype import beartype
 from pathlib import Path
-from beartype.typing import List, Literal, Optional
+from beartype.typing import List, Literal, Optional, Any
 import shutil
 import docker
 import docker.models.containers
@@ -244,16 +244,6 @@ def run_docker_release_test_impl(
     }
 
     cap_add = ["SYS_PTRACE"]
-
-    # command = [
-    #     "python",
-    #     "-m",
-    #     "py_ci.test_cpack_build",
-    #     invoke_opt("build", build),
-    #     invoke_opt("deps", deps),
-    #     f"--test={test}",
-    # ]
-
     client = docker.from_env()
 
     container = client.containers.run(
@@ -272,7 +262,10 @@ def run_docker_release_test_impl(
     dctx.repo_root = Path("/haxorg")
     dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
 
-    # ctx.run(test_cpack_build, )
+    _, pyenv_prefix, _ = run_command(dctx, "pyenv", ["prefix", "3.13"], capture=True)
+    pyenv_prefix = pyenv_prefix.strip()
+
+    log(CAT).info(f"Using pyenv prefix {pyenv_prefix}")
 
     run_command(
         dctx,
@@ -284,6 +277,7 @@ def run_docker_release_test_impl(
             "--deps",
             "--test=cxx",
             "--test=python",
+            f"--python-bin={pyenv_prefix}/bin/python",
         ],
         print_output=True,
     )
@@ -324,11 +318,28 @@ def run_docker_release_test(
         get_script_root(ctx, "scripts/py_repository/cpack_build_in_fedora.dockerfile"))
     build_context_path = Path(get_script_root(ctx))
 
-    client.images.build(
-        path=str(build_context_path),
-        dockerfile=str(dockerfile_path),
-        tag=ctx.config.CPACK_TEST_IMAGE,
-    )
+    def print_build_logs(build_logs: List[Any]) -> None:
+        for log_entry in build_logs:
+            if hasattr(log_entry, 'get'):
+                if 'stream' in log_entry:
+                    print(log_entry['stream'].strip())
+            else:
+                print(log_entry.strip())
+
+    try:
+        image, build_logs = client.images.build(
+            path=str(build_context_path),
+            dockerfile=str(dockerfile_path),
+            tag=ctx.config.CPACK_TEST_IMAGE,
+            rm=True  # Remove intermediate containers
+        )
+
+        print_build_logs(build_logs)
+
+    except docker.errors.BuildError as e:
+        print("Build failed with error:")
+        print_build_logs(e.build_log)
+        raise
 
     @beartype
     def run_with_build_dir(build_dir_path: Path) -> None:

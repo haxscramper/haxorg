@@ -120,8 +120,8 @@ struct ExporterEventBase : hstd::OperationsTracer {
         char const*       function = __builtin_FUNCTION()) {
         return VisitReport{
             hstd::OperationsMsg{
-                .line     = line,
                 .function = function,
+                .line     = line,
             },
             .kind = kind,
         };

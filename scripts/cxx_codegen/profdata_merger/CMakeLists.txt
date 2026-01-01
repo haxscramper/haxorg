@@ -1,20 +1,16 @@
 add_executable(profdata_merger profdata_merger.cpp)
-llvm_map_components_to_libnames(profdata_merger_llvm_libs support core irreader profiledata
-                                coverage)
-
-message(STATUS ${profdata_merger_llvm_libs})
 
 haxorg_target_setup_v2(TARGET profdata_merger)
 target_link_libraries(
   profdata_merger
-  PUBLIC ${profdata_merger_llvm_libs}
+  PUBLIC LLVM
          SQLiteCpp
          sqlite3
          tbb
+         hstd
          absl::base
          absl::log
          nlohmann_json::nlohmann_json
-         hstd
          reflection_lib)
 
 if(${ORG_USE_PERFETTO})

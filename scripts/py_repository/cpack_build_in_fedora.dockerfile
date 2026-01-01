@@ -22,3 +22,29 @@ RUN dnf -y install \
   python-devel
 RUN dnf -y install unzip
 
+# Development libraries for pyenv python
+RUN dnf -y install \
+  ncurses-devel \
+  readline-devel \
+  openssl-devel \
+  zlib-devel \
+  bzip2-devel \
+  libffi-devel \
+  sqlite-devel
+
+RUN git clone --depth=1 https://github.com/pyenv/pyenv.git /opt/pyenv
+
+# Set system-wide environment variables
+ENV PYENV_ROOT="/opt/pyenv"
+ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
+
+# Make pyenv accessible to all users
+RUN chmod -R 755 /opt/pyenv
+
+# Install Python version
+RUN ls "$PYENV_ROOT/bin"
+RUN pyenv install 3.13
+RUN pyenv global $(pyenv versions --bare | grep "^3\.13\." | sort -V | tail -1)
+
+# Ensure shims are accessible to all users
+RUN chmod -R 755 /opt/pyenv/shims

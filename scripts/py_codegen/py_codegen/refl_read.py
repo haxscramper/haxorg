@@ -309,7 +309,7 @@ class ConvTu:
 def open_proto_file(path: Path) -> pb.TU:
     unit = pb.TU()
     assert path.exists(), f"Reflection file {path} does not exist"
-
+ 
     with open(path, "rb") as f:
         unit = pb.TU.FromString(f.read())
 

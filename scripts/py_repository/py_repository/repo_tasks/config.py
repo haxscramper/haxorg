@@ -57,6 +57,8 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     force: bool = False
     use_protobuf: bool = True
     use_msgpack: bool = True
+    cxx_compiler: str = "clang++"
+    c_compiler: str = "clang"
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):

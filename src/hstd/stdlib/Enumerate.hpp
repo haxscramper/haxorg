@@ -111,8 +111,8 @@ class enumerator_impl {
         int  advance = std::clamp(skip_first_base, 0, base_size());
         std::advance(start, advance);
         return enumerate_iterator{
-            .it         = start,
             .idx        = 0,
+            .it         = start,
             .skip_first = skip_first_base,
             .skip_last  = skip_last_base,
             .base_size  = base_size(),
@@ -123,8 +123,8 @@ class enumerator_impl {
         auto end = base_end;
         std::advance(end, -std::clamp(skip_last_base, 0, base_size()));
         return enumerate_iterator{
-            .it         = end,
             .idx        = -1,
+            .it         = end,
             .skip_first = skip_first_base,
             .skip_last  = skip_last_base,
             .base_size  = base_size(),

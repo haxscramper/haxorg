@@ -59,9 +59,6 @@ CODEGEN_TASKS = [
 def generate_reflection_snapshot(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
-    toolchain_include = get_script_root(
-        ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
-
     build_reflection_tool(ctx=ctx)
 
     for task in CODEGEN_TASKS:
@@ -84,8 +81,6 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
                 compile_commands,
                 "--compilation-database",
                 compile_commands,
-                "--toolchain-include",
-                toolchain_include,
                 "--run-mode",
                 "TranslationUnit",
                 *(["--verbose"]

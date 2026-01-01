@@ -54,7 +54,6 @@ class ExternalDep():
     configure_args: List[CmakeCLIConfig] = field(default_factory=list)
     is_emcc_ready: bool = field(default=False)
     is_binary: bool = field(default=False)
-    is_bundled_toolchain: bool = field(default=True)
 
     def get_install_prefix(self, install_dir: Path) -> str:
         dirs: List[str] = []
@@ -166,6 +165,7 @@ def get_external_deps_list(
         configure_args=[
             opt("BUILD_SHARED_LIBS", True),
             opt("TRACY_STATIC", False),
+            opt("TRACY_LTO", False),
             opt("CCACHE", "OFF"),
             # opt("CMAKE_CXX_FLAGS", "-fPIC"),
         ])
@@ -177,8 +177,8 @@ def get_external_deps_list(
         cmake_dirs=[],
         configure_args=[
             opt("LEGACY", True),
+            opt("TRACY_LTO", False),
         ],
-        is_bundled_toolchain=False,
         is_binary=True,
     )
 

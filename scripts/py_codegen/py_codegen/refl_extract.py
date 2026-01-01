@@ -72,8 +72,10 @@ class TuOptions(BaseModel):
         description="Parameters for cmake run when creating compilation database",
         default_factory=list)
 
-    toolchain_include: str = Field(
-        description="Path to the toolchain that was used to compile indexing tool",)
+    toolchain_include: Optional[str] = Field(
+        description="Path to the toolchain that was used to compile indexing tool",
+        default=None,
+    )
 
     reflect_cache: str = Field(
         description="Store last reflection convert timestamps",
@@ -254,12 +256,14 @@ def run_collector(
         f"-p={database}",
         f"--compilation-database={database}",
         f"--out={str(tmp_output)}",
-        f"--toolchain-include={conf.toolchain_include}",
         f"--target-files={target_files}",
         "--run-mode=TranslationUnit",
-        "--nostdinc",
+        # "--nostdinc",
         str(input),
     ]
+
+    if conf.toolchain_include:
+        flags.append(f"--toolchain-include={conf.toolchain_include}")
 
     if conf.reflection_run_verbose:
         flags.append("--verbose")

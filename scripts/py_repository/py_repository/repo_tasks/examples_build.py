@@ -12,6 +12,7 @@ from py_repository.repo_tasks.common import ensure_clean_dir, find_process, get_
 from py_repository.repo_tasks.deps_build import validate_dependencies_install
 from py_repository.repo_tasks.haxorg_base import get_toolchain_path, symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
+from py_scriptutils.algorithm import maybe_splice
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
@@ -26,6 +27,7 @@ def run_cmake_configure_component(
     args: List[str | Path] = [],
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
+    toolchain = get_toolchain_path(ctx)
     return run_cmake(
         ctx,
         [
@@ -33,9 +35,11 @@ def run_cmake_configure_component(
             get_component_build_dir(ctx, component),
             "-S",
             get_script_root(ctx, script_path),
-            # "--fresh",
-            cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)),
+            "--fresh",
+            *maybe_splice(toolchain, cmake_opt("CMAKE_TOOLCHAIN_FILE", toolchain)),
             cmake_opt("ORG_USE_COVERAGE", ctx.config.instrument.coverage),
+            cmake_opt("CMAKE_CXX_COMPILER", ctx.config.build_conf.cxx_compiler),
+            cmake_opt("CMAKE_C_COMPILER", ctx.config.build_conf.c_compiler),
             "-G",
             "Ninja",
             "-Wno-dev",

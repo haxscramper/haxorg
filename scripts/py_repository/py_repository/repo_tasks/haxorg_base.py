@@ -41,15 +41,7 @@ def git_init_submodules(ctx: TaskContext) -> None:
                     ["submodule", "update", "--init", "--recursive", "--progress"])
 
 
-@haxorg_task()
-def download_llvm(ctx: TaskContext) -> None:
-    """Download LLVM toolchain if missing"""
-    llvm_dir = get_script_root(ctx, "toolchain/llvm")
-    if not os.path.isdir(llvm_dir):
-        log(CAT).info("LLVM not found. Downloading...")
-
-
-@haxorg_task(dependencies=[git_init_submodules, download_llvm])
+@haxorg_task(dependencies=[git_init_submodules])
 def base_environment(ctx: TaskContext) -> None:
     """Ensure base dependencies are installed"""
     pass
@@ -83,14 +75,16 @@ def get_llvm_root(ctx: TaskContext, relative: Optional[str] = None) -> Path:
 
 
 @beartype
-def get_toolchain_path(ctx: TaskContext) -> Path:
+def get_toolchain_path(ctx: TaskContext) -> Optional[Path]:
     if ctx.config.emscripten.build:
         result = Path(ctx.config.emscripten.toolchain)
-        assert check_path_exists(ctx, result), f"EMCC toolchain path does not exist {result}"
+        assert check_path_exists(ctx,
+                                 result), f"EMCC toolchain path does not exist {result}"
         log(CAT).info(f"Using EMCC toolchain path {result}")
         return result
 
     else:
+        return None
         return get_script_root(ctx).joinpath("toolchain.cmake")
 
 
@@ -133,7 +127,8 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
 
     else:
         result.append(cmake_opt("ORG_EMCC_BUILD", False))
-        result.append(cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root(ctx, "bin/clang++")))
+        result.append(cmake_opt("CMAKE_CXX_COMPILER", conf.build_conf.cxx_compiler))
+        result.append(cmake_opt("CMAKE_C_COMPILER", conf.build_conf.c_compiler))
         result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", conf.build_conf.use_protobuf))
 
     debug = False

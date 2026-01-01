@@ -212,16 +212,17 @@ struct IncludeCollectorCallback : public clang::PPCallbacks {
         : out(tu), sourceManager(sourceManager) {}
 
     void InclusionDirective(
-        clang::SourceLocation             HashLoc,
-        clang::Token const&               IncludeTok,
-        llvm::StringRef                   FileName,
-        bool                              IsAngled,
-        clang::CharSourceRange            FilenameRange,
-        clang::OptionalFileEntryRef       File,
-        llvm::StringRef                   SearchPath,
-        llvm::StringRef                   RelativePath,
-        clang::Module const*              Imported,
-        clang::SrcMgr::CharacteristicKind FileType) override;
+        clang::SourceLocation       HashLoc,
+        clang::Token const&         IncludeTok,
+        llvm::StringRef             FileName,
+        bool                        IsAngled,
+        clang::CharSourceRange      FilenameRange,
+        clang::OptionalFileEntryRef File,
+        llvm::StringRef             SearchPath,
+        llvm::StringRef             RelativePath,
+        clang::Module const*        SuggestedModule,
+        bool                        ModuleImported,
+        clang::SrcMgr::CharacteristicKind  FileType) override;
 };
 
 
