@@ -255,7 +255,7 @@ class Graphviz {
 
     class Node : public GraphvizObjBase<Node> {
       public:
-        static const auto graphvizKind = AGNODE;
+        static const int graphvizKind = AGNODE;
         struct Record {
             static Str escape(Str const& input);
 
@@ -530,7 +530,7 @@ class Graphviz {
 
     class Edge : public GraphvizObjBase<Edge> {
       public:
-        static const auto graphvizKind = AGEDGE;
+        static const int graphvizKind = AGEDGE;
         Edge(Agraph_t* graph, Agedge_t* edge)
             : edge_(edge), graph(graph) {}
 
@@ -581,7 +581,7 @@ class Graphviz {
         void initDefaultSetters();
 
       public:
-        static const auto graphvizKind = AGRAPH;
+        static const int graphvizKind = AGRAPH;
         Node              defaultNode;
         Edge              defaultEdge;
 

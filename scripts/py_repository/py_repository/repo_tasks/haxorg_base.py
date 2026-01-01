@@ -75,7 +75,7 @@ def get_llvm_root(ctx: TaskContext, relative: Optional[str] = None) -> Path:
 
 
 @beartype
-def get_toolchain_path(ctx: TaskContext) -> Path:
+def get_toolchain_path(ctx: TaskContext) -> Optional[Path]:
     if ctx.config.emscripten.build:
         result = Path(ctx.config.emscripten.toolchain)
         assert check_path_exists(ctx,
@@ -84,6 +84,7 @@ def get_toolchain_path(ctx: TaskContext) -> Path:
         return result
 
     else:
+        return None
         return get_script_root(ctx).joinpath("toolchain.cmake")
 
 
