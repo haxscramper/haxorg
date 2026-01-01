@@ -75,18 +75,20 @@ llvm::cl::opt<bool> NoStdInc(
 
 llvm::cl::opt<std::string> TargetFiles(
     "target-files",
-    llvm::cl::desc("Single input file or file with json array, list of "
-                   "absolute paths whose "
-                   "declarations will be included into TU dump."),
+    llvm::cl::desc(
+        "Single input file or file with json array, list of "
+        "absolute paths whose "
+        "declarations will be included into TU dump."),
     llvm::cl::cat(ToolingSampleCategory));
 
 std::vector<std::string> parseTargetFiles(std::string path) {
     std::ifstream ifs{path};
     if (!ifs.is_open()) {
-        throw std::domain_error(std::format(
-            "Failed to open the target file list: '{}', {}",
-            path,
-            std::strerror(errno)));
+        throw std::domain_error(
+            std::format(
+                "Failed to open the target file list: '{}', {}",
+                path,
+                std::strerror(errno)));
     }
 
     if (!path.ends_with("json")) { return {path}; }
@@ -99,9 +101,10 @@ std::vector<std::string> parseTargetFiles(std::string path) {
         jsonContent);
 
     if (!parsed) {
-        throw std::domain_error(std::format(
-            "Failed to parse error {}",
-            llvm::toString(parsed.takeError())));
+        throw std::domain_error(
+            std::format(
+                "Failed to parse error {}",
+                llvm::toString(parsed.takeError())));
     }
 
     llvm::json::Array* arr = parsed->getAsArray();
@@ -161,6 +164,30 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
     }
 };
 
+namespace {
+std::string getClangResourceDir() {
+    std::array<char, 256> buffer;
+    std::string           result;
+
+    // Ask clang itself where its resource directory is
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(
+        popen("clang -print-resource-dir 2>/dev/null", "r"), pclose);
+
+    if (pipe) {
+        while (fgets(buffer.data(), buffer.size(), pipe.get())
+               != nullptr) {
+            result += buffer.data();
+        }
+        // Remove trailing newline
+        if (!result.empty() && result.back() == '\n') {
+            result.pop_back();
+        }
+    }
+
+    return result;
+}
+} // namespace
+
 /// Filter out compilation options that were used in the compilation
 /// database -- remove reflection plugin usage, precompiled headers, and
 /// add provided toolchain include configuration.
@@ -177,6 +204,7 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
         filteredArgs.push_back(value);
     };
 
+    bool has_resource_dir = false;
     for (size_t i = 0; i < Args.size(); ++i) {
         auto drop = [&](int line = __builtin_LINE()) {
             if (VerboseRun) {
@@ -220,9 +248,19 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
             drop();
             ++i;
             drop();
-
+        } else if (Args[i].find("-resource-dir") != std::string::npos) {
+            has_resource_dir = true;
+            push(Args[i]);
         } else {
             push(Args[i]);
+        }
+    }
+
+    if (!has_resource_dir) {
+        std::string resourceDir = getClangResourceDir();
+        if (!resourceDir.empty()) {
+            push("-resource-dir");
+            push(resourceDir);
         }
     }
 
@@ -230,8 +268,10 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     // location Use serif output.
     push("-Wno-everything");
     if (VerboseRun) { push("-v"); }
-    push("-isystem");
-    push(ToolchainInclude);
+    if (!ToolchainInclude.empty()) {
+        push("-isystem");
+        push(ToolchainInclude);
+    }
     /*
      * Clang with custom LLVM toolchain is able to find toolchain include
      * correctly and append it to the path, but with this separate tool the
@@ -364,10 +404,11 @@ int main(int argc, const char** argv) {
         auto db = getSymbolsInBinary(parseTargetFiles(TargetFiles).at(0));
         db.writeToFile(outputPathOverride.getValue());
     } else {
-        throw std::invalid_argument(std::format(
-            "Run mode is expected to be 'TranslationUnit' or "
-            "'BinarySymbols', but found '{}'",
-            RunMode.getValue()));
+        throw std::invalid_argument(
+            std::format(
+                "Run mode is expected to be 'TranslationUnit' or "
+                "'BinarySymbols', but found '{}'",
+                RunMode.getValue()));
     }
 
     if (!PerfRun.empty()) {

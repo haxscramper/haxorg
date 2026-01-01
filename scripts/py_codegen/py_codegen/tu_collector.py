@@ -18,6 +18,7 @@ from beartype.typing import (
     List,
     Optional,
     cast,
+    Any,
 )
 
 from py_scriptutils.script_logging import log
@@ -36,7 +37,7 @@ def model_options(f) -> None:
 def run_wrap_for_config(
     conf: TuOptions,
     wrap_time_trace: Optional[TraceCollector] = None,
-):
+) -> None:
     paths: List[PathMapping] = expand_input(conf)  # [:10]
     wraps: List[TuWrap] = []
 
@@ -139,7 +140,7 @@ def run_wrap_for_config(
               help="Path to config file.")
 @model_options
 @click.pass_context
-def run(ctx: click.Context, config: str, **kwargs) -> None:
+def run(ctx: click.Context, config: str, **kwargs: Any) -> None:
     assert Path(config).exists()
     config = str(Path(config).resolve())
     config_base = conf_provider.run_config_provider(

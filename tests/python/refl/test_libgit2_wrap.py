@@ -1,6 +1,7 @@
 from py_scriptutils import configure_asan
 import logging
 from tempfile import TemporaryDirectory
+from beartype.typing import Any
 
 import os
 from beartype.typing import TYPE_CHECKING
@@ -8,7 +9,7 @@ if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
     from py_scriptutils.test_utils import HasAnyAttr 
     tu_collector = HasAnyAttr()
 else: 
-    import py_codegen.tu_collector as tu_collector
+    import py_codegen.tu_collector as tu_collector # type: ignore
 
 if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
     from py_scriptutils.test_utils import HasAnyAttr 
@@ -39,7 +40,6 @@ def test_libgit2_conv() -> None:
             build_root="{config_dir}/build",
             source_root="{config_dir}",
             header_root="{config_dir}/include",
-            toolchain_include="{tool_dir}/toolchain/llvm/lib/clang/18/include",
             output_directory=str(code_dir),
             execution_trace=str(code_dir.joinpath("run_trace.json")),
             cmake_configure_options=["-DBULD_TEST=OFF"],

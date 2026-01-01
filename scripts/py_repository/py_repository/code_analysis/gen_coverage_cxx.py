@@ -153,7 +153,8 @@ class CovFileRegion(CoverageSchema):
     Context = ForeignId(CovContext.Id)
     ExecutionCount = IntColumn()
     FalseExecutionCount = IntColumn()
-    Folded = BoolColumn()
+    TrueFolded = BoolColumn()
+    FalseFolded = BoolColumn()
 
     # Counter mapping region fields
     LineStart = IntColumn()
