@@ -185,6 +185,7 @@ def test_cpack_archive(
     unpack_build_dir: Path,
     test_cxx: bool,
     test_python: bool,
+    python_version: str = "python3",
 ) -> None:
     if test_python:
         os.chdir(SRC_DIR)
@@ -193,17 +194,28 @@ def test_cpack_archive(
         os.makedirs(cache_dir, exist_ok=True)
         assert BUILD_DIR.joinpath("pyhaxorg.so").exists()
         env.update({
-            "POETRY_CACHE_DIR": cache_dir,
-            "POETRY_VIRTUALENVS_PATH": os.path.join(WORKDIR, ".poetry_venvs"),
-            "POETRY_CONFIG_DIR": os.path.join(WORKDIR, ".poetry_config"),
-            "POETRY_DATA_DIR": os.path.join(WORKDIR, ".poetry_data"),
-            "POETRY_REPOSITORIES_CACHE_DIR": os.path.join(cache_dir, "repositories"),
-            "POETRY_HTTP_CACHE_DIR": os.path.join(cache_dir, "http"),
-            "POETRY_VIRTUALENVS_IN_PROJECT": "true",
-            "HAXORG_PYHAXORG_SO_PATH": str(BUILD_DIR.joinpath("pyhaxorg.so")),
-            "HAXORG_PYTEXTLAYOUT_SO_PATH": str(BUILD_DIR.joinpath("py_textlayout_cpp.so")),
-            "HAXORG_REDUCED_RELEASE_TEST": "1",
-            "HAXORG_REPO_HAXORG_ROOT_BUILD_PATH": str(BUILD_DIR),
+            "POETRY_CACHE_DIR":
+                cache_dir,
+            "POETRY_VIRTUALENVS_PATH":
+                os.path.join(WORKDIR, ".poetry_venvs"),
+            "POETRY_CONFIG_DIR":
+                os.path.join(WORKDIR, ".poetry_config"),
+            "POETRY_DATA_DIR":
+                os.path.join(WORKDIR, ".poetry_data"),
+            "POETRY_REPOSITORIES_CACHE_DIR":
+                os.path.join(cache_dir, "repositories"),
+            "POETRY_HTTP_CACHE_DIR":
+                os.path.join(cache_dir, "http"),
+            "POETRY_VIRTUALENVS_IN_PROJECT":
+                "true",
+            "HAXORG_PYHAXORG_SO_PATH":
+                str(BUILD_DIR.joinpath("pyhaxorg.so")),
+            "HAXORG_PYTEXTLAYOUT_SO_PATH":
+                str(BUILD_DIR.joinpath("py_textlayout_cpp.so")),
+            "HAXORG_REDUCED_RELEASE_TEST":
+                "1",
+            "HAXORG_REPO_HAXORG_ROOT_BUILD_PATH":
+                str(BUILD_DIR),
         })
 
         run_cmd(
@@ -219,7 +231,7 @@ def test_cpack_archive(
                 "poetry",
                 "env",
                 "use",
-                "python3",
+                python_version,
             ],
             env=env,
         )
@@ -321,20 +333,40 @@ def main() -> None:
         description="Script with boolean flags and choice arguments")
 
     # Boolean flags
-    parser.add_argument("--deps",
-                        default=True,
-                        action="store_true",
-                        help="Dependencies flag")
+    parser.add_argument(
+        "--deps",
+        default=True,
+        action="store_true",
+        help="Dependencies flag",
+    )
 
-    parser.add_argument('--no-deps',
-                        dest='deps',
-                        action='store_false',
-                        help='Disable deps')
-    parser.add_argument("--build", default=True, action="store_true", help="Build flag")
-    parser.add_argument('--no-build',
-                        dest='build',
-                        action='store_false',
-                        help='Disable build')
+    parser.add_argument(
+        "--no-deps",
+        dest="deps",
+        action="store_false",
+        help="Disable deps",
+    )
+
+    parser.add_argument(
+        "--build",
+        default=True,
+        action="store_true",
+        help="Build flag",
+    )
+
+    parser.add_argument(
+        "--no-build",
+        dest="build",
+        action="store_false",
+        help="Disable build",
+    )
+
+    parser.add_argument(
+        "--python-bin",
+        dest="python_bin",
+        default="python3",
+        help="Which python to use",
+    )
 
     # Choice argument
     parser.add_argument(

@@ -20,6 +20,7 @@ def get_j_cap() -> List[str]:
     # memory in the system (64GB).
     return ["-j", str(get_threading_count())]
 
+
 def get_docker_cap_flags() -> List[str]:
     return ["--memory=20G", f"--cpus={int((os.cpu_count() or 6) * 0.9)}"]
 
@@ -68,8 +69,18 @@ def run_cmd(
         logger.info(f"stdout:\n{process.stdout}")
         logger.info(f"stderr:\n{process.stderr}")
 
-        if check:
-            assert process.returncode == 0
+        if check and process.returncode != 0:
+            err = RuntimeError(f"Failed to execute command '{cmd_str}'  from {filename}:{lineno}")
+            if process.stdout:
+                err.add_note(f"stdout:\n{process.stdout}")
+
+            if process.stderr:
+                err.add_note(f"stderr:\n{process.stderr}")
+
+            if cwd:
+                err.add_note(f"cwd:{cwd}")
+
+            raise err
 
     except Exception as e:
         e.add_note(f"Failed to execute from {filename}:{lineno}")
