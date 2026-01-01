@@ -3,7 +3,7 @@ from pathlib import Path
 from beartype import beartype
 import plumbum
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import get_component_build_dir, get_workflow_out
+from py_repository.repo_tasks.common import get_component_build_dir, get_script_root, get_workflow_out
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
@@ -26,11 +26,11 @@ def gen_mind_map(ctx: TaskContext) -> None:
     run_command(ctx,
                 "gradle",
                 args=["build"],
-                cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
+                cwd=get_script_root(ctx).joinpath(wrapper_dir))
     run_command(ctx,
                 "gradle",
                 args=["install"],
-                cwd=get_haxorg_repo_root_path().joinpath(wrapper_dir))
+                cwd=get_script_root(ctx).joinpath(wrapper_dir))
     diagram_build_dir = get_component_build_dir(ctx, "example_qt_gui_org_diagram")
 
     def get_out(name: str) -> Path:
@@ -48,6 +48,9 @@ def gen_mind_map(ctx: TaskContext) -> None:
                     outputPath=str(mman_initial_path),
                 ))
         ],
+        env={
+            "ASAN_OPTIONS": "detect_leaks=0",
+        },
     )
 
     mmap_model = haxorg_mind_map.Graph.model_validate(

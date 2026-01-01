@@ -125,7 +125,26 @@ if(${ORG_BUILD_IS_DEVELOP} AND NOT ${ORG_EMCC_BUILD})
 endif()
 
 find_package(cctz REQUIRED)
-find_package(zstd REQUIRED CONFIG)
+
+find_package(zstd QUIET CONFIG)
+
+if(zstd_FOUND)
+  message(STATUS "Found zstd via CMake config")
+  # zstd::zstd target should be available
+else()
+  # Fallback to pkg-config
+  message(STATUS "zstd CMake config not found, trying pkg-config")
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(ZSTD REQUIRED libzstd)
+
+  # Create an imported target to match the CONFIG mode interface
+  add_library(zstd::zstd INTERFACE IMPORTED)
+  set_target_properties(
+    zstd::zstd
+    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${ZSTD_INCLUDE_DIRS}"
+               INTERFACE_LINK_LIBRARIES "${ZSTD_LIBRARIES}"
+               INTERFACE_LINK_DIRECTORIES "${ZSTD_LIBRARY_DIRS}")
+endif()
 
 if(NOT ${ORG_EMCC_BUILD})
   if(${ORG_DEPS_USE_PYTHON_VERSION})
