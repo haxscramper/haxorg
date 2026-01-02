@@ -1,4 +1,4 @@
-#include "clang_reflection_lib.hpp"
+#include "reflection_collector.hpp"
 
 #include <llvm/Support/TimeProfiler.h>
 #include <format>
@@ -1289,12 +1289,16 @@ void ReflASTVisitor::fillCxxRecordDecl(
             switch (base.getAccessSpecifier()) {
                 case clang::AccessSpecifier::AS_none:
                     b->set_access(AccessSpecifier::AsNone);
+                    break;
                 case clang::AccessSpecifier::AS_public:
                     b->set_access(AccessSpecifier::AsPublic);
+                    break;
                 case clang::AccessSpecifier::AS_private:
                     b->set_access(AccessSpecifier::AsPrivate);
+                    break;
                 case clang::AccessSpecifier::AS_protected:
                     b->set_access(AccessSpecifier::AsProtected);
+                    break;
             }
         }
     }

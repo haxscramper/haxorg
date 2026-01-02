@@ -14,7 +14,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(ABSL_CC_LIB_COPTS "-fPIC")
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
-project(haxorg LANGUAGES CXX)
+project(haxorg LANGUAGES CXX C)
 enable_testing()
 
 set(BASE "${CMAKE_SOURCE_DIR}")

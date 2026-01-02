@@ -34,7 +34,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
 
-#include "clang_reflection_demangler.hpp"
+#include "reflection_demangler.hpp"
 
 #ifdef ORG_USE_PERFETTO
 

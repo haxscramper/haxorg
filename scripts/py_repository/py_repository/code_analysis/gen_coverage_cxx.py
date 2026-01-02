@@ -1402,5 +1402,4 @@ if __name__ == "__main__":
         full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")
 
     get_haxorg_repo_root_path().joinpath(
-        "scripts/cxx_codegen/profdata_merger/profdata_merger.sql").write_text(
-            "\n".join(full_code))
+        "scripts/cxx_codegen/profdata_merger.sql").write_text("\n".join(full_code))

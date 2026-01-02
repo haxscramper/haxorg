@@ -46,8 +46,8 @@
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/system/macros.hpp>
 
-#include "clang_reflection_demangler.hpp"
-#include "clang_reflection_perf.hpp"
+#include "reflection_demangler.hpp"
+#include "reflection_perf.hpp"
 
 
 using namespace llvm::itanium_demangle;
@@ -437,7 +437,7 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
         [](llvm::json::Value const& value) {
             switch (value.kind()) {
                 case llvm::json::Value::Kind::Array:
-                    value.getAsArray()->empty();
+                    return value.getAsArray()->empty();
                 case llvm::json::Value::Kind::Null: return true;
                 default: return false;
             }
