@@ -28,7 +28,7 @@ if(${ORG_USE_PERFETTO})
 endif()
 
 if(${ORG_USE_TRACY})
-  target_link_libraries(profdata_merger PRIVATE Tracy::TracyClient)
+  target_link_libraries(reflection_tool PRIVATE Tracy::TracyClient)
 endif()
 
 target_include_directories(

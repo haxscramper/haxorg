@@ -15,6 +15,13 @@
 
 
 int main(int argc, const char** argv) {
+    if (argc != 2) {
+        throw hstd::runtime_error::init(
+            "Expected exactly one CLI argument: JSON literal for the "
+            "configuration or a path to the JSON file.");
+    }
+
+
     std::string json_parameters;
     if (std::string{argv[1]}.starts_with("/")) {
         if (!hstd::fs::exists(argv[1])) {

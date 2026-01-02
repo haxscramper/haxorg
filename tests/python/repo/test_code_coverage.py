@@ -7,7 +7,7 @@ import re
 import pandas as pd
 import py_repository.code_analysis.gen_coverage_cxx as cov
 from beartype import beartype
-from beartype.typing import List, Optional, Union, Dict, Tuple
+from beartype.typing import List, Optional, Union, Dict, Tuple, Any
 from plumbum import local
 import rich.box
 from py_scriptutils.pandas_utils import assert_frame, dataframe_to_rich_table
@@ -26,13 +26,13 @@ from dominate import document
 import dominate.tags as tags
 
 
-def dbg(map) -> str:
+def dbg(map: Any) -> str:
     return render_rich_pprint(map, width=200, color=False)
 
 
 CAT = "test_code_coverage"
 
-profdata_merger = get_haxorg_repo_root_path().joinpath("build/haxorg/profdata_merger")
+reflection_tool = get_haxorg_repo_root_path().joinpath("build/haxorg/reflection_tool")
 
 corpus_base = get_haxorg_repo_root_path().joinpath("tests/python/repo/coverage_corpus")
 
@@ -99,7 +99,7 @@ class ProfileRunParams():
         return self.dir.joinpath("coverage-summary.json")
 
     def get_perf(self) -> Path:
-        return self.dir.joinpath("profdata_merger.perfetto")
+        return self.dir.joinpath("reflection_tool.perfetto")
 
     def get_params(self) -> Path:
         return self.dir.joinpath("test-params.json")
@@ -136,12 +136,12 @@ class ProfileRunParams():
                 ) for context, run_params in self.run_contexts.items()
             ]).model_dump_json(indent=2))
 
-        cmd = local[profdata_merger].with_env(LD_PRELOAD="")
+        cmd = local[reflection_tool].with_env(LD_PRELOAD="")
         if self.coverage_mapping_dump:
             self.coverage_mapping_dump.mkdir(exist_ok=True, parents=True)
 
         self.get_params().write_text(
-            cov.ProfdataParams(
+            cov.ReflectionCLI(profdata=cov.ProfdataConfig(
                 coverage=str(self.get_summary()),
                 coverage_db=str(self.get_sqlite()),
                 # perf_trace=str(self.get_perf()),
@@ -149,7 +149,7 @@ class ProfileRunParams():
                 file_blacklist=self.file_blacklist,
                 coverage_mapping_dump=self.coverage_mapping_dump and
                 str(self.coverage_mapping_dump),
-            ).model_dump_json(indent=2))
+            )).model_dump_json(indent=2))
 
         code, stdout, stderr = cmd.run([str(self.get_params())])
         if self.show_merger_run:
@@ -346,9 +346,11 @@ def cleanup_test_code(code: str) -> str:
 
 
 @beartype
-def add_cov_segment_text(df: pd.DataFrame, lines: List[str], for_test: bool = True) -> None:
+def add_cov_segment_text(df: pd.DataFrame,
+                         lines: List[str],
+                         for_test: bool = True) -> None:
 
-    def get_row(row) -> None:
+    def get_row(row: Dict[str, Any]) -> str:
         code = cov.extract_text(
             lines,
             start=(row["LineStart"], row["ColumnStart"]),
