@@ -18,7 +18,8 @@ protobuf_generate(
 
 add_executable(reflection_tool ${ORG_PROTO_GENERATED_FILES})
 
-glob_add_sources2(TARGET reflection_tool LS_REGEX "${BASE}/scripts/.*" SEARCH_BASE "${BASE}")
+glob_add_sources2(TARGET reflection_tool LS_REGEX "${BASE}/scripts/cxx_codegen/.*" SEARCH_BASE
+                  "${BASE}")
 haxorg_target_setup_v2(TARGET reflection_tool)
 
 if(${ORG_USE_PERFETTO})

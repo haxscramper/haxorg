@@ -15,8 +15,7 @@ CAT = __name__
 @haxorg_task(dependencies=[symlink_build])
 def generate_python_protobuf_files(ctx: TaskContext) -> None:
     """Generate new python code from the protobuf reflection files"""
-    proto_config = get_script_root(
-        ctx, "scripts/cxx_codegen/reflection_tool/reflection_defs.proto")
+    proto_config = get_script_root(ctx, "scripts/cxx_codegen/reflection_defs.proto")
 
     _, stdout, _ = run_command(ctx, "poetry", ["env", "info", "--path"], capture=True)
     stdout = stdout.strip()

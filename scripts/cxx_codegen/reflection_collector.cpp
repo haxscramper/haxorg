@@ -17,7 +17,7 @@
 #include <llvm/Support/Error.h>
 #include <llvm/Support/raw_ostream.h>
 #include <fstream>
-
+#include <hstd/ext/logger.hpp>
 
 namespace c = clang;
 using llvm::dyn_cast;
@@ -180,13 +180,6 @@ std::optional<std::string> ReflASTVisitor::get_refl_params(
                 strLiteral != nullptr && *strLiteral != nullptr) {
                 if (const auto* stringLiteral = llvm::dyn_cast<
                         clang::StringLiteral>(*strLiteral)) {
-                    // LOG(INFO) << dump(decl);
-                    // if (fmt.find("ImmOrg.hpp") != std::string::npos) {
-                    //     LOG(INFO) << std::format(
-                    //         "refl {} value {}",
-                    //         fmt,
-                    //         stringLiteral->getString().str());
-                    // }
                     return stringLiteral->getString().str();
                 }
             }
@@ -196,7 +189,7 @@ std::optional<std::string> ReflASTVisitor::get_refl_params(
             if (annotation.starts_with("refl")) {
                 auto text = annotation.substr(4).trim().str();
                 if (!text.empty()) {
-                    LOG(INFO) << dump(decl);
+                    HSLOG_DEBUG("{}", dump(decl));
                     return text;
                 }
             }
@@ -434,10 +427,9 @@ void ReflASTVisitor::applyNamespaces(
             QualType const* _new = newNamespaces.at(i);
             if (_old->name() != _new->name()) {
                 if (false) {
-                    LOG(INFO) << std::format(
+                    HSLOG_WARNING(
                         "Mismatching namespace types at index {} '{}' "
-                        "(from "
-                        "{}) != '{}' (from {})\n",
+                        "(from {}) != '{}' (from {})",
                         i,
                         _old->name(),
                         _old->dbgorigin(),
@@ -549,19 +541,21 @@ void ReflASTVisitor::log_visit(
     std::string const& msg,
     int                line,
     char const*        function) {
-    if (verbose) {
+    if (cli.verbose_log) {
         if (Decl) {
-            LOG(INFO) << std::format(
-                "\n--------------------------------------------------\n{}"
-                "\n---"
-                "\n{}\n"
-                "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+            HSLOG_TRACE(
+                "{}",
                 std::format(
-                    "line:{} function:{} msg:{}", line, function, msg),
-                (Decl ? "\n" + dump(Decl, 5) : ""));
+                    "\n--------------------------------------------------"
+                    "\n{}"
+                    "\n---"
+                    "\n{}\n"
+                    "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+                    std::format(
+                        "line:{} function:{} msg:{}", line, function, msg),
+                    (Decl ? "\n" + dump(Decl, 5) : "")));
         } else {
-            LOG(INFO) << std::format(
-                "line:{} function:{} msg:{}", line, function, msg);
+            HSLOG_TRACE("line:{} function:{} msg:{}", line, function, msg);
         }
     }
 }
@@ -1100,7 +1094,6 @@ void ReflASTVisitor::fillMethodDecl(
     c::CXXMethodDecl const* method) {
 
     if (auto args = get_refl_params(method)) {
-        // LOG(INFO) << std::format("reflection params {}", args.value());
         sub->set_reflectionparams(args.value());
     }
 
@@ -1257,7 +1250,7 @@ bool ReflASTVisitor::shouldVisit(c::Decl const* Decl) {
         case VisitMode::AllTargeted: {
             std::string DeclLoc = getAbsoluteDeclLocation(Decl);
             return !DeclLoc.empty()
-                && targetFiles.find(DeclLoc) != targetFiles.end();
+                && target_files.find(DeclLoc) != target_files.end();
         }
         case VisitMode::AllMainTranslationUnit: {
             const c::ASTContext& astContext = Decl->getASTContext();
@@ -1332,11 +1325,11 @@ void ReflASTVisitor::fillCxxRecordDecl(
                     Record* sub_rec = rec->add_nestedrec();
                     fillCxxRecordDecl(sub_rec, SubRecord);
                 } else {
-                    if (verbose) {
-                        LOG(WARNING) << std::format(
+                    if (cli.verbose_log) {
+                        HSLOG_WARNING(
                             "Dropping decl field decl: {}, implicit: {}, "
                             "is anon "
-                            "subrec: {}\n",
+                            "subrec: {}",
                             FieldDecl != nullptr,
                             (FieldDecl ? (FieldDecl->isImplicit()
                                               ? "implicit"
@@ -1680,9 +1673,11 @@ std::string getMainFileAbsolutePath(
     }
 }
 
-ReflASTConsumer::ReflASTConsumer(clang::CompilerInstance& CI, bool verbose)
+ReflASTConsumer::ReflASTConsumer(
+    clang::CompilerInstance& CI,
+    const ReflectionCLI&     cli)
     : out(std::make_unique<TU>())
-    , Visitor(&CI.getASTContext(), out.get(), verbose)
+    , Visitor(&CI.getASTContext(), out.get(), cli)
     , CI(CI) {
     auto callback = std::make_unique<IncludeCollectorCallback>(
         out.get(), &CI.getSourceManager());
@@ -1700,16 +1695,13 @@ void ReflASTConsumer::HandleTranslationUnit(c::ASTContext& Context) {
     // of the pugin invocation, so :
     // translation unit *visitor* instead, but for now this will do.
     c::DiagnosticsEngine& Diags = CI.getDiagnostics();
-    std::string           path  = outputPathOverride
-                                    ? *outputPathOverride
-                                    : CI.getFrontendOpts().OutputFile + ".pb";
     std::ofstream         file{
-        path,
+        cli.output,
         std::ios::out |
             // Overwrite the file if anything is there
             std::ios::trunc | std::ios::binary};
 
-    SaveProtobufToJsonFile(*out, path + ".json");
+    SaveProtobufToJsonFile(*out, cli.output + ".json");
 
     if (file.is_open()) {
         out->SerializePartialToOstream(&file);
@@ -1719,7 +1711,7 @@ void ReflASTConsumer::HandleTranslationUnit(c::ASTContext& Context) {
             c::DiagnosticsEngine::Warning,
             "Could not write compiler reflection data from a file: "
             "'%0'"))
-            << path;
+            << cli.output;
     }
 }
 
@@ -1754,7 +1746,7 @@ c::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
         // Process argument if provided
         clang::StringRef jsonStr;
         if (!S.checkStringLiteralArgumentAttr(Attr, 0, jsonStr)) {
-            LOG(INFO) << "Attribute not applied";
+            HSLOG_TRACE("Attribute not applied");
             return AttributeNotApplied;
         }
 

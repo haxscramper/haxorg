@@ -35,19 +35,7 @@
 #include <hstd/stdlib/VariantSerde.hpp>
 
 #include "reflection_demangler.hpp"
-
-#ifdef ORG_USE_PERFETTO
-
-PERFETTO_DEFINE_CATEGORIES(
-    perfetto::Category("llvm").SetDescription("LLVM code execution time"),
-    perfetto::Category("sql").SetDescription("SQLite data insertion"),
-    perfetto::Category("transform").SetDescription("Data transform time"),
-    perfetto::Category("main").SetDescription("Top execution steps")
-    //
-);
-
-
-#endif
+#include "reflection_perf.hpp"
 
 #define NO_COVERAGE                                                       \
     __attribute__((no_sanitize("coverage", "address", "thread")))
@@ -55,7 +43,6 @@ PERFETTO_DEFINE_CATEGORIES(
 
 #pragma clang diagnostic error "-Wswitch"
 
-#include <hstd/ext/perfetto_aux_impl_template.hpp>
 
 namespace fs = std::filesystem;
 using namespace llvm::coverage;
@@ -130,31 +117,17 @@ BOOST_DESCRIBE_ENUM(
 
 } // namespace llvm::coverage
 
-
-NO_COVERAGE std::string read_file(fs::path const& path) {
-    std::ifstream     file{path.native()};
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-}
-
 NO_COVERAGE void llvm_unreachable_f(std::string const& msg) {
     llvm_unreachable(msg.c_str());
 }
 
-
 namespace {
 NO_COVERAGE void CreateTables(SQLite::Database& db) {
     auto path = fs::path{__FILE__}.parent_path() / "profdata_merger.sql";
-    std::string sql = read_file(path);
+    std::string sql = readFile(path);
     db.exec(sql);
 }
 } // namespace
-
-// std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
-//     return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
-// }
-
 
 template <>
 struct JsonSerde<Counter> {
@@ -996,31 +969,6 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
     }
 }
 
-struct ProfdataCLIConfig {
-    DECL_DESCRIBED_ENUM(Mode, RunProfileMerge, BuildProfileMerge);
-
-
-    Mode                       mode = Mode::RunProfileMerge;
-    std::string                coverage;
-    std::string                coverage_db;
-    std::optional<std::string> perf_trace     = std::nullopt;
-    std::vector<std::string>   file_whitelist = {".*"};
-    std::vector<std::string>   file_blacklist;
-    std::optional<std::string> debug_file            = std::nullopt;
-    std::optional<std::string> coverage_mapping_dump = std::nullopt;
-    int                        run_group_batch_size  = 8;
-
-    DESC_FIELDS(
-        ProfdataCLIConfig,
-        (mode,
-         coverage,
-         coverage_db,
-         perf_trace,
-         file_whitelist,
-         file_blacklist,
-         debug_file,
-         coverage_mapping_dump));
-};
 
 struct ProfdataFullProfile {
     std::vector<ProfdataCookie> runs;
@@ -1037,14 +985,14 @@ struct ProfdataRun {
 const char* __asan_default_options() { return "detect_leaks=0"; }
 
 void process_runs(
-    Vec<ProfdataRun> const&  runs,
-    ProfdataCLIConfig const& config,
-    int                      full_run_size,
-    std::function<void()>    flush_debug,
-    db_build_ctx&            ctx,
-    queries&                 q,
-    json&                    debug,
-    SQLite::Database&        db) {
+    Vec<ProfdataRun> const& runs,
+    ReflectionCLI const&    cli,
+    int                     full_run_size,
+    std::function<void()>   flush_debug,
+    db_build_ctx&           ctx,
+    queries&                q,
+    json&                   debug,
+    SQLite::Database&       db) {
 
     UnorderedMap<
         std::pair<std::string, std::string>,
@@ -1075,10 +1023,10 @@ void process_runs(
     }
 
 
-    if (config.coverage_mapping_dump) {
+    if (cli.profdata.coverage_mapping_dump) {
         LOG(INFO) << fmt(
             "Coverage mapping dump to {}",
-            config.coverage_mapping_dump.value());
+            cli.profdata.coverage_mapping_dump.value());
     }
 
     for (auto const& run : runs) {
@@ -1104,10 +1052,10 @@ void process_runs(
                     run.run.test_binary));
         }
 
-        if (config.coverage_mapping_dump) {
+        if (cli.profdata.coverage_mapping_dump) {
             auto j = to_json_eval(*mapping);
             auto path //
-                = fs::path{*config.coverage_mapping_dump}
+                = fs::path{*cli.profdata.coverage_mapping_dump}
                 / fmt("coverage_mapping_{}.json", run.index);
 
             LOG(INFO) << fmt("coverage-mapping-dump={}", path);
@@ -1253,8 +1201,7 @@ std::string generateInstantiateFunctionReport(
     return report;
 }
 
-NO_COVERAGE void build_build_coverage_merge(
-    ProfdataCLIConfig const& config) {
+NO_COVERAGE void build_build_coverage_merge(ReflectionCLI const& cli) {
 
     BuildProfileCollection collection;
 
@@ -1263,7 +1210,7 @@ NO_COVERAGE void build_build_coverage_merge(
         int count = 0;
         for (const auto& entry :
              std::filesystem::recursive_directory_iterator{
-                 config.coverage}) {
+                 cli.profdata.coverage}) {
             if (entry.is_regular_file()
                 && entry.path().extension() == ".json"
                 && entry.path().stem().extension() == ".cpp") {
@@ -1279,16 +1226,15 @@ NO_COVERAGE void build_build_coverage_merge(
 
     auto report = generateInstantiateFunctionReport(collection);
     LOG(INFO) << "\n" << report;
-    hstd::writeFile(config.coverage_db, report);
+    hstd::writeFile(cli.profdata.coverage_db, report);
 }
 
-NO_COVERAGE void build_run_coverage_merge(
-    ProfdataCLIConfig const& config) {
+NO_COVERAGE void build_run_coverage_merge(ReflectionCLI const& cli) {
     json debug = json::object();
 
     auto flush_debug = [&]() {
-        if (config.debug_file) {
-            fs::path      out_path{config.debug_file.value()};
+        if (cli.profdata.debug_file) {
+            fs::path      out_path{cli.profdata.debug_file.value()};
             std::ofstream os{out_path};
             os << debug.dump();
         }
@@ -1296,19 +1242,18 @@ NO_COVERAGE void build_run_coverage_merge(
 
     finally{flush_debug};
 
-
     LOG(INFO) << std::format(
-        "Using test summary file {}", config.coverage);
+        "Using test summary file {}", cli.profdata.coverage);
 
-    if (config.debug_file) {
+    if (cli.profdata.debug_file) {
         LOG(INFO) << std::format(
-            "Debug file enabled {}", config.debug_file);
+            "Debug file enabled {}", cli.profdata.debug_file);
     }
 
     auto summary = JsonSerde<ProfdataFullProfile>::from_json(
-        json::parse(read_file(config.coverage)));
+        json::parse(hstd::readFile(cli.profdata.coverage)));
 
-    fs::path db_file{config.coverage_db};
+    fs::path db_file{cli.profdata.coverage_db};
 
 
     if (fs::exists(db_file)) { fs::remove(db_file); }
@@ -1341,12 +1286,12 @@ NO_COVERAGE void build_run_coverage_merge(
         return result;
     };
 
-    ctx.file_blacklist = get_regex_list(config.file_blacklist);
-    ctx.file_whitelist = get_regex_list(config.file_whitelist);
+    ctx.file_blacklist = get_regex_list(cli.profdata.file_blacklist);
+    ctx.file_whitelist = get_regex_list(cli.profdata.file_whitelist);
 
     Vec<Vec<ProfdataRun>> runGroups;
     for (auto const& [run_idx, run] : enumerate(summary.runs)) {
-        if (run_idx % config.run_group_batch_size == 0) {
+        if (run_idx % cli.profdata.run_group_batch_size == 0) {
             runGroups.push_back({});
         }
 
@@ -1360,7 +1305,7 @@ NO_COVERAGE void build_run_coverage_merge(
     for (auto const& group : runGroups) {
         process_runs(
             group,
-            config,
+            cli,
             summary.runs.size(),
             flush_debug,
             ctx,
@@ -1368,51 +1313,4 @@ NO_COVERAGE void build_run_coverage_merge(
             debug,
             db);
     }
-}
-
-NO_COVERAGE int main(int argc, char** argv) {
-    if (argc != 2) {
-        throw std::logic_error(
-            "Expected single positional argument -- JSON literal "
-            "with parameters or absolute path to the JSON "
-            "configuration file.");
-    }
-
-    std::string json_parameters;
-    if (std::string{argv[1]}.starts_with("/")) {
-        if (!fs::exists(argv[1])) {
-            throw std::logic_error(
-                std::format(
-                    "Input configuration file '{}' does not exist",
-                    argv[1]));
-        }
-        json_parameters = read_file(argv[1]);
-    } else {
-        json_parameters = std::string{argv[1]};
-    }
-
-    auto config = JsonSerde<ProfdataCLIConfig>::from_json(
-        json::parse(json_parameters));
-
-#ifdef ORG_USE_PERFETTO
-    std::unique_ptr<perfetto::TracingSession> perfetto_session;
-    if (config.perf_trace) {
-        perfetto_session = StartProcessTracing("profdata_merger");
-    }
-#endif
-
-    if (config.mode == ProfdataCLIConfig::Mode::RunProfileMerge) {
-        build_run_coverage_merge(config);
-    } else {
-        build_build_coverage_merge(config);
-    }
-
-    if (config.perf_trace) {
-        fs::path out_path{config.perf_trace.value()};
-#ifdef ORG_USE_PERFETTO
-        StopTracing(std::move(perfetto_session), out_path);
-#endif
-    }
-
-    return 0;
 }

@@ -151,7 +151,7 @@ class BumpPointerAllocator {
 
   public:
     NO_COVERAGE BumpPointerAllocator()
-        : BlockList(new(InitialBuffer) BlockMeta{nullptr, 0}) {}
+        : BlockList(new (InitialBuffer) BlockMeta{nullptr, 0}) {}
 
     NO_COVERAGE void* allocate(size_t N) {
         N = (N + 15u) & ~15u;
@@ -944,7 +944,8 @@ void processObjectFile(
             sa.Address = address;
 
 
-            std::optional<llvm::DILineInfo> li = dwarf->getLineInfoForAddress(sa, spec);
+            std::optional<llvm::DILineInfo>
+                li = dwarf->getLineInfoForAddress(sa, spec);
             if (li && li->Line != 0 && !li->FileName.empty()) {
                 BinarySymbolDebugLocation loc;
                 loc.file     = li->FileName;
@@ -1215,4 +1216,16 @@ NO_COVERAGE void BinaryFileDB::writeToFile(const std::string& path) {
         }
     }
     __perf_trace_end("sym");
+}
+
+
+NO_COVERAGE void run_binary_symbols_collection(ReflectionCLI const& cli) {
+    __perf_trace("main", "Process binary symbols");
+    if (cli.output.empty()) {
+        throw std::invalid_argument(
+            std::format("Missing output path for reflection run"));
+    }
+
+    auto db = getSymbolsInBinary(cli.input.at(0));
+    db.writeToFile(cli.output);
 }
