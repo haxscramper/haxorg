@@ -24,9 +24,7 @@ class ReflFrontendActionFactory
     explicit ReflFrontendActionFactory(ReflectionCLI const& cli)
         : cli{cli} {}
 
-    std::unique_ptr<clang::FrontendAction> create() override {
-        return std::make_unique<ReflFrontendAction>(cli);
-    }
+    std::unique_ptr<clang::FrontendAction> create() override;
 
   private:
     ReflectionCLI cli;

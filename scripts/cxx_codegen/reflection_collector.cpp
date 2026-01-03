@@ -22,6 +22,7 @@
 namespace c = clang;
 using llvm::dyn_cast;
 
+
 bool ReflASTVisitor::isDescribedRecord(
     const clang::RecordDecl* recordDecl) {
     if (!recordDecl) { return false; }
@@ -335,6 +336,7 @@ std::ostream& errs(
     return std::cerr << std::format("[refl-lib] [{}:{}] ", function, line);
 }
 
+
 std::string formatSourceLocation(
     const c::SourceLocation& loc,
     c::SourceManager&        srcMgr) {
@@ -372,6 +374,30 @@ std::string formatSourceLocation(
     }
     return "Invalid SourceLocation";
 }
+
+
+std::string formatSourceLocation(clang::Decl const* Decl) {
+    return formatSourceLocation(
+        Decl->getLocation(), Decl->getASTContext().getSourceManager());
+}
+
+std::string formatDeclLocation(clang::Decl const* Decl) {
+    std::string name;
+    if (const auto* namedDecl = llvm::dyn_cast<clang::NamedDecl>(Decl)) {
+        name = namedDecl->getNameAsString();
+    } else {
+        name = "(not named decl)";
+    }
+
+    return std::format(
+        "Decl '{}' of kind {} at '{}'",
+        name,
+        Decl->getDeclKindName(),
+        formatSourceLocation(
+            Decl->getLocation(),
+            Decl->getASTContext().getSourceManager()));
+}
+
 
 std::vector<QualType> ReflASTVisitor::getNamespaces(
     c::NamespaceDecl const*                 Namespace,
@@ -544,16 +570,27 @@ void ReflASTVisitor::log_visit(
     if (cli.verbose_log) {
         if (Decl) {
             HSLOG_TRACE(
-                "{}",
-                std::format(
-                    "\n--------------------------------------------------"
-                    "\n{}"
-                    "\n---"
-                    "\n{}\n"
-                    "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+                "line:{} function:{} msg:{} {}",
+                line,
+                function,
+                msg,
+                formatDeclLocation(Decl));
+
+            if (false) {
+                HSLOG_TRACE(
+                    "{}",
                     std::format(
-                        "line:{} function:{} msg:{}", line, function, msg),
-                    (Decl ? "\n" + dump(Decl, 5) : "")));
+                        "\n-----------------------------------------------"
+                        "---\n{}\n---\n{}\n"
+                        "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+                        "^",
+                        std::format(
+                            "line:{} function:{} msg:{}",
+                            line,
+                            function,
+                            msg),
+                        (Decl ? "\n" + dump(Decl, 5) : "")));
+            }
         } else {
             HSLOG_TRACE("line:{} function:{} msg:{}", line, function, msg);
         }
@@ -1041,10 +1078,12 @@ void ReflASTVisitor::fillFieldDecl(
     c::RecordType const* RecType = Type.getTypePtr()
                                        ->getAs<c::RecordType>();
 
+    HSLOG_DEPTH_SCOPE_ANON();
+
     log_visit(
         field,
         std::format(
-            "has_rec_type: {} name: {}",
+            "field_visit has_rec_type: {} name: {}",
             RecType != nullptr,
             field->getNameAsString()));
 
@@ -1222,7 +1261,10 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
 
 
 bool ReflASTVisitor::isRefl(c::Decl const* Decl) {
+    HSLOG_DEBUG("Verifying if decl is annotated with reflection");
+    HSLOG_DEPTH_SCOPE_ANON();
     for (c::AnnotateAttr* Attr : Decl->specific_attrs<c::AnnotateAttr>()) {
+        HSLOG_DEBUG("Annotation name {}", Attr->getAnnotation().str());
         if (Attr->getAnnotation() == REFL_NAME) { return true; }
     }
     return false;
@@ -1452,8 +1494,12 @@ bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
     } else {
         log_visit(
             nullptr,
-            "declaration context is not translation unit "
-                + Decl->getNameAsString());
+            std::format(
+                "declaration context is not translation unit '{}' at {}, "
+                "isRefl:{}",
+                Decl->getNameAsString(),
+                formatSourceLocation(Decl),
+                isRefl(Decl)));
     }
 
     return true;
@@ -1587,6 +1633,8 @@ bool ReflASTVisitor::VisitTypedefDecl(c::TypedefDecl* Decl) {
 bool ReflASTVisitor::VisitRecordDecl(c::RecordDecl* Decl) {
     c::TypedefDecl* Typedef   = findTypedefForDecl(Decl, Ctx);
     c::FieldDecl*   FieldDecl = findFieldForDecl(Decl, Ctx);
+    HSLOG_TRACE("VisitRecordDecl {}", formatDeclLocation(Decl));
+    HSLOG_DEPTH_SCOPE_ANON();
     if (Decl->getNameAsString().empty() && Typedef == nullptr) {
         log_visit(
             nullptr,
@@ -1687,6 +1735,12 @@ ReflASTConsumer::ReflASTConsumer(
 }
 
 void ReflASTConsumer::HandleTranslationUnit(c::ASTContext& Context) {
+    HSLOG_INFO(
+        "Handling translation unit in refl ast consumer with visit mode "
+        "{}",
+        Visitor.visitMode);
+
+    HSLOG_DEPTH_SCOPE_ANON();
     // When executed with -ftime-trace plugin execution time will be
     // reported in the constructed flame graph.
     llvm::TimeTraceScope timeScope{"reflection-visit-tu"};
@@ -1733,7 +1787,7 @@ c::DiagnosticBuilder Diag(
     }
 }
 
-c::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
+c::ParsedAttrInfo::AttrHandling ReflAttrInfo::handleDeclAttribute(
     c::Sema&             S,
     c::Decl*             D,
     const c::ParsedAttr& Attr) const {
@@ -1745,6 +1799,7 @@ c::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
         Attr.getRange());
 
 
+    HSLOG_TRACE("Handle declared attribute on {}", formatDeclLocation(D));
     if (Attr.getNumArgs() == 1) {
         // Process argument if provided
         clang::StringRef jsonStr;

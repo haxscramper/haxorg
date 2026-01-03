@@ -1,10 +1,11 @@
 import itertools
 from pathlib import Path
 
+import py_repository.code_analysis.gen_coverage_cookies as cov
 from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import check_is_file, ensure_existing_dir, get_build_root, get_log_dir, get_script_root
+from py_repository.repo_tasks.command_execution import run_command, run_command_with_json_args
+from py_repository.repo_tasks.common import check_is_file, ensure_existing_dir, get_build_root, get_log_dir, get_script_root, get_workflow_out
 from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg, build_reflection_tool, configure_cmake_haxorg
 from py_scriptutils.script_logging import log
@@ -71,23 +72,18 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
                 src_file = get_script_root(
                     ctx, "src/py_libs/py_adaptagrams/adaptagrams_ir_refl_target.cpp")
 
-        run_command(
+        run_command_with_json_args(
             ctx,
-            get_build_root(ctx,
-                           "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool"),
-            [
-                "-p",
-                compile_commands,
-                "--compilation-database",
-                compile_commands,
-                "--run-mode",
-                "TranslationUnit",
-                *(["--verbose"]
-                  if ctx.config.log_level == HaxorgLogLevel.VERBOSE else []),
-                "--out",
-                out_file,
-                src_file,
-            ],
+            str(get_build_root(ctx, "haxorg/reflection_tool")),
+            args=cov.ReflectionCLI(
+                output=str(out_file),
+                input=[str(src_file)],
+                log_path=str(get_workflow_out(ctx, f"{task}_reflection_run.log")),
+                mode=cov.Mode.AllAnotatedSymbols,
+                verbose_log=ctx.config.log_level == HaxorgLogLevel.VERBOSE,
+                reflection=cov.ReflectionConfig(
+                    compilation_database=str(compile_commands),),
+            ).model_dump(),
         )
 
         log(CAT).info("Updated reflection")
@@ -163,11 +159,7 @@ def generate_include_graph(ctx: TaskContext) -> None:
                                       "build/haxorg/compile_commands_with_headers.json")
     # re-configure the whole project to generate new compilation database.
     configure_cmake_haxorg(ctx=ctx)
-
-    conf_copy = ctx.config.model_copy(deep=True)
-    conf_copy.build_conf.target = ["reflection_tool"]
-    conf_copy.build_conf.force = True
-    build_haxorg(ctx=ctx.with_temp_config(conf_copy))
+    build_reflection_tool(ctx=ctx)
 
     from py_repository.code_analysis.gen_include_graph import gen_include_graph
     gen_include_graph(

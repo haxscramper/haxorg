@@ -13,7 +13,12 @@
 
 #include "reflection_collector_frontend.hpp"
 #include "profdata_merger.hpp"
+#include "reflection_collector.hpp"
 
+
+static clang::ParsedAttrInfoRegistry::Add<ReflAttrInfo> ReflectionCollectorDef(
+    "refl",
+    "reflection attribute");
 
 int main(int argc, const char** argv) {
     if (argc != 2) {
@@ -49,12 +54,14 @@ int main(int argc, const char** argv) {
         json::parse(json_parameters));
 
     if (cli.output.empty()) {
-        throw hstd::invalid_argument::init("Missing 'output' field in the CLI configuration.");
+        throw hstd::invalid_argument::init(
+            "Missing 'output' field in the CLI configuration.");
     }
 
     if (cli.log_path) {
         hstd::log::push_sink(
             hstd::log::init_file_sink(cli.log_path.value()));
+        HSLOG_INFO("Log file message");
     }
 
 

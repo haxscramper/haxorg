@@ -33,7 +33,7 @@ std::string getClangResourceDir() {
 std::unique_ptr<clang::ASTConsumer> ReflFrontendAction::CreateASTConsumer(
     clang::CompilerInstance& CI,
     llvm::StringRef) {
-    HSLOG_ERROR("Ast consumer verbose: {}", cli.verbose_log);
+    HSLOG_TRACE("Ast consumer verbose: {}", cli.verbose_log);
     auto consumer = std::make_unique<ReflASTConsumer>(CI, cli);
     if (cli.mode == ReflectionCLI::Mode::AllMainSymbolsInCompilationDb) {
         consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
@@ -45,6 +45,10 @@ std::unique_ptr<clang::ASTConsumer> ReflFrontendAction::CreateASTConsumer(
         consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
             AllTargeted;
     }
+
+    HSLOG_INFO(
+        "Create AST consumer with visit mode {}",
+        consumer->Visitor.visitMode);
 
     return consumer;
 }
@@ -233,10 +237,18 @@ void run_semantic_symbols_collection(const ReflectionCLI& cli) {
         HSLOG_TRACE("Configuration parse OK, running tool");
     }
 
+    HSLOG_INFO("Starting reflection frontend tool run");
+
     int result = tool.run(
         std::make_unique<ReflFrontendActionFactory>(cli).get());
 
     if (result != 0) {
         throw std::runtime_error("Reflection tool execution failed");
     }
+}
+
+std::unique_ptr<clang::FrontendAction> ReflFrontendActionFactory::
+    create() {
+    HSLOG_TRACE("Refl frontend action factory create");
+    return std::make_unique<ReflFrontendAction>(cli);
 }

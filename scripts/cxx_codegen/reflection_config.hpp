@@ -80,6 +80,7 @@ struct ReflectionCLI {
          reflection,
          perf_path,
          verbose_log,
+         log_path,
          input,
          output));
 };

@@ -22,8 +22,8 @@
 #define REFL_NAME "refl"
 
 /// `[[refl]]` attribute provider
-struct ExampleAttrInfo : public clang::ParsedAttrInfo {
-    ExampleAttrInfo() {
+struct ReflAttrInfo : public clang::ParsedAttrInfo {
+    ReflAttrInfo() {
         static constexpr Spelling spellings[]{
             /// __attribute__((REFL_NAME))
             {clang::ParsedAttr::AS_GNU, REFL_NAME},
@@ -199,6 +199,12 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         /// translation unit.
         AllMainTranslationUnit,
     };
+
+    BOOST_DESCRIBE_NESTED_ENUM(
+        VisitMode,
+        AllAnnotated,
+        AllTargeted,
+        AllMainTranslationUnit);
 
     VisitMode visitMode = VisitMode::AllAnnotated;
 
