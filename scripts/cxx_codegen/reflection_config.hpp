@@ -8,8 +8,7 @@
 
 
 struct ProfdataConfig {
-    std::string                coverage;
-    std::string                coverage_db;
+    std::string                build_profile_dir;
     std::vector<std::string>   file_whitelist = {".*"};
     std::vector<std::string>   file_blacklist;
     std::optional<std::string> debug_file            = std::nullopt;
@@ -18,8 +17,7 @@ struct ProfdataConfig {
 
     DESC_FIELDS(
         ProfdataConfig,
-        (coverage,
-         coverage_db,
+        (build_profile_dir,
          file_whitelist,
          file_blacklist,
          debug_file,
@@ -47,22 +45,22 @@ struct ReflectionConfig {
 struct ReflectionCLI {
     DECL_DESCRIBED_ENUM(
         Mode,
-        /// \brief Generate summary report database for the runtime performance
-        /// profiling of the project. 
+        /// \brief Generate summary report database for the runtime
+        /// performance profiling of the project.
         RunProfileMerge,
-        /// \brief Generate summary report for the build performance profile
-        /// of the project
+        /// \brief Generate summary report for the build performance
+        /// profile of the project
         BuildProfileMerge,
         /// \brief Collect all symbols defined in the targeted files
         AllTargetedFiles,
-        /// \brief Collect all symbols defined in the main translation units 
-        /// of the files in compilation database. 
+        /// \brief Collect all symbols defined in the main translation
+        /// units of the files in compilation database.
         AllMainSymbolsInCompilationDb,
-        /// \brief Collect all symbols explicitly annotated with the `[[refl]]` 
-        /// attirbute, no matter which file they are defined -- main file of the 
-        /// translation unit or a transitive include. 
+        /// \brief Collect all symbols explicitly annotated with the
+        /// `[[refl]]` attirbute, no matter which file they are defined --
+        /// main file of the translation unit or a transitive include.
         AllAnotatedSymbols,
-        /// \brief Collect all binary symbols with their sizes. 
+        /// \brief Collect all binary symbols with their sizes.
         BinarySymbols);
 
     Mode                       mode = Mode::RunProfileMerge;

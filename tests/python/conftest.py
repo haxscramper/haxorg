@@ -150,8 +150,6 @@ def pytest_collect_file(parent: Module, path: str) -> None:
         return result
 
 
-
-
 def pytest_collection_modifyitems(session: Session, config: Config,
                                   items: List[Item]) -> None:
     for item in items:
@@ -305,3 +303,29 @@ def pytest_collection_modifyitems(config: pytest.Config,
 
     if debug:
         dbg_file.close()
+
+
+@pytest.fixture
+def stable_test_dir(request: pytest.FixtureRequest,
+                    tmp_path_factory: pytest.TempPathFactory) -> Path:
+    import hashlib
+    import shutil
+    test_file = Path(request.path).stem
+    test_name = request.node.name
+
+    if hasattr(request.node, "callspec") and request.node.callspec.params:
+        params_str = str(sorted(request.node.callspec.params.items()))
+        params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
+        dir_name = f"{test_file}__{test_name}__{params_hash}"
+    else:
+        dir_name = f"{test_file}__{test_name}"
+
+    base_tmp = tmp_path_factory.getbasetemp()
+    stable_dir = base_tmp / dir_name
+
+    if stable_dir.exists():
+        shutil.rmtree(stable_dir)
+
+    stable_dir.mkdir(exist_ok=True, parents=True)
+
+    return stable_dir

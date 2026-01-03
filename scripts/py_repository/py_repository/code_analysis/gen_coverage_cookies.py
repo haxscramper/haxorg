@@ -24,9 +24,8 @@ class Mode(str, enum.Enum):
     BinarySymbols = "BinarySymbols"
 
 
-class ProfdataConfig(BaseModel):
-    coverage: str = ""
-    coverage_db: str = ""
+class ProfdataConfig(BaseModel, extra="forbid"):
+    build_profile_dir: str = ""
     file_whitelist: List[str] = Field(default_factory=lambda: [".*"])
     file_blacklist: List[str] = Field(default_factory=list)
     debug_file: Optional[str] = None
@@ -34,19 +33,19 @@ class ProfdataConfig(BaseModel):
     run_group_batch_size: int = 8
 
 
-class ReflectionConfig(BaseModel):
+class ReflectionConfig(BaseModel, extra="forbid"):
     compilation_database: str = ""
     toolchain_include: Optional[str] = None
     clang_resource_dir: Optional[str] = None
     no_std_include: bool = False
 
 
-class ReflectionCLI(BaseModel):
-    mode: Mode = Mode.RunProfileMerge
+class ReflectionCLI(BaseModel, extra="forbid"):
+    output: str
+    mode: Mode
     profdata: ProfdataConfig = Field(default_factory=lambda: ProfdataConfig())
     reflection: ReflectionConfig = Field(default_factory=lambda: ReflectionConfig())
     perf_path: Optional[str] = None
     log_path: Optional[str] = None
     verbose_log: bool = False
-    output: str = ""
     input: List[str] = Field(default_factory=list)

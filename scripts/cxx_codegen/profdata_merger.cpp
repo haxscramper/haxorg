@@ -1210,7 +1210,7 @@ NO_COVERAGE void build_build_coverage_merge(ReflectionCLI const& cli) {
         int count = 0;
         for (const auto& entry :
              std::filesystem::recursive_directory_iterator{
-                 cli.profdata.coverage}) {
+                 cli.profdata.build_profile_dir}) {
             if (entry.is_regular_file()
                 && entry.path().extension() == ".json"
                 && entry.path().stem().extension() == ".cpp") {
@@ -1226,7 +1226,7 @@ NO_COVERAGE void build_build_coverage_merge(ReflectionCLI const& cli) {
 
     auto report = generateInstantiateFunctionReport(collection);
     LOG(INFO) << "\n" << report;
-    hstd::writeFile(cli.profdata.coverage_db, report);
+    hstd::writeFile(cli.output, report);
 }
 
 NO_COVERAGE void build_run_coverage_merge(ReflectionCLI const& cli) {
@@ -1243,7 +1243,7 @@ NO_COVERAGE void build_run_coverage_merge(ReflectionCLI const& cli) {
     finally{flush_debug};
 
     LOG(INFO) << std::format(
-        "Using test summary file {}", cli.profdata.coverage);
+        "Using test summary file {}", cli.profdata.build_profile_dir);
 
     if (cli.profdata.debug_file) {
         LOG(INFO) << std::format(
@@ -1251,9 +1251,9 @@ NO_COVERAGE void build_run_coverage_merge(ReflectionCLI const& cli) {
     }
 
     auto summary = JsonSerde<ProfdataFullProfile>::from_json(
-        json::parse(hstd::readFile(cli.profdata.coverage)));
+        json::parse(hstd::readFile(cli.profdata.build_profile_dir)));
 
-    fs::path db_file{cli.profdata.coverage_db};
+    fs::path db_file{cli.output};
 
 
     if (fs::exists(db_file)) { fs::remove(db_file); }

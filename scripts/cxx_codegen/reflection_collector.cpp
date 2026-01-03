@@ -1678,7 +1678,8 @@ ReflASTConsumer::ReflASTConsumer(
     const ReflectionCLI&     cli)
     : out(std::make_unique<TU>())
     , Visitor(&CI.getASTContext(), out.get(), cli)
-    , CI(CI) {
+    , CI(CI)
+    , cli(cli) {
     auto callback = std::make_unique<IncludeCollectorCallback>(
         out.get(), &CI.getSourceManager());
     out->set_absolutepath(getMainFileAbsolutePath(CI));
@@ -1689,6 +1690,8 @@ void ReflASTConsumer::HandleTranslationUnit(c::ASTContext& Context) {
     // When executed with -ftime-trace plugin execution time will be
     // reported in the constructed flame graph.
     llvm::TimeTraceScope timeScope{"reflection-visit-tu"};
+
+    LOGIC_ASSERTION_CHECK(!cli.output.empty(), "CLI output is empty");
 
     Visitor.TraverseDecl(Context.getTranslationUnitDecl());
     // I could not figure out how to properly execute code at the end

@@ -68,6 +68,11 @@ class TuOptions(BaseModel):
         default="/tmp/tu_collector",
     )
 
+    binary_collection_file: Optional[str] = Field(
+        description="Absolute path to the temporary output of the collection run",
+        default=None,
+    )
+
     cmake_configure_options: List[str] = Field(
         description="Parameters for cmake run when creating compilation database",
         default_factory=list)
@@ -218,7 +223,7 @@ def run_collector(
     conf: TuOptions,
     input: Path,
     output: Path,
-) -> Optional[CollectorRunResult]:
+) -> CollectorRunResult:
     # Execute reflection data collector binary, producing a new converted translation
     # unit or an empty result of conversion has failed.
     assert input.exists()
@@ -245,10 +250,13 @@ def run_collector(
 
     tool = local[conf.indexing_tool]
 
-    # Create a temporary list of files content will be added to the dumped translation
-    # unit.
-    tmp_output = tmp.joinpath(md5(str(output).encode("utf-8")).hexdigest() + ".pb")
-    target_files = tmp_output.with_suffix(".json")
+    if conf.binary_collection_file:
+        tmp_output = Path(conf.binary_collection_file)
+        log("refl.cli").info(f"Explicitly provided reflection file {conf.binary_collection_file}")
+    else:
+        # Create a temporary list of files content will be added to the dumped translation
+        # unit.
+        tmp_output = tmp.joinpath(md5(str(output).encode("utf-8")).hexdigest() + ".pb")
 
     database = get_compile_commands(conf)
 
@@ -278,11 +286,11 @@ def run_collector(
         res_stdout = ""
         res_stderr = ""
 
-    if res_code != 0:
+    if res_code != 0 or not Path(opts["output"]).exists():
         log("refl.cli.read").warning(f"Failed to run collector for {input}")
         return CollectorRunResult(
-            None,
-            None,
+            conv_tu=None,
+            pb_path=None,
             success=False,
             res_stdout=res_stdout,
             res_stderr=res_stderr,
@@ -296,8 +304,8 @@ def run_collector(
             file.write(json.dumps(refl, indent=2))
 
         return CollectorRunResult(
-            tu,
-            tmp_output,
+            conv_tu=tu,
+            pb_path=tmp_output,
             success=True,
             res_stdout=res_stdout,
             res_stderr=res_stderr,
@@ -412,15 +420,20 @@ def run_collector_for_path(
         if conf.reflection_run_serialize:
             out_path = conf.reflection_run_path or str(serialize_path)
             with open(out_path, "w") as file:
+                assert tu.pb_path
                 file.write(remove_dbgOrigin(open_proto_file(tu.pb_path).to_json()))
                 log().info(f"Wrote dump to {serialize_path}")
 
         write_run_result_information(conf, tu, path, commands)
 
-        return TuWrap(name=path.stem,
-                      tu=tu.conv_tu,
-                      original=path,
-                      mapping=relative.with_suffix(".nim"))
+        assert tu.conv_tu
+
+        return TuWrap(
+            name=path.stem,
+            tu=tu.conv_tu,
+            original=path,
+            mapping=relative.with_suffix(".nim"),
+        )
 
     else:
         write_run_result_information(conf, tu, path, commands)
