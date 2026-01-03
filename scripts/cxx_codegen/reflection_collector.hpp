@@ -6,12 +6,13 @@
 #include <clang/Frontend/FrontendPluginRegistry.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/ASTConsumers.h>
+#undef emit
 #include <clang/Sema/Sema.h>
-#include <unordered_set>
 
 // Auto-generated protobuf definition, provided by cmake run
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
+#include "reflection_config.hpp"
 #include "reflection_defs.pb.h"
 #include <llvm/Support/JSON.h>
 #include <hstd/system/reflection.hpp>
@@ -21,8 +22,8 @@
 #define REFL_NAME "refl"
 
 /// `[[refl]]` attribute provider
-struct ExampleAttrInfo : public clang::ParsedAttrInfo {
-    ExampleAttrInfo() {
+struct ReflAttrInfo : public clang::ParsedAttrInfo {
+    ReflAttrInfo() {
         static constexpr Spelling spellings[]{
             /// __attribute__((REFL_NAME))
             {clang::ParsedAttr::AS_GNU, REFL_NAME},
@@ -46,8 +47,9 @@ struct ExampleAttrInfo : public clang::ParsedAttrInfo {
 /// definitions that can later be imported by the python scripts.
 class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
   public:
-    TU*  out;
-    bool verbose = false;
+    TU*                                   out;
+    ReflectionCLI                         cli;
+    const std::unordered_set<std::string> target_files;
 
     void log_visit(
         clang::Decl const* Decl,
@@ -57,10 +59,13 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
 
     explicit ReflASTVisitor(
-        clang::ASTContext* Context,
-        TU*                tu,
-        bool               verbose)
-        : Ctx(Context), out(tu), verbose(verbose) {}
+        clang::ASTContext*   Context,
+        TU*                  tu,
+        ReflectionCLI const& cli)
+        : Ctx(Context)
+        , out(tu)
+        , cli(cli)
+        , target_files{cli.input.begin(), cli.input.end()} {}
 
 
     std::optional<std::string> get_refl_params(clang::Decl const* decl);
@@ -182,9 +187,6 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     bool shouldVisit(const clang::Decl* Decl);
 
-    /// List of absolute paths for files whose declarations must be added
-    /// to the information about the translation units.
-    std::unordered_set<std::string> targetFiles;
     /// What group of declarations must be handled by the visitor
     enum class VisitMode
     {
@@ -197,6 +199,12 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         /// translation unit.
         AllMainTranslationUnit,
     };
+
+    BOOST_DESCRIBE_NESTED_ENUM(
+        VisitMode,
+        AllAnnotated,
+        AllTargeted,
+        AllMainTranslationUnit);
 
     VisitMode visitMode = VisitMode::AllAnnotated;
 
@@ -212,17 +220,17 @@ struct IncludeCollectorCallback : public clang::PPCallbacks {
         : out(tu), sourceManager(sourceManager) {}
 
     void InclusionDirective(
-        clang::SourceLocation       HashLoc,
-        clang::Token const&         IncludeTok,
-        llvm::StringRef             FileName,
-        bool                        IsAngled,
-        clang::CharSourceRange      FilenameRange,
-        clang::OptionalFileEntryRef File,
-        llvm::StringRef             SearchPath,
-        llvm::StringRef             RelativePath,
-        clang::Module const*        SuggestedModule,
-        bool                        ModuleImported,
-        clang::SrcMgr::CharacteristicKind  FileType) override;
+        clang::SourceLocation             HashLoc,
+        clang::Token const&               IncludeTok,
+        llvm::StringRef                   FileName,
+        bool                              IsAngled,
+        clang::CharSourceRange            FilenameRange,
+        clang::OptionalFileEntryRef       File,
+        llvm::StringRef                   SearchPath,
+        llvm::StringRef                   RelativePath,
+        clang::Module const*              SuggestedModule,
+        bool                              ModuleImported,
+        clang::SrcMgr::CharacteristicKind FileType) override;
 };
 
 
@@ -231,9 +239,11 @@ class ReflASTConsumer : public clang::ASTConsumer {
     std::unique_ptr<TU>      out;
     ReflASTVisitor           Visitor;
     clang::CompilerInstance& CI;
+    ReflectionCLI            cli;
 
-    std::optional<std::string> outputPathOverride;
-    explicit ReflASTConsumer(clang::CompilerInstance& CI, bool verbose);
+    explicit ReflASTConsumer(
+        clang::CompilerInstance& CI,
+        ReflectionCLI const&     cli);
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context);
 };

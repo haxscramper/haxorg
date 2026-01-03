@@ -150,8 +150,6 @@ def pytest_collect_file(parent: Module, path: str) -> None:
         return result
 
 
-
-
 def pytest_collection_modifyitems(session: Session, config: Config,
                                   items: List[Item]) -> None:
     for item in items:
@@ -305,3 +303,56 @@ def pytest_collection_modifyitems(config: pytest.Config,
 
     if debug:
         dbg_file.close()
+
+
+@pytest.fixture
+def stable_test_dir(request: pytest.FixtureRequest) -> Path:
+    import hashlib
+    import shutil
+    from pathlib import Path
+
+    # Get test file path relative to tests directory
+    test_file_path = Path(request.path)
+    tests_root = None
+
+    # Find the 'tests' directory in the path
+    for parent in test_file_path.parents:
+        if parent.name == 'tests':
+            tests_root = parent
+            break
+
+    if tests_root is None:
+        raise ValueError(f"Could not find 'tests' directory in path: {test_file_path}")
+
+    # Get relative path from tests directory, without .py extension
+    rel_path = test_file_path.relative_to(tests_root).with_suffix('')
+
+    # Build base directory path
+    base_dir = Path("/tmp/haxorg/test_out") / rel_path
+
+    # Add test function name
+    test_name = request.node.name
+
+    # Handle parametrized tests
+    if hasattr(request.node, "callspec") and request.node.callspec.params:
+        params_items = sorted(request.node.callspec.params.items())
+        params_str = "_".join(f"{k}={v}" for k, v in params_items)
+
+        if len(params_str) <= 32:
+            # Use parameters as-is if short enough
+            final_dir = base_dir / test_name / params_str
+        else:
+            # Use first 24 chars + hex digest for long parameters
+            params_prefix = params_str[:24]
+            params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
+            final_dir = base_dir / test_name / f"{params_prefix}_{params_hash}"
+    else:
+        final_dir = base_dir / test_name
+
+    # Clean and create directory
+    if final_dir.exists():
+        shutil.rmtree(final_dir)
+
+    final_dir.mkdir(parents=True, exist_ok=True)
+
+    return final_dir

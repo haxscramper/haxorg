@@ -10,6 +10,8 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/dod_base.hpp>
 
+#include "reflection_config.hpp"
+
 
 struct BinarySymbolVisitContext {};
 
@@ -107,3 +109,5 @@ llvm::json::Value demangle_to_json(
     BinarySymbolVisitContext&           ctx,
     int                                 depth,
     int                                 max_depth);
+
+void run_binary_symbols_collection(ReflectionCLI const& cli);

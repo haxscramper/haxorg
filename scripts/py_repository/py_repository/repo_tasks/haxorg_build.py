@@ -106,7 +106,7 @@ def build_haxorg(ctx: TaskContext) -> None:
 @haxorg_task()
 def build_reflection_tool(ctx: TaskContext) -> None:
     conf_copy = ctx.config.model_copy(deep=True)
-    conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
+    conf_copy.build_conf.target = ["reflection_tool"]
     conf_copy.build_conf.force = True
     build_haxorg(ctx=ctx.with_temp_config(conf_copy))
 

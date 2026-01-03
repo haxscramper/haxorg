@@ -258,12 +258,13 @@ struct log_record {
             .severity(severity)
             .category(category)
             .function(function)
-            .message(std::apply(
-                [&fmt](auto&... args_ref) {
-                    return std::vformat(
-                        fmt.get(), std::make_format_args(args_ref...));
-                },
-                formatted_args));
+            .message(
+                std::apply(
+                    [&fmt](auto&... args_ref) {
+                        return std::vformat(
+                            fmt.get(), std::make_format_args(args_ref...));
+                    },
+                    formatted_args));
         return rec;
     }
 
@@ -282,12 +283,13 @@ struct log_record {
             .file(file)
             .severity(severity)
             .function(function)
-            .message(std::apply(
-                [&fmt](auto&... args_ref) {
-                    return std::vformat(
-                        fmt.get(), std::make_format_args(args_ref...));
-                },
-                formatted_args));
+            .message(
+                std::apply(
+                    [&fmt](auto&... args_ref) {
+                        return std::vformat(
+                            fmt.get(), std::make_format_args(args_ref...));
+                    },
+                    formatted_args));
         return rec;
     }
 
@@ -573,8 +575,9 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter_unique_records(
                 __COUNTER__>(__reset)
 
 template <int Unique>
-log_builder::Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
-    bool reset = false) {
+log_builder::
+    Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
+        bool reset = false) {
     return log_builder_get_mutable_finalizer_filter<Unique>(
         [last_state = std::size_t{}](log_builder const& rec) mutable {
             auto h = rec.hash();
@@ -760,8 +763,9 @@ std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
             "{} = {}",
             stack ? hstd::left_aligned(argNames.at(index), names_width)
                   : argNames.at(index),
-            ::hstd::escape_literal(::hstd::fmt1(
-                ::hstd::log::format_logger_argument1(value))));
+            ::hstd::escape_literal(
+                ::hstd::fmt1(
+                    ::hstd::log::format_logger_argument1(value))));
     };
 
     int index = 0;

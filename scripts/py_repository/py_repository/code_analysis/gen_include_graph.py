@@ -14,11 +14,11 @@ from py_ci.data_build import get_deps_install_config
 from py_codegen.astbuilder_cpp import QualType, QualTypeKind
 from py_codegen.gen_tu_cpp import GenTuInclude
 from py_codegen.refl_read import ConvTu, conv_proto_file
-from py_codegen.refl_wrapper_graph import (get_declared_types_rec,
-                                           get_used_types_rec, hash_qual_type)
+from py_codegen.refl_wrapper_graph import (get_declared_types_rec, get_used_types_rec,
+                                           hash_qual_type)
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import (ensure_existing_dir,
-                                             get_build_root, get_script_root)
+from py_repository.repo_tasks.common import (ensure_existing_dir, get_build_root,
+                                             get_script_root)
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
@@ -216,8 +216,7 @@ def process_reflection_file(
     out_file = get_build_root(ctx, f"{relative}_translation.pb")
     ensure_existing_dir(ctx, out_file.parent)
 
-    refl_tool = get_build_root(
-        ctx, "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool")
+    refl_tool = get_build_root(ctx, "haxorg/reflection_tool")
 
     if out_file.exists() and file.stat().st_mtime <= out_file.stat(
     ).st_mtime and refl_tool.stat().st_mtime < out_file.stat().st_mtime:

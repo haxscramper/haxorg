@@ -3,25 +3,29 @@ from py_scriptutils import configure_asan
 import os
 from beartype.typing import TYPE_CHECKING
 if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
-    from py_scriptutils.test_utils import HasAnyAttr 
+    from py_scriptutils.test_utils import HasAnyAttr
     refl_test_driver = HasAnyAttr()
-else: 
+else:
     import refl_test_driver
 
 import pytest
 from pprint import pprint
+from pathlib import Path
 from more_itertools import first_true
 
 if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
-    from py_scriptutils.test_utils import HasAnyAttr 
+    from py_scriptutils.test_utils import HasAnyAttr
     gen_nim = HasAnyAttr()
-else: 
+else:
     import py_codegen.wrapper_gen_nim as gen_nim
 
 
 @pytest.mark.test_release
-def test_enum_field_extract() -> None:
-    enum = refl_test_driver.get_enum("enum CEnum { Member1, Member2 };")
+def test_enum_field_extract(stable_test_dir: Path) -> None:
+    enum = refl_test_driver.get_enum(
+        "enum CEnum { Member1, Member2 };",
+        stable_test_dir=stable_test_dir,
+    )
     assert enum.name.name == "CEnum"
     assert len(enum.fields) == 2
     assert enum.fields[0].name == "Member1"
@@ -29,16 +33,24 @@ def test_enum_field_extract() -> None:
 
 
 @pytest.mark.test_release
-def test_namespaced_enum_extract() -> None:
-    enum = refl_test_driver.get_enum("namespace Space { enum Enum { member1 }; }")
+def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
+    enum = refl_test_driver.get_enum(
+        "namespace Space { enum Enum { member1 }; }",
+        stable_test_dir=stable_test_dir,
+    )
     assert enum.name.name == "Enum"
     assert len(enum.name.Spaces) == 1
     assert enum.name.Spaces[0].name == "Space"
 
 
 @pytest.mark.test_release
-def test_nim_enum_conversion() -> None:
-    con = refl_test_driver.get_nim_code(refl_test_driver.get_enum("enum En { Field1, Field2 };"))
+def test_nim_enum_conversion(stable_test_dir: Path) -> None:
+    con = refl_test_driver.get_nim_code(
+        refl_test_driver.get_enum(
+            "enum En { Field1, Field2 };",
+            stable_test_dir=stable_test_dir,
+        ))
+
     with open("/tmp/a.py", "w") as file:
         pprint(con, stream=file)
 
@@ -87,7 +99,6 @@ def test_nim_enum_conversion() -> None:
     assert len(en_to_cint.Arguments) == 1
     assert en_to_cint.ReturnTy.Name == "cint"
     assert nim_set_to_cint.Kind == gen_nim.nim.FunctionKind.CONVERTER
-
 
     nim_to_c = first_true(con.procs, default=None, pred=lambda it: it.Name == "to_c_En")
     assert nim_to_c

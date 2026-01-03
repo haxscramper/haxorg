@@ -36,6 +36,7 @@ from py_scriptutils.toml_config_profiler import interpolate_dictionary, get_haxo
 import py_codegen.wrapper_gen_nim as gen_nim
 from dataclasses import dataclass
 
+
 @beartype
 class PathComponentKind(enum.Enum):
     DICT_KEY = "dict_key"
@@ -115,111 +116,134 @@ class ReflProviderRunResult:
 def run_provider(
     text: Union[str, Dict[str, str]],
     code_dir: Path,
+    output_dir: Path,
+    only_annotated: bool = False,
     print_reflection_run_fail_to_stdout: bool = False,
 ) -> ReflProviderRunResult:
     if not code_dir.exists():
         code_dir.mkdir(parents=True)
 
-    with (NamedTemporaryFile(mode="w", suffix=".json", delete=False) as compile_commands):
-        if isinstance(text, str):
-            text = {"automatic_provider_run_file.hpp": text}
+    compile_commands = output_dir.joinpath("compile_commands.json")
 
-        text = {
-            file if Path(file).is_absolute() else str(code_dir.joinpath(file)): value
-            for file, value in text.items()
-        }
+    assert len(str(output_dir)) != 0
 
-        base_dict = dict(
-            input=[str(file) for file in text.keys()],
-            indexing_tool="{haxorg_root}/build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
-            compilation_database=compile_commands.name,
-            output_directory=str(code_dir),
-            directory_root=str(code_dir),
-            header_root=str(code_dir),
-        )
+    if isinstance(text, str):
+        text = {"automatic_provider_run_file.hpp": text}
 
-        conf = ex.TuOptions.model_validate(
-            interpolate_dictionary(base_dict,
-                                   {"haxorg_root": str(get_haxorg_repo_root_path())}),)
+    text = {
+        file if Path(file).is_absolute() else str(code_dir.joinpath(file)): value
+        for file, value in text.items()
+    }
 
-        BASE = get_haxorg_repo_root_path()
+    conf = ex.TuOptions(
+        input=[str(file) for file in text.keys()],
+        indexing_tool=f"{get_haxorg_repo_root_path()}/build/haxorg/reflection_tool",
+        compilation_database=str(compile_commands),
+        output_directory=str(output_dir),
+        directory_root=str(code_dir),
+        header_root=str(code_dir),
+        binary_collection_file=str(output_dir.joinpath("reflection.pb")),
+        only_annotated=only_annotated,
+    )
 
-        conf.cache_collector_runs = False
-        conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
-        conf.reflection_run_verbose = True
-        conf.reflection_run_serialize = True
+    conf.cache_collector_runs = False
+    conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
+    conf.reflection_run_verbose = True
+    conf.reflection_run_serialize = True
 
-        compile_commands_content = [
-            ex.CompileCommand(
-                directory=conf.header_root,
-                command=f"clang++ {file}",
-                file=file,
-                output=str(Path(file).with_suffix(".o")),
-            ) for file in text.keys()
-        ]
+    compile_commands_content = [
+        ex.CompileCommand(
+            directory=conf.header_root,
+            command=f"clang++ {file}",
+            file=file,
+            output=str(Path(file).with_suffix(".o")),
+        ) for file in text.keys()
+    ]
 
-        log().info(compile_commands_content)
+    log().info(compile_commands_content)
 
-        compile_commands.write(
-            json.dumps([cmd.model_dump() for cmd in compile_commands_content]))
-        compile_commands.flush()
+    compile_commands.write_text(
+        json.dumps([cmd.model_dump() for cmd in compile_commands_content]))
 
-        for file, content in text.items():
-            full = Path(code_dir).joinpath(file)
-            if full.exists():
-                if full.read_text() != content:
-                    full.write_text(content)
-
-            else:
+    for file, content in text.items():
+        full = Path(code_dir).joinpath(file)
+        if full.exists():
+            if full.read_text() != content:
                 full.write_text(content)
 
-        mappings = ex.expand_input(conf)
-        commands = ex.read_compile_cmmands(conf)
-        wraps: List[TuWrap] = []
-        for mapping in mappings:
-            assert any([
-                cmd.file == str(mapping.path) for cmd in compile_commands_content
-            ]), "Full command list {}, mapping path {}".format(
-                [cmd.file for cmd in compile_commands_content],
-                mapping.path,
-            )
+        else:
+            full.write_text(content)
 
-            wrap = ex.run_collector_for_path(conf, mapping, commands)
-            wraps.append(wrap)
-            assert wrap
+    mappings = ex.expand_input(conf)
+    commands = ex.read_compile_cmmands(conf)
+    wraps: List[TuWrap] = []
+    for mapping in mappings:
+        assert any([cmd.file == str(mapping.path) for cmd in compile_commands_content
+                   ]), "Full command list {}, mapping path {}".format(
+                       [cmd.file for cmd in compile_commands_content],
+                       mapping.path,
+                   )
 
-        assert wraps
-        return ReflProviderRunResult(wraps=wraps, code_dir=code_dir)
+        wrap = ex.run_collector_for_path(conf, mapping, commands)
+        wraps.append(wrap)
+        assert wrap
+
+    assert wraps
+    return ReflProviderRunResult(wraps=wraps, code_dir=code_dir)
 
 
 def get_struct(text: str,
+               stable_test_dir: Path,
                code_dir_override: Optional[Path] = None,
                **kwargs) -> GenTuStruct:
-    with TemporaryDirectory() as code_dir:
-        tu = run_provider(text, code_dir_override or Path(code_dir), **kwargs).wraps[0].tu
-        assert len(tu.structs) == 1
-        return tu.structs[0]
-
-@beartype
-def get_entires(text: str, **kwargs) -> List[GenTuUnion]:
-    with TemporaryDirectory() as code_dir:
-        tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
-        return tu.enums + tu.structs + tu.functions + tu.typedefs
-
-@beartype
-def get_enum(text: str, **kwargs) -> GenTuEnum:
-    with TemporaryDirectory() as code_dir:
-        tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
-        assert len(tu.enums) == 1
-        return tu.enums[0]
+    code_dir = stable_test_dir
+    tu = run_provider(
+        text,
+        code_dir_override or Path(code_dir),
+        output_dir=stable_test_dir,
+        **kwargs,
+    ).wraps[0].tu
+    assert len(tu.structs) == 1
+    return tu.structs[0]
 
 
 @beartype
-def get_function(text: str, **kwargs) -> GenTuFunction:
-    with TemporaryDirectory() as code_dir:
-        tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
-        assert len(tu.functions) == 1
-        return tu.functions[0]
+def get_entires(text: str, stable_test_dir: Path, **kwargs) -> List[GenTuUnion]:
+    code_dir = stable_test_dir
+    tu = run_provider(
+        text,
+        Path(code_dir),
+        output_dir=stable_test_dir,
+        **kwargs,
+    ).wraps[0].tu
+    return tu.enums + tu.structs + tu.functions + tu.typedefs
+
+
+@beartype
+def get_enum(text: str, stable_test_dir: Path, **kwargs) -> GenTuEnum:
+    code_dir = stable_test_dir
+    tu = run_provider(
+        text,
+        Path(code_dir),
+        output_dir=stable_test_dir,
+        **kwargs,
+    ).wraps[0].tu
+    assert len(tu.enums) == 1
+    return tu.enums[0]
+
+
+@beartype
+def get_function(text: str, stable_test_dir: Path, **kwargs) -> GenTuFunction:
+    code_dir = stable_test_dir
+    tu = run_provider(
+        text,
+        Path(code_dir),
+        output_dir=stable_test_dir,
+        **kwargs,
+    ).wraps[0].tu
+
+    assert len(tu.functions) == 1
+    return tu.functions[0]
 
 
 @beartype
@@ -261,6 +285,7 @@ def format_nim_code(refl: ReflProviderRunResult,
 
     return mapped
 
+
 @beartype
 def has_nim_installed() -> bool:
     try:
@@ -269,6 +294,7 @@ def has_nim_installed() -> bool:
 
     except CommandNotFound:
         return False
+
 
 @beartype
 def compile_nim_path(file: Path, binary: Path) -> None:

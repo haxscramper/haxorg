@@ -29,42 +29,41 @@ log("refl.nim").setLevel(logging.DEBUG)
 
 
 @pytest.mark.skip()
-def test_libgit2_conv() -> None:
-    with TemporaryDirectory() as dir:
-        code_dir = Path(dir)
-        code_dir = Path(gettempdir()) / "libgit_wrap_test_dir"
-        root = get_haxorg_repo_root_path()
-        start = dict(
-            input=["{config_dir}/include"],
-            indexing_tool="{tool_dir}/build/haxorg/scripts/cxx_codegen/reflection_tool",
-            build_root="{config_dir}/build",
-            source_root="{config_dir}",
-            header_root="{config_dir}/include",
-            output_directory=str(code_dir),
-            execution_trace=str(code_dir.joinpath("run_trace.json")),
-            cmake_configure_options=["-DBULD_TEST=OFF"],
-            nim=dict(
-                universal_imports="libgit2_config.nim",
-                function_renames=[
-                    dict(original="git_odb_write_pack", renamed="git_odb_write_pack_fn")
-                ],
-            ),
-        )
+def test_libgit2_conv(stable_test_dir: Path) -> None:
+    code_dir = stable_test_dir
+    code_dir = Path(gettempdir()) / "libgit_wrap_test_dir"
+    root = get_haxorg_repo_root_path()
+    start = dict(
+        input=["{config_dir}/include"],
+        indexing_tool="{tool_dir}/build/haxorg/scripts/cxx_codegen/reflection_tool",
+        build_root="{config_dir}/build",
+        source_root="{config_dir}",
+        header_root="{config_dir}/include",
+        output_directory=str(code_dir),
+        execution_trace=str(code_dir.joinpath("run_trace.json")),
+        cmake_configure_options=["-DBULD_TEST=OFF"],
+        nim=dict(
+            universal_imports="libgit2_config.nim",
+            function_renames=[
+                dict(original="git_odb_write_pack", renamed="git_odb_write_pack_fn")
+            ],
+        ),
+    )
 
-        dep = get_haxorg_repo_root_path().joinpath("thirdparty/libgit2")
-        comp = "compile_commands.json"
-        if dep.joinpath(comp).exists():
-            dep.joinpath(comp).unlink()
+    dep = get_haxorg_repo_root_path().joinpath("thirdparty/libgit2")
+    comp = "compile_commands.json"
+    if dep.joinpath(comp).exists():
+        dep.joinpath(comp).unlink()
 
-        if dep.joinpath("build").joinpath(comp).exists():
-            dep.joinpath("build").joinpath(comp).unlink()
+    if dep.joinpath("build").joinpath(comp).exists():
+        dep.joinpath("build").joinpath(comp).unlink()
 
-        conf = tu_collector.TuOptions(**interpolate_dictionary(
-            start,
-            dict(
-                config_dir=str(root.joinpath("thirdparty/libgit2")),
-                tool_dir=str(root),
-            )))
+    conf = tu_collector.TuOptions(**interpolate_dictionary(
+        start,
+        dict(
+            config_dir=str(root.joinpath("thirdparty/libgit2")),
+            tool_dir=str(root),
+        )))
 
     trace = TraceCollector()
     tu_collector.run_wrap_for_config(conf, trace)

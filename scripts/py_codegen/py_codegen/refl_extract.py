@@ -51,6 +51,11 @@ class TuOptions(BaseModel):
         default=None,
     )
 
+    only_annotated: bool = Field(
+        description="Only collect declarations annotated with [[refl]]",
+        default=False,
+    )
+
     build_root: Optional[str] = Field(
         description="Path to the wrapped project build directory. For cmake projects"
         "compile commands will be contructed automatically there if compilation "
@@ -66,6 +71,11 @@ class TuOptions(BaseModel):
     binary_tmp: str = Field(
         description="Path to store temporary binary artifacts",
         default="/tmp/tu_collector",
+    )
+
+    binary_collection_file: Optional[str] = Field(
+        description="Absolute path to the temporary output of the collection run",
+        default=None,
     )
 
     cmake_configure_options: List[str] = Field(
@@ -137,7 +147,7 @@ def expand_input(conf: TuOptions) -> List[PathMapping]:
     Generate list of file mappings based on input configuration options -- individual
     files, globs or recursive directories. 
     """
-    directory_root = conf.header_root and Path(conf.header_root)
+    directory_root = Path(conf.header_root) and Path(conf.header_root)
     result: List[PathMapping] = []
     for item in conf.input:
         path = Path(item)
@@ -210,7 +220,7 @@ class CollectorRunResult:
     success: bool
     res_stdout: str
     res_stderr: str
-    flags: List[str] = field(default_factory=list)
+    flags: dict = field(default_factory=dict)
 
 
 @beartype
@@ -218,7 +228,7 @@ def run_collector(
     conf: TuOptions,
     input: Path,
     output: Path,
-) -> Optional[CollectorRunResult]:
+) -> CollectorRunResult:
     # Execute reflection data collector binary, producing a new converted translation
     # unit or an empty result of conversion has failed.
     assert input.exists()
@@ -245,38 +255,37 @@ def run_collector(
 
     tool = local[conf.indexing_tool]
 
-    # Create a temporary list of files content will be added to the dumped translation
-    # unit.
-    tmp_output = tmp.joinpath(md5(str(output).encode("utf-8")).hexdigest() + ".pb")
-    target_files = tmp_output.with_suffix(".json")
+    if conf.binary_collection_file:
+        tmp_output = Path(conf.binary_collection_file)
+        log("refl.cli").info(
+            f"Explicitly provided reflection file {conf.binary_collection_file}")
+    else:
+        # Create a temporary list of files content will be added to the dumped translation
+        # unit.
+        tmp_output = tmp.joinpath(md5(str(output).encode("utf-8")).hexdigest() + ".pb")
 
     database = get_compile_commands(conf)
 
-    flags = [
-        f"-p={database}",
-        f"--compilation-database={database}",
-        f"--out={str(tmp_output)}",
-        f"--target-files={target_files}",
-        "--run-mode=TranslationUnit",
-        # "--nostdinc",
-        str(input),
-    ]
+    opts: Dict[str, Any] = dict(
+        reflection=dict(compilation_database=str(database),),
+        output=str(tmp_output),
+        input=[str(input)],
+        mode="AllAnotatedSymbols" if conf.only_annotated else "AllTargetedFiles",
+        log_path=str(Path(conf.output_directory).joinpath("reflection_log.log")),
+    )
 
     if conf.toolchain_include:
-        flags.append(f"--toolchain-include={conf.toolchain_include}")
+        opts["reflection"]["toolchain_include"] = str(conf.toolchain_include)
 
     if conf.reflection_run_verbose:
-        flags.append("--verbose")
+        opts["verbose"] = True
 
     if not conf.cache_collector_runs or IsNewInput([str(input), conf.indexing_tool],
                                                    tmp_output):
-        with open(str(target_files), "w") as file:
-            file.write(json.dumps([str(input)], indent=2))
-
         log("refl.cli.read").info(f"Running collector on {input}")
 
-        res_code, res_stdout, res_stderr = cast(Tuple[int, str, str],
-                                                tool.run(flags, retcode=None))
+        res_code, res_stdout, res_stderr = cast(
+            Tuple[int, str, str], tool.run([json.dumps(opts)], retcode=None))
 
     else:
         log("refl.cli.read").info(f"Using cache for {input}")
@@ -284,15 +293,15 @@ def run_collector(
         res_stdout = ""
         res_stderr = ""
 
-    if res_code != 0:
+    if res_code != 0 or not Path(opts["output"]).exists():
         log("refl.cli.read").warning(f"Failed to run collector for {input}")
         return CollectorRunResult(
-            None,
-            None,
+            conv_tu=None,
+            pb_path=None,
             success=False,
             res_stdout=res_stdout,
             res_stderr=res_stderr,
-            flags=flags,
+            flags=opts,
         )
 
     else:
@@ -302,12 +311,12 @@ def run_collector(
             file.write(json.dumps(refl, indent=2))
 
         return CollectorRunResult(
-            tu,
-            tmp_output,
+            conv_tu=tu,
+            pb_path=tmp_output,
             success=True,
             res_stdout=res_stdout,
             res_stderr=res_stderr,
-            flags=flags,
+            flags=opts,
         )
 
 
@@ -364,7 +373,10 @@ def write_run_result_information(
                 file.write(" ^\n    ".join(cmd.command.split()))
 
         sep("Flags:")
-        file.write(" ^\n    ".join([conf.indexing_tool] + tu.flags))
+        file.write(" ^\n    ".join([
+            conf.indexing_tool,
+            "'" + json.dumps(tu.flags) + "'",
+        ]))
 
         sep("Serialized data:")
         if tu.pb_path and tu.pb_path.exists():
@@ -372,7 +384,7 @@ def write_run_result_information(
 
     if conf.print_reflection_run_fail_to_stdout:
         buffer = io.StringIO()
-        write_reflection_stats(buffer)
+        write_reflection_stats(buffer)  # type: ignore
         log().error(buffer.getvalue())
 
     else:
@@ -383,7 +395,7 @@ def write_run_result_information(
 @beartype
 def remove_dbgOrigin(json_str: str) -> str:
 
-    def remove_field(obj: Any) -> None:
+    def remove_field(obj: Any) -> Any:
         if isinstance(obj, dict):
             obj.pop("dbgOrigin", None)
             for key, value in list(obj.items()):
@@ -415,15 +427,20 @@ def run_collector_for_path(
         if conf.reflection_run_serialize:
             out_path = conf.reflection_run_path or str(serialize_path)
             with open(out_path, "w") as file:
+                assert tu.pb_path
                 file.write(remove_dbgOrigin(open_proto_file(tu.pb_path).to_json()))
                 log().info(f"Wrote dump to {serialize_path}")
 
         write_run_result_information(conf, tu, path, commands)
 
-        return TuWrap(name=path.stem,
-                      tu=tu.conv_tu,
-                      original=path,
-                      mapping=relative.with_suffix(".nim"))
+        assert tu.conv_tu
+
+        return TuWrap(
+            name=path.stem,
+            tu=tu.conv_tu,
+            original=path,
+            mapping=relative.with_suffix(".nim"),
+        )
 
     else:
         write_run_result_information(conf, tu, path, commands)

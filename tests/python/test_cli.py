@@ -20,46 +20,43 @@ all_org_file = org_corpus_dir.joinpath("all.org")
 all_org = all_org_file.read_text()
 
 
-def test_tex_export() -> None:
+def test_tex_export(stable_test_dir: Path) -> None:
     runner = CliRunner()
-    with TemporaryDirectory() as tmp_dir:
-        dir = Path(tmp_dir)
-        tex_file = dir.joinpath("tex_file.tex")
-        org_file = dir.joinpath("org_file.org")
-        org_file.write_text(all_org)
+    dir = stable_test_dir
+    tex_file = dir.joinpath("tex_file.tex")
+    org_file = dir.joinpath("org_file.org")
+    org_file.write_text(all_org)
 
-        click_run_test(cli, [
-            "export",
-            "tex",
-            f"--infile={org_file}",
-            f"--outfile={tex_file}",
-            "--do_compile=false",
-        ])
+    click_run_test(cli, [
+        "export",
+        "tex",
+        f"--infile={org_file}",
+        f"--outfile={tex_file}",
+        "--do_compile=false",
+    ])
 
 
-def test_html_export() -> None:
+def test_html_export(stable_test_dir: Path) -> None:
     runner = CliRunner()
-    with TemporaryDirectory() as tmp_dir:
-        dir = Path(tmp_dir)
-        out_file = dir.joinpath("html_file.html")
-        click_run_test(cli, [
-            "export",
-            "html",
-            f"--infile={all_org_file}",
-            f"--outfile={out_file}",
-        ])
+    dir = stable_test_dir
+    out_file = dir.joinpath("html_file.html")
+    click_run_test(cli, [
+        "export",
+        "html",
+        f"--infile={all_org_file}",
+        f"--outfile={out_file}",
+    ])
 
 
-def test_sqlite_export() -> None:
-    with TemporaryDirectory() as tmp_dir:
-        dir = Path(tmp_dir)
-        out_file = dir.joinpath("out_file.sqlite")
-        click_run_test(cli, [
-            "export",
-            "sqlite",
-            f"--infile={all_org_file}",
-            f"--outfile={out_file}",
-        ])
+def test_sqlite_export(stable_test_dir: Path) -> None:
+    dir = stable_test_dir
+    out_file = dir.joinpath("out_file.sqlite")
+    click_run_test(cli, [
+        "export",
+        "sqlite",
+        f"--infile={all_org_file}",
+        f"--outfile={out_file}",
+    ])
 
 
 def has_cmd(cmd: str) -> bool:
@@ -70,61 +67,57 @@ def has_cmd(cmd: str) -> bool:
         return False
 
 
-def test_pandoc_export() -> None:
-    with TemporaryDirectory() as tmp_dir:
-        dir = Path(tmp_dir)
-        dir = Path("/tmp/pandoc_export")
-        dir.mkdir(parents=True, exist_ok=True)
-        out_file = dir.joinpath("out_file.json")
-        dir.joinpath("tree.txt").write_text(
-            org.treeRepr(
-                org.parseString(all_org_file.read_text(), "<mock>"),
-                colored=False,
-            ))
+def test_pandoc_export(stable_test_dir: Path) -> None:
+    dir = stable_test_dir
+    dir.mkdir(parents=True, exist_ok=True)
+    out_file = dir.joinpath("out_file.json")
+    dir.joinpath("tree.txt").write_text(
+        org.treeRepr(
+            org.parseString(all_org_file.read_text(), "<mock>"),
+            colored=False,
+        ))
 
-        click_run_test(cli, [
-            "export",
-            "pandoc",
-            f"--infile={all_org_file}",
-            f"--outfile={out_file}",
+    click_run_test(cli, [
+        "export",
+        "pandoc",
+        f"--infile={all_org_file}",
+        f"--outfile={out_file}",
+    ])
+
+    if has_cmd("pandoc"):
+        pandoc = local["pandoc"]
+        pandoc.run([
+            "-f",
+            "json",
+            "-t",
+            "markdown",
+            str(out_file),
+            "-o",
+            out_file.with_suffix(".md"),
         ])
 
-        if has_cmd("pandoc"):
-            pandoc = local["pandoc"]
-            pandoc.run([
-                "-f",
-                "json",
-                "-t",
-                "markdown",
-                str(out_file),
-                "-o",
-                out_file.with_suffix(".md"),
-            ])
 
+def test_typst_export_1(stable_test_dir: Path) -> None:
+    dst_dir = stable_test_dir.joinpath("dst")
+    dst_dir.mkdir(exist_ok=True, parents=True)
+    src_dir = stable_test_dir.joinpath("src")
+    src_dir.mkdir(exist_ok=True, parents=True)
 
-def test_typst_export_1() -> None:
-    with TemporaryDirectory() as dst_dir_tmp, TemporaryDirectory() as src_dir_tmp:
-        dst_dir = Path(dst_dir_tmp)
-        dst_dir = Path("/tmp/test_typst_export_1")
-        dst_dir.mkdir(exist_ok=True)
+    outfile = dst_dir.joinpath("result.typ")
+    infile = src_dir.joinpath("file.org")
+    attach_src = src_dir.joinpath("attach.typ")
+    attach2_src = src_dir.joinpath("attach2.typ")
+    attach_src.write_text("attach")
+    attach2_src.write_text("attach2")
 
-        src_dir = Path(src_dir_tmp)
+    attach_dst = dst_dir.joinpath("attach.typ")
+    attach2_dst = dst_dir.joinpath("attach2.typ")
 
-        outfile = dst_dir.joinpath("result.typ")
-        infile = src_dir.joinpath("file.org")
-        attach_src = src_dir.joinpath("attach.typ")
-        attach2_src = src_dir.joinpath("attach2.typ")
-        attach_src.write_text("attach")
-        attach2_src.write_text("attach2")
+    if attach_dst.exists():
+        attach_dst.unlink()
 
-        attach_dst = dst_dir.joinpath("attach.typ")
-        attach2_dst = dst_dir.joinpath("attach2.typ")
-
-        if attach_dst.exists():
-            attach_dst.unlink()
-
-        if attach2_dst.exists():
-            attach2_dst.unlink()
+    if attach2_dst.exists():
+        attach2_dst.unlink()
 
         infile.write_text("""
 #+attr_link: :attach-method copy :attach-on-export t

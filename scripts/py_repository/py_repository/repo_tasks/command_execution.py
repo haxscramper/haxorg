@@ -4,7 +4,20 @@ import docker
 import docker.models.containers
 from dataclasses import dataclass
 from beartype import beartype
-from beartype.typing import Optional, Union, List, Callable, TypedDict, Literal, Unpack, Any, Sequence
+
+from beartype.typing import (
+    Optional,
+    Union,
+    List,
+    Callable,
+    TypedDict,
+    Literal,
+    Unpack,
+    Any,
+    Sequence,
+    Dict,
+)
+
 from pathlib import Path
 import plumbum
 import subprocess
@@ -328,7 +341,6 @@ cmd:  {cmd}
     return (result.retcode, result.stdout, result.stderr)
 
 
-
 @beartype
 def run_cmake(
     ctx: TaskContext,
@@ -336,6 +348,25 @@ def run_cmake(
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
     return run_command(ctx, "cmake", args, **kwargs)
+
+
+@beartype
+def run_command_with_json_args(
+    ctx: TaskContext,
+    cmd: str,
+    args: Dict[str, Any],
+    json_file_path: Optional[Path] = None,
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    import json
+    if json_file_path:
+        json_file_path.write_text(json.dumps(args, indent=2))
+        return run_command(ctx, cmd, [str(json_file_path)], **kwargs)
+
+    else:
+        return run_command(ctx, cmd, [json.dumps(args)], **kwargs)
+
+
 
 
 @beartype

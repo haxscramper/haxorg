@@ -94,7 +94,7 @@ def generate_binary_size_db(ctx: TaskContext) -> None:
 
     run_command(
         ctx,
-        get_build_root(ctx, "haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool"),
+        get_build_root(ctx, "haxorg/reflection_tool"),
         args,
         env=env,
     )
@@ -362,7 +362,9 @@ def _generate_treemap_data(tree: dict[str, TreeNode],
                     depth=depth,
                 )
 
-                item.extra_hover.append(f"Symbols: {sum([len(node[1].symbols) for node in small_items] + [0])}")
+                item.extra_hover.append(
+                    f"Symbols: {sum([len(node[1].symbols) for node in small_items] + [0])}"
+                )
                 for it in small_items[:20]:
                     item.extra_hover.append(f"line:{it[1].line} size:{it[1].size}")
                     for sym in it[1].symbols[:5]:

@@ -7,7 +7,7 @@ import os
 
 import plumbum
 from py_ci.util_scripting import get_threading_count
-from py_repository.code_analysis.gen_coverage_cookies import ProfdataCookie, ProfdataFullProfile, ProfdataParams
+from py_repository.code_analysis import gen_coverage_cookies
 from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import ensure_clean_file, get_build_root, get_component_build_dir
@@ -21,9 +21,9 @@ CAT = __name__
 
 @beartype
 def filter_cookies(
-    cookies: List[ProfdataCookie],
+    cookies: List[gen_coverage_cookies.ProfdataCookie],
     aggregate_filter: HaxorgCoverageAggregateFilter | None,
-) -> List[ProfdataCookie]:
+) -> List[gen_coverage_cookies.ProfdataCookie]:
     if not aggregate_filter or not aggregate_filter.whitelist_patterns:
         return []
 
@@ -44,7 +44,8 @@ def filter_cookies(
 
 
 @beartype
-def matches_pattern(cookie: ProfdataCookie, pattern: HaxorgCoverageCookiePattern) -> bool:
+def matches_pattern(cookie: gen_coverage_cookies.ProfdataCookie,
+                    pattern: HaxorgCoverageCookiePattern) -> bool:
     if pattern.binary_pattern and not re.search(pattern.binary_pattern,
                                                 cookie.test_binary):
         return False
@@ -234,16 +235,16 @@ HELP_coverage_file = {
 
 
 @beartype
-def get_cxx_profdata_params(ctx: TaskContext) -> ProfdataParams:
+def get_cxx_profdata_params(ctx: TaskContext) -> gen_coverage_cookies.ProfdataConfig:
     coverage_dir = get_cxx_coverage_dir(ctx)
     stored_summary_collection = coverage_dir.joinpath("test-summary.json")
-    summary_data: ProfdataFullProfile = ProfdataFullProfile.model_validate_json(
+    summary_data: gen_coverage_cookies.ProfdataFullProfile = gen_coverage_cookies.ProfdataFullProfile.model_validate_json(
         stored_summary_collection.read_text())
-    filtered_summary = ProfdataFullProfile(
+    filtered_summary = gen_coverage_cookies.ProfdataFullProfile(
         runs=filter_cookies(summary_data.runs, ctx.config.aggregate_filters))
     filtered_summary_collection = coverage_dir.joinpath("test-summary-filtered.json")
     filtered_summary_collection.write_text(filtered_summary.model_dump_json(indent=2))
-    return ProfdataParams(
+    return gen_coverage_cookies.ProfdataConfig(
         coverage=str(filtered_summary_collection),
         coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
         # perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
@@ -293,12 +294,14 @@ def run_cxx_coverage_merge(
     profile_path = get_cxx_profdata_params_path(ctx)
     run_command(
         ctx,
-        "build/haxorg/profdata_merger",
+        "build/haxorg/reflection_tool",
         [
             profile_path,
         ],
-        stderr_debug=ensure_clean_file(ctx, coverage_dir.joinpath("profdata_merger_stderr.txt")),
-        stdout_debug=ensure_clean_file(ctx, coverage_dir.joinpath("profdata_merger_stdout.txt")),
+        stderr_debug=ensure_clean_file(
+            ctx, coverage_dir.joinpath("reflection_tool_stderr.txt")),
+        stdout_debug=ensure_clean_file(
+            ctx, coverage_dir.joinpath("reflection_tool_stdout.txt")),
     )
 
 
@@ -321,10 +324,10 @@ def cxx_target_coverage(
     from py_repository.repo_tasks.haxorg_tests import run_py_tests
     from py_repository.repo_tasks.haxorg_docs import build_custom_docs
 
-
     if run_tests:
         if pytest_filter:
-            run_py_tests(ctx, arg=[f"--markfilter", pytest_filter, "--markfilter-debug=True"])
+            run_py_tests(ctx,
+                         arg=[f"--markfilter", pytest_filter, "--markfilter-debug=True"])
         else:
             run_py_tests(ctx)
 
