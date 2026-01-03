@@ -51,6 +51,11 @@ class TuOptions(BaseModel):
         default=None,
     )
 
+    only_annotated: bool = Field(
+        description="Only collect declarations annotated with [[refl]]",
+        default=False,
+    )
+
     build_root: Optional[str] = Field(
         description="Path to the wrapped project build directory. For cmake projects"
         "compile commands will be contructed automatically there if compilation "
@@ -252,7 +257,8 @@ def run_collector(
 
     if conf.binary_collection_file:
         tmp_output = Path(conf.binary_collection_file)
-        log("refl.cli").info(f"Explicitly provided reflection file {conf.binary_collection_file}")
+        log("refl.cli").info(
+            f"Explicitly provided reflection file {conf.binary_collection_file}")
     else:
         # Create a temporary list of files content will be added to the dumped translation
         # unit.
@@ -264,7 +270,8 @@ def run_collector(
         reflection=dict(compilation_database=str(database),),
         output=str(tmp_output),
         input=[str(input)],
-        mode="AllTargetedFiles",
+        mode="AllAnotatedSymbols" if conf.only_annotated else "AllTargetedFiles",
+        log_path=str(Path(conf.output_directory).joinpath("reflection_log.log")),
     )
 
     if conf.toolchain_include:

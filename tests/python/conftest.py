@@ -306,26 +306,53 @@ def pytest_collection_modifyitems(config: pytest.Config,
 
 
 @pytest.fixture
-def stable_test_dir(request: pytest.FixtureRequest,
-                    tmp_path_factory: pytest.TempPathFactory) -> Path:
+def stable_test_dir(request: pytest.FixtureRequest) -> Path:
     import hashlib
     import shutil
-    test_file = Path(request.path).stem
+    from pathlib import Path
+
+    # Get test file path relative to tests directory
+    test_file_path = Path(request.path)
+    tests_root = None
+
+    # Find the 'tests' directory in the path
+    for parent in test_file_path.parents:
+        if parent.name == 'tests':
+            tests_root = parent
+            break
+
+    if tests_root is None:
+        raise ValueError(f"Could not find 'tests' directory in path: {test_file_path}")
+
+    # Get relative path from tests directory, without .py extension
+    rel_path = test_file_path.relative_to(tests_root).with_suffix('')
+
+    # Build base directory path
+    base_dir = Path("/tmp/haxorg/test_out") / rel_path
+
+    # Add test function name
     test_name = request.node.name
 
+    # Handle parametrized tests
     if hasattr(request.node, "callspec") and request.node.callspec.params:
-        params_str = str(sorted(request.node.callspec.params.items()))
-        params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
-        dir_name = f"{test_file}__{test_name}__{params_hash}"
+        params_items = sorted(request.node.callspec.params.items())
+        params_str = "_".join(f"{k}={v}" for k, v in params_items)
+
+        if len(params_str) <= 32:
+            # Use parameters as-is if short enough
+            final_dir = base_dir / test_name / params_str
+        else:
+            # Use first 24 chars + hex digest for long parameters
+            params_prefix = params_str[:24]
+            params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
+            final_dir = base_dir / test_name / f"{params_prefix}_{params_hash}"
     else:
-        dir_name = f"{test_file}__{test_name}"
+        final_dir = base_dir / test_name
 
-    base_tmp = tmp_path_factory.getbasetemp()
-    stable_dir = base_tmp / dir_name
+    # Clean and create directory
+    if final_dir.exists():
+        shutil.rmtree(final_dir)
 
-    if stable_dir.exists():
-        shutil.rmtree(stable_dir)
+    final_dir.mkdir(parents=True, exist_ok=True)
 
-    stable_dir.mkdir(exist_ok=True, parents=True)
-
-    return stable_dir
+    return final_dir

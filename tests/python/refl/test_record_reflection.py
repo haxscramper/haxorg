@@ -237,6 +237,41 @@ echo "method field", value.run_method()
             'value field 0', '-- default constructor', 'method field24'
         ]
 
+@pytest.mark.test_release
+def test_annotated_declaration(stable_test_dir: Path) -> None:
+    value = refl_test_driver.run_provider(
+        """
+struct NotAnnotatedStruct {};
+struct [[refl]] AnnotatedStruct {};
+
+void function_no_annotation();
+[[refl]] void function_with_annotation(); 
+
+struct [[refl]] PartiallyAnnotatedFields {
+    [[refl]] int field1;
+    int field_not_annotated;
+    [[refl]] int field2;
+};
+        """,
+        code_dir=stable_test_dir,
+        output_dir=stable_test_dir,
+        only_annotated=True,
+    )
+
+    assert len(value.wraps) == 1
+    tu = value.wraps[0].tu
+
+    assert len(tu.structs) == 2
+    assert tu.structs[0].name.name == "AnnotatedStruct"
+    assert tu.structs[1].name.name == "PartiallyAnnotatedFields"
+
+    part_a = tu.structs[1]
+    assert len(part_a.fields) == 2
+    assert part_a.fields[0].name == "field1"
+    assert part_a.fields[1].name == "field2"
+
+    assert len(tu.functions) == 1
+    assert tu.functions[0].name == "function_with_annotation"
 
 @pytest.mark.test_release
 def test_type_cross_dependency(stable_test_dir: Path) -> None:

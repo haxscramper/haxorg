@@ -117,6 +117,7 @@ def run_provider(
     text: Union[str, Dict[str, str]],
     code_dir: Path,
     output_dir: Path,
+    only_annotated: bool = False,
     print_reflection_run_fail_to_stdout: bool = False,
 ) -> ReflProviderRunResult:
     if not code_dir.exists():
@@ -142,6 +143,7 @@ def run_provider(
         directory_root=str(code_dir),
         header_root=str(code_dir),
         binary_collection_file=str(output_dir.joinpath("reflection.pb")),
+        only_annotated=only_annotated,
     )
 
     conf.cache_collector_runs = False
