@@ -36,6 +36,7 @@ from py_scriptutils.toml_config_profiler import interpolate_dictionary, get_haxo
 import py_codegen.wrapper_gen_nim as gen_nim
 from dataclasses import dataclass
 
+
 @beartype
 class PathComponentKind(enum.Enum):
     DICT_KEY = "dict_key"
@@ -131,7 +132,7 @@ def run_provider(
 
         base_dict = dict(
             input=[str(file) for file in text.keys()],
-            indexing_tool="{haxorg_root}/build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
+            indexing_tool="{haxorg_root}/build/haxorg/reflection_tool",
             compilation_database=compile_commands.name,
             output_directory=str(code_dir),
             directory_root=str(code_dir),
@@ -200,11 +201,13 @@ def get_struct(text: str,
         assert len(tu.structs) == 1
         return tu.structs[0]
 
+
 @beartype
 def get_entires(text: str, **kwargs) -> List[GenTuUnion]:
     with TemporaryDirectory() as code_dir:
         tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
         return tu.enums + tu.structs + tu.functions + tu.typedefs
+
 
 @beartype
 def get_enum(text: str, **kwargs) -> GenTuEnum:
@@ -261,6 +264,7 @@ def format_nim_code(refl: ReflProviderRunResult,
 
     return mapped
 
+
 @beartype
 def has_nim_installed() -> bool:
     try:
@@ -269,6 +273,7 @@ def has_nim_installed() -> bool:
 
     except CommandNotFound:
         return False
+
 
 @beartype
 def compile_nim_path(file: Path, binary: Path) -> None:

@@ -18,7 +18,7 @@ class ProfdataFullProfile(BaseModel, extra="forbid"):
 class Mode(str, enum.Enum):
     RunProfileMerge = "RunProfileMerge"
     BuildProfileMerge = "BuildProfileMerge"
-    FullTranslationUnit = "FullTranslationUnit"
+    AllTargetedFiles = "AllTargetedFiles"
     AllMainSymbolsInCompilationDb = "AllMainSymbolsInCompilationDb"
     AllAnotatedSymbols = "AllAnotatedSymbols"
     BinarySymbols = "BinarySymbols"

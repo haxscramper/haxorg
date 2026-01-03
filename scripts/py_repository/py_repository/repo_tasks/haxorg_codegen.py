@@ -161,14 +161,11 @@ def generate_include_graph(ctx: TaskContext) -> None:
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
     header_commands = get_script_root(ctx,
                                       "build/haxorg/compile_commands_with_headers.json")
-    toolchain_include = get_script_root(
-        ctx, f"toolchain/llvm/lib/clang/{ctx.config.LLVM_MAJOR}/include")
-
     # re-configure the whole project to generate new compilation database.
     configure_cmake_haxorg(ctx=ctx)
 
     conf_copy = ctx.config.model_copy(deep=True)
-    conf_copy.build_conf.target = ["reflection_lib", "reflection_tool"]
+    conf_copy.build_conf.target = ["reflection_tool"]
     conf_copy.build_conf.force = True
     build_haxorg(ctx=ctx.with_temp_config(conf_copy))
 
@@ -177,5 +174,4 @@ def generate_include_graph(ctx: TaskContext) -> None:
         ctx,
         compile_commands=compile_commands,
         header_commands=header_commands,
-        toolchain_include=toolchain_include,
     )

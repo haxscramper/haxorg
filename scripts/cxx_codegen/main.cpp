@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <llvm/Support/JSON.h>
 #include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 #include "reflection_perf.hpp" // IWYU pragma: keep
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
@@ -16,9 +17,18 @@
 
 int main(int argc, const char** argv) {
     if (argc != 2) {
+        std::vector<std::string> argv_v;
+        for (int i = 0; i < argc; ++i) {
+            argv_v.push_back(std::format("\n '{}'", argv[i]));
+        }
+
         throw hstd::runtime_error::init(
-            "Expected exactly one CLI argument: JSON literal for the "
-            "configuration or a path to the JSON file.");
+            std::format(
+                "Expected exactly one CLI argument: JSON literal for the "
+                "configuration or a path to the JSON file. argc={} "
+                "argv={}",
+                argc,
+                argv_v));
     }
 
 
@@ -59,7 +69,7 @@ int main(int argc, const char** argv) {
             build_build_coverage_merge(cli);
             break;
 
-        case ReflectionCLI::Mode::FullTranslationUnit: [[fallthrough]];
+        case ReflectionCLI::Mode::AllTargetedFiles: [[fallthrough]];
         case ReflectionCLI::Mode::AllMainSymbolsInCompilationDb:
             [[fallthrough]];
         case ReflectionCLI::Mode::AllAnotatedSymbols:

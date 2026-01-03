@@ -47,11 +47,22 @@ struct ReflectionConfig {
 struct ReflectionCLI {
     DECL_DESCRIBED_ENUM(
         Mode,
+        /// \brief Generate summary report database for the runtime performance
+        /// profiling of the project. 
         RunProfileMerge,
+        /// \brief Generate summary report for the build performance profile
+        /// of the project
         BuildProfileMerge,
-        FullTranslationUnit,
+        /// \brief Collect all symbols defined in the targeted files
+        AllTargetedFiles,
+        /// \brief Collect all symbols defined in the main translation units 
+        /// of the files in compilation database. 
         AllMainSymbolsInCompilationDb,
+        /// \brief Collect all symbols explicitly annotated with the `[[refl]]` 
+        /// attirbute, no matter which file they are defined -- main file of the 
+        /// translation unit or a transitive include. 
         AllAnotatedSymbols,
+        /// \brief Collect all binary symbols with their sizes. 
         BinarySymbols);
 
     Mode                       mode = Mode::RunProfileMerge;

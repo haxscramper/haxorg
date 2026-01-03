@@ -214,7 +214,7 @@ void run_semantic_symbols_collection(const ReflectionCLI& cli) {
 
     clang::tooling::ClangTool tool(adjustedCompilations, cli.input);
 
-    if (!cli.reflection.toolchain_include) {
+    if (cli.reflection.toolchain_include) {
         if (!hstd::fs::is_directory(
                 std::string(cli.reflection.toolchain_include.value()))) {
             throw hstd::FilesystemError::init(
