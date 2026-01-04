@@ -32,6 +32,7 @@ def run_mypy(ctx: TaskContext) -> None:
                 str(py_file),
                 "--show-error-codes",
                 "--show-error-context",
+                "--follow-imports=silent",
                 "--cache-dir",
                 str(cache_dir),
                 "--config-file",
