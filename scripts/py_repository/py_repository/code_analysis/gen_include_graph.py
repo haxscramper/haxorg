@@ -230,7 +230,7 @@ def process_reflection_file(
             "--compilation-database",
             header_commands.resolve(),
             "--toolchain-include",
-            toolchain_include.resolve(),
+            # toolchain_include.resolve(),
             "--main-tu-analysis",
             # "--verbose",
             "--out",

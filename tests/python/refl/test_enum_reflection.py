@@ -2,26 +2,18 @@ from py_scriptutils import configure_asan
 
 import os
 from beartype.typing import TYPE_CHECKING
-if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
-    from py_scriptutils.test_utils import HasAnyAttr
-    refl_test_driver = HasAnyAttr()
-else:
-    import refl_test_driver
+
+
 
 import pytest
 from pprint import pprint
 from pathlib import Path
 from more_itertools import first_true
 
-if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
-    from py_scriptutils.test_utils import HasAnyAttr
-    gen_nim = HasAnyAttr()
-else:
-    import py_codegen.wrapper_gen_nim as gen_nim
-
 
 @pytest.mark.test_release
 def test_enum_field_extract(stable_test_dir: Path) -> None:
+    import refl_test_driver
     enum = refl_test_driver.get_enum(
         "enum CEnum { Member1, Member2 };",
         stable_test_dir=stable_test_dir,
@@ -34,6 +26,7 @@ def test_enum_field_extract(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
+    import refl_test_driver
     enum = refl_test_driver.get_enum(
         "namespace Space { enum Enum { member1 }; }",
         stable_test_dir=stable_test_dir,
@@ -45,6 +38,8 @@ def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_nim_enum_conversion(stable_test_dir: Path) -> None:
+    import refl_test_driver
+    import py_codegen.wrapper_gen_nim as gen_nim
     con = refl_test_driver.get_nim_code(
         refl_test_driver.get_enum(
             "enum En { Field1, Field2 };",

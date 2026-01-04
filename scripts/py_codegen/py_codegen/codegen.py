@@ -152,8 +152,8 @@ def get_imm_serde(
     types: List[GenTuStruct],
     ast: ASTBuilder,
     base_map: GenTypeMap,
-) -> List[GenTuPass]:
-    serde: List[GenTuStruct] = []
+) -> Sequence[GenTuPass | GenTuStruct]:
+    serde: List[GenTuStruct | GenTuPass] = []
 
     def aux(it: Any) -> None:
         match it:
@@ -230,6 +230,7 @@ def get_imm_serde(
                         assert sub.name.name != base.name, f"{sub.name} ->>>> {base}"
                         base_type = base_map.get_one_type_for_name(base.name)
                         if base_type:
+                            assert isinstance(base_type, GenTuStruct)
                             assert base_type.name.name != sub.name.name
                             field_aux(base_type)
 
@@ -519,7 +520,7 @@ def expand_type_groups(ast: ASTBuilder,
 
     @beartype
     def rec_expand_type(typ: GenTuStruct) -> GenTuStruct:
-        converted = []
+        converted: List[GenTuEntry] = []
         methods: List[GenTuFunction] = []
         fields: List[GenTuField] = []
         for item in typ.nested:
@@ -618,19 +619,27 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
             case QualType():
                 mutate_type_to_immutable(obj)
 
-            case GenTuField(type=QualType(name="SemId", parameters=[])):
+            case GenTuField(type=QualType(name="SemId", Parameters=[])):
+                assert obj.type
                 mutate_type_to_immutable(obj.type)
                 obj.value = "org::imm::ImmId::Nil()"
 
             case GenTuField(type=QualType(name="SemId")):
+                assert obj.type
+                par0 = obj.type.par0()
+                assert par0
                 mutate_type_to_immutable(obj.type)
-                obj.value = f"org::imm::ImmIdT<org::imm::Imm{obj.type.par0().name}>::Nil()"
+                obj.value = f"org::imm::ImmIdT<org::imm::Imm{par0.name}>::Nil()"
 
             case GenTuField(type=QualType(name="Opt")):
-                obj.type = obj.type.par0().withWrapperType(
+                assert obj.type
+                par0 = obj.type.par0()
+                assert par0
+                obj.type = par0.withWrapperType(
                     QualType(name="Opt", Spaces=[n_hstd()])).withWrapperType(IMM_BOX)
 
             case GenTuField(type=QualType(name="Str")):
+                assert obj.type
                 obj.type = obj.type.withWrapperType(IMM_BOX)
 
             case GenTuStruct():
@@ -777,6 +786,7 @@ def collect_type_field_groups(types: List[GenTuStruct],
         for base in t.bases:
             base_type = base_map.get_one_type_for_name(base.name)
             if base_type:
+                assert isinstance(base_type, GenTuStruct)
                 result += aux(base_type)
 
         return result

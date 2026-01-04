@@ -43,7 +43,7 @@ def get_declared_types_rec(
 
             for _nested in decl.nested:
                 result.extend(get_declared_types_rec(
-                    _nested,
+                    _nested, # type: ignore
                     expanded_use=expanded_use,
                 ))
 
@@ -135,10 +135,14 @@ def hash_qual_type(
     match t.Kind:
         case QualTypeKind.FunctionPtr:
                 assert t.func
-                parts.append(hash_qual_type(
-                    t.func.ReturnTy,
-                    with_namespace=with_namespace,
-                ))
+                if t.func.ReturnTy:
+                    parts.append(hash_qual_type(
+                        t.func.ReturnTy,
+                        with_namespace=with_namespace,
+                    ))
+
+                else:
+                    parts.append(0)
 
                 for T in t.func.Args:
                     parts.append(hash_qual_type(
@@ -254,7 +258,7 @@ class GenGraph:
                 matching.append(sub)
 
         assert len(matching) <= 1, [
-            f"{m.name}, {m.original}, id: {_id}, entry: {self.id_to_entry[_id].format()}"
+            f"{m.name}, {m.original}, id: {_id}, entry: {self.id_to_entry[_id].format()}" # type: ignore
             for m in matching
         ]
         if len(matching) == 1:
@@ -426,7 +430,7 @@ class GenGraph:
 
     def add_function(self, func: GenTuFunction, sub: Sub) -> None:
         _id = self.add_entry(func, sub)
-        merge: GenTuFunction = self.id_to_entry[_id]
+        merge: GenTuFunction = self.id_to_entry[_id] # type: ignore
         self.merge_functions(merge, func)
 
         self.graph.vs[_id]["label"] = func.format()

@@ -7,10 +7,7 @@
   "use_unchanged_tasks": true,
   "py_test_conf": {
     "extra_pytest_args": [
-      "tests/python/refl/test_record_reflection.py",
-      "tests/python/refl/test_function_reflection.py",
-      "tests/python/refl/test_enum_reflection.py",
-      "tests/python/refl/test_coverall_refl.py"
+      "tests/python/repo/test_code_forensics.py"
     ],
     "real_time_output_print": true
   }

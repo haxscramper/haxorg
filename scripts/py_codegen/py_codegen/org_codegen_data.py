@@ -174,7 +174,7 @@ def str_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = '""') -> Gen
 
 
 @beartype
-def int_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = 0) -> GenTuField:
+def int_field(name: str, doc: AnyDoc = GenTuDoc(""), default: int = 0) -> GenTuField:
     return org_field(t_int(), name, doc, default)
 
 
@@ -277,7 +277,7 @@ def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
 
 
 @beartype
-def d_simple_enum(name: QualType, doc: AnyDoc, *args) -> GenTuEnum:
+def d_simple_enum(name: QualType, doc: AnyDoc, *args: Any) -> GenTuEnum:
     return GenTuEnum(
         name,
         org_doc(doc),

@@ -5,12 +5,9 @@ from typing import TYPE_CHECKING, Type
 
 if TYPE_CHECKING:
     from sqlalchemy.orm.decl_api import DeclarativeMeta
-    Base: Type[DeclarativeMeta]
+    Base = DeclarativeMeta
 else:
     Base = declarative_base()
-
-
-
 
 
 # Table Definitions
