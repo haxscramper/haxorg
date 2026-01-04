@@ -2,7 +2,20 @@ import py_haxorg.pyhaxorg_wrap as org
 from dataclasses import dataclass, replace, field
 import dataclasses
 from beartype import beartype
-from beartype.typing import List, Optional, Union, Iterable, Callable, Any, Tuple, Mapping, Set, Generator
+from beartype.typing import (
+    List,
+    Optional,
+    Union,
+    Iterable,
+    Callable,
+    Any,
+    Tuple,
+    Mapping,
+    Set,
+    Generator,
+    Dict,
+)
+
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 from rich.tree import Tree
@@ -365,7 +378,7 @@ class ClassAlternatives():
 @beartype
 @dataclass
 class OrgSpecification:
-    alternatives: Mapping[org.OrgSemKind, ClassAlternatives] = field(default_factory=dict)
+    alternatives: Dict[org.OrgSemKind, ClassAlternatives] = field(default_factory=dict)
 
     def treeRepr(self) -> Tree:
         res = Tree("Specification")
@@ -862,12 +875,15 @@ def get_spec() -> OrgSpecification:
     res.alternatives[osk.Time] = get_time_spec()
 
     @beartype
-    def get_all_alternatives_for_class(subkind, is_expected_kind,
-                                       class_name) -> List[ClassPrediate]:
+    def get_all_alternatives_for_class(
+        subkind: Any,
+        is_expected_kind: Callable[[org.OrgSemKind, org.Org], bool],
+        class_name: str,
+    ) -> List[ClassPrediate]:
         result: List[ClassPrediate] = []
         for kind in subkind:
 
-            def impl(kind, target) -> NodeCheckResult:
+            def impl(kind: org.OrgSemKind, target: org.Org) -> NodeCheckResult:
                 if is_expected_kind(kind, target):
                     return NodeCheckResult(is_ok=True)
 
@@ -882,11 +898,15 @@ def get_spec() -> OrgSpecification:
 
         return result
 
-    def get_all_alternatives_for_field(subkind, is_expected_kind, field_name) -> None:
+    def get_all_alternatives_for_field(
+        subkind: Any,
+        is_expected_kind: Callable[[org.OrgSemKind, org.Org], bool],
+        field_name: str,
+    ) -> List[ClassPrediate]:
         result: List[ClassPrediate] = []
         for kind in subkind:
 
-            def impl(kind, target) -> ValueCheckResult:
+            def impl(kind: org.OrgSemKind, target: org.Org) -> ValueCheckResult:
                 if is_expected_kind(kind, target):
                     return ValueCheckResult(is_ok=True)
 
@@ -952,7 +972,7 @@ def generate_cov_report(cov: Coverage, target_file: Path, output_dir: str) -> Pa
     cov.html_report(morfs=[str(target_file)], directory=str(output_path))
     cov.json_report(
         morfs=[str(target_file)],
-        outfile=output_path.joinpath("cov.json"),
+        outfile=str(output_path.joinpath("cov.json")),
         pretty_print=True,
     )
     return output_path / "index.html"
@@ -1094,9 +1114,8 @@ def test_total_representation() -> None:
 
     coverage = spec.visit_all(node)
 
-    final_mapping: Mapping[org.OrgSemKind, List[Tree]] = dict()
-    class_cover_tree: Mapping[org.OrgSemKind, Mapping[str,
-                                                      List[ClassCheckResult]]] = dict()
+    final_mapping: Dict[org.OrgSemKind, List[Tree]] = dict()
+    class_cover_tree: Dict[org.OrgSemKind, Dict[str, List[ClassCheckResult]]] = dict()
 
     @beartype
     def add_final_to_type(kind: org.OrgSemKind, node: Optional[Tree]) -> None:
@@ -1169,8 +1188,7 @@ def test_total_representation() -> None:
 
         for class_predicate_id, cover in class_preciate_map.items():
             if any(cov.is_matching() for cov in cover):
-                field_cover_tree: Mapping[Tuple[str, str],
-                                          List[FieldCheckResult]] = dict()
+                field_cover_tree: Dict[Tuple[str, str], List[FieldCheckResult]] = dict()
                 for cov in cover:
                     for field_check in cov.fields:
                         key = (field_check.field, field_check.field_predicate_id)

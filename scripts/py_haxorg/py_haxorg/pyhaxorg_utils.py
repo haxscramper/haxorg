@@ -63,7 +63,6 @@ def formatDateTime(time: UserTime) -> str:
 
 @beartype
 def getFlatTags(tag: Union[org.HashTag, org.HashTagText]) -> List[List[str]]:
-
     def aux(parents: List[str], tag: org.HashTagText) -> List[List[str]]:
         result: List[List[str]] = []
         if len(tag.subtags) == 0:

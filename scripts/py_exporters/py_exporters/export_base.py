@@ -3,7 +3,7 @@ from py_textlayout.py_textlayout_wrap import *
 import re
 from py_scriptutils.script_logging import log
 import inspect
-from beartype.typing import Set, Callable, Any, List
+from beartype.typing import Set, Callable, Any, List, Generator
 import contextlib
 import functools
 from py_scriptutils import algorithm
@@ -69,7 +69,7 @@ class ExporterBase:
         return node.level + compound_level
 
     @contextlib.contextmanager
-    def WithContext(self, node: org.Org):
+    def WithContext(self, node: org.Org) -> Generator[None, Any, Any]:
         self.context.append(node)
         yield
         self.context.pop()

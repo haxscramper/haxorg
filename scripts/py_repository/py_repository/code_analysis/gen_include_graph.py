@@ -210,7 +210,6 @@ def process_reflection_file(
     file: Path,
     compile_commands: Path,
     header_commands: Path,
-    toolchain_include: Path,
 ) -> Optional[Path]:
     relative = file.relative_to(get_script_root(ctx))
     out_file = get_build_root(ctx, f"{relative}_translation.pb")
@@ -454,7 +453,6 @@ def gen_include_graph(
     ctx: TaskContext,
     compile_commands: Path,
     header_commands: Path,
-    toolchain_include: Path,
 ) -> None:
     header_compdb_content = run_command(
         ctx,
@@ -478,7 +476,7 @@ def gen_include_graph(
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [
             executor.submit(process_reflection_file, ctx, file, compile_commands,
-                            header_commands, toolchain_include) for file in files
+                            header_commands) for file in files
         ]
 
         for future in as_completed(futures):

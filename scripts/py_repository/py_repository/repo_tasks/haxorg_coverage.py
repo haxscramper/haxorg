@@ -235,7 +235,7 @@ HELP_coverage_file = {
 
 
 @beartype
-def get_cxx_profdata_params(ctx: TaskContext) -> gen_coverage_cookies.ProfdataConfig:
+def get_cxx_profdata_params(ctx: TaskContext) -> gen_coverage_cookies.ReflectionCLI:
     coverage_dir = get_cxx_coverage_dir(ctx)
     stored_summary_collection = coverage_dir.joinpath("test-summary.json")
     summary_data: gen_coverage_cookies.ProfdataFullProfile = gen_coverage_cookies.ProfdataFullProfile.model_validate_json(
@@ -244,14 +244,16 @@ def get_cxx_profdata_params(ctx: TaskContext) -> gen_coverage_cookies.ProfdataCo
         runs=filter_cookies(summary_data.runs, ctx.config.aggregate_filters))
     filtered_summary_collection = coverage_dir.joinpath("test-summary-filtered.json")
     filtered_summary_collection.write_text(filtered_summary.model_dump_json(indent=2))
-    return gen_coverage_cookies.ProfdataConfig(
-        coverage=str(filtered_summary_collection),
-        coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
-        # perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
-        debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
-        file_whitelist=ctx.config.profdata_file_whitelist,
-        file_blacklist=ctx.config.profdata_file_blacklist,
-        run_group_batch_size=get_threading_count(),
+    return gen_coverage_cookies.ReflectionCLI(
+        mode=gen_coverage_cookies.Mode.RunProfileMerge,
+        output=str(coverage_dir.joinpath("coverage.sqlite")),
+        profdata=gen_coverage_cookies.ProfdataConfig(
+            build_profile_dir=str(filtered_summary_collection),
+            debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
+            file_whitelist=ctx.config.profdata_file_whitelist,
+            file_blacklist=ctx.config.profdata_file_blacklist,
+            run_group_batch_size=get_threading_count(),
+        ),
     )
 
 
@@ -275,7 +277,7 @@ def configure_cxx_merge(
         model = get_cxx_profdata_params(ctx)
         if coverage_mapping_dump:
             Path(coverage_mapping_dump).mkdir(exist_ok=True)
-            model.coverage_mapping_dump = coverage_mapping_dump
+            model.profdata.coverage_mapping_dump = coverage_mapping_dump
 
         profile_path.write_text(model.model_dump_json(indent=2))
 

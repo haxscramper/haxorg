@@ -730,8 +730,10 @@ class Py11Class:
                     PyName="__iter__",
                     Func=GenTuFunction(
                         name="at",
-                        result=QualType.ForName("auto"),
-                        arguments=[GenTuIdent(self.getCxxName().asConstRef(), "node")],
+                        result=QualType.ForName("Org"),
+                        arguments=[
+                            # GenTuIdent(self.getCxxName().asConstRef(), "node")
+                        ],
                     ),
                     Body=[
                         ast.b.text(

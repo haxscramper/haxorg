@@ -61,12 +61,11 @@ def build_custom_docs(ctx: TaskContext, out_dir: Optional[str] = None) -> None:
                               ctx.config.custom_docs_conf.coverage_file_blacklist))
 
         prof_params = get_cxx_profdata_params(ctx)
-        if Path(prof_params.coverage_db).exists():
-            args.append(f"--cxx_coverage_path={prof_params.coverage_db}")
-            log(CAT).info(f"Using coveage database from {prof_params.coverage_db}")
+        if Path(prof_params.output).exists():
+            args.append(f"--cxx_coverage_path={prof_params.output}")
+            log(CAT).info(f"Using coveage database from {prof_params.output}")
         else:
             log(CAT).info(
-                f"No coverage database generated, {prof_params.coverage_db} does not exist"
-            )
+                f"No coverage database generated, {prof_params.output} does not exist")
 
         run_command(ctx, "poetry", args)

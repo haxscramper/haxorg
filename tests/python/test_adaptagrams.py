@@ -3,7 +3,7 @@ from beartype.typing import TYPE_CHECKING
 if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
     from py_scriptutils.test_utils import HasAnyAttr
     wrap = HasAnyAttr()
-else: 
+else:
     import py_wrappers.py_adaptagrams_wrap as wrap
 
 import pytest
@@ -55,11 +55,11 @@ class ConvTest():
     def debug(
             self,
             rect_debug_map: Dict[int, Dict[str, Any]] = dict(),
-    ):
+    ) -> None:
         dump = to_debug_json(self.conv, skip_cyclic_data=False)
         pre_fmt = pformat(dump, width=120)
 
-        def aux(it) -> None:
+        def aux(it: Any) -> None:
             match it:
                 case dict():
                     if "x" in it:
@@ -262,6 +262,7 @@ def test_align_axis_separate_2() -> None:
 
     t = ConvTest(ir)
 
+
 @pytest.mark.test_release
 def test_align_axis_multi_separate_equal_sizes() -> None:
     mult = 5
@@ -311,6 +312,7 @@ def test_align_axis_multi_separate_equal_sizes() -> None:
 
     t = ConvTest(ir)
     t.debug()
+
 
 @pytest.mark.test_release
 def test_align_axis_multi_separate_different_sizes() -> None:
@@ -367,6 +369,7 @@ def test_align_axis_multi_separate_different_sizes() -> None:
 
     t = ConvTest(ir)
     t.debug()
+
 
 @pytest.mark.test_release
 def test_node_pin_connections() -> None:
@@ -439,7 +442,7 @@ def test_tree_sheet_constraint() -> None:
         ]),
     ])
 
-    def get_depth(t: Tree) -> None:
+    def get_depth(t: Tree) -> int:
         subs = [get_depth(s) for s in t.sub]
         if 1 < len(subs):
             return max(*subs) + 1
@@ -450,7 +453,7 @@ def test_tree_sheet_constraint() -> None:
         else:
             return 1
 
-    def get_cols(t: Tree) -> None:
+    def get_cols(t: Tree) -> int:
         subs = [get_cols(s) for s in t.sub]
         if len(subs) == 1:
             return max(subs[0], len(t.content))
@@ -461,7 +464,7 @@ def test_tree_sheet_constraint() -> None:
         else:
             return len(t.content)
 
-    def get_rows(t: Tree) -> None:
+    def get_rows(t: Tree) -> int:
         res = sum(get_rows(s) for s in t.sub) + 1
         if 0 < len(t.content):
             res += 1
