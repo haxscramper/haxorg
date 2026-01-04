@@ -1,108 +1,12 @@
-import os
-from beartype.typing import TYPE_CHECKING
-if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
-    from py_scriptutils.test_utils import HasAnyAttr
-    wrap = HasAnyAttr()
-else:
-    import py_wrappers.py_adaptagrams_wrap as wrap
-
 import pytest
 
-from pprint import pprint, pformat
-from py_scriptutils.script_logging import to_debug_json, pprint_to_file
-from pathlib import Path
 from dataclasses import dataclass, field
 from beartype import beartype
-from beartype.typing import List, Optional, Tuple, Dict, Any
-
-
-def make_disconnected_graph(count: int, mult: int) -> wrap.GraphLayout:
-    ir = wrap.GraphLayout()
-
-    for i in range(0, count):
-        ir.rect(20 * mult, 20 * mult)
-
-    ir.ir.width = 100 * mult
-    ir.ir.height = 100 * mult
-
-    return ir
-
-
-def make_chain_graph(count: int, mult: int) -> wrap.GraphLayout:
-    ir = make_disconnected_graph(count=count, mult=mult)
-    for i in range(0, count - 1):
-        ir.edge(i, i + 1)
-
-    return ir
-
-
-class ConvTest():
-
-    def __init__(self, conv: wrap.GraphLayout) -> None:
-        self.conv = conv.ir.doColaConvert()
-        self.ir = conv.ir
-
-    def rect(self, idx: int) -> wrap.GraphRect:
-        return self.conv.fixed[idx]
-
-    def rect_center(self, idx: int) -> wrap.GraphPoint:
-        r = self.rect(idx)
-        return wrap.GraphPoint(x=r.left + r.width / 2, y=r.top + r.height / 2)
-
-    def path(self, source: int, target: int) -> wrap.GraphLayoutIREdge:
-        return self.conv.lines[wrap.GraphEdge(source=source, target=target)]
-
-    def debug(
-            self,
-            rect_debug_map: Dict[int, Dict[str, Any]] = dict(),
-    ) -> None:
-        dump = to_debug_json(self.conv, skip_cyclic_data=False)
-        pre_fmt = pformat(dump, width=120)
-
-        def aux(it: Any) -> None:
-            match it:
-                case dict():
-                    if "x" in it:
-                        it["x"] = it["x"] - self.conv.bbox.left
-
-                    if "y" in it:
-                        it["y"] = it["y"] - self.conv.bbox.top
-
-                    for key, value in it.items():
-                        if isinstance(value, float):
-                            it[key] = round(value, ndigits=3)
-
-                        else:
-                            aux(value)
-
-                case list() | tuple():
-                    for item in it:
-                        aux(item)
-
-                case float() | int() | str() | None:
-                    pass
-
-                case _:
-                    raise TypeError(str(type(it)))
-
-        aux(dump)
-
-        post_fmt = pformat(dump, width=120)
-        Path("/tmp/dbg.txt").write_text(f"{pre_fmt}\n{post_fmt}")
-        sformat = str(
-            wrap.svg.toSvgFileText(
-                wrap.toSvg(
-                    self.conv,
-                    rect_debug_map=rect_debug_map,
-                    ir=self.ir,
-                )))
-        # print(sformat)
-        Path("/tmp/result2.svg").write_text(sformat)
-        # self.conv.doColaSvgWrite("/tmp/result.svg")
-
+from beartype.typing import List, Optional, Dict, Any
 
 @pytest.mark.test_release
 def test_ir_align_two() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     ir = wrap.GraphLayoutIR()
     ir.edges.append(wrap.GraphEdge(source=0, target=1))
     ir.edges.append(wrap.GraphEdge(source=1, target=2))
@@ -139,6 +43,7 @@ def test_ir_align_two() -> None:
 
 @pytest.mark.test_release
 def test_py_util_align_two() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     ir = wrap.GraphLayout()
     ir.edge(0, 1)
     ir.edge(1, 2)
@@ -157,6 +62,7 @@ def test_py_util_align_two() -> None:
 
 @pytest.mark.test_release
 def test_py_util_align_many() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     ir = wrap.GraphLayout()
     ir.edge(0, 1)
     ir.edge(1, 2)
@@ -196,6 +102,7 @@ def test_py_util_align_many() -> None:
 
 @pytest.mark.test_release
 def test_align_axis_separation() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     ir = wrap.GraphLayout()
     mult = 5
     ir.edge(0, 1)
@@ -219,7 +126,7 @@ def test_align_axis_separation() -> None:
     ir.ir.width = 100 * mult
     ir.ir.height = 100 * mult
 
-    t = ConvTest(ir)
+    t = wrap.ConvTest(ir)
     assert t.rect(3).left == t.rect(4).left
 
     path_01 = t.path(3, 4)
@@ -239,8 +146,9 @@ def test_align_axis_separation() -> None:
 
 @pytest.mark.test_release
 def test_align_axis_separate_2() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     mult = 5
-    ir = make_chain_graph(6, mult)
+    ir = wrap.make_chain_graph(6, mult)
 
     ir.separateXDim2(
         left=ir.newAlignX([
@@ -260,13 +168,14 @@ def test_align_axis_separate_2() -> None:
         ir.newAlignSpec(5),
     ])
 
-    t = ConvTest(ir)
+    t = wrap.ConvTest(ir)
 
 
 @pytest.mark.test_release
 def test_align_axis_multi_separate_equal_sizes() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     mult = 5
-    ir = make_disconnected_graph(9, mult)
+    ir = wrap.make_disconnected_graph(9, mult)
 
     ir.separateXDimN(
         lines=[
@@ -310,12 +219,13 @@ def test_align_axis_multi_separate_equal_sizes() -> None:
         distance=50 * mult,
     )
 
-    t = ConvTest(ir)
+    t = wrap.ConvTest(ir)
     t.debug()
 
 
 @pytest.mark.test_release
 def test_align_axis_multi_separate_different_sizes() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     mult = 5
     ir = wrap.GraphLayout()
 
@@ -367,12 +277,13 @@ def test_align_axis_multi_separate_different_sizes() -> None:
         distance=50 * mult,
     )
 
-    t = ConvTest(ir)
+    t = wrap.ConvTest(ir)
     t.debug()
 
 
 @pytest.mark.test_release
 def test_node_pin_connections() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     mult = 5
     ir = wrap.GraphLayout()
     shape1 = ir.rect(20 * mult, 20 * mult)
@@ -406,7 +317,7 @@ def test_node_pin_connections() -> None:
     ir.ir.height = 100 * mult
     ir.ir.doColaSvgWrite("/tmp/test_node_pin_connections.svg")
 
-    t = ConvTest(ir)
+    t = wrap.ConvTest(ir)
     t.debug()
 
 
@@ -426,6 +337,7 @@ class Cell():
 
 @pytest.mark.test_release
 def test_tree_sheet_constraint() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     mult = 5
     ir = wrap.GraphLayout()
 
@@ -575,7 +487,7 @@ def test_tree_sheet_constraint() -> None:
     ir.ir.height = 100 * mult
     ir.ir.leftBBoxMargin = 100
 
-    t = ConvTest(ir)
+    t = wrap.ConvTest(ir)
     t.debug(rect_debug_map)
 
     def rect_at(row: int, col: int) -> int:
@@ -593,6 +505,7 @@ def test_tree_sheet_constraint() -> None:
 
 @pytest.mark.test_release
 def test_page_boundary() -> None:
+    import py_wrappers.py_adaptagrams_test_utils as wrap
     mult = 5
     ir = wrap.GraphLayout()
     ir.ir.width = 150 * mult
@@ -618,7 +531,7 @@ def test_page_boundary() -> None:
     #     weight=10,
     # )
 
-    t = ConvTest(ir)
+    t = wrap.ConvTest(ir)
     t.debug()
 
 

@@ -212,8 +212,6 @@ def test_cpack_archive(
                 str(BUILD_DIR.joinpath("pyhaxorg.so")),
             "HAXORG_PYTEXTLAYOUT_SO_PATH":
                 str(BUILD_DIR.joinpath("py_textlayout_cpp.so")),
-            "HAXORG_REDUCED_RELEASE_TEST":
-                "1",
             "HAXORG_REPO_HAXORG_ROOT_BUILD_PATH":
                 str(BUILD_DIR),
         })
