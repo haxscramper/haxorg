@@ -7,7 +7,6 @@
   "use_unchanged_tasks": true,
   "py_test_conf": {
     "extra_pytest_args": [
-      "tests/python/repo/test_code_forensics.py"
     ],
     "real_time_output_print": true
   }

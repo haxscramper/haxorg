@@ -635,8 +635,8 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 assert obj.type
                 par0 = obj.type.par0()
                 assert par0
-                obj.type = par0.withWrapperType(
-                    QualType(name="Opt", Spaces=[n_hstd()])).withWrapperType(IMM_BOX)
+                obj.type = par0.withWrapperType(QualType(
+                    name="Opt", Spaces=[n_hstd()])).withWrapperType(IMM_BOX)
 
             case GenTuField(type=QualType(name="Str")):
                 assert obj.type
@@ -1028,14 +1028,18 @@ def get_pyhaxorg_type_groups(
     reflection_path: Path,
 ) -> PyhaxorgTypeGroups:
     res = PyhaxorgTypeGroups()
-    res.shared_types = expand_type_groups(ast, get_shared_sem_types())
-    res.expanded = expand_type_groups(ast, get_types())
-    res.immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
+    res.shared_types = expand_type_groups(ast, get_shared_sem_types())  # type: ignore
+    res.expanded = expand_type_groups(ast, get_types())  # type: ignore
+    res.immutable = expand_type_groups(ast,
+                                       rewrite_to_immutable(get_types()))  # type: ignore
 
     res.tu = conv_proto_file(reflection_path)
-    res.base_map = get_base_map(res.expanded + res.shared_types + res.immutable +
-                                res.tu.enums + res.tu.structs + res.tu.typedefs)
-    res.full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(res.expanded)]
+    res.base_map = get_base_map(
+        res.expanded + res.shared_types + res.immutable + res.tu.enums + res.tu.structs +
+        res.tu.typedefs,  # type: ignore
+    )
+
+    res.full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(res.expanded)] # type: ignore
 
     res.specializations = collect_type_specializations(
         res.get_entries_for_wrapping(),
@@ -1162,7 +1166,7 @@ def gen_pyhaxorg_source(
     groups: PyhaxorgTypeGroups,
 ) -> GenFiles:
     proto = pb.ProtoBuilder(
-        wrapped=groups.full_enums + groups.shared_types + groups.expanded,
+        wrapped=groups.full_enums + groups.shared_types + groups.expanded, # type: ignore
         ast=ast,
         base_map=groups.base_map,
     )
@@ -1245,7 +1249,7 @@ def gen_pyhaxorg_source(
             ),
             GenTu(
                 "{base}/sem/SemOrgEnums.cpp",
-                [GenTuPass('#include "SemOrgEnums.hpp"')] + groups.full_enums,
+                [GenTuPass('#include "SemOrgEnums.hpp"')] + groups.full_enums, # type: ignore
             ),
         ),
         GenUnit(
@@ -1321,7 +1325,7 @@ def gen_description_files(
             result = builder.TranslationUnit([
                 GenConverter(
                     builder,
-                    isSource=not isHeader).convertTu(tu.header if isHeader else tu.source)
+                    isSource=not isHeader).convertTu(tu.header if isHeader else tu.source) # type: ignore
             ])
 
             directory = os.path.dirname(path)

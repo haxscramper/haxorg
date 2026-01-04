@@ -522,17 +522,17 @@ def edit_file_content_1(edit: GitFileEdit, content: List[str]) -> None:
         case GitFileEdit(kind=GitFileEditKind.CHANGE_LINE,
                          line_index=index,
                          line_content=text):
-            assert text
+            assert text is not None
             content[index] = text
 
         case GitFileEdit(kind=GitFileEditKind.INSERT_LINE,
                          line_index=index,
                          line_content=text):
-            assert text
+            assert text is not None
             content.insert(index, text)
 
         case GitFileEdit(kind=GitFileEditKind.NEWLINE_END, line_content=text):
-            assert text
+            assert text is not None
             content[-1] = text
 
         case _:
@@ -655,7 +655,7 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 operation=GitOperationKind.DELETE_FILE,
                 filename=file,
             ):
-                assert file
+                assert file is not None
                 git_remove_files(repo.git_dir(), file)
 
             case GitOperation(
@@ -663,15 +663,15 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 filename=file,
                 file_content=file_content,
             ):
-                assert file
-                assert file_content
+                assert file is not None
+                assert file_content is not None
                 repo.git_dir().joinpath(file).write_text("\n".join(file_content))
 
             case GitOperation(operation=GitOperationKind.CREATE_FILE,
                               filename=file,
                               file_content=content):
-                assert file
-                assert content
+                assert file is not None
+                assert content is not None
                 git_write_files(repo.git_dir(), {file: "\n".join(content)})
 
             case GitOperation(
@@ -679,8 +679,8 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 filename=file,
                 new_name=new_name,
             ):
-                assert file
-                assert new_name
+                assert file is not None
+                assert new_name is not None
                 git_move_files(repo.git_dir(), source=file, target=new_name)
 
             case GitOperation(operation=GitOperationKind.REPO_COMMIT,):

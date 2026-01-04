@@ -1,4 +1,3 @@
-from py_scriptutils import configure_asan
 from py_codegen.refl_read import (
     ConvTu,
     GenTuStruct,
@@ -11,10 +10,6 @@ from py_codegen.refl_read import (
 from beartype.typing import (
     Optional,
     Any,
-    TypeVar,
-    Callable,
-    Type,
-    NamedTuple,
     List,
     Dict,
     Union,
@@ -25,14 +20,13 @@ import enum
 from beartype import beartype
 
 import py_codegen.refl_extract as ex
-from tempfile import NamedTemporaryFile, TemporaryDirectory
 from pathlib import Path
 import json
 from plumbum import local, CommandNotFound
 
 from py_codegen.refl_wrapper_graph import TuWrap
 from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import interpolate_dictionary, get_haxorg_repo_root_path
+from py_scriptutils.toml_config_profiler import get_haxorg_repo_root_path
 import py_codegen.wrapper_gen_nim as gen_nim
 from dataclasses import dataclass
 
@@ -45,18 +39,18 @@ class PathComponentKind(enum.Enum):
 
 @beartype
 @dataclass
-class PathComponent(NamedTuple):
+class PathComponent():
     kind: PathComponentKind
     value: str
 
 
 @beartype
 @dataclass
-class PathFail(NamedTuple):
+class PathFail():
     path: List[PathComponent]
     message: str
-    given_node: Any
-    expected_node: Any
+    given_node: Optional[Any] = None
+    expected_node: Optional[Any] = None
 
 
 @beartype
@@ -69,7 +63,10 @@ def is_dict_subset(expected: dict,
         missing_keys = set(expected.keys()).difference(set(given.keys()))
         if 0 < len(missing_keys):
             return [
-                PathFail(path, f"Expected had keys not present in given {missing_keys}")
+                PathFail(
+                    path=path,
+                    message=f"Expected had keys not present in given {missing_keys}",
+                )
             ]
 
         else:
@@ -83,7 +80,8 @@ def is_dict_subset(expected: dict,
         if len(expected) != len(given):
             return [
                 PathFail(
-                    path,
+                    path=path,
+                    message=
                     f"List len mismatch {len(expected)} for expected, {len(given)} for given"
                 )
             ]
@@ -97,10 +95,22 @@ def is_dict_subset(expected: dict,
 
     elif isinstance(expected, set) and isinstance(given, set):
         if not set(expected).issubset(set(given)):
-            failures.append(PathFail(path, "Subset mismatch in set", given, expected))
+            failures.append(
+                PathFail(
+                    path=path,
+                    message="Subset mismatch in set",
+                    given_node=given,
+                    expected_node=expected,
+                ))
 
     elif expected != given:
-        failures.append(PathFail(path, "Value mismatch", given, expected))
+        failures.append(
+            PathFail(
+                path=path,
+                message="Value mismatch",
+                given_node=given,
+                expected_node=expected,
+            ))
 
     return failures
 
@@ -192,10 +202,12 @@ def run_provider(
     return ReflProviderRunResult(wraps=wraps, code_dir=code_dir)
 
 
-def get_struct(text: str,
-               stable_test_dir: Path,
-               code_dir_override: Optional[Path] = None,
-               **kwargs) -> GenTuStruct:
+def get_struct(
+    text: str,
+    stable_test_dir: Path,
+    code_dir_override: Optional[Path] = None,
+    **kwargs: Any,
+) -> GenTuStruct:
     code_dir = stable_test_dir
     tu = run_provider(
         text,
@@ -208,7 +220,7 @@ def get_struct(text: str,
 
 
 @beartype
-def get_entires(text: str, stable_test_dir: Path, **kwargs) -> List[GenTuUnion]:
+def get_entires(text: str, stable_test_dir: Path, **kwargs: Any) -> List[GenTuUnion]:
     code_dir = stable_test_dir
     tu = run_provider(
         text,
@@ -220,7 +232,7 @@ def get_entires(text: str, stable_test_dir: Path, **kwargs) -> List[GenTuUnion]:
 
 
 @beartype
-def get_enum(text: str, stable_test_dir: Path, **kwargs) -> GenTuEnum:
+def get_enum(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuEnum:
     code_dir = stable_test_dir
     tu = run_provider(
         text,
@@ -233,7 +245,7 @@ def get_enum(text: str, stable_test_dir: Path, **kwargs) -> GenTuEnum:
 
 
 @beartype
-def get_function(text: str, stable_test_dir: Path, **kwargs) -> GenTuFunction:
+def get_function(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuFunction:
     code_dir = stable_test_dir
     tu = run_provider(
         text,

@@ -11,11 +11,6 @@ if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
 else: 
     import py_codegen.tu_collector as tu_collector # type: ignore
 
-if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
-    from py_scriptutils.test_utils import HasAnyAttr 
-    refl_test_driver = HasAnyAttr()
-else: 
-    import refl_test_driver
 
 from py_scriptutils.toml_config_profiler import interpolate_dictionary
 from py_scriptutils.files import get_haxorg_repo_root_path
@@ -30,6 +25,7 @@ log("refl.nim").setLevel(logging.DEBUG)
 
 @pytest.mark.skip()
 def test_libgit2_conv(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
     code_dir = stable_test_dir
     code_dir = Path(gettempdir()) / "libgit_wrap_test_dir"
     root = get_haxorg_repo_root_path()

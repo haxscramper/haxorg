@@ -1,24 +1,15 @@
-from py_scriptutils import configure_asan
 from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 
-import os
-from beartype.typing import TYPE_CHECKING
-if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
-    from py_scriptutils.test_utils import HasAnyAttr
-    refl_test_driver = HasAnyAttr()
-else:
-    import refl_test_driver
-
 import pytest
-from py_codegen.gen_tu_cpp import ReferenceKind, GenTypeMap
+from py_codegen.gen_tu_cpp import ReferenceKind
 import py_codegen.astbuilder_pybind11 as py11
-import py_codegen.astbuilder_py as py
 import py_codegen.astbuilder_cpp as cpp
 from pathlib import Path
 
 
 @pytest.mark.test_release
 def test_function_extract_0_args(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
     func = refl_test_driver.get_function(
         "int get_something();",
         stable_test_dir=stable_test_dir,
@@ -30,6 +21,7 @@ def test_function_extract_0_args(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_function_extract_args(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
     func = refl_test_driver.get_function(
         "int do_something(int first, char second);",
         stable_test_dir=stable_test_dir,
@@ -45,6 +37,7 @@ def test_function_extract_args(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_function_const_ref(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
     func = refl_test_driver.get_function(
         "void enable_file_trace(int const&);",
         stable_test_dir=stable_test_dir,
@@ -59,6 +52,7 @@ def test_function_const_ref(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_method_const_ref(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
     struct = refl_test_driver.get_struct(
         "struct S { void enable_file_trace(int const&); };",
         stable_test_dir=stable_test_dir,
