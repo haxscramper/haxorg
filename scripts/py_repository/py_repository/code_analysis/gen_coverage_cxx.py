@@ -1349,10 +1349,10 @@ def get_file_annotation_html(file: AnnotatedFile) -> FileAnnotationData:
 
 
 css_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.css")
+    "scripts/py_repository/py_repository/repo_docgen/gen_documentation.css")
 
 js_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.js")
+    "scripts/py_repository/py_repository/repo_docgen/gen_documentation.js")
 
 
 @beartype

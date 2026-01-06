@@ -159,7 +159,7 @@ def test_align_axis_separate_2() -> None:
             ir.newAlignSpec(2),
             ir.newAlignSpec(3),
         ]),
-        distance=50 * mult,
+        distance=50.0 * mult,
     )
 
     ir.alignYDimN([
@@ -195,7 +195,7 @@ def test_align_axis_multi_separate_equal_sizes() -> None:
                 ir.newAlignSpec(8),
             ]),
         ],
-        distance=50 * mult,
+        distance=50.0 * mult,
     )
 
     ir.separateYDimN(
@@ -216,7 +216,7 @@ def test_align_axis_multi_separate_equal_sizes() -> None:
                 ir.newAlignSpec(8),
             ]),
         ],
-        distance=50 * mult,
+        distance=50.0 * mult,
     )
 
     t = wrap.ConvTest(ir)
@@ -253,7 +253,7 @@ def test_align_axis_multi_separate_different_sizes() -> None:
                 ir.newAlignSpec(8),
             ]),
         ],
-        distance=100 * mult,
+        distance=100.0 * mult,
     )
 
     ir.separateYDimN(
@@ -274,7 +274,7 @@ def test_align_axis_multi_separate_different_sizes() -> None:
                 ir.newAlignSpec(8),
             ]),
         ],
-        distance=50 * mult,
+        distance=50.0 * mult,
     )
 
     t = wrap.ConvTest(ir)
@@ -310,7 +310,7 @@ def test_node_pin_connections() -> None:
     ir.separateXDim2(
         left=ir.newAlignX([shape1, shape2]),
         right=ir.newAlignX([shape3]),
-        distance=50 * mult,
+        distance=50.0 * mult,
     )
 
     ir.ir.width = 100 * mult
@@ -467,7 +467,7 @@ def test_tree_sheet_constraint() -> None:
 
     ir.separateYDimN(
         y_aligns,
-        distance=15 * mult,
+        distance=15.0 * mult,
         isExactSeparation=True,
     )
 
@@ -479,7 +479,7 @@ def test_tree_sheet_constraint() -> None:
 
     ir.separateXDimN(
         x_aligns,
-        distance=30 * mult,
+        distance=30.0 * mult,
         isExactSeparation=True,
     )
 

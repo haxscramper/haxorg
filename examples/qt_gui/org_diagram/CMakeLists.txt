@@ -22,10 +22,17 @@ include("../org_example_config.cmake")
 option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 
 # Coverage flags
-if(${ORG_USE_COVERAGE})
-  set(COVERAGE_COMPILE_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
-  set(COVERAGE_LINK_FLAGS "-lgcov --coverage -fprofile-instr-generate -fcoverage-mapping")
-endif()
+
+function(setup_profile_flags ARG_TARGET)
+  if(${ORG_USE_COVERAGE})
+    target_compile_options(${ARG_TARGET} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+
+    target_link_options(${ARG_TARGET} PRIVATE -lgcov --coverage -fprofile-instr-generate
+                        -fcoverage-mapping)
+
+  endif()
+
+endfunction()
 
 # Library configuration
 file(GLOB_RECURSE LIB_SOURCES "${PROJ_ROOT}/src/*.?pp")
@@ -61,10 +68,7 @@ target_include_directories(
 target_link_libraries(org_diagram_lib PUBLIC Qt6::Core Qt6::Gui Qt6::Test Qt6::Widgets
                                              haxorg::haxorg haxorg::hstd)
 
-if(${ORG_USE_COVERAGE})
-  target_compile_options(org_diagram_lib PRIVATE ${COVERAGE_COMPILE_FLAGS})
-  target_link_options(org_diagram_lib PRIVATE ${COVERAGE_LINK_FLAGS})
-endif()
+setup_profile_flags(org_diagram_lib)
 
 add_library(org_diagram::lib ALIAS org_diagram_lib)
 
@@ -85,11 +89,7 @@ set_target_properties(
              TRUE)
 
 target_link_libraries(org_diagram PRIVATE org_diagram::lib)
-
-if(${ORG_USE_COVERAGE})
-  target_compile_options(org_diagram PRIVATE ${COVERAGE_COMPILE_FLAGS})
-  target_link_options(org_diagram PRIVATE ${COVERAGE_LINK_FLAGS})
-endif()
+setup_profile_flags(org_diagram)
 
 include(GNUInstallDirs)
 install(
@@ -114,11 +114,7 @@ function(add_qt_test TEST_FILE_PATH TEST_CLASS)
                AUTORCC ON)
 
   target_link_libraries(${TEST_CLASS} PRIVATE org_diagram::lib Qt6::Test)
-
-  if(${ORG_USE_COVERAGE})
-    target_compile_options(${TEST_CLASS} PRIVATE ${COVERAGE_COMPILE_FLAGS})
-    target_link_options(${TEST_CLASS} PRIVATE ${COVERAGE_LINK_FLAGS})
-  endif()
+  setup_profile_flags(${TEST_CLASS})
 
   add_test(NAME ${TEST_CLASS} COMMAND ${TEST_CLASS})
   set_tests_properties(${TEST_CLASS} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

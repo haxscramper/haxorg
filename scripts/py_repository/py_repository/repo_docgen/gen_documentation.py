@@ -350,12 +350,12 @@ def parse_code_file(
 
 
 @beartype
-def parse_text_file(file: Path) -> docdata.DocTextFile:
+def _parse_text_file(file: Path) -> docdata.DocTextFile:
     return docdata.DocTextFile(RelPath=file, Text=file.read_text())
 
 
 @beartype
-def parse_dir(
+def _parse_dir(
     dir: Path,
     conf: DocGenerationOptions,
     rel_path_to_code_file: Dict[Path, docdata.DocCodeFile],
@@ -385,10 +385,10 @@ def parse_dir(
                     ))
 
             case "*.org":
-                result.TextFiles.append(parse_text_file(file))
+                result.TextFiles.append(_parse_text_file(file))
 
             case _ if file.is_dir():
-                subdir = parse_dir(
+                subdir = _parse_dir(
                     file,
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
@@ -402,17 +402,9 @@ def parse_dir(
     return result
 
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
-@cli_options
-@click.pass_context
-def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
+def generate_documentation(conf: DocGenerationOptions) -> None:
     py_scriptutils.tracer.GlobNameThisProcess("Main")
     py_scriptutils.tracer.GlobIndexThisProcess(0)
-    conf = get_cli_model(ctx, DocGenerationOptions, kwargs=kwargs, config=config)
     rel_path_to_code_file: Dict[Path, docdata.DocCodeFile] = {}
 
     py_coverage_session: Optional[Session] = None
@@ -426,7 +418,7 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
             RelPath=conf.root_path.relative_to(conf.root_path))
         for subdir in conf.test_path:
             full_root.Subdirs.append(
-                parse_dir(
+                _parse_dir(
                     subdir,
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
@@ -436,7 +428,7 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
 
         for subdir in conf.src_path:
             full_root.Subdirs.append(
-                parse_dir(
+                _parse_dir(
                     subdir,
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
@@ -455,6 +447,3 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
         GlobExportJson(Path(conf.profile_out_path))
         log(CAT).info(f"Wrote profile to {conf.profile_out_path}")
 
-
-if __name__ == "__main__":
-    cli()

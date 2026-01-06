@@ -17,6 +17,7 @@ from py_scriptutils.toml_config_profiler import (
 
 from py_exporters.export_html import ExporterHtml, add_html, add_new
 from py_exporters.export_ultraplain import ExporterUltraplain
+from py_textlayout.py_textlayout import BlockId
 import py_wrappers.py_adaptagrams_wrap as cola
 import py_codegen.astbuilder_typst as typ
 
@@ -617,7 +618,7 @@ def add_typ_constraints(
     col_count: int,
     row_count: int,
     mult: Number,
-):
+) -> None:
     y_aligns: List[cola.GraphNodeConstraintAlign] = []
     x_aligns: List[cola.GraphNodeConstraintAlign] = []
     vertical_sizes: List[int] = []
@@ -635,7 +636,7 @@ def add_typ_constraints(
 
     ir.separateYDimN(
         y_aligns,
-        distance=max(vertical_sizes) + 10,
+        distance=float(max(vertical_sizes) + 10),
         isExactSeparation=True,
     )
 
@@ -651,7 +652,7 @@ def add_typ_constraints(
 
     ir.separateXDimN(
         x_aligns,
-        distance=statistics.mean(horizontal_sizes) + 5,
+        distance=float(statistics.mean(horizontal_sizes) + 5),
         isExactSeparation=True,
     )
 
@@ -669,7 +670,7 @@ def get_typ_content_rect(
     cell: Cell,
     rect: cola.GraphRect,
     add_debug: bool = False,
-):
+) -> BlockId:
     text = [ast.string(ast.escape(cell.content.replace("\n", " ")))]
 
     def get_args(color: str) -> dict:
@@ -722,7 +723,7 @@ def add_typ_nodes(
     page: typ.BlockId,
     conv: cola.GraphLayoutIRResult,
     grid: List[List[Optional[Cell]]],
-):
+) -> None:
     for row in grid:
         for cell in row:
             if cell == None:
@@ -782,7 +783,7 @@ def add_typ_edges(
     ast: typ.ASTBuilder,
     page: typ.BlockId,
     conv: cola.GraphLayoutIRResult,
-):
+) -> None:
     for targets, edge in conv.lines.items():
         for path in edge.paths:
             x0 = path.points[0].x

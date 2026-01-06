@@ -1,0 +1,21 @@
+{
+  "develop_ci_conf": {
+    "emscripten_deps": false,
+    "emscripten_build": false,
+    "emscripten_test": false,
+    "example_build": false, 
+    "reflection": false,
+    "test": false,
+    "install": false,
+    "build": false,
+    "example_run": false
+  },
+  "build_base_override": "develop_ci",
+  "use_unchanged_tasks": true,
+  "py_test_conf": {
+    "extra_pytest_args": []
+  },
+  "instrument": {
+    "coverage": true
+  }
+}

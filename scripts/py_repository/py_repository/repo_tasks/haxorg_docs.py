@@ -38,34 +38,25 @@ def build_custom_docs(ctx: TaskContext, out_dir: Optional[str] = None) -> None:
     else:
         out_dir_path = Path(ctx.config.custom_docs_conf.out_dir)
     out_dir_path.mkdir(parents=True, exist_ok=True)
+    from py_repository.repo_docgen.gen_documentation import (
+        generate_documentation,
+        DocGenerationOptions,
+    )
 
-    if ctx.config.instrument.coverage:
-        args: List[str] = [
-            "run",
-            str(
-                get_script_root(
-                    ctx, "scripts/py_repository/py_repository/gen_documentation.py")),
-            f"--html_out_path={out_dir_path}",
-            f"--root_path={get_script_root(ctx)}",
-            f"--src_path={get_script_root(ctx, 'src')}",
-            f"--src_path={get_script_root(ctx, 'scripts')}",
-            f"--py_coverage_path={get_script_root(ctx, '.coverage')}",
-            f"--test_path={get_script_root(ctx, 'tests')}",
-            f"--profile_out_path={out_dir_path.joinpath('profile.json')}",
-        ]
-        args.extend(
-            get_list_cli_pass("coverage_file_whitelist",
-                              ctx.config.custom_docs_conf.coverage_file_whitelist))
-        args.extend(
-            get_list_cli_pass("coverage_file_blacklist",
-                              ctx.config.custom_docs_conf.coverage_file_blacklist))
+    assert Path(
+        get_cxx_profdata_params(ctx).output).exists(), get_cxx_profdata_params(ctx).output
 
-        prof_params = get_cxx_profdata_params(ctx)
-        if Path(prof_params.output).exists():
-            args.append(f"--cxx_coverage_path={prof_params.output}")
-            log(CAT).info(f"Using coveage database from {prof_params.output}")
-        else:
-            log(CAT).info(
-                f"No coverage database generated, {prof_params.output} does not exist")
-
-        run_command(ctx, "poetry", args)
+    generate_documentation(conf=DocGenerationOptions(
+        html_out_path=out_dir_path,
+        root_path=get_script_root(ctx),
+        src_path=[
+            get_script_root(ctx, "src"),
+            get_script_root(ctx, "scripts"),
+        ],
+        py_coverage_path=get_script_root(ctx, ".coverage"),
+        test_path=[get_script_root(ctx, "tests")],
+        profile_out_path=out_dir_path.joinpath("profile.json"),
+        coverage_file_whitelist=ctx.config.custom_docs_conf.coverage_file_whitelist,
+        coverage_file_blacklist=ctx.config.custom_docs_conf.coverage_file_blacklist,
+        cxx_coverage_path=get_cxx_profdata_params(ctx).output,
+    ))
