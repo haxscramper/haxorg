@@ -16,7 +16,7 @@ from beartype import beartype
 from tests.python.conf_gtest import GTestFile
 from tests.python.conf_test_common import summarize_cookies
 from plumbum import local
-from py_scriptutils.script_logging import pprint_to_file, to_debug_json
+from py_scriptutils.script_logging import pprint_to_file, to_debug_json, log
 from py_scriptutils.tracer import TraceCollector
 from beartype.typing import List, Any, Generator, Optional
 from asteval import Interpreter
@@ -103,6 +103,9 @@ def trace_session() -> Generator[None, Any, Any]:
     if coverage_env:
         coverage = Path(coverage_env)
         summary = summarize_cookies(coverage)
+        log(CAT).info(
+            f"Finalized session with {len(summary.runs)} cxx coverage-enabled test executions"
+        )
         respath = coverage.joinpath("test-summary.json")
         respath.parent.mkdir(parents=True, exist_ok=True)
         respath.write_text(summary.model_dump_json(indent=2))
@@ -133,6 +136,7 @@ def pytest_collect_file(parent: Module, path: str) -> Optional[GTestFile]:
     coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
 
     if test.name.startswith("test_integrate_cxx"):
+        log(CAT).info(f"File '{test.name}' integrates execution of the cxx binary")
         if test.name.endswith("_cxx_org.py"):
             binary_path_str = "haxorg/tests_org"
 
@@ -155,7 +159,8 @@ def pytest_collect_file(parent: Module, path: str) -> Optional[GTestFile]:
 
         return result
 
-    return None
+    else:
+        return None
 
 
 def pytest_collection_modifyitems(
@@ -172,7 +177,7 @@ def pytest_runtest_makereport(item: Item, call: CallInfo) -> Optional[pytest.Tes
     if "unstable" in item.keywords:
         if call.excinfo is not None and call.excinfo.typename == "Failed":
             rep = pytest.TestReport.from_item_and_call(item, call)
-            rep.outcome = "xfailed" # type: ignore
+            rep.outcome = "xfailed"  # type: ignore
             rep.wasxfail = "reason: This test is known to be unstable"
             return rep
 

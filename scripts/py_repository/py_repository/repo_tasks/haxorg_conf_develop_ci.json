@@ -1,21 +1,24 @@
 {
-  "develop_ci_conf": {
-    "emscripten_deps": false,
+  "develop_ci_conf"    : {
+    "emscripten_deps" : false,
     "emscripten_build": false,
-    "emscripten_test": false,
-    "example_build": false, 
-    "reflection": false,
-    "test": false,
-    "install": false,
-    "build": false,
-    "example_run": false
+    "emscripten_test" : false,
+    "example_build"   : false,
+    "reflection"      : false,
+    "test"            : false,
+    "install"         : false,
+    "build"           : false,
+    "example_run"     : false,
+    "coverage"        : false
   },
   "build_base_override": "develop_ci",
-  "use_unchanged_tasks": true,
-  "py_test_conf": {
-    "extra_pytest_args": []
+  "py_test_conf"       : {
+    "extra_pytest_args"     : ["tests/python/cxx_integration/test_integrate_cxx_org.py"],
+    "real_time_output_print": false
   },
-  "instrument": {
-    "coverage": true
+  "instrument"         : {"coverage": true},
+  "coverage_conf"      : {
+    "coverage_run_whitelist" : [ {"class_pattern": "OrgParseSem"} ],
+    "coverage_html_whitelist": [ "OrgParser"                      ]
   }
 }

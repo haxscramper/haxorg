@@ -56,7 +56,7 @@ def build_custom_docs(ctx: TaskContext, out_dir: Optional[str] = None) -> None:
         py_coverage_path=get_script_root(ctx, ".coverage"),
         test_path=[get_script_root(ctx, "tests")],
         profile_out_path=out_dir_path.joinpath("profile.json"),
-        coverage_file_whitelist=ctx.config.custom_docs_conf.coverage_file_whitelist,
-        coverage_file_blacklist=ctx.config.custom_docs_conf.coverage_file_blacklist,
+        coverage_file_whitelist=ctx.config.coverage_conf.coverage_html_whitelist,
+        coverage_file_blacklist=ctx.config.coverage_conf.coverage_html_blacklist,
         cxx_coverage_path=get_cxx_profdata_params(ctx).output,
     ))

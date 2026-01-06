@@ -17,7 +17,6 @@ from py_scriptutils.toml_config_profiler import (
 
 from py_exporters.export_html import ExporterHtml, add_html, add_new
 from py_exporters.export_ultraplain import ExporterUltraplain
-from py_textlayout.py_textlayout import BlockId
 import py_wrappers.py_adaptagrams_wrap as cola
 import py_codegen.astbuilder_typst as typ
 
@@ -670,7 +669,7 @@ def get_typ_content_rect(
     cell: Cell,
     rect: cola.GraphRect,
     add_debug: bool = False,
-) -> BlockId:
+) -> Any:
     text = [ast.string(ast.escape(cell.content.replace("\n", " ")))]
 
     def get_args(color: str) -> dict:

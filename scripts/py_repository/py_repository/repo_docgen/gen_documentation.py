@@ -266,7 +266,7 @@ def generate_code_file(
         with GlobCompleteEvent("Dump Debug", "cov"):
             path.with_suffix(".txt").write_text(file.get_debug())
 
-    log(CAT).info(f"Building HTML for {gen.file.RelPath} -> {path}")
+    # log(CAT).info(f"Building HTML for {gen.file.RelPath} -> {path}")
     return FileGenResult(trace=py_scriptutils.tracer.GlobGetEvents())
 
 
@@ -285,11 +285,14 @@ def generate_html_for_directory(
         re.compile(it) for it in opts.coverage_file_blacklist
     ]
 
+    log(CAT).info(f"Coverage HTML whitelist {opts.coverage_file_whitelist}")
+    log(CAT).info(f"Coverage HTML blacklist {opts.coverage_file_blacklist}")
+
     @beartype
     def is_path_allowed(path: Path) -> bool:
         path_str = str(path)
-        return any(it.match(path_str) for it in coverage_whitelist) and not any(
-            it.match(path_str) for it in coverage_blacklist)
+        return any(it.search(path_str) for it in coverage_whitelist) and not any(
+            it.search(path_str) for it in coverage_blacklist)
 
     target_code_files: List[FileGenParams] = []
 
@@ -446,4 +449,3 @@ def generate_documentation(conf: DocGenerationOptions) -> None:
     if conf.profile_out_path:
         GlobExportJson(Path(conf.profile_out_path))
         log(CAT).info(f"Wrote profile to {conf.profile_out_path}")
-

@@ -36,17 +36,6 @@ class HaxorgTasksConfig(BaseModel, extra="forbid"):
     auto_dash_names: bool = True
 
 
-class HaxorgCoverageCookiePattern(BaseModel, extra="forbid"):
-    binary_pattern: Optional[str] = None
-    class_pattern: Optional[str] = None
-    name_pattern: Optional[str] = None
-
-
-class HaxorgCoverageAggregateFilter(BaseModel, extra="forbid"):
-    whitelist_patterns: List[HaxorgCoverageCookiePattern] = []
-    blacklist_patterns: List[HaxorgCoverageCookiePattern] = []
-
-
 class HaxorgEmscriptenConfig(BaseModel, extra="forbid"):
     build: bool = False
     toolchain: str = "/usr/lib/emscripten/cmake/Modules/Platform/Emscripten.cmake"
@@ -67,8 +56,6 @@ class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
 
 
 class HaxorgCustomDocsConfig(BaseModel, extra="forbid"):
-    coverage_file_whitelist: List[str] = [".*"]
-    coverage_file_blacklist: List[str] = []
     out_dir: str = get_tmpdir("docs_out")
 
 
@@ -122,6 +109,82 @@ class HaxorgBinarySizeReportConfig(BaseModel, extra="forbid"):
     update_db: bool = True
 
 
+class HaxorgCoverageRunPattern(BaseModel, extra="forbid"):
+    """
+    Group of regular expression patterns to match against the test binary,
+    class or name. 
+    """
+    binary_pattern: Optional[str] = Field(
+        default=None,
+        description="Pattern matching against the full path of the compiled test binary")
+    class_pattern: Optional[str] = Field(
+        default=None,
+        description="Pattern matching against the cxx/gtest/qtest class name")
+
+    name_pattern: Optional[str] = Field(
+        default=None, description="Pattern matching against specific test name")
+
+
+class HaxorgCoverageConfig(BaseModel, extra="forbid"):
+    """
+
+    Whitelist and blacklist patterns to check which coverage
+    runsand files should be included in the final coverage database. 
+    To be accepted, file/entry must be explicitly allowed by the 
+    whitelist first, and then not filtered out by any of the 
+    blacklist. 
+
+    The `profdata_merge_*` field pair controls which source files are
+    integrated into the coverage database. The `coverage_run_*` field pair
+    determines which specific individual runs should be included in the coverage. 
+
+    Filtering is first done on the per-run basis, then the coverage of the 
+    specific source files is filtered out by the `reflection_tool`. 
+    """
+
+    coverage_run_whitelist: List[HaxorgCoverageRunPattern] = Field(
+        default_factory=lambda: [
+            HaxorgCoverageRunPattern(
+                binary_pattern=".*",
+                class_pattern=".*",
+                name_pattern=".*",
+            )
+        ],
+        description=
+        "List of run patterns to narrow down which coverage runs should be included in the DB."
+    )
+
+    coverage_run_blacklist: List[HaxorgCoverageRunPattern] = Field(
+        default_factory=list,
+        description=
+        "Inverse of the `coverage_run_whitelist`, determines which runs should not "
+        "be added to the final database.")
+
+    profdata_merge_file_whitelist: List[str] = Field(
+        default_factory=lambda: [".*"],
+        description="List of regular expressions to filter out which files can be added "
+        "to the profile merge database. File must match at least one regex to be accepted."
+        "Ideally, the list of the regular expressions can be as inclusive as possible, as "
+        "the only consideration when constructing the database is the time it takes to "
+        "process all the files.")
+
+    profdata_merge_file_blacklist: List[str] = Field(
+        default_factory=lambda: ["base_lexer_gen.cpp", "thirdparty"],
+        description="Inverse pair to the `profdata_merge_file_whitelist`. List of regular "
+        "expressions to filter out which files are not allowed to be added to the database."
+    )
+
+    coverage_html_whitelist: List[str] = Field(
+        default_factory=lambda: [".*"],
+        description="Which source files should have the HTML coverage documentation."
+    )
+
+    coverage_html_blacklist: List[str] = Field(
+        default_factory=lambda: [],
+        description="Inverse of the `coverage_html_whitelist` -- which files to exclude "
+        "from HTML generation."
+    )
+
 import enum
 
 
@@ -166,10 +229,6 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     separate_debug_symbols: bool = False
 
     python_version: Optional[str] = None
-    aggregate_filters: Optional[HaxorgCoverageAggregateFilter] = None
-    profdata_file_whitelist: List[str] = Field(default_factory=lambda: [".*"])
-    profdata_file_blacklist: List[str] = Field(
-        default_factory=lambda: ["base_lexer_gen.cpp", "thirdparty"])
 
     # field for unparsing invoke config
     sudo: dict = Field(default_factory=dict)
@@ -192,6 +251,7 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     build_develop_deps_conf: HaxorgBuildDevelopDepsConfig = Field(
         default_factory=HaxorgBuildDevelopDepsConfig)
     build_conf: HaxorgBuildConfig = Field(default_factory=HaxorgBuildConfig)
+    coverage_conf: HaxorgCoverageConfig = Field(default_factory=HaxorgCoverageConfig)
     generate_sources_conf: HaxorgGenerateSourcesConfig = Field(
         default_factory=HaxorgGenerateSourcesConfig)
 

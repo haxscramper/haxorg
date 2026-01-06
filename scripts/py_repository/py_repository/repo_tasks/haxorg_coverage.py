@@ -9,9 +9,9 @@ import plumbum
 from py_ci.util_scripting import get_threading_count
 from py_repository.code_analysis import gen_coverage_cookies
 from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
-from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.command_execution import run_command, run_command_with_json_args
 from py_repository.repo_tasks.common import ensure_clean_file, get_build_root, get_component_build_dir
-from py_repository.repo_tasks.config import HaxorgCoverageAggregateFilter, HaxorgCoverageCookiePattern
+from py_repository.repo_tasks.config import HaxorgCoverageRunPattern
 from py_repository.repo_tasks.haxorg_base import get_llvm_root
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_scriptutils.script_logging import log
@@ -22,22 +22,17 @@ CAT = __name__
 @beartype
 def filter_cookies(
     cookies: List[gen_coverage_cookies.ProfdataCookie],
-    aggregate_filter: HaxorgCoverageAggregateFilter | None,
+    whitelist: List[HaxorgCoverageRunPattern],
+    blacklist: List[HaxorgCoverageRunPattern],
 ) -> List[gen_coverage_cookies.ProfdataCookie]:
-    if not aggregate_filter or not aggregate_filter.whitelist_patterns:
+    if not whitelist:
         return []
 
     filtered_cookies = []
 
     for cookie in cookies:
-        # Check whitelist
-        if any(
-                matches_pattern(cookie, pattern)
-                for pattern in aggregate_filter.whitelist_patterns):
-            # Check blacklist
-            if not any(
-                    matches_pattern(cookie, pattern)
-                    for pattern in aggregate_filter.blacklist_patterns):
+        if any(matches_pattern(cookie, pattern) for pattern in whitelist):
+            if not any(matches_pattern(cookie, pattern) for pattern in blacklist):
                 filtered_cookies.append(cookie)
 
     return filtered_cookies
@@ -45,7 +40,7 @@ def filter_cookies(
 
 @beartype
 def matches_pattern(cookie: gen_coverage_cookies.ProfdataCookie,
-                    pattern: HaxorgCoverageCookiePattern) -> bool:
+                    pattern: HaxorgCoverageRunPattern) -> bool:
     if pattern.binary_pattern and not re.search(pattern.binary_pattern,
                                                 cookie.test_binary):
         return False
@@ -236,12 +231,19 @@ HELP_coverage_file = {
 
 @beartype
 def get_cxx_profdata_params(ctx: TaskContext) -> gen_coverage_cookies.ReflectionCLI:
+    """
+    Generate CLI parameters for the reflection tool to merge the reflection 
+    database based on the previously collected test run profiles. 
+    """
     coverage_dir = get_cxx_coverage_dir(ctx)
     stored_summary_collection = coverage_dir.joinpath("test-summary.json")
     summary_data: gen_coverage_cookies.ProfdataFullProfile = gen_coverage_cookies.ProfdataFullProfile.model_validate_json(
         stored_summary_collection.read_text())
-    filtered_summary = gen_coverage_cookies.ProfdataFullProfile(
-        runs=filter_cookies(summary_data.runs, ctx.config.aggregate_filters))
+    filtered_summary = gen_coverage_cookies.ProfdataFullProfile(runs=filter_cookies(
+        cookies=summary_data.runs,
+        whitelist=ctx.config.coverage_conf.coverage_run_whitelist,
+        blacklist=ctx.config.coverage_conf.coverage_run_blacklist,
+    ))
     filtered_summary_collection = coverage_dir.joinpath("test-summary-filtered.json")
     filtered_summary_collection.write_text(filtered_summary.model_dump_json(indent=2))
     return gen_coverage_cookies.ReflectionCLI(
@@ -250,8 +252,8 @@ def get_cxx_profdata_params(ctx: TaskContext) -> gen_coverage_cookies.Reflection
         profdata=gen_coverage_cookies.ProfdataConfig(
             build_profile_dir=str(filtered_summary_collection),
             debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
-            file_whitelist=ctx.config.profdata_file_whitelist,
-            file_blacklist=ctx.config.profdata_file_blacklist,
+            file_whitelist=ctx.config.coverage_conf.profdata_merge_file_whitelist,
+            file_blacklist=ctx.config.coverage_conf.profdata_merge_file_blacklist,
             run_group_batch_size=get_threading_count(),
         ),
     )
@@ -263,47 +265,34 @@ HELP_coverage_mapping_dump = {
 }
 
 
-@beartype
-def configure_cxx_merge(
-    ctx: TaskContext,
-    coverage_mapping_dump: Optional[str] = None,
-) -> None:
-    if ctx.config.instrument.coverage:
-        profile_path = get_cxx_profdata_params_path(ctx)
-        log(CAT).info(
-            f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
-        )
-        profile_path.parent.mkdir(parents=True, exist_ok=True)
-        model = get_cxx_profdata_params(ctx)
-        if coverage_mapping_dump:
-            Path(coverage_mapping_dump).mkdir(exist_ok=True)
-            model.profdata.coverage_mapping_dump = coverage_mapping_dump
-
-        profile_path.write_text(model.model_dump_json(indent=2))
-
-
 @haxorg_task(dependencies=[build_haxorg])
 def run_cxx_coverage_merge(
     ctx: TaskContext,
     coverage_mapping_dump: Optional[str] = None,
 ) -> None:
-    configure_cxx_merge(
-        ctx,
-        coverage_mapping_dump,
-    )
-    coverage_dir = get_cxx_coverage_dir(ctx)
 
     profile_path = get_cxx_profdata_params_path(ctx)
-    run_command(
+    log(CAT).info(
+        f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
+    )
+    profile_path.parent.mkdir(parents=True, exist_ok=True)
+    model = get_cxx_profdata_params(ctx)
+    if coverage_mapping_dump:
+        Path(coverage_mapping_dump).mkdir(exist_ok=True)
+        model.profdata.coverage_mapping_dump = coverage_mapping_dump
+
+    coverage_dir = get_cxx_coverage_dir(ctx)
+    profile_path = get_cxx_profdata_params_path(ctx)
+
+    run_command_with_json_args(
         ctx,
         "build/haxorg/reflection_tool",
-        [
-            profile_path,
-        ],
+        model.model_dump(),
         stderr_debug=ensure_clean_file(
             ctx, coverage_dir.joinpath("reflection_tool_stderr.txt")),
         stdout_debug=ensure_clean_file(
             ctx, coverage_dir.joinpath("reflection_tool_stdout.txt")),
+        json_file_path=profile_path,
     )
 
 
