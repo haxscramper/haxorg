@@ -322,6 +322,8 @@ def generate_html_for_directory(
 
     aux(directory, html_out_path)
 
+    assert 0 < len(target_code_files), f"No target files detected for HTML coverage generation. Filtered on whitelist:{opts.coverage_file_whitelist} blacklist:{opts.coverage_file_blacklist}"
+
     with concurrent.futures.ProcessPoolExecutor(
             max_workers=get_threading_count()) as executor:
         futures = [

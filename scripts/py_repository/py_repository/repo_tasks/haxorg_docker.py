@@ -14,7 +14,7 @@ from py_ci.util_scripting import get_docker_cap_flags
 from py_repository.repo_tasks.deps_build import build_develop_deps
 from py_repository.repo_tasks.examples_build import build_examples, run_examples, run_js_test_example
 from py_repository.repo_tasks.haxorg_build import build_haxorg, install_haxorg_develop
-from py_repository.repo_tasks.haxorg_codegen import generate_haxorg_sources, generate_python_protobuf_files
+from py_repository.repo_tasks.haxorg_codegen import generate_haxorg_sources, generate_include_graph, generate_python_protobuf_files
 from py_repository.repo_tasks.haxorg_coverage import run_cxx_coverage_merge
 from py_repository.repo_tasks.haxorg_docs import build_custom_docs
 from py_repository.repo_tasks.haxorg_tests import run_py_tests
@@ -401,11 +401,15 @@ def run_develop_ci(ctx: TaskContext) -> None:
     if conf.develop_ci_conf.example_run:
         ctx.run(run_examples, ctx=ctx)
 
-    if conf.develop_ci_conf.coverage and conf.instrument.coverage:
+    if conf.develop_ci_conf.coverage:
+        assert conf.instrument.coverage, "Coverage was enabled in the workflow develop CI configuration, but not in the build"
         ctx.run(run_cxx_coverage_merge, ctx=ctx)
 
     if conf.develop_ci_conf.docs:
         ctx.run(build_custom_docs, ctx=ctx)
+
+    if conf.develop_ci_conf.include_graph:
+        ctx.run(generate_include_graph, ctx=ctx)
 
     log(CAT).info("Running EMCC task set")
     emcc_conf = conf.model_copy()

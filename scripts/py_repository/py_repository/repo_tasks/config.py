@@ -60,15 +60,19 @@ class HaxorgCustomDocsConfig(BaseModel, extra="forbid"):
 
 
 class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
-    deps: bool = True
-    build: bool = True
-    test: bool = True
-    docs: bool = True
-    coverage: bool = True
-    reflection: bool = True
-    install: bool = True
-    example_build: bool = True
-    example_run: bool = True
+    deps: bool = Field(True, description="Build and install third-party dependencies")
+    build: bool = Field(True, description="Build all targets in the cmake project")
+    test: bool = Field(True, description="Execute testse via pytest")
+    docs: bool = Field(True, description="Generate HTML documentation and coverage files")
+    coverage: bool = Field(True, description="Build coverage database for the project")
+    reflection: bool = Field(True,
+                             description="Update source code generation for project")
+    linter: bool = Field(True,
+                         description="Run linter and formatter for pyton and cxx code")
+    install: bool = Field(True, description="Execute cxx code installation")
+    example_build: bool = Field(True, description="Build example projects")
+    example_run: bool = Field(True, description="Run example projects and tests")
+    include_graph: bool = Field(True, description="Generate include graph visualization")
 
     emscripten_deps: bool = True
     emscripten_build: bool = True
@@ -176,14 +180,13 @@ class HaxorgCoverageConfig(BaseModel, extra="forbid"):
 
     coverage_html_whitelist: List[str] = Field(
         default_factory=lambda: [".*"],
-        description="Which source files should have the HTML coverage documentation."
-    )
+        description="Which source files should have the HTML coverage documentation.")
 
     coverage_html_blacklist: List[str] = Field(
         default_factory=lambda: [],
         description="Inverse of the `coverage_html_whitelist` -- which files to exclude "
-        "from HTML generation."
-    )
+        "from HTML generation.")
+
 
 import enum
 
