@@ -199,7 +199,7 @@ class GitTestRepository:
     def get_engine(self) -> Engine:
         return create_engine("sqlite:///" + str(self.db))
 
-    def __enter__(self):
+    def __enter__(self) -> "GitTestRepository":
         if self.fixed_dir:
             self.dir = self.fixed_dir
             if self.dir.exists():
@@ -223,18 +223,24 @@ class GitTestRepository:
 
         return self
 
-    def __exit__(self, exc_type: Optional[Type[BaseException]],
-                 exc_value: Optional[BaseException],
-                 traceback: Optional[TracebackType]) -> Optional[bool]:
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> Optional[bool]:
         if isinstance(self.dir, TemporaryDirectory):
             self.dir.__exit__(exc_type, exc_value, traceback)
 
         if exc_type is not None:
             return False
 
+        assert self.db is not None
         db = Path(self.db)
         if db.exists() and not self.fixed_db:
             db.unlink()
+
+        return None
 
 
 @beartype
@@ -277,6 +283,7 @@ def test_can_run_dir() -> None:
                 "log_file": gettempdir("test_can_run_dir.log"),
             })
 
+        assert repo.db
         assert Path(repo.db).exists(), repo.db
         engine = repo.get_engine()
         df_string = pd.read_sql_table("String", engine)["text"].to_list()
@@ -515,14 +522,17 @@ def edit_file_content_1(edit: GitFileEdit, content: List[str]) -> None:
         case GitFileEdit(kind=GitFileEditKind.CHANGE_LINE,
                          line_index=index,
                          line_content=text):
+            assert text is not None
             content[index] = text
 
         case GitFileEdit(kind=GitFileEditKind.INSERT_LINE,
                          line_index=index,
                          line_content=text):
+            assert text is not None
             content.insert(index, text)
 
         case GitFileEdit(kind=GitFileEditKind.NEWLINE_END, line_content=text):
+            assert text is not None
             content[-1] = text
 
         case _:
@@ -581,12 +591,12 @@ class GitOpStrategy:
                                     file_content=self.files[name])
 
             case GitOperationKind.DELETE_FILE:
-                name = draw(st.sampled_from(self.files))
+                name = draw(st.sampled_from(self.files)) # type: ignore
                 del self.files[name]
                 return GitOperation(operation=op, filename=name)
 
             case GitOperationKind.RENAME_FILE:
-                old_name = draw(st.sampled_from(self.files))
+                old_name = draw(st.sampled_from(self.files)) # type: ignore
                 new_name = draw(file_names.filter(lambda x: x not in self.files))
                 self.files[new_name] = self.files[old_name]
                 del self.files[old_name]
@@ -607,11 +617,11 @@ class GitOpStrategy:
                                     branch_to_checkout=to_checkout)
 
             case GitOperationKind.MODIFY_FILE:
-                name = draw(st.sampled_from(self.files))
+                name = draw(st.sampled_from(self.files)) # type: ignore
                 state = GitFileEditStrategy(self.files[name])
 
                 @st.composite
-                def get_operations(draw: st.DrawFn):
+                def get_operations(draw: st.DrawFn) -> GitFileEdit: 
                     return state.get_ops(draw)
 
                 modifications = draw(st.lists(get_operations(), min_size=5))
@@ -645,6 +655,7 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 operation=GitOperationKind.DELETE_FILE,
                 filename=file,
             ):
+                assert file is not None
                 git_remove_files(repo.git_dir(), file)
 
             case GitOperation(
@@ -652,11 +663,15 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 filename=file,
                 file_content=file_content,
             ):
+                assert file is not None
+                assert file_content is not None
                 repo.git_dir().joinpath(file).write_text("\n".join(file_content))
 
             case GitOperation(operation=GitOperationKind.CREATE_FILE,
                               filename=file,
                               file_content=content):
+                assert file is not None
+                assert content is not None
                 git_write_files(repo.git_dir(), {file: "\n".join(content)})
 
             case GitOperation(
@@ -664,6 +679,8 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 filename=file,
                 new_name=new_name,
             ):
+                assert file is not None
+                assert new_name is not None
                 git_move_files(repo.git_dir(), source=file, target=new_name)
 
             case GitOperation(operation=GitOperationKind.REPO_COMMIT,):
@@ -830,5 +847,5 @@ def test_repo_operations_example_4() -> None:
     verbosity=Verbosity.normal,
     # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
     phases=[Phase.explicit, Phase.reuse, Phase.generate])
-def test_strategic_repo_edits(operations) -> None: 
+def test_strategic_repo_edits(operations: List[GitOperation]) -> None:
     run_repo_operations_test(operations)

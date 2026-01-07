@@ -6,6 +6,9 @@ from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_repository.repo_tasks.haxorg_base import symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @haxorg_task(dependencies=[build_haxorg, symlink_build, generate_python_protobuf_files])
@@ -26,6 +29,10 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         coverage_dir = get_cxx_coverage_dir(ctx)
         env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
 
+    if not ctx.config.py_test_conf.real_time_output_print:
+        env["NO_COLOR"] = "1"
+        args.append("--color=no")
+
     run_command(
         ctx,
         "poetry",
@@ -36,7 +43,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         ],
     )
 
-    retcode, _, _ = run_command(
+    retcode, stdout, stderr = run_command(
         ctx,
         "poetry",
         [
@@ -58,6 +65,11 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         env=env,
         print_output=ctx.config.py_test_conf.real_time_output_print,
     )
+
+    if not ctx.config.py_test_conf.real_time_output_print:
+        log(CAT).info("PYTEST SCRIPT EXECUTION")
+        log(CAT).info(f"{stdout}")
+        log(CAT).info(f"{stderr}")
 
     if retcode != 0:
         raise RuntimeError("running py tests failed")

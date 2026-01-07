@@ -1069,7 +1069,7 @@ def get_annotated_files_for_session(
                         run_functions[original_seg.Function] = executed_in
 
     else:
-        log(CAT).info(f"No file coverage for {abs_path}")
+        # log(CAT).info(f"No file coverage for {abs_path}")
         coverage_group = None
         coverage_segments = None
 
@@ -1232,6 +1232,9 @@ def get_simple_function_name(func: CovFunction) -> str:
                     case "RValue":
                         return result + "&&"
 
+                    case "0":
+                        return result
+
                     case _:
                         assert False, str(j)
 
@@ -1349,10 +1352,10 @@ def get_file_annotation_html(file: AnnotatedFile) -> FileAnnotationData:
 
 
 css_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.css")
+    "scripts/py_repository/py_repository/repo_docgen/gen_documentation.css")
 
 js_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.js")
+    "scripts/py_repository/py_repository/repo_docgen/gen_documentation.js")
 
 
 @beartype

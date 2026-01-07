@@ -4,7 +4,7 @@ from pathlib import Path
 from beartype.typing import List, Optional
 import plumbum
 from py_scriptutils.script_logging import log
-import re
+import pytest
 
 CAT = "conftest"
 
@@ -21,11 +21,18 @@ def get_profraw_path(coverage: Path, test_name: str) -> Path:
     return get_profile_base(coverage, test_name).with_suffix(".profraw")
 
 
-cookie_list: List[ProfdataCookie] = []
+def _get_cookie_list() -> List[ProfdataCookie]:
+    """Get or create the cookie list from pytest's shared state"""
+    if not hasattr(pytest, '_haxorg_cookie_list'):
+        pytest._haxorg_cookie_list = [] # type: ignore
+    return pytest._haxorg_cookie_list # type: ignore
+
 
 def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
-    return ProfdataFullProfile(runs=cookie_list)
-
+    log(CAT).info(
+        f"Summarizing full count of summaries is {len(_get_cookie_list())}"
+    )
+    return ProfdataFullProfile(runs=_get_cookie_list())
 
 
 @beartype
@@ -39,6 +46,7 @@ def runtest(
     parameter_desc: Optional[dict] = None,
     coverage_out_dir: Optional[Path] = None,
 ) -> tuple[int, str, str]:
+    global cookie_list
 
     env = run_env or {}
 
@@ -66,7 +74,10 @@ def runtest(
             profraw.unlink()
 
         result = run(dict(**env, LLVM_PROFILE_FILE=str(profraw)))
-        cookie_list.append(cookie)
+        _get_cookie_list().append(cookie)
+        log(CAT).info(
+            f"Test {cookie.test_class}::{cookie.test_name} result {cookie.test_profile}, full count of summaries is {len(_get_cookie_list())}"
+        )
         return result
 
     else:

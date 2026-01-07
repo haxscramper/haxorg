@@ -4,7 +4,6 @@ import os
 from beartype import beartype
 from pathlib import Path
 
-
 try:
     from py_scriptutils.repo_files import get_haxorg_repo_root_path
     build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
@@ -27,6 +26,7 @@ else:
 
 SemSet = set[OrgSemKind]
 
+
 @beartype
 def org_ident_normalize(input_str: str) -> str:
     result = ""
@@ -36,11 +36,16 @@ def org_ident_normalize(input_str: str) -> str:
                 result += c
             elif c.isupper():
                 result += c.lower()
-                
+
     return result
 
 
 @beartype
 def treeRepr(node: Org, colored: bool = True, maxDepth: int = 50) -> str:
-    return exportToTreeString(node, OrgTreeExportOpts(withColor=colored,
-        maxDepth=maxDepth))
+    return exportToTreeString( # type: ignore
+        node,
+        OrgTreeExportOpts( # type: ignore
+            withColor=colored,
+            maxDepth=maxDepth,
+        ),
+    )

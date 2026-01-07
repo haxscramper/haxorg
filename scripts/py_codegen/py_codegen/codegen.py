@@ -152,8 +152,8 @@ def get_imm_serde(
     types: List[GenTuStruct],
     ast: ASTBuilder,
     base_map: GenTypeMap,
-) -> List[GenTuPass]:
-    serde: List[GenTuStruct] = []
+) -> Sequence[GenTuPass | GenTuStruct]:
+    serde: List[GenTuStruct | GenTuPass] = []
 
     def aux(it: Any) -> None:
         match it:
@@ -230,6 +230,7 @@ def get_imm_serde(
                         assert sub.name.name != base.name, f"{sub.name} ->>>> {base}"
                         base_type = base_map.get_one_type_for_name(base.name)
                         if base_type:
+                            assert isinstance(base_type, GenTuStruct)
                             assert base_type.name.name != sub.name.name
                             field_aux(base_type)
 
@@ -519,7 +520,7 @@ def expand_type_groups(ast: ASTBuilder,
 
     @beartype
     def rec_expand_type(typ: GenTuStruct) -> GenTuStruct:
-        converted = []
+        converted: List[GenTuEntry] = []
         methods: List[GenTuFunction] = []
         fields: List[GenTuField] = []
         for item in typ.nested:
@@ -618,19 +619,27 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
             case QualType():
                 mutate_type_to_immutable(obj)
 
-            case GenTuField(type=QualType(name="SemId", parameters=[])):
+            case GenTuField(type=QualType(name="SemId", Parameters=[])):
+                assert obj.type
                 mutate_type_to_immutable(obj.type)
                 obj.value = "org::imm::ImmId::Nil()"
 
             case GenTuField(type=QualType(name="SemId")):
+                assert obj.type
+                par0 = obj.type.par0()
+                assert par0
                 mutate_type_to_immutable(obj.type)
-                obj.value = f"org::imm::ImmIdT<org::imm::Imm{obj.type.par0().name}>::Nil()"
+                obj.value = f"org::imm::ImmIdT<org::imm::Imm{par0.name}>::Nil()"
 
             case GenTuField(type=QualType(name="Opt")):
-                obj.type = obj.type.par0().withWrapperType(
-                    QualType(name="Opt", Spaces=[n_hstd()])).withWrapperType(IMM_BOX)
+                assert obj.type
+                par0 = obj.type.par0()
+                assert par0
+                obj.type = par0.withWrapperType(QualType(
+                    name="Opt", Spaces=[n_hstd()])).withWrapperType(IMM_BOX)
 
             case GenTuField(type=QualType(name="Str")):
+                assert obj.type
                 obj.type = obj.type.withWrapperType(IMM_BOX)
 
             case GenTuStruct():
@@ -777,6 +786,7 @@ def collect_type_field_groups(types: List[GenTuStruct],
         for base in t.bases:
             base_type = base_map.get_one_type_for_name(base.name)
             if base_type:
+                assert isinstance(base_type, GenTuStruct)
                 result += aux(base_type)
 
         return result
@@ -1018,14 +1028,18 @@ def get_pyhaxorg_type_groups(
     reflection_path: Path,
 ) -> PyhaxorgTypeGroups:
     res = PyhaxorgTypeGroups()
-    res.shared_types = expand_type_groups(ast, get_shared_sem_types())
-    res.expanded = expand_type_groups(ast, get_types())
-    res.immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
+    res.shared_types = expand_type_groups(ast, get_shared_sem_types())  # type: ignore
+    res.expanded = expand_type_groups(ast, get_types())  # type: ignore
+    res.immutable = expand_type_groups(ast,
+                                       rewrite_to_immutable(get_types()))  # type: ignore
 
     res.tu = conv_proto_file(reflection_path)
-    res.base_map = get_base_map(res.expanded + res.shared_types + res.immutable +
-                                res.tu.enums + res.tu.structs + res.tu.typedefs)
-    res.full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(res.expanded)]
+    res.base_map = get_base_map(
+        res.expanded + res.shared_types + res.immutable + res.tu.enums + res.tu.structs +
+        res.tu.typedefs,  # type: ignore
+    )
+
+    res.full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(res.expanded)] # type: ignore
 
     res.specializations = collect_type_specializations(
         res.get_entries_for_wrapping(),
@@ -1152,7 +1166,7 @@ def gen_pyhaxorg_source(
     groups: PyhaxorgTypeGroups,
 ) -> GenFiles:
     proto = pb.ProtoBuilder(
-        wrapped=groups.full_enums + groups.shared_types + groups.expanded,
+        wrapped=groups.full_enums + groups.shared_types + groups.expanded, # type: ignore
         ast=ast,
         base_map=groups.base_map,
     )
@@ -1235,7 +1249,7 @@ def gen_pyhaxorg_source(
             ),
             GenTu(
                 "{base}/sem/SemOrgEnums.cpp",
-                [GenTuPass('#include "SemOrgEnums.hpp"')] + groups.full_enums,
+                [GenTuPass('#include "SemOrgEnums.hpp"')] + groups.full_enums, # type: ignore
             ),
         ),
         GenUnit(
@@ -1311,7 +1325,7 @@ def gen_description_files(
             result = builder.TranslationUnit([
                 GenConverter(
                     builder,
-                    isSource=not isHeader).convertTu(tu.header if isHeader else tu.source)
+                    isSource=not isHeader).convertTu(tu.header if isHeader else tu.source) # type: ignore
             ])
 
             directory = os.path.dirname(path)

@@ -30,7 +30,7 @@ class TextLayout(lyt.TextLayout):
     def pars(self, arg: BlockId, left: str = "(", right: str = ")") -> BlockId:
         return self.line([self.text(left), arg, self.text(right)])
 
-    def add_if_not_empty(self, arg: BlockId, other: BlockId) -> None: 
+    def add_if_not_empty(self, arg: BlockId, other: BlockId) -> None:
         if (self.isLine(other) or self.isStack(other)) and self.size(other) == 0:
             pass
 
@@ -42,7 +42,7 @@ class TextLayout(lyt.TextLayout):
         self,
         items: Union[Iterable[str], Iterable[BlockId]],
         isLine: bool = True,
-        isTrailing=False,
+        isTrailing: bool = False,
         sep: str = ", ",
     ) -> BlockId:
         items2 = [self.text(Base) if isinstance(Base, str) else Base for Base in items]

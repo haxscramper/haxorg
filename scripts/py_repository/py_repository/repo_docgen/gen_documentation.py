@@ -266,7 +266,7 @@ def generate_code_file(
         with GlobCompleteEvent("Dump Debug", "cov"):
             path.with_suffix(".txt").write_text(file.get_debug())
 
-    log(CAT).info(f"Building HTML for {gen.file.RelPath} -> {path}")
+    # log(CAT).info(f"Building HTML for {gen.file.RelPath} -> {path}")
     return FileGenResult(trace=py_scriptutils.tracer.GlobGetEvents())
 
 
@@ -285,11 +285,14 @@ def generate_html_for_directory(
         re.compile(it) for it in opts.coverage_file_blacklist
     ]
 
+    log(CAT).info(f"Coverage HTML whitelist {opts.coverage_file_whitelist}")
+    log(CAT).info(f"Coverage HTML blacklist {opts.coverage_file_blacklist}")
+
     @beartype
     def is_path_allowed(path: Path) -> bool:
         path_str = str(path)
-        return any(it.match(path_str) for it in coverage_whitelist) and not any(
-            it.match(path_str) for it in coverage_blacklist)
+        return any(it.search(path_str) for it in coverage_whitelist) and not any(
+            it.search(path_str) for it in coverage_blacklist)
 
     target_code_files: List[FileGenParams] = []
 
@@ -318,6 +321,8 @@ def generate_html_for_directory(
                 path.write_text(doc.render())
 
     aux(directory, html_out_path)
+
+    assert 0 < len(target_code_files), f"No target files detected for HTML coverage generation. Filtered on whitelist:{opts.coverage_file_whitelist} blacklist:{opts.coverage_file_blacklist}"
 
     with concurrent.futures.ProcessPoolExecutor(
             max_workers=get_threading_count()) as executor:
@@ -350,12 +355,12 @@ def parse_code_file(
 
 
 @beartype
-def parse_text_file(file: Path) -> docdata.DocTextFile:
+def _parse_text_file(file: Path) -> docdata.DocTextFile:
     return docdata.DocTextFile(RelPath=file, Text=file.read_text())
 
 
 @beartype
-def parse_dir(
+def _parse_dir(
     dir: Path,
     conf: DocGenerationOptions,
     rel_path_to_code_file: Dict[Path, docdata.DocCodeFile],
@@ -385,10 +390,10 @@ def parse_dir(
                     ))
 
             case "*.org":
-                result.TextFiles.append(parse_text_file(file))
+                result.TextFiles.append(_parse_text_file(file))
 
             case _ if file.is_dir():
-                subdir = parse_dir(
+                subdir = _parse_dir(
                     file,
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
@@ -402,17 +407,9 @@ def parse_dir(
     return result
 
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
-@cli_options
-@click.pass_context
-def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
+def generate_documentation(conf: DocGenerationOptions) -> None:
     py_scriptutils.tracer.GlobNameThisProcess("Main")
     py_scriptutils.tracer.GlobIndexThisProcess(0)
-    conf = get_cli_model(ctx, DocGenerationOptions, kwargs=kwargs, config=config)
     rel_path_to_code_file: Dict[Path, docdata.DocCodeFile] = {}
 
     py_coverage_session: Optional[Session] = None
@@ -426,7 +423,7 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
             RelPath=conf.root_path.relative_to(conf.root_path))
         for subdir in conf.test_path:
             full_root.Subdirs.append(
-                parse_dir(
+                _parse_dir(
                     subdir,
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
@@ -436,7 +433,7 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
 
         for subdir in conf.src_path:
             full_root.Subdirs.append(
-                parse_dir(
+                _parse_dir(
                     subdir,
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
@@ -454,7 +451,3 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
     if conf.profile_out_path:
         GlobExportJson(Path(conf.profile_out_path))
         log(CAT).info(f"Wrote profile to {conf.profile_out_path}")
-
-
-if __name__ == "__main__":
-    cli()

@@ -1,22 +1,11 @@
 import pytest
-import os
-from beartype.typing import TYPE_CHECKING
-if os.getenv("HAXORG_REDUCED_RELEASE_TEST") and not TYPE_CHECKING:
-    from py_scriptutils.test_utils import HasAnyAttr
-    refl_test_driver = HasAnyAttr()
-else:
-    import refl_test_driver
-
-from py_scriptutils import configure_asan
-from pprint import pprint
-from more_itertools import first_true
 from pathlib import Path
 
 INPUT = Path(__file__).parent.joinpath("test_coverall_input.cpp")
 
-
 @pytest.mark.test_release
 def test_coverall_extract(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
     value = refl_test_driver.run_provider(
         {str(INPUT): INPUT.read_text()},
         code_dir=INPUT.parent,
@@ -29,6 +18,7 @@ def test_coverall_extract(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_coverall_nim(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
     value = refl_test_driver.run_provider(
         {
             str(INPUT): INPUT.read_text()

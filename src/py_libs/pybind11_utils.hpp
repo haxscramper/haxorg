@@ -30,8 +30,12 @@ struct PyTypeRegistryGuard {
                                            .registered_types_py;
         for (auto& item : registered_types) {
             auto type = hstd::Str((((PyTypeObject*)item.first)->tp_name));
-            auto name = type.split(".").at(1);
-            py_cxx_map.incl(name);
+            auto split = type.split(".");
+            if (split.size() == 2) {
+                py_cxx_map.incl(split.at(1));
+            } else {
+                py_cxx_map.incl(type);
+            }
         }
     }
 };

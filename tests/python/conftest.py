@@ -13,19 +13,17 @@ from _pytest.nodes import Item
 from _pytest.python import Module
 from _pytest.runner import CallInfo
 from beartype import beartype
-from conf_gtest import GTestFile
-from conf_test_common import summarize_cookies
+from tests.python.conf_gtest import GTestFile
+from tests.python.conf_test_common import summarize_cookies
 from plumbum import local
-from py_scriptutils.script_logging import pprint_to_file, to_debug_json
+from py_scriptutils.script_logging import pprint_to_file, to_debug_json, log
 from py_scriptutils.tracer import TraceCollector
-from beartype.typing import List
+from beartype.typing import List, Any, Generator, Optional
 from asteval import Interpreter
-import logging
 import ast
 from py_scriptutils.repo_files import get_haxorg_build_path
 import warnings
 from py_scriptutils.script_logging import log
-import functools
 import copy
 
 CAT = "conftest"
@@ -33,22 +31,30 @@ CAT = "conftest"
 trace_collector: TraceCollector = None
 
 
-def pytest_configure(config) -> None:
-    warnings.filterwarnings("ignore",
-                            category=DeprecationWarning,
-                            module="pydantic._internal._config")
-    warnings.filterwarnings("ignore",
-                            category=UserWarning,
-                            module="pydantic._internal._config")
-    warnings.filterwarnings("ignore",
-                            category=pytest.PytestRemovedIn9Warning,
-                            module="tests.python.conftest")
-    warnings.filterwarnings("ignore",
-                            category=DeprecationWarning,
-                            module="dominate.dom_tag")
+def pytest_configure(config: Any) -> None:
+    warnings.filterwarnings(
+        "ignore",
+        category=DeprecationWarning,
+        module="pydantic._internal._config",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        category=UserWarning,
+        module="pydantic._internal._config",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        category=pytest.PytestRemovedIn9Warning,
+        module="tests.python.conftest",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        category=DeprecationWarning,
+        module="dominate.dom_tag",
+    )
 
 
-def get_trace_collector() -> None:
+def get_trace_collector() -> TraceCollector:
     global trace_collector
     if not trace_collector:
         trace_collector = TraceCollector()
@@ -86,24 +92,27 @@ def is_ci() -> bool:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def trace_session() -> None:
+def trace_session() -> Generator[None, Any, Any]:
     get_trace_collector().push_complete_event("session", "test-session")
 
     yield
 
     get_trace_collector().pop_complete_event()
     get_trace_collector().export_to_json(Path("/tmp/haxorg_py_tests.json"))
-    coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
-    if coverage:
-        coverage = Path(coverage)
+    coverage_env = os.getenv("HAX_COVERAGE_OUT_DIR")
+    if coverage_env:
+        coverage = Path(coverage_env)
         summary = summarize_cookies(coverage)
+        log(CAT).info(
+            f"Finalized session with {len(summary.runs)} cxx coverage-enabled test executions"
+        )
         respath = coverage.joinpath("test-summary.json")
         respath.parent.mkdir(parents=True, exist_ok=True)
         respath.write_text(summary.model_dump_json(indent=2))
 
 
 @pytest.fixture(scope="module", autouse=True)
-def trace_module(request) -> None:
+def trace_module(request: pytest.FixtureRequest) -> Generator[None, Any, Any]:
     module_name = request.module.__name__
     get_trace_collector().push_complete_event(module_name, "test-file")
     yield
@@ -111,29 +120,30 @@ def trace_module(request) -> None:
 
 
 @pytest.fixture(autouse=True)
-def trace_test(request) -> None:
+def trace_test(request: pytest.FixtureRequest) -> Generator[None, Any, Any]:
     test_name = request.node.name
     get_trace_collector().push_complete_event(test_name, "test")
     yield
     get_trace_collector().pop_complete_event()
 
 
-def pytest_collect_file(parent: Module, path: str) -> None:
+def pytest_collect_file(parent: Module, path: str) -> Optional[GTestFile]:
     test = Path(path)
 
-    def debug(it, file) -> None:
+    def debug(it: Any, file: str) -> None:
         pprint_to_file(to_debug_json(it), file + ".json")
 
     coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
 
     if test.name.startswith("test_integrate_cxx"):
+        log(CAT).info(f"File '{test.name}' integrates execution of the cxx binary")
         if test.name.endswith("_cxx_org.py"):
-            binary_path = "haxorg/tests_org"
+            binary_path_str = "haxorg/tests_org"
 
         else:
-            binary_path = "haxorg/tests_hstd"
+            binary_path_str = "haxorg/tests_hstd"
 
-        binary_path = get_haxorg_build_path().joinpath(binary_path)
+        binary_path = get_haxorg_build_path().joinpath(binary_path_str)
 
         assert binary_path.exists(), f"{binary_path} {test.name}"
 
@@ -149,27 +159,35 @@ def pytest_collect_file(parent: Module, path: str) -> None:
 
         return result
 
+    else:
+        return None
 
-def pytest_collection_modifyitems(session: Session, config: Config,
-                                  items: List[Item]) -> None:
+
+def pytest_collection_modifyitems(
+    session: Session,
+    config: Config,
+    items: List[Item],
+) -> None:
     for item in items:
         if "unstable" in item.keywords:
             item.add_marker(pytest.mark.xfail(reason="This test is known to be unstable"))
 
 
-def pytest_runtest_makereport(item: Item, call: CallInfo) -> pytest.TestReport:
+def pytest_runtest_makereport(item: Item, call: CallInfo) -> Optional[pytest.TestReport]:
     if "unstable" in item.keywords:
         if call.excinfo is not None and call.excinfo.typename == "Failed":
             rep = pytest.TestReport.from_item_and_call(item, call)
-            rep.outcome = "xfailed"
+            rep.outcome = "xfailed"  # type: ignore
             rep.wasxfail = "reason: This test is known to be unstable"
             return rep
+
+    return None
 
 
 class FunctionNameExtractor(ast.NodeVisitor):
 
     def __init__(self) -> None:
-        self.function_names = []
+        self.function_names: List[str] = []
 
     def visit_Call(self, node: ast.Call) -> None:
         if isinstance(node.func, ast.Name):
@@ -264,13 +282,13 @@ def pytest_collection_modifyitems(config: pytest.Config,
                 def __init__(self, name: str) -> None:
                     self.name = copy.deepcopy(name)
 
-                def __call__(self, *args, **kwargs) -> None:
+                def __call__(self, *args: Any, **kwargs: Any) -> str:
                     dbg(f"  >> {self.name}({args}, {kwargs}) has marker ...")
                     result = has_marker_impl(self.name, *args, **kwargs)
                     dbg(f"  >> {self.name} -> {result}")
                     return result
 
-            def test_first_n(max_count) -> None:
+            def test_first_n(max_count: int) -> bool:
                 """
                 Limit the number of filtered tests to N max. All calls after N calls to this function
                 will return `False`, so it is best put as `cond() and cond() and test_first_n()` as

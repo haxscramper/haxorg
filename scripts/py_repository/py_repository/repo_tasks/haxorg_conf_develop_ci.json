@@ -1,0 +1,21 @@
+{
+  "develop_ci_conf"    : {
+    "emscripten_deps" : false,
+    "emscripten_build": false,
+    "emscripten_test" : false,
+    "example_build"   : true,
+    "reflection"      : true,
+    "test"            : true,
+    "install"         : true,
+    "build"           : true,
+    "example_run"     : true,
+    "coverage"        : true
+  },
+  "build_base_override": "develop_ci",
+  "py_test_conf"       : {"extra_pytest_args": [], "real_time_output_print": false},
+  "instrument"         : {"coverage": true},
+  "coverage_conf"      : {
+    "coverage_run_whitelist" : [ {"class_pattern": "OrgParseSem"} ],
+    "coverage_html_whitelist": [ "OrgParser"                      ]
+  }
+}

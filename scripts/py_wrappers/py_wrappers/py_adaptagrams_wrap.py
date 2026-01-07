@@ -15,7 +15,7 @@ if str(build_dir) not in sys.path:
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from py_wrappers.py_adaptagrams import *
+    from py_wrappers.py_adaptagrams import *  # type: ignore
 else:
     print(os.getenv("LD_PRELOAD"))
     from py_adaptagrams import *
@@ -29,11 +29,11 @@ class GraphLayout():
 
     def newAlignSpec(self,
                      node: int,
-                     fixPos: Optional[Number] = None,
-                     offset: Number = 0.0) -> GraphNodeConstraintAlignSpec:
+                     fixPos: Optional[float] = None,
+                     offset: float = 0.0) -> GraphNodeConstraintAlignSpec:
         return GraphNodeConstraintAlignSpec(
             node=node,
-            fixPos=fixPos and float(fixPos),
+            fixPos=fixPos,
             offset=float(offset),
         )
 
@@ -67,7 +67,7 @@ class GraphLayout():
         return self.newAlign(specs=specs, dimension=GraphDimension.YDIM)
 
     def alignDimN(self, specs: List[GraphNodeConstraintAlignSpec],
-                  dimension: GraphDimension):
+                  dimension: GraphDimension) -> None:
         self.ir.nodeConstraints.append(
             GraphNodeConstraint.InitAlignStatic(self.newAlign(specs, dimension)))
 
@@ -95,7 +95,7 @@ class GraphLayout():
         self.alignDim2(source, target, dimension=GraphDimension.YDIM)
 
     def edgePorts(self, source: int, target: int, sourcePort: GraphEdgeConstraintPort,
-                  targetPort: GraphEdgeConstraintPort):
+                  targetPort: GraphEdgeConstraintPort) -> None:
         self.ir.edgeConstraints[GraphEdge(
             source=source,
             target=target,
@@ -108,7 +108,7 @@ class GraphLayout():
                   left: GraphNodeConstraintAlign,
                   right: GraphNodeConstraintAlign,
                   dimension: GraphDimension,
-                  distance: Number = 1.0):
+                  distance: float = 1.0) -> None:
         self.ir.nodeConstraints.append(
             GraphNodeConstraint.InitSeparateStatic(
                 GraphNodeConstraintSeparate(
@@ -121,7 +121,7 @@ class GraphLayout():
     def separateXDim2(self,
                       left: GraphNodeConstraintAlign,
                       right: GraphNodeConstraintAlign,
-                      distance: Number = 1.0):
+                      distance: float = 1.0) -> None:
         self.separate2(left=left,
                        right=right,
                        dimension=GraphDimension.XDIM,
@@ -130,7 +130,7 @@ class GraphLayout():
     def separateYDim2(self,
                       left: GraphNodeConstraintAlign,
                       right: GraphNodeConstraintAlign,
-                      distance: Number = 1.0):
+                      distance: float = 1.0) -> None:
         self.separate2(left=left,
                        right=right,
                        dimension=GraphDimension.YDIM,
@@ -140,7 +140,7 @@ class GraphLayout():
         self,
         lines: List[GraphNodeConstraintAlign],
         dimension: GraphDimension,
-        distance: Number = 1.0,
+        distance: float = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
         isExactSeparation: bool = False,
     ) -> GraphNodeConstraintMultiSeparate:
@@ -163,7 +163,7 @@ class GraphLayout():
         self,
         rects: List[int],
         boundary: GraphRect,
-        weight: Number = 100.0,
+        weight: float = 100.0,
     ) -> GraphNodeConstraintPageBoundary:
         constraint = GraphNodeConstraintPageBoundary(
             rect=boundary,
@@ -178,7 +178,7 @@ class GraphLayout():
     def separateXDimN(
         self,
         lines: List[GraphNodeConstraintAlign],
-        distance: Number = 1.0,
+        distance: float = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
         isExactSeparation: bool = False,
     ) -> GraphNodeConstraintMultiSeparate:
@@ -193,7 +193,7 @@ class GraphLayout():
     def separateYDimN(
         self,
         lines: List[GraphNodeConstraintAlign],
-        distance: Number = 1.0,
+        distance: float = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
         isExactSeparation: bool = False,
     ) -> GraphNodeConstraintMultiSeparate:
@@ -268,9 +268,12 @@ def toSvg(
         rect_y = rect.top + r
         if draw_geometric_positions:
             stext = svg.svg_text(f"", font_size="8px")
-            stext.add(svg.svg_tspan(f"x:{rect.left:.0f} y:{rect.top:.0f}", dy="1.2em", x="0"))
             stext.add(
-                svg.svg_tspan(f"w:{rect.width:.0f} h:{rect.height:.0f}", dy="1.2em", x="0"))
+                svg.svg_tspan(f"x:{rect.left:.0f} y:{rect.top:.0f}", dy="1.2em", x="0"))
+            stext.add(
+                svg.svg_tspan(f"w:{rect.width:.0f} h:{rect.height:.0f}",
+                              dy="1.2em",
+                              x="0"))
             stext.add(svg.svg_tspan(f"idx:{rect_idx}", dy="1.2em", x="0"))
 
             if rect_idx in rect_debug_map:
@@ -349,4 +352,3 @@ def toSvg(
                     pass
 
     return result
-

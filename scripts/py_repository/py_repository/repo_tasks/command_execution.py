@@ -353,7 +353,7 @@ def run_cmake(
 @beartype
 def run_command_with_json_args(
     ctx: TaskContext,
-    cmd: str,
+    cmd: str | Path,
     args: Dict[str, Any],
     json_file_path: Optional[Path] = None,
     **kwargs: Unpack[RunCommandKwargs],

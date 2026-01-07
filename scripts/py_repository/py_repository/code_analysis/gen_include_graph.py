@@ -16,9 +16,10 @@ from py_codegen.gen_tu_cpp import GenTuInclude
 from py_codegen.refl_read import ConvTu, conv_proto_file
 from py_codegen.refl_wrapper_graph import (get_declared_types_rec, get_used_types_rec,
                                            hash_qual_type)
-from py_repository.repo_tasks.command_execution import run_command
+from py_repository.code_analysis import gen_coverage_cookies
+from py_repository.repo_tasks.command_execution import run_command, run_command_with_json_args
 from py_repository.repo_tasks.common import (ensure_existing_dir, get_build_root,
-                                             get_script_root)
+                                             get_script_root, get_workflow_out)
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
@@ -210,7 +211,6 @@ def process_reflection_file(
     file: Path,
     compile_commands: Path,
     header_commands: Path,
-    toolchain_include: Path,
 ) -> Optional[Path]:
     relative = file.relative_to(get_script_root(ctx))
     out_file = get_build_root(ctx, f"{relative}_translation.pb")
@@ -222,22 +222,16 @@ def process_reflection_file(
     ).st_mtime and refl_tool.stat().st_mtime < out_file.stat().st_mtime:
         return out_file
 
-    cmd_code, cmd_stdout, cmd_stderr = run_command(
+    cmd_code, cmd_stdout, cmd_stderr = run_command_with_json_args(
         ctx,
         refl_tool,
-        [
-            "-p",
-            compile_commands.resolve(),
-            "--compilation-database",
-            header_commands.resolve(),
-            "--toolchain-include",
-            toolchain_include.resolve(),
-            "--main-tu-analysis",
-            # "--verbose",
-            "--out",
-            out_file,
-            file,
-        ],
+        gen_coverage_cookies.ReflectionCLI(
+            input=[str(file)],
+            output=str(out_file),
+            mode=gen_coverage_cookies.Mode.AllMainSymbolsInCompilationDb,
+            reflection=gen_coverage_cookies.ReflectionConfig(
+                compilation_database=str(header_commands.resolve())),
+        ).model_dump(),
         capture=True,
         allow_fail=True,
     )
@@ -399,11 +393,6 @@ def create_project_file_subgraphs(
                                 )
 
                                 if decl_check:
-                                    log(CAT).info(
-                                        f"{qt.format_native(with_cvref=False)} used in {original_data.path}"
-                                    )
-
-                                if decl_check:
                                     filtered_used_types.append(qt)
 
                     else:
@@ -454,7 +443,6 @@ def gen_include_graph(
     ctx: TaskContext,
     compile_commands: Path,
     header_commands: Path,
-    toolchain_include: Path,
 ) -> None:
     header_compdb_content = run_command(
         ctx,
@@ -478,7 +466,7 @@ def gen_include_graph(
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [
             executor.submit(process_reflection_file, ctx, file, compile_commands,
-                            header_commands, toolchain_include) for file in files
+                            header_commands) for file in files
         ]
 
         for future in as_completed(futures):
@@ -521,7 +509,8 @@ def gen_include_graph(
     igraph_tus = create_include_graph(ctx, conv_tus)
 
     graphviz_tus = igraph_to_graphviz(igraph_tus)
-    graphviz_file = get_build_root(ctx, "reflect/include_graph.png").with_suffix("")
+    graphviz_file = get_workflow_out(ctx,
+                                     "include_graph/include_graph.png").with_suffix("")
     graphviz_tus.render(graphviz_file, format="png")
     log(CAT).info(f"Final grouped graph {graphviz_file}.png")
 
@@ -530,9 +519,11 @@ def gen_include_graph(
             incd: IncludeVertexData = subgraph.vs[sub_vertex.index]["include_data"]
             sub_file = Path(
                 str(
-                    get_build_root(ctx, f"reflect/individual_include_graphs/{incd.name}").
+                    get_workflow_out(
+                        ctx, f"include_graph/individual_include_graphs/{incd.name}").
                     with_suffix("")) + suffix)
 
+            log(CAT).info(f"Partial group graph in {sub_file}")
             ensure_existing_dir(ctx, sub_file.parent)
             igraph_to_graphviz(subgraph, target=sub_vertex).render(sub_file, format="png")
 
