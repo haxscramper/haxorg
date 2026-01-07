@@ -58,7 +58,6 @@ def parseCachedFile(
     cache_file = None if not cache else Path(cache).joinpath(file.name)
 
     def aux() -> org.Org:
-        log(CAT).info(f"Processing {file}")
         if with_includes:
             opts = org.OrgDirectoryParseParameters()
             if parse_opts:
@@ -80,7 +79,7 @@ def parseCachedFile(
     if cache_file:
         with FileOperation.InOut([file], [cache_file]) as op:
             if op.should_run():
-                log("haxorg.cache").info(f"{file} parsing")
+                # log("haxorg.cache").info(f"{file} parsing")
                 node = aux()
 
                 if not cache_file.parent.exists():
@@ -89,7 +88,7 @@ def parseCachedFile(
                 org.exportToProtobufFile(node, str(cache_file))
 
             else:
-                log("haxorg.cache").info(f"{file} read from cache {cache_file}")
+                # log("haxorg.cache").info(f"{file} read from cache {cache_file}")
                 node = org.readProtobufFile(str(cache_file))
 
             return node

@@ -75,10 +75,11 @@ class TagSortingOptions(BaseModel, extra="forbid"):
         description="Input file or directory to analyze files in",
         default_factory=lambda: Path(),
     )
-    
+
     tag_glossary_file: Path = Field(
         description=
-        "org-mode file describing the tags. The structure of the file is not important, just that it uses tags in some way"
+        "org-mode file describing the tags. The structure of the file is not important, just that it uses tags in some way",
+        default_factory=lambda: Path(),
     )
 
     output_dir: Optional[Path] = Field(default=None,

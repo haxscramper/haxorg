@@ -72,10 +72,6 @@ def merge_cli_model(
         for k, v in d.items():
             assert not isinstance(v, DefaultWrapper)
 
-    log(CAT).info(f"DEFAULT {on_default}")
-    log(CAT).info(f"FILE {file_config}")
-    log(CAT).info(f"CLI {on_cli}")
-
     final_data = merge_dicts([on_default, file_config, on_cli])
     return ModelT.model_validate(final_data)  # type: ignore[attr-defined]
 
@@ -89,14 +85,12 @@ def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict) -> T:
     Convert the provided CLI parameters into the object of type `T` for
     more typesafe usage
     """
-    log(CAT).info(f"{kwargs}")
     initial_cli = ModelType.model_validate(kwargs)  # type: ignore
     if hasattr(initial_cli, "config"):
         config = initial_cli.config
         config_base = run_config_provider(
             ([str(Path(config).resolve())] if config else []), True)
 
-    log(CAT).info(f"kwargs {kwargs}")
     conf = merge_cli_model(ctx, config_base, kwargs, ModelType)
     return conf
 
@@ -294,8 +288,6 @@ def run_config_provider(
                          config_dir=os.path.dirname(path),
                          haxorg_root=str(get_haxorg_repo_root_path()))
                 ]))
-
-            log(CAT).info(f"ADD {config_value}")
 
             configs.append(config_value)
 

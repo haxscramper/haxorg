@@ -242,7 +242,6 @@ def sort_repository_tags_cli(ctx: click.Context, **kwargs: Any) -> None:
                 parse_opts=haxorg_cli.getParseOpts(opts, Path(path)),
             )
 
-            log(CAT).debug("OK")
             return result
 
         except Exception as e:
