@@ -27,11 +27,6 @@ class OrgTagDesc():
     tag: tuple[str, ...]
 
 
-def analysis_options(f: Any) -> Any:
-    return haxorg_cli.apply_options(
-        f, haxorg_cli.options_from_model(haxorg_opts.TagSortingOptions))
-
-
 @beartype
 def find_duplicate_tags(target_count: Dict[OrgTagDesc, int],
                         duplicates_output: Path) -> None:
@@ -224,10 +219,13 @@ def generate_tag_files(
 
 
 @click.command("sort_tags")
-@analysis_options
+@haxorg_cli.get_wrap_options(haxorg_opts.TagSortingOptions)
 @click.pass_context
 def sort_repository_tags_cli(ctx: click.Context, **kwargs: Any) -> None:
-    log(CAT).info("sort repository tags")
+    """
+    Collect all the hashtags and subtree tags in the repository and summarize
+    usage frequency, nesting structure etc. into the single report file. 
+    """
     opts = haxorg_cli.get_opts(ctx)
     assert opts.generate
     assert opts.generate.sort_tags
@@ -264,8 +262,8 @@ def sort_repository_tags_cli(ctx: click.Context, **kwargs: Any) -> None:
 
     org.eachSubnodeRec(target, visit_target)
 
-    glossary = haxorg_cli.parseCachedFile(
-        Path(opts.generate.sort_tags.tag_glossary_file), opts.cache)
+    glossary = haxorg_cli.parseCachedFile(Path(opts.generate.sort_tags.tag_glossary_file),
+                                          opts.cache)
 
     glossary_usage = set()
 

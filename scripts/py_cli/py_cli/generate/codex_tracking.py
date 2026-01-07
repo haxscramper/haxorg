@@ -1,24 +1,15 @@
 #!/usr/bin/env python
 
 import pandas as pd
-from py_cli.haxorg_cli import *
+from py_cli import haxorg_cli, haxorg_opts
 from beartype import beartype
 from beartype.typing import List, Tuple, Any
-from py_haxorg.pyhaxorg_utils import getFlatTags
-from py_scriptutils.script_logging import log
 import py_haxorg.pyhaxorg_wrap as org
 from dataclasses import dataclass, field
-from py_scriptutils.pandas_utils import dataframe_to_rich_table
-from py_scriptutils.rich_utils import render_rich
+from py_scriptutils.script_logging import log
+import rich_click as click
 
 CAT = __name__
-
-
-class CodexTrackingOptions(BaseModel):
-    target_file: Path
-    codex_files: List[Path]
-    outfile: Path
-    cachedir: Optional[Path] = None
 
 
 @beartype
@@ -28,10 +19,6 @@ class RadioEntry:
     prev_context: List[org.Org] = field(default_factory=list)
     radio_use: List[org.Org] = field(default_factory=list)
     post_context: List[org.Org] = field(default_factory=list)
-
-
-def analysis_options(f: Any) -> Any:
-    return apply_options(f, options_from_model(CodexTrackingOptions)) 
 
 
 def format_dataframe_for_file(df: pd.DataFrame) -> str:
@@ -50,21 +37,23 @@ def format_dataframe_for_file(df: pd.DataFrame) -> str:
                 post = "".join(row["post"])
                 result.append(f"    .. {prev}>>{use_field}<<{post} ..")
 
-            result.append("")  
+            result.append("")
     return "\n".join(result).strip()
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
-@analysis_options
+
+@click.command("codex_tracking")
+@haxorg_cli.get_wrap_options(haxorg_opts.CodexTrackingOptions)
 @click.pass_context
-def codex_tracking_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
-    pack_context(ctx, "root", CodexTrackingOptions, config=config, kwargs=kwargs)
-    opts: CodexTrackingOptions = ctx.obj["root"]
-    target_node = parseCachedFile(opts.target_file, opts.cachedir)
-    codex_nodes = [parseCachedFile(f, opts.cachedir) for f in opts.codex_files]
+def codex_tracking_cli(ctx: click.Context, **kwargs: Any) -> None:
+    opts = haxorg_cli.get_opts(ctx)
+    assert opts.generate
+    assert opts.generate.codex_tracking
+    target_node = haxorg_cli.parseCachedFile(opts.generate.codex_tracking.target_file,
+                                             opts.cache)
+    codex_nodes = [
+        haxorg_cli.parseCachedFile(f, opts.cache)
+        for f in opts.generate.codex_tracking.codex_files
+    ]
 
     tracking: org.AstTrackingMap = org.getAstTrackingMap(
         org.VecOfSemIdOfOrgVec([target_node] + codex_nodes))
@@ -90,7 +79,8 @@ def codex_tracking_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
                 @beartype
                 def flat_span(first: int, last: int) -> List[org.Org]:
                     result: List[org.Org] = []
-                    for item in groups[clamp(first, 0, len(groups)):clamp(last, 0, len(groups))]:
+                    for item in groups[clamp(first, 0, len(groups)
+                                            ):clamp(last, 0, len(groups))]:
                         if item.isRadioTarget():
                             for n in item.getRadioTarget().nodes:
                                 result.append(n)
@@ -99,7 +89,6 @@ def codex_tracking_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
                             result.append(item.getSingle().node)
 
                     return result
-
 
                 for i in range(0, len(groups)):
                     group: org.AstTrackingGroup = groups[i]
@@ -111,16 +100,16 @@ def codex_tracking_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
                                 case org.Subtree():
                                     use_path.append(step.getCleanTitle())
 
-                        radio_entries.append(RadioEntry(
-                            use_path=use_path,
-                            prev_context=flat_span(i-10, i),
-                            post_context=flat_span(i+1, i+11),
-                            radio_use=list(radio.nodes),
-                        ))
-
+                        radio_entries.append(
+                            RadioEntry(
+                                use_path=use_path,
+                                prev_context=flat_span(i - 10, i),
+                                post_context=flat_span(i + 1, i + 11),
+                                radio_use=list(radio.nodes),
+                            ))
 
     org.eachSubnodeRecSimplePath(target_node, visit_node)
-        
+
     @beartype
     def format_list(items: List[org.Org]) -> Tuple[str, ...]:
         res = []
@@ -133,7 +122,6 @@ def codex_tracking_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
 
         return tuple(res)
 
-
     if radio_entries:
         df = pd.DataFrame.from_records([
             dict(
@@ -144,11 +132,11 @@ def codex_tracking_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
                 # use_line=entry.radio_use.lo
             ) for entry in radio_entries
         ])
-        
-        opts.outfile.write_text(format_dataframe_for_file(df))
+
+        opts.generate.codex_tracking.outfile.write_text(format_dataframe_for_file(df))
 
     else:
-        opts.outfile.write_text("no codex entries detected")
+        opts.generate.codex_tracking.outfile.write_text("no codex entries detected")
 
 
 if __name__ == "__main__":

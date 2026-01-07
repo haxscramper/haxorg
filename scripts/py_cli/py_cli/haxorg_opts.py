@@ -24,6 +24,18 @@ class ExportPandocOptions(BaseModel, extra="forbid"):
     debug_tree: Optional[Path] = None
 
 
+class TexExportOptions(BaseModel, extra="forbid"):
+    infile: Path = Field(default_factory=lambda: Path())
+    outfile: Path = Field(default_factory=lambda: Path())
+    do_compile: bool = Field(
+        description="Compile the tex document if the export was successful", default=True)
+
+    backend: str = Field(
+        description="TeX backend to use",
+        default="pdflatex",
+    )
+
+
 class TypstExportOptions(BaseModel, extra="forbid"):
     infile: Path = Field(default_factory=lambda: Path())
     outfile: Path = Field(default_factory=lambda: Path())
@@ -53,11 +65,31 @@ class ExportOptions(BaseModel, extra="forbid"):
     html: Optional[ExportHtmlOptions] = None
     pandoc: Optional[ExportPandocOptions] = None
     typst: Optional[TypstExportOptions] = None
+    tex: Optional[TexExportOptions] = None
 
     exportTraceFile: Optional[str] = Field(
         description="Write python export trace to this file",
         default=None,
         alias="export_trace_file")
+
+
+class GenerateActivityAnalysisOptions(BaseModel):
+    infile: List[Path]
+    outdir: Path
+    force_db: bool = False
+    db_path: Optional[Path] = Field(
+        default=None,
+        description="Path to the generated SQLite DB, defaults to outdir/db.sqlite")
+
+
+class GenerateMindMapOptions(BaseModel, extra="forbid"):
+    infile: Path = Field(default_factory=lambda: Path())
+    auto_build_elk: bool = True
+    org_diagram_tool: Path = Field(
+        default_factory=lambda: Path("build/example_qt_gui_org_diagram_release/org_diagram"))
+
+    wrapper_dir: Path = Field(default_factory=lambda: Path(
+        "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"))
 
 
 class GenerateNodeCloudOptions(BaseModel, extra="forbid"):
@@ -95,11 +127,21 @@ class StoryGridOpts(BaseModel, extra="forbid"):
     outfile: Path = Field(default_factory=lambda: Path())
 
 
+class CodexTrackingOptions(BaseModel):
+    target_file: Path
+    codex_files: List[Path]
+    outfile: Path
+    cachedir: Optional[Path] = None
+
+
 class GenerateOptions(BaseModel, extra="forbid"):
     node_clouds: Optional[GenerateNodeCloudOptions] = None
     subtree_clocking: Optional[ClockTimeAnalysisOptions] = None
     sort_tags: Optional[TagSortingOptions] = None
     story_grid: Optional[StoryGridOpts] = None
+    activity_analysis: Optional[GenerateActivityAnalysisOptions] = None
+    codex_tracking: Optional[CodexTrackingOptions] = None
+    mind_map: Optional[GenerateMindMapOptions] = None
 
 
 class RootOptions(BaseModel, extra="forbid"):

@@ -8,16 +8,11 @@ import py_haxorg.pyhaxorg_wrap as org
 CAT = "haxorg.export.pandoc"
 
 
-def export_pandoc_options(f: Any) -> Any:
-    return haxorg_cli.apply_options(
-        f, haxorg_cli.options_from_model(haxorg_opts.ExportPandocOptions))
-
-
 @click.command("pandoc")
-@export_pandoc_options
+@haxorg_cli.get_wrap_options(haxorg_opts.ExportPandocOptions)
 @click.pass_context
 def export_pandoc(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx, config)
+    opts = haxorg_cli.get_opts(ctx)
     assert opts.export
     assert opts.export.pandoc
     assert opts.export.pandoc.infile

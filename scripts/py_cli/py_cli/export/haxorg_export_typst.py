@@ -1,26 +1,19 @@
-from beartype.typing import Any, Optional
-from py_cli import haxorg_cli, haxorg_opts
+from pathlib import Path
+
 import plumbum
 import py_haxorg.pyhaxorg_wrap as org
-from py_haxorg import pyhaxorg_utils
 import rich_click as click
-from pathlib import Path
+from beartype.typing import Any
+from py_cli import haxorg_cli, haxorg_opts
+from py_exporters.export_typst import (ExporterTypst, refresh_typst_export_package)
+from py_haxorg import pyhaxorg_utils
 from py_scriptutils.script_logging import log
 
 CAT = "haxorg.export.typst"
 
 
-def export_typst_options(f: Any) -> Any:
-    return haxorg_cli.apply_options(
-        f, haxorg_cli.options_from_model(haxorg_opts.TypstExportOptions))
-
-
-from py_exporters.export_typst import ExporterTypst, refresh_typst_export_package
-from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
-
-
 @click.command("typst")
-@export_typst_options
+@haxorg_cli.get_wrap_options(haxorg_opts.TypstExportOptions)
 @click.pass_context
 def export_typst(ctx: click.Context, **kwargs: Any) -> None:
     opts = haxorg_cli.get_opts(ctx)

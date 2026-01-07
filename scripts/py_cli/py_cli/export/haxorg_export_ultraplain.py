@@ -1,5 +1,4 @@
-from py_cli.haxorg_opts import ExportUltraplainOptions
-from py_cli.haxorg_cli import get_opts, options_from_model, apply_options, parseFile
+from py_cli import haxorg_cli, haxorg_opts
 import rich_click as click
 from beartype.typing import Any, Optional
 import glom
@@ -7,17 +6,13 @@ from pathlib import Path
 from py_scriptutils.script_logging import log
 
 
-def export_ultraplain_options(f: Any) -> Any:
-    return apply_options(f, options_from_model(ExportUltraplainOptions))
-
-
 @click.command("ultraplain")
-@export_ultraplain_options
+@haxorg_cli.get_wrap_options(haxorg_opts.ExportUltraplainOptions)
 @click.pass_context
 def export_ultraplain(ctx: click.Context, **kwargs: Any) -> None:
-    opts = get_opts(ctx, **kwargs)
+    opts = haxorg_cli.get_opts(ctx)
     assert opts.export
-    node = parseFile(opts, glom.glom(opts, "export.ultraplain.infile"))
+    node = haxorg_cli.parseFile(opts, glom.glom(opts, "export.ultraplain.infile"))
     from py_exporters.export_ultraplain import ExporterUltraplain
     exp = ExporterUltraplain()
     if opts.export:

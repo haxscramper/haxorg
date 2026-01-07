@@ -10,14 +10,10 @@ from py_scriptutils.toml_config_profiler import DefaultWrapperValue
 CAT = __name__
 
 
-@beartype
-def base_cli_options(f: Any) -> Any:
-    return haxorg_cli.apply_options(
-        f, haxorg_cli.options_from_model(haxorg_opts.RootOptions))
 
 
 @click.group()
-@base_cli_options
+@haxorg_cli.get_wrap_options(haxorg_opts.RootOptions)
 @click.pass_context
 def haxorg_main_cli(ctx: click.Context, **kwargs: Any) -> None:
     """Base command."""

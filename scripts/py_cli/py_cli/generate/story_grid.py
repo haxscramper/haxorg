@@ -27,11 +27,6 @@ from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 CAT = "story-grid"
 
 
-def cli_options(f: Any) -> Any:
-    return haxorg_cli.apply_options(
-        f, haxorg_cli.options_from_model(haxorg_opts.StoryGridOpts))
-
-
 @beartype
 @dataclass
 class Header():
@@ -877,10 +872,10 @@ def get_typst_story_grid(headers: List[Header]) -> None:
 
 
 @click.command("story_grid")
-@cli_options
+@haxorg_cli.get_wrap_options(haxorg_opts.StoryGridOpts)
 @click.pass_context
-def story_grid_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx, config)
+def story_grid_cli(ctx: click.Context, **kwargs: Any) -> None:
+    opts = haxorg_cli.get_opts(ctx)
     assert opts.generate
     assert opts.generate.story_grid
     node = haxorg_cli.parseFile(opts, Path(opts.generate.story_grid.infile))

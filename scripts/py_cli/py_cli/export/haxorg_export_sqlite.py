@@ -6,13 +6,8 @@ import py_haxorg.pyhaxorg_wrap as org
 CAT = "haxorg.export.sqlite"
 
 
-def export_sqlite_options(f: Any) -> Any:
-    return haxorg_cli.apply_options(
-        f, haxorg_cli.options_from_model(haxorg_opts.ExportSQliteOptions))
-
-
 @click.command("sqlite")
-@export_sqlite_options
+@haxorg_cli.get_wrap_options(haxorg_opts.ExportSQliteOptions)
 @click.pass_context
 def export_sqlite(ctx: click.Context, **kwargs: Any) -> None:
     opts = haxorg_cli.get_opts(ctx)
@@ -31,7 +26,7 @@ def export_sqlite(ctx: click.Context, **kwargs: Any) -> None:
                         path=str(file),
                         size=filesize,
                 )):
-                    nodes.append((parseFile(ctx.obj["root"], file), str(file)))
+                    nodes.append((haxorg_cli.parseFile(ctx.obj["root"], file), str(file)))
 
         from py_exporters.export_sqlite import registerDocument, Base
         from sqlalchemy import create_engine, Engine

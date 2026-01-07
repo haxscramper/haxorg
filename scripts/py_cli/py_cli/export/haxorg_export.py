@@ -1,25 +1,14 @@
-from pydantic import BaseModel
 import rich_click as click
-from py_scriptutils.toml_config_profiler import apply_options, options_from_model, pack_context
-from beartype.typing import Optional, Any
-
-
-class CliExportOptions(BaseModel, extra="forbid"):
-    pass
-
-
-def export_cli_options(f: Any) -> Any:
-    return apply_options(f, options_from_model(CliExportOptions))
+from beartype.typing import  Any
+from py_cli import haxorg_cli, haxorg_opts
 
 
 @click.group()
+@haxorg_cli.get_wrap_options(haxorg_opts.ExportOptions)
 @click.pass_context
-@export_cli_options
 def export(ctx: click.Context, **kwargs: Any) -> None:
     """Convert org-mode document to some other markup/document format"""
-    pack_context(ctx, "export", CliExportOptions, config=config, kwargs=kwargs)
     pass
-
 
 from py_cli.export.haxorg_export_tex import export_tex
 

@@ -6,16 +6,11 @@ import rich_click as click
 CAT = "haxorg.export.html"
 
 
-def export_html_options(f: Any) -> Any:
-    return haxorg_cli.apply_options(
-        f, haxorg_cli.options_from_model(haxorg_opts.ExportHtmlOptions))
-
-
 @click.command("html")
-@export_html_options
+@haxorg_cli.get_wrap_options(haxorg_opts.ExportHtmlOptions)
 @click.pass_context
 def export_html(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx, config)
+    opts = haxorg_cli.get_opts(ctx)
     run = haxorg_cli.get_run(ctx)
     assert opts.export
     assert opts.export.html

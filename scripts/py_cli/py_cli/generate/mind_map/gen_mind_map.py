@@ -1,37 +1,38 @@
-import json
-from pathlib import Path
-from beartype import beartype
-import plumbum
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import get_component_build_dir, get_script_root, get_workflow_out
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_cli.generate.mind_map import haxorg_mind_map, elk_converter, elk_schema, typst_schema
+from py_cli import haxorg_cli, haxorg_opts
+import igraph as ig
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
+from py_scriptutils.script_logging import log
+from pathlib import Path
+import plumbum
+import json
 
 CAT = __name__
 
 
-def gen_mind_map(ctx: TaskContext) -> None:
-    from py_scriptutils.graph_utils import haxorg_mind_map
-    from py_scriptutils.graph_utils import elk_converter
-    from py_scriptutils.graph_utils import elk_schema
-    from py_scriptutils.graph_utils import typst_schema
-    import igraph as ig
+def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
+    assert opts.generate
+    assert opts.generate.mind_map
+    mind_map_opts = opts.generate.mind_map
+    assert mind_map_opts.infile, mind_map_opts.infile
+    assert Path(mind_map_opts.infile).exists(), mind_map_opts.infile
 
-    assert ctx.config.example_conf.mind_map.infile, ctx.config.example_conf.mind_map.infile
-    assert Path(ctx.config.example_conf.mind_map.infile).exists(
-    ), ctx.config.example_conf.mind_map.infile
+    repo_root = get_haxorg_repo_root_path()
 
-    wrapper_dir = "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"
-    run_command(ctx,
-                "gradle",
-                args=["build"],
-                cwd=get_script_root(ctx).joinpath(wrapper_dir))
-    run_command(ctx,
-                "gradle",
-                args=["install"],
-                cwd=get_script_root(ctx).joinpath(wrapper_dir))
-    diagram_build_dir = get_component_build_dir(ctx, "example_qt_gui_org_diagram")
+    wrapper_dir = opts.generate.mind_map.wrapper_dir
+    gradle_cmd = plumbum.local["gradle"].with_cwd(repo_root.joinpath(wrapper_dir))
+    gradle_cmd.run(["build"])
+    gradle_cmd.run(["install"])
+
+    org_diagram_cmd = plumbum.local[str(opts.generate.mind_map.org_diagram_tool)]
+    org_diagram_cmd.run([
+        json.dumps(
+            dict(
+                documentPath=str(opts.generate.mind_map.infile),
+                mode="MindMapDump",
+                outputPath=str(mman_initial_path),
+            ))
+    ])
 
     def get_out(name: str) -> Path:
         return get_workflow_out(ctx, f"mind_map/{name}")
@@ -40,14 +41,7 @@ def gen_mind_map(ctx: TaskContext) -> None:
     run_command(
         ctx,
         diagram_build_dir.joinpath("org_diagram"),
-        args=[
-            json.dumps(
-                dict(
-                    documentPath=str(ctx.config.example_conf.mind_map.infile),
-                    mode="MindMapDump",
-                    outputPath=str(mman_initial_path),
-                ))
-        ],
+        args=[],
         env={
             "ASAN_OPTIONS": "detect_leaks=0",
         },
@@ -119,3 +113,11 @@ def gen_mind_map(ctx: TaskContext) -> None:
     except plumbum.CommandNotFound:
         log(CAT).warning(
             f"Could not find commands `typst` to auto-comple example file {final_path}")
+
+
+@click.group()
+@haxorg_cli.get_wrap_options(haxorg_opts.RootOptions)
+@click.pass_context
+def haxorg_main_cli(ctx: click.Context, **kwargs: Any) -> None:
+    opts = haxorg_cli.get_opts(ctx)
+    gen_mind_map(opts)

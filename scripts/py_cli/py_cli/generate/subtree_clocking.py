@@ -41,11 +41,6 @@ class SubtreeInfo(BaseModel, extra="forbid"):
                             description="List of tags associated with subtree")
 
 
-def analysis_options(f: Any) -> Any:
-    return haxorg_cli.apply_options(
-        f, haxorg_cli.options_from_model(haxorg_opts.ClockTimeAnalysisOptions))
-
-
 @beartype
 def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
     result = []
@@ -100,10 +95,10 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
 
 
 @click.command("subtree_clocking")
-@analysis_options
+@haxorg_cli.get_wrap_options(haxorg_opts.ClockTimeAnalysisOptions)
 @click.pass_context
-def subtree_clocking_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx, config)
+def subtree_clocking_cli(ctx: click.Context, **kwargs: Any) -> None:
+    opts = haxorg_cli.get_opts(ctx)
     assert opts.generate
     assert opts.generate.subtree_clocking
 
