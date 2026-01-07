@@ -1,56 +1,35 @@
 #!/usr/bin/env python
 
-from py_cli.haxorg_cli import (
-    pack_context,
-    BaseModel,
-    parseFile,
-    CliRootOptions,
-)
+import dataclasses
+import itertools
+import statistics
+from dataclasses import dataclass, field, fields
+from datetime import datetime, timedelta
+from numbers import Number
+from pathlib import Path
 
-from py_scriptutils.toml_config_profiler import (
-    make_config_provider,
-    run_config_provider,
-    apply_options,
-    options_from_model,
-    merge_cli_model,
-)
-
+import dominate
+import dominate.tags as tags
+import py_codegen.astbuilder_typst as typ
+import py_haxorg.pyhaxorg_wrap as org
+import py_wrappers.py_adaptagrams_wrap as cola
+import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, Dict, List, Optional, Tuple, Union
+from dominate.util import text
+from py_cli import haxorg_cli, haxorg_opts
 from py_exporters.export_html import ExporterHtml, add_html, add_new
 from py_exporters.export_ultraplain import ExporterUltraplain
-import py_wrappers.py_adaptagrams_wrap as cola
-import py_codegen.astbuilder_typst as typ
-
-import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.pyhaxorg_utils import evalDateTime
-import itertools
-
-from pathlib import Path
-from beartype import beartype
-from dataclasses import dataclass, field, fields
-import dataclasses
-from beartype.typing import Optional, Tuple, List, Union, Dict, Any
-import dominate.tags as tags
-import dominate
-from dominate.util import text
-from datetime import datetime, timedelta
-from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
 from py_scriptutils.algorithm import maybe_splice
-import statistics
-from numbers import Number
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
 CAT = "story-grid"
 
 
-class StoryGridOpts(BaseModel, extra="forbid"):
-    infile: Path
-    outfile: Path
-
-
-import rich_click as click
-
-
-def cli_options(f) -> None:
-    return apply_options(f, options_from_model(StoryGridOpts))
+def cli_options(f: Any) -> Any:
+    return haxorg_cli.apply_options(
+        f, haxorg_cli.options_from_model(haxorg_opts.StoryGridOpts))
 
 
 @beartype
@@ -74,7 +53,7 @@ class Header():
 
 @beartype
 def rec_filter_subnodes(node: org.Org, target: List[org.OrgSemKind]) -> List[org.Org]:
-    result = []
+    result: List[org.Org] = []
     if node is None:
         return result
 
@@ -92,7 +71,7 @@ osk = org.OrgSemKind
 
 @beartype
 def rec_node(node: org.Org) -> List[Header]:
-    result = []
+    result: List[Header] = []
     match node:
         case org.Subtree():
             log(CAT).info(f"Subtree {node.getCleanTitle()}")
@@ -897,30 +876,21 @@ def get_typst_story_grid(headers: List[Header]) -> None:
     Path("/tmp/result.typ").write_text(ast.toString(page))
 
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
+@click.command("story_grid")
 @cli_options
 @click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs) -> None:
-    pack_context(ctx, "story_grid", StoryGridOpts, config=config, kwargs=kwargs)
-    opts: StoryGridOpts = ctx.obj["story_grid"]
-    node = parseFile(CliRootOptions(), Path(opts.infile))
+def story_grid_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
+    opts = haxorg_cli.get_opts(ctx, config)
+    assert opts.generate
+    assert opts.generate.story_grid
+    node = haxorg_cli.parseFile(opts, Path(opts.generate.story_grid.infile))
     headers = rec_node(node)
 
-    with open("/tmp/res.txt", "w") as file:
-        file.write(org.treeRepr(node, colored=False))
-
     doc = get_html_story_grid(headers)
-    with open(opts.outfile, "w") as out:
-        out.write(str(doc))
+    Path(opts.generate.story_grid.outfile).write_text(str(doc))
 
     typst = get_typst_story_grid(headers)
 
-    print("parsed node ok")
-
 
 if __name__ == "__main__":
-    cli()
+    story_grid_cli()

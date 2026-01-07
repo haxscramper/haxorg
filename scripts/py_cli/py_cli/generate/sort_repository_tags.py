@@ -1,37 +1,24 @@
 #!/usr/bin/env python
 
 import pandas as pd
-from py_cli.haxorg_cli import *
+from py_cli import haxorg_cli, haxorg_opts
 from beartype import beartype
-from beartype.typing import List, Tuple, Set, Dict, Any, Optional
+from beartype.typing import Set, Dict, Any, Optional
 from py_haxorg.pyhaxorg_utils import getFlatTags
 from py_scriptutils.script_logging import log
 import py_haxorg.pyhaxorg_wrap as org
-from dataclasses import dataclass, field
-from py_scriptutils.pandas_utils import dataframe_to_rich_table
-from py_scriptutils.rich_utils import render_rich
-from pydantic import Field
+from dataclasses import dataclass
 from collections import defaultdict
+from py_scriptutils.toml_config_profiler import get_user_provided_params
 from rich.tree import Tree
 from rich.console import Console
 from difflib import SequenceMatcher
 from rich.panel import Panel
 from rich.table import Table
+from pathlib import Path
+import rich_click as click
 
 CAT = __name__
-
-
-class TagSortingOptions(BaseModel):
-    target_path: Path = Field(description="Input file or directory to analyze files in")
-    tag_glossary_file: Path = Field(
-        description=
-        "org-mode file describing the tags. The structure of the file is not important, just that it uses tags in some way"
-    )
-
-    output_dir: Optional[Path] = Field(default=None, description="Directory for all output files")
-    autocomplete_file: Optional[Path] = Field(default=None, description="Optional file with one tag per line for autocomplete purposes")
-
-    cachedir: Optional[Path] = None
 
 
 @beartype
@@ -41,7 +28,8 @@ class OrgTagDesc():
 
 
 def analysis_options(f: Any) -> Any:
-    return apply_options(f, options_from_model(TagSortingOptions))
+    return haxorg_cli.apply_options(
+        f, haxorg_cli.options_from_model(haxorg_opts.TagSortingOptions))
 
 
 @beartype
@@ -122,7 +110,10 @@ def find_duplicate_tags(target_count: Dict[OrgTagDesc, int],
 
 @beartype
 def build_tag_tree(target_count: Dict[OrgTagDesc, int]) -> Tree:
-    tree_data: Dict[str, Any] = defaultdict(lambda: {"count": 0, "children": defaultdict(dict)})
+    tree_data: Dict[str, Any] = defaultdict(lambda: {
+        "count": 0,
+        "children": defaultdict(dict)
+    })
 
     for tag_desc, count in target_count.items():
         current = tree_data
@@ -151,8 +142,11 @@ def build_tag_tree(target_count: Dict[OrgTagDesc, int]) -> Tree:
 
 
 @beartype
-def generate_tag_files(target_count: Dict[OrgTagDesc, int],
-                       glossary_usage: Set[OrgTagDesc], opts: TagSortingOptions) -> None:
+def generate_tag_files(
+    target_count: Dict[OrgTagDesc, int],
+    glossary_usage: Set[OrgTagDesc],
+    opts: haxorg_opts.TagSortingOptions,
+) -> None:
     assert opts.output_dir, "Missing output directory configuration in tag sorting options"
     opts.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -191,7 +185,8 @@ def generate_tag_files(target_count: Dict[OrgTagDesc, int],
     console = Console(file=open(tree_output, "w"), width=120)
     console.print(tree)
     console.file.close()
-    tree_content = tree_output.read_text().replace("│   ", "    ").replace("├── ", "    ").replace("└── ", "    ")
+    tree_content = tree_output.read_text().replace("│   ", "    ").replace(
+        "├── ", "    ").replace("└── ", "    ")
     tree_output.write_text(tree_content)
     log(CAT).info(f"Wrote tag tree to {tree_output}")
 
@@ -200,7 +195,7 @@ def generate_tag_files(target_count: Dict[OrgTagDesc, int],
 
     if opts.autocomplete_file and opts.autocomplete_file.exists():
         autocomplete_output = opts.output_dir / "autocomplete.patch"
-        
+
         with open(opts.autocomplete_file, "r") as f:
             autocomplete_tags = set()
             for line in f:
@@ -208,43 +203,45 @@ def generate_tag_files(target_count: Dict[OrgTagDesc, int],
                 if line:
                     tag_parts = tuple(line.lstrip("#").split("##"))
                     autocomplete_tags.add(OrgTagDesc(tag=tag_parts))
-        
+
         all_referenced_tags = target_tags | glossary_usage
-        
+
         tags_to_add = all_referenced_tags - autocomplete_tags
         tags_to_remove = autocomplete_tags - all_referenced_tags
-        
+
         with open(autocomplete_output, "w") as f:
             f.write("--- autocomplete_old\n")
             f.write("+++ autocomplete_new\n")
             f.write("@@ -1,1 +1,1 @@\n")
-            
+
             for tag in sorted(tags_to_remove, key=lambda x: "##".join(x.tag)):
                 f.write(f"-#{'##'.join(tag.tag)}\n")
-            
+
             for tag in sorted(tags_to_add, key=lambda x: "##".join(x.tag)):
                 f.write(f"+#{'##'.join(tag.tag)}\n")
-        
+
         log(CAT).info(f"Wrote autocomplete patch to {autocomplete_output}")
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
+
+@click.command("sort_tags")
 @analysis_options
 @click.pass_context
-def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
-    pack_context(ctx, "root", TagSortingOptions, config=config, kwargs=kwargs)
-    opts: TagSortingOptions = ctx.obj["root"]
-    parse_opts = org.OrgParseParameters()
-
+def sort_repository_tags_cli(ctx: click.Context, **kwargs: Any) -> None:
+    log(CAT).info("sort repository tags")
+    opts = haxorg_cli.get_opts(ctx)
+    assert opts.generate
+    assert opts.generate.sort_tags
     dir_opts = org.OrgDirectoryParseParameters()
 
     def parse_node_impl(path: str) -> org.Org:
         try:
             log(CAT).info(f"Parsing file {path}")
-            result = parseCachedFile(Path(path), opts.cachedir)
+            result = haxorg_cli.parseCachedFile(
+                Path(path),
+                opts.cache,
+                parse_opts=haxorg_cli.getParseOpts(opts, Path(path)),
+            )
+
             log(CAT).debug("OK")
             return result
 
@@ -255,7 +252,8 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
     org.setGetParsedNode(dir_opts, parse_node_impl)
 
     log(CAT).info("Parsing input directory")
-    target = org.parseDirectoryOpts(str(opts.target_path), dir_opts)
+    target = org.parseDirectoryOpts(str(opts.generate.sort_tags.input_dir), dir_opts)
+
     log(CAT).info("Directory parse complete")
 
     target_count: Dict[OrgTagDesc, int] = defaultdict(lambda: 0)
@@ -267,7 +265,8 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
 
     org.eachSubnodeRec(target, visit_target)
 
-    glossary = parseCachedFile(Path(opts.tag_glossary_file), opts.cachedir)
+    glossary = haxorg_cli.parseCachedFile(
+        Path(opts.generate.sort_tags.tag_glossary_file), opts.cache)
 
     glossary_usage = set()
 
@@ -278,10 +277,8 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
 
     org.eachSubnodeRec(glossary, visit_glossary)
 
-    generate_tag_files(target_count=target_count,
-                       glossary_usage=glossary_usage,
-                       opts=opts)
-
-
-if __name__ == "__main__":
-    cli()
+    generate_tag_files(
+        target_count=target_count,
+        glossary_usage=glossary_usage,
+        opts=opts.generate.sort_tags,
+    )

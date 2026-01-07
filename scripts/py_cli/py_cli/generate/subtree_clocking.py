@@ -1,21 +1,26 @@
 #!/usr/bin/env python
 
-import pandas as pd
-from py_cli.haxorg_cli import *
-from beartype import beartype
-from beartype.typing import List, Tuple, Any
-from py_scriptutils.script_logging import log
-from datetime import datetime, timedelta
-from py_exporters.export_ultraplain import ExporterUltraplain
-import itertools
 import functools
+import itertools
 import statistics
+from datetime import datetime, timedelta
+from pathlib import Path
+
+import pandas as pd
+import py_haxorg.pyhaxorg_wrap as org
+import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, List, Optional, Tuple
+from py_cli import haxorg_cli, haxorg_opts
+from py_exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import evalDateTime, getFlatTags
+from py_scriptutils.script_logging import log
+from pydantic import BaseModel, Field
 
 CAT = __name__
 
 
-class SubtreeInfo(BaseModel):
+class SubtreeInfo(BaseModel, extra="forbid"):
     clock_count: int
     total_clock: Optional[timedelta] = Field(
         default=None, description="Total number the task has been clocked")
@@ -36,14 +41,9 @@ class SubtreeInfo(BaseModel):
                             description="List of tags associated with subtree")
 
 
-class ClockTimeAnalysisOptions(BaseModel):
-    infile: List[Path]
-    outfile: Path
-    cachedir: Optional[Path] = None
-
-
 def analysis_options(f: Any) -> Any:
-    return apply_options(f, options_from_model(ClockTimeAnalysisOptions))
+    return haxorg_cli.apply_options(
+        f, haxorg_cli.options_from_model(haxorg_opts.ClockTimeAnalysisOptions))
 
 
 @beartype
@@ -66,8 +66,9 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
         info = SubtreeInfo(
             title=ExporterUltraplain.getStr(node.title),
             clock_count=len(clocks),
-            tags=itertools.chain(
-                *[["##".join(tag) for tag in getFlatTags(it)] for it in node.tags]),
+            tags=list(
+                itertools.chain(
+                    *[["##".join(tag) for tag in getFlatTags(it)] for it in node.tags])),
         )
 
         if clocks:
@@ -98,23 +99,21 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
     return result
 
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
+@click.command("subtree_clocking")
 @analysis_options
 @click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
-    pack_context(ctx, "root", ClockTimeAnalysisOptions, config=config, kwargs=kwargs)
-    opts: ClockTimeAnalysisOptions = ctx.obj["root"]
+def subtree_clocking_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
+    opts = haxorg_cli.get_opts(ctx, config)
+    assert opts.generate
+    assert opts.generate.subtree_clocking
+
     subtrees: List[SubtreeInfo] = []
-    for file in opts.infile:
+    for file in opts.generate.subtree_clocking.infile:
         log(CAT).info(file)
-        subtrees += getSubtreeInfo(parseCachedFile(file, opts.cachedir))
+        subtrees += getSubtreeInfo(haxorg_cli.parseCachedFile(file, opts.cache))
 
     df = pd.DataFrame([model.model_dump() for model in subtrees])
-    df['tags'] = df['tags'].apply(lambda x: ','.join(x))
+    df["tags"] = df["tags"].apply(lambda x: ",".join(x))
 
     def to_seconds(it: Optional[timedelta | datetime]) -> Optional[float]:
         if not it or pd.isna(it):
@@ -131,8 +130,8 @@ def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
     df["first_clock_start"] = df["first_clock_start"].apply(to_seconds)
     df["last_clock_end"] = df["last_clock_end"].apply(to_seconds)
 
-    df.to_csv(opts.outfile)
+    df.to_csv(opts.generate.subtree_clocking.outfile)
 
 
 if __name__ == "__main__":
-    cli()
+    subtree_clocking_cli()

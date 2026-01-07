@@ -7,8 +7,10 @@ from beartype.typing import Optional, TypeVar, Dict, Any
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import (
+    DefaultWrapperValue,
     apply_options,
     get_cli_model,
+    get_user_provided_params,
     make_config_provider,
     merge_cli_model,
     options_from_model,
@@ -16,31 +18,16 @@ from py_scriptutils.toml_config_profiler import (
     pack_context,
 )
 from py_scriptutils.tracer import TraceCollector
-from pydantic import BaseModel, Field
+from py_cli.haxorg_opts import RootOptions
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"
 CAT = __name__
 
 
-class CliRootOptions(BaseModel, extra="forbid"):
-    lex_traceDir: Optional[str] = Field(
-        description="Write lexer operation trace into the directory", default=None)
-    parse_traceDir: Optional[str] = None
-    sem_traceDir: Optional[str] = None
-    config: Optional[str] = None
-    cache: Optional[Path] = Field(
-        description=
-        "Optional directory to cache file parsing to speed up large corpus processing",
-        default=None)
-
-    trace_path: Optional[str] = Field(
-        description="Trace execution of the CLI to the file", default=None)
-
-
 @beartype
 class CliRunContext:
 
-    def __init__(self, opts: CliRootOptions) -> None:
+    def __init__(self, opts: RootOptions) -> None:
         self.tracer = TraceCollector()
         self.opts = opts
 
@@ -113,12 +100,39 @@ def parseCachedFile(
 
 @beartype
 def parseFile(
-    root: CliRootOptions,
+    root: RootOptions,
     file: Path,
     parse_opts: Optional[org.OrgParseParameters] = None,
 ) -> org.Org:
     return parseCachedFile(file, root.cache, parse_opts=parse_opts)
 
 
-def base_cli_options(f: Any) -> Any:
-    return apply_options(f, options_from_model(CliRootOptions))
+@beartype
+def getParseOpts(root: RootOptions, infile: Path) -> org.OrgParseParameters:
+    parse_opts = org.OrgParseParameters()
+
+    def get_file(dir: str) -> str:
+        result = Path(dir).joinpath(infile.stem).with_suffix(".log")
+        result.parent.mkdir(exist_ok=True, parents=True)
+        return str(result)
+
+    if root.baseToken_traceDir:
+        parse_opts.baseTokenTracePath = get_file(root.baseToken_traceDir)
+
+    if root.tokenizer_traceDir:
+        parse_opts.tokenTracePath = get_file(root.tokenizer_traceDir)
+
+    if root.sem_traceDir:
+        parse_opts.semTracePath = get_file(root.sem_traceDir)
+
+    if root.parse_traceDir:
+        parse_opts.parseTracePath = get_file(root.parse_traceDir)
+
+    parse_opts.currentFile = str(infile)
+
+    return parse_opts
+
+
+@beartype
+def get_opts(ctx: click.Context) -> RootOptions:
+    return pack_context(ctx, RootOptions, cli_kwargs=get_user_provided_params(ctx))

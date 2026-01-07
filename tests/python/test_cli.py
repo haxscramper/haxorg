@@ -1,4 +1,4 @@
-from py_cli.haxorg import cli
+from py_cli.haxorg import haxorg_main_cli
 from click.testing import CliRunner
 from tempfile import TemporaryFile, TemporaryDirectory
 from pathlib import Path
@@ -12,7 +12,7 @@ import py_haxorg.pyhaxorg_wrap as org
 
 def test_help() -> None:
     runner = CliRunner()
-    click_run_test(cli, ["--help"])
+    click_run_test(haxorg_main_cli, ["--help"])
 
 
 org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
@@ -27,7 +27,7 @@ def test_tex_export(stable_test_dir: Path) -> None:
     org_file = dir.joinpath("org_file.org")
     org_file.write_text(all_org)
 
-    click_run_test(cli, [
+    click_run_test(haxorg_main_cli, [
         "export",
         "tex",
         f"--infile={org_file}",
@@ -40,7 +40,7 @@ def test_html_export(stable_test_dir: Path) -> None:
     runner = CliRunner()
     dir = stable_test_dir
     out_file = dir.joinpath("html_file.html")
-    click_run_test(cli, [
+    click_run_test(haxorg_main_cli, [
         "export",
         "html",
         f"--infile={all_org_file}",
@@ -51,7 +51,7 @@ def test_html_export(stable_test_dir: Path) -> None:
 def test_sqlite_export(stable_test_dir: Path) -> None:
     dir = stable_test_dir
     out_file = dir.joinpath("out_file.sqlite")
-    click_run_test(cli, [
+    click_run_test(haxorg_main_cli, [
         "export",
         "sqlite",
         f"--infile={all_org_file}",
@@ -77,7 +77,7 @@ def test_pandoc_export(stable_test_dir: Path) -> None:
             colored=False,
         ))
 
-    click_run_test(cli, [
+    click_run_test(haxorg_main_cli, [
         "export",
         "pandoc",
         f"--infile={all_org_file}",
@@ -143,7 +143,7 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
             "--do_compile=False",
         ]
 
-        click_run_test(cli, args)
+        click_run_test(haxorg_main_cli, args)
 
         assert attach_dst.exists()
         assert attach2_dst.exists()
@@ -164,7 +164,7 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
         assert "tags: (\"tag\"," in text
         assert "#orgSubtree" in text
 
-        click_run_test(cli, args)
+        click_run_test(haxorg_main_cli, args)
 
         assert attach2_dst.read_text() == attach2_src.read_text()
         assert attach_dst.read_text() == attach_src.read_text()
@@ -195,7 +195,7 @@ subtree = "changeSubtree"
 
         """)
 
-        click_run_test(cli, [
+        click_run_test(haxorg_main_cli, [
             "export",
             "typst",
             f"--infile={infile}",
@@ -213,7 +213,7 @@ def test_typst_export_doc1() -> None:
     if not file.exists():
         return
 
-    click_run_test(cli, [
+    click_run_test(haxorg_main_cli, [
         "export",
         "typst",
         f"--infile={file}",

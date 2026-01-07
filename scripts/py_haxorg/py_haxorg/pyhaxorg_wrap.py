@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from py_haxorg.pyhaxorg import *
 else:
-    print(os.getenv("LD_PRELOAD"))
     from pyhaxorg import *
 
 SemSet = set[OrgSemKind]

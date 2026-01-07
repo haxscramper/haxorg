@@ -1,10 +1,14 @@
 from beartype.typing import List
-from py_cli.haxorg_cli import *
-from plumbum import local, FG, ProcessExecutionError, colors
-import re
 import py_haxorg.pyhaxorg_wrap as org
 from py_exporters.export_utils.texoutparse import LatexLogParser
 import itertools
+from pathlib import Path
+from py_scriptutils.toml_config_profiler import apply_options, options_from_model
+from pydantic import BaseModel, Field
+from beartype.typing import Optional, Any
+from beartype import beartype
+import plumbum
+import rich_click as click
 
 
 class TexExportOptions(BaseModel, extra="forbid"):
@@ -32,7 +36,7 @@ def export_tex_options(f: Any) -> Any:
 
 
 def run_lualatex(filename: Path) -> None:
-    lualatex = local["lualatex"].with_cwd(str(filename.parent))
+    lualatex = plumbum.local["lualatex"].with_cwd(str(filename.parent))
     code, stdout, stderr = lualatex.run(("-interaction=nonstopmode", filename),
                                         retcode=None)
 
@@ -94,7 +98,7 @@ class DerivedLatexExporter(ExporterLatex):
 @click.command("tex")
 @export_tex_options
 @click.pass_context
-def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
+def export_tex(ctx: click.Context, **kwargs: Any) -> None:
     pack_context(ctx, "tex", TexExportOptions, config=config, kwargs=kwargs)
     opts: TexExportOptions = ctx.obj["tex"]
     node = parseFile(ctx.obj["root"], Path(opts.infile))

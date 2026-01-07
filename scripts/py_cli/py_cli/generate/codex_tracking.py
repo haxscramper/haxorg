@@ -60,7 +60,7 @@ def format_dataframe_for_file(df: pd.DataFrame) -> str:
               help="Path to config file.")
 @analysis_options
 @click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
+def codex_tracking_cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
     pack_context(ctx, "root", CodexTrackingOptions, config=config, kwargs=kwargs)
     opts: CodexTrackingOptions = ctx.obj["root"]
     target_node = parseCachedFile(opts.target_file, opts.cachedir)
@@ -152,4 +152,4 @@ def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
 
 
 if __name__ == "__main__":
-    cli()
+    codex_tracking_cli()

@@ -1,26 +1,18 @@
 import pytest
-import os
-from beartype.typing import TYPE_CHECKING, Any, List
+from beartype.typing import Any, List
 
-from py_cli.scratch_scripts import activity_analysis
-from py_cli.scratch_scripts import subtree_clocking
-from py_cli.scratch_scripts import node_clouds
-from py_cli.scratch_scripts import codex_tracking
+from py_cli.generate import activity_analysis
+from py_cli.generate import subtree_clocking
+from py_cli.generate import node_clouds
+from py_cli.generate import codex_tracking
 from py_exporters import export_sqlite
 from click.testing import CliRunner, Result
 from tempfile import TemporaryDirectory
 from pathlib import Path
-from py_scriptutils.sqlalchemy_utils import Engine, format_db_all, open_sqlite
+from py_scriptutils.sqlalchemy_utils import format_db_all, open_sqlite
 from sqlalchemy.orm import sessionmaker
 from more_itertools import first_true
 import pandas as pd
-from py_scriptutils.pandas_utils import dataframe_to_rich_table
-from py_scriptutils.rich_utils import render_rich
-import py_haxorg.pyhaxorg_wrap as org
-from py_haxorg.pyhaxorg_utils import NodeIdProvider
-from flask import Flask
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-import json
 
 CAT = __name__
 from py_scriptutils.script_logging import log
@@ -35,7 +27,7 @@ def check_cli(result: Result) -> None:
 
 @pytest.mark.test_release
 def test_story_grid() -> None:
-    from py_cli.scratch_scripts import story_grid
+    from py_cli.generate import story_grid
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
@@ -53,7 +45,7 @@ def test_story_grid() -> None:
 - =story_pov= :: Pov
 - =story_note= :: Note
 """)
-        result = runner.invoke(story_grid.cli, [
+        result = runner.invoke(story_grid.story_grid_cli, [
             f"--infile={org_file}",
             f"--outfile={res_file}",
         ])
@@ -73,7 +65,7 @@ Word1 Word1 Word1
 #tag1 #tag1 #tag1##sub1 #tag1##sub2 #tag1##[sub1,sub2]                            
 
 """)
-        result = runner.invoke(node_clouds.cli, [
+        result = runner.invoke(node_clouds.node_cloud_cli, [
             f"--infile={org_file}",
             f"--outfile={csv_file}",
         ])
@@ -124,7 +116,7 @@ def test_subtree_clocking() -> None:
   :END:
 """)
 
-        result = runner.invoke(subtree_clocking.cli, [
+        result = runner.invoke(subtree_clocking.subtree_clocking_cli, [
             f"--infile={org_file}",
             f"--outfile={csv_file}",
         ])
@@ -165,7 +157,7 @@ Sentence with Character name should trigger radio target detection
 
         """)
 
-        result = runner.invoke(codex_tracking.cli, [
+        result = runner.invoke(codex_tracking.codex_tracking_cli, [
             f"--target_file={target_file}",
             f"--codex_files={codex_file}",
             f"--outfile={outfile}",
@@ -217,7 +209,7 @@ def test_base_activity_analysis() -> None:
 
 """)
 
-        result = runner.invoke(activity_analysis.cli, [
+        result = runner.invoke(activity_analysis.activity_analysis_cli, [
             f"--infile={org_file}",
             f"--db_path={db_file}",
             f"--outdir={dir}",
