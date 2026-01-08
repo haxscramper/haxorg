@@ -8,22 +8,20 @@ from py_cli import haxorg_cli, haxorg_opts
 from py_exporters.export_typst import (ExporterTypst, refresh_typst_export_package)
 from py_haxorg import pyhaxorg_utils
 from py_scriptutils.script_logging import log
+from beartype import beartype
 
 CAT = "haxorg.export.typst"
 
 
-@click.command("typst")
-@haxorg_cli.get_wrap_options(haxorg_opts.TypstExportOptions)
-@click.pass_context
-def export_typst(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx)
+@beartype
+def export_typst(opts: haxorg_opts.RootOptions) -> None:
     assert opts.export
     assert opts.export.typst
     infile = opts.export.typst.infile
     outfile = opts.export.typst.outfile
 
     parse_opts = haxorg_cli.getParseOpts(opts, infile)
-    node = haxorg_cli.parseFile(ctx.obj["root"], Path(infile), parse_opts=parse_opts)
+    node = haxorg_cli.parseFile(opts, Path(infile), parse_opts=parse_opts)
 
     typst = ExporterTypst()
     if opts.export.exportTraceFile:
@@ -46,3 +44,10 @@ def export_typst(ctx: click.Context, **kwargs: Any) -> None:
         pdf = outfile.with_suffix(".pdf")
         cmd.run(["compile", str(outfile), str(pdf)])
         log(CAT).info(f"Export to {pdf}")
+
+
+@click.command("typst")
+@haxorg_cli.get_wrap_options(haxorg_opts.TypstExportOptions)
+@click.pass_context
+def export_typst_cli(ctx: click.Context, **kwargs: Any) -> None:
+    export_typst(haxorg_cli.get_opts(ctx))

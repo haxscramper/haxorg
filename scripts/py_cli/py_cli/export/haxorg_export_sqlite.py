@@ -2,16 +2,13 @@ from beartype.typing import List, Tuple, Any, Optional
 from py_cli import haxorg_opts, haxorg_cli
 import rich_click as click
 import py_haxorg.pyhaxorg_wrap as org
+from beartype import beartype
 
 CAT = "haxorg.export.sqlite"
 
 
-@click.command("sqlite")
-@haxorg_cli.get_wrap_options(haxorg_opts.ExportSQliteOptions)
-@click.pass_context
-def export_sqlite(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx)
-    run = haxorg_cli.get_run(ctx)
+@beartype
+def export_sqlite(opts: haxorg_opts.RootOptions, run: haxorg_cli.CliRunContext) -> None:
     assert opts.export
     assert opts.export.sqlite
     assert opts.export.sqlite.infile
@@ -26,7 +23,7 @@ def export_sqlite(ctx: click.Context, **kwargs: Any) -> None:
                         path=str(file),
                         size=filesize,
                 )):
-                    nodes.append((haxorg_cli.parseFile(ctx.obj["root"], file), str(file)))
+                    nodes.append((haxorg_cli.parseFile(opts, file), str(file)))
 
         from py_exporters.export_sqlite import registerDocument, Base
         from sqlalchemy import create_engine, Engine
@@ -41,3 +38,11 @@ def export_sqlite(ctx: click.Context, **kwargs: Any) -> None:
                     registerDocument(node, engine, file_path)
 
     run.finalize()
+
+
+@click.command("sqlite")
+@haxorg_cli.get_wrap_options(haxorg_opts.ExportSQliteOptions)
+@click.pass_context
+def export_sqlite_cli(ctx: click.Context, **kwargs: Any) -> None:
+    run = haxorg_cli.get_run(ctx)
+    export_sqlite(haxorg_cli.get_opts(ctx), run)

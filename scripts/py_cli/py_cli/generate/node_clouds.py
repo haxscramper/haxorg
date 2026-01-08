@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 
-import pandas as pd
-from beartype.typing import Any
 from collections import defaultdict
-from py_haxorg.pyhaxorg_utils import getFlatTags
-import rich_click as click
+
+import pandas as pd
 import py_haxorg.pyhaxorg_wrap as org
-from py_cli import haxorg_opts, haxorg_cli
+import rich_click as click
+from beartype import beartype
+from beartype.typing import Any
+from py_cli import haxorg_cli, haxorg_opts
+from py_haxorg.pyhaxorg_utils import getFlatTags
 
 CAT = __name__
 
 
-@click.command("node_clouds")
-@haxorg_cli.get_wrap_options(haxorg_opts.GenerateNodeCloudOptions)
-@click.pass_context
-def node_cloud_cli(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx)
+@beartype
+def node_clouds(opts: haxorg_opts.RootOptions) -> None:
     assert opts.generate
     assert opts.generate.node_clouds
     count: defaultdict[tuple[str, str], int] = defaultdict(lambda: 0)
@@ -44,5 +43,8 @@ def node_cloud_cli(ctx: click.Context, **kwargs: Any) -> None:
     df.to_csv(opts.generate.node_clouds.outfile, index=False)
 
 
-if __name__ == "__main__":
-    node_cloud_cli()
+@click.command("node_clouds")
+@haxorg_cli.get_wrap_options(haxorg_opts.GenerateNodeCloudOptions)
+@click.pass_context
+def node_cloud_cli(ctx: click.Context, **kwargs: Any) -> None:
+    node_clouds(haxorg_cli.get_opts(ctx))

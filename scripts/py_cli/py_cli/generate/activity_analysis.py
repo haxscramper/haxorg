@@ -156,11 +156,8 @@ def plot_timestamped_events_with_pandas(
     return (fig, axes)
 
 
-@click.command()
-@haxorg_cli.get_wrap_options(haxorg_opts.GenerateActivityAnalysisOptions)
-@click.pass_context
-def activity_analysis_cli(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx)
+@beartype
+def activity_analysis(opts: haxorg_opts.RootOptions) -> None:
     assert opts.generate
     assert opts.generate.activity_analysis
     outdir: Path = glom(opts, "generate.activity_analysis.outdir")
@@ -205,3 +202,10 @@ def activity_analysis_cli(ctx: click.Context, **kwargs: Any) -> None:
     # if plot:
     #     fig, ax = plot
     #     fig.savefig(opts.outdir.joinpath("event_distribution.png"))
+
+
+@click.command("activity_analysis")
+@haxorg_cli.get_wrap_options(haxorg_opts.GenerateActivityAnalysisOptions)
+@click.pass_context
+def activity_analysis_cli(ctx: click.Context, **kwargs: Any) -> None:
+    activity_analysis(haxorg_cli.get_opts(ctx))

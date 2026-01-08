@@ -21,7 +21,7 @@ class RadioEntry:
     post_context: List[org.Org] = field(default_factory=list)
 
 
-def format_dataframe_for_file(df: pd.DataFrame) -> str:
+def _format_dataframe_for_file(df: pd.DataFrame) -> str:
     result: List[str] = []
     grouped_by_use = df.groupby("use")
 
@@ -41,11 +41,20 @@ def format_dataframe_for_file(df: pd.DataFrame) -> str:
     return "\n".join(result).strip()
 
 
-@click.command("codex_tracking")
-@haxorg_cli.get_wrap_options(haxorg_opts.CodexTrackingOptions)
-@click.pass_context
-def codex_tracking_cli(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx)
+@beartype
+def _format_list(items: List[org.Org]) -> Tuple[str, ...]:
+    res = []
+    for it in items:
+        if isinstance(it, org.Space):
+            res.append(it.text)
+
+        else:
+            res.append(org.formatToString(it))
+
+    return tuple(res)
+
+
+def codex_tracking(opts: haxorg_opts.RootOptions) -> None:
     assert opts.generate
     assert opts.generate.codex_tracking
     target_node = haxorg_cli.parseCachedFile(opts.generate.codex_tracking.target_file,
@@ -110,34 +119,25 @@ def codex_tracking_cli(ctx: click.Context, **kwargs: Any) -> None:
 
     org.eachSubnodeRecSimplePath(target_node, visit_node)
 
-    @beartype
-    def format_list(items: List[org.Org]) -> Tuple[str, ...]:
-        res = []
-        for it in items:
-            if isinstance(it, org.Space):
-                res.append(it.text)
-
-            else:
-                res.append(org.formatToString(it))
-
-        return tuple(res)
-
     if radio_entries:
         df = pd.DataFrame.from_records([
             dict(
                 path=tuple(entry.use_path),
-                prev=format_list(entry.prev_context),
-                use=format_list(entry.radio_use),
-                post=format_list(entry.post_context),
+                prev=_format_list(entry.prev_context),
+                use=_format_list(entry.radio_use),
+                post=_format_list(entry.post_context),
                 # use_line=entry.radio_use.lo
             ) for entry in radio_entries
         ])
 
-        opts.generate.codex_tracking.outfile.write_text(format_dataframe_for_file(df))
+        opts.generate.codex_tracking.outfile.write_text(_format_dataframe_for_file(df))
 
     else:
         opts.generate.codex_tracking.outfile.write_text("no codex entries detected")
 
 
-if __name__ == "__main__":
-    codex_tracking_cli()
+@click.command("codex_tracking")
+@haxorg_cli.get_wrap_options(haxorg_opts.CodexTrackingOptions)
+@click.pass_context
+def codex_tracking_cli(ctx: click.Context, **kwargs: Any) -> None:
+    codex_tracking(haxorg_cli.get_opts(ctx))

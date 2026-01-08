@@ -93,12 +93,8 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
 
     return result
 
-
-@click.command("subtree_clocking")
-@haxorg_cli.get_wrap_options(haxorg_opts.ClockTimeAnalysisOptions)
-@click.pass_context
-def subtree_clocking_cli(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx)
+@beartype
+def subtree_clocking(opts: haxorg_opts.RootOptions) -> None: 
     assert opts.generate
     assert opts.generate.subtree_clocking
 
@@ -127,6 +123,12 @@ def subtree_clocking_cli(ctx: click.Context, **kwargs: Any) -> None:
 
     df.to_csv(opts.generate.subtree_clocking.outfile)
 
+
+@click.command("subtree_clocking")
+@haxorg_cli.get_wrap_options(haxorg_opts.ClockTimeAnalysisOptions)
+@click.pass_context
+def subtree_clocking_cli(ctx: click.Context, **kwargs: Any) -> None:
+    subtree_clocking(haxorg_cli.get_opts(ctx))
 
 if __name__ == "__main__":
     subtree_clocking_cli()

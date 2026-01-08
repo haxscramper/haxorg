@@ -870,12 +870,8 @@ def get_typst_story_grid(headers: List[Header]) -> None:
     add_typ_edges(ast=ast, page=page, conv=conv)
     Path("/tmp/result.typ").write_text(ast.toString(page))
 
-
-@click.command("story_grid")
-@haxorg_cli.get_wrap_options(haxorg_opts.StoryGridOpts)
-@click.pass_context
-def story_grid_cli(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx)
+@beartype
+def story_grid(opts: haxorg_cli.RootOptions) -> None: 
     assert opts.generate
     assert opts.generate.story_grid
     node = haxorg_cli.parseFile(opts, Path(opts.generate.story_grid.infile))
@@ -887,5 +883,9 @@ def story_grid_cli(ctx: click.Context, **kwargs: Any) -> None:
     typst = get_typst_story_grid(headers)
 
 
-if __name__ == "__main__":
-    story_grid_cli()
+@click.command("story_grid")
+@haxorg_cli.get_wrap_options(haxorg_opts.StoryGridOpts)
+@click.pass_context
+def story_grid_cli(ctx: click.Context, **kwargs: Any) -> None:
+    story_grid(haxorg_cli.get_opts(ctx))
+

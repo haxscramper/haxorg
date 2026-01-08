@@ -218,15 +218,8 @@ def generate_tag_files(
         log(CAT).info(f"Wrote autocomplete patch to {autocomplete_output}")
 
 
-@click.command("sort_tags")
-@haxorg_cli.get_wrap_options(haxorg_opts.TagSortingOptions)
-@click.pass_context
-def sort_repository_tags_cli(ctx: click.Context, **kwargs: Any) -> None:
-    """
-    Collect all the hashtags and subtree tags in the repository and summarize
-    usage frequency, nesting structure etc. into the single report file. 
-    """
-    opts = haxorg_cli.get_opts(ctx)
+@beartype
+def sort_reposutory_tags(opts: haxorg_opts.RootOptions) -> None: 
     assert opts.generate
     assert opts.generate.sort_tags
     dir_opts = org.OrgDirectoryParseParameters()
@@ -279,3 +272,14 @@ def sort_repository_tags_cli(ctx: click.Context, **kwargs: Any) -> None:
         glossary_usage=glossary_usage,
         opts=opts.generate.sort_tags,
     )
+
+
+@click.command("sort_tags")
+@haxorg_cli.get_wrap_options(haxorg_opts.TagSortingOptions)
+@click.pass_context
+def sort_repository_tags_cli(ctx: click.Context, **kwargs: Any) -> None:
+    """
+    Collect all the hashtags and subtree tags in the repository and summarize
+    usage frequency, nesting structure etc. into the single report file. 
+    """
+    sort_reposutory_tags(haxorg_cli.get_opts(ctx))
