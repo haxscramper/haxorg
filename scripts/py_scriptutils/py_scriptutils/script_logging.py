@@ -154,7 +154,7 @@ class NoTTYFormatter(logging.Formatter):
 if sys.stdout.isatty():
     logging.basicConfig(
         level="NOTSET",
-        format="[dim]%(filename)s:%(lineno)d[/dim] - %(message)s",
+        format="[dim]%(name)s %(filename)s:%(lineno)d[/dim] - %(message)s",
         datefmt="[%X]",
         handlers=[
             RichHandler(

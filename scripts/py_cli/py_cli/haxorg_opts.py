@@ -85,11 +85,15 @@ class GenerateActivityAnalysisOptions(BaseModel):
 class GenerateMindMapOptions(BaseModel, extra="forbid"):
     infile: Path = Field(default_factory=lambda: Path())
     auto_build_elk: bool = True
-    org_diagram_tool: Path = Field(
-        default_factory=lambda: Path("build/example_qt_gui_org_diagram_release/org_diagram"))
+    org_diagram_tool: Path = Field(default_factory=lambda: Path(
+        "build/example_qt_gui_org_diagram_release/org_diagram"))
+
+    group_hyperedges: bool = True
+    group_single_item_hyperedge: bool = True
+    hyperedge_width: float = 2.0
 
     wrapper_dir: Path = Field(default_factory=lambda: Path(
-        "scripts/py_scriptutils/py_scriptutils/graph_utils/elk_cli_wrapper"))
+        "scripts/py_cli/py_cli/generate/mind_map/elk_cli_wrapper"))
 
 
 class GenerateNodeCloudOptions(BaseModel, extra="forbid"):
@@ -158,6 +162,8 @@ class RootOptions(BaseModel, extra="forbid"):
 
     trace_path: Optional[str] = Field(
         description="Trace execution of the CLI to the file", default=None)
+
+    tmp_dir: Path = Field(default_factory=lambda: Path("/tmp/haxorg_cli/tmp"))
 
     generate: Optional[GenerateOptions] = None
     export: Optional[ExportOptions] = None

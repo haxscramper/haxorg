@@ -1,14 +1,11 @@
 from pydantic import BaseModel, Field
 from beartype.typing import List, Optional, Dict, Any, Set
 from beartype import beartype
-from py_scriptutils.graph_utils import elk_converter
-from py_scriptutils.graph_utils import elk_schema
+from py_cli.generate.mind_map import elk_converter, elk_schema
 import igraph as ig
-from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
+from dataclasses import dataclass
 import glom
 from py_scriptutils.json_utils import Json
-from py_scriptutils.script_logging import log, to_debug_json, pprint_to_string
 
 CAT = __name__
 
@@ -362,6 +359,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     self.addSegmentedEdge(e, cross)
 
     def addHGraphRootVertices(self) -> None:
+
         def append_root_items(id: str) -> None:
             if self.hgraph.vertices[id].vertexKind in ["Item"]:
                 self.visual_root_vertices.append(id)

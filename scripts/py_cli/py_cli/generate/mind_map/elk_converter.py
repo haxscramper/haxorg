@@ -1,22 +1,33 @@
 #!/usr/bin/env python
 
-from pathlib import Path
 import pickle
-import igraph as ig
-import py_scriptutils.graph_utils.elk_schema as elk
-import py_scriptutils.graph_utils.typst_schema as typ
-from pydantic import BaseModel
-from beartype.typing import Literal, Union, List, Optional, Set, Tuple, Any, Dict, Callable
-from numbers import Number
+from abc import ABC, abstractmethod
 from enum import Enum
+from numbers import Number
+from pathlib import Path
+
+import igraph as ig
+import numpy as np
+import py_cli.generate.mind_map.elk_schema as elk
+import py_cli.generate.mind_map.typst_schema as typ
 from beartype import beartype
+from beartype.typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
+from PIL import Image
+from py_scriptutils.script_logging import log
+from pydantic import BaseModel
 from shapely.geometry import LineString, Polygon
 from shapely.ops import unary_union
-from PIL import Image
-import numpy as np
 from sklearn.cluster import KMeans
-from abc import ABC, abstractmethod
-from py_scriptutils.script_logging import log
 
 CAT = __name__
 
@@ -172,15 +183,16 @@ def get_edge_groups_by_shared_ports(target: elk.Graph | elk.Node) -> List[List[e
     return edge_groups
 
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple
-from dataclasses import dataclass
-from beartype import beartype
+
 import matplotlib.font_manager as fm
-from fontTools.ttLib import TTFont
-from fontTools.pens.boundsPen import BoundsPen
-import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+from beartype import beartype
+from fontTools.pens.boundsPen import BoundsPen
+from fontTools.ttLib import TTFont
 
 _font_cache: Any = {}
 
@@ -614,6 +626,6 @@ class GraphWalker(ABC):
             result.children.append(self.getELKNodeRec(v))
 
         for e in self.getEdges():
-            result.edges.append(self.getELKEdge(e)) # type: ignore[union-attr]
+            result.edges.append(self.getELKEdge(e))  # type: ignore[union-attr]
 
         return result

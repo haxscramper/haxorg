@@ -21,8 +21,11 @@ from py_cli.generate import (
     codex_tracking,
 )
 
+from py_cli.generate.mind_map import gen_mind_map
+
 generate.add_command(node_clouds.node_cloud_cli)
 generate.add_command(subtree_clocking.subtree_clocking_cli)
 generate.add_command(story_grid.story_grid_cli)
 generate.add_command(sort_repository_tags.sort_repository_tags_cli)
 generate.add_command(codex_tracking.codex_tracking_cli)
+generate.add_command(gen_mind_map.haxorg_main_cli)

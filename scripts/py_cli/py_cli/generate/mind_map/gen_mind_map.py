@@ -2,15 +2,20 @@ from py_cli.generate.mind_map import haxorg_mind_map, elk_converter, elk_schema,
 from py_cli import haxorg_cli, haxorg_opts
 import igraph as ig
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 from pathlib import Path
 import plumbum
 import json
+import rich_click as click
+from beartype.typing import Any
+import logging
+
 
 CAT = __name__
 
 
 def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
+    logging.getLogger("fontTools.ttLib.ttFont").setLevel(logging.WARNING)
     assert opts.generate
     assert opts.generate.mind_map
     mind_map_opts = opts.generate.mind_map
@@ -24,7 +29,13 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
     gradle_cmd.run(["build"])
     gradle_cmd.run(["install"])
 
-    org_diagram_cmd = plumbum.local[str(opts.generate.mind_map.org_diagram_tool)]
+    def get_out(name: str) -> Path:
+        return haxorg_cli.get_tmp_file(opts, f"mind_map/{name}")
+
+    mman_initial_path = get_out("mind-map-dump.json")
+    org_diagram_cmd = plumbum.local[str(
+        opts.generate.mind_map.org_diagram_tool)].with_env(ASAN_OPTIONS="detect_leaks=0",)
+
     org_diagram_cmd.run([
         json.dumps(
             dict(
@@ -33,19 +44,6 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
                 outputPath=str(mman_initial_path),
             ))
     ])
-
-    def get_out(name: str) -> Path:
-        return get_workflow_out(ctx, f"mind_map/{name}")
-
-    mman_initial_path = get_out("mind-map-dump.json")
-    run_command(
-        ctx,
-        diagram_build_dir.joinpath("org_diagram"),
-        args=[],
-        env={
-            "ASAN_OPTIONS": "detect_leaks=0",
-        },
-    )
 
     mmap_model = haxorg_mind_map.Graph.model_validate(
         json.loads(Path(mman_initial_path).read_text()))
@@ -67,11 +65,12 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
     assert layout_script.exists()
     mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))
 
-    elk_converter.group_multi_layout(
-        mmap_elk_layout,
-        single_item_hyperedge=True,
-        hyperedge_polygon_width=2.0,
-    )
+    if opts.generate.mind_map.group_hyperedges:
+        elk_converter.group_multi_layout(
+            mmap_elk_layout,
+            single_item_hyperedge=opts.generate.mind_map.group_single_item_hyperedge,
+            hyperedge_polygon_width=opts.generate.mind_map.hyperedge_width,
+        )
 
     pprint_to_file(to_debug_json(mmap_elk_layout),
                    get_out("mmap_elk_layout_post_hyperedge.py"))
@@ -81,7 +80,7 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
         0,
         typst_schema.Import(
             path=str(get_haxorg_repo_root_path().joinpath(
-                "scripts/py_scriptutils/py_scriptutils/graph_utils/haxorg_mind_map.typ")),
+                "scripts/py_cli/py_cli/generate/mind_map/haxorg_mind_map.typ")),
             items=["*"],
         ))
 
@@ -115,7 +114,7 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
             f"Could not find commands `typst` to auto-comple example file {final_path}")
 
 
-@click.group()
+@click.command("mind_map")
 @haxorg_cli.get_wrap_options(haxorg_opts.RootOptions)
 @click.pass_context
 def haxorg_main_cli(ctx: click.Context, **kwargs: Any) -> None:
