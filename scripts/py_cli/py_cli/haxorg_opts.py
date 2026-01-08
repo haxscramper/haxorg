@@ -1,15 +1,35 @@
-from pydantic import BaseModel, Field
-from beartype.typing import Optional, List
+from pydantic import BaseModel, Field, AfterValidator
+from beartype.typing import Optional, List, Annotated, TypeVar
 from pathlib import Path
+from py_cli.haxorg_cli import CliField
+
+
+def validate_readable_path(value: str | Path) -> Path:
+    """Validate and return a Path object"""
+    file_path = Path(value)
+
+    if not file_path.exists():
+        raise ValueError(f"File does not exist: {value}")
+
+    if not file_path.is_file():
+        raise ValueError(f"Path is not a file: {value}")
+
+    return file_path
+
+
+T = TypeVar('T')
+
+ReadableFilePath = Annotated[Path, AfterValidator(validate_readable_path)]
+SubcommandField = Annotated[Optional[T], CliField(is_option=False)]
 
 
 class ExportUltraplainOptions(BaseModel, extra="forbid"):
-    infile: Path = Field(default_factory=lambda: Path())
+    infile: ReadableFilePath = Field(default_factory=lambda: Path())
     outfile: Path = Field(default_factory=lambda: Path())
 
 
 class ExportSQliteOptions(BaseModel, extra="forbid"):
-    infile: List[Path]
+    infile: List[ReadableFilePath]
     outfile: Path = Field(default_factory=lambda: Path())
 
 
@@ -60,12 +80,12 @@ class TypstExportOptions(BaseModel, extra="forbid"):
 
 
 class ExportOptions(BaseModel, extra="forbid"):
-    ultraplain: Optional[ExportUltraplainOptions] = None
-    sqlite: Optional[ExportSQliteOptions] = None
-    html: Optional[ExportHtmlOptions] = None
-    pandoc: Optional[ExportPandocOptions] = None
-    typst: Optional[TypstExportOptions] = None
-    tex: Optional[TexExportOptions] = None
+    ultraplain: SubcommandField[ExportUltraplainOptions] = None
+    sqlite: SubcommandField[ExportSQliteOptions] = None
+    html: SubcommandField[ExportHtmlOptions] = None
+    pandoc: SubcommandField[ExportPandocOptions] = None
+    typst: SubcommandField[TypstExportOptions] = None
+    tex: SubcommandField[TexExportOptions] = None
 
     exportTraceFile: Optional[str] = Field(
         description="Write python export trace to this file",
@@ -74,7 +94,7 @@ class ExportOptions(BaseModel, extra="forbid"):
 
 
 class GenerateActivityAnalysisOptions(BaseModel):
-    infile: List[Path]
+    infile: List[ReadableFilePath]
     outdir: Path
     force_db: bool = False
     db_path: Optional[Path] = Field(
@@ -83,7 +103,7 @@ class GenerateActivityAnalysisOptions(BaseModel):
 
 
 class GenerateMindMapOptions(BaseModel, extra="forbid"):
-    infile: Path = Field(default_factory=lambda: Path())
+    infile: ReadableFilePath = Field(default_factory=lambda: Path())
     auto_build_elk: bool = True
     org_diagram_tool: Path = Field(default_factory=lambda: Path(
         "build/example_qt_gui_org_diagram_release/org_diagram"))
@@ -97,12 +117,12 @@ class GenerateMindMapOptions(BaseModel, extra="forbid"):
 
 
 class GenerateNodeCloudOptions(BaseModel, extra="forbid"):
-    infile: List[Path]
+    infile: List[ReadableFilePath]
     outfile: Path = Field(default_factory=lambda: Path())
 
 
 class ClockTimeAnalysisOptions(BaseModel, extra="forbid"):
-    infile: List[Path]
+    infile: List[ReadableFilePath]
     outfile: Path = Field(default_factory=lambda: Path())
 
 
@@ -112,7 +132,7 @@ class TagSortingOptions(BaseModel, extra="forbid"):
         default_factory=lambda: Path(),
     )
 
-    tag_glossary_file: Path = Field(
+    tag_glossary_file: ReadableFilePath = Field(
         description=
         "org-mode file describing the tags. The structure of the file is not important, just that it uses tags in some way",
         default_factory=lambda: Path(),
@@ -127,25 +147,25 @@ class TagSortingOptions(BaseModel, extra="forbid"):
 
 
 class StoryGridOpts(BaseModel, extra="forbid"):
-    infile: Path = Field(default_factory=lambda: Path())
+    infile: ReadableFilePath = Field(default_factory=lambda: Path())
     outfile: Path = Field(default_factory=lambda: Path())
 
 
 class CodexTrackingOptions(BaseModel):
-    target_file: Path
-    codex_files: List[Path]
+    target_file: ReadableFilePath
+    codex_files: List[ReadableFilePath]
     outfile: Path
     cachedir: Optional[Path] = None
 
 
 class GenerateOptions(BaseModel, extra="forbid"):
-    node_clouds: Optional[GenerateNodeCloudOptions] = None
-    subtree_clocking: Optional[ClockTimeAnalysisOptions] = None
-    sort_tags: Optional[TagSortingOptions] = None
-    story_grid: Optional[StoryGridOpts] = None
-    activity_analysis: Optional[GenerateActivityAnalysisOptions] = None
-    codex_tracking: Optional[CodexTrackingOptions] = None
-    mind_map: Optional[GenerateMindMapOptions] = None
+    node_clouds: SubcommandField[GenerateNodeCloudOptions] = None
+    subtree_clocking: SubcommandField[ClockTimeAnalysisOptions] = None
+    sort_tags: SubcommandField[TagSortingOptions] = None
+    story_grid: SubcommandField[StoryGridOpts] = None
+    activity_analysis: SubcommandField[GenerateActivityAnalysisOptions] = None
+    codex_tracking: SubcommandField[CodexTrackingOptions] = None
+    mind_map: SubcommandField[GenerateMindMapOptions] = None
 
 
 class RootOptions(BaseModel, extra="forbid"):
@@ -165,5 +185,5 @@ class RootOptions(BaseModel, extra="forbid"):
 
     tmp_dir: Path = Field(default_factory=lambda: Path("/tmp/haxorg_cli/tmp"))
 
-    generate: Optional[GenerateOptions] = None
-    export: Optional[ExportOptions] = None
+    generate: SubcommandField[GenerateOptions] = None
+    export: SubcommandField[ExportOptions] = None

@@ -7,6 +7,7 @@ from pathlib import Path
 import rich_click as click
 import toml
 import yaml
+from dataclasses import dataclass, field
 from beartype import beartype
 from beartype.typing import (Any, Dict, List, Optional, Type, TypeVar, get_args,
                              get_origin)
@@ -16,6 +17,12 @@ from pydantic import BaseModel
 from pydantic_core import PydanticUndefined
 
 CAT = __name__
+
+
+@beartype
+@dataclass
+class CliField():
+    is_option: bool = True
 
 
 class DefaultWrapper(click.ParamType):
@@ -112,9 +119,16 @@ def py_type_to_click(T: Any) -> Any:
 def options_from_model(model: BaseModel) -> List[Any]:
     result: List[Any] = []
     for name, field in model.model_fields.items():
+        if hasattr(field, "metadata") and any(
+                isinstance(meta, CliField) for meta in field.metadata):
+            cli_field = [meta for meta in field.metadata if isinstance(meta, CliField)][0]
+            if not cli_field.is_option:
+                continue
+
         has_default = field.default is not None and field.default != PydanticUndefined
         is_multiple = get_origin(field.annotation) is list
         opt_name = field.alias if field.alias else name
+
         result.append(
             click.option(
                 "--" + opt_name,

@@ -16,6 +16,7 @@ from py_scriptutils.toml_config_profiler import (
     options_from_model,
     run_config_provider,
     pack_context,
+    CliField,
 )
 from py_scriptutils.tracer import TraceCollector
 from py_cli.haxorg_opts import RootOptions
