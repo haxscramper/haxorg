@@ -1,5 +1,5 @@
 import pytest
-from beartype.typing import Any, List
+from beartype.typing import Any, List, Dict
 
 from py_cli.generate import activity_analysis
 from py_cli.generate import subtree_clocking

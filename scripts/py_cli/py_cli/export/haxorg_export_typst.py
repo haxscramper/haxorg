@@ -33,7 +33,7 @@ def export_typst(opts: haxorg_opts.RootOptions) -> None:
 
     pyhaxorg_utils.doExportAttachments(
         base=infile,
-        destination=outfile,
+        destination=outfile.parent,
         attachments=pyhaxorg_utils.getAttachments(node),
         backends=["typst"],
     )

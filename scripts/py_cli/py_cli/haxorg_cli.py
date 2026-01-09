@@ -16,8 +16,8 @@ from py_scriptutils.toml_config_profiler import (
     options_from_model,
     run_config_provider,
     pack_context,
-    CliField,
 )
+
 from py_scriptutils.tracer import TraceCollector
 from py_cli.haxorg_opts import RootOptions
 
@@ -45,8 +45,8 @@ class CliRunContext:
             log("haxorg.cli").info(f"Wrote execution trace to {self.opts.trace_path}")
 
 
-def get_run(ctx: click.Context) -> CliRunContext:
-    return ctx.obj["run"]
+def get_run(opts: RootOptions) -> CliRunContext:
+    return CliRunContext(opts)
 
 
 @beartype

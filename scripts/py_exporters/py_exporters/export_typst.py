@@ -317,8 +317,6 @@ class ExporterTypst(ExporterBase):
 
     @with_export_context
     def evalDocument(self, node: org.Document) -> BlockId:
-        Path("/tmp/debug.yaml").write_text(
-            org.exportToYamlString(node, org.OrgYamlExportOpts()))
         res = self.t.stack([])
         self.printTrace(
             f"Eval document, context: {[n.getKind() for n in self.context]}, is in include {self.isInInclude()}"
@@ -354,7 +352,6 @@ class ExporterTypst(ExporterBase):
         return self.t.string(formatDateTime(node.getStatic().time))
 
     def evalLink(self, node: org.Link) -> BlockId:
-        self.printTrace(f">>>>??? {node.target.getKind()}")
         match node.target.getKind():
             case org.LinkTargetKind.Attachment:
                 return self.t.string("")

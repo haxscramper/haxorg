@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field, AfterValidator
+from pydantic import AliasChoices, BaseModel, Field, AfterValidator
 from beartype.typing import Optional, List, Annotated, TypeVar
 from pathlib import Path
-from py_cli.haxorg_cli import CliField
+from py_scriptutils.toml_config_profiler import CliField
 
 
 def validate_readable_path(value: str | Path) -> Path:
@@ -73,11 +73,6 @@ class TypstExportOptions(BaseModel, extra="forbid"):
         default="pdflatypst",
     )
 
-    exportTraceFile: Optional[str] = Field(
-        description="Write python export trace to this file",
-        default=None,
-        alias="export_trace_file")
-
 
 class ExportOptions(BaseModel, extra="forbid"):
     ultraplain: SubcommandField[ExportUltraplainOptions] = None
@@ -87,10 +82,10 @@ class ExportOptions(BaseModel, extra="forbid"):
     typst: SubcommandField[TypstExportOptions] = None
     tex: SubcommandField[TexExportOptions] = None
 
-    exportTraceFile: Optional[str] = Field(
+    exportTraceFile: Optional[str] = Field( # type: ignore
         description="Write python export trace to this file",
         default=None,
-        alias="export_trace_file")
+        alias=AliasChoices("exportTraceFile", "export_trace_file"))
 
 
 class GenerateActivityAnalysisOptions(BaseModel):

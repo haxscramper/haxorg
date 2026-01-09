@@ -6,12 +6,17 @@ from beartype import beartype
 
 CAT = "haxorg.export.html"
 
+
 @beartype
-def export_html(opts: haxorg_opts.RootOptions, run: haxorg_cli.CliRunContext) -> None:
+def export_html(opts: haxorg_opts.RootOptions,
+                run: Optional[haxorg_cli.CliRunContext] = None) -> None:
     assert opts.export
     assert opts.export.html
     assert opts.export.html.infile
     assert opts.export.html.outfile
+
+    if not run:
+        run = haxorg_cli.get_run(opts) # type: ignore
 
     with run.event("Run html export", CAT):
         node = haxorg_cli.parseCachedFile(opts.export.html.infile, opts.cache)

@@ -8,7 +8,12 @@ CAT = "haxorg.export.sqlite"
 
 
 @beartype
-def export_sqlite(opts: haxorg_opts.RootOptions, run: haxorg_cli.CliRunContext) -> None:
+def export_sqlite(opts: haxorg_opts.RootOptions,
+                  run: Optional[haxorg_cli.CliRunContext] = None) -> None:
+
+    if not run:
+        run = haxorg_cli.get_run(opts) # type: ignore
+
     assert opts.export
     assert opts.export.sqlite
     assert opts.export.sqlite.infile
@@ -44,5 +49,4 @@ def export_sqlite(opts: haxorg_opts.RootOptions, run: haxorg_cli.CliRunContext) 
 @haxorg_cli.get_wrap_options(haxorg_opts.ExportSQliteOptions)
 @click.pass_context
 def export_sqlite_cli(ctx: click.Context, **kwargs: Any) -> None:
-    run = haxorg_cli.get_run(ctx)
-    export_sqlite(haxorg_cli.get_opts(ctx), run)
+    export_sqlite(haxorg_cli.get_opts(ctx))

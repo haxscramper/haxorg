@@ -1,62 +1,59 @@
-from py_cli.haxorg import haxorg_main_cli
-from click.testing import CliRunner
-from tempfile import TemporaryFile, TemporaryDirectory
+from tempfile import TemporaryDirectory
 from pathlib import Path
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.click_utils import click_run_test
 from plumbum import local
-import pytest
 from plumbum import CommandNotFound
 import py_haxorg.pyhaxorg_wrap as org
-
-
-def test_help() -> None:
-    runner = CliRunner()
-    click_run_test(haxorg_main_cli, ["--help"])
-
+from py_cli import haxorg_opts, haxorg_cli
+from beartype.typing import Dict, Any
 
 org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
 all_org_file = org_corpus_dir.joinpath("all.org")
 all_org = all_org_file.read_text()
 
 
+def get_export_debug(dir: Path) -> Dict[str, Any]:
+    return dict(exportTraceFile=str(dir.joinpath("export_trace.log")))
+
+
 def test_tex_export(stable_test_dir: Path) -> None:
-    runner = CliRunner()
     dir = stable_test_dir
     tex_file = dir.joinpath("tex_file.tex")
     org_file = dir.joinpath("org_file.org")
     org_file.write_text(all_org)
 
-    click_run_test(haxorg_main_cli, [
-        "export",
-        "tex",
-        f"--infile={org_file}",
-        f"--outfile={tex_file}",
-        "--do_compile=false",
-    ])
+    from py_cli.export.haxorg_export_tex import export_tex
+
+    export_tex(
+        haxorg_opts.RootOptions(
+            export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
+                                             tex=haxorg_opts.TexExportOptions(
+                                                 infile=org_file,
+                                                 outfile=tex_file,
+                                                 do_compile=False,
+                                             ))))
 
 
 def test_html_export(stable_test_dir: Path) -> None:
-    runner = CliRunner()
-    dir = stable_test_dir
-    out_file = dir.joinpath("html_file.html")
-    click_run_test(haxorg_main_cli, [
-        "export",
-        "html",
-        f"--infile={all_org_file}",
-        f"--outfile={out_file}",
-    ])
+    from py_cli.export.haxorg_export_html import export_html
+    export_html(
+        haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
+            html=haxorg_opts.ExportHtmlOptions(
+                infile=all_org_file,
+                outfile=stable_test_dir.joinpath("html_file.html"),
+            ))))
 
 
 def test_sqlite_export(stable_test_dir: Path) -> None:
-    dir = stable_test_dir
-    out_file = dir.joinpath("out_file.sqlite")
-    click_run_test(haxorg_main_cli, [
-        "export",
-        "sqlite",
-        f"--infile={all_org_file}",
-        f"--outfile={out_file}",
-    ])
+    from py_cli.export.haxorg_export_sqlite import export_sqlite
+    export_sqlite(
+        haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
+            **get_export_debug(stable_test_dir),
+            sqlite=haxorg_opts.ExportSQliteOptions(
+                infile=[all_org_file],
+                outfile=stable_test_dir.joinpath("out_file.sqlite"),
+            ))))
 
 
 def has_cmd(cmd: str) -> bool:
@@ -68,6 +65,7 @@ def has_cmd(cmd: str) -> bool:
 
 
 def test_pandoc_export(stable_test_dir: Path) -> None:
+    from py_cli.export.haxorg_export_pandoc import export_pandoc
     dir = stable_test_dir
     dir.mkdir(parents=True, exist_ok=True)
     out_file = dir.joinpath("out_file.json")
@@ -77,12 +75,14 @@ def test_pandoc_export(stable_test_dir: Path) -> None:
             colored=False,
         ))
 
-    click_run_test(haxorg_main_cli, [
-        "export",
-        "pandoc",
-        f"--infile={all_org_file}",
-        f"--outfile={out_file}",
-    ])
+    opts = haxorg_opts.RootOptions(
+        export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
+                                         pandoc=haxorg_opts.ExportPandocOptions(
+                                             infile=all_org_file,
+                                             outfile=out_file,
+                                         )))
+
+    export_pandoc(opts, haxorg_cli.get_run(opts))
 
     if has_cmd("pandoc"):
         pandoc = local["pandoc"]
@@ -98,6 +98,7 @@ def test_pandoc_export(stable_test_dir: Path) -> None:
 
 
 def test_typst_export_1(stable_test_dir: Path) -> None:
+    from py_cli.export.haxorg_export_typst import export_typst
     dst_dir = stable_test_dir.joinpath("dst")
     dst_dir.mkdir(exist_ok=True, parents=True)
     src_dir = stable_test_dir.joinpath("src")
@@ -135,15 +136,15 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
 
         """)
 
-        args = [
-            "export",
-            "typst",
-            f"--infile={infile}",
-            f"--outfile={outfile}",
-            "--do_compile=False",
-        ]
+        opts = haxorg_opts.RootOptions(
+            export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
+                                             typst=haxorg_opts.TypstExportOptions(
+                                                 infile=all_org_file,
+                                                 outfile=outfile,
+                                                 do_compile=has_cmd("typst"),
+                                             )))
 
-        click_run_test(haxorg_main_cli, args)
+        export_typst(opts)
 
         assert attach_dst.exists()
         assert attach2_dst.exists()
@@ -164,21 +165,18 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
         assert "tags: (\"tag\"," in text
         assert "#orgSubtree" in text
 
-        click_run_test(haxorg_main_cli, args)
+        export_typst(opts)
 
         assert attach2_dst.read_text() == attach2_src.read_text()
         assert attach_dst.read_text() == attach_src.read_text()
 
 
-def test_typst_export_2() -> None:
-    with TemporaryDirectory() as tmp_dir:
-        dir = Path(tmp_dir)
-        dir = Path("/tmp/test_typst_export_2")
-        dir.mkdir(exist_ok=True)
-        outfile = dir.joinpath("result.typ")
-        infile = dir.joinpath("file.org")
+def test_typst_export_2(stable_test_dir: Path) -> None:
+    from py_cli.export.haxorg_export_typst import export_typst
+    outfile = stable_test_dir.joinpath("result.typ")
+    infile = stable_test_dir.joinpath("file.org")
 
-        infile.write_text("""
+    infile.write_text("""
 #+begin_export typst :edit-config pre-visit
 [tags]
 subtree = "customSubtree"
@@ -195,27 +193,16 @@ subtree = "changeSubtree"
 
         """)
 
-        click_run_test(haxorg_main_cli, [
-            "export",
-            "typst",
-            f"--infile={infile}",
-            f"--outfile={outfile}",
-            "--do_compile=False",
-        ])
+    opts = haxorg_opts.RootOptions(
+        export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
+                                         typst=haxorg_opts.TypstExportOptions(
+                                             infile=infile,
+                                             outfile=outfile,
+                                             do_compile=False,
+                                         )))
 
-        text = outfile.read_text()
-        assert "customSubtree" in text
-        assert "changeSubtree" in text
+    export_typst(opts)
 
-
-def test_typst_export_doc1() -> None:
-    file = Path("~/tmp/doc1.org").expanduser()
-    if not file.exists():
-        return
-
-    click_run_test(haxorg_main_cli, [
-        "export",
-        "typst",
-        f"--infile={file}",
-        "--outfile=/tmp/doc1.typ",
-    ])
+    text = outfile.read_text()
+    assert "customSubtree" in text
+    assert "changeSubtree" in text
