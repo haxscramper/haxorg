@@ -160,8 +160,8 @@ def plot_timestamped_events_with_pandas(
 def activity_analysis(opts: haxorg_opts.RootOptions) -> None:
     assert opts.generate
     assert opts.generate.activity_analysis
-    outdir: Path = glom(opts, "generate.activity_analysis.outdir")
-    infile: List[Path] = glom(opts, "generate.activity_analysis.infile")
+    outdir: Path = glom.glom(opts, "generate.activity_analysis.outdir")
+    infile: List[Path] = glom.glom(opts, "generate.activity_analysis.infile")
     sql_db = Path(
         glom.glom(opts,
                   "generate.activity_analysis.db_path",
