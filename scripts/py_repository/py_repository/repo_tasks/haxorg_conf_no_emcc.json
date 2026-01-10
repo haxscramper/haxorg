@@ -7,7 +7,7 @@
   "use_unchanged_tasks": true,
   "py_test_conf": {
     "extra_pytest_args": [
-      "tests/python/test_cli.py::test_mind_map"
+      "tests/python/test_cli.py::test_tag_sorting"
     ],
     "real_time_output_print": true
   }

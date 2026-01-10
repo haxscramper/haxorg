@@ -449,3 +449,44 @@ def test_mind_map(stable_test_dir: Path) -> None:
                     "tests/org/corpus/org/mind_map_test_1.org"),
                 outfile=stable_test_dir.joinpath("result.pdf"),
             ))))
+
+
+def test_tag_sorting(stable_test_dir: Path) -> None:
+    from py_cli.generate.sort_repository_tags import sort_reposutory_tags, TagDuplicate, DuplicateType
+    import functools
+
+    tag_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/cli/tag_collection")
+
+    result = sort_reposutory_tags(
+        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
+            sort_tags=haxorg_opts.TagSortingOptions(
+                input_dir=tag_dir,
+                tag_glossary_file=tag_dir.joinpath("glossary.org"),
+                output_dir=stable_test_dir,
+            ))))
+
+    def tag_pair(one: tuple[str, ...], two: tuple[str, ...], it: TagDuplicate) -> bool:
+        return (it.tag1.tag == one and it.tag2.tag == two) or (it.tag2.tag == one and
+                                                               it.tag1.tag == two)
+
+    feature_overlap = more_itertools.first_true(
+        iterable=result.duplicate_tag_list,
+        pred=functools.partial(tag_pair, ("development", "feature"), ("feature",)),
+        default=None,
+    )
+
+    assert feature_overlap
+    assert feature_overlap.type == DuplicateType.PART_OVERLAP
+
+    nlohmann_json = more_itertools.first_true(
+        iterable=result.duplicate_tag_list,
+        pred=functools.partial(
+            tag_pair,
+            ("code", "cpp", "lib", "nlohmann_json"),
+            ("code", "cpp", "lib", "nlohmann_jso"),
+        ),
+        default=None,
+    )
+
+    assert nlohmann_json
+    assert nlohmann_json.type == DuplicateType.SIMILAR
