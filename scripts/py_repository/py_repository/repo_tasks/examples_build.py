@@ -124,12 +124,6 @@ def build_example_qt_gui_org_diagram(ctx: TaskContext) -> None:
     )
 
 
-@haxorg_task(dependencies=[build_example_qt_gui_org_diagram])
-def run_example_org_elk_diagram(ctx: TaskContext) -> None:
-    from py_repository.code_analysis.gen_mind_map_example import gen_mind_map
-    gen_mind_map(ctx)
-
-
 @haxorg_task(
     dependencies=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
 def build_example_qt_gui(ctx: TaskContext) -> None:
@@ -141,7 +135,7 @@ def build_examples(ctx: TaskContext) -> None:
     pass
 
 
-@haxorg_task(dependencies=[run_example_org_elk_diagram])
+@haxorg_task(dependencies=[])
 def run_examples(ctx: TaskContext) -> None:
     pass
 

@@ -1,10 +1,15 @@
-from pydantic import AliasChoices, BaseModel, Field, AfterValidator
-from beartype.typing import Optional, List, Annotated, TypeVar
 from pathlib import Path
+
+from beartype.typing import Annotated, List, Optional, Tuple, TypeVar
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import CliField
+from pydantic import AfterValidator, AliasChoices, BaseModel, ConfigDict, Field
+
+CAT = __name__
 
 
-def validate_readable_path(value: str | Path) -> Path:
+def _validate_readable_path(value: str | Path) -> Path:
     """Validate and return a Path object"""
     file_path = Path(value)
 
@@ -17,14 +22,23 @@ def validate_readable_path(value: str | Path) -> Path:
     return file_path
 
 
+def _not_empty_file_path(value: str | Path) -> Path:
+    p = Path(value)
+    if str(p).strip() in ("", "."):
+        raise ValueError("Expected non-empty file path")
+    return p
+
+
 T = TypeVar('T')
 
-ReadableFilePath = Annotated[Path, AfterValidator(validate_readable_path)]
+ReadableFilePath = Annotated[Path, AfterValidator(_validate_readable_path)]
+NonEmptyFilePath = Annotated[Path, AfterValidator(_not_empty_file_path)]
+
 SubcommandField = Annotated[Optional[T], CliField(is_option=False)]
 
 
 class ExportUltraplainOptions(BaseModel, extra="forbid"):
-    infile: ReadableFilePath = Field(default_factory=lambda: Path())
+    infile: ReadableFilePath
     outfile: Path = Field(default_factory=lambda: Path())
 
 
@@ -34,19 +48,19 @@ class ExportSQliteOptions(BaseModel, extra="forbid"):
 
 
 class ExportHtmlOptions(BaseModel, extra="forbid"):
-    infile: Path = Field(default_factory=lambda: Path())
+    infile: ReadableFilePath
     outfile: Path = Field(default_factory=lambda: Path())
 
 
 class ExportPandocOptions(BaseModel, extra="forbid"):
-    infile: Path = Field(default_factory=lambda: Path())
+    infile: ReadableFilePath
     outfile: Path = Field(default_factory=lambda: Path())
     debug_tree: Optional[Path] = None
 
 
 class TexExportOptions(BaseModel, extra="forbid"):
-    infile: Path = Field(default_factory=lambda: Path())
-    outfile: Path = Field(default_factory=lambda: Path())
+    infile: ReadableFilePath
+    outfile: Path
     do_compile: bool = Field(
         description="Compile the tex document if the export was successful", default=True)
 
@@ -57,7 +71,7 @@ class TexExportOptions(BaseModel, extra="forbid"):
 
 
 class TypstExportOptions(BaseModel, extra="forbid"):
-    infile: Path = Field(default_factory=lambda: Path())
+    infile: ReadableFilePath
     outfile: Path = Field(default_factory=lambda: Path())
     trace_dir: Optional[str] = Field(
         description="Write processing logs to the directory",
@@ -82,7 +96,7 @@ class ExportOptions(BaseModel, extra="forbid"):
     typst: SubcommandField[TypstExportOptions] = None
     tex: SubcommandField[TexExportOptions] = None
 
-    exportTraceFile: Optional[str] = Field( # type: ignore
+    exportTraceFile: Optional[str] = Field(  # type: ignore
         description="Write python export trace to this file",
         default=None,
         alias=AliasChoices("exportTraceFile", "export_trace_file"))
@@ -98,7 +112,9 @@ class GenerateActivityAnalysisOptions(BaseModel):
 
 
 class GenerateMindMapOptions(BaseModel, extra="forbid"):
-    infile: ReadableFilePath = Field(default_factory=lambda: Path())
+    infile: ReadableFilePath
+    outfile: NonEmptyFilePath
+
     auto_build_elk: bool = True
     org_diagram_tool: Path = Field(default_factory=lambda: Path(
         "build/example_qt_gui_org_diagram_release/org_diagram"))
@@ -106,6 +122,11 @@ class GenerateMindMapOptions(BaseModel, extra="forbid"):
     group_hyperedges: bool = True
     group_single_item_hyperedge: bool = True
     hyperedge_width: float = 2.0
+    typst_do_compile: bool = True
+    typst_compile_root: Optional[str] = "/"
+    typst_import_list: List[Tuple[str, List[str]]] = Field(
+        default_factory=lambda: [(str(get_haxorg_repo_root_path().joinpath(
+            "scripts/py_cli/py_cli/generate/mind_map/haxorg_mind_map.typ")), ["*"])])
 
     wrapper_dir: Path = Field(default_factory=lambda: Path(
         "scripts/py_cli/py_cli/generate/mind_map/elk_cli_wrapper"))
@@ -113,12 +134,12 @@ class GenerateMindMapOptions(BaseModel, extra="forbid"):
 
 class GenerateNodeCloudOptions(BaseModel, extra="forbid"):
     infile: List[ReadableFilePath]
-    outfile: Path = Field(default_factory=lambda: Path())
+    outfile: Path
 
 
 class ClockTimeAnalysisOptions(BaseModel, extra="forbid"):
     infile: List[ReadableFilePath]
-    outfile: Path = Field(default_factory=lambda: Path())
+    outfile: Path
 
 
 class TagSortingOptions(BaseModel, extra="forbid"):

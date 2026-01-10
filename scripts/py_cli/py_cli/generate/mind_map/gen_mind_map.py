@@ -1,20 +1,31 @@
-from py_cli.generate.mind_map import haxorg_mind_map, elk_converter, elk_schema, typst_schema
-from py_cli import haxorg_cli, haxorg_opts
-import igraph as ig
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
-from pathlib import Path
-import plumbum
+from dataclasses import dataclass
 import json
+import logging
+from pathlib import Path
+
+from beartype import beartype
+import igraph as ig
+import plumbum
 import rich_click as click
 from beartype.typing import Any
-import logging
-
+from py_cli import haxorg_cli, haxorg_opts
+from py_cli.generate.mind_map import (elk_converter, elk_schema, haxorg_mind_map,
+                                      typst_schema)
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
 CAT = __name__
 
 
-def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
+@beartype
+class MindMapBuildArtifacts():
+    mmap_model: haxorg_mind_map.Graph
+    mmap_igraph: ig.Graph
+    mmap_elk_layout: elk_schema.Graph
+
+
+def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
+    result = MindMapBuildArtifacts()
     logging.getLogger("fontTools.ttLib.ttFont").setLevel(logging.WARNING)
     assert opts.generate
     assert opts.generate.mind_map
@@ -45,14 +56,14 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
             ))
     ])
 
-    mmap_model = haxorg_mind_map.Graph.model_validate(
+    result.mmap_model = haxorg_mind_map.Graph.model_validate(
         json.loads(Path(mman_initial_path).read_text()))
-    mmap_igraph = haxorg_mind_map.convert_to_igraph(mmap_model)
+    result.mmap_igraph = haxorg_mind_map.convert_to_igraph(result.mmap_model)
 
-    mmap_igraph = mmap_igraph.induced_subgraph(
-        filter(lambda vertex: vertex["data"].vertexKind == "Item", mmap_igraph.vs))
+    result.mmap_igraph = result.mmap_igraph.induced_subgraph(
+        filter(lambda vertex: vertex["data"].vertexKind == "Item", result.mmap_igraph.vs))
 
-    mmap_walker = haxorg_mind_map.HaxorgMMapWalker(mmap_igraph, mmap_model)
+    mmap_walker = haxorg_mind_map.HaxorgMMapWalker(result.mmap_igraph, result.mmap_model)
     from py_scriptutils.rich_utils import render_rich
     get_out("mmap_walker_repr.txt").write_text(render_rich(mmap_walker.getRepr()))
     pprint_to_file(to_debug_json(mmap_walker), get_out("mmap_walker.py"))
@@ -62,31 +73,26 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
 
     layout_script = Path(wrapper_dir).joinpath(
         "build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
+
     assert layout_script.exists()
-    mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))
+    result.mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))
 
     if opts.generate.mind_map.group_hyperedges:
         elk_converter.group_multi_layout(
-            mmap_elk_layout,
+            result.mmap_elk_layout,
             single_item_hyperedge=opts.generate.mind_map.group_single_item_hyperedge,
             hyperedge_polygon_width=opts.generate.mind_map.hyperedge_width,
         )
 
-    pprint_to_file(to_debug_json(mmap_elk_layout),
+    pprint_to_file(to_debug_json(result.mmap_elk_layout),
                    get_out("mmap_elk_layout_post_hyperedge.py"))
-    doc = elk_converter.graph_to_typst(mmap_elk_layout)
+    doc = elk_converter.graph_to_typst(result.mmap_elk_layout)
 
-    doc.subnodes.insert(
-        0,
-        typst_schema.Import(
-            path=str(get_haxorg_repo_root_path().joinpath(
-                "scripts/py_cli/py_cli/generate/mind_map/haxorg_mind_map.typ")),
-            items=["*"],
-        ))
+    for path, items in opts.generate.mind_map.typst_import_list:
+        doc.subnodes.insert(0, typst_schema.Import(path=path, items=items))
 
     final = typst_schema.generate_typst(doc)
     final_path = get_out("mind_map_result.typ")
-    log(CAT).info(f"Write final text to {final_path}")
     final_path.write_text(final)
 
     try:
@@ -94,29 +100,28 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> None:
         fmt.run(["--inplace", str(final_path)])
 
     except plumbum.CommandNotFound:
-        log(CAT).warning(
-            f"Could not find commands `typstyle` -- install it for auto-formatting `.typ` file after creation"
-        )
+        pass
 
-    try:
-        compile_cmd = plumbum.local["typst"]
-        compile_cmd.run([
-            "compile",
+    if opts.generate.mind_map.typst_do_compile:
+        compile_args = ["compile"]
+
+        if opts.generate.mind_map.typst_compile_root:
+            compile_args.extend(["--root", opts.generate.mind_map.typst_compile_root])
+
+        compile_args.extend([
             str(final_path),
-            "--root",
-            "/",
+            str(opts.generate.mind_map.outfile),
         ])
 
-        log(CAT).info(f"Result PDF in {final_path.with_suffix('.pdf')}")
+        compile_cmd = plumbum.local["typst"]
+        compile_cmd.run(compile_args)
 
-    except plumbum.CommandNotFound:
-        log(CAT).warning(
-            f"Could not find commands `typst` to auto-comple example file {final_path}")
+    return result
 
 
 @click.command("mind_map")
 @haxorg_cli.get_wrap_options(haxorg_opts.RootOptions)
 @click.pass_context
-def haxorg_main_cli(ctx: click.Context, **kwargs: Any) -> None:
+def gen_mind_map_cli(ctx: click.Context, **kwargs: Any) -> None:
     opts = haxorg_cli.get_opts(ctx)
     gen_mind_map(opts)

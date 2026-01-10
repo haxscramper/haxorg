@@ -1,18 +1,16 @@
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
+import more_itertools
 import pandas as pd
-from py_exporters import export_sqlite
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.sqlalchemy_utils import format_db_all, open_sqlite
 import pytest
 from beartype.typing import Any, Dict, List
 from plumbum import CommandNotFound, local
 from py_cli import haxorg_cli, haxorg_opts
+from py_exporters import export_sqlite
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
+from py_scriptutils.sqlalchemy_utils import format_db_all, open_sqlite
 from sqlalchemy.orm import sessionmaker
-import more_itertools
 
 CAT = __name__
 
@@ -421,6 +419,7 @@ def test_base_activity_analysis(stable_test_dir: Path) -> None:
         ), "{} {}".format(expected_text, dbg)
 
     def get_subtree(title: str) -> export_sqlite.Subtree:
+
         def pred(it: export_sqlite.Subtree) -> None:
             return it.plaintext_title == title
 
@@ -438,3 +437,15 @@ def test_base_activity_analysis(stable_test_dir: Path) -> None:
         pred=lambda it: it.plaintext == "Back to todo",
         default=None,
     ), dbg
+
+
+def test_mind_map(stable_test_dir: Path) -> None:
+    from py_cli.generate.mind_map.gen_mind_map import gen_mind_map
+
+    gen_mind_map(
+        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
+            mind_map=haxorg_opts.GenerateMindMapOptions(
+                infile=get_haxorg_repo_root_path().joinpath(
+                    "tests/org/corpus/org/mind_map_test_1.org"),
+                outfile=stable_test_dir.joinpath("result.pdf"),
+            ))))

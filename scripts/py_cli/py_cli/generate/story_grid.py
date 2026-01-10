@@ -95,7 +95,7 @@ def rec_node(node: org.Org) -> List[Header]:
                 match prop.getName():
                     case "story_polarity_shift":
                         plain = str(prop.getCustomRaw().value).strip()
-                        header.shift = plain.split("/")
+                        header.shift = plain.split("/") # type: ignore
 
                     case "story_duration":
                         plain = str(prop.getCustomRaw().value).strip()
@@ -309,9 +309,7 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
         for field in fields(h):
             opacity = (max_level - h.level) / max_level * 0.75
             header_style = f"background-color: rgba(255, 0, 0, {opacity:.2f});"
-            cell_args = dict()
-            # if 0 < len(h.nested):
-            #     cell_args["style"] = header_style
+            cell_args: Dict[str, Any] = dict()
 
             if field.name in SKIP_FIELDS:
                 continue
@@ -353,6 +351,7 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                         opt("{}".format(start.strftime("[%Y-%m-%d]")), **cell_args)
 
                     else:
+                        assert end
                         opt(offset, **cell_args)
                         opt(
                             "{}-{}".format(
@@ -529,10 +528,10 @@ def init_grid(
 
         # debug_grid()
 
-        source_rect = grid[this_row][level].rect_idx
+        source_rect = grid[this_row][level].rect_idx  # type: ignore
         for i in range(0, len(grid[dfs_row]) - max_depth):
             if grid[dfs_row][max_depth + i] != None:
-                target_rect = grid[dfs_row][max_depth + i].rect_idx
+                target_rect = grid[dfs_row][max_depth + i].rect_idx  # type: ignore
 
                 ir.edge(source=source_rect, target=target_rect)
                 ir.edgePorts(
@@ -548,8 +547,8 @@ def init_grid(
             idx for idx in range(0, len(content)) if grid[dfs_row][max_depth + idx]
         ]
         for src_index, dst_index in itertools.pairwise(content_offsets):
-            source_rect = grid[dfs_row][max_depth + src_index].rect_idx
-            target_rect = grid[dfs_row][max_depth + dst_index].rect_idx
+            source_rect = grid[dfs_row][max_depth + src_index].rect_idx  # type: ignore
+            target_rect = grid[dfs_row][max_depth + dst_index].rect_idx  # type: ignore
 
             ir.edge(source=source_rect, target=target_rect)
             ir.edgePorts(
@@ -567,8 +566,8 @@ def init_grid(
             aux(s, level + 1)
 
         for row in sub_rows:
-            source_rect = grid[this_row][level].rect_idx
-            target_rect = grid[row][level + 1].rect_idx
+            source_rect = grid[this_row][level].rect_idx  # type: ignore
+            target_rect = grid[row][level + 1].rect_idx  # type: ignore
 
             ir.edge(source=source_rect, target=target_rect)
             ir.edgePorts(
@@ -590,7 +589,7 @@ def add_typ_constraints(
     grid: List[List[Optional[Cell]]],
     col_count: int,
     row_count: int,
-    mult: Number,
+    mult: float,
 ) -> None:
     y_aligns: List[cola.GraphNodeConstraintAlign] = []
     x_aligns: List[cola.GraphNodeConstraintAlign] = []
@@ -614,7 +613,9 @@ def add_typ_constraints(
     )
 
     for col in range(0, col_count):
-        col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
+        col_nodes: List[int] = [
+            row[col].rect_idx for row in grid if row[col]  # type: ignore
+        ]
         if 0 < len(col_nodes):
             horizontal_sizes.append(
                 int(
@@ -705,7 +706,7 @@ def add_typ_nodes(
             rect_idx = cell.rect_idx
             rect = conv.fixed[rect_idx]
 
-            def get_field_name_rect() -> None:
+            def get_field_name_rect() -> typ.RawStr | typ.RawBlock:
                 return ast.litRaw(
                     ast.place(
                         anchor="top + left",
@@ -717,7 +718,7 @@ def add_typ_nodes(
                                     stroke=ast.litRaw("red"),
                                     radius=ast.litPt(2),
                                     inset=ast.litPt(2),
-                                ),
+                                ),  # type: ignore
                                 body=[ast.string(cell.field.name)],
                                 isLine=True,
                             )),
@@ -798,7 +799,7 @@ def get_typst_story_grid(headers: List[Header]) -> None:
     root = Header([], 0)
     root.nested = headers
 
-    def get_depth(t: Header) -> None:
+    def get_depth(t: Header) -> int:
         subs = [get_depth(s) for s in t.nested]
         if 1 < len(subs):
             return max(*subs) + 1
@@ -870,8 +871,9 @@ def get_typst_story_grid(headers: List[Header]) -> None:
     add_typ_edges(ast=ast, page=page, conv=conv)
     Path("/tmp/result.typ").write_text(ast.toString(page))
 
+
 @beartype
-def story_grid(opts: haxorg_cli.RootOptions) -> None: 
+def story_grid(opts: haxorg_cli.RootOptions) -> None:
     assert opts.generate
     assert opts.generate.story_grid
     node = haxorg_cli.parseFile(opts, Path(opts.generate.story_grid.infile))
@@ -888,4 +890,3 @@ def story_grid(opts: haxorg_cli.RootOptions) -> None:
 @click.pass_context
 def story_grid_cli(ctx: click.Context, **kwargs: Any) -> None:
     story_grid(haxorg_cli.get_opts(ctx))
-

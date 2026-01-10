@@ -79,13 +79,9 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     emscripten_test: bool = True
 
 
-class HaxorgExampleMindMapConfig(BaseModel, extra="forbid"):
-    infile: str = "examples/qt_gui/org_diagram/corpus/document_1.org"
-
 
 class HaxorgExampleConfig(BaseModel, extra="forbid"):
-    mind_map: HaxorgExampleMindMapConfig = Field(
-        default_factory=HaxorgExampleMindMapConfig)
+    pass
 
 
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
