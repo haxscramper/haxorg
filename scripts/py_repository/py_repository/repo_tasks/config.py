@@ -199,6 +199,7 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
     use: HaxorgUseConfig = Field(default_factory=lambda: HaxorgUseConfig())
     use_unchanged_tasks: bool = Field(default=False)
+    use_dependencies: bool = Field(default=True)
     emscripten: HaxorgEmscriptenConfig = Field(
         default_factory=lambda: HaxorgEmscriptenConfig())
     instrument: HaxorgInstrumentConfig = Field(

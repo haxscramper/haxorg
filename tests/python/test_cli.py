@@ -490,3 +490,27 @@ def test_tag_sorting(stable_test_dir: Path) -> None:
 
     assert nlohmann_json
     assert nlohmann_json.type == DuplicateType.SIMILAR
+
+
+def test_todo_collector(stable_test_dir: Path) -> None:
+    from py_cli.generate.todo_collector import todo_collector
+
+    stable_test_dir.joinpath("file1.org").write_text("""
+* TODO Random todo annotation with some title
+  :PROPERTIES:
+  :CREATED:  [2026-01-10 Sat 17:32:00 +04]
+  :END:
+- [2026-01-10 Sat 17:32:08 +04] TODO: Some item inside of the main annotation
+  - [2026-01-10 Sat 17:32:23 +04] NOTE: Note attached to parent todo item
+  - [2026-01-10 Sat 17:32:34 +04] TODO: Nested todo item.
+- [2026-01-10 Sat 17:32:18 +04] TODO: Another item
+- [2026-01-10 Sat 17:32:38 +04] DONE: Completed collection
+- [2026-01-10 Sat 17:32:46 +04] QUESTION: Paragraph with another admonition type
+    """)
+
+    result = todo_collector(
+        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
+            todo_collector=haxorg_opts.TodoCollectorOptions(
+                infile=[stable_test_dir],
+                outfile=stable_test_dir.joinpath("report.txt"),
+            ))))

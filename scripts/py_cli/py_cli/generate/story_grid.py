@@ -69,7 +69,6 @@ def rec_node(node: org.Org) -> List[Header]:
     result: List[Header] = []
     match node:
         case org.Subtree():
-            log(CAT).info(f"Subtree {node.getCleanTitle()}")
             if node.isComment or node.isArchived:
                 return result
 

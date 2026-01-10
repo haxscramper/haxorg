@@ -151,13 +151,14 @@ class NoTTYFormatter(logging.Formatter):
         return super().format(record)
 
 
-if sys.stdout.isatty():
-    logging.basicConfig(
-        level="NOTSET",
-        format="[dim]%(name)s %(filename)s:%(lineno)d[/dim] - %(message)s",
-        datefmt="[%X]",
-        handlers=[
-            RichHandler(
+def log(category: str = "rich") -> logging.Logger:
+    log = logging.getLogger(category)
+    if not log.hasHandlers():
+        log.setLevel(logging.NOTSET)
+        # log.propagate = False
+
+        if sys.stdout.isatty():
+            rich_handler = RichHandler(
                 console=Console(width=None),
                 rich_tracebacks=True,
                 markup=True,
@@ -165,21 +166,19 @@ if sys.stdout.isatty():
                 show_time=False,
                 show_path=False,
             )
-        ],
-    )
+            rich_handler.setFormatter(
+                logging.Formatter(
+                    "[dim]%(name)s %(filename)s:%(lineno)d[/dim] - %(message)s"))
 
-else:
-    handler = logging.StreamHandler()
-    handler.setFormatter(NoTTYFormatter("[%(name)s %(filename)s:%(lineno)s] %(message)s"))
-    logging.basicConfig(level="NOTSET", handlers=[handler])
+            log.addHandler(rich_handler)
 
-for name in logging.root.manager.loggerDict:
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.WARNING)
+        else:
+            handler = logging.StreamHandler()
+            handler.setFormatter(
+                NoTTYFormatter("[%(name)s %(filename)s:%(lineno)s] %(message)s"))
 
+            log.addHandler(handler)
 
-def log(category: str = "rich") -> logging.Logger:
-    log = logging.getLogger(category)
     return log
 
 
@@ -264,7 +263,9 @@ class MultiFileHandler(logging.Handler):
         self.logger_handlers: Dict[str, logging.FileHandler] = {}
         self.main_handler = logging.FileHandler(self.base_dir / "main.log", mode="w")
         self.main_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(filename)s:%(lineno)d - %(name)s - %(levelname)s - %(message)s"))
+            logging.Formatter(
+                "%(asctime)s - %(filename)s:%(lineno)d - %(name)s - %(levelname)s - %(message)s"
+            ))
         self.plain_console = Console(color_system=None,
                                      legacy_windows=False,
                                      force_terminal=False,
@@ -285,7 +286,9 @@ class MultiFileHandler(logging.Handler):
             log_file = self.base_dir / f"{safe_name}.log"
             handler = logging.FileHandler(log_file, mode="w")
             handler.setFormatter(
-                logging.Formatter("%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s"))
+                logging.Formatter(
+                    "%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s")
+            )
             self.logger_handlers[logger_name] = handler
         return self.logger_handlers[logger_name]
 

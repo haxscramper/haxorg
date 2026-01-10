@@ -5,9 +5,10 @@
     "emscripten_test": false
   },
   "use_unchanged_tasks": true,
+  "use_dependencies": false,
   "py_test_conf": {
     "extra_pytest_args": [
-      "tests/python/test_cli.py::test_tag_sorting"
+      "tests/python/test_cli.py::test_todo_collector"
     ],
     "real_time_output_print": true
   }

@@ -3,7 +3,7 @@ from pathlib import Path
 import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
-from beartype.typing import Optional, TypeVar, Dict, Any
+from beartype.typing import Optional, TypeVar, Dict, Any, List
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import (
@@ -131,6 +131,33 @@ def getParseOpts(root: RootOptions, infile: Path) -> org.OrgParseParameters:
     parse_opts.currentFile = str(infile)
 
     return parse_opts
+
+
+@beartype
+def parseDirectory(opts: RootOptions, dir: Path) -> org.Org:
+    dir_opts = org.OrgDirectoryParseParameters()
+
+    def parse_node_impl(path: str) -> org.Org:
+        try:
+            result = parseCachedFile(
+                Path(path),
+                opts.cache,
+                parse_opts=getParseOpts(opts, Path(path)),
+            )
+
+            return result
+
+        except Exception as e:
+            log(CAT).error(f"Failed parsing {path}", exc_info=e)
+            return org.Empty()
+
+    org.setGetParsedNode(dir_opts, parse_node_impl)
+    return org.parseDirectoryOpts(str(dir), dir_opts)
+
+
+@beartype
+def parsePathList(opts: RootOptions, paths: List[Path]) -> List[org.Org]:
+    return [parseDirectory(opts, path) for path in paths]
 
 
 @beartype

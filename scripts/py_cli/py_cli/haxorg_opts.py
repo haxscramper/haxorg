@@ -161,6 +161,11 @@ class TagSortingOptions(BaseModel, extra="forbid"):
         description="Optional file with one tag per line for autocomplete purposes")
 
 
+class TodoCollectorOptions(BaseModel, extra="forbid"):
+    infile: List[Path]
+    outfile: Path
+
+
 class StoryGridOpts(BaseModel, extra="forbid"):
     infile: ReadableFilePath = Field(default_factory=lambda: Path())
     outfile: Path = Field(default_factory=lambda: Path())
@@ -181,6 +186,7 @@ class GenerateOptions(BaseModel, extra="forbid"):
     activity_analysis: SubcommandField[GenerateActivityAnalysisOptions] = None
     codex_tracking: SubcommandField[CodexTrackingOptions] = None
     mind_map: SubcommandField[GenerateMindMapOptions] = None
+    todo_collector: SubcommandField[TodoCollectorOptions] = None
 
 
 class RootOptions(BaseModel, extra="forbid"):

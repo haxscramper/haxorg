@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
+import ast
+import copy
 import os
 import subprocess
 import time
+import warnings
 from pathlib import Path
 
 import pytest
@@ -12,19 +15,16 @@ from _pytest.main import Session
 from _pytest.nodes import Item
 from _pytest.python import Module
 from _pytest.runner import CallInfo
+from asteval import Interpreter
 from beartype import beartype
+from beartype.typing import Any, Generator, List, Optional
+from plumbum import local
+from py_scriptutils.repo_files import get_haxorg_build_path
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
+from py_scriptutils.tracer import TraceCollector
+
 from tests.python.conf_gtest import GTestFile
 from tests.python.conf_test_common import summarize_cookies
-from plumbum import local
-from py_scriptutils.script_logging import pprint_to_file, to_debug_json, log
-from py_scriptutils.tracer import TraceCollector
-from beartype.typing import List, Any, Generator, Optional
-from asteval import Interpreter
-import ast
-from py_scriptutils.repo_files import get_haxorg_build_path
-import warnings
-from py_scriptutils.script_logging import log
-import copy
 
 CAT = "conftest"
 
