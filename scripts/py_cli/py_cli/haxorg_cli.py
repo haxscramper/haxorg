@@ -50,39 +50,65 @@ def get_run(opts: RootOptions) -> CliRunContext:
 
 
 @beartype
-def parseCachedFile(
+def parseFile(
+    opts: RootOptions,
     file: Path,
-    cache: Optional[Path],
-    with_includes: bool = True,
     parse_opts: Optional[org.OrgParseParameters] = None,
 ) -> org.Org:
-    cache_file = None if not cache else Path(cache).joinpath(file.name)
+    result: org.Org = None  # type: ignore
+    if opts.follow_includes:
+        dir_opts = org.OrgDirectoryParseParameters()
+        if parse_opts:
+            parse_opts.currentFile = str(file)
 
-    def aux() -> org.Org:
-        if with_includes:
-            opts = org.OrgDirectoryParseParameters()
-            if parse_opts:
-                parse_opts.currentFile = str(file)
+            def parse_node_impl(path: str) -> org.Org:
+                return org.parseStringOpts(Path(path).read_text(), parse_opts)
 
-                def parse_node_impl(path: str) -> org.Org:
-                    return org.parseStringOpts(Path(path).read_text(), parse_opts)
+            org.setGetParsedNode(dir_opts, parse_node_impl)
 
-                org.setGetParsedNode(opts, parse_node_impl)
-
-            return org.parseFileWithIncludes(str(file.resolve()), opts)
+        result = org.parseFileWithIncludes(str(file.resolve()), dir_opts)
+    else:
+        if parse_opts:
+            parse_opts.currentFile = str(file)
+            result = org.parseStringOpts(file.read_text(), parse_opts)
         else:
-            if parse_opts:
-                parse_opts.currentFile = str(file)
-                return org.parseStringOpts(file.read_text(), parse_opts)
-            else:
-                return org.parseFile(str(file.resolve()))
+            result = org.parseFile(str(file.resolve()))
+
+    def get_file(dir: str, suffix: str) -> str:
+        result = Path(dir).joinpath(f"{file.stem}").with_suffix(suffix)
+        result.parent.mkdir(exist_ok=True, parents=True)
+        return str(result)
+
+    if opts.yamlDump_traceDir:
+        org.exportToYamlFile(
+            result, str(get_file(opts.yamlDump_traceDir, ".yaml")),
+            org.OrgYamlExportOpts(
+                skipNullFields=True,
+                skipLocation=True,
+            ))
+
+    if opts.jsonDump_traceDir:
+        org.exportToJsonFile(result, str(get_file(opts.jsonDump_traceDir, ".json")))
+
+    if opts.treeDump_traceDir:
+        org.exportToTreeFile(result, str(get_file(opts.treeDump_traceDir, ".txt")),
+                             org.OrgTreeExportOpts())
+
+    return result
+
+
+@beartype
+def parseCachedFile(
+    opts: RootOptions,
+    file: Path,
+    parse_opts: Optional[org.OrgParseParameters] = None,
+) -> org.Org:
+    cache_file = None if not opts.cache else Path(opts.cache).joinpath(file.name)
 
     if cache_file:
         with FileOperation.InOut([file], [cache_file]) as op:
             if op.should_run():
-                # log("haxorg.cache").info(f"{file} parsing")
-                node = aux()
-
+                node = parseFile(opts, file, parse_opts)
                 if not cache_file.parent.exists():
                     cache_file.parent.mkdir()
 
@@ -95,38 +121,29 @@ def parseCachedFile(
             return node
 
     else:
-        return aux()
-
-
-@beartype
-def parseFile(
-    root: RootOptions,
-    file: Path,
-    parse_opts: Optional[org.OrgParseParameters] = None,
-) -> org.Org:
-    return parseCachedFile(file, root.cache, parse_opts=parse_opts)
+        return parseFile(opts, file, parse_opts)
 
 
 @beartype
 def getParseOpts(root: RootOptions, infile: Path) -> org.OrgParseParameters:
     parse_opts = org.OrgParseParameters()
 
-    def get_file(dir: str) -> str:
-        result = Path(dir).joinpath(infile.stem).with_suffix(".log")
+    def get_file(dir: str, type: str) -> str:
+        result = Path(dir).joinpath(f"{infile.stem}_{type}").with_suffix(".log")
         result.parent.mkdir(exist_ok=True, parents=True)
         return str(result)
 
     if root.baseToken_traceDir:
-        parse_opts.baseTokenTracePath = get_file(root.baseToken_traceDir)
+        parse_opts.baseTokenTracePath = get_file(root.baseToken_traceDir, "base_token")
 
     if root.tokenizer_traceDir:
-        parse_opts.tokenTracePath = get_file(root.tokenizer_traceDir)
+        parse_opts.tokenTracePath = get_file(root.tokenizer_traceDir, "tokenizer")
 
     if root.sem_traceDir:
-        parse_opts.semTracePath = get_file(root.sem_traceDir)
+        parse_opts.semTracePath = get_file(root.sem_traceDir, "sem")
 
     if root.parse_traceDir:
-        parse_opts.parseTracePath = get_file(root.parse_traceDir)
+        parse_opts.parseTracePath = get_file(root.parse_traceDir, "parse")
 
     parse_opts.currentFile = str(infile)
 
@@ -140,8 +157,8 @@ def parseDirectory(opts: RootOptions, dir: Path) -> org.Org:
     def parse_node_impl(path: str) -> org.Org:
         try:
             result = parseCachedFile(
+                opts,
                 Path(path),
-                opts.cache,
                 parse_opts=getParseOpts(opts, Path(path)),
             )
 

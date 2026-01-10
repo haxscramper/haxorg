@@ -196,6 +196,11 @@ class RootOptions(BaseModel, extra="forbid"):
     parse_traceDir: Optional[str] = None
     sem_traceDir: Optional[str] = None
     config: Optional[str] = None
+
+    treeDump_traceDir: Optional[str] = None
+    yamlDump_traceDir: Optional[str] = None
+    jsonDump_traceDir: Optional[str] = None
+
     cache: Optional[Path] = Field(
         description=
         "Optional directory to cache file parsing to speed up large corpus processing",
@@ -205,6 +210,8 @@ class RootOptions(BaseModel, extra="forbid"):
         description="Trace execution of the CLI to the file", default=None)
 
     tmp_dir: Path = Field(default_factory=lambda: Path("/tmp/haxorg_cli/tmp"))
+
+    follow_includes: bool = True
 
     generate: SubcommandField[GenerateOptions] = None
     export: SubcommandField[ExportOptions] = None

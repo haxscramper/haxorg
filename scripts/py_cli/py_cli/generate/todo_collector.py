@@ -30,8 +30,6 @@ def rec_node(node: org.Org) -> List[Entry]:
     def aux_nested(node: org.Org) -> List[Entry]:
         return list(itertools.chain(*[rec_node(sub) for sub in node]))
 
-    log(CAT).info(f"{node.getKind()} {node}")
-
     match node:
         case org.Subtree():
             if node.todo is not None:
@@ -46,18 +44,35 @@ def rec_node(node: org.Org) -> List[Entry]:
             else:
                 result.extend(aux_nested(node))
 
-        case org.Paragraph():
-            ad = node.getAdmonitions()
-            if ad:
-                result.append(
-                    Entry(
-                        title=list(node.getBody()),
-                        created=org_utils.getCreationTime(node),
-                        todo=ad[0],
-                    ))
+        case org.ListItem():
+            if node.size() == 0:
+                return result
 
-        case org.List():
-            log(CAT).info("Found list")
+            log(CAT).info(f"{node.size()}")
+
+            head = node[0]
+            log(CAT).info(f"{head.getKind()} {head}")
+            if not isinstance(head, org.Paragraph):
+                result.extend(aux_nested(node))
+                return result
+
+            ad = head.getAdmonitions()
+            log(CAT).info(f"{ad} {len(ad)} {list(ad)}")
+            if not ad:
+                result.extend(aux_nested(node))
+                return result
+
+            entry = Entry(
+                title=list(node.getBody()),
+                created=org_utils.getCreationTime(node),
+                todo=ad[0],
+            )
+
+            for idx, sub in enumerate(node):
+                if 0 < idx:
+                    entry.nested.extend(rec_node(sub))
+
+            result.append(entry)
 
         case _:
             result.extend(aux_nested(node))

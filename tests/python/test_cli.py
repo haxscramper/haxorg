@@ -23,6 +23,18 @@ def get_export_debug(dir: Path) -> Dict[str, Any]:
     return dict(exportTraceFile=str(dir.joinpath("export_trace.log")))
 
 
+def get_root_debug(dir: Path) -> Dict[str, Any]:
+    return dict(
+        baseToken_traceDir=str(dir),
+        tokenizer_traceDir=str(dir),
+        parse_traceDir=str(dir),
+        sem_traceDir=str(dir),
+        treeDump_traceDir=str(dir),
+        jsonDump_traceDir=str(dir),
+        yamlDump_traceDir=str(dir),
+    )
+
+
 def test_tex_export(stable_test_dir: Path) -> None:
     dir = stable_test_dir
     tex_file = dir.joinpath("tex_file.tex")
@@ -509,8 +521,9 @@ def test_todo_collector(stable_test_dir: Path) -> None:
     """)
 
     result = todo_collector(
-        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-            todo_collector=haxorg_opts.TodoCollectorOptions(
-                infile=[stable_test_dir],
-                outfile=stable_test_dir.joinpath("report.txt"),
-            ))))
+        haxorg_opts.RootOptions(**get_root_debug(stable_test_dir),
+                                generate=haxorg_opts.GenerateOptions(
+                                    todo_collector=haxorg_opts.TodoCollectorOptions(
+                                        infile=[stable_test_dir],
+                                        outfile=stable_test_dir.joinpath("report.txt"),
+                                    ))))
