@@ -1,15 +1,17 @@
+import itertools
+import json
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 
-import py_haxorg.pyhaxorg_wrap as org
 import py_haxorg.pyhaxorg_utils as org_utils
+import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
-from beartype.typing import Any, Optional, List, Tuple
+from beartype.typing import Any, List, Optional, Dict, Literal
 from py_cli import haxorg_cli, haxorg_opts
 from py_scriptutils.script_logging import log
-from datetime import datetime
-import itertools
+import pandas as pd
 
 CAT = __name__
 
@@ -19,16 +21,17 @@ CAT = __name__
 class Entry():
     title: List[org.Org]
     todo: str
+    type: Literal["subtree", "list_item"]
     nested: List["Entry"] = field(default_factory=list)
     created: Optional[datetime] = None
 
 
 @beartype
-def rec_node(node: org.Org) -> List[Entry]:
+def rec_node(node: org.Org, opts: haxorg_opts.RootOptions) -> List[Entry]:
     result: List[Entry] = list()
 
     def aux_nested(node: org.Org) -> List[Entry]:
-        return list(itertools.chain(*[rec_node(sub) for sub in node]))
+        return list(itertools.chain(*[rec_node(sub, opts) for sub in node]))
 
     match node:
         case org.Subtree():
@@ -39,6 +42,7 @@ def rec_node(node: org.Org) -> List[Entry]:
                         nested=aux_nested(node),
                         created=org_utils.getCreationTime(node),
                         todo=node.todo,
+                        type="subtree",
                     ))
 
             else:
@@ -48,29 +52,26 @@ def rec_node(node: org.Org) -> List[Entry]:
             if node.size() == 0:
                 return result
 
-            log(CAT).info(f"{node.size()}")
-
             head = node[0]
-            log(CAT).info(f"{head.getKind()} {head}")
             if not isinstance(head, org.Paragraph):
                 result.extend(aux_nested(node))
                 return result
 
             ad = head.getAdmonitions()
-            log(CAT).info(f"{ad} {len(ad)} {list(ad)}")
-            if not ad:
+            if not ad or ad[0] not in opts.todo_ident_names:
                 result.extend(aux_nested(node))
                 return result
 
             entry = Entry(
-                title=list(node.getBody()),
-                created=org_utils.getCreationTime(node),
+                title=list(head),
+                created=org_utils.getCreationTime(head),
                 todo=ad[0],
+                type="list_item",
             )
 
             for idx, sub in enumerate(node):
                 if 0 < idx:
-                    entry.nested.extend(rec_node(sub))
+                    entry.nested.extend(rec_node(sub, opts))
 
             result.append(entry)
 
@@ -83,6 +84,7 @@ def rec_node(node: org.Org) -> List[Entry]:
 class TodoCollectorResult():
     nested_report: Path
     chronological_report: Path
+    json_dump: Path
 
 
 @beartype
@@ -92,31 +94,49 @@ def _generate_report(opts: haxorg_opts.RootOptions, entries: List[Entry],
     assert opts.generate
     assert opts.generate.todo_collector
 
-    items: List[Tuple[int, Entry]] = list()
+    items: List[Dict[str, Any]] = list(dict())
 
-    def _aux_nested(entry: Entry, depth: int) -> None:
-        items.append((depth, entry))
-        for sub in entry.nested:
-            _aux_nested(sub, depth + 1)
+    title_skip = set([
+        org.OrgSemKind.Time,
+        org.OrgSemKind.TimeRange,
+        org.OrgSemKind.Space,
+        org.OrgSemKind.BigIdent,
+    ])
 
-    for entry in entries:
-        _aux_nested(entry, 0)
+    def _aux_nested(entry: Entry, path: List[int]) -> None:
+        items.append(
+            dict(
+                todo=entry.todo,
+                title=org_utils.formatOrgWithoutPrefix(entry.title, title_skip),
+                path=path,
+                created=entry.created if entry.created else datetime.fromtimestamp(0),
+                depth=len(path),
+                type=entry.type,
+            ))
 
-    result.nested_report = opts.generate.todo_collector.outfile.joinpath("nested.txt")
-    result.chronological_report = opts.generate.todo_collector.outfile.joinpath(
-        "chronological.txt")
+        for index, sub in enumerate(entry.nested):
+            _aux_nested(sub, path + [index])
 
-    opts.generate.todo_collector.outfile.mkdir(parents=True, exist_ok=True)
+    for index, entry in enumerate(entries):
+        _aux_nested(entry, [index])
 
-    result.nested_report.write_text("\n".join([
-        f"{'  ' * depth} {entry.todo} {org_utils.formatOrgWithoutTime(entry.title)}"
-        for depth, entry in items
-    ]))
+    df = pd.DataFrame(items)
 
-    result.chronological_report.write_text("\n".join([
-        f"{entry.todo} {org_utils.formatOrgWithoutTime(entry.title)}"
-        for depth, entry in sorted(items, key=lambda it: it[1].created)
-    ]))
+    out_d = opts.generate.todo_collector.outdir
+    out_d.mkdir(parents=True, exist_ok=True)
+
+    result.nested_report = out_d.joinpath("nested.txt")
+    result.chronological_report = out_d.joinpath("chronological.txt")
+
+    result.json_dump = out_d.joinpath("entries.json")
+    grouped = df.groupby("todo").apply(lambda x: x.to_dict("records")).to_dict()
+
+    def json_serializer(obj: Any) -> Any:
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+    result.json_dump.write_text(json.dumps(grouped, indent=2, default=json_serializer))
 
 
 @beartype
@@ -131,7 +151,7 @@ def todo_collector(opts: haxorg_opts.RootOptions,
     assert opts.generate.todo_collector
 
     nodes = haxorg_cli.parsePathList(opts, opts.generate.todo_collector.infile)
-    entires = list(itertools.chain(*[rec_node(node) for node in nodes]))
+    entires = list(itertools.chain(*[rec_node(node, opts) for node in nodes]))
 
     _generate_report(opts, entires, result)
 
@@ -141,5 +161,7 @@ def todo_collector(opts: haxorg_opts.RootOptions,
 @click.command("todo_collector")
 @haxorg_cli.get_wrap_options(haxorg_opts.GenerateNodeCloudOptions)
 @click.pass_context
-def node_cloud_cli(ctx: click.Context, **kwargs: Any) -> None:
-    todo_collector(haxorg_cli.get_opts(ctx))
+def todo_collector_cli(ctx: click.Context, **kwargs: Any) -> None:
+    log(CAT).info("Starting todo collector command")
+    result = todo_collector(haxorg_cli.get_opts(ctx))
+    log(CAT).info(f"Wrote JSON to {result.json_dump}")

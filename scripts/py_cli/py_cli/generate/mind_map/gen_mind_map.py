@@ -7,7 +7,7 @@ from beartype import beartype
 import igraph as ig
 import plumbum
 import rich_click as click
-from beartype.typing import Any
+from beartype.typing import Any, Optional
 from py_cli import haxorg_cli, haxorg_opts
 from py_cli.generate.mind_map import (elk_converter, elk_schema, haxorg_mind_map,
                                       typst_schema)
@@ -22,6 +22,8 @@ class MindMapBuildArtifacts():
     mmap_model: haxorg_mind_map.Graph
     mmap_igraph: ig.Graph
     mmap_elk_layout: elk_schema.Graph
+    final_pdf: Optional[Path]
+    final_typst: Path
 
 
 def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
@@ -92,12 +94,12 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
         doc.subnodes.insert(0, typst_schema.Import(path=path, items=items))
 
     final = typst_schema.generate_typst(doc)
-    final_path = get_out("mind_map_result.typ")
-    final_path.write_text(final)
+    result.final_typst = get_out("mind_map_result.typ")
+    result.final_typst.write_text(final)
 
     try:
         fmt = plumbum.local["typstyle"]
-        fmt.run(["--inplace", str(final_path)])
+        fmt.run(["--inplace", str(result.final_typst)])
 
     except plumbum.CommandNotFound:
         pass
@@ -108,13 +110,18 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
         if opts.generate.mind_map.typst_compile_root:
             compile_args.extend(["--root", opts.generate.mind_map.typst_compile_root])
 
+        result.final_pdf = opts.generate.mind_map.outfile
+
         compile_args.extend([
-            str(final_path),
+            str(result.final_typst),
             str(opts.generate.mind_map.outfile),
         ])
 
         compile_cmd = plumbum.local["typst"]
         compile_cmd.run(compile_args)
+
+    else:
+        result.final_pdf = None
 
     return result
 
@@ -123,5 +130,7 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
 @haxorg_cli.get_wrap_options(haxorg_opts.RootOptions)
 @click.pass_context
 def gen_mind_map_cli(ctx: click.Context, **kwargs: Any) -> None:
-    opts = haxorg_cli.get_opts(ctx)
-    gen_mind_map(opts)
+    log(CAT).info("Starting mind map generation")
+    result = gen_mind_map(haxorg_cli.get_opts(ctx))
+    if result.final_pdf:
+        log(CAT).info(f"Generated PDF in {result.final_pdf}")

@@ -13,7 +13,7 @@ from beartype.typing import (Any, Dict, List, Optional, Type, TypeVar, get_args,
                              get_origin)
 from py_scriptutils.files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
-from pydantic import BaseModel
+from pydantic import AliasChoices, BaseModel
 from pydantic_core import PydanticUndefined
 
 CAT = __name__
@@ -92,9 +92,8 @@ def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict) -> T:
     Convert the provided CLI parameters into the object of type `T` for
     more typesafe usage
     """
-    initial_cli = ModelType.model_validate(kwargs)  # type: ignore
-    if hasattr(initial_cli, "config"):
-        config = initial_cli.config
+    if "config" in kwargs:
+        config = kwargs["config"]
         config_base = run_config_provider(
             ([str(Path(config).resolve())] if config else []), True)
 
@@ -127,11 +126,19 @@ def options_from_model(model: BaseModel) -> List[Any]:
 
         has_default = field.default is not None and field.default != PydanticUndefined
         is_multiple = get_origin(field.annotation) is list
-        opt_name = field.alias if field.alias else name
+        match field.alias:
+            case str():
+                opt_name = f"--{field.alias}"
+
+            case AliasChoices():
+                opt_name = f"--{field.alias.choices[0]}"
+
+            case None:
+                opt_name = f"--{name}"
 
         result.append(
             click.option(
-                "--" + opt_name,
+                opt_name,
                 type=DefaultWrapper(py_type_to_click(field.annotation)),
                 help=field.description,
                 expose_value=True,
@@ -203,9 +210,6 @@ def find_config_files(with_trace: bool, potential_paths: List[str]) -> List[str]
     result: List[str] = []
     for path in potential_paths:
         if os.path.exists(path):
-            if with_trace:
-                # TODO replace 'with trace' by a nested logger name
-                log("org.cli").debug(f"Trying {path} for config -- file exists, using it")
             result.append(path)
 
         elif with_trace:

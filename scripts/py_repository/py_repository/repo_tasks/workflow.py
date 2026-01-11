@@ -1,29 +1,23 @@
 #!/usr/bin/env python
 
 import json
+import logging
 from pathlib import Path
+
+import py_repository.repo_tasks.workflow_utils as workflow_utils
+import rich_click as click
+from beartype.typing import Any, Optional
+from py_repository.repo_tasks import (examples_build, haxorg_base, haxorg_build,
+                                      haxorg_codegen, haxorg_coverage, haxorg_docker,
+                                      haxorg_docs, haxorg_linting, haxorg_tests)
 from py_repository.repo_tasks.common import get_build_root
 from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
-import py_repository.repo_tasks.workflow_utils as workflow_utils
-from py_repository.repo_tasks import (
-    haxorg_base,
-    haxorg_build,
-    haxorg_codegen,
-    haxorg_coverage,
-    haxorg_docker,
-    haxorg_docs,
-    haxorg_tests,
-    examples_build,
-    haxorg_linting,
-)
-
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.toml_config_profiler import apply_options, get_user_provided_params, merge_dicts, options_from_model, pack_context
-from pydantic import BaseModel, Field
-from beartype.typing import Optional, Any
-import rich_click as click
 from py_scriptutils.script_logging import log, setup_multi_file_logging
-import logging
+from py_scriptutils.toml_config_profiler import (apply_options, get_user_provided_params,
+                                                 merge_dicts, options_from_model,
+                                                 pack_context)
+from pydantic import BaseModel, Field
 
 CAT = __name__
 

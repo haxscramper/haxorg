@@ -5,6 +5,7 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import CliField
 from pydantic import AfterValidator, AliasChoices, BaseModel, ConfigDict, Field
+import py_haxorg.pyhaxorg_utils as org_utils
 
 CAT = __name__
 
@@ -163,7 +164,7 @@ class TagSortingOptions(BaseModel, extra="forbid"):
 
 class TodoCollectorOptions(BaseModel, extra="forbid"):
     infile: List[Path]
-    outfile: Path
+    outdir: Path
 
 
 class StoryGridOpts(BaseModel, extra="forbid"):
@@ -215,3 +216,5 @@ class RootOptions(BaseModel, extra="forbid"):
 
     generate: SubcommandField[GenerateOptions] = None
     export: SubcommandField[ExportOptions] = None
+    todo_ident_names: List[str] = Field(
+        default_factory=lambda: list(org_utils.SEMANTIC_BIG_IDENT_ITEMS))

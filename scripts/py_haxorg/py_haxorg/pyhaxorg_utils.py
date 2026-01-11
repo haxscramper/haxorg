@@ -7,12 +7,44 @@ from pathlib import Path
 
 import py_haxorg.pyhaxorg_wrap as org
 from beartype import beartype
-from beartype.typing import Dict, List, Optional, Union
+from beartype.typing import Dict, List, Optional, Union, Set
 from py_exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_wrap import UserTime, UserTimeBreakdown
 from py_scriptutils.script_logging import ExceptionContextNote, log
 
 CAT = "org"
+
+TODO_ITEMS = set([
+    "TODO",
+    "DONE",
+    "COMPLETED",
+    "NEXT",
+    "WIP",
+    "TRIAGED",
+    "FAILED",
+    "PARTIALLY",
+    "CANCELLED",
+    "PAUSED",
+    "REVIEW",
+])
+
+ADMONITION_ITEMS = set([
+    "QUESTION",
+    "NOTE",
+    "IDEA",
+    "WARNING",
+    "ERROR",
+    "BUG",
+    "FIXME",
+    "XXX",
+    "XXXX",
+    "XXXXX",
+    "IMPLEMENT",
+    "TEMP",
+    "HACK",
+])
+
+SEMANTIC_BIG_IDENT_ITEMS = TODO_ITEMS.union(ADMONITION_ITEMS)
 
 
 @beartype
@@ -105,22 +137,41 @@ def formatHashTag(node: Union[org.HashTag, org.HashTagText]) -> str:
 
 
 @beartype
-def formatOrgWithoutTime(node: org.Org | List[org.Org]) -> str:
-    return ("".join([
-        ExporterUltraplain.getStr(it)
-        for it in (node if isinstance(node, org.Org) else itertools.chain(
-            *node))  # type: ignore
-        if it.getKind() not in [
-            org.OrgSemKind.Time,
-            org.OrgSemKind.TimeRange,
-        ]
-    ])).strip()
+def formatOrgWithoutPrefix(node: org.Org | List[org.Org],
+                           skip: Set[org.OrgSemKind]) -> str:
+    items = []
+
+    def add(it: org.Org) -> None:
+        items.append(ExporterUltraplain.getStr(it))
+
+    in_skip = True
+    for item in node:  # type: ignore
+        if in_skip and item.getKind() in skip:
+            continue
+
+        in_skip = False
+        add(item)
+
+    return "".join(items).strip()
 
 
 @beartype
-def getTitleBody(node: org.Subtree) -> List[org.Org]:
+def formatOrgWithoutTime(node: org.Org | List[org.Org]) -> str:
+    return formatOrgWithoutPrefix(
+        node,
+        set([
+            org.OrgSemKind.Time,
+            org.OrgSemKind.TimeRange,
+        ]),
+    )
+
+
+@beartype
+def getTitleBody(node: org.Subtree,
+                 todo_items: Set[str] = SEMANTIC_BIG_IDENT_ITEMS) -> List[org.Org]:
     title = [sub for sub in node.title]  # type: ignore
-    while title and isinstance(title[0], (org.Time, org.TimeRange, org.Space)):
+    while title and isinstance(title[0], (org.Time, org.TimeRange, org.Space)) or (
+            isinstance(title[0], org.BigIdent) and title[0].text in todo_items):
         title.pop(0)
 
     while title and isinstance(title[-1], org.Space):

@@ -525,5 +525,5 @@ def test_todo_collector(stable_test_dir: Path) -> None:
                                 generate=haxorg_opts.GenerateOptions(
                                     todo_collector=haxorg_opts.TodoCollectorOptions(
                                         infile=[stable_test_dir],
-                                        outfile=stable_test_dir.joinpath("report.txt"),
+                                        outdir=stable_test_dir.joinpath("report.txt"),
                                     ))))

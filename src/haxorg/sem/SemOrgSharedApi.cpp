@@ -905,6 +905,7 @@ SemSet LeadParagraphNodes{
     OrgSemKind::BigIdent,
     OrgSemKind::Time,
     OrgSemKind::RadioTarget,
+    OrgSemKind::Space,
 };
 
 

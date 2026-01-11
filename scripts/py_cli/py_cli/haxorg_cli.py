@@ -1,25 +1,24 @@
+import time
 from pathlib import Path
 
 import py_haxorg.pyhaxorg_wrap as org
+import rich.highlighter
+import rich.text
 import rich_click as click
 from beartype import beartype
-from beartype.typing import Optional, TypeVar, Dict, Any, List
+from beartype.typing import Any, Dict, List, Optional, TypeVar
+from py_cli.haxorg_opts import RootOptions
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import (
-    DefaultWrapperValue,
-    apply_options,
-    get_cli_model,
-    get_user_provided_params,
-    make_config_provider,
-    merge_cli_model,
-    options_from_model,
-    run_config_provider,
-    pack_context,
-)
-
+from py_scriptutils.toml_config_profiler import (DefaultWrapperValue,
+                                                 apply_options, get_cli_model,
+                                                 get_user_provided_params,
+                                                 make_config_provider,
+                                                 merge_cli_model,
+                                                 options_from_model,
+                                                 pack_context,
+                                                 run_config_provider)
 from py_scriptutils.tracer import TraceCollector
-from py_cli.haxorg_opts import RootOptions
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"
 CAT = __name__
@@ -156,16 +155,32 @@ def parseDirectory(opts: RootOptions, dir: Path) -> org.Org:
 
     def parse_node_impl(path: str) -> org.Org:
         try:
+            start = time.perf_counter()
             result = parseCachedFile(
                 opts,
                 Path(path),
                 parse_opts=getParseOpts(opts, Path(path)),
             )
 
+            elapsed = time.perf_counter() - start
+
+            log(CAT).info(f"Parsed '{path}' in {elapsed:.3f} sec")
+ 
             return result
 
         except Exception as e:
-            log(CAT).error(f"Failed parsing {path}", exc_info=e)
+            message = rich.highlighter.ReprHighlighter()(
+                rich.text.Text(f"Failed parsing '{path}'"))
+
+            for line in str(e).split("\n")[:10]:
+                message.append(rich.text.Text(f"\n{line}", style="dim"))
+
+            log(CAT).error(message,
+                           extra={
+                               "highlighter": rich.highlighter.NullHighlighter(),
+                               "markup": True,
+                           })
+
             return org.Empty()
 
     org.setGetParsedNode(dir_opts, parse_node_impl)

@@ -16,7 +16,6 @@ from beartype.typing import Any, Set, Callable, Optional, Literal
 def is_ci() -> bool:
     return bool(os.getenv("INVOKE_CI"))
 
-
 def to_debug_json(
     obj: Any,
     include_single_underscore_attrs: bool = False,
@@ -153,10 +152,13 @@ class NoTTYFormatter(logging.Formatter):
 
 def log(category: str = "rich") -> logging.Logger:
     log = logging.getLogger(category)
-    if not log.hasHandlers():
-        log.setLevel(logging.NOTSET)
-        # log.propagate = False
+    log.setLevel(logging.DEBUG)
 
+    if "pytest" in sys.modules or hasattr(sys, "_called_from_test"):
+        return log
+
+    if not hasattr(log, "__has_haxorg_handler__"):
+        setattr(log, "__has_haxorg_handler__", True)
         if sys.stdout.isatty():
             rich_handler = RichHandler(
                 console=Console(width=None),
