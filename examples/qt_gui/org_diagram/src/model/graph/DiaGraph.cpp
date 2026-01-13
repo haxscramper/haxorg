@@ -136,6 +136,9 @@ json DiaGraphVertex::getSerialNonRecursive(
                     subtree.value()->treeId,
                     geometry);
                 res.extra.geometry = geometry.assume_value();
+                if (!graph->tree_context->use_padding) {
+                    res.extra.geometry->padding = std::nullopt;
+                }
             } else {
                 HSLOG_WARNING("No geometry: {}", geometry.assume_error());
             }
@@ -167,7 +170,7 @@ json DiaGraphVertex::getSerialNonRecursive(
 
         for (auto const& sub : subtree->subAs<org::imm::ImmSubtree>()) {
             auto sub_res = aux_nested_todo(sub, aux_nested_todo);
-            if (sub_res) {
+            if (sub_res && graph->tree_context->use_nested_todo) {
                 res.extra.nestedSubtrees.push_back(sub_res.value());
             }
         }

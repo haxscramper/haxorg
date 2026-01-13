@@ -88,10 +88,10 @@ struct std::hash<DiaGraphVertex> {
 
 
 class DiaGraph : public org::graph::IGraph {
-    DiaContext::Ptr tree_context;
     hstd::UnorderedStore<org::graph::VertexID, DiaGraphVertex> vertices;
 
   public:
+    DiaContext::Ptr tree_context;
     DiaGraph(DiaContext::Ptr tree_context) : tree_context{tree_context} {};
 
     org::graph::VertexID getID(DiaGraphVertex const& vert) const {

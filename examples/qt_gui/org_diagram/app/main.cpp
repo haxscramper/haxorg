@@ -76,6 +76,8 @@ class CliApplication : public QCoreApplication {
         // dia_graph->addCollection(hierarchy_collection);
         dia_graph->addTracker(subtree_id_tracker);
         dia_graph->addCollection(description_list_collection);
+        dia_context->use_padding     = conf.use_padding;
+        dia_context->use_nested_todo = conf.use_nested_todo;
 
         connect(
             version_store.get(),

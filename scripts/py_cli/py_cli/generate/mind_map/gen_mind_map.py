@@ -24,6 +24,7 @@ class MindMapBuildArtifacts():
     mmap_elk_layout: elk_schema.Graph
     final_pdf: Optional[Path]
     final_typst: Path
+    mman_initial_path: Path
 
 
 def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
@@ -45,7 +46,7 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
     def get_out(name: str) -> Path:
         return haxorg_cli.get_tmp_file(opts, f"mind_map/{name}")
 
-    mman_initial_path = get_out("mind-map-dump.json")
+    result.mman_initial_path = get_out("mind-map-dump.json")
     org_diagram_cmd = plumbum.local[str(
         opts.generate.mind_map.org_diagram_tool)].with_env(ASAN_OPTIONS="detect_leaks=0",)
 
@@ -54,12 +55,14 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
             dict(
                 documentPath=str(opts.generate.mind_map.infile),
                 mode="MindMapDump",
-                outputPath=str(mman_initial_path),
+                outputPath=str(result.mman_initial_path),
+                use_padding=opts.generate.mind_map.use_padding,
+                use_nested_todo=opts.generate.mind_map.use_nested_todo,
             ))
     ])
 
     result.mmap_model = haxorg_mind_map.Graph.model_validate(
-        json.loads(Path(mman_initial_path).read_text()))
+        json.loads(Path(result.mman_initial_path).read_text()))
     result.mmap_igraph = haxorg_mind_map.convert_to_igraph(result.mmap_model)
 
     result.mmap_igraph = result.mmap_igraph.induced_subgraph(
@@ -132,5 +135,7 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
 def gen_mind_map_cli(ctx: click.Context, **kwargs: Any) -> None:
     log(CAT).info("Starting mind map generation")
     result = gen_mind_map(haxorg_cli.get_opts(ctx))
+    log(CAT).info(f"Typst file in {result.final_typst}")
+    log(CAT).info(f"Dump of the mind map model {result.mman_initial_path}")
     if result.final_pdf:
         log(CAT).info(f"Generated PDF in {result.final_pdf}")

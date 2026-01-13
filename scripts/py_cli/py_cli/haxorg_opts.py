@@ -132,6 +132,9 @@ class GenerateMindMapOptions(BaseModel, extra="forbid"):
     wrapper_dir: Path = Field(default_factory=lambda: Path(
         "scripts/py_cli/py_cli/generate/mind_map/elk_cli_wrapper"))
 
+    use_padding: bool = True
+    use_nested_todo: bool = True
+
 
 class GenerateNodeCloudOptions(BaseModel, extra="forbid"):
     infile: List[ReadableFilePath]

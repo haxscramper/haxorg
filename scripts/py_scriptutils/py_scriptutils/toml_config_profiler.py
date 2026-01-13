@@ -97,6 +97,9 @@ def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict) -> T:
         config_base = run_config_provider(
             ([str(Path(config).resolve())] if config else []), True)
 
+    else:
+        config_base = dict()
+
     conf = merge_cli_model(ctx, config_base, kwargs, ModelType)
     return conf
 

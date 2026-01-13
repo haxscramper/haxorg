@@ -162,10 +162,11 @@ struct [[refl]] DiaId : DiaIdBase {
     DiaIdT<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
             if (T::staticKind != getKind()) {
-                throw std::logic_error(hstd::fmt(
-                    "Kind for type T '{}' != ID kind '{}'",
-                    T::staticKind,
-                    getKind()));
+                throw std::logic_error(
+                    hstd::fmt(
+                        "Kind for type T '{}' != ID kind '{}'",
+                        T::staticKind,
+                        getKind()));
             }
         }
 
@@ -284,13 +285,15 @@ struct DiaNode {
         auto res = dyn_cast<T>();
         if (res == nullptr) {
             if constexpr (std::is_abstract_v<T>) {
-                throw std::logic_error(hstd::fmt(
-                    "Cannot cast node of kind {}", this->getKind()));
+                throw std::logic_error(
+                    hstd::fmt(
+                        "Cannot cast node of kind {}", this->getKind()));
             } else {
-                throw std::logic_error(hstd::fmt(
-                    "Cannot cast node of kind {} to kind {}",
-                    this->getKind(),
-                    T::staticKind));
+                throw std::logic_error(
+                    hstd::fmt(
+                        "Cannot cast node of kind {} to kind {}",
+                        this->getKind(),
+                        T::staticKind));
             }
         }
         return res;
@@ -517,8 +520,10 @@ struct DiaNodeStore {
 
 struct DiaContext : hstd::SharedPtrApi<DiaContext> {
     std::shared_ptr<DiaNodeStore> store;
+    bool                          use_padding     = true;
+    bool                          use_nested_todo = true;
 
-    DESC_FIELDS(DiaContext, (store));
+    DESC_FIELDS(DiaContext, (store, use_padding));
 
     DiaNode const* at(DiaId const& id) const { return store->at(id); }
     DiaNode const* at(DiaUniqId const& id) const { return at(id.target); }
