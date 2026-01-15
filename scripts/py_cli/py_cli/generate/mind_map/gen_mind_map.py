@@ -22,6 +22,7 @@ class MindMapBuildArtifacts():
     mmap_model: haxorg_mind_map.Graph
     mmap_igraph: ig.Graph
     mmap_elk_layout: elk_schema.Graph
+    mmap_elk_dump: Path
     final_pdf: Optional[Path]
     final_typst: Path
     mman_initial_path: Path
@@ -68,13 +69,19 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
     result.mmap_igraph = result.mmap_igraph.induced_subgraph(
         filter(lambda vertex: vertex["data"].vertexKind == "Item", result.mmap_igraph.vs))
 
-    mmap_walker = haxorg_mind_map.HaxorgMMapWalker(result.mmap_igraph, result.mmap_model)
+    mmap_walker = haxorg_mind_map.HaxorgMMapWalker(
+        result.mmap_igraph,
+        result.mmap_model,
+        opts.generate.mind_map.diagram_config,
+    )
+    
     from py_scriptutils.rich_utils import render_rich
     get_out("mmap_walker_repr.txt").write_text(render_rich(mmap_walker.getRepr()))
     pprint_to_file(to_debug_json(mmap_walker), get_out("mmap_walker.py"))
     mmap_elk = mmap_walker.getELKGraph()
+    result.mmap_elk_dump = get_out("mmap_elk.py")
 
-    pprint_to_file(mmap_elk, get_out("mmap_elk.py"))
+    pprint_to_file(mmap_elk, result.mmap_elk_dump)
 
     layout_script = Path(wrapper_dir).joinpath(
         "build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
@@ -86,7 +93,7 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
         elk_converter.group_multi_layout(
             result.mmap_elk_layout,
             single_item_hyperedge=opts.generate.mind_map.group_single_item_hyperedge,
-            hyperedge_polygon_width=opts.generate.mind_map.hyperedge_width,
+            hyperedge_polygon_width=opts.generate.mind_map.diagram_config.hyperedge_width,
         )
 
     pprint_to_file(to_debug_json(result.mmap_elk_layout),
@@ -137,5 +144,6 @@ def gen_mind_map_cli(ctx: click.Context, **kwargs: Any) -> None:
     result = gen_mind_map(haxorg_cli.get_opts(ctx))
     log(CAT).info(f"Typst file in {result.final_typst}")
     log(CAT).info(f"Dump of the mind map model {result.mman_initial_path}")
+    log(CAT).info(f"MMAP ELK structure {result.mmap_elk_dump}")
     if result.final_pdf:
         log(CAT).info(f"Generated PDF in {result.final_pdf}")

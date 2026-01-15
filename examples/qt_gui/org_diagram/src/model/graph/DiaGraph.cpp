@@ -37,11 +37,12 @@ org::graph::VertexID DiaGraph::delVertex(const DiaUniqId& id) {
 
 namespace {
 json toJson(org::sem::SemId<org::sem::Org> const& id) {
-    auto exp           = org::algo::ExporterJson{};
-    exp.skipEmptyLists = true;
-    exp.skipLocation   = true;
-    exp.skipId         = true;
-    exp.skipNullFields = true;
+    auto exp            = org::algo::ExporterJson{};
+    exp.skipEmptyLists  = true;
+    exp.skipLocation    = true;
+    exp.skipId          = true;
+    exp.skipNullFields  = true;
+    exp.normalizeSpaces = true;
     return exp.eval(id);
 }
 

@@ -341,6 +341,8 @@ def get_node_height_for_text(
     expected_width: float,
     font_size: float,
     size_step: float = 25.0,
+    max_height: Optional[float] = None,
+    min_height: Optional[float] = None,
 ) -> float:
     font_path = fm.findfont(fm.FontProperties(family="DejaVu Sans"))
     split_fit = split_text_to_fit(
@@ -356,6 +358,12 @@ def get_node_height_for_text(
 
     assert result is not None
     assert result != 0
+
+    if max_height and max_height < result:
+        result = max_height
+
+    if min_height and result < min_height:
+        result = min_height
 
     return result
 

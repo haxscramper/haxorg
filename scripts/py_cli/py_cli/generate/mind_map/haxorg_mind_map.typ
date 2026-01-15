@@ -56,7 +56,7 @@
         width: port_width * 1pt,
         height: port_height * 1pt,
         // stroke: black + 1pt,
-        fill: gray.lighten(50%),
+        fill: black.lighten(50%),
       ),
     ),
   )
@@ -251,7 +251,7 @@
 
 #let draw_edge_with_polygon(edge_data) = {
   let hyperedge = edge_data.extra.elk_extra.hyperedge
-  let fill_style = gray.lighten(50%)
+  let fill_style = black.lighten(50%)
 
   place(
     curve(
@@ -440,7 +440,7 @@
     rect(
       width: 100%,
       height: 100%,
-      stroke: (paint: gray.lighten(50%), thickness: 1.5pt, dash: "dashed"),
+      stroke: (paint: black.lighten(50%), thickness: 1.5pt, dash: "dashed"),
       fill: fill_color,
       radius: 5pt,
     ),

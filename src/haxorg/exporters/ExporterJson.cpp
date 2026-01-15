@@ -25,6 +25,14 @@ json ExporterJson::newRes(sem::SemId<sem::Org> org) {
     }
 }
 
+void ExporterJson::visit(json& res, const sem::SemId<sem::Space>& arg) {
+    if (normalizeSpaces) {
+        res["text"] = " ";
+    } else {
+        res["text"] = arg->text;
+    }
+}
+
 void ExporterJson::visitSubtreeValueFields(
     json&            j,
     In<sem::Subtree> tree) {

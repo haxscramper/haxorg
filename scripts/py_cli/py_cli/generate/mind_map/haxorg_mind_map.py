@@ -1,11 +1,14 @@
-from pydantic import BaseModel, Field
-from beartype.typing import List, Optional, Dict, Any, Set
-from beartype import beartype
-from py_cli.generate.mind_map import elk_converter, elk_schema
-import igraph as ig
 from dataclasses import dataclass
+
 import glom
+import igraph as ig
+from beartype import beartype
+from beartype.typing import Any, Dict, List, Optional, Set
+from py_cli.generate.mind_map import elk_converter, elk_schema
+from py_cli import haxorg_opts
 from py_scriptutils.json_utils import Json
+from py_scriptutils.script_logging import log
+from pydantic import BaseModel, Field
 
 CAT = __name__
 
@@ -164,19 +167,10 @@ class HaxorgMMapLabelNode():
 
 
 from collections import defaultdict
-from rich.tree import Tree
 from numbers import Number
+
 from beartype.typing import Tuple
-
-
-class MMapDiagramConfig(BaseModel, extra="forbid"):
-    label_node_port_dimensions: Tuple[float, float] = (4, 8)
-    diagram_node_port_dimensions: Tuple[float, float] = (4, 12)
-    default_inner_padding: float = 5.0
-    diagram_node_title_label_font_size: float = 8.0
-    diagram_node_font_size: float = 12.0
-    diagram_node_height_step: float = 50.0
-    diagram_node_default_width: float = 150.0
+from rich.tree import Tree
 
 
 @beartype
@@ -190,7 +184,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
     # Parent node ID (or None if this is a root node) mapped to the list of edge label nodes
     label_node_nesting: defaultdict[Optional[str], Set[str]]
     label_nodes: Dict[str, HaxorgMMapLabelNode]
-    conf: MMapDiagramConfig
+    conf: haxorg_opts.MMapDiagramConfig
 
     def hasEdgeLabel(self, e: Edge) -> bool:
         return bool(e.extra and (e.extra.edgeBrief or e.extra.edgeDetailed))
@@ -305,7 +299,9 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             return result
 
     def addDirectEdge(self, e: Edge) -> None:
-        if self.hasEdgeLabel(e):
+        if self.hasEdgeLabel(
+                e
+        ) and self.conf.edge_label_type == haxorg_opts.MMapDiagramEdgeLabelType.INSERT_LABEL_NODES:
             label_node = HaxorgMMapLabelNode(originalEdgeId=e.edgeId)
             self.fragmented_edge_map[
                 label_node.getHeadSegmentId()] = HaxorgMMapEdgeCrossingSegment(
@@ -372,7 +368,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         for top in self.hgraph.rootVertexIDs:
             append_root_items(top)
 
-    def __init__(self, igraph: ig.Graph, hgraph: Graph) -> None:
+    def __init__(self, igraph: ig.Graph, hgraph: Graph,
+                 conf: haxorg_opts.MMapDiagramConfig) -> None:
         super().__init__()
         self.igraph = igraph
         self.hgraph = hgraph
@@ -384,7 +381,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         self.all_edges = dict()
         self.label_node_nesting = defaultdict(lambda: set())
         self.label_nodes = dict()
-        self.conf = MMapDiagramConfig()
+        self.conf = conf
 
         self.addHGraphRootVertices()
         self.addHGraphEdges()
@@ -472,6 +469,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     expected_width=float(node_width),
                     font_size=self.conf.diagram_node_font_size,
                     size_step=self.conf.diagram_node_height_step,
+                    max_height=self.conf.diagram_node_max_height,
+                    min_height=self.conf.diagram_node_min_height,
                 ),
             )
             result = elk_schema.Node(
@@ -509,6 +508,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                         expected_width=float(node_width),
                         font_size=self.conf.diagram_node_font_size,
                         size_step=self.conf.diagram_node_height_step,
+                        max_height=self.conf.diagram_node_max_height,
+                        min_height=self.conf.diagram_node_min_height,
                     ),
                 ),
                 extra=dict(haxorg_vertex=data),
@@ -551,12 +552,14 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         label_edge = self.all_edges[label_node.originalEdgeId]
         return elk_schema.Node(
             id=label_node.getLabelNodeId(),
-            width=100.0,
+            width=self.conf.label_node_expected_width,
             height=elk_converter.get_node_height_for_text(
                 (label_edge.extra and ((label_edge.extra.edgeBrief or "") +
                                        (label_edge.extra.edgeDetailed or ""))) or "",
-                expected_width=100.0,
-                font_size=8.0,
+                expected_width=self.conf.label_node_expected_width,
+                font_size=self.conf.label_node_font_size,
+                max_height=self.conf.label_node_max_height,
+                min_height=self.conf.label_node_min_height,
             ),
             ports=[
                 elk_schema.Port(

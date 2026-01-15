@@ -1,3 +1,4 @@
+import enum
 from pathlib import Path
 
 from beartype.typing import Annotated, List, Optional, Tuple, TypeVar
@@ -112,6 +113,29 @@ class GenerateActivityAnalysisOptions(BaseModel):
         description="Path to the generated SQLite DB, defaults to outdir/db.sqlite")
 
 
+class MMapDiagramEdgeLabelType(str, enum.Enum):
+    INSERT_LABEL_NODES = "INSERT_LABEL_NODES"
+    LABEL_EDGES = "LABEL_EDGES"
+    NO_LABELS = "NO_LABELS"
+
+class MMapDiagramConfig(BaseModel, extra="forbid"):
+    label_node_port_dimensions: Tuple[float, float] = (4, 8)
+    diagram_node_port_dimensions: Tuple[float, float] = (4, 12)
+    default_inner_padding: float = 5.0
+    diagram_node_title_label_font_size: float = 8.0
+    diagram_node_font_size: float = 12.0
+    diagram_node_height_step: float = 50.0
+    diagram_node_default_width: float = 150.0
+    diagram_node_max_height: Optional[float] = None
+    diagram_node_min_height: Optional[float] = None
+    hyperedge_width: float = 2.0
+    label_node_expected_width: float = 100.0
+    label_node_font_size: float = 8.0
+    label_node_max_height: Optional[float] = None
+    label_node_min_height: Optional[float] = None
+    edge_label_type: MMapDiagramEdgeLabelType = MMapDiagramEdgeLabelType.INSERT_LABEL_NODES
+
+
 class GenerateMindMapOptions(BaseModel, extra="forbid"):
     infile: ReadableFilePath
     outfile: NonEmptyFilePath
@@ -122,7 +146,7 @@ class GenerateMindMapOptions(BaseModel, extra="forbid"):
 
     group_hyperedges: bool = True
     group_single_item_hyperedge: bool = True
-    hyperedge_width: float = 2.0
+
     typst_do_compile: bool = True
     typst_compile_root: Optional[str] = "/"
     typst_import_list: List[Tuple[str, List[str]]] = Field(
@@ -134,6 +158,8 @@ class GenerateMindMapOptions(BaseModel, extra="forbid"):
 
     use_padding: bool = True
     use_nested_todo: bool = True
+
+    diagram_config: MMapDiagramConfig = Field(default_factory=lambda: MMapDiagramConfig())
 
 
 class GenerateNodeCloudOptions(BaseModel, extra="forbid"):
