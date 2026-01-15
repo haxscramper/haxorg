@@ -8,8 +8,8 @@ from pathlib import Path
 
 import igraph as ig
 import numpy as np
-import py_cli.generate.mind_map.elk_schema as elk
 import py_cli.generate.mind_map.typst_schema as typ
+from py_cli.generate.mind_map import elk_schema
 from beartype import beartype
 from beartype.typing import (
     Any,
@@ -81,13 +81,13 @@ class ElkExtra(BaseModel, extra="forbid"):
 
 
 def graph_to_typst(
-    graph: elk.Graph,
+    graph: elk_schema.Graph,
     edge_command: str = "draw_edge",
     node_command: str = "draw_node",
 ) -> typ.Document:
     subnodes: List[typ.TypstNode] = []
 
-    bbox = elk.compute_graph_bounding_box(graph)
+    bbox = elk_schema.compute_graph_bounding_box(graph)
 
     subnodes.append(
         typ.Set(target="page",
@@ -121,7 +121,8 @@ def graph_to_typst(
     return typ.Document(subnodes=subnodes)
 
 
-def _collect_all_edges(node: elk.Graph | elk.Node, all_edges: List[elk.Edge]) -> None:
+def _collect_all_edges(node: elk_schema.Graph | elk_schema.Node,
+                       all_edges: List[elk_schema.Edge]) -> None:
     if hasattr(node, 'edges') and node.edges:
         all_edges.extend(node.edges)
 
@@ -134,7 +135,8 @@ from collections import defaultdict
 
 
 @beartype
-def get_edge_groups_by_shared_ports(target: elk.Graph | elk.Node) -> List[List[elk.Edge]]:
+def get_edge_groups_by_shared_ports(
+        target: elk_schema.Graph | elk_schema.Node) -> List[List[elk_schema.Edge]]:
     port_to_edges = defaultdict(list)
     assert target.edges is not None
     for edge in target.edges:
@@ -313,12 +315,12 @@ class Direction(Enum):
     IN = 0
     OUT = 1
 
-    def to_port_side(self) -> elk.PortSide:
+    def to_port_side(self) -> elk_schema.PortSide:
         if self == Direction.IN:
-            return elk.PortSide.WEST
+            return elk_schema.PortSide.WEST
 
         else:
-            return elk.PortSide.EAST
+            return elk_schema.PortSide.EAST
 
 
 @beartype
@@ -384,14 +386,14 @@ def single_line_label(
         font_size: float,
         extra_extra: Dict[str, Any] = dict(),
         size_step: float = 25.0,
-) -> elk.Label:
+) -> elk_schema.Label:
     font_path = fm.findfont(fm.FontProperties(family="DejaVu Sans"))
     expected_width = round_to_multiple(
         get_text_width(text, font_path, font_size) + font_size * 2, size_step)
     expected_height = round_to_multiple(
         get_line_height(font_path, font_size) + font_size, size_step)
 
-    return elk.Label(
+    return elk_schema.Label(
         id=id,
         text=text,
         width=expected_width,
@@ -408,7 +410,7 @@ def single_line_label(
 
 
 @beartype
-def compute_hyperedge_drawing(sections: List[elk.EdgeSection],
+def compute_hyperedge_drawing(sections: List[elk_schema.EdgeSection],
                               width: float) -> List[DrawCommand]:
     buffered_lines = []
 
@@ -465,8 +467,8 @@ def extract_color_palette(texture_path: str, n_colors: int = 3) -> dict:
 
 
 @beartype
-def merge_edges_into_hyperedge(edges: List[elk.Edge],
-                               hyperedge_polygon_width: float) -> elk.Edge:
+def merge_edges_into_hyperedge(edges: List[elk_schema.Edge],
+                               hyperedge_polygon_width: float) -> elk_schema.Edge:
     if not edges:
         raise ValueError("Cannot merge empty list of edges")
 
@@ -480,12 +482,17 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge],
 
     merged_extra: Dict[str, Any] = dict()
     edge_order: List[str] = []
+    merged_colors: List[str] = []
 
     for edge in edges:
         edge_order.append(edge.id)
 
+        if edge.extra:
+            merged_colors.append(edge.extra["edge_color"])
+
         if edge.source:
             all_sources.add(edge.source)
+
         if edge.sources:
             all_sources.update(edge.sources)
 
@@ -509,21 +516,23 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge],
             all_labels.extend(edge.labels)
 
         if edge.extra:
-            assert isinstance(edge, elk.Edge)
+            assert isinstance(edge, elk_schema.Edge)
             assert isinstance(edge.extra, dict)
             merged_extra[edge.id] = edge.extra
 
     if len(edges) == 1:
-        merged_edge = edges[0].model_copy(update=dict(extra=dict(elk_extra=ElkExtra(
-            hyperedge=HyperEdgeData(
+        merged_edge = edges[0].model_copy(update=dict(extra=dict(
+            elk_extra=ElkExtra(hyperedge=HyperEdgeData(
                 drawing=compute_hyperedge_drawing(all_sections,
                                                   width=hyperedge_polygon_width),
                 merged_edge_extra=merged_extra,
                 merged_edge_ids=edge_order,
-            )))))
+            )),
+            edge_color=merged_colors[0] if merged_colors else None,
+        )))
 
     else:
-        merged_edge = elk.Edge(
+        merged_edge = elk_schema.Edge(
             id=f"merged_{hash(tuple(e.id for e in edges))}",
             sources=list(all_sources) if len(all_sources) > 1 else None,
             targets=list(all_targets) if len(all_targets) > 1 else None,
@@ -532,12 +541,15 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge],
             sections=all_sections,
             junctionPoints=all_junction_points if all_junction_points else None,
             labels=all_labels if all_labels else None,
-            extra=dict(elk_extra=ElkExtra(hyperedge=HyperEdgeData(
-                drawing=compute_hyperedge_drawing(all_sections,
-                                                  width=hyperedge_polygon_width),
-                merged_edge_extra=merged_extra,
-                merged_edge_ids=edge_order,
-            ))),
+            extra=dict(
+                elk_extra=ElkExtra(hyperedge=HyperEdgeData(
+                    drawing=compute_hyperedge_drawing(all_sections,
+                                                      width=hyperedge_polygon_width),
+                    merged_edge_extra=merged_extra,
+                    merged_edge_ids=edge_order,
+                )),
+                edge_color=merged_colors[0] if merged_colors else None,
+            ),
         )
 
     return merged_edge
@@ -545,12 +557,12 @@ def merge_edges_into_hyperedge(edges: List[elk.Edge],
 
 @beartype
 def group_multi_layout(
-    target: elk.Graph | elk.Node,
+    target: elk_schema.Graph | elk_schema.Node,
     hyperedge_polygon_width: float,
     single_item_hyperedge: bool = False,
 ) -> None:
     if target.edges:
-        grouped_multi_edges: List[elk.Edge] = []
+        grouped_multi_edges: List[elk_schema.Edge] = []
         for group in get_edge_groups_by_shared_ports(target):
             if len(group) == 1:
                 if single_item_hyperedge:
@@ -587,11 +599,11 @@ class GraphWalker(ABC):
         ...
 
     @abstractmethod
-    def getELKNodeNonRec(self, vertex_id: str) -> elk.Node:
+    def getELKNodeNonRec(self, vertex_id: str) -> elk_schema.Node:
         ...
 
     @abstractmethod
-    def getELKEdge(self, edge_id: str) -> elk.Edge:
+    def getELKEdge(self, edge_id: str) -> elk_schema.Edge:
         ...
 
     @abstractmethod
@@ -602,7 +614,7 @@ class GraphWalker(ABC):
     def getEdges(self) -> List[str]:
         ...
 
-    def getELKNodeRec(self, vertex_id: str) -> elk.Node:
+    def getELKNodeRec(self, vertex_id: str) -> elk_schema.Node:
         result = self.getELKNodeNonRec(vertex_id)
         nested = self.getNestedVertices(vertex_id)
         if nested:
@@ -612,8 +624,8 @@ class GraphWalker(ABC):
 
         return result
 
-    def getELKGraph(self) -> elk.Graph:
-        result = elk.Graph(
+    def getELKGraph(self) -> elk_schema.Graph:
+        result = elk_schema.Graph(
             id="root",
             children=[],
             edges=[],

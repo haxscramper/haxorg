@@ -48,6 +48,8 @@
   let rect_x = port_x
   let rect_y = port_y
 
+  let fill_color = rgb(port.extra.port_color)
+
   place(
     dx: port_x * 1pt,
     dy: port_y * 1pt,
@@ -55,8 +57,7 @@
       rect(
         width: port_width * 1pt,
         height: port_height * 1pt,
-        // stroke: black + 1pt,
-        fill: black.lighten(50%),
+        fill: fill_color,
       ),
     ),
   )
@@ -251,7 +252,7 @@
 
 #let draw_edge_with_polygon(edge_data) = {
   let hyperedge = edge_data.extra.elk_extra.hyperedge
-  let fill_style = black.lighten(50%)
+  let fill_style = rgb(edge_data.extra.edge_color)
 
   place(
     curve(

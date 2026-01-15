@@ -134,6 +134,7 @@ class MMapDiagramConfig(BaseModel, extra="forbid"):
     label_node_max_height: Optional[float] = None
     label_node_min_height: Optional[float] = None
     edge_label_type: MMapDiagramEdgeLabelType = MMapDiagramEdgeLabelType.INSERT_LABEL_NODES
+    edge_color_map: Optional[str] = "tab10"
 
 
 class GenerateMindMapOptions(BaseModel, extra="forbid"):
