@@ -254,6 +254,11 @@ else()
   set(ORG_INSTALL_TARGET_LIST haxorg hstd)
 endif()
 
+if(${ORG_USE_QT})
+  add_subdirectory(src/app/org_viewer)
+  add_subdirectory(src/app/org_diagram)
+endif()
+
 install(
   TARGETS ${ORG_INSTALL_TARGET_LIST}
   EXPORT HaxorgTargets
