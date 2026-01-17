@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import traceback
 import logging
 import sys
@@ -15,6 +16,7 @@ from beartype.typing import Any, Set, Callable, Optional, Literal
 
 def is_ci() -> bool:
     return bool(os.getenv("INVOKE_CI"))
+
 
 def to_debug_json(
     obj: Any,
@@ -208,30 +210,80 @@ class ExceptionContextNote:
         return False
 
 
+CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE = True
+CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS = True
+
+
+@dataclass
+class FrameInfo:
+    filename: str
+    line_no: int
+    func_name: str
+    args: dict[str, str]
+    code_line: str
+
+
 def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) -> None:
-    """
-    Custom traceback handler that filters out frames with '<@beartype' and formats
-    the output using 'rich' library, with the decision on one-line or two-line format
-    based on available width.
-    """
     console = Console()
 
-    # Extract traceback information
-    extracted_tb = traceback.extract_tb(exc_traceback)
+    current_tb = exc_traceback
+    frames_info = []
 
-    # Filter out frames with "<@beartype" in their names
-    filtered_tb = [frame for frame in extracted_tb if "<@beartype" not in frame.filename]
-    formatted = [(f"File \"{frame.filename}\", line {frame.lineno}, in {frame.name}",
-                  frame.line) for frame in filtered_tb]
+    while current_tb is not None:
+        frame = current_tb.tb_frame
+        filename = frame.f_code.co_filename
 
-    max_formatted_width = max([len(it[0]) for it in formatted]) + 2
+        if "<@beartype" not in filename:
+            line_no = current_tb.tb_lineno
+            func_name = frame.f_code.co_name
 
-    # Determine if one-line formatting is feasible
-    one_line_format = console.width >= 100  # example threshold for deciding format
+            args = {}
+            if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
+                arg_names = frame.f_code.co_varnames[:frame.f_code.co_argcount]
+                for arg_name in arg_names:
+                    if arg_name in frame.f_locals:
+                        args[arg_name] = repr(frame.f_locals[arg_name])
 
-    for frame in formatted:
-        print("{:<{}}{}{}".format(frame[0], max_formatted_width,
-                                  " : " if one_line_format else "\n  ", frame[1]))
+            extracted_frame = traceback.extract_tb(current_tb, limit=1)[0]
+            frames_info.append(
+                FrameInfo(filename, line_no, func_name, args, extracted_frame.line or ""))
+
+        current_tb = current_tb.tb_next
+
+    if not frames_info:
+        print(f"{exc_type.__name__} : {exc_value}")
+        return
+
+    max_arg_name_width = 0
+    if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
+        for frame_info in frames_info:
+            if frame_info.args:
+                max_arg_name_width = max(
+                    max_arg_name_width,
+                    max(len(arg_name) for arg_name in frame_info.args.keys()))
+
+    for frame_info in frames_info:
+        header = f"File \"{frame_info.filename}\", line {frame_info.line_no}, in {frame_info.func_name}"
+        print(f"{header} : {frame_info.code_line}")
+
+        if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
+            for arg_name, arg_value in frame_info.args.items():
+                available_width = console.width - max_arg_name_width - 5
+
+                if len(arg_value) > available_width:
+                    if CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE:
+                        arg_value = arg_value[:available_width - 3] + "..."
+                    else:
+                        wrapped_lines = []
+                        for i in range(0, len(arg_value), available_width):
+                            wrapped_lines.append(arg_value[i:i + available_width])
+
+                        print(f"  {arg_name:<{max_arg_name_width}} = {wrapped_lines[0]}")
+                        for line in wrapped_lines[1:]:
+                            print(f"  {'':<{max_arg_name_width}}   {line}")
+                        continue
+
+                print(f"  {arg_name:<{max_arg_name_width}} = {arg_value}")
 
     print(f"{exc_type.__name__} : {exc_value}")
     if hasattr(exc_value, "__notes__"):
