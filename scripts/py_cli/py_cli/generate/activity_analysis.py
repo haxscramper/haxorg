@@ -175,7 +175,7 @@ def activity_analysis(opts: haxorg_opts.RootOptions) -> None:
         nodes: List[Tuple[org.Org, str]] = []
         for file in infile:
             log(CAT).info(file)
-            nodes.append((parseCachedFile(file, opts.cache), file.name))
+            nodes.append((parseCachedFile(opts, file), file.name))
 
         if sql_db.exists():
             sql_db.unlink()

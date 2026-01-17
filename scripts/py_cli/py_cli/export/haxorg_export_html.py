@@ -19,7 +19,7 @@ def export_html(opts: haxorg_opts.RootOptions,
         run = haxorg_cli.get_run(opts) # type: ignore
 
     with run.event("Run html export", CAT):
-        node = haxorg_cli.parseCachedFile(opts.export.html.infile, opts.cache)
+        node = haxorg_cli.parseCachedFile(opts, opts.export.html.infile)
         exp = ExporterHtml()
         document = exp.evalDocument(node)
         opts.export.html.outfile.write_text(str(document))
@@ -31,4 +31,4 @@ def export_html(opts: haxorg_opts.RootOptions,
 @haxorg_cli.get_wrap_options(haxorg_opts.ExportHtmlOptions)
 @click.pass_context
 def export_html_cli(ctx: click.Context, **kwargs: Any) -> None:
-    export_html(haxorg_cli.get_opts(ctx), haxorg_cli.get_run(ctx))
+    export_html(haxorg_cli.get_opts(ctx))

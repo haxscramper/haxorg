@@ -1,4 +1,3 @@
-
 #let debug_text(text_in, color) = {
   place(
     top + left,
@@ -73,6 +72,24 @@
   }
 }
 
+#let render_org_hash_tag(tag) = {
+  tag.head
+  if "subtags" in tag {
+    "##"
+    if (tag.subtags.len() == 1) {
+      for tag in tag.subtags {
+        render_org_hash_tag(tag)
+      }
+    } else {
+      "["
+      for tag in tag.subtags {
+        render_org_hash_tag(tag)
+      }
+      "]"
+    }
+  }
+}
+
 #let render_org(node) = {
   let kind = node.kind
 
@@ -120,7 +137,11 @@
   } else if kind == "BlockDynamicFallback" {
     if (node.name == "description") {
       stack(render_subnodes_wo_newlines())
+    } else {
+      [Unknown block type: #kind, #debug_text(repr(node.name), red)]
     }
+  } else if kind == "HashTag" {
+    strong(render_org_hash_tag(node.text))
   } else {
     // Fallback for unknown node types
     [Unknown node type: #kind, #debug_text(repr(node), red)]

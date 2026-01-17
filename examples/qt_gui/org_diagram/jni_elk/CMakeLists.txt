@@ -31,6 +31,10 @@ set(GRADLE_WRAPPER_JAR "${CMAKE_CURRENT_SOURCE_DIR}/gradle/wrapper/gradle-wrappe
 set(GRADLE_WRAPPER_PROPERTIES
     "${CMAKE_CURRENT_SOURCE_DIR}/gradle/wrapper/gradle-wrapper.properties")
 
+# Define Gradle build directory in CMake binary directory
+set(GRADLE_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/gradle-build")
+set(JAR_OUTPUT_PATH "${GRADLE_BUILD_DIR}/libs/elk-wrapper.jar")
+
 # Generate Gradle wrapper if it doesn't exist
 add_custom_command(
   OUTPUT ${GRADLE_WRAPPER} ${GRADLE_WRAPPER_JAR} ${GRADLE_WRAPPER_PROPERTIES}
@@ -44,20 +48,22 @@ add_custom_command(
 add_custom_target(gradle_wrapper DEPENDS ${GRADLE_WRAPPER} ${GRADLE_WRAPPER_JAR}
                                          ${GRADLE_WRAPPER_PROPERTIES})
 
-# Build the JAR file using Gradle wrapper
+# Build the JAR file using Gradle wrapper with custom build directory
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake-output/elk-wrapper.jar
+  OUTPUT ${JAR_OUTPUT_PATH}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
-  COMMAND ${CMAKE_COMMAND} -E env "JAVA_HOME=${JAVA_HOME}" "PATH=${JAVA_HOME}/bin:$ENV{PATH}"
-          ${GRADLE_WRAPPER} --info clean build
+  COMMAND
+    ${CMAKE_COMMAND} -E env "JAVA_HOME=${JAVA_HOME}" "PATH=${JAVA_HOME}/bin:$ENV{PATH}"
+    ${GRADLE_WRAPPER} --info clean build -PbuildDir=${GRADLE_BUILD_DIR}
+    --project-dir=${CMAKE_CURRENT_SOURCE_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   DEPENDS gradle_wrapper ${CMAKE_CURRENT_SOURCE_DIR}/build.gradle
           ${CMAKE_CURRENT_SOURCE_DIR}/src/main/java/com/example/elk/ElkLayoutWrapper.java
-  COMMENT "Building ELK wrapper JAR with Gradle wrapper and Java ${Java_VERSION}"
+  COMMENT
+    "Building ELK wrapper JAR with Gradle wrapper and Java ${Java_VERSION} in ${GRADLE_BUILD_DIR}"
   VERBATIM)
 
-add_custom_target(elk_jar ALL
-                  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake-output/elk-wrapper.jar)
+add_custom_target(elk_jar ALL DEPENDS ${JAR_OUTPUT_PATH})
 
 # Create the JNI wrapper library
 add_library(jni_elk_lib STATIC src/elk_jni_wrapper.cpp include/elk_jni_wrapper.hpp)
@@ -81,10 +87,8 @@ add_custom_command(
   TARGET jni_elk_lib
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:jni_elk_lib>/lib
-  COMMAND
-    ${CMAKE_COMMAND} -E copy_if_different
-    ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake-output/elk-wrapper.jar
-    ${CMAKE_CURRENT_BINARY_DIR}/lib/elk-wrapper.jar
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${JAR_OUTPUT_PATH}
+          ${CMAKE_CURRENT_BINARY_DIR}/lib/elk-wrapper.jar
   COMMENT "Copying JAR to runtime directory")
 
 # Debug targets
@@ -97,6 +101,7 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -E echo "JNI include dirs: ${JNI_INCLUDE_DIRS}"
   COMMAND ${CMAKE_COMMAND} -E echo "System Gradle: ${SYSTEM_GRADLE_COMMAND}"
   COMMAND ${CMAKE_COMMAND} -E echo "Gradle wrapper: ${GRADLE_WRAPPER}"
+  COMMAND ${CMAKE_COMMAND} -E echo "Gradle build dir: ${GRADLE_BUILD_DIR}"
   COMMAND ${CMAKE_COMMAND} -E echo "=== Available Java versions ==="
   COMMAND bash -c "update-alternatives --list java 2>/dev/null || echo 'No alternatives found'"
   COMMAND ${CMAKE_COMMAND} -E echo "=== Current Java version ==="
@@ -107,6 +112,8 @@ add_custom_target(
   debug_gradle
   COMMAND ${CMAKE_COMMAND} -E echo "=== Gradle Environment Debug ==="
   COMMAND ${CMAKE_COMMAND} -E echo "System Gradle: ${SYSTEM_GRADLE_COMMAND}"
+  COMMAND ${CMAKE_COMMAND} -E echo "Gradle build dir: ${GRADLE_BUILD_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E echo "JAR output path: ${JAR_OUTPUT_PATH}"
   COMMAND ${CMAKE_COMMAND} -E echo
           "Gradle wrapper exists: $<IF:$<BOOL:${CMAKE_CURRENT_SOURCE_DIR}/gradlew>,YES,NO>"
   COMMAND
@@ -120,7 +127,7 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -E echo "Cleaning Gradle build artifacts..."
   COMMAND
     bash -c
-    "if [ -f '${GRADLE_WRAPPER}' ]; then ${GRADLE_WRAPPER} clean; else echo 'No Gradle wrapper found'; fi"
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_SOURCE_DIR}/build
+    "if [ -f '${GRADLE_WRAPPER}' ]; then ${GRADLE_WRAPPER} clean -PbuildDir=${GRADLE_BUILD_DIR} --project-dir=${CMAKE_CURRENT_SOURCE_DIR}; else echo 'No Gradle wrapper found'; fi"
+  COMMAND ${CMAKE_COMMAND} -E remove_directory ${GRADLE_BUILD_DIR}
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
   COMMENT "Cleaning all build artifacts including Gradle")

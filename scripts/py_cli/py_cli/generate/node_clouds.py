@@ -6,7 +6,7 @@ import pandas as pd
 import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
-from beartype.typing import Any
+from beartype.typing import Any, Optional
 from py_cli import haxorg_cli, haxorg_opts
 from py_haxorg.pyhaxorg_utils import getFlatTags
 
@@ -14,7 +14,13 @@ CAT = __name__
 
 
 @beartype
-def node_clouds(opts: haxorg_opts.RootOptions) -> None:
+def node_clouds(
+    opts: haxorg_opts.RootOptions,
+    run: Optional[haxorg_cli.CliRunContext] = None,
+) -> None:
+    if not run:
+        run = haxorg_cli.get_run(opts)  # type: ignore
+
     assert opts.generate
     assert opts.generate.node_clouds
     count: defaultdict[tuple[str, str], int] = defaultdict(lambda: 0)
@@ -32,7 +38,7 @@ def node_clouds(opts: haxorg_opts.RootOptions) -> None:
                 visit(sub)
 
     for file in opts.generate.node_clouds.infile:
-        node = haxorg_cli.parseCachedFile(file, opts.cache)
+        node = haxorg_cli.parseCachedFile(opts, file)
         visit(node)
 
     df = pd.DataFrame(

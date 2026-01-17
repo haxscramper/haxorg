@@ -1,10 +1,12 @@
 {
-  "log_level": "NORMAL",
+  "log_level"          : "NORMAL",
   "use_unchanged_tasks": true,
-  "develop_ci_conf": {
-    "emscripten_deps": false,
+  "instrument"         : {"coverage": true},
+  "develop_ci_conf"    : {
+    "emscripten_deps" : false,
     "emscripten_build": false,
-    "emscripten_test": false,
-    "reflection": false
+    "emscripten_test" : false,
+    "reflection"      : false,
+    "coverage"        : true
   }
 }

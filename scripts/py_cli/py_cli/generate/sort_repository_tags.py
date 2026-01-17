@@ -278,8 +278,8 @@ def sort_reposutory_tags(
     def parse_node_impl(path: str) -> org.Org:
         try:
             result = haxorg_cli.parseCachedFile(
+                opts,
                 Path(path),
-                opts.cache,
                 parse_opts=haxorg_cli.getParseOpts(opts, Path(path)),
             )
 
@@ -301,8 +301,8 @@ def sort_reposutory_tags(
 
     org.eachSubnodeRec(target, visit_target)
 
-    glossary = haxorg_cli.parseCachedFile(Path(opts.generate.sort_tags.tag_glossary_file),
-                                          opts.cache)
+    glossary = haxorg_cli.parseCachedFile(opts,
+                                          Path(opts.generate.sort_tags.tag_glossary_file))
 
     glossary_usage = set()
 

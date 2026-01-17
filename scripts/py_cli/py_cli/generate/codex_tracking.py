@@ -57,10 +57,10 @@ def _format_list(items: List[org.Org]) -> Tuple[str, ...]:
 def codex_tracking(opts: haxorg_opts.RootOptions) -> None:
     assert opts.generate
     assert opts.generate.codex_tracking
-    target_node = haxorg_cli.parseCachedFile(opts.generate.codex_tracking.target_file,
-                                             opts.cache)
+    target_node = haxorg_cli.parseCachedFile(opts,
+                                             opts.generate.codex_tracking.target_file)
     codex_nodes = [
-        haxorg_cli.parseCachedFile(f, opts.cache)
+        haxorg_cli.parseCachedFile(opts, f)
         for f in opts.generate.codex_tracking.codex_files
     ]
 

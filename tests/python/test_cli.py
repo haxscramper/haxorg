@@ -451,16 +451,20 @@ def test_base_activity_analysis(stable_test_dir: Path) -> None:
     ), dbg
 
 
-def test_mind_map(stable_test_dir: Path) -> None:
+def test_mind_map(stable_test_dir: Path, cached_test_dir: Path) -> None:
     from py_cli.generate.mind_map.gen_mind_map import gen_mind_map
 
     gen_mind_map(
-        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-            mind_map=haxorg_opts.GenerateMindMapOptions(
-                infile=get_haxorg_repo_root_path().joinpath(
-                    "tests/org/corpus/org/mind_map_test_1.org"),
-                outfile=stable_test_dir.joinpath("result.pdf"),
-            ))))
+        haxorg_opts.RootOptions(
+            cache=cached_test_dir,
+            generate=haxorg_opts.GenerateOptions(
+                mind_map=haxorg_opts.GenerateMindMapOptions(
+                    infile=get_haxorg_repo_root_path().joinpath(
+                        "tests/org/corpus/org/mind_map_test_1.org"),
+                    outfile=stable_test_dir.joinpath("result.pdf"),
+                    typst_do_compile=has_cmd("typst"),
+                )),
+        ))
 
 
 def test_tag_sorting(stable_test_dir: Path) -> None:

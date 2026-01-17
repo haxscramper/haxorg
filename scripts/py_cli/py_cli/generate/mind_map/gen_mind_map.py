@@ -36,13 +36,14 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
     mind_map_opts = opts.generate.mind_map
     assert mind_map_opts.infile, mind_map_opts.infile
     assert Path(mind_map_opts.infile).exists(), mind_map_opts.infile
+    assert opts.cache, "Mind map CLI should specify cache directory"
 
     repo_root = get_haxorg_repo_root_path()
 
     wrapper_dir = opts.generate.mind_map.wrapper_dir
     gradle_cmd = plumbum.local["gradle"].with_cwd(repo_root.joinpath(wrapper_dir))
-    gradle_cmd.run(["build"])
-    gradle_cmd.run(["install"])
+    gradle_cmd.run(["build", f"-PbuildDir={opts.cache}/build"])
+    gradle_cmd.run(["install", f"-PbuildDir={opts.cache}/build"])
 
     def get_out(name: str) -> Path:
         return haxorg_cli.get_tmp_file(opts, f"mind_map/{name}")
@@ -74,7 +75,7 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
         result.mmap_model,
         opts.generate.mind_map.diagram_config,
     )
-    
+
     from py_scriptutils.rich_utils import render_rich
     get_out("mmap_walker_repr.txt").write_text(render_rich(mmap_walker.getRepr()))
     pprint_to_file(to_debug_json(mmap_walker), get_out("mmap_walker.py"))
@@ -83,8 +84,8 @@ def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
 
     pprint_to_file(mmap_elk, result.mmap_elk_dump)
 
-    layout_script = Path(wrapper_dir).joinpath(
-        "build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
+    layout_script = Path(
+        opts.cache).joinpath("build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
 
     assert layout_script.exists()
     result.mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))

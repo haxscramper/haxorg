@@ -93,15 +93,22 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
 
     return result
 
+
 @beartype
-def subtree_clocking(opts: haxorg_opts.RootOptions) -> None: 
+def subtree_clocking(
+    opts: haxorg_opts.RootOptions,
+    run: Optional[haxorg_cli.CliRunContext] = None,
+) -> None:
+    if not run:
+        run = haxorg_cli.get_run(opts)  # type: ignore
+
     assert opts.generate
     assert opts.generate.subtree_clocking
 
     subtrees: List[SubtreeInfo] = []
     for file in opts.generate.subtree_clocking.infile:
         log(CAT).info(file)
-        subtrees += getSubtreeInfo(haxorg_cli.parseCachedFile(file, opts.cache))
+        subtrees += getSubtreeInfo(haxorg_cli.parseCachedFile(opts, file))
 
     df = pd.DataFrame([model.model_dump() for model in subtrees])
     df["tags"] = df["tags"].apply(lambda x: ",".join(x))
@@ -129,6 +136,7 @@ def subtree_clocking(opts: haxorg_opts.RootOptions) -> None:
 @click.pass_context
 def subtree_clocking_cli(ctx: click.Context, **kwargs: Any) -> None:
     subtree_clocking(haxorg_cli.get_opts(ctx))
+
 
 if __name__ == "__main__":
     subtree_clocking_cli()

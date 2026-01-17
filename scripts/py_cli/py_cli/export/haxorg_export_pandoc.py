@@ -10,14 +10,20 @@ CAT = "haxorg.export.pandoc"
 
 
 @beartype
-def export_pandoc(opts: haxorg_opts.RootOptions, run: haxorg_cli.CliRunContext) -> None:
+def export_pandoc(
+    opts: haxorg_opts.RootOptions,
+    run: Optional[haxorg_cli.CliRunContext] = None,
+) -> None:
     assert opts.export
     assert opts.export.pandoc
     assert opts.export.pandoc.infile
     assert opts.export.pandoc.outfile
 
+    if not run:
+        run = haxorg_cli.get_run(opts)  # type: ignore
+
     with run.event("Run pandoc export", CAT):
-        node = haxorg_cli.parseCachedFile(opts.export.pandoc.infile, opts.cache)
+        node = haxorg_cli.parseCachedFile(opts, opts.export.pandoc.infile)
 
         if opts.export.pandoc.debug_tree:
             org.exportToTreeFile(node, str(opts.export.pandoc.debug_tree),
@@ -37,4 +43,4 @@ def export_pandoc(opts: haxorg_opts.RootOptions, run: haxorg_cli.CliRunContext) 
 @haxorg_cli.get_wrap_options(haxorg_opts.ExportPandocOptions)
 @click.pass_context
 def export_pandoc_cli(ctx: click.Context, **kwargs: Any) -> None:
-    export_pandoc(haxorg_cli.get_opts(ctx), haxorg_cli.get_run(ctx))
+    export_pandoc(haxorg_cli.get_opts(ctx))
