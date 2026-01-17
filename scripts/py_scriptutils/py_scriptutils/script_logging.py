@@ -212,6 +212,37 @@ class ExceptionContextNote:
 
 CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE = True
 CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS = True
+CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED = False
+CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME = False
+
+
+def get_function_annotations(frame: Any) -> dict[str, str]:
+    func_name = frame.f_code.co_name
+    annotations = {}
+
+    try:
+        if "self" in frame.f_locals:
+            obj = frame.f_locals["self"]
+            if hasattr(obj, func_name):
+                func = getattr(obj, func_name)
+                if hasattr(func, "__annotations__"):
+                    annotations = func.__annotations__
+        elif "cls" in frame.f_locals:
+            cls = frame.f_locals["cls"]
+            if hasattr(cls, func_name):
+                func = getattr(cls, func_name)
+                if hasattr(func, "__annotations__"):
+                    annotations = func.__annotations__
+        else:
+            for name, obj in frame.f_globals.items():
+                if callable(obj) and getattr(obj, "__name__", None) == func_name:
+                    if hasattr(obj, "__annotations__"):
+                        annotations = obj.__annotations__
+                    break
+    except (AttributeError, KeyError):
+        pass
+
+    return {k: str(v) for k, v in annotations.items() if k != "return"}
 
 
 @dataclass
@@ -220,6 +251,8 @@ class FrameInfo:
     line_no: int
     func_name: str
     args: dict[str, str]
+    arg_types: dict[str, str]
+    runtime_types: dict[str, str]
     code_line: str
 
 
@@ -238,15 +271,26 @@ def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) 
             func_name = frame.f_code.co_name
 
             args = {}
+            arg_types = {}
+            runtime_types = {}
+
             if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
                 arg_names = frame.f_code.co_varnames[:frame.f_code.co_argcount]
                 for arg_name in arg_names:
                     if arg_name in frame.f_locals:
                         args[arg_name] = repr(frame.f_locals[arg_name])
 
+                        if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME:
+                            runtime_types[arg_name] = type(
+                                frame.f_locals[arg_name]).__name__
+
+                if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED:
+                    arg_types = get_function_annotations(frame)
+
             extracted_frame = traceback.extract_tb(current_tb, limit=1)[0]
             frames_info.append(
-                FrameInfo(filename, line_no, func_name, args, extracted_frame.line or ""))
+                FrameInfo(filename, line_no, func_name, args, arg_types, runtime_types,
+                          extracted_frame.line or ""))
 
         current_tb = current_tb.tb_next
 
@@ -268,7 +312,19 @@ def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) 
 
         if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
             for arg_name, arg_value in frame_info.args.items():
-                available_width = console.width - max_arg_name_width - 5
+                type_info = ""
+
+                if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED and arg_name in frame_info.arg_types:
+                    type_info = f": {frame_info.arg_types[arg_name]}"
+
+                if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME and arg_name in frame_info.runtime_types:
+                    runtime_type = frame_info.runtime_types[arg_name]
+                    if type_info:
+                        type_info += f" ({runtime_type})"
+                    else:
+                        type_info = f": {runtime_type}"
+
+                available_width = console.width - max_arg_name_width - len(type_info) - 5
 
                 if len(arg_value) > available_width:
                     if CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE:
@@ -278,12 +334,16 @@ def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) 
                         for i in range(0, len(arg_value), available_width):
                             wrapped_lines.append(arg_value[i:i + available_width])
 
-                        print(f"  {arg_name:<{max_arg_name_width}} = {wrapped_lines[0]}")
+                        print(
+                            f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {wrapped_lines[0]}"
+                        )
                         for line in wrapped_lines[1:]:
                             print(f"  {'':<{max_arg_name_width}}   {line}")
                         continue
 
-                print(f"  {arg_name:<{max_arg_name_width}} = {arg_value}")
+                print(
+                    f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {arg_value}"
+                )
 
     print(f"{exc_type.__name__} : {exc_value}")
     if hasattr(exc_value, "__notes__"):
