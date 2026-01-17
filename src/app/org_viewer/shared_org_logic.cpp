@@ -1,6 +1,7 @@
 #include "shared_org_logic.hpp"
 #include <haxorg/sem/SemOrgCereal.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/ext/logger.hpp>
 
 const std::unordered_set<std::string> COMPLETED_TASK_SET = {
     "DONE",
@@ -34,12 +35,12 @@ org::sem::SemId<org::sem::Org> loadCachedImmNode(
 
         dir_opts->getParsedNode = [&](const std::string& path)
             -> org::sem::SemId<org::sem::Org> {
-            try {
-                return org::parseStringOpts(
-                    hstd::readFile(path), parse_opts);
-            } catch (const std::exception& e) {
-                return org::sem::SemId<org::sem::Empty>::New();
-            }
+            // try {
+            parse_opts->currentFile = path;
+            return org::parseStringOpts(hstd::readFile(path), parse_opts);
+            // } catch (const std::exception& e) {
+            //     return org::sem::SemId<org::sem::Empty>::New();
+            // }
         };
 
         auto node = org::parseDirectoryOpts(infile.string(), dir_opts);
@@ -265,10 +266,13 @@ void writeOrgFileCache(
 
     hstd::writeFile(cache_file, hstd::to_json_eval(current_times).dump(2));
 }
+
 OrgAgendaNode::Ptr buildAgendaTree(
     org::sem::SemId<org::sem::Org> const& node,
     OrgAgendaNode::WPtr                   parent) {
     auto result = OrgAgendaNode::shared(node, parent);
+    HSLOG_INFO("buld_agenda_tree {}", node.size());
+    HSLOG_DEPTH_SCOPE_ANON();
 
     for (const auto& sub : node) {
         auto kind = sub->getKind();

@@ -103,9 +103,6 @@ void DiaSceneItem::moveSubnode(int srcIndex, int dstIndex) {
 
 DiaSceneItem* DiaSceneItem::getParent() const {
     if (!isinstance<DiaSceneItemCanvas>()) {
-        LOGIC_ASSERTION_CHECK(this != nullptr, "calling on null object");
-
-
         LOGIC_ASSERTION_CHECK_FMT(
             parent != nullptr,
             "Non-root node must have the parent assigned. The node {} "
