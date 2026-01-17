@@ -359,14 +359,13 @@ def run_command_with_json_args(
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
     import json
+    from py_repository.repo_tasks.common import ctx_write_text
     if json_file_path:
-        json_file_path.write_text(json.dumps(args, indent=2))
+        ctx_write_text(ctx, json_file_path, json.dumps(args, indent=2))
         return run_command(ctx, cmd, [str(json_file_path)], **kwargs)
 
     else:
         return run_command(ctx, cmd, [json.dumps(args)], **kwargs)
-
-
 
 
 @beartype

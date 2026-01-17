@@ -20,7 +20,11 @@ struct StartupArgc {
     std::string documentPath;
     std::string outputPath;
     Mode        mode;
-    DESC_FIELDS(StartupArgc, (documentPath, mode, outputPath));
+    bool        use_padding     = true;
+    bool        use_nested_todo = true;
+    DESC_FIELDS(
+        StartupArgc,
+        (documentPath, mode, outputPath, use_padding, use_nested_todo));
 };
 
 class DiaSelectionManager : public QObject {

@@ -1,17 +1,50 @@
+import itertools
+import os
+import shutil
+from dataclasses import dataclass, field
 from datetime import datetime
-from py_haxorg.pyhaxorg_wrap import UserTime, UserTimeBreakdown
+from pathlib import Path
+
 import py_haxorg.pyhaxorg_wrap as org
 from beartype import beartype
-from beartype.typing import List, Union, Dict
+from beartype.typing import Dict, List, Optional, Union, Set
 from py_exporters.export_ultraplain import ExporterUltraplain
-from beartype.typing import Dict
-from dataclasses import dataclass, field
-from pathlib import Path
-import shutil
-from py_scriptutils.script_logging import log, ExceptionContextNote
-import os
+from py_haxorg.pyhaxorg_wrap import UserTime, UserTimeBreakdown
+from py_scriptutils.script_logging import ExceptionContextNote, log
 
 CAT = "org"
+
+TODO_ITEMS = set([
+    "TODO",
+    "DONE",
+    "COMPLETED",
+    "NEXT",
+    "WIP",
+    "TRIAGED",
+    "FAILED",
+    "PARTIALLY",
+    "CANCELLED",
+    "PAUSED",
+    "REVIEW",
+])
+
+ADMONITION_ITEMS = set([
+    "QUESTION",
+    "NOTE",
+    "IDEA",
+    "WARNING",
+    "ERROR",
+    "BUG",
+    "FIXME",
+    "XXX",
+    "XXXX",
+    "XXXXX",
+    "IMPLEMENT",
+    "TEMP",
+    "HACK",
+])
+
+SEMANTIC_BIG_IDENT_ITEMS = TODO_ITEMS.union(ADMONITION_ITEMS)
 
 
 @beartype
@@ -32,7 +65,7 @@ def evalDateTime(time: UserTime) -> datetime:
     if brk.second:
         kwargs["second"] = brk.second
 
-    return datetime(**kwargs) # type: ignore
+    return datetime(**kwargs)  # type: ignore
 
 
 @beartype
@@ -63,6 +96,7 @@ def formatDateTime(time: UserTime) -> str:
 
 @beartype
 def getFlatTags(tag: Union[org.HashTag, org.HashTagText]) -> List[List[str]]:
+
     def aux(parents: List[str], tag: org.HashTagText) -> List[List[str]]:
         result: List[List[str]] = []
         if len(tag.subtags) == 0:
@@ -103,13 +137,73 @@ def formatHashTag(node: Union[org.HashTag, org.HashTagText]) -> str:
 
 
 @beartype
-def formatOrgWithoutTime(node: org.Org) -> str:
-    return ("".join([
-        ExporterUltraplain.getStr(it) for it in node if it.getKind() not in [
+def formatOrgWithoutPrefix(node: org.Org | List[org.Org],
+                           skip: Set[org.OrgSemKind]) -> str:
+    items = []
+
+    def add(it: org.Org) -> None:
+        items.append(ExporterUltraplain.getStr(it))
+
+    in_skip = True
+    for item in node:  # type: ignore
+        if in_skip and item.getKind() in skip:
+            continue
+
+        in_skip = False
+        add(item)
+
+    return "".join(items).strip()
+
+
+@beartype
+def formatOrgWithoutTime(node: org.Org | List[org.Org]) -> str:
+    return formatOrgWithoutPrefix(
+        node,
+        set([
             org.OrgSemKind.Time,
             org.OrgSemKind.TimeRange,
-        ]
-    ])).strip()
+        ]),
+    )
+
+
+@beartype
+def getTitleBody(node: org.Subtree,
+                 todo_items: Set[str] = SEMANTIC_BIG_IDENT_ITEMS) -> List[org.Org]:
+    title = [sub for sub in node.title]  # type: ignore
+    while title and isinstance(title[0], (org.Time, org.TimeRange, org.Space)) or (
+            isinstance(title[0], org.BigIdent) and title[0].text in todo_items):
+        title.pop(0)
+
+    while title and isinstance(title[-1], org.Space):
+        title.pop()
+
+    return title
+
+
+@beartype
+def getSubtreeTime(node: org.Subtree, kind: org.SubtreePeriodKind) -> Optional[datetime]:
+    result: Optional[datetime] = None
+    time: org.SubtreePeriod
+    for time in node.getTimePeriods(org.IntSetOfSubtreePeriodKind([  # type: ignore
+            kind
+    ])):
+        result = evalDateTime(time.from_)
+
+    return result
+
+
+@beartype
+def getCreationTime(node: org.Org) -> Optional[datetime]:
+    match node:
+        case org.Subtree():
+            return getSubtreeTime(node, org.SubtreePeriodKind.Created) or getSubtreeTime(
+                node, org.SubtreePeriodKind.Titled)
+
+        case org.Paragraph() if node.hasTimestamp():
+            return evalDateTime(node.getTimestamps()[0])
+
+        case _:
+            return None
 
 
 @beartype
@@ -137,9 +231,9 @@ def doExportAttachments(
     for item in attachments:
         path = item.target.getAttachment().file
         do_attach = item.getAttrs("attach-on-export")
-        if do_attach and 0 < len(
-                do_attach) and (do_attach[0].getString() == "t" or normalize(
-                    do_attach[0].getString()) in [normalize(it) for it in backends]):
+        if do_attach and 0 < len(do_attach) and (do_attach[0].getString() == "t" or
+                                                 normalize(do_attach[0].getString())
+                                                 in [normalize(it) for it in backends]):
 
             method = item.getAttrs("attach-method")
             op = method[0].getString()

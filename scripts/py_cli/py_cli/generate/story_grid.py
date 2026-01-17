@@ -1,56 +1,30 @@
 #!/usr/bin/env python
 
-from py_cli.haxorg_cli import (
-    pack_context,
-    BaseModel,
-    parseFile,
-    CliRootOptions,
-)
+import dataclasses
+import itertools
+import statistics
+from dataclasses import dataclass, field, fields
+from datetime import datetime, timedelta
+from numbers import Number
+from pathlib import Path
 
-from py_scriptutils.toml_config_profiler import (
-    make_config_provider,
-    run_config_provider,
-    apply_options,
-    options_from_model,
-    merge_cli_model,
-)
-
+import dominate
+import dominate.tags as tags
+import py_codegen.astbuilder_typst as typ
+import py_haxorg.pyhaxorg_wrap as org
+import py_wrappers.py_adaptagrams_wrap as cola
+import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, Dict, List, Optional, Tuple, Union
+from dominate.util import text
+from py_cli import haxorg_cli, haxorg_opts
 from py_exporters.export_html import ExporterHtml, add_html, add_new
 from py_exporters.export_ultraplain import ExporterUltraplain
-import py_wrappers.py_adaptagrams_wrap as cola
-import py_codegen.astbuilder_typst as typ
-
-import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.pyhaxorg_utils import evalDateTime
-import itertools
-
-from pathlib import Path
-from beartype import beartype
-from dataclasses import dataclass, field, fields
-import dataclasses
-from beartype.typing import Optional, Tuple, List, Union, Dict, Any
-import dominate.tags as tags
-import dominate
-from dominate.util import text
-from datetime import datetime, timedelta
-from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
 from py_scriptutils.algorithm import maybe_splice
-import statistics
-from numbers import Number
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
 CAT = "story-grid"
-
-
-class StoryGridOpts(BaseModel, extra="forbid"):
-    infile: Path
-    outfile: Path
-
-
-import rich_click as click
-
-
-def cli_options(f) -> None:
-    return apply_options(f, options_from_model(StoryGridOpts))
 
 
 @beartype
@@ -74,7 +48,7 @@ class Header():
 
 @beartype
 def rec_filter_subnodes(node: org.Org, target: List[org.OrgSemKind]) -> List[org.Org]:
-    result = []
+    result: List[org.Org] = []
     if node is None:
         return result
 
@@ -92,10 +66,9 @@ osk = org.OrgSemKind
 
 @beartype
 def rec_node(node: org.Org) -> List[Header]:
-    result = []
+    result: List[Header] = []
     match node:
         case org.Subtree():
-            log(CAT).info(f"Subtree {node.getCleanTitle()}")
             if node.isComment or node.isArchived:
                 return result
 
@@ -121,7 +94,7 @@ def rec_node(node: org.Org) -> List[Header]:
                 match prop.getName():
                     case "story_polarity_shift":
                         plain = str(prop.getCustomRaw().value).strip()
-                        header.shift = plain.split("/")
+                        header.shift = plain.split("/") # type: ignore
 
                     case "story_duration":
                         plain = str(prop.getCustomRaw().value).strip()
@@ -335,9 +308,7 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
         for field in fields(h):
             opacity = (max_level - h.level) / max_level * 0.75
             header_style = f"background-color: rgba(255, 0, 0, {opacity:.2f});"
-            cell_args = dict()
-            # if 0 < len(h.nested):
-            #     cell_args["style"] = header_style
+            cell_args: Dict[str, Any] = dict()
 
             if field.name in SKIP_FIELDS:
                 continue
@@ -379,6 +350,7 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                         opt("{}".format(start.strftime("[%Y-%m-%d]")), **cell_args)
 
                     else:
+                        assert end
                         opt(offset, **cell_args)
                         opt(
                             "{}-{}".format(
@@ -555,10 +527,10 @@ def init_grid(
 
         # debug_grid()
 
-        source_rect = grid[this_row][level].rect_idx
+        source_rect = grid[this_row][level].rect_idx  # type: ignore
         for i in range(0, len(grid[dfs_row]) - max_depth):
             if grid[dfs_row][max_depth + i] != None:
-                target_rect = grid[dfs_row][max_depth + i].rect_idx
+                target_rect = grid[dfs_row][max_depth + i].rect_idx  # type: ignore
 
                 ir.edge(source=source_rect, target=target_rect)
                 ir.edgePorts(
@@ -574,8 +546,8 @@ def init_grid(
             idx for idx in range(0, len(content)) if grid[dfs_row][max_depth + idx]
         ]
         for src_index, dst_index in itertools.pairwise(content_offsets):
-            source_rect = grid[dfs_row][max_depth + src_index].rect_idx
-            target_rect = grid[dfs_row][max_depth + dst_index].rect_idx
+            source_rect = grid[dfs_row][max_depth + src_index].rect_idx  # type: ignore
+            target_rect = grid[dfs_row][max_depth + dst_index].rect_idx  # type: ignore
 
             ir.edge(source=source_rect, target=target_rect)
             ir.edgePorts(
@@ -593,8 +565,8 @@ def init_grid(
             aux(s, level + 1)
 
         for row in sub_rows:
-            source_rect = grid[this_row][level].rect_idx
-            target_rect = grid[row][level + 1].rect_idx
+            source_rect = grid[this_row][level].rect_idx  # type: ignore
+            target_rect = grid[row][level + 1].rect_idx  # type: ignore
 
             ir.edge(source=source_rect, target=target_rect)
             ir.edgePorts(
@@ -616,7 +588,7 @@ def add_typ_constraints(
     grid: List[List[Optional[Cell]]],
     col_count: int,
     row_count: int,
-    mult: Number,
+    mult: float,
 ) -> None:
     y_aligns: List[cola.GraphNodeConstraintAlign] = []
     x_aligns: List[cola.GraphNodeConstraintAlign] = []
@@ -640,7 +612,9 @@ def add_typ_constraints(
     )
 
     for col in range(0, col_count):
-        col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
+        col_nodes: List[int] = [
+            row[col].rect_idx for row in grid if row[col]  # type: ignore
+        ]
         if 0 < len(col_nodes):
             horizontal_sizes.append(
                 int(
@@ -731,7 +705,7 @@ def add_typ_nodes(
             rect_idx = cell.rect_idx
             rect = conv.fixed[rect_idx]
 
-            def get_field_name_rect() -> None:
+            def get_field_name_rect() -> typ.RawStr | typ.RawBlock:
                 return ast.litRaw(
                     ast.place(
                         anchor="top + left",
@@ -743,7 +717,7 @@ def add_typ_nodes(
                                     stroke=ast.litRaw("red"),
                                     radius=ast.litPt(2),
                                     inset=ast.litPt(2),
-                                ),
+                                ),  # type: ignore
                                 body=[ast.string(cell.field.name)],
                                 isLine=True,
                             )),
@@ -824,7 +798,7 @@ def get_typst_story_grid(headers: List[Header]) -> None:
     root = Header([], 0)
     root.nested = headers
 
-    def get_depth(t: Header) -> None:
+    def get_depth(t: Header) -> int:
         subs = [get_depth(s) for s in t.nested]
         if 1 < len(subs):
             return max(*subs) + 1
@@ -897,30 +871,21 @@ def get_typst_story_grid(headers: List[Header]) -> None:
     Path("/tmp/result.typ").write_text(ast.toString(page))
 
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
-@cli_options
-@click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs) -> None:
-    pack_context(ctx, "story_grid", StoryGridOpts, config=config, kwargs=kwargs)
-    opts: StoryGridOpts = ctx.obj["story_grid"]
-    node = parseFile(CliRootOptions(), Path(opts.infile))
+@beartype
+def story_grid(opts: haxorg_cli.RootOptions) -> None:
+    assert opts.generate
+    assert opts.generate.story_grid
+    node = haxorg_cli.parseFile(opts, Path(opts.generate.story_grid.infile))
     headers = rec_node(node)
 
-    with open("/tmp/res.txt", "w") as file:
-        file.write(org.treeRepr(node, colored=False))
-
     doc = get_html_story_grid(headers)
-    with open(opts.outfile, "w") as out:
-        out.write(str(doc))
+    Path(opts.generate.story_grid.outfile).write_text(str(doc))
 
     typst = get_typst_story_grid(headers)
 
-    print("parsed node ok")
 
-
-if __name__ == "__main__":
-    cli()
+@click.command("story_grid")
+@haxorg_cli.get_wrap_options(haxorg_opts.StoryGridOpts)
+@click.pass_context
+def story_grid_cli(ctx: click.Context, **kwargs: Any) -> None:
+    story_grid(haxorg_cli.get_opts(ctx))

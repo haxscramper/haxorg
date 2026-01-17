@@ -248,6 +248,12 @@ args: {args}
         log(CAT).info(f"Starting with target {target_name}")
         target_id = self.graph.graph.vs.find(name=target_name).index
 
+        if not self.config.use_dependencies:
+            op = self.graph.tasks[target_name]
+            op.python_callable(ctx=self)
+            return
+            
+
         dependent_indices = self.graph.graph.subcomponent(target_id, mode="in")
         sub_graph = self.graph.graph.induced_subgraph(dependent_indices)
 

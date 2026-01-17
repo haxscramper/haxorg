@@ -6,7 +6,7 @@ import enum
 from py_scriptutils.script_logging import log
 from beartype.typing import List, Optional, Type
 from beartype import beartype
-from py_haxorg.pyhaxorg_utils import evalDateTime, formatHashTag
+from py_haxorg.pyhaxorg_utils import evalDateTime, formatHashTag, getCreationTime, getSubtreeTime
 from py_exporters.export_ultraplain import ExporterUltraplain
 from datetime import datetime
 
@@ -250,30 +250,6 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                         plaintext=ExporterUltraplain.getStr(node.desc)
                         if node.desc else "",
                     ))
-
-    @beartype
-    def getSubtreeTime(node: org.Subtree,
-                       kind: org.SubtreePeriodKind) -> Optional[datetime]:
-        result: Optional[datetime] = None
-        time: org.SubtreePeriod
-        for time in node.getTimePeriods(org.IntSetOfSubtreePeriodKind([kind])):
-            result = evalDateTime(time.from_)
-
-        return result
-
-    @beartype
-    def getCreationTime(node: org.Org) -> Optional[datetime]:
-        match node:
-            case org.Subtree():
-                return getSubtreeTime(node,
-                                      org.SubtreePeriodKind.Created) or getSubtreeTime(
-                                          node, org.SubtreePeriodKind.Titled)
-
-            case org.Paragraph() if node.hasTimestamp():
-                return evalDateTime(node.getTimestamps()[0])
-
-            case _:
-                return None
 
     @beartype
     def aux(node: org.Org, parent: Optional[int] = None) -> None:

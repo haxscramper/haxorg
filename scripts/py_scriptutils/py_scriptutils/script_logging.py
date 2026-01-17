@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import traceback
 import logging
 import sys
@@ -151,13 +152,17 @@ class NoTTYFormatter(logging.Formatter):
         return super().format(record)
 
 
-if sys.stdout.isatty():
-    logging.basicConfig(
-        level="NOTSET",
-        format="[dim]%(filename)s:%(lineno)d[/dim] - %(message)s",
-        datefmt="[%X]",
-        handlers=[
-            RichHandler(
+def log(category: str = "rich") -> logging.Logger:
+    log = logging.getLogger(category)
+    log.setLevel(logging.DEBUG)
+
+    if "pytest" in sys.modules or hasattr(sys, "_called_from_test"):
+        return log
+
+    if not hasattr(log, "__has_haxorg_handler__"):
+        setattr(log, "__has_haxorg_handler__", True)
+        if sys.stdout.isatty():
+            rich_handler = RichHandler(
                 console=Console(width=None),
                 rich_tracebacks=True,
                 markup=True,
@@ -165,21 +170,19 @@ if sys.stdout.isatty():
                 show_time=False,
                 show_path=False,
             )
-        ],
-    )
+            rich_handler.setFormatter(
+                logging.Formatter(
+                    "[dim]%(name)s %(filename)s:%(lineno)d[/dim] - %(message)s"))
 
-else:
-    handler = logging.StreamHandler()
-    handler.setFormatter(NoTTYFormatter("[%(name)s %(filename)s:%(lineno)s] %(message)s"))
-    logging.basicConfig(level="NOTSET", handlers=[handler])
+            log.addHandler(rich_handler)
 
-for name in logging.root.manager.loggerDict:
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.WARNING)
+        else:
+            handler = logging.StreamHandler()
+            handler.setFormatter(
+                NoTTYFormatter("[%(name)s %(filename)s:%(lineno)s] %(message)s"))
 
+            log.addHandler(handler)
 
-def log(category: str = "rich") -> logging.Logger:
-    log = logging.getLogger(category)
     return log
 
 
@@ -207,30 +210,139 @@ class ExceptionContextNote:
         return False
 
 
+CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE = True
+CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS = True
+CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED = False
+CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME = False
+
+
+def get_function_annotations(frame: Any) -> dict[str, str]:
+    func_name = frame.f_code.co_name
+    annotations = {}
+
+    try:
+        if "self" in frame.f_locals:
+            obj = frame.f_locals["self"]
+            if hasattr(obj, func_name):
+                func = getattr(obj, func_name)
+                if hasattr(func, "__annotations__"):
+                    annotations = func.__annotations__
+        elif "cls" in frame.f_locals:
+            cls = frame.f_locals["cls"]
+            if hasattr(cls, func_name):
+                func = getattr(cls, func_name)
+                if hasattr(func, "__annotations__"):
+                    annotations = func.__annotations__
+        else:
+            for name, obj in frame.f_globals.items():
+                if callable(obj) and getattr(obj, "__name__", None) == func_name:
+                    if hasattr(obj, "__annotations__"):
+                        annotations = obj.__annotations__
+                    break
+    except (AttributeError, KeyError):
+        pass
+
+    return {k: str(v) for k, v in annotations.items() if k != "return"}
+
+
+@dataclass
+class FrameInfo:
+    filename: str
+    line_no: int
+    func_name: str
+    args: dict[str, Any]
+    arg_types: dict[str, str]
+    runtime_types: dict[str, str]
+    code_line: str
+
+
 def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) -> None:
-    """
-    Custom traceback handler that filters out frames with '<@beartype' and formats
-    the output using 'rich' library, with the decision on one-line or two-line format
-    based on available width.
-    """
     console = Console()
 
-    # Extract traceback information
-    extracted_tb = traceback.extract_tb(exc_traceback)
+    current_tb = exc_traceback
+    frames_info = []
 
-    # Filter out frames with "<@beartype" in their names
-    filtered_tb = [frame for frame in extracted_tb if "<@beartype" not in frame.filename]
-    formatted = [(f"File \"{frame.filename}\", line {frame.lineno}, in {frame.name}",
-                  frame.line) for frame in filtered_tb]
+    while current_tb is not None:
+        frame = current_tb.tb_frame
+        filename = frame.f_code.co_filename
 
-    max_formatted_width = max([len(it[0]) for it in formatted]) + 2
+        if "<@beartype" not in filename:
+            line_no = current_tb.tb_lineno
+            func_name = frame.f_code.co_name
 
-    # Determine if one-line formatting is feasible
-    one_line_format = console.width >= 100  # example threshold for deciding format
+            args = {}
+            arg_types = {}
+            runtime_types = {}
 
-    for frame in formatted:
-        print("{:<{}}{}{}".format(frame[0], max_formatted_width,
-                                  " : " if one_line_format else "\n  ", frame[1]))
+            if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
+                arg_names = frame.f_code.co_varnames[:frame.f_code.co_argcount]
+                for arg_name in arg_names:
+                    if arg_name in frame.f_locals:
+                        args[arg_name] = frame.f_locals[arg_name]
+
+                        if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME:
+                            runtime_types[arg_name] = type(
+                                frame.f_locals[arg_name]).__name__
+
+                if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED:
+                    arg_types = get_function_annotations(frame)
+
+            extracted_frame = traceback.extract_tb(current_tb, limit=1)[0]
+            frames_info.append(
+                FrameInfo(filename, line_no, func_name, args, arg_types, runtime_types,
+                          extracted_frame.line or ""))
+
+        current_tb = current_tb.tb_next
+
+    if not frames_info:
+        print(f"{exc_type.__name__} : {exc_value}")
+        return
+
+    max_arg_name_width = 0
+    if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
+        for frame_info in frames_info:
+            if frame_info.args:
+                max_arg_name_width = max(
+                    max_arg_name_width,
+                    max(len(arg_name) for arg_name in frame_info.args.keys()))
+
+    for frame_info in frames_info:
+        header = f"File \"{frame_info.filename}\", line {frame_info.line_no}, in {frame_info.func_name}"
+        print(f"{header} : {frame_info.code_line}")
+
+        if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
+            for arg_name, arg_value in frame_info.args.items():
+                type_info = ""
+
+                if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED and arg_name in frame_info.arg_types:
+                    type_info = f": {frame_info.arg_types[arg_name]}"
+
+                if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME and arg_name in frame_info.runtime_types:
+                    runtime_type = frame_info.runtime_types[arg_name]
+                    if type_info:
+                        type_info += f" ({runtime_type})"
+                    else:
+                        type_info = f": {runtime_type}"
+
+                available_width = console.width - max_arg_name_width - len(type_info) - 5
+
+                if CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE:
+                    arg_repr = repr(arg_value)
+                    if len(arg_repr) > available_width:
+                        arg_repr = arg_repr[:available_width - 3] + "..."
+                    print(
+                        f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {arg_repr}"
+                    )
+                else:
+                    import pprint
+                    formatted_value = pprint.pformat(arg_value, width=available_width)
+                    lines = formatted_value.split('\n')
+
+                    print(
+                        f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {lines[0]}"
+                    )
+                    for line in lines[1:]:
+                        print(f"  {'':<{max_arg_name_width}}   {line}")
 
     print(f"{exc_type.__name__} : {exc_value}")
     if hasattr(exc_value, "__notes__"):
@@ -264,7 +376,9 @@ class MultiFileHandler(logging.Handler):
         self.logger_handlers: Dict[str, logging.FileHandler] = {}
         self.main_handler = logging.FileHandler(self.base_dir / "main.log", mode="w")
         self.main_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(filename)s:%(lineno)d - %(name)s - %(levelname)s - %(message)s"))
+            logging.Formatter(
+                "%(asctime)s - %(filename)s:%(lineno)d - %(name)s - %(levelname)s - %(message)s"
+            ))
         self.plain_console = Console(color_system=None,
                                      legacy_windows=False,
                                      force_terminal=False,
@@ -285,7 +399,9 @@ class MultiFileHandler(logging.Handler):
             log_file = self.base_dir / f"{safe_name}.log"
             handler = logging.FileHandler(log_file, mode="w")
             handler.setFormatter(
-                logging.Formatter("%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s"))
+                logging.Formatter(
+                    "%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s")
+            )
             self.logger_handlers[logger_name] = handler
         return self.logger_handlers[logger_name]
 

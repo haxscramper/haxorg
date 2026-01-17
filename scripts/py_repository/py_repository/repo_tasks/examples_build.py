@@ -11,7 +11,7 @@ from py_repository.repo_tasks.command_execution import RunCommandKwargs, run_cma
 from py_repository.repo_tasks.common import ensure_clean_dir, find_process, get_build_tmpdir, get_component_build_dir, get_log_dir, get_script_root, get_workflow_out
 from py_repository.repo_tasks.deps_build import validate_dependencies_install
 from py_repository.repo_tasks.haxorg_base import get_toolchain_path, symlink_build
-from py_repository.repo_tasks.haxorg_build import build_haxorg
+from py_repository.repo_tasks.haxorg_build import build_haxorg, install_haxorg_develop
 from py_scriptutils.algorithm import maybe_splice
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
@@ -104,7 +104,7 @@ def build_example_qt_gui_org_viewer(ctx: TaskContext) -> None:
     )
 
 
-@haxorg_task(dependencies=[validate_dependencies_install])
+@haxorg_task(dependencies=[install_haxorg_develop, validate_dependencies_install])
 def configure_example_qt_gui_org_diagram(ctx: TaskContext) -> None:
     assert ctx.config.use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
     run_cmake_configure_component(
@@ -124,12 +124,6 @@ def build_example_qt_gui_org_diagram(ctx: TaskContext) -> None:
     )
 
 
-@haxorg_task(dependencies=[build_example_qt_gui_org_diagram])
-def run_example_org_elk_diagram(ctx: TaskContext) -> None:
-    from py_repository.code_analysis.gen_mind_map_example import gen_mind_map
-    gen_mind_map(ctx)
-
-
 @haxorg_task(
     dependencies=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
 def build_example_qt_gui(ctx: TaskContext) -> None:
@@ -141,7 +135,7 @@ def build_examples(ctx: TaskContext) -> None:
     pass
 
 
-@haxorg_task(dependencies=[run_example_org_elk_diagram])
+@haxorg_task(dependencies=[])
 def run_examples(ctx: TaskContext) -> None:
     pass
 

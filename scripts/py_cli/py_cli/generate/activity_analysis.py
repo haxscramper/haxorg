@@ -1,39 +1,22 @@
 #!/usr/bin/env python
 
-import py_exporters.export_sqlite as sql
-from py_cli.haxorg_cli import *
-from beartype.typing import List, Tuple, Any
-from beartype import beartype
-from py_scriptutils.files import IsNewInput
-from sqlalchemy import create_engine, Engine
-from py_scriptutils.script_logging import log
 from datetime import datetime, timedelta
-import pandas as pd
-import matplotlib.pyplot as plt
-from sqlalchemy import select, literal, union_all
-from sqlalchemy.orm import sessionmaker
+
 import matplotlib.figure as matplotlib_figure
-from py_scriptutils.pandas_utils import dataframe_to_rich_table
-from py_scriptutils.sqlalchemy_utils import format_rich_query
-from py_scriptutils.rich_utils import render_rich
-import matplotlib.dates as mdates
-import matplotlib.ticker as mticker
+import matplotlib.pyplot as plt
+import pandas as pd
+import py_exporters.export_sqlite as sql
+from beartype import beartype
+from beartype.typing import Any, List, Tuple
+from py_cli import haxorg_cli, haxorg_opts
+from py_cli.haxorg_cli import *
+from py_scriptutils.files import IsNewInput
+from py_scriptutils.script_logging import log
+from sqlalchemy import Engine, create_engine, literal, select, union_all
+from sqlalchemy.orm import sessionmaker
+import glom
 
 CAT = "example.activity_analysis"
-
-
-class ActivityAnalysisOptions(BaseModel):
-    infile: List[Path]
-    outdir: Path
-    cachedir: Optional[Path] = None
-    force_db: bool = False
-    db_path: Optional[Path] = Field(
-        default=None,
-        description="Path to the generated SQLite DB, defaults to outdir/db.sqlite")
-
-
-def analysis_options(f) -> None:
-    return apply_options(f, options_from_model(ActivityAnalysisOptions))
 
 
 @beartype
@@ -150,7 +133,6 @@ def plot_timestamped_events_with_pandas(
     if n_plots == 1:
         axes = [axes]
 
-
     for ax, column in zip(axes, grouped.columns):
         ax.fill_between(grouped.index, grouped[column], alpha=0.5)
         ax.plot(grouped.index, grouped[column], label=column)
@@ -174,26 +156,26 @@ def plot_timestamped_events_with_pandas(
     return (fig, axes)
 
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
-@analysis_options
-@click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
-    pack_context(ctx, "root", ActivityAnalysisOptions, config=config, kwargs=kwargs)
-    opts: ActivityAnalysisOptions = ctx.obj["root"]
-    sql_db = opts.db_path if opts.db_path else opts.outdir.joinpath("db.sqlite")
+@beartype
+def activity_analysis(opts: haxorg_opts.RootOptions) -> None:
+    assert opts.generate
+    assert opts.generate.activity_analysis
+    outdir: Path = glom.glom(opts, "generate.activity_analysis.outdir")
+    infile: List[Path] = glom.glom(opts, "generate.activity_analysis.infile")
+    sql_db = Path(
+        glom.glom(opts,
+                  "generate.activity_analysis.db_path",
+                  default=outdir.joinpath("db.sqlite")))
 
-    if not opts.outdir.exists():
-        opts.outdir.mkdir(parents=True)
+    if not outdir.exists():
+        outdir.mkdir(parents=True)
 
-    if opts.force_db or IsNewInput(input_path=opts.infile, output_path=[sql_db]):
+    if opts.generate.activity_analysis.force_db or IsNewInput(input_path=infile,
+                                                              output_path=[sql_db]):
         nodes: List[Tuple[org.Org, str]] = []
-        for file in opts.infile:
+        for file in infile:
             log(CAT).info(file)
-            nodes.append((parseCachedFile(file, opts.cachedir), file.name))
+            nodes.append((parseCachedFile(opts, file), file.name))
 
         if sql_db.exists():
             sql_db.unlink()
@@ -201,11 +183,11 @@ def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
         log(CAT).info("Registering DB")
         engine: Engine = create_engine("sqlite:///" + str(sql_db))
         sql.Base.metadata.create_all(engine)
-        for node, file in nodes:
-            sql.registerDocument(node, engine, file)
+        for node, file_name in nodes:
+            sql.registerDocument(node, engine, file_name)
 
     else:
-        engine: Engine = create_engine("sqlite:///" + str(sql_db))
+        engine: Engine = create_engine("sqlite:///" + str(sql_db))  # type: ignore
         log(CAT).info("No DB update needed")
 
     # log(CAT).info("Plotting data")
@@ -220,3 +202,10 @@ def cli(ctx: click.Context, config: str, **kwargs: Any) -> None:
     # if plot:
     #     fig, ax = plot
     #     fig.savefig(opts.outdir.joinpath("event_distribution.png"))
+
+
+@click.command("activity_analysis")
+@haxorg_cli.get_wrap_options(haxorg_opts.GenerateActivityAnalysisOptions)
+@click.pass_context
+def activity_analysis_cli(ctx: click.Context, **kwargs: Any) -> None:
+    activity_analysis(haxorg_cli.get_opts(ctx))

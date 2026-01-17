@@ -1,37 +1,25 @@
 #!/usr/bin/env python
 
 import pandas as pd
-from py_cli.haxorg_cli import *
+from py_cli import haxorg_cli, haxorg_opts
 from beartype import beartype
-from beartype.typing import List, Tuple, Set, Dict, Any, Optional
+from beartype.typing import Set, Dict, Any, Optional, List
+import enum
 from py_haxorg.pyhaxorg_utils import getFlatTags
 from py_scriptutils.script_logging import log
 import py_haxorg.pyhaxorg_wrap as org
-from dataclasses import dataclass, field
-from py_scriptutils.pandas_utils import dataframe_to_rich_table
-from py_scriptutils.rich_utils import render_rich
-from pydantic import Field
+from dataclasses import dataclass
 from collections import defaultdict
+from py_scriptutils.toml_config_profiler import get_user_provided_params
 from rich.tree import Tree
 from rich.console import Console
 from difflib import SequenceMatcher
 from rich.panel import Panel
 from rich.table import Table
+from pathlib import Path
+import rich_click as click
 
 CAT = __name__
-
-
-class TagSortingOptions(BaseModel):
-    target_path: Path = Field(description="Input file or directory to analyze files in")
-    tag_glossary_file: Path = Field(
-        description=
-        "org-mode file describing the tags. The structure of the file is not important, just that it uses tags in some way"
-    )
-
-    output_dir: Optional[Path] = Field(default=None, description="Directory for all output files")
-    autocomplete_file: Optional[Path] = Field(default=None, description="Optional file with one tag per line for autocomplete purposes")
-
-    cachedir: Optional[Path] = None
 
 
 @beartype
@@ -40,13 +28,34 @@ class OrgTagDesc():
     tag: tuple[str, ...]
 
 
-def analysis_options(f: Any) -> Any:
-    return apply_options(f, options_from_model(TagSortingOptions))
+class DuplicateType(enum.Enum):
+    PART_OVERLAP = "part_overlap"
+    SIMILAR = "similar"
+    PART_SIMILAR = "part_similar"
+
+
+@dataclass
+class TagDuplicate:
+    type: DuplicateType
+    tag1: OrgTagDesc
+    tag2: OrgTagDesc
+    count1: int
+    count2: int
+
+
+class TagCollectionArtifacts():
+    stats_output: Path
+    unknown_output: Path
+    unused_output: Path
+    tree_output: Path
+    duplicates_output: Path
+    autocomplete_output: Path
+    tag_tree: Tree
+    duplicate_tag_list: List[TagDuplicate]
 
 
 @beartype
-def find_duplicate_tags(target_count: Dict[OrgTagDesc, int],
-                        duplicates_output: Path) -> None:
+def _find_duplicate_tags_data(target_count: Dict[OrgTagDesc, int]) -> List[TagDuplicate]:
     tags = list(target_count.keys())
     duplicates = []
 
@@ -75,13 +84,23 @@ def find_duplicate_tags(target_count: Dict[OrgTagDesc, int],
                 is_overlap = True
 
             if is_overlap:
-                duplicates.append(("part_overlap", tag1, tag2))
+                duplicates.append(
+                    TagDuplicate(type=DuplicateType.PART_OVERLAP,
+                                 tag1=tag1,
+                                 tag2=tag2,
+                                 count1=target_count[tag1],
+                                 count2=target_count[tag2]))
 
             tag1_str = "##".join(tag1.tag)
             tag2_str = "##".join(tag2.tag)
             similarity = SequenceMatcher(None, tag1_str, tag2_str).ratio()
             if similarity >= 0.9 and len(tag1_parts) == len(tag2_parts):
-                duplicates.append(("similar", tag1, tag2))
+                duplicates.append(
+                    TagDuplicate(type=DuplicateType.SIMILAR,
+                                 tag1=tag1,
+                                 tag2=tag2,
+                                 count1=target_count[tag1],
+                                 count2=target_count[tag2]))
 
             for k, part1 in enumerate(tag1.tag):
                 for l, part2 in enumerate(tag2.tag):
@@ -90,9 +109,20 @@ def find_duplicate_tags(target_count: Dict[OrgTagDesc, int],
                         if part_similarity >= 0.8 and part1 != part2:
                             if k == 0:
                                 break
-                            duplicates.append(("part_similar", tag1, tag2))
+                            duplicates.append(
+                                TagDuplicate(type=DuplicateType.PART_SIMILAR,
+                                             tag1=tag1,
+                                             tag2=tag2,
+                                             count1=target_count[tag1],
+                                             count2=target_count[tag2]))
                             break
 
+    return duplicates
+
+
+@beartype
+def _format_duplicate_tags_table(duplicates: List[TagDuplicate],
+                                 duplicates_output: Path) -> None:
     console = Console(file=open(duplicates_output, "w"), width=120)
 
     console.print(Panel.fit("Tag Duplicate Analysis", style="bold blue"))
@@ -108,12 +138,14 @@ def find_duplicate_tags(target_count: Dict[OrgTagDesc, int],
         table.add_column("Count 2", style="yellow")
 
         seen = set()
-        for dup_type, tag1, tag2 in duplicates:
-            key = tuple(sorted(["##".join(tag1.tag), "##".join(tag2.tag)]))
+        for duplicate in duplicates:
+            key = tuple(
+                sorted(["##".join(duplicate.tag1.tag), "##".join(duplicate.tag2.tag)]))
             if key not in seen:
                 seen.add(key)
-                table.add_row(dup_type, "##".join(tag1.tag), "##".join(tag2.tag),
-                              str(target_count[tag1]), str(target_count[tag2]))
+                table.add_row(duplicate.type.value, "##".join(duplicate.tag1.tag),
+                              "##".join(duplicate.tag2.tag), str(duplicate.count1),
+                              str(duplicate.count2))
 
         console.print(table)
 
@@ -121,8 +153,11 @@ def find_duplicate_tags(target_count: Dict[OrgTagDesc, int],
 
 
 @beartype
-def build_tag_tree(target_count: Dict[OrgTagDesc, int]) -> Tree:
-    tree_data: Dict[str, Any] = defaultdict(lambda: {"count": 0, "children": defaultdict(dict)})
+def _build_tag_tree(target_count: Dict[OrgTagDesc, int]) -> Tree:
+    tree_data: Dict[str, Any] = defaultdict(lambda: {
+        "count": 0,
+        "children": defaultdict(dict)
+    })
 
     for tag_desc, count in target_count.items():
         current = tree_data
@@ -151,16 +186,20 @@ def build_tag_tree(target_count: Dict[OrgTagDesc, int]) -> Tree:
 
 
 @beartype
-def generate_tag_files(target_count: Dict[OrgTagDesc, int],
-                       glossary_usage: Set[OrgTagDesc], opts: TagSortingOptions) -> None:
+def _generate_tag_files(
+    target_count: Dict[OrgTagDesc, int],
+    glossary_usage: Set[OrgTagDesc],
+    opts: haxorg_opts.TagSortingOptions,
+    result: TagCollectionArtifacts,
+) -> None:
     assert opts.output_dir, "Missing output directory configuration in tag sorting options"
     opts.output_dir.mkdir(parents=True, exist_ok=True)
 
-    stats_output = opts.output_dir / "tag_statistics.csv"
-    unknown_output = opts.output_dir / "tag_unknown.csv"
-    unused_output = opts.output_dir / "tag_unused.csv"
-    tree_output = opts.output_dir / "tag_tree.txt"
-    duplicates_output = opts.output_dir / "tag_duplicates.txt"
+    result.stats_output = opts.output_dir / "tag_statistics.csv"
+    result.unknown_output = opts.output_dir / "tag_unknown.csv"
+    result.unused_output = opts.output_dir / "tag_unused.csv"
+    result.tree_output = opts.output_dir / "tag_tree.txt"
+    result.duplicates_output = opts.output_dir / "tag_duplicates.txt"
 
     target_tags = set(target_count.keys())
     unknown_tags = target_tags - glossary_usage
@@ -174,33 +213,31 @@ def generate_tag_files(target_count: Dict[OrgTagDesc, int],
 
     stats_df = pd.DataFrame(stats_data)
     stats_df = stats_df.sort_values("tag")
-    stats_df.to_csv(stats_output, index=False)
-    log(CAT).info(f"Wrote tag statistics to {stats_output}")
+    stats_df.to_csv(result.stats_output, index=False)
 
     unknown_data = ["##".join(tag_desc.tag) for tag_desc in unknown_tags]
     unknown_df = pd.DataFrame({"tag": sorted(unknown_data)})
-    unknown_df.to_csv(unknown_output, index=False)
-    log(CAT).info(f"Wrote unknown tags to {unknown_output}")
+    unknown_df.to_csv(result.unknown_output, index=False)
 
     unused_data = ["##".join(tag_desc.tag) for tag_desc in unused_tags]
     unused_df = pd.DataFrame({"tag": sorted(unused_data)})
-    unused_df.to_csv(unused_output, index=False)
-    log(CAT).info(f"Wrote unused tags to {unused_output}")
+    unused_df.to_csv(result.unused_output, index=False)
 
-    tree = build_tag_tree(target_count)
-    console = Console(file=open(tree_output, "w"), width=120)
-    console.print(tree)
+    result.tag_tree = _build_tag_tree(target_count)
+    console = Console(file=open(result.tree_output, "w"), width=120)
+    console.print(result.tag_tree)
     console.file.close()
-    tree_content = tree_output.read_text().replace("│   ", "    ").replace("├── ", "    ").replace("└── ", "    ")
-    tree_output.write_text(tree_content)
-    log(CAT).info(f"Wrote tag tree to {tree_output}")
+    tree_content = result.tree_output.read_text().replace("│   ", "    ").replace(
+        "├── ", "    ").replace("└── ", "    ")
+    result.tree_output.write_text(tree_content)
 
-    find_duplicate_tags(target_count, duplicates_output=duplicates_output)
-    log(CAT).info(f"Wrote duplicate analysis to {duplicates_output}")
+    result.duplicate_tag_list = _find_duplicate_tags_data(target_count)
+    _format_duplicate_tags_table(duplicates=result.duplicate_tag_list,
+                                 duplicates_output=result.duplicates_output)
 
     if opts.autocomplete_file and opts.autocomplete_file.exists():
-        autocomplete_output = opts.output_dir / "autocomplete.patch"
-        
+        result.autocomplete_output = opts.output_dir / "autocomplete.patch"
+
         with open(opts.autocomplete_file, "r") as f:
             autocomplete_tags = set()
             for line in f:
@@ -208,44 +245,44 @@ def generate_tag_files(target_count: Dict[OrgTagDesc, int],
                 if line:
                     tag_parts = tuple(line.lstrip("#").split("##"))
                     autocomplete_tags.add(OrgTagDesc(tag=tag_parts))
-        
+
         all_referenced_tags = target_tags | glossary_usage
-        
+
         tags_to_add = all_referenced_tags - autocomplete_tags
         tags_to_remove = autocomplete_tags - all_referenced_tags
-        
-        with open(autocomplete_output, "w") as f:
+
+        with open(result.autocomplete_output, "w") as f:
             f.write("--- autocomplete_old\n")
             f.write("+++ autocomplete_new\n")
             f.write("@@ -1,1 +1,1 @@\n")
-            
+
             for tag in sorted(tags_to_remove, key=lambda x: "##".join(x.tag)):
                 f.write(f"-#{'##'.join(tag.tag)}\n")
-            
+
             for tag in sorted(tags_to_add, key=lambda x: "##".join(x.tag)):
                 f.write(f"+#{'##'.join(tag.tag)}\n")
-        
-        log(CAT).info(f"Wrote autocomplete patch to {autocomplete_output}")
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
-@analysis_options
-@click.pass_context
-def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
-    pack_context(ctx, "root", TagSortingOptions, config=config, kwargs=kwargs)
-    opts: TagSortingOptions = ctx.obj["root"]
-    parse_opts = org.OrgParseParameters()
 
+@beartype
+def sort_reposutory_tags(
+        opts: haxorg_opts.RootOptions,
+        run: Optional[haxorg_cli.CliRunContext] = None) -> TagCollectionArtifacts:
+    if not run:
+        run = haxorg_cli.get_run(opts)  # type: ignore
+
+    assert opts.generate
+    assert opts.generate.sort_tags
     dir_opts = org.OrgDirectoryParseParameters()
+    result = TagCollectionArtifacts()
 
     def parse_node_impl(path: str) -> org.Org:
         try:
-            log(CAT).info(f"Parsing file {path}")
-            result = parseCachedFile(Path(path), opts.cachedir)
-            log(CAT).debug("OK")
+            result = haxorg_cli.parseCachedFile(
+                opts,
+                Path(path),
+                parse_opts=haxorg_cli.getParseOpts(opts, Path(path)),
+            )
+
             return result
 
         except Exception as e:
@@ -254,10 +291,7 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
 
     org.setGetParsedNode(dir_opts, parse_node_impl)
 
-    log(CAT).info("Parsing input directory")
-    target = org.parseDirectoryOpts(str(opts.target_path), dir_opts)
-    log(CAT).info("Directory parse complete")
-
+    target = org.parseDirectoryOpts(str(opts.generate.sort_tags.input_dir), dir_opts)
     target_count: Dict[OrgTagDesc, int] = defaultdict(lambda: 0)
 
     def visit_target(node: org.Org) -> None:
@@ -267,7 +301,8 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
 
     org.eachSubnodeRec(target, visit_target)
 
-    glossary = parseCachedFile(Path(opts.tag_glossary_file), opts.cachedir)
+    glossary = haxorg_cli.parseCachedFile(opts,
+                                          Path(opts.generate.sort_tags.tag_glossary_file))
 
     glossary_usage = set()
 
@@ -278,10 +313,22 @@ def cli(ctx: click.Context, config: Optional[str], **kwargs: Any) -> None:
 
     org.eachSubnodeRec(glossary, visit_glossary)
 
-    generate_tag_files(target_count=target_count,
-                       glossary_usage=glossary_usage,
-                       opts=opts)
+    _generate_tag_files(
+        target_count=target_count,
+        glossary_usage=glossary_usage,
+        opts=opts.generate.sort_tags,
+        result=result,
+    )
+
+    return result
 
 
-if __name__ == "__main__":
-    cli()
+@click.command("sort_tags")
+@haxorg_cli.get_wrap_options(haxorg_opts.TagSortingOptions)
+@click.pass_context
+def sort_repository_tags_cli(ctx: click.Context, **kwargs: Any) -> None:
+    """
+    Collect all the hashtags and subtree tags in the repository and summarize
+    usage frequency, nesting structure etc. into the single report file. 
+    """
+    sort_reposutory_tags(haxorg_cli.get_opts(ctx))

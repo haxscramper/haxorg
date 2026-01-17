@@ -1,29 +1,23 @@
 #!/usr/bin/env python
 
 import json
+import logging
 from pathlib import Path
+
+import py_repository.repo_tasks.workflow_utils as workflow_utils
+import rich_click as click
+from beartype.typing import Any, Optional
+from py_repository.repo_tasks import (examples_build, haxorg_base, haxorg_build,
+                                      haxorg_codegen, haxorg_coverage, haxorg_docker,
+                                      haxorg_docs, haxorg_linting, haxorg_tests)
 from py_repository.repo_tasks.common import get_build_root
 from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
-import py_repository.repo_tasks.workflow_utils as workflow_utils
-from py_repository.repo_tasks import (
-    haxorg_base,
-    haxorg_build,
-    haxorg_codegen,
-    haxorg_coverage,
-    haxorg_docker,
-    haxorg_docs,
-    haxorg_tests,
-    examples_build,
-    haxorg_linting,
-)
-
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.toml_config_profiler import apply_options, merge_dicts, options_from_model, pack_context
-from pydantic import BaseModel, Field
-from beartype.typing import Optional, Any
-import rich_click as click
 from py_scriptutils.script_logging import log, setup_multi_file_logging
-import logging
+from py_scriptutils.toml_config_profiler import (apply_options, get_user_provided_params,
+                                                 merge_dicts, options_from_model,
+                                                 pack_context)
+from pydantic import BaseModel, Field
 
 CAT = __name__
 
@@ -33,9 +27,11 @@ logging.getLogger("plumbum.local").setLevel(logging.WARNING)
 class WorkflowOptions(BaseModel):
     task: Optional[str] = Field(default=None)
     workflow_log_dir: str = "/tmp/haxorg/workflow_log"
-    stamp_root: str = str(get_haxorg_repo_root_path().joinpath("build").joinpath("workflow_stamps"))
+    stamp_root: str = str(
+        get_haxorg_repo_root_path().joinpath("build").joinpath("workflow_stamps"))
     config_override: Optional[Path] = None
     verbose: bool = False
+    config: Optional[str] = None
 
 
 def workflow_options(f: Any) -> Any:
@@ -44,15 +40,10 @@ def workflow_options(f: Any) -> Any:
 
 @click.command()
 @click.argument("cmd")
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
 @workflow_options
 @click.pass_context
-def cli(ctx: click.Context, cmd: str, config: str, **kwargs: Any) -> None:
-    pack_context(ctx, "root", WorkflowOptions, config=config, kwargs=kwargs)
-    opts: WorkflowOptions = ctx.obj["root"]
+def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
+    opts = pack_context(ctx, WorkflowOptions, cli_kwargs=get_user_provided_params(ctx))
     setup_multi_file_logging(Path(opts.workflow_log_dir))
 
     graph = workflow_utils.create_dag_from_tasks(workflow_utils.get_haxorg_tasks())

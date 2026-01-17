@@ -18,7 +18,7 @@ from py_codegen.refl_wrapper_graph import (get_declared_types_rec, get_used_type
                                            hash_qual_type)
 from py_repository.code_analysis import gen_coverage_cookies
 from py_repository.repo_tasks.command_execution import run_command, run_command_with_json_args
-from py_repository.repo_tasks.common import (ensure_existing_dir, get_build_root,
+from py_repository.repo_tasks.common import (ctx_write_text, ensure_existing_dir, get_build_root,
                                              get_script_root, get_workflow_out)
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
@@ -446,8 +446,10 @@ def gen_include_graph(
 ) -> None:
     header_compdb_content = run_command(
         ctx,
-        "compdb",
+        "poetry",
         [
+            "run",
+            "compdb",
             "-p",
             compile_commands.parent,
             "list",
@@ -455,7 +457,7 @@ def gen_include_graph(
         capture=True,
     )
 
-    header_commands.write_text(header_compdb_content[1])
+    ctx_write_text(ctx, header_commands, header_compdb_content[1])
     log(CAT).info(f"Wrote extended compilation database to {header_commands}")
 
     ok_files: List[Path] = []

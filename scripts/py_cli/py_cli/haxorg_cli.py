@@ -1,46 +1,33 @@
+import time
 from pathlib import Path
 
 import py_haxorg.pyhaxorg_wrap as org
+import rich.highlighter
+import rich.text
 import rich_click as click
 from beartype import beartype
-from beartype.typing import Optional, TypeVar, Dict, Any
+from beartype.typing import Any, Dict, List, Optional, TypeVar
+from py_cli.haxorg_opts import RootOptions
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import (
-    apply_options,
-    get_cli_model,
-    make_config_provider,
-    merge_cli_model,
-    options_from_model,
-    run_config_provider,
-    pack_context,
-)
+from py_scriptutils.toml_config_profiler import (DefaultWrapperValue,
+                                                 apply_options, get_cli_model,
+                                                 get_user_provided_params,
+                                                 make_config_provider,
+                                                 merge_cli_model,
+                                                 options_from_model,
+                                                 pack_context,
+                                                 run_config_provider)
 from py_scriptutils.tracer import TraceCollector
-from pydantic import BaseModel, Field
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"
 CAT = __name__
 
 
-class CliRootOptions(BaseModel, extra="forbid"):
-    lex_traceDir: Optional[str] = Field(
-        description="Write lexer operation trace into the directory", default=None)
-    parse_traceDir: Optional[str] = None
-    sem_traceDir: Optional[str] = None
-    config: Optional[str] = None
-    cache: Optional[Path] = Field(
-        description=
-        "Optional directory to cache file parsing to speed up large corpus processing",
-        default=None)
-
-    trace_path: Optional[str] = Field(
-        description="Trace execution of the CLI to the file", default=None)
-
-
 @beartype
 class CliRunContext:
 
-    def __init__(self, opts: CliRootOptions) -> None:
+    def __init__(self, opts: RootOptions) -> None:
         self.tracer = TraceCollector()
         self.opts = opts
 
@@ -57,68 +44,170 @@ class CliRunContext:
             log("haxorg.cli").info(f"Wrote execution trace to {self.opts.trace_path}")
 
 
-def get_run(ctx: click.Context) -> CliRunContext:
-    return ctx.obj["run"]
+def get_run(opts: RootOptions) -> CliRunContext:
+    return CliRunContext(opts)
+
+
+@beartype
+def parseFile(
+    opts: RootOptions,
+    file: Path,
+    parse_opts: Optional[org.OrgParseParameters] = None,
+) -> org.Org:
+    result: org.Org = None  # type: ignore
+    if opts.follow_includes:
+        dir_opts = org.OrgDirectoryParseParameters()
+        if parse_opts:
+            parse_opts.currentFile = str(file)
+
+            def parse_node_impl(path: str) -> org.Org:
+                return org.parseStringOpts(Path(path).read_text(), parse_opts)
+
+            org.setGetParsedNode(dir_opts, parse_node_impl)
+
+        result = org.parseFileWithIncludes(str(file.resolve()), dir_opts)
+    else:
+        if parse_opts:
+            parse_opts.currentFile = str(file)
+            result = org.parseStringOpts(file.read_text(), parse_opts)
+        else:
+            result = org.parseFile(str(file.resolve()))
+
+    def get_file(dir: str, suffix: str) -> str:
+        result = Path(dir).joinpath(f"{file.stem}").with_suffix(suffix)
+        result.parent.mkdir(exist_ok=True, parents=True)
+        return str(result)
+
+    if opts.yamlDump_traceDir:
+        org.exportToYamlFile(
+            result, str(get_file(opts.yamlDump_traceDir, ".yaml")),
+            org.OrgYamlExportOpts(
+                skipNullFields=True,
+                skipLocation=True,
+            ))
+
+    if opts.jsonDump_traceDir:
+        org.exportToJsonFile(result, str(get_file(opts.jsonDump_traceDir, ".json")))
+
+    if opts.treeDump_traceDir:
+        org.exportToTreeFile(result, str(get_file(opts.treeDump_traceDir, ".txt")),
+                             org.OrgTreeExportOpts())
+
+    return result
 
 
 @beartype
 def parseCachedFile(
+    opts: RootOptions,
     file: Path,
-    cache: Optional[Path],
-    with_includes: bool = True,
     parse_opts: Optional[org.OrgParseParameters] = None,
 ) -> org.Org:
-    cache_file = None if not cache else Path(cache).joinpath(file.name)
-
-    def aux() -> org.Org:
-        log(CAT).info(f"Processing {file}")
-        if with_includes:
-            opts = org.OrgDirectoryParseParameters()
-            if parse_opts:
-                parse_opts.currentFile = str(file)
-
-                def parse_node_impl(path: str) -> org.Org:
-                    return org.parseStringOpts(Path(path).read_text(), parse_opts)
-
-                org.setGetParsedNode(opts, parse_node_impl)
-
-            return org.parseFileWithIncludes(str(file.resolve()), opts)
-        else:
-            if parse_opts:
-                parse_opts.currentFile = str(file)
-                return org.parseStringOpts(file.read_text(), parse_opts)
-            else:
-                return org.parseFile(str(file.resolve()))
+    cache_file = None if not opts.cache else Path(opts.cache).joinpath(file.name)
 
     if cache_file:
         with FileOperation.InOut([file], [cache_file]) as op:
             if op.should_run():
-                log("haxorg.cache").info(f"{file} parsing")
-                node = aux()
-
+                node = parseFile(opts, file, parse_opts)
                 if not cache_file.parent.exists():
                     cache_file.parent.mkdir()
 
                 org.exportToProtobufFile(node, str(cache_file))
 
             else:
-                log("haxorg.cache").info(f"{file} read from cache {cache_file}")
+                # log("haxorg.cache").info(f"{file} read from cache {cache_file}")
                 node = org.readProtobufFile(str(cache_file))
 
             return node
 
     else:
-        return aux()
+        return parseFile(opts, file, parse_opts)
 
 
 @beartype
-def parseFile(
-    root: CliRootOptions,
-    file: Path,
-    parse_opts: Optional[org.OrgParseParameters] = None,
-) -> org.Org:
-    return parseCachedFile(file, root.cache, parse_opts=parse_opts)
+def getParseOpts(root: RootOptions, infile: Path) -> org.OrgParseParameters:
+    parse_opts = org.OrgParseParameters()
+
+    def get_file(dir: str, type: str) -> str:
+        result = Path(dir).joinpath(f"{infile.stem}_{type}").with_suffix(".log")
+        result.parent.mkdir(exist_ok=True, parents=True)
+        return str(result)
+
+    if root.baseToken_traceDir:
+        parse_opts.baseTokenTracePath = get_file(root.baseToken_traceDir, "base_token")
+
+    if root.tokenizer_traceDir:
+        parse_opts.tokenTracePath = get_file(root.tokenizer_traceDir, "tokenizer")
+
+    if root.sem_traceDir:
+        parse_opts.semTracePath = get_file(root.sem_traceDir, "sem")
+
+    if root.parse_traceDir:
+        parse_opts.parseTracePath = get_file(root.parse_traceDir, "parse")
+
+    parse_opts.currentFile = str(infile)
+
+    return parse_opts
 
 
-def base_cli_options(f: Any) -> Any:
-    return apply_options(f, options_from_model(CliRootOptions))
+@beartype
+def parseDirectory(opts: RootOptions, dir: Path) -> org.Org:
+    dir_opts = org.OrgDirectoryParseParameters()
+
+    def parse_node_impl(path: str) -> org.Org:
+        try:
+            start = time.perf_counter()
+            result = parseCachedFile(
+                opts,
+                Path(path),
+                parse_opts=getParseOpts(opts, Path(path)),
+            )
+
+            elapsed = time.perf_counter() - start
+
+            log(CAT).info(f"Parsed '{path}' in {elapsed:.3f} sec")
+ 
+            return result
+
+        except Exception as e:
+            message = rich.highlighter.ReprHighlighter()(
+                rich.text.Text(f"Failed parsing '{path}'"))
+
+            for line in str(e).split("\n")[:10]:
+                message.append(rich.text.Text(f"\n{line}", style="dim"))
+
+            log(CAT).error(message,
+                           extra={
+                               "highlighter": rich.highlighter.NullHighlighter(),
+                               "markup": True,
+                           })
+
+            return org.Empty()
+
+    org.setGetParsedNode(dir_opts, parse_node_impl)
+    return org.parseDirectoryOpts(str(dir), dir_opts)
+
+
+@beartype
+def parsePathList(opts: RootOptions, paths: List[Path]) -> List[org.Org]:
+    return [parseDirectory(opts, path) for path in paths]
+
+
+@beartype
+def get_opts(ctx: click.Context) -> RootOptions:
+    return pack_context(ctx, RootOptions, cli_kwargs=get_user_provided_params(ctx))
+
+
+@beartype
+def get_wrap_options(t: Any) -> Any:
+
+    def analysis_options(f: Any) -> Any:
+        return apply_options(f, options_from_model(t))
+
+    return analysis_options
+
+
+@beartype
+def get_tmp_file(opts: RootOptions, path: str) -> Path:
+    file = opts.tmp_dir.joinpath(path)
+    file.parent.mkdir(parents=True, exist_ok=True)
+    return file

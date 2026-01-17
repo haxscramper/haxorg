@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from py_wrappers.py_adaptagrams import *  # type: ignore
 else:
-    print(os.getenv("LD_PRELOAD"))
     from py_adaptagrams import *
 
 

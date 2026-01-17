@@ -1,38 +1,20 @@
-from beartype.typing import List
-from py_cli.haxorg_cli import *
-from plumbum import local, FG, ProcessExecutionError, colors
-import re
-import py_haxorg.pyhaxorg_wrap as org
-from py_exporters.export_utils.texoutparse import LatexLogParser
 import itertools
+from pathlib import Path
 
-
-class TexExportOptions(BaseModel, extra="forbid"):
-    infile: Path
-    outfile: Path
-    do_compile: bool = Field(
-        description="Compile the tex document if the export was successful", default=True)
-
-    backend: str = Field(
-        description="TeX backend to use",
-        default="pdflatex",
-    )
-
-    exportTraceFile: Optional[str] = Field(
-        description="Write python export trace to this file",
-        default=None,
-        alias="export_trace_file")
-
+import plumbum
+import py_haxorg.pyhaxorg_wrap as org
+import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, List, Optional
+from py_cli import haxorg_cli, haxorg_opts
+from py_exporters.export_utils.texoutparse import LatexLogParser
+from py_scriptutils.script_logging import log
 
 CAT = "haxorg.export.tex"
 
 
-def export_tex_options(f: Any) -> Any:
-    return apply_options(f, options_from_model(TexExportOptions))
-
-
 def run_lualatex(filename: Path) -> None:
-    lualatex = local["lualatex"].with_cwd(str(filename.parent))
+    lualatex = plumbum.local["lualatex"].with_cwd(str(filename.parent))
     code, stdout, stderr = lualatex.run(("-interaction=nonstopmode", filename),
                                         retcode=None)
 
@@ -91,23 +73,27 @@ class DerivedLatexExporter(ExporterLatex):
         ]
 
 
-@click.command("tex")
-@export_tex_options
-@click.pass_context
-def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
-    pack_context(ctx, "tex", TexExportOptions, config=config, kwargs=kwargs)
-    opts: TexExportOptions = ctx.obj["tex"]
-    node = parseFile(ctx.obj["root"], Path(opts.infile))
+@beartype
+def export_tex(opts: haxorg_opts.RootOptions) -> None:
+    assert opts.export
+    assert opts.export.tex
+    node = haxorg_cli.parseFile(opts, opts.export.tex.infile)
 
     tex = DerivedLatexExporter()
     # tex.exp.enableFileTrace("/tmp/trace.txt", False)
-    if opts.exportTraceFile:
-        log(CAT).debug(f"Enabled export file trace to {opts.exportTraceFile}")
-        tex.exp.enableFileTrace(opts.exportTraceFile, True)
+    if opts.export.exportTraceFile:
+        log(CAT).debug(f"Enabled export file trace to {opts.export.exportTraceFile}")
+        tex.exp.enableFileTrace(opts.export.exportTraceFile, True)
 
     res = tex.exp.evalTop(node)
-    with open(opts.outfile, "w") as out:
-        out.write(tex.t.toString(res, TextOptions()))
+    opts.export.tex.outfile.write_text(tex.t.toString(res, TextOptions()))
 
-    if opts.do_compile:
-        run_lualatex(opts.outfile)
+    if opts.export.tex.do_compile:
+        run_lualatex(opts.export.tex.outfile)
+
+
+@click.command("tex")
+@haxorg_cli.get_wrap_options(haxorg_opts.TexExportOptions)
+@click.pass_context
+def export_tex_cli(ctx: click.Context, **kwargs: Any) -> None:
+    export_tex(haxorg_cli.get_opts(ctx))

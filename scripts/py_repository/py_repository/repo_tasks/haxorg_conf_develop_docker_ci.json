@@ -1,10 +1,18 @@
 {
-  "log_level": "NORMAL",
+  "log_level"          : "NORMAL",
   "use_unchanged_tasks": true,
-  "develop_ci_conf": {
-    "emscripten_deps": false,
+  "instrument"         : {"coverage": true},
+  "develop_ci_conf"    : {
+    "emscripten_deps" : false,
     "emscripten_build": false,
-    "emscripten_test": false,
-    "reflection": false
+    "emscripten_test" : false,
+    "reflection"      : false,
+    "coverage"        : true,
+    "docs"            : false,
+    "include_graph"   : false
+  },
+  "coverage_conf"      : {
+    "coverage_run_whitelist" : [ {"class_pattern": "OrgParseSem"} ],
+    "coverage_html_whitelist": [ "OrgParser"                      ]
   }
 }

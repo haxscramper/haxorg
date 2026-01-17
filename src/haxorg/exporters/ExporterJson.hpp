@@ -82,10 +82,14 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         visitDispatch(res, arg.asOrg());
     }
 
+    void visit(json& res, sem::SemId<org::sem::Space> const& arg);
+
     bool skipEmptyLists = false;
     bool skipLocation   = false;
     bool skipId         = false;
     bool skipNullFields = false;
+    /// \brief Replace multi-character space with a single one on export.
+    bool normalizeSpaces = false;
 
     virtual void visitDispatchHook(json&, sem::SemId<sem::Org>) {}
 

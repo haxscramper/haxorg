@@ -1,19 +1,28 @@
-from beartype import beartype
-import os
-from beartype.typing import List, Dict, Any, get_origin, get_args, Optional, TypeVar, Type
-import toml
-import traceback
-from dataclasses import dataclass
-import rich_click as click
 import functools
-from pydantic import BaseModel
-from pydantic_core import PydanticUndefined
-from pprint import pprint
-from copy import deepcopy
+import json
+import os
+import traceback
 from pathlib import Path
 
+import rich_click as click
+import toml
+import yaml
+from dataclasses import dataclass, field
+from beartype import beartype
+from beartype.typing import (Any, Dict, List, Optional, Type, TypeVar, get_args,
+                             get_origin)
 from py_scriptutils.files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
+from pydantic import AliasChoices, BaseModel
+from pydantic_core import PydanticUndefined
+
+CAT = __name__
+
+
+@beartype
+@dataclass
+class CliField():
+    is_option: bool = True
 
 
 class DefaultWrapper(click.ParamType):
@@ -71,7 +80,6 @@ def merge_cli_model(
             assert not isinstance(v, DefaultWrapper)
 
     final_data = merge_dicts([on_default, file_config, on_cli])
-    # trunk-ignore(mypy/attr-defined)
     return ModelT.model_validate(final_data)  # type: ignore[attr-defined]
 
 
@@ -79,14 +87,19 @@ T = TypeVar("T")
 
 
 @beartype
-def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict,
-                  config: Optional[str]) -> T:
+def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict) -> T:
     """
     Convert the provided CLI parameters into the object of type `T` for
     more typesafe usage
     """
-    config_base = run_config_provider(
-        ([str(Path(config).resolve())] if config else []), True) if config else {}
+    if "config" in kwargs:
+        config = kwargs["config"]
+        config_base = run_config_provider(
+            ([str(Path(config).resolve())] if config else []), True)
+
+    else:
+        config_base = dict()
+
     conf = merge_cli_model(ctx, config_base, kwargs, ModelType)
     return conf
 
@@ -94,6 +107,9 @@ def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict,
 def py_type_to_click(T: Any) -> Any:
     if T is str:
         return click.STRING
+
+    elif T is Path:
+        return click.Path
 
     elif get_origin(T) is list:
         return py_type_to_click(get_args(T)[0])
@@ -105,12 +121,27 @@ def py_type_to_click(T: Any) -> Any:
 def options_from_model(model: BaseModel) -> List[Any]:
     result: List[Any] = []
     for name, field in model.model_fields.items():
+        if hasattr(field, "metadata") and any(
+                isinstance(meta, CliField) for meta in field.metadata):
+            cli_field = [meta for meta in field.metadata if isinstance(meta, CliField)][0]
+            if not cli_field.is_option:
+                continue
+
         has_default = field.default is not None and field.default != PydanticUndefined
         is_multiple = get_origin(field.annotation) is list
-        opt_name = field.alias if field.alias else name
+        match field.alias:
+            case str():
+                opt_name = f"--{field.alias}"
+
+            case AliasChoices():
+                opt_name = f"--{field.alias.choices[0]}"
+
+            case None:
+                opt_name = f"--{name}"
+
         result.append(
             click.option(
-                "--" + opt_name,
+                opt_name,
                 type=DefaultWrapper(py_type_to_click(field.annotation)),
                 help=field.description,
                 expose_value=True,
@@ -182,9 +213,6 @@ def find_config_files(with_trace: bool, potential_paths: List[str]) -> List[str]
     result: List[str] = []
     for path in potential_paths:
         if os.path.exists(path):
-            if with_trace:
-                # TODO replace 'with trace' by a nested logger name
-                log("org.cli").debug(f"Trying {path} for config -- file exists, using it")
             result.append(path)
 
         elif with_trace:
@@ -255,16 +283,34 @@ def run_config_provider(
 
         configs: List[Dict] = []
         for path in file_paths:
-            if os.path.exists(path):
-                configs.append(
-                    interpolate_dictionary(
-                        toml.load(path),
-                        merge_dicts([
-                            content_value_substitution,
-                            dict(config_path=path,
-                                 config_dir=os.path.dirname(path),
-                                 haxorg_root=str(get_haxorg_repo_root_path()))
-                        ])))
+            if not Path(path).exists():
+                continue
+
+            if path.endswith("toml"):
+                config_dict = toml.load(path)
+
+            elif path.endswith("json"):
+                config_dict = json.loads(Path(path).read_text())
+
+            elif path.endswith("yaml"):
+                with open(path, "r") as file:
+                    config_dict = yaml.load(file, Loader=yaml.SafeLoader)
+
+            else:
+                raise ValueError(
+                    f"Unexpected config file format: expected `.toml`, `.json` or `.yaml`, got {path}"
+                )
+
+            config_value = interpolate_dictionary(
+                config_dict,
+                merge_dicts([
+                    content_value_substitution,
+                    dict(config_path=path,
+                         config_dir=os.path.dirname(path),
+                         haxorg_root=str(get_haxorg_repo_root_path()))
+                ]))
+
+            configs.append(config_value)
 
         return merge_dicts(configs)
 
@@ -283,14 +329,47 @@ def make_config_provider(config_file_name: str, with_trace: bool = False) -> Any
     return implementation
 
 
-@beartype
-def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict,
-                 config: Optional[str]) -> None:
+def pack_context(ctx: click.Context, TDef: type[T], cli_kwargs: dict) -> T:
     ctx.ensure_object(dict)
-    ctx.obj[name] = get_cli_model(ctx, T, kwargs, config)
+    return get_cli_model(ctx, TDef, cli_kwargs)
 
 
 @beartype
-def get_context(ctx: click.Context, T: type, kwargs: dict, config: Optional[str]) -> Any:
-    pack_context(ctx, "tmp", T, kwargs=kwargs, config=config)
+def get_context(ctx: click.Context, T: type, cli_kwargs: dict) -> Any:
+    pack_context(ctx, T, cli_kwargs=cli_kwargs)
     return ctx.obj["tmp"]
+
+
+@beartype
+def get_user_provided_params(ctx: click.Context) -> Dict[str, Any]:
+    """
+    Get parameters that were explicitly provided by the user.
+    """
+    contexts = []
+    current_ctx = ctx
+    while current_ctx is not None:
+        contexts.append(current_ctx)
+        current_ctx = current_ctx.parent  # type: ignore
+
+    contexts.reverse()
+
+    def get_fields(context: click.Context) -> Dict[str, Any]:
+        result: Dict[str, Any] = {}
+        for param_name, value in context.params.items():
+            if isinstance(value, DefaultWrapperValue) and value.is_provided:
+                result[param_name] = value.value
+
+        return result
+
+    def aux(idx: int, parent: Dict):
+        if idx < len(contexts):
+            c = contexts[idx]
+            parent[c.info_name] = get_fields(c)
+            aux(idx + 1, parent[c.info_name])
+
+    result: Dict[str, Any] = get_fields(contexts[0])
+    if 1 < len(contexts):
+        result[contexts[1].info_name] = dict()
+        aux(1, result)
+
+    return result

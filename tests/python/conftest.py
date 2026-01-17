@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
+import ast
+import copy
+import logging
 import os
 import subprocess
 import time
+import warnings
 from pathlib import Path
 
 import pytest
@@ -12,19 +16,16 @@ from _pytest.main import Session
 from _pytest.nodes import Item
 from _pytest.python import Module
 from _pytest.runner import CallInfo
-from beartype import beartype
-from tests.python.conf_gtest import GTestFile
-from tests.python.conf_test_common import summarize_cookies
-from plumbum import local
-from py_scriptutils.script_logging import pprint_to_file, to_debug_json, log
-from py_scriptutils.tracer import TraceCollector
-from beartype.typing import List, Any, Generator, Optional
 from asteval import Interpreter
-import ast
+from beartype import beartype
+from beartype.typing import Any, Generator, List, Optional
+from plumbum import local
 from py_scriptutils.repo_files import get_haxorg_build_path
-import warnings
-from py_scriptutils.script_logging import log
-import copy
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
+from py_scriptutils.tracer import TraceCollector
+
+from conf_gtest import GTestFile  # type: ignore
+from conf_test_common import summarize_cookies  # type: ignore
 
 CAT = "conftest"
 
@@ -32,6 +33,10 @@ trace_collector: TraceCollector = None
 
 
 def pytest_configure(config: Any) -> None:
+    for logger_name in ["plumbum.local"]:
+        logger = logging.getLogger(logger_name)
+        logger.disabled = True
+
     warnings.filterwarnings(
         "ignore",
         category=DeprecationWarning,
@@ -323,10 +328,11 @@ def pytest_collection_modifyitems(config: pytest.Config,
         dbg_file.close()
 
 
-@pytest.fixture
-def stable_test_dir(request: pytest.FixtureRequest) -> Path:
+def get_test_dir(
+        request: pytest.FixtureRequest,
+        test_dir_root: Path = Path("/tmp/haxorg/test_out"),
+) -> Path:
     import hashlib
-    import shutil
     from pathlib import Path
 
     # Get test file path relative to tests directory
@@ -335,7 +341,7 @@ def stable_test_dir(request: pytest.FixtureRequest) -> Path:
 
     # Find the 'tests' directory in the path
     for parent in test_file_path.parents:
-        if parent.name == 'tests':
+        if parent.name == "tests":
             tests_root = parent
             break
 
@@ -343,10 +349,10 @@ def stable_test_dir(request: pytest.FixtureRequest) -> Path:
         raise ValueError(f"Could not find 'tests' directory in path: {test_file_path}")
 
     # Get relative path from tests directory, without .py extension
-    rel_path = test_file_path.relative_to(tests_root).with_suffix('')
+    rel_path = test_file_path.relative_to(tests_root).with_suffix("")
 
     # Build base directory path
-    base_dir = Path("/tmp/haxorg/test_out") / rel_path
+    base_dir = test_dir_root / rel_path
 
     # Add test function name
     test_name = request.node.name
@@ -367,6 +373,15 @@ def stable_test_dir(request: pytest.FixtureRequest) -> Path:
     else:
         final_dir = base_dir / test_name
 
+    return final_dir
+
+
+@pytest.fixture
+def stable_test_dir(request: pytest.FixtureRequest) -> Path:
+    import shutil
+
+    final_dir = get_test_dir(request)
+
     # Clean and create directory
     if final_dir.exists():
         shutil.rmtree(final_dir)
@@ -374,3 +389,11 @@ def stable_test_dir(request: pytest.FixtureRequest) -> Path:
     final_dir.mkdir(parents=True, exist_ok=True)
 
     return final_dir
+
+
+@pytest.fixture
+def cached_test_dir(request: pytest.FixtureRequest) -> Path:
+    import platformdirs
+    return get_test_dir(
+        request,
+        Path(platformdirs.user_cache_dir("haxorg_test")).joinpath("py_test_cache"))

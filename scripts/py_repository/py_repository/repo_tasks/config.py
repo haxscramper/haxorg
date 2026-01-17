@@ -79,13 +79,9 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     emscripten_test: bool = True
 
 
-class HaxorgExampleMindMapConfig(BaseModel, extra="forbid"):
-    infile: str = "examples/qt_gui/org_diagram/corpus/document_1.org"
-
 
 class HaxorgExampleConfig(BaseModel, extra="forbid"):
-    mind_map: HaxorgExampleMindMapConfig = Field(
-        default_factory=HaxorgExampleMindMapConfig)
+    pass
 
 
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
@@ -203,6 +199,7 @@ class HaxorgConfig(BaseModel, extra="forbid"):
 
     use: HaxorgUseConfig = Field(default_factory=lambda: HaxorgUseConfig())
     use_unchanged_tasks: bool = Field(default=False)
+    use_dependencies: bool = Field(default=True)
     emscripten: HaxorgEmscriptenConfig = Field(
         default_factory=lambda: HaxorgEmscriptenConfig())
     instrument: HaxorgInstrumentConfig = Field(

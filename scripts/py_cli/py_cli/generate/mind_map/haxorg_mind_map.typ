@@ -1,4 +1,3 @@
-
 #let debug_text(text_in, color) = {
   place(
     top + left,
@@ -48,6 +47,8 @@
   let rect_x = port_x
   let rect_y = port_y
 
+  let fill_color = rgb(port.extra.port_color)
+
   place(
     dx: port_x * 1pt,
     dy: port_y * 1pt,
@@ -55,8 +56,7 @@
       rect(
         width: port_width * 1pt,
         height: port_height * 1pt,
-        // stroke: black + 1pt,
-        fill: gray.lighten(50%),
+        fill: fill_color,
       ),
     ),
   )
@@ -68,6 +68,24 @@
         dy: port_y * 1pt,
         draw_label(label),
       )
+    }
+  }
+}
+
+#let render_org_hash_tag(tag) = {
+  tag.head
+  if "subtags" in tag {
+    "##"
+    if (tag.subtags.len() == 1) {
+      for tag in tag.subtags {
+        render_org_hash_tag(tag)
+      }
+    } else {
+      "["
+      for tag in tag.subtags {
+        render_org_hash_tag(tag)
+      }
+      "]"
     }
   }
 }
@@ -119,7 +137,11 @@
   } else if kind == "BlockDynamicFallback" {
     if (node.name == "description") {
       stack(render_subnodes_wo_newlines())
+    } else {
+      [Unknown block type: #kind, #debug_text(repr(node.name), red)]
     }
+  } else if kind == "HashTag" {
+    strong(render_org_hash_tag(node.text))
   } else {
     // Fallback for unknown node types
     [Unknown node type: #kind, #debug_text(repr(node), red)]
@@ -251,7 +273,7 @@
 
 #let draw_edge_with_polygon(edge_data) = {
   let hyperedge = edge_data.extra.elk_extra.hyperedge
-  let fill_style = gray.lighten(50%)
+  let fill_style = rgb(edge_data.extra.edge_color)
 
   place(
     curve(
@@ -440,7 +462,7 @@
     rect(
       width: 100%,
       height: 100%,
-      stroke: (paint: gray.lighten(50%), thickness: 1.5pt, dash: "dashed"),
+      stroke: (paint: black.lighten(50%), thickness: 1.5pt, dash: "dashed"),
       fill: fill_color,
       radius: 5pt,
     ),

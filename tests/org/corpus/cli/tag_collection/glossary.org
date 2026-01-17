@@ -1,0 +1,16 @@
+* Utility/service/automation tags
+
+- #DO_NOT_ORG_ROAM :: Ignore the tag when processing the document for org-roam. NOTE: Haxorg mind mapping uses different tag for this.
+
+* Design tags
+
+** Objectives (what you're designing towards)
+- #design##objective##goal :: Core aims and desired outcomes of the design
+- #design##objective##requirement :: Specific features or capabilities that must be achieved
+- #design##objective##metric :: Measurable targets and success criteria
+
+** Constraints (external factors guiding the design)
+- #design##constraint##technical :: Limitations from existing technology, systems, or infrastructure
+- #design##constraint##resource :: Budget, time, or personnel limitations
+- #design##constraint##policy :: Regulatory, legal, or organizational rules that must be followed
+- #design##constraint##compatibility :: Requirements to work with existing systems or standards
