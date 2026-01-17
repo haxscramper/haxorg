@@ -35,6 +35,7 @@ def get_root_debug(dir: Path) -> Dict[str, Any]:
     )
 
 
+@pytest.mark.test_release
 def test_tex_export(stable_test_dir: Path) -> None:
     dir = stable_test_dir
     tex_file = dir.joinpath("tex_file.tex")
@@ -53,6 +54,7 @@ def test_tex_export(stable_test_dir: Path) -> None:
                                              ))))
 
 
+@pytest.mark.test_release
 def test_html_export(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_html import export_html
     export_html(
@@ -63,6 +65,7 @@ def test_html_export(stable_test_dir: Path) -> None:
             ))))
 
 
+@pytest.mark.test_release
 def test_sqlite_export(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_sqlite import export_sqlite
     export_sqlite(
@@ -82,6 +85,7 @@ def has_cmd(cmd: str) -> bool:
         return False
 
 
+@pytest.mark.test_release
 def test_pandoc_export(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_pandoc import export_pandoc
     dir = stable_test_dir
@@ -115,6 +119,7 @@ def test_pandoc_export(stable_test_dir: Path) -> None:
         ])
 
 
+@pytest.mark.test_release
 def test_typst_export_1(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_typst import export_typst
     dst_dir = stable_test_dir.joinpath("dst")
@@ -189,6 +194,7 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
         assert attach_dst.read_text() == attach_src.read_text()
 
 
+@pytest.mark.test_release
 def test_typst_export_2(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_typst import export_typst
     outfile = stable_test_dir.joinpath("result.typ")
@@ -227,6 +233,7 @@ subtree = "changeSubtree"
 
 
 @pytest.mark.test_release
+@pytest.mark.test_release
 def test_story_grid(stable_test_dir: Path) -> None:
     from py_cli.generate.story_grid import story_grid
     org_file = stable_test_dir.joinpath("org_file.org")
@@ -252,6 +259,7 @@ def test_story_grid(stable_test_dir: Path) -> None:
             ))))
 
 
+@pytest.mark.test_release
 def test_node_clouds(stable_test_dir: Path) -> None:
     from py_cli.generate.node_clouds import node_clouds
     org_file = stable_test_dir.joinpath("org_file.org")
@@ -283,6 +291,7 @@ Word1 Word1 Word1
     assert list(tags["count"]) == [2, 2, 2]
 
 
+@pytest.mark.test_release
 def test_subtree_clocking(stable_test_dir: Path) -> None:
     from py_cli.generate.subtree_clocking import subtree_clocking
     org_file = stable_test_dir.joinpath("org_file.org")
@@ -323,6 +332,7 @@ def test_subtree_clocking(stable_test_dir: Path) -> None:
     assert df["tags"][0] == "tag##sub1,tag2"
 
 
+@pytest.mark.test_release
 def test_codex_tracking(stable_test_dir: Path) -> None:
     from py_cli.generate.codex_tracking import codex_tracking
     target_file = stable_test_dir.joinpath("target.org")
@@ -358,6 +368,7 @@ Sentence with Character name should trigger radio target detection
 
 
 @pytest.mark.unstable
+@pytest.mark.test_release
 def test_base_activity_analysis(stable_test_dir: Path) -> None:
     from py_cli.generate.activity_analysis import activity_analysis
     org_file = stable_test_dir.joinpath("org_file.org")
@@ -451,6 +462,7 @@ def test_base_activity_analysis(stable_test_dir: Path) -> None:
     ), dbg
 
 
+@pytest.mark.test_release
 def test_mind_map(stable_test_dir: Path, cached_test_dir: Path) -> None:
     from py_cli.generate.mind_map.gen_mind_map import gen_mind_map
 
@@ -465,11 +477,14 @@ def test_mind_map(stable_test_dir: Path, cached_test_dir: Path) -> None:
     )
 
     if not opts.generate.mind_map.org_diagram_tool.exists():
-        pytest.skip(f"Org diagram tool at {opts.generate.mind_map.org_diagram_tool} does not exist")
+        pytest.skip(
+            f"Org diagram tool at {opts.generate.mind_map.org_diagram_tool} does not exist"
+        )
 
     gen_mind_map(opts)
 
 
+@pytest.mark.test_release
 def test_tag_sorting(stable_test_dir: Path) -> None:
     from py_cli.generate.sort_repository_tags import sort_reposutory_tags, TagDuplicate, DuplicateType
     import functools
@@ -511,6 +526,7 @@ def test_tag_sorting(stable_test_dir: Path) -> None:
     assert nlohmann_json.type == DuplicateType.SIMILAR
 
 
+@pytest.mark.test_release
 def test_todo_collector(stable_test_dir: Path) -> None:
     from py_cli.generate.todo_collector import todo_collector
 
