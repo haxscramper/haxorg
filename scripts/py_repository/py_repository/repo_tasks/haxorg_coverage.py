@@ -1,19 +1,22 @@
-from shutil import rmtree
-from beartype import beartype
-from beartype.typing import List, Optional
+import os
 import re
 from pathlib import Path
-import os
+from shutil import rmtree
 
 import plumbum
+from beartype import beartype
+from beartype.typing import List, Optional
 from py_ci.util_scripting import get_threading_count
 from py_repository.code_analysis import gen_coverage_cookies
-from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
-from py_repository.repo_tasks.command_execution import run_command, run_command_with_json_args
-from py_repository.repo_tasks.common import ensure_clean_file, get_build_root, get_component_build_dir
+from py_repository.repo_tasks.command_execution import (run_command,
+                                                        run_command_with_json_args)
+from py_repository.repo_tasks.common import (ctx_read_text, ctx_write_text,
+                                             ensure_clean_file, ensure_existing_dir,
+                                             get_build_root, get_component_build_dir)
 from py_repository.repo_tasks.config import HaxorgCoverageRunPattern
 from py_repository.repo_tasks.haxorg_base import get_llvm_root
 from py_repository.repo_tasks.haxorg_build import build_haxorg
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -236,16 +239,18 @@ def get_cxx_profdata_params(ctx: TaskContext) -> gen_coverage_cookies.Reflection
     database based on the previously collected test run profiles. 
     """
     coverage_dir = get_cxx_coverage_dir(ctx)
-    stored_summary_collection = coverage_dir.joinpath("test-summary.json")
+    stored_summary_collection = ctx_read_text(ctx,
+                                              coverage_dir.joinpath("test-summary.json"))
     summary_data: gen_coverage_cookies.ProfdataFullProfile = gen_coverage_cookies.ProfdataFullProfile.model_validate_json(
-        stored_summary_collection.read_text())
+        stored_summary_collection)
     filtered_summary = gen_coverage_cookies.ProfdataFullProfile(runs=filter_cookies(
         cookies=summary_data.runs,
         whitelist=ctx.config.coverage_conf.coverage_run_whitelist,
         blacklist=ctx.config.coverage_conf.coverage_run_blacklist,
     ))
     filtered_summary_collection = coverage_dir.joinpath("test-summary-filtered.json")
-    filtered_summary_collection.write_text(filtered_summary.model_dump_json(indent=2))
+    ctx_write_text(ctx, filtered_summary_collection,
+                   filtered_summary.model_dump_json(indent=2))
     return gen_coverage_cookies.ReflectionCLI(
         mode=gen_coverage_cookies.Mode.RunProfileMerge,
         output=str(coverage_dir.joinpath("coverage.sqlite")),
@@ -275,23 +280,18 @@ def run_cxx_coverage_merge(
     log(CAT).info(
         f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
     )
-    profile_path.parent.mkdir(parents=True, exist_ok=True)
+    ensure_existing_dir(ctx, profile_path.parent)
     model = get_cxx_profdata_params(ctx)
     if coverage_mapping_dump:
-        Path(coverage_mapping_dump).mkdir(exist_ok=True)
+        ensure_existing_dir(ctx, Path(coverage_mapping_dump))
         model.profdata.coverage_mapping_dump = coverage_mapping_dump
 
-    coverage_dir = get_cxx_coverage_dir(ctx)
     profile_path = get_cxx_profdata_params_path(ctx)
 
     run_command_with_json_args(
         ctx,
-        "build/haxorg/reflection_tool",
+        get_build_root(ctx, "haxorg/reflection_tool"),
         model.model_dump(),
-        stderr_debug=ensure_clean_file(
-            ctx, coverage_dir.joinpath("reflection_tool_stderr.txt")),
-        stdout_debug=ensure_clean_file(
-            ctx, coverage_dir.joinpath("reflection_tool_stdout.txt")),
         json_file_path=profile_path,
     )
 
@@ -312,8 +312,8 @@ def cxx_target_coverage(
     """
     Run full cycle of the code coverage generation. 
     """
-    from py_repository.repo_tasks.haxorg_tests import run_py_tests
     from py_repository.repo_tasks.haxorg_docs import build_custom_docs
+    from py_repository.repo_tasks.haxorg_tests import run_py_tests
 
     if run_tests:
         if pytest_filter:

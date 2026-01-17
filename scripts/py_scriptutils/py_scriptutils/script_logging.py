@@ -250,7 +250,7 @@ class FrameInfo:
     filename: str
     line_no: int
     func_name: str
-    args: dict[str, str]
+    args: dict[str, Any]
     arg_types: dict[str, str]
     runtime_types: dict[str, str]
     code_line: str
@@ -278,7 +278,7 @@ def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) 
                 arg_names = frame.f_code.co_varnames[:frame.f_code.co_argcount]
                 for arg_name in arg_names:
                     if arg_name in frame.f_locals:
-                        args[arg_name] = repr(frame.f_locals[arg_name])
+                        args[arg_name] = frame.f_locals[arg_name]
 
                         if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME:
                             runtime_types[arg_name] = type(
@@ -326,24 +326,23 @@ def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) 
 
                 available_width = console.width - max_arg_name_width - len(type_info) - 5
 
-                if len(arg_value) > available_width:
-                    if CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE:
-                        arg_value = arg_value[:available_width - 3] + "..."
-                    else:
-                        wrapped_lines = []
-                        for i in range(0, len(arg_value), available_width):
-                            wrapped_lines.append(arg_value[i:i + available_width])
+                if CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE:
+                    arg_repr = repr(arg_value)
+                    if len(arg_repr) > available_width:
+                        arg_repr = arg_repr[:available_width - 3] + "..."
+                    print(
+                        f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {arg_repr}"
+                    )
+                else:
+                    import pprint
+                    formatted_value = pprint.pformat(arg_value, width=available_width)
+                    lines = formatted_value.split('\n')
 
-                        print(
-                            f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {wrapped_lines[0]}"
-                        )
-                        for line in wrapped_lines[1:]:
-                            print(f"  {'':<{max_arg_name_width}}   {line}")
-                        continue
-
-                print(
-                    f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {arg_value}"
-                )
+                    print(
+                        f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {lines[0]}"
+                    )
+                    for line in lines[1:]:
+                        print(f"  {'':<{max_arg_name_width}}   {line}")
 
     print(f"{exc_type.__name__} : {exc_value}")
     if hasattr(exc_value, "__notes__"):

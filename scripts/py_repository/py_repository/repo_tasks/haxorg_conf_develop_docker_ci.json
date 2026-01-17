@@ -7,6 +7,12 @@
     "emscripten_build": false,
     "emscripten_test" : false,
     "reflection"      : false,
-    "coverage"        : true
+    "coverage"        : true,
+    "docs"            : false,
+    "include_graph"   : false
+  },
+  "coverage_conf"      : {
+    "coverage_run_whitelist" : [ {"class_pattern": "OrgParseSem"} ],
+    "coverage_html_whitelist": [ "OrgParser"                      ]
   }
 }

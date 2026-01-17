@@ -109,21 +109,65 @@ def check_is_dir(ctx: TaskContext, path: Path) -> bool:
 
 
 @beartype
+def _create_tar_archive(filename: str, content: bytes) -> bytes:
+    import tarfile
+    import io
+
+    tar_buffer = io.BytesIO()
+    with tarfile.open(fileobj=tar_buffer, mode='w') as tar:
+        tarinfo = tarfile.TarInfo(name=filename)
+        tarinfo.size = len(content)
+        tar.addfile(tarinfo, io.BytesIO(content))
+
+    tar_buffer.seek(0)
+    return tar_buffer.read()
+
+
+@beartype
 def ctx_write_text(ctx: TaskContext, path: Path, content: str) -> None:
     if ctx.docker_container is not None:
         import base64
-        encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+        import tempfile
+
+        # Create a temporary file on the host
+        with tempfile.NamedTemporaryFile(mode='w', delete=False,
+                                         encoding='utf-8') as tmp_file:
+            tmp_file.write(content)
+            tmp_host_path = tmp_file.name
+
+        try:
+            # Copy the temporary file into the container
+            with open(tmp_host_path, 'rb') as f:
+                success = ctx.docker_container.put_archive(path=str(path.parent),
+                                                           data=_create_tar_archive(
+                                                               path.name, f.read()))
+                if not success:
+                    raise RuntimeError(
+                        f"Failed to write file {path}: could not copy to container")
+        finally:
+            # Clean up the temporary file
+            import os
+            os.unlink(tmp_host_path)
+    else:
+        path.write_text(content)
+
+
+@beartype
+def ctx_read_text(ctx: TaskContext, path: Path) -> str:
+    if ctx.docker_container is not None:
         exit_code, output = ctx.docker_container.exec_run(
-            cmd=["bash", "-c", f"echo {encoded} | base64 -d > {path}"],
+            cmd=["cat", str(path)],
             demux=True,
         )
         if exit_code != 0:
             _, stderr = output
             raise RuntimeError(
-                f"Failed to write file {path}: {stderr.decode('utf-8') if stderr else 'unknown error'}"
+                f"Failed to read file {path}: {stderr.decode('utf-8') if stderr else 'unknown error'}"
             )
+        stdout, _ = output
+        return stdout.decode("utf-8")
     else:
-        path.write_text(content)
+        return path.read_text()
 
 
 @beartype

@@ -3,7 +3,7 @@ from beartype.typing import Optional, List
 from py_repository.repo_tasks.haxorg_coverage import get_cxx_profdata_params
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import get_build_root, get_list_cli_pass, get_script_root
+from py_repository.repo_tasks.common import check_path_exists, get_build_root, get_list_cli_pass, get_script_root
 from py_scriptutils.script_logging import log
 from pathlib import Path
 
@@ -43,8 +43,8 @@ def build_custom_docs(ctx: TaskContext, out_dir: Optional[str] = None) -> None:
         DocGenerationOptions,
     )
 
-    assert Path(
-        get_cxx_profdata_params(ctx).output).exists(), get_cxx_profdata_params(ctx).output
+    assert check_path_exists(ctx, Path(
+        get_cxx_profdata_params(ctx).output)), get_cxx_profdata_params(ctx).output
 
     generate_documentation(conf=DocGenerationOptions(
         html_out_path=out_dir_path,
