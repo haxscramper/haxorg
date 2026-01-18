@@ -2,10 +2,11 @@
 #include <org_imgui/gui_lib/imgui_utils.hpp>
 // #define NDEBUG ORG_LIB_DEBUG_BUILD
 
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/system/reflection.hpp>
 #include <imgui/imgui.h>
 #include <hstd/system/exceptions.hpp>
+#include <haxorg/api/ParseContext.hpp>
 
 /// \brief Store current value of the editable text and the current edit
 /// buffer.
@@ -166,9 +167,13 @@ struct EditableOrgDocGroup {
         }
     };
 
-    hstd::Vec<History> history;
+    hstd::Vec<History>                        history;
+    std::shared_ptr<org::parse::ParseContext> parseContext;
 
-    EditableOrgDocGroup(org::imm::ImmAstContext::Ptr const& ctx) {
+    EditableOrgDocGroup(
+        org::imm::ImmAstContext::Ptr const&       ctx,
+        std::shared_ptr<org::parse::ParseContext> parseContext)
+        : parseContext{parseContext} {
         addHistory(History{ctx});
     }
 

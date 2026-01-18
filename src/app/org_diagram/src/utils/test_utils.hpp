@@ -10,7 +10,7 @@
 #include <format>
 #include <functional>
 
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <org_diagram/src/model/DiaVersionStore.hpp>
 #include <org_diagram/src/model/nodes/DiagramTreeNode.hpp>
 #include <org_diagram/src/model/DiaNodeTreeModel.hpp>

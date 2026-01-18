@@ -20,10 +20,15 @@ message hstd {
 
 message org {
   message parse {
-    message LineCol {
+    message SourceFileId {
+      int32 id = 1;
+    }
+
+    message SourceLoc {
       int32 line = 1;
       int32 column = 2;
       int32 pos = 3;
+      SourceFileId file = 4;
     }
   }
 }

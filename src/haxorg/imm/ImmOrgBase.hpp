@@ -350,7 +350,7 @@ struct ImmIdT : public ImmId {
 
 struct [[refl]] ImmOrg {
     hstd::ext::ImmVec<ImmId>       subnodes;
-    hstd::Opt<org::parse::LineCol> loc             = std::nullopt;
+    hstd::Opt<org::parse::SourceLoc> loc             = std::nullopt;
     virtual OrgSemKind             getKind() const = 0;
 
     ImmId at(int pos) const { return subnodes.at(pos); }

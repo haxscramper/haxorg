@@ -303,7 +303,7 @@ def get_diagnostic_types() -> List[GenTuStruct]:
                 org_field(t_int(), "parserLine"),
                 org_field(t("OrgTokenKind"), "tokenKind"),
                 org_field(t_str(), "tokenText"),
-                org_field(t_nest_shared("SourceLocation"), "loc"),
+                org_field(t("LineCol", [t("org"), t("parse")]), "loc"),
                 org_field(t_str(), "errName"),
                 org_field(t_str(), "errCode"),
             ],
@@ -320,7 +320,7 @@ def get_diagnostic_types() -> List[GenTuStruct]:
                 org_field(t_int(), "parserLine"),
                 org_field(t_str(), "errName"),
                 org_field(t_str(), "errCode"),
-                opt_field(t_nest_shared("SourceLocation"), "loc"),
+                opt_field(t("LineCol", [t("org"), t("parse")]), "loc"),
             ],
             nested=[GenTuPass("ParseError() {}")],
             methods=[eq_method(t_nest_shared("ParseError", [t("OrgDiagnostics")]))],
@@ -347,7 +347,7 @@ def get_diagnostic_types() -> List[GenTuStruct]:
                 org_field(t_str(), "convertFile"),
                 org_field(t_str(), "errName"),
                 org_field(t_str(), "errCode"),
-                opt_field(t_nest_shared("SourceLocation"), "loc"),
+                opt_field(t("LineCol", [t("org"), t("parse")]), "loc"),
             ],
             nested=[GenTuPass("ConvertError() {}")],
             methods=[eq_method(t_nest_shared("ConvertError", [t("OrgDiagnostics")]))],
@@ -361,7 +361,7 @@ def get_diagnostic_types() -> List[GenTuStruct]:
                 org_field(t_str(), "function"),
                 org_field(t_int(), "line"),
                 org_field(t_str(), "file"),
-                opt_field(t_nest_shared("SourceLocation"), "loc"),
+                opt_field(t("LineCol", [t("org"), t("parse")]), "loc"),
             ],
             nested=[GenTuPass("InternalError() {}")],
             methods=[eq_method(t_nest_shared("InternalError", [t("OrgDiagnostics")]))],
@@ -1535,17 +1535,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
     )
 
     return [
-        org_struct(t_nest_shared("SourceLocation"),
-                   methods=[
-                       eq_method(t_nest_shared("SourceLocation")),
-                       default_constructor_method("SourceLocation"),
-                   ],
-                   fields=[
-                       org_field(t_int(), "line", value="-1"),
-                       org_field(t_int(), "column", value="-1"),
-                       org_field(t_int(), "pos", value="-1"),
-                       opt_field(t_str(), "file"),
-                   ]),
         org_struct(
             t_nest_shared("LispCode"),
             methods=[

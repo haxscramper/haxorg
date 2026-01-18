@@ -7,7 +7,7 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdoptional_bind<int>(g, "StdOptionalOfInt");
   org::bind::js::stdoptional_bind<std::string>(g, "StdOptionalOfStdString");
   org::bind::js::hstdVec_bind<org::sem::OrgJson>(g, "VecOfOrgJson");
-  org::bind::js::stdoptional_bind<org::parse::LineCol>(g, "StdOptionalOfParseLineCol");
+  org::bind::js::stdoptional_bind<org::parse::SourceLoc>(g, "StdOptionalOfParseLineCol");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Org>>(g, "VecOfSemIdOfOrg");
   org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmErrorItem>>(g, "ImmFlexVectorOfImmIdTOfImmErrorItem");
   org::bind::js::immerbox_bind<hstd::Str>(g, "ImmBoxOfStr");
@@ -86,7 +86,6 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdOpt_bind<org::sem::ColumnView::Summary>(g, "OptOfColumnViewSummary");
   org::bind::js::hstdVec_bind<org::sem::BlockCodeLine::Part>(g, "VecOfBlockCodeLinePart");
   org::bind::js::hstdUnorderedMap_bind<hstd::Str, hstd::Str>(g, "UnorderedMapOfStrStr");
-  org::bind::js::hstdOpt_bind<org::sem::SourceLocation>(g, "OptOfSourceLocation");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorItem>>(g, "VecOfSemIdOfErrorItem");
   org::bind::js::hstdOpt_bind<org::sem::AttrValue::LispValue>(g, "OptOfAttrValueLispValue");
   org::bind::js::hstdOpt_bind<org::sem::AttrValue::Kind>(g, "OptOfAttrValueKind");
@@ -162,10 +161,10 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     .function("dump", static_cast<std::string(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::dump))
     .constructor<>()
     ;
-  emscripten::class_<org::parse::LineCol>("ParseLineCol")
-    .property("line", &org::parse::LineCol::line)
-    .property("column", &org::parse::LineCol::column)
-    .property("pos", &org::parse::LineCol::pos)
+  emscripten::class_<org::parse::SourceLoc>("ParseLineCol")
+    .property("line", &org::parse::SourceLoc::line)
+    .property("column", &org::parse::SourceLoc::column)
+    .property("pos", &org::parse::SourceLoc::pos)
     .constructor<>()
     ;
   emscripten::class_<org::sem::Org>("Org")
@@ -737,14 +736,6 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("addNodeRec", static_cast<void(org::graph::MapGraphState::*)(std::shared_ptr<org::imm::ImmAstContext> const&, org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec))
     .function("getUnresolvedSubtreeLinks", static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks))
     .function("getUnresolvedLink", static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink))
-    ;
-  emscripten::class_<org::sem::SourceLocation>("SourceLocation")
-    .property("line", &org::sem::SourceLocation::line)
-    .property("column", &org::sem::SourceLocation::column)
-    .property("pos", &org::sem::SourceLocation::pos)
-    .property("file", &org::sem::SourceLocation::file)
-    .function("__eq__", static_cast<bool(org::sem::SourceLocation::*)(org::sem::SourceLocation const&) const>(&org::sem::SourceLocation::operator==))
-    .constructor<>()
     ;
   emscripten::class_<org::sem::LispCode>("LispCode")
     .property("data", &org::sem::LispCode::data)

@@ -1,7 +1,7 @@
 /* clang-format off */
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 #pragma once
-#include <haxorg/sem/SemOrgSerde.hpp>
+#include <haxorg/serde/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
         __MAP(kNonode, nonode, NoNode)  \
         __MAP(kErroritem, erroritem, ErrorItem)  \
@@ -83,13 +83,6 @@
         __MAP(kDirectory, directory, Directory)  \
         __MAP(kSymlink, symlink, Symlink)  \
         __MAP(kCmdinclude, cmdinclude, CmdInclude)  \
-
-template <>
-struct org::algo::proto_serde<::orgproto::SourceLocation, org::sem::SourceLocation> {
-  static void write(::orgproto::SourceLocation* out, org::sem::SourceLocation const& in);
-  static void read(::orgproto::SourceLocation const& out, proto_write_accessor<org::sem::SourceLocation> in);
-};
-
 
 template <>
 struct org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call> {

@@ -3,9 +3,9 @@
 // #define NDEBUG 0
 
 #include <haxorg/sem/SemOrg.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
-#include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
 
 #include <unordered_map>
 #include <string>

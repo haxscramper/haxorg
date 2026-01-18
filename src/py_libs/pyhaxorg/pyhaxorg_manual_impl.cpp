@@ -1,5 +1,5 @@
 #include "pyhaxorg_manual_impl.hpp"
-#include <haxorg/sem/SemOrgSerde.hpp>
+#include <haxorg/serde/SemOrgSerde.hpp>
 
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>

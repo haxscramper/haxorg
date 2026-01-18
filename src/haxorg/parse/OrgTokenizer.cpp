@@ -77,12 +77,7 @@ auto in_set(T const& value, Args&&... args) -> bool {
 }
 
 OrgFill fill(OrgLexer& lex) {
-    return OrgFill{
-        .text = lex.tok()->text,
-        .line = lex.tok()->line,
-        .col  = lex.tok()->col,
-        .pos  = lex.tok()->pos,
-    };
+    return OrgFill{.text = lex.tok()->text, .loc = lex.tok()->loc};
 }
 
 template <typename T>
@@ -241,11 +236,7 @@ struct RecombineState {
     }
 
     OrgFill loc_fill(CR<Str> text = "") {
-        return OrgFill{
-            .text = text,
-            .line = lex.tok()->line,
-            .col  = lex.tok()->col,
-        };
+        return OrgFill{.text = text, .loc = lex.tok()->loc};
     }
 
 
@@ -1278,8 +1269,7 @@ struct GroupVisitorState {
                                 OrgToken tmp;
                                 tmp.kind  = tok.kind;
                                 tmp.value = OrgFill{
-                                    .col  = tok.value.col,
-                                    .line = tok.value.line,
+                                    .loc  = tok.value.loc,
                                     .text = tok.value.text.empty()
                                               ? tok.value.text
                                               : tok.value.text.substr(
@@ -1324,8 +1314,11 @@ struct GroupVisitorState {
 
         int  width   = 96 + 9;
         auto aligned = text
-                     + Str(" ").repeated(std::clamp<int>(
-                         width - (text.runeLen() + level * 2), 0, width));
+                     + Str(" ").repeated(
+                         std::clamp<int>(
+                             width - (text.runeLen() + level * 2),
+                             0,
+                             width));
 
         d->print(lex, aligned, line, "group", level);
     };

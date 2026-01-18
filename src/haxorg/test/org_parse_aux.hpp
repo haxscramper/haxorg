@@ -5,6 +5,7 @@
 #include <haxorg/parse/OrgSpec.hpp>
 #include <haxorg/lexbase/NodeIO.hpp>
 #include <haxorg/base_lexer/base_token_tokenize.hpp>
+#include <haxorg/api/ParseContext.hpp>
 
 namespace org::test {
 
@@ -13,15 +14,16 @@ using otk = OrgTokenKind;
 
 
 struct MockFull {
-    org::parse::OrgTokenGroup            tokens;
-    hstd::SPtr<org::parse::OrgTokenizer> tokenizer;
-    org::parse::OrgNodeGroup             nodes;
-    std::string                          base;
-    hstd::SPtr<org::parse::OrgParser>    parser;
-    hstd::UPtr<OrgSpec>                  spec;
-    org::parse::OrgTokenGroup            baseTokens;
-    hstd::Opt<int>                       maxUnknownBaseTokens;
-    sem::SemId<sem::Org>                 node;
+    org::parse::OrgTokenGroup                 tokens;
+    hstd::SPtr<org::parse::OrgTokenizer>      tokenizer;
+    org::parse::OrgNodeGroup                  nodes;
+    std::string                               base;
+    hstd::SPtr<org::parse::OrgParser>         parser;
+    hstd::UPtr<OrgSpec>                       spec;
+    org::parse::OrgTokenGroup                 baseTokens;
+    hstd::Opt<int>                            maxUnknownBaseTokens;
+    sem::SemId<sem::Org>                      node;
+    std::shared_ptr<org::parse::ParseContext> parseContext;
 
     org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex;
 
@@ -31,17 +33,18 @@ struct MockFull {
         bool               tracedLexer  = false)
         : tokenizer(), nodes(nullptr), lex(&tokens) {
         spec   = getOrgSpec();
-        parser = std::make_shared<org::parse::OrgParser>(
-            &nodes, currentFile);
+        parser = std::make_shared<org::parse::OrgParser>(&nodes);
         parser->TraceState = tracedParser;
         tokenizer = std::make_shared<org::parse::OrgTokenizer>(&tokens);
         tokenizer->TraceState = tracedLexer;
         nodes.tokens          = &tokens;
+        parseContext = std::make_shared<org::parse::ParseContext>();
     }
 
     org::parse::OrgAdapter a(int idx) {
         return org::parse::OrgAdapter(&nodes, org::parse::OrgId(idx));
     }
+
     org::parse::OrgAdapter a(org::parse::OrgId id) {
         return org::parse::OrgAdapter(&nodes, id);
     }
@@ -49,15 +52,18 @@ struct MockFull {
     org::parse::OrgNode& n(int idx) {
         return nodes.at(org::parse::OrgId(idx));
     }
+
     org::parse::OrgToken& t(int idx) {
         return tokens.at(org::parse::OrgTokenId(idx));
     }
+
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
     void tokenizeBase(
         hstd::CR<std::string>          content,
-        org::parse::LexerParams const& p) {
-        baseTokens = org::parse::tokenize(content, p);
+        org::parse::LexerParams const& p,
+        org::parse::SourceFileId       file_id) {
+        baseTokens = org::parse::tokenize(content, p, file_id);
     }
 
     void tokenizeConvert() { tokenizer->convert(baseTokens); }
@@ -67,13 +73,14 @@ struct MockFull {
     void run(
         hstd::CR<std::string>          content,
         org::parse::LexerParams const& p = org::parse::LexerParams{}) {
-        tokenizeBase(content, p);
+        auto file_id = parseContext->addSource("<mock-full-run>", content);
+        tokenizeBase(content, p, file_id);
         tokenizeConvert();
         parse();
     }
 
     sem::SemId<sem::Org> toNode() {
-        sem::OrgConverter converter{parser->currentFile};
+        sem::OrgConverter converter{};
         return converter
             .convertDocument(
                 org::parse::OrgAdapter(&nodes, org::parse::OrgId(0)))

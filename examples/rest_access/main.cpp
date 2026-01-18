@@ -10,9 +10,9 @@
 #include <boost/log/trivial.hpp>
 #include <hstd/system/Formatter.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <functional>
 #include <tuple>
 #include <type_traits>

@@ -13,7 +13,7 @@
 #include <cstdlib>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/YamlSerde.hpp>
@@ -409,7 +409,11 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                         hshow1(get_token_text(tok), opts).toString(false));
 
                     std::string result = //
-                        hstd::fmt("{0} {1} {2}", fmt1(line.index().value()), fmt1(tok.kind), text);
+                        hstd::fmt(
+                            "{0} {1} {2}",
+                            fmt1(line.index().value()),
+                            fmt1(tok.kind),
+                            text);
 
                     return result;
                 }}};
@@ -775,16 +779,19 @@ CorpusRunner::RunResult CorpusRunner::runSpecFormatted(
         || spec.debug.printSem) {
 
         auto read = [](char c) { return visibleName(c).first; };
-        
-        Str const split = Str("-").repeated(60);
-        Str const blocks = formatter.store.toTreeRepr(fmt_result);
-        Str const source = spec.source;
-        Str const formatted = rerun.source;
-        Str const sourcearray = fmt1(spec.source | rv::transform(read) | rs::to<std::vector>());
-        Str const formattedarray = fmt1(rerun.source | rv::transform(read) | rs::to<std::vector>());
+
+        Str const split       = Str("-").repeated(60);
+        Str const blocks      = formatter.store.toTreeRepr(fmt_result);
+        Str const source      = spec.source;
+        Str const formatted   = rerun.source;
+        Str const sourcearray = fmt1(
+            spec.source | rv::transform(read) | rs::to<std::vector>());
+        Str const formattedarray = fmt1(
+            rerun.source | rv::transform(read) | rs::to<std::vector>());
         Str const fail = reformat_result.failDescribe.toString(false);
-        
-        auto reformatFail = hstd::fmt(R"(
+
+        auto reformatFail = hstd::fmt(
+            R"(
             
 source:
 
@@ -822,14 +829,14 @@ fail:
 {6}
 {0}
             
-)", 
-            split, // 0
-            source, // 1
-            formatted, // 2
-            sourcearray, // 3
+)",
+            split,          // 0
+            source,         // 1
+            formatted,      // 2
+            sourcearray,    // 3
             formattedarray, // 4
-            blocks, // 5
-            fail // 6
+            blocks,         // 5
+            fail            // 6
         );
 
         writeFile(
@@ -1089,7 +1096,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     CR<Str>       relDebug) {
     HSLOG_INFO_DEPTH_SCOPE_ANON("Running spec sem");
     __perf_trace("cli", "sem convert");
-    sem::OrgConverter converter{p.parser->currentFile};
+    sem::OrgConverter converter{};
 
     converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
     if (converter.TraceState) {
@@ -1289,7 +1296,7 @@ std::string TestParams::testName() const {
                                    : std::string("<spec>"),
              file.stem())) {
         if (std::isalnum(ch) || ch == '_') {
-            final.push_back(ch); 
+            final.push_back(ch);
         } else {
             final.push_back('_');
         }

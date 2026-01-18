@@ -1,6 +1,6 @@
 #pragma once
 
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 
 namespace org::imm {
 // clang-format off

@@ -253,7 +253,8 @@ struct Exporter : ExporterEventBase {
 
     void visit(R& res, hstd::UserTime const& time);
     void visit(R& res, org::sem::OrgJson const& time);
-    void visit(R& res, org::parse::LineCol const& time);
+    void visit(R& res, org::parse::SourceLoc const& time);
+    void visit(R& res, org::parse::SourceFileId const& time);
     void visit(R& res, float const& time);
     void visit(
         R&                                                      res,

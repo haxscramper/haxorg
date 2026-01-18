@@ -2,31 +2,20 @@
 
 #include <variant>
 #include <hstd/system/reflection.hpp>
+#include <haxorg/lexbase/SourceManager.hpp>
+
 namespace org::parse {
-
-struct [[refl]] LineCol {
-    [[refl]] int line;
-    [[refl]] int column;
-    [[refl]] int pos = -1;
-
-    bool operator==(LineCol const& other) const {
-        return line == other.line && column == other.column
-            && pos == other.pos;
-    }
-
-    BOOST_DESCRIBE_CLASS(LineCol, (), (line, column, pos), (), ());
-};
 
 
 /// \brief Base parse error
 struct ParseError : public std::runtime_error {
     /// \brief Line and column of the error location or absolute unresolved
     /// offset
-    std::variant<LineCol, int> loc;
+    std::variant<SourceLoc, int> loc;
 
     explicit ParseError(
         const std::string& message,
-        LineCol            _loc = LineCol{})
+        SourceLoc            _loc = SourceLoc{})
         : std::runtime_error(message), loc(_loc) {}
 
     explicit ParseError(const std::string& message, int _loc)
@@ -37,7 +26,7 @@ struct ParseError : public std::runtime_error {
 struct LexerError : public ParseError {
     explicit LexerError(
         const std::string& message,
-        LineCol            _loc = LineCol{})
+        SourceLoc            _loc = SourceLoc{})
         : ParseError(message, _loc) {}
 
     explicit LexerError(const std::string& message, int _loc)
@@ -48,7 +37,7 @@ struct LexerError : public ParseError {
 struct UnexpectedCharError : public LexerError {
     explicit UnexpectedCharError(
         const std::string& message,
-        LineCol            _loc = LineCol{})
+        SourceLoc            _loc = SourceLoc{})
         : LexerError(message, _loc) {}
 
     explicit UnexpectedCharError(const std::string& message, int pos)
@@ -60,7 +49,7 @@ struct UnexpectedCharError : public LexerError {
 struct UnexpectedEndError : public LexerError {
     explicit UnexpectedEndError(
         const std::string& message,
-        LineCol            _loc = LineCol{})
+        SourceLoc            _loc = SourceLoc{})
         : LexerError(message, _loc) {}
 
     explicit UnexpectedEndError(const std::string& message, int pos)
@@ -75,10 +64,9 @@ struct MalformedTokenError : public LexerError {};
 } // namespace org::parse
 
 
-
 template <>
-struct std::hash<org::parse::LineCol> {
-    std::size_t operator()(org::parse::LineCol const& it) const noexcept {
+struct std::hash<org::parse::SourceLoc> {
+    std::size_t operator()(org::parse::SourceLoc const& it) const noexcept {
         std::size_t result = 0;
         hstd::hax_hash_combine(result, it.line);
         hstd::hax_hash_combine(result, it.column);

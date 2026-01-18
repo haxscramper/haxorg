@@ -11,7 +11,12 @@ std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
     std::string pos = lex.pos.isNil() ? "<nil>" : fmt1(lex.pos.getIndex());
 
     if (auto loc = getLoc(lex)) {
-        result = hstd::fmt("{}:{} (tok {}, pos {})", loc->line, loc->column, pos, loc->pos);
+        result = hstd::fmt(
+            "{}:{} (tok {}, pos {})",
+            loc->line,
+            loc->column,
+            pos,
+            loc->pos);
     } else {
         result = hstd::fmt("(tok {})", pos);
     }
@@ -20,7 +25,7 @@ std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
 }
 
 
-Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
+Opt<SourceLoc> OrgParser::getLoc(CR<OrgLexer> lex) {
     if (lex.finished()) {
         return std::nullopt;
     } else {
@@ -32,9 +37,7 @@ Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
             for (int i : Vec<int>{-1, 1}) {
                 if (lex.hasNext(offset * i)) {
                     OrgToken tok = lex.tok(offset * i);
-                    if (!tok->isFake()) {
-                        return LineCol{tok.value.line, tok.value.col};
-                    }
+                    if (!tok->isFake()) { return tok.value.loc.value(); }
                     // If offset falls out of the lexer range on both
                     // ends, terminate lookup.
                 }
@@ -222,12 +225,8 @@ OrgNodeMono::Error OrgParser::error_value(
     }
 
     if (failToken) {
-        fail.err.loc        = org::sem::SourceLocation{};
-        fail.err.loc.column = failToken->value.col;
-        fail.err.loc.line   = failToken->value.line;
-        fail.err.tokenText  = failToken->value.text;
-        fail.err.loc.pos    = failToken->value.pos;
-        fail.err.loc.file   = currentFile;
+        fail.err.loc       = failToken->value.loc.value();
+        fail.err.tokenText = failToken->value.text;
     }
 
     box->data = fail;

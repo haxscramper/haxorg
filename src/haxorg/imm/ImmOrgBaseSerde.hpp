@@ -1,6 +1,6 @@
 #pragma once 
 
-#include <haxorg/sem/ImmOrgBase.hpp>
+#include <haxorg/imm/ImmOrgBase.hpp>
 
 
 template <>

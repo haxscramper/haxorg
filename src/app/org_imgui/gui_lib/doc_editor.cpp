@@ -1,5 +1,5 @@
 // #define NDEBUG ORG_LIB_DEBUG_BUILD
-#include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
 
 #include "doc_editor.hpp"
 #include "block_graph.hpp"
@@ -149,24 +149,27 @@ void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
     ImGuiIO& io  = ImGui::GetIO();
     auto&    ctx = model.ctx;
     if (io.MouseWheel != 0.0f) {
-        model.ctx.action(DocBlockAction::Scroll{
-            .pos       = io.MousePos - renderContext.start,
-            .direction = io.MouseWheel * conf.mouseScrollMultiplier,
-        });
+        model.ctx.action(
+            DocBlockAction::Scroll{
+                .pos       = io.MousePos - renderContext.start,
+                .direction = io.MouseWheel * conf.mouseScrollMultiplier,
+            });
     }
 
     if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
-        model.ctx.action(DocBlockAction::Scroll{
-            .pos       = io.MousePos - renderContext.start,
-            .direction = static_cast<float>(conf.pageUpScrollStep),
-        });
+        model.ctx.action(
+            DocBlockAction::Scroll{
+                .pos       = io.MousePos - renderContext.start,
+                .direction = static_cast<float>(conf.pageUpScrollStep),
+            });
     }
 
     if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
-        model.ctx.action(DocBlockAction::Scroll{
-            .pos       = io.MousePos - renderContext.start,
-            .direction = static_cast<float>(conf.pageDownScrollStep),
-        });
+        model.ctx.action(
+            DocBlockAction::Scroll{
+                .pos       = io.MousePos - renderContext.start,
+                .direction = static_cast<float>(conf.pageDownScrollStep),
+            });
     }
 }
 
@@ -389,7 +392,8 @@ void doc_editor_loop(
     org::sem::SemId<org::sem::Org> node) {
     auto          ast_ctx = org::imm::ImmAstContext::init_start_context();
     DocBlockModel model;
-    EditableOrgDocGroup docs{ast_ctx};
+    auto parseContext = std::make_shared<org::parse::ParseContext>();
+    EditableOrgDocGroup docs{ast_ctx, parseContext};
     DocBlockConfig      conf;
 
     conf.laneConf.getDefaultBlockMargin =
@@ -453,15 +457,17 @@ void handle_text_edit_result(
     auto result = text.render(id.c_str());
 
     if (result && result->isChanged()) {
-        model.ctx.action(DocBlockAction::NodeTextChanged{
-            .block = block->shared_from_this(),
-            .edit  = result.value(),
-        });
+        model.ctx.action(
+            DocBlockAction::NodeTextChanged{
+                .block = block->shared_from_this(),
+                .edit  = result.value(),
+            });
     }
 
     if (result) {
-        model.ctx.action(DocBlockAction::NodeEditChanged{
-            .block = block->shared_from_this()});
+        model.ctx.action(
+            DocBlockAction::NodeEditChanged{
+                .block = block->shared_from_this()});
     }
 };
 

@@ -1,10 +1,10 @@
 #include "DiaGraph.hpp"
 
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 

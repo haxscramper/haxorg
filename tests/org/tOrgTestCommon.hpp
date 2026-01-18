@@ -11,16 +11,16 @@
 #include <hstd/stdlib/diffs.hpp>
 
 #include <hstd/stdlib/Filesystem.hpp>
-#include <haxorg/sem/SemOrgSerde.hpp>
+#include <haxorg/serde/SemOrgSerde.hpp>
 #if ORG_DEPS_USE_PROTOBUF
 #    include <google/protobuf/util/json_util.h>
 #endif
 #include <haxorg/exporters/ExporterJson.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
-#include <haxorg/sem/ImmOrgEdit.hpp>
-#include <haxorg/sem/ImmOrgGraph.hpp>
-#include <haxorg/sem/ImmOrgGraphBoost.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrgEdit.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
+#include <haxorg/imm/ImmOrgGraphBoost.hpp>
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
@@ -120,7 +120,9 @@ EQUALITY_COMPARE_TRIVIAL(bool);
 EQUALITY_COMPARE_TRIVIAL(hstd::Str);
 EQUALITY_COMPARE_TRIVIAL(std::string);
 EQUALITY_COMPARE_TRIVIAL(float);
-EQUALITY_COMPARE_TRIVIAL(u64);
+EQUALITY_COMPARE_TRIVIAL(hstd::u32);
+EQUALITY_COMPARE_TRIVIAL(hstd::u16);
+EQUALITY_COMPARE_TRIVIAL(hstd::u64);
 EQUALITY_COMPARE_TRIVIAL(cctz::civil_second);
 EQUALITY_COMPARE_TRIVIAL(cctz::time_zone);
 
@@ -416,7 +418,7 @@ template <typename Obj, typename Field>
 compare_report cmp_field_value(
     CR<Obj> lhs,
     CR<Obj> rhs,
-    Field Obj::*fieldPtr) {
+    Field Obj::* fieldPtr) {
     return reporting_comparator<decltype(lhs.*fieldPtr)>::compare(
         lhs.*fieldPtr, rhs.*fieldPtr);
 };

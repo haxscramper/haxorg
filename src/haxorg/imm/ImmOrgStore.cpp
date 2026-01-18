@@ -1,8 +1,8 @@
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include "hstd/stdlib/Set.hpp"
 #include "hstd/stdlib/algorithms.hpp"
-#include <haxorg/sem/ImmOrg.hpp>
-#include <haxorg/sem/ImmOrgHash.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrgHash.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <immer/vector_transient.hpp>
 #include <immer/set_transient.hpp>
@@ -230,8 +230,8 @@ Opt<ImmAstReplace> setNewSubnodes(
                         [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
                         [&](ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
                         [&](ImmBox<Opt<Str>> const&) { fail_field(); },
-                        [&](org::parse::LineCol const&) { fail_field(); },
-                        [&](hstd::Opt<org::parse::LineCol> const&) { fail_field(); },
+                        [&](org::parse::SourceLoc const&) { fail_field(); },
+                        [&](hstd::Opt<org::parse::SourceLoc> const&) { fail_field(); },
                         [&](ImmBox<Str> const&) { fail_field(); },
                         [&](ImmVec<Str> const&) { fail_field(); },
                         [&](ImmVec<org::imm::ImmSymbol::Param> const&) { fail_field(); },
@@ -900,7 +900,7 @@ __same_type(sem::HashTagText);
 __same_type(sem::SubtreeLogHead);
 __same_type(sem::SubtreePath);
 __same_type(sem::LispCode);
-__same_type(org::parse::LineCol);
+__same_type(org::parse::SourceLoc);
 __same_type(org::sem::OrgCodeEvalOutput);
 __same_type(org::sem::OrgDiagnostics);
 

@@ -4,7 +4,7 @@
 #include <qgraphicsitem.h>
 #include <vector>
 #include <QString>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <QGraphicsItem>
 
 struct DiaSceneItem;

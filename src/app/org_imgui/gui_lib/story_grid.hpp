@@ -7,10 +7,10 @@
 // #define NDEBUG ORG_LIB_DEBUG_BUILD
 
 #include <GLFW/glfw3.h>
-#include <haxorg/sem/SemBaseApi.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include "imgui.h"
-#include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
 #include <adaptagrams/adaptagrams_ir.hpp>
 #include <org_imgui/gui_lib/im_org_ui_common.hpp>
 #include <org_imgui/gui_lib/node_grid_graph.hpp>

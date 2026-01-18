@@ -1,6 +1,6 @@
 #include <QtTest/QtTest>
 #include <QSignalSpy>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <org_diagram/src/model/DiaNodeTreeModel.hpp>
 #include <org_diagram/src/utils/common.hpp>
 #include <org_diagram/src/utils/test_utils.hpp>

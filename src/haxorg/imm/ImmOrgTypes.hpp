@@ -1,6 +1,6 @@
 /* clang-format off */
 #pragma once
-#include <haxorg/sem/ImmOrgBase.hpp>
+#include <haxorg/imm/ImmOrgBase.hpp>
 namespace org::imm {
 /// \brief No node
 struct ImmNoNode : public org::imm::ImmOrg {

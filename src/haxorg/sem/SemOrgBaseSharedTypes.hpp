@@ -14,6 +14,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <haxorg/lexbase/SourceManager.hpp>
 
 namespace org::sem {
 struct [[refl]] OrgJson {

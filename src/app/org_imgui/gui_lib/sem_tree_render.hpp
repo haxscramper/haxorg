@@ -1,6 +1,6 @@
 #pragma once
 
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <imgui.h>
 
 struct VisualExporterConfig {

@@ -1,6 +1,6 @@
 #include "im_test_common.hpp"
 #include <gui_lib/story_grid.hpp>
-#include <haxorg/sem/ImmOrgBase.hpp>
+#include <haxorg/imm/ImmOrgBase.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 

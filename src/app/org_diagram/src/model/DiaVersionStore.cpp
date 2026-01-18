@@ -1,11 +1,11 @@
 #include "DiaVersionStore.hpp"
 
 #include <hstd/stdlib/diffs.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
 #include <vector>
-#include <haxorg/sem/ImmOrgEdit.hpp>
+#include <haxorg/imm/ImmOrgEdit.hpp>
 #include <algorithm>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>

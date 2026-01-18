@@ -1178,7 +1178,7 @@ def gen_pyhaxorg_source(
 
     return GenFiles([
         GenUnit(
-            GenTu("{base}/sem/SemOrgProto.proto", [
+            GenTu("{base}/serde/SemOrgProto.proto", [
                 GenTuPass('syntax = "proto3";'),
                 GenTuPass("package orgproto;"),
                 GenTuPass('import "SemOrgProtoManual.proto";'),
@@ -1186,11 +1186,11 @@ def gen_pyhaxorg_source(
             ])),
         GenUnit(
             GenTu(
-                "{base}/sem/SemOrgSerdeDeclarations.hpp",
+                "{base}/serde/SemOrgSerdeDeclarations.hpp",
                 [
                     GenTuPass("#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD"),
                     GenTuPass("#pragma once"),
-                    GenTuPass("#include <haxorg/sem/SemOrgSerde.hpp>"),
+                    GenTuPass("#include <haxorg/serde/SemOrgSerde.hpp>"),
                     GenTuPass(ast.Macro(proto.get_any_node_field_mapping())),
                 ] + [
                     GenTuPass(t.stack([ast.Any(rec), t.text("")]))
@@ -1200,11 +1200,11 @@ def gen_pyhaxorg_source(
                 ],
             ),
             GenTu(
-                "{base}/sem/SemOrgSerdeDefinitions.cpp",
+                "{base}/serde/SemOrgSerdeDefinitions.cpp",
                 [
                     GenTuPass("#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD"),
-                    GenTuPass("#include <haxorg/sem/SemOrgSerde.hpp>"),
-                    GenTuPass("#include <haxorg/sem/SemOrgSerdeDeclarations.hpp>"),
+                    GenTuPass("#include <haxorg/serde/SemOrgSerde.hpp>"),
+                    GenTuPass("#include <haxorg/serde/SemOrgSerdeDeclarations.hpp>"),
                 ] + [
                     GenTuPass(t.stack([ast.Any(rec), t.text("")]))
                     for rec in protobuf_writer_implementation
@@ -1221,7 +1221,7 @@ def gen_pyhaxorg_source(
             ),),
         GenUnit(
             GenTu(
-                "{base}/sem/ImmOrgSerde.tcc",
+                "{base}/imm/ImmOrgSerde.tcc",
                 get_imm_serde(types=groups.expanded, ast=ast, base_map=groups.base_map),
             ),),
         GenUnit(
@@ -1295,7 +1295,7 @@ def gen_pyhaxorg_source(
                 "{base}/sem/ImmOrgTypes.hpp",
                 [
                     GenTuPass("#pragma once"),
-                    GenTuInclude("haxorg/sem/ImmOrgBase.hpp", True),
+                    GenTuInclude("haxorg/imm/ImmOrgBase.hpp", True),
                     GenTuNamespace(n_imm(), groups.immutable),
                 ],
             )),

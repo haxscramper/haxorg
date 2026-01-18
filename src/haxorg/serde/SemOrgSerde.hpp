@@ -73,7 +73,7 @@ struct proto_write_accessor<T>
     }
 
     template <typename F>
-    proto_write_accessor<F> for_field(F T::*field) {
+    proto_write_accessor<F> for_field(F T::* field) {
         return proto_write_accessor<F>{
             [impl = this->impl, field]() -> F& { return impl().*field; }};
     }
@@ -105,7 +105,7 @@ struct proto_write_accessor<T>
         int N,
         typename F,
         typename VarType = std::variant_alternative_t<N, F>>
-    proto_write_accessor<VarType> for_field_variant(F T::*field) {
+    proto_write_accessor<VarType> for_field_variant(F T::* field) {
         return proto_write_accessor<VarType>{
             [impl = this->impl, field]() -> VarType& {
                 if ((impl().*field).index() != N) {
@@ -446,17 +446,17 @@ struct proto_serde<Proto, sem::SemId<T>> {
 
 
 template <>
-struct proto_serde<orgproto::org_parse::LineCol, org::parse::LineCol> {
+struct proto_serde<orgproto::org_parse::SourceLoc, org::parse::SourceLoc> {
     static void write(
-        orgproto::org_parse::LineCol* out,
-        org::parse::LineCol const&    in) {
+        orgproto::org_parse::SourceLoc* out,
+        org::parse::SourceLoc const&    in) {
         out->set_line(in.line);
         out->set_column(in.column);
         out->set_pos(in.pos);
     }
     static void read(
-        orgproto::org_parse::LineCol const&       out,
-        proto_write_accessor<org::parse::LineCol> in) {
+        orgproto::org_parse::SourceLoc const&       out,
+        proto_write_accessor<org::parse::SourceLoc> in) {
         in.get().pos    = out.pos();
         in.get().line   = out.line();
         in.get().column = out.column();
@@ -471,7 +471,9 @@ struct proto_serde<Proto, sem::Org> {
         out->set_statickind(
             static_cast<orgproto::OrgSemKind>(in.getKind()));
         if (in.loc) {
-            proto_serde<orgproto::org_parse_LineCol, org::parse::LineCol>::
+            proto_serde<
+                orgproto::org_parse_SourceLoc,
+                org::parse::SourceLoc>::
                 write(out->mutable_loc(), in.loc.value());
         }
     }
@@ -483,8 +485,8 @@ struct proto_serde<Proto, sem::Org> {
             read(out.subnodes(), in.for_field(&sem::Org::subnodes));
         if (out.has_loc()) {
             proto_serde<
-                hstd::Opt<orgproto::org_parse_LineCol>,
-                hstd::Opt<org::parse::LineCol>>::
+                hstd::Opt<orgproto::org_parse_SourceLoc>,
+                hstd::Opt<org::parse::SourceLoc>>::
                 read(out.loc(), in.for_field(&org::sem::Org::loc));
         }
     }

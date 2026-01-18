@@ -547,14 +547,6 @@ enum OrgSemKind {
   OrgSemKind_CmdInclude_f                                                           = 79;
 }
 
-message SourceLocation {
-  int32                                            line                             = 1;
-  int32                                            column                           = 2;
-  int32                                            pos                              = 3;
-  optional string                                  file                             = 4;
-  string                                           debug                            = 1000;
-}
-
 message LispCode {
   message Call {
     string                                         name                             = 1;
@@ -1386,7 +1378,7 @@ message OrgDiagnostics {
     int32                                          parserLine                       = 4;
     OrgTokenKind                                   tokenKind                        = 5;
     string                                         tokenText                        = 6;
-    SourceLocation                                 loc                              = 7;
+    org.parse.SourceLoc                                 loc                              = 7;
     string                                         errName                          = 8;
     string                                         errCode                          = 9;
     string                                         debug                            = 1000;
@@ -1398,7 +1390,7 @@ message OrgDiagnostics {
     int32                                          parserLine                       = 4;
     string                                         errName                          = 5;
     string                                         errCode                          = 6;
-    optional SourceLocation                        loc                              = 7;
+    optional org.parse.SourceLoc                        loc                              = 7;
     string                                         debug                            = 1000;
   }
   message IncludeError {
@@ -1415,7 +1407,7 @@ message OrgDiagnostics {
     string                                         convertFile                      = 5;
     string                                         errName                          = 6;
     string                                         errCode                          = 7;
-    optional SourceLocation                        loc                              = 8;
+    optional org.parse.SourceLoc                        loc                              = 8;
     string                                         debug                            = 1000;
   }
   message InternalError {
@@ -1423,7 +1415,7 @@ message OrgDiagnostics {
     string                                         function                         = 2;
     int32                                          line                             = 3;
     string                                         file                             = 4;
-    optional SourceLocation                        loc                              = 5;
+    optional org.parse.SourceLoc                        loc                              = 5;
     string                                         debug                            = 1000;
   }
   message Data {
@@ -1447,14 +1439,14 @@ message OrgDiagnostics {
 }
 
 message NoNode {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message ErrorItem {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   OrgDiagnostics                                   diag                             = 4;
@@ -1462,7 +1454,7 @@ message ErrorItem {
 }
 
 message ErrorGroup {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   repeated ErrorItem                               diagnostics                      = 4;
@@ -1470,27 +1462,27 @@ message ErrorGroup {
 }
 
 message Stmt {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   repeated AnyNode                                 attached                         = 3;
   string                                           debug                            = 1000;
 }
 
 message Inline {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   string                                           debug                            = 1000;
 }
 
 message StmtList {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Empty {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
@@ -1498,7 +1490,7 @@ message Empty {
 
 message Cmd {
   repeated AnyNode                                 attached                         = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   AttrGroup                                        attrs                            = 4;
   string                                           debug                            = 1000;
@@ -1507,7 +1499,7 @@ message Cmd {
 message Block {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   string                                           debug                            = 1000;
 }
@@ -1515,7 +1507,7 @@ message Block {
 message LineCommand {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   string                                           debug                            = 1000;
 }
@@ -1523,13 +1515,13 @@ message LineCommand {
 message Attached {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   string                                           debug                            = 1000;
 }
 
 message Leaf {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   string                                           text                             = 3;
   string                                           debug                            = 1000;
@@ -1538,7 +1530,7 @@ message Leaf {
 message CmdCaption {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   Paragraph                                        text                             = 6;
@@ -1548,7 +1540,7 @@ message CmdCaption {
 message CmdCreator {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   Paragraph                                        text                             = 6;
@@ -1558,7 +1550,7 @@ message CmdCreator {
 message CmdAuthor {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   Paragraph                                        text                             = 6;
@@ -1568,7 +1560,7 @@ message CmdAuthor {
 message CmdEmail {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           text                             = 6;
@@ -1578,7 +1570,7 @@ message CmdEmail {
 message CmdLanguage {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           text                             = 6;
@@ -1588,7 +1580,7 @@ message CmdLanguage {
 message CmdColumns {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   ColumnView                                       view                             = 6;
@@ -1598,7 +1590,7 @@ message CmdColumns {
 message CmdName {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           name                             = 6;
@@ -1608,7 +1600,7 @@ message CmdName {
 message CmdCustomArgs {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           name                             = 6;
@@ -1618,7 +1610,7 @@ message CmdCustomArgs {
 
 message CmdCustomRaw {
   repeated AnyNode                                 attached                         = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           name                             = 5;
@@ -1629,7 +1621,7 @@ message CmdCustomRaw {
 
 message CmdCustomText {
   repeated AnyNode                                 attached                         = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           name                             = 5;
@@ -1641,7 +1633,7 @@ message CmdCustomText {
 message CmdCall {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           name                             = 6;
@@ -1656,7 +1648,7 @@ message CmdCall {
 message CmdTblfm {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   Tblfm                                            expr                             = 6;
@@ -1664,7 +1656,7 @@ message CmdTblfm {
 }
 
 message HashTag {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   HashTagText                                      text                             = 4;
@@ -1672,7 +1664,7 @@ message HashTag {
 }
 
 message InlineFootnote {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           tag                              = 4;
@@ -1681,7 +1673,7 @@ message InlineFootnote {
 }
 
 message InlineExport {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           exporter                         = 4;
@@ -1730,7 +1722,7 @@ message Time {
     TimeKind_Static_f                                                               = 0;
     TimeKind_Dynamic_f                                                              = 1;
   }
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   bool                                             isActive                         = 4;
@@ -1739,7 +1731,7 @@ message Time {
 }
 
 message TimeRange {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   Time                                             from                             = 4;
@@ -1748,7 +1740,7 @@ message TimeRange {
 }
 
 message Macro {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           name                             = 4;
@@ -1762,7 +1754,7 @@ message Symbol {
     string                                         value                            = 2;
     string                                         debug                            = 1000;
   }
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           name                             = 4;
@@ -1773,7 +1765,7 @@ message Symbol {
 
 message Escaped {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1781,7 +1773,7 @@ message Escaped {
 
 message Newline {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1789,7 +1781,7 @@ message Newline {
 
 message Space {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1797,7 +1789,7 @@ message Space {
 
 message Word {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1805,7 +1797,7 @@ message Word {
 
 message AtMention {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1813,7 +1805,7 @@ message AtMention {
 
 message RawText {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1821,7 +1813,7 @@ message RawText {
 
 message Punctuation {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1829,7 +1821,7 @@ message Punctuation {
 
 message Placeholder {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1837,7 +1829,7 @@ message Placeholder {
 
 message BigIdent {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1845,7 +1837,7 @@ message BigIdent {
 
 message TextTarget {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1853,14 +1845,14 @@ message TextTarget {
 
 message ErrorSkipToken {
   string                                           text                             = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
 }
 
 message ErrorSkipGroup {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   repeated ErrorSkipToken                          skipped                          = 4;
@@ -1868,69 +1860,69 @@ message ErrorSkipGroup {
 }
 
 message Markup {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   string                                           debug                            = 1000;
 }
 
 message Bold {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Underline {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Monospace {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message MarkQuote {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Verbatim {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Italic {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Strike {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Par {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message RadioTarget {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   repeated string                                  words                            = 4;
@@ -1938,7 +1930,7 @@ message RadioTarget {
 }
 
 message Latex {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
@@ -1946,7 +1938,7 @@ message Latex {
 
 message Link {
   repeated AnyNode                                 attached                         = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   optional Paragraph                               description                      = 5;
@@ -1957,7 +1949,7 @@ message Link {
 message BlockCenter {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           debug                            = 1000;
@@ -1966,7 +1958,7 @@ message BlockCenter {
 message BlockQuote {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           debug                            = 1000;
@@ -1974,7 +1966,7 @@ message BlockQuote {
 
 message BlockComment {
   repeated AnyNode                                 attached                         = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
@@ -1983,7 +1975,7 @@ message BlockComment {
 message BlockVerse {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           debug                            = 1000;
@@ -1992,7 +1984,7 @@ message BlockVerse {
 message BlockDynamicFallback {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           name                             = 6;
@@ -2002,7 +1994,7 @@ message BlockDynamicFallback {
 message BlockExample {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           debug                            = 1000;
@@ -2011,7 +2003,7 @@ message BlockExample {
 message BlockExport {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           exporter                         = 6;
@@ -2022,7 +2014,7 @@ message BlockExport {
 message BlockAdmonition {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           debug                            = 1000;
@@ -2031,7 +2023,7 @@ message BlockAdmonition {
 message BlockCodeEvalResult {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   repeated OrgCodeEvalOutput                       raw                              = 6;
@@ -2042,7 +2034,7 @@ message BlockCodeEvalResult {
 message BlockCode {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   optional string                                  lang                             = 6;
@@ -2053,7 +2045,7 @@ message BlockCode {
 }
 
 message SubtreeLog {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   SubtreeLogHead                                   head                             = 4;
@@ -2062,7 +2054,7 @@ message SubtreeLog {
 }
 
 message Subtree {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   int32                                            level                            = 4;
@@ -2086,7 +2078,7 @@ message Subtree {
 message Cell {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   bool                                             isBlock                          = 6;
@@ -2096,7 +2088,7 @@ message Cell {
 message Row {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   repeated Cell                                    cells                            = 6;
@@ -2107,7 +2099,7 @@ message Row {
 message Table {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   repeated Row                                     rows                             = 6;
@@ -2117,14 +2109,14 @@ message Table {
 
 message Paragraph {
   repeated AnyNode                                 attached                         = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
 }
 
 message ColonExample {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
@@ -2133,7 +2125,7 @@ message ColonExample {
 message CmdAttr {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           target                           = 6;
@@ -2143,7 +2135,7 @@ message CmdAttr {
 message CmdExport {
   AttrGroup                                        attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
-  optional org.parse.LineCol                       loc                              = 3;
+  optional org.parse.SourceLoc                       loc                              = 3;
   repeated AnyNode                                 subnodes                         = 4;
   OrgSemKind                                       staticKind                       = 5;
   string                                           exporter                         = 6;
@@ -2152,7 +2144,7 @@ message CmdExport {
 }
 
 message Call {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           name                             = 4;
@@ -2163,14 +2155,14 @@ message Call {
 
 message List {
   repeated AnyNode                                 attached                         = 1;
-  optional org.parse.LineCol                       loc                              = 2;
+  optional org.parse.SourceLoc                       loc                              = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
 }
 
 message ListItem {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   CheckboxState                                    checkbox                         = 4;
@@ -2180,7 +2172,7 @@ message ListItem {
 }
 
 message DocumentOptions {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   InitialSubtreeVisibility                         initialVisibility                = 4;
@@ -2198,7 +2190,7 @@ message DocumentOptions {
 }
 
 message DocumentFragment {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   int32                                            baseLine                         = 4;
@@ -2214,7 +2206,7 @@ message CriticMarkup {
     Kind_Highlighting_f                                                             = 3;
     Kind_Comment_f                                                                  = 4;
   }
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   CriticMarkup.Kind                                kind                             = 4;
@@ -2222,7 +2214,7 @@ message CriticMarkup {
 }
 
 message Document {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   optional Paragraph                               title                            = 4;
@@ -2237,7 +2229,7 @@ message Document {
 }
 
 message FileTarget {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           path                             = 4;
@@ -2250,14 +2242,14 @@ message FileTarget {
 }
 
 message TextSeparator {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message DocumentGroup {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
@@ -2285,7 +2277,7 @@ message File {
     Kind_Attachment_f                                                               = 1;
     Kind_Source_f                                                                   = 2;
   }
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           relPath                          = 4;
@@ -2295,7 +2287,7 @@ message File {
 }
 
 message Directory {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           relPath                          = 4;
@@ -2304,7 +2296,7 @@ message Directory {
 }
 
 message Symlink {
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   bool                                             isDirectory                      = 4;
@@ -2354,7 +2346,7 @@ message CmdInclude {
     Kind_Src_f                                                                      = 3;
     Kind_OrgDocument_f                                                              = 4;
   }
-  optional org.parse.LineCol                       loc                              = 1;
+  optional org.parse.SourceLoc                       loc                              = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           path                             = 4;

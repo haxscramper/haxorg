@@ -288,20 +288,20 @@ PYBIND11_MODULE(pyhaxorg, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::parse::LineCol>(m, "parseLineCol")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::parse::LineCol {
-                        org::parse::LineCol result{};
+  pybind11::class_<org::parse::SourceLoc>(m, "parseLineCol")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::parse::SourceLoc {
+                        org::parse::SourceLoc result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("line", &org::parse::LineCol::line)
-    .def_readwrite("column", &org::parse::LineCol::column)
-    .def_readwrite("pos", &org::parse::LineCol::pos)
-    .def("__repr__", [](org::parse::LineCol const& _self) -> std::string {
+    .def_readwrite("line", &org::parse::SourceLoc::line)
+    .def_readwrite("column", &org::parse::SourceLoc::column)
+    .def_readwrite("pos", &org::parse::SourceLoc::pos)
+    .def("__repr__", [](org::parse::SourceLoc const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::parse::LineCol const& _self, std::string const& name) -> pybind11::object {
+         [](org::parse::SourceLoc const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -2228,28 +2228,6 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::bind::python::ExporterPython const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::SourceLocation>(m, "SourceLocation")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::SourceLocation {
-                        org::sem::SourceLocation result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("line", &org::sem::SourceLocation::line)
-    .def_readwrite("column", &org::sem::SourceLocation::column)
-    .def_readwrite("pos", &org::sem::SourceLocation::pos)
-    .def_readwrite("file", &org::sem::SourceLocation::file)
-    .def("__eq__",
-         static_cast<bool(org::sem::SourceLocation::*)(org::sem::SourceLocation const&) const>(&org::sem::SourceLocation::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::SourceLocation const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::SourceLocation const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))

@@ -323,13 +323,7 @@ struct OrgParser : public hstd::OperationsTracer {
     /// \brief Identification for the current file being processed. Value
     /// from this field is passed to the source location for the failure
     /// diagnostics.
-    std::string currentFile;
-    OrgParser(OrgNodeGroup* _group, std::string const& currentFile)
-        : group{_group}, currentFile{currentFile} {
-        LOGIC_ASSERTION_CHECK(
-            !currentFile.empty(),
-            "Current file name cannot be empty in parser.");
-    }
+    OrgParser(OrgNodeGroup* _group) : group{_group} {}
 
     void reserve(int size) { group->nodes.reserve(size); }
 
@@ -337,7 +331,7 @@ struct OrgParser : public hstd::OperationsTracer {
         reportHook = in;
     }
 
-    static hstd::Opt<LineCol> getLoc(OrgLexer const& lex);
+    static hstd::Opt<SourceLoc> getLoc(OrgLexer const& lex);
 
     hstd::Slice<OrgId> parseText(OrgLexer& lex);
 

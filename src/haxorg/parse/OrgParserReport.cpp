@@ -49,12 +49,7 @@ void OrgParser::report(CR<Report> in) {
         if (in.lex != nullptr) {
             ValueLexPosition val;
             val.maxPos = in.lex->in->size();
-
-            Opt<LineCol> loc = this->getLoc(*in.lex);
-            if (loc.has_value()) {
-                val.line   = loc->line;
-                val.column = loc->column;
-            }
+            val.loc    = this->getLoc(*in.lex);
 
             if (!in.lex->pos.isNil()) {
                 val.nowPos = in.lex->pos.getIndex();
@@ -62,14 +57,15 @@ void OrgParser::report(CR<Report> in) {
 
             for (int i = 0; i < 10; ++i) {
                 if (in.lex->hasNext(i)) {
-                    val.tokens.push_back(ValueToken{
-                        .kind  = fmt1(in.lex->tok(i).kind),
-                        .index = in.lex->pos.isNil()
-                                   ? -1
-                                   : static_cast<int>(
-                                         in.lex->pos.getIndex() + i),
-                        .value = in.lex->tok(i).value.text,
-                    });
+                    val.tokens.push_back(
+                        ValueToken{
+                            .kind  = fmt1(in.lex->tok(i).kind),
+                            .index = in.lex->pos.isNil()
+                                       ? -1
+                                       : static_cast<int>(
+                                             in.lex->pos.getIndex() + i),
+                            .value = in.lex->tok(i).value.text,
+                        });
                 }
             }
             res.lex = val;
@@ -106,7 +102,7 @@ void OrgParser::report(CR<Report> in) {
         auto getLoc = [&]() -> std::string {
             std::string res;
             if (in.lex != nullptr) {
-                Opt<LineCol> loc = this->getLoc(*in.lex);
+                Opt<SourceLoc> loc = this->getLoc(*in.lex);
                 if (loc.has_value()) {
                     res = hstd::fmt("{}:{} ", loc->line, loc->column);
                 }

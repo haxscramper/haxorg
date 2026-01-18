@@ -95,20 +95,16 @@ struct convert<org::parse::OrgFill> {
     static Node encode(org::parse::OrgFill const& str) {
         Node result;
         result["text"] = str.text;
-        result["line"] = str.line;
-        result["col"]  = str.col;
+        result["loc"]  = str.loc;
         return result;
     }
     static bool decode(Node const& in, org::parse::OrgFill& out) {
         if (in["text"]) { out.text = in["text"].as<hstd::Str>(); }
-
-        if (in["line"]) { out.line = in["line"].as<int>(); }
-
-        if (in["col"]) { out.col = in["col"].as<int>(); }
-
+        if (in["loc"]) { out.loc = in["loc"].as<org::parse::SourceLoc>(); }
         return true;
     }
 };
+
 template <hstd::DescribedEnum E>
 struct convert<E> {
     static Node encode(E const& str) {

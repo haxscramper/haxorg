@@ -11,7 +11,7 @@ std::size_t imm_hash_build(T const& value) {
     std::size_t result = 0;
     for_each_field_with_bases<T>([&](auto const& field) {
         using FieldType = DESC_FIELD_TYPE(field);
-        if (std::is_same_v<Opt<org::parse::LineCol>, FieldType>
+        if (std::is_same_v<Opt<org::parse::SourceLoc>, FieldType>
             && field.name == loc_field) {
             // pass
         } else {
@@ -31,7 +31,7 @@ bool imm_eq_build(T const* lhs, T const* rhs) {
     bool result = true;
     for_each_field_with_bases<T>([&](auto const& field) {
         using FieldType = DESC_FIELD_TYPE(field);
-        if (std::is_same_v<Opt<org::parse::LineCol>, FieldType>
+        if (std::is_same_v<Opt<org::parse::SourceLoc>, FieldType>
             && field.name == loc_field) {
             // pass
         } else if (result) {

@@ -1,8 +1,8 @@
 #include "im_org_ui_common.hpp"
 #include <gui_lib/imgui_utils.hpp>
 #include "misc/cpp/imgui_stdlib.h"
-#include <haxorg/sem/ImmOrgEdit.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/imm/ImmOrgEdit.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
 
@@ -27,10 +27,11 @@ hstd::log::log_builder gr_log(
     int                       line     = __builtin_LINE(),
     char const*               function = __builtin_FUNCTION(),
     char const*               file     = __builtin_FILE()) {
-    return std::move(::hstd::log::log_builder{}
-                         .set_callsite(line, function, file)
-                         .severity(__severity)
-                         .source_scope({"gui", "logic", "shared"}));
+    return std::move(
+        ::hstd::log::log_builder{}
+            .set_callsite(line, function, file)
+            .severity(__severity)
+            .source_scope({"gui", "logic", "shared"}));
 }
 } // namespace
 
@@ -203,8 +204,9 @@ Opt<EditableOrgDocGroup::RootGroup> EditableOrgDocGroup::migrate(
                 for (auto const& item : prev.roots) {
                     if (auto migrated = history.at(next).getTransition(
                             item.getIndex())) {
-                        updated.push_back(DocRootId::FromMaskedIdx(
-                            migrated.value(), next));
+                        updated.push_back(
+                            DocRootId::FromMaskedIdx(
+                                migrated.value(), next));
                         gr_log(hstd::log::l_trace)
                             .fmt_message(
                                 "Item {} migrated to {}",
@@ -296,10 +298,11 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
                     new_nodes.push_back(parent.at(i).id);
                 }
 
-                result.incl(org::imm::setSubnodes(
-                    parent,
-                    {new_nodes.begin(), new_nodes.end()},
-                    ast_ctx));
+                result.incl(
+                    org::imm::setSubnodes(
+                        parent,
+                        {new_nodes.begin(), new_nodes.end()},
+                        ast_ctx));
             }
 
 
@@ -312,7 +315,7 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
 org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
     const org::imm::ImmAdapter& origin,
     const std::string&          text) {
-    auto parse = org::parseString(text, "<text>");
+    auto parse = parseContext->parseString("<text>", text);
     if (parse->is(OrgSemKind::Document)
         || parse->is(OrgSemKind::StmtList)) {
         return replaceNode(

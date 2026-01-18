@@ -362,12 +362,13 @@ struct Cursor {
         col  = 1;
     }
 
-    LexerParams      p;
-    OrgTokenGroup*   group;
-    std::string_view text;
-    int              pos  = 0;
-    int              line = 0;
-    int              col  = 0;
+    LexerParams              p;
+    OrgTokenGroup*           group;
+    std::string_view         text;
+    int                      pos     = 0;
+    int                      line    = 0;
+    int                      col     = 0;
+    org::parse::SourceFileId file_id = org::parse::SourceFileId::Nil();
 
     void unhandled(
         int         line     = __builtin_LINE(),
@@ -395,10 +396,13 @@ struct Cursor {
         int          line     = __builtin_LINE(),
         char const*  function = __builtin_FUNCTION()) {
         OrgToken tok;
-        tok->col  = this->col;
-        tok->line = this->line;
-        tok->pos  = start;
-        tok.kind  = kind;
+        tok->loc = org::parse::SourceLoc{
+            .column  = this->col,
+            .line    = this->line,
+            .pos     = start,
+            .file_id = file_id,
+        };
+        tok.kind = kind;
 
         tok.value.text = std::string{
             text.begin() + start,
@@ -426,10 +430,14 @@ struct Cursor {
         Func const&  adv,
         Args&&... args) {
         OrgToken tok;
-        tok->col  = this->col;
-        tok->line = this->line;
-        tok->pos  = this->pos;
-        tok.kind  = kind;
+        tok->loc = org::parse::SourceLoc{
+            .column  = this->col,
+            .file_id = this->file_id,
+            .pos     = this->pos,
+            .column  = this->col,
+        };
+
+        tok.kind = kind;
 
         int start = pos;
         adv(*this, args...);
@@ -1755,17 +1763,20 @@ void switch_regular_char(Cursor& c) {
 } // namespace
 
 OrgTokenGroup org::parse::tokenize(
-    const std::string&             text,
-    org::parse::LexerParams const& params) {
+    const std::string&              text,
+    org::parse::LexerParams const&  params,
+    org::parse::SourceFileId const& file_id) {
     __perf_trace("lexing", "base lexer run");
     OrgTokenGroup result;
+    LOGIC_ASSERTION_CHECK(!file_id.isNil(), "");
 
     if (text.empty()) { return result; }
 
     Cursor c{
-        .p     = params,
-        .group = &result,
-        .text  = text,
+        .p       = params,
+        .group   = &result,
+        .text    = text,
+        .file_id = file_id,
     };
 
     while (!c.eof()) {

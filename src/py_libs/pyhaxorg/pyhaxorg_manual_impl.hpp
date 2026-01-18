@@ -30,9 +30,9 @@
 #include <py_libs/pybind11_utils.hpp>
 
 #include <frameobject.h>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
-#include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
 #include <haxorg/sem/SemOrgCereal.hpp>
 
 

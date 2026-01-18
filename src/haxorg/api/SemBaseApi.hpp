@@ -1,9 +1,10 @@
 #pragma once
 #include <haxorg/sem/SemOrg.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/ext/error_write.hpp>
+#include <haxorg/lexbase/SourceManager.hpp>
 
 namespace org {
 
@@ -12,126 +13,8 @@ namespace org {
     hstd::UserTimeBreakdown const& breakdown,
     bool                           isActive = false);
 
-/// \brief Documen fragment extracted from the larger text
-struct [[refl]] OrgParseFragment {
-    [[refl]] int         baseLine;
-    [[refl]] int         baseCol;
-    [[refl]] std::string text;
-    DESC_FIELDS(OrgParseFragment, (baseLine, baseCol, text));
-};
-
-hstd::Vec<OrgParseFragment> extractCommentBlocks(
-    const std::string&            text,
-    const hstd::Vec<std::string>& commentPrefixes);
-
-struct [[refl(
-    R"({
-  "backend": {
-    "python": {
-      "holder-type": "shared"
-    },
-    "wasm": {
-      "holder-type": "shared"
-    }
-  }
-})")]] OrgParseParameters : public hstd::SharedPtrApi<OrgParseParameters> {
-    [[refl]] hstd::Opt<std::string> baseTokenTracePath = std::nullopt;
-    [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
-    [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
-    [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
-    [[refl]] hstd::Str              currentFile;
-
-    hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)>
-        getFragments;
-
-    BOOST_DESCRIBE_CLASS(
-        OrgParseParameters,
-        (),
-        (baseTokenTracePath,
-         tokenTracePath,
-         parseTracePath,
-         semTracePath,
-         currentFile),
-        (),
-        ());
-};
-
-struct [[refl(
-    R"({
-  "backend": {
-    "python": {
-      "holder-type": "shared"
-    },
-    "wasm": {
-      "holder-type": "shared"
-    }
-  }
-})")]] OrgDirectoryParseParameters
-    : public hstd::SharedPtrApi<OrgDirectoryParseParameters> {
-    hstd::Func<sem::SemId<sem::Org>(std::string const& fullPath)>
-        getParsedNode;
-
-    hstd::Func<bool(std::string const& fullPath)> shouldProcessPath;
-    hstd::Func<hstd::Opt<std::string>(std::string const& includePath)>
-        findIncludeTarget;
-
-    std::function<bool(std::string const&)>        isDirectoryImpl;
-    std::function<bool(std::string const&)>        isSymlinkImpl;
-    std::function<bool(std::string const&)>        isRegularFileImpl;
-    std::function<std::string(std::string const&)> resolveSymlinkImpl;
-    std::function<std::vector<std::string>(std::string const&)>
-        getDirectoryEntriesImpl;
-
-    bool                     isDirectory(std::string const& path) const;
-    bool                     isSymlink(std::string const& path) const;
-    bool                     isRegularFile(std::string const& path) const;
-    std::string              resolveSymlink(std::string const& path) const;
-    std::vector<std::string> getDirectoryEntries(
-        std::string const& path) const;
-
-    BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
-};
-
-[[refl]] sem::SemId<sem::Org> parseFile(
-    std::string                                file,
-    std::shared_ptr<OrgParseParameters> const& opts);
-
-
-[[refl]] sem::SemId<sem::Org> parseString(
-    std::string const  text,
-    std::string const& currentFile);
-[[refl]] sem::SemId<sem::Org> parseStringOpts(
-    std::string const                          text,
-    std::shared_ptr<OrgParseParameters> const& opts);
-
-[[refl]] hstd::Opt<sem::SemId<sem::Org>> parseDirectoryOpts(
-    std::string const&                                  path,
-    std::shared_ptr<OrgDirectoryParseParameters> const& opts);
-
-[[refl]] sem::SemId<sem::File> parseFileWithIncludes(
-    std::string const&                                  file,
-    std::shared_ptr<OrgDirectoryParseParameters> const& opts);
-
 [[refl]] std::shared_ptr<imm::ImmAstContext> initImmutableAstContext();
 
-struct OrgCodeEvalParameters {
-    hstd::Func<hstd::Vec<sem::OrgCodeEvalOutput>(
-        sem::OrgCodeEvalInput const&)>
-                                       evalBlock;
-    hstd::SPtr<hstd::OperationsTracer> debug;
-    std::string                        currentFile;
-
-    bool isTraceEnabled() const { return debug && debug->TraceState; }
-
-    OrgCodeEvalParameters()
-        : debug{std::make_shared<hstd::OperationsTracer>()} {}
-    OrgCodeEvalParameters(hstd::SPtr<hstd::OperationsTracer> debug)
-        : debug{debug} {}
-};
-
-sem::SemId<sem::Org> evaluateCodeBlocks(
-    sem::SemId<sem::Org>         document,
-    OrgCodeEvalParameters const& conf);
 
 
 hstd::Vec<hstd::ext::Report> collectDiagnostics(
@@ -471,10 +354,6 @@ void setListItemBody(
     int                             index,
     hstd::Vec<sem::SemId<sem::Org>> value);
 
-void setDescriptionListItemBody(
-    sem::SemId<sem::List>           list,
-    hstd::CR<hstd::Str>             text,
-    hstd::Vec<sem::SemId<sem::Org>> value);
 
 /// \brief Insert the list item at the specified position
 void insertListItemBody(

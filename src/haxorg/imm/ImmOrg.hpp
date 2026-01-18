@@ -4,8 +4,8 @@
 #include "hstd/stdlib/TraceBase.hpp"
 #include "hstd/stdlib/algorithms.hpp"
 #include <boost/preprocessor/facilities/expand.hpp>
-#include <haxorg/sem/ImmOrgBase.hpp>
-#include <haxorg/sem/ImmOrgTypes.hpp>
+#include <haxorg/imm/ImmOrgBase.hpp>
+#include <haxorg/imm/ImmOrgTypes.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <immer/map_transient.hpp>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hstd/stdlib/Vec.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/sem/SemAstDiff.hpp>
 #include <org_diagram/src/model/nodes/DiagramTreeNode.hpp>
 #include <QObject>

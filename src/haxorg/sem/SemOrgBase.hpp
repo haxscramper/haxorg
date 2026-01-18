@@ -233,7 +233,7 @@ struct [[refl(R"({
     /// \brief Get kind of this sem node
     [[refl]] virtual OrgSemKind getKind() const = 0;
     /// \brief Location of the node in the original source file
-    [[refl]] hstd::Opt<parse::LineCol> loc = std::nullopt;
+    [[refl]] hstd::Opt<parse::SourceLoc> loc = std::nullopt;
     /// \brief List of subnodes.
     ///
     /// Some of the derived nodes don't make the use of subnode list

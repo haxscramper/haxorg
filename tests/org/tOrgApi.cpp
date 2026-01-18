@@ -5,6 +5,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <haxorg/api/EvalContext.hpp>
 
 template <typename T>
 struct JsonSerde<sem::SemId<T>> {
@@ -95,7 +96,8 @@ TEST(OrgApi, EvalCodeBlocks) {
 content
 #+end_src)",
         getDebugFile("eval_code_blocks"));
-    org::OrgCodeEvalParameters conf;
+    auto parseContext = std::make_shared<org::parse::ParseContext>();
+    org::OrgCodeEvalParameters conf{parseContext};
     Vec<sem::OrgCodeEvalInput> buf;
 
     conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
@@ -147,7 +149,8 @@ input text
 )",
         getDebugFile("eval_call_command"));
 
-    org::OrgCodeEvalParameters conf;
+    auto parseContext = std::make_shared<org::parse::ParseContext>();
+    org::OrgCodeEvalParameters conf{parseContext};
     Vec<sem::OrgCodeEvalInput> buf;
 
     conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
@@ -206,7 +209,8 @@ return tab
 #+END_SRC
 )");
 
-    org::OrgCodeEvalParameters conf;
+    auto parseContext = std::make_shared<org::parse::ParseContext>();
+    org::OrgCodeEvalParameters conf{parseContext};
 
     conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
         -> Vec<sem::OrgCodeEvalOutput> {
