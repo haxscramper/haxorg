@@ -20,11 +20,11 @@ struct hstd::SerdeDefaultProvider<hstd::ReflPathItem<Tag>> {
 };
 
 // #define __trace_call()                                                    \
-//     std::cerr << fmt(                                                     \
-//         "{}Calling {}",                                                   \
-//         hstd::Str{level++, ' '},                                          \
-//         hstd::value_metadata<decltype(v)>::typeName())                    \
-//               << std::endl;                                               \
+//     std::cerr << fmt( \
+//         "{}Calling {}", \
+//         hstd::Str{level++, ' '}, \
+//         hstd::value_metadata<decltype(v)>::typeName()) \
+//               << std::endl; \
 //     auto __scope = hstd::finally{[&]() { --level; }};
 
 #define __trace_call()
@@ -1151,7 +1151,6 @@ void org::imm::serializeFromText(
 std::string org::imm::serializeToText(
     const std::shared_ptr<ImmAstReplaceEpoch>& store) {
     auto tmp = msgpack_to_text(store);
-    _dbg(tmp.size());
     return tmp;
 }
 
@@ -1180,7 +1179,6 @@ std::string org::imm::serializeFromTextToTreeDump(
 std::string org::imm::serializeToText(
     const std::shared_ptr<org::graph::MapGraph>& store) {
     auto tmp = msgpack_to_text(store);
-    _dbg(tmp.size());
     return tmp;
 }
 
@@ -1191,6 +1189,4 @@ void org::imm::serializeFromText(
     LOGIC_ASSERTION_CHECK(tmp.get() == store.get(), "");
     msgpack_from_text(binary, tmp);
     LOGIC_ASSERTION_CHECK(tmp.get() == store.get(), "");
-    _dfmt(store->nodeCount(), store->edgeCount());
-    _dfmt(tmp->nodeCount(), tmp->edgeCount());
 }

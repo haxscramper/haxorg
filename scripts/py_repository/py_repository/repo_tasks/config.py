@@ -22,6 +22,7 @@ class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
 
 class HaxorgUseConfig(BaseModel, extra="forbid"):
     qt: bool = Field(default=True)
+    imgui: bool = Field(default=True)
 
 
 class HaxorgTasksConfig(BaseModel, extra="forbid"):

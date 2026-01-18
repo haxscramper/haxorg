@@ -105,6 +105,7 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
     result.append(cmake_opt("ORG_USE_MSGPACK", conf.build_conf.use_msgpack))
     result.append(cmake_opt("ORG_USE_QT", conf.use.qt))
+    result.append(cmake_opt("ORG_USE_IMGUI", conf.use.imgui))
     # result.append(cmake_opt("CMAKE_CXX_INCLUDE_WHAT_YOU_USE", "/home/haxscramper/software/include-what-you-use/build/bin/include-what-you-use;--verbose=7"))
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
