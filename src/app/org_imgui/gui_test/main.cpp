@@ -8,13 +8,13 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <GLFW/glfw3.h>
-#include <gui_lib/imgui_utils.hpp>
+#include <org_imgui/gui_lib/imgui_utils.hpp>
 
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_ui.h"
 #include "imgui_test_engine/imgui_te_utils.h"
 
-#include <gui_lib/gui_perfetto.hpp>
+#include <org_imgui/gui_lib/gui_perfetto.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <hstd/ext/logger.hpp>
 

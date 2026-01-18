@@ -62,6 +62,7 @@ option(ORG_USE_PYTHON_BINDINGS "Enable build of the python bindings" ON)
 option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" ON)
 option(ORG_EMCC_BUILD "Building for emscripten target" OFF)
 option(ORG_USE_QT "Enable Qt-related features and API" OFF)
+option(ORG_USE_IMGUI "Build imgui apps and API" OFF)
 
 option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
 option(ORG_DEPS_USE_PROTOBUF "Include protobuf functionality in the build" ON)
@@ -257,6 +258,10 @@ endif()
 if(${ORG_USE_QT})
   add_subdirectory(src/app/org_viewer)
   add_subdirectory(src/app/org_diagram)
+endif()
+
+if(${ORG_USE_IMGUI})
+  add_subdirectory(src/app/org_imgui)
 endif()
 
 install(

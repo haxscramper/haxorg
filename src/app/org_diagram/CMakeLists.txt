@@ -1,9 +1,9 @@
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets Test)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Test)
-
+set(ORG_DIAGRAM_ROOT "${BASE}/src/app/org_diagram")
 # Library configuration
 qt_add_library(org_diagram_lib STATIC ${LIB_SOURCES})
-glob_add_sources2(TARGET org_diagram_lib LS_REGEX "${BASE}/src/app/org_diagram/src/.*" SEARCH_BASE
+glob_add_sources2(TARGET org_diagram_lib LS_REGEX "${ORG_DIAGRAM_ROOT}/src/.*" SEARCH_BASE
                   "${BASE}")
 
 add_subdirectory(jni_elk)
@@ -23,8 +23,7 @@ set_target_flags(org_diagram_lib)
 set_common_files(org_diagram_lib)
 
 qt_add_executable(org_diagram MANUAL_FINALIZATION)
-glob_add_sources2(TARGET org_diagram LS_REGEX "${BASE}/src/app/org_diagram/app/.*" SEARCH_BASE
-                  "${BASE}")
+glob_add_sources2(TARGET org_diagram LS_REGEX "${ORG_DIAGRAM_ROOT}/app/.*" SEARCH_BASE "${BASE}")
 set_common_files(org_diagram)
 set_target_flags(org_diagram)
 
@@ -48,8 +47,7 @@ enable_testing()
 function(add_qt_test TEST_FILE_PATH TEST_CLASS)
   get_filename_component(TEST_CLASS ${TEST_FILE_PATH} NAME_WE)
 
-  qt_add_executable(${TEST_CLASS} MANUAL_FINALIZATION
-                    "${BASE}/src/app/org_diagram/tests/${TEST_FILE_PATH}")
+  qt_add_executable(${TEST_CLASS} MANUAL_FINALIZATION "${ORG_DIAGRAM_ROOT}/tests/${TEST_FILE_PATH}")
 
   set_target_properties(
     ${TEST_CLASS}

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "gui_lib/block_graph.hpp"
-#include "gui_lib/node_grid_graph.hpp"
-#include <gui_lib/imgui_utils.hpp>
+#include <org_imgui/gui_lib/block_graph.hpp>
+#include <org_imgui/gui_lib/node_grid_graph.hpp>
+#include <org_imgui/gui_lib/imgui_utils.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
-#include <gui_lib/im_org_ui_common.hpp>
+#include <org_imgui/gui_lib/im_org_ui_common.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 
 struct DocBlockConfig {

@@ -10,7 +10,7 @@ T parse_json_argc(int argc, char const** argv) {
     if (argc != 2) {
         std::vector<std::string> argv_v;
         for (int i = 0; i < argc; ++i) {
-            argv_v.push_back(std::format("\n '{}'", argv[i]));
+            argv_v.push_back(std::format("'{}'", argv[i]));
         }
 
         throw hstd::runtime_error::init(

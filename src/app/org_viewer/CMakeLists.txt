@@ -4,9 +4,10 @@ set(CMAKE_AUTORCC ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+set(ORG_DIAGRAM_ROOT "${BASE}/src/app/org_viewer")
 
 qt_add_executable(org_viewer MANUAL_FINALIZATION)
-glob_add_sources2(TARGET org_viewer LS_REGEX "${BASE}/src/app/org_viewer/.*" SEARCH_BASE "${BASE}")
+glob_add_sources2(TARGET org_viewer LS_REGEX "${ORG_DIAGRAM_ROOT}/.*" SEARCH_BASE "${BASE}")
 set_common_files(org_viewer)
 set_target_flags(org_viewer)
 

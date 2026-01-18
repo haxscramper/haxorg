@@ -10,16 +10,17 @@
 #include <hstd/stdlib/Set.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 
-#include <gui_lib/sem_tree_render.hpp>
-#include <gui_lib/story_grid.hpp>
-#include <gui_lib/imgui_utils.hpp>
-#include <gui_lib/block_graph.hpp>
-#include <gui_lib/doc_editor.hpp>
-#include <gui_lib/dir_explorer.hpp>
+#include <org_imgui/gui_lib/sem_tree_render.hpp>
+#include <org_imgui/gui_lib/story_grid.hpp>
+#include <org_imgui/gui_lib/imgui_utils.hpp>
+#include <org_imgui/gui_lib/block_graph.hpp>
+#include <org_imgui/gui_lib/doc_editor.hpp>
+#include <org_imgui/gui_lib/dir_explorer.hpp>
 
 #include <gui_lib/gui_perfetto.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
+#include <hstd/stdlib/JsonCLIParser.hpp>
 
 
 struct Config {
@@ -36,10 +37,13 @@ struct Config {
     hstd::Vec<hstd::Str> file;
     Mode                 mode = Mode::SemTree;
     hstd::Opt<hstd::Str> appstate;
-    bool                 fullscreen = false;
-    hstd::Opt<hstd::Str> log_file   = std::nullopt;
+    bool                 fullscreen      = false;
+    hstd::Opt<hstd::Str> log_file        = std::nullopt;
+    hstd::Opt<hstd::Str> perf_trace_file = std::nullopt;
 
-    DESC_FIELDS(Config, (file, mode, appstate, fullscreen, log_file));
+    DESC_FIELDS(
+        Config,
+        (file, mode, appstate, fullscreen, log_file, perf_trace_file));
 };
 
 struct OutlineConfig {
@@ -372,12 +376,7 @@ void outline_tree_loop(
 }
 
 int main(int argc, char** argv) {
-    auto conf_file = hstd::fs::path{argv[1]};
-    LOGIC_ASSERTION_CHECK_FMT(
-        hstd::fs::is_regular_file(conf_file), "{}", conf_file);
-    auto conf_text = hstd::readFile(conf_file);
-    auto conf_json = json::parse(conf_text);
-    auto conf      = hstd::from_json_eval<Config>(conf_json);
+    auto conf = hstd::parse_json_argc<Config>(argc, argv);
 
     hstd::log::clear_sink_backends();
     if (conf.log_file) {
@@ -386,11 +385,16 @@ int main(int argc, char** argv) {
     }
 
 #ifdef ORG_USE_PERFETTO
-    std::unique_ptr<perfetto::TracingSession>
+    std::unique_ptr<perfetto::TracingSession> tracing_session;
+    if (conf.perf_trace_file) {
         tracing_session = StartProcessTracing("Perfetto track example");
+    }
 
     hstd::finally end_trace{[&]() {
-        StopTracing(std::move(tracing_session), "/tmp/story_grid.pftrace");
+        if (conf.perf_trace_file) {
+            StopTracing(
+                std::move(tracing_session), "/tmp/story_grid.pftrace");
+        }
     }};
 #endif
 

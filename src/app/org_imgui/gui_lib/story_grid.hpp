@@ -12,9 +12,9 @@
 #include "imgui.h"
 #include <haxorg/sem/ImmOrgGraph.hpp>
 #include <adaptagrams/adaptagrams_ir.hpp>
-#include <gui_lib/im_org_ui_common.hpp>
-#include <gui_lib/node_grid_graph.hpp>
-#include <gui_lib/imgui_utils.hpp>
+#include <org_imgui/gui_lib/im_org_ui_common.hpp>
+#include <org_imgui/gui_lib/node_grid_graph.hpp>
+#include <org_imgui/gui_lib/imgui_utils.hpp>
 #include <boost/bimap.hpp>
 
 DECL_ID_TYPE_MASKED(StoryNode, StoryNodeId, std::size_t, 8);
