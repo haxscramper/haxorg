@@ -44,6 +44,7 @@
 
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
+#include <hstd/stdlib/JsonCLIParser.hpp>
 
 class CliApplication : public QCoreApplication {
     Q_OBJECT
@@ -153,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     get_tracker()->start_tracing();
 
-    auto conf = hstd::from_json_eval<StartupArgc>(json::parse(argv[1]));
+    auto conf = hstd::parse_json_argc<StartupArgc>(argc, argv);
 
     if (conf.mode == StartupArgc::Mode::Gui) {
         QApplication       app{argc, argv};

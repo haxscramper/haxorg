@@ -68,69 +68,7 @@ def run_cmake_build_component(
     )
 
 
-@haxorg_task(dependencies=[validate_dependencies_install])
-def configure_example_imgui_gui(ctx: TaskContext) -> None:
-    run_cmake_configure_component(
-        ctx,
-        "example_imgui_gui",
-        "examples/imgui_gui",
-    )
-
-
-@haxorg_task(dependencies=[configure_example_imgui_gui])
-def build_example_imgui_gui(ctx: TaskContext) -> None:
-    run_cmake_build_component(
-        ctx,
-        "example_imgui_gui",
-    )
-
-
-@haxorg_task(dependencies=[validate_dependencies_install])
-def configure_example_qt_gui_org_viewer(ctx: TaskContext) -> None:
-    assert ctx.config.use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
-    run_cmake_configure_component(
-        ctx,
-        "example_qt_gui_org_viewer",
-        "examples/qt_gui/org_viewer",
-    )
-
-
-@haxorg_task(dependencies=[configure_example_qt_gui_org_viewer])
-def build_example_qt_gui_org_viewer(ctx: TaskContext) -> None:
-    assert ctx.config.use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
-    run_cmake_build_component(
-        ctx,
-        "example_qt_gui_org_viewer",
-    )
-
-
-@haxorg_task(dependencies=[install_haxorg_develop, validate_dependencies_install])
-def configure_example_qt_gui_org_diagram(ctx: TaskContext) -> None:
-    assert ctx.config.use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
-    run_cmake_configure_component(
-        ctx,
-        "example_qt_gui_org_diagram",
-        "examples/qt_gui/org_diagram",
-        args=[cmake_opt("JAVA_HOME", "/usr/lib/jvm/default")],
-    )
-
-
-@haxorg_task(dependencies=[configure_example_qt_gui_org_diagram])
-def build_example_qt_gui_org_diagram(ctx: TaskContext) -> None:
-    assert ctx.config.use.qt, "Qt GUI example can only be built if the project enable the Qt usage"
-    run_cmake_build_component(
-        ctx,
-        "example_qt_gui_org_diagram",
-    )
-
-
-@haxorg_task(
-    dependencies=[build_example_qt_gui_org_viewer, build_example_qt_gui_org_diagram])
-def build_example_qt_gui(ctx: TaskContext) -> None:
-    pass
-
-
-@haxorg_task(dependencies=[build_example_qt_gui, build_example_imgui_gui])
+@haxorg_task(dependencies=[])
 def build_examples(ctx: TaskContext) -> None:
     pass
 

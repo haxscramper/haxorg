@@ -76,6 +76,25 @@ target_compile_definitions(
   jni_elk_lib PUBLIC JNI_ELK_LIB_JAR_PATH="${CMAKE_CURRENT_BINARY_DIR}/lib/elk-wrapper.jar")
 
 target_link_libraries(jni_elk_lib PUBLIC ${JNI_LIBRARIES})
+message(STATUS "JNI_LIBRARIES = ${JNI_LIBRARIES}")
+
+set(JVM_LIB_DIRS "")
+foreach(lib ${JNI_LIBRARIES})
+  get_filename_component(lib_dir "${lib}" DIRECTORY)
+  list(APPEND JVM_LIB_DIRS "${lib_dir}")
+endforeach()
+
+list(REMOVE_DUPLICATES JVM_LIB_DIRS)
+
+string(REPLACE ";" ":" JVM_RPATH "${JVM_LIB_DIRS}")
+
+set_target_properties(jni_elk_lib PROPERTIES INSTALL_RPATH "${JVM_RPATH}" BUILD_WITH_INSTALL_RPATH
+                                                                          TRUE)
+
+foreach(lib_dir ${JVM_LIB_DIRS})
+  message(STATUS "JNI ELK LIB RPATH: ${lib_dir}")
+  target_link_options(jni_elk_lib PUBLIC "LINKER:-rpath,${lib_dir}")
+endforeach()
 
 # Add compiler definitions for JNI version compatibility
 target_compile_definitions(jni_elk_lib PRIVATE JNI_VERSION_1_8=0x00010008 JNI_VERSION_9=0x00090000

@@ -118,6 +118,7 @@ class MMapDiagramEdgeLabelType(str, enum.Enum):
     LABEL_EDGES = "LABEL_EDGES"
     NO_LABELS = "NO_LABELS"
 
+
 class MMapDiagramConfig(BaseModel, extra="forbid"):
     label_node_port_dimensions: Tuple[float, float] = (4, 8)
     diagram_node_port_dimensions: Tuple[float, float] = (4, 12)
@@ -142,8 +143,8 @@ class GenerateMindMapOptions(BaseModel, extra="forbid"):
     outfile: NonEmptyFilePath
 
     auto_build_elk: bool = True
-    org_diagram_tool: Path = Field(default_factory=lambda: Path(
-        "build/example_qt_gui_org_diagram_release/org_diagram"))
+    org_diagram_tool: Path = Field(
+        default_factory=lambda: Path("build/haxorg/org_diagram"))
 
     group_hyperedges: bool = True
     group_single_item_hyperedge: bool = True
