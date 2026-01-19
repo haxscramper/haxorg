@@ -1804,6 +1804,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::se
   out->set_parserline(in.parserLine);
   out->set_tokenkind(static_cast<orgproto::OrgTokenKind>(in.tokenKind));
   proto_serde<std::string, hstd::Str>::write(out->mutable_tokentext(), in.tokenText);
+  proto_serde<orgproto::org_parse::SourceLoc, org::parse::SourceLoc>::write(out->mutable_loc(), in.loc);
   proto_serde<std::string, hstd::Str>::write(out->mutable_errname(), in.errName);
   proto_serde<std::string, hstd::Str>::write(out->mutable_errcode(), in.errCode);
 }
@@ -1815,6 +1816,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::se
   in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::parserLine).get() = out.parserline();
   in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenKind).get() = static_cast<OrgTokenKind>(out.tokenkind());
   proto_serde<std::string, hstd::Str>::read(out.tokentext(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenText));
+  proto_serde<orgproto::org_parse::SourceLoc, org::parse::SourceLoc>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::loc));
   proto_serde<std::string, hstd::Str>::read(out.errname(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::errName));
   proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::errCode));
 }
@@ -1827,6 +1829,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::Or
   proto_serde<std::string, hstd::Str>::write(out->mutable_errname(), in.errName);
   proto_serde<std::string, hstd::Str>::write(out->mutable_errcode(), in.errCode);
   if (in.loc) {
+    proto_serde<orgproto::org_parse::SourceLoc, org::parse::SourceLoc>::write(out->mutable_loc(), *in.loc);
   }
 }
 
@@ -1838,6 +1841,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ParseError, org::sem::Or
   proto_serde<std::string, hstd::Str>::read(out.errname(), in.for_field(&org::sem::OrgDiagnostics::ParseError::errName));
   proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ParseError::errCode));
   if (out.has_loc()) {
+    proto_serde<hstd::Opt<orgproto::org_parse::SourceLoc>, hstd::Opt<org::parse::SourceLoc>>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ParseError::loc));
   }
 }
 
@@ -1862,6 +1866,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::
   proto_serde<std::string, hstd::Str>::write(out->mutable_errname(), in.errName);
   proto_serde<std::string, hstd::Str>::write(out->mutable_errcode(), in.errCode);
   if (in.loc) {
+    proto_serde<orgproto::org_parse::SourceLoc, org::parse::SourceLoc>::write(out->mutable_loc(), *in.loc);
   }
 }
 
@@ -1874,6 +1879,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::ConvertError, org::sem::
   proto_serde<std::string, hstd::Str>::read(out.errname(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::errName));
   proto_serde<std::string, hstd::Str>::read(out.errcode(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::errCode));
   if (out.has_loc()) {
+    proto_serde<hstd::Opt<orgproto::org_parse::SourceLoc>, hstd::Opt<org::parse::SourceLoc>>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ConvertError::loc));
   }
 }
 
@@ -1883,6 +1889,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::InternalError, org::sem:
   out->set_line(in.line);
   proto_serde<std::string, hstd::Str>::write(out->mutable_file(), in.file);
   if (in.loc) {
+    proto_serde<orgproto::org_parse::SourceLoc, org::parse::SourceLoc>::write(out->mutable_loc(), *in.loc);
   }
 }
 
@@ -1892,6 +1899,7 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics::InternalError, org::sem:
   in.for_field(&org::sem::OrgDiagnostics::InternalError::line).get() = out.line();
   proto_serde<std::string, hstd::Str>::read(out.file(), in.for_field(&org::sem::OrgDiagnostics::InternalError::file));
   if (out.has_loc()) {
+    proto_serde<hstd::Opt<orgproto::org_parse::SourceLoc>, hstd::Opt<org::parse::SourceLoc>>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::InternalError::loc));
   }
 }
 

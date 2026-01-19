@@ -32,7 +32,8 @@ struct [[refl(
     "wasm": {
       "holder-type": "shared"
     }
-  }
+  },
+  "wrapper-name": "OrgParseParameters"
 })")]] OrgParseParameters : public hstd::SharedPtrApi<OrgParseParameters> {
     [[refl]] hstd::Opt<std::string> baseTokenTracePath = std::nullopt;
     [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
@@ -58,7 +59,8 @@ struct [[refl(
     "wasm": {
       "holder-type": "shared"
     }
-  }
+  },
+  "wrapper-name": "OrgDirectoryParseParameters"
 })")]] OrgDirectoryParseParameters
     : public hstd::SharedPtrApi<OrgDirectoryParseParameters> {
     hstd::Func<sem::SemId<sem::Org>(std::string const& fullPath)>
@@ -86,7 +88,18 @@ struct [[refl(
 };
 
 
-struct [[refl]] ParseContext : public hstd::SharedPtrApi<ParseContext> {
+struct [[refl(
+    R"({
+  "backend": {
+    "python": {
+      "holder-type": "shared"
+    },
+    "wasm": {
+      "holder-type": "shared"
+    }
+  },
+  "wrapper-name": "ParseContext"
+})")]] ParseContext : public hstd::SharedPtrApi<ParseContext> {
     hstd::SPtr<SourceManager> source;
 
     ParseContext();

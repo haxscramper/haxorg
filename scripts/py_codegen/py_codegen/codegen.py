@@ -1292,7 +1292,7 @@ def gen_pyhaxorg_source(
             )),
         GenUnit(
             GenTu(
-                "{base}/sem/ImmOrgTypes.hpp",
+                "{base}/imm/ImmOrgTypes.hpp",
                 [
                     GenTuPass("#pragma once"),
                     GenTuInclude("haxorg/imm/ImmOrgBase.hpp", True),

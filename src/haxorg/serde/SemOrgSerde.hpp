@@ -453,13 +453,16 @@ struct proto_serde<orgproto::org_parse::SourceLoc, org::parse::SourceLoc> {
         out->set_line(in.line);
         out->set_column(in.column);
         out->set_pos(in.pos);
+        out->mutable_file()->set_id(in.file_id.getValue());
     }
     static void read(
         orgproto::org_parse::SourceLoc const&       out,
         proto_write_accessor<org::parse::SourceLoc> in) {
-        in.get().pos    = out.pos();
-        in.get().line   = out.line();
-        in.get().column = out.column();
+        in.get().pos     = out.pos();
+        in.get().line    = out.line();
+        in.get().column  = out.column();
+        in.get().file_id = org::parse::SourceFileId::FromValue(
+            out.file().id());
     }
 };
 

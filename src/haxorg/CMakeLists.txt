@@ -26,7 +26,16 @@ if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
     "${BASE}/src/haxorg/serde/SemOrgProtoManual.proto"
     PROTOC_OUT_DIR
     "${CMAKE_CURRENT_BINARY_DIR}")
+
+  # Create a custom target for protobuf generation
+  add_custom_target(haxorg_generate_protobuf
+    DEPENDS ${ORG_PROTO_GENERATED_FILES}
+    COMMENT "Generating protobuf files"
+  )
+
   target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
+  add_dependencies(haxorg haxorg_generate_protobuf)
+  message(STATUS "ORG_PROTO_GENERATED_FILES = ${ORG_PROTO_GENERATED_FILES}")
 endif()
 
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json
