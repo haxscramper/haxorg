@@ -10,10 +10,7 @@ CAT = "haxorg.export.pandoc"
 
 
 @beartype
-def export_pandoc(
-    opts: haxorg_opts.RootOptions,
-    run: Optional[haxorg_cli.CliRunContext] = None,
-) -> None:
+def export_pandoc(ctx: haxorg_cli.CliRunContext) -> None:
     assert opts.export
     assert opts.export.pandoc
     assert opts.export.pandoc.infile

@@ -14,10 +14,7 @@ CAT = __name__
 
 
 @beartype
-def node_clouds(
-    opts: haxorg_opts.RootOptions,
-    run: Optional[haxorg_cli.CliRunContext] = None,
-) -> None:
+def node_clouds(ctx: haxorg_cli.CliRunContext) -> None:
     if not run:
         run = haxorg_cli.get_run(opts)  # type: ignore
 

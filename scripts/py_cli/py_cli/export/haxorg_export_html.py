@@ -8,15 +8,14 @@ CAT = "haxorg.export.html"
 
 
 @beartype
-def export_html(opts: haxorg_opts.RootOptions,
-                run: Optional[haxorg_cli.CliRunContext] = None) -> None:
+def export_html(ctx: haxorg_cli.CliRunContext) -> None:
     assert opts.export
     assert opts.export.html
     assert opts.export.html.infile
     assert opts.export.html.outfile
 
     if not run:
-        run = haxorg_cli.get_run(opts) # type: ignore
+        run = haxorg_cli.get_run(opts)  # type: ignore
 
     with run.event("Run html export", CAT):
         node = haxorg_cli.parseCachedFile(opts, opts.export.html.infile)

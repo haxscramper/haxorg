@@ -264,9 +264,7 @@ def _generate_tag_files(
 
 
 @beartype
-def sort_reposutory_tags(
-        opts: haxorg_opts.RootOptions,
-        run: Optional[haxorg_cli.CliRunContext] = None) -> TagCollectionArtifacts:
+def sort_reposutory_tags(ctx: haxorg_cli.CliRunContext) -> TagCollectionArtifacts:
     if not run:
         run = haxorg_cli.get_run(opts)  # type: ignore
 
@@ -278,7 +276,7 @@ def sort_reposutory_tags(
     def parse_node_impl(path: str) -> org.Org:
         try:
             result = haxorg_cli.parseCachedFile(
-                opts,
+                run,
                 Path(path),
                 parse_opts=haxorg_cli.getParseOpts(opts, Path(path)),
             )
@@ -301,7 +299,7 @@ def sort_reposutory_tags(
 
     org.eachSubnodeRec(target, visit_target)
 
-    glossary = haxorg_cli.parseCachedFile(opts,
+    glossary = haxorg_cli.parseCachedFile(run,
                                           Path(opts.generate.sort_tags.tag_glossary_file))
 
     glossary_usage = set()

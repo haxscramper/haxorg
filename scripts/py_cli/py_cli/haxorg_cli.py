@@ -10,13 +10,10 @@ from beartype.typing import Any, Dict, List, Optional, TypeVar
 from py_cli.haxorg_opts import RootOptions
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import (DefaultWrapperValue,
-                                                 apply_options, get_cli_model,
-                                                 get_user_provided_params,
-                                                 make_config_provider,
-                                                 merge_cli_model,
-                                                 options_from_model,
-                                                 pack_context,
+from py_scriptutils.toml_config_profiler import (DefaultWrapperValue, apply_options,
+                                                 get_cli_model, get_user_provided_params,
+                                                 make_config_provider, merge_cli_model,
+                                                 options_from_model, pack_context,
                                                  run_config_provider)
 from py_scriptutils.tracer import TraceCollector
 
@@ -30,6 +27,7 @@ class CliRunContext:
     def __init__(self, opts: RootOptions) -> None:
         self.tracer = TraceCollector()
         self.opts = opts
+        self.parse = org.ParseContext()
 
     def event(self, name: str, category: str, args: Dict[str, Any] = {}) -> Any:
         return self.tracer.complete_event(name=name, category=category, args=args)
@@ -44,53 +42,47 @@ class CliRunContext:
             log("haxorg.cli").info(f"Wrote execution trace to {self.opts.trace_path}")
 
 
-def get_run(opts: RootOptions) -> CliRunContext:
-    return CliRunContext(opts)
-
-
 @beartype
 def parseFile(
-    opts: RootOptions,
+    ctx: CliRunContext,
     file: Path,
     parse_opts: Optional[org.OrgParseParameters] = None,
 ) -> org.Org:
     result: org.Org = None  # type: ignore
-    if opts.follow_includes:
+    if ctx.opts.follow_includes:
         dir_opts = org.OrgDirectoryParseParameters()
         if parse_opts:
-            parse_opts.currentFile = str(file)
 
             def parse_node_impl(path: str) -> org.Org:
-                return org.parseStringOpts(Path(path).read_text(), parse_opts)
+                return ctx.parse.parseFileOpts(path, parse_opts)
 
             org.setGetParsedNode(dir_opts, parse_node_impl)
 
         result = org.parseFileWithIncludes(str(file.resolve()), dir_opts)
     else:
         if parse_opts:
-            parse_opts.currentFile = str(file)
-            result = org.parseStringOpts(file.read_text(), parse_opts)
+            result = ctx.parse.parseFileOpts(str(file.resolve()), parse_opts)
         else:
-            result = org.parseFile(str(file.resolve()))
+            result = ctx.parse.parseFile(str(file.resolve()))
 
     def get_file(dir: str, suffix: str) -> str:
         result = Path(dir).joinpath(f"{file.stem}").with_suffix(suffix)
         result.parent.mkdir(exist_ok=True, parents=True)
         return str(result)
 
-    if opts.yamlDump_traceDir:
+    if ctx.opts.yamlDump_traceDir:
         org.exportToYamlFile(
-            result, str(get_file(opts.yamlDump_traceDir, ".yaml")),
+            result, str(get_file(ctx.opts.yamlDump_traceDir, ".yaml")),
             org.OrgYamlExportOpts(
                 skipNullFields=True,
                 skipLocation=True,
             ))
 
-    if opts.jsonDump_traceDir:
-        org.exportToJsonFile(result, str(get_file(opts.jsonDump_traceDir, ".json")))
+    if ctx.opts.jsonDump_traceDir:
+        org.exportToJsonFile(result, str(get_file(ctx.opts.jsonDump_traceDir, ".json")))
 
-    if opts.treeDump_traceDir:
-        org.exportToTreeFile(result, str(get_file(opts.treeDump_traceDir, ".txt")),
+    if ctx.opts.treeDump_traceDir:
+        org.exportToTreeFile(result, str(get_file(ctx.opts.treeDump_traceDir, ".txt")),
                              org.OrgTreeExportOpts())
 
     return result
@@ -98,16 +90,16 @@ def parseFile(
 
 @beartype
 def parseCachedFile(
-    opts: RootOptions,
+    ctx: CliRunContext,
     file: Path,
     parse_opts: Optional[org.OrgParseParameters] = None,
 ) -> org.Org:
-    cache_file = None if not opts.cache else Path(opts.cache).joinpath(file.name)
+    cache_file = None if not ctx.opts.cache else Path(ctx.opts.cache).joinpath(file.name)
 
     if cache_file:
         with FileOperation.InOut([file], [cache_file]) as op:
             if op.should_run():
-                node = parseFile(opts, file, parse_opts)
+                node = parseFile(ctx, file, parse_opts)
                 if not cache_file.parent.exists():
                     cache_file.parent.mkdir()
 
@@ -120,7 +112,7 @@ def parseCachedFile(
             return node
 
     else:
-        return parseFile(opts, file, parse_opts)
+        return parseFile(ctx, file, parse_opts)
 
 
 @beartype
@@ -150,22 +142,22 @@ def getParseOpts(root: RootOptions, infile: Path) -> org.OrgParseParameters:
 
 
 @beartype
-def parseDirectory(opts: RootOptions, dir: Path) -> org.Org:
+def parseDirectory(ctx: CliRunContext, dir: Path) -> org.Org:
     dir_opts = org.OrgDirectoryParseParameters()
 
     def parse_node_impl(path: str) -> org.Org:
         try:
             start = time.perf_counter()
             result = parseCachedFile(
-                opts,
+                ctx,
                 Path(path),
-                parse_opts=getParseOpts(opts, Path(path)),
+                parse_opts=getParseOpts(ctx.opts, Path(path)),
             )
 
             elapsed = time.perf_counter() - start
 
             log(CAT).info(f"Parsed '{path}' in {elapsed:.3f} sec")
- 
+
             return result
 
         except Exception as e:
@@ -188,13 +180,21 @@ def parseDirectory(opts: RootOptions, dir: Path) -> org.Org:
 
 
 @beartype
-def parsePathList(opts: RootOptions, paths: List[Path]) -> List[org.Org]:
-    return [parseDirectory(opts, path) for path in paths]
+def parsePathList(ctx: CliRunContext, paths: List[Path]) -> List[org.Org]:
+    return [parseDirectory(ctx, path) for path in paths]
 
 
 @beartype
 def get_opts(ctx: click.Context) -> RootOptions:
     return pack_context(ctx, RootOptions, cli_kwargs=get_user_provided_params(ctx))
+
+
+def get_run(opts: RootOptions | click.Context) -> CliRunContext:
+    if isinstance(opts, RootOptions):
+        return CliRunContext(opts)
+
+    else:
+        return CliRunContext(get_opts(opts))
 
 
 @beartype
