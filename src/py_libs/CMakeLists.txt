@@ -8,9 +8,9 @@ if(${ORG_USE_PYTHON_BINDINGS})
   set_target_properties(py_textlayout_cpp PROPERTIES OUTPUT_NAME "py_textlayout_cpp" SUFFIX ".so")
 
   target_include_directories(py_textlayout_cpp PUBLIC "${BASE}" "${BASE}/src/py_libs"
-                                                      ${PYTHON_INCLUDE_DIRS})
+                                                      ${Python_INCLUDE_DIRS})
 
-  target_link_libraries(py_textlayout_cpp PRIVATE hstd ${PYTHON_LIBRARIES} absl::base absl::log
+  target_link_libraries(py_textlayout_cpp PRIVATE hstd ${Python_LIBRARIES} absl::base absl::log
                                                   absl::flags)
 
   if(${ORG_USE_SANITIZER})
@@ -33,9 +33,9 @@ if(${ORG_USE_PYTHON_BINDINGS})
 
   set_target_properties(pyhaxorg PROPERTIES OUTPUT_NAME "pyhaxorg" SUFFIX ".so")
 
-  target_include_directories(pyhaxorg PUBLIC "${BASE}" "${BASE}/src/py_libs" ${PYTHON_INCLUDE_DIRS})
+  target_include_directories(pyhaxorg PUBLIC "${BASE}" "${BASE}/src/py_libs" ${Python_INCLUDE_DIRS})
 
-  target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} haxorg)
+  target_link_libraries(pyhaxorg PRIVATE hstd ${Python_LIBRARIES} haxorg)
 
   if(${ORG_USE_SANITIZER})
     target_link_libraries(pyhaxorg PRIVATE ubsan)
@@ -60,9 +60,9 @@ if(${ORG_USE_PYTHON_BINDINGS})
 
   target_include_directories(
     pyhaxorg_test_main PUBLIC "${BASE}" "${BASE}/src/py_libs" "${DEPS_DIR}/pybind11/include"
-                              ${PYTHON_INCLUDE_DIRS})
+                              ${Python_INCLUDE_DIRS})
 
-  target_link_libraries(pyhaxorg_test_main PRIVATE hstd ${PYTHON_LIBRARIES} haxorg)
+  target_link_libraries(pyhaxorg_test_main PRIVATE hstd ${Python_LIBRARIES} haxorg)
 
   if(${ORG_USE_SANITIZER})
     target_link_libraries(pyhaxorg_test_main PRIVATE ubsan)

@@ -9,7 +9,7 @@
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
-#include <haxorg/sem/SemOrgCereal.hpp>
+#include <haxorg/serde/SemOrgCereal.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <utility>
 

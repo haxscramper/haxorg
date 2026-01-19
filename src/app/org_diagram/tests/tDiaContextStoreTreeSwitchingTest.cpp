@@ -75,7 +75,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     void testFromRegularText() {
         DiaVersionStore manager{
             org::imm::ImmAstContext::init_start_context(),
-            DiaContext::shared()};
+            DiaContext::shared(),
+            org::parse::ParseContext::shared()};
         manager.addDocument("*bold*");
         manager.addDocument("/italic/");
     }
@@ -83,7 +84,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     void testGetSimpleDifference() {
         DiaVersionStore manager{
             org::imm::ImmAstContext::init_start_context(),
-            DiaContext::shared()};
+            DiaContext::shared(),
+            org::parse::ParseContext::shared()};
         manager.addDocument("word");
         manager.addDocument("word second");
     }

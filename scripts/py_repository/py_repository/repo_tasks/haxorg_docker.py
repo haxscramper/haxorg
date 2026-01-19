@@ -14,7 +14,7 @@ from py_ci.util_scripting import get_docker_cap_flags
 from py_repository.repo_tasks.deps_build import build_develop_deps
 from py_repository.repo_tasks.examples_build import build_examples, run_examples, run_js_test_example
 from py_repository.repo_tasks.haxorg_build import build_haxorg, install_haxorg_develop
-from py_repository.repo_tasks.haxorg_codegen import generate_haxorg_sources, generate_include_graph, generate_python_protobuf_files
+from py_repository.repo_tasks.haxorg_codegen import generate_binary_size_report, generate_haxorg_sources, generate_include_graph, generate_python_protobuf_files
 from py_repository.repo_tasks.haxorg_coverage import run_cxx_coverage_merge
 from py_repository.repo_tasks.haxorg_docs import build_custom_docs
 from py_repository.repo_tasks.haxorg_tests import run_py_tests
@@ -410,6 +410,9 @@ def run_develop_ci(ctx: TaskContext) -> None:
 
     if conf.develop_ci_conf.include_graph:
         ctx.run(generate_include_graph, ctx=ctx)
+
+    if conf.develop_ci_conf.symbol_size:
+        ctx.run(generate_binary_size_report, ctx=ctx)
 
     log(CAT).info("Running EMCC task set")
     emcc_conf = conf.model_copy()

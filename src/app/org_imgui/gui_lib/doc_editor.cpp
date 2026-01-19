@@ -389,11 +389,11 @@ int DocBlock::getDepth() const {
 
 void doc_editor_loop(
     GLFWwindow*                    window,
-    org::sem::SemId<org::sem::Org> node) {
+    org::sem::SemId<org::sem::Org> node,
+    org::parse::ParseContext::Ptr  parse_context) {
     auto          ast_ctx = org::imm::ImmAstContext::init_start_context();
     DocBlockModel model;
-    auto parseContext = std::make_shared<org::parse::ParseContext>();
-    EditableOrgDocGroup docs{ast_ctx, parseContext};
+    EditableOrgDocGroup docs{ast_ctx, parse_context};
     DocBlockConfig      conf;
 
     conf.laneConf.getDefaultBlockMargin =

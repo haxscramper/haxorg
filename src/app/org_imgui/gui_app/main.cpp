@@ -424,6 +424,7 @@ int main(int argc, char** argv) {
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
+    org::parse::ParseContext::Ptr parse_context;
 
 
     hstd::Opt<json> appstate;
@@ -441,23 +442,20 @@ int main(int argc, char** argv) {
         }
         case Config::Mode::SemTree: {
             auto path = hstd::fs::path{conf.file.front().toBase()};
-            auto node = org::parseString(
-                hstd::readFile(path), path.native());
+            auto node = parse_context->parseFile(path);
             sem_tree_loop(window, node);
             break;
         }
         case Config::Mode::Outline: {
             auto path = hstd::fs::path{conf.file.front().toBase()};
-            auto node = org::parseString(
-                hstd::readFile(path), path.native());
+            auto node = parse_context->parseFile(path);
             outline_tree_loop(window, node);
             break;
         }
         case Config::Mode::DocEditor: {
             auto path = hstd::fs::path{conf.file.front().toBase()};
-            auto node = org::parseString(
-                hstd::readFile(path), path.native());
-            doc_editor_loop(window, node);
+            auto node = parse_context->parseFile(path);
+            doc_editor_loop(window, node, parse_context);
             break;
         }
 

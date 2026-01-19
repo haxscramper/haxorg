@@ -43,7 +43,7 @@ TEST(ManualFileRun, TestCoverallOrg) {
 
         org::parse::ParseContext ctx;
         auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(ctx.parseString(file, content));
+        auto n     = start->init(ctx.parseString(content, file));
 
         writeFile(
             getDebugFile("imm_repr_subnodes_only.txt"),
@@ -125,7 +125,7 @@ TEST(ManualFileRun, TestDoc1) {
 
         auto start = imm::ImmAstContext::init_start_context();
         org::parse::ParseContext ctx;
-        auto n = start->init(ctx.parseString(file, content));
+        auto n = start->init(ctx.parseString(content, file));
 
         writeFile(
             getDebugFile("TestDoc1_clean.txt"),
@@ -168,7 +168,7 @@ TEST(ManualFileRun, TestDoc2) {
 
         auto start = imm::ImmAstContext::init_start_context();
         org::parse::ParseContext ctx;
-        auto n = start->init(ctx.parseString(file, content));
+        auto n = start->init(ctx.parseString(content, file));
     }
 }
 

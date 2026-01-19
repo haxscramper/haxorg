@@ -16,14 +16,6 @@ namespace org {
 [[refl]] std::shared_ptr<imm::ImmAstContext> initImmutableAstContext();
 
 
-
-hstd::Vec<hstd::ext::Report> collectDiagnostics(
-    hstd::ext::StrCache&                  cache,
-    org::sem::SemId<org::sem::Org> const& tree);
-
-hstd::Vec<sem::SemId<sem::ErrorGroup>> collectErrorNodes(
-    org::sem::SemId<org::sem::Org> const& tree);
-
 /// \brief Remove outer wrapper containers from a node and return its
 /// single subnode.
 ///

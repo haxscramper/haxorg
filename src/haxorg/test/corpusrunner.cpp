@@ -535,11 +535,12 @@ json toTestJson(org::sem::OrgArg arg) {
 }
 
 CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
-    CR<ParseSpec>        spec,
-    sem::SemId<sem::Org> node,
-    json                 expected) {
+    CR<ParseSpec>                 spec,
+    sem::SemId<sem::Org>          node,
+    json                          expected,
+    org::parse::ParseContext::Ptr parse_context) {
 
-    auto errors = org::collectErrorNodes(node);
+    auto errors = parse_context->collectErrorNodes(node);
 
     HSLOG_INFO_DEPTH_SCOPE_ANON("Running sem comparison");
     HSLOG_TRACE("Error count {}", errors.size());
@@ -891,7 +892,10 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     }
 
     __perf_trace("cli", "tokenize base");
-    p.tokenizeBase(spec.source, params);
+    p.tokenizeBase(
+        spec.source,
+        params,
+        p.parseContext->addSource("<spec-base-lex>", spec.source));
 
     if (spec.debug.traceAll || spec.debug.printBaseLexed
         || spec.debug.printBaseLexedToFile) {
@@ -1143,7 +1147,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
             return spec.source.toBase();
         };
 
-        auto reports = org::collectDiagnostics(cache, p.node);
+        auto reports = p.parseContext->collectDiagnostics(p.node);
 
         writeFile(
             spec,
@@ -1184,9 +1188,10 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 
 
     if (spec.sem.has_value()) {
-        return compareSem(spec, document, spec.sem.value());
+        return compareSem(
+            spec, document, spec.sem.value(), p.parseContext);
     } else {
-        auto errors = org::collectErrorNodes(document.asOrg());
+        auto errors = p.parseContext->collectErrorNodes(document.asOrg());
         if (errors.empty()) {
             HSLOG_INFO("Parse OK, no errors detected, no errors expected");
             return RunResult::SemCompare{{.isOk = true}};

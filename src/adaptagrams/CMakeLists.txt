@@ -41,7 +41,7 @@ if(NOT ${ORG_EMCC_BUILD})
   set_target_properties(py_adaptagrams PROPERTIES OUTPUT_NAME "py_adaptagrams" SUFFIX ".so")
 
   haxorg_target_setup_v2(TARGET py_adaptagrams FORCE_NO_ASAN ON)
-  target_link_libraries(py_adaptagrams PRIVATE hstd ${PYTHON_LIBRARIES} haxorg adaptagrams)
+  target_link_libraries(py_adaptagrams PRIVATE hstd ${Python_LIBRARIES} haxorg adaptagrams)
   if(${ORG_USE_SANITIZER})
     target_link_libraries(py_adaptagrams PRIVATE ubsan)
   endif()

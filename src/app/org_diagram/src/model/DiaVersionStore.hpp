@@ -6,6 +6,7 @@
 #include <org_diagram/src/model/nodes/DiagramTreeNode.hpp>
 #include <QObject>
 #include <hstd/stdlib/Ranges.hpp>
+#include <haxorg/api/ParseContext.hpp>
 
 template <>
 struct std::formatter<org::imm::ImmOrg*>
@@ -19,8 +20,9 @@ struct DiaVersionStore
     Q_OBJECT
   public:
     DiaVersionStore(
-        org::imm::ImmAstContext::Ptr context,
-        DiaContext::Ptr              dia_context);
+        org::imm::ImmAstContext::Ptr  context,
+        DiaContext::Ptr               dia_context,
+        org::parse::ParseContext::Ptr parse_context);
 
     struct EditTarget {
         struct Existing {
@@ -184,6 +186,7 @@ struct DiaVersionStore
 
     org::imm::ImmAstContext::Ptr                        imm_context;
     DiaContext::Ptr                                     dia_context;
+    org::parse::ParseContext::Ptr                       parse_context;
     hstd::Vec<org::imm::ImmAstVersion>                  history;
     int                                                 active = -1;
     hstd::UnorderedMap<org::imm::ImmUniqId, DiaAdapter> dia_trees;

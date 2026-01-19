@@ -155,8 +155,8 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
               org::imm::ImmAstContext::init_start_context(),
               DirectSubnodes} {
         org::parse::ParseContext ctx;
-        SemSrc = ctx.parseString("<src>", Src);
-        SemDst = ctx.parseString("<dst>", Dst);
+        SemSrc = ctx.parseString(Src, "<src>");
+        SemDst = ctx.parseString(Dst, "<dst>");
         {
             HSLOG_INFO("Add SRC root");
             HSLOG_DEPTH_SCOPE_ANON();

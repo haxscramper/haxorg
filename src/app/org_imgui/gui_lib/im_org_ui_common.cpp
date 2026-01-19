@@ -315,7 +315,7 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
 org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
     const org::imm::ImmAdapter& origin,
     const std::string&          text) {
-    auto parse = parseContext->parseString("<text>", text);
+    auto parse = parseContext->parseString(text, "<text>");
     if (parse->is(OrgSemKind::Document)
         || parse->is(OrgSemKind::StmtList)) {
         return replaceNode(

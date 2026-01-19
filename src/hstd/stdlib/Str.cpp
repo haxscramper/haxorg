@@ -3,6 +3,24 @@
 
 using namespace hstd;
 
+Str::Str(const char* conv) : std::string(conv) {}
+
+Str::Str(const char* conv, int size) : std::string(conv, size) {}
+
+Str::Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
+
+Str::Str(int count, char c) : std::string(count, c) {}
+
+Str::Str(char c) : std::string(1, c) {}
+
+char* Str::data() { return std::string::data(); }
+
+const char* Str::data() const { return std::string::data(); }
+
+Str Str::substr(int start, int count) const {
+    return Str(std::string::substr(start, count));
+}
+
 Str hstd::Str::dropPrefix(CR<Str> prefix) const {
     if (this->starts_with(prefix)) {
         return substr(prefix.size());
@@ -49,6 +67,8 @@ Str hstd::Str::replaceAll(const Str& from, const Str& to) const {
     return result;
 }
 
+char& Str::at(BackwardsIndex pos) { return at(size() - pos.value); }
+
 Vec<Str> hstd::Str::split(char delimiter) const {
     Vec<Str>           tokens;
     Str                token;
@@ -77,6 +97,22 @@ Vec<Str> hstd::Str::split(const Str& delimiter) const {
     return tokens;
 }
 
+float Str::toFloat() const { return std::stof(*this); }
+
+float Str::toDouble() const { return std::stod(*this); }
+
+int Str::toInt() const { return std::stoi(*this); }
+
+void Str::append(const Str& str) { std::string::append(str.toBase()); }
+
+int Str::size() const { return static_cast<int>(std::string::size()); }
+
+bool Str::contains(char ch) const { return find(ch) != std::string::npos; }
+
+bool Str::contains(const Str& ch) const {
+    return find(ch) != std::string::npos;
+}
+
 Str Str::join(const Vec<Str>& items) const {
     Str res;
     for (int i = 0; i < items.size(); ++i) {
@@ -93,5 +129,9 @@ Str hstd::Str::repeated(int N) const {
     for (int i = 0; i < N; ++i) { result += *this; }
     return result;
 }
+
+bool Str::empty() const { return size() == 0; }
+
+const std::string& Str::toBase() const { return *this; }
 
 int hstd::Str::runeLen() const { return rune_length(*this); }

@@ -510,10 +510,12 @@ ImmTestResult<Imm> immConv(sem::SemId<Sem> const& id) {
 }
 
 struct ImmOrgApiTestBase : public ::testing::Test {
-    imm::ImmAstContext::Ptr start;
+    imm::ImmAstContext::Ptr       start;
+    org::parse::ParseContext::Ptr parseContext;
 
     ImmOrgApiTestBase()
-        : start{imm::ImmAstContext::init_start_context()} {}
+        : start{imm::ImmAstContext::init_start_context()}
+        , parseContext{org::parse::ParseContext::shared()} {}
 
     void setTraceFile(std::string const& path) {
         start->debug->setTraceFile(path);

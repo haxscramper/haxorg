@@ -21,6 +21,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
+#include <haxorg/api/ParseContext.hpp>
 
 
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
@@ -33,7 +34,7 @@
 #include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
-#include <haxorg/sem/SemOrgCereal.hpp>
+#include <haxorg/serde/SemOrgCereal.hpp>
 
 
 PYBIND11_DECLARE_HOLDER_TYPE(T, org::sem::SemId<T>);
@@ -65,8 +66,8 @@ org::sem::SemId<org::sem::Org> getSingleSubnode(
     org::sem::SemId<org::sem::Org> node,
     py::function                   callback);
 
-struct [[refl(
-    R"({ "backend": {"target-backends": ["python"]}})")]] PyCodeEvalParameters {
+struct [[refl(R"({ "backend": {"target-backends": ["python"]}})")]]
+PyCodeEvalParameters {
     hstd::SPtr<hstd::OperationsTracer> debug;
     [[refl]] py::function              evalBlock;
 
@@ -79,8 +80,8 @@ struct [[refl(
 };
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setShouldProcessPath(
-    OrgDirectoryParseParameters* parameters,
-    py::function                 callback);
+    org::parse::OrgDirectoryParseParameters* parameters,
+    py::function                             callback);
 
 [[refl(R"({
   "backend": {
@@ -153,15 +154,17 @@ struct [[refl(
 
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setGetParsedNode(
-    OrgDirectoryParseParameters* params,
-    py::function                 callback);
+    parse::OrgDirectoryParseParameters* params,
+    py::function                        callback);
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] org::sem::SemId<sem::Org> evaluateCodeBlocks(
-    org::sem::SemId<org::sem::Org> node,
-    PyCodeEvalParameters const&    conf);
+    org::sem::SemId<org::sem::Org>            node,
+    PyCodeEvalParameters const&               conf,
+    std::shared_ptr<org::parse::ParseContext> parse_context);
 
 enum class [[refl(
-    R"({"backend": {"target-backends": ["python"]}})")]] LeafFieldType{
+    R"({"backend": {"target-backends": ["python"]}})")]] LeafFieldType
+{
     Int,
     UserTimeKind,
     QDate,
@@ -170,7 +173,8 @@ enum class [[refl(
     TopIdVec,
     QDateTime,
     Str,
-    Any};
+    Any
+};
 
 } // namespace org::bind::python
 
@@ -239,9 +243,8 @@ template <typename T, typename... Ts>
 concept IsOneOf = FixedTypeUnion<Ts...>::template contains<
     std::remove_cvref_t<T>>;
 
-struct [[refl(
-    R"({"backend": {"target-backends": ["python"]}})")]] ExporterPython
-    : org::algo::Exporter<ExporterPython, py::object> {
+struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]]
+ExporterPython : org::algo::Exporter<ExporterPython, py::object> {
     using Base = org::algo::Exporter<ExporterPython, py::object>;
 #define __ExporterBase Base
     EXPORTER_USING()
@@ -270,8 +273,9 @@ struct [[refl(
             trace(kind)
                 .with_node(node)
                 .with_loc(line, function)
-                .with_msg(hstd::fmt(
-                    "no callback for node kind {}", node->getKind())));
+                .with_msg(
+                    hstd::fmt(
+                        "no callback for node kind {}", node->getKind())));
     }
 
     VisitScope trace_leaf(

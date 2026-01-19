@@ -34,24 +34,17 @@ struct [[refl(
     }
   }
 })")]] OrgParseParameters : public hstd::SharedPtrApi<OrgParseParameters> {
-    [[refl]] hstd::Opt<std::string>   baseTokenTracePath = std::nullopt;
-    [[refl]] hstd::Opt<std::string>   tokenTracePath     = std::nullopt;
-    [[refl]] hstd::Opt<std::string>   parseTracePath     = std::nullopt;
-    [[refl]] hstd::Opt<std::string>   semTracePath       = std::nullopt;
-    [[refl]] org::parse::SourceFileId currentFile        = org::parse::
-        SourceFileId::Nil();
-
+    [[refl]] hstd::Opt<std::string> baseTokenTracePath = std::nullopt;
+    [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
+    [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
+    [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
     hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)>
         getFragments;
 
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,
         (),
-        (baseTokenTracePath,
-         tokenTracePath,
-         parseTracePath,
-         semTracePath,
-         currentFile),
+        (baseTokenTracePath, tokenTracePath, parseTracePath, semTracePath),
         (),
         ());
 };
@@ -93,14 +86,17 @@ struct [[refl(
 };
 
 
-struct [[refl]] ParseContext {
+struct [[refl]] ParseContext : public hstd::SharedPtrApi<ParseContext> {
     hstd::SPtr<SourceManager> source;
+
+    ParseContext();
+    ParseContext(hstd::SPtr<SourceManager> const& source);
+
+    [[refl]] hstd::ext::StrCache getDiagnosticStrings();
 
     [[refl]] SourceFileId addSource(
         std::string const& path,
-        std::string const& content) const {
-        return source->addSource(path, content);
-    }
+        std::string const& content) const;
 
     [[refl]] sem::SemId<sem::Org> parseFileOpts(
         std::string const&                         file,
@@ -109,12 +105,16 @@ struct [[refl]] ParseContext {
     [[refl]] sem::SemId<sem::Org> parseFile(std::string const& file);
 
     [[refl]] sem::SemId<sem::Org> parseString(
-        std::string const& path,
-        std::string const& text);
+        std::string const& text,
+        std::string const& file_name);
 
     [[refl]] sem::SemId<sem::Org> parseStringOpts(
         std::string const                          text,
+        std::string const&                         file_name,
         std::shared_ptr<OrgParseParameters> const& opts);
+
+    [[refl]] hstd::Opt<sem::SemId<sem::Org>> parseDirectory(
+        std::string const& path);
 
     [[refl]] hstd::Opt<sem::SemId<sem::Org>> parseDirectoryOpts(
         std::string const&                                  path,
@@ -123,11 +123,6 @@ struct [[refl]] ParseContext {
     [[refl]] sem::SemId<sem::File> parseFileWithIncludes(
         std::string const&                                  file,
         std::shared_ptr<OrgDirectoryParseParameters> const& opts);
-
-    void setDescriptionListItemBody(
-        sem::SemId<sem::List>           list,
-        hstd::CR<hstd::Str>             text,
-        hstd::Vec<sem::SemId<sem::Org>> value);
 
     [[refl]] hstd::Vec<hstd::ext::Report> collectDiagnostics(
         org::sem::SemId<org::sem::Org> const& tree);

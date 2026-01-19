@@ -39,7 +39,7 @@ sem::SemId<sem::Org> testParseString(
     const std::string&         text,
     std::optional<std::string> debug) {
     org::test::MockFull p{"<test>", debug.has_value(), debug.has_value()};
-    sem::OrgConverter   converter{"<test>"};
+    sem::OrgConverter   converter{};
     org::parse::LexerParams params;
     if (debug) {
         p.tokenizer->setTraceFile(
@@ -50,13 +50,19 @@ sem::SemId<sem::Org> testParseString(
         p.parser->traceColored    = false;
         p.tokenizer->traceColored = false;
         params.setTraceFile(fs::path{debug.value() + "_lex_trace.log"});
-        p.tokenizeBase(text, params);
+        p.tokenizeBase(
+            text,
+            params,
+            p.parseContext->addSource("<mock-full-run>", text));
 
         writeFile(
             fs::path{debug.value() + "_base_lexed.yaml"},
             std::format("{}", org::test::yamlRepr(p.baseTokens)));
     } else {
-        p.tokenizeBase(text, params);
+        p.tokenizeBase(
+            text,
+            params,
+            p.parseContext->addSource("<mock-full-run>", text));
     }
 
     p.tokenizeConvert();
@@ -89,8 +95,9 @@ sem::SemId<sem::Org> testParseString(
     }
 
     auto res = converter
-                   .convertDocument(org::parse::OrgAdapter(
-                       &p.nodes, org::parse::OrgId(0)))
+                   .convertDocument(
+                       org::parse::OrgAdapter(
+                           &p.nodes, org::parse::OrgId(0)))
                    .value();
 
     if (debug) {

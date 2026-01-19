@@ -51,10 +51,11 @@ class CliApplication : public QCoreApplication {
   public:
     StartupArgc conf;
 
-    org::imm::ImmAstContext::Ptr imm_context;
-    DiaContext::Ptr              dia_context;
-    DiaVersionStore::Ptr         version_store;
-    hstd::SPtr<DiaGraph>         dia_graph;
+    org::imm::ImmAstContext::Ptr  imm_context;
+    org::parse::ParseContext::Ptr parse_context;
+    DiaContext::Ptr               dia_context;
+    DiaVersionStore::Ptr          version_store;
+    hstd::SPtr<DiaGraph>          dia_graph;
 
     hstd::SPtr<DiaHierarchyEdgeCollection> hierarchy_collection;
     hstd::SPtr<DiaSubtreeIdTracker>        subtree_id_tracker;
@@ -66,7 +67,11 @@ class CliApplication : public QCoreApplication {
         , conf{conf}
         , imm_context{org::imm::ImmAstContext::init_start_context()}
         , dia_context{DiaContext::shared()}
-        , version_store{DiaVersionStore::shared(imm_context, dia_context)}
+        , parse_context{org::parse::ParseContext::shared()}
+        , version_store{DiaVersionStore::shared(
+              imm_context,
+              dia_context,
+              parse_context)}
         , dia_graph{std::make_shared<DiaGraph>(dia_context)}
         , hierarchy_collection{std::make_shared<
               DiaHierarchyEdgeCollection>(dia_context, dia_graph)}

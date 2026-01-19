@@ -91,6 +91,27 @@ struct convert<typename org::parse::Token<K, V>> {
 };
 
 template <>
+struct convert<org::parse::SourceLoc> {
+    static Node encode(org::parse::SourceLoc const& str) {
+        Node result;
+        result["line"]    = str.line;
+        result["column"]  = str.column;
+        result["file_id"] = str.file_id.getValue();
+        result["pos"]     = str.pos;
+        return result;
+    }
+    static bool decode(Node const& in, org::parse::SourceLoc& out) {
+        out.column  = in["column"].as<int>();
+        out.line    = in["line"].as<int>();
+        out.pos     = in["pos"].as<int>();
+        out.file_id = org::parse::SourceFileId::FromValue(
+            in["file_id"].as<int>());
+        return true;
+    }
+};
+
+
+template <>
 struct convert<org::parse::OrgFill> {
     static Node encode(org::parse::OrgFill const& str) {
         Node result;

@@ -268,9 +268,9 @@ struct EvalContext {
         EVAL_SCOPE();
         EVAL_TRACE(fmt("Parsing stdout"));
         std::string activeName = hstd::fmt(
-            "{}-output-{}", currentFile, evalCounter);
+            "<{}-output-{}>", currentFile, evalCounter);
         auto doc = conf.parseContext->parseString(
-            activeName, out.stdoutText);
+            out.stdoutText, activeName);
         auto stmt = sem::SemId<sem::StmtList>::New();
         for (auto const& node : doc) {
             EVAL_TRACE(fmt("Result node {}", node->getKind()));

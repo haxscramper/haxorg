@@ -367,4 +367,5 @@ void apply_doc_block_actions(
 
 void doc_editor_loop(
     GLFWwindow*                    window,
-    org::sem::SemId<org::sem::Org> node);
+    org::sem::SemId<org::sem::Org> node,
+    org::parse::ParseContext::Ptr parse_context);

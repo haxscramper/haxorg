@@ -127,8 +127,9 @@ class DiaContextStoreIncomingEditTest : public QObject {
                                *scope.imm_context)
                                .as<org::sem::Subtree>();
 
-        org::sem::SemId<org::sem::Org> tmpDocument = org::parseString(
-            "item updated", "<test>");
+        org::sem::SemId<org::sem::Org>
+            tmpDocument = scope.parse_context->parseString(
+                "item updated", "<test>");
 
         org::sem::SemId<org::sem::Paragraph>
             tmpTitle = tmpDocument.at(0).as<org::sem::Paragraph>();

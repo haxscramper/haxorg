@@ -17,20 +17,18 @@ struct Str : public std::string {
         : std::string(view.data(), view.size()) {}
     explicit Str(std::string_view view)
         : std::string(view.data(), view.size()) {}
-    Str(const char* conv) : std::string(conv) {}
-    Str(const char* conv, int size) : std::string(conv, size) {}
-    Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
-    explicit Str(int count, char c) : std::string(count, c) {}
-    Str(char c) : std::string(1, c) {}
+    Str(const char* conv);
+    Str(const char* conv, int size);
+    Str(CR<std::string> it);
+    explicit Str(int count, char c);
+    Str(char c);
     Str()                 = default;
     Str(Str const& other) = default;
 
-    char*       data() { return std::string::data(); }
-    const char* data() const { return std::string::data(); }
+    char*       data();
+    const char* data() const;
 
-    Str substr(int start, int count = -1) const {
-        return Str(std::string::substr(start, count));
-    }
+    Str substr(int start, int count = -1) const;
 
 
     Str      dropPrefix(CR<Str> prefix) const;
@@ -38,18 +36,16 @@ struct Str : public std::string {
     char     at(int pos) const;
     char&    at(int pos);
     Str      replaceAll(const Str& from, const Str& to) const;
-    char&    at(BackwardsIndex pos) { return at(size() - pos.value); }
+    char&    at(BackwardsIndex pos);
     Vec<Str> split(char delimiter) const;
     Vec<Str> split(const Str& delimiter) const;
-    float    toFloat() const { return std::stof(*this); }
-    float    toDouble() const { return std::stod(*this); }
-    int      toInt() const { return std::stoi(*this); }
-    void     append(Str const& str) { std::string::append(str.toBase()); }
-    int      size() const { return static_cast<int>(std::string::size()); }
-    bool contains(char ch) const { return find(ch) != std::string::npos; }
-    bool contains(Str const& ch) const {
-        return find(ch) != std::string::npos;
-    }
+    float    toFloat() const;
+    float    toDouble() const;
+    int      toInt() const;
+    void     append(Str const& str);
+    int      size() const;
+    bool     contains(char ch) const;
+    bool     contains(Str const& ch) const;
 
     Str join(Vec<Str> const& items) const;
     Str repeated(int N) const;
@@ -81,8 +77,8 @@ struct Str : public std::string {
         return Span<char>(const_cast<char*>(this->data()), size());
     }
 
-    bool               empty() const { return size() == 0; }
-    std::string const& toBase() const { return *this; }
+    bool               empty() const;
+    std::string const& toBase() const;
 
     inline Str operator+(CR<Str> other) {
         Str res;
